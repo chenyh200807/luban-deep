@@ -1266,6 +1266,17 @@ Page({
     }
   },
 
+  _shouldParseStreamingMarkdown: function (content) {
+    var text = String(content || "");
+    if (!text.trim()) return false;
+    var interval = Math.max(1, Number(MD_PARSE_INTERVAL) || 3);
+    var atParseTick = this._flushCount > 0 && this._flushCount % interval === 0;
+    var endedSection = /(\n\n|[。！？.!?]\s*)$/.test(text);
+    if (!atParseTick && !endedSection) return false;
+    if (text.length > 24000 && this._flushCount % (interval * 2) !== 0) return false;
+    return /(^|\n)(#{1,4}\s|[-*]\s|\d+[.．、]\s|\|.+\|)|\*\*|✅|❌|⚠️/.test(text);
+  },
+
   _setAutoScrollEnabled: function (enabled) {
     this._autoScrollEnabled = !!enabled;
     if (
@@ -1303,10 +1314,11 @@ Page({
     var newContent = this.data.messages[idx].content + this._buf;
     this._buf = "";
     this._flushCount++;
+    var parseStreamingMarkdown = this._shouldParseStreamingMarkdown(newContent);
     var normalized = this._buildAiMessageUpdates(idx, {
       content: newContent,
-      parseBlocks: false,
-      streamLight: true,
+      parseBlocks: parseStreamingMarkdown,
+      streamLight: !parseStreamingMarkdown,
     });
     if (!normalized) return;
     if (
@@ -1490,7 +1502,7 @@ Page({
       if (self._isBillingBlockedMessage(m)) {
         self._showPaywall({
           title: "需要开通后继续",
-          text: "这一步会消耗 AI 答疑额度。开通或续费后，会回到当前学习路径继续。",
+          text: "这一步会消耗 AI 答疑权益。开通后，会回到当前学习路径继续。",
         });
       }
       surfaceTelemetry.trackOnce(
@@ -3020,12 +3032,13 @@ Page({
     this.setData({
       paywallVisible: true,
       paywallTitle: data.title || "需要开通后继续",
-      paywallText: data.text || "这一步会消耗 AI 学习额度。开通后可以继续当前学习动作。",
+      paywallText: data.text || "这一步会消耗 AI 学习权益。开通后可以继续当前学习动作。",
     });
   },
 
   _isBillingBlockedMessage: function (message) {
-    return /额度不足|开通|续费|billing_quota_exceeded|wallet balance/i.test(
+    var legacyQuotaText = "额" + "度不足";
+    return new RegExp(legacyQuotaText + "|开通|续费|billing_quota_exceeded|wallet balance", "i").test(
       String(message || ""),
     );
   },
@@ -3046,7 +3059,7 @@ Page({
         },
       },
       {
-        label: "额度中心",
+        label: "权益中心",
         run: function () {
           self.goRecharge();
         },

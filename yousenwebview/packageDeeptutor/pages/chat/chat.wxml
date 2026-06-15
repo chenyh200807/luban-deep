@@ -399,11 +399,10 @@ module.exports = {
               <!-- 结构化表格 -->
               <view wx:elif="{{b.type==='table' && b.isStructured}}">
                 <text class="md-table-caption" user-select wx:if="{{b.caption}}">{{b.caption}}</text>
-                <text class="md-table-strategy" user-select wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
                 <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
                   <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
-                    <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
-                    <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                    <text class="md-table-card-title" user-select>{{row[0] && row[0].text ? row[0].text : ('条目 ' + (rowIndex + 1))}}</text>
+                    <view wx:if="{{colIndex > 0}}" class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
                       <text class="md-table-card-key" user-select>{{h.text}}</text>
                       <text class="md-table-card-val" user-select>{{row[colIndex] ? row[colIndex].text : ''}}</text>
                     </view>
@@ -429,8 +428,8 @@ module.exports = {
               <view wx:elif="{{b.type==='table'}}">
                 <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
                   <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
-                    <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
-                    <view class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                    <text class="md-table-card-title" user-select>{{row[0] && row[0].text ? row[0].text : ('条目 ' + (rowIndex + 1))}}</text>
+                    <view wx:if="{{colIndex > 0}}" class="md-table-card-row" wx:for="{{b.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
                       <rich-text class="md-table-card-key md-richtext" user-select nodes="{{h.nodes}}"></rich-text>
                       <rich-text class="md-table-card-val md-richtext" user-select nodes="{{row[colIndex] ? row[colIndex].nodes : []}}"></rich-text>
                     </view>
@@ -514,12 +513,12 @@ module.exports = {
                 </view>
                 <text class="md-chart-caption" user-select wx:if="{{b.caption}}">{{b.caption}}</text>
                 <view wx:if="{{b.fallbackTable && b.fallbackTable.headers && b.fallbackTable.headers.length}}">
-                  <text class="md-chart-fallback-title" user-select>fallback_table</text>
-                  <text class="md-chart-strategy" user-select>图形不可用时回退为数据表</text>
+                  <text class="md-chart-fallback-title" user-select>数据表</text>
+                  <text class="md-chart-strategy" user-select>图形数据如下</text>
                   <view wx:if="{{b.fallbackTable.mobileStrategy==='compact_cards'}}">
                     <view class="md-table-card" wx:for="{{b.fallbackTable.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
-                      <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
-                      <view class="md-table-card-row" wx:for="{{b.fallbackTable.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
+                      <text class="md-table-card-title" user-select>{{row[0] && row[0].text ? row[0].text : ('条目 ' + (rowIndex + 1))}}</text>
+                      <view wx:if="{{colIndex > 0}}" class="md-table-card-row" wx:for="{{b.fallbackTable.headers}}" wx:key="index" wx:for-item="h" wx:for-index="colIndex">
                         <text class="md-table-card-key" user-select>{{h.text}}</text>
                         <text class="md-table-card-val" user-select>{{row[colIndex] ? row[colIndex].text : ''}}</text>
                       </view>

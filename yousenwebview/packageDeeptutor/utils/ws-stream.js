@@ -114,7 +114,7 @@ function normalizeErrorMessage(err) {
     if (
       /billing_quota_exceeded|Insufficient wallet balance|Usage quota exceeded/i.test(raw)
     ) {
-      return "额度不足，请先开通或续费后继续使用";
+      return "权益不足，请先充值后继续使用";
     }
     if (status === 401) return "登录已失效，请重新登录";
     if (status === 429) return "操作过于频繁，请稍后再试";

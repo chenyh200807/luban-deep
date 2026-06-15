@@ -15,7 +15,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage(usagePayload, walletPayload) {
+function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
     "utf8",
@@ -68,10 +68,25 @@ function loadBillingPage(usagePayload, walletPayload) {
             );
           },
           getWallet: function () {
-            return Promise.resolve(walletPayload || { balance: 0 });
+            return Promise.resolve(walletPayload || { balance: 9000 });
           },
           getLedger: function () {
-            return Promise.resolve({ entries: [], has_more: false });
+            return Promise.resolve(
+              ledgerPayload || {
+                entries: [
+                  {
+                    id: "ledger_1",
+                    event_type: "debit",
+                    reason: "capture",
+                    delta: -20,
+                    balance_after: 8980,
+                    reference_type: "ai_usage",
+                    created_at: "2026-06-01T10:20:00+08:00",
+                  },
+                ],
+                has_more: false,
+              },
+            );
           },
           createBillingCheckout: function (payload) {
             checkoutCalls.push(payload);
@@ -186,6 +201,18 @@ function loadBillingPage(usagePayload, walletPayload) {
       path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
       "utf8",
     );
+    var billingJs = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
+      "utf8",
+    );
+    var profileWxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/profile/profile.wxml"),
+      "utf8",
+    );
+    var profileJs = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/profile/profile.js"),
+      "utf8",
+    );
     assert(
       billingWxml.indexOf("item.originalPrice") >= 0,
       "billing package cards should render original price",
@@ -193,6 +220,31 @@ function loadBillingPage(usagePayload, walletPayload) {
     assert(
       billingWxml.indexOf("selectedPackage.originalPrice") >= 0,
       "billing checkout summary should render selected package original price",
+    );
+    assert(
+      billingWxml.indexOf("item.turns") >= 0 &&
+        billingWxml.indexOf("{{item.points}}") === -1 &&
+        billingWxml.indexOf("selectedPackage.turns") >= 0 &&
+        billingWxml.indexOf("selectedPackage.points") === -1,
+      "billing package cards and checkout should expose promised usage counts, not internal points",
+    );
+    var staleWeeklyCopy =
+      billingWxml + billingJs + profileWxml + profileJs;
+    assert(
+      staleWeeklyCopy.indexOf("本周额度") === -1 &&
+        staleWeeklyCopy.indexOf("按周更新") === -1 &&
+        staleWeeklyCopy.indexOf("重置时间") === -1 &&
+        staleWeeklyCopy.indexOf("每周使用限额") === -1 &&
+        staleWeeklyCopy.indexOf("一次购买，固定点数") === -1,
+      "billing/profile surfaces should not expose weekly quota or reset wording after fixed-point package launch",
+    );
+    assert(
+      billingWxml.indexOf("使用记录") >= 0 &&
+        billingWxml.indexOf("ledgerRows") >= 0 &&
+        billingWxml.indexOf("ledger-time") >= 0 &&
+        billingWxml.indexOf("ledger-usage") >= 0 &&
+        billingWxml.indexOf("ledger-balance") >= 0,
+      "billing should render timestamp, usage percent, and remaining percent for usage records",
     );
     // Before _loadUsage() is called, no checkout or payment should have been triggered
     assert(
@@ -208,6 +260,18 @@ function loadBillingPage(usagePayload, walletPayload) {
       "billing should not show modal on initial render before user action",
     );
     await page._loadUsage();
+    assert(
+      page.data.usagePrimaryLabel === "剩余 99.8%",
+      "billing should show remaining percent instead of internal wallet points",
+    );
+    assert(
+      page.data.ledgerRows.length === 1 &&
+        page.data.ledgerRows[0].title === "AI 学习消耗" &&
+        page.data.ledgerRows[0].usageLabel === "-0.22%" &&
+        page.data.ledgerRows[0].balanceLabel === "剩余 99.6%" &&
+        page.data.ledgerRows[0].timeLabel.indexOf("10:20") >= 0,
+      "billing should normalize wallet debit ledger rows with time and percent-only usage",
+    );
     assert(
       page.data.selectedPackageId === "vip",
       "billing fallback should default to VIP after pricing migration",
@@ -267,8 +331,8 @@ function loadBillingPage(usagePayload, walletPayload) {
     });
     await degraded.page._loadUsage();
     assert(
-      degraded.page.data.usagePrimaryLabel === "额度暂不可用",
-      "billing degraded terminal state should not look like active syncing",
+      degraded.page.data.usagePrimaryLabel === "权益暂不可用",
+      "billing degraded terminal state should normalize stale quota wording",
     );
   } catch (err) {
     fail++;

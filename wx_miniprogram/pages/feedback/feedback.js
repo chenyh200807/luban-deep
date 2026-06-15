@@ -9,7 +9,7 @@ var PROBLEM_TYPES = [
   { key: "assessment", mark: "摸底", label: "摸底测试", desc: "出题、提交、结果生成", tag: "摸底测试" },
   { key: "diagnostic_report", mark: "报告", label: "摸底报告", desc: "诊断结论、错因、建议", tag: "摸底报告" },
   { key: "history", mark: "历史", label: "历史记录", desc: "记录丢失、打不开、同步", tag: "历史记录" },
-  { key: "billing", mark: "会员", label: "会员额度", desc: "余额、充值、权益、订单", tag: "会员额度" },
+  { key: "billing", mark: "会员", label: "权益充值", desc: "余额、充值、权益、订单", tag: "权益充值" },
   { key: "profile", mark: "我的", label: "我的/登录", desc: "登录、资料、设置、反馈", tag: "我的登录" },
   { key: "content", mark: "题目", label: "题目/答案", desc: "题干、解析、依据、答案", tag: "题目答案" },
 ];

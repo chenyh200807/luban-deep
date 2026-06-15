@@ -2649,7 +2649,7 @@ Page({
     wx.showActionSheet({
       itemList: [
         this.data.isDark ? "切换浅色模式" : "切换深色模式",
-        "额度中心",
+        "权益中心",
         "个人中心",
       ],
       success: function (res) {

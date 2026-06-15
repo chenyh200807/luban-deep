@@ -1,0 +1,103 @@
+<view class="yousen-page">
+  <view class="service-banner" wx:if="{{ggimage}}" bindtap="goToggimageurl">
+      <image class="service-banner-image" src="{{ggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+
+
+    </view>
+  <view class="content-sheet">
+    <view class="sheet-topline">
+      <view class="sheet-copy">
+        <text class="sheet-label">SELECTED TRACK</text>
+        <text class="sheet-title">{{selectedMajorLabel}} · {{selectedSubjectLabel}}</text>
+      </view>
+
+      <picker
+        mode="multiSelector"
+        class="direction-picker"
+        bindchange="bindMultiPickerChange"
+        bindcolumnchange="bindMultiPickerColumnChange"
+        value="{{multiIndex}}"
+        range="{{multiArray}}"
+        bindtap="rotateImage"
+        bindcancel="stopRotateImage"
+      >
+        <view class="direction-picker-inner">
+          <text class="direction-picker-value">切换专业</text>
+          <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
+        </view>
+      </picker>
+    </view>
+
+    <text class="sheet-subtitle" wx:if="{{featuredCourseTitle}}">推荐从「{{featuredCourseTitle}}」开始。</text>
+    <text class="sheet-subtitle" wx:else>从公开课进入，再逐步深入学习。</text>
+
+    <view class="course-section">
+      <view class="section-head">
+        <text class="section-title">精选课程</text>
+        <text class="section-count">{{currentCourseCount}} 节</text>
+      </view>
+
+      <block wx:for="{{getGratisCourseList}}" wx:key="id">
+        <view class="course-card" data-url="/pages/freeCourseDetails/freeCourseDetails?pk_id={{item.id}}" catchtap="linkTo">
+          <image class="course-media" src="{{item.cart_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+
+          <view class="course-content">
+            <view class="course-heading">
+              <text class="course-tag">线上课程</text>
+              <text class="course-title ell-2">{{item.title}}</text>
+            </view>
+
+            <text class="course-summary"></text>
+
+            <view class="course-footer">
+              <view class="teacher-row" wx:if="{{item.teacher && item.teacher.length}}">
+                <view class="teacher-avatars">
+                  <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                    <image wx:if="{{index < 3}}" class="teacher-avatar" src="{{kk.head_image}}" mode="aspectFill" lazy-load="{{true}}"></image>
+                  </block>
+                </view>
+                <view class="teacher-copy">
+                  <block wx:for="{{item.teacher}}" wx:for-item="kk" wx:key="__teacherKey">
+                    <text class="teacher-name" wx:if="{{index < 2}}">{{kk.name}}{{index == 0 && item.teacher.length > 1 ? ' / ' : ''}}</text>
+                  </block>
+                  <text class="teacher-count" wx:if="{{item.teacher.length > 2}}">等 {{item.teacher.length}} 位老师</text>
+                </view>
+              </view>
+              <view class="course-action">
+                <text class="course-action-text">进入课程</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{noData}}" class="course-empty">
+        <text class="course-empty-title">当前方向暂时没有公开课</text>
+        <text class="course-empty-subtitle">可以切换专业或科目查看其他内容。</text>
+      </view>
+    </view>
+
+
+
+    <view class="bottom-space"></view>
+  </view>
+
+  <view class="promo-modal" wx:if="{{showModal}}">
+    <view class="promo-modal-mask" bindtap="closeModal"></view>
+    <view class="promo-modal-card">
+      <view class="promo-modal-figure">
+        <image bindtap="gotoModalurl" bindload="handleModalImageLoad" binderror="handleModalImageError" class="promo-modal-image" src="{{showimg}}" mode="widthFix" />
+        <view id="left-right-top" class="promo-modal-hitbox">
+          <view class="promo-hit-left" bindtap="goToLeftTopPage"></view>
+          <view class="promo-hit-right" bindtap="goToRightBottomPage"></view>
+        </view>
+        <view class="promo-modal-loading" wx:if="{{modalImageLoading}}">
+          <text class="promo-modal-loading-text">广告加载中...</text>
+        </view>
+      </view>
+      <view class="promo-modal-close" bindtap="closeModal">
+        <image src="https://cnd.yousenjiaoyu.com/60/39d9cdf52998c29e6560e5b0a32ac3.png?attname=close.png" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+</view>

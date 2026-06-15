@@ -49,7 +49,7 @@
         <view class="guest-profile-copy">
           <text class="guest-profile-kicker">浏览模式</text>
           <text class="guest-profile-title">登录后同步你的权益和学习档案</text>
-          <text class="guest-profile-desc">当前可以查看个人中心结构；修改设置、同步额度和保存学习记录时再快速登录。</text>
+          <text class="guest-profile-desc">当前可以查看个人中心结构；修改设置、同步权益和保存学习记录时再快速登录。</text>
         </view>
         <view class="guest-profile-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
           <text class="guest-profile-action-txt">快速登录</text>
@@ -57,17 +57,16 @@
       </view>
 
       <!-- ── 使用情况 ───────────────────────────────── -->
-      <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看使用限额详情">
+      <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看权益详情">
         <view class="usage-head">
           <view>
-            <text class="usage-kicker">使用情况</text>
+            <text class="usage-kicker">学习权益</text>
             <text class="usage-title">{{usagePrimaryLabel}}</text>
           </view>
-          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开额度中心">
-            <text class="usage-action-txt">额度</text>
+          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开权益中心">
+            <text class="usage-action-txt">充值</text>
           </view>
         </view>
-        <text class="usage-note">按备考强度展示本周剩余额度</text>
         <view class="usage-summary-list" wx:if="{{usageRows.length}}">
           <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
             <text class="usage-summary-label">{{item.label}}</text>
@@ -218,8 +217,8 @@
   <view class="usage-detail-mask {{usageDetailShow ? 'show' : ''}}" bindtap="closeUsageDetail"></view>
   <view class="usage-detail-sheet {{usageDetailShow ? 'show' : ''}}">
     <view class="usage-detail-head">
-      <text class="usage-detail-title">使用限额详情</text>
-      <view class="usage-detail-close" bindtap="closeUsageDetail" aria-role="button" aria-label="关闭使用限额详情">
+      <text class="usage-detail-title">权益详情</text>
+      <view class="usage-detail-close" bindtap="closeUsageDetail" aria-role="button" aria-label="关闭权益详情">
         <text class="usage-detail-close-txt">×</text>
       </view>
     </view>

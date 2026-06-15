@@ -125,6 +125,19 @@ assert(
   "ws stream should forward explicit capability to the backend start-turn contract",
 );
 assert(
+  chatJs.indexOf("_shouldParseStreamingMarkdown") >= 0 &&
+    chatJs.indexOf("MD_PARSE_INTERVAL") >= 0 &&
+    /parseBlocks:\s*parseStreamingMarkdown/.test(chatJs) &&
+    /streamLight:\s*!parseStreamingMarkdown/.test(chatJs),
+  "package chat should progressively parse markdown during streaming instead of waiting for final-only rendering",
+);
+assert(
+  chatWxml.indexOf("手机端策略") < 0 &&
+    chatWxml.indexOf("fallback_table") < 0 &&
+    chatWxml.indexOf("第{{rowIndex + 1}}行") < 0,
+  "package chat renderer should not expose table implementation labels in learner-facing answers",
+);
+assert(
   chatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0 &&
     wsStreamJs.indexOf("startTurnPayload.config = opts.config") >= 0,
   "package chat should bind to construction-exam-coach and forward bot runtime config for default RAG citations",

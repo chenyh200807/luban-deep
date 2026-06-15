@@ -525,7 +525,7 @@ function getPoints() {
   return requestStateGet("/api/v1/billing/points");
 }
 
-/** 获取使用限额 */
+/** 获取旧版使用概览 */
 function getUsage() {
   return requestStateGet("/api/v1/billing/usage");
 }

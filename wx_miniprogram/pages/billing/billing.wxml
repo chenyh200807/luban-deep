@@ -1,4 +1,4 @@
-<!-- pages/billing/billing.wxml — 使用情况与额度 -->
+<!-- pages/billing/billing.wxml — 使用情况与权益 -->
 <view class="billing-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -10,7 +10,7 @@
         </view>
         <view class="nav-brand-copy">
           <text class="nav-kicker">鲁班智考</text>
-          <text class="nav-title">额度中心</text>
+          <text class="nav-title">权益中心</text>
         </view>
       </view>
       <view style="flex:1"></view>
@@ -28,8 +28,7 @@
       <view class="balance-card">
         <view class="balance-copy">
           <view class="balance-topline">
-            <text class="balance-label">本周额度</text>
-            <text class="balance-note">按周更新</text>
+            <text class="balance-label">剩余权益</text>
           </view>
           <view class="balance-core">
             <text class="balance-num">{{usagePrimaryLabel}}</text>
@@ -37,8 +36,7 @@
         </view>
         <view class="balance-gauge" aria-hidden="true">
           <view class="balance-gauge-ring">
-            <text class="balance-gauge-num">{{usagePrimaryPercent}}</text>
-            <text class="balance-gauge-unit">%</text>
+            <text class="balance-gauge-num">{{usageGaugeLabel}}</text>
           </view>
         </view>
         <view class="usage-quota-list">
@@ -46,7 +44,6 @@
             <view class="usage-quota-head">
               <view>
                 <text class="usage-quota-title">{{item.label}}</text>
-                <text class="usage-quota-reset" wx:if="{{item.resetLabel}}">重置时间：{{item.resetLabel}}</text>
               </view>
               <text class="usage-quota-percent">{{item.remainingLabel}}</text>
             </view>
@@ -54,6 +51,29 @@
               <view class="usage-meter-fill" style="{{item.barStyle}}"></view>
             </view>
           </view>
+        </view>
+      </view>
+
+      <view class="section-head section-head-records">
+        <text class="section-title">使用记录</text>
+      </view>
+
+      <view class="ledger-card">
+        <view class="ledger-row" wx:for="{{ledgerRows}}" wx:key="id">
+          <view class="ledger-main">
+            <text class="ledger-title">{{item.title}}</text>
+            <text class="ledger-time">{{item.timeLabel}}</text>
+          </view>
+          <view class="ledger-amount">
+            <text class="ledger-usage">{{item.usageLabel}}</text>
+            <text class="ledger-balance">{{item.balanceLabel}}</text>
+          </view>
+        </view>
+        <view class="ledger-empty" wx:if="{{!ledgerRows.length && !ledgerLoading}}">
+          <text class="ledger-empty-text">暂无使用记录</text>
+        </view>
+        <view class="ledger-empty" wx:if="{{ledgerLoading}}">
+          <text class="ledger-empty-text">记录同步中</text>
         </view>
       </view>
 

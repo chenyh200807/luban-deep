@@ -164,7 +164,7 @@ assert(
 );
 assert(
   wsStream.indexOf("billing_quota_exceeded") >= 0 &&
-    wsStream.indexOf("额度不足，请先开通或续费后继续使用") >= 0,
+    wsStream.indexOf("权益不足，请先充值后继续使用") >= 0,
   "start-turn billing quota errors should normalize to user-facing paywall copy",
 );
 assert(

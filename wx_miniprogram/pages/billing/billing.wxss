@@ -1,4 +1,4 @@
-/* pages/billing/billing.wxss — 使用情况与额度 */
+/* pages/billing/billing.wxss — 使用情况与权益 */
 
 .billing-page {
   height: 100vh;
@@ -205,7 +205,7 @@
   font-weight: 700;
   color: #f3ab24;
 }
-.pkg-points {
+.pkg-turns {
   font-size: 34rpx;
   font-weight: 800;
   color: #fff;
@@ -353,7 +353,7 @@
   box-shadow: 0 0 0 1rpx #2f6bff, 0 14rpx 34rpx rgba(47,107,255,0.12);
 }
 .billing-page.light .pkg-name,
-.billing-page.light .pkg-points { color: #0f172a; }
+.billing-page.light .pkg-turns { color: #0f172a; }
 .billing-page.light .pkg-per { color: #334155; }
 .billing-page.light .pkg-desc { color: #7b8da8; }
 .billing-page.light .pkg-badge {
@@ -484,6 +484,61 @@
 .section-sub {
   font-size: 22rpx;
 }
+.ledger-card {
+  padding: 4rpx 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255,255,255,0.035);
+  border: 1rpx solid rgba(255,255,255,0.08);
+}
+.ledger-row {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,0.07);
+}
+.ledger-row:last-child {
+  border-bottom: 0;
+}
+.ledger-main,
+.ledger-amount {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.ledger-amount {
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.ledger-title,
+.ledger-usage {
+  font-size: 25rpx;
+  line-height: 1.25;
+  font-weight: 800;
+  color: rgba(255,255,255,0.92);
+}
+.ledger-time,
+.ledger-balance {
+  font-size: 21rpx;
+  line-height: 1.25;
+  color: rgba(255,255,255,0.44);
+}
+.ledger-usage {
+  color: #fca5a5;
+  font-variant-numeric: tabular-nums;
+}
+.ledger-empty {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ledger-empty-text {
+  font-size: 23rpx;
+  color: rgba(255,255,255,0.42);
+}
 .pkg-grid {
   gap: 16rpx;
 }
@@ -513,7 +568,7 @@
 .pkg-card.sel::before {
   background: linear-gradient(180deg, #38bdf8, #34d399);
 }
-.pkg-points {
+.pkg-turns {
   margin-top: 4rpx;
 }
 .pkg-price {
@@ -794,4 +849,22 @@
 .billing-page.light .checkout-close {
   background: #eef2f7;
   color: #334155;
+}
+.billing-page.light .ledger-card {
+  background: #ffffff;
+  border-color: #dbe6f5;
+}
+.billing-page.light .ledger-row {
+  border-bottom-color: #edf2f7;
+}
+.billing-page.light .ledger-title {
+  color: #0f172a;
+}
+.billing-page.light .ledger-time,
+.billing-page.light .ledger-balance,
+.billing-page.light .ledger-empty-text {
+  color: #64748b;
+}
+.billing-page.light .ledger-usage {
+  color: #dc2626;
 }

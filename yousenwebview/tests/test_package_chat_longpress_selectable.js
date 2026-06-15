@@ -85,7 +85,6 @@ richTextTags.forEach(function (tag) {
   "md-chart-series-name",
   "md-chart-fallback-title",
   "md-chart-strategy",
-  "md-table-strategy",
   "workflow-card-sub",
   "workflow-meta-text",
   "workflow-step-title",

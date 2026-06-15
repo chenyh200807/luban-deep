@@ -109,8 +109,8 @@ expectedTitles.forEach(function (title, index) {
     "terms section " + index + " should be " + title,
   );
   assert(
-    wxData.sections[index].paragraphs.length === 2,
-    "terms section " + title + " should keep two readable paragraphs",
+    wxData.sections[index].paragraphs.length >= 2,
+    "terms section " + title + " should keep readable paragraphs",
   );
 });
 
@@ -121,14 +121,24 @@ var allText = wxData.sections
   .join("\n");
 [
   "工程安全决策依据",
+  "不承诺你通过考试",
+  "不等同于考试机构",
+  "考试大纲",
+  "最新官方发布内容",
   "未成年人",
   "自动化异常请求",
   "AI 生成内容具有概率性",
   "第三方知识产权",
+  "第三方投诉",
+  "报考决策",
   "必要范围内处理相关内容",
   "撤回授权",
   "退款规则",
+  "第三方接口",
+  "不可抗力",
+  "限流",
   "终止账号服务",
+  "实际支付的费用",
   "消费者权益",
 ].forEach(function (keyword) {
   assert(allText.indexOf(keyword) >= 0, "terms should include " + keyword);
