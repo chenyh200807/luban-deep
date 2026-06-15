@@ -268,3 +268,38 @@ L3 final run:
 Root-cause closure before GO:the first L3 full cohort run had B2 PGO/KnowQL/G3 readback 0/10 because JWT auth exposed only canonical UUID while cohort gate needed server-trusted `auth_username`/external-auth identity. The fix is not client identity injection; it is a side-effect-free server-side projection in `MemberConsoleService.get_auth_identity_projection()` from canonical UUID to existing external-auth member (`auth_<uuid-prefix>`, `external_auth_user_id`, or alias). The L3 runner now also records non-secret `auth_user_id/auth_mode/auth_attempt` per row.
 
 **Decision**:`L3_COHORT_AB_GO` for authorized QA/operator cohort evidence only. It proves the Nexus/KnowQL/GBrain/NBA loop can improve same-cohort retest outcomes through the real test2 `/api/v1/ws` entry with write safety intact. It does **not** authorize real-student efficacy claims, broad production default, official scoring, published registry, or canonical learner truth promotion.
+
+## 14. L4 production authorization readiness package(2026-06-15,no-write BLOCKED)
+
+L4 is the master-plan guardrail that prevents a common failure mode: treating positive L1/L2/L3 evidence as production authorization. It is a local, no-write decision package, not a new runtime path and not a KnowQL executor feature.
+
+- runner:`scripts/run_luban_knowql_nexus_l4_authorization_readiness.py`
+- tests:`tests/scripts/test_luban_knowql_nexus_l4_authorization_readiness.py`
+- artifact:`artifacts/luban_grading_artifacts/knowql_nexus_l4_authorization_readiness_20260615T143645Z` (`authorization_readiness.json`, `summary.json`, `negative_evidence.jsonl`, `authorization_readiness.md`)
+- input evidence:L1 `pgo_l1_live_shadow_ab_20260615T095041Z`, L2 `knowql_nexus_l2_learning_ab_20260615T125634Z`, L3 `knowql_nexus_l3_cohort_ab_20260615T140840Z`
+
+Current L4 output:
+
+| Gate | Status |
+|---|---|
+| L1 shadow performance | passed |
+| L2 learning efficiency | passed |
+| L3 authorized QA/operator cohort | passed |
+| live readback | `L4_LIVE_READBACK_READY` |
+| production authorization | `L4_PRODUCTION_AUTHORIZATION_BLOCKED` |
+| verdict | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION` |
+| canonical / official / production / unsafe writes | `0 / 0 / 0 / 0` |
+
+Current production blockers:
+
+1. `real_student_cohort_authorization_missing`
+2. `privacy_consent_boundary_missing`
+3. `sample_size_plan_missing`
+4. `production_default_authorization_missing`
+5. `official_score_authorization_missing`
+6. `published_registry_authorization_missing`
+7. `canonical_truth_authorization_missing`
+
+Allowed after L4:claim that the integrated Nexus/KnowQL/GBrain/NBA loop has qa/operator `/api/v1/ws` live-readback evidence and is ready for a production authorization review.
+
+Not allowed after L4:real-student efficacy claim, broad production default, official score, published registry, canonical learner truth write, remote write, or a bundled one-switch rollout. Each authority must stay separate: real-student cohort/consent/sample-size, published registry, official score, learner truth promotion, rollback/kill-switch, and observability gates.

@@ -17,6 +17,7 @@
 | Score-first grading shape | `landed-local` | `deep_question.grading_shape.score_first`; `tests/core/test_deep_question_case_rubric_v1.py`; L2 runner observes `score_first_observed_rate` | Current WS still emits one final `result`; sealed score block event is not yet a public stream event. |
 | L2 true-entry three-arm runner v3 prereg | `live-readback` | `scripts/run_luban_knowql_nexus_l2_learning_ab.py`; `tests/scripts/test_luban_knowql_nexus_l2_learning_ab.py`; formal live artifact `knowql_nexus_l2_learning_ab_20260615T125634Z` | GO for qa/operator scripted same-session learning-efficiency shadow evidence only: 5 scenarios, loops 10, B2 PGO/KnowQL/G3 20/20, NBA 10/10, canonical/official/unsafe writes 0, primary effect `b2_outcome_miss_reduction_lift_vs_b1=5.0`. No production default, official score, published registry, or canonical learner truth authorization. |
 | L3 real/cohort learning A/B | `live-readback` | `scripts/run_luban_knowql_nexus_l3_cohort_ab.py`; `tests/scripts/test_luban_knowql_nexus_l3_cohort_ab.py`; test2 artifact `knowql_nexus_l3_cohort_ab_20260615T140840Z` after deploy SHA `16dbb13dcc2be1ed5ac40feec7682283fd098620` | GO for authorized QA/operator cohort only: A0/B1/B2 each 5 distinct learners, 30 WS rows, B2 PGO/KnowQL/G3 10/10, NBA 5/5, primary lift `5.0`, B2 p95 latency -44.902579% vs B1, payload +9.982498%; canonical/official/unsafe writes 0. No real-student or production learner claim. |
+| L4 production authorization readiness package | `landed-local` | `scripts/run_luban_knowql_nexus_l4_authorization_readiness.py`; `tests/scripts/test_luban_knowql_nexus_l4_authorization_readiness.py`; local artifact `knowql_nexus_l4_authorization_readiness_20260615T143645Z` with `summary.json` + `negative_evidence.jsonl` | Consumes L1/L2/L3 summaries and reports `L4_LIVE_READBACK_READY`, but verdict remains `BLOCKED_FOR_PRODUCTION_AUTHORIZATION`: real-student cohort authorization, privacy consent boundary, sample-size plan, production default authorization, official score authorization, published registry authorization, and canonical truth authorization are all missing. No runtime flag flip, no remote write, no canonical/official write. |
 | Learner truth promotion preview | `landed-local` | `build_learner_truth_promotion_preview(rows)` | Same-point weakness must improve on retest before a stable-claim candidate appears; `canonical_truth_written=false`. |
 | Compiler feedback loop preview | `landed-local` | `build_compiler_feedback_loop(rows)` | High-dispute, low-confidence, teacher correction, common-miss signals become artifact work orders only; no artifact publish or production authorization. |
 
@@ -34,7 +35,8 @@
 
 - `production-authorized`: none for broad default, official score, published registry, or canonical learner truth.
 - Current authorized surface: qa/operator shadow readback on test2 with `LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED=true` and request/config opt-in.
-- Stop condition before any broader rollout: L3 is positive only for authorized QA/operator cohort. Real production learner A/B still needs separate consent/cohort source, privacy boundary, sample-size plan, and canonical write authorization package before any broad default or learner-truth promotion.
+- L4 readiness artifact `knowql_nexus_l4_authorization_readiness_20260615T143645Z` confirms live-readback is ready (`live_readback_passed_count=3/3`) while production authorization is blocked (`production_blocker_count=7`, safety violations 0, canonical/official/production/unsafe writes 0).
+- Stop condition before any broader rollout: L3 is positive only for authorized QA/operator cohort. Real production learner A/B still needs separate consent/cohort source, privacy boundary, sample-size plan, and explicit authorization packages before any broad default, official score, published registry, or learner-truth promotion.
 
 ## 2026-06-15 L2 Runner Ledger
 
@@ -89,3 +91,15 @@ L3 upgrades L2 from repeated scripted loops to distinct learner subjects. It sti
 L3 implementation note: `MemberConsoleService.get_auth_identity_projection()` is now a side-effect-free server-side projection from authenticated canonical UUID to an existing external-auth member (`auth_<uuid-prefix>`, `external_auth_user_id`, or alias). The runner records non-secret `auth_user_id/auth_mode/auth_attempt` per row so future cohort-gate failures can be diagnosed without client-supplied identity authority.
 
 Interpretation: L3 proves the integrated Nexus/KnowQL/GBrain/NBA loop can improve same-cohort retest outcomes through the real test2 `/api/v1/ws` entry while preserving write safety. It does **not** authorize real-student claims, broad production default, official scoring, published registry, or canonical learner truth.
+
+## 2026-06-15 L4 Authorization Readiness Ledger
+
+L4 is a no-write decision package, not a runtime executor. It consumes the already-produced L1/L2/L3 summaries and separates "live readback ready" from "production authorized".
+
+| Artifact | Result | Key finding |
+|---|---|---|
+| `knowql_nexus_l4_authorization_readiness_20260615T143645Z` | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION` / live-readback ready | L1/L2/L3 gates passed 3/3; `canonical_truth_write_count=0`, `official_score_write_count=0`, `production_write_count=0`, `unsafe_write_signal_count=0`; production blockers are `real_student_cohort_authorization_missing`, `privacy_consent_boundary_missing`, `sample_size_plan_missing`, `production_default_authorization_missing`, `official_score_authorization_missing`, `published_registry_authorization_missing`, `canonical_truth_authorization_missing`. |
+
+Allowed claim after L4: KnowQL/Nexus/GBrain/NBA has QA/operator live-readback evidence through `/api/v1/ws` and can enter a production authorization review.
+
+Still forbidden after L4: real-student efficacy claim, broad production default, official score, published registry, canonical learner truth write, remote write, or any single switch that bundles these authorities together.
