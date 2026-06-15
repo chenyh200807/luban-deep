@@ -56,6 +56,8 @@ P0A 首个 spike 默认使用 F16 防水工程，首要交付是该母题下的�
 
 ## 3. Asset Schema Draft
 
+> v1.3 增补：本节定义 case_family 级**生产 / 绑定**字段（判分、错因映射、task_scope、复测）。母题的**深层结构**（不变量 / 出题人意图 / 多重表征 / 表皮生成器 / 误解模型 / 真懂vs背过鉴别 / 跨科目抽象）见结构权威 [2026-06-16-luban-deep-archetype-asset-schema-v2.md](2026-06-16-luban-deep-archetype-asset-schema-v2.md)。分工：本文管"怎么生产、状态怎么翻"，schema v2 管"产出物的深度结构长什么样"，二者互不重叠、不互相覆盖。
+
 ```yaml
 case_family:
   id: F01
