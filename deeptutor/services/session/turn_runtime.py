@@ -167,6 +167,26 @@ def _result_response_text(metadata: dict[str, Any] | None) -> str:
     return ""
 
 
+def _project_result_response_for_legacy_clients(event: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(event, dict) or str(event.get("type") or "").strip() != StreamEventType.RESULT.value:
+        return event
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return event
+    metadata = event.get("metadata")
+    if not isinstance(metadata, dict) or str(metadata.get("response") or "").strip():
+        return event
+    response = _result_response_text(metadata)
+    if not response:
+        return event
+    projected = dict(event)
+    projected_metadata = dict(metadata)
+    projected_metadata["response"] = normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(response)
+    )
+    projected["metadata"] = projected_metadata
+    return projected
+
+
 def _learning_prompt_intent_trace_metadata(intent: Any) -> dict[str, Any]:
     if not isinstance(intent, dict):
         return {}
@@ -4168,7 +4188,7 @@ class TurnRuntimeManager:
         last_seq = after_seq
         for item in backlog:
             last_seq = max(last_seq, int(item.get("seq") or 0))
-            yield item
+            yield _project_result_response_for_legacy_clients(item)
 
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(
             maxsize=_MAX_LIVE_SUBSCRIBER_QUEUE_SIZE
@@ -4195,9 +4215,9 @@ class TurnRuntimeManager:
                 continue
             last_seq = seq
             if execution is None:
-                yield item
+                yield _project_result_response_for_legacy_clients(item)
             else:
-                _offer_to_subscriber(queue, item)
+                _offer_to_subscriber(queue, _project_result_response_for_legacy_clients(item))
 
         turn = await self._safe_store_call(
             None,
@@ -4223,7 +4243,7 @@ class TurnRuntimeManager:
                 if seq <= last_seq:
                     continue
                 last_seq = seq
-                yield item
+                yield _project_result_response_for_legacy_clients(item)
         finally:
             async with self._lock:
                 execution = self._executions.get(turn_id)

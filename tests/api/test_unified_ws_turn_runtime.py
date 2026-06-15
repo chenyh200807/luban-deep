@@ -2297,6 +2297,33 @@ async def test_turn_runtime_projects_assistant_content_to_legacy_result_response
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_projects_legacy_result_response_when_replaying_backlog(tmp_path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    session = await store.create_session(session_id="session_legacy_result_replay", title="案例题")
+    turn = await store.create_turn(session["id"], capability="chat")
+    await store.append_turn_event(
+        turn["id"],
+        {
+            "type": "result",
+            "source": "chat",
+            "metadata": {"assistant_content": "旧事件里的最终批改答案"},
+            "visibility": "public",
+        },
+    )
+    await store.update_turn_status(turn["id"], "completed")
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["assistant_content"] == "旧事件里的最终批改答案"
+    assert result_events[-1]["metadata"]["response"] == "旧事件里的最终批改答案"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_persists_message_turn_identity_for_resume_recovery(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
