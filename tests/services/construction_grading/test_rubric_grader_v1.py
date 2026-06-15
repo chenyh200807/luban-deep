@@ -348,6 +348,89 @@ def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidenc
     assert "| 问题3 | 不得将主体结构分包给其他单位 | ⚠️ 部分命中 | 0.0/1.0 | 主体结构的施工分包给其他单位 | 本采分点要点未答全，还差关键内容 |" in text
 
 
+def test_render_case_rubric_feedback_uses_question_titles_without_repeating_stem() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 1.0,
+        "max_score": 2.0,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "question_no": 1,
+                "knowledge_point": "工程量清单强制性内容",
+                "hit": G.HIT,
+                "score": 1.0,
+                "max_score": 1.0,
+                "evidence_span": "工程量计算规则",
+            },
+            {
+                "point_id": "P2",
+                "question_no": 2,
+                "knowledge_point": "实质性响应投标有效期",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+            },
+        ],
+    }
+    stem = (
+        "建设单位编制了投资兴建某工程的招标文件，部分要求有：承包模式为施工总承包。\n"
+        "【问题】\n"
+        "1. 工程量清单的强制性内容还有哪些？\n"
+        "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？\n"
+        "回答\n作答："
+    )
+
+    text = G.render_case_rubric_feedback(event, question_stem=stem)
+
+    assert "建设单位编制了投资兴建某工程" not in text
+    assert "### 第1问：工程量清单的强制性内容还有哪些？" in text
+    assert "### 第2问：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
+    assert text.index("## 结论") < text.index("### 第1问：")
+    assert "**判定：**" in text
+    assert "**你写的：**" in text
+    assert "**易错点：** 本问容易漏「实质性响应投标有效期」" in text
+    assert "**得分表达改写：**" in text
+
+
+def test_render_case_rubric_feedback_can_infer_question_title_from_point_text() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 0.0,
+        "max_score": 2.0,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "工程量清单强制性内容",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+            },
+            {
+                "point_id": "P2",
+                "knowledge_point": "实质性响应投标有效期",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+            },
+        ],
+    }
+    stem = (
+        "【问题】\n"
+        "1. 工程量清单的强制性内容还有哪些？\n"
+        "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？"
+    )
+
+    text = G.render_case_rubric_feedback(event, question_stem=stem)
+
+    assert "### 第1问：工程量清单的强制性内容还有哪些？" in text
+    assert "### 第2问：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
+    assert "| 整题 |" not in text
+
+
 def test_grade_with_rubric_preserves_question_number_for_rendering() -> None:
     rubric = [
         {

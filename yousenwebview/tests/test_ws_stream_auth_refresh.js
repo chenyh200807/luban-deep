@@ -160,6 +160,11 @@ function loadWsStream(config) {
           _close: function (payload) {
             if (handlers.close) handlers.close(payload || {});
           },
+          _message: function (payload) {
+            if (handlers.message) {
+              handlers.message({ data: JSON.stringify(payload || {}) });
+            }
+          },
         };
         connects.push(options);
         tasks.push(task);
@@ -457,6 +462,39 @@ function loadWsStream(config) {
     assert(
       statuses.some(function (item) { return item.data === "awaiting_terminal"; }),
       "second idle tick should wait for the canonical terminal event",
+    );
+  });
+
+  await run("public result should surface assistant_content as final response", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请批改案例题", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        assistant_content: "这是当前轮的最终批改答案",
+      },
+    });
+
+    assert(
+      finals.some(function (item) { return item.response === "这是当前轮的最终批改答案"; }),
+      "current page should render result.metadata.assistant_content without waiting for history recovery",
     );
   });
 

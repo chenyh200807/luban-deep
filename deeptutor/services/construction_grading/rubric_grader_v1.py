@@ -581,6 +581,76 @@ def _registered_learning_error_code(mistake_type: str) -> str:
     return "E02"
 
 
+def _extract_case_question_titles(question_stem: str) -> dict[int, str]:
+    text = str(question_stem or "").strip()
+    if not text:
+        return {}
+    if "【问题】" in text:
+        text = text.split("【问题】", 1)[1]
+    text = re.split(r"\n\s*(?:回答|作答)\s*[:：]", text, maxsplit=1)[0]
+
+    titles: dict[int, str] = {}
+    patterns = (
+        re.compile(r"^\s*(?:第\s*)?([1-9]\d{0,1})\s*问\s*[：:、.．]?\s*(.+?)\s*$"),
+        re.compile(r"^\s*问题\s*([1-9]\d{0,1})\s*[：:、.．]?\s*(.+?)\s*$"),
+        re.compile(r"^\s*[（(]\s*([1-9]\d{0,1})\s*[）)]\s*(.+?)\s*$"),
+        re.compile(r"^\s*([1-9]\d{0,1})\s*[、.．)]\s*(.+?)\s*$"),
+    )
+    for raw_line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        line = raw_line.strip()
+        if not line:
+            continue
+        for pattern in patterns:
+            match = pattern.match(line)
+            if not match:
+                continue
+            idx = _positive_int_or_none(match.group(1), max_value=30)
+            title = re.sub(r"\s+", " ", str(match.group(2) or "").strip())
+            if idx is not None and title and idx not in titles:
+                titles[idx] = title[:120]
+            break
+    return titles
+
+
+def _question_text_overlap_score(point_text: str, question_title: str) -> int:
+    point = re.sub(r"\s+", "", point_text)
+    title = re.sub(r"\s+", "", question_title)
+    if not point or not title:
+        return 0
+    stop = {
+        "哪些", "还有", "内容", "要求", "计算", "列式", "分步", "步骤", "说明", "指出",
+        "应", "的", "和", "与", "及", "按", "为", "是", "有", "中", "了",
+    }
+    score = 0
+    for size in (5, 4, 3, 2):
+        seen: set[str] = set()
+        for i in range(0, max(0, len(title) - size + 1)):
+            token = title[i:i + size]
+            if token in stop or token in seen:
+                continue
+            seen.add(token)
+            if token in point:
+                score += size
+    return score
+
+
+def _infer_question_label_from_title(point: dict[str, Any], question_titles: dict[int, str]) -> str:
+    if not question_titles:
+        return "整题"
+    point_text = " ".join(
+        str(point.get(key) or "")
+        for key in ("knowledge_point", "point_id", "source_qid")
+    )
+    scored = [
+        (idx, _question_text_overlap_score(point_text, title))
+        for idx, title in sorted(question_titles.items())
+    ]
+    scored = [(idx, score) for idx, score in scored if score >= 4]
+    if len(scored) != 1:
+        return "整题"
+    return f"问题{scored[0][0]}"
+
+
 def render_case_rubric_feedback(
     event: dict[str, Any],
     *,
@@ -648,6 +718,7 @@ def render_case_rubric_feedback(
     hit_count = sum(1 for p in sp if p.get("hit") == HIT)
     partial_count = sum(1 for p in sp if p.get("hit") == PARTIAL)
     miss_count = sum(1 for p in sp if p.get("hit") == MISS)
+    question_titles = _extract_case_question_titles(question_stem)
     if total:
         ratio = float(awarded or 0) / float(total or 1)
     else:
@@ -662,7 +733,11 @@ def render_case_rubric_feedback(
     def _question_heading(label: str) -> str:
         match = re.fullmatch(r"问题(\d+)", label)
         if match:
-            return f"第{match.group(1)}问"
+            idx = int(match.group(1))
+            title = question_titles.get(idx, "").strip()
+            if title:
+                return f"第{idx}问：{title}"
+            return f"第{idx}问"
         return label
 
     def _group_verdict(points: list[dict[str, Any]]) -> str:
@@ -706,11 +781,37 @@ def render_case_rubric_feedback(
             return f"答题时把「{missing_items[0]}」补成一句完整答案，再按表格漏点补齐。"
         return "当前要点基本可保留，考试书写时继续使用教材/规范术语。"
 
+    def _group_mistake_hint(points: list[dict[str, Any]]) -> str:
+        wrong_items = [
+            str(p.get("knowledge_point") or "").strip()
+            for p in points
+            if p.get("mistake_type") == MISTAKE_WRONG and str(p.get("knowledge_point") or "").strip()
+        ]
+        partial_items = [
+            str(p.get("knowledge_point") or "").strip()
+            for p in points
+            if p.get("hit") == PARTIAL and str(p.get("knowledge_point") or "").strip()
+        ]
+        missing_items = [
+            str(p.get("knowledge_point") or "").strip()
+            for p in points
+            if p.get("hit") == MISS and str(p.get("knowledge_point") or "").strip()
+        ]
+        if wrong_items:
+            return f"本问主要错在「{wrong_items[0]}」这一点，先把错误判断改正。"
+        if partial_items:
+            return f"本问容易只答到一半，「{partial_items[0]}」要写完整。"
+        if missing_items:
+            return f"本问容易漏「{missing_items[0]}」，复盘时先补这个关键词。"
+        return "本问没有明显漏点，保持分条和规范术语即可。"
+
     grouped: list[tuple[str, list[dict[str, Any]]]] = []
     by_label: dict[str, list[dict[str, Any]]] = {}
     for point in sp:
         if isinstance(point, dict):
             label = _question_label(point)
+            if label == "整题":
+                label = _infer_question_label_from_title(point, question_titles)
             if label not in by_label:
                 grouped.append((label, by_label.setdefault(label, [])))
             by_label[label].append(point)
@@ -747,6 +848,7 @@ def render_case_rubric_feedback(
             )
         if numbered_count or len(grouped) > 1:
             lines.append("")
+            lines.append(f"**易错点：** {_group_mistake_hint(points)}")
             lines.append(f"**得分表达改写：** {_group_rewrite_hint(points)}")
             lines.append("")
     lines.append("")

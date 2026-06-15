@@ -1110,6 +1110,70 @@ class AgentLoop:
         return False
 
     @staticmethod
+    def _current_case_reference_from_context(
+        reference_context: dict[str, Any],
+        user_stem: str,
+    ) -> dict[str, str]:
+        """Return only reference answers whose question surface matches the freshly pasted case stem."""
+
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or "？" in text
+                or "?" in text
+            )
+
+        user = _compact(user_stem)
+        if not user:
+            return {
+                "reference": str(reference_context.get("correct_answer") or "").strip(),
+                "question_id": str(reference_context.get("question_id") or "").strip(),
+            }
+
+        def _matches_current(value: Any) -> bool:
+            if not _has_current_question_anchor(value):
+                return False
+            identity = _compact(value)
+            return len(identity) >= 8 and (identity in user or user in identity)
+
+        for key in ("question", "question_stem", "stem"):
+            if _matches_current(reference_context.get(key)):
+                return {
+                    "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "question_id": str(reference_context.get("question_id") or "").strip(),
+                }
+
+        answers: list[str] = []
+        matched_question_ids: list[str] = []
+        for item in reference_context.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem")):
+                continue
+            answer = str(
+                item.get("correct_answer")
+                or ((item.get("grading_key") or {}).get("correct_answer") if isinstance(item.get("grading_key"), dict) else "")
+                or ((item.get("construction_grading_result") or {}).get("correct_answer") if isinstance(item.get("construction_grading_result"), dict) else "")
+                or ""
+            ).strip()
+            if answer:
+                answers.append(answer)
+                qid = str(item.get("question_id") or "").strip()
+                if qid:
+                    matched_question_ids.append(qid)
+
+        return {
+            "reference": "\n".join(answers).strip(),
+            "question_id": matched_question_ids[0] if len(matched_question_ids) == 1 else "",
+        }
+
+    @staticmethod
     def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
         """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
         Case reference lives in ``_prefetched_exact_question.covered_subquestions[].authoritative_answer``
@@ -1133,11 +1197,21 @@ class AgentLoop:
             if not AgentLoop._case_reference_context_matches_user_stem(fc_probe, user_stem):
                 md["case_reference_blocked_reason"] = "full_submission_without_verified_reference"
                 fc = {}
+        fc_current = (
+            AgentLoop._current_case_reference_from_context(fc, user_stem)
+            if fc and user_stem
+            else {
+                "reference": str(fc.get("correct_answer") or "").strip(),
+                "question_id": str(fc.get("question_id") or "").strip(),
+            }
+        )
+        if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
+            md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
         covered = eq.get("covered_subquestions") or []
         ref = "\n".join(
             str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
         ).strip()
-        ref = ref or str(fc.get("correct_answer") or eq.get("correct_answer") or eq.get("analysis") or "")
+        ref = ref or str(fc_current.get("reference") or eq.get("correct_answer") or eq.get("analysis") or "")
         try:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):
@@ -1149,7 +1223,7 @@ class AgentLoop:
         question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or user_stem or "")
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
-            "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
+            "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
             "node_code": node_code,
             "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,

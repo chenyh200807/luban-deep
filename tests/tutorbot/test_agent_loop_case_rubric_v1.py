@@ -182,10 +182,72 @@ def test_build_v1_case_ctx_full_submission_keeps_item_only_followup_reference() 
 
     ctx = AgentLoop._build_v1_case_ctx(md, message)
 
-    assert ctx["question_id"] == "CURRENT-CASE"
+    assert ctx["question_id"] == "CURRENT-CASE-1"
     assert "项目编码" in ctx["correct_answer"]
     assert ctx["user_answer"].startswith("1. 工程量计算规则")
     assert "case_reference_blocked_reason" not in md
+
+
+def test_build_v1_case_ctx_full_submission_does_not_use_flat_reference_from_item_match() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "MIXED-CASE",
+            "items": [
+                {
+                    "question_id": "MIXED-CASE-1",
+                    "question": "1. 工程量清单的强制性内容还有哪些？",
+                    "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+                }
+            ],
+            "correct_answer": "应明确包死价种类、风险范围、违约条款，签约合同价为12345万元。",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert "项目编码" in ctx["correct_answer"]
+    assert "包死价" not in ctx["correct_answer"]
+    assert "12345" not in ctx["correct_answer"]
+
+
+def test_build_v1_case_ctx_full_submission_blocks_flat_reference_without_current_item_answer() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "MIXED-CASE-NO-ITEM-ANSWER",
+            "items": [
+                {
+                    "question_id": "MIXED-CASE-1",
+                    "question": "1. 工程量清单的强制性内容还有哪些？",
+                }
+            ],
+            "correct_answer": "应明确包死价种类、风险范围、违约条款，签约合同价为12345万元。",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["correct_answer"] == ""
+    assert md["case_reference_blocked_reason"] == "full_submission_without_current_reference_answer"
 
 
 def test_build_v1_case_ctx_full_submission_blocks_item_only_shared_background_reference() -> None:
