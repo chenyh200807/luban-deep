@@ -1463,6 +1463,17 @@ def test_g2_guard_all_rich_leaf_yields_empty_so_caller_falls_back():
     assert G.enforce_official_scoring_authority(pts, provenance="compiled_rubric") == []
 
 
+def test_g2_guard_stem_derived_pending_calibration_cannot_hard_score():
+    pts = G.canonicalize_rubric_points(
+        [{"point_id": "S1", "text": "模型根据题干推导的采分点", "score": 2.0, "policy": "qualitative"}],
+        qid="open_world",
+        provenance="derived_from_stem",
+    )
+
+    assert pts[0]["authority_source"] == "pending_calibration"
+    assert G.enforce_official_scoring_authority(pts, provenance="derived_from_stem") == []
+
+
 def test_g2_guard_official_answer_verbatim_authority_still_scores():
     # the per-question compiled object tags scoring points official_answer_verbatim — those score.
     pts = [{"point_id": "O1", "text": "官方原子点", "score": 2.0,

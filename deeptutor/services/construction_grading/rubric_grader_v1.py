@@ -1379,15 +1379,13 @@ def enforce_official_scoring_authority(
 ) -> list[dict[str, Any]]:
     """G2 single-authority guard on the production scoring channel.
 
-    ONLY official-answer-backed rubric points may score. The current production sources
-    (``compiled_rubric`` / ``on_the_fly_reference`` / ``derived_from_stem``) carry no rich-leaf
-    authority marker, so this is **behaviour-preserving today** — its job is to STAY true. If any
-    future change ever feeds a rich-leaf / textbook-cited point (``authority_source ==
-    textbook_cited``) into ``rubric_points``, it is routed to supporting-only via the G2 single-
-    precedence sink (``resolve_grading_point_authority``) and EXCLUDED from scoring — the 50x-volume
-    rich-leaf points can never impersonate the official answer key (eliminates the audited 2nd-
-    authority R1). Deterministic, pure; this is the load-bearing wiring of the G2 invariant onto the
-    live ``deep_question._grade_one_case_v1`` path (previously held only by the absence of a caller)."""
+    ONLY official-answer-backed rubric points may score. Runtime ``derived_from_stem`` points are
+    intentionally stamped ``pending_calibration`` by ``canonicalize_rubric_points``; they may support
+    an open-world diagnosis after review, but they must not mint a user-visible hard score. Rich-leaf /
+    textbook-cited points are also routed to supporting-only via the G2 single-precedence sink
+    (``resolve_grading_point_authority``) and EXCLUDED from scoring — the 50x-volume rich-leaf points
+    can never impersonate the official answer key. Deterministic, pure; this is the load-bearing wiring
+    of the G2 invariant onto the live ``deep_question._grade_one_case_v1`` path."""
     # Lazy import keeps this hot grading module free of any load-time coupling to rich_leaf_runtime.
     from deeptutor.services.construction_grading.rich_leaf_runtime import (
         AUTH_TEXTBOOK_CITED,
@@ -1395,20 +1393,33 @@ def enforce_official_scoring_authority(
     )
 
     official: list[dict[str, Any]] = []
-    rich_leaf: list[dict[str, Any]] = []
+    supporting_only: list[dict[str, Any]] = []
     for point in rubric_points or []:
-        is_rich_leaf = (
-            isinstance(point, dict)
-            and str(point.get("authority_source") or "") == AUTH_TEXTBOOK_CITED
+        authority = str(point.get("authority_source") or "") if isinstance(point, dict) else ""
+        if isinstance(point, dict):
+            point_provenance = str(point.get("rubric_provenance") or provenance or "")
+        else:
+            point_provenance = str(provenance or "")
+        is_supporting_only = authority in {AUTH_TEXTBOOK_CITED, "pending_calibration"} or (
+            point_provenance == "derived_from_stem"
+            and authority not in {"official_answer", "official_answer_verbatim"}
         )
-        (rich_leaf if is_rich_leaf else official).append(point)
-    if rich_leaf:
+        (supporting_only if is_supporting_only else official).append(point)
+    if supporting_only:
         # Demote through the single G2 sink (proves supporting-only) and drop from the scoring set.
-        resolve_grading_point_authority(official_present=bool(official), rich_leaf_points=rich_leaf)
+        rich_leaf_points = [
+            p for p in supporting_only
+            if isinstance(p, dict) and str(p.get("authority_source") or "") == AUTH_TEXTBOOK_CITED
+        ]
+        if rich_leaf_points:
+            resolve_grading_point_authority(
+                official_present=bool(official),
+                rich_leaf_points=rich_leaf_points,
+            )
         logger.warning(
-            "enforce_official_scoring_authority: demoted %d rich-leaf point(s) to supporting "
+            "enforce_official_scoring_authority: demoted %d supporting-only point(s) "
             "(G2 single-authority); kept %d official (provenance=%s)",
-            len(rich_leaf), len(official), provenance or "?",
+            len(supporting_only), len(official), provenance or "?",
         )
     return official
 

@@ -785,14 +785,26 @@ Page({
       var sourceMsg = sourceMsgs[sourceIndex] || {};
       var sourceRole = sourceMsg.role === "assistant" ? "ai" : sourceMsg.role;
       if (sourceRole !== "ai") continue;
-      if (!sourceMsg.content && !sourceMsg.presentation) continue;
+      var sourceAssistantText =
+        typeof chatTurnRecovery.getAssistantDisplayText === "function"
+          ? chatTurnRecovery.getAssistantDisplayText(sourceMsg)
+          : "";
+      if (
+        !sourceMsg.content &&
+        !sourceMsg.presentation &&
+        !sourceAssistantText
+      ) continue;
       if (eagerAiRemaining <= 0) break;
       eagerByIndex[sourceIndex] = true;
       eagerAiRemaining--;
     }
     var msgs = sourceMsgs.map(function (m, sourceIndex) {
       var role = m.role === "assistant" ? "ai" : m.role;
-      var visibleContent = aiMessageState.coerceUserVisibleContent(m.content || "");
+      var sourceContent =
+        role === "ai" && typeof chatTurnRecovery.getAssistantDisplayText === "function"
+          ? chatTurnRecovery.getAssistantDisplayText(m)
+          : m.content || "";
+      var visibleContent = aiMessageState.coerceUserVisibleContent(sourceContent || "");
       var visiblePresentation = aiMessageState.sanitizePresentationForState
         ? aiMessageState.sanitizePresentationForState(m.presentation)
         : m.presentation && typeof m.presentation === "object"
@@ -837,7 +849,7 @@ Page({
         billing: null,
         feedback: "",
       };
-      if (role === "ai" && (m.content || msg.presentation)) {
+      if (role === "ai" && (visibleContent || msg.presentation)) {
         var shouldParseHistoryBlocks = !!eagerByIndex[sourceIndex];
         var derived = aiMessageState.deriveAiMessageRenderState({
           content: visibleContent,
@@ -1599,6 +1611,7 @@ Page({
     if (idx !== -1) {
       if (this._buf) this._flush();
       var updates = {};
+      var hasVisibleAnswer = false;
       if (typeof d.response === "string" && d.response.trim()) {
         var normalized = this._buildAiMessageUpdates(idx, {
           content: d.response,
@@ -1606,6 +1619,7 @@ Page({
         });
         if (normalized) {
           Object.assign(updates, normalized.updates);
+          hasVisibleAnswer = true;
         }
       }
       if (d.citations) {
@@ -1632,6 +1646,9 @@ Page({
       if (d.billing && typeof d.billing === "object") {
         updates["messages[" + idx + "].billing"] = d.billing;
       }
+      if (hasVisibleAnswer) {
+        this._mergeVisibleAnswerSettledUpdates(idx, updates);
+      }
       if (Object.keys(updates).length) {
         this.setData(updates);
       }
@@ -1647,7 +1664,9 @@ Page({
       parseBlocks: true,
     });
     if (!normalized) return;
-    this.setData(normalized.updates);
+    var updates = normalized.updates || {};
+    this._mergeVisibleAnswerSettledUpdates(idx, updates);
+    this.setData(updates);
   },
 
   _find: function (id) {
@@ -1701,6 +1720,27 @@ Page({
       updates["messages[" + idx + "].thinkingTone"] = summary.tone || "analyze";
     }
     this.setData(updates);
+  },
+
+  _mergeVisibleAnswerSettledUpdates: function (idx, updates) {
+    var msg = this.data.messages[idx] || {};
+    var summary = workflowStatus.summarizeWorkflow(msg.workflowEntries || [], false);
+    updates["messages[" + idx + "].streaming"] = false;
+    updates["messages[" + idx + "].workflowBadge"] = summary.badge || "";
+    updates["messages[" + idx + "].workflowTitle"] = summary.headline || "";
+    updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
+    updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
+    updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
+    updates["messages[" + idx + "].workflowToggleText"] =
+      summary.toggleText || "查看处理摘要";
+    updates["messages[" + idx + "].workflowTone"] = summary.tone || "compose";
+    updates["messages[" + idx + "].workflowActive"] = false;
+    updates["messages[" + idx + "].thinkingStatus"] = "";
+    updates["messages[" + idx + "].thinkingBadge"] = "";
+    updates["messages[" + idx + "].thinkingSub"] = "";
+    updates["messages[" + idx + "].thinkingTone"] = "";
+    updates.isStreaming = false;
+    updates.canStopStream = false;
   },
 
   _buildAiMessageUpdates: function (idx, opts) {

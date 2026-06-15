@@ -2155,19 +2155,13 @@ async def _grade_one_case_v1(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
         elif stem:
-            # 3) STEM-ONLY: no reference answer at all — derive rubric from question stem via LLM
-            #    domain knowledge (construction supervision / 一建). Third-tier path so V1 covers
-            #    every case grading turn regardless of whether the question is in the bank.
-            points = await _G.derive_rubric_from_stem_async(
-                stem,
-                complete,
-                key,
-                model=_v1_model,
-                provider_authority=provider_authority,
-            )
-            points = _G.normalize_points_to_nominal(
-                points, nominal_total=float((cg or {}).get("max_score") or 0))
-            provenance = "derived_from_stem"
+            # No answer key authority: stem-only LLM-derived rubrics are useful for diagnostics after
+            # review, but they must not enter the hard-score path or spend latency only to be demoted.
+            return {
+                "status": "unavailable",
+                "reason": "no_official_scoring_points",
+                "question_id": qid,
+            }
         else:
             logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid=%s", qid or "(none)")
             return {"status": "no_reference", "question_id": qid}

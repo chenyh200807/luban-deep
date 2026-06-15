@@ -1293,11 +1293,9 @@ class AgentLoop:
             logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
                            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
             return None
-        # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
-        # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
-        # no tier produces scoring points — the caller already falls back to V0 at that point. An upstream
-        # authority gate that requires authoritative_answer in covered_subquestions would block questions
-        # that have a compiled rubric under question_id but no inline reference field.
+        # _grade_one_case_v1 owns hard-score authority: compiled_rubric or explicit reference only.
+        # Stem-only cases fail closed and fall through to diagnostic wording, so the TutorBot wrapper
+        # never invents a second scoring authority.
         try:
             from deeptutor.capabilities.deep_question import _grade_one_case_v1
             from deeptutor.services.construction_grading import rubric_grader_v1 as _G
@@ -1369,12 +1367,6 @@ class AgentLoop:
                                     qid=ctx.get("question_id"), cg_type="case")
             except Exception:  # noqa: BLE001 — observability never breaks grading
                 pass
-            if event.get("rubric_provenance") == "derived_from_stem":
-                # Tier-3 path: LLM-derived rubric with no ground-truth anchor. Monitor this
-                # counter in production — unexpected spikes indicate Gate 2 removal side-effects
-                # or data gaps in the compiled rubric bank.
-                logger.warning("LUBAN_V1 DERIVED_FROM_STEM (tutorbot): no compiled rubric or reference; "
-                               "LLM domain knowledge used. student={} qid={}", student_id, ctx.get("question_id"))
             logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))

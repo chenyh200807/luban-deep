@@ -231,6 +231,37 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
 
 
 @pytest.mark.asyncio
+async def test_case_rubric_v1_stem_only_does_not_surface_hard_score(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # No compiled rubric and no explicit answer key: stem-only derived points are pending calibration.
+    # They must not become a hard score shown to the learner.
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [])
+
+    context = _case_context(rubric_v1=True)
+    followup_context = dict(context.metadata["question_followup_context"])
+    followup_context.pop("correct_answer", None)
+    context.metadata["question_followup_context"] = followup_context
+
+    async def _must_not_derive(*_args, **_kwargs):
+        raise AssertionError("stem-only cases must not spend an LLM call on the hard-score path")
+
+    async def _must_not_score(*_args, **_kwargs):
+        raise AssertionError("stem-only pending calibration points must not enter batch scoring")
+
+    monkeypatch.setattr(G, "derive_rubric_from_stem_async", _must_not_derive)
+    monkeypatch.setattr(G, "batch_judge_async", _must_not_score)
+
+    result = await _run_case(monkeypatch, context)
+    payload = result.get("luban_case_rubric_v1") or {}
+    assert payload.get("status") == "unavailable"
+    assert payload.get("reason") == "no_official_scoring_points"
+    assert "## 整体评价" not in result["response"]
+    assert "得分预估" not in result["response"]
+
+
+@pytest.mark.asyncio
 async def test_case_rubric_v1_degraded_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
     # FAIL-SAFE: when the batch LLM produces NO trustworthy verdict (call down / JSON malformed -> empty
     # verdicts), V1 must NOT surface a 0/full score as authority. It returns a degraded marker so the turn
