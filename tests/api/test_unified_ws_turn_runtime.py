@@ -4,6 +4,7 @@ import asyncio
 import base64
 from contextvars import ContextVar
 import importlib
+import json
 import sqlite3
 from types import SimpleNamespace
 from typing import Any
@@ -15,6 +16,7 @@ from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.config.provider_runtime import ResolvedLLMConfig
+from deeptutor.services.question_lifecycle_skills import derive_question_lifecycle_scene
 from deeptutor.services.semantic_router import build_active_object_from_question_context
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -29,6 +31,7 @@ from deeptutor.services.session.turn_runtime import (
     _enrich_result_question_authority_from_trace,
     _learning_prompt_intent_trace_metadata,
     _LiveSubscriber,
+    _normalize_turn_user_content,
     _request_snapshot_metadata,
     _resolve_question_followup_context_and_action,
     _result_active_object,
@@ -104,6 +107,41 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
         "reason": "用户修正上一题答案。",
         "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
     }
+
+
+def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> None:
+    raw_case_submission = (
+        "建设单位编制了投资兴建某工程的招标文件，部分要求有："
+        "承包模式为施工总承包，报价采用工程量清单计价。\n"
+        "某施工单位工程中标造价为7782.60万元。\n"
+        "【问题】\n"
+        "1. 工程量清单的强制性内容还有哪些？\n"
+        "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法；计价方式。\n"
+        "2. 工期；招标范围；质量标准；投标有效期。"
+    )
+    wrapped = json.dumps({"content": raw_case_submission}, ensure_ascii=False, indent=2)
+
+    content, metadata = _normalize_turn_user_content(wrapped)
+
+    assert content == raw_case_submission
+    assert metadata == {
+        "transport_content_unwrapped": True,
+        "transport_content_unwrap_depth": 1,
+    }
+    assert (
+        derive_question_lifecycle_scene(SimpleNamespace(user_message=content, metadata={}))
+        == "case_grading"
+    )
+
+
+def test_turn_runtime_content_unwrap_keeps_non_transport_json_intact() -> None:
+    content, metadata = _normalize_turn_user_content('{"content":"hello","schema":true}')
+
+    assert content == '{"content":"hello","schema":true}'
+    assert metadata == {}
 
 
 def test_turn_runtime_enriches_exact_question_authority_before_persisting_active_object() -> None:
@@ -253,7 +291,10 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
     _session, turn = await runtime.start_turn(
         {
             "session_id": "session-runtime-test",
-            "content": "用一道真题场景理解基础和地基的",
+            "content": json.dumps(
+                {"content": "用一道真题场景理解基础和地基的"},
+                ensure_ascii=False,
+            ),
             "capability": "tutorbot",
             "config": {
                 "bot_id": "construction-exam-coach",
@@ -269,6 +310,11 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
     assert turn["capability"] == ""
     execution = runtime._executions[turn["id"]]
     assert execution.capability == ""
+    assert execution.payload["content"] == "用一道真题场景理解基础和地基的"
+    assert execution.content_transport_metadata == {
+        "transport_content_unwrapped": True,
+        "transport_content_unwrap_depth": 1,
+    }
     assert execution.payload["capability"] is None
     assert execution.payload["config"]["_entry_capability_hint"] == "tutorbot"
     assert execution.payload["config"]["general_knowledge_context"] is True

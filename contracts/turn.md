@@ -41,6 +41,7 @@
 20. end-user chat / turn 工具列表必须在 turn runtime 入口统一过滤，不得把 `code_execution`、`exec` 或其兼容 alias 暴露给非受信用户对话。该过滤只收紧 end-user tool exposure，不新增执行身份、capability route、RAG authority 或 learner-state writer；内部受控评测/开发工具若需要代码执行，必须走独立的受信控制面，不能复用普通 `/api/v1/ws` 用户请求字段自授权。
 21. 所有认证后的 mobile LLM / 重计算 HTTP 端点必须挂 `route_rate_limit`（burst；昂贵 LLM 生成端点另加 daily 预算），与 WS `start_turn` 的 10/60s + 500/day 同治理：`/assessment/create`（6/60s + 60/day）、`/assessment/{quiz_id}/items/{question_id}/explain`（10/60s + 200/day）、`/learning-brain/projection`（20/60s）、`/conversations`（20/60s）、`/conversations/batch`（10/60s）。限流只防经济型 DoS / 资源放大，429 不改变 turn/session/assessment 状态机语义。
 22. 事件循环线程是 turn streaming 的共享资源：turn 终结化阶段的同步副作用（钱包 capture、usage metering、learning-evidence 写入）必须经 `asyncio.to_thread` 离开事件循环执行，禁止在 `/api/v1/ws` worker 的事件循环线程上做阻塞网络 / bcrypt / LLM 等待（`learning_topic_resolver` 在检测到 running loop 时直接按 LLM miss 降级，不得恢复 thread-join 行为）。post-turn refresh 是 tracked background task 且包含真实挂起点：任何对其副作用的断言必须先等待任务完成，不得假设 turn `done` 事件后这些副作用已同步落地。
+23. `turn_runtime` 可以在入口处、question lifecycle / semantic router 裁决前，归一化旧 transport 误包的纯 `{"content": "..."}` JSON envelope，并把解包事实仅作为 `transport_content_unwrapped` / `transport_content_unwrap_depth` trace metadata 记录；该兼容只处理唯一键为 `content` 的 wrapper，最多展开三层，不得把任意 JSON 业务 payload 当作聊天正文重写，也不得定义第二套 streaming 协议或绕过 question lifecycle / semantic router authority。
 
 ## TutorBot 规则
 

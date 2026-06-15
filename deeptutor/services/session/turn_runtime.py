@@ -167,6 +167,36 @@ def _result_response_text(metadata: dict[str, Any] | None) -> str:
     return ""
 
 
+def _normalize_turn_user_content(value: Any) -> tuple[str, dict[str, Any]]:
+    text = str(value or "").strip()
+    unwrap_depth = 0
+    for _ in range(3):
+        candidate = text.strip()
+        if not candidate.startswith("{"):
+            break
+        try:
+            parsed = json.loads(candidate)
+        except (TypeError, ValueError):
+            break
+        if not (
+            isinstance(parsed, dict)
+            and set(parsed.keys()) == {"content"}
+            and isinstance(parsed.get("content"), str)
+        ):
+            break
+        next_text = str(parsed.get("content") or "").strip()
+        if not next_text or next_text == text:
+            break
+        text = next_text
+        unwrap_depth += 1
+
+    metadata: dict[str, Any] = {}
+    if unwrap_depth:
+        metadata["transport_content_unwrapped"] = True
+        metadata["transport_content_unwrap_depth"] = unwrap_depth
+    return text, metadata
+
+
 def _project_result_response_for_legacy_clients(event: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(event, dict) or str(event.get("type") or "").strip() != StreamEventType.RESULT.value:
         return event
@@ -2425,6 +2455,7 @@ class _TurnExecution:
     payload: dict[str, Any]
     turn_view: dict[str, Any] | None = None
     start_turn_setup_stage_timings_ms: dict[str, float] = field(default_factory=dict)
+    content_transport_metadata: dict[str, Any] = field(default_factory=dict)
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
@@ -3732,7 +3763,9 @@ class TurnRuntimeManager:
         capability = requested_capability or ""
         config_capability = requested_capability or "chat"
         session_id = str(payload.get("session_id") or "").strip()
-        raw_user_content = str(payload.get("content") or "").strip()
+        raw_user_content, content_transport_metadata = _normalize_turn_user_content(
+            payload.get("content")
+        )
         raw_config = dict(payload.get("config", {}) or {})
         explicit_chat_mode = "chat_mode" in raw_config
         effective_chat_mode_explicit = explicit_chat_mode
@@ -4115,8 +4148,9 @@ class TurnRuntimeManager:
             turn_id=turn["id"],
             session_id=session["id"],
             capability=capability,
-            payload=dict(payload),
+            payload={**dict(payload), "content": raw_user_content},
             turn_view=turn,
+            content_transport_metadata=content_transport_metadata,
         )
         register_execution_started_at = time.perf_counter()
         async with self._lock:
@@ -4302,6 +4336,7 @@ class TurnRuntimeManager:
             "start_turn_setup_stage_timings_ms": dict(
                 execution.start_turn_setup_stage_timings_ms or {}
             ),
+            **dict(execution.content_transport_metadata or {}),
         }
         await self._persist_and_publish(
             execution,
