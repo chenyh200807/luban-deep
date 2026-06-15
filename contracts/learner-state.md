@@ -186,6 +186,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   BI 对账或受控 shadow cohort gate。它不是 learner-state read/write API，不得写
   `learner_summaries`、`learner_memory_events`、profile、progress、goals、heartbeat、
   assessment score 或 compiled learner truth，也不得被前端 config 覆盖。
+- 当 `/api/v1/ws` 只持有认证 JWT 中的 canonical UUID 时，该 projection 可以只读解析到既有
+  external-auth member（例如 `auth_<uuid-prefix>`、`external_auth_user_id` 或 alias），但不得因此
+  创建新的 canonical member、补写钱包 / 学习画像，或把客户端传入的身份字段升级为 cohort authority。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment

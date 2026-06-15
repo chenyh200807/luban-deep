@@ -5473,8 +5473,52 @@ class MemberConsoleService:
             "expire_at": member["expire_at"],
         }
 
+    @staticmethod
+    def _external_auth_member_user_id_for_uuid(user_id: str) -> str:
+        normalized = str(user_id or "").strip()
+        if not is_uuid_like(normalized):
+            return ""
+        return f"auth_{normalized.replace('-', '')[:24]}"
+
+    def _auth_identity_projection_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            return {}
+        derived_external_member_id = self._external_auth_member_user_id_for_uuid(normalized_user_id)
+        candidates: list[dict[str, Any]] = []
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            member_user_id = str(member.get("user_id") or "").strip()
+            external_auth_user_id = str(member.get("external_auth_user_id") or "").strip()
+            alias_user_ids = {str(value or "").strip() for value in list(member.get("alias_user_ids") or [])}
+            if (
+                member_user_id == normalized_user_id
+                or external_auth_user_id == normalized_user_id
+                or normalized_user_id in alias_user_ids
+                or (derived_external_member_id and member_user_id == derived_external_member_id)
+            ):
+                candidates.append(member)
+        if not candidates:
+            return {}
+
+        def _projection_score(member: dict[str, Any]) -> tuple[int, int, int, float]:
+            return (
+                1 if str(member.get("auth_username") or "").strip() else 0,
+                1 if str(member.get("external_auth_user_id") or "").strip() else 0,
+                self._member_signal_score(member),
+                _parse_time(member.get("last_active_at")).timestamp(),
+            )
+
+        return max(candidates, key=_projection_score)
+
     def get_auth_identity_projection(self, user_id: str) -> dict[str, Any]:
-        member = self._load_member_snapshot(user_id)["member"]
+        with self._lock:
+            with self._storage_lock():
+                data = self._load_unlocked()
+                member = self._auth_identity_projection_member(data, user_id)
+        if not member:
+            return {"user_id": str(user_id or "").strip()} if str(user_id or "").strip() else {}
         projection: dict[str, Any] = {
             "user_id": str(member.get("user_id") or "").strip(),
             "display_name": str(member.get("display_name") or "").strip(),

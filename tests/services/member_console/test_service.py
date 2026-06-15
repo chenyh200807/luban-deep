@@ -1352,6 +1352,35 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert external_users["new_student"]["phone"] == "+8613812345678"
 
 
+def test_auth_identity_projection_resolves_external_uuid_without_creating_member(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "79d25232-b3b6-47aa-80a7-e35605f74863"
+    external_member_id = f"auth_{canonical_uid.replace('-', '')[:24]}"
+
+    def _seed(data: dict) -> None:
+        member = {
+            **service._build_default_member(external_member_id),
+            "display_name": "qa_pgo_l3_subject",
+            "auth_username": "qa_pgo_l3_subject",
+            "external_auth_user_id": canonical_uid,
+            "external_auth_provider": "fastapi20251222_simple_auth",
+        }
+        data["members"].append(member)
+
+    service._mutate(_seed)
+
+    projection = service.get_auth_identity_projection(canonical_uid)
+
+    assert projection["user_id"] == external_member_id
+    assert projection["auth_username"] == "qa_pgo_l3_subject"
+    assert projection["external_auth_user_id"] == canonical_uid
+    data = service._load()
+    assert [member["user_id"] for member in data["members"] if member["user_id"] == canonical_uid] == []
+
+
 def test_register_with_external_auth_rejects_existing_verified_phone_alias(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
