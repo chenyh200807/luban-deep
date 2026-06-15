@@ -1,9 +1,10 @@
-"""V1 hard-score authority path coverage.
+"""V1 scoring authority path coverage.
 
-Verifies that _grade_one_case_v1 works correctly across the only two hard-score tiers:
+Verifies that _grade_one_case_v1 works correctly across three tiers:
   Tier 1: compiled_rubric — question_id maps to a bank rubric (mocked)
   Tier 2: on_the_fly_reference — no compiled rubric but correct_answer present
-  No hard-score authority: no compiled rubric/reference -> fail closed without stem-only LLM scoring
+  Tier 3: derived_from_stem — no compiled rubric/reference, so derive a diagnostic rubric from
+          this question's stem; never mark it as official scoring authority
 """
 from __future__ import annotations
 
@@ -99,7 +100,7 @@ def test_tier2_on_the_fly_reference_when_no_compiled_rubric() -> None:
     G.derive_rubric_from_stem_async.assert_not_called()
 
 
-def test_open_world_ignores_analysis_as_scoring_reference() -> None:
+def test_open_world_ignores_analysis_as_scoring_reference_but_derives_diagnostic_rubric() -> None:
     """`analysis` may be RAG/explanation text, not the current question's answer key.
 
     In open-world pasted cases, using it as rubric authority can grade the learner
@@ -113,8 +114,15 @@ def test_open_world_ignores_analysis_as_scoring_reference() -> None:
         "policy": "qualitative",
         "required_terms": [],
     }]
-    G = _stubbed_G(rubric_points=[], extract_points=wrong_analysis_points)
-    G.grade_with_batch_judge_async = AsyncMock()
+    derived = [{
+        "point_id": "P1",
+        "text": "工程量清单强制性内容应包括项目编码、项目名称等",
+        "score": 1.0,
+        "policy": "qualitative",
+        "required_terms": [],
+    }]
+    G = _stubbed_G(rubric_points=[], extract_points=wrong_analysis_points, derive_points=derived)
+    G.grade_with_batch_judge_async = AsyncMock(return_value=_make_event(derived))
 
     ctx = {
         "question_id": "",
@@ -125,25 +133,27 @@ def test_open_world_ignores_analysis_as_scoring_reference() -> None:
         "question_stem": "【问题】1. 工程量清单的强制性内容还有哪些？",
         "construction_grading_result": {"type": "case", "max_score": 2.0},
     }
-    result = asyncio.run(_grade_one_case_v1(ctx, student_id="s2", complete=_stub_complete,
-                                            key="k", _G=G))
+    event = asyncio.run(_grade_one_case_v1(ctx, student_id="s2", complete=_stub_complete,
+                                           key="k", _G=G))
 
-    assert result == {
-        "status": "unavailable",
-        "reason": "no_official_scoring_points",
-        "question_id": "",
-    }
+    assert event is not None
+    assert event.get("event_type") == "case_grading_completed"
+    assert event["rubric_provenance"] == "derived_from_stem"
+    assert event["official_score_allowed"] is False
+    assert event["answer_key_authority"] == "derived_from_stem_pending_calibration"
     G.extract_rubric_from_reference_async.assert_not_called()
-    G.derive_rubric_from_stem_async.assert_not_called()
-    G.grade_with_batch_judge_async.assert_not_called()
+    G.derive_rubric_from_stem_async.assert_called_once()
+    G.grade_with_batch_judge_async.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
-# No authority: stem-only does not enter the hard-score path
+# Tier 3: stem-only enters diagnostic scoring, not official scoring
 # ---------------------------------------------------------------------------
-def test_stem_only_no_reference_returns_unavailable_without_llm_derivation() -> None:
-    G = _stubbed_G(rubric_points=[])
-    G.grade_with_batch_judge_async = AsyncMock()
+def test_tier3_stem_only_derives_diagnostic_rubric_without_official_score() -> None:
+    derived = [{"point_id": "P1", "text": "检测机构应由建设单位委托", "score": 2.0,
+                "policy": "qualitative", "required_terms": []}]
+    G = _stubbed_G(rubric_points=[], derive_points=derived)
+    G.grade_with_batch_judge_async = AsyncMock(return_value=_make_event(derived))
 
     ctx = {
         "question_id": "",  # not in bank
@@ -152,17 +162,19 @@ def test_stem_only_no_reference_returns_unavailable_without_llm_derivation() -> 
         "question_stem": "施工现场检测管理存在哪些不妥之处？请指出并说明正确做法。",
         "construction_grading_result": {"type": "case", "max_score": 2.0},
     }
-    result = asyncio.run(_grade_one_case_v1(ctx, student_id="s3", complete=_stub_complete,
-                                            key="k", _G=G))
+    event = asyncio.run(_grade_one_case_v1(ctx, student_id="s3", complete=_stub_complete,
+                                           key="k", _G=G))
 
-    assert result == {
-        "status": "unavailable",
-        "reason": "no_official_scoring_points",
-        "question_id": "",
-    }
+    assert event is not None
+    assert event.get("event_type") == "case_grading_completed"
+    assert event["rubric_provenance"] == "derived_from_stem"
+    assert event["grading_source"] == "rubric_scored_v1_diagnostic"
+    assert event["answer_key_authority"] == "derived_from_stem_pending_calibration"
+    assert event["official_score_allowed"] is False
+    assert event["high_risk_review"] is True
     G.extract_rubric_from_reference_async.assert_not_called()
-    G.derive_rubric_from_stem_async.assert_not_called()
-    G.grade_with_batch_judge_async.assert_not_called()
+    G.derive_rubric_from_stem_async.assert_called_once()
+    G.grade_with_batch_judge_async.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

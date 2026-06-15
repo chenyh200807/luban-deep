@@ -667,6 +667,12 @@ def render_case_rubric_feedback(
     sp = event.get("scoring_points") or []
     awarded = event.get("awarded_score", 0)
     total = event.get("max_score", 0)
+    is_diagnostic_score = (
+        event.get("diagnostic_score") is True
+        or event.get("rubric_provenance") == "derived_from_stem"
+        or event.get("answer_key_authority") == "derived_from_stem_pending_calibration"
+    )
+    score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
 
     def _cell(value: Any) -> str:
         return str(value or "").replace("|", "\\|").replace("\n", " ").strip()
@@ -876,7 +882,9 @@ def render_case_rubric_feedback(
         lines.append("铁，这道题我先给整体判断，再拆命中点、漏点和可直接写进试卷的答案。")
     lines.append("")
     lines.append("## 整体评价")
-    lines.append(f"**得分预估：** {_fmt_score(awarded)} / {_fmt_score(total)} 分。{verdict}")
+    lines.append(f"**{score_label}：** {_fmt_score(awarded)} / {_fmt_score(total)} 分。{verdict}")
+    if is_diagnostic_score:
+        lines.append("本轮未命中题库原题/标准答案，以下按题干推导采分点做诊断批改，不能作为正式阅卷成绩。")
     lines.append("")
     for label, points in grouped:
         lines.append("---")
@@ -912,8 +920,11 @@ def render_case_rubric_feedback(
     lines.append("")
     lines.append("## 判分")
     lines.append(f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。")
-    note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
-        else "本评分为 AI 阅卷草稿，非正式成绩。"
+    if is_diagnostic_score:
+        note = "本评分为 Nexus 诊断阅卷草稿，未使用官方标准答案，需教师/题库校准后方可作为正式成绩。"
+    else:
+        note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
+            else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"- {note}")
     lines.append("")
     lines.append("## 记忆口诀")
@@ -985,14 +996,22 @@ def build_case_rubric_presentation(
     ]
     awarded = _fmt_score(event.get("awarded_score"))
     maximum = _fmt_score(event.get("max_score"))
+    is_diagnostic_score = (
+        event.get("diagnostic_score") is True
+        or event.get("rubric_provenance") == "derived_from_stem"
+        or event.get("answer_key_authority") == "derived_from_stem_pending_calibration"
+    )
+    score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
     summary = (
-        f"得分预估 {awarded} / {maximum} 分；命中 {hit_count} 个，"
+        f"{score_label} {awarded} / {maximum} 分；命中 {hit_count} 个，"
         f"部分命中 {partial_count} 个，漏/错 {miss_count} 个。"
     )
     bullets = []
     if weak_points:
         bullets.append(f"优先补：{_safe_text(weak_points[0], limit=40)}")
-    if event.get("high_risk_review"):
+    if is_diagnostic_score:
+        bullets.append("未命中题库原题/标准答案，本轮为题干推导诊断批改。")
+    elif event.get("high_risk_review"):
         bullets.append("本轮含高风险判分点，建议教师复核后作为正式成绩。")
     else:
         bullets.append("本评分为 AI 阅卷草稿，非正式成绩。")
@@ -1080,13 +1099,21 @@ def build_case_rubric_score_first_stream(
     miss_count = sum(1 for p in scoring_points if p.get("hit") == MISS)
     awarded = _fmt_score(event.get("awarded_score"))
     maximum = _fmt_score(event.get("max_score"))
+    is_diagnostic_score = (
+        event.get("diagnostic_score") is True
+        or event.get("rubric_provenance") == "derived_from_stem"
+        or event.get("answer_key_authority") == "derived_from_stem_pending_calibration"
+    )
+    score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
 
     score_lines = [
         "## 批改结论",
-        f"**得分预估：** {awarded} / {maximum} 分。",
+        f"**{score_label}：** {awarded} / {maximum} 分。",
         f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
     ]
-    if event.get("high_risk_review"):
+    if is_diagnostic_score:
+        score_lines.append("- 未命中题库原题/标准答案，本轮为题干推导诊断批改，不能作为正式阅卷成绩。")
+    elif event.get("high_risk_review"):
         score_lines.append("- 本轮含高风险判分点，建议教师复核后作为正式成绩。")
     else:
         score_lines.append("- 本评分为 AI 阅卷草稿，非正式成绩。")
@@ -1375,17 +1402,23 @@ def canonicalize_rubric_points(
 
 
 def enforce_official_scoring_authority(
-    rubric_points: list[dict[str, Any]], *, provenance: str = ""
+    rubric_points: list[dict[str, Any]],
+    *,
+    provenance: str = "",
+    allow_pending_calibration_diagnostic: bool = False,
 ) -> list[dict[str, Any]]:
     """G2 single-authority guard on the production scoring channel.
 
     ONLY official-answer-backed rubric points may score. Runtime ``derived_from_stem`` points are
-    intentionally stamped ``pending_calibration`` by ``canonicalize_rubric_points``; they may support
-    an open-world diagnosis after review, but they must not mint a user-visible hard score. Rich-leaf /
-    textbook-cited points are also routed to supporting-only via the G2 single-precedence sink
-    (``resolve_grading_point_authority``) and EXCLUDED from scoring — the 50x-volume rich-leaf points
-    can never impersonate the official answer key. Deterministic, pure; this is the load-bearing wiring
-    of the G2 invariant onto the live ``deep_question._grade_one_case_v1`` path."""
+    intentionally stamped ``pending_calibration`` by ``canonicalize_rubric_points``. By default they
+    stay supporting-only and are excluded from scoring. The only exception is an explicit V1 diagnostic
+    mode (``allow_pending_calibration_diagnostic``): those points may produce a learner-facing
+    diagnostic estimate, still with ``official_score_allowed=False`` and never as official correctness
+    authority. Rich-leaf / textbook-cited points are routed to supporting-only via the G2
+    single-precedence sink (``resolve_grading_point_authority``) and EXCLUDED from scoring — the
+    50x-volume rich-leaf points can never impersonate the official answer key. Deterministic, pure; this
+    is the load-bearing wiring of the G2 invariant onto the live ``deep_question._grade_one_case_v1``
+    path."""
     # Lazy import keeps this hot grading module free of any load-time coupling to rich_leaf_runtime.
     from deeptutor.services.construction_grading.rich_leaf_runtime import (
         AUTH_TEXTBOOK_CITED,
@@ -1393,6 +1426,7 @@ def enforce_official_scoring_authority(
     )
 
     official: list[dict[str, Any]] = []
+    diagnostic: list[dict[str, Any]] = []
     supporting_only: list[dict[str, Any]] = []
     for point in rubric_points or []:
         authority = str(point.get("authority_source") or "") if isinstance(point, dict) else ""
@@ -1400,6 +1434,14 @@ def enforce_official_scoring_authority(
             point_provenance = str(point.get("rubric_provenance") or provenance or "")
         else:
             point_provenance = str(provenance or "")
+        is_pending_diagnostic = (
+            allow_pending_calibration_diagnostic
+            and point_provenance == "derived_from_stem"
+            and authority == "pending_calibration"
+        )
+        if is_pending_diagnostic:
+            diagnostic.append(point)
+            continue
         is_supporting_only = authority in {AUTH_TEXTBOOK_CITED, "pending_calibration"} or (
             point_provenance == "derived_from_stem"
             and authority not in {"official_answer", "official_answer_verbatim"}
@@ -1421,7 +1463,13 @@ def enforce_official_scoring_authority(
             "(G2 single-authority); kept %d official (provenance=%s)",
             len(supporting_only), len(official), provenance or "?",
         )
-    return official
+    if diagnostic:
+        logger.warning(
+            "enforce_official_scoring_authority: allowed %d pending-calibration diagnostic point(s) "
+            "(official_score_allowed=false); kept %d official (provenance=%s)",
+            len(diagnostic), len(official), provenance or "?",
+        )
+    return official + diagnostic
 
 
 _BATCH_SYSTEM_PROMPT = (

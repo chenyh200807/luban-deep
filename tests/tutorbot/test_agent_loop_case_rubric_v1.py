@@ -369,6 +369,60 @@ async def test_v1_case_render_skips_when_no_authority(monkeypatch: pytest.Monkey
 
 
 @pytest.mark.asyncio
+async def test_v1_case_stream_plan_derives_diagnostic_for_unbanked_full_case(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [])
+    captured: dict[str, str] = {}
+
+    async def _fake_derive(stem, complete_fn, api_key, *, model="deepseek-chat", provider_authority=""):
+        captured["stem"] = stem
+        captured["provider_authority"] = provider_authority
+        return [
+            {"point_id": "P1", "text": "工程量清单强制性内容应包括项目编码", "score": 1.0,
+             "policy": "qualitative", "required_terms": [], "question_no": 1},
+            {"point_id": "P2", "text": "中标单位不得分包给不具备资质单位", "score": 1.0,
+             "policy": "qualitative", "required_terms": [], "question_no": 3},
+        ]
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            "P1": {"status": G.MISS},
+            "P2": {"status": G.HIT, "evidence_span": "不得分包给不具备资质单位"},
+        }
+
+    monkeypatch.setattr(G, "derive_rubric_from_stem_async", _fake_derive)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    monkeypatch.setattr(AgentLoop, "_record_v1_grading_to_brain", staticmethod(lambda **_kwargs: None))
+    monkeypatch.setattr(AgentLoop, "_schedule_v1_grading_personalization", lambda self, runtime_metadata: None)
+
+    md = {"question_lifecycle_scene": "case_grading", "user_id": "qa_loop_v1"}
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】\n"
+        "1. 工程量清单的强制性内容还有哪些？\n"
+        "3. 中标单位还应避免哪些违法分包行为？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。\n"
+        "3. 不得分包给不具备资质单位。"
+    )
+
+    plan = await _loop()._v1_case_stream_plan(runtime_metadata=md, user_message=message)
+
+    assert plan is not None
+    assert "诊断得分预估" in plan["score_first"]
+    assert "未命中题库原题/标准答案" in plan["score_first"]
+    assert md["score_authority"] == "rubric_scored_v1_diagnostic"
+    assert md["grading_rubric_provenance"] == "derived_from_stem"
+    assert md["grading_official_score_allowed"] is False
+    assert "工程量清单的强制性内容" in captured["stem"]
+    assert "作答" not in captured["stem"]
+
+
+@pytest.mark.asyncio
 async def test_v1_case_render_skips_when_flag_off(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "false")  # kill switch
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")

@@ -2035,7 +2035,7 @@ async def _grade_case_rubric_v1(
     cg_type = str((cg or {}).get("type") or "").lower()
     if cg_type not in ("case", "batch"):
         # Gray-rollout observability: V1 is on for this user but the turn is not subjective.
-        logger.info("LUBAN_V1 skip: not subjective (cg_type=%r) student=%s qid=%s",
+        logger.info("LUBAN_V1 skip: not subjective (cg_type={!r}) student={} qid={}",
                     cg_type or "(none)", student_id,
                     graded_context.get("question_id") or (cg or {}).get("question_id"))
         return None  # only subjective single / multi-item turns
@@ -2082,14 +2082,14 @@ async def _grade_case_rubric_v1(
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
         if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
             _aw, _mx = event.get("awarded_score"), event.get("max_score")
-            logger.info("LUBAN_V1 GRADED: provenance=%s score=%s/%s points=%d high_risk=%s "
-                        "student=%s qid=%s cg_type=%s",
+            logger.info("LUBAN_V1 GRADED: provenance={} score={}/{} points={} high_risk={} "
+                        "student={} qid={} cg_type={}",
                         event.get("rubric_provenance"), _aw, _mx,
                         len(event.get("scoring_points") or []), event.get("high_risk_review"),
                         student_id, _qid, cg_type)
             _record_v1_langfuse(event=event, student_id=student_id, qid=_qid, cg_type=cg_type)
         else:
-            logger.info("LUBAN_V1 no-grade: %s student=%s qid=%s",
+            logger.info("LUBAN_V1 no-grade: {} student={} qid={}",
                         (event or {}).get("status") if isinstance(event, dict) else "none",
                         student_id, _qid)
             _record_v1_langfuse(event=None, student_id=student_id, qid=_qid, cg_type=cg_type,
@@ -2113,7 +2113,7 @@ async def _grade_one_case_v1(
     qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
     answer = str(ctx.get("user_answer") or "").strip()
     logger.warning(
-        "LUBAN_DIAG _grade_one_case_v1: entered qid=%s answer_len=%d has_cg=%s",
+        "LUBAN_DIAG _grade_one_case_v1: entered qid={} answer_len={} has_cg={}",
         qid or "(none)", len(answer), bool(cg),
     )
     if not answer:
@@ -2122,7 +2122,7 @@ async def _grade_one_case_v1(
     points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
     logger.warning(
-        "LUBAN_DIAG _grade_one_case_v1: tier1 qid=%s compiled_rubric_points=%d",
+        "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
         qid or "(none)", len(points),
     )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
@@ -2139,7 +2139,7 @@ async def _grade_one_case_v1(
         ).strip()
         stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
         logger.warning(
-            "LUBAN_DIAG _grade_one_case_v1: tier2/3 has_reference=%s reference_len=%d has_stem=%s stem_len=%d",
+            "LUBAN_DIAG _grade_one_case_v1: tier2/3 has_reference={} reference_len={} has_stem={} stem_len={}",
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
@@ -2155,18 +2155,24 @@ async def _grade_one_case_v1(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
         elif stem:
-            # No answer key authority: stem-only LLM-derived rubrics are useful for diagnostics after
-            # review, but they must not enter the hard-score path or spend latency only to be demoted.
-            return {
-                "status": "unavailable",
-                "reason": "no_official_scoring_points",
-                "question_id": qid,
-            }
+            # Tier 3: no official answer-key authority, but this is still a gradable learner need.
+            # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
+            # scoring channel. It must never be promoted to official correctness authority.
+            points = await _G.derive_rubric_from_stem_async(
+                stem,
+                complete,
+                key,
+                model=_v1_model,
+                provider_authority=provider_authority,
+            )
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
+            provenance = "derived_from_stem"
         else:
-            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid=%s", qid or "(none)")
+            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
             return {"status": "no_reference", "question_id": qid}
     logger.warning(
-        "LUBAN_DIAG _grade_one_case_v1: post-tier points=%d provenance=%s qid=%s",
+        "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
         len(points), provenance, qid or "(none)",
     )
     if not points:
@@ -2181,7 +2187,12 @@ async def _grade_one_case_v1(
     # points enter the correctness channel; any rich-leaf / textbook-cited point is demoted to
     # supporting and never scores — the 50x-volume rich-leaf points cannot impersonate the official
     # key. Behaviour-preserving for the current official-derived sources (compiled / reference / stem).
-    points = _G.enforce_official_scoring_authority(points, provenance=provenance)
+    is_diagnostic_rubric = provenance == "derived_from_stem"
+    points = _G.enforce_official_scoring_authority(
+        points,
+        provenance=provenance,
+        allow_pending_calibration_diagnostic=is_diagnostic_rubric,
+    )
     if not points:
         return {"status": "unavailable", "reason": "no_official_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
@@ -2191,9 +2202,15 @@ async def _grade_one_case_v1(
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.
     if event.get("degraded"):
-        logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid=%s", qid)
+        logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    if is_diagnostic_rubric:
+        event["grading_source"] = "rubric_scored_v1_diagnostic"
+        event["answer_key_authority"] = "derived_from_stem_pending_calibration"
+        event["official_score_allowed"] = False
+        event["high_risk_review"] = True
+        event["diagnostic_score"] = True
     return event
 
 

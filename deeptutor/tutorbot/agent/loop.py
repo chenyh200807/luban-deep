@@ -1293,9 +1293,9 @@ class AgentLoop:
             logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
                            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
             return None
-        # _grade_one_case_v1 owns hard-score authority: compiled_rubric or explicit reference only.
-        # Stem-only cases fail closed and fall through to diagnostic wording, so the TutorBot wrapper
-        # never invents a second scoring authority.
+        # _grade_one_case_v1 owns scoring authority. TutorBot is only the thin entry wrapper:
+        # compiled/reference rubrics produce normal V1 estimates; stem-only questions produce
+        # non-official diagnostic V1 estimates instead of a second TutorBot fallback policy.
         try:
             from deeptutor.capabilities.deep_question import _grade_one_case_v1
             from deeptutor.services.construction_grading import rubric_grader_v1 as _G
@@ -1350,8 +1350,9 @@ class AgentLoop:
                 return None
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
             md["v1_case_graded"] = True
-            md["score_authority"] = "rubric_scored_v1"
+            md["score_authority"] = str(event.get("grading_source") or "rubric_scored_v1")
             md["grading_rubric_provenance"] = str(event.get("rubric_provenance") or "").strip()
+            md["grading_official_score_allowed"] = bool(event.get("official_score_allowed"))
             if event.get("adjudication_strategy"):
                 md["case_grading_adjudication_strategy"] = str(event.get("adjudication_strategy") or "")
             for _event_key, _metadata_key in (
