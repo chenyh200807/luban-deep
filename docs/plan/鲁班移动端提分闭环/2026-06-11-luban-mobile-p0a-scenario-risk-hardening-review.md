@@ -4,23 +4,25 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 已把 P0A spike 形态从「案例题端到端深度闭环」改为「每日提分留存闭环」，核心假设是「忙碌成年人会连续回来」。本评审据此调整数据流与前提：留存是放行门，案例题批改为养成后深度层；GO 钉真实 D1/D7 回访。下列场景矩阵 / 风险 / 加固积木保留。
+
 ## 0. Executive Judgment
 
-当前最优答案不是扩大成完整 App 重构，而是把 P0A 做成一条足够硬的提分闭环纵切，并先用单母题 spike 验证真实链路：
+当前最优答案不是扩大成完整 App 重构，而是把 P0A 做成一条足够硬的纵切，并先用单母题 spike 验证「人会不会连续回来」（v1.3 重心：留存优先，案例题批改为养成后深度层）：
 
 ```text
 今日任务
--> 轻练 / 半写
--> 采分点级批改
+-> 2 分钟 MCQ 轻练
+-> 选错即诊断（采分点 / 教材章节定位）
 -> learning_evidence
--> 错因复练
--> 复测 readback
--> decision package
+-> 次日复测（验证回访）
+-> （养成后解锁）案例题半写 -> 采分点级批改 -> 错因复练
+-> decision package（GO 钉 D1/D7 回访）
 ```
 
 在当前条件下，收益大于风险，但只在以下前提成立时成立：
 
-- F16 防水工程单母题 spike 先打穿，再扩到 3-5 个母题资产。
+- F16 内容下的「每日留存闭环」spike 先打穿（验证回访），再扩到 3-5 个母题资产与案例题深度层。
 - `wx_miniprogram` 与 `yousenwebview/packageDeeptutor` 的开发/验收树先收权。
 - `priority_score` 不制造第二套推荐 authority。
 - 轻练/半写 evidence 带 task_scope，不污染 learning_evidence。
@@ -28,6 +30,7 @@
 - 前端不计算评分、掌握度、推荐和 next_action。
 - OCR 不变成默认路径，不写长期 truth。
 - 真实微信入口证据不是 `/wechat-harness` 冒充。
+- 留存是放行门：GO 钉真实 D1/D7 回访，完成率 / NPS 高但用户不回来最多 WEAK-GO。
 - P0A 结束时用 decision package 决定 GO / WEAK-GO / NO-GO。
 
 若这些 gate 做不到，风险会大于收益，因为系统会把“看起来像提分产品”的 UI 发出去，但底层证据链、信任和成本都不可控。
@@ -49,6 +52,7 @@ P0A 至少覆盖以下场景。每个场景必须有 UI 状态、后端 authorit
 | --- | --- | --- | --- | --- |
 | Cold start user | 不知道从哪开始 | 给 3 分钟轻诊断或默认高频母题 | 无历史 evidence 时不得伪造弱点 | UX + Authority |
 | Returning normal user | 今天练什么 | 推荐一个主任务并解释原因 | 推荐源缺失时降级默认 P0A task | Scenario |
+| Next-day return（留存核心） | 昨天诊断出盲点，今天回来 | 今日页直接给昨天盲点的次日复测 + 看见进步 | 无复测题则给同采分点新题 | Retention |
 | Interrupted user | 昨天没练完 | 自动重排一个可完成任务 | 不展示补债/惩罚文案 | UX |
 | Exam sprint user | 时间很少 | 提高高权重母题和复测优先级 | 不推长任务压垮用户 | Scenario |
 | Weak foundation user | 看不懂长案例 | 先轻练拆采分点 | 半写失败时回到 light practice | Design |
@@ -123,7 +127,7 @@ case_family asset reviewed
 1. 继续推进 P0A，不扩大到完整五 Tab 或 30-40 母题。
 2. 把 `Scenario Coverage Gate` 加入 release gate 和 decision package。
 3. 进入代码前先冻结 source tree decision、concept authority map、task_scope evidence rule、mistake_tag schema path。
-4. 先做 F16 防水工程单母题 spike，再扩到 3-5 个 `case_family` 资产。
+4. 先做 F16 内容下的「每日留存闭环」spike（验证回访），再扩到 3-5 个 `case_family` 资产与案例题深度层。
 5. 先做 Web shadow / mock fixtures，再做 `yousenwebview` root + `packageDeeptutor` true-entry smoke。
 6. P0A 结束必须给出 GO / WEAK-GO / NO-GO，不允许凭体验主观扩 P0B。
 

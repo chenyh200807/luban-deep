@@ -4,6 +4,8 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 收口为「每日提分留存闭环」。本契约据此补两点：① 批改 / 轻练结果的 `point_matches` 增加 `textbook_locator`（教材章节定位），承载「选错即诊断：盲点 + 教材第几章」这一差异化；② 行为事件必须能算出 **D1/D7 回访留存**（P0A 主指标），`mobile_p0a_home_viewed` 携带 `days_since_first_use`。次日复测开环复用 `today_main_task.task_type=retest`，无需第二套 authority。
+
 ## 0. Purpose
 
 本文定义 P0A 前后端之间的最小 ViewModel 与行为事件边界，防止移动端实现时把评分、推荐、掌握度、错因和 learner truth 重新做一套。若父 PRD 的字段草案与本文不一致，以本文为准。
@@ -198,6 +200,10 @@ point_matches:
     outcome: "hit | partial | miss | not_evaluated | high_risk_review"
     evidence_span: "string"
     diagnosis: "string"
+    textbook_locator:                 # 选错即诊断：盲点对应的教材定位，来自 knowledge_node authority，前端不得自拼
+      chapter: "string"
+      section: "string"
+      node_code: "string"
     mistake_tags:
       - tag_id: "string"
         label: "string"
@@ -286,9 +292,12 @@ Rules:
 
 All events use existing product behavior authority. Events are telemetry, not learner truth.
 
+**留存是 P0A 主指标。** 事件层必须能从遥测算出 D1 / D3 / D7 回访（用户在首用后的第几天又回到每日提分留存闭环），不是靠问卷自报。因此每个会话级事件携带 `days_since_first_use`（首用后第几天），且必须能区分「次日因复测开环回来」与「随便打开一次」。这一指标喂入 release gate 的 Retention Gate 与 decision package。
+
 | Event | Required properties | Not allowed |
 | --- | --- | --- |
-| `mobile_p0a_home_viewed` | `visit_id`, `entry_flow`, `task_id`, `case_family_id` | score/mastery write |
+| `mobile_p0a_home_viewed` | `visit_id`, `entry_flow`, `task_id`, `case_family_id`, `days_since_first_use` | score/mastery write |
+| `mobile_p0a_daily_loop_completed` | `visit_id`, `days_since_first_use`, `case_family_id`, `diagnosed_gap_count` | mastery/score write |
 | `mobile_p0a_main_task_impressed` | `visit_id`, `task_id`, `case_family_id`, `priority_bucket` | local recommendation mutation |
 | `mobile_p0a_main_task_started` | `task_id`, `task_type`, `case_family_id` | next_action mutation |
 | `mobile_p0a_quick_action_clicked` | `action_id`, `entry_flow` | learner state mutation |

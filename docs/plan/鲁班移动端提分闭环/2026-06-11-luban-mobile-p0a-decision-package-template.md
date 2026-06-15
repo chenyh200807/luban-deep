@@ -4,6 +4,8 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：本决策包的 GO 判据已从"闭环走通 + 样本量"改为"**真实 D1/D7 回访留存** + 样本量"。完成率高、NPS 高但用户不回来，最多 WEAK-GO。这是 v1.2 → v1.3 收口要堵的坑（第一波内测 NPS 8-10 但 revisit=no）。
+
 ## 0. Decision
 
 Verdict:
@@ -24,13 +26,14 @@ Owner:
 
 ## 1. Executive Summary
 
-Summarize in 5 lines:
+Summarize in 6 lines:
 
 1. What P0A proved.
-2. What remains risky.
-3. Whether user value is visible.
-4. Whether authority boundaries held.
-5. Whether P0B should start.
+2. **Whether users actually came back (D1/D7 retention) — the primary P0A question.**
+3. What remains risky.
+4. Whether user value is visible.
+5. Whether authority boundaries held.
+6. Whether P0B should start.
 
 ## 2. Scope Completed
 
@@ -106,8 +109,12 @@ attempt
 
 ## 6. Metrics Snapshot
 
-Product:
+Product (留存优先 — 这是 P0A 的主指标):
 
+- **D1 retention（次日回访，未催促）:**
+- **D3 retention:**
+- **D7 retention:**
+- **试用窗口内人均活跃天数:**
 - Main task start rate:
 - Main task completion rate:
 - Second attempt click rate:
@@ -246,7 +253,7 @@ Choose one:
 
 ### GO
 
-Use only if all blocking gates pass, true-entry evidence exists, and sample thresholds are met: at least 20 gray users, 100 valid attempts, and 30 mistake review/retest entries.
+Use only if all blocking gates pass, true-entry evidence exists, the **pre-registered retention threshold is met** (set D1 / D7 return targets BEFORE the run, e.g. D1 >= X%, D7 >= Y% returned without nagging — not after), and sample thresholds are met: at least 20 gray users, 100 valid attempts, and 30 mistake review/retest entries. High completion or high NPS without real return is NOT a GO.
 
 ### WEAK-GO
 

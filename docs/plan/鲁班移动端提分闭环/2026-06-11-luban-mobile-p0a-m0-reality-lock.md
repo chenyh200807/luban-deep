@@ -7,13 +7,15 @@
 > - [2026-06-11-luban-mobile-scoring-loop-p0a-execution-plan.md](2026-06-11-luban-mobile-scoring-loop-p0a-execution-plan.md)
 > - [2026-06-11-luban-mobile-p0a-viewmodel-and-event-contract.md](2026-06-11-luban-mobile-p0a-viewmodel-and-event-contract.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 已把 spike 形态从「案例题端到端深度闭环」改为「每日提分留存闭环」（今日任务 + 2 分钟 MCQ 轻练 + 选错即诊断 + 次日复测），验证「人会不会连续回来」。F16 仍作为内容母题不变；案例题批改降为养成后第二阶段深度层。下列源树 / authority / schema 收权积木全部保留。
+
 本文件是 P0A 开工前的现实收权记录。它不重新定义产品目标，只把执行前必须锁住的代码现实、资产现实、authority 边界、阻塞输入和降级规则写清楚。
 
 ## 0. Karpathy Gate
 
 ### assumptions
 
-- P0A 的首个端到端 spike 采用 `F16 防水工程 / topic_waterproof`，不改题、不同时扩 5 个母题。
+- P0A 的首个 spike 是「每日提分留存闭环」（v1.3，验证人会不会连续回来），内容采用 `F16 防水工程 / topic_waterproof`，不改题、不同时扩 5 个母题；案例题批改为养成后第二阶段深度层。
 - 当前先做 M0 文档与现实盘点，不写前端/后端产品代码。
 - `PRD/` 下旧 UI/UX 与混合制章节资料仍只是输入资料；实现 authority 只看 `docs/plan/鲁班移动端提分闭环/` 当前文档包。
 - 用户已确认：错题本里“已掌握”不能由用户按钮直接成为客观掌握，必须由复测、同采分点迁移题、遗忘曲线后的再验证等客观证据支撑。
@@ -49,7 +51,7 @@
 |---|---|---|
 | Frontend source tree | P0A true-entry 验收必须以 `yousenwebview` project root + `packageDeeptutor` 分包为准；`wx_miniprogram` 只能算 shadow 或移植来源 | `LOCKED for validation` |
 | Latest upload source | 本地只能证明两棵树同 AppID，不能证明最近一次上传来自哪棵树 | `BLOCKED on owner evidence` |
-| F16 防水 spike | 采用 M32 防水闭环与 `topic_waterproof` 资产作为首母题，不从零生产 | `LOCKED unless user changes topic` |
+| F16 spike 形态 | spike = 每日留存闭环（今日任务 + 2 分钟 MCQ 轻练 + 选错即诊断 + 次日复测）；内容取 M32 防水闭环 / `topic_waterproof` 资产，不从零生产；案例题批改为第二阶段深度层 | `LOCKED: 形态=留存闭环, 内容=F16 unless user changes topic` |
 | 推荐 authority | `training_intent` / `NextBestAction` 生成候选，`priority_score` 只排序/解释 | `LOCKED` |
 | `task_scope` | 半写/轻练必须带覆盖采分点；范围外点只能 `not_evaluated`，不能写 miss | `LOCKED` |
 | `mistake_tag` | schema 未冻结前只能 display-only；写长期 truth 需 contract + readback test | `LOCKED` |
@@ -123,15 +125,14 @@ P0A 暂定规则：
 
 ### 4.3 M1 first asset scope
 
-M1 只做一个防水母题端到端 spike：
+M1 做一个防水母题的「每日提分留存闭环」spike 资产（v1.3 重心：先验证留存，不是先打穿案例题深度）：
 
 - 1 个 `case_family`
-- 1 个完整案例题或案例小问
 - 3-5 个 `scoring_point_id`
-- 每个采分点 1-2 个 canonical `mistake_tag`
-- 1 条 light task
-- 1 条 semi-write task
-- 1 条 same-scoring-point different-question retest binding
+- 每个采分点 1-2 个 canonical `mistake_tag`（error_code 引用）
+- **1 组 2 分钟 MCQ 轻练（M1 首要交付）：每个干扰项绑 `error_code` + 教材章节定位，支持选错即诊断**
+- 1 条 same-scoring-point different-question 的次日复测 binding
+- （第二阶段深度层，非 M1 先打穿对象）1 个完整案例题 / 案例小问 + 1 条 light task + 1 条 semi-write task
 
 ## 5. Existing Backend Authority Inventory
 
@@ -248,7 +249,7 @@ Do not sweep in contract or OCR code changes unless that is explicitly requested
 M0 is complete when:
 
 - [ ] Owner provides latest mini-program upload source evidence, or explicitly accepts `yousenwebview/packageDeeptutor` as P0A dev + validation source regardless of prior upload source.
-- [ ] F16 防水 first spike scope is confirmed unchanged.
+- [ ] F16 spike 形态确认为「每日提分留存闭环」（v1.3），内容母题 F16 不变。
 - [ ] `task_scope` schema has protected contract/test registration plan.
 - [ ] `mistake_tag` taxonomy shape has protected contract/test registration plan.
 - [ ] `mastered_at` semantic downgrade is reflected in contract/API plan.

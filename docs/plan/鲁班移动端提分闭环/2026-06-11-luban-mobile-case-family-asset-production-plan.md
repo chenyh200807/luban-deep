@@ -4,6 +4,8 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 已把前台主菜收口为「每日提分留存闭环」。spike 首要交付随之调整：**不是案例题批改深度资产，而是「每日 2 分钟知识点 / 母题 MCQ 轻练诊断集」**——每道 MCQ 的每个干扰项（错误选项）必须绑定一个 `error_code` 与教材章节定位，使用户选错时当场拿到盲点诊断。这是 B 相对商品刷题 App 的差异化命根：无诊断映射的纯对错题等于和用户现有「刷题 / 看解析」无差异。案例题半写 / 批改资产降为留存跑通后第二阶段（深度护城河层）。下列 Asset Gate / schema / pipeline 积木保留。
+
 ## 0. Purpose
 
 P0A 的最大风险不是 UI，而是母题、采分点、错因、题目绑定资产不够真。本文定义 P0A case_family 资产生产线，保证今日任务、AI 批改、错因复练和复测都有可靠材料。
@@ -21,6 +23,7 @@ P0A 的最大风险不是 UI，而是母题、采分点、错因、题目绑定�
 - mistake_tag 清单。
 - question_binding 清单。
 - light practice task，必须标明 `task_scope` 和 `evidence_weight`。
+- light practice MCQ 干扰项映射：每个错误选项绑定一个 `error_code` + 教材章节定位，支持「选错即诊断」（盲点 + 教材第几章）。这是留存闭环的差异化前提，缺失则该 MCQ 只能进 mock。
 - semi-write task，必须标明 `covered_scoring_point_ids`。
 - retest binding rule，优先同一 scoring_point 的不同题。
 - grading rubric / scoring_point evidence rule。
@@ -35,7 +38,7 @@ P0A 执行顺序：
 
 | Order | ID | Mother topic | Why |
 | --- | --- | --- | --- |
-| Spike | F16 | 防水工程 | 已有 M32 grading-to-learning 链路经验，适合最快验证今日任务、半写、批改、错因、复练、复测 |
+| Spike | F16 | 防水工程 | 已有 M32 grading-to-learning 链路经验、内容现成；spike 首要交付是该母题下的每日 MCQ 轻练诊断集（干扰项→error_code→教材章节）+ 次日复测题，用最低门槛验证留存；案例题半写 / 批改为第二阶段深度层 |
 | Expansion | F01 | 进度计划与关键线路 | 高频、结构清晰、可做轻练/半写/复测 |
 | Expansion | F02 | 工期索赔 | 高频、错因稳定、适合证据链展示 |
 | Expansion | F04 | 质量验收程序 | 易演示程序性采分点与主体责任 |
@@ -49,7 +52,7 @@ P0A 执行顺序：
 | F15 | 大体积混凝土 | 关键词和程序清晰，适合半写 |
 | F17 | 材料进场与复验 | 采分点稳定，适合错因分类 |
 
-P0A 首个 spike 默认使用 F16 防水工程。产品负责人若改首母题，必须同时说明：现有 scoring artifacts、题目绑定、错因 taxonomy、复测题池是否足以支撑 1-1.5 周内端到端闭环。
+P0A 首个 spike 默认使用 F16 防水工程，首要交付是该母题下的「每日 MCQ 轻练诊断集 + 次日复测题」（每个干扰项绑 `error_code` + 教材章节定位），用于验证留存；案例题半写 / 批改深度资产作为第二阶段。产品负责人若改首母题，必须同时说明：现有 scoring artifacts、题目绑定、错因 taxonomy、复测题池是否足以支撑 1-1.5 周内端到端闭环。
 
 ## 3. Asset Schema Draft
 
@@ -223,6 +226,7 @@ Each P0A case_family needs at least:
 Task design rules:
 
 - P0A light practice only uses single-choice, multiple-choice and case small-question interactions.
+- **每个 MCQ 干扰项（错误选项）必须绑定一个注册过的 `error_code` 与教材章节定位**：用户选错时当场产出「你暴露的盲点 = X，对应教材第 Y 章」。无诊断映射的纯对错 MCQ 不得进入 P0A（否则退化成与用户现有「刷题 / 看解析」无差异的题海，正是 v1.3 §1 非目标里禁止的纯刷题 App）。
 - Semi-write tasks must declare the exact scoring_point subset they train.
 - Out-of-scope points are not evaluated and cannot become miss evidence.
 - Light practice evidence is `light_signal` and cannot close stable weakness by itself.

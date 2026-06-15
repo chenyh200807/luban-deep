@@ -4,13 +4,15 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 已收口为「每日提分留存闭环」为前台主菜、案例题 AI 采分点批改为养成习惯后解锁的深度护城河层。本执行计划据此调整重心：P0A 第一个 spike 验证「人会不会连续回来」（留存假设），不是验证案例题批改技术闭环（M32 已证明能跑）；GO 门钉真实 D1/D7 回访留存。下列 WS / 里程碑积木保留，仅重心与验收口径对齐。
+
 ## 0. Purpose
 
 本文件把 canonical 产品 PRD 拆成 P0A 可执行计划。它不重新定义产品目标，不替代评分、Learning Brain、OCR、微信入口等专项 contract。
 
 P0A 目标：
 
-先用 1 个单母题端到端 spike 证明「今日任务 -> 渐进作答 -> AI 采分点批改 -> learning_evidence -> 错因复练 -> 复测 readback」真实闭环成立，再扩到 3-5 个高频母题。
+先用 1 个 spike 证明「每日提分留存闭环」真实可走（人会连续回来）：今日任务 -> 2 分钟知识点/母题 MCQ 轻练 -> 当场盲点诊断（错选项 -> 采分点 / 教材章节定位）-> learning_evidence -> 「明天复测什么」开环 -> 次日复测 readback。案例题渐进作答 -> AI 采分点批改 -> 错因复练作为留存跑通后第二阶段解锁的深度层。spike 跑通后再扩到 3-5 个高频母题。
 
 ## 1. Scope
 
@@ -40,7 +42,7 @@ P0A 不做：
 
 P0A 要证明的一等业务事实：
 
-一次案例题训练或批改，必须转化为可追溯的采分点级 learning_evidence，并驱动下一次训练、错因复练和复测。
+每一次有效训练（知识点 / 母题 MCQ 轻练，或案例题批改），必须转化为可追溯的采分点级 learning_evidence，并驱动盲点诊断、次日复测和明天的今日任务。轻练 MCQ 与案例题批改写同一份 learning_evidence、同一套采分点 / 错因 authority，门槛不同：轻练是低门槛留存入口，案例题批改是深度层。
 
 Authority 分层沿用父 PRD：
 
@@ -232,7 +234,7 @@ Deliverables:
 Acceptance:
 
 - P0B cannot start without this package.
-- GO requires pre-registered sample threshold or explicit product-owner override; otherwise at most WEAK-GO.
+- GO requires a pre-registered **D1/D7 retention** threshold (users actually returned on later days without nagging) **plus** the sample threshold, or explicit product-owner override; loop completion / high satisfaction without real return is at most WEAK-GO (this is the exact trap the v1.2 → v1.3 realignment exists to avoid: NPS high, revisit no).
 
 ### WS9: Scenario Coverage And Hardening
 
@@ -252,7 +254,7 @@ Acceptance:
 | Milestone | Output | Gate |
 | --- | --- | --- |
 | M0 Reality Lock | Source tree decision, current-state inventory, concept authority map, evidence write policy | Frontend Source Tree + Authority Gate |
-| M1 Spike Asset | F16 防水工程 spike package | Asset Gate |
+| M1 Spike Asset | F16 内容下的每日留存闭环 spike 资产（今日任务 + 2 分钟 MCQ 轻练 + 错选项→采分点/教材章节诊断 + 次日复测题） | Asset Gate |
 | M2 Contracts | ViewModel + mocks + task_scope + mistake_tag schema path | Authority + Task Scope Evidence Gate |
 | M3 Today/Training | Today + light/semi-write | UX Gate |
 | M4 Grading/Evidence | Result page + learning_evidence readback | Trust + Authority Gate |
@@ -260,7 +262,7 @@ Acceptance:
 | M6 True Entry | WeChat true-entry smoke | WeChat Gate |
 | M7 Scenarios | Scenario matrix + hardening review | Scenario Coverage Gate |
 | M8 Expansion Assets | 3-5 case_family packages after spike | Asset + Retest Anti-Memorization Gate |
-| M9 Decision | Decision package | GO / WEAK-GO / NO-GO |
+| M9 Decision | Decision package（GO 钉真实 D1/D7 回访留存，不是闭环完成率） | GO / WEAK-GO / NO-GO |
 
 ## 6. Minimum Test Matrix
 

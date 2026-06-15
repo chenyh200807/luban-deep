@@ -4,6 +4,8 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：父 PRD 前台主菜收口为「每日提分留存闭环」。屏幕重心据此调整：**今日页 + 2 分钟 MCQ 轻练 + 选错即诊断（盲点 + 教材章节）+ 次日复测开环** 是 P0A 第一屏组；AI 批改结果页（§2.4）是养成习惯后解锁的深度层屏，不是新用户首屏。仍禁止游戏闯关式 UI（见 §1）：留存靠「每天两分钟看见自己补了什么、明天还要回来复测」，不靠积分闯关。
+
 ## 0. Purpose
 
 本文定义 P0A 进入前端实现前必须具备的核心屏幕、组件、状态和视觉验收标准。它不替代最终视觉稿，但定义设计不可违背的产品结构。
@@ -41,10 +43,11 @@ P0A navigation rule: 不替换现有 4 TabBar。今日任务可以作为现有�
 First screen must answer:
 
 1. 距离考试还有多久。
-2. 今天最该做什么。
+2. 今天最该做什么（默认是 2 分钟轻练，不是写案例）。
 3. 为什么推荐。
 4. 预计多久。
 5. 做完补哪类分。
+6. 做完今天还要不要回来：明天给你复测哪几个盲点。
 
 Layout:
 
@@ -59,8 +62,9 @@ Layout:
 
 Rules:
 
-- One primary CTA only.
+- One primary CTA only（默认指向 2 分钟轻练，非案例题半写）。
 - 推荐原因必须来自 read model / evidence / cold-start diagnosis。
+- 完成当日轻练后，必须当场显示「今天补了哪个盲点（+ 教材章节）+ 明天给你复测这几个」，形成回访开环——这是留存的核心交互。
 - 断更状态不展示惩罚性补债文案。
 - P0A 今日页不要求进入正式 TabBar；但入口文案、返回路径和已有 4 Tab 的关系必须明确。
 
@@ -76,6 +80,7 @@ Required components:
 - Question prompt.
 - Interaction block: single select / multi select / case small-question.
 - Immediate feedback.
+- 选错即诊断卡：错选项 -> 盲点（error_code label）+ 教材章节定位（来自后端 knowledge_node，前端不自拼）。这是轻练区别于商品刷题的核心，不可省。
 - Next step CTA.
 
 States:
@@ -112,6 +117,8 @@ Rules:
 - Draft survives network failure.
 
 ### 2.4 AI 批改结果页
+
+> v1.3：这是案例题半写 / 批改的**深度层结果屏**，属养成习惯后第二阶段解锁，不是新用户首屏。每日留存闭环的主结果面是轻练的「选错即诊断卡」（§2.2），它低门槛、当场出盲点 + 教材定位。本屏在用户走进案例题深度训练后才承载。
 
 Order:
 

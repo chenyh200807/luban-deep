@@ -4,6 +4,8 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
+> v1.3 对齐（2026-06-15）：新增 **Retention Gate（blocking）**。P0A 的核心假设是「忙碌成年人会连续回来」，所以留存是放行门，不是事后指标。完成率 / 满意度高但用户不回来不得 GO。
+
 ## 0. Verdict Rules
 
 Gate verdict:
@@ -34,6 +36,7 @@ P0A cannot enter real-user gray release unless all blocking gates are `PASS`. If
 | Privacy Gate | Yes | TBD | TBD |
 | Scenario Coverage Gate | Yes | TBD | TBD |
 | Decision Sample Gate | Yes | TBD | TBD |
+| Retention Gate | Yes | TBD | TBD |
 
 ## 1.1 Frontend Source Tree Gate
 
@@ -305,6 +308,21 @@ Fail if:
 - Decision package gives `GO` from only a handful of users or attempts.
 - Sample does not include the core scoring loop.
 - Cohort identity is ambiguous.
+
+## 11.2 Retention Gate
+
+Required (blocking — this is the P0A core hypothesis):
+
+- A pre-registered D1 / D7 return target is set BEFORE the run (e.g. D1 >= X%, D7 >= Y% of grey users return on a later day without operator nagging).
+- Behavior events carry a per-user first-use timestamp / return-day index so D1 / D3 / D7 return is actually computable from telemetry, not estimated.
+- Return is measured on the daily retention loop (今日任务 → MCQ 轻练 → 盲点诊断 → 次日复测), not just any app open.
+- The decision package reports observed D1 / D3 / D7 retention against the pre-registered target.
+
+Fail if:
+
+- Retention cannot be computed because events lack return-day attribution.
+- `GO` is claimed from completion rate or NPS while real return is below target.
+- Retention is reported only as a self-report survey number, not behavioral return.
 
 ## 12. Final Signoff
 
