@@ -19,6 +19,7 @@ import pytest
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
     is_low_information_exam_query,
+    looks_like_case_grading_submission_context,
     looks_like_free_text_mcq_grading_request,
     resolve_question_lifecycle_scene_decision,
 )
@@ -131,6 +132,30 @@ def test_active_object_case_question_with_submission_returns_case_grading():
         metadata={"question_followup_context": case_ctx},
     )
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_case_submission_context_predicate_accepts_case_context():
+    assert looks_like_case_grading_submission_context(
+        {
+            "question_id": "case-current",
+            "question_type": "case_study",
+            "question": "背景资料：某工程。\n【问题】指出不妥之处。",
+            "user_answer": "施工单位应避免违法分包。",
+        },
+        {"intent": "answer_questions", "answers": []},
+    )
+
+
+def test_case_submission_context_predicate_rejects_objective_context():
+    assert not looks_like_case_grading_submission_context(
+        {
+            "question_id": "choice-current",
+            "question_type": "single_choice",
+            "question": "下列说法正确的是？",
+            "options": {"A": "甲", "B": "乙"},
+        },
+        {"intent": "answer_questions", "answers": []},
+    )
 
 
 def test_free_text_case_answer_review_returns_case_grading():
@@ -709,6 +734,40 @@ def test_attach_honors_existing_orchestrator_decision():
         "construction-exam-tutor",
         "construction-study-assistant",
     ]
+
+
+@pytest.mark.asyncio
+async def test_scene_decision_honors_pre_capability_case_grading_fact():
+    ctx = _FakeContext(
+        user_message="作答：应避免违法分包。",
+        metadata={
+            "question_lifecycle_scene": "case_grading",
+            "question_lifecycle_scene_source": "deterministic_pre_capability",
+            "question_lifecycle_scene_confidence": 0.96,
+            "question_lifecycle_scene_reason": "case_submission_context",
+            "question_followup_context": {
+                "question_id": "case-current",
+                "question_type": "case_study",
+                "question": "背景资料：某工程。\n【问题】指出不妥之处。",
+                "items": [
+                    {
+                        "question_id": "case-current-1",
+                        "question": "指出违法分包行为。",
+                    }
+                ],
+            },
+        },
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "case_grading"
+    assert decision.source == "deterministic_pre_capability"
+    assert decision.reason == "case_submission_context"
+    assert decision.selected_skill_names == (
+        "construction-exam-tutor",
+        "construction-case-grading",
+    )
 
 
 def test_attach_honors_explicit_none_from_upstream():

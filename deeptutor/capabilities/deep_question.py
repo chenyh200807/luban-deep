@@ -3552,6 +3552,28 @@ class DeepQuestionCapability(BaseCapability):
         updated["state_snapshot"] = snapshot
         return updated
 
+    @staticmethod
+    def _case_grading_context_from_full_submission(raw_user_message: str) -> dict[str, Any] | None:
+        from deeptutor.services.question_lifecycle_skills import (
+            split_full_case_answer_submission,
+        )
+
+        question_stem, learner_answer = split_full_case_answer_submission(raw_user_message)
+        if not question_stem.strip() or not learner_answer.strip():
+            return None
+        return {
+            "question_id": "",
+            "question": question_stem.strip(),
+            "question_stem": question_stem.strip(),
+            "question_type": "case",
+            "user_answer": learner_answer.strip(),
+            "correct_answer": "",
+            "construction_grading_result": {
+                "type": "case",
+                "max_score": 10,
+            },
+        }
+
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
         from deeptutor.services.llm.config import get_llm_config
@@ -3622,6 +3644,40 @@ class DeepQuestionCapability(BaseCapability):
         raw_user_message = str(
             context.metadata.get("raw_user_message") or context.user_message or ""
         ).strip()
+        if (
+            lifecycle_scene == "case_grading"
+            and not force_generate_questions
+            and not (
+                isinstance(followup_question_context, dict)
+                and followup_question_context.get("question")
+            )
+        ):
+            full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
+            if full_case_context is not None:
+                case_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                    next_action="route_to_grading",
+                    active_object=active_object,
+                    question_context=full_case_context,
+                    user_message=raw_user_message,
+                )
+                context.metadata["question_followup_context"] = dict(full_case_context)
+                context.metadata["turn_semantic_decision"] = case_turn_decision
+                await self._emit_grading_result(
+                    stream=stream,
+                    context=context,
+                    llm_config=llm_config,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=case_turn_decision,
+                    graded_context=full_case_context,
+                    raw_user_message=raw_user_message,
+                    selected_mode=selected_mode,
+                    authority_source="case_grading_full_submission",
+                    correct_answer_present=False,
+                    kb_name=kb_name,
+                )
+                return
         if (
             not force_generate_questions
             and isinstance(followup_question_context, dict)

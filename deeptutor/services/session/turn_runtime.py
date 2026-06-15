@@ -62,9 +62,11 @@ from deeptutor.services.question_followup import (
     resolve_submission_attempt,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    looks_like_case_grading_submission_context,
     looks_like_full_case_answer_submission,
     looks_like_free_text_mcq_grading_request,
     looks_like_free_text_mcq_question_surface,
+    select_question_lifecycle_skill_names,
     split_full_case_answer_submission,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
@@ -1266,6 +1268,61 @@ def _full_case_submission_action() -> dict[str, Any]:
         "answers": [],
         "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
     }
+
+
+_QUESTION_LIFECYCLE_METADATA_KEYS = (
+    "question_lifecycle_scene",
+    "question_lifecycle_scene_source",
+    "question_lifecycle_scene_confidence",
+    "question_lifecycle_scene_reason",
+    "question_lifecycle_skill_names",
+)
+
+
+def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(config, dict):
+        return {}
+    return {
+        key: config[key]
+        for key in _QUESTION_LIFECYCLE_METADATA_KEYS
+        if config.get(key) not in (None, "", [], {})
+    }
+
+
+def _stamp_case_grading_scene_pre_capability(
+    runtime_config: dict[str, Any],
+    *,
+    user_message: str,
+    followup_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None,
+) -> None:
+    """Stamp the case-grading business fact before capability selection.
+
+    This is not a router and not a scorer. It only writes the canonical lifecycle
+    scene when the current turn already carries a stable case submission fact, so
+    deep_question and TutorBot both consume the same V1 grading authority.
+    """
+
+    if not isinstance(runtime_config, dict):
+        return
+    reason = ""
+    confidence = 0.0
+    if looks_like_full_case_answer_submission(user_message):
+        reason = "full_case_answer_submission"
+        confidence = 1.0
+    elif looks_like_case_grading_submission_context(followup_context, followup_action):
+        reason = "case_submission_context"
+        confidence = 0.96
+    if not reason:
+        return
+
+    runtime_config["question_lifecycle_scene"] = "case_grading"
+    runtime_config["question_lifecycle_scene_source"] = "deterministic_pre_capability"
+    runtime_config["question_lifecycle_scene_confidence"] = confidence
+    runtime_config["question_lifecycle_scene_reason"] = reason
+    runtime_config["question_lifecycle_skill_names"] = list(
+        select_question_lifecycle_skill_names("case_grading")
+    )
 
 
 def _should_ignore_explicit_context_for_free_text_mcq(
@@ -3896,6 +3953,12 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        _stamp_case_grading_scene_pre_capability(
+            runtime_only_config,
+            user_message=raw_user_content,
+            followup_context=runtime_followup_question_context,
+            followup_action=runtime_followup_action,
+        )
         setup_stages.record_since("followup_resolution", followup_resolution_started_at)
         entry_capability_hint = (
             requested_capability
@@ -4703,6 +4766,12 @@ class TurnRuntimeManager:
                     volatile_followup_question_context,
                 ],
             )
+            _stamp_case_grading_scene_pre_capability(
+                request_config,
+                user_message=raw_user_content,
+                followup_context=followup_question_context,
+                followup_action=followup_question_action,
+            )
             if followup_question_context:
                 active_object = build_active_object_from_question_context(
                     followup_question_context,
@@ -4817,6 +4886,7 @@ class TurnRuntimeManager:
                 (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
+            trace_metadata.update(_question_lifecycle_metadata_from_config(request_config))
             trace_metadata["active_object"] = dict(active_object) if active_object else {}
             trace_metadata["suspended_object_stack"] = list(stored_suspended_object_stack)
             trace_metadata["turn_semantic_decision"] = (
@@ -5303,6 +5373,7 @@ class TurnRuntimeManager:
                         "suspended_object_stack": stored_suspended_object_stack,
                         "turn_semantic_decision": turn_semantic_decision or {},
                         "interaction_hints": interaction_hints or {},
+                        **_question_lifecycle_metadata_from_config(request_config),
                         **(
                             {"general_knowledge_context": request_config["general_knowledge_context"]}
                             if isinstance(request_config.get("general_knowledge_context"), bool)
@@ -5568,6 +5639,9 @@ class TurnRuntimeManager:
                         ).strip(),
                     }
                 )
+                for metadata_key in _QUESTION_LIFECYCLE_METADATA_KEYS:
+                    if metadata_key in context.metadata:
+                        trace_metadata[metadata_key] = context.metadata[metadata_key]
                 if (
                     isinstance(context.metadata.get("question_followup_context"), dict)
                     and context.metadata.get("question_followup_context")

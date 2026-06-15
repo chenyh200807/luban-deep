@@ -31,6 +31,7 @@
 11. `exam_track` 这类领域上下文只能作为 request config / interaction_hints / metadata 的 scoped input 进入 orchestrator 和 capability；它不得改变 capability 选择权威，也不得被 adapter 用来创建平行 capability。
 12. capability 只能看到 runtime 当前可用的工具；`web_search` 关闭或未配置时，registry 必须把它从 schema、prompt hints 和 enabled tools 中过滤掉。入口可以传递用户显式联网意图，但不得绕过 runtime availability authority，也不得把显式工具请求直接升级为 `current_info_required`；当前信息需求必须由 query intent / grounding decision 统一判定。
 13. 练题 / 出题类 follow-up 的公开请求配置仍由 orchestrator 归一化：入口可以传入题量、题型、topic 等 hint，但 orchestrator 必须保留显式 config，不得用重新推断覆盖已有非空值。
+    - `case_grading` 的 capability routing 不等于评分 authority。若 `question_lifecycle_scene=case_grading` 已由前置稳定事实写入，`resolve_question_lifecycle_scene_decision` 必须尊重该事实并补齐 lifecycle decision / skill metadata；orchestrator 可按执行环境选择 `deep_question` 或 `tutorbot`（无 TutorBot 默认绑定时不得落入普通 `chat`），但 `score`、`missed point`、`deduction reason`、逐采分点裁决只能来自同一个鲁班 V1 / `rubric_grader_v1` event。TutorBot 只负责对话承接、渲染和流式输出，不得用 free text 自行判分或补官方扣分理由。
 14. orchestrator 从自然语言推断出的 `num_questions`、`question_type`、`lightweight_generation` 只属于本次 capability request config；它们不得成为 session / learner state 的第二份长期真相。
 15. 批量出题请求不能因为上一题已经作答或已批改而退回 grading path；生成更多题目的 intent 必须收敛到 capability routing / request config，而不是 adapter 或 presentation 层重复判定。
 16. 当同一用户消息同时包含当前题目的可解析作答和“下一题 / 继续练”类训练请求时，orchestrator 必须先保持 `deep_question` 的 submission/grading 路径；训练生成只能作为后续动作，不能抢在当前作答批改之前改写为 practice generation config。

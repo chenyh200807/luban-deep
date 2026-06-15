@@ -195,6 +195,27 @@ async def resolve_question_lifecycle_scene_decision(
 
     user_message = str(getattr(ctx, "user_message", None) or "").strip()
     metadata = getattr(ctx, "metadata", None) or {}
+    if isinstance(metadata, dict) and "question_lifecycle_scene" in metadata:
+        pre_scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
+        if pre_scene is not None:
+            source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
+            reason = str(
+                metadata.get("question_lifecycle_scene_reason")
+                or "pre-stamped lifecycle scene"
+            ).strip()
+            try:
+                confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
+            except (TypeError, ValueError):
+                confidence = 1.0
+            return QuestionLifecycleSceneDecision(
+                scene=pre_scene,
+                source=source or "metadata",
+                confidence=confidence,
+                reason=reason,
+                required_anchor_status="satisfied",
+                selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
+                business_gate_result="pre_stamped_scene",
+            )
     scene = derive_question_lifecycle_scene(ctx)
     unanchored_submission = (
         _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
@@ -871,6 +892,43 @@ _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
         "mcq",
     }
 )
+_CASE_GRADING_CONTEXT_TYPES: frozenset[str] = frozenset(
+    {
+        "case",
+        "case_study",
+        "case_background",
+        "calculation",
+        "written",
+        "subjective",
+        "short_answer",
+        "essay",
+        "open_ended",
+    }
+)
+
+
+def looks_like_case_grading_submission_context(
+    question_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None,
+) -> bool:
+    """Return true when an existing question-domain submission is case grading.
+
+    This predicate is intentionally narrower than full scene derivation. It
+    exists so turn runtime can stamp the already-known case-grading fact before
+    capability selection without becoming a second lifecycle decider.
+    """
+
+    from deeptutor.services.question_followup import (  # noqa: WPS433
+        followup_action_route,
+        normalize_question_followup_context,
+    )
+
+    if followup_action_route(followup_action) != "submission":
+        return False
+    normalized = normalize_question_followup_context(question_context)
+    if normalized is None:
+        return False
+    return _is_case_grading_context_row(normalized)
 
 
 def derive_question_lifecycle_scene(ctx: Any) -> str | None:
@@ -1047,6 +1105,29 @@ def looks_like_free_text_mcq_question_surface(text: str) -> bool:
         _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
         or _looks_like_value_only_mcq_option_surface(user_message)
     )
+
+
+def _is_case_grading_context_row(row: dict[str, Any]) -> bool:
+    q_type = str(row.get("question_type") or row.get("type") or "").strip().lower()
+    if q_type in _CASE_GRADING_CONTEXT_TYPES:
+        return True
+    grading_result = row.get("construction_grading_result")
+    if (
+        isinstance(grading_result, dict)
+        and str(grading_result.get("type") or "").strip().lower() == "case"
+    ):
+        return True
+    if q_type in _MCQ_QUESTION_TYPES or row.get("options"):
+        return False
+    question_text = str(
+        row.get("question") or row.get("question_stem") or row.get("stem") or ""
+    )
+    if any(marker in question_text for marker in ("案例", "背景资料", "【问题】")):
+        return True
+    for item in row.get("items") or []:
+        if isinstance(item, dict) and _is_case_grading_context_row(item):
+            return True
+    return False
 
 
 def looks_like_full_case_answer_submission(text: str) -> bool:

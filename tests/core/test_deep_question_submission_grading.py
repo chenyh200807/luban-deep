@@ -54,6 +54,77 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
     return events
 
 
+def test_deep_question_builds_case_context_from_full_submission() -> None:
+    raw_case_submission = (
+        "建设单位编制了投资兴建某工程的招标文件。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
+    )
+
+    context = DeepQuestionCapability._case_grading_context_from_full_submission(
+        raw_case_submission
+    )
+
+    assert context is not None
+    assert context["question_type"] == "case"
+    assert context["construction_grading_result"]["type"] == "case"
+    assert "工程量清单的强制性内容" in context["question_stem"]
+    assert context["user_answer"] == "项目编码、项目名称、项目特征、计量单位和工程量。"
+    assert "建设单位编制了投资兴建某工程" not in context["user_answer"]
+
+
+@pytest.mark.asyncio
+async def test_deep_question_case_grading_scene_without_context_uses_grading_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("case grading should not generate questions")
+
+    async def fake_emit_grading_result(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result({"response": "graded"}, source=self.name)
+
+    captured: dict[str, Any] = {}
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    monkeypatch.setattr(
+        DeepQuestionCapability,
+        "_emit_grading_result",
+        fake_emit_grading_result,
+    )
+    raw_case_submission = (
+        "案例背景：某工程地下室混凝土拆模后发现孔洞。\n"
+        "问题：补充孔洞治理流程。\n"
+        "作答：凿毛、涂刷界面剂、支模、浇筑、养护。"
+    )
+    capability = DeepQuestionCapability()
+    context = UnifiedContext(
+        session_id="s-case-deep-question",
+        user_message=raw_case_submission,
+        config_overrides={},
+        metadata={"question_lifecycle_scene": "case_grading"},
+        language="zh",
+    )
+
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "case_grading_full_submission"
+    assert captured["correct_answer_present"] is False
+    assert captured["graded_context"]["construction_grading_result"]["type"] == "case"
+    assert captured["graded_context"]["user_answer"] == "凿毛、涂刷界面剂、支模、浇筑、养护。"
+    assert context.metadata["question_followup_context"]["question_type"] == "case"
+    assert any(event.type == StreamEventType.RESULT for event in events)
+
+
 @pytest.mark.asyncio
 async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,

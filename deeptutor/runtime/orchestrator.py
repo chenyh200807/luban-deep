@@ -278,6 +278,16 @@ class ChatOrchestrator:
             context.metadata["semantic_router_shadow_route"] = ""
             context.metadata["semantic_router_selected_capability"] = "deep_question"
             return "deep_question"
+        if lifecycle_scene == "case_grading":
+            cap_name = self._case_grading_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                f"{lifecycle_decision.source}_case_grading"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
         if lifecycle_scene in {"learning_evidence_story", "study_assistant", "learning_support", "exam_catalog_query"}:
             cap_name = self._default_chat_capability(context)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
@@ -586,6 +596,15 @@ class ChatOrchestrator:
         if bot_id:
             return "tutorbot"
         return "chat"
+
+    def _case_grading_capability(self, context: UnifiedContext) -> str:
+        active = str(context.active_capability or "").strip()
+        if active in {"deep_question", "tutorbot"}:
+            return active
+        default_capability = self._default_chat_capability(context)
+        if default_capability == "tutorbot":
+            return "tutorbot"
+        return "deep_question"
 
     async def _resolve_turn_semantic_decision(
         self,

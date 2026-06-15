@@ -37,6 +37,7 @@ from deeptutor.services.session.turn_runtime import (
     _result_active_object,
     _result_question_followup_context,
     _sanitize_public_terminal_event,
+    _stamp_case_grading_scene_pre_capability,
     _TurnExecution,
 )
 
@@ -135,6 +136,70 @@ def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> N
         derive_question_lifecycle_scene(SimpleNamespace(user_message=content, metadata={}))
         == "case_grading"
     )
+
+
+def test_turn_runtime_stamps_full_case_submission_scene_before_capability() -> None:
+    config: dict[str, object] = {}
+    raw_case_submission = (
+        "建设单位编制了投资兴建某工程的招标文件。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
+    )
+
+    _stamp_case_grading_scene_pre_capability(
+        config,
+        user_message=raw_case_submission,
+        followup_context=None,
+        followup_action=None,
+    )
+
+    assert config["question_lifecycle_scene"] == "case_grading"
+    assert config["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    assert config["question_lifecycle_scene_reason"] == "full_case_answer_submission"
+    assert config["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-case-grading",
+    ]
+
+
+def test_turn_runtime_stamps_existing_case_submission_context_before_capability() -> None:
+    config: dict[str, object] = {}
+    case_context = {
+        "question_id": "case-current",
+        "question_type": "case_study",
+        "question": "背景资料：某工程施工总承包。\n【问题】指出不妥之处。",
+        "user_answer": "施工单位应避免违法分包。",
+    }
+
+    _stamp_case_grading_scene_pre_capability(
+        config,
+        user_message="施工单位应避免违法分包。",
+        followup_context=case_context,
+        followup_action={"intent": "answer_questions", "answers": []},
+    )
+
+    assert config["question_lifecycle_scene"] == "case_grading"
+    assert config["question_lifecycle_scene_reason"] == "case_submission_context"
+
+
+def test_turn_runtime_does_not_stamp_objective_submission_as_case_grading() -> None:
+    config: dict[str, object] = {}
+    choice_context = {
+        "question_id": "choice-current",
+        "question_type": "single_choice",
+        "question": "下列说法正确的是？",
+        "options": {"A": "甲", "B": "乙"},
+    }
+
+    _stamp_case_grading_scene_pre_capability(
+        config,
+        user_message="B",
+        followup_context=choice_context,
+        followup_action={"intent": "answer_questions", "answers": []},
+    )
+
+    assert "question_lifecycle_scene" not in config
 
 
 def test_turn_runtime_content_unwrap_keeps_non_transport_json_intact() -> None:

@@ -111,6 +111,57 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_routes_case_grading_to_tutorbot_when_bot_id_present() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+    case_submission = (
+        "建设单位编制了投资兴建某工程的招标文件。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
+    )
+    context = UnifiedContext(
+        session_id="s-case-grading-tutorbot",
+        user_message=case_submission,
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "case_grading"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_case_grading_to_deep_question_without_tutorbot() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+    case_submission = (
+        "案例背景：某工程地下室混凝土拆模后发现孔洞。\n"
+        "问题：补充孔洞治理流程。\n"
+        "作答：凿毛、涂刷界面剂、支模、浇筑、养护。"
+    )
+    context = UnifiedContext(
+        session_id="s-case-grading-deep-question",
+        user_message=case_submission,
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "case_grading"
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_respects_negated_answer_reveal_for_true_exam_practice_generation() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
