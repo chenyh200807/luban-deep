@@ -10,13 +10,18 @@ PUBLIC_HOST="${PUBLIC_HOST:-8.135.42.145}"
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL:-https://test2.yousenjiaoyu.com}"
 BACKUP_KEEP="${BACKUP_KEEP:-2}"
 READINESS_CHANGED_ARGS=""
+FAST_RELOAD_BLOCKED_PATTERN='^(Dockerfile|docker-compose\.yml|deployment/aliyun/|requirements(/|\.txt$)|requirements\.txt$|pyproject\.toml$|web/|package(-lock)?\.json$|wx_miniprogram/|yousenwebview/)'
 while IFS= read -r changed_file; do
   [ -n "${changed_file}" ] || continue
+  if printf "%s\n" "${changed_file}" | grep -Eq "${FAST_RELOAD_BLOCKED_PATTERN}"; then
+    echo "快速发布拒绝: ${changed_file} 需要镜像/前端/依赖重建，请改用 scripts/deploy_aliyun.sh。" >&2
+    exit 1
+  fi
   READINESS_CHANGED_ARGS+=" --changed-file $(printf "%q" "${changed_file}")"
 done < <(git show --pretty= --name-only --first-parent HEAD)
 
-echo "执行阿里云快速发布: sync + build + restart"
-echo "适合 Python 后端 / Prompt / YAML 改动；若改了 Dockerfile、requirements、前端构建产物，请改用 deploy_aliyun.sh"
+echo "执行阿里云快速发布: sync + no-build container refresh + restart"
+echo "适合 Python 后端 / Prompt / YAML / TutorBot skill 资产改动；若改了 Dockerfile、requirements、前端构建产物，请改用 deploy_aliyun.sh"
 
 "${SCRIPT_DIR}/sync_to_aliyun.sh" once
 "${SCRIPT_DIR}/validate_aliyun_release_env.sh"

@@ -286,9 +286,10 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
   - 覆盖前先自动生成远端代码快照
   - 再执行远端发布环境校验
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
-  - 再基于 `/root/deeptutor` 中的候选代码重建并重启 `deeptutor` 容器
+  - 再用已有镜像 `--no-build` 重建容器以刷新 `.env` release lineage
+  - 再把 `/root/deeptutor` 中的后端运行时代码受控刷新到容器 `/app`，并重启 `deeptutor` 容器进程
   - 重启完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
-  - 适合不需要完整前端/依赖重建排障的后端候选；不再做 `docker cp` 容器热补丁
+  - 适合 Python 后端、Prompt、YAML、TutorBot skill 资产等不需要前端/依赖/镜像重建的候选；若触碰 `Dockerfile`、`requirements*`、`pyproject.toml`、`web/`、`wx_miniprogram/`、`yousenwebview/` 或部署 compose 面，脚本会拒绝，必须改用 `deploy_aliyun.sh`
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
   - 覆盖前同样会先生成远端代码快照并校验远端发布环境
@@ -297,7 +298,7 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
 
-### 2026-06-15 快速发布性能教训：源码同步快，不代表镜像重建快
+### 2026-06-15/16 快速发布性能教训：fast path 必须 no-build
 
 本次只改 Python 后端逻辑（Nexus 案例题输出与评分 ctx），第二次同步日志已经显示
 `Number of files transferred: 0`，说明源码没有重复全量上传；真正耗时来自
@@ -305,10 +306,14 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
 缓存没有完整命中，`python-base` / `production` 层就可能重新下载 Debian、Rust、Python
 runtime.lock 依赖，看起来像“又全部重新下”。
 
-现有结论：
+现行规则：
 
 - `sync_to_aliyun.sh` 负责代码面，通常很快；不要把 `rsync` 日志里的文件列表误读成全量上传。
-- `redeploy_aliyun_fast.sh` 是“受控重建 + 重启”的快路径，不是“只替换 Python 文件”的热更新路径。
+- `redeploy_aliyun_fast.sh` 是后端 no-build 快路径：同步代码、注入 release lineage、运行态备份、用已有镜像 `--no-build` 刷新容器 env，再把受控后端运行时代码刷新进容器 `/app` 并重启进程。
+- 容器 `/app` 不是 `/root/deeptutor` 的 bind mount；只 rsync 到宿主机不会让运行时代码生效。fast path 的容器内刷新必须由 `server_fast_reload_aliyun.sh` 统一执行，禁止手工 `docker cp` 热补丁。
+- fast path 只允许后端运行时代码面：`deeptutor/`、`deeptutor_cli/`、`contracts/`、`scripts/`、`schemas/`、`requirements/` 只作为已安装依赖的约束文件随代码刷新；不能用它安装新依赖。
+- 触碰 `Dockerfile`、`requirements*`、`pyproject.toml`、`web/`、`wx_miniprogram/`、`yousenwebview/`、部署 compose 面或 Node/package 锁文件时，`redeploy_aliyun_fast.sh` 必须拒绝，改走 `deploy_aliyun.sh`。
+- fast path 仍必须保留 `/root/deeptutor` 代码快照、runtime 备份、host/container SHA 对齐、公网 `/healthz` `/readyz`、observability 验收；不能用“快”绕过 release truth。
 - SSH 断开（`Connection reset by peer` / `Broken pipe`）不等于远端 build 停止。必须先只读检查
   `docker compose --progress plain ... build`、`buildkit/executor`、容器 SHA 和 `/root/deeptutor/.env`
   SHA，再决定是否重跑。
@@ -318,10 +323,6 @@ runtime.lock 依赖，看起来像“又全部重新下”。
 
 后续优化方向（需要单独实现成正式脚本和 runbook，不得临时手工热补丁）：
 
-- 增加一个“纯 Python 源码轻量发布”路径：仅当 `requirements*`、`Dockerfile`、Web/Node 构建面、
-  runtime assets 均未变化时，执行 `rsync` + release lineage 校验 + 容器内受控代码刷新/进程重启。
-- 轻量路径必须保留 `/root/deeptutor` 代码快照、runtime 备份、host/container SHA 对齐、公网
-  `/healthz` `/readyz`、observability 验收；不能绕开 release truth。
 - 增加远端发布锁：在 `/root/deeptutor/data/ops/` 下记录当前 deploy pid、目标 SHA、开始时间和
   owner。锁存在且进程仍活跃时，新发布默认拒绝或进入只读等待模式。
 
