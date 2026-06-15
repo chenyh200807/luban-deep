@@ -313,15 +313,11 @@ def test_build_case_rubric_presentation_projects_public_render_blocks_only() -> 
     assert presentation is not None
     assert presentation["meta"]["streamingMode"] == "block_finalized"
     assert presentation["fallback_text"].startswith("铁，这道题")
-    assert [block["type"] for block in presentation["blocks"]] == ["recap", "table"]
+    assert [block["type"] for block in presentation["blocks"]] == ["recap"]
     assert presentation["blocks"][0]["title"] == "批改结论"
     assert "命中 1 个" in presentation["blocks"][0]["summary"]
-    row_text = " ".join(
-        str(cell.get("text") or "")
-        for row in presentation["blocks"][1]["rows"]
-        for cell in row
-    )
-    assert "✅" in row_text and "❌" in row_text
+    assert "最该补" in " ".join(presentation["blocks"][0]["bullets"])
+    assert "采分点速览" not in str(presentation)
     assert "answer_key_authority" not in str(presentation)
     assert "score_authority" not in str(presentation)
 
@@ -344,7 +340,10 @@ def test_build_case_rubric_score_first_stream_splits_public_sealed_blocks() -> N
     assert stream["score_first"].startswith("## 批改结论")
     assert "**得分预估：** 1 / 4 分。" in stream["score_first"]
     assert "命中 1 个，部分命中 0 个，漏/错 1 个" in stream["score_first"]
-    assert "✅" in stream["score_first"] and "❌" in stream["score_first"]
+    assert "命中/漏点速览" not in stream["score_first"]
+    assert "| 判定 |" not in stream["score_first"]
+    assert "最该补" in stream["score_first"]
+    assert stream["score_first"].index("**先看最该补的地方：**") < stream["final_text"].index("## 问题1")
     assert stream["final_text"].startswith(stream["score_first"])
     assert stream["sealed_blocks"]
     assert all(block["sealed"] is True for block in stream["sealed_blocks"])

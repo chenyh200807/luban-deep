@@ -945,6 +945,36 @@ def render_case_rubric_feedback(
     return "\n".join(lines)
 
 
+def _case_first_screen_weak_summaries(
+    scoring_points: list[dict[str, Any]],
+    *,
+    limit: int = 3,
+) -> list[str]:
+    summaries: list[str] = []
+    seen: set[str] = set()
+    for point in scoring_points:
+        if point.get("hit") == HIT:
+            continue
+        knowledge_point = re.sub(r"\s+", " ", str(point.get("knowledge_point") or "")).strip()
+        if not knowledge_point:
+            continue
+        question_no = point.get("question_no") or point.get("subquestion_index")
+        prefix = ""
+        try:
+            if question_no:
+                prefix = f"第{int(question_no)}问："
+        except (TypeError, ValueError):
+            prefix = ""
+        item = f"{prefix}{knowledge_point}"
+        if item in seen:
+            continue
+        seen.add(item)
+        summaries.append(item)
+        if len(summaries) >= limit:
+            break
+    return summaries
+
+
 def build_case_rubric_presentation(
     event: dict[str, Any],
     *,
@@ -978,22 +1008,10 @@ def build_case_rubric_presentation(
             return text
         return text[:limit].rstrip() + "..."
 
-    def _status_text(point: dict[str, Any]) -> str:
-        hit = point.get("hit")
-        if hit == HIT:
-            return "✅ 命中"
-        if hit == PARTIAL:
-            return "⚠️ 部分"
-        return "❌ 漏/错"
-
     hit_count = sum(1 for p in scoring_points if p.get("hit") == HIT)
     partial_count = sum(1 for p in scoring_points if p.get("hit") == PARTIAL)
     miss_count = sum(1 for p in scoring_points if p.get("hit") == MISS)
-    weak_points = [
-        str(p.get("knowledge_point") or "").strip()
-        for p in scoring_points
-        if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
-    ]
+    weak_summaries = _case_first_screen_weak_summaries(scoring_points)
     awarded = _fmt_score(event.get("awarded_score"))
     maximum = _fmt_score(event.get("max_score"))
     is_diagnostic_score = (
@@ -1004,25 +1022,21 @@ def build_case_rubric_presentation(
     score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
     summary = (
         f"{score_label} {awarded} / {maximum} 分；命中 {hit_count} 个，"
-        f"部分命中 {partial_count} 个，漏/错 {miss_count} 个。"
+        f"部分命中 {partial_count} 个，漏/错 {miss_count} 个。下面按小问拆清楚。"
     )
     bullets = []
-    if weak_points:
-        bullets.append(f"优先补：{_safe_text(weak_points[0], limit=40)}")
+    if weak_summaries:
+        bullets.append(f"最该补：{_safe_text(weak_summaries[0], limit=52)}")
+        for item in weak_summaries[1:3]:
+            bullets.append(_safe_text(item, limit=52))
+    else:
+        bullets.append("整体采分点覆盖不错，重点看后面的表达优化和易错点。")
     if is_diagnostic_score:
         bullets.append("未命中题库原题/标准答案，本轮为题干推导诊断批改。")
     elif event.get("high_risk_review"):
         bullets.append("本轮含高风险判分点，建议教师复核后作为正式成绩。")
     else:
         bullets.append("本评分为 AI 阅卷草稿，非正式成绩。")
-
-    rows: list[list[dict[str, Any] | str]] = []
-    for point in scoring_points[:12]:
-        rows.append([
-            {"text": _status_text(point), "highlight": point.get("hit") != HIT},
-            _safe_text(point.get("knowledge_point"), limit=54) or "采分点",
-            _safe_text(point.get("evidence_span"), limit=36) or "未看到直接给分表述",
-        ])
 
     try:
         from deeptutor.services.render_presentation import build_canonical_presentation
@@ -1035,14 +1049,7 @@ def build_case_rubric_presentation(
                     "title": "批改结论",
                     "summary": summary,
                     "bullets": bullets,
-                },
-                {
-                    "type": "table",
-                    "caption": "采分点速览",
-                    "mobile_strategy": "compact_cards",
-                    "headers": ["判定", "采分点", "你的证据"],
-                    "rows": rows,
-                },
+                }
             ],
         )
     except Exception:  # noqa: BLE001 — presentation must not break grading
@@ -1080,20 +1087,6 @@ def build_case_rubric_score_first_stream(
             return str(int(number))
         return f"{number:.2f}".rstrip("0").rstrip(".")
 
-    def _safe_text(value: Any, *, limit: int = 54) -> str:
-        text = re.sub(r"\s+", " ", str(value or "")).strip()
-        if len(text) <= limit:
-            return text
-        return text[:limit].rstrip() + "..."
-
-    def _status_text(point: dict[str, Any]) -> str:
-        hit = point.get("hit")
-        if hit == HIT:
-            return "✅ 命中"
-        if hit == PARTIAL:
-            return "⚠️ 部分"
-        return "❌ 漏/错"
-
     hit_count = sum(1 for p in scoring_points if p.get("hit") == HIT)
     partial_count = sum(1 for p in scoring_points if p.get("hit") == PARTIAL)
     miss_count = sum(1 for p in scoring_points if p.get("hit") == MISS)
@@ -1105,31 +1098,30 @@ def build_case_rubric_score_first_stream(
         or event.get("answer_key_authority") == "derived_from_stem_pending_calibration"
     )
     score_label = "诊断得分预估" if is_diagnostic_score else "得分预估"
+    weak_summaries = _case_first_screen_weak_summaries(scoring_points)
 
     score_lines = [
         "## 批改结论",
+        (
+            "这道题我先给你一个总判断："
+            f"命中 {hit_count} 个采分点，部分命中 {partial_count} 个，"
+            f"还有 {miss_count} 个需要补。后面我按小问逐一拆。"
+        ),
+        "",
         f"**{score_label}：** {awarded} / {maximum} 分。",
-        f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
+        f"**采分情况：** 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
     ]
-    if is_diagnostic_score:
-        score_lines.append("- 未命中题库原题/标准答案，本轮为题干推导诊断批改，不能作为正式阅卷成绩。")
-    elif event.get("high_risk_review"):
-        score_lines.append("- 本轮含高风险判分点，建议教师复核后作为正式成绩。")
+    if weak_summaries:
+        score_lines.extend(["", "**先看最该补的地方：**"])
+        score_lines.extend(f"{idx}. {item}" for idx, item in enumerate(weak_summaries[:3], start=1))
     else:
-        score_lines.append("- 本评分为 AI 阅卷草稿，非正式成绩。")
-    score_lines.extend(["", "### 命中/漏点速览", "| 判定 | 采分点 | 你的证据 |", "|---|---|---|"])
-    for point in scoring_points[:8]:
-        score_lines.append(
-            "| "
-            + " | ".join([
-                _status_text(point),
-                _safe_text(point.get("knowledge_point")) or "采分点",
-                _safe_text(point.get("evidence_span"), limit=36) or "未看到直接给分表述",
-            ])
-            + " |"
-        )
-    if len(scoring_points) > 8:
-        score_lines.append(f"\n其余 {len(scoring_points) - 8} 个采分点在后续逐问解析里展开。")
+        score_lines.extend(["", "**先看结论：** 主要采分点覆盖不错，后面重点看表达优化和易错点。"])
+    if is_diagnostic_score:
+        score_lines.extend(["", "提示：未命中题库原题/标准答案，本轮是题干推导诊断批改，不能作为正式阅卷成绩。"])
+    elif event.get("high_risk_review"):
+        score_lines.extend(["", "提示：本轮含高风险判分点，建议教师复核后作为正式成绩。"])
+    else:
+        score_lines.extend(["", "提示：本评分为 AI 阅卷草稿，非正式成绩。"])
     score_first = "\n".join(score_lines).strip()
 
     heading_pattern = re.compile(
