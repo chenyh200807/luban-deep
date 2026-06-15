@@ -152,6 +152,21 @@ def _should_capture_assistant_content(event: StreamEvent) -> bool:
     return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
 
 
+def _result_response_text(metadata: dict[str, Any] | None) -> str:
+    if not isinstance(metadata, dict):
+        return ""
+    containers = [metadata]
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        containers.append(nested)
+    for container in containers:
+        for key in ("response", "assistant_content", "content"):
+            value = container.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
 def _learning_prompt_intent_trace_metadata(intent: Any) -> dict[str, Any]:
     if not isinstance(intent, dict):
         return {}
@@ -188,11 +203,7 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return ""
     if event.type == StreamEventType.RESULT:
-        metadata = event.metadata or {}
-        response = metadata.get("response")
-        if response is None and isinstance(metadata.get("metadata"), dict):
-            response = metadata["metadata"].get("response")
-        return str(response or "").strip()
+        return _result_response_text(event.metadata or {})
     if event.type == StreamEventType.CONTENT:
         metadata = event.metadata or {}
         if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
@@ -437,8 +448,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     if event.type != StreamEventType.RESULT:
         return metadata
 
-    response = metadata.get("response")
-    if isinstance(response, str):
+    response = _result_response_text(metadata)
+    if response:
         metadata["response"] = normalize_markdown_for_tutorbot(
             coerce_user_visible_answer(response)
         )
@@ -446,8 +457,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     nested = metadata.get("metadata")
     if isinstance(nested, dict):
         nested_metadata = dict(nested)
-        nested_response = nested_metadata.get("response")
-        if isinstance(nested_response, str):
+        nested_response = _result_response_text(nested_metadata)
+        if nested_response:
             nested_metadata["response"] = normalize_markdown_for_tutorbot(
                 coerce_user_visible_answer(nested_response)
             )
