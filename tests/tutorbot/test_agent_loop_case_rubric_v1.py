@@ -92,6 +92,135 @@ def test_build_v1_case_ctx_splits_full_case_submission_and_blocks_mismatched_exa
     assert md["exact_question_blocked_reason"] == "case_exact_mismatch"
 
 
+def test_build_v1_case_ctx_full_submission_blocks_stale_followup_reference() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "STALE-CASE",
+            "question_stem": "固定总价合同风险范围和违约条款案例。",
+            "correct_answer": "应明确包死价种类、风险范围、违约条款，结算价为121520.00元。",
+            "user_answer": "上一轮旧答案",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。\n"
+        "2. 工期；质量标准；投标有效期。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == ""
+    assert ctx["correct_answer"] == ""
+    assert "工程量清单的强制性内容" in ctx["question_stem"]
+    assert ctx["user_answer"].startswith("1. 工程量计算规则")
+    assert ctx["user_answer"] != "上一轮旧答案"
+    assert md["case_reference_blocked_reason"] == "full_submission_without_verified_reference"
+
+
+def test_build_v1_case_ctx_full_submission_blocks_similar_stale_followup_reference() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "SIMILAR-STALE-CASE",
+            "question_stem": (
+                "某工程采用工程量清单计价，投标人应对招标文件工期、质量和投标有效期"
+                "作出实质性响应。"
+            ),
+            "correct_answer": "固定总价合同应明确风险范围、包死价种类和违约责任。",
+            "user_answer": "旧答案",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？2. 投标实质性响应内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。\n"
+        "2. 工期；质量标准；投标有效期。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == ""
+    assert ctx["correct_answer"] == ""
+    assert ctx["user_answer"].startswith("1. 工程量计算规则")
+    assert md["case_reference_blocked_reason"] == "full_submission_without_verified_reference"
+
+
+def test_build_v1_case_ctx_full_submission_keeps_item_only_followup_reference() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "CURRENT-CASE",
+            "items": [
+                {
+                    "question_id": "CURRENT-CASE-1",
+                    "question": "1. 工程量清单的强制性内容还有哪些？",
+                    "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+                }
+            ],
+            "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == "CURRENT-CASE"
+    assert "项目编码" in ctx["correct_answer"]
+    assert ctx["user_answer"].startswith("1. 工程量计算规则")
+    assert "case_reference_blocked_reason" not in md
+
+
+def test_build_v1_case_ctx_full_submission_blocks_item_only_shared_background_reference() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "user_id": "qa_loop_v1",
+        "followup_question_context": {
+            "question_id": "STALE-SHARED-BACKGROUND",
+            "items": [
+                {
+                    "question_id": "STALE-BACKGROUND-ONLY",
+                    "question": "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。",
+                    "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+                }
+            ],
+            "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+            "max_score": 10,
+        },
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 投标单位实质性响应内容还有哪些？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工期；质量标准；投标有效期。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == ""
+    assert ctx["correct_answer"] == ""
+    assert ctx["user_answer"].startswith("1. 工期")
+    assert md["case_reference_blocked_reason"] == "full_submission_without_verified_reference"
+
+
 @pytest.mark.asyncio
 async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")  # explicit on (default is also on)

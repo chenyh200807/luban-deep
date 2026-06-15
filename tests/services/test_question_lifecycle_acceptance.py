@@ -20,6 +20,8 @@ from deeptutor.services.question_lifecycle_skills import (
     attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     derive_question_lifecycle_scene,
+    looks_like_full_case_answer_submission,
+    split_full_case_answer_submission,
 )
 
 
@@ -101,6 +103,36 @@ def test_case_grading_detects_exam_sheet_answer_layout():
     )
     scene = attach_question_lifecycle_scene_to_context(ctx)
     assert scene == "case_grading"
+
+
+def test_full_case_answer_submission_predicate_is_shared_runtime_guard():
+    text = (
+        "【背景资料】某施工单位中标新建教学楼工程。\n"
+        "【问题】\n"
+        "现场质量检查的“三检”制度是哪三检？\n"
+        "回答\n"
+        "作答：\n"
+        "“三检”制度是指自检、互检、专检。"
+    )
+    assert looks_like_full_case_answer_submission(text)
+    stem, answer = split_full_case_answer_submission(text)
+    assert "【问题】" in stem
+    assert answer == "“三检”制度是指自检、互检、专检。"
+    assert not looks_like_full_case_answer_submission("这个案例题第1问为什么错？")
+
+
+def test_full_case_answer_submission_accepts_inline_problem_marker_with_case_context():
+    text = (
+        "案例背景：某施工单位承接一项工程。问题：指出施工现场质量检查制度包括哪些内容。"
+        " 作答：施工现场质量检查包括自检、互检、专检。"
+    )
+    ctx = _FakeContext(user_message=text)
+
+    assert attach_question_lifecycle_scene_to_context(ctx) == "case_grading"
+    assert looks_like_full_case_answer_submission(text)
+    stem, answer = split_full_case_answer_submission(text)
+    assert "问题：指出施工现场质量检查制度" in stem
+    assert answer == "施工现场质量检查包括自检、互检、专检。"
 
 
 def test_case_grading_detects_case_background_answer_layout():

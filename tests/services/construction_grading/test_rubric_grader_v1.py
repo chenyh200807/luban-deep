@@ -198,6 +198,38 @@ def test_learning_evidence_projection_lists_missed_points():
     assert le["writeback_performed"] is False
 
 
+def test_learning_evidence_projection_preserves_subquestion_provenance():
+    rubric = [
+        {
+            "point_id": "EXAM_1A432000_P0016_02::E2::P1",
+            "text": "实质性响应投标有效期",
+            "score": 1.0,
+            "policy": "qualitative",
+            "required_terms": [],
+            "question_no": 2,
+            "sub_no": 2,
+            "source_qid": "EXAM_1A432000_P0016_02::E2",
+        }
+    ]
+    ev = G.grade_with_rubric(
+        qid="EXAM_1A432000_P0016_02",
+        student_answer="工期。",
+        rubric_points=rubric,
+        judge_fn=_judge({"EXAM_1A432000_P0016_02::E2::P1": {"status": G.MISS}}),
+        student_id="u1",
+    )
+    le = G.to_learning_evidence(ev, node_code="1A432000")
+
+    spec = le["rubric"]["scoring_points"][0]
+    hit = le["rubric"]["scoring_point_hits"][0]
+    weak = le["weak_points"][0]
+    error = le["error_events"][0]
+    for item in (spec, hit, weak, error):
+        assert item["question_no"] == 2
+        assert item["sub_no"] == 2
+        assert item["source_qid"].endswith("::E2")
+
+
 def test_normalize_points_to_nominal_scales_to_max_score():
     # 3 open-world points raw_total=6.0, nominal (V0 max_score)=2.0 -> sum scaled to 2.0
     pts = [{"point_id": "P1", "text": "a", "score": 3.0, "policy": "list", "required_terms": []},
@@ -316,6 +348,125 @@ def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidenc
     assert "| 问题3 | 不得将主体结构分包给其他单位 | ⚠️ 部分命中 | 0.0/1.0 | 主体结构的施工分包给其他单位 | 本采分点要点未答全，还差关键内容 |" in text
 
 
+def test_grade_with_rubric_preserves_question_number_for_rendering() -> None:
+    rubric = [
+        {
+            "point_id": "P1",
+            "question_no": 1,
+            "text": "工程量清单强制性内容",
+            "score": 1.0,
+            "policy": "qualitative",
+            "required_terms": [],
+        },
+        {
+            "point_id": "P2",
+            "question_no": 2,
+            "text": "实质性响应投标有效期",
+            "score": 1.0,
+            "policy": "qualitative",
+            "required_terms": [],
+        },
+    ]
+    event = G.grade_with_rubric(
+        qid="open_world",
+        student_answer="工程量计算规则；投标有效期。",
+        rubric_points=rubric,
+        judge_fn=_judge({"P1": {"status": G.HIT}, "P2": {"status": G.HIT}}),
+    )
+
+    assert event["scoring_points"][0]["question_no"] == 1
+    assert event["scoring_points"][1]["question_no"] == 2
+    text = G.render_case_rubric_feedback(event)
+    assert "### 第1问" in text
+    assert "### 第2问" in text
+    assert "整题" not in text
+
+
+def test_pgo_coverage_grading_preserves_subquestion_number_for_rendering() -> None:
+    rubric = [
+        {
+            "point_id": "P1",
+            "sub_no": 1,
+            "text": "工程量清单强制性内容",
+            "score": None,
+            "policy": "qualitative",
+            "required_terms": [],
+            "score_authority": "official_total_x_verdict_coverage",
+            "official_total_score": 2.0,
+        },
+        {
+            "point_id": "P2",
+            "sub_no": 2,
+            "text": "实质性响应投标有效期",
+            "score": None,
+            "policy": "qualitative",
+            "required_terms": [],
+            "score_authority": "official_total_x_verdict_coverage",
+            "official_total_score": 2.0,
+        },
+    ]
+    event = G.grade_with_rubric(
+        qid="open_world",
+        student_answer="工程量计算规则；投标有效期。",
+        rubric_points=rubric,
+        judge_fn=_judge({"P1": {"status": G.HIT}, "P2": {"status": G.HIT}}),
+    )
+
+    assert event["scoring_points"][0]["sub_no"] == 1
+    assert event["scoring_points"][1]["sub_no"] == 2
+    text = G.render_case_rubric_feedback(event)
+    assert "### 第1问" in text
+    assert "### 第2问" in text
+    assert "整题" not in text
+
+
+def test_load_rubric_preserves_subquestion_fields_for_rendering(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(G, "_rubric_bank", lambda: {
+        "CASE-1": [
+            {
+                "point_id": "EXAM_1A432000_P0016_02::E2::P1",
+                "text": "实质性响应投标有效期",
+                "score": 1.0,
+                "policy": "qualitative",
+                "required_terms": [],
+                "question_no": 2,
+                "sub_no": 2,
+                "source_qid": "EXAM_1A432000_P0016_02::E2",
+            }
+        ]
+    })
+
+    points = G.load_rubric("CASE-1")
+
+    assert points[0]["question_no"] == 2
+    assert points[0]["sub_no"] == 2
+    assert points[0]["source_qid"].endswith("::E2")
+
+
+def test_artifact_projection_preserves_subquestion_fields_for_rendering() -> None:
+    points = G.rubric_points_from_artifact({
+        "status": "release_candidate",
+        "quality_gates": {
+            "score_sum_ok": True,
+            "source_pollution_count": 0,
+            "blocked_reasons": [],
+        },
+        "scoring_points": [
+            {
+                "point_id": "A1",
+                "label": "实质性响应投标有效期",
+                "max_score": 1.0,
+                "policy_type": "qualitative",
+                "sub_no": 2,
+                "source_qid": "EXAM_1A432000_P0016_02::E2",
+            }
+        ],
+    })
+
+    assert points[0]["sub_no"] == 2
+    assert points[0]["source_qid"].endswith("::E2")
+
+
 def test_render_case_rubric_feedback_does_not_treat_year_qid_as_question_number() -> None:
     event = {
         "event_type": "case_grading_completed",
@@ -337,6 +488,30 @@ def test_render_case_rubric_feedback_does_not_treat_year_qid_as_question_number(
 
     assert "问题2024" not in text
     assert "| 整题 | 施工单位结算造价 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
+
+
+def test_render_case_rubric_feedback_reads_exam_subquestion_from_e_qid() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 0.0,
+        "max_score": 1.0,
+        "scoring_points": [
+            {
+                "point_id": "EXAM_1A432000_P0016_02::E2::P1",
+                "source_qid": "EXAM_1A432000_P0016_02::E2",
+                "knowledge_point": "实质性响应投标有效期",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+            }
+        ],
+    }
+
+    text = G.render_case_rubric_feedback(event)
+
+    assert "### 第2问" in text
+    assert "| 问题2 | 实质性响应投标有效期 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
 
 
 def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> None:
@@ -522,6 +697,34 @@ def test_rubric_bank_slot_defaults_to_legacy(tmp_path: Path, monkeypatch) -> Non
         assert G.load_rubric("Q-legacy")[0]["point_id"] == "L1"
     finally:
         G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_preserves_subquestion_fields_for_rendering(tmp_path: Path, monkeypatch) -> None:
+    records = [
+        {
+            "qid": "EXAM_1A432000_P0016_02",
+            "point_id": "EXAM_1A432000_P0016_02::E2::P1",
+            "text": "实质性响应投标有效期",
+            "score": 1.0,
+            "policy": "qualitative",
+            "required_terms": [],
+            "question_no": 2,
+            "sub_no": 2,
+        }
+    ]
+    _write_test_rubric_bank(tmp_path, "v_case_rubric_scored", "case_rubric_scored.json", records)
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.delenv("LUBAN_CASE_RUBRIC_BANK_SLOT", raising=False)
+    G._rubric_bank.cache_clear()
+
+    try:
+        point = G.load_rubric("EXAM_1A432000_P0016_02")[0]
+    finally:
+        G._rubric_bank.cache_clear()
+
+    assert point["question_no"] == 2
+    assert point["sub_no"] == 2
+    assert point["source_qid"] == "EXAM_1A432000_P0016_02"
 
 
 def test_rubric_bank_pgo_slot_missing_fails_closed_without_legacy_fallback(tmp_path: Path, monkeypatch) -> None:

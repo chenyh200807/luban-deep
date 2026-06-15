@@ -31,6 +31,7 @@ from deeptutor.services.query_intent import (
 from deeptutor.services.question_lifecycle_skills import (
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
+    split_full_case_answer_submission,
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
@@ -1041,21 +1042,7 @@ class AgentLoop:
 
     @staticmethod
     def _split_case_grading_submission(user_message: str) -> tuple[str, str]:
-        text = str(user_message or "").strip()
-        if not text:
-            return "", ""
-        problem_pos = max(text.rfind("【问题】"), text.rfind("问题】"), text.rfind("问题"))
-        if problem_pos < 0:
-            return "", text
-        marker_re = re.compile(r"(?m)^\s*(?:回答|作答|我的作答|学生作答|答案)\s*[:：]?\s*")
-        markers = [m for m in marker_re.finditer(text) if m.start() > problem_pos]
-        if not markers:
-            return "", text
-        marker = markers[-1]
-        stem = text[:marker.start()].strip()
-        answer = text[marker.end():].strip()
-        answer = re.sub(r"^(?:回答|作答|我的作答|学生作答|答案)\s*[:：]?\s*", "", answer).strip()
-        return stem, answer or text
+        return split_full_case_answer_submission(user_message)
 
     @staticmethod
     def _case_exact_question_matches_user_stem(exact_question: dict[str, Any], user_stem: str) -> bool:
@@ -1086,10 +1073,49 @@ class AgentLoop:
         return overlap >= 0.35
 
     @staticmethod
+    def _case_reference_context_matches_user_stem(reference_context: dict[str, Any], user_stem: str) -> bool:
+        """Strict same-surface guard for followup/reference context on fresh pasted case submissions."""
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        user = _compact(user_stem)
+        if not user:
+            return False
+
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or "？" in text
+                or "?" in text
+            )
+
+        def _reference_values(context: dict[str, Any]):
+            for key in ("stem", "question", "question_stem"):
+                yield context.get(key)
+            for item in context.get("items") or []:
+                if not isinstance(item, dict):
+                    continue
+                for key in ("stem", "question", "question_stem"):
+                    yield item.get(key)
+
+        for value in _reference_values(reference_context):
+            if not _has_current_question_anchor(value):
+                continue
+            ref = _compact(value)
+            if len(ref) >= 8 and (ref in user or user in ref):
+                return True
+        return False
+
+    @staticmethod
     def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
         """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
         Case reference lives in ``_prefetched_exact_question.covered_subquestions[].authoritative_answer``
-        (NOT top-level correct_answer); followup-flat correct_answer is the secondary source."""
+        (NOT top-level correct_answer). Followup-flat correct_answer is only a secondary source when the
+        current turn is not a fresh full-case submission, or when that followup context matches the current
+        pasted stem."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
@@ -1098,6 +1124,15 @@ class AgentLoop:
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
+        if user_stem and fc:
+            fc_probe = {
+                "stem": fc.get("question_stem") or fc.get("stem") or fc.get("question") or "",
+                "question": fc.get("question") or fc.get("question_stem") or "",
+                "items": fc.get("items") if isinstance(fc.get("items"), list) else [],
+            }
+            if not AgentLoop._case_reference_context_matches_user_stem(fc_probe, user_stem):
+                md["case_reference_blocked_reason"] = "full_submission_without_verified_reference"
+                fc = {}
         covered = eq.get("covered_subquestions") or []
         ref = "\n".join(
             str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
@@ -1116,7 +1151,7 @@ class AgentLoop:
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
             "node_code": node_code,
-            "user_answer": str(fc.get("user_answer") or user_answer or user_message or ""),
+            "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
             "question_stem": question_stem,
             "construction_grading_result": {"type": "case", "max_score": nominal},

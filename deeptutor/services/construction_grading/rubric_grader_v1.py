@@ -181,6 +181,9 @@ def grade_with_rubric(
             "evidence_span": str(verdict.get("evidence_span") or ""),
             "required_terms": list(p.get("required_terms") or []),
         }
+        for key in ("question_no", "sub_no", "subquestion_index", "question_index", "source_qid"):
+            if p.get(key) is not None:
+                point_out[key] = p.get(key)
         _attach_shadow_point_provenance(point_out, p)
         points_out.append(point_out)
     awarded_total = round(awarded_total, 2)
@@ -319,6 +322,11 @@ def rubric_points_from_artifact(artifact: dict[str, Any]) -> list[dict[str, Any]
             "required_terms": list(raw.get("required_terms") or []),
         }
         for key in (
+            "question_no",
+            "sub_no",
+            "subquestion_index",
+            "question_index",
+            "source_qid",
             "negative_evidence",
             "list_rule",
             "calculation_spec",
@@ -348,6 +356,11 @@ def _attach_shadow_point_provenance(
         ]
         point_out["source_ref_ids"] = [ref_id for ref_id in ref_ids if ref_id]
     for key in (
+        "question_no",
+        "sub_no",
+        "subquestion_index",
+        "question_index",
+        "source_qid",
         "source_status",
         "knowledge_point_refs",
         "negative_evidence",
@@ -426,6 +439,13 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
     first_error_code = ""
     high_risk = bool(event.get("high_risk_review"))
 
+    def _point_provenance(sp: dict[str, Any]) -> dict[str, Any]:
+        return {
+            key: sp.get(key)
+            for key in ("question_no", "sub_no", "subquestion_index", "question_index", "source_qid")
+            if sp.get(key) is not None
+        }
+
     for sp in scoring_points:
         point_id = str(sp.get("point_id") or "").strip()
         knowledge_point = str(sp.get("knowledge_point") or "").strip()
@@ -441,11 +461,13 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
             if str(term or "").strip()
         ]
         if point_id:
+            point_provenance = _point_provenance(sp)
             scoring_specs.append({
                 "point_id": point_id,
                 "label": knowledge_point,
                 "max_score": max_score,
                 "knowledge_node_id": normalized_node_code,
+                **point_provenance,
             })
             scoring_hits.append({
                 "point_id": point_id,
@@ -459,8 +481,10 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "policy_type": sp.get("policy_type"),
                 "required_terms": required_terms,
                 "high_risk_review": high_risk,
+                **point_provenance,
             })
         if sp.get("hit") != HIT:
+            point_provenance = _point_provenance(sp)
             # concept_id is canonical-taxonomy authority. A question-level node_code does NOT identify a
             # per-point concept, and on-the-fly P1..Pn are NOT canonical at all — stamping either as
             # concept_id would poison the learner profile if ever persisted. Emit null + explicit
@@ -476,6 +500,7 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "evidence_span": evidence_span,
                 "policy_type": sp.get("policy_type"),
                 "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+                **point_provenance,
             })
             # 开放世界（无 node_code）也沉淀 error_events：concept_tag 留空、
             # 不臆造概念；concept 归属由 writer 的 canonical_topic（taxonomy
@@ -491,6 +516,7 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "policy_type": sp.get("policy_type"),
                 "required_terms": required_terms,
                 "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+                **point_provenance,
             })
 
     next_training_signal: dict[str, Any] = {}
@@ -598,13 +624,18 @@ def render_case_rubric_feedback(
         return "❌ 漏写", span, "未作答 / 漏写本采分点"
 
     def _question_label(point: dict[str, Any]) -> str:
-        for key in ("question_no", "subquestion_index", "question_index"):
+        for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
             idx = _positive_int_or_none(point.get(key), max_value=100)
             if idx is not None:
                 return f"问题{idx}"
         for key in ("source_qid", "qid", "point_id"):
             text = str(point.get(key) or "").strip()
             match = re.search(r"(?:^|[^A-Za-z])Q(?:uestion)?[-_ ]?(\d+)(?:$|[^0-9])", text, re.I)
+            if match:
+                idx = _positive_int_or_none(match.group(1), max_value=100)
+                if idx is not None:
+                    return f"问题{idx}"
+            match = re.search(r"::E(\d+)(?:$|::|[^0-9])", text, re.I)
             if not match:
                 continue
             idx = _positive_int_or_none(match.group(1), max_value=100)
@@ -628,25 +659,96 @@ def render_case_rubric_feedback(
     else:
         verdict = "核心采分点缺失较多，需要先按标准采分点重建答案。"
 
+    def _question_heading(label: str) -> str:
+        match = re.fullmatch(r"问题(\d+)", label)
+        if match:
+            return f"第{match.group(1)}问"
+        return label
+
+    def _group_verdict(points: list[dict[str, Any]]) -> str:
+        group_total = sum(float(p.get("max_score") or 0) for p in points)
+        group_awarded = sum(float(p.get("score") or 0) for p in points)
+        if group_total <= 0:
+            return "已列出可判定采分点，重点看下方命中和漏点。"
+        group_ratio = group_awarded / group_total
+        if group_ratio >= 0.85:
+            return "基本正确，保分点已经抓住，注意术语和步骤完整。"
+        if group_ratio > 0:
+            return "部分正确，有命中点，但仍有漏点或表述不完整。"
+        return "需要重写，本问核心采分点暂未有效命中。"
+
+    def _group_answer_summary(points: list[dict[str, Any]]) -> str:
+        evidence_items = [
+            str(p.get("evidence_span") or "").strip()
+            for p in points
+            if p.get("hit") in {HIT, PARTIAL} and str(p.get("evidence_span") or "").strip()
+        ]
+        missing_items = [
+            str(p.get("knowledge_point") or "").strip()
+            for p in points
+            if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
+        ]
+        if evidence_items and missing_items:
+            return f"已看到「{evidence_items[0]}」，但还要补「{missing_items[0]}」。"
+        if evidence_items:
+            return f"能直接命中的表述包括「{evidence_items[0]}」。"
+        if missing_items:
+            return f"从作答中暂未看到「{missing_items[0]}」这一类可直接得分的表述。"
+        return "本问按下方采分点逐项核对。"
+
+    def _group_rewrite_hint(points: list[dict[str, Any]]) -> str:
+        missing_items = [
+            str(p.get("knowledge_point") or "").strip()
+            for p in points
+            if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
+        ]
+        if missing_items:
+            return f"答题时把「{missing_items[0]}」补成一句完整答案，再按表格漏点补齐。"
+        return "当前要点基本可保留，考试书写时继续使用教材/规范术语。"
+
+    grouped: list[tuple[str, list[dict[str, Any]]]] = []
+    by_label: dict[str, list[dict[str, Any]]] = {}
+    for point in sp:
+        if isinstance(point, dict):
+            label = _question_label(point)
+            if label not in by_label:
+                grouped.append((label, by_label.setdefault(label, [])))
+            by_label[label].append(point)
+    numbered_count = sum(1 for label, _points in grouped if label != "整题")
+
     lines: list[str] = []
+    if numbered_count:
+        lines.append(f"铁，这道题我按 {numbered_count} 个问题逐一批改，先给总分，再拆采分点、漏分点和扣分原因。")
+    else:
+        lines.append("铁，这道题我按采分点逐项批改，先给结论，再拆命中点、漏点和下一步练法。")
+    lines.append("")
     lines.append("## 结论")
     lines.append(f"本次得分：{awarded} / {total} 分。{verdict}")
     lines.append("")
     lines.append("## 采分点明细")
-    lines.append("| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |")
-    lines.append("|---|---|---|---:|---|---|")
-    for i, p in enumerate(sp, 1):
-        kp = str(p.get("knowledge_point") or "")
-        s = p.get("score", 0)
-        m = p.get("max_score", 0)
-        point = p if isinstance(p, dict) else {}
-        status, evidence, why = _status_evidence_reason(point)
-        label = _question_label(point)
-        evidence_cell = _cell(evidence) or "-"
-        lines.append(
-            f"| {_cell(label)} | {_cell(kp) or f'采分点{i}'} | {status} | {s}/{m} | "
-            f"{evidence_cell} | {_cell(why)} |"
-        )
+    for label, points in grouped:
+        if numbered_count or len(grouped) > 1:
+            lines.append(f"### {_question_heading(label)}")
+            lines.append(f"**判定：** {_group_verdict(points)}")
+            lines.append(f"**你写的：** {_group_answer_summary(points)}")
+            lines.append("")
+        lines.append("| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |")
+        lines.append("|---|---|---|---:|---|---|")
+        for i, p in enumerate(points, 1):
+            kp = str(p.get("knowledge_point") or "")
+            s = p.get("score", 0)
+            m = p.get("max_score", 0)
+            point = p if isinstance(p, dict) else {}
+            status, evidence, why = _status_evidence_reason(point)
+            evidence_cell = _cell(evidence) or "-"
+            lines.append(
+                f"| {_cell(label)} | {_cell(kp) or f'采分点{i}'} | {status} | {s}/{m} | "
+                f"{evidence_cell} | {_cell(why)} |"
+            )
+        if numbered_count or len(grouped) > 1:
+            lines.append("")
+            lines.append(f"**得分表达改写：** {_group_rewrite_hint(points)}")
+            lines.append("")
     lines.append("")
     lines.append("## 易错点")
     if weak:
@@ -750,6 +852,11 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
             "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
             "policy": r.get("policy"), "required_terms": r.get("required_terms") or []}
         for key in (
+            "question_no",
+            "sub_no",
+            "subquestion_index",
+            "question_index",
+            "source_qid",
             "max_score",
             "official_slice",
             "official_total_score",
@@ -766,6 +873,8 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
         ):
             if key in r:
                 point[key] = r.get(key)
+        if "source_qid" not in point and r.get("qid") is not None:
+            point["source_qid"] = r.get("qid")
         by_q.setdefault(str(r.get("qid")), []).append(point)
     return by_q
 

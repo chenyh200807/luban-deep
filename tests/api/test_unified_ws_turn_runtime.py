@@ -634,6 +634,170 @@ async def test_full_new_mcq_does_not_regrade_stale_active_question() -> None:
 
 
 @pytest.mark.asyncio
+async def test_full_new_case_submission_does_not_regrade_stale_active_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+            "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则；工程量清单编制方法。\n"
+            "2. 工期；质量标准；投标有效期。"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "stale_fixed_price_case",
+                "question": "固定总价合同风险范围和违约条款案例。",
+                "question_type": "case",
+                "correct_answer": "应明确包死价种类、风险范围、违约条款，结算价为121520.00元。",
+                "user_answer": "上一轮旧答案",
+            }
+        ],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_same_case_submission_keeps_current_active_question_authority() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+            "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则；工程量清单编制方法。\n"
+            "2. 工期；质量标准；投标有效期。"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "current_case",
+                "question": (
+                    "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+                    "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？"
+                ),
+                "question_type": "case",
+                "correct_answer": "1. 项目编码、项目名称、项目特征、计量单位和工程量。2. 工期、质量、投标有效期。",
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "current_case"
+    assert "项目编码" in resolved_context["correct_answer"]
+    assert resolved_context["user_answer"].startswith("1. 工程量计算规则")
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+
+
+@pytest.mark.asyncio
+async def test_full_same_case_submission_keeps_item_only_active_question_authority() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+            "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则；工程量清单编制方法。\n"
+            "2. 工期；质量标准；投标有效期。"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "current_case_set",
+                "question_type": "case",
+                "items": [
+                    {
+                        "question_id": "current_case_q1",
+                        "question": "1. 工程量清单的强制性内容还有哪些？",
+                        "question_type": "case",
+                        "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+                    }
+                ],
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "current_case_set"
+    assert resolved_context["user_answer"].startswith("1. 工程量计算规则")
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+
+
+@pytest.mark.asyncio
+async def test_full_case_submission_rejects_item_only_shared_background_context() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+            "【问题】1. 投标单位实质性响应内容还有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工期；质量标准；投标有效期。"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "stale_shared_background_case",
+                "question_type": "case",
+                "items": [
+                    {
+                        "question_id": "stale_background_only",
+                        "question": "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。",
+                        "question_type": "case",
+                        "correct_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+                    }
+                ],
+            }
+        ],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_same_case_submission_keeps_stem_only_active_question_authority() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+            "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则；工程量清单编制方法。\n"
+            "2. 工期；质量标准；投标有效期。"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "current_case_stem_only",
+                "question_stem": (
+                    "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+                    "【问题】1. 工程量清单的强制性内容还有哪些？2. 实质性响应内容有哪些？"
+                ),
+                "question_type": "case",
+                "correct_answer": "1. 项目编码、项目名称、项目特征、计量单位和工程量。2. 工期、质量、投标有效期。",
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "current_case_stem_only"
+    assert "项目编码" in resolved_context["correct_answer"]
+    assert resolved_context["user_answer"].startswith("1. 工程量计算规则")
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+
+
+@pytest.mark.asyncio
 async def test_full_new_mcq_does_not_regrade_stale_explicit_question() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message=(

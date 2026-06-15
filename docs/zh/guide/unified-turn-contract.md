@@ -147,6 +147,7 @@ TutorBot 现在是业务身份，不是 transport。
 - 通用对话域的 continuity 也允许落到 session-scoped `open_chat_topic`，它复用 session 自身 authority，不新增独立语义 topic runtime。
 - `question_followup_context / question_followup_action / active_question_context` 只保留 question-domain 兼容和 presentation/result adapter 角色；真正的主链判断必须落在 `active_object + turn_semantic_decision`，不能让旧字段继续并列抢权。
 - 当用户消息本身包含完整 free-text MCQ 题干、选项和作答 surface 时，本轮完整题面优先于 restored / candidate / explicit / suspended question-domain context；旧题状态只能作为历史状态保留，不得参与本轮批改或恢复为 grading authority。
+- 当用户消息本身包含完整案例题题干、`【问题】` 与 `回答/作答` surface 时，也采用同一当前题面优先原则；只有严格匹配当前题面的 active object / follow-up context 可以继续作为同一题 hidden authority，不匹配或无法证明同题的旧题号、参考答案、学员作答或 grading key 不得合并成本轮 case grading authority。
 - 完整 free-text MCQ 的同题判断必须以题干/stem surface 为主，选项值重合只能辅助、不能单独保留旧题 context；带内部逗号/句读的选项仍属于完整题面，不得被 lifecycle 误判成无锚点答案提交并阻断 exact-question authority。
 - 稳定格式的选项或数值追问（如 `A错在哪里`、`那1.0m行不行`）属于 active-question follow-up，不是 answer revision；LLM follow-up interpreter 不得把这种 deterministic follow-up 升级为 `revise_answers` / `answer_questions`。
 - 出题请求必须归入 question authority。`practice_generation` 不能因为小程序入口绑定了 `construction-exam-coach` 而被提前 pin 到 TutorBot；运行时应让 semantic route 选择 `deep_question`，由它生成 canonical 题卡、隐藏标准答案、`active_object` 和后续批改上下文。TutorBot 仍可负责普通讲解、知识问答、RAG grounding 和精确题目答疑，但不能用可见文本题目替代 `deep_question` 的题目真相。

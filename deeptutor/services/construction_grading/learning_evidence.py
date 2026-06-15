@@ -389,8 +389,20 @@ def _normalize_rubric_specs(raw: Any) -> list[dict[str, Any]]:
             "max_score": entry.get("max_score"),
             "ability_dimension": _clean_text(entry.get("ability_dimension")),
             "knowledge_node_id": _clean_text(entry.get("knowledge_node_id")),
+            **_question_provenance_fields(entry),
         })
     return specs
+
+
+def _question_provenance_fields(entry: dict[str, Any]) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
+    for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
+        if entry.get(key) is not None:
+            fields[key] = entry.get(key)
+    source_qid = _clean_text(entry.get("source_qid"))
+    if source_qid:
+        fields["source_qid"] = source_qid
+    return fields
 
 
 def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
@@ -430,6 +442,7 @@ def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
         cleaned["source_ref_ids"] = source_ref_ids
     if source_refs:
         cleaned["source_refs"] = source_refs
+    cleaned.update(_question_provenance_fields(hit))
     return cleaned
 
 

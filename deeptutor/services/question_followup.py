@@ -249,7 +249,7 @@ _FOLLOWUP_ACTION_INTENT_ALIASES = {
 def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         return None
-    question = str(raw.get("question", "") or "").strip()
+    question = str(raw.get("question") or raw.get("question_stem") or raw.get("stem") or "").strip()
     items = _normalize_question_items(raw.get("items"))
     if not question and not items:
         return None

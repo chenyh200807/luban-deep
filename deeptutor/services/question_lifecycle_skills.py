@@ -818,8 +818,13 @@ _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS: tuple[str, ...] = (
     "【问题",
     "问题】",
 )
-_FREE_TEXT_CASE_ANSWER_SURFACE_RE = re.compile(
-    r"(?:^|[\r\n])\s*(?:回答\s*)?(?:作答|我的答案|答案)\s*[：:]",
+_FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE = re.compile(
+    r"问题\s*[：:]",
+    re.IGNORECASE,
+)
+_FREE_TEXT_CASE_ANSWER_MARKER_RE = re.compile(
+    r"(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
+    r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*",
     re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
@@ -1042,6 +1047,32 @@ def looks_like_free_text_mcq_question_surface(text: str) -> bool:
         _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
         or _looks_like_value_only_mcq_option_surface(user_message)
     )
+
+
+def looks_like_full_case_answer_submission(text: str) -> bool:
+    """Return true when the message carries its own full case stem plus student answer surface."""
+
+    return _looks_like_full_case_answer_submission(str(text or ""))
+
+
+def split_full_case_answer_submission(text: str) -> tuple[str, str]:
+    """Split a full case grading submission into current stem and learner answer."""
+
+    raw = str(text or "").strip()
+    if not raw or not _looks_like_full_case_answer_submission(raw):
+        return "", raw
+    markers = [
+        marker
+        for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(raw)
+        if any(pos < marker.start() for pos in _full_case_question_surface_positions(raw))
+    ]
+    if not markers:
+        return "", raw
+    marker = markers[-1]
+    stem = raw[:marker.start()].strip()
+    answer = raw[marker.end():].strip()
+    answer = _FREE_TEXT_CASE_ANSWER_MARKER_RE.sub("", answer, count=1).strip()
+    return stem, answer or raw
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:
@@ -1267,10 +1298,29 @@ def _looks_like_free_text_case_grading(user_message: str) -> bool:
     )
 
 
+def _full_case_question_surface_positions(user_message: str) -> list[int]:
+    positions: set[int] = set()
+    for marker in _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS:
+        start = user_message.find(marker)
+        while start >= 0:
+            positions.add(start)
+            start = user_message.find(marker, start + len(marker))
+    if any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS):
+        positions.update(
+            match.start()
+            for match in _FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE.finditer(user_message)
+        )
+    return sorted(positions)
+
+
 def _looks_like_full_case_answer_submission(user_message: str) -> bool:
-    if not any(marker in user_message for marker in _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS):
+    question_positions = _full_case_question_surface_positions(user_message)
+    if not question_positions:
         return False
-    return _FREE_TEXT_CASE_ANSWER_SURFACE_RE.search(user_message) is not None
+    return any(
+        any(pos < marker.start() for pos in question_positions)
+        for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(user_message)
+    )
 
 
 def _looks_like_free_text_mcq_grading(user_message: str) -> bool:

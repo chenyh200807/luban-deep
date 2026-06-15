@@ -62,8 +62,10 @@ from deeptutor.services.question_followup import (
     resolve_submission_attempt,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    looks_like_full_case_answer_submission,
     looks_like_free_text_mcq_grading_request,
     looks_like_free_text_mcq_question_surface,
+    split_full_case_answer_submission,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
@@ -1150,6 +1152,65 @@ def _question_context_matches_free_text_surface(
     return option_hits >= min(2, len(options))
 
 
+def _case_context_matches_full_case_surface(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    message_identity = _normalize_question_identity_text(user_message)
+    if not message_identity:
+        return False
+
+    def _has_current_question_anchor(value: Any) -> bool:
+        text = str(value or "")
+        return bool(
+            "【问题" in text
+            or "问题】" in text
+            or re.search(r"问题\s*[：:]", text)
+            or "？" in text
+            or "?" in text
+        )
+
+    def _question_identity_values(context: dict[str, Any]):
+        for key in ("question", "question_stem", "stem"):
+            yield context.get(key)
+        for item in context.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            for key in ("question", "question_stem", "stem"):
+                yield item.get(key)
+
+    for value in _question_identity_values(question_context):
+        if not _has_current_question_anchor(value):
+            continue
+        question_identity = _normalize_question_identity_text(value)
+        if len(question_identity) >= 8 and (
+            question_identity in message_identity or message_identity in question_identity
+        ):
+            return True
+    return False
+
+
+def _annotate_full_case_submission_context(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> dict[str, Any]:
+    _stem, learner_answer = split_full_case_answer_submission(user_message)
+    if not learner_answer.strip():
+        return question_context
+    updated = dict(question_context)
+    updated["user_answer"] = learner_answer.strip()
+    return updated
+
+
+def _full_case_submission_action() -> dict[str, Any]:
+    return {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [],
+        "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
+    }
+
+
 def _should_ignore_explicit_context_for_free_text_mcq(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1251,7 +1312,15 @@ async def _resolve_question_followup_context_and_action(
         looks_like_free_text_mcq_grading_request(user_message)
         and looks_like_free_text_mcq_question_surface(user_message)
     )
+    full_case_answer_submission = looks_like_full_case_answer_submission(user_message)
     if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
+        normalized_explicit = None
+        normalized_action = None
+    if (
+        full_case_answer_submission
+        and normalized_explicit is not None
+        and not _case_context_matches_full_case_surface(user_message, normalized_explicit)
+    ):
         normalized_explicit = None
         normalized_action = None
     if (
@@ -1271,6 +1340,12 @@ async def _resolve_question_followup_context_and_action(
             if merged is not None:
                 normalized_explicit = merged
                 break
+        if full_case_answer_submission:
+            normalized_explicit = _annotate_full_case_submission_context(
+                user_message,
+                normalized_explicit,
+            )
+            return normalized_explicit, _full_case_submission_action()
         submission_context, submission_action = _submission_action_for_user_message(
             user_message,
             normalized_explicit,
@@ -1324,6 +1399,17 @@ async def _resolve_question_followup_context_and_action(
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
             continue
+        if (
+            full_case_answer_submission
+            and not _case_context_matches_full_case_surface(user_message, normalized_candidate)
+        ):
+            continue
+        if full_case_answer_submission:
+            normalized_candidate = _annotate_full_case_submission_context(
+                user_message,
+                normalized_candidate,
+            )
+            return normalized_candidate, _full_case_submission_action()
         if (
             free_text_mcq_grading_request
             and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
