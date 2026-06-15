@@ -260,6 +260,31 @@ run("workflow trace should stay compact and show reliability summary", function 
   assert(summary.countText.indexOf("已核对：") === 0, "completed summary should include a reliability cue");
 });
 
+run("case grading workflow should make long analysis visible", function () {
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+
+  var caseEntry = workflowStatus.buildWorkflowEntry({
+    eventType: "tool_call",
+    toolName: "grade_answer",
+    seq: 31,
+    metadata: { args: { question: "建筑实务案例题背景资料很长" } },
+  });
+  var slowStatus = workflowStatus.normalizeWorkflowStatus({ data: "slow_response" });
+  var unknownCaseStatus = workflowStatus.normalizeWorkflowStatus(
+    "请批改这道案例题，材料比较长",
+  );
+
+  assert(caseEntry.badge === "案例批改", "case grading should use visible grading progress");
+  assert(caseEntry.title === "正在逐项匹配采分点", "case grading should name the scoring-point step");
+  assert(caseEntry.detail.indexOf("资料较多") >= 0, "case grading should explain why it may take longer");
+  assert(slowStatus.headline === "资料较多，正在继续深度核对", "slow status should avoid generic waiting copy");
+  assert(slowStatus.subline.indexOf("查依据") >= 0, "slow status should show real analysis work");
+  assert(
+    unknownCaseStatus.headline === "正在拆解案例资料和作答结构",
+    "free text case status should still map to case analysis wording",
+  );
+});
+
 run("workflow summary should use active analysis wording by default", function () {
   var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
   var summary = workflowStatus.summarizeWorkflow([], true);
