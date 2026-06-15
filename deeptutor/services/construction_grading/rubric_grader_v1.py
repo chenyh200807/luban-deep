@@ -487,6 +487,15 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
             if sp.get(key) is not None
         }
 
+    def _numeric_or_zero(value: Any) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _lost_score(sp: dict[str, Any]) -> float:
+        return round(_numeric_or_zero(sp.get("max_score")) - _numeric_or_zero(sp.get("score")), 2)
+
     for sp in scoring_points:
         point_id = str(sp.get("point_id") or "").strip()
         knowledge_point = str(sp.get("knowledge_point") or "").strip()
@@ -540,7 +549,7 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "mistake_type": mistake_type,
                 "evidence_span": evidence_span,
                 "policy_type": sp.get("policy_type"),
-                "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+                "lost_score": _lost_score(sp),
                 **point_provenance,
             })
             # 开放世界（无 node_code）也沉淀 error_events：concept_tag 留空、
@@ -556,7 +565,7 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "evidence_span": evidence_span,
                 "policy_type": sp.get("policy_type"),
                 "required_terms": required_terms,
-                "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+                "lost_score": _lost_score(sp),
                 **point_provenance,
             })
 

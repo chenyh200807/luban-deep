@@ -202,6 +202,39 @@ def test_learning_evidence_projection_lists_missed_points():
     assert le["writeback_performed"] is False
 
 
+def test_learning_evidence_projection_handles_null_score_points_without_minting_scores() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "question_id": "Q-PGO-GROUND",
+        "awarded_score": 0.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {
+                "point_id": "pgo-p1",
+                "knowledge_point": "写明应编制专项施工方案",
+                "hit": G.MISS,
+                "score": None,
+                "max_score": None,
+                "mistake_type": "miss",
+                "evidence_span": "",
+                "policy_type": "exact_required",
+                "score_authority": "official_total_x_verdict_coverage",
+                "per_point_score_authority": "pending_calibration_not_official",
+            }
+        ],
+        "grading_source": "rubric_scored_pgo",
+        "official_score_allowed": False,
+    }
+
+    le = G.to_learning_evidence(event, node_code="1A432000")
+
+    assert le["weak_points"][0]["lost_score"] == 0.0
+    assert le["error_events"][0]["lost_score"] == 0.0
+    assert le["rubric"]["scoring_points"][0]["max_score"] is None
+    assert le["rubric"]["scoring_point_hits"][0]["awarded_score"] is None
+    assert le["writeback_performed"] is False
+
+
 def test_learning_evidence_projection_preserves_subquestion_provenance():
     rubric = [
         {
