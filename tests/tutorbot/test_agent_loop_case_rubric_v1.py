@@ -15,6 +15,8 @@ import pytest
 
 from deeptutor.services.construction_grading import rubric_grader_v1 as G
 from deeptutor.tutorbot.agent.loop import AgentLoop
+from deeptutor.tutorbot.bus.events import InboundMessage
+from deeptutor.tutorbot.session.manager import Session
 
 
 def _loop() -> AgentLoop:
@@ -50,6 +52,14 @@ class _FakeLearnerStateService:
     def append_memory_event(self, user_id: str, **kwargs):
         self.calls.append({"user_id": user_id, **kwargs})
         return _FakeEvent()
+
+
+class _FakeContext:
+    def build_messages(self, *, history, current_message, media=None, channel=None, chat_id=None, runtime_instruction=None):
+        return [{"role": "system", "content": ""}, *history, {"role": "user", "content": current_message}]
+
+    def add_assistant_message(self, messages, content, **_kwargs):
+        return [*messages, {"role": "assistant", "content": content}]
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
@@ -339,7 +349,7 @@ async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest
     monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
 
     render = await _loop()._v1_case_render(runtime_metadata=_case_md(), user_message="共用一个开关箱不妥")
-    assert "## 整体评价" in render and "得分预估：" in render          # V1 render, not the agent's free text
+    assert "## 批改结论" in render and "得分预估：" in render          # V1 render, not the agent's free text
     assert "应编制临时用电施工组织设计" in render                      # the missed point surfaced
 
 
@@ -382,7 +392,7 @@ async def test_v1_case_render_default_on_for_non_qa_user(monkeypatch: pytest.Mon
     md = _case_md()
     md["user_id"] = "real_user_123"               # not qa_/test_ -> still graded (no cohort gate anymore)
     render = await _loop()._v1_case_render(runtime_metadata=md, user_message="共用一个开关箱不妥")
-    assert "## 整体评价" in render
+    assert "## 批改结论" in render
 
 
 @pytest.mark.asyncio
@@ -464,8 +474,183 @@ async def test_apply_v1_or_case_fallback_prefers_v1(monkeypatch: pytest.MonkeyPa
     md = _case_md()
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：你写得不错，继续保持。", runtime_metadata=md, user_message="点1")
-    assert "## 整体评价" in out                                      # V1 took over (not the agent text)
+    assert "## 批改结论" in out                                      # V1 took over (not the agent text)
     assert md.get("_v1_case_graded") is True
+
+
+@pytest.mark.asyncio
+async def test_v1_case_stream_plan_exports_dynamic_adjudication_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [
+        {
+            "point_id": f"Q{question_no}-P{idx}",
+            "text": f"问题{question_no}采分点{idx}",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+            "question_no": question_no,
+        }
+        for question_no in range(1, 7)
+        for idx in range(1, 5)
+    ])
+    call_sizes: list[int] = []
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        call_sizes.append(len(points))
+        return {str(point["point_id"]): {"status": G.HIT} for point in points}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    md = _case_md()
+
+    plan = await _loop()._v1_case_stream_plan(runtime_metadata=md, user_message="完整作答")
+
+    assert plan is not None
+    assert call_sizes == [8, 8, 8]
+    assert md["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
+    assert md["case_grading_adjudication_group_count"] == 3
+    assert md["case_grading_adjudication_point_count"] == 24
+
+
+@pytest.mark.asyncio
+async def test_case_grading_direct_path_streams_preview_and_returns_v1(monkeypatch: pytest.MonkeyPatch) -> None:
+    loop = _loop()
+    loop.context = _FakeContext()
+    loop.memory_consolidator = type(
+        "NoopMemory",
+        (),
+        {"maybe_consolidate_by_tokens": lambda self, _session: asyncio.sleep(0)},
+    )()
+    saved: list[Session] = []
+    loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
+
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+        runtime_metadata["_v1_case_graded"] = True
+        runtime_metadata["v1_case_graded"] = True
+        runtime_metadata["score_authority"] = "rubric_scored_v1"
+        runtime_metadata["grading_rubric_provenance"] = "compiled_rubric"
+        runtime_metadata["case_grading_stream_mode"] = "score_first_sealed_blocks"
+        runtime_metadata["presentation"] = {
+            "schema_version": 1,
+            "blocks": [{"type": "recap", "title": "批改结论", "summary": "命中1个，漏1个。"}],
+            "fallback_text": "## 批改结论\n**得分预估：** 1 / 2 分。",
+            "meta": {"streamingMode": "block_finalized"},
+        }
+        score_first = "## 批改结论\n**得分预估：** 1 / 2 分。\n- 命中 1 个，部分命中 0 个，漏/错 1 个。"
+        blocks = [{"id": "q1", "phase": "question_detail", "sealed": True, "title": "问题1", "content": "## 问题1\n**采分点：**\n- ✅ 已命中：点1"}]
+        return {
+            "mode": "score_first_sealed_blocks",
+            "score_first": score_first,
+            "sealed_blocks": blocks,
+            "final_text": score_first + "\n\n" + blocks[0]["content"],
+            "presentation": runtime_metadata["presentation"],
+        }
+
+    async def _agent_loop_should_not_run(*_args, **_kwargs):
+        raise AssertionError("case_grading direct V1 path must not run the generic agent LLM first")
+
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_v1_case_stream_plan)
+    monkeypatch.setattr(loop, "_run_agent_loop", _agent_loop_should_not_run)
+
+    md = {"question_lifecycle_scene": "case_grading", "user_id": "qa_case"}
+    session = Session(key="web:case")
+    msg = InboundMessage(channel="web", sender_id="user", chat_id="case", content="【问题】1. 说明。\n回答\n作答：点1", metadata=md)
+    deltas: list[str] = []
+    progress: list[str] = []
+
+    out = await loop._run_case_grading_direct(
+        msg=msg,
+        session=session,
+        history=[],
+        current_message=msg.content,
+        runtime_metadata=md,
+        runtime_instruction="",
+        on_progress=lambda text: progress.append(text) or asyncio.sleep(0),
+        on_content_delta=lambda text: deltas.append(text) or asyncio.sleep(0),
+    )
+
+    assert out is not None
+    assert out.content.startswith("## 批改结论")
+    assert out.metadata["v1_case_graded"] is True
+    assert out.metadata["case_grading_stream_mode"] == "score_first_sealed_blocks"
+    assert out.metadata["presentation"]["blocks"][0]["type"] == "recap"
+    assert progress and "案例题" in progress[0]
+    assert "".join(deltas).startswith("这道案例题我已经进入逐采分点批改")
+    assert len(saved) >= 1
+    assert session.messages[-1]["content"].startswith("## 批改结论")
+
+
+@pytest.mark.asyncio
+async def test_case_grading_direct_path_streams_score_first_then_sealed_blocks(monkeypatch: pytest.MonkeyPatch) -> None:
+    loop = _loop()
+    loop.context = _FakeContext()
+    loop.memory_consolidator = type(
+        "NoopMemory",
+        (),
+        {"maybe_consolidate_by_tokens": lambda self, _session: asyncio.sleep(0)},
+    )()
+    saved: list[Session] = []
+    loop.sessions = type("NoopSessions", (), {"save": lambda self, session: saved.append(session)})()
+
+    async def _fake_v1_case_stream_plan(*, runtime_metadata, user_message):
+        runtime_metadata["_v1_case_graded"] = True
+        runtime_metadata["v1_case_graded"] = True
+        runtime_metadata["score_authority"] = "rubric_scored_v1"
+        runtime_metadata["grading_rubric_provenance"] = "compiled_rubric"
+        runtime_metadata["case_grading_stream_mode"] = "score_first_sealed_blocks"
+        runtime_metadata["presentation"] = {
+            "schema_version": 1,
+            "blocks": [{"type": "recap", "title": "批改结论", "summary": "1 / 2 分，命中1个。"}],
+            "fallback_text": "## 批改结论\n**得分预估：** 1 / 2 分。",
+            "meta": {"streamingMode": "block_finalized"},
+        }
+        score_first = "## 批改结论\n**得分预估：** 1 / 2 分。\n- 命中 1 个，部分命中 0 个，漏/错 1 个。"
+        blocks = [
+            {"id": "q1", "phase": "question_detail", "sealed": True, "content": "## 问题1\n**采分点：**\n- ✅ 已命中：点1"},
+            {"id": "final", "phase": "final_detail", "sealed": True, "content": "## 下一步建议\n先练漏点。"},
+        ]
+        return {
+            "mode": "score_first_sealed_blocks",
+            "score_first": score_first,
+            "sealed_blocks": blocks,
+            "final_text": score_first + "\n\n" + "\n\n".join(block["content"] for block in blocks),
+            "presentation": runtime_metadata["presentation"],
+        }
+
+    async def _legacy_final_only_should_not_run(*_args, **_kwargs):
+        raise AssertionError("score-first direct path must not fall back to final-only V1 render")
+
+    monkeypatch.setattr(loop, "_v1_case_stream_plan", _fake_v1_case_stream_plan, raising=False)
+    monkeypatch.setattr(loop, "_v1_case_render", _legacy_final_only_should_not_run)
+
+    md = {"question_lifecycle_scene": "case_grading", "user_id": "qa_case"}
+    session = Session(key="web:case-score-first")
+    msg = InboundMessage(channel="web", sender_id="user", chat_id="case", content="【问题】1. 说明。\n回答\n作答：点1", metadata=md)
+    deltas: list[str] = []
+    progress: list[str] = []
+
+    out = await loop._run_case_grading_direct(
+        msg=msg,
+        session=session,
+        history=[],
+        current_message=msg.content,
+        runtime_metadata=md,
+        runtime_instruction="",
+        on_progress=lambda text: progress.append(text) or asyncio.sleep(0),
+        on_content_delta=lambda text: deltas.append(text) or asyncio.sleep(0),
+    )
+
+    streamed = "".join(deltas)
+    assert out is not None
+    assert out.content.startswith("## 批改结论")
+    assert out.metadata["v1_case_graded"] is True
+    assert out.metadata["case_grading_stream_mode"] == "score_first_sealed_blocks"
+    assert streamed.index("## 批改结论") < streamed.index("## 问题1") < streamed.index("## 下一步建议")
+    assert any("已完成判分" in item for item in progress)
+    assert session.messages[-1]["content"] == out.content
+    assert len(saved) >= 1
 
 
 @pytest.mark.asyncio
@@ -530,7 +715,7 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="普通施工方案")
 
-    assert "## 整体评价" in out
+    assert "## 批改结论" in out
     for _ in range(50):
         if fake_service.calls and md.get("personalization_context"):
             break
@@ -594,7 +779,7 @@ async def test_v1_case_render_does_not_wait_for_personalization_projection(
     release.set()
     await asyncio.sleep(0.01)
 
-    assert "## 整体评价" in out
+    assert "## 批改结论" in out
     assert md["learning_evidence_event_id"] == "evt_v1_case_1"
     assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
     assert md["grading_to_brain_projection"] == {
@@ -725,6 +910,9 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
                 "authority": "personalization_context_pack",
                 "event_id": "evt-1",
             },
+            "case_grading_adjudication_strategy": "dynamic_parallel_question_groups",
+            "case_grading_adjudication_group_count": 3,
+            "case_grading_adjudication_point_count": 24,
         },
         target,
     )
@@ -734,3 +922,6 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     assert target["score_authority"] == "rubric_scored_v1"
     assert target["learning_evidence_event_id"] == "evt-1"
     assert target["grading_to_brain_projection"]["status"] == "scheduled"
+    assert target["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
+    assert target["case_grading_adjudication_group_count"] == 3
+    assert target["case_grading_adjudication_point_count"] == 24

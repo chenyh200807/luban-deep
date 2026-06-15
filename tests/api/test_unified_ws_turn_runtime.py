@@ -60,7 +60,7 @@ def test_unified_turn_start_schema_rejects_internal_snapshot_fields() -> None:
         )
 
 
-def test_billing_capture_amount_prefers_measured_cost_summary() -> None:
+def test_billing_capture_amount_records_measured_cost_but_charges_standard_turn() -> None:
     amount, metadata = _billing_capture_amount_from_usage_summary(
         {
             "total_cost_usd": 0.0351,
@@ -74,11 +74,12 @@ def test_billing_capture_amount_prefers_measured_cost_summary() -> None:
         }
     )
 
-    assert amount == 36
-    assert metadata["billing_amount_source"] == "measured_cost"
+    assert amount == 20
+    assert metadata["billing_amount_source"] == "standard_turn"
     assert metadata["billing_cost_source"] == "measured_cost"
     assert metadata["billing_billable_cost"] == 0.0351
     assert metadata["billing_cost_points"] == 36
+    assert metadata["billing_standard_turn_points"] == 20
     assert metadata["usage_total_tokens"] == 1250
     assert metadata["usage_sources"] == {"provider": 1}
     assert metadata["usage_models"] == {"deepseek-v4-flash": 1}
@@ -326,7 +327,7 @@ def test_turn_runtime_result_context_does_not_parse_presentation_read_model() ->
     assert _result_active_object(metadata) is None
 
 
-def test_billing_capture_amount_uses_estimated_cost_when_measured_missing() -> None:
+def test_billing_capture_amount_records_estimated_cost_but_charges_standard_turn() -> None:
     amount, metadata = _billing_capture_amount_from_usage_summary(
         {
             "total_cost_usd": 0.0,
@@ -337,9 +338,10 @@ def test_billing_capture_amount_uses_estimated_cost_when_measured_missing() -> N
         }
     )
 
-    assert amount == 57
-    assert metadata["billing_amount_source"] == "estimated_cost"
+    assert amount == 20
+    assert metadata["billing_amount_source"] == "standard_turn"
     assert metadata["billing_cost_source"] == "estimated_cost"
+    assert metadata["billing_cost_points"] == 57
     assert metadata["usage_estimated_total_tokens"] == 3000
 
 
@@ -358,13 +360,14 @@ def test_billing_capture_amount_falls_back_to_minimum_when_cost_missing_or_tiny(
     no_summary_amount, no_summary_metadata = _billing_capture_amount_from_usage_summary(None)
 
     assert missing_amount == 20
-    assert missing_metadata["billing_amount_source"] == "fallback_minimum"
+    assert missing_metadata["billing_amount_source"] == "standard_turn"
     assert missing_metadata["billing_cost_source"] == "missing_cost"
     assert tiny_amount == 20
-    assert tiny_metadata["billing_amount_source"] == "fallback_minimum"
+    assert tiny_metadata["billing_amount_source"] == "standard_turn"
     assert tiny_metadata["billing_cost_source"] == "measured_cost"
     assert no_summary_amount == 20
     assert no_summary_metadata["billing_cost_source"] == "missing_usage_summary"
+    assert no_summary_metadata["billing_amount_source"] == "standard_turn"
 
 
 def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
@@ -8074,7 +8077,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured == {
         "wallet_user_id": "wallet_demo",
-        "amount_points": 36,
+        "amount_points": 20,
         "idempotency_key": f"mini_program_capture:{turn['id']}",
         "reference_id": turn["id"],
         "reason": "capture",
@@ -8083,10 +8086,10 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             "source": "wx_miniprogram",
             "turn_id": turn["id"],
             "session_id": session["id"],
-            "billing_amount_source": "measured_cost",
+            "billing_amount_source": "standard_turn",
             "billing_cost_source": "measured_cost",
             "billing_cost_point_scale": 1000,
-            "billing_minimum_points": 20,
+            "billing_standard_turn_points": 20,
             "billing_measured_cost": 0.0351,
             "billing_estimated_cost": 0.0,
             "billing_billable_cost": 0.0351,
@@ -8467,11 +8470,11 @@ def test_turn_runtime_meters_mini_program_usage_without_charging_when_enforcemen
         "reason": "billing_enforcement_disabled",
         "wallet_user_id": "wallet_demo",
         "idempotency_key": "mini_program_capture:turn-1",
-        "amount_points": 36,
-        "billing_amount_source": "measured_cost",
+        "amount_points": 20,
+        "billing_amount_source": "standard_turn",
         "billing_cost_source": "measured_cost",
         "captured_micros": 0,
-        "requested_micros": 36_000_000,
+        "requested_micros": 20_000_000,
         "balance_after_micros": 0,
     }
     assert meter_calls == [
@@ -8481,17 +8484,17 @@ def test_turn_runtime_meters_mini_program_usage_without_charging_when_enforcemen
             "source": "wx_miniprogram",
             "session_id": "session-1",
             "turn_id": "turn-1",
-            "amount_points": 36,
+            "amount_points": 20,
             "dedupe_key": "mini_program_meter:turn-1",
             "status": "metered_not_charged",
             "metadata": {
                 "source": "wx_miniprogram",
                 "turn_id": "turn-1",
                 "session_id": "session-1",
-                "billing_amount_source": "measured_cost",
+                "billing_amount_source": "standard_turn",
                 "billing_cost_source": "measured_cost",
                 "billing_cost_point_scale": 1000,
-                "billing_minimum_points": 20,
+                "billing_standard_turn_points": 20,
                 "billing_measured_cost": 0.0351,
                 "billing_estimated_cost": 0.0,
                 "billing_billable_cost": 0.0351,

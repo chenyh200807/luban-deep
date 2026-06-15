@@ -384,6 +384,10 @@ _PUBLIC_REDACTED_KEYS = (
     "correction_span",
     "base_rule",
     "exception_items",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "answer_key_authority",
 )
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field

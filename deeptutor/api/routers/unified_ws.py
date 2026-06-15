@@ -325,6 +325,10 @@ _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "correction_span",
     "base_rule",
     "exception_items",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "answer_key_authority",
     "explanation",
 )
 

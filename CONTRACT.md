@@ -46,6 +46,9 @@ DeepTutor 必须优先保证：
 - turn / session / stream / replay / resume
 - turn trace 词汇表
 - TutorBot 作为业务身份接入 turn
+- 出库 public stream redaction：hidden grading authority（如 `official_slice`、
+  `answer_key_authority`、`score_authority`）只能留在服务端内部 payload，
+  不得通过 `/api/v1/ws` result/progress metadata 或 question follow-up projection 外泄。
 
 专项文档：
 

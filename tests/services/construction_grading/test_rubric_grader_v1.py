@@ -300,6 +300,78 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "## 下一步建议" in text
 
 
+def test_build_case_rubric_presentation_projects_public_render_blocks_only() -> None:
+    judge = _judge({
+        "P1": {"status": G.HIT, "evidence_span": "数控钢筋调直切断机"},
+        "P2": {"status": G.MISS, "mistake_type": G.MISTAKE_MISS},
+    })
+    event = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric()[:2], judge_fn=judge)
+    rendered = G.render_case_rubric_feedback(event, question_stem="【问题】1. 说明检验项目。")
+
+    presentation = G.build_case_rubric_presentation(event, rendered_text=rendered)
+
+    assert presentation is not None
+    assert presentation["meta"]["streamingMode"] == "block_finalized"
+    assert presentation["fallback_text"].startswith("铁，这道题")
+    assert [block["type"] for block in presentation["blocks"]] == ["recap", "table"]
+    assert presentation["blocks"][0]["title"] == "批改结论"
+    assert "命中 1 个" in presentation["blocks"][0]["summary"]
+    row_text = " ".join(
+        str(cell.get("text") or "")
+        for row in presentation["blocks"][1]["rows"]
+        for cell in row
+    )
+    assert "✅" in row_text and "❌" in row_text
+    assert "answer_key_authority" not in str(presentation)
+    assert "score_authority" not in str(presentation)
+
+
+def test_build_case_rubric_score_first_stream_splits_public_sealed_blocks() -> None:
+    judge = _judge({
+        "P1": {"status": G.HIT, "evidence_span": "数控钢筋调直切断机"},
+        "P2": {"status": G.MISS, "mistake_type": G.MISTAKE_MISS},
+    })
+    event = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric()[:2], judge_fn=judge)
+    event["scoring_points"][0]["question_no"] = 1
+    event["scoring_points"][1]["question_no"] = 2
+    stem = "【问题】\n1. 说明检验项目。\n2. 说明漏项。"
+    rendered = G.render_case_rubric_feedback(event, question_stem=stem)
+
+    stream = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+
+    assert stream is not None
+    assert stream["mode"] == "score_first_sealed_blocks"
+    assert stream["score_first"].startswith("## 批改结论")
+    assert "**得分预估：** 1 / 4 分。" in stream["score_first"]
+    assert "命中 1 个，部分命中 0 个，漏/错 1 个" in stream["score_first"]
+    assert "✅" in stream["score_first"] and "❌" in stream["score_first"]
+    assert stream["final_text"].startswith(stream["score_first"])
+    assert stream["sealed_blocks"]
+    assert all(block["sealed"] is True for block in stream["sealed_blocks"])
+    assert any(block["phase"] == "question_detail" and "## 问题1" in block["content"] for block in stream["sealed_blocks"])
+    assert any(block["phase"] == "final_detail" and "## 下一步建议" in block["content"] for block in stream["sealed_blocks"])
+    assert "answer_key_authority" not in str(stream)
+    assert "score_authority" not in str(stream)
+
+
+def test_build_case_rubric_score_first_stream_preserves_unheaded_detail() -> None:
+    judge = _judge({
+        "P1": {"status": G.HIT, "evidence_span": "数控钢筋调直切断机"},
+        "P2": {"status": G.MISS, "mistake_type": G.MISTAKE_MISS},
+    })
+    event = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric()[:2], judge_fn=judge)
+    rendered = G.render_case_rubric_feedback(event, question_stem="没有可识别小问编号的案例题。")
+
+    stream = G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+
+    assert stream is not None
+    assert "**采分点：**" in stream["final_text"]
+    assert any(
+        block["phase"] == "question_detail" and "**采分点：**" in block["content"]
+        for block in stream["sealed_blocks"]
+    )
+
+
 def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidence() -> None:
     event = {
         "event_type": "case_grading_completed",
@@ -713,6 +785,127 @@ def test_grade_with_batch_judge_not_degraded_for_genuine_all_miss() -> None:
         qid="q", student_answer="ans", rubric_points=_rubric(), complete_fn=_all_miss, api_key="k"))
     assert ev["degraded"] is False
     assert ev["awarded_score"] == 0.0
+
+
+def test_grade_with_batch_judge_dynamic_parallel_splits_large_case_by_subquestion() -> None:
+    points = [
+        {
+            "point_id": f"Q{question_no}-P{idx}",
+            "text": f"问题{question_no}采分点{idx}",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+            "question_no": question_no,
+        }
+        for question_no in range(1, 7)
+        for idx in range(1, 5)
+    ]
+    prompts: list[str] = []
+    inflight = 0
+    max_inflight = 0
+
+    async def _complete(**kw):
+        nonlocal inflight, max_inflight
+        prompt = str(kw.get("prompt") or "")
+        prompts.append(prompt)
+        inflight += 1
+        max_inflight = max(max_inflight, inflight)
+        await asyncio.sleep(0.01)
+        inflight -= 1
+        count = prompt.split("\n\n学生作答", 1)[0].count('"idx":')
+        return "[" + ",".join(f'{{"idx":{idx},"status":"hit"}}' for idx in range(1, count + 1)) + "]"
+
+    ev = asyncio.run(
+        G.grade_with_batch_judge_async(
+            qid="large-case",
+            student_answer="完整作答",
+            rubric_points=points,
+            complete_fn=_complete,
+            api_key="k",
+        )
+    )
+
+    assert ev["degraded"] is False
+    assert ev["awarded_score"] == 24.0
+    assert ev["adjudication_strategy"] == "dynamic_parallel_question_groups"
+    assert ev["adjudication_group_count"] == 3
+    assert len(prompts) == 3
+    assert max_inflight >= 2
+    assert all(prompt.split("\n\n学生作答", 1)[0].count('"idx":') == 8 for prompt in prompts)
+
+
+def test_grade_with_batch_judge_dynamic_parallel_keeps_small_case_single_call() -> None:
+    points = [
+        {
+            "point_id": f"P{idx}",
+            "text": f"问题{idx}采分点",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+            "question_no": idx,
+        }
+        for idx in range(1, 5)
+    ]
+    calls = 0
+
+    async def _complete(**kw):
+        nonlocal calls
+        calls += 1
+        count = str(kw.get("prompt") or "").split("\n\n学生作答", 1)[0].count('"idx":')
+        return "[" + ",".join(f'{{"idx":{idx},"status":"hit"}}' for idx in range(1, count + 1)) + "]"
+
+    ev = asyncio.run(
+        G.grade_with_batch_judge_async(
+            qid="small-case",
+            student_answer="完整作答",
+            rubric_points=points,
+            complete_fn=_complete,
+            api_key="k",
+        )
+    )
+
+    assert ev["degraded"] is False
+    assert ev["adjudication_strategy"] == "single_batch"
+    assert ev["adjudication_group_count"] == 1
+    assert calls == 1
+
+
+def test_grade_with_batch_judge_dynamic_parallel_degrades_if_any_group_is_incomplete() -> None:
+    points = [
+        {
+            "point_id": f"Q{question_no}-P{idx}",
+            "text": f"问题{question_no}采分点{idx}",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+            "question_no": question_no,
+        }
+        for question_no in range(1, 7)
+        for idx in range(1, 5)
+    ]
+    calls = 0
+
+    async def _complete(**kw):
+        nonlocal calls
+        calls += 1
+        count = str(kw.get("prompt") or "").split("\n\n学生作答", 1)[0].count('"idx":')
+        if calls == 2:
+            count -= 1
+        return "[" + ",".join(f'{{"idx":{idx},"status":"hit"}}' for idx in range(1, count + 1)) + "]"
+
+    ev = asyncio.run(
+        G.grade_with_batch_judge_async(
+            qid="large-case",
+            student_answer="完整作答",
+            rubric_points=points,
+            complete_fn=_complete,
+            api_key="k",
+        )
+    )
+
+    assert ev["degraded"] is True
+    assert ev["adjudication_strategy"] == "dynamic_parallel_question_groups"
+    assert ev["adjudication_group_count"] == 3
 
 
 def test_batch_prompt_hides_long_pointids_and_uses_idx() -> None:

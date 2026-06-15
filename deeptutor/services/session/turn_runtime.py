@@ -795,10 +795,10 @@ def _billing_capture_amount_from_usage_summary(
 ) -> tuple[int, dict[str, Any]]:
     if not isinstance(usage_summary, dict):
         return _MINI_PROGRAM_CAPTURE_COST, {
-            "billing_amount_source": "fallback_minimum",
+            "billing_amount_source": "standard_turn",
             "billing_cost_source": "missing_usage_summary",
             "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
-            "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+            "billing_standard_turn_points": _MINI_PROGRAM_CAPTURE_COST,
         }
 
     measured_cost = _usage_summary_float(usage_summary, "total_cost_usd")
@@ -809,8 +809,6 @@ def _billing_capture_amount_from_usage_summary(
         if billable_cost > 0
         else 0
     )
-    amount_points = max(_MINI_PROGRAM_CAPTURE_COST, cost_points)
-
     if measured_cost > 0 and estimated_cost > 0:
         cost_source = "mixed_cost"
     elif measured_cost > 0:
@@ -821,12 +819,10 @@ def _billing_capture_amount_from_usage_summary(
         cost_source = "missing_cost"
 
     metadata: dict[str, Any] = {
-        "billing_amount_source": (
-            cost_source if cost_points >= _MINI_PROGRAM_CAPTURE_COST else "fallback_minimum"
-        ),
+        "billing_amount_source": "standard_turn",
         "billing_cost_source": cost_source,
         "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
-        "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+        "billing_standard_turn_points": _MINI_PROGRAM_CAPTURE_COST,
         "billing_measured_cost": round(measured_cost, 8),
         "billing_estimated_cost": round(estimated_cost, 8),
         "billing_billable_cost": round(billable_cost, 8),
@@ -845,7 +841,7 @@ def _billing_capture_amount_from_usage_summary(
     models = usage_summary.get("models")
     if isinstance(models, dict) and models:
         metadata["usage_models"] = dict(models)
-    return amount_points, metadata
+    return _MINI_PROGRAM_CAPTURE_COST, metadata
 
 
 def _append_trace_link_event(

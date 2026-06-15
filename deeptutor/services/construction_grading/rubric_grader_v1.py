@@ -934,6 +934,235 @@ def render_case_rubric_feedback(
     return "\n".join(lines)
 
 
+def build_case_rubric_presentation(
+    event: dict[str, Any],
+    *,
+    rendered_text: str,
+) -> dict[str, Any] | None:
+    """Project the same GradingEvent into the public renderer schema.
+
+    This is presentation-only: it never recalculates score, never exposes raw
+    answer authority, and never becomes a second grading truth.
+    """
+    if not isinstance(event, dict) or event.get("event_type") != "case_grading_completed":
+        return None
+    scoring_points = [
+        point for point in list(event.get("scoring_points") or []) if isinstance(point, dict)
+    ]
+    if not scoring_points:
+        return None
+
+    def _fmt_score(value: Any) -> str:
+        try:
+            number = float(value or 0)
+        except (TypeError, ValueError):
+            return "0"
+        if number.is_integer():
+            return str(int(number))
+        return f"{number:.2f}".rstrip("0").rstrip(".")
+
+    def _safe_text(value: Any, *, limit: int = 72) -> str:
+        text = re.sub(r"\s+", " ", str(value or "")).strip()
+        if len(text) <= limit:
+            return text
+        return text[:limit].rstrip() + "..."
+
+    def _status_text(point: dict[str, Any]) -> str:
+        hit = point.get("hit")
+        if hit == HIT:
+            return "✅ 命中"
+        if hit == PARTIAL:
+            return "⚠️ 部分"
+        return "❌ 漏/错"
+
+    hit_count = sum(1 for p in scoring_points if p.get("hit") == HIT)
+    partial_count = sum(1 for p in scoring_points if p.get("hit") == PARTIAL)
+    miss_count = sum(1 for p in scoring_points if p.get("hit") == MISS)
+    weak_points = [
+        str(p.get("knowledge_point") or "").strip()
+        for p in scoring_points
+        if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
+    ]
+    awarded = _fmt_score(event.get("awarded_score"))
+    maximum = _fmt_score(event.get("max_score"))
+    summary = (
+        f"得分预估 {awarded} / {maximum} 分；命中 {hit_count} 个，"
+        f"部分命中 {partial_count} 个，漏/错 {miss_count} 个。"
+    )
+    bullets = []
+    if weak_points:
+        bullets.append(f"优先补：{_safe_text(weak_points[0], limit=40)}")
+    if event.get("high_risk_review"):
+        bullets.append("本轮含高风险判分点，建议教师复核后作为正式成绩。")
+    else:
+        bullets.append("本评分为 AI 阅卷草稿，非正式成绩。")
+
+    rows: list[list[dict[str, Any] | str]] = []
+    for point in scoring_points[:12]:
+        rows.append([
+            {"text": _status_text(point), "highlight": point.get("hit") != HIT},
+            _safe_text(point.get("knowledge_point"), limit=54) or "采分点",
+            _safe_text(point.get("evidence_span"), limit=36) or "未看到直接给分表述",
+        ])
+
+    try:
+        from deeptutor.services.render_presentation import build_canonical_presentation
+
+        return build_canonical_presentation(
+            content=rendered_text or "",
+            blocks=[
+                {
+                    "type": "recap",
+                    "title": "批改结论",
+                    "summary": summary,
+                    "bullets": bullets,
+                },
+                {
+                    "type": "table",
+                    "caption": "采分点速览",
+                    "mobile_strategy": "compact_cards",
+                    "headers": ["判定", "采分点", "你的证据"],
+                    "rows": rows,
+                },
+            ],
+        )
+    except Exception:  # noqa: BLE001 — presentation must not break grading
+        logger.debug("rubric_grader_v1: case presentation projection skipped", exc_info=True)
+        return None
+
+
+def build_case_rubric_score_first_stream(
+    event: dict[str, Any],
+    *,
+    rendered_text: str,
+) -> dict[str, Any] | None:
+    """Build a score-first, block-finalized public stream plan from one GradingEvent.
+
+    This is still a projection of the same V1 grading event. It does not score,
+    re-judge, or expose hidden answer authority.
+    """
+    if not isinstance(event, dict) or event.get("event_type") != "case_grading_completed":
+        return None
+    scoring_points = [
+        point for point in list(event.get("scoring_points") or []) if isinstance(point, dict)
+    ]
+    if not scoring_points:
+        return None
+    rendered = str(rendered_text or "").strip()
+    if not rendered:
+        return None
+
+    def _fmt_score(value: Any) -> str:
+        try:
+            number = float(value or 0)
+        except (TypeError, ValueError):
+            return "0"
+        if number.is_integer():
+            return str(int(number))
+        return f"{number:.2f}".rstrip("0").rstrip(".")
+
+    def _safe_text(value: Any, *, limit: int = 54) -> str:
+        text = re.sub(r"\s+", " ", str(value or "")).strip()
+        if len(text) <= limit:
+            return text
+        return text[:limit].rstrip() + "..."
+
+    def _status_text(point: dict[str, Any]) -> str:
+        hit = point.get("hit")
+        if hit == HIT:
+            return "✅ 命中"
+        if hit == PARTIAL:
+            return "⚠️ 部分"
+        return "❌ 漏/错"
+
+    hit_count = sum(1 for p in scoring_points if p.get("hit") == HIT)
+    partial_count = sum(1 for p in scoring_points if p.get("hit") == PARTIAL)
+    miss_count = sum(1 for p in scoring_points if p.get("hit") == MISS)
+    awarded = _fmt_score(event.get("awarded_score"))
+    maximum = _fmt_score(event.get("max_score"))
+
+    score_lines = [
+        "## 批改结论",
+        f"**得分预估：** {awarded} / {maximum} 分。",
+        f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。",
+    ]
+    if event.get("high_risk_review"):
+        score_lines.append("- 本轮含高风险判分点，建议教师复核后作为正式成绩。")
+    else:
+        score_lines.append("- 本评分为 AI 阅卷草稿，非正式成绩。")
+    score_lines.extend(["", "### 命中/漏点速览", "| 判定 | 采分点 | 你的证据 |", "|---|---|---|"])
+    for point in scoring_points[:8]:
+        score_lines.append(
+            "| "
+            + " | ".join([
+                _status_text(point),
+                _safe_text(point.get("knowledge_point")) or "采分点",
+                _safe_text(point.get("evidence_span"), limit=36) or "未看到直接给分表述",
+            ])
+            + " |"
+        )
+    if len(scoring_points) > 8:
+        score_lines.append(f"\n其余 {len(scoring_points) - 8} 个采分点在后续逐问解析里展开。")
+    score_first = "\n".join(score_lines).strip()
+
+    heading_pattern = re.compile(
+        r"(?m)^## (问题\d+[^\n]*|总体评价|判分|记忆口诀|下一步建议)\s*$"
+    )
+    matches = list(heading_pattern.finditer(rendered))
+    sealed_blocks: list[dict[str, Any]] = []
+    first_heading_start = matches[0].start() if matches else len(rendered)
+    detail_start = 0
+    overall_match = re.search(r"(?m)^## 整体评价\s*$", rendered[:first_heading_start])
+    if overall_match:
+        detail_start = overall_match.end()
+        separator_match = re.search(r"(?m)^---\s*$", rendered[detail_start:first_heading_start])
+        if separator_match:
+            detail_start += separator_match.end()
+    unheaded_detail = re.sub(r"(?m)^---\s*", "", rendered[detail_start:first_heading_start]).strip()
+    if unheaded_detail and any(marker in unheaded_detail for marker in ("采分点", "易错点", "得分表达改写")):
+        sealed_blocks.append({
+            "id": "question_detail_1",
+            "title": "采分点明细",
+            "phase": "question_detail",
+            "sealed": True,
+            "content": unheaded_detail,
+        })
+    for idx, match in enumerate(matches):
+        start = match.start()
+        end = matches[idx + 1].start() if idx + 1 < len(matches) else len(rendered)
+        content = rendered[start:end].strip()
+        if not content:
+            continue
+        title = match.group(1).strip()
+        phase = "question_detail" if title.startswith("问题") else "final_detail"
+        sealed_blocks.append({
+            "id": f"{phase}_{len(sealed_blocks) + 1}",
+            "title": title,
+            "phase": phase,
+            "sealed": True,
+            "content": content,
+        })
+    if not sealed_blocks:
+        sealed_blocks.append({
+            "id": "detail_1",
+            "title": "详细批改",
+            "phase": "final_detail",
+            "sealed": True,
+            "content": rendered,
+        })
+    final_text = score_first + "\n\n" + "\n\n".join(
+        str(block.get("content") or "").strip()
+        for block in sealed_blocks
+        if str(block.get("content") or "").strip()
+    )
+    return {
+        "mode": "score_first_sealed_blocks",
+        "score_first": score_first,
+        "sealed_blocks": sealed_blocks,
+        "final_text": final_text.strip(),
+    }
+
+
 def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | None) -> str:
     pcp = personalization_context_pack if isinstance(personalization_context_pack, dict) else {}
     claims = [claim for claim in list(pcp.get("top_claims") or []) if isinstance(claim, dict)]
@@ -1289,6 +1518,121 @@ async def batch_judge_async(
     return _parse_batch_verdicts(raw, rubric_points)
 
 
+def _adjudication_target_group_count(point_count: int) -> int:
+    if point_count <= 8:
+        return 1
+    if point_count <= 16:
+        return 2
+    return 3
+
+
+def _question_group_key(point: dict[str, Any]) -> str:
+    for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
+        value = _positive_int_or_none(point.get(key))
+        if value is not None:
+            return f"q{value}"
+    source_qid = str(point.get("source_qid") or "").strip()
+    if source_qid:
+        match = re.search(r"::E(\d+)(?:\b|::)", source_qid)
+        if match:
+            return f"q{match.group(1)}"
+    return ""
+
+
+def _split_points_evenly(points: list[dict[str, Any]], group_count: int) -> list[list[dict[str, Any]]]:
+    if group_count <= 1 or len(points) <= 1:
+        return [points]
+    groups: list[list[dict[str, Any]]] = []
+    start = 0
+    for idx in range(group_count):
+        remaining_points = len(points) - start
+        remaining_groups = group_count - idx
+        size = (remaining_points + remaining_groups - 1) // remaining_groups
+        groups.append(points[start:start + size])
+        start += size
+    return [group for group in groups if group]
+
+
+def _balanced_question_groups(
+    question_groups: list[list[dict[str, Any]]], group_count: int
+) -> list[list[dict[str, Any]]]:
+    buckets: list[list[dict[str, Any]]] = [[] for _ in range(max(1, group_count))]
+    loads = [0 for _ in buckets]
+    for group in question_groups:
+        idx = min(range(len(buckets)), key=lambda pos: loads[pos])
+        buckets[idx].extend(group)
+        loads[idx] += len(group)
+    return [bucket for bucket in buckets if bucket]
+
+
+def _dynamic_adjudication_groups(
+    rubric_points: list[dict[str, Any]],
+) -> tuple[list[list[dict[str, Any]]], str]:
+    points = [point for point in rubric_points if isinstance(point, dict)]
+    target = _adjudication_target_group_count(len(points))
+    if target <= 1:
+        return ([points] if points else []), "single_batch"
+
+    ordered: list[list[dict[str, Any]]] = []
+    by_key: dict[str, list[dict[str, Any]]] = {}
+    keyed = False
+    for index, point in enumerate(points):
+        key = _question_group_key(point)
+        if key:
+            keyed = True
+        else:
+            key = f"__point_{index}"
+        group = by_key.get(key)
+        if group is None:
+            group = []
+            by_key[key] = group
+            ordered.append(group)
+        group.append(point)
+
+    if keyed and len(ordered) >= target:
+        return _balanced_question_groups(ordered, target), "dynamic_parallel_question_groups"
+    return _split_points_evenly(points, target), "dynamic_parallel_point_chunks"
+
+
+async def _batch_judge_dynamic_async(
+    rubric_points: list[dict[str, Any]], student_answer: str,
+    complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    groups, strategy = _dynamic_adjudication_groups(rubric_points)
+    if not groups:
+        return {}, {
+            "adjudication_strategy": "single_batch",
+            "adjudication_group_count": 0,
+            "adjudication_point_count": 0,
+        }
+    if len(groups) == 1:
+        verdicts = await batch_judge_async(groups[0], student_answer, complete_fn, api_key, model=model)
+        return verdicts, {
+            "adjudication_strategy": "single_batch",
+            "adjudication_group_count": 1,
+            "adjudication_point_count": len(rubric_points),
+        }
+
+    import asyncio as _asyncio
+
+    async def _run(group: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        return await batch_judge_async(group, student_answer, complete_fn, api_key, model=model)
+
+    verdicts: dict[str, dict[str, Any]] = {}
+    results = await _asyncio.gather(*(_run(group) for group in groups), return_exceptions=True)
+    for result in results:
+        if isinstance(result, Exception):
+            logger.warning("rubric_grader_v1: dynamic batch subgroup failed; degrading coverage",
+                           exc_info=(type(result), result, result.__traceback__))
+            continue
+        verdicts.update(result)
+    return verdicts, {
+        "adjudication_strategy": strategy,
+        "adjudication_group_count": len(groups),
+        "adjudication_point_count": len(rubric_points),
+    }
+
+
 _EXTRACT_SYSTEM_PROMPT = "你把参考答案拆成采分点,输出JSON数组。"
 
 _VALID_POLICIES = ("list", "exact_required", "boolean_judgment", "qualitative", "calc")
@@ -1541,6 +1885,7 @@ def _is_degraded_batch(rubric_points: list[dict[str, Any]], verdicts: dict[str, 
 def _grade_from_verdicts(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     verdicts: dict[str, dict[str, Any]], student_id: str,
+    adjudication_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Shared deterministic shaping for both batch paths: build the GradingEvent from verdicts and stamp
     ``degraded`` so the caller can fail-safe to legacy when no real adjudication happened."""
@@ -1549,7 +1894,11 @@ def _grade_from_verdicts(
 
     event = grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
                               judge_fn=judge, student_id=student_id)
-    return {**event, "degraded": _is_degraded_batch(rubric_points, verdicts)}
+    return {
+        **event,
+        **(adjudication_metadata or {}),
+        "degraded": _is_degraded_batch(rubric_points, verdicts),
+    }
 
 
 def grade_with_batch_judge(
@@ -1558,19 +1907,29 @@ def grade_with_batch_judge(
 ) -> dict[str, Any]:
     """grade_with_rubric using a SINGLE batched LLM call for all points (production case path)."""
     verdicts = batch_judge(rubric_points, student_answer, complete_fn, api_key, model=model)
+    metadata = {
+        "adjudication_strategy": "single_batch",
+        "adjudication_group_count": 1 if rubric_points else 0,
+        "adjudication_point_count": len(rubric_points),
+    }
     return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
-                                verdicts=verdicts, student_id=student_id)
+                                verdicts=verdicts, student_id=student_id,
+                                adjudication_metadata=metadata)
 
 
 async def grade_with_batch_judge_async(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
 ) -> dict[str, Any]:
-    """Async twin of ``grade_with_batch_judge`` — safe to call from a running event loop. ONE awaited
-    LLM call for all points; the deterministic sum (``grade_with_rubric``) stays unchanged."""
-    verdicts = await batch_judge_async(rubric_points, student_answer, complete_fn, api_key, model=model)
+    """Async V1 scoring path. Small cases stay on one batch call; larger cases are split into at most
+    three concurrent sub-batches by subquestion identity when available. The deterministic sum
+    (``grade_with_rubric``) and fail-closed coverage check stay unchanged."""
+    verdicts, metadata = await _batch_judge_dynamic_async(
+        rubric_points, student_answer, complete_fn, api_key, model=model
+    )
     return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
-                                verdicts=verdicts, student_id=student_id)
+                                verdicts=verdicts, student_id=student_id,
+                                adjudication_metadata=metadata)
 
 
 def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
@@ -1608,6 +1967,7 @@ __all__ = ["grade_with_rubric", "grade_artifact_shadow", "rubric_points_from_art
            "batch_judge", "batch_judge_async", "make_batch_judge",
            "extract_rubric_from_reference_async", "normalize_points_to_nominal",
            "derive_outcome_from_event",
-           "to_learning_evidence", "render_case_rubric_feedback", "load_rubric",
+           "to_learning_evidence", "render_case_rubric_feedback", "build_case_rubric_presentation",
+           "build_case_rubric_score_first_stream", "load_rubric",
            "enforce_official_scoring_authority", "make_llm_judge",
            "HIT", "PARTIAL", "MISS", "MISTAKE_MISS", "MISTAKE_NEAR_SYNONYM", "MISTAKE_PARTIAL_LIST"]

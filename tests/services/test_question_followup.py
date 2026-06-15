@@ -2110,3 +2110,49 @@ def test_redact_question_followup_context_for_public_drops_pgo_official_answer_f
     ]
     assert result["source_fields"] == ["stem"]
     assert result["student_evidence_span"] == "学生写了见证人员记录"
+
+
+def test_redact_question_followup_context_for_public_drops_grading_authority_fields() -> None:
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "qs_authority",
+        "items": [
+            {
+                "question_id": "q_authority",
+                "construction_grading_result": {
+                    "quality_gates": {
+                        "score_authority": "official_total_x_verdict_coverage",
+                        "per_point_score_authority": "pending_calibration_not_official",
+                        "answer_key_authority": "signed_registry_only",
+                        "official_total_score_authority": "official_answer_verbatim",
+                    },
+                    "evidence_refs": [
+                        {"field": "answer_key_authority", "value": "signed_registry_only"},
+                        {"field": "public_status", "value": "ok"},
+                    ],
+                    "source_fields": ["answer_key_authority", "public_status"],
+                    "public_status": "ok",
+                },
+            }
+        ],
+    }
+
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+    for forbidden in (
+        "score_authority",
+        "per_point_score_authority",
+        "answer_key_authority",
+        "official_total_score_authority",
+        "official_answer_verbatim",
+        "signed_registry_only",
+    ):
+        assert forbidden not in blob
+    result = public["items"][0]["construction_grading_result"]
+    assert result["public_status"] == "ok"
+    assert result["evidence_refs"] == [{"field": "public_status", "value": "ok"}]
+    assert result["source_fields"] == ["public_status"]

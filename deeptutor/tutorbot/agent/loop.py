@@ -490,6 +490,10 @@ class AgentLoop:
             "learning_evidence_event_id",
             "learning_training_intent",
             "grading_to_brain_projection",
+            "case_grading_stream_mode",
+            "case_grading_adjudication_strategy",
+            "case_grading_adjudication_group_count",
+            "case_grading_adjudication_point_count",
         ):
             if key in runtime_metadata:
                 target_metadata[key] = runtime_metadata[key]
@@ -1269,9 +1273,9 @@ class AgentLoop:
             "construction_grading_result": {"type": "case", "max_score": nominal},
         }
 
-    async def _v1_case_render(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> str:
+    async def _v1_case_stream_plan(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any] | None:
         """Grade a TutorBot case turn with the V1 rubric engine (single fat-skill core, reused from
-        deep_question) and return the student-facing render. Returns '' when V1 should not take over
+        deep_question) and return a score-first stream plan. Returns None when V1 should not take over
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
         never raises (must not break the tutorbot turn)."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
@@ -1288,7 +1292,7 @@ class AgentLoop:
         if scene != "case_grading":
             logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
                            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
-            return ""
+            return None
         # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
         # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
         # no tier produces scoring points — the caller already falls back to V0 at that point. An upstream
@@ -1305,7 +1309,7 @@ class AgentLoop:
                 "false", "0", "off", "no"):
                 md["score_authority"] = "v1_disabled"
                 logger.info("LUBAN_V1 skip: kill-switch LUBAN_CASE_RUBRIC_V1_ENABLED is off")
-                return ""
+                return None
             # Use the factory's configured key (DASHSCOPE when LLM_BINDING=dashscope).
             # Pass None so factory.complete() falls back to config.api_key (correct binding key).
             # DEEPSEEK_API_KEY is only checked for the kill-switch; the actual call uses config.
@@ -1319,7 +1323,7 @@ class AgentLoop:
             if not key:
                 md["score_authority"] = "v1_provider_unavailable"
                 logger.warning("LUBAN_V1 skip: no LLM key for binding={}", _binding or "openai")
-                return ""
+                return None
             provider_authority = _binding or "configured"
             try:
                 from deeptutor.services.llm.config import get_llm_config
@@ -1345,11 +1349,19 @@ class AgentLoop:
                 provider_authority=provider_authority,
             )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
-                return ""
+                return None
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
             md["v1_case_graded"] = True
             md["score_authority"] = "rubric_scored_v1"
             md["grading_rubric_provenance"] = str(event.get("rubric_provenance") or "").strip()
+            if event.get("adjudication_strategy"):
+                md["case_grading_adjudication_strategy"] = str(event.get("adjudication_strategy") or "")
+            for _event_key, _metadata_key in (
+                ("adjudication_group_count", "case_grading_adjudication_group_count"),
+                ("adjudication_point_count", "case_grading_adjudication_point_count"),
+            ):
+                if event.get(_event_key) is not None:
+                    md[_metadata_key] = event.get(_event_key)
             try:
                 from deeptutor.capabilities.deep_question import _record_v1_langfuse
 
@@ -1374,15 +1386,39 @@ class AgentLoop:
             )
             self._schedule_v1_grading_personalization(runtime_metadata=md)
             pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
-            return _G.render_case_rubric_feedback(
+            rendered = _G.render_case_rubric_feedback(
                 event,
                 question_stem=str(ctx.get("question_stem") or ""),
                 personalization_context_pack=pcp,
             )
+            stream_plan = _G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+            if stream_plan:
+                md["case_grading_stream_mode"] = "score_first_sealed_blocks"
+            final_text = str((stream_plan or {}).get("final_text") or rendered)
+            presentation = _G.build_case_rubric_presentation(event, rendered_text=final_text)
+            if presentation:
+                md["presentation"] = presentation
+            if stream_plan:
+                stream_plan["presentation"] = presentation
+                return stream_plan
+            return {
+                "mode": "final_text",
+                "score_first": "",
+                "sealed_blocks": [],
+                "final_text": final_text,
+                "presentation": presentation,
+            }
         except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
             md["score_authority"] = "v1_error"
             logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
-            return ""
+            return None
+
+    async def _v1_case_render(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> str:
+        plan = await self._v1_case_stream_plan(
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        )
+        return str((plan or {}).get("final_text") or "")
 
     @staticmethod
     def _schedule_v1_grading_personalization(
@@ -1542,6 +1578,115 @@ class AgentLoop:
             return v1_render
         return self._case_grading_no_authority_score_fallback(
             final_content, runtime_metadata=runtime_metadata, user_message=user_message)
+
+    @staticmethod
+    def _is_case_grading_scene(runtime_metadata: dict[str, Any] | None) -> bool:
+        return (
+            str((runtime_metadata or {}).get("question_lifecycle_scene") or "").strip()
+            == "case_grading"
+        )
+
+    @staticmethod
+    def _case_grading_live_preview_text(user_message: str) -> str:
+        user_stem, _user_answer = AgentLoop._split_case_grading_submission(user_message)
+        question_titles = re.findall(r"(?:^|\n)\s*(\d+)\s*[.．、]\s*([^\n？?]{2,40}[？?]?)", user_stem)
+        if question_titles:
+            count = min(len(question_titles), 8)
+            return (
+                f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
+                "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
+            )
+        return (
+            "这道案例题我已经进入逐采分点批改。\n\n"
+            "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
+        )
+
+    async def _run_case_grading_direct(
+        self,
+        *,
+        msg: InboundMessage,
+        session: Session,
+        history: list[dict[str, Any]],
+        current_message: str,
+        runtime_metadata: dict[str, Any],
+        runtime_instruction: str,
+        on_progress: Callable[[str], Awaitable[None]] | None = None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+    ) -> OutboundMessage | None:
+        if not self._is_case_grading_scene(runtime_metadata):
+            return None
+        runtime_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
+        runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+        if on_progress:
+            await on_progress("案例题批改已进入 V1 逐采分点链路，正在拆题和核对采分点。")
+        await self._emit_visible_text_deltas(
+            self._case_grading_live_preview_text(current_message),
+            on_content_delta,
+        )
+
+        initial_messages = self.context.build_messages(
+            history=history,
+            current_message=current_message,
+            media=msg.media if msg.media else None,
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            runtime_instruction=runtime_instruction,
+        )
+        stream_plan = await self._v1_case_stream_plan(
+            runtime_metadata=runtime_metadata,
+            user_message=current_message,
+        )
+        final_content = str((stream_plan or {}).get("final_text") or "").strip()
+        if not final_content:
+            final_content = self._case_grading_no_authority_score_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            )
+            stream_plan = None
+        guarded_output = guard_tutorbot_output(final_content)
+        guarded_content = guarded_output.content or final_content
+        if guarded_content != final_content:
+            stream_plan = None
+        final_content = guarded_content
+        all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+        if all_msgs:
+            all_msgs[-1]["content"] = final_content
+        if stream_plan:
+            if on_progress:
+                await on_progress("已完成判分，先返回分数和命中/漏点，详细解释随后补齐。")
+            score_first = str(stream_plan.get("score_first") or "").strip()
+            if score_first:
+                await self._emit_visible_text_deltas("\n\n" + score_first, on_content_delta)
+            for block in list(stream_plan.get("sealed_blocks") or []):
+                if not isinstance(block, dict):
+                    continue
+                block_content = str(block.get("content") or "").strip()
+                if not block_content:
+                    continue
+                if on_progress:
+                    title = str(block.get("title") or "详细解析").strip()
+                    await on_progress(f"正在补充 {title} 的解析。")
+                await self._emit_visible_text_deltas("\n\n" + block_content, on_content_delta)
+        else:
+            await self._emit_visible_text_deltas("\n\n" + final_content, on_content_delta)
+        self._save_turn(session, all_msgs, 1 + len(history))
+        session.metadata["last_exact_fast_path"] = False
+        self.sessions.save(session)
+        await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+
+        response_metadata = dict(msg.metadata or {})
+        self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+        self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        response_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
+        if isinstance(runtime_metadata.get("presentation"), dict):
+            response_metadata["presentation"] = runtime_metadata["presentation"]
+        return OutboundMessage(
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            content=final_content,
+            metadata=response_metadata,
+        )
 
     @staticmethod
     def _case_grading_no_authority_score_fallback(
@@ -3592,6 +3737,18 @@ class AgentLoop:
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
         self._export_skill_trace_metadata(runtime_metadata, msg.metadata)
+        case_grading_direct = await self._run_case_grading_direct(
+            msg=msg,
+            session=session,
+            history=history,
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+            runtime_instruction=runtime_instruction,
+            on_progress=on_progress,
+            on_content_delta=on_content_delta,
+        )
+        if case_grading_direct is not None:
+            return case_grading_direct
         fast_path = await self._maybe_run_exact_rag_fast_path(
             current_message=current_message,
             history=history,

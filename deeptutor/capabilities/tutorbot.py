@@ -254,6 +254,10 @@ class TutorBotCapability(BaseCapability):
                     "v1_case_graded",
                     "score_authority",
                     "grading_rubric_provenance",
+                    "case_grading_stream_mode",
+                    "case_grading_adjudication_strategy",
+                    "case_grading_adjudication_group_count",
+                    "case_grading_adjudication_point_count",
                     "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
@@ -338,6 +342,10 @@ class TutorBotCapability(BaseCapability):
                     "v1_case_graded",
                     "score_authority",
                     "grading_rubric_provenance",
+                    "case_grading_stream_mode",
+                    "case_grading_adjudication_strategy",
+                    "case_grading_adjudication_group_count",
+                    "case_grading_adjudication_point_count",
                     "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
@@ -586,9 +594,14 @@ class TutorBotCapability(BaseCapability):
                 "v1_case_graded",
                 "score_authority",
                 "grading_rubric_provenance",
+                "case_grading_stream_mode",
+                "case_grading_adjudication_strategy",
+                "case_grading_adjudication_group_count",
+                "case_grading_adjudication_point_count",
                 "luban_general_knowledge_context",
                 "luban_general_knowledge_context_status",
                 "llm_stream_telemetry",
+                "presentation",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]

@@ -459,6 +459,191 @@ def test_pgo_shadow_append_only_uses_official_total_coverage(monkeypatch: pytest
     assert shadow["runtime_points"][0]["score"] is None
 
 
+def test_pgo_shadow_consumes_retrieve_rubric_without_leaking_official_slice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.capabilities import deep_question as dq
+    from deeptutor.services.construction_grading import m35_artifact_query
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    legacy = {"score_awarded": 7.0, "max_score": 10.0, "authority": "construction_grading"}
+    payload = {"construction_grading_result": dict(legacy)}
+    calls = []
+
+    def _fake_retrieve(query):
+        calls.append(query)
+        return {
+            "found": True,
+            "question_id": query.question_id,
+            "artifact_version": "case_rubric_scored_pgo",
+            "purpose": query.purpose,
+            "shape": query.shape,
+            "budget": {"tier": query.budget_tier, "runtime": "deterministic_pgo_supply"},
+            "ground": {"source_ref_count": 2, "citation_required": query.citation_required},
+            "confidence": {
+                "verdict_ceiling": "release_candidate_review_only",
+                "published": False,
+                "production_default": "off",
+            },
+            "scoring_points": [
+                {
+                    "point_id": "p1",
+                    "official_slice": "THIS OFFICIAL ANSWER MUST NOT LEAK",
+                    "official_score_allowed": False,
+                    "canonical_write_allowed": False,
+                }
+            ],
+        }
+
+    monkeypatch.setattr(m35_artifact_query, "retrieve_rubric", _fake_retrieve)
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True, user_id="operator_pgo"),
+        graded_context={
+            "question_id": "case-pgo",
+            "pgo_grading_contract": _pgo_contract(),
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    assert payload["construction_grading_result"] == legacy
+    assert len(calls) == 1
+    assert calls[0].question_id == "case-pgo"
+    assert calls[0].purpose == "grading"
+    assert calls[0].shape == "rubric_table"
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert shadow["knowql_query"]["executor"] == "retrieve_rubric"
+    assert shadow["knowql_query"]["runtime_consumed"] is True
+    assert shadow["knowql_query"]["found"] is True
+    assert shadow["knowql_query"]["scoring_point_count"] == 1
+    assert "official_slice" not in str(shadow["knowql_query"])
+    assert "THIS OFFICIAL ANSWER MUST NOT LEAK" not in str(shadow)
+    assert shadow["official_score_allowed"] is False
+    assert shadow["canonical_write_allowed"] is False
+    assert shadow["writeback_performed"] is False
+
+
+def test_pgo_shadow_redacts_contract_official_slices_from_client_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.capabilities import deep_question as dq
+    from deeptutor.services.construction_grading import m35_artifact_query
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+
+    def _fake_retrieve(query):
+        return {
+            "found": False,
+            "question_id": query.question_id,
+            "fail_open": True,
+            "reason": "artifact_missing",
+        }
+
+    monkeypatch.setattr(m35_artifact_query, "retrieve_rubric", _fake_retrieve)
+    contract = _pgo_contract()
+    contract["scoring_points"][0]["official_slice"] = "HIDDEN CONTRACT SLICE"
+    payload = {"construction_grading_result": {"score_awarded": 7.0, "max_score": 10.0}}
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True, user_id="operator_pgo"),
+        graded_context={
+            "question_id": "case-pgo",
+            "pgo_grading_contract": contract,
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert "HIDDEN CONTRACT SLICE" not in str(shadow)
+    assert "official_slice" not in str(shadow.get("runtime_points", []))
+    assert "knowledge_point" not in str(shadow.get("runtime_points", []))
+    assert shadow["score"]["max_score"] == 10.0
+    assert shadow["writeback_performed"] is False
+
+
+def test_pgo_shadow_records_retrieve_rubric_fail_open_without_mutating_legacy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.capabilities import deep_question as dq
+    from deeptutor.services.construction_grading import m35_artifact_query
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    legacy = {"score_awarded": 7.0, "max_score": 10.0, "authority": "construction_grading"}
+    payload = {"construction_grading_result": dict(legacy)}
+
+    def _fake_retrieve(query):
+        return {
+            "found": False,
+            "question_id": query.question_id,
+            "fail_open": True,
+            "reason": "runtime_supply_unavailable",
+            "blockers": ["content_hash_mismatch"],
+        }
+
+    monkeypatch.setattr(m35_artifact_query, "retrieve_rubric", _fake_retrieve)
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True, user_id="operator_pgo"),
+        graded_context={
+            "question_id": "case-pgo",
+            "pgo_grading_contract": _pgo_contract(),
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    assert payload["construction_grading_result"] == legacy
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert shadow["knowql_query"]["runtime_consumed"] is True
+    assert shadow["knowql_query"]["fail_open"] is True
+    assert shadow["knowql_query"]["reason"] == "runtime_supply_unavailable"
+    assert shadow["knowql_query"]["blockers"] == ["content_hash_mismatch"]
+    assert shadow["official_score_allowed"] is False
+    assert shadow["canonical_write_allowed"] is False
+    assert shadow["writeback_performed"] is False
+
+
+def test_pgo_shadow_consumes_real_hash_pinned_supply_as_safe_summary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    known_qid = "2015::EXAM_XW2015_CASE_1::E0"
+    contract = _pgo_contract()
+    contract["question_id"] = known_qid
+    payload = {
+        "construction_grading_result": {
+            "score_awarded": 7.0,
+            "max_score": 10.0,
+            "authority": "construction_grading",
+        }
+    }
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True, user_id="operator_pgo"),
+        graded_context={
+            "question_id": known_qid,
+            "pgo_grading_contract": contract,
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert shadow["knowql_query"]["runtime_consumed"] is True
+    assert shadow["knowql_query"]["found"] is True
+    assert shadow["knowql_query"]["artifact_version"] == "case_rubric_scored_pgo"
+    assert shadow["knowql_query"]["scoring_point_count"] > 0
+    assert "official_slice" not in str(shadow["knowql_query"])
+    assert "answer_key_authority" not in str(shadow)
+    assert shadow["official_score_allowed"] is False
+    assert shadow["canonical_write_allowed"] is False
+    assert shadow["writeback_performed"] is False
+
+
 def test_pgo_shadow_missing_contract_fails_closed_without_inference(monkeypatch: pytest.MonkeyPatch) -> None:
     from deeptutor.capabilities import deep_question as dq
 

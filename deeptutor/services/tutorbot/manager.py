@@ -1202,6 +1202,10 @@ class TutorBotManager:
                         "v1_case_graded",
                         "score_authority",
                         "grading_rubric_provenance",
+                        "case_grading_stream_mode",
+                        "case_grading_adjudication_strategy",
+                        "case_grading_adjudication_group_count",
+                        "case_grading_adjudication_point_count",
                         "llm_stream_telemetry",
                     ):
                         if metadata_key in runtime_metadata:
@@ -1227,8 +1231,8 @@ class TutorBotManager:
                         or mode
                     ).strip() or mode
                     policy_execution_path = str(
-                        mode_execution_policy.get("execution_path")
-                        or runtime_metadata.get("execution_path")
+                        runtime_metadata.get("execution_path")
+                        or mode_execution_policy.get("execution_path")
                         or ""
                     ).strip()
                     if not policy_execution_path:
@@ -1317,11 +1321,16 @@ class TutorBotManager:
                             "v1_case_graded",
                             "score_authority",
                             "grading_rubric_provenance",
+                            "case_grading_stream_mode",
+                            "case_grading_adjudication_strategy",
+                            "case_grading_adjudication_group_count",
+                            "case_grading_adjudication_point_count",
                             "luban_lecture_answer_method_context",
                             "luban_lecture_answer_method_context_status",
                             "luban_general_knowledge_context",
                             "luban_general_knowledge_context_status",
                             "llm_stream_telemetry",
+                            "presentation",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

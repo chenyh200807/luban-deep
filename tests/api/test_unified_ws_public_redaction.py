@@ -330,6 +330,43 @@ def test_redact_metadata_drops_pgo_official_answer_fields() -> None:
     assert redacted["metadata"]["pgo_shadow_result"]["student_evidence_span"] == "学生写了见证人员记录"
 
 
+def test_redact_metadata_drops_grading_authority_metadata_fields() -> None:
+    event = {
+        "type": "result",
+        "metadata": {
+            "luban_case_rubric_v1": {
+                "quality_gates": {
+                    "score_authority": "official_total_x_verdict_coverage",
+                    "per_point_score_authority": "pending_calibration_not_official",
+                    "answer_key_authority": "signed_registry_only",
+                    "official_total_score_authority": "official_answer_verbatim",
+                },
+                "public_status": "ok",
+            },
+            "evidence_refs": [
+                {"field": "answer_key_authority", "value": "signed_registry_only"},
+                {"field": "public_status", "value": "ok"},
+            ],
+            "source_fields": ["answer_key_authority", "public_status"],
+        },
+    }
+
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    for forbidden in (
+        "score_authority",
+        "per_point_score_authority",
+        "answer_key_authority",
+        "official_total_score_authority",
+        "official_answer_verbatim",
+        "signed_registry_only",
+    ):
+        assert forbidden not in blob
+    assert redacted["metadata"]["luban_case_rubric_v1"]["public_status"] == "ok"
+    assert redacted["metadata"]["evidence_refs"] == [{"field": "public_status", "value": "ok"}]
+    assert redacted["metadata"]["source_fields"] == ["public_status"]
+
+
 def test_redact_metadata_drops_evidence_inside_question_followup_context() -> None:
     """Nested evidence within ``metadata.question_followup_context`` (handled by
     its own canonical redactor in services.question_followup) must also drop
