@@ -23,6 +23,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 DEVTOOLS_CLI = Path("/Applications/wechatwebdevtools.app/Contents/MacOS/cli")
+REDACTED_SECRET = "[REDACTED]"
+REDACT_MODEL_CATALOG_AT_REST_ENV = "DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST"
 
 
 def _apply_local_qa_env(*, user_data_dir: str) -> None:
@@ -38,6 +40,7 @@ def _apply_local_qa_env(*, user_data_dir: str) -> None:
     os.environ["FF_AUTH_SUPABASE_BACKEND"] = "false"
     os.environ["SUPABASE_RAG_ENABLED"] = "false"
     os.environ["DEEPTUTOR_USER_DATA_DIR"] = str(user_data_dir or "").strip()
+    os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV] = "1"
 
 
 def _prepare_local_user_data_dir(user_data_dir: str) -> None:
@@ -47,6 +50,33 @@ def _prepare_local_user_data_dir(user_data_dir: str) -> None:
 
     PathService.reset_instance()
     learner_state_service_module._learner_state_service = None
+
+
+def _redact_secret_fields(value: Any) -> Any:
+    if isinstance(value, dict):
+        redacted: dict[str, Any] = {}
+        for key, item in value.items():
+            if key == "api_key" and str(item or "").strip():
+                redacted[key] = REDACTED_SECRET
+            else:
+                redacted[key] = _redact_secret_fields(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_secret_fields(item) for item in value]
+    return value
+
+
+def _redact_artifact_model_catalog(user_data_dir: str) -> bool:
+    """Keep generated E2E artifacts secret-free without changing runtime env."""
+    catalog_path = Path(user_data_dir).expanduser().resolve() / "settings" / "model_catalog.json"
+    if not catalog_path.exists():
+        return False
+    payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+    redacted = _redact_secret_fields(payload)
+    if redacted == payload:
+        return False
+    catalog_path.write_text(json.dumps(redacted, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return True
 
 
 def _request_json(
@@ -141,6 +171,7 @@ def _local_api_server(
                 "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"
             ],
             "DEEPTUTOR_USER_DATA_DIR": os.environ["DEEPTUTOR_USER_DATA_DIR"],
+            REDACT_MODEL_CATALOG_AT_REST_ENV: os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV],
             "DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN": os.environ["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"],
             "FF_AUTH_SUPABASE_BACKEND": os.environ["FF_AUTH_SUPABASE_BACKEND"],
             "SUPABASE_RAG_ENABLED": os.environ["SUPABASE_RAG_ENABLED"],
@@ -282,6 +313,7 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
             "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"],
             "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK": os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"],
             "DEEPTUTOR_USER_DATA_DIR": os.environ["DEEPTUTOR_USER_DATA_DIR"],
+            REDACT_MODEL_CATALOG_AT_REST_ENV: os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV],
             "FF_AUTH_SUPABASE_BACKEND": os.environ["FF_AUTH_SUPABASE_BACKEND"],
             "SUPABASE_RAG_ENABLED": os.environ["SUPABASE_RAG_ENABLED"],
         }
@@ -568,8 +600,10 @@ def main() -> int:
         ):
             result = run(args)
     except Exception as exc:
+        _redact_artifact_model_catalog(args.user_data_dir)
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
+    _redact_artifact_model_catalog(args.user_data_dir)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
