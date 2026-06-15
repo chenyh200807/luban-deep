@@ -7,6 +7,7 @@
     "dev:turbo": "node --max-old-space-size=6144 ./node_modules/next/dist/bin/next dev --turbopack",
     "build": "next build --webpack",
     "start": "next start",
+    "start:standalone:smoke": "node ./scripts/start_standalone_smoke.mjs",
     "lint": "eslint .",
     "perf:check": "node ./scripts/route_budgets.mjs",
     "build:perf": "npm run build && npm run perf:check",
@@ -22,7 +23,7 @@
     "test:wechat-harness:data": "node --test tests/wechat-harness-data.test.ts",
     "ensure:playwright": "node ./scripts/ensure_playwright.mjs",
     "test:wechat-harness:e2e": "playwright test --project=wechat-harness --reporter=list,html --trace=retain-on-failure",
-    "test:wechat-harness:e2e:self-hosted": "PW_WEB_PORT=${PW_WEB_PORT:-3107} PW_START_WEB_SERVER=1 playwright test --project=wechat-harness --reporter=list,html --trace=retain-on-failure",
+    "test:wechat-harness:e2e:self-hosted": "npm run build && PW_WEB_PORT=${PW_WEB_PORT:-3107} PW_WEB_SERVER_MODE=standalone PW_START_WEB_SERVER=1 playwright test --project=wechat-harness --reporter=list,html --trace=retain-on-failure",
     "test:wechat-harness:e2e:ci": "npm run ensure:playwright && npm run test:wechat-harness:e2e:self-hosted",
     "test:wechat-harness:all": "npm run test:wechat-harness:data && npm run test:wechat-harness:e2e",
     "test:wechat-harness": "npm run test:wechat-harness:data"

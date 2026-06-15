@@ -21,6 +21,11 @@ const BI_V2_SERVER_ENV =
         "BI_SYSTEM_OPS_V2_ENABLED=1",
       ].join(" ")
     : "";
+const WEB_SERVER_MODE = process.env.PW_WEB_SERVER_MODE || "dev";
+const WEB_SERVER_COMMAND =
+  WEB_SERVER_MODE === "standalone"
+    ? `PORT=${WEB_SERVER_PORT} DEEPTUTOR_ENABLE_WECHAT_HARNESS=true npm run start:standalone:smoke`
+    : `${BI_V2_SERVER_ENV ? `${BI_V2_SERVER_ENV} ` : ""}PORT=${WEB_SERVER_PORT} npm run dev`;
 
 export default defineConfig({
   testDir: "./tests",
@@ -35,7 +40,7 @@ export default defineConfig({
   },
   webServer: SHOULD_START_WEB_SERVER
     ? {
-        command: `${BI_V2_SERVER_ENV ? `${BI_V2_SERVER_ENV} ` : ""}PORT=${WEB_SERVER_PORT} npm run dev`,
+        command: WEB_SERVER_COMMAND,
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
