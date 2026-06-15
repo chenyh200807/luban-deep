@@ -503,48 +503,94 @@ def render_case_rubric_feedback(
     sp = event.get("scoring_points") or []
     awarded = event.get("awarded_score", 0)
     total = event.get("max_score", 0)
+
+    def _cell(value: Any) -> str:
+        return str(value or "").replace("|", "\\|").replace("\n", " ").strip()
+
+    def _status_and_reason(point: dict[str, Any]) -> tuple[str, str]:
+        hit = point.get("hit")
+        span = str(point.get("evidence_span") or "").strip()
+        mistake = point.get("mistake_type")
+        if hit == HIT:
+            return "✅ 命中", f"命中：{span}" if span else "命中"
+        if hit == PARTIAL:
+            return (
+                "⚠️ 部分命中",
+                ("部分命中" + (f"（你写到：{span}）" if span else "")
+                 + "，但本采分点要点未答全，还差关键内容"),
+            )
+        if mistake == MISTAKE_WRONG:
+            return (
+                "❌ 答错",
+                f"答错：你写的「{span}」不符合本采分点" if span else "答错：所写内容与本采分点不符",
+            )
+        if mistake == MISTAKE_NEAR_SYNONYM:
+            return "❌ 术语不精确", "术语不精确：本采分点要求规范术语，近义/口语表述不得分"
+        return "❌ 漏写", "未作答 / 漏写本采分点"
+
+    weak = [str(p.get("knowledge_point") or "") for p in sp if p.get("hit") != HIT]
+    weak = [w for w in weak if w]
+    hit_count = sum(1 for p in sp if p.get("hit") == HIT)
+    partial_count = sum(1 for p in sp if p.get("hit") == PARTIAL)
+    miss_count = sum(1 for p in sp if p.get("hit") == MISS)
+    if total:
+        ratio = float(awarded or 0) / float(total or 1)
+    else:
+        ratio = 0.0
+    if ratio >= 0.85:
+        verdict = "整体掌握较好，主要检查表述是否完整。"
+    elif ratio >= 0.5:
+        verdict = "有部分采分点命中，但漏点和表述不完整会明显扣分。"
+    else:
+        verdict = "核心采分点缺失较多，需要先按标准采分点重建答案。"
+
     lines: list[str] = []
-    if question_stem:
-        lines.append(f"【题目】{question_stem}")
-    lines.append(f"【得分】{awarded} / {total} 分")
+    lines.append("## 结论")
+    lines.append(f"本次得分：{awarded} / {total} 分。{verdict}")
     lines.append("")
-    lines.append("【逐采分点点评】")
+    lines.append("## 采分点明细")
+    lines.append("| 采分点 | 判定 | 得分 | 依据/扣分原因 |")
+    lines.append("|---|---|---:|---|")
     for i, p in enumerate(sp, 1):
         kp = str(p.get("knowledge_point") or "")
         s = p.get("score", 0)
         m = p.get("max_score", 0)
-        hit = p.get("hit")
-        span = str(p.get("evidence_span") or "").strip()
-        mistake = p.get("mistake_type")
-        if hit == HIT:
-            tag = "✅"
-            why = f"命中：{span}" if span else "命中"
-        elif hit == PARTIAL:
-            tag = "⚠️"
-            why = ("部分命中" + (f"（你写到：{span}）" if span else "")
-                   + "，但本采分点要点未答全，还差关键内容")
-        else:  # miss
-            tag = "❌"
-            if mistake == MISTAKE_WRONG:
-                why = (f"答错：你写的「{span}」不符合本采分点" if span
-                       else "答错：所写内容与本采分点不符")
-            elif mistake == MISTAKE_NEAR_SYNONYM:
-                why = "术语不精确：本采分点要求规范术语，近义/口语表述不得分"
-            else:
-                why = "未作答 / 漏写本采分点"
-        lines.append(f"  {tag} 采分点{i} {kp}（{s}/{m}分）—— {why}")
-    weak = [str(p.get("knowledge_point") or "") for p in sp if p.get("hit") != HIT]
-    if weak:
-        lines.append("")
-        lines.append("【薄弱点（需重点复习）】" + "；".join(w for w in weak if w))
-    profile_note = _personalized_feedback_note(personalization_context_pack)
-    if profile_note:
-        lines.append("")
-        lines.append(profile_note)
+        status, why = _status_and_reason(p if isinstance(p, dict) else {})
+        lines.append(f"| 采分点{i}：{_cell(kp)} | {status} | {s}/{m} | {_cell(why)} |")
     lines.append("")
+    lines.append("## 易错点")
+    if weak:
+        for item in weak[:5]:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- 本轮没有明显漏点，重点保持答题结构和关键词准确。")
+    lines.append("")
+    lines.append("## 判分")
+    lines.append(f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。")
     note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
         else "本评分为 AI 阅卷草稿，非正式成绩。"
-    lines.append(f"（{note}）")
+    lines.append(f"- {note}")
+    lines.append("")
+    lines.append("## 记忆口诀")
+    if weak:
+        lines.append("先列采分点，再补关键词；漏点优先背，错点要改法。")
+    else:
+        lines.append("先定点，再展开；关键词准，分数稳。")
+    lines.append("")
+    lines.append("## 建议")
+    profile_note = _personalized_feedback_note(personalization_context_pack)
+    if profile_note:
+        lines.append(profile_note)
+    if weak:
+        lines.append("把上表 ❌ / ⚠️ 的采分点各改写成一句可直接写进试卷的答案。")
+    else:
+        lines.append("继续保持按采分点分条作答，注意不要漏掉规范术语。")
+    lines.append("")
+    lines.append("## 下一步练什么")
+    if weak:
+        lines.append(f"优先练同考点变式题：{weak[0]}。做完后只对照采分点复盘，不先看长解析。")
+    else:
+        lines.append("练一道同章节综合案例题，目标是继续保持采分点完整率。")
     return "\n".join(lines)
 
 

@@ -1021,6 +1021,52 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
+    def _split_case_grading_submission(user_message: str) -> tuple[str, str]:
+        text = str(user_message or "").strip()
+        if not text:
+            return "", ""
+        problem_pos = max(text.rfind("【问题】"), text.rfind("问题】"), text.rfind("问题"))
+        if problem_pos < 0:
+            return "", text
+        marker_re = re.compile(r"(?m)^\s*(?:回答|作答|我的作答|学生作答|答案)\s*[:：]?\s*")
+        markers = [m for m in marker_re.finditer(text) if m.start() > problem_pos]
+        if not markers:
+            return "", text
+        marker = markers[-1]
+        stem = text[:marker.start()].strip()
+        answer = text[marker.end():].strip()
+        answer = re.sub(r"^(?:回答|作答|我的作答|学生作答|答案)\s*[:：]?\s*", "", answer).strip()
+        return stem, answer or text
+
+    @staticmethod
+    def _case_exact_question_matches_user_stem(exact_question: dict[str, Any], user_stem: str) -> bool:
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        user = _compact(user_stem)
+        if not user:
+            return True
+        parts: list[str] = [
+            str(exact_question.get("stem") or ""),
+            str(exact_question.get("question") or ""),
+        ]
+        covered = exact_question.get("covered_subquestions")
+        if isinstance(covered, list):
+            for item in covered:
+                if isinstance(item, dict):
+                    parts.append(str(item.get("stem") or item.get("question") or ""))
+        exact = _compact("\n".join(part for part in parts if part))
+        if not exact:
+            return False
+        if len(exact) >= 12 and exact in user:
+            return True
+        grams = {exact[i:i + 2] for i in range(max(0, len(exact) - 1))}
+        if len(grams) < 6:
+            return exact in user
+        overlap = sum(1 for gram in grams if gram in user) / len(grams)
+        return overlap >= 0.35
+
+    @staticmethod
     def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
         """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
         Case reference lives in ``_prefetched_exact_question.covered_subquestions[].authoritative_answer``
@@ -1028,6 +1074,10 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
+        user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
+            md["exact_question_blocked_reason"] = "case_exact_mismatch"
+            eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
         covered = eq.get("covered_subquestions") or []
         ref = "\n".join(
@@ -1038,16 +1088,16 @@ class AgentLoop:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):
             nominal = 0.0
-        # question_stem: bank entry > followup context only.
-        # NOT falling back to user_message: free-text submissions mix question + student answer in
-        # one message, so using it as a Tier-3 stem would have DeepSeek derive a rubric from the
-        # student's own phrasing and trivially produce a near-perfect fabricated score.
-        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or "")
+        # question_stem: bank entry > followup context > safely split full-case stem.
+        # Do NOT fall back to the raw user_message: free-text submissions often mix question + student
+        # answer in one message. Only the stable "题干 ... 回答/作答 ..." shape may feed Tier-3 stem
+        # derivation, and mismatched exact hits are demoted before their reference answer can score.
+        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or user_stem or "")
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
             "node_code": node_code,
-            "user_answer": str(fc.get("user_answer") or user_message or ""),
+            "user_answer": str(fc.get("user_answer") or user_answer or user_message or ""),
             "correct_answer": ref,
             "question_stem": question_stem,
             "construction_grading_result": {"type": "case", "max_score": nominal},

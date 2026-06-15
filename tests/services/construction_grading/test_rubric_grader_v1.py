@@ -251,13 +251,23 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
         "P3": {"status": G.MISS, "mistake_type": G.MISTAKE_WRONG, "evidence_span": "塔吊"},  # wrong content
     })
     ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric(), judge_fn=judge)
-    text = G.render_case_rubric_feedback(ev, question_stem="某案例题")
-    assert "某案例题" in text
-    assert f"【得分】{ev['awarded_score']} / {ev['max_score']} 分" in text  # same source as the score
+    long_stem = "某案例题。建设单位编制招标文件。" * 20
+    text = G.render_case_rubric_feedback(ev, question_stem=long_stem)
+    assert "【题目】" not in text
+    assert "某案例题。建设单位编制招标文件。" not in text
+    assert "## 结论" in text
+    assert "## 采分点明细" in text
+    assert "| 采分点 | 判定 | 得分 | 依据/扣分原因 |" in text
+    assert f"本次得分：{ev['awarded_score']} / {ev['max_score']} 分" in text  # same source as the score
     assert "✅" in text                                    # P1 hit
     assert "⚠️" in text and "部分命中" in text          # P2 partial (list)
+    assert "❌" in text
     assert "答错：你写的「塔吊」" in text                   # P3 wrong-content, NOT "漏写"
-    assert "薄弱点" in text and "列举6项检验" in text       # P2 (partial) is a weak point
+    assert "## 易错点" in text and "列举6项检验" in text       # P2 (partial) is a weak point
+    assert "## 判分" in text
+    assert "## 记忆口诀" in text
+    assert "## 建议" in text
+    assert "## 下一步练什么" in text
 
 
 def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> None:
@@ -283,7 +293,7 @@ def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> N
         },
     )
 
-    assert f"【得分】{ev['awarded_score']} / {ev['max_score']} 分" in text
+    assert f"本次得分：{ev['awarded_score']} / {ev['max_score']} 分" in text
     assert "长期画像提示" in text
     assert "exact_required" in text
     assert "不会改变本次采分点得分" in text

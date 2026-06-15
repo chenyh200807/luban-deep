@@ -62,6 +62,35 @@ def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> Non
     assert ctx["node_code"] == "1A432000"
 
 
+def test_build_v1_case_ctx_splits_full_case_submission_and_blocks_mismatched_exact() -> None:
+    md = _case_md()
+    md["_prefetched_exact_question"] = {
+        "answer_kind": "case_study",
+        "question_id": "WRONG-CASE",
+        "stem": "固定总价合同风险范围和违约条款案例。",
+        "covered_subquestions": [
+            {"authoritative_answer": "应明确包死价种类、风险范围、违约条款，结算价为121520.00元。"},
+        ],
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？2. 中标单位还应避免哪些违法分包行为？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。\n"
+        "3. 不得分包给不具备资质单位。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == ""
+    assert ctx["correct_answer"] == ""
+    assert "工程量清单的强制性内容" in ctx["question_stem"]
+    assert ctx["user_answer"].startswith("1. 工程量计算规则")
+    assert "建设单位编制了投资兴建某工程" not in ctx["user_answer"]
+    assert md["exact_question_blocked_reason"] == "case_exact_mismatch"
+
+
 @pytest.mark.asyncio
 async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")  # explicit on (default is also on)
@@ -79,7 +108,7 @@ async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest
     monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
 
     render = await _loop()._v1_case_render(runtime_metadata=_case_md(), user_message="共用一个开关箱不妥")
-    assert "逐采分点点评" in render and "【得分】" in render          # V1 render, not the agent's free text
+    assert "## 采分点明细" in render and "本次得分：" in render          # V1 render, not the agent's free text
     assert "应编制临时用电施工组织设计" in render                      # the missed point surfaced
 
 
@@ -122,7 +151,7 @@ async def test_v1_case_render_default_on_for_non_qa_user(monkeypatch: pytest.Mon
     md = _case_md()
     md["user_id"] = "real_user_123"               # not qa_/test_ -> still graded (no cohort gate anymore)
     render = await _loop()._v1_case_render(runtime_metadata=md, user_message="共用一个开关箱不妥")
-    assert "逐采分点点评" in render
+    assert "## 采分点明细" in render
 
 
 @pytest.mark.asyncio
@@ -204,7 +233,7 @@ async def test_apply_v1_or_case_fallback_prefers_v1(monkeypatch: pytest.MonkeyPa
     md = _case_md()
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：你写得不错，继续保持。", runtime_metadata=md, user_message="点1")
-    assert "逐采分点点评" in out                                      # V1 took over (not the agent text)
+    assert "## 采分点明细" in out                                      # V1 took over (not the agent text)
     assert md.get("_v1_case_graded") is True
 
 
@@ -270,7 +299,7 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="普通施工方案")
 
-    assert "逐采分点点评" in out
+    assert "## 采分点明细" in out
     assert len(fake_service.calls) == 1
     call = fake_service.calls[0]
     assert call["user_id"] == "qa_loop_v1"
