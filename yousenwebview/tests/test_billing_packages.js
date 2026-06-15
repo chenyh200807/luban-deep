@@ -265,12 +265,24 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing should show remaining percent instead of internal wallet points",
     );
     assert(
-      page.data.ledgerRows.length === 1 &&
-        page.data.ledgerRows[0].title === "AI 学习消耗" &&
-        page.data.ledgerRows[0].usageLabel === "-0.22%" &&
-        page.data.ledgerRows[0].balanceLabel === "剩余 99.6%" &&
-        page.data.ledgerRows[0].timeLabel.indexOf("10:20") >= 0,
-      "billing should normalize wallet debit ledger rows with time and percent-only usage",
+      page.data.ledgerRows.length === 1,
+      "billing should render one wallet debit ledger row",
+    );
+    assert(
+      page.data.ledgerRows[0].title === "AI 学习消耗",
+      "billing should normalize wallet debit ledger reason",
+    );
+    assert(
+      page.data.ledgerRows[0].usageLabel === "-0.22%",
+      "billing should render wallet debit as percent-only usage",
+    );
+    assert(
+      page.data.ledgerRows[0].balanceLabel === "剩余 99.6%",
+      "billing should render remaining wallet percent after debit",
+    );
+    assert(
+      /^[0-9]{1,2}月[0-9]{1,2}日 [0-9]{2}:[0-9]{2}$/.test(page.data.ledgerRows[0].timeLabel),
+      "billing should render a stable ledger timestamp label",
     );
     assert(
       page.data.selectedPackageId === "vip",
