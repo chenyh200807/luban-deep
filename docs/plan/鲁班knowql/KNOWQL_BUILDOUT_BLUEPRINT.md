@@ -399,8 +399,28 @@ Artifact:
 | `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/authorization_readiness.json` | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION`; live-readback ready; hardening 4/4; safety violations 0 |
 | `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_production_default_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
 | `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_canonical_truth_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
-| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/signed_authorization_package.json` | `READY_FOR_HUMAN_SIGNATURE` draft only; still unsigned/no-write |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/signed_authorization_package.json` | `READY_FOR_HUMAN_SIGNATURE` draft only; includes consented-pilot, production-default, and canonical-truth forms; still unsigned/no-write |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_consented_pilot_gate.json` | `BLOCKED_PENDING_CONSENTED_PILOT_AUTHORIZATION`; requires real-student cohort evidence, privacy consent boundary, sample-size plan, and signed consented-pilot authorization |
 
 Allowed claim after this loop: QA/operator Stage5 canary is credible again because the repair is sourced from tracked PGO runtime supply and actual coverage scoring.
 
 Still forbidden: broad production default, official score, published registry, real-student efficacy claim, canonical learner truth promotion, learner memory write, DB/remote write.
+
+## 18. L5.1 consented pilot gate(2026-06-16,no-write BLOCKED)
+
+Stage5 GO does not mean production default. The next valid real-world step is a named, consented, randomized pilot, isolated from official score, published registry, and canonical learner truth.
+
+- Runner: `scripts/run_luban_knowql_nexus_l5_consented_pilot_gate.py`
+- Tests: `tests/scripts/test_luban_knowql_nexus_l5_consented_pilot_gate.py`
+- Current artifact: `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_consented_pilot_gate.json`
+- Current verdict: `BLOCKED_PENDING_CONSENTED_PILOT_AUTHORIZATION`
+- Current blockers: `real_student_cohort_evidence_missing`, `privacy_consent_boundary_missing`, `sample_size_plan_missing`, `signed_consented_pilot_authorization_missing`
+
+The gate can only return `READY_FOR_CONSENTED_PILOT_EXECUTION` when:
+
+1. L4 live-readback is ready and Stage5 has no human-boundary blocker.
+2. `knowql_nexus_real_student_cohort_evidence.v1` exists with cohort source, privacy consent boundary, learner-level randomization, A0/B1/B2 arms, and minimum 30 subjects per arm.
+3. `knowql_nexus_l5_consented_pilot_authorization.v1` is signed for real-student cohort, privacy consent, sample-size plan, and QA/operator-to-real-student transition.
+4. The authorization explicitly keeps production default, official score, published registry, canonical truth, and remote write unauthorized.
+
+This gate intentionally keeps `real_student_efficacy_claim_allowed=false` until the consented pilot actually runs and produces preregistered outcome evidence.

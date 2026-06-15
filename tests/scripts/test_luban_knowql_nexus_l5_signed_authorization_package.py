@@ -28,6 +28,15 @@ def test_l5_signed_authorization_package_is_unsigned_and_no_write() -> None:
     assert package["safety"]["production_write_count"] == 0
     assert package["safety"]["canonical_truth_write_count"] == 0
     assert package["safety"]["remote_write_count"] == 0
+    assert package["authorization_forms"]["consented_pilot"]["schema"] == (
+        "knowql_nexus_l5_consented_pilot_authorization.v1"
+    )
+    assert package["authorization_forms"]["consented_pilot"]["authorization_decision"]["signed_authorization"] is False
+    assert package["authorization_forms"]["consented_pilot"]["authorization_decision"][
+        "real_student_cohort_authorized"
+    ] is False
+    assert package["authorization_forms"]["consented_pilot"]["scope"]["minimum_subjects_per_arm"] == 30
+    assert package["authorization_forms"]["consented_pilot"]["scope"]["production_default_after_signature"] is False
     assert package["authorization_forms"]["production_default"]["schema"] == (
         "knowql_nexus_l5_production_default_authorization.v1"
     )
@@ -85,6 +94,7 @@ def test_l5_signed_authorization_package_cli_writes_json_and_markdown(tmp_path: 
     markdown = markdown_path.read_text("utf-8")
     assert payload["verdict"] == "READY_FOR_HUMAN_SIGNATURE"
     assert "signed_authorization=false" in markdown
+    assert "real_student_cohort_authorized=false" in markdown
     assert "production_default_authorized=false" in markdown
     assert "canonical_truth_authorized=false" in markdown
 

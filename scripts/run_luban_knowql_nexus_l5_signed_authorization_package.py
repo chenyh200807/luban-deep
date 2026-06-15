@@ -39,6 +39,7 @@ DEFAULT_MARKDOWN_OUTPUT = DEFAULT_OUTPUT.with_suffix(".md")
 SCHEMA = "knowql_nexus_l5_signed_authorization_package.v1"
 PRODUCTION_AUTHORIZATION_SCHEMA = "knowql_nexus_l5_production_default_authorization.v1"
 CANONICAL_AUTHORIZATION_SCHEMA = "knowql_nexus_l5_canonical_truth_authorization.v1"
+CONSENTED_PILOT_AUTHORIZATION_SCHEMA = "knowql_nexus_l5_consented_pilot_authorization.v1"
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -164,6 +165,43 @@ def _canonical_truth_form(*, l4_readiness: dict[str, Any], canonical_truth_gate:
     }
 
 
+def _consented_pilot_form(*, l4_readiness: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema": CONSENTED_PILOT_AUTHORIZATION_SCHEMA,
+        "form_status": "unsigned",
+        "authorization_decision": {
+            "signed_authorization": False,
+            "real_student_cohort_authorized": False,
+            "privacy_consent_authorized": False,
+            "sample_size_plan_authorized": False,
+            "qa_operator_to_real_student_transition_authorized": False,
+            "production_default_authorized": False,
+            "official_score_authorized": False,
+            "published_registry_authorized": False,
+            "canonical_truth_authorized": False,
+            "remote_write_authorized": False,
+        },
+        "required_signer_roles": [
+            "product_owner",
+            "privacy_or_data_governance_owner",
+            "learning_science_owner",
+        ],
+        "evidence_binding": {
+            "l4_readiness_sha256": _content_hash(l4_readiness),
+        },
+        "scope": {
+            "allowed_initial_scope_after_signature": "named_consented_real_student_pilot_only",
+            "minimum_subjects_per_arm": 30,
+            "arms": ["A0", "B1", "B2"],
+            "randomization_unit": "learner",
+            "production_default_after_signature": False,
+            "official_score_after_signature": False,
+            "published_registry_after_signature": False,
+            "canonical_truth_after_signature": False,
+        },
+    }
+
+
 def build_signed_authorization_package(
     *,
     l4_readiness: dict[str, Any],
@@ -184,11 +222,13 @@ def build_signed_authorization_package(
         l4_readiness=l4_readiness,
         canonical_truth_gate=canonical_truth_gate,
     )
+    consented_pilot_form = _consented_pilot_form(l4_readiness=l4_readiness)
     return {
         "schema": SCHEMA,
         "verdict": verdict,
         "blockers": blockers,
         "authorization_forms": {
+            "consented_pilot": consented_pilot_form,
             "production_default": production_form,
             "canonical_truth": canonical_form,
         },
@@ -236,8 +276,10 @@ def build_signed_authorization_package(
 
 
 def render_markdown(package: dict[str, Any]) -> str:
+    pilot = _as_dict(_as_dict(package, "authorization_forms"), "consented_pilot")
     production = _as_dict(_as_dict(package, "authorization_forms"), "production_default")
     canonical = _as_dict(_as_dict(package, "authorization_forms"), "canonical_truth")
+    pilot_decision = _as_dict(pilot, "authorization_decision")
     production_decision = _as_dict(production, "authorization_decision")
     canonical_decision = _as_dict(canonical, "authorization_decision")
     blockers = package.get("blockers") or []
@@ -247,6 +289,13 @@ def render_markdown(package: dict[str, Any]) -> str:
         f"verdict={package.get('verdict')}\n\n"
         "## Blockers\n"
         f"{blocker_lines}\n\n"
+        "## Consented Pilot Form\n"
+        f"- signed_authorization={str(pilot_decision.get('signed_authorization')).lower()}\n"
+        f"- real_student_cohort_authorized={str(pilot_decision.get('real_student_cohort_authorized')).lower()}\n"
+        f"- privacy_consent_authorized={str(pilot_decision.get('privacy_consent_authorized')).lower()}\n"
+        f"- sample_size_plan_authorized={str(pilot_decision.get('sample_size_plan_authorized')).lower()}\n"
+        f"- production_default_authorized={str(pilot_decision.get('production_default_authorized')).lower()}\n"
+        f"- canonical_truth_authorized={str(pilot_decision.get('canonical_truth_authorized')).lower()}\n\n"
         "## Production Default Form\n"
         f"- signed_authorization={str(production_decision.get('signed_authorization')).lower()}\n"
         f"- production_default_authorized={str(production_decision.get('production_default_authorized')).lower()}\n"
