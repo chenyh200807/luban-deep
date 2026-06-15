@@ -110,14 +110,93 @@ def test_schedule_balances_learning_arms_without_b3_effect_rows() -> None:
     assert "B3" not in {item.arm for item in schedule}
 
 
-def test_summarize_l2_rows_separates_effect_from_safety_and_b3_microbenchmark() -> None:
+def test_default_scenarios_are_multi_sample_and_backed_by_pgo_supply() -> None:
+    from deeptutor.services.construction_grading.m35_artifact_query import (
+        M35ArtifactQuery,
+        retrieve_rubric,
+    )
+
+    scenarios = knowql_nexus_l2_ab.DEFAULT_SCENARIOS
+
+    assert len(scenarios) >= 5
+    assert len({scenario.question_id for scenario in scenarios}) >= 5
+    for scenario in scenarios:
+        assert scenario.initial_answer != scenario.targeted_retest_answer
+        assert scenario.baseline_retest_answer != scenario.targeted_retest_answer
+        result = retrieve_rubric(
+            M35ArtifactQuery(
+                question_id=scenario.question_id,
+                purpose="grading",
+                shape="rubric_table",
+                citation_required=True,
+                budget_tier="low",
+            )
+        )
+        assert result["found"] is True
+        assert result.get("fail_open") is not True
+        assert len(result.get("scoring_points") or []) >= 2
+
+
+def test_l2_preregistration_freezes_metrics_thresholds_and_guardrails(tmp_path: Path) -> None:
+    prereg = knowql_nexus_l2_ab.build_preregistration(
+        sample_count=5,
+        loops=10,
+        min_loops=10,
+        min_b2_delta_lift=0.05,
+        min_b2_outcome_miss_reduction_lift=1.0,
+    )
+
+    assert prereg["primary_effect_metric"] == "b2_outcome_miss_reduction_lift_vs_b1"
+    assert "b2_delta_lift_vs_a0" in prereg["secondary_effect_metrics"]
+    assert "canonical_truth_write_count == 0" in prereg["safety_guardrails"]
+    assert "official_score_write_count == 0" in prereg["safety_guardrails"]
+    assert "b2_knowql_runtime_consumed_count == B2 turn_count" in prereg["safety_guardrails"]
+    assert "b2_nba_intervention_applied_count == B2 completed_loops" in prereg["safety_guardrails"]
+    assert prereg["minimum_preregistered_scenarios"] == 5
+    assert prereg["minimum_preregistered_loops"] == 10
+    assert prereg["decision_rule"]["go_requires"] == [
+        "L2_SAFETY_GO",
+        "L2_EFFECT_POSITIVE",
+    ]
+
     rows = [
         _row("A0", "initial", score_ratio=0.20),
-        _row("A0", "retest", score_ratio=0.35),
+        _row("A0", "retest", score_ratio=0.20),
         _row("B1", "initial", score_ratio=0.20),
-        _row("B1", "retest", score_ratio=0.40),
-        _row("B2", "initial", score_ratio=0.20, pgo=True, g3=True, nba=True),
-        _row("B2", "retest", score_ratio=0.70, pgo=True, g3=True, nba=True, nba_applied=True),
+        _row("B1", "retest", score_ratio=0.20),
+        _row("B2", "initial", score_ratio=0.20, pgo=True, g3=True, nba=True, pgo_misses=2),
+        _row("B2", "retest", score_ratio=0.20, pgo=True, g3=True, nba=True, nba_applied=True, pgo_misses=1),
+    ]
+    summary = knowql_nexus_l2_ab.summarize_l2_rows(rows, b3_rows=[], min_loops=1)
+    finding = tmp_path / "finding.md"
+    knowql_nexus_l2_ab._write_markdown(
+        finding,
+        manifest={
+            "api_base_url": "https://test2.yousenjiaoyu.com",
+            "loops": 10,
+            "min_loops": 10,
+            "order_mode": "alternating",
+            "connection_mode": "per-turn",
+            "preregistration": prereg,
+            "exit_code_intent": {"go": 0, "no_go": 1, "auth_blocked": 2},
+        },
+        summary=summary,
+    )
+
+    text = finding.read_text(encoding="utf-8")
+    assert "## Pre-registration" in text
+    assert "primary effect metric: `b2_outcome_miss_reduction_lift_vs_b1`" in text
+    assert "minimum preregistered scenarios: `5`" in text
+
+
+def test_summarize_l2_rows_separates_effect_from_safety_and_b3_microbenchmark() -> None:
+    rows = [
+        _row("A0", "initial", score_ratio=0.20, outcome_misses=2),
+        _row("A0", "retest", score_ratio=0.35, outcome_misses=2),
+        _row("B1", "initial", score_ratio=0.20, outcome_misses=2),
+        _row("B1", "retest", score_ratio=0.40, outcome_misses=2),
+        _row("B2", "initial", score_ratio=0.20, pgo=True, g3=True, nba=True, outcome_misses=2),
+        _row("B2", "retest", score_ratio=0.70, pgo=True, g3=True, nba=True, nba_applied=True, outcome_misses=1),
     ]
     b3_rows = [
         {"arm": "B3", "ok": True, "duration_ms": 4.0, "payload_bytes": 900, "learning_effect_eligible": False},
@@ -128,15 +207,18 @@ def test_summarize_l2_rows_separates_effect_from_safety_and_b3_microbenchmark() 
         rows,
         b3_rows=b3_rows,
         min_loops=1,
-        min_b1_delta_lift=0.10,
+        min_b2_delta_lift=0.0,
+        min_b2_outcome_miss_reduction_lift=1.0,
     )
 
     assert summary["decision"]["safety_status"] == "L2_SAFETY_GO"
     assert summary["decision"]["effect_status"] == "L2_EFFECT_POSITIVE"
-    assert summary["arms"]["B1"]["avg_retest_delta"] == 0.2
+    assert summary["arms"]["B1"]["avg_retest_delta"] == 0.0
     assert summary["arms"]["B2"]["avg_retest_delta"] == 0.5
-    assert summary["comparison"]["b2_delta_lift_vs_a0"] == 0.35
-    assert summary["comparison"]["b2_delta_lift_vs_b1"] == 0.3
+    assert summary["arms"]["B2"]["avg_server_score_retest_delta"] == 0.5
+    assert summary["comparison"]["b2_delta_lift_vs_a0"] == 0.5
+    assert summary["comparison"]["b2_delta_lift_vs_b1"] == 0.5
+    assert summary["comparison"]["b2_outcome_miss_reduction_lift_vs_b1"] == 1.0
     assert summary["safety"]["b2_nba_intervention_applied_count"] == 1
     assert summary["b3_microbenchmark"]["learning_effect_eligible"] is False
     assert summary["b3_microbenchmark"]["count"] == 2
@@ -193,23 +275,23 @@ def test_summarize_l2_rows_blocks_cross_arm_writes_and_b2_nba_change() -> None:
 
 def test_summarize_l2_rows_accepts_pgo_miss_reduction_as_retest_delta() -> None:
     rows = [
-        _row("A0", "initial", score_ratio=0.50),
-        _row("A0", "retest", score_ratio=0.50),
-        _row("B1", "initial", score_ratio=0.50),
-        _row("B1", "retest", score_ratio=0.50),
-        _row("B2", "initial", score_ratio=0.50, pgo=True, g3=True, nba=True, pgo_misses=2),
-        _row("B2", "retest", score_ratio=0.50, pgo=True, g3=True, nba=True, nba_applied=True, pgo_misses=1),
+        _row("A0", "initial", score_ratio=0.50, outcome_misses=2),
+        _row("A0", "retest", score_ratio=0.50, outcome_misses=2),
+        _row("B1", "initial", score_ratio=0.50, outcome_misses=2),
+        _row("B1", "retest", score_ratio=0.50, outcome_misses=2),
+        _row("B2", "initial", score_ratio=0.50, pgo=True, g3=True, nba=True, outcome_misses=2),
+        _row("B2", "retest", score_ratio=0.50, pgo=True, g3=True, nba=True, nba_applied=True, outcome_misses=1),
     ]
 
     summary = knowql_nexus_l2_ab.summarize_l2_rows(
         rows,
         b3_rows=[],
         min_loops=1,
-        min_b1_delta_lift=0.05,
-        min_b1_pgo_miss_reduction_lift=1.0,
+        min_b2_delta_lift=0.0,
+        min_b2_outcome_miss_reduction_lift=1.0,
     )
 
-    assert summary["comparison"]["b2_pgo_miss_reduction_lift_vs_b1"] == 1.0
+    assert summary["comparison"]["b2_outcome_miss_reduction_lift_vs_b1"] == 1.0
     assert summary["decision"]["effect_status"] == "L2_EFFECT_POSITIVE"
 
 
@@ -373,6 +455,7 @@ def _row(
     ttft_ms: float | None = 100.0,
     first_result_ms: float | None = 800.0,
     streaming: bool = True,
+    outcome_misses: int = 0,
 ) -> dict[str, object]:
     metadata: dict[str, object] = {
         "construction_grading_result": {
@@ -419,4 +502,6 @@ def _row(
         "async_explanation_status": "not_exercised",
         "metadata": metadata,
         "nba_intervention_applied": nba_applied,
+        "outcome_score_ratio": max(0.0, 1.0 - float(outcome_misses) / 2.0),
+        "outcome_miss_count": outcome_misses,
     }

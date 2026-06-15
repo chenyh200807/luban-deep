@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import random
+import re
 import statistics
 import sys
 import time
@@ -76,6 +78,7 @@ class Scenario(NamedTuple):
     initial_answer: str
     baseline_retest_answer: str
     targeted_retest_answer: str
+    outcome_terms: tuple[str, ...]
 
 
 class RunItem(NamedTuple):
@@ -88,12 +91,176 @@ DEFAULT_SCENARIOS: tuple[Scenario, ...] = (
         scenario_id="pgo_xw2015_e0_retest_delta",
         question_id="2015::EXAM_XW2015_CASE_1::E0",
         question="施工总进度计划还缺少哪些内容？",
-        correct_answer="施工总进度计划表，开竣工日期及工期一览表。",
+        correct_answer="施工总进度计划表，开竣工日期及工期一览表，资源需要量及供应平衡表。",
         initial_answer="还需要施工总进度计划表。",
         baseline_retest_answer="还需要补充施工总进度计划表，并说明计划安排。",
-        targeted_retest_answer="还需要施工总进度计划表、开竣工日期及工期一览表。",
+        targeted_retest_answer="还需要施工总进度计划表、开竣工日期及工期一览表、资源需要量及供应平衡表。",
+        outcome_terms=("施工总进度计划表", "开竣工日期", "工期一览表", "资源需要量", "供应平衡表"),
+    ),
+    Scenario(
+        scenario_id="pgo_xw2015_e1_network_plan_retest_delta",
+        question_id="2015::EXAM_XW2015_CASE_1::E1",
+        question="指出网络图关键线路、调整做法和调整后的总工期。",
+        correct_answer="关键线路有 A→B→F→H→I 和 A→D→G→H→I；3—4 之间增加一个虚工作；总工期为 25 个月。",
+        initial_answer="关键线路是 A→B→F→H→I，总工期为 25 个月。",
+        baseline_retest_answer="关键线路是 A→B→F→H→I，总工期 25 个月，并应调整网络图。",
+        targeted_retest_answer="关键线路有 A→B→F→H→I 和 A→D→G→H→I；3—4 之间增加一个虚工作；总工期 25 个月。",
+        outcome_terms=("A→B→F→H→I", "A→D→G→H→I", "虚工作", "25个月"),
+    ),
+    Scenario(
+        scenario_id="pgo_xw2015_case2_e0_steel_install_prep_delta",
+        question_id="2015::EXAM_XW2015_CASE_2::E0",
+        question="钢结构安装前应做哪些准备工作？",
+        correct_answer="安装机械的选择；钢构件预检和配套；安装流水段划分和安装顺序确定；定位轴线、标高和地脚螺栓检查；场地平整坚实、排水良好、车辆进出方便。",
+        initial_answer="需要选择安装机械，并做好钢构件预检和配套。",
+        baseline_retest_answer="需要选择安装机械、检查钢构件，并确认现场具备安装条件。",
+        targeted_retest_answer="需要选择安装机械、钢构件预检和配套、划分安装流水段并确定安装顺序、检查定位轴线标高和地脚螺栓、保证场地平整坚实且排水和车辆进出条件良好。",
+        outcome_terms=("安装机械", "钢构件预检", "安装流水段", "安装顺序", "定位轴线", "地脚螺栓", "排水", "车辆进出"),
+    ),
+    Scenario(
+        scenario_id="pgo_xw2015_case3_e0_dangerous_works_delta",
+        question_id="2015::EXAM_XW2015_CASE_3::E0",
+        question="本工程哪些分部分项工程属于危险性较大的工程？",
+        correct_answer="深基坑支护工程、模板工程及支撑体系、建筑幕墙安装工程、降水工程、土方开挖工程。",
+        initial_answer="有深基坑支护工程和模板工程及支撑体系。",
+        baseline_retest_answer="有深基坑支护、模板支撑体系等危险性较大的工程。",
+        targeted_retest_answer="包括深基坑支护工程、模板工程及支撑体系、建筑幕墙安装工程、降水工程、土方开挖工程。",
+        outcome_terms=("深基坑支护", "模板工程", "支撑体系", "建筑幕墙", "降水工程", "土方开挖"),
+    ),
+    Scenario(
+        scenario_id="pgo_xw2015_case5_e2_temp_power_plan_delta",
+        question_id="2015::EXAM_XW2015_CASE_5::E2",
+        question="指出现场施工用电组织设计的不妥之处、正确做法和验收参加部门。",
+        correct_answer="项目经理安排土建技术人员编制临电组织设计不妥；应由电气工程技术人员编制，相关部门审核，经具有法人资格企业的技术负责人批准并由现场监理签认后实施；临电使用前由编制部门、审核部门、批准部门和使用部门共同参加验收。",
+        initial_answer="不妥之处是由土建技术人员编制，应由电气工程技术人员编制。",
+        baseline_retest_answer="应由电气工程技术人员编制，并经相关负责人批准后实施。",
+        targeted_retest_answer="项目经理安排土建技术人员编制不妥；应由电气工程技术人员编制，相关部门审核，经具有法人资格企业技术负责人批准并由现场监理签认后实施；临电使用前编制部门、审核部门、批准部门和使用部门共同参加验收。",
+        outcome_terms=("土建技术人员", "电气工程技术人员", "相关部门审核", "企业技术负责人批准", "监理签认", "编制部门", "审核部门", "批准部门", "使用部门"),
     ),
 )
+
+
+def build_preregistration(
+    *,
+    sample_count: int,
+    loops: int,
+    min_loops: int,
+    min_b2_delta_lift: float,
+    min_b2_outcome_miss_reduction_lift: float,
+    max_b2_p95_latency_delta_pct: float = 250.0,
+    max_b2_payload_delta_pct: float = 50.0,
+    max_b3_p95_ms: float = 50.0,
+) -> dict[str, Any]:
+    minimum_loops = int(min_loops or loops or 0)
+    return {
+        "schema_version": "knowql_nexus_l2_preregistration.v1",
+        "experiment": "Nexus/KnowQL/GBrain integrated learning-efficiency A/B",
+        "analysis_unit": "scenario_loop_arm_initial_retest_pair",
+        "population": "qa/operator true-entry /api/v1/ws cohort on test2",
+        "minimum_preregistered_scenarios": int(sample_count or 0),
+        "minimum_preregistered_loops": minimum_loops,
+        "sample_manifest_hash": sample_manifest_hash(),
+        "primary_effect_metric": "b2_outcome_miss_reduction_lift_vs_b1",
+        "secondary_effect_metrics": [
+            "b2_delta_lift_vs_a0",
+            "b2_delta_lift_vs_b1",
+            "b2_pgo_miss_reduction_lift_vs_b1",
+        ],
+        "diagnostic_metrics": [
+            "avg_ttft_ms",
+            "p95_ttft_ms",
+            "p95_result_latency_ms",
+            "streaming_observed_rate",
+            "score_first_observed_rate",
+            "avg_payload_bytes",
+            "p95_payload_bytes",
+            "b2_nba_intervention_applied_count",
+            "B3 p95 latency/payload excluded from learning effect",
+        ],
+        "safety_guardrails": [
+            "canonical_truth_write_count == 0",
+            "official_score_write_count == 0",
+            "unsafe_write_signal_count == 0",
+            "a0_pgo_shadow_present_count == 0",
+            "b1_pgo_shadow_present_count == 0",
+            "b2_pgo_shadow_effective_count == B2 turn_count",
+            "b2_knowql_runtime_consumed_count == B2 turn_count",
+            "b2_g3_preview_readback_count == B2 turn_count",
+            "b2_nba_intervention_applied_count == B2 completed_loops",
+            "row_error_rate == 0",
+            f"b2_p95_latency_delta_pct_vs_b1 <= {float(max_b2_p95_latency_delta_pct)}",
+            f"b2_payload_delta_pct_vs_b1 <= {float(max_b2_payload_delta_pct)}",
+            f"B3 p95 latency <= {float(max_b3_p95_ms)} ms",
+        ],
+        "minimum_effect_thresholds": {
+            "b2_delta_lift_vs_a0": float(min_b2_delta_lift),
+            "b2_outcome_miss_reduction_lift_vs_b1": float(min_b2_outcome_miss_reduction_lift),
+        },
+        "decision_rule": {
+            "go_requires": [
+                "L2_SAFETY_GO",
+                "L2_EFFECT_POSITIVE",
+            ],
+            "no_go_if": [
+                "any safety guardrail fails",
+                "any learning arm has completed_loops < minimum_preregistered_loops",
+                "B2 PGO/KnowQL/G3 readback is missing",
+                "B3 is used as learning-effect evidence",
+            ],
+        },
+        "truth_promotion_rule": (
+            "same-point B2 initial weakness must be resolved on retest before stable-claim candidate; "
+            "canonical_truth_written remains false"
+        ),
+        "compiler_feedback_rule": (
+            "low-confidence, high-dispute, teacher-correction, and common-miss signals become work orders only"
+        ),
+    }
+
+
+def scenario_manifest(*, include_answers: bool = False) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for scenario in DEFAULT_SCENARIOS:
+        row: dict[str, Any] = {
+            "scenario_id": scenario.scenario_id,
+            "question_id": scenario.question_id,
+            "outcome_term_count": len(scenario.outcome_terms),
+        }
+        if include_answers:
+            row.update({
+                "question": scenario.question,
+                "correct_answer": scenario.correct_answer,
+                "initial_answer": scenario.initial_answer,
+                "baseline_retest_answer": scenario.baseline_retest_answer,
+                "targeted_retest_answer": scenario.targeted_retest_answer,
+                "outcome_terms": list(scenario.outcome_terms),
+            })
+        rows.append(row)
+    return rows
+
+
+def sample_manifest_hash() -> str:
+    payload = json.dumps(scenario_manifest(include_answers=True), ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def independent_outcome_score(scenario: Scenario, answer: str) -> dict[str, Any]:
+    normalized_answer = _normalize_for_outcome(answer)
+    terms = [term for term in scenario.outcome_terms if str(term or "").strip()]
+    hit_count = sum(1 for term in terms if _normalize_for_outcome(term) in normalized_answer)
+    total = len(terms)
+    miss_count = max(0, total - hit_count)
+    return {
+        "outcome_authority": "scripted_preregistered_gold_terms",
+        "outcome_term_count": total,
+        "outcome_hit_count": hit_count,
+        "outcome_miss_count": miss_count,
+        "outcome_score_ratio": round(hit_count / total, 6) if total else None,
+    }
+
+
+def _normalize_for_outcome(value: str) -> str:
+    return re.sub(r"\s+", "", str(value or "")).replace("->", "→")
 
 
 def build_learning_schedule(*, loops: int, order_mode: str = "alternating", seed: int | None = None) -> list[RunItem]:
@@ -156,11 +323,15 @@ def summarize_l2_rows(
     *,
     b3_rows: list[dict[str, Any]],
     min_loops: int = 1,
-    min_b1_delta_lift: float = 0.05,
-    min_b1_pgo_miss_reduction_lift: float = 1.0,
+    min_b2_delta_lift: float = 0.05,
+    min_b2_outcome_miss_reduction_lift: float = 1.0,
+    max_b2_p95_latency_delta_pct: float = 250.0,
+    max_b2_payload_delta_pct: float = 50.0,
+    max_b3_p95_ms: float = 50.0,
 ) -> dict[str, Any]:
     arms = {arm: _learning_arm_stats([row for row in rows if row.get("arm") == arm]) for arm in LEARNING_ARMS}
     safety = _safety_summary(rows)
+    b3_stats = _b3_stats(b3_rows)
     completed = {arm: arms[arm]["completed_loops"] for arm in LEARNING_ARMS}
     a0_delta = float(arms["A0"].get("avg_retest_delta") or 0.0)
     b1_delta = float(arms["B1"].get("avg_retest_delta") or 0.0)
@@ -178,6 +349,19 @@ def summarize_l2_rows(
         float(arms["B2"].get("avg_pgo_miss_reduction") or 0.0)
         - float(arms["B1"].get("avg_pgo_miss_reduction") or 0.0),
         6,
+    )
+    b2_outcome_miss_lift_vs_b1 = round(
+        float(arms["B2"].get("avg_outcome_miss_reduction") or 0.0)
+        - float(arms["B1"].get("avg_outcome_miss_reduction") or 0.0),
+        6,
+    )
+    b2_p95_latency_delta_pct_vs_b1 = _pct_delta(
+        arms["B2"].get("p95_latency_ms"),
+        arms["B1"].get("p95_latency_ms"),
+    )
+    b2_payload_delta_pct_vs_b1 = _pct_delta(
+        arms["B2"].get("avg_payload_bytes"),
+        arms["B1"].get("avg_payload_bytes"),
     )
 
     reasons: list[str] = []
@@ -203,13 +387,25 @@ def summarize_l2_rows(
             reasons.append(f"{arm.lower()}_insufficient_loop_count")
         if int(arms[arm].get("ok_count") or 0) <= 0:
             reasons.append(f"{arm.lower()}_success_rate_zero")
+        if int(arms[arm].get("error_count") or 0) > 0:
+            reasons.append(f"{arm.lower()}_row_errors_present")
+    if completed["B2"] and safety["b2_nba_intervention_applied_count"] < completed["B2"]:
+        reasons.append("b2_nba_intervention_missing")
+    if b3_rows and int(b3_stats.get("ok_count") or 0) < int(b3_stats.get("count") or 0):
+        reasons.append("b3_microbenchmark_failures")
+    if b3_rows and float(b3_stats.get("p95_latency_ms") or 0.0) > float(max_b3_p95_ms):
+        reasons.append("b3_p95_latency_exceeded")
+    if b2_p95_latency_delta_pct_vs_b1 > float(max_b2_p95_latency_delta_pct):
+        reasons.append("b2_p95_latency_delta_exceeded")
+    if b2_payload_delta_pct_vs_b1 > float(max_b2_payload_delta_pct):
+        reasons.append("b2_payload_delta_exceeded")
 
     safety_status = "L2_SAFETY_NO_GO" if reasons else "L2_SAFETY_GO"
     if safety_status != "L2_SAFETY_GO":
         effect_status = "L2_EFFECT_NOT_EVALUABLE"
     elif (
-        b2_lift_vs_a0 >= float(min_b1_delta_lift)
-        or b2_pgo_miss_lift_vs_b1 >= float(min_b1_pgo_miss_reduction_lift)
+        b2_outcome_miss_lift_vs_b1 >= float(min_b2_outcome_miss_reduction_lift)
+        and b2_lift_vs_b1 >= 0.0
     ):
         effect_status = "L2_EFFECT_POSITIVE"
     else:
@@ -226,8 +422,14 @@ def summarize_l2_rows(
             "b2_delta_lift_vs_a0": b2_lift_vs_a0,
             "b2_delta_lift_vs_b1": b2_lift_vs_b1,
             "b2_pgo_miss_reduction_lift_vs_b1": b2_pgo_miss_lift_vs_b1,
-            "min_b1_delta_lift": float(min_b1_delta_lift),
-            "min_b1_pgo_miss_reduction_lift": float(min_b1_pgo_miss_reduction_lift),
+            "b2_outcome_miss_reduction_lift_vs_b1": b2_outcome_miss_lift_vs_b1,
+            "b2_p95_latency_delta_pct_vs_b1": b2_p95_latency_delta_pct_vs_b1,
+            "b2_payload_delta_pct_vs_b1": b2_payload_delta_pct_vs_b1,
+            "min_b2_delta_lift": float(min_b2_delta_lift),
+            "min_b2_outcome_miss_reduction_lift": float(min_b2_outcome_miss_reduction_lift),
+            "max_b2_p95_latency_delta_pct": float(max_b2_p95_latency_delta_pct),
+            "max_b2_payload_delta_pct": float(max_b2_payload_delta_pct),
+            "max_b3_p95_ms": float(max_b3_p95_ms),
             "score_first_proxy_field": "result.metadata.grading_shape.score_first",
             "b2_design": {
                 "server_nba_freeze_supported": False,
@@ -236,7 +438,7 @@ def summarize_l2_rows(
             },
         },
         "safety": safety,
-        "b3_microbenchmark": _b3_stats(b3_rows),
+        "b3_microbenchmark": b3_stats,
         "learner_truth_promotion_preview": build_learner_truth_promotion_preview(rows),
         "compiler_feedback_loop": build_compiler_feedback_loop(rows),
         "decision": {
@@ -383,13 +585,16 @@ async def run_l2_learning_ab(
     timeout_seconds: float,
     out_dir: Path,
     min_loops: int,
-    min_b1_delta_lift: float,
-    min_b1_pgo_miss_reduction_lift: float,
     order_mode: str,
     seed: int | None,
     b3_iterations: int,
     connection_mode: str,
     inter_turn_delay_seconds: float,
+    min_b2_delta_lift: float,
+    min_b2_outcome_miss_reduction_lift: float,
+    max_b2_p95_latency_delta_pct: float,
+    max_b2_payload_delta_pct: float,
+    max_b3_p95_ms: float,
 ) -> dict[str, Any]:
     run_id = f"knowql_nexus_l2_learning_ab_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
     ws_url = build_ws_url(api_base_url)
@@ -457,8 +662,21 @@ async def run_l2_learning_ab(
         rows,
         b3_rows=b3_rows,
         min_loops=min_loops,
-        min_b1_delta_lift=min_b1_delta_lift,
-        min_b1_pgo_miss_reduction_lift=min_b1_pgo_miss_reduction_lift,
+        min_b2_delta_lift=min_b2_delta_lift,
+        min_b2_outcome_miss_reduction_lift=min_b2_outcome_miss_reduction_lift,
+        max_b2_p95_latency_delta_pct=max_b2_p95_latency_delta_pct,
+        max_b2_payload_delta_pct=max_b2_payload_delta_pct,
+        max_b3_p95_ms=max_b3_p95_ms,
+    )
+    preregistration = build_preregistration(
+        sample_count=len(DEFAULT_SCENARIOS),
+        loops=loops,
+        min_loops=min_loops,
+        min_b2_delta_lift=min_b2_delta_lift,
+        min_b2_outcome_miss_reduction_lift=min_b2_outcome_miss_reduction_lift,
+        max_b2_p95_latency_delta_pct=max_b2_p95_latency_delta_pct,
+        max_b2_payload_delta_pct=max_b2_payload_delta_pct,
+        max_b3_p95_ms=max_b3_p95_ms,
     )
     manifest = {
         "run_id": run_id,
@@ -473,6 +691,9 @@ async def run_l2_learning_ab(
         "connection_mode": normalized_connection_mode,
         "inter_turn_delay_seconds": delay_seconds,
         "sample_ids": sorted({scenario.scenario_id for scenario in DEFAULT_SCENARIOS}),
+        "sample_manifest_hash": sample_manifest_hash(),
+        "sample_manifest_public": scenario_manifest(include_answers=False),
+        "preregistration": preregistration,
         "arms": {
             **{arm: dict(definition) for arm, definition in ARM_DEFINITIONS.items()},
             "B3": {
@@ -620,6 +841,7 @@ async def _run_one_ws_turn(
         turn_phase=turn_phase,
         scenario=scenario,
         nba_intervention_applied=nba_intervention_applied,
+        submitted_answer=str(frame.get("content") or ""),
     )
 
 
@@ -659,6 +881,7 @@ async def _run_one_ws_turn_on_connection(
         turn_phase=turn_phase,
         scenario=scenario,
         nba_intervention_applied=nba_intervention_applied,
+        submitted_answer=str(frame.get("content") or ""),
     )
 
 
@@ -689,6 +912,11 @@ def _row_from_events(
         turn_phase=turn_phase,
         scenario=scenario,
         nba_intervention_applied=nba_intervention_applied,
+        submitted_answer=_scenario_answer_for_phase(
+            scenario,
+            phase=turn_phase,
+            nba_intervention_applied=nba_intervention_applied,
+        ),
     )
 
 
@@ -702,6 +930,7 @@ def _row_from_observed_events(
     turn_phase: str,
     scenario: Scenario,
     nba_intervention_applied: bool,
+    submitted_answer: str | None = None,
 ) -> dict[str, Any]:
     result_event = next((event for event in reversed(events) if event.get("type") == "result"), {})
     terminal_event = next((event for event in reversed(events) if event.get("type") in {"done", "error"}), {})
@@ -736,6 +965,16 @@ def _row_from_observed_events(
     )
     payload = _result_payload(result_event)
     metadata = payload if isinstance(payload, dict) else {}
+    scored_answer = (
+        str(submitted_answer)
+        if submitted_answer is not None
+        else _scenario_answer_for_phase(
+            scenario,
+            phase=turn_phase,
+            nba_intervention_applied=nba_intervention_applied,
+        )
+    )
+    outcome = independent_outcome_score(scenario, scored_answer)
     sealed_block_status = (
         "observed"
         if any(str(event.get("type") or "").strip() in {"sealed_block", "block_sealed"} for event in events)
@@ -767,7 +1006,19 @@ def _row_from_observed_events(
         "score_ratio": _score_ratio_from_metadata(metadata),
         "pgo_miss_count": _pgo_miss_count(metadata),
         "nba_intervention_applied": bool(nba_intervention_applied),
+        **outcome,
     }
+
+
+def _scenario_answer_for_phase(
+    scenario: Scenario,
+    *,
+    phase: str,
+    nba_intervention_applied: bool,
+) -> str:
+    if str(phase or "").strip().lower() == "initial":
+        return scenario.initial_answer
+    return scenario.targeted_retest_answer if nba_intervention_applied else scenario.baseline_retest_answer
 
 
 def _learning_arm_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -780,7 +1031,9 @@ def _learning_arm_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
     sealed_observed_count = sum(1 for row in rows if row.get("sealed_block_status") == "observed")
     sealed_not_exercised_count = sum(1 for row in rows if row.get("sealed_block_status") == "not_exercised")
     score_first_count = sum(1 for row in rows if row.get("score_first_observed") is True)
-    deltas = _retest_deltas(rows, metric_key="score_ratio")
+    deltas = _retest_deltas(rows, metric_key="outcome_score_ratio")
+    server_score_deltas = _retest_deltas(rows, metric_key="score_ratio")
+    outcome_miss_deltas = _retest_deltas(rows, metric_key="outcome_miss_count", invert=True)
     pgo_miss_deltas = _retest_deltas(rows, metric_key="pgo_miss_count", invert=True)
     return {
         "turn_count": len(rows),
@@ -789,6 +1042,8 @@ def _learning_arm_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "success_rate": round(ok_count / len(rows), 6) if rows else 0.0,
         "completed_loops": len(deltas),
         "avg_retest_delta": round(statistics.fmean(deltas), 6) if deltas else 0.0,
+        "avg_server_score_retest_delta": round(statistics.fmean(server_score_deltas), 6) if server_score_deltas else 0.0,
+        "avg_outcome_miss_reduction": round(statistics.fmean(outcome_miss_deltas), 6) if outcome_miss_deltas else 0.0,
         "avg_pgo_miss_reduction": round(statistics.fmean(pgo_miss_deltas), 6) if pgo_miss_deltas else 0.0,
         "avg_ttft_ms": round(statistics.fmean(ttfts), 3) if ttfts else 0.0,
         "p95_ttft_ms": _percentile(ttfts, 0.95),
@@ -1008,6 +1263,14 @@ def _percentile(values: list[float] | list[int], percentile: float) -> float:
     return round(ordered[index], 3)
 
 
+def _pct_delta(value: Any, baseline: Any) -> float:
+    current = _safe_float(value)
+    base = _safe_float(baseline)
+    if base <= 0:
+        return 0.0
+    return round(((current - base) / base) * 100.0, 6)
+
+
 def _unsafe_write_signal_count(value: Any) -> int:
     count = 0
     if isinstance(value, dict):
@@ -1135,6 +1398,7 @@ def _write_markdown(path: Path, *, manifest: dict[str, Any], summary: dict[str, 
         f"- connection mode: `{manifest['connection_mode']}`",
         f"- B2 delta lift vs A0: `{comparison['b2_delta_lift_vs_a0']}`",
         f"- B2 delta lift vs B1: `{comparison['b2_delta_lift_vs_b1']}`",
+        f"- B2 outcome miss reduction lift vs B1: `{comparison['b2_outcome_miss_reduction_lift_vs_b1']}`",
         f"- B2 PGO miss reduction lift vs B1: `{comparison['b2_pgo_miss_reduction_lift_vs_b1']}`",
         f"- server NBA freeze supported: `{comparison['b2_design']['server_nba_freeze_supported']}`",
         f"- canonical truth writes: `{summary['safety']['canonical_truth_write_count']}`",
@@ -1151,6 +1415,20 @@ def _write_markdown(path: Path, *, manifest: dict[str, Any], summary: dict[str, 
     ]
     reasons = list(decision.get("reasons") or [])
     lines.extend([f"- `{reason}`" for reason in reasons] or ["- none"])
+    prereg = manifest.get("preregistration") if isinstance(manifest.get("preregistration"), dict) else {}
+    if prereg:
+        lines.extend([
+            "",
+            "## Pre-registration",
+            "",
+            f"- primary effect metric: `{prereg.get('primary_effect_metric')}`",
+            f"- secondary effect metrics: `{', '.join(list(prereg.get('secondary_effect_metrics') or []))}`",
+            f"- minimum preregistered scenarios: `{prereg.get('minimum_preregistered_scenarios')}`",
+            f"- minimum preregistered loops: `{prereg.get('minimum_preregistered_loops')}`",
+            f"- minimum effect thresholds: `{json.dumps(prereg.get('minimum_effect_thresholds') or {}, ensure_ascii=False, sort_keys=True)}`",
+            f"- go requires: `{', '.join(list((prereg.get('decision_rule') or {}).get('go_requires') or []))}`",
+            f"- safety guardrails: `{'; '.join(list(prereg.get('safety_guardrails') or []))}`",
+        ])
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -1189,13 +1467,16 @@ async def _main_async(args: argparse.Namespace) -> int:
         timeout_seconds=args.timeout_seconds,
         out_dir=out_dir,
         min_loops=int(args.min_loops or args.loops),
-        min_b1_delta_lift=args.min_b1_delta_lift,
-        min_b1_pgo_miss_reduction_lift=args.min_b1_pgo_miss_reduction_lift,
         order_mode=args.order_mode,
         seed=args.seed,
         b3_iterations=args.b3_iterations,
         connection_mode=args.connection_mode,
         inter_turn_delay_seconds=args.inter_turn_delay_seconds,
+        min_b2_delta_lift=args.min_b2_delta_lift,
+        min_b2_outcome_miss_reduction_lift=args.min_b2_outcome_miss_reduction_lift,
+        max_b2_p95_latency_delta_pct=args.max_b2_p95_latency_delta_pct,
+        max_b2_payload_delta_pct=args.max_b2_payload_delta_pct,
+        max_b3_p95_ms=args.max_b3_p95_ms,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["summary"]["decision"]["status"] == "L2_LEARNING_AB_GO" else 1
@@ -1217,8 +1498,17 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--connection-mode", choices=("single", "per-turn"), default="per-turn")
     parser.add_argument("--inter-turn-delay-seconds", type=float, default=8.0)
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
-    parser.add_argument("--min-b1-delta-lift", type=float, default=0.05)
-    parser.add_argument("--min-b1-pgo-miss-reduction-lift", type=float, default=1.0)
+    parser.add_argument("--min-b2-delta-lift", "--min-b1-delta-lift", dest="min_b2_delta_lift", type=float, default=0.05)
+    parser.add_argument(
+        "--min-b2-outcome-miss-reduction-lift",
+        "--min-b1-pgo-miss-reduction-lift",
+        dest="min_b2_outcome_miss_reduction_lift",
+        type=float,
+        default=1.0,
+    )
+    parser.add_argument("--max-b2-p95-latency-delta-pct", type=float, default=250.0)
+    parser.add_argument("--max-b2-payload-delta-pct", type=float, default=50.0)
+    parser.add_argument("--max-b3-p95-ms", type=float, default=50.0)
     parser.add_argument("--b3-iterations", type=int, default=30)
     parser.add_argument("--out-dir", default="")
     return parser
