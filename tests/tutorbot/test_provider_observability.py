@@ -501,7 +501,7 @@ def test_tutorbot_provider_traffic_controller_uses_runtime_llm_config(monkeypatc
 
     cfg = LLMConfig(
         model="deepseek-v4-flash",
-        api_key="deep-key",
+        api_key="deep-key",  # pragma: allowlist secret
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         binding="dashscope",
         provider_name="dashscope",

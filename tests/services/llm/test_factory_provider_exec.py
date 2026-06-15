@@ -76,7 +76,7 @@ async def test_factory_complete_applies_provider_traffic_control(monkeypatch) ->
 async def test_factory_complete_explicit_provider_uses_runtime_traffic_limits(monkeypatch) -> None:
     cfg = LLMConfig(
         model="deepseek-v4-flash",
-        api_key="runtime-key",
+        api_key="runtime-key",  # pragma: allowlist secret
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         binding="dashscope",
         provider_name="dashscope",

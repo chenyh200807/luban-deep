@@ -81,7 +81,7 @@ def test_three_arm_report_uses_requested_arms_and_semantic_metric() -> None:
     report = run_three_arm_eval_for_cases(
         cases=[_tiny_case()],
         complete_fn=_fake_complete,
-        api_key="test-key",
+        api_key="test-key",  # pragma: allowlist secret
         model="fake-model",
         concurrency=1,
     )
