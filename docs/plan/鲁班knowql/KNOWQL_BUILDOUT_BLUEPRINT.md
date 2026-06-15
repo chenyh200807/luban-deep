@@ -228,3 +228,43 @@ Old smoke decision:`L2_LEARNING_AB_GO` at smoke scope, because safety passed and
 2. 下一阶段若要走真实 learner cohort A/B,必须重新 prereg:真实学生或授权 QA cohort、随机化、同构复测题、独立 outcome gold、no-peeking 分析、最小样本量、stop condition、隐私与写权边界。
 3. 若要升级 learner truth promotion,必须证明同一采分点错因经过复测验证后稳定改善;promotion 仍走单独 canonical learner truth 授权包。
 4. compiler feedback loop 可消费本次 common-miss work orders,但只能产出下一版 artifact candidate/review work order,不得自动 publish。
+
+## 13. L3 real/cohort learning A/B(2026-06-15,test2 authorized QA/operator cohort GO)
+
+L3 的目标是把 L2 的同一 runner 循环升级成 cohort-shaped evidence:每个 subject 都是独立注册/登录的 QA/operator learner,经真实 `/api/v1/ws` 做 initial + retest。它仍不是生产真实学生实验,因为 cohort source、隐私授权、样本量和 canonical write 权限都没有升级。
+
+- runtime deploy SHA:`16dbb13dcc2be1ed5ac40feec7682283fd098620`
+- runner:`scripts/run_luban_knowql_nexus_l3_cohort_ab.py`
+- tests:`tests/scripts/test_luban_knowql_nexus_l3_cohort_ab.py`
+- artifact:`artifacts/luban_grading_artifacts/knowql_nexus_l3_cohort_ab_20260615T140840Z`
+- prereg population:`authorized_qa_operator_test2_cohort`
+
+四臂定义沿用 L2,但分析单位改成 `distinct_learner_subject_initial_retest_pair`:
+
+| Arm | Subject count | 定义 | 结果用途 |
+|---|---:|---|---|
+| A0 | 5 | 原 `/api/v1/ws` baseline | 学习效果 baseline |
+| B1 | 5 | Nexus V1 shape without KnowQL/PGO/GBrain | shape isolation |
+| B2 | 5 | Nexus V1 + KnowQL/PGO + Grading-to-Brain preview + NBA targeted retest | 一体化闭环主实验 |
+| B3 | n/a | direct `retrieve_rubric`,30 iterations | latency/payload guardrail only |
+
+L3 final run:
+
+| Metric | A0 | B1 | B2 | B3 |
+|---|---:|---:|---:|---:|
+| subjects | 5 | 5 | 5 | n/a |
+| WS turns ok | 10/10 | 10/10 | 10/10 | n/a |
+| distinct learners | 5 | 5 | 5 | n/a |
+| B2 PGO shadow effective | n/a | 0/10 | 10/10 | n/a |
+| B2 KnowQL runtime consumed | n/a | 0/10 | 10/10 | n/a |
+| B2 PGO-G3 preview readback | n/a | 0/10 | 10/10 | n/a |
+| NBA intervention applied | n/a | 0/5 | 5/5 | n/a |
+| primary lift vs B1 | n/a | baseline | `+5.0` | n/a |
+| p95 latency vs B1 | n/a | baseline | `-44.902579%` | n/a |
+| payload vs B1 | n/a | baseline | `+9.982498%` | n/a |
+| B3 p95 query latency | n/a | n/a | n/a | `11.378 ms` |
+| canonical / official / unsafe writes | 0 | 0 | 0 | 0 |
+
+Root-cause closure before GO:the first L3 full cohort run had B2 PGO/KnowQL/G3 readback 0/10 because JWT auth exposed only canonical UUID while cohort gate needed server-trusted `auth_username`/external-auth identity. The fix is not client identity injection; it is a side-effect-free server-side projection in `MemberConsoleService.get_auth_identity_projection()` from canonical UUID to existing external-auth member (`auth_<uuid-prefix>`, `external_auth_user_id`, or alias). The L3 runner now also records non-secret `auth_user_id/auth_mode/auth_attempt` per row.
+
+**Decision**:`L3_COHORT_AB_GO` for authorized QA/operator cohort evidence only. It proves the Nexus/KnowQL/GBrain/NBA loop can improve same-cohort retest outcomes through the real test2 `/api/v1/ws` entry with write safety intact. It does **not** authorize real-student efficacy claims, broad production default, official scoring, published registry, or canonical learner truth promotion.

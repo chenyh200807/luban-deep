@@ -16,6 +16,7 @@
 | Grading shape ground gate hardening | `shadow-verified` | `ground_gate_contract_for_scoring`; PGO supply now carries `authority_source/span_hash`; `retrieve_rubric` fail-opens on ungrounded records; `tests/services/construction_grading` = 761 passed / 16 skipped; runtime supply verifier ok | Ungrounded points may be explanation-only; they cannot award/deduct score or enter PGO GBrain writeback. |
 | Score-first grading shape | `landed-local` | `deep_question.grading_shape.score_first`; `tests/core/test_deep_question_case_rubric_v1.py`; L2 runner observes `score_first_observed_rate` | Current WS still emits one final `result`; sealed score block event is not yet a public stream event. |
 | L2 true-entry three-arm runner v3 prereg | `live-readback` | `scripts/run_luban_knowql_nexus_l2_learning_ab.py`; `tests/scripts/test_luban_knowql_nexus_l2_learning_ab.py`; formal live artifact `knowql_nexus_l2_learning_ab_20260615T125634Z` | GO for qa/operator scripted same-session learning-efficiency shadow evidence only: 5 scenarios, loops 10, B2 PGO/KnowQL/G3 20/20, NBA 10/10, canonical/official/unsafe writes 0, primary effect `b2_outcome_miss_reduction_lift_vs_b1=5.0`. No production default, official score, published registry, or canonical learner truth authorization. |
+| L3 real/cohort learning A/B | `live-readback` | `scripts/run_luban_knowql_nexus_l3_cohort_ab.py`; `tests/scripts/test_luban_knowql_nexus_l3_cohort_ab.py`; test2 artifact `knowql_nexus_l3_cohort_ab_20260615T140840Z` after deploy SHA `16dbb13dcc2be1ed5ac40feec7682283fd098620` | GO for authorized QA/operator cohort only: A0/B1/B2 each 5 distinct learners, 30 WS rows, B2 PGO/KnowQL/G3 10/10, NBA 5/5, primary lift `5.0`, B2 p95 latency -44.902579% vs B1, payload +9.982498%; canonical/official/unsafe writes 0. No real-student or production learner claim. |
 | Learner truth promotion preview | `landed-local` | `build_learner_truth_promotion_preview(rows)` | Same-point weakness must improve on retest before a stable-claim candidate appears; `canonical_truth_written=false`. |
 | Compiler feedback loop preview | `landed-local` | `build_compiler_feedback_loop(rows)` | High-dispute, low-confidence, teacher correction, common-miss signals become artifact work orders only; no artifact publish or production authorization. |
 
@@ -33,7 +34,7 @@
 
 - `production-authorized`: none for broad default, official score, published registry, or canonical learner truth.
 - Current authorized surface: qa/operator shadow readback on test2 with `LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED=true` and request/config opt-in.
-- Stop condition before any broader rollout: repeat L1 on a larger sample set and complete L2 only after #21 retest delta exists.
+- Stop condition before any broader rollout: L3 is positive only for authorized QA/operator cohort. Real production learner A/B still needs separate consent/cohort source, privacy boundary, sample-size plan, and canonical write authorization package before any broad default or learner-truth promotion.
 
 ## 2026-06-15 L2 Runner Ledger
 
@@ -65,3 +66,26 @@ Runner output contract:
 | `knowql_nexus_l2_learning_ab_20260615T125634Z` | **GO / safety GO / effect positive** | Formal prereg run: 60 WS learning rows + 30 B3 rows; completed loops A0/B1/B2=10/10/10; B2 PGO/KnowQL/G3 readback 20/20; NBA 10/10; canonical/official/unsafe writes 0; primary effect `b2_outcome_miss_reduction_lift_vs_b1=5.0`; B2 retest delta lift vs B1/A0 `+0.746112`; B2 p95 latency +49.752505% vs B1, payload +10.001534%; B3 p95 11.117 ms. |
 
 Interpretation: this proves the new B2 integrated Nexus/KnowQL/GBrain/NBA loop can be observed through the real test2 entry with write safety intact and beats A0/B1 under the preregistered scripted same-session retest design. It still does not prove product-level learning efficiency for uncontrolled real learners; the next stage is a separately preregistered real learner/authorized QA cohort A/B, or compiler/NBA refinement using the work-order evidence.
+
+## 2026-06-15 L3 Real/Cohort Runner Ledger
+
+L3 upgrades L2 from repeated scripted loops to distinct learner subjects. It still uses authorized QA/operator identities on test2, so the result is cohort-shaped live evidence, not a production real-student claim.
+
+| Arm | Subjects | Runtime | Learning-effect eligibility |
+|---|---:|---|---|
+| A0 | 5 | Original `/api/v1/ws` baseline | Yes |
+| B1 | 5 | Nexus V1 shape without KnowQL/PGO/GBrain | Yes, shape-isolation ablation |
+| B2 | 5 | Nexus V1 + KnowQL/PGO + Grading-to-Brain preview + NBA targeted retest | Yes, integrated-loop main arm |
+| B3 | n/a | Direct `retrieve_rubric` microbenchmark, 30 iterations | No |
+
+### 2026-06-15 L3 Runs
+
+| Artifact | Result | Key finding |
+|---|---|---|
+| `knowql_nexus_l3_cohort_ab_20260615T132850Z` | NO-GO / not evaluable | Auth/login failures and one WS 502; preserved as negative true-entry evidence. |
+| `knowql_nexus_l3_cohort_ab_20260615T133511Z` | NO-GO / B2 cohort gate missing | 15 subjects registered, A0/B1/B2 mostly succeeded, but B2 PGO/KnowQL/G3/NBA readback was 0/10 because server-authenticated UUID was not being projected to the external-auth `auth_*` member/username cohort identity. |
+| `knowql_nexus_l3_cohort_ab_20260615T140840Z` | **GO / safety GO / effect positive** | Deployed SHA `16dbb13dcc2be1ed5ac40feec7682283fd098620`; A0/B1/B2 subjects 5/5/5, distinct learners 15/15, 30 WS rows; B2 PGO shadow 10/10, KnowQL runtime consumed 10/10, PGO-G3 preview 10/10, NBA 5/5; canonical/official/unsafe writes 0; primary lift `b2_real_cohort_outcome_miss_reduction_lift_vs_b1=5.0`; B2 p95 latency -44.902579% vs B1, payload +9.982498%; B3 p95 11.378 ms. |
+
+L3 implementation note: `MemberConsoleService.get_auth_identity_projection()` is now a side-effect-free server-side projection from authenticated canonical UUID to an existing external-auth member (`auth_<uuid-prefix>`, `external_auth_user_id`, or alias). The runner records non-secret `auth_user_id/auth_mode/auth_attempt` per row so future cohort-gate failures can be diagnosed without client-supplied identity authority.
+
+Interpretation: L3 proves the integrated Nexus/KnowQL/GBrain/NBA loop can improve same-cohort retest outcomes through the real test2 `/api/v1/ws` entry while preserving write safety. It does **not** authorize real-student claims, broad production default, official scoring, published registry, or canonical learner truth.
