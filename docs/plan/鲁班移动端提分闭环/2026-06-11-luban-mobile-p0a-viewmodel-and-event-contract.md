@@ -4,7 +4,7 @@
 > Date: 2026-06-11
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 
-> v1.3 对齐（2026-06-15）：父 PRD 收口为「每日提分留存闭环」。本契约据此补两点：① 批改 / 轻练结果的 `point_matches` 增加 `textbook_locator`（教材章节定位），承载「选错即诊断：盲点 + 教材第几章」这一差异化；② 行为事件必须能算出 **D1/D7 回访留存**（P0A 主指标），`mobile_p0a_home_viewed` 携带 `days_since_first_use`。次日复测开环复用 `today_main_task.task_type=retest`，无需第二套 authority。
+> v1.3 对齐（2026-06-15）：父 PRD 收口为「每日提分留存闭环」。本契约据此补两点：① 批改 / 轻练结果的 `point_matches` 增加 `syllabus_locator`（教材章节定位），承载「选错即诊断：盲点 + 教材第几章」这一差异化；② 行为事件必须能算出 **D1/D7 回访留存**（P0A 主指标），`mobile_p0a_home_viewed` 携带 `days_since_first_use`。次日复测开环复用 `today_main_task.task_type=retest`，无需第二套 authority。命名收权：`syllabus_locator`（原 `textbook_locator` 撞 `citations/normalizer.py` 已改名）、`days_since_first_use`、`mobile_p0a_daily_loop_completed` 均为新 schema 标识符，**当前未登记**，登记义务统一见 [深母题资产 schema v2](2026-06-16-luban-deep-archetype-asset-schema-v2.md) §11 Registration Ledger；落代码前须过 `scripts/check_schema_registry.py`。
 
 ## 0. Purpose
 
@@ -200,7 +200,7 @@ point_matches:
     outcome: "hit | partial | miss | not_evaluated | high_risk_review"
     evidence_span: "string"
     diagnosis: "string"
-    textbook_locator:                 # 选错即诊断：盲点对应的教材定位，来自 knowledge_node authority，前端不得自拼
+    syllabus_locator:                 # 选错即诊断：盲点对应的教材定位，来自 knowledge_node authority，前端不得自拼
       chapter: "string"
       section: "string"
       node_code: "string"

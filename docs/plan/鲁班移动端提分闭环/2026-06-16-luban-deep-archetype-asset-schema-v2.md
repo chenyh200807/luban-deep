@@ -1,6 +1,7 @@
-# 深母题资产 Schema v2（Deep Archetype Asset Schema）
+# 深母题资产 Schema v2（Deep Case-Family Asset Schema）
 
-> Status: Proposed / Asset STRUCTURE authority v2（与生产流程 authority 分工）
+> Status: Proposed — **未登记 / UNREGISTERED**。实现前必须按 §11 Registration Ledger 逐项登记并过 `scripts/check_schema_registry.py`；在此之前不得落代码、不得被 runtime 消费。
+> Asset STRUCTURE authority v2（与 `case-family-asset-production-plan` 生产流程 authority 分工）
 > Date: 2026-06-16
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)
 > 增补对象: [2026-06-11-luban-mobile-case-family-asset-production-plan.md](2026-06-11-luban-mobile-case-family-asset-production-plan.md)
@@ -15,6 +16,18 @@
 - 不是新 runtime。它编译进既有 `CompiledContextPack` / RichLeafArtifact，由既有 `/api/v1/ws` 与 read model 消费。
 
 **一句话定位**：把"专家穿过题目表皮看到考点本质和出题人逻辑"的那种**穿透力**，编译成结构化、可生成、可诊断、可教学、可跨科目复用的资产。
+
+## 0.1 命名收权与 register-before-use 自查（2026-06-16）
+
+落 schema 前先做了 register-before-use 自查（grep 既有 contract/code 注册表），发现并修正 3 处命名/概念冲突，避免靠 drift 长出第二权威（AGENTS §5.7 / `contracts/schema_registry.yaml`）：
+
+| 原名（撞） | 撞了什么 | 收权后 |
+|---|---|---|
+| `archetype`（母题对象） | ① 母题概念已叫 `case_family`（asset-plan）；② `archetype` 在 assessment 模块已指"学员人格画像" | 统一用 `case_family`；本文 L1–L7 是 `case_family` 对象的**深层结构字段**，附加在 asset-plan §3 基础字段之上（**同一对象，非第二套**） |
+| `scoring_authority`（判分接口字段） | 判分域已有 `official_scoring_authority` 门语义 | 改为 `scoring_mode`（判分接口类型：case_rubric/mcq_key/essay_rubric） |
+| `textbook_locator`（viewmodel 字段，见姊妹文档） | 已存在于 `citations/normalizer.py` | 改为 `syllabus_locator` |
+
+**未登记声明**：本文新引入的所有 schema 标识符（`case_family` 深层字段、各 enum 受控词表、`syllabus_locator` / `days_since_first_use` / `mobile_p0a_daily_loop_completed`）**当前均未登记**，逐项见 §11。按 `schema_registry.yaml` 的 scope_rule，它们都属 cross_consumer / persisted / named_field_binding，**必须登记后才能被代码消费**；在此之前本文只是 Proposed 设计。文件名 slug 含 `archetype` 仅为描述性，canonical 对象名是 `case_family`（未改文件名以免破坏 INDEX / asset-plan 链接）。
 
 ## 1. 设计哲学：不变量 / 表皮分离
 
@@ -46,10 +59,12 @@
 
 ## 3. Schema（分层模型）
 
+> 本节定义 `case_family` 对象的**深层结构字段**（L1–L7）。它与 `case-family-asset-production-plan.md` §3 的 `case_family` 基础/生产字段（id/name/scoring_points/mistake_tags/question_bindings/training_tasks…）**同属一个 `case_family` schema**，不是第二个对象；登记时按"基础 + 深层"字段并集登记为同一 schema（见 §11）。
+
 ```yaml
-archetype:                          # 一个母题
+case_family:                          # 一个母题
   # ---- L0 身份与溯源 ----
-  id: str                           # 如 ARCH-F16-WATERPROOF-LAYERING
+  id: str                           # 如 F16
   name: str
   subject: str                      # 科目（如 一建建筑实务）；跨科目时只此层换
   taxonomy_ref:                     # 钉扎 canonical taxonomy
@@ -133,7 +148,7 @@ archetype:                          # 一个母题
 
   # ---- L7 判分绑定（复用既有 authority，接口不复制）----
   scoring_binding:
-    scoring_authority:
+    scoring_mode:
       kind: enum                    # case_rubric | mcq_key | essay_rubric  ← 跨科目的"判分接口"抽象
       grading_artifact_id: str      # 案例题：Q18-1A434000::qga_v0_20260604（自含版本）
       point_ids: [str]
@@ -154,12 +169,12 @@ archetype:                          # 一个母题
 |---|---|---|
 | L1–L6 结构（不变量/意图/表征/变体/误解/掌握） | ✅ 完全复用 | 科目无关 |
 | `surface_generator` / `difficulty_knobs` 引擎 | ✅ 复用 | 消费 schema，不关心科目 |
-| **判分接口抽象 `scoring_authority.kind`** | ✅ 复用（接口） | `case_rubric`（一建案例题采分点）、`mcq_key`（选择题）、`essay_rubric`（论述）都是它的实例；换科目只换实例 |
+| **判分接口抽象 `scoring_mode.kind`** | ✅ 复用（接口） | `case_rubric`（一建案例题采分点）、`mcq_key`（选择题）、`essay_rubric`（论述）都是它的实例；换科目只换实例 |
 | 诊断 / 复测 / 表征引擎 | ✅ 复用 | 消费 L5/L6/L3，科目无关 |
 | **编译方法论（syllabus → 这套资产的 pipeline）** | ✅ 复用 | **真正会复利的护城河** |
 | 具体考点 / 规范 / 陷阱 / 教材原文 | ❌ 每科目重编 | 内容；有 pipeline 则快 |
 
-**关键设计动作（保证可复用）**：把判分从 schema 里**抽象成接口** `scoring_authority.kind`。一建案例题用 `case_rubric`，但 schema 本身不写死"采分点"——它写"该 archetype 绑定到某个 scoring_authority 实例"。这样换到法考（`essay_rubric`）、医考（`mcq_key` + `case_rubric`）时，L1–L6 与引擎原样复用，只换判分实例与内容。
+**关键设计动作（保证可复用）**：把判分从 schema 里**抽象成接口** `scoring_mode.kind`。一建案例题用 `case_rubric`，但 schema 本身不写死"采分点"——它写"该 case_family 绑定到某个 scoring_mode 实例"。这样换到法考（`essay_rubric`）、医考（`mcq_key` + `case_rubric`）时，L1–L6 与引擎原样复用，只换判分实例与内容。
 
 **新科目 = 把编译 pipeline 跑在新考纲上**，不是重建引擎。这是会随科目数复利的护城河。
 
@@ -167,7 +182,7 @@ archetype:                          # 一个母题
 
 L1–L6 走既有 Living LLM Artifact Compiler，**不另建管线**：
 
-- **S2 fan-out**：小模型按 archetype schema 产候选 L1–L6（全部经 `make_candidate`，`promote_to_release=False`）。
+- **S2 fan-out**：小模型按 case_family schema 产候选 L1–L6（全部经 `make_candidate`，`promote_to_release=False`）。
 - **S3 确定性 gate ladder（本 schema 强制项）**：
   - G-INV：`invariant.essence` 必须能从 ≥3 个 surface 变体中被独立抽出同一句（不变量可证伪，见 §7）。
   - G-SRC：`examiner_intent.source_transform` 与 `representations[].provenance` 必须能 verbatim 溯源到教材/规范原文（防 LLM 编造出题人意图）。
@@ -207,8 +222,8 @@ L1–L6 走既有 Living LLM Artifact Compiler，**不另建管线**：
 ## 8. 黄金样板（F16 防水，节选填充使 schema 落地）
 
 ```yaml
-archetype:
-  id: ARCH-F16-WATERPROOF-LAYERING
+case_family:
+  id: F16
   name: 防水卷材分层与施工工序
   subject: 一建建筑实务
   invariant:
@@ -247,7 +262,7 @@ archetype:
       - {variant_id: D1, flip_condition: 把屋面改成地下室(水从外侧压)，迎水面翻转, memorizer_fails_because: 背了"屋面做法"的人会照搬，真懂的人按"迎水面"重判}
     mastery_evidence_rule: {requires: "FM-ORDER+FM-LAP+FM-NODE 变体全 hit + D1 通过", authority: LearnerStateService}
   scoring_binding:
-    scoring_authority: {kind: case_rubric, grading_artifact_id: "<F16 published artifact::version>", point_ids: [P10, P11]}
+    scoring_mode: {kind: case_rubric, grading_artifact_id: "<F16 published artifact::version>", point_ids: [P10, P11]}
     error_code_authority: "ERROR_CODE_REGISTRY"
 ```
 
@@ -260,7 +275,7 @@ archetype:
 - L1/L3 知识点身份用 canonical taxonomy `node_code`，禁止另起知识树。
 - L2/L3 教学内容**必须**可 verbatim 溯源教材/规范原文（防 LLM 编造"出题人意图"）。
 - L6 掌握判定写进 `learning_evidence` / `LearnerStateService`，前端不自算。
-- 反模式：把 archetype 当"第二套题库 schema"在 runtime 直接判分；把 misconception 当"第二套错因 taxonomy"；把 representation 当"第二套知识库"。三者都禁止——它们是 teaching/diagnosis 投影，消费既有 authority。
+- 反模式：把 case_family 当"第二套题库 schema"在 runtime 直接判分；把 misconception 当"第二套错因 taxonomy"；把 representation 当"第二套知识库"。三者都禁止——它们是 teaching/diagnosis 投影，消费既有 authority。
 
 ## 10. 分期（守住"先验证留存、再扩产"纪律）
 
@@ -272,3 +287,24 @@ archetype:
 - **Phase 3**：用 S0–S7 pipeline 半自动扩产到 30–40 母题;并做一次跨科目实例化冒烟(§7.7),证明 schema 抽象不泄漏。
 
 **扩产的量与节奏由留存信号驱动,不在留存被证明前把 30–40 母题填满**——否则重蹈"做了一堆没人用的案例题资产"的覆辙。
+
+## 11. Registration Ledger（register-before-use 账本）
+
+按 `contracts/schema_registry.yaml` 的 scope_rule（`cross_consumer` / `persisted` / `named_field_binding` 任一命中 = "登记后才能用"）。**当前全部未登记**——本文是 Proposed 设计，下表是落代码前的登记义务清单。实现任一项前先登记并跑 `scripts/check_schema_registry.py` 绿，否则 CI register-before-use 闸会（正确地）拦下。
+
+| 标识符 | scope 命中 | 落地登记到 | 状态 |
+|---|---|---|---|
+| `case_family` schema（asset-plan §3 基础字段 + 本文 L1–L7 深层字段，作为同一 schema 的字段并集） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（typed-object catalog） | ❌ 未登记 |
+| enum 受控词表：`competency.primary` / `canonical_logic.structure_type` / `difficulty_knobs[].knob` / `representations[].kind` / `representations[].purpose` / `surface_axes[].axis` / `variant_blueprints[].question_form` / `scoring_mode.kind` | named_field_binding（跨消费者按值绑定） | `contracts/schema_registry.yaml`（字段允许值 / authority value） | ❌ 未登记 |
+| `misconception_id` / `failure_mode_id` 命名空间（per-case_family 局部 ID） | named_field_binding（该资产消费者间） | 作为 `case_family` schema 字段一并登记；**不另起全局 registry**（避免第二权威 / G8） | ❌ 未登记 |
+| `syllabus_locator`（GradingResult/read-model 字段，见 viewmodel-event-contract） | cross_consumer + named_field_binding | grading-result / read-model contract（`contracts/index.yaml` domain + schema_registry） | ❌ 未登记（原名 `textbook_locator` 撞 citations，已改名） |
+| `days_since_first_use`（行为事件维度） | cross_consumer | 产品行为事件 catalog（`surface-events` / `product_behavior`，见 viewmodel-event-contract §3） | ❌ 未登记 |
+| `mobile_p0a_daily_loop_completed`（行为事件） | cross_consumer | 同上事件 catalog | ❌ 未登记 |
+
+**复用既有 authority，无需新登记**（本文只引用，不新建）：
+- `maps_error_code` → `ERROR_CODE_REGISTRY`（`contracts/mistake_code_registry.yaml` / `error_codes.py`）。
+- `taxonomy_ref.node_codes` → canonical taxonomy。
+- `scoring_mode.grading_artifact_id` / `point_ids` → published question grading artifact registry。
+- L6 掌握判定写入 → `learning_evidence` / `LearnerStateService`（既有 contract）。
+
+**实现顺序铁律**：先把 `case_family` schema（含本文深层字段 + enum 词表）登记进 `schema_registry.yaml` → `scripts/check_schema_registry.py` 绿 → 再写任何消费这些字段的代码。Phase 0 的 F16 切片若以**文件型资产**（yaml 落盘 `artifacts/luban_case_family_assets/F16/`）存在、尚未被 runtime 代码按字段名绑定，属设计资产；一旦有代码 emit/consume 其字段，立即触发登记义务。
