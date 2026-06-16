@@ -16,6 +16,8 @@
 - 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
+- 日常小程序同步不是完整部署。只改 `yousenwebview/packageDeeptutor/**`、`yousenwebview/app.js`、`yousenwebview/app.json`、`yousenwebview/app.wxss`、`yousenwebview/project.config.json`、`yousenwebview/sitemap.json`、`yousenwebview/tests/**` 或 `docs/**` 时，只运行 `ALLOW_MAIN_BRANCH_DEPLOY=1 bash scripts/sync_to_aliyun.sh once`，再按需要走微信 DevTools 预览/上传；不要运行 `deploy_aliyun.sh`，也不要触发 Docker rebuild。
+- [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 会在完整重建前读取远端 `.env` 的 `DEEPTUTOR_GIT_SHA` 并计算 diff；如果变更只包含文档/微信小程序源码/小程序测试，会拒绝重建。只有确认必须重建镜像时，才允许显式设置 `FORCE_FULL_REBUILD=1`。
 - 如果本地当前工作区很脏，但要发布的是已经提交并 push 的特定 commit，先从目标 commit 创建干净临时 worktree，再从该 worktree 执行同步/发布；不要在脏 `main` 上靠 `ALLOW_DIRTY_DEPLOY=1` 把无关文件一起带上阿里云。
 - `git status` 干净、`DEEPTUTOR_GIT_DIRTY=false` 只证明 Git tracked surface 干净，不证明发布面干净。任何本地 dry-run、审计、测试生成的 ignored 目录，例如 `artifacts/`、`.gstack/`、`.local-runs/`，必须同时被 `sync_to_aliyun.sh`、deploy manifest hash 和 `.dockerignore` 排除；否则仍可能被 `rsync` 或 Docker build context 带到 `/root/deeptutor`。
 - 紧急绕过护栏必须显式设置：
@@ -188,6 +190,9 @@ docker compose down
 ```bash
 # 仅重启现有容器，不发布代码
 bash scripts/restart_aliyun.sh
+
+# 日常小程序源码/文档同步，不重建容器
+ALLOW_MAIN_BRANCH_DEPLOY=1 bash scripts/sync_to_aliyun.sh once
 
 # Python 后端 / Prompt / YAML 快速发布
 PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast.sh
