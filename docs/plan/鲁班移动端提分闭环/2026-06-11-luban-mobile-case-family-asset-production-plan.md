@@ -70,7 +70,7 @@ P0A 首个 spike 默认使用 F16 防水工程，首要交付是该母题下的�
 ### 3.1 Single Authority Hard Rules
 
 - case_family 级 scoring_point 只做母题级分组、映射与解释，不是第二套 rubric truth；逐题判分规则的唯一 authority 仍是 published question grading artifact + `CaseGradingSkillKernel`。
-- 凡是已有 published artifact 覆盖的采分点，case_family 必须通过 `authority_refs` 引用 `artifact_id + point_id`（artifact_id 自含 version_id，如 `Q18-1A434000::qga_v0_20260604`），禁止复制改写 rule 内容；artifact 升版后由引用方重验，不留 fork。
+- 凡是已有 published artifact 覆盖的采分点，case_family 必须通过 `case_family_production.question_bindings[].grading_artifact_id` + `scoring_point_refs` 引用（schema v2 canonical;artifact_id 自含 version_id，如 `Q18-1A434000::qga_v0_20260604`），禁止复制改写 rule 内容；artifact 升版后由引用方重验，不留 fork。（原 `authority_refs` 字段名已废,Codex 审计）
 - 没有 published artifact 覆盖的采分点（母题级新增），标 `status: draft`，必须有 `source_ref` 指向教材/官方原文 source；draft 点只能参与展示和任务规划，**参与真实判分前必须走 jury -> registry publish 流程签发**（registry v1 脚本族已存在：`scripts/build_luban_question_grading_registry_v1.py` 等）。
 - **teaching shard 与合成题的点不得作为判分点**：`topic_waterproof` 等 runtime supply shard（`official_score_allowed=false`）和 M32 合成题（如 `waterproof_case_001`）的点只能作 teaching context / 闭环结构参考，禁止纳入真实学生任务的 `covered_scoring_point_ids`。
 - `taxonomy_ref.sha256` 是**写入时快照 + 翻转时人工硬检查**，不是自动化承诺（当前无任何代码检测 sha；taxonomy 实测一天内多次改写）。具体执行：创建/修改资产时重新计算并记录 sha；每次 status 翻转时 reviewer 必须重验当前 runtime taxonomy index 的 sha 与 node_code 可解析性，并在 review_record 写 `taxonomy_reverified: true/false`；不一致且影响绑定时由 reviewer 决定降级，不假设系统自动降级。
@@ -165,7 +165,7 @@ Bad：
 
 P0A hard rule:
 
-- mistake_tag 必须引用注册过的 `error_code`，schema 见 §3 与 M0 §6.2 修订版。
+- mistake_tag 必须引用注册过的 `error_code`，**且 series ∈ {E,M}（禁 `unknown_error` 等 fallback——registry 含该 sentinel,只判"注册过"会放它进来,Codex 审计）**，schema 见 §3 与 M0 §6.2 修订版。
 - Display-only tags are allowed in prototype; writing long-term learner truth requires payload builder and readback proof.
 - mistake book、follow-up task recommendation、today task explanation 读的必须是同一 `(scoring_point_id, error_code)` 事实，不得各自维护标签副本。
 
@@ -206,7 +206,7 @@ Reviewer must answer:
 8. Is there at least one retest binding, at the highest binding_level the question pool actually supports (gold `same_point` preferred; documented honestly if only `same_node` exists)?
 9. Is rollback possible by case_family?
 10. Are cost-heavy paths optional and controlled?
-11. Are all grading-participating scoring points backed by a published artifact (`authority_refs`), with teaching-shard / synthetic points excluded?
+11. Are all grading-participating scoring points backed by a published artifact (`question_bindings[].grading_artifact_id` + `scoring_point_refs`), with teaching-shard / synthetic points excluded?
 12. Is `taxonomy_ref` re-verified against the current runtime taxonomy index at this status flip (`taxonomy_reverified` recorded in review_record)?
 13. Does every retest binding declare its `binding_level`, and is no `same_node` evidence presented as point-level mastery closure?
 

@@ -229,7 +229,7 @@ case_family_structure:
       provenance: str                 # 可溯源教材/规范原文
   # ---- L4 表皮生成器 ----
   surface_generator:
-    invariant_held: [str]             # = invariant.canonical_logic.skeleton
+    invariant_held: [str]             # 源自 canonical_logic.skeleton 的**关键不变量子集**(变体生成时必须保持),非逐字镜像(Codex 审计:勿写成 = skeleton)
     surface_axes:                     # (Phase 0 可缺省,Phase 2 补;封闭核心枚举)
       - axis: enum                    # scenario_skin | numbers | question_angle | polarity | distractor_set | given_conditions
         options: [str]
@@ -369,8 +369,8 @@ case_family_structure:
       - {knob: interference_condition, levels: [无, 加"赶工期"诱导你跳工序]}
       - {knob: question_angle, levels: [排序, 找错, 改写不规范交底]}
   representations:
-    - {kind: flowchart, fits_structure: [procedure], purpose: teach_first_time, content_spec: 工序决策树(每步标"为什么在这一步"), provenance: 教材-防水工序}
-    - {kind: counterexample, fits_structure: [procedure], purpose: fix_misconception, content_spec: 先大面后节点→渗漏路径图, provenance: 教材-防水工序}
+    - {kind: flowchart, fits_structure: [procedure], purpose: teach_first_time, content_spec: 工序决策树(每步标"为什么在这一步"), provenance: 教材-防水工程-工序条文}
+    - {kind: counterexample, fits_structure: [procedure], purpose: fix_misconception, content_spec: 先大面后节点→渗漏路径图, provenance: 教材-防水工程-工序条文}
   surface_generator:
     invariant_held: [节点先行, 搭接顺流水, 方向迎水]
     variant_blueprints:
@@ -423,10 +423,10 @@ case_family_structure:
 
 | 标识符 | scope 命中 | 落地登记到 | 状态 |
 |---|---|---|---|
-| `case_family_production` schema（指针层:id/subject/status_production/taxonomy_ref/provenance/scoring_mode/question_bindings/mistake_tags/training_tasks/review） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（独立 typed-object entry） | ❌ 未登记 |
+| `case_family_production` schema（指针层:id/subject/status_production/rollout_scope/taxonomy_ref/provenance/scoring_mode/question_bindings/mistake_tags/training_tasks/review） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（独立 typed-object entry） | ❌ 未登记 |
 | `case_family_structure` schema（原创层:status_structure/invariant/examiner_intent/representations/surface_generator/misconceptions/mastery） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（独立 entry,与 production 用 `case_family_id` 关联） | ❌ 未登记 |
 | **科目可扩展**受控词表（决议14,registry 结构 `{core_values, subject_extensions}`）：`competency.primary` / `canonical_logic.structure_type`（`representations[].fits_structure` 复用同枚举,Codex 审计补） / `difficulty_knobs[].knob` / `representations[].kind` / `variant_blueprints[].question_form` / `provenance.source_refs[].type` | named_field_binding（跨消费者按值绑定） | `contracts/schema_registry.yaml`（字段允许值 + 科目扩展） | ❌ 未登记 |
-| **封闭核心**受控词表（固定,不可科目扩展）：`status_production` / `status_structure` / `scoring_mode.kind` / `surface_axes[].axis` / `representations[].purpose` / `question_bindings[].retest_role` / `binding_level`（production+structure **同一枚举**,mastery 只接受其子集） / `training_tasks[].mode` / `task_scope.scope_type` / `task_scope.evidence_weight` / `mistake_tags[].source` | named_field_binding | `contracts/schema_registry.yaml`（封闭允许值） | ❌ 未登记 |
+| **封闭核心**受控词表（固定,不可科目扩展）：`status_production` / `status_structure` / `scoring_mode.kind` / `surface_axes[].axis` / `representations[].purpose` / `question_bindings[].retest_role` / `binding_level`（production+structure **同一枚举**,mastery 只接受其子集） / `training_tasks[].mode` / `task_scope.scope_type` / `task_scope.excluded_scoring_point_policy`(固定值 not_evaluated_no_miss) / `task_scope.evidence_weight` / `mistake_tags[].source` | named_field_binding | `contracts/schema_registry.yaml`（封闭允许值） | ❌ 未登记 |
 | `misconception_id` / `failure_mode_id` 命名空间（per-case_family 局部 ID） | named_field_binding（该资产消费者间） | 作为 `case_family_structure` schema 字段一并登记；**不另起全局 registry**（避免第二权威 / G8） | ❌ 未登记 |
 | `syllabus_locator`（GradingResult/read-model 字段，见 viewmodel-event-contract） | cross_consumer + named_field_binding | grading-result / read-model contract（`contracts/index.yaml` domain + schema_registry） | ❌ 未登记（原名 `textbook_locator` 撞 citations，已改名） |
 | `days_since_first_use`（行为事件维度） | cross_consumer | 产品行为事件 catalog（`surface-events` / `product_behavior`，见 viewmodel-event-contract §3） | ❌ 未登记 |
