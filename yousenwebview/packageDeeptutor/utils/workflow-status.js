@@ -496,6 +496,14 @@ function normalizeWorkflowStatus(payload) {
       tone: "retry",
     };
   }
+  if (source.data === "analysis_continuing" || source.eventType === "analysis_continuing") {
+    return {
+      badge: "深度核对",
+      headline: "案例题仍在深度核对",
+      subline: "系统正在逐项核对题干、评分标准、采分点和你的作答，请继续等待结果。",
+      tone: "review",
+    };
+  }
   if (source.eventType === "tool_call") {
     return TOOL_COPY[toolName] || TOOL_COPY._default;
   }

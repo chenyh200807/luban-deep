@@ -141,6 +141,8 @@ function resolveEventVisibility(event) {
 var RECONNECT_BASE_DELAY_MS = 400;
 var RECONNECT_MAX_DELAY_MS = 4000;
 var RECONNECT_MAX_ATTEMPTS = 5;
+var DEFAULT_IDLE_TIMEOUT_MS = 210000;
+var QUIET_STATUS_AFTER_FIRST_TOKEN_MS = 30000;
 
 function socketUrlToApiBase(socketUrl) {
   var normalized = String(socketUrl || "").trim();
@@ -233,9 +235,10 @@ function streamChat(opts, callbacks) {
   var firstTokenReceived = false;
   var idleTimer = null;
   var slowTimer = null;
+  var quietStatusTimer = null;
   var reconnectTimer = null;
   var socketTask = null;
-  var idleTimeoutMs = Number((opts && opts.idleTimeoutMs) || 60000) || 60000;
+  var idleTimeoutMs = Number((opts && opts.idleTimeoutMs) || DEFAULT_IDLE_TIMEOUT_MS) || DEFAULT_IDLE_TIMEOUT_MS;
   var slowResponseMs = 15000;
   var botId = "";
   var chatId = sessionId;
@@ -295,7 +298,9 @@ function streamChat(opts, callbacks) {
               cb.onStatus({
                 type: "status",
                 data: "awaiting_terminal",
-                content: "已发送停止请求，正在等待本轮结束…",
+                content: timeoutCancelRequested
+                  ? "本轮还在处理，正在等待服务端返回结果…"
+                  : "已发送停止请求，正在等待本轮结束…",
                 eventType: "awaiting_terminal",
                 metadata: { visibility: "public", reason: timeoutCancelRequested ? "idle_timeout" : "user_cancel" },
               });
@@ -303,20 +308,23 @@ function streamChat(opts, callbacks) {
             resetIdleTimer();
             return;
           }
-          failStream("已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果");
+          failStream(
+            timeoutCancelRequested
+              ? "本轮仍在处理中，请稍后在历史记录查看结果"
+              : "已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果",
+          );
           return;
         }
-        if (!timeoutCancelRequested && sendCancelTurn("idle_timeout")) {
+        if (!timeoutCancelRequested) {
           timeoutCancelRequested = true;
-          cancelRequested = true;
           terminalWaitTicksAfterCancel = 0;
           clearSlowTimer();
           if (cb.onStatus) {
             cb.onStatus({
               type: "status",
-              data: "cancelling",
-              content: "响应超时，正在停止本轮分析…",
-              eventType: "cancelling",
+              data: "awaiting_terminal",
+              content: "本轮还在处理，正在等待服务端返回结果…",
+              eventType: "awaiting_terminal",
               metadata: { visibility: "public", reason: "idle_timeout" },
             });
           }
@@ -333,6 +341,32 @@ function streamChat(opts, callbacks) {
       clearTimeout(slowTimer);
       slowTimer = null;
     }
+  }
+
+  function clearQuietStatusTimer() {
+    if (quietStatusTimer) {
+      clearTimeout(quietStatusTimer);
+      quietStatusTimer = null;
+    }
+  }
+
+  function resetQuietStatusTimer() {
+    clearQuietStatusTimer();
+    if (!firstTokenReceived || aborted || doneReceived) return;
+    quietStatusTimer = setTimeout(function () {
+      quietStatusTimer = null;
+      if (aborted || doneReceived || !firstTokenReceived) return;
+      if (cb.onStatus) {
+        cb.onStatus({
+          type: "status",
+          data: "analysis_continuing",
+          content: "案例题还在逐项核对题干、采分点和你的作答，请继续等待结果。",
+          eventType: "analysis_continuing",
+          metadata: { visibility: "public", reason: "quiet_after_first_token" },
+        });
+      }
+      resetQuietStatusTimer();
+    }, QUIET_STATUS_AFTER_FIRST_TOKEN_MS);
   }
 
   function clearReconnectTimer() {
@@ -356,6 +390,7 @@ function streamChat(opts, callbacks) {
     aborted = true;
     clearIdleTimer();
     clearSlowTimer();
+    clearQuietStatusTimer();
     clearReconnectTimer();
     emitTelemetry("surface_render_failed", {
       message: normalizeErrorMessage(err),
@@ -435,6 +470,7 @@ function streamChat(opts, callbacks) {
       if (!firstTokenReceived) {
         firstTokenReceived = true;
         clearSlowTimer();
+        resetQuietStatusTimer();
       }
       if (cb.onToken) cb.onToken(String(event.content || ""));
       return;
@@ -494,6 +530,7 @@ function streamChat(opts, callbacks) {
       doneReceived = true;
       clearIdleTimer();
       clearSlowTimer();
+      clearQuietStatusTimer();
       if (cb.onFinal) {
         cb.onFinal({
           type: "final",
@@ -570,6 +607,7 @@ function streamChat(opts, callbacks) {
           var raw = typeof res.data === "string" ? res.data : "";
           if (!raw) return;
           try {
+            if (firstTokenReceived) resetQuietStatusTimer();
             handleEvent(JSON.parse(raw));
           } catch (_) {}
         });
@@ -716,6 +754,7 @@ function streamChat(opts, callbacks) {
     aborted = true;
     clearIdleTimer();
     clearSlowTimer();
+    clearQuietStatusTimer();
     clearReconnectTimer();
     try {
       if (socketTask) socketTask.close({ code: 1000, reason: "abort" });

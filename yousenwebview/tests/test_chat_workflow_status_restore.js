@@ -364,6 +364,11 @@ run("case grading workflow should make long analysis visible", function () {
     metadata: { args: { question: "建筑实务案例题背景资料很长" } },
   });
   var slowStatus = workflowStatus.normalizeWorkflowStatus({ data: "slow_response" });
+  var continuingStatus = workflowStatus.normalizeWorkflowStatus({
+    data: "analysis_continuing",
+    eventType: "analysis_continuing",
+    content: "案例题还在逐项核对题干、采分点和你的作答，请继续等待结果。",
+  });
   var unknownCaseStatus = workflowStatus.normalizeWorkflowStatus(
     "请批改这道案例题，材料比较长",
   );
@@ -373,6 +378,14 @@ run("case grading workflow should make long analysis visible", function () {
   assert(caseEntry.detail.indexOf("资料较多") >= 0, "case grading should explain why it may take longer");
   assert(slowStatus.headline === "资料较多，正在继续深度核对", "slow status should avoid generic waiting copy");
   assert(slowStatus.subline.indexOf("查依据") >= 0, "slow status should show real analysis work");
+  assert(
+    continuingStatus.headline === "案例题仍在深度核对",
+    "quiet-after-first-token status should not expose internal event keys",
+  );
+  assert(
+    continuingStatus.subline.indexOf("采分点") >= 0,
+    "quiet-after-first-token status should explain the scoring-point work",
+  );
   assert(
     unknownCaseStatus.headline === "正在拆解案例资料和作答结构",
     "free text case status should still map to case analysis wording",
