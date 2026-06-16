@@ -56,63 +56,16 @@ P0A 首个 spike 默认使用 F16 防水工程，首要交付是该母题下的�
 
 ## 3. Asset Schema Draft
 
-> v1.3 增补：本节定义 case_family 级**生产 / 绑定**字段（判分、错因映射、task_scope、复测）。母题的**深层结构**（不变量 / 出题人意图 / 多重表征 / 表皮生成器 / 误解模型 / 真懂vs背过鉴别 / 跨科目抽象）见结构权威 [2026-06-16-luban-deep-archetype-asset-schema-v2.md](2026-06-16-luban-deep-archetype-asset-schema-v2.md)。分工：本文管"怎么生产、状态怎么翻"，schema v2 管"产出物的深度结构长什么样"，二者互不重叠、不互相覆盖。
+> v2.1 收口：case_family 已拆为 `case_family_production`（指针层）+ `case_family_structure`（原创层）两对象。**字段结构的唯一 canonical 定义在 [2026-06-16-luban-deep-archetype-asset-schema-v2.md](2026-06-16-luban-deep-archetype-asset-schema-v2.md) §3**，本文**不再重定义字段**（避免两份定义 drift——这正是 §3.0 收口的根因）。生产侧字段属 `case_family_production`。本文只保留**生产流程**（§3.1 单一权威硬规则 / §3.2 落盘与状态 / §4 pipeline / §5 review checklist / §6 release status）。
 
-```yaml
-case_family:
-  id: F01
-  name: 进度计划与关键线路
-  status: draft | reviewed | p0a_candidate | p0a_active | suspended
-  taxonomy_ref:
-    file: string            # canonical taxonomy 文件路径
-    version: string
-    sha256: string          # 钉扎当时文件内容，taxonomy 改写后必须重验
-  source_refs:
-    - type: official_question | textbook | standard | lecture | scoring_artifact
-      ref_id: string
-      version: string
-  knowledge_nodes:
-    - node_code: string     # 必须能在 taxonomy_ref 钉扎的文件中解析
-      title: string
-  scoring_points:
-    - id: string
-      label: string
-      rule_type: exact_required | list_rule | calculation | procedure | high_risk_review
-      evidence_requirement: string
-      max_score: number
-      authority_refs:       # 引用 published question grading artifact，不复制 rule
-        - artifact_id: string   # registry 真实字段，如 Q18-1A434000::qga_v0_20260604（自含版本）
-          point_id: string      # 如 P10
-      source_ref: string    # 指向 source_refs 中支撑该采分点的条目
-      status: active | draft  # draft = 尚无 published artifact 覆盖，须走 jury->publish 后才能参与判分
-  mistake_tags:             # error_code 的采分点粒度 qualified reference，见 M0 §6.2 修订版
-    - error_code: string    # 唯一 canonical 轴，必须在 deeptutor/contracts/error_codes.py 注册
-      scoring_point_id: string
-      label: string         # 必须等于 ERROR_CODE_REGISTRY[error_code].label
-      taxonomy_version: string  # error_codes registry 版本
-      source: rubric_policy | teacher_final | model_candidate | user_selected
-  question_bindings:
-    - question_id: string
-      sub_question_ref: string   # 大案例题内的小问定位（半写任务按小问裁剪呈现）
-      scoring_point_ids: string[]
-      difficulty: low | medium | high
-      retest_role: primary | similar_retest | original_review_only
-      binding_level: same_point | same_node | original_review  # 复测证据等级，见 Step 4 阶梯
-  training_tasks:
-    - mode: light | semi_write | real_exam | photo_preview
-      task_id: string
-      estimated_minutes: number
-      task_scope:
-        scope_type: full_question | scoring_point_subset | light_check | preview
-        covered_scoring_point_ids: string[]
-        excluded_scoring_point_policy: not_evaluated_no_miss
-        evidence_weight: official | diagnostic | light_signal | none
-  review:
-    owner: string
-    reviewer: string
-    reviewed_at: string
-    rollback_policy: string
-```
+> **去重决议（schema v2 §3.0）已应用，本文原 `case_family:` 草案删除，要点**：
+> - 删 rule 影子 `rule_type`/`evidence_requirement`/`max_score`——判分回 published artifact；裸 `max_score` 会绕过判分内核 must-not-mint 门。
+> - 删 `knowledge_nodes`——title 是 taxonomy 复制品 → 只留 `taxonomy_ref.node_codes`，title 运行时 resolve。
+> - `source_refs` → `provenance.source_refs`（superset 形状，含 chunk_id + content_sha256）。
+> - `status` → `status_production`（删 `p0a_` 前缀，phase 用 `rollout_scope`）；结构侧另有 `status_structure`。
+> - `scoring_points` 全表 → 只留 `question_bindings[].{grading_artifact_id, scoring_point_refs}` 引用（采分点身份只在 artifact）。
+> - `mistake_tags` = 锚 `error_code` 的**判分侧投影**（label/taxonomy_version 引用 ERROR_CODE_REGISTRY，不复制；注意 `error_code` 轴 ≠ `mistake_type` 判分形态轴）。
+> - 完整字段见 schema v2 §3 的 `case_family_production`。
 
 ### 3.1 Single Authority Hard Rules
 
@@ -125,7 +78,7 @@ case_family:
 ### 3.2 Asset Storage And Status Authority
 
 - 资产文件统一落盘在主仓库 `artifacts/luban_case_family_assets/<case_family_id>/`：`case_family.yaml` 为正文，`review_record.json` 记录每次 status 翻转（who/when/checklist 结论）。
-- status 翻转只能由 review record 驱动：`draft -> reviewed` 需要 reviewer 按 §5 checklist 逐项作答；`reviewed -> p0a_candidate` 需要 shadow grading replay 证据；`p0a_candidate -> p0a_active` 走 release gate checklist 对应门。
+- `status_production` 翻转只能由 review record 驱动：`draft -> reviewed` 需要 reviewer 按 §5 checklist 逐项作答；`reviewed -> candidate` 需要 shadow grading replay 证据；`candidate -> active` 走 release gate checklist 对应门。（结构侧 `status_structure` 走 G-INV/G-COV,见 schema v2 §3.0 决议0;phase 不进 status,用 `rollout_scope`。）
 - 不要把资产写进临时 worktree（`worktree remove --force` 会删掉 gitignored artifacts）。
 
 ## 4. Production Pipeline
@@ -232,7 +185,7 @@ Task design rules:
 - Semi-write tasks must declare the exact scoring_point subset they train.
 - Out-of-scope points are not evaluated and cannot become miss evidence.
 - Light practice evidence is `light_signal` and cannot close stable weakness by itself.
-- **task_scope 实现前置门**：`not_evaluated` 强制与 scope 裁剪当前在 runtime 代码中零实现（schema.py 无 TaskScope，CaseGradingResult 无 scope 字段）。资产侧的 semi-write 任务在 M0 §6 的 task_scope contract + 注册测试落地前，只能停在 `p0a_candidate`（shadow），不得升 `p0a_active` 进真实判分。
+- **task_scope 实现前置门**：`not_evaluated` 强制与 scope 裁剪当前在 runtime 代码中零实现（schema.py 无 TaskScope，CaseGradingResult 无 scope 字段）。资产侧的 semi-write 任务在 M0 §6 的 task_scope contract + 注册测试落地前，只能停在 `candidate`（shadow，`status_production`），不得升 `active` 进真实判分。
 - **复测证据阶梯**（improvement evidence 必须标注 binding level）：
   1. `same_point_different_question`（gold）：同一 scoring_point 的不同题。题池中不存在时不得降格伪造——例如 Q18 P10/P11 割补法工序点，全题库（2015-2025 真题 + 30 题候选 + 客观题池）扫描确认无第二道同考点题。
   2. `same_node_different_question`（silver）：同 knowledge_node 的不同题（客观题池或其他案例题）；只能支撑"相关知识回暖"，不能单独关闭该采分点的稳定弱点。
@@ -263,8 +216,8 @@ Allowed statuses:
 
 - `draft`: work in progress.
 - `reviewed`: asset reviewed, not wired.
-- `p0a_candidate`: can enter mock/shadow.
-- `p0a_active`: can enter P0A real flow.
+- `candidate`: can enter mock/shadow.
+- `active`: can enter real flow.
 - `suspended`: disabled by gate or rollback.
 
-Only `p0a_active` assets may appear in real P0A today tasks.
+Only `active`（status_production）assets may appear in real today tasks. phase（如 p0a）用 `rollout_scope` 表达,不进 status（schema v2 §3.0 决议1）。
