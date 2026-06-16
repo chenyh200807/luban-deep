@@ -28,7 +28,7 @@
 {"case_no":3,"sub_q_no":"2","sub_q_total_score":4.0,"point_seq":1,"point_text":"主要受力钢筋数量、间距、保护层厚度、混凝土强度","point_score":4.0,"point_type":"列举","page":14}
 {"case_no":3,"sub_q_no":"3","sub_q_total_score":4.0,"point_seq":1,"point_text":"(1) 框架梁底、柱边","point_score":1.0,"point_type":"列举","page":14}
 {"case_no":3,"sub_q_no":"3","sub_q_total_score":4.0,"point_seq":2,"point_text":"(2)① 填充墙墙顶口最后3皮砖应在下部墙砌完14d后砌筑","point_score":1.0,"point_type":"措施","page":14}
-{"case_no":3,"sub_q_no":"3","sub_q_total_score":4.0,"point_seq":3,"point_text":"(2)② 外窗下为空心砖墙时,将窗台板为细石混凝土并加配钢筋","point_score":1.0,"point_type":"措施","page":14,"_ocr_suspect":"将窗台板为细石混凝土(疑漏字,应为\"将窗台板做为\"或\"窗台改为\")"}
+{"case_no":3,"sub_q_no":"3","sub_q_total_score":4.0,"point_seq":3,"point_text":"(2)② 外窗下为空心砖墙时,将窗台板改为细石混凝土并加配钢筋","point_score":1.0,"point_type":"措施","page":14,"_corrected":"据独立复核订正:PDF原文为'将窗台板改为细石混凝土',原抽取漏'改'字,已补"}
 {"case_no":3,"sub_q_no":"3","sub_q_total_score":4.0,"point_seq":4,"point_text":"(2)③ 柱与填充墙接触面应设加强网片","point_score":1.0,"point_type":"措施","page":14}
 {"case_no":3,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":1,"point_text":"(1) 色差、掉角、脱皮","point_score":3.0,"point_type":"列举","page":15}
 {"case_no":3,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":2,"point_text":"(2)① 幕墙后置埋件和槽式预埋件的现场拉拔力","point_score":1.0,"point_type":"列举","page":15}
