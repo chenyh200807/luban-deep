@@ -31,7 +31,8 @@
 |---|---|
 | `2025/2024/2023/2021/2022bukao_jianzhu_case_rubric.jsonl` | ✅ 全 6 份抽完(80/67/89/85/110 采分点) |
 | `ALL_jianzhu_case_rubric.jsonl`(**431 采分点 / 5 年**) | ✅ 合并 + **5 份独立专家复核(高准确率,仅 2024 漏 1 字已订正;OCR可疑多为佑森源数据自身错字)** |
-| `per_question_score_backfill.jsonl`(回填映射) | ◑ **内容匹配回填 154 条**(2021/23/24/25,中位 ratio 0.97);45 条因 per_question 粒度塌陷未匹配;283 条(2015-2020+2022)无抽取源无法回填。**结论:per_question 是粒度乱的 shadow 编译,我的抽取(431,干净)才是更优 canonical 真题 rubric**;tracked overlay,未改 shadow 对象 |
+| **`case_rubric_canonical.json`(canonical 真题案例 rubric)** | ✅ **全 431 采分点结构化(5年/25案例/117小题,judging rule 内嵌),一个没跳——真题案例判分的 canonical 分值源** |
+| `per_question_score_backfill.jsonl`(桥) | ✅ 合并法回填 **179/199(89%)**(2021/23/24/25,切片含多采分点则累加吃掉 granularity collapse);**per_question 结构乱,判分应直接用 canonical rubric,此为旧消费者桥**;2015-2020+2022正考无源**待补(不跳过)** |
 
 ## 待办盘点(下次补)
 
