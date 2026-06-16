@@ -1,6 +1,6 @@
 # 深母题资产 · 护城河深度北极星 v3（收口版）
 
-> Status: Proposed / **北极星,非施工蓝图**。经 3 位架构专家 + Codex 跨模型评审后**大幅收缩**:原草稿(施工级 7 层 + LLM 执行规格 + 登记账本)被评审一致判为"对一个‘现在不建’的东西过度设计,且脊梁(generate-then-grade)对案例题是同源循环"。本版只保留:**北极星 + 4 处必须更正的判断 + 1 件现在就做的事**。
+> Status: Proposed / **北极星,非落地实施规格**。经 3 位架构专家 + Codex 跨模型评审后**大幅收缩**:原草稿(施工级 7 层 + LLM 执行规格 + 登记账本)被评审一致判为"对一个‘现在不建’的东西过度设计,且脊梁(generate-then-grade)对案例题是同源循环"。本版只保留:**北极星 + 4 处必须更正的判断 + 1 件现在就做的事**。
 > Date: 2026-06-16
 > 基座: [schema v2](2026-06-16-luban-deep-archetype-asset-schema-v2.md)(两对象 + 单一权威,全保留)
 > **整体 build gated on retention**:F16 5 天留存未证明前,除 §3 那一件,一层都不建。
@@ -33,7 +33,7 @@
 
 - **所有新 confidence 字段必须带 owner 前缀**(`self_reported_confidence` / `cognitive_label_confidence`),禁裸 `confidence`(v2 §0.1 命名收权升为 v3 全局约束)。
 - **元模式/教学原型并入 S0-S7,不新建 compiled-context 权威。** 跨科目复用按 v2 决议13 口径(复用 schema 形状,不是同一实例跨科目),不做"一建形状定义别科目深度"的硬映射。
-- **生成变体边界**:`provenance=generated`,不入 published artifact,不出 official score,不升 mastery,直到走治理证据通道。
+- **生成变体边界**:`provenance=generated`,不入 published artifact,不出 official score,不升 LearnerState / canonical learner truth,直到走治理证据通道。
 - 全部 build gated on retention;真建任一层前先 register-before-use + 过 `check_schema_registry.py`。
 
 ## 3. 现在唯一该做的一件事（priority-0,零代码权威）
