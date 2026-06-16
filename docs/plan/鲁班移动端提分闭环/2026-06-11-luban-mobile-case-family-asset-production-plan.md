@@ -187,9 +187,9 @@ Task design rules:
 - Light practice evidence is `light_signal` and cannot close stable weakness by itself.
 - **task_scope 实现前置门**：`not_evaluated` 强制与 scope 裁剪当前在 runtime 代码中零实现（schema.py 无 TaskScope，CaseGradingResult 无 scope 字段）。资产侧的 semi-write 任务在 M0 §6 的 task_scope contract + 注册测试落地前，只能停在 `candidate`（shadow，`status_production`），不得升 `active` 进真实判分。
 - **复测证据阶梯**（improvement evidence 必须标注 binding level）：
-  1. `same_point_different_question`（gold）：同一 scoring_point 的不同题。题池中不存在时不得降格伪造——例如 Q18 P10/P11 割补法工序点，全题库（2015-2025 真题 + 30 题候选 + 客观题池）扫描确认无第二道同考点题。
-  2. `same_node_different_question`（silver）：同 knowledge_node 的不同题（客观题池或其他案例题）；只能支撑"相关知识回暖"，不能单独关闭该采分点的稳定弱点。
-  3. `original_question_review`（review-only）：原题重做，只支持复习记录，不算提升证据。
+  1. `same_point`（gold,即同采分点不同题）：同一 scoring_point 的不同题。题池中不存在时不得降格伪造——例如 Q18 P10/P11 割补法工序点，全题库（2015-2025 真题 + 30 题候选 + 客观题池）扫描确认无第二道同考点题。
+  2. `same_node`（silver,即同知识点不同题）：同 knowledge_node 的不同题（客观题池或其他案例题）；只能支撑"相关知识回暖"，不能单独关闭该采分点的稳定弱点。
+  3. `original_review`（review-only）：原题重做，只支持复习记录，不算提升证据。
 - 半写小问呈现：question_binding 需带 `sub_question_ref`（小问定位），完整大案例题干在移动端半写任务中按小问裁剪呈现的方式属于 UI spec / ViewModel contract 范畴，资产侧只负责标注小问与所需背景段落。
 
 ## 5. Review Checklist

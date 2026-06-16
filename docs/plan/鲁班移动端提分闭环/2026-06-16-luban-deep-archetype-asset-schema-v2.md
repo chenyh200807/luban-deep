@@ -23,7 +23,7 @@
 
 | 原名（撞） | 撞了什么 | 收权后 |
 |---|---|---|
-| `archetype`（母题对象） | ① 母题概念已叫 `case_family`（asset-plan）；② `archetype` 在 assessment 模块已指"学员人格画像" | 统一用 `case_family`；本文 L1–L7 是 `case_family` 对象的**深层结构字段**，附加在 asset-plan §3 基础字段之上（**同一对象，非第二套**） |
+| `archetype`（母题对象） | ① 母题概念已叫 `case_family`（asset-plan）；② `archetype` 在 assessment 模块已指"学员人格画像" | 统一用 `case_family`（§3.0 已拆为 `case_family_production` + `case_family_structure` 两共注册对象，`case_family_id` 关联） |
 | `scoring_authority`（判分接口字段） | 判分域已有 `official_scoring_authority` 门语义 | 改为 `scoring_mode`（判分接口类型：case_rubric/mcq_key/essay_rubric） |
 | `textbook_locator`（viewmodel 字段，见姊妹文档） | 已存在于 `citations/normalizer.py` | 改为 `syllabus_locator` |
 
@@ -41,13 +41,13 @@
 - **看懂题目 / 考点** = 多重表征按考点类型呈现（L3）。
 - **跨科目复用** = "不变量/表皮分离"这个结构本身与科目无关（§4）。
 
-**护城河不在母题数量，在每个母题结构的深度。** 一份深母题资产被**五个消费者共用**：出题（L4）、判分（L7）、诊断（L5）、讲解（L3）、复测（L6）。别人要抄，得同时复刻这五层的一致性，极难。
+**护城河不在母题数量，在每个母题结构的深度。** 一份深母题资产被**五个消费者共用**：出题（L4）、判分（production.question_bindings）、诊断（L5）、讲解（L3）、复测（L6）。别人要抄，得同时复刻这五层的一致性，极难。
 
 ## 2. Authority 收权（复用 vs 增补）
 
 | 能力 | 唯一 authority（复用，不复制） | 本 schema 的角色 |
 |---|---|---|
-| 逐题判分真相 | published question grading artifact + `CaseGradingSkillKernel` | L7 只**引用** `artifact_id::version + point_id`，不复制 rule |
+| 逐题判分真相 | published question grading artifact + `CaseGradingSkillKernel` | `case_family_production.question_bindings` 只**引用** `artifact_id::version + point_id`，不复制 rule |
 | 错因 canonical 轴 | `deeptutor/contracts/error_codes.py` `ERROR_CODE_REGISTRY`（E01–E12 / M01–M10） | L5 误解模型**映射**到 error_code，不新建错因码 |
 | 知识点身份 | canonical taxonomy（`FINAL_CLEANED_TAXONOMY2026.json`，L1–L6 节点） | L1/L3 用 `node_code` 引用，不另起知识树 |
 | 教材原文溯源 | textbook verbatim lane（`textbook_knowledge_full`） | L2/L3 的教学内容必须可溯源到教材/规范原文 |
@@ -55,11 +55,11 @@
 | 编译签发 | Living LLM Artifact Compiler S0–S7（`promote_to_release` 单点翻 True） | L1–L6 走同一签发 spine，默认 candidate/teaching-tier |
 | runtime 消费口 | `CompiledContextPack` / RichLeafArtifact + `/api/v1/ws` | 本资产编译进 pack，不新增入口 |
 
-**红线**：L1–L6 是 teaching/diagnosis context，**永不**作为 official score、canonical learner truth、或 rubric policy 的第二来源。判分永远回到 L7 引用的 signed artifact。
+**红线**：L1–L6（`case_family_structure`）是 teaching/diagnosis context，**永不**作为 official score、canonical learner truth、或 rubric policy 的第二来源。判分永远回到 `case_family_production.question_bindings` 引用的 signed artifact。
 
 ## 3.0 case_family Canonical 收口决议 v2.1（2026-06-16）
 
-> 经 4 专家（判分 / 错因 / 跨科目 / 对抗）+ root-cause + 对抗审查综合。**本决议是 case_family schema 的收口单一权威**，supersede 下方 §3 单对象 yaml 与 asset-plan §3 的所有字段定义冲突。下方 §3 单对象 yaml 待"决议0 拆对象"确认后按本决议机械改写。
+> 经 4 专家（判分 / 错因 / 跨科目 / 对抗）+ root-cause + 对抗审查 + 独立一致性审计综合。**本决议是 case_family schema 的收口单一权威**，supersede asset-plan §3 的所有字段定义冲突。下方 §3 **已按本决议改写为两对象**（`case_family_production` + `case_family_structure`），§8 为两对象 F16 样板。
 
 ### 决议0（治本，核心）:拆两个共注册对象,不焊成 God Object
 
@@ -96,7 +96,7 @@
 
 ### 决议14:通用(universal)= 三权分立 + 受控词表(用户硬要求)
 
-- **科目无关核心层(schema 结构固定,改 = 抽象泄漏)**:全 L0–L7 字段结构、`scoring_mode.kind` 判分接口、status 状态机、`surface_axes`、`representations[].purpose`、`coverage_assertion`、L4/L5/L6 引擎契约。
+- **科目无关核心层(schema 结构固定,改 = 抽象泄漏)**:两对象全字段结构（production 指针层 + structure L1–L6）、`scoring_mode.kind` 判分接口、status 状态机、`surface_axes`、`representations[].purpose`、`coverage_assertion`、L4/L5/L6 引擎契约。
 - **科目特定可扩展层(受控词表,登记 schema_registry,结构 `{core_values, subject_extensions:{subject_id:[...]}}`,合法值 = core ∪ subject_extensions[subject])**:`competency.primary`、`canonical_logic.structure_type`、`difficulty_knobs[].knob`、`representations[].kind`、`variant_blueprints[].question_form`、`provenance.source_refs[].type`。新科目 = 加一条 `subject_extensions` + 跑闸,**零结构改**。
 - **错因轴跨科目** = 往 `ERROR_CODE_REGISTRY` **内部扩轴**(如法考 L01–L12),schema `maps_error_code` 一字不动;**禁止**资产私造科目错因码。
 - **三权分立**:schema 定**结构** / registry 定**受控值** / canonical 文件(taxonomy/error/artifact)定**内容**。通用只发生在结构层 + 受控值层,从不触三个内容权威。
@@ -111,7 +111,7 @@
 - `mistake_tag` = **判分侧投影**(`(scoring_point_id, error_code)` 绑定行);`label`/`version` **引用** registry,不在每行复制 taxonomy_version。
 - `misconception` = **诊断侧投影**(心智模型 + 纠正,必含**单一** `maps_error_code`);per-case_family 局部,**不建全局 registry**。
 - 两投影锚**同一** error_code,消费出口不同(判分/复练 vs 诊断/出题),**不合并、不竞争、删任一轴都不行**。
-- 修正:§11 引用的 `mistake_code_registry.yaml` **不存在**(实为 `mistake_codes.py`),改正。
+- 文件承载（已核实）:`error_code` 轴 = `deeptutor/contracts/error_codes.py`（ERROR_CODE_REGISTRY,**无 yaml**）；`mistake_type` 轴（正交）= `contracts/mistake_code_registry.yaml`（yaml 单一权威,1519B,真实存在）+ `deeptutor/contracts/mistake_codes.py`（py mirror）。`mistake_tag.error_code` 锚 **error_code 轴**,勿与 mistake_type 混。
 
 ### 决议16:Phasing(设计全做,build/登记只做 F16 薄切片 — less is more)
 
@@ -125,7 +125,7 @@
 **剩余不确定性 + 验证/替代**:
 1. **`scoring_mode` 层级(单题 vs 多题)**:单题母题 case 级 OK;多题母题需把 `grading_artifact_id` 下沉到 `question_bindings[]` 每条,case 级只留 `scoring_mode.kind`。F16 单题→先 case 级。**替代(更稳)**:一律下沉到 question_binding。**验证**:扩到多题母题时复核。
 2. **[代码任务] `check_schema_registry.py` 扩能力**:扫 `artifacts/luban_case_family_assets/**/case_family*.yaml` 顶层字段 + 支持 `{core+subject_extensions}` 受控词表。否则只止血、非 runtime fail-closed 闭环。
-3. **[代码债务,已在 main 流血,比文档更急]**:两份 `_ERROR_LABELS` 逐字副本(`learning_report_read_model.py:124`、`learning_brain_read_model.py:14`)→ 改读 `ERROR_CODE_REGISTRY`;`mistake_code_registry.yaml` 悬空引用 → 改引真实文件。
+3. **[代码债务,已在 main 流血,比文档更急]**:两份 `_ERROR_LABELS` 逐字副本(`learning_report_read_model.py:124`、`learning_brain_read_model.py:14`,行号已核实)→ 改读 `ERROR_CODE_REGISTRY[code].label`,删本地副本。（注:`mistake_code_registry.yaml` 真实存在,非悬空,见决议15。）
 4. **`rule_type` 是否纯影子可删**:验证一条真实 `case_rubric_scored` record 是否有等价表达(大概率 = `required_terms + sub_type`);有→放心删,无→保留为 case 级**解释**字段(仍不判分)。
 
 **register-before-use 铁律**:**先删重复 → 再取并集 → 再登记两对象**;绝不在删重复前登记(否则用 registry 给 drift 盖章)。
@@ -170,8 +170,8 @@ case_family_production:
       binding_level: enum             # same_point | same_node | original_review（复测证据阶梯）
   mistake_tags:                       # error_code 的「采分点粒度判分侧投影」（不是新轴,决议15）
     - scoring_point_id: str
-      error_code: enum                # ∈ ERROR_CODE_REGISTRY（E/M轴）；锚 error_code,与 mistake_type 正交,勿混
-      source: enum                    # rubric_policy | teacher_final | model_candidate | user_selected
+      error_code: enum                # ∈ ERROR_CODE_REGISTRY 且 series ∈ {E,M}（**禁 `unknown_error` 等 fallback 占位**,Codex 审计）；锚 error_code 轴,与 mistake_type 正交,勿混
+      source: enum                    # rubric_policy | teacher_final | model_candidate | user_selected；**active 资产只许 rubric_policy / reviewed teacher_final,model_candidate/user_selected 只能 candidate/review queue**(Codex 审计)
                                       # label/taxonomy_version 不在此复制,运行时引用 ERROR_CODE_REGISTRY
   training_tasks:
     - mode: enum                      # light | semi_write | real_exam | photo_preview
@@ -216,7 +216,7 @@ case_family_structure:
     classic_traps:
       - trap: str
         probes_misconception_id: str  # → L5
-    scoring_logic: str
+    scoring_rationale: str            # 教学解释:出题人为什么奖励这些动作(看懂出题人逻辑用)。**必须引用 production point_id,不含独立给分规则;判分回 artifact**(§9)——原名 scoring_logic,Codex 审计指其会成第二套 rubric policy,已收权
     difficulty_knobs:
       - knob: enum                    # 受控词表（决议14）
         levels: [str]
@@ -230,13 +230,13 @@ case_family_structure:
   # ---- L4 表皮生成器 ----
   surface_generator:
     invariant_held: [str]             # = invariant.canonical_logic.skeleton
-    surface_axes:
+    surface_axes:                     # (Phase 0 可缺省,Phase 2 补;封闭核心枚举)
       - axis: enum                    # scenario_skin | numbers | question_angle | polarity | distractor_set | given_conditions
         options: [str]
     variant_blueprints:               # 生成「新变体」（消费：出题/诊断）
       - variant_id: str
         question_form: enum           # 受控词表
-        surface_config: {axis: value}
+        surface_config: {axis: value}  # (Phase 0 可缺省)
         isolates:
           sub_competency: str
           failure_mode_id: str        # 系统覆盖该母题全部失分形态
@@ -249,10 +249,10 @@ case_family_structure:
   misconceptions:
     - misconception_id: str           # per-case_family 局部,不建全局 registry
       wrong_mental_model: str
-      surface_signals: [str]
+      surface_signals: [str]          # (Phase 0 可缺省)
       correction: str                 # 打到心智模型（不是"看书P30"）
       correction_representation_ref: str
-      maps_error_code: enum           # 单一,∈ ERROR_CODE_REGISTRY；与 production.mistake_tags 锚同一 error_code 轴（决议15）
+      maps_error_code: enum           # 单一,∈ ERROR_CODE_REGISTRY 且 series ∈ {E,M}（**禁 `unknown_error`**）；与 production.mistake_tags 锚同一 error_code 轴（决议15）
   # ---- L6 掌握度与鉴别 ----
   mastery:
     discriminator_variants:
@@ -262,7 +262,7 @@ case_family_structure:
     mastery_evidence_rule:            # 只声明证据需求,判定执行在既有引擎（决议15/对抗④）
       requires:                       # 结构化,非自由文本
         - failure_mode_id: str
-          binding_level: enum         # same_point | same_node（对齐 production 复测阶梯）
+          binding_level: enum         # 同 production.binding_level 枚举(same_point|same_node|original_review),但 mastery 只接受 {same_point, same_node}——original_review(原题重做)易背,不算掌握证据
       authority: LearnerStateService / learning_evidence / revalidation_queue
 ```
 
@@ -291,19 +291,20 @@ L1–L6 走既有 Living LLM Artifact Compiler，**不另建管线**：
 - **S3 确定性 gate ladder（本 schema 强制项）**：
   - G-INV：`invariant.essence` 必须能从 ≥3 个 surface 变体中被独立抽出同一句（不变量可证伪，见 §7）。
   - G-SRC：`examiner_intent.source_transform` 与 `representations[].provenance` 必须能 verbatim 溯源到教材/规范原文（防 LLM 编造出题人意图）。
-  - G-MAP：每个 `distractor_to_misconception` 必须指向一个已定义 misconception；每个 misconception 必须 `maps_error_code ∈ ERROR_CODE_REGISTRY`。
+  - G-MAP：每个 `distractor_to_misconception` 必须指向一个已定义 misconception；每个 misconception 必须 `maps_error_code ∈ ERROR_CODE_REGISTRY` **且 series ∈ {E,M}**（authored 资产禁 `unknown_error` 等 fallback 占位——registry 含该成员,"∈ registry"不够,必须显式排除,Codex 审计）。
   - G-COV：`surface_generator.coverage_assertion.covered=true` 才能升 active（变体集合覆盖全部 failure_mode）。
   - G-AUTH：`question_bindings[].grading_artifact_id` 引用的 artifact 必须是 published（draft 点只能展示/规划，不参与判分）。
+  - G-REF（拆对象后唯一的跨对象完整性,本次审计新增）：① `case_family_structure.case_family_id` == `case_family_production.case_family_id`；② structure `variant_blueprints[].scoring_point_refs` ⊆ ∪(production `question_bindings[].scoring_point_refs`)（变体只能测已被某真题 artifact 覆盖的采分点,不得新造）；③ 所有 `probes_misconception_id` / `distractor_to_misconception` 的 value ∈ `misconceptions[].misconception_id`；④ 每个 `variant_blueprints[].isolates.failure_mode_id` ∈ `coverage_assertion.enumerated_failure_modes`,且 `mastery.requires[].failure_mode_id` ⊆ enumerated_failure_modes（Codex 审计补）；⑤ `examiner_intent.source_ref` / `representations[].provenance` 应命中 production `provenance.source_refs[].ref_id`（Phase 0 reviewer 人工核,Phase 2 改结构化 ref_id + 确定性校验）。**当前无 validator → 暂标 reviewer 人工核,待决议17#2 扩 `check_schema_registry.py` 兜成确定性门**;不留只在 yaml 注释里的空头约束(拆对象本想消灭的 drift 会从这里复发)。
 - **S4 council**：四模型对抗只能 down-rank，绝不 up-rank / 补 source。
 - **S5 单点签发**：唯一翻 `promote_to_release=True` 处。
-- **默认 tier**：L1–L6 = teaching/diagnosis tier，`official_score_allowed=false`；判分永远回 L7。
+- **默认 tier**：L1–L6（structure）= teaching/diagnosis tier，`official_score_allowed=false`；判分永远回 `production.question_bindings`。
 
 ## 6. 消费（一份资产，五个出口）
 
 ```text
                          ┌─ 出题 ←  L4 surface_generator（按难度旋钮生成变体）
                          ├─ 判分 ←  production.question_bindings（引用 signed artifact）
-深母题资产（L0–L7）── 喂 ─┼─ 诊断 ←  L5 misconceptions（选错→心智模型→纠正）
+深母题资产（两对象）─ 喂 ─┼─ 诊断 ←  L5 misconceptions（选错→心智模型→纠正）
                          ├─ 讲解 ←  L3 representations（按考点类型选表征）
                          └─ 复测 ←  L6 discriminator_variants（真懂 vs 背过）
 ```
@@ -363,13 +364,13 @@ case_family_structure:
       - {trap: 用"从下到上"朴素直觉套所有层, probes_misconception_id: MC-LAYER-NAIVE}
       - {trap: 给一个搭接方向逆流水的选项, probes_misconception_id: MC-LAP-DIR}
       - {trap: 节点与大面顺序对调, probes_misconception_id: MC-NODE-LAST}
-    scoring_logic: 给分给在"节点先行 + 搭接迎水/顺水 + 方向"三个证明你懂因果的动作,不是背层名
+    scoring_rationale: 出题人奖励"节点先行(P10)+ 搭接迎水/顺水 + 方向(P11)"是因为这三个动作证明你懂因果——教学解释,引用 point_id,非给分规则(判分回 artifact)
     difficulty_knobs:
       - {knob: interference_condition, levels: [无, 加"赶工期"诱导你跳工序]}
       - {knob: question_angle, levels: [排序, 找错, 改写不规范交底]}
   representations:
     - {kind: flowchart, fits_structure: [procedure], purpose: teach_first_time, content_spec: 工序决策树(每步标"为什么在这一步"), provenance: 教材-防水工序}
-    - {kind: counterexample, fits_structure: [procedure], purpose: fix_misconception, content_spec: 先大面后节点→渗漏路径图}
+    - {kind: counterexample, fits_structure: [procedure], purpose: fix_misconception, content_spec: 先大面后节点→渗漏路径图, provenance: 教材-防水工序}
   surface_generator:
     invariant_held: [节点先行, 搭接顺流水, 方向迎水]
     variant_blueprints:
@@ -392,12 +393,14 @@ case_family_structure:
       authority: LearnerStateService
 ```
 
-> 本样板 = Phase 0 的 **F16 薄切片**（决议16），也是两对象形的活样板。FM-ORDER / FM-LAP / FM-NODE 三种失分形态都补了变体 → `covered=true`，structure 侧可升 active；两对象用 `case_family_id: F16` 关联；production 侧 `scoring_mode.kind=case_rubric` + question_binding 引用 published artifact（artifact_id 占位待真实签发），structure 侧承载全部原创教学结构。**这就是去跑 5 天留存测试的弹药**——每个干扰项都映射到 misconception（带 correction + maps_error_code），实现"选错即诊断"。
+> 本样板 = Phase 0 的 **F16 薄切片**（决议16），也是两对象形的活样板。FM-ORDER / FM-LAP / FM-NODE 三种失分形态都补了变体 → `covered=true`，structure 侧可升 active；两对象用 `case_family_id: F16` 关联；production 侧 `scoring_mode.kind=case_rubric` + question_binding 引用 published artifact（artifact_id 占位待真实签发），structure 侧承载全部原创教学结构。**这就是去跑 5 天留存测试的弹药**——每个干扰项都映射到 misconception（带 correction + maps_error_code），实现"选错即诊断"。注:本薄切片按决议16 省略了 Phase 0 可缺省的 enrichment 字段（surface_axes / surface_config / surface_signals）;provenance 等必填已补全,可通过 §3 schema 校验（Codex 审计）。
 
 ## 9. 单一权威硬约束 / 反模式
 
-- L1–L6 **永不**写 official score、canonical learner truth、rubric policy。判分回 L7 引用的 signed artifact。
+- L1–L6（structure）**永不**写 official score、canonical learner truth、rubric policy。判分回 `production.question_bindings` 引用的 signed artifact。
 - L5 误解模型**必须**映射既有 `ERROR_CODE_REGISTRY`，禁止私造错因码（`label` 取 registry 原值）。
+- **authored 资产的 `error_code` / `maps_error_code` 必须 series ∈ {E,M}**,禁止 `unknown_error` 等 fallback 占位进入 active(registry 含该成员,只判"∈ registry"会放它进来——Codex 审计)。
+- **`scoring_rationale`（原 scoring_logic）是教学解释,不是给分规则**:必须引用 production 的 point_id,**不得**保存独立给分逻辑文本;判分永远回 `production.question_bindings` 引用的 artifact。它被 §9 这条 + L1–L6 teaching tier 双重约束,绝不作为 rubric policy 第二来源。
 - L1/L3 知识点身份用 canonical taxonomy `node_code`，禁止另起知识树。
 - L2/L3 教学内容**必须**可 verbatim 溯源教材/规范原文（防 LLM 编造"出题人意图"）。
 - L6 掌握判定写进 `learning_evidence` / `LearnerStateService`，前端不自算。
@@ -405,10 +408,10 @@ case_family_structure:
 
 ## 10. 分期（守住"先验证留存、再扩产"纪律）
 
-**这份 schema 是资产的北极星，不是现在就全量填的清单。**
+**这份 schema 是资产的北极星，不是现在就全量填的清单。**（本节 Phase 0/1/2/3 是 §3.0 决议16「Phase 0 薄切片 / Phase 2 全套」的细化展开；口径冲突以决议16 为准。）
 
 - **Phase 0（留存测试用，本周）**：在 **1 个母题（F16）** 上做"薄但真"的切片——必填 L1.essence、L2.classic_traps、L5 误解模型(2-3 个) + correction、L3(one_liner + 1 个 flowchart)、L6 至少 1 个 discriminator_variant、L4 至少覆盖 2-3 个 failure_mode 的变体。**用这个深度切片去跑留存,验证"护城河级深度的资产是否真能留住人"**——而不是用浅 quiz 测,避免假阴性。
-- **Phase 1（留存被证明后）**：把 F16 的 `coverage_assertion` 补到 covered=true,L1–L7 填满,作为 schema 的活样板冻结。
+- **Phase 1（留存被证明后）**：把 F16 的 `coverage_assertion` 补到 covered=true,两对象（production 引用 + structure L1–L6）填满,作为 schema 的活样板冻结。
 - **Phase 2**：扩到 3–5 母题,验证 schema 在不同 `structure_type`(procedure / causal_chain / calculation)上都成立。
 - **Phase 3**：用 S0–S7 pipeline 半自动扩产到 30–40 母题;并做一次跨科目实例化冒烟(§7.7),证明 schema 抽象不泄漏。
 
@@ -422,16 +425,17 @@ case_family_structure:
 |---|---|---|---|
 | `case_family_production` schema（指针层:id/subject/status_production/taxonomy_ref/provenance/scoring_mode/question_bindings/mistake_tags/training_tasks/review） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（独立 typed-object entry） | ❌ 未登记 |
 | `case_family_structure` schema（原创层:status_structure/invariant/examiner_intent/representations/surface_generator/misconceptions/mastery） | cross_consumer + persisted + named_field_binding | `contracts/schema_registry.yaml`（独立 entry,与 production 用 `case_family_id` 关联） | ❌ 未登记 |
-| enum 受控词表：`competency.primary` / `canonical_logic.structure_type` / `difficulty_knobs[].knob` / `representations[].kind` / `representations[].purpose` / `surface_axes[].axis` / `variant_blueprints[].question_form` / `scoring_mode.kind` | named_field_binding（跨消费者按值绑定） | `contracts/schema_registry.yaml`（字段允许值 / authority value） | ❌ 未登记 |
+| **科目可扩展**受控词表（决议14,registry 结构 `{core_values, subject_extensions}`）：`competency.primary` / `canonical_logic.structure_type`（`representations[].fits_structure` 复用同枚举,Codex 审计补） / `difficulty_knobs[].knob` / `representations[].kind` / `variant_blueprints[].question_form` / `provenance.source_refs[].type` | named_field_binding（跨消费者按值绑定） | `contracts/schema_registry.yaml`（字段允许值 + 科目扩展） | ❌ 未登记 |
+| **封闭核心**受控词表（固定,不可科目扩展）：`status_production` / `status_structure` / `scoring_mode.kind` / `surface_axes[].axis` / `representations[].purpose` / `question_bindings[].retest_role` / `binding_level`（production+structure **同一枚举**,mastery 只接受其子集） / `training_tasks[].mode` / `task_scope.scope_type` / `task_scope.evidence_weight` / `mistake_tags[].source` | named_field_binding | `contracts/schema_registry.yaml`（封闭允许值） | ❌ 未登记 |
 | `misconception_id` / `failure_mode_id` 命名空间（per-case_family 局部 ID） | named_field_binding（该资产消费者间） | 作为 `case_family_structure` schema 字段一并登记；**不另起全局 registry**（避免第二权威 / G8） | ❌ 未登记 |
 | `syllabus_locator`（GradingResult/read-model 字段，见 viewmodel-event-contract） | cross_consumer + named_field_binding | grading-result / read-model contract（`contracts/index.yaml` domain + schema_registry） | ❌ 未登记（原名 `textbook_locator` 撞 citations，已改名） |
 | `days_since_first_use`（行为事件维度） | cross_consumer | 产品行为事件 catalog（`surface-events` / `product_behavior`，见 viewmodel-event-contract §3） | ❌ 未登记 |
 | `mobile_p0a_daily_loop_completed`（行为事件） | cross_consumer | 同上事件 catalog | ❌ 未登记 |
 
 **复用既有 authority，无需新登记**（本文只引用，不新建）：
-- `maps_error_code` / `mistake_tags[].error_code` → `ERROR_CODE_REGISTRY`（`deeptutor/contracts/error_codes.py`,E/M 错因轴）。注意 `mistake_code_registry.yaml` 已不存在;判分形态轴 `mistake_type` 另在 `deeptutor/contracts/mistake_codes.py`（与 error_code **正交**,勿混,决议15）。
+- `maps_error_code` / `mistake_tags[].error_code` → `ERROR_CODE_REGISTRY`（`deeptutor/contracts/error_codes.py`,E/M 错因轴,**无 yaml**）。判分形态轴 `mistake_type`（与 error_code **正交**,勿混）权威 = `contracts/mistake_code_registry.yaml`（yaml）+ `deeptutor/contracts/mistake_codes.py`（py mirror）（决议15）。
 - `taxonomy_ref.node_codes` → canonical taxonomy。
-- `scoring_mode.grading_artifact_id` / `point_ids` → published question grading artifact registry。
+- `question_bindings[].grading_artifact_id` / `scoring_point_refs` → published question grading artifact registry（Codex 审计:原写 `scoring_mode.grading_artifact_id` 是不存在的字段,已改真实字段名）。
 - L6 掌握判定写入 → `learning_evidence` / `LearnerStateService`（既有 contract）。
 
 **实现顺序铁律**：先把 `case_family_production` 与 `case_family_structure` 两对象（各自 + enum 词表）登记进 `schema_registry.yaml` → `scripts/check_schema_registry.py` 绿 → 再写任何消费这些字段的代码。Phase 0 的 F16 切片若以**文件型资产**（yaml 落盘 `artifacts/luban_case_family_assets/F16/`）存在、尚未被 runtime 代码按字段名绑定，属设计资产；一旦有代码 emit/consume 其字段，立即触发登记义务。
