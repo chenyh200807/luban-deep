@@ -1,0 +1,112 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "N01_network_keypath",
+  "template_type": "network_plan_keypath",
+  "title": "网络计划关键线路判断",
+  "student_goal": "学会用“总时差为 0”判断关键线路，而不是凭“工期最长”或某条单个工作瞎猜。",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "student_boundary": "这是教学演示用的网络计划例子，帮你练判断方法；不是某道官方真题，具体数字以你自己做的题为准。",
+    "source_refs": ["candidate_teaching_example::network_plan_keypath_v0"]
+  },
+  "question_data": {
+    "stem": "某工程由 A~E 五项工作组成，逻辑关系与持续时间如下图，求关键线路与总工期。",
+    "activities": [
+      {"id": "A", "label": "A", "duration": 3},
+      {"id": "B", "label": "B", "duration": 2},
+      {"id": "C", "label": "C", "duration": 4},
+      {"id": "D", "label": "D", "duration": 2},
+      {"id": "E", "label": "E", "duration": 3}
+    ],
+    "dependencies": [
+      {"from": "START", "to": "A"},
+      {"from": "START", "to": "B"},
+      {"from": "A", "to": "C"},
+      {"from": "A", "to": "D"},
+      {"from": "B", "to": "D"},
+      {"from": "C", "to": "E"},
+      {"from": "D", "to": "E"},
+      {"from": "E", "to": "END"}
+    ],
+    "expected": {
+      "critical_path": ["START", "A", "C", "E", "END"],
+      "project_duration": 10,
+      "float": {
+        "A": {"total_float": 0, "free_float": 0},
+        "B": {"total_float": 3, "free_float": 1},
+        "C": {"total_float": 0, "free_float": 0},
+        "D": {"total_float": 2, "free_float": 2},
+        "E": {"total_float": 0, "free_float": 0}
+      }
+    }
+  },
+  "explanation_steps": [
+    {
+      "id": "read_dependencies",
+      "title": "先读紧前紧后",
+      "focus": ["dependencies"],
+      "script": "别上来就比谁工期长。先把逻辑关系理清楚：A、B 从开工就能动，C、D 接在 A 后面，D 还要等 B，E 要等 C 和 D 都完成。逻辑读错，后面全错。",
+      "evidence_refs": ["candidate_teaching_method::cpm_logic_first"]
+    },
+    {
+      "id": "forward_pass",
+      "title": "顺推最早时间",
+      "focus": ["early_time"],
+      "script": "从左往右顺推每项工作的最早开始时间，取所有紧前工作里完成最晚的那个。比如 E 要等 C（第 7 天）和 D（第 5 天），所以 E 最早第 7 天才能开始。",
+      "evidence_refs": ["candidate_teaching_method::cpm_forward_pass"]
+    },
+    {
+      "id": "backward_pass",
+      "title": "逆推最迟时间",
+      "focus": ["late_time"],
+      "script": "再从右往左逆推最迟时间，看每项工作最晚什么时候必须开始才不拖总工期。最迟开始减最早开始，就是这项工作的总时差。",
+      "evidence_refs": ["candidate_teaching_method::cpm_backward_pass"]
+    },
+    {
+      "id": "highlight_critical_path",
+      "title": "总时差为 0 的线路就是关键线路",
+      "focus": ["critical_path"],
+      "script": "把总时差为 0 的工作连起来，就是关键线路：开始 - A - C - E - 结束，总工期 10 天。B 和 D 有时差，拖一点也不影响总工期，所以不在关键线路上。",
+      "evidence_refs": ["candidate_teaching_method::cpm_zero_total_float"]
+    }
+  ],
+  "error_reveals": [
+    {
+      "id": "longest_single_activity",
+      "error_code": "candidate_network_error",
+      "title": "把最长单个工作误认为关键线路",
+      "jump_step_id": "highlight_critical_path",
+      "script": "C 的工期最长（4 天），但“最长的单个工作”不等于关键线路。关键线路是总时差为 0 的那条连续路线，要看整条路，不是看哪一根最粗。",
+      "correction_hint": "看总时差为 0 的整条线路，不是最长的单个工作。"
+    },
+    {
+      "id": "ignore_dependency",
+      "error_code": "candidate_network_error",
+      "title": "只看工期，不看逻辑关系",
+      "jump_step_id": "read_dependencies",
+      "script": "只把工期加起来排个序，会漏掉逻辑关系。D 必须等 A 和 B 都完成，E 必须等 C 和 D。不按紧前紧后走，算出来的线路是假的。",
+      "correction_hint": "先理清紧前紧后，再算时间。"
+    },
+    {
+      "id": "confuse_total_free_float",
+      "error_code": "candidate_network_error",
+      "title": "混淆总时差和自由时差",
+      "jump_step_id": "backward_pass",
+      "script": "总时差是这项工作能拖多久而不影响总工期；自由时差是不影响紧后工作最早开始的余量。B 的总时差是 3、自由时差只有 1，两个不是一回事。",
+      "correction_hint": "总时差对总工期，自由时差对紧后工作，别混。"
+    }
+  ],
+  "practice": {
+    "question": "下面哪条线路是这个网络计划的关键线路？",
+    "options": [
+      {"id": "A", "text": "开始 - A - D - E - 结束"},
+      {"id": "B", "text": "开始 - A - C - E - 结束"},
+      {"id": "C", "text": "开始 - B - D - E - 结束"},
+      {"id": "D", "text": "工期最长的那项工作 C"}
+    ],
+    "answer": "B",
+    "review_step_id": "highlight_critical_path",
+    "correct_script": "对。开始 - A - C - E - 结束 上每项工作的总时差都是 0，加起来正好 10 天，这就是关键线路。",
+    "incorrect_script": "再看看。关键线路要每一段总时差都为 0：A-D-E 里 D 有时差，B-D-E 里 B、D 都有时差，最长的单个工作 C 也不是一条线路。正确的是 开始 - A - C - E - 结束。"
+  }
+}
