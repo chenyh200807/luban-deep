@@ -115,9 +115,6 @@
     }
   ],
   "diagnosis_summary": {
-    "hit_count": 1,
-    "partial_count": 1,
-    "miss_count": 2,
     "encouragement": "你已经抓住了养护的开头，就差“养护时间、先查再修、说清成因”这三步。补齐它们，遇到变题也不慌。"
   },
   "common_errors": [

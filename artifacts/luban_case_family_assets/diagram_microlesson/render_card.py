@@ -502,7 +502,10 @@ def render(schema: dict[str, Any]) -> str:
     practice = schema.get("practice") or {}
     data = trusted_json_for_script({
         "steps": [client_step(s) for s in (schema.get("steps") or [])],
-        "practice": practice,
+        # 学生端只需 review_step_id 做答错回跳; 判分对错由按钮 data-correct 承载,
+        # 不把 options[].is_correct / feedback 透进 #cardData (避免复测答案在 JSON 里明文双写)。
+        # 注: data-correct 仍在 DOM, 是静态卡前端判分的固有项, 无服务端时无法真隐藏 (见 SCHEMA.md 复测题边界)。
+        "practice": {"review_step_id": practice.get("review_step_id")},
         "narration": client_narration(schema),
     })
     authority = schema.get("authority") or {}

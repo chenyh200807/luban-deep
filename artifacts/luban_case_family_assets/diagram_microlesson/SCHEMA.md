@@ -73,6 +73,18 @@
 
 收敛方向（**本轮不强改**，只登记）：新卡统一用 `card_id` / `student_goal` / `authority.status`；旧卡 F16 暂保留 `topic_id`/`learning_goal`，由校验器兼容。
 
+### 已登记待收敛 drift（v0 复审 + 多专家审计追加，随下一张新卡顺手统一，不为收敛单独大改 F16）
+
+| drift | 现状 | 权威应是 | 收敛动作 |
+|---|---|---|---|
+| `max_score` 多写 | F16 `exam_binding.max_score` 在每个 `used_by_steps` 步重抄一份 + `scoring_points.max_score` 一份（P10 共 4 处镜像） | `scoring_points[].max_score` | `exam_binding` 只持 `score_point_id` 指针，分值由 renderer 经 id 解析；改分只动一处 |
+| 两个 `kind` 双轴 | `exam_binding.kind ∈ {signed_candidate, teaching_step}`（绑定类型）与 `authority.status`/`provenance.kind`（成熟度）都含 `signed_candidate`，语义轴不同却同词 | 成熟度唯一在 `authority.status`/`provenance.kind` | `exam_binding.kind` 收敛为纯绑定类型 `{scored, teaching}`，成熟度词从该 enum 移除 |
+| `correction_hint` 承载位 | F16 在 `narration.error_reveals[]`，D01 在 `common_errors[]` | `common_errors[]`（错因固有属性） | narration 若需播报则引用，不重存 |
+| `practice` 正确答案结构 | F16/D01 用 `options[].is_correct`（每项布尔），N01 用 `practice.answer`（单一正确 id） | 单一正确 id（`answer`，泄漏面更小） | 新卡统一 `answer`；F16 暂保留由 renderer 兼容 |
+| review 锚点目标空间 | F16/N01 `review_step_id` 指 step/explanation_step，D01（diagnosis body 无 step）无定义 | 统一 `review_anchor`，各 body 指各自主 body id | 待 D01 进 renderer 时定义 |
+
+> 这些均为 drift，不是硬冲突：读取侧已由 `validate_schema_drafts.py` 的 `authority_status()` 等单一 resolver 兼容收口；登记是为防"知道但没记"，量产前随新卡统一。
+
 ## 互斥 body（每张卡只能有一个主 body）
 
 | template_type | 主 body 字段 |
@@ -329,6 +341,12 @@
 - `review_step_id` 可选, 必须命中 `steps[].id`; 答错时渲染器跳回该 step 并显示"你漏了这一步"横幅。缺省回退 `reinforcement_layer`。
 - 答对时显示"你已经抓住核心漏点"正向反馈, 不跳转。
 - 答错时可跳回对应 step, 但不能写入真实 learner state。
+
+### 学生端答案泄漏边界（静态卡固有约束，诚实登记）
+
+- `#cardData` JSON **只透传 `practice.review_step_id`**（答错回跳用），**不得**透传 `options[].is_correct` / `feedback`（`render_card.py` 已收口；`steps`/`narration` 同样经 `client_*` 白名单投影）。
+- 选项对错由按钮 `data-correct` 承载，这是**静态卡前端判分的固有项**：无服务端时，"哪个选项正确 + 选项级 feedback" 必然在前端 DOM 可得。
+- 因此复测题在静态卡下**仅作训练自检**，view-source 能看穿答案 = 学生自欺，危害低；**非防作弊场景**。正式计分 / 防作弊需服务端判分，超出本 renderer 职责，不在 schema 层假装解决。
 
 ## 输出文件
 
