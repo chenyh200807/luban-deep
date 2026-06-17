@@ -49,6 +49,7 @@
 3. `chart` 区域空白，只剩容器但没有数据内容
 4. `fallback_table` 不可滑动、不可达或被裁切
 5. wx 与宿主分包在 block 顺序、可见性或样式上明显不一致
+6. imported interactive content 在微信端执行 raw HTML / JS、访问宿主状态，或失败时拖垮整条消息 / 整个课堂
 
 ## 5. 通过条件
 
@@ -58,3 +59,4 @@
 2. 微信开发者工具、iPhone 与 Android 抽样都通过
 3. 弱网场景下 `chart` 的数据卡回退行为符合预期
 4. 至少留存一轮截图或录屏证据
+5. imported interactive content 只能走安全降级或 Scene Runtime Core 规范化后的 render model；任意失败只影响当前 block / scene
