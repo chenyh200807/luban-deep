@@ -92,6 +92,49 @@ async def test_resolve_turn_semantic_decision_maps_llm_answer_to_grading(
     assert semantic_router.turn_semantic_decision_route(decision) == "deep_question"
 
 
+def test_open_world_question_tier_is_built_and_round_trips_in_live_builder() -> None:
+    """Fix C step 1（2026-06-17）：source-backed 变式卡的 ``open_world_question`` tier
+    在「唯一 live builder」semantic_router 注册并 round-trip。
+
+    本步只覆盖 live builder（build / normalize）：(1) 显式 override 建出且经 normalize
+    往返保留（不退化成 single_question）；(2) 属受支持 question tier；(3) 无 verified
+    correct_answer（judging 走 open-world，硬约束40，绝不冒充题库/官方 authority）；
+    (4) 非法 override 回落推断。
+
+    全链路传播（sqlite alias+normalizer / loop 识别 / unified_turn 契约枚举 /
+    turn_runtime 重建 object_type 透传 / orchestrator question domain）是 step 2
+    出题侧真正发射该 tier 时的前置,Codex review 已列出,届时连同各域回归一并补。
+    """
+    active_object = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "owq-1",
+            "question": "地下室外墙防水层应设置在哪一侧？（变式卡）",
+            "question_type": "choice",
+            "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）"},
+            # 故意不带 correct_answer：open-world 判分。
+        },
+        source_turn_id="turn-owq",
+        object_type_override="open_world_question",
+    )
+
+    assert active_object is not None
+    assert active_object["object_type"] == "open_world_question"
+    assert "open_world_question" in semantic_router.QUESTION_ACTIVE_OBJECT_TYPES
+    assert (
+        semantic_router.normalize_active_object(active_object)["object_type"]
+        == "open_world_question"
+    )
+    assert not str(active_object["state_snapshot"].get("correct_answer") or "").strip()
+
+    # 非法 override 必须回落推断，绝不引入未登记类型。
+    fallback = semantic_router.build_active_object_from_question_context(
+        {"question_id": "x", "question": "单题", "question_type": "choice", "options": {"A": "1", "B": "2"}},
+        object_type_override="totally_bogus_type",
+    )
+    assert fallback is not None
+    assert fallback["object_type"] == "single_question"
+
+
 @pytest.mark.asyncio
 async def test_open_chat_short_acceptance_of_recent_practice_offer_routes_to_generation() -> None:
     decision, action = await semantic_router.resolve_turn_semantic_decision(

@@ -315,7 +315,19 @@ class ChatOrchestrator:
         context: UnifiedContext,
         routing_user_message: str,
     ) -> str:
-        if context.active_capability:
+        # 2026-06-17 root-cause fix（"做完题没给答案"）：MCQ 作答提交轮（lifecycle
+        # scene=mcq_grading）若被一个非判分能力 preselect（微信默认 active_capability
+        # =tutorbot），原本会在此 bypass 直接返回 tutorbot，且 _prepare_preselected_
+        # capability_context 只为 deep_question 准备提交上下文 → tutorbot 拿不到作答、
+        # 判分永不触发、用户"做完题没给答案"。这里让该作答轮 fall through 到下方
+        # 判分能力路由（semantic router → deep_question route_to_grading），保证判分入口
+        # 必达；score authority 不变（鲁班 V1）。case_grading 已有独立分支不经过此处。
+        lifecycle_scene = str(context.metadata.get("question_lifecycle_scene") or "").strip()
+        preselected_capability = str(context.active_capability or "").strip().lower()
+        mcq_grading_bypass = (
+            lifecycle_scene == "mcq_grading" and preselected_capability != "deep_question"
+        )
+        if context.active_capability and not mcq_grading_bypass:
             self._prepare_preselected_capability_context(context, routing_user_message)
             context.metadata.setdefault("semantic_router_mode", "preselected")
             context.metadata.setdefault("semantic_router_mode_reason", "preselected_capability")
@@ -324,6 +336,8 @@ class ChatOrchestrator:
                 str(context.active_capability or "").strip(),
             )
             return context.active_capability
+        if mcq_grading_bypass:
+            context.metadata["mcq_grading_preselect_bypass_recovered"] = preselected_capability
 
         semantic_router_enabled = self._semantic_router_enabled(context)
         semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)

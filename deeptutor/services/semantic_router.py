@@ -147,7 +147,7 @@ _ORDINAL_INDEX_MAP = {
 }
 
 
-QuestionActiveObjectType = Literal["question_set", "single_question"]
+QuestionActiveObjectType = Literal["question_set", "single_question", "open_world_question"]
 GuideActiveObjectType = Literal["guide_page", "study_plan"]
 SessionActiveObjectType = Literal["open_chat_topic"]
 SemanticRelation = Literal[
@@ -181,7 +181,10 @@ SemanticAllowedPatch = Literal[
 ]
 
 
-QUESTION_ACTIVE_OBJECT_TYPES = {"question_set", "single_question"}
+# open_world_question：来源 source-backed 变式卡（硬约束27）的可作答题，judging
+# 走 open-world（无 verified correct_answer，硬约束40），区别于题库 verified 题
+# single_question / question_set；它只能驱动 open-world 判分，绝不冒充题库/官方 authority。
+QUESTION_ACTIVE_OBJECT_TYPES = {"question_set", "single_question", "open_world_question"}
 GUIDE_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 SESSION_ACTIVE_OBJECT_TYPES = {"open_chat_topic"}
 SUPPORTED_ACTIVE_OBJECT_TYPES = (
@@ -373,13 +376,21 @@ def build_question_active_object(
     *,
     prior_active_object: dict[str, Any] | None = None,
     source_turn_id: str = "",
+    object_type_override: str | None = None,
 ) -> dict[str, Any] | None:
     normalized = normalize_question_followup_context(question_context)
     if normalized is None:
         return None
 
     prior = normalize_active_object(prior_active_object)
-    object_type = infer_question_active_object_type(normalized)
+    # object_type_override 让出题侧（如 source-backed 变式卡）显式声明 open_world_question
+    # tier；否则按 item 数推断 single_question / question_set。只接受受支持的 question
+    # tier，非法值回落推断，绝不引入未登记类型。
+    override = str(object_type_override or "").strip().lower()
+    object_type = (
+        override if override in QUESTION_ACTIVE_OBJECT_TYPES
+        else infer_question_active_object_type(normalized)
+    )
     object_id = _normalize_object_id(None, normalized, object_type)
     if not object_id:
         return None
@@ -495,11 +506,13 @@ def build_active_object_from_question_context(
     *,
     source_turn_id: str = "",
     previous_active_object: dict[str, Any] | None = None,
+    object_type_override: str | None = None,
 ) -> dict[str, Any] | None:
     return build_question_active_object(
         question_context,
         prior_active_object=previous_active_object,
         source_turn_id=source_turn_id,
+        object_type_override=object_type_override,
     )
 
 
