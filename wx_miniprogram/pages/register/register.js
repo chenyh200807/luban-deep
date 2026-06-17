@@ -4,6 +4,16 @@ var helpers = require("../../utils/helpers");
 
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var CN_MOBILE_RE = /^1[3-9]\d{9}$/;
+var REGISTER_NOTICE_ITEMS = [
+  "本服务为 AI 备考辅助工具，练习、讲解、批改、估分、学情分析和学习建议仅供参考，不承诺通过考试、提升特定分数、达到特定排名或取得任何资格结果。",
+  "AI 批改、采分点诊断、错因分析和模拟评分不等同于考试机构、阅卷老师或官方评分标准的最终认定；涉及教材、规范、政策、考试大纲和真题解析的内容，应以最新官方发布为准。",
+  "你应自行核验本服务输出内容，并对据此作出的学习安排、资料选择、报考决策、工程实践判断或对外传播行为承担相应后果。",
+  "你上传、输入或传播的题目、图片、讲义、笔记、答案及其他内容，应保证来源合法，不侵犯第三方权益，不包含违法、泄密或不当信息；由此引发的投诉或责任由你依法承担。",
+  "你应提供真实、准确、有效的手机号、微信授权信息和账号资料，妥善保管登录凭证；未成年人注册或使用本服务，应事先取得监护人同意并在其指导下使用。",
+  "因微信、支付渠道、云服务、模型服务、网络运营商、终端设备或第三方接口原因造成的服务延迟、中断、错误或数据同步异常，平台将在合理范围内协助处理，但不承担超出法律规定和平台过错范围的责任。",
+  "因自然灾害、政策监管、网络攻击、系统安全事件、基础设施故障等不可抗力或不可归责于平台的原因导致服务异常，平台可采取暂停、限流、修复、回滚等必要措施。",
+  "除法律另有强制规定、平台故意或重大过失外，平台因本服务承担的赔偿责任以你就相关争议服务实际支付的费用为合理上限；本说明不排除或限制你依法享有的消费者权益。",
+];
 
 function validateRegisterForm(username, phone, password, confirmPassword) {
   if (!username) return "请输入用户名或邮箱";
@@ -39,6 +49,7 @@ Page({
     showPassword: false,
     showConfirmPassword: false,
     isDark: true,
+    registerNoticeItems: REGISTER_NOTICE_ITEMS,
   },
   onLoad: function () {
     try {
@@ -130,6 +141,9 @@ Page({
         wx.redirectTo({ url: "/pages/login/login" });
       },
     });
+  },
+  openTerms: function () {
+    wx.navigateTo({ url: "/pages/legal/terms" });
   },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
