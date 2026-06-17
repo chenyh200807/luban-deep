@@ -1,0 +1,340 @@
+{
+  "review_only": true,
+  "fixture_format": "per_question_grading_external_validity_fixtures",
+  "source_corpus": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.docx",
+  "source_note": "The corpus file labels these as 10 simulated student answer sheets. This fixture keeps source ids but paraphrases/excerpts answers to avoid official exact-slice leakage.",
+  "fixtures": {
+    "Q2023-1A434000-P0010-02-Q1": [
+      {
+        "label": "Q2023-01__S01_complete",
+        "student_answer_source_id": "Q2023-01__S01",
+        "answer_type": "complete",
+        "student_answer": "样本ID：Q2023-01__S01。问题1：试件取样和现场检测的见证记录不能由试验员自己形成，应由见证人员据实记录。检测费用也不应由总包代付，建设单位应在工程费用中单列检测费并按合同及时支付。见证记录还要写清取样过程、试件制作、标识和封样、送检以及现场检测等环节。",
+        "covered_point_ids": [
+          "sp_57e1e0b98579e817dbc2",
+          "sp_1474800b3401029300bc",
+          "sp_1f9cec4381fc726fc343"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-01__S05_miss_record_items",
+        "student_answer_source_id": "Q2023-01__S05",
+        "answer_type": "over_credit_trap",
+        "student_answer": "样本ID：Q2023-01__S05。问题1：见证记录由试验员填写不合适，应由见证人员记录取样和现场检测情况；总包按月支付检测机构费用也不合适，检测费用应由建设单位单独安排并按约支付。后续我只写了缺陷名称和防水构造，见证记录还应包含哪些具体内容没有展开。",
+        "covered_point_ids": [
+          "sp_57e1e0b98579e817dbc2",
+          "sp_1474800b3401029300bc"
+        ],
+        "missing_point_ids": [
+          "sp_1f9cec4381fc726fc343"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-01__S06_partial_record_items",
+        "student_answer_source_id": "Q2023-01__S06",
+        "answer_type": "partial",
+        "student_answer": "样本ID：Q2023-01__S06。问题1：试验员不能代替见证人做见证资料，见证人应记录取样和检测；总包付款给检测单位也不对，建设单位应负责检测费用。我只补了取样和送检等少数记录事项，其他记录细节记不全。",
+        "covered_point_ids": [
+          "sp_57e1e0b98579e817dbc2",
+          "sp_1474800b3401029300bc"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [
+          "sp_1f9cec4381fc726fc343"
+        ],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-01__S09_keyword_only",
+        "student_answer_source_id": "Q2023-01__S09",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2023-01__S09。关键词：住宅小区、质量检测办法、检测机构、混凝土缺陷、专项方案、验收资料、合同管理和安全检查。没有逐条说明哪两项检测管理做法不妥，也没有给出对应改法和见证记录内容。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_57e1e0b98579e817dbc2",
+          "sp_1474800b3401029300bc",
+          "sp_1f9cec4381fc726fc343"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-01__S10_generic_low_signal",
+        "student_answer_source_id": "Q2023-01__S10",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2023-01__S10。本工程应加强质量、安全、进度和资料管理，发现问题后整改并由监理、建设单位确认。具体谁记录见证、谁支付检测费、记录包括哪些内容不会写。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_57e1e0b98579e817dbc2",
+          "sp_1474800b3401029300bc",
+          "sp_1f9cec4381fc726fc343"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      }
+    ],
+    "Q2023-1A433000-P0012-02-Q1": [
+      {
+        "label": "Q2023-02__S01_complete",
+        "student_answer_source_id": "Q2023-02__S01",
+        "answer_type": "complete",
+        "student_answer": "样本ID：Q2023-02__S01。问题1：网络路线按一、二、三、四、六、七、八节点走，总持续时间为二十一个月。表中基础施工节拍是三个月，上部结构节拍是六个月。改成成倍节拍流水时，步距取三个月，专业队合计五个，流水总工期算为十八个月。",
+        "covered_point_ids": [
+          "sp_71dbda5105893f9a6864",
+          "sp_47fac1b79bf85db93824",
+          "sp_d0a9a53596bad0afeb7c",
+          "sp_ca7c86ba0b1fbd406de0"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-02__S06_wrong_doubling_duration",
+        "student_answer_source_id": "Q2023-02__S06",
+        "answer_type": "over_credit_trap",
+        "student_answer": "样本ID：Q2023-02__S06。问题1：关键线路走一至二、二至三、三至四、四至六、六至七、七至八，总工期二十一个月。基础施工三个月，上部结构六个月。成倍节拍中我写步距三个月、队伍数五个，但最后仍写成二十一个月。",
+        "covered_point_ids": [
+          "sp_71dbda5105893f9a6864",
+          "sp_47fac1b79bf85db93824",
+          "sp_d0a9a53596bad0afeb7c"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [
+          "sp_ca7c86ba0b1fbd406de0"
+        ],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-02__S08_wrong_doubling_duration",
+        "student_answer_source_id": "Q2023-02__S08",
+        "answer_type": "over_credit_trap",
+        "student_answer": "样本ID：Q2023-02__S08。问题1：关键线路和原计划工期我按图算出，基础与上部结构分别按三个月和六个月写出；流水步距、施工队数也写了三个月和五个队，但成倍流水工期误写成二十一个月。",
+        "covered_point_ids": [
+          "sp_71dbda5105893f9a6864",
+          "sp_47fac1b79bf85db93824",
+          "sp_d0a9a53596bad0afeb7c"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [
+          "sp_ca7c86ba0b1fbd406de0"
+        ],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-02__S09_keyword_only",
+        "student_answer_source_id": "Q2023-02__S09",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2023-02__S09。关键词：住宅项目、网络计划、流水施工、雨期施工、检测试验计划、主体结构验收。没有给出节点线路、工期、节拍或成倍流水计算。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_71dbda5105893f9a6864",
+          "sp_47fac1b79bf85db93824",
+          "sp_d0a9a53596bad0afeb7c",
+          "sp_ca7c86ba0b1fbd406de0"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2023-02__S10_generic_low_signal",
+        "student_answer_source_id": "Q2023-02__S10",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2023-02__S10。应加强施工组织、进度、质量和资料管理，按规范整改并由监理确认。关键线路、流水节拍、队伍数量和工期计算不会写。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_71dbda5105893f9a6864",
+          "sp_47fac1b79bf85db93824",
+          "sp_d0a9a53596bad0afeb7c",
+          "sp_ca7c86ba0b1fbd406de0"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      }
+    ],
+    "Q2024-1A432000-P0015-01": [
+      {
+        "label": "Q2024-04__S01_complete",
+        "student_answer_source_id": "Q2024-04__S01",
+        "answer_type": "complete",
+        "student_answer": "样本ID：Q2024-04__S01。1. 清单强制内容还应包括计量口径、清单列项办法、报价计价口径、风险承担和可竞争费用边界。2. 投标响应还要覆盖工期要求、承包范围、安全要求、法律规定、合同双方职责以及报价形成依据。3. 违法分包包括分给无资质主体、把非钢结构主体施工交出去、专业工程再拆给别人、劳务再次转包，以及专业承包人借劳务名义收取主材和大型机械周转费用。4. 自行施工目标成本为七千二百二十二点二二万元扣除百分之十利润，即六千五百万元；专项成本分析还要看盈亏异常、质量成本、资金占用和其他利弊。5. 结算中增补清单一百万元，分部分项为六千一百万元；措施按百分之十为六百一十万元；其他项目按二百六十八、一百一十九、九十相加为四百八十万元；规费按前述小计百分之二取一百四十四万元；税金按含规费基数百分之九取六百六十万元；最终约七千九百九十四万元。",
+        "covered_point_ids": [
+          "sp_e8e9e86f3cf679e75627",
+          "sp_ad53146ff87b124e8725",
+          "sp_aadb41fd6c5fff01b9d5",
+          "sp_b0ff526732488de04919",
+          "sp_394cfd9a34d6e2882f76",
+          "sp_e70f81eb51201d486fd1",
+          "sp_20199adf6e55341a1c89",
+          "sp_c0fb04f5010c14a7c74a",
+          "sp_3225ef75afd12334dce5",
+          "sp_bd1f9899050f70fca764",
+          "sp_a6ac2a1e64e941381554",
+          "sp_e6185df195786a66aea7",
+          "sp_7da89cd6fb66d487d9dc",
+          "sp_bf0773b1f55ba3f4a983",
+          "sp_d42ac7ffe050a51ad981",
+          "sp_347249b36b8118e7d228",
+          "sp_062e6ea26826c8645a03",
+          "sp_71b8d5fd91b74e56f244",
+          "sp_5139a59d787cce84d925",
+          "sp_6b0a2974cbf485b092c0",
+          "sp_bc5f8534f08fa5e6083b",
+          "sp_70ca1de6f9008d5c356e",
+          "sp_266dd732cdaf03b142cd",
+          "sp_58053d9473c5a641bead"
+        ],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2024-03__S05_skip_subq5",
+        "student_answer_source_id": "Q2024-04__S05",
+        "answer_type": "over_credit_trap",
+        "student_answer": "样本ID：Q2024-04__S05。1. 清单强制内容包括计量口径、清单列项办法、报价计价方式、风险承担和竞争费用。2. 投标响应包括工期、承包范围、安全要求、法律规定、权利义务和报价依据。3. 违法分包包括无资质分包、主体结构转给他人但钢结构例外、专业工程非劳务再分、劳务再次转分、以及专业承包人除劳务外又收主材和大型机械周转费用。4. 目标成本按七千二百二十二点二二万元扣十个点利润，得到六千五百万元；专项成本分析还包括盈亏异常、质量成本、资金成本和其他有利不利因素。第5小问没有列式，只笼统说按方案整改和监理确认。",
+        "covered_point_ids": [
+          "sp_e8e9e86f3cf679e75627",
+          "sp_ad53146ff87b124e8725",
+          "sp_aadb41fd6c5fff01b9d5",
+          "sp_b0ff526732488de04919",
+          "sp_394cfd9a34d6e2882f76",
+          "sp_e70f81eb51201d486fd1",
+          "sp_20199adf6e55341a1c89",
+          "sp_c0fb04f5010c14a7c74a",
+          "sp_3225ef75afd12334dce5",
+          "sp_bd1f9899050f70fca764",
+          "sp_a6ac2a1e64e941381554",
+          "sp_e6185df195786a66aea7",
+          "sp_7da89cd6fb66d487d9dc",
+          "sp_bf0773b1f55ba3f4a983",
+          "sp_d42ac7ffe050a51ad981",
+          "sp_347249b36b8118e7d228",
+          "sp_062e6ea26826c8645a03",
+          "sp_71b8d5fd91b74e56f244"
+        ],
+        "missing_point_ids": [
+          "sp_5139a59d787cce84d925",
+          "sp_6b0a2974cbf485b092c0",
+          "sp_bc5f8534f08fa5e6083b",
+          "sp_70ca1de6f9008d5c356e",
+          "sp_266dd732cdaf03b142cd",
+          "sp_58053d9473c5a641bead"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2024-04__S06_missing_tail",
+        "student_answer_source_id": "Q2024-04__S06",
+        "answer_type": "partial",
+        "student_answer": "样本ID：Q2024-04__S06。1. 我能写出清单还涉及计量规则、清单编制、计价、风险和费用竞争。2. 实质性响应写了工期、范围、安全、法律、双方权利义务和报价。3. 违法分包写到无资质单位、主体结构外包但钢结构除外、专业工程非劳务再分、劳务再分包；后面关于专业承包人另收材料和大型机械费用没写。目标成本、专项成本分析和结算计算均未展开。",
+        "covered_point_ids": [
+          "sp_e8e9e86f3cf679e75627",
+          "sp_ad53146ff87b124e8725",
+          "sp_aadb41fd6c5fff01b9d5",
+          "sp_b0ff526732488de04919",
+          "sp_394cfd9a34d6e2882f76",
+          "sp_e70f81eb51201d486fd1",
+          "sp_20199adf6e55341a1c89",
+          "sp_c0fb04f5010c14a7c74a",
+          "sp_3225ef75afd12334dce5",
+          "sp_bd1f9899050f70fca764",
+          "sp_a6ac2a1e64e941381554",
+          "sp_e6185df195786a66aea7",
+          "sp_7da89cd6fb66d487d9dc",
+          "sp_bf0773b1f55ba3f4a983",
+          "sp_d42ac7ffe050a51ad981"
+        ],
+        "missing_point_ids": [
+          "sp_347249b36b8118e7d228",
+          "sp_062e6ea26826c8645a03",
+          "sp_71b8d5fd91b74e56f244",
+          "sp_5139a59d787cce84d925",
+          "sp_6b0a2974cbf485b092c0",
+          "sp_bc5f8534f08fa5e6083b",
+          "sp_70ca1de6f9008d5c356e",
+          "sp_266dd732cdaf03b142cd",
+          "sp_58053d9473c5a641bead"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2024-04__S09_keyword_only",
+        "student_answer_source_id": "Q2024-04__S09",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2024-04__S09。关键词：施工总承包、工程量清单、技术标准、投标有效期、违法分包、合同管理、资料签字、质量安全进度。没有逐问回答清单强制内容、响应内容、违法分包类型、目标成本或结算列式。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_e8e9e86f3cf679e75627",
+          "sp_ad53146ff87b124e8725",
+          "sp_aadb41fd6c5fff01b9d5",
+          "sp_b0ff526732488de04919",
+          "sp_394cfd9a34d6e2882f76",
+          "sp_e70f81eb51201d486fd1",
+          "sp_20199adf6e55341a1c89",
+          "sp_c0fb04f5010c14a7c74a",
+          "sp_3225ef75afd12334dce5",
+          "sp_bd1f9899050f70fca764",
+          "sp_a6ac2a1e64e941381554",
+          "sp_e6185df195786a66aea7",
+          "sp_7da89cd6fb66d487d9dc",
+          "sp_bf0773b1f55ba3f4a983",
+          "sp_d42ac7ffe050a51ad981",
+          "sp_347249b36b8118e7d228",
+          "sp_062e6ea26826c8645a03",
+          "sp_71b8d5fd91b74e56f244",
+          "sp_5139a59d787cce84d925",
+          "sp_6b0a2974cbf485b092c0",
+          "sp_bc5f8534f08fa5e6083b",
+          "sp_70ca1de6f9008d5c356e",
+          "sp_266dd732cdaf03b142cd",
+          "sp_58053d9473c5a641bead"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "Q2024-04__S10_generic_low_signal",
+        "student_answer_source_id": "Q2024-04__S10",
+        "answer_type": "distractor",
+        "student_answer": "样本ID：Q2024-04__S10。这个工程应按规范整改，加强安全、质量、进度、成本管理，资料齐全后让监理和建设单位确认。具体清单条目、违法分包边界、目标成本和结算数值不会写。",
+        "covered_point_ids": [],
+        "missing_point_ids": [
+          "sp_e8e9e86f3cf679e75627",
+          "sp_ad53146ff87b124e8725",
+          "sp_aadb41fd6c5fff01b9d5",
+          "sp_b0ff526732488de04919",
+          "sp_394cfd9a34d6e2882f76",
+          "sp_e70f81eb51201d486fd1",
+          "sp_20199adf6e55341a1c89",
+          "sp_c0fb04f5010c14a7c74a",
+          "sp_3225ef75afd12334dce5",
+          "sp_bd1f9899050f70fca764",
+          "sp_a6ac2a1e64e941381554",
+          "sp_e6185df195786a66aea7",
+          "sp_7da89cd6fb66d487d9dc",
+          "sp_bf0773b1f55ba3f4a983",
+          "sp_d42ac7ffe050a51ad981",
+          "sp_347249b36b8118e7d228",
+          "sp_062e6ea26826c8645a03",
+          "sp_71b8d5fd91b74e56f244",
+          "sp_5139a59d787cce84d925",
+          "sp_6b0a2974cbf485b092c0",
+          "sp_bc5f8534f08fa5e6083b",
+          "sp_70ca1de6f9008d5c356e",
+          "sp_266dd732cdaf03b142cd",
+          "sp_58053d9473c5a641bead"
+        ],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      }
+    ]
+  }
+}
