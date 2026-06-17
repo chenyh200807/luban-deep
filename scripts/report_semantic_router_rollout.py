@@ -105,15 +105,63 @@ def build_report(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _telemetry_of(record: dict[str, Any]) -> dict[str, Any] | None:
+    tele = record.get("semantic_router_telemetry")
+    if isinstance(tele, dict):
+        return tele
+    # Allow the tuple at top level too (flat export).
+    if "drove_route" in record and "is_default_template" in record:
+        return record
+    return None
+
+
+def build_telemetry_report(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Credible mis-route-rate dataset from the additive decision telemetry tuple.
+
+    Closes the 3 baseline breakpoints: in-place ``captured_raw_input`` (no join),
+    ``drove_route`` (decision actually drove the route), and ``is_default_template``
+    (non-discriminative default/fallback/hold excluded). The *judgeable* set is the
+    subset where ``drove_route`` is true AND it is not a default template — only
+    that subset supports a credible absolute mis-route rate.
+    """
+    teles = [t for t in (_telemetry_of(r) for r in records) if t is not None]
+    drove = [t for t in teles if bool(t.get("drove_route"))]
+    default_template = [t for t in teles if bool(t.get("is_default_template"))]
+    judgeable = [t for t in drove if not bool(t.get("is_default_template"))]
+
+    by_na: Counter = Counter()
+    for t in judgeable:
+        decision = t.get("semantic_decision") if isinstance(t.get("semantic_decision"), dict) else {}
+        by_na[str(decision.get("next_action") or "")] += 1
+
+    return {
+        "total": len(teles),
+        "drove_route_count": len(drove),
+        "default_template_count": len(default_template),
+        "judgeable_count": len(judgeable),
+        "non_discriminative_excluded": len(teles) - len(judgeable),
+        "judgeable_by_next_action": dict(sorted(by_na.items())),
+        "mode_distribution": dict(
+            sorted(Counter(str(t.get("mode") or "") for t in teles).items())
+        ),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Build a semantic-router rollout report from JSONL trace metadata."
     )
     parser.add_argument("input", help="Path to JSONL trace export.")
     parser.add_argument("--json", action="store_true", help="Emit JSON only.")
+    parser.add_argument(
+        "--telemetry",
+        action="store_true",
+        help="Use the additive decision-telemetry tuple report (credible mis-route dataset).",
+    )
     args = parser.parse_args()
 
-    report = build_report(_load_records(Path(args.input).resolve()))
+    records = _load_records(Path(args.input).resolve())
+    report = build_telemetry_report(records) if args.telemetry else build_report(records)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:

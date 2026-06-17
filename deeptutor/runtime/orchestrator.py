@@ -186,6 +186,10 @@ class ChatOrchestrator:
 
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
+        # Additive telemetry (no routing effect): capture the routing message
+        # in-place so semantic-router decision analysis never needs the
+        # unreliable session+time join. See semantic_router_telemetry.
+        context.metadata["semantic_router_captured_input"] = routing_user_message
         if not self._question_lifecycle_decision_authority_enabled(context):
             context.metadata["question_lifecycle_decision_authority_disabled"] = True
             return await self._select_capability_after_lifecycle(context, routing_user_message)
