@@ -297,10 +297,18 @@ h1{margin:0 0 6px;font-size:22px;line-height:1.25}
 .feedback.correct{background:#e8f7f0;border-color:#9bd6b6;color:#0f6b4f}
 .feedback.wrong{background:#fde8e3;border-color:#f1aaa0;color:#9a3412}
 .auth{margin-top:16px;border:1px solid #dfe6ee;border-radius:12px;background:#fff;padding:12px;color:#64748b;font-size:12px}
+@media (max-width:900px){
+ body{padding-bottom:84px}
+ .controls{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;gap:12px;
+   padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+   background:rgba(255,255,255,.97);border-top:1px solid #dfe6ee;
+   box-shadow:0 -6px 22px rgba(31,41,55,.12);backdrop-filter:saturate(1.3) blur(8px)}
+ .controls button{min-height:48px}
+}
 @media (max-width:520px){
  .page{padding:14px 10px 28px}
  h1{font-size:19px}
- .step-tab{flex:1 1 100%}
+ .step-tab{flex:1 1 calc(50% - 4px)}
 }
 """
 

@@ -38,16 +38,66 @@
 
 已登记：
 
-| template_type | 卡 | renderer | 说明 |
-|---|---|---|---|
-| (默认/未标) | F16 起鼓割补 | `render_card.py` | 施工流程/构造剖面，固定 SVG 模板 + 8 步 + 采分点驱动（体验样板） |
-| `network_plan_keypath` | N01 网络计划关键线路 | `render_network_card.py` | 数据驱动自动成图：activities/dependencies → SVG 网络图，关键线路高亮（硬能力样板） |
+| template_type | 卡 | 状态 | renderer | 说明 |
+|---|---|---|---|---|
+| `process_step_reveal` | F16 起鼓割补 | rendered proof | `render_card.py` | 施工流程逐步揭示 + 8 步 + 采分点驱动（体验样板） |
+| `layer_section_reveal` | （F16 剖面雏形） | 候选 | `render_card.py` | 剖面/构造节点分层（暂与 process 同 renderer） |
+| `network_plan_keypath` | N01 网络计划关键线路 | rendered proof | `render_network_card.py` | 数据驱动自动成图：activities/dependencies → SVG 网络图，关键线路高亮（硬能力样板） |
+| `answer_point_diagnosis_draft` | D01 采分点诊断 | **schema draft（无 renderer）** | — | 判分解释草案：命中/部分/漏点逐点判读（仅验证字段通用性，不是 production 模板） |
+
+**F16 兼容规则**：F16 当前 JSON **未显式写 `template_type`**（不强行大改）。校验器与 renderer 从 `scenario.diagram_type` 推断：`roof_section_step_reveal → process_step_reveal`（含剖面表达，可视为 `layer_section_reveal` 的超集）。新卡一律显式写 `template_type`。
 
 约束：
 
-- 一个 `template_type` 对应一个**窄确定性 renderer**；renderer 只渲染，不做知识判断。
+- 一个 `template_type` 对应一个**窄确定性 renderer**；renderer 只渲染，不做知识判断、不判分、不生产新知识。
 - 新增 template_type 必须先在本文件登记字段，再写 JSON，再由 renderer 消费。
 - 不为了支持多模板把已有 renderer 重构成复杂框架；模板间并列，不互相耦合。
+- `answer_point_diagnosis_draft` 是 **draft**：只允许 schema 草案，**不得**做 production renderer、不得当签发 authority、不得 official_score。
+
+## 共同 schema spine（三类模板共用）
+
+所有解释卡（process/layer/network/diagnosis）共用同一条 spine，靠 `template_type` 选 body：
+
+| spine 字段 | 说明 | 兼容别名（当前漂移，待收敛，不强改） |
+|---|---|---|
+| `schema_version` | 固定 `luban_diagram_microlesson.v1`，**不新增第二个** | — |
+| `card_id` | 卡稳定 id | 旧卡用 `topic_id`（F16/D01）；校验器两者皆认 |
+| `template_type` | 渲染模板分派键 | F16 缺失→从 `scenario.diagram_type` 推断 |
+| `title` | 卡标题 | — |
+| `student_goal` | 面向学生的学习目标（口语） | 旧卡用 `learning_goal`（F16/D01） |
+| `authority` | 判分依据边界（含 `student_boundary`；候选标 `status`/`provenance.kind`） | F16 用 `judging_artifact_id`+混合，N01 用 `authority.status`，D01 用 `provenance.kind` |
+| `scoring_points[]` | 候选/已签发采分点（network 类无此字段） | — |
+| `common_errors[]` / `error_reveals[]` | 错因（display + 跳转/纠正） | 命名按模板：F16/D01 用 `common_errors`，N01 用 `error_reveals` |
+| `practice` | 复测题（训练反馈，非正式考试） | — |
+| `rendering_contract.student_safe_fields` | 学生端渲染白名单（D01 已落地，其余卡待补） | 缺省时退化为"只读 `authority.student_boundary` + 各模板已知展示字段" |
+
+收敛方向（**本轮不强改**，只登记）：新卡统一用 `card_id` / `student_goal` / `authority.status`；旧卡 F16 暂保留 `topic_id`/`learning_goal`，由校验器兼容。
+
+## 互斥 body（每张卡只能有一个主 body）
+
+| template_type | 主 body 字段 |
+|---|---|
+| `process_step_reveal` / `layer_section_reveal` | `steps[]` |
+| `network_plan_keypath` | `question_data.{activities, dependencies, expected}` |
+| `answer_point_diagnosis_draft` | `question` + `model_answer_skeleton` + `student_sample` + `diagnosis[]` |
+
+- `steps[]`、`question_data.activities`、`diagnosis[]` **三者只能其一**作为主 body，不得混用。
+- `scoring_points` / `common_errors` / `practice` 是 spine，可被多种 body 共用（`diagnosis[].scoring_point_id` 引用 `scoring_points[].id`，是引用不是再判分）。
+
+## 学生端安全规则（`rendering_contract.student_safe_fields`）
+
+- `student_safe_fields` 是**渲染白名单**：renderer 只允许把白名单内字段渲染到学生 UI。
+- raw `source_ref` / `scoring_point_id` / `artifact id` / `error_code` / schema 内部结构**一律不得进入学生 UI**（D01 用 `internal_only_fields` 显式列出）。
+- renderer 必须用 `display_label` / `student_boundary` / `student_comment` 等面向学生的字段，**不得把内部 id 当学生文案**。
+- 学生 UI 禁止出现 `source_ref` / `P 编号` / `schema` / `renderer` / `candidate` 等内部词。
+
+## authority 规则
+
+- `signed_candidate`：来自已签发/候选判分工件，可用于**候选采分点展示**（如 F16 P10/P11）。
+- `candidate_teaching_prototype`：仅教学验证用（N01/D01），**不得**冒充签发 authority。
+- `official_score_allowed=false`，除非上游签发；候选/草案卡出现 `official_score_allowed=true` 即校验失败。
+- renderer **不得**根据 `diagnosis` 或 `critical_path` **重新判分**，只能展示已编译 verdict。
+- `compute_cpm()` 只是 **build-time 自洽校验器/派生器**（校验 N01 的 `expected` 与确定性 CPM 一致并派生 ES/EF 供展示），**不是 official scoring authority**；日后可抽成独立网络计划编译器，仍不得让前端 renderer 现场判断。
 
 ## network_plan_keypath 字段
 

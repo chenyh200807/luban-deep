@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""图解微课卡确定性渲染器（luban_diagram_microlesson.v1）。
+"""图解微课卡确定性渲染器（luban_diagram_microlesson.v1）· 翻页 deck 版。
 
 输入:一份考点 schema JSON。
 输出:一张小程序 WebView 可承载的静态 HTML 卡:内联 SVG、内联 CSS、少量内联 JS。
 
+体验:一屏一个重点的翻页式(deck)——8 步每步一屏(聚焦图 + 这一步 + 怎么写得分),
+末尾错因 / 复测 / 收束各一屏;底部「上一步/下一步」常驻,单屏基本不需要滚动。
+
 边界:
 - 渲染器只渲染 schema 内事实,不生成知识、不判分、不补采分点。
 - 图形是确定性 SVG 示意,不是规范级节点详图。
-- 交互只做 step reveal、错因跳转和复测反馈,不访问网络、不依赖外链。
+- 交互只做翻页、错因跳转和复测反馈,不访问网络、不依赖外链、不接 TTS/音频。
 """
 from __future__ import annotations
 
@@ -28,164 +31,77 @@ _TIER_LABEL = {
 
 _CSS = r"""
 :root{
-  --bg:#f3f6f8;
-  --paper:#fffdf8;
-  --surface:#ffffff;
-  --ink:#17202a;
-  --muted:#637083;
-  --line:#dfe6ee;
-  --blue:#2563eb;
-  --blue-2:#dbeafe;
-  --green:#16815f;
-  --green-2:#dff4ea;
-  --amber:#b96b12;
-  --amber-2:#fff0d7;
-  --red:#c24130;
-  --red-2:#fde8e3;
-  --membrane:#3a4b61;
-  --primer:#f4b740;
-  --patch:#1b7f68;
-  --shadow:0 18px 40px rgba(31,41,55,.12);
+  --ink:#17202a;--muted:#637083;--line:#e3e9f0;--blue:#2563eb;--green:#0f6b4f;--bg:#eef3f7;--card:#fff;
 }
 *{box-sizing:border-box}
-html,body{max-width:100%;overflow-x:hidden}
-body{
-  margin:0;
-  background:linear-gradient(180deg,#eef4f8 0%,#f7f8f4 48%,#f2f5f7 100%);
-  color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
-  line-height:1.5;
-}
+html,body{margin:0;max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);line-height:1.6;padding-bottom:86px;
+ font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
 button{font:inherit}
-.page{max-width:1180px;margin:0 auto;padding:24px 16px 40px}
-.topline{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:10px}
-.mark{width:34px;height:34px;border-radius:11px;background:var(--blue);display:grid;place-items:center;box-shadow:0 8px 18px rgba(37,99,235,.25)}
-.mark svg{width:19px;height:19px;stroke:#fff}
-h1{margin:0;font-size:clamp(26px,4vw,42px);letter-spacing:0;line-height:1.18}
-.subtitle{max-width:820px;margin:12px 0 14px;color:#526173;font-size:16px}
-.quicknav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
-.qn{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#33425a;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 6px 14px rgba(31,41,55,.06)}
-.qn:hover{border-color:#93b7f6;color:#153e91}
-.teacher-tag{display:inline-block;font-size:11px;font-weight:800;color:#1d4ed8;background:#dce8ff;border-radius:999px;padding:3px 10px;margin-bottom:8px;letter-spacing:.02em}
-.jump-note{margin:0 0 12px;border-radius:14px;padding:11px 13px;background:#fff4e6;border:1px solid #f3cf9b;color:#8a4d05;font-size:13px;line-height:1.55}
+.deck{max-width:520px;margin:0 auto;min-height:100vh;position:relative}
+.deck-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;color:var(--muted);font-size:12px}
+.deck-top .brandmini{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deck-count{flex:0 0 auto;font-weight:800;color:var(--blue)}
+.slide{display:none;padding:0 14px}
+.slide.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:8px;box-shadow:0 10px 30px rgba(31,41,55,.08)}
+.roof-wrap{position:relative;background:#fffdf8;border:1px solid #eadfcf;border-radius:14px;overflow:hidden}
+.svg-frame{width:100%;display:block;aspect-ratio:470/350}
+.legend{display:flex;flex-wrap:wrap;gap:6px;padding:8px 8px 4px}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#566573}
+.sw{width:13px;height:8px;border-radius:3px;display:inline-block}
+.layer-label{font-size:15px;fill:#334155;font-weight:700}
+.thin-label{display:none}
+.step-layer{opacity:.12;transition:opacity .25s ease}
+.step-layer.active{opacity:1;filter:drop-shadow(0 6px 12px rgba(37,99,235,.18))}
+.step-layer.done{opacity:.34}
+.step-point{margin-top:12px}
+.ptop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.eyebrow{color:var(--blue);font-size:12px;font-weight:800}
+.say-btn{flex:0 0 auto;min-height:36px;border:1px solid var(--blue);background:#eaf1ff;color:#153e91;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+.say-btn.playing{background:var(--blue);color:#fff}
+.step-point h2{margin:6px 0 8px;font-size:21px;line-height:1.3}
+.step-say{margin:0 0 12px;color:#3f4d5e;font-size:14.5px;line-height:1.7}
+.point-box{background:#e9f7f0;border:1px solid #b7e3cf;border-radius:14px;padding:13px 14px}
+.point-box b{display:block;color:var(--green);font-size:13px;margin-bottom:5px}
+.point-box p{margin:0;color:#1f3b30;font-size:15px;line-height:1.65}
+.more-toggle{margin-top:12px;border:0;background:transparent;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;padding:6px 0;min-height:40px}
+.more{margin-top:4px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fbfdff}
+.more-line{margin:0 0 8px;font-size:13px;color:#405066;line-height:1.6}
+.more-line:last-child{margin-bottom:0}
+.more-line.muted{color:var(--muted);font-size:12px}
+.jump-note{margin-top:12px;border-radius:12px;padding:11px 13px;background:#fff4e6;border:1px solid #f3cf9b;color:#8a4d05;font-size:13px;line-height:1.55}
 .jump-note b{color:#7a3d00}
-.bar .hint{margin:-4px 0 12px;color:var(--muted);font-size:13px}
-.layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(330px,.62fr);gap:18px;align-items:start;min-width:0}
-.lesson,.side,.bar{background:rgba(255,255,255,.88);border:1px solid rgba(203,213,225,.9);box-shadow:var(--shadow);min-width:0}
-.lesson{border-radius:22px;overflow:hidden}
-.lesson-head{padding:18px 20px 14px;display:flex;gap:14px;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);background:rgba(255,255,255,.82)}
-.lesson-head h2{margin:0 0 6px;font-size:18px}
-.lesson-head p{margin:0;color:var(--muted);font-size:13px}
-.goal-chip{flex:0 0 auto;border-radius:999px;background:var(--amber-2);color:#87530f;border:1px solid #f5d39d;padding:8px 12px;font-size:12px;font-weight:700}
-.visual{padding:18px;background:radial-gradient(circle at 12% 0%,rgba(37,99,235,.10),transparent 28%),linear-gradient(180deg,#fffdf8,#f9fbfd)}
-.roof-wrap{position:relative;background:var(--paper);border:1px solid #eadfcf;border-radius:18px;overflow:hidden;min-height:430px}
-.svg-frame{width:100%;max-width:100%;aspect-ratio:16/10;min-height:360px;display:block;overflow:hidden}
-.callout{position:absolute;left:18px;top:18px;width:min(300px,44%);background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;padding:12px 13px;box-shadow:0 12px 28px rgba(15,23,42,.10)}
-.callout b{display:block;font-size:14px;margin-bottom:4px}
-.callout span{display:block;color:var(--muted);font-size:12px}
-.legend{position:absolute;right:16px;bottom:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}
-.legend span{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.9);border:1px solid var(--line);color:#465364;font-size:12px}
-.sw{width:14px;height:8px;border-radius:4px;display:inline-block}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 18px 18px;border-top:1px solid var(--line);background:#fff}
-.step-tab{min-height:54px;border:1px solid var(--line);background:#f8fafc;color:#475569;border-radius:13px;padding:8px 9px;text-align:left;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
-.step-tab:hover{transform:translateY(-1px);border-color:#b9c6d6}
-.step-tab[aria-selected="true"]{background:#eff6ff;color:#153e91;border-color:#93b7f6;box-shadow:0 8px 20px rgba(37,99,235,.12)}
-.step-tab small{display:block;color:inherit;opacity:.72;font-size:11px;margin-bottom:2px}
-.step-tab strong{display:block;font-size:13px;line-height:1.25}
-.side{border-radius:22px;padding:18px;position:sticky;top:16px}
-.eyebrow{color:var(--blue);font-size:12px;font-weight:800;letter-spacing:0;margin-bottom:8px}
-.side h2{margin:0 0 10px;font-size:22px;line-height:1.25}
-.side .brief{margin:0 0 14px;color:var(--muted);font-size:14px}
-.info-card{border-radius:16px;padding:13px;margin-top:10px;border:1px solid var(--line);background:#fbfdff}
-.info-card h3{margin:0 0 7px;font-size:14px}
-.info-card p{margin:0;color:#405066;font-size:13px}
-.info-card.why{background:#eef4ff;border-color:#c3d8fb}
-.info-card.why h3{color:#1d4ed8}
-.info-card.answer{background:var(--green-2);border-color:#b7e3cf}
-.info-card.answer h3{color:#0f6b4f}
-.info-card.mistake{background:var(--red-2);border-color:#f4b8ae}
-.info-card.mistake h3{color:#9a3412}
-.info-card.source{background:#f8fafc}
-.controls{margin-top:14px;display:grid;grid-template-columns:1fr 1.3fr;gap:10px}
-.control{min-height:48px;border-radius:14px;border:1px solid var(--line);cursor:pointer;background:#fff;color:#334155;font-weight:700}
-.control.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.progress{margin-top:14px;height:8px;border-radius:999px;background:#e6edf5;overflow:hidden}
-.progress i{display:block;height:100%;width:12.5%;background:linear-gradient(90deg,#2563eb,#16a37f);border-radius:inherit;transition:width .22s ease}
-.narration{margin:14px 18px 0;border:1px solid #c8dbfb;border-radius:16px;background:#f1f6ff;padding:13px 14px}
-.narr-top{display:flex;align-items:center;gap:12px}
-.narr-play{flex:0 0 auto;min-height:44px;padding:10px 16px;border-radius:12px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
-.narr-play.playing{background:#fff;color:var(--blue)}
-.narr-meta{color:var(--muted);font-size:12px;line-height:1.45}
-.narr-meta b{color:#1d4ed8;font-weight:800}
-.narr-sub{margin-top:11px;border-radius:12px;background:#fff;border:1px solid #cddcfb;padding:11px 13px;color:#1f2d44;font-size:14px;line-height:1.65;min-height:46px}
-.narr-track{margin-top:10px;height:7px;border-radius:999px;background:#dce6f6;overflow:hidden}
-.narr-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2563eb,#16a37f);border-radius:inherit;transition:width .35s ease}
-.panel-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-.bar{border-radius:20px;padding:16px 18px}
-.bar h2{font-size:17px;margin:0 0 10px}
-.score-grid,.error-grid{display:grid;gap:10px}
-.score-card,.error-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
-.score-card b,.error-card b{display:block;font-size:13px;margin-bottom:5px}
-.score-card span,.error-card span{color:var(--muted);font-size:12px}
-.error-card{cursor:pointer;text-align:left}
-.error-card:hover{border-color:#93b7f6;background:#f8fbff}
-.code{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:7px;background:#fee2d8;color:#9a3412;font-family:ui-monospace,Menlo,monospace;font-size:11px}
-.practice{margin-top:18px;border-radius:20px;padding:18px;background:#fff;border:1px solid rgba(203,213,225,.9);box-shadow:var(--shadow)}
-.practice h2{font-size:18px;margin:0 0 8px}
-.practice p{font-size:14px;color:#3f4d5e;margin:0 0 12px}
-.option-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.option{min-height:58px;text-align:left;border-radius:14px;border:1px solid var(--line);background:#fff;padding:10px 12px;cursor:pointer;color:#263241}
+.aux-h{font-size:20px;margin:10px 0 4px}
+.aux-sub{color:var(--muted);font-size:13.5px;margin:0 0 14px;line-height:1.6}
+.error-grid,.option-grid{display:flex;flex-direction:column;gap:10px}
+.error-card{text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;cursor:pointer;width:100%}
+.error-card b{display:block;font-size:14px;margin-bottom:5px}
+.error-card span{color:var(--muted);font-size:12.5px;line-height:1.55}
+.error-card .code{display:none}
+.option{min-height:54px;text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 14px;cursor:pointer;color:#263241;font-size:14.5px}
 .option[aria-pressed="true"].correct{border-color:#8bd0ad;background:#e8f7f0}
 .option[aria-pressed="true"].wrong{border-color:#f1aaa0;background:#fde8e3}
-.feedback{margin-top:12px;border-radius:13px;padding:11px 12px;background:#f8fafc;border:1px solid var(--line);color:#405066;font-size:13px;line-height:1.55;display:none}
+.feedback{margin-top:14px;border-radius:13px;padding:12px 14px;border:1px solid var(--line);background:#f8fafc;font-size:14px;line-height:1.65;display:none}
 .feedback.show{display:block}
-.feedback.correct{background:#e8f7f0;border-color:#9bd6b6;color:#0f6b4f;font-weight:600}
+.feedback.correct{background:#e8f7f0;border-color:#9bd6b6;color:#0f6b4f}
 .feedback.wrong{background:#fde8e3;border-color:#f1aaa0;color:#9a3412}
-.auth{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:13px;color:var(--muted);font-size:12px}
-.layer-label{font-size:14px;fill:#334155;font-weight:700}
-.thin-label{font-size:12px;fill:#64748b}
-.step-layer{opacity:.10;transition:opacity .22s ease,filter .22s ease}
-.step-layer.active{opacity:1;filter:drop-shadow(0 8px 14px rgba(37,99,235,.14))}
-.step-layer.done{opacity:.36}
-@media (max-width:900px){
-  .layout,.panel-row{grid-template-columns:1fr}
-  .side{position:static}
-  .steps{grid-template-columns:repeat(2,1fr)}
-  .option-grid{grid-template-columns:1fr}
-}
-@media (max-width:520px){
-  .page,.layout,.lesson,.side,.bar,.roof-wrap{width:100%;max-width:100%}
-  .page{padding:16px 10px 28px}
-  .topline{align-items:flex-start;flex-wrap:wrap}
-  .topline span,h1,.subtitle,.lesson-head h2,.lesson-head p,.goal-chip{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
-  h1{font-size:21px;line-height:1.26}
-  .subtitle{font-size:13.5px;line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .quicknav{margin-bottom:14px;gap:6px}
-  .qn{flex:1 1 28%;justify-content:center;min-height:44px;padding:8px 4px;font-size:12px}
-  .lesson-head{display:block;padding:14px 14px 12px}
-  .lesson-head h2{font-size:16px}
-  .goal-chip{display:inline-block;margin-top:10px}
-  .visual{padding:8px}
-  .narration{margin:12px 8px 0;padding:11px}
-  .narr-top{flex-wrap:wrap;gap:8px}
-  .narr-sub{font-size:13.5px}
-  .roof-wrap{min-height:auto}
-  .svg-frame{height:auto;min-height:0;width:100%;aspect-ratio:470/350}
-  .callout{display:none}
-  .legend{position:relative;right:auto;bottom:auto;justify-content:flex-start;padding:8px 10px 10px;max-width:100%;gap:6px}
-  .legend span{font-size:11px;padding:5px 7px}
-  .thin-label{display:none}
-  .layer-label{font-size:15px}
-  .steps{grid-template-columns:1fr 1fr;gap:8px;padding:12px}
-  .step-tab{min-height:48px}
-  .side{padding:14px}
-  .side h2{font-size:19px}
-  .panel-row{margin-top:14px}
-  .option{min-height:52px}
-}
-@media (prefers-reduced-motion:reduce){
-  *{transition:none!important;scroll-behavior:auto!important}
-}
+.hook{font-size:18px;font-weight:800;color:#153e91;background:#eaf1ff;border:1px solid #c3d8fb;border-radius:14px;padding:16px;text-align:center;line-height:1.55}
+.warm-box{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:14px;font-size:14px;color:#3f4d5e;line-height:1.75}
+.auth{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:12px;color:var(--muted);font-size:12px;line-height:1.6}
+.auth-sub{margin-top:6px;font-weight:700;color:#9a3412}
+.stepnav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:12px;max-width:520px;margin:0 auto;
+ padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);
+ border-top:1px solid var(--line);box-shadow:0 -6px 22px rgba(31,41,55,.12);backdrop-filter:saturate(1.3) blur(8px)}
+.stepnav-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:center}
+.stepnav-mid span{font-size:12px;color:var(--muted);font-weight:800}
+.mini-progress{display:block;width:100%;height:7px;border-radius:999px;background:#e6edf5;overflow:hidden}
+.mini-progress b{display:block;height:100%;width:9%;background:linear-gradient(90deg,#2563eb,#16a37f);border-radius:inherit;transition:width .25s ease}
+.control{flex:0 0 auto;min-width:88px;min-height:48px;border-radius:14px;border:1px solid var(--line);background:#fff;color:#334155;font-weight:700;cursor:pointer;padding:0 14px}
+.control.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.control:disabled{opacity:.4}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 """
 
 
@@ -256,7 +172,7 @@ def validate(schema: dict[str, Any]) -> None:
 
 def roof_svg() -> str:
     return r"""
-<svg class="svg-frame" id="roofSvg" viewBox="0 0 900 560" role="img" aria-labelledby="svgTitle svgDesc">
+<svg class="svg-frame" id="roofSvg" viewBox="210 150 470 350" role="img" aria-labelledby="svgTitle svgDesc">
   <title id="svgTitle">屋面卷材防水起鼓割补工序剖面图</title>
   <desc id="svgDesc">图示基层、找平层、基层处理剂、防水卷材、起鼓、割开排气、附加层、修补卷材和检验闭环。</desc>
   <defs>
@@ -383,7 +299,7 @@ def score_cards(schema: dict[str, Any]) -> str:
         tier = esc(_TIER_LABEL.get(p.get("tier"), p.get("tier")))
         kws = " / ".join(esc(k) for k in p.get("keywords") or [])
         cards.append(
-            f'<div class="score-card"><b>{tier} · 约 {esc(p.get("max_score"))} 分</b>'
+            f'<div class="error-card"><b>{tier} · 约 {esc(p.get("max_score"))} 分</b>'
             f'<span>写到这些词更稳：{kws}</span></div>'
         )
     return "".join(cards)
@@ -403,25 +319,6 @@ def error_cards(schema: dict[str, Any]) -> str:
     return "".join(cards)
 
 
-def narration_module(schema: dict[str, Any]) -> str:
-    narration = schema.get("narration") or {}
-    steps = narration.get("steps") or []
-    if not steps:
-        return ""
-    total = narration.get("total_seconds_hint") or sum(int(n.get("seconds") or 0) for n in steps)
-    n = len(steps)
-    return (
-        '<div class="narration" id="narration">'
-        '<div class="narr-top">'
-        f'<button class="narr-play" id="narrPlay" type="button" aria-pressed="false">▶ 听老师讲 {esc(total)} 秒</button>'
-        f'<div class="narr-meta">字幕式旁白 · 自动从第 1 步讲到第 {n} 步<br><b id="narrStatus">未开始</b></div>'
-        '</div>'
-        f'<div class="narr-sub" id="narrSub">点「听老师讲」，老师带你把这道题从第 1 步讲到第 {n} 步。</div>'
-        '<div class="narr-track" aria-hidden="true"><i id="narrBar"></i></div>'
-        '</div>'
-    )
-
-
 def practice_options(schema: dict[str, Any]) -> str:
     practice = schema.get("practice") or {}
     options = []
@@ -435,379 +332,271 @@ def practice_options(schema: dict[str, Any]) -> str:
     return "".join(options)
 
 
+# 全部交互逻辑(普通 JS, 单括号); 数据来自页面内的 #cardData JSON, 无 Python 插值。
+_JS = r"""
+const cardData = JSON.parse(document.getElementById("cardData").textContent);
+const steps = cardData.steps;
+const N = steps.length;
+const ERRORS = N, PRACTICE = N + 1, SUMMARY = N + 2, TOTAL = N + 3;
+const narr = cardData.narration || {};
+const narrSteps = narr.steps || [];
+const reveals = narr.error_reveals || [];
+const pf = narr.practice_feedback || {};
+
+const roofSvg = document.getElementById("roofSvg");
+const stepEls = [...document.querySelectorAll("[data-layer]")];
+const slides = {
+  step: document.getElementById("slideStep"),
+  errors: document.getElementById("slideErrors"),
+  practice: document.getElementById("slidePractice"),
+  summary: document.getElementById("slideSummary"),
+};
+const $ = (id) => document.getElementById(id);
+const stepCount = $("stepCount"), stepTitle = $("stepTitle"), stepSay = $("stepSay");
+const answerText = $("answerText"), whyText = $("whyText"), mistakeText = $("mistakeText"), sourceText = $("sourceText");
+const jumpNote = $("jumpNote"), moreToggle = $("moreToggle"), moreBox = $("moreBox");
+const deckCount = $("deckCount"), stepCountMini = $("stepCountMini"), progressBar = $("progressBar");
+const prevBtn = $("prevBtn"), nextBtn = $("nextBtn"), narrPlay = $("narrPlay"), feedback = $("practiceFeedback");
+
+let screen = 0, playing = false, playTimer = null;
+const root = document.documentElement;
+
+function scriptForStep(id){ const n = narrSteps.find(s => s.step_id === id); return n ? n.script : ""; }
+function sourceLine(step){
+  const b = step.exam_binding || {};
+  if(b.kind === "signed_candidate")
+    return `候选采分点${b.label ? " · " + b.label : ""}${b.max_score ? " · 约 " + b.max_score + " 分" : ""}（教研估分，非官方阅卷）`;
+  return `教学理解步骤${b.label ? " · " + b.label : ""}（帮助你把工序讲完整，不单独计分）`;
+}
+function setMode(mode, errId){
+  root.dataset.narrMode = mode;
+  if(mode === "error" && errId) root.dataset.activeError = errId;
+  else delete root.dataset.activeError;
+}
+function showSlide(type){ for(const k in slides) slides[k].classList.toggle("active", k === type); }
+
+function renderStep(i, note){
+  const step = steps[i];
+  stepCount.textContent = "步骤 " + (i + 1) + " / " + N;
+  stepTitle.textContent = step.action;
+  stepSay.textContent = scriptForStep(step.id) || step.brief;
+  answerText.textContent = step.scoring_expression;
+  whyText.textContent = step.why;
+  mistakeText.textContent = step.common_loss;
+  sourceText.textContent = sourceLine(step);
+  moreBox.hidden = true;
+  moreToggle.textContent = "为什么 / 你常漏 ▸";
+  if(note){ jumpNote.innerHTML = note; jumpNote.hidden = false; }
+  else { jumpNote.hidden = true; jumpNote.textContent = ""; }
+  root.dataset.activeLayer = step.id;
+  root.dataset.narrIndex = String(i);
+  stepEls.forEach((el) => {
+    const idx = steps.findIndex(s => s.id === el.dataset.layer);
+    el.classList.remove("active", "done");
+    if(idx === i) el.classList.add("active");
+    else if(idx > -1 && idx < i) el.classList.add("done");
+  });
+}
+
+function goScreen(n, note){
+  screen = Math.max(0, Math.min(TOTAL - 1, n));
+  const isStep = screen < N;
+  showSlide(isStep ? "step" : screen === ERRORS ? "errors" : screen === PRACTICE ? "practice" : "summary");
+  if(isStep) renderStep(screen, note);
+  prevBtn.disabled = screen === 0;
+  nextBtn.textContent = screen === TOTAL - 1 ? "重新开始" : "下一步";
+  const label = (screen + 1) + " / " + TOTAL;
+  stepCountMini.textContent = label;
+  deckCount.textContent = label;
+  progressBar.style.width = (((screen + 1) / TOTAL) * 100) + "%";
+  root.dataset.screen = String(screen);
+  window.scrollTo(0, 0);
+}
+
+function playBtnUI(){
+  if(!narrPlay) return;
+  narrPlay.classList.toggle("playing", playing);
+  narrPlay.setAttribute("aria-pressed", playing ? "true" : "false");
+  narrPlay.textContent = playing ? "⏸ 暂停" : "▶ 听老师讲";
+  root.dataset.narrPlaying = playing ? "true" : "false";
+}
+function scheduleNext(){
+  const secs = ((narrSteps[screen] || {}).seconds || 9) * 1000;
+  playTimer = setTimeout(() => {
+    if(screen < N - 1){ goScreen(screen + 1); setMode("step"); scheduleNext(); }
+    else stopPlay();
+  }, secs);
+}
+function startPlay(){
+  if(screen >= N) goScreen(0);
+  playing = true; setMode("step"); playBtnUI(); scheduleNext();
+}
+function stopPlay(){ playing = false; clearTimeout(playTimer); playTimer = null; playBtnUI(); }
+function togglePlay(){ playing ? stopPlay() : startPlay(); }
+if(narrPlay) narrPlay.addEventListener("click", togglePlay);
+
+function manualGo(n){ stopPlay(); goScreen(n); if(n < N) setMode("manual_step"); }
+prevBtn.addEventListener("click", () => manualGo(screen - 1));
+nextBtn.addEventListener("click", () => manualGo(screen === TOTAL - 1 ? 0 : screen + 1));
+document.addEventListener("keydown", (e) => {
+  if(e.key === "ArrowRight") manualGo(screen + 1);
+  if(e.key === "ArrowLeft") manualGo(screen - 1);
+});
+moreToggle.addEventListener("click", () => {
+  const willOpen = moreBox.hidden;
+  moreBox.hidden = !willOpen;
+  moreToggle.textContent = willOpen ? "收起 ▾" : "为什么 / 你常漏 ▸";
+});
+
+document.querySelectorAll(".error-card[data-jump]").forEach((b) => {
+  b.addEventListener("click", () => {
+    stopPlay();
+    const i = steps.findIndex(s => s.id === b.dataset.jump);
+    if(i < 0) return;
+    const rv = reveals.find(r => r.error_id === b.dataset.errorId) || {};
+    const note = "你刚点的是「<b>" + (b.dataset.error || "这类写法") + "</b>」——真正漏的是「<b>" + steps[i].action + "</b>」。" + (rv.correction_hint || "");
+    goScreen(i, note);
+    if(rv.script) stepSay.textContent = rv.script;
+    setMode("error", b.dataset.errorId);
+  });
+});
+
+document.querySelectorAll(".option").forEach((b) => {
+  b.addEventListener("click", () => {
+    stopPlay();
+    document.querySelectorAll(".option").forEach(o => { o.setAttribute("aria-pressed", "false"); o.classList.remove("correct", "wrong"); });
+    b.setAttribute("aria-pressed", "true");
+    const correct = b.dataset.correct === "true";
+    b.classList.add(correct ? "correct" : "wrong");
+    feedback.classList.remove("correct", "wrong");
+    feedback.classList.add("show", correct ? "correct" : "wrong");
+    if(correct){
+      feedback.textContent = "✅ " + (pf.correct_script || b.dataset.feedback || "");
+      setMode("practice_correct");
+      root.dataset.practiceResult = "correct";
+    } else {
+      const msg = pf.incorrect_script || b.dataset.feedback || "";
+      feedback.textContent = "❌ " + msg;
+      setMode("practice_incorrect");
+      root.dataset.practiceResult = "incorrect";
+      const rid = (cardData.practice && cardData.practice.review_step_id) || "reinforcement_layer";
+      const i = steps.findIndex(s => s.id === rid);
+      if(i >= 0) goScreen(i, "复测发现你漏了关键闭环——跳到「<b>" + steps[i].action + "</b>」对照一下。");
+    }
+  });
+});
+
+roofSvg.setAttribute("viewBox", "210 150 470 350");
+setMode("idle");
+goScreen(0);
+const fromHash = Number((location.hash.match(/step=(\d+)/) || [])[1] || 0);
+const fromQuery = Number(new URLSearchParams(location.search).get("step") || 0);
+const sk = fromQuery || fromHash;
+if(sk >= 1 && sk <= N) goScreen(sk - 1);
+"""
+
+
 def render(schema: dict[str, Any]) -> str:
     validate(schema)
     title = esc(schema.get("title"))
+    practice = schema.get("practice") or {}
     data = trusted_json_for_script({
         "steps": [client_step(s) for s in (schema.get("steps") or [])],
-        "practice": schema.get("practice") or {},
+        "practice": practice,
         "narration": client_narration(schema),
     })
     authority = schema.get("authority") or {}
-    source_boundary = esc(authority.get("source_boundary"))
     judging = esc(authority.get("judging_authority_label"))
-    artifact = esc(authority.get("judging_artifact_id"))
-    # 学生端只展示面向学生的边界说明; raw source_ref / artifact id 只进 HTML 注释
     student_boundary = esc(authority.get("student_boundary") or "图为教学示意，具体数值以教材和规范为准。")
     # HTML 注释内不能出现 "--"; 用原文(非实体转义)写 provenance, 仅做最小净化
     source_boundary_comment = str(authority.get("source_boundary") or "").replace("--", "—")
     judging_comment = str(authority.get("judging_authority_label") or "").replace("--", "—")
     warm = schema.get("warm_correction_html") or esc(schema.get("warm_correction"))
     memory_hook = esc(schema.get("memory_hook"))
-    scenario = schema.get("scenario") or {}
 
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title} · 图解微课</title>
 <style>{_CSS}</style>
 </head>
 <body>
 <!--
-created_by: deterministic render_card.py (luban diagram micro-lesson renderer)
+created_by: deterministic render_card.py (luban diagram micro-lesson renderer · deck)
 schema_version: {SCHEMA_VERSION}
-purpose: first formal Luban diagram micro-lesson card (mobile WebView v0 baseline)
+purpose: paged one-point-per-screen diagram micro-lesson card (mobile WebView v0 baseline)
 judging_authority: {judging_comment}
 source_boundary: {source_boundary_comment}
 notes: no OpenMAIC code copied; ../F16 html is v0 visual baseline only; not official grading.
 -->
-<main class="page">
-  <div class="topline">
-    <div class="mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 18h16"></path><path d="M7 18V8l5-3 5 3v10"></path><path d="M9 18v-6h6v6"></path>
-      </svg>
+<main class="deck">
+  <header class="deck-top">
+    <span class="brandmini">鲁班图解微课 · {title}</span>
+    <span class="deck-count" id="deckCount">1 / 11</span>
+  </header>
+
+  <section class="slide step active" id="slideStep" aria-label="工序讲解">
+    <div class="stage">
+      <div class="roof-wrap">
+        {roof_svg()}
+        <div class="legend" aria-label="图例">
+          <span><i class="sw" style="background:#3a4b61"></i>原防水层</span>
+          <span><i class="sw" style="background:#f4b740"></i>基层处理剂</span>
+          <span><i class="sw" style="background:#9be7cf"></i>附加层</span>
+          <span><i class="sw" style="background:#1b7f68"></i>新卷材</span>
+        </div>
+      </div>
     </div>
-    <span>鲁班图解微课 · 看图 + 听老师讲 + 练一题</span>
-  </div>
-  <h1>{title}: 起鼓割补工序</h1>
-  <p class="subtitle">{esc(schema.get("learning_goal"))}</p>
-  <nav class="quicknav" aria-label="快速跳转">
-    <a class="qn" href="#lesson">① 看工序</a>
-    <a class="qn" href="#errors">② 错因自查</a>
-    <a class="qn" href="#practice">③ 复测一题</a>
-  </nav>
-
-  <section class="layout" aria-label="{title} 图解微课">
-    <article class="lesson" id="lesson">
-      <div class="lesson-head">
-        <div>
-          <h2>剖面里看工序，不背散点</h2>
-          <p>{esc(scenario.get("caption"))}</p>
-        </div>
-        <div class="goal-chip">目标: 错因跳转 / 采分表达 / 复测题</div>
+    <div class="step-point">
+      <div class="ptop">
+        <span class="eyebrow" id="stepCount">步骤 1 / 8</span>
+        <button class="say-btn" id="narrPlay" type="button" aria-pressed="false">▶ 听老师讲</button>
       </div>
-
-      <div class="visual">
-        <div class="roof-wrap">
-          <div class="callout" id="callout">
-            <b>先看坏在哪里</b>
-            <span>卷材下有气体或水汽，受热膨胀后顶起防水层。</span>
-          </div>
-          {roof_svg()}
-          <div class="legend" aria-label="图例">
-            <span><i class="sw" style="background:#3a4b61"></i>原防水层</span>
-            <span><i class="sw" style="background:#f4b740"></i>基层处理剂</span>
-            <span><i class="sw" style="background:#9be7cf"></i>附加层</span>
-            <span><i class="sw" style="background:#1b7f68"></i>新卷材</span>
-          </div>
-        </div>
-      </div>
-      {narration_module(schema)}
-      <div class="steps" id="steps" role="tablist" aria-label="起鼓割补 8 步"></div>
-    </article>
-
-    <aside class="side" aria-live="polite">
-      <div class="jump-note" id="jumpNote" hidden></div>
-      <div class="eyebrow" id="stepCount">步骤 1 / 8</div>
-      <span class="teacher-tag">老师拿着图给你讲</span>
       <h2 id="stepTitle"></h2>
-      <p class="brief" id="stepBrief"></p>
-      <div class="info-card why"><h3>为什么这么做</h3><p id="whyText"></p></div>
-      <div class="info-card answer"><h3>这样写才得分</h3><p id="answerText"></p></div>
-      <div class="info-card mistake"><h3>你常漏什么</h3><p id="mistakeText"></p></div>
-      <div class="info-card source"><h3>这一步算不算分</h3><p id="sourceText"></p></div>
-      <div class="controls">
-        <button class="control" id="prevBtn" type="button">上一步</button>
-        <button class="control primary" id="nextBtn" type="button">下一步</button>
+      <p class="step-say" id="stepSay"></p>
+      <div class="point-box"><b>✍ 这样写才得分</b><p id="answerText"></p></div>
+      <button class="more-toggle" id="moreToggle" type="button">为什么 / 你常漏 ▸</button>
+      <div class="more" id="moreBox" hidden>
+        <p class="more-line"><b>为什么：</b><span id="whyText"></span></p>
+        <p class="more-line"><b>你常漏：</b><span id="mistakeText"></span></p>
+        <p class="more-line muted" id="sourceText"></p>
       </div>
-      <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
-    </aside>
-  </section>
-
-  <section class="panel-row" aria-label="采分点和错因跳转">
-    <div class="bar">
-      <h2>候选采分点 · 写到才稳</h2>
-      <p class="hint">教研估分的关键得分表达，非官方阅卷。</p>
-      <div class="score-grid">{score_cards(schema)}</div>
-    </div>
-    <div class="bar" id="errors">
-      <h2>错因节点跳转</h2>
-      <p class="hint">点一个你常犯的错，我直接带你跳到漏掉的那一步。</p>
-      <div class="error-grid">{error_cards(schema)}</div>
+      <div class="jump-note" id="jumpNote" hidden></div>
     </div>
   </section>
 
-  <section class="practice" id="practice" aria-label="复测题">
-    <h2>{esc((schema.get("practice") or {}).get("title"))}</h2>
-    <p>{esc((schema.get("practice") or {}).get("stem"))}</p>
+  <section class="slide" id="slideErrors" aria-label="错因自查">
+    <h2 class="aux-h">你常踩的坑</h2>
+    <p class="aux-sub">点一个，我带你跳回那一步讲清楚。</p>
+    <div class="error-grid">{error_cards(schema)}</div>
+  </section>
+
+  <section class="slide" id="slidePractice" aria-label="复测题">
+    <h2 class="aux-h">复测一题</h2>
+    <p class="aux-sub">{esc(practice.get("stem"))}</p>
     <div class="option-grid">{practice_options(schema)}</div>
     <div class="feedback" id="practiceFeedback" role="status"></div>
   </section>
 
-  <section class="bar" style="margin-top:18px">
-    <h2>讲解收束</h2>
-    <div class="score-card"><b>暖纠正</b><span>{warm}</span></div>
-    <div class="score-card" style="margin-top:10px"><b>记忆钩子</b><span>{memory_hook}</span></div>
+  <section class="slide" id="slideSummary" aria-label="收束">
+    <h2 class="aux-h">记住这套顺序</h2>
+    <div class="hook">{memory_hook}</div>
+    <div class="warm-box">{warm}</div>
+    <div class="auth"><b>考试依据</b>：{student_boundary}
+      <div class="auth-sub">非官方阅卷 · 图为教学示意 · 数值以教材 / 规范为准</div>
+    </div>
   </section>
 
-  <div class="auth">
-    <b>考试依据</b>：{student_boundary}
-    <div style="margin-top:8px;font-weight:700;color:#9a3412">非官方阅卷 · 图为教学示意 · 具体数值以教材 / 规范为准</div>
+  <div class="stepnav" id="stepNav">
+    <button class="control" id="prevBtn" type="button">上一步</button>
+    <div class="stepnav-mid"><span id="stepCountMini">1 / 11</span><i class="mini-progress"><b id="progressBar"></b></i></div>
+    <button class="control primary" id="nextBtn" type="button">下一步</button>
   </div>
 </main>
 <script type="application/json" id="cardData">{data}</script>
-<script>
-const cardData = JSON.parse(document.getElementById("cardData").textContent);
-let current = 0;
-const stepEls = [...document.querySelectorAll("[data-layer]")];
-const roofSvg = document.getElementById("roofSvg");
-const stepsWrap = document.getElementById("steps");
-const callout = document.getElementById("callout");
-const stepCount = document.getElementById("stepCount");
-const stepTitle = document.getElementById("stepTitle");
-const stepBrief = document.getElementById("stepBrief");
-const whyText = document.getElementById("whyText");
-const jumpNote = document.getElementById("jumpNote");
-const answerText = document.getElementById("answerText");
-const mistakeText = document.getElementById("mistakeText");
-const sourceText = document.getElementById("sourceText");
-const progressBar = document.getElementById("progressBar");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-
-// ---- 字幕式旁白(无 TTS / 无音频): 文本全部来自 schema 的 narration ----
-const narration = cardData.narration || {{}};
-const narrSteps = narration.steps || [];
-const narrErrorReveals = narration.error_reveals || [];
-const narrPF = narration.practice_feedback || {{}};
-const narrPlayBtn = document.getElementById("narrPlay");
-const narrSub = document.getElementById("narrSub");
-const narrBar = document.getElementById("narrBar");
-const narrStatus = document.getElementById("narrStatus");
-const firstStepId = (cardData.steps[0] || {{}}).id;
-
-// 播放时间线 = opening(可选) + 各 step; opening 保持 step1 高亮
-const narrSeq = [];
-if(narration.opening && narration.opening.script){{
-  narrSeq.push({{mode:"opening", step_id:firstStepId, seconds:Number(narration.opening.seconds)||7, script:narration.opening.script, label:"开场"}});
-}}
-narrSteps.forEach((s,k)=>narrSeq.push({{mode:"step", step_id:s.step_id, seconds:Number(s.seconds)||9, script:s.script, label:`第 ${{k+1}} 步`}}));
-const narrTotalMs = narrSeq.reduce((a,s)=>a + s.seconds*1000, 0);
-let narrIndex = 0, narrTimer = null, narrPlaying = false, narrStarted = false, segStart = 0, segRemaining = 0;
-
-function setNarrMode(mode, errorId){{
-  document.documentElement.dataset.narrMode = mode;
-  if(mode === "error" && errorId) document.documentElement.dataset.activeError = errorId;
-  else delete document.documentElement.dataset.activeError;
-}}
-function narrUpdateState(){{
-  document.documentElement.dataset.narrPlaying = narrPlaying ? "true" : "false";
-  document.documentElement.dataset.narrIndex = String(narrIndex);
-}}
-function narrButton(){{
-  if(!narrPlayBtn) return;
-  narrPlayBtn.classList.toggle("playing", narrPlaying);
-  narrPlayBtn.setAttribute("aria-pressed", narrPlaying ? "true" : "false");
-  narrPlayBtn.textContent = narrPlaying ? "⏸ 暂停讲解" : (narrStarted ? "▶ 继续讲解" : `▶ 听老师讲 ${{Math.round(narrTotalMs/1000)}} 秒`);
-}}
-function scriptForStep(stepId){{
-  const n = narrSteps.find(s=>s.step_id === stepId);
-  return n ? n.script : "";
-}}
-function narrShow(i){{
-  const seq = narrSeq[i];
-  if(!seq) return;
-  const si = cardData.steps.findIndex(s=>s.id === seq.step_id);
-  if(si >= 0) render(si, true);
-  if(narrSub) narrSub.textContent = seq.script;
-  const doneMs = narrSeq.slice(0,i+1).reduce((a,s)=>a + s.seconds*1000, 0);
-  if(narrBar) narrBar.style.width = `${{narrTotalMs ? (doneMs/narrTotalMs)*100 : 0}}%`;
-  if(narrStatus) narrStatus.textContent = `播放中 · ${{seq.label}}`;
-  setNarrMode(seq.mode === "opening" ? "opening" : "step");
-  narrUpdateState();
-}}
-function narrPlaySeg(){{
-  narrShow(narrIndex);
-  segRemaining = (narrSeq[narrIndex].seconds||9) * 1000;
-  segStart = performance.now();
-  narrTimer = setTimeout(narrAdvance, segRemaining);
-}}
-function narrAdvance(){{
-  if(narrIndex >= narrSeq.length - 1){{ narrFinish(); return; }}
-  narrIndex += 1;
-  narrPlaySeg();
-}}
-function narrFinish(){{
-  narrPlaying = false; narrStarted = false; segRemaining = 0;
-  clearTimeout(narrTimer); narrTimer = null;
-  if(narrStatus) narrStatus.textContent = "讲完啦，可重听或自己复述一遍";
-  narrButton(); narrUpdateState();
-}}
-function narrStart(){{
-  if(!narrSeq.length) return;
-  if(!narrStarted){{ narrIndex = 0; narrPlaying = true; narrStarted = true; narrButton(); narrPlaySeg(); return; }}
-  narrPlaying = true; narrButton();
-  segStart = performance.now();
-  narrTimer = setTimeout(narrAdvance, Math.max(0, segRemaining));
-  narrUpdateState();
-}}
-function narrPause(){{
-  if(!narrPlaying) return;
-  narrPlaying = false;
-  clearTimeout(narrTimer); narrTimer = null;
-  segRemaining = Math.max(0, segRemaining - (performance.now() - segStart));
-  narrButton(); narrUpdateState();
-}}
-function narrToggle(){{ narrPlaying ? narrPause() : narrStart(); }}
-if(narrPlayBtn) narrPlayBtn.addEventListener("click", narrToggle);
-
-// 手动翻到某步: 暂停自动旁白, 显示该步普通讲解
-function manualStep(index){{
-  narrPause();
-  render(index, true);
-  const sc = scriptForStep(cardData.steps[current].id);
-  if(narrSub && sc) narrSub.textContent = sc;
-  if(narrStatus) narrStatus.textContent = "你手动翻到这一步";
-  setNarrMode("manual_step");
-  narrUpdateState();
-}}
-
-cardData.steps.forEach((step,index)=>{{
-  const btn = document.createElement("button");
-  btn.className = "step-tab";
-  btn.type = "button";
-  btn.setAttribute("role","tab");
-  btn.dataset.stepId = step.id;
-  btn.innerHTML = `<small>步骤 ${{index + 1}}</small><strong>${{step.tab}}</strong>`;
-  btn.addEventListener("click",()=>manualStep(index));
-  stepsWrap.appendChild(btn);
-}});
-
-function sourceLine(step){{
-  // 学生端: 只说"候选采分点 / 教学理解步骤", 不露 source_ref / 编号
-  const b = step.exam_binding || {{}};
-  if(b.kind === "signed_candidate"){{
-    return `候选采分点${{b.label ? ` · ${{b.label}}` : ""}}${{b.max_score ? ` · 约 ${{b.max_score}} 分` : ""}}（教研估分，非官方阅卷）`;
-  }}
-  return `教学理解步骤${{b.label ? ` · ${{b.label}}` : ""}}（帮助你把工序讲完整，不单独计分）`;
-}}
-
-function render(index, updateHash=false, note=null){{
-  current = Math.max(0,Math.min(cardData.steps.length - 1,index));
-  const step = cardData.steps[current];
-  stepCount.textContent = `步骤 ${{current + 1}} / ${{cardData.steps.length}}`;
-  stepTitle.textContent = step.action;
-  stepBrief.textContent = step.brief;
-  whyText.textContent = step.why;
-  if(callout) callout.innerHTML = `<b>${{step.tab}}</b><span>${{step.why}}</span>`;
-  answerText.textContent = step.scoring_expression;
-  mistakeText.textContent = step.common_loss;
-  sourceText.textContent = sourceLine(step);
-  if(note){{ jumpNote.innerHTML = note; jumpNote.hidden = false; }}
-  else {{ jumpNote.hidden = true; jumpNote.textContent = ""; }}
-  progressBar.style.width = `${{((current + 1) / cardData.steps.length) * 100}}%`;
-  prevBtn.disabled = current === 0;
-  nextBtn.textContent = current === cardData.steps.length - 1 ? "回到第一步" : "下一步";
-  document.documentElement.dataset.activeLayer = step.id;
-  stepEls.forEach((el)=>{{
-    const idx = cardData.steps.findIndex(s=>s.id === el.dataset.layer);
-    el.classList.remove("active","done");
-    if(idx === current) el.classList.add("active");
-    if(idx > -1 && idx < current) el.classList.add("done");
-  }});
-  [...stepsWrap.children].forEach((btn,i)=>btn.setAttribute("aria-selected",i === current ? "true" : "false"));
-  if(updateHash) history.replaceState(null,"",`#step=${{current + 1}}`);
-}}
-
-function applyResponsiveSvgView(){{
-  if(window.matchMedia("(max-width:520px)").matches){{
-    roofSvg.setAttribute("viewBox","210 150 470 350");
-  }}else{{
-    roofSvg.setAttribute("viewBox","0 0 900 560");
-  }}
-}}
-
-// 错因卡: 暂停自动旁白 → 跳到对应工序 → 专项讲解 + 横幅 + narrMode=error
-document.querySelectorAll(".error-card").forEach((btn)=>{{
-  btn.addEventListener("click",()=>{{
-    narrPause();
-    const target = btn.dataset.jump;
-    const errId = btn.dataset.errorId;
-    const idx = cardData.steps.findIndex(s=>s.id === target);
-    if(idx < 0) return;
-    const reveal = narrErrorReveals.find(r=>r.error_id === errId) || {{}};
-    const errText = btn.dataset.error || "这类写法";
-    const hint = reveal.correction_hint || "";
-    render(idx, true, `你刚点的是「<b>${{errText}}</b>」——真正漏的是「<b>${{cardData.steps[idx].tab}}</b>」。${{hint}}`);
-    if(narrSub) narrSub.textContent = reveal.script || cardData.steps[idx].why;
-    if(narrStatus) narrStatus.textContent = "错因专项讲解";
-    setNarrMode("error", errId);
-    narrUpdateState();
-    document.getElementById("lesson").scrollIntoView({{behavior:"smooth", block:"start"}});
-  }});
-}});
-
-// 复测题: 答对/答错都要讲清原因; 答错跳回 review_step_id
-document.querySelectorAll(".option").forEach((btn)=>{{
-  btn.addEventListener("click",()=>{{
-    narrPause();
-    document.querySelectorAll(".option").forEach(o=>{{o.setAttribute("aria-pressed","false");o.classList.remove("correct","wrong");}});
-    btn.setAttribute("aria-pressed","true");
-    const correct = btn.dataset.correct === "true";
-    btn.classList.add(correct ? "correct" : "wrong");
-    const feedback = document.getElementById("practiceFeedback");
-    feedback.classList.remove("correct","wrong");
-    feedback.classList.add("show", correct ? "correct" : "wrong");
-    feedback.textContent = (correct ? "✅ " : "❌ ") + (btn.dataset.feedback || "");
-    if(correct){{
-      const msg = narrPF.correct_script || "你抓住了核心得分逻辑。";
-      if(narrSub) narrSub.textContent = msg;
-      if(narrStatus) narrStatus.textContent = "复测点评 · 答对";
-      setNarrMode("practice_correct");
-    }} else {{
-      const msg = narrPF.incorrect_script || (btn.dataset.feedback || "");
-      const reviewId = (cardData.practice && cardData.practice.review_step_id) || "reinforcement_layer";
-      const idx = cardData.steps.findIndex(s=>s.id === reviewId);
-      if(idx >= 0){{
-        render(idx, true, `复测发现你漏了关键闭环——跳到「<b>${{cardData.steps[idx].tab}}</b>」对照一下。`);
-        document.getElementById("lesson").scrollIntoView({{behavior:"smooth", block:"start"}});
-      }}
-      if(narrSub) narrSub.textContent = msg;
-      if(narrStatus) narrStatus.textContent = "复测点评 · 答错";
-      setNarrMode("practice_incorrect");
-    }}
-    narrUpdateState();
-  }});
-}});
-
-prevBtn.addEventListener("click",()=>manualStep(current - 1));
-nextBtn.addEventListener("click",()=> current === cardData.steps.length - 1 ? manualStep(0) : manualStep(current + 1));
-document.addEventListener("keydown",(event)=>{{
-  if(event.key === "ArrowRight") manualStep(current + 1);
-  if(event.key === "ArrowLeft") manualStep(current - 1);
-}});
-window.addEventListener("resize",applyResponsiveSvgView);
-applyResponsiveSvgView();
-const fromHash = Number((location.hash.match(/step=(\\d+)/) || [])[1] || 1) - 1;
-const fromQuery = Number(new URLSearchParams(location.search).get("step") || "") - 1;
-render(Number.isFinite(fromQuery) && fromQuery >= 0 ? fromQuery : fromHash, false);
-setNarrMode("idle");
-narrButton();
-narrUpdateState();
-</script>
+<script>{_JS}</script>
 </body>
 </html>"""
 
