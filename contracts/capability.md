@@ -65,6 +65,8 @@
 40. 判分入口不得以"缺少标准答案"拒绝判分（2026-06-11 根因修复，见 `docs/plan/评分引擎与金标工件/2026-06-11-open-world-grading-and-cross-capability-context-continuity.md`）。当 MCQ 提交经 `_recover_missing_mcq_authority` 三路兜底（active_object hidden authority → `grading_key.correct_answer` 提升 → questions_bank metadata 匹配）仍取不到标准答案时，`deep_question` 必须降级为开放世界判分：缺 authority 条目的确定性 `is_correct`/`score`/llm_judge 占位 `construction_grading_result` 清空为待裁决状态，由 RAG-grounded `SubmissionGraderAgent` 基于检索证据与专业推理裁决并明确判定学员答案，trace 写 `question_authority_source=open_world` / `correct_answer_present=false`。开放世界裁决不是题库标准答案 authority：表述必须用"依据教材/规范判定"，不得声称"题库标准答案/真题官方答案"，不得写 governed release-truth 分数（`answer_key_authority` 仍按 §硬约束 24/35 的诚实溯源链路），已恢复 authority 的条目仍按确定性判分。本条不放松出题侧 authority 纪律（§硬约束 25/26/35 不变），也不影响 lifecycle 对"无 active question 的裸答案提交"的 clarification 裁决（§硬约束 27）。
 41. `mobile` adapter 的认证后 LLM / 重计算端点（assessment create / explain、learning-brain projection、conversations 批量）必须挂 `route_rate_limit` burst（昂贵 LLM 生成端点另加 daily 预算），具体额度与治理见 [contracts/turn.md](./turn.md) §硬约束 21；adapter 的 bcrypt 认证路径（登录 / 注册 / 重置密码）与 capability turn 终结化副作用不得在事件循环线程做阻塞调用（见 turn.md §硬约束 22）。限流与线程化只是边界防护，不得改变 capability 路由、判分 authority 或 turn 状态机语义。
 
+32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/capabilities/request_contracts.py`
