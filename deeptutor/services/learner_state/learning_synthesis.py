@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from collections import defaultdict
 import hashlib
 import json
-from collections import defaultdict
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
+)
+from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    trusted_adjudication_from_quality,
 )
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
@@ -42,8 +46,17 @@ def synthesize_learning_truth(
     learning_items = [
         item
         for event in ordered_events
-        if _is_learning_evidence(event)
+        if _is_learning_evidence(event) and _is_release_eligible_evidence(event)
         for item in _learning_items(event)
+    ]
+    # Review-only observation channel: candidate/shadow learning evidence excluded by
+    # the release-eligibility safety net is OBSERVED here instead of silently dropped.
+    # Nothing downstream (weak_points / compiled_objects / PCP) consumes this list —
+    # it carries zero truth or claim authority.
+    candidate_observations = [
+        _candidate_observation(event)
+        for event in ordered_events
+        if _is_candidate_learning_evidence(event)
     ]
     learning_items = [item for item in learning_items if item is not None]
     manual_events = [_manual_correction(event) for event in ordered_events if _is_manual_correction(event)]
@@ -76,7 +89,9 @@ def synthesize_learning_truth(
     raw_weak_points: list[dict[str, Any]] = []
     for (concept_id, error_code), items in sorted(grouped.items()):
         candidate = _candidate_from_items(concept_id, error_code, items)
-        if len(items) >= 2:
+        if any(_clean_text(item.get("evidence_level")) == "L2_confirmed" for item in items):
+            raw_weak_points.append({**candidate, "evidence_level": "L2_confirmed"})
+        elif len(items) >= 2:
             raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
         else:
             observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
@@ -88,13 +103,17 @@ def synthesize_learning_truth(
         manual_events=manual_events,
         improved_keys=improved_keys,
     )
+    observed_candidates = [_with_claim_lifecycle(item) for item in observed_candidates]
+    weak_points = [_with_claim_lifecycle(item) for item in weak_points]
     stale_claims = [
-        {
+        _with_claim_lifecycle({
             "concept_id": weak["concept_id"],
             "error_code": weak["error_code"],
             "reason": "later_training_improved",
             "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
-        }
+            "evidence_level": weak.get("evidence_level") or "L1_repeated",
+            "decay_state": "improving",
+        })
         for weak in raw_weak_points
         if (weak.get("concept_id"), weak.get("error_code")) in improved_keys
     ]
@@ -112,6 +131,7 @@ def synthesize_learning_truth(
         "compiled_objects": compiled_objects,
         "weak_points": weak_points,
         "observed_candidates": observed_candidates,
+        "candidate_observations": candidate_observations,
         "improvement_signals": improvements,
         "stale_claims": stale_claims,
         "typed_graph": project_learning_graph(ordered_events),
@@ -126,6 +146,10 @@ def synthesize_learning_truth(
         decayed_claim_count=len(stale_claims),
         conflict_count=conflict_count,
         manual_override_count=len(manual_events),
+        trusted_adjudication=_trusted_adjudication_summary(
+            events=ordered_events,
+            weak_points=[*weak_points, *stale_claims],
+        ),
         status=synthesis_status,
     )
     return projection
@@ -319,9 +343,61 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
     payload = dict(event.payload_json or {})
     return (
         event.memory_kind == "learning_evidence"
-        and event.source_feature in {"construction_grading", "assessment_testset"}
+        and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
+
+
+def _is_release_eligible_evidence(event: LearnerStateEvent) -> bool:
+    """SAFETY NET (defensive read filter): shadow/candidate or not-writeback-eligible evidence must NEVER
+    become a claim / weak point / PersonalizationContextPack input, even if such a row somehow leaked into
+    learner_memory_events (writeback is gated at write time, but the read path must be correct on its own —
+    the PCP now surfaces claims into live turns). Excludes ONLY rows POSITIVELY marked shadow/candidate or
+    explicitly writeback_eligible=False; rows that simply omit the marker are kept (no regression)."""
+    payload = dict(event.payload_json or {})
+    authority = str(payload.get("authority") or "").strip().lower()
+    if authority.endswith("_shadow") or authority in {"ai_draft_shadow", "best_quality_4model_shadow"}:
+        return False
+    if payload.get("candidate_only") is True:
+        return False
+    quality = payload.get("quality")
+    if isinstance(quality, dict):
+        if quality.get("candidate_only") is True or str(quality.get("authority") or "").lower().endswith("_shadow"):
+            return False
+        if quality.get("writeback_eligible") is False:   # explicit False only; absent -> keep
+            return False
+    return True
+
+
+def _is_candidate_learning_evidence(event: LearnerStateEvent) -> bool:
+    """Learning-evidence-shaped rows excluded by the release-eligibility safety net.
+
+    Broader than _is_learning_evidence on source_feature on purpose: candidate
+    sources (e.g. rich_leaf_shadow_candidate) are not allowed evidence sources,
+    but they must still be visible in the review-only observation channel."""
+    payload = dict(event.payload_json or {})
+    if event.memory_kind != "learning_evidence" or payload.get("event_type") != "learning_evidence":
+        return False
+    return not _is_release_eligible_evidence(event)
+
+
+def _candidate_observation(event: LearnerStateEvent) -> dict[str, Any]:
+    payload = dict(event.payload_json or {})
+    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    trace = payload.get("rich_leaf_trace") if isinstance(payload.get("rich_leaf_trace"), dict) else {}
+    return {
+        "event_id": event.event_id,
+        "source_feature": event.source_feature,
+        "authority": _clean_text(quality.get("authority") or payload.get("authority")),
+        "evidence_level": _clean_text(quality.get("evidence_level")),
+        "leaf_id": _clean_text(trace.get("leaf_id")),
+        "question_id": _clean_text(payload.get("question_id")),
+        "observed_at": event.created_at,
+        "candidate_only": True,
+        "review_only": True,
+        "claim_promotion_allowed": False,
+        "excluded_from_truth_reason": "not_release_eligible",
+    }
 
 
 def _is_manual_correction(event: LearnerStateEvent) -> bool:
@@ -340,13 +416,15 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
     question_id = _clean_text(payload.get("question_id"))
     turn_id = _clean_text(payload.get("turn_id")) or _clean_text(event.source_id)
     quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    evidence_level = _learning_item_evidence_level(quality=quality, signal=signal)
+    canonical_concept = _canonical_topic_concept_id(payload)
     conflicting_event_ids = [
         _clean_text(item)
         for item in list(quality.get("conflicting_event_ids") or payload.get("conflicting_event_ids") or [])
         if _clean_text(item)
     ]
     if not errors and _is_improvement(payload):
-        concept = _clean_text(signal.get("concept"))
+        concept = canonical_concept or _clean_text(signal.get("concept"))
         if not concept:
             return []
         error_code = _improvement_error_code(payload, concept_id=concept)
@@ -362,6 +440,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "recommended_training": dict(signal),
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "evidence_level": evidence_level,
             "is_improvement": True,
         }]
     if not errors:
@@ -370,7 +449,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     fallback_rubric_id = _rubric_from_edges(payload)
     for error in errors:
-        concept = _clean_text(error.get("concept_tag") or signal.get("concept"))
+        concept = canonical_concept or _clean_text(error.get("concept_tag") or signal.get("concept"))
         error_code = _clean_text(error.get("error_code"))
         rubric_item_id = _clean_text(error.get("rubric_item_id")) or fallback_rubric_id
         items.append({
@@ -381,13 +460,34 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "concept_id": concept,
             "error_code": error_code,
             "rubric_item_id": rubric_item_id,
-            "diagnosis": _clean_text(error.get("diagnosis") or error.get("evidence")),
+            # M32 Task 4: make the claim explainable. The canonical GradingErrorEvent
+            # (construction_grading/schema.py) carries the answer span in ``evidence``;
+            # the v1 rubric path may instead use ``evidence_span``. The mistake TYPE is
+            # already the claim's ``error_code`` — we do not duplicate it under a second
+            # key (single authority per fact). Diagnosis falls back to the span.
+            "diagnosis": _clean_text(
+                error.get("diagnosis") or error.get("evidence") or error.get("evidence_span")
+            ),
+            "evidence_span": _clean_text(error.get("evidence_span") or error.get("evidence")),
             "recommended_training": dict(signal),
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "evidence_level": evidence_level,
             "is_improvement": False,
         })
     return items
+
+
+def _canonical_topic_concept_id(payload: dict[str, Any]) -> str:
+    topic = payload.get("canonical_topic") if isinstance(payload.get("canonical_topic"), dict) else {}
+    return _clean_text(topic.get("taxonomy_code") or topic.get("taxonomy_id") or topic.get("label"))
+
+
+def _learning_item_evidence_level(*, quality: dict[str, Any], signal: dict[str, Any]) -> str:
+    trusted = trusted_adjudication_from_quality(quality, signal)
+    if trusted and trusted.get("requires_human") is not True:
+        return "L2_confirmed"
+    return _clean_text(quality.get("evidence_level"))
 
 
 def _evidence_cap_reasons(quality: dict[str, Any]) -> list[str]:
@@ -403,6 +503,7 @@ def _blocks_stable_learning_truth(cap_reasons: list[str]) -> bool:
         "missing_question_id",
         "rag_degraded",
         "missing_rag_evidence",
+        "conversation_signal_not_grading_truth",
     }
     return bool(blocking_caps.intersection({_clean_text(item) for item in cap_reasons}))
 
@@ -487,7 +588,7 @@ def _manual_correction(event: LearnerStateEvent) -> dict[str, Any] | None:
 
 
 def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
-    return {
+    claim: dict[str, Any] = {
         "concept_id": item.get("concept_id", ""),
         "error_code": item.get("error_code", ""),
         "claim": _claim_text(item.get("concept_id", ""), item.get("error_code", "")),
@@ -495,19 +596,67 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "last_observed_at": item["observed_at"],
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
+        "memory_lifecycle_stage": lifecycle_stage_for_evidence_level(evidence_level),
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
+        # D-class: 1-element timeline for the single-observation path (append-only).
+        "occurrence_timeline": _occurrence_timeline([item]),
     }
+    # M32 Task 4: explainable claim — surface the answer span / diagnosis when present.
+    # Append-only: absent on a legacy item -> claim stays byte-identical to the legacy shape.
+    _attach_claim_evidence(claim, item)
+    return _with_claim_lifecycle(claim)
+
+
+def _attach_claim_evidence(claim: dict[str, Any], source: dict[str, Any]) -> None:
+    """Add the M32 explainability fields only when non-empty (append-only)."""
+    diagnosis = _clean_text(source.get("diagnosis"))
+    if diagnosis:
+        claim["diagnosis"] = diagnosis
+    evidence_span = _clean_text(source.get("evidence_span"))
+    if evidence_span:
+        claim["evidence_span"] = evidence_span
+
+
+def _occurrence_timeline(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """D-class: chronological error recurrence timeline (append-only, oldest-first)."""
+    seen: set[str] = set()
+    entries: list[dict[str, Any]] = []
+    for item in sorted(items, key=lambda i: str(i.get("observed_at") or "")):
+        eid = str(item.get("event_id") or "")
+        if eid in seen:
+            continue
+        seen.add(eid)
+        entries.append({
+            "event_id": eid,
+            "observed_at": str(item.get("observed_at") or ""),
+            "question_id": _clean_text(item.get("question_id")),
+            "turn_id": _clean_text(item.get("turn_id")),
+        })
+    return entries
 
 
 def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
+    def _latest(field: str) -> str:
+        for entry in reversed(items):
+            value = _clean_text(entry.get(field))
+            if value:
+                return value
+        return ""
+
+    candidate: dict[str, Any] = {
         "concept_id": concept_id,
         "error_code": error_code,
         "claim": _claim_text(concept_id, error_code),
         "supporting_event_ids": [item["event_id"] for item in items],
         "last_observed_at": items[-1]["observed_at"],
         "recommended_training": _first_training_signal(items),
+        # D-class: error time-series — when did each mistake recur? (append-only)
+        "occurrence_timeline": _occurrence_timeline(items),
     }
+    # M32 Task 4: surface the most recent answer span / diagnosis (append-only). The mistake
+    # TYPE is already the claim's error_code — not duplicated under a second key.
+    _attach_claim_evidence(candidate, {"diagnosis": _latest("diagnosis"), "evidence_span": _latest("evidence_span")})
+    return candidate
 
 
 def _build_compiled_objects(
@@ -654,19 +803,76 @@ def _put_object(
         ])
         timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
     final_evidence_level = _max_level(previous.get("evidence_level") if previous else "", evidence_level)
+    final_decay_state = decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active")
+    final_supporting_event_ids = _dedupe(supporting_event_ids)
+    claim_status = _claim_status(final_evidence_level, final_decay_state)
     objects[key] = {
         "object_type": object_type,
         "object_id": object_id,
         "current_truth": current_truth,
         "evidence_level": final_evidence_level,
         "confidence": _confidence_for_level(final_evidence_level),
-        "supporting_event_ids": _dedupe(supporting_event_ids),
+        "supporting_event_ids": final_supporting_event_ids,
+        "evidence_refs": final_supporting_event_ids,
         "conflicting_event_ids": _dedupe(conflicting_event_ids),
         "superseded_by_event_ids": _dedupe(superseded_by_event_ids),
         "valid_since": _first_observed(timeline_refs),
         "last_observed_at": _last_observed(timeline_refs),
-        "decay_state": decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active"),
+        "decay_state": final_decay_state,
+        "claim_status": claim_status,
+        "lifecycle": _claim_lifecycle(
+            status=claim_status,
+            evidence_level=final_evidence_level,
+            decay_state=final_decay_state,
+            supporting_event_ids=final_supporting_event_ids,
+        ),
         "timeline_refs": timeline_refs,
+    }
+
+
+def _with_claim_lifecycle(item: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(item)
+    evidence_level = _clean_text(enriched.get("evidence_level")) or "L0_observed"
+    decay_state = _clean_text(enriched.get("decay_state")) or "active"
+    supporting_event_ids = _dedupe([_clean_text(item) for item in list(enriched.get("supporting_event_ids") or [])])
+    status = _claim_status(evidence_level, decay_state)
+    enriched["memory_lifecycle_stage"] = lifecycle_stage_for_evidence_level(evidence_level)
+    enriched["claim_status"] = status
+    enriched["evidence_refs"] = supporting_event_ids
+    enriched["supporting_event_ids"] = supporting_event_ids
+    enriched["lifecycle"] = _claim_lifecycle(
+        status=status,
+        evidence_level=evidence_level,
+        decay_state=decay_state,
+        supporting_event_ids=supporting_event_ids,
+    )
+    return enriched
+
+
+def _claim_status(evidence_level: str, decay_state: str) -> str:
+    if decay_state == "superseded":
+        return "superseded"
+    if decay_state in {"improving", "stale"}:
+        return "stale"
+    if evidence_level in {"L2_confirmed", "L3_mastery_signal"}:
+        return "confirmed"
+    if evidence_level == "L1_repeated":
+        return "repeated"
+    return "observed"
+
+
+def _claim_lifecycle(
+    *,
+    status: str,
+    evidence_level: str,
+    decay_state: str,
+    supporting_event_ids: list[str],
+) -> dict[str, Any]:
+    return {
+        "status": status,
+        "evidence_level": evidence_level,
+        "decay_state": decay_state,
+        "supporting_event_count": len(supporting_event_ids),
     }
 
 
@@ -679,6 +885,7 @@ def _synthesis_run(
     decayed_claim_count: int,
     conflict_count: int,
     manual_override_count: int,
+    trusted_adjudication: dict[str, Any],
     status: str,
 ) -> dict[str, Any]:
     input_hash = _hash_json([
@@ -703,8 +910,75 @@ def _synthesis_run(
         "decayed_claim_count": decayed_claim_count,
         "conflict_count": conflict_count,
         "manual_override_count": manual_override_count,
+        "trusted_adjudication": dict(trusted_adjudication or {}),
         "status": _clean_text(status) or "dry_run_ok",
     }
+
+
+def _trusted_adjudication_summary(
+    *,
+    events: list[LearnerStateEvent],
+    weak_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    supporting_ids = {
+        _clean_text(event_id)
+        for weak in weak_points
+        for event_id in list(weak.get("supporting_event_ids") or [])
+        if _clean_text(event_id)
+    }
+    if not supporting_ids:
+        return {}
+
+    events_by_id = {event.event_id: event for event in events}
+    trusted_entries: list[dict[str, Any]] = []
+    for event_id in sorted(supporting_ids):
+        event = events_by_id.get(event_id)
+        if event is None:
+            return {"source": "", "conflict_status": "missing_supporting_event", "requires_human": True}
+        payload = dict(event.payload_json or {})
+        quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+        signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+        trusted = trusted_adjudication_from_quality(quality, signal)
+        if not trusted:
+            return {"source": "", "conflict_status": "missing_trusted_adjudication", "requires_human": True}
+        trusted_entries.append(trusted)
+
+    sources = {_clean_text(item.get("source")).lower() for item in trusted_entries if _clean_text(item.get("source"))}
+    source = sorted(sources)[0] if len(sources) == 1 else "mixed_trusted_adjudication"
+    confidences = [
+        float(item["confidence"])
+        for item in trusted_entries
+        if _is_float_like(item.get("confidence"))
+    ]
+    statuses = {
+        _clean_text(item.get("conflict_status")).lower() or "resolved"
+        for item in trusted_entries
+    }
+    conflict_status = "resolved" if statuses.issubset({"resolved", "none", "no_conflict", "not_applicable"}) else "unresolved"
+    summary = {
+        "source": source,
+        "confidence": min(confidences) if confidences else None,
+        "conflict_status": conflict_status,
+        "requires_human": any(bool(item.get("requires_human")) for item in trusted_entries),
+        "supporting_event_count": len(supporting_ids),
+    }
+    if source == "certified_grading_policy":
+        for key in ("policy_id", "rubric_hash", "grader_version"):
+            values = {_clean_text(item.get(key)) for item in trusted_entries if _clean_text(item.get(key))}
+            if len(values) == 1:
+                summary[key] = values.pop()
+            else:
+                summary["conflict_status"] = "unresolved"
+                summary["requires_human"] = True
+    return summary
+
+
+def _is_float_like(value: Any) -> bool:
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 def _valid_edge(edge: dict[str, Any]) -> bool:
@@ -777,12 +1051,33 @@ def _resolved_improved_keys(*, improvements: list[dict[str, Any]]) -> set[tuple[
 
 
 def _is_improvement(payload: dict[str, Any]) -> bool:
+    # M32 Task 6: a simulated / preview / non-promotable grade is NOT a real retest pass and
+    # must never clear a weakness (simulated_retest_as_real == 0). The real-pipeline guarantee
+    # rides on ``preview_only`` / ``claim_promotion_allowed`` (set by build_learning_evidence_*);
+    # ``qa_simulated`` is the project's explicit simulation marker (runtime_llm_adjudicator /
+    # beta_shadow_loader). Only a real graded attempt — none of these flags — may improve.
+    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    if (
+        payload.get("qa_simulated") is True
+        or payload.get("preview_only") is True
+        or payload.get("claim_promotion_allowed") is False
+        or _is_low_measurement_confidence(payload.get("measurement_confidence"))
+        or _is_low_measurement_confidence(quality.get("measurement_confidence"))
+    ):
+        return False
     try:
         max_score = float(payload.get("max_score") or 0)
         score = float(payload.get("score_awarded") or 0)
         return max_score > 0 and score >= max_score and not payload.get("error_events")
     except (TypeError, ValueError):
         return False
+
+
+def _is_low_measurement_confidence(value: Any) -> bool:
+    if isinstance(value, dict):
+        level = _clean_text(value.get("level")).lower()
+        return level == "low"
+    return _clean_text(value).lower() == "low"
 
 
 def _improvement_error_code(payload: dict[str, Any], *, concept_id: str) -> str:

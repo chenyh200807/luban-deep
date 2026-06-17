@@ -19,6 +19,10 @@ _RUNTIME_ONLY_KEYS = {
     "_persist_user_message",
     "client_turn_id",
     "followup_question_context",
+    "grading_engine_m35_artifact_shadow",
+    "grading_engine_m35_artifact_shadow_judge",
+    "grading_engine_m35_artifact_shadow_tier",
+    "grading_engine_pgo_shadow",
 }
 
 
@@ -52,6 +56,7 @@ class DeepQuestionRequestConfig(BaseModel):
     paper_path: str = ""
     max_questions: int = Field(default=10, ge=1, le=100)
     learning_training_intent: dict[str, Any] | None = None
+    general_knowledge_context: bool | None = None
 
 
 class VisualizeRequestConfig(BaseModel):

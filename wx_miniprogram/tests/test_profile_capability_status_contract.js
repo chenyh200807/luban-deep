@@ -20,13 +20,14 @@ assert(!/title:\s*"图片\/文档分析"/.test(profileJs), "file analysis should
 assert(!/title:\s*"思维导图"/.test(profileJs), "mind map should not appear on profile");
 assert(!/bindtap="onCapabilityTap"/.test(profileWxml), "profile should not render removed capability rows");
 assert(!/扩展能力/.test(profileWxml), "profile should not render the advanced abilities section");
-assert(/\.getUsage\(\)/.test(profileJs), "profile should own usage-limit loading");
+assert(/\.getWallet\(\)/.test(profileJs), "profile should own wallet entitlement loading");
+assert(/\.getLedger\(20\)/.test(profileJs), "profile should read ledger evidence for entitlement percentage");
+assert(/\.getUsage\(\)/.test(profileJs), "profile may keep usage as a compatibility fallback");
 assert(/usagePrimaryLabel/.test(profileJs) && /usageRows/.test(profileJs), "profile should keep usage percentage state");
-assert(/quota\.rows/.test(profileJs), "profile should read canonical quota rows from billing usage payload");
+assert(/wallet_percent/.test(profileJs) && /usage_record/.test(profileJs), "profile should project wallet entitlement rows");
 assert(/openUsageDetail/.test(profileJs) && /closeUsageDetail/.test(profileJs), "profile should expose usage detail interactions");
 assert(/class="usage-card glass-card"/.test(profileWxml), "profile should render the usage card");
 assert(/class="usage-summary-row"/.test(profileWxml), "profile should render compact visible usage rows");
-assert(/five_hour/.test(profileJs) && /!== "five_hour"/.test(profileJs), "profile should keep five-hour quota as backend-only protection");
 assert(/class="usage-detail-sheet/.test(profileWxml), "profile should render a usage detail sheet");
 assert(!/\{\{points\}\}/.test(profileWxml) && !/\{\{userPoints\}\}/.test(profileWxml), "profile should not render raw point balances");
 

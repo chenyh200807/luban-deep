@@ -1,0 +1,18 @@
+{
+  "all_pass": true,
+  "env_kill": {
+    "legacy_intact": true,
+    "state_correct": true,
+    "switch_path_latency_ms": 21.314
+  },
+  "registry_unavailable": {
+    "legacy_intact": true,
+    "state_correct": true,
+    "switch_path_latency_ms": 24.757
+  },
+  "request_flag_withdraw": {
+    "legacy_intact": true,
+    "state_correct": true,
+    "switch_path_latency_ms": 18.197
+  }
+}

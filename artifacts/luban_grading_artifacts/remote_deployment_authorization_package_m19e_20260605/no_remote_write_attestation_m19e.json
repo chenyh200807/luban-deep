@@ -1,0 +1,14 @@
+{
+  "canonical_truth_written": false,
+  "deploy_or_restart_executed": false,
+  "generated_at": "2026-06-04T17:12:02Z",
+  "no_remote_write_attestation": true,
+  "no_scp_or_rsync_executed": true,
+  "no_ssh_executed": true,
+  "production_db_written": false,
+  "production_default_broad_opened": false,
+  "published_registry_emitted": false,
+  "remote_env_modified": false,
+  "remote_write_root_if_authorized": "/root/deeptutor",
+  "staged_or_committed": false
+}

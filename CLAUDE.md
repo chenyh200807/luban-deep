@@ -14,6 +14,7 @@
 
 | 触发条件 | 必读章节 |
 |---|---|
+| 涉及 Web / BI / 前端 / 浏览器 / 截图 / `next dev` / Playwright | AGENTS §Claude / Codex Web Memory Guardrails |
 | 涉及 turn / session / stream / replay / resume / 聊天入口 / TutorBot / trace | `CONTRACT.md` + `contracts/index.yaml` + AGENTS §Contract Discipline |
 | 写 PRD / 审 PRD / 判断能力是否落地 / 理解模块方向 | `docs/plan/INDEX.md` + AGENTS §Plan Directory Discipline |
 | 任何"新增字段 / router / classifier / interpreter / wrapper / fallback / state"的冲动 | AGENTS §0 Thin Wrappers Fat Skills + §5.6 + §5.7 Single Authority Hard Gate |
@@ -33,6 +34,14 @@
 - **不要从零思考**——AGENTS.md 已经回答了大部分"应该怎么做"。
 - **不要绕过 AGENTS.md**——AGENTS.md 是单一权威，CLAUDE.md 只是入口。
 - **遇到 AGENTS.md 与 CLAUDE.md 冲突，以 AGENTS.md 为准**——CLAUDE.md 出现冲突说明本文件需要删减，不是 AGENTS.md 需要让步。
+
+### Repo-local agent-skills
+
+本仓库的开发 / QA workflow skills 在 [`agent-skills/`](./agent-skills/)。
+Claude Code 和 Codex 都按 AGENTS.md 的路由读取它们：非平凡工程任务先读
+[`deeptutor-engineering-lifecycle-gate`](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)，
+再按任务面选择窄 skill。不要把这些 repo-local skills 复制到全局 Claude
+skills；它们不是 TutorBot runtime skills，也不是第二套 authority。
 
 ## 原则的理论源头 (Karpathy Skills 谱系)
 

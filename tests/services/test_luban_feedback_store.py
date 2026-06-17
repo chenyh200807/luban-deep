@@ -35,7 +35,19 @@ def _row(**overrides):
         "wechat_id": "luban_user",
         "status": "submitted",
         "operator_note": "",
-        "raw_payload": {"one_word": "差点意思"},
+        "raw_payload": {
+            "one_word": "差点意思",
+            "feat_case_grading": "5",
+            "feat_error_coach": "4",
+            "feat_qa": "na",
+            "ease_of_use": "3",
+            "accuracy": "4",
+            "speed": "2",
+            "problems": ["slow_loading", "cant_find"],
+            "problems__other": "偶尔跳登录",
+            "wanted_features": ["mock_exam", "mistake_book"],
+            "wanted_features__other": "班主任跟进",
+        },
     }
     base.update(overrides)
     return base
@@ -61,6 +73,20 @@ def test_normalize_parses_nps_and_one_word():
     out = normalize_luban_feedback(_row(nps="7"))
     assert out["nps"] == 7
     assert out["one_word"] == "差点意思"
+
+
+def test_normalize_exposes_complete_survey_payload_for_bi_detail_and_export():
+    out = normalize_luban_feedback(_row())
+    assert out["feat_case_grading"] == "5"
+    assert out["feat_error_coach"] == "4"
+    assert out["feat_qa"] == "na"
+    assert out["ease_of_use"] == "3"
+    assert out["accuracy"] == "4"
+    assert out["speed"] == "2"
+    assert out["problems"] == ["slow_loading", "cant_find"]
+    assert out["problems_other"] == "偶尔跳登录"
+    assert out["wanted_features"] == ["mock_exam", "mistake_book"]
+    assert out["wanted_features_other"] == "班主任跟进"
 
 
 def test_normalize_handles_null_nps_and_empty_contact():

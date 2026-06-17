@@ -49,12 +49,13 @@ def _categorical_score(
 
 
 def _suite_pass_rate(payload: dict[str, Any], suite_prefix: str) -> float | None:
-    for suite in payload.get("suite_summaries") or []:
-        suite_name = str(suite.get("suite") or "")
-        if suite_name.startswith(suite_prefix):
-            pass_rate = suite.get("pass_rate")
-            if isinstance(pass_rate, (int, float)):
-                return float(pass_rate)
+    for suite_list_key in ("suite_summaries", "benchmark_suite_summaries"):
+        for suite in payload.get(suite_list_key) or []:
+            suite_name = str(suite.get("suite") or "")
+            if suite_name.startswith(suite_prefix):
+                pass_rate = suite.get("pass_rate")
+                if isinstance(pass_rate, (int, float)):
+                    return float(pass_rate)
     return None
 
 
@@ -150,8 +151,18 @@ def build_aae_composite_run(
     notes: list[str] = []
     scores: dict[str, Any] = {}
 
+    real_exam_rate = _suite_pass_rate(arr_payload, "real_exam_quality_spine")
     overall_pass_rate = arr_summary.get("pass_rate")
-    if isinstance(overall_pass_rate, (int, float)):
+    if isinstance(real_exam_rate, (int, float)):
+        scores["correctness_score"] = _numeric_score(
+            value=float(real_exam_rate),
+            source="arr_real_exam_quality_spine",
+            is_proxy=True,
+            coverage="partial",
+            note="correctness_score 当前基于 docs/2026 真题 bank 的 ARR integrity spine；闭卷模型正确率仍由 exam_quality_eval 产出。",
+        )
+        notes.append("correctness_score 当前基于 docs/2026 real-exam spine。")
+    elif isinstance(overall_pass_rate, (int, float)):
         scores["correctness_score"] = _numeric_score(
             value=float(overall_pass_rate),
             source="arr_pass_rate",
@@ -194,7 +205,7 @@ def build_aae_composite_run(
             source="arr_context_long_dialog",
             is_proxy=True,
             coverage="partial",
-            note="continuity_score 当前基于 context-orchestration 与 long-dialog suite。",
+            note="continuity_score 当前基于 context-orchestration；若 ARR/benchmark payload 含 long-dialog incident replay，则一并计入。",
         )
         notes.append("continuity_score 当前为 ARR suite proxy。")
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 import re
 from typing import Any, Iterable
@@ -7,7 +8,11 @@ from typing import Any, Iterable
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-AGENTS_DIR = PROJECT_ROOT / "src" / "agents"
+# The real prompt templates live under deeptutor/agents/<agent>/prompts/{en,zh,cn}; the old
+# ``src/agents`` path holds only an empty package stub, so this parity gate used to no-op
+# (0 module dirs with prompts/en → trivially green). Point it at the live tree so the en↔zh
+# key + placeholder parity is actually enforced (schema-governance P3#12).
+AGENTS_DIR = PROJECT_ROOT / "deeptutor" / "agents"
 
 # Template placeholders are expected to be like {topic}, {knowledge_title}, etc.
 # Avoid false positives from LaTeX (\frac{1}{3}) and Mermaid (B{{Processing}}).
@@ -111,3 +116,75 @@ def test_prompts_key_and_placeholder_parity():
                     failures.append("\n".join(msg))
 
     assert not failures, "Prompt parity failures:\n" + "\n\n".join(failures)
+
+
+# Template placeholders verify en↔zh FILE parity above; this closure verifies the other,
+# previously-unguarded direction: every prompt that code declares it will LOAD actually resolves
+# to a real prompt file. PromptManager._load_with_fallback returns ``{}`` (and get_prompt returns
+# the empty fallback) when no file is found — a typo'd / deleted prompt degrades silently to a
+# blank prompt, never an error. This is the `dormant authority` failure shape: a prompt reference
+# with no enforcement that its target exists.
+_PROMPT_USE_RE = re.compile(r"self\.prompts|self\.get_prompt|get_prompt\(")
+
+
+def _declared_prompt_consuming_agents() -> set[tuple[str, str]]:
+    """Statically discover every ``(module_name, agent_name)`` an agent passes to BaseAgent AND
+    that the declaring file actually consumes (references ``self.prompts`` / ``get_prompt``).
+
+    An agent may pass module_name/agent_name purely for logging/config without ever reading
+    file-based prompts (e.g. ``vision_solver_agent`` builds prompts inline) — those are correctly
+    out of scope. register-before-use here means "if you USE a prompt, it must resolve", not
+    "every agent must own a prompt file". This is a principled filter, not an allowlist.
+    """
+    pairs: set[tuple[str, str]] = set()
+    for py in AGENTS_DIR.rglob("*.py"):
+        try:
+            src = py.read_text(encoding="utf-8")
+            tree = ast.parse(src)
+        except (OSError, SyntaxError):
+            continue
+        if not _PROMPT_USE_RE.search(src):
+            continue  # declaring file does not consume file-based prompts
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            kw = {k.arg: k.value for k in node.keywords if isinstance(k.value, ast.Constant)}
+            module, agent = kw.get("module_name"), kw.get("agent_name")
+            if (
+                module is not None
+                and agent is not None
+                and isinstance(module.value, str)
+                and isinstance(agent.value, str)
+            ):
+                pairs.add((module.value, agent.value))
+    return pairs
+
+
+def test_every_prompt_consuming_agent_resolves_a_prompt():
+    """register-before-use closure for prompts — NO second authority.
+
+    The filesystem (under deeptutor/agents/*/prompts/) stays the single inventory authority and
+    the production ``PromptManager`` stays the single resolution authority; this test maintains no
+    duplicate registry YAML. It drives the REAL loader for every prompt-consuming agent and fails
+    if it silently returns an empty dict, which would leave that agent running on a blank prompt.
+    """
+    from deeptutor.services.prompt.manager import get_prompt_manager
+
+    pm = get_prompt_manager()
+    declared = _declared_prompt_consuming_agents()
+    assert declared, "AST scan found no prompt-consuming agents — the scan is broken, not the prompts"
+
+    unresolved = sorted(
+        f"{module}/{agent}"
+        for module, agent in declared
+        if not pm.load_prompts(module_name=module, agent_name=agent, language="zh")
+    )
+    assert not unresolved, (
+        "prompt-consuming agents whose declared prompt does NOT resolve to a file "
+        "(silent blank-prompt risk — register-before-use violated):\n  " + "\n  ".join(unresolved)
+    )
+
+    # Discrimination: the closure must actually catch a missing prompt, else it is a no-op gate.
+    assert not pm.load_prompts(
+        module_name="__nonexistent_module__", agent_name="__nope__", language="zh"
+    ), "PromptManager resolved a bogus agent — the closure check cannot distinguish missing prompts"

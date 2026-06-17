@@ -3,8 +3,8 @@
 **Date:** 2026-05-25
 **Mode:** commit-ready evidence only; no staging, no commit, no push, no
 migration apply.
-**PRD:** `docs/plan/2026-05-24-luban-assessment-testset-module-prd.md`
-**Execution plan:** `docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
+**PRD:** `docs/plan/测评题库与考试模块/2026-05-24-luban-assessment-testset-module-prd.md`
+**Execution plan:** `docs/plan/测评题库与考试模块/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
 
 ## Summary
 
@@ -57,7 +57,7 @@ b18b54c38c6cc46a3f0223472aff35e1ca9a6ad9e7427eebaeadf04f964268bb     791  yousen
 3300f276f41480d31bbba1fdae5b0d0c4c137168f9b6a8190a942a43cbd2af2e     813  yousenwebview/packageDeeptutor/utils/api.js
 66dfdbda86aa2bc39258ab3424131cc8c3fa940eb192488b1de6323096fdee7f     306  yousenwebview/tests/test_package_assessment_contract.js
 ec663a3952858954aaf92043b1b00137d07fb585a2c46058d630a182eb37cfc5     275  yousenwebview/tests/test_assessment_testset_view_model.js
-afcd31624e93b96f4fa4240e9344c36d0d5a3f65a540f89f657f42f9920de1f6    1216  docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md
+afcd31624e93b96f4fa4240e9344c36d0d5a3f65a540f89f657f42f9920de1f6    1216  docs/plan/测评题库与考试模块/2026-05-24-luban-assessment-testset-p0a-execution-plan.md
 ```
 
 ## Verification Stdout

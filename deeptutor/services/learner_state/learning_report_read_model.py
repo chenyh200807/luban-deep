@@ -1,41 +1,54 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
 import hashlib
+import json
 import os
 import re
+import time
 from typing import Any, Callable
 
-from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
+from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
-from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
-from deeptutor.services.learner_state.scoring_point_map_read_model import (
-    build_scoring_point_map_read_projection,
+from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
+from deeptutor.services.learner_state.next_best_action import build_next_best_actions
+from deeptutor.services.learner_state.personalization_context import (
+    build_personalization_context_pack,
 )
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
 )
+from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
     dispute_candidates_from_events,
 )
-from deeptutor.services.learner_state.training_intent import build_learning_training_intent
+from deeptutor.services.learner_state.scoring_point_map_read_model import (
+    build_scoring_point_map_read_projection,
+)
+from deeptutor.services.learner_state.training_intent import (
+    PRESCRIPTION_AUTHORITY,
+    build_learning_training_intent,
+)
 from deeptutor.services.taxonomy.construction_taxonomy import (
-    display_taxonomy_label,
     is_non_topic_label,
     normalize_taxonomy_code,
+    student_facing_label,
     taxonomy_index,
+    taxonomy_tree_stats,
+    textbook_directory,
     textbook_topic_meta,
 )
+from deeptutor.services.taxonomy.learning_topic_resolver import canonical_learning_topic_label
 
 
 def _build_scoring_point_map_from(*, events: list[Any], user_id: str) -> dict[str, Any]:
@@ -56,6 +69,13 @@ def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, An
 
 
 _TZ = timezone(timedelta(hours=8))
+# Canonical schema id for register-before-use (schema-governance P2: this read model is
+# this module's single schema authority — contracts/learning-report.md). The wire payload
+# keeps the integer ``schema_version`` (1 default / 2 opt-in) for client compatibility; this
+# string id makes the schema VISIBLE to the schema-registry closure so a competing
+# learning-report schema can never appear unregistered. Registered as T2 runtime-canonical
+# in contracts/schema_registry.yaml.
+SCHEMA_ID = "learning_report_read_model.v2"
 _SCHEMA_VERSION = 1
 _ERROR_MESSAGE_LIMIT = 200
 _LEGACY_SOURCE_TIMEOUT_S = 0.5
@@ -97,6 +117,7 @@ _SOURCE_NAMES = (
     "assessment_profile",
     "mastery_dashboard",
     "learner_events",
+    "note_assets",
     "compiled_truth",
     "dry_run_synthesis",
 )
@@ -143,6 +164,7 @@ def build_learning_report_read_model(
     member_service: Any,
     learner_state_service: Any,
     mistake_book_service: Any | None = None,
+    notebook_card_service: Any | None = None,
     event_limit: int = 100,
     schema_version: int = 1,
 ) -> dict[str, Any]:
@@ -239,6 +261,11 @@ def build_learning_report_read_model(
         user_id=normalized_user,
         mistake_book_service=mistake_book_service,
     )
+    note_assets = _note_assets_projection(
+        user_id=normalized_user,
+        notebook_card_service=notebook_card_service,
+        source_status=source_status,
+    )
     learner_facing = _learner_facing_payload(
         events=events,
         evidence_stats=evidence_stats,
@@ -249,6 +276,20 @@ def build_learning_report_read_model(
     training_prescription = _training_prescription_payload(
         learner_facing=learner_facing,
     )
+    personalization_context = build_personalization_context_pack(
+        user_id=normalized_user,
+        learning_brain=learning_brain,
+        active_training_intent=_safe_dict(_safe_dict(learner_facing.get("next_action")).get("intent")),
+        recent_events=events,
+    )
+    learning_brain_degraded = learning_brain_source == "dry_run_learning_evidence"
+    next_best_actions = _safe_list(personalization_context.get("next_best_action_candidates"))
+    if learning_brain_degraded:
+        next_best_actions = [_degraded_dry_run_action(action) for action in next_best_actions] or [
+            _degraded_dry_run_action({})
+        ]
+        personalization_context = dict(personalization_context)
+        personalization_context["next_best_action_candidates"] = next_best_actions
     truth_sections = _truth_sections(events)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
@@ -312,6 +353,11 @@ def build_learning_report_read_model(
             "read_model": "learning-report-read-model",
             "progress_source": "learner_memory_events.learning_evidence",
             "learning_brain_source": learning_brain_source,
+            "learning_brain_degraded": learning_brain_degraded,
+            "personalization_context_source": "PersonalizationContextPack",
+            "next_best_action_source": "training_intent",
+            "note_assets_source": "learner_notebook_cards",
+            "today_tasks_source": "learning-report-read-model.note_assets",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },
         "degraded": degraded,
@@ -338,8 +384,12 @@ def build_learning_report_read_model(
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
+        "personalization_context": personalization_context,
+        "next_best_actions": next_best_actions,
         "next_training": next_training,
         "training_prescription": training_prescription,
+        "note_assets": note_assets,
+        "today_tasks": _today_tasks_from_note_assets(note_assets),
         # Batch C Task 7: scoring point map projection (read-only sibling).
         "scoring_point_map": scoring_point_map,
         "prescription_outcomes": prescription_outcomes,
@@ -349,6 +399,9 @@ def build_learning_report_read_model(
         # state -> reason -> action -> evidence without traversing into
         # learning_brain internals.
         "learning_state": learning_state,
+        # D-class: student-visible long-term analytics (recurrent errors + trend).
+        # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
+        "long_term_analytics": _build_long_term_analytics(learning_brain),
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,
@@ -356,6 +409,7 @@ def build_learning_report_read_model(
             "mastery_dashboard": mastery_dashboard,
         },
     }
+    report["grading_to_brain_loop"] = _build_grading_to_brain_loop(report)
     if int(schema_version or 1) == 2:
         return _learning_report_v2(
             report,
@@ -363,6 +417,214 @@ def build_learning_report_read_model(
             evidence_stats=evidence_stats,
         )
     return report
+
+
+def _build_grading_to_brain_loop(report: dict[str, Any]) -> dict[str, Any]:
+    """Student/product-facing Grading-to-Brain loop projection.
+
+    This is deliberately a read-only composer over existing authorities:
+    grading evidence -> Learning Brain -> PersonalizationContextPack ->
+    training_intent/revalidation -> prescription outcome.
+    """
+    freshness = _safe_dict(report.get("freshness"))
+    learning_brain = _safe_dict(report.get("learning_brain"))
+    personalization = _safe_dict(report.get("personalization_context"))
+    next_best_actions = _safe_list(report.get("next_best_actions"))
+    prescription_outcomes = _safe_list(report.get("prescription_outcomes"))
+    revalidation_queue = _safe_dict(report.get("revalidation_queue"))
+    learner_facing = _safe_dict(report.get("learner_facing"))
+
+    primary_outcome = _safe_dict(prescription_outcomes[0] if prescription_outcomes else {})
+    next_action = _safe_dict(next_best_actions[0] if next_best_actions else {})
+    top_claims = _safe_list(personalization.get("top_claims"))
+    weak_points = _safe_list(learning_brain.get("weak_points"))
+    observed = _safe_list(learning_brain.get("observed_candidates"))
+    stale_claims = _safe_list(learning_brain.get("stale_claims"))
+    improvements = _safe_list(learning_brain.get("improvement_signals"))
+    compiled_objects = learning_brain.get("compiled_objects")
+    if isinstance(compiled_objects, dict):
+        compiled_count = len(compiled_objects)
+    else:
+        compiled_count = len(_safe_list(compiled_objects))
+
+    evidence_refs = _dedupe_strings(
+        _safe_list(primary_outcome.get("evidence_refs"))
+        or _safe_list(next_action.get("evidence_refs"))
+        or _evidence_refs_from_learner_facing(learner_facing)
+    )
+    event_count = _safe_int(freshness.get("event_count"))
+    claim_count = len(top_claims) or len(weak_points) or len(observed) or len(stale_claims) or compiled_count
+    has_personalization = bool(
+        personalization.get("source") == "PersonalizationContextPack"
+        or personalization.get("authority")
+        or top_claims
+        or personalization.get("feedback_guidance")
+    )
+    has_next_action = bool(next_action or _safe_dict(learner_facing.get("next_action")).get("title"))
+    queue_items = _safe_list(revalidation_queue.get("items"))
+
+    outcome_status = str(primary_outcome.get("status") or "").strip()
+    if improvements or outcome_status == "verified":
+        status = "improved"
+    elif queue_items:
+        status = "needs_retest"
+    elif has_next_action:
+        status = "action_ready"
+    elif claim_count:
+        status = "claim_ready"
+    elif event_count:
+        status = "evidence_ready"
+    else:
+        status = "needs_first_grading"
+
+    next_required_action = str(primary_outcome.get("next_required_action") or "").strip()
+    if not next_required_action:
+        if queue_items:
+            next_required_action = "complete_revalidation_probe"
+        elif has_next_action:
+            next_required_action = "start_next_action"
+        elif event_count:
+            next_required_action = "wait_for_learning_brain_projection"
+        else:
+            next_required_action = "submit_first_case_answer"
+
+    stages = [
+        {
+            "key": "grading_result",
+            "label": "本次批改",
+            "status": "ready" if event_count else "missing",
+            "evidence_count": event_count,
+            "authority": "learner_memory_events.learning_evidence",
+        },
+        {
+            "key": "learning_evidence",
+            "label": "学习证据",
+            "status": "ready" if event_count else "missing",
+            "evidence_refs": evidence_refs[:5],
+            "authority": "learner_memory_events.learning_evidence",
+        },
+        {
+            "key": "learner_claim",
+            "label": "长期画像",
+            "status": "ready" if claim_count else "pending",
+            "claim_count": claim_count,
+            "authority": "LearningBrainReadModel",
+        },
+        {
+            "key": "personalization_context",
+            "label": "个性化上下文",
+            "status": "ready" if has_personalization else "pending",
+            "authority": "PersonalizationContextPack",
+        },
+        {
+            "key": "next_action",
+            "label": "下一步动作",
+            "status": "ready" if has_next_action else "pending",
+            "action_type": str(next_action.get("action_type") or ""),
+            "authority": "training_intent",
+        },
+        {
+            "key": "retest",
+            "label": "复测结果",
+            "status": "verified" if outcome_status == "verified" else ("due" if queue_items else "pending"),
+            "next_required_action": next_required_action,
+            "authority": "prescription_outcomes",
+        },
+    ]
+
+    return {
+        "status": status,
+        "next_required_action": next_required_action,
+        "evidence_refs": evidence_refs[:8],
+        "current_action": {
+            "title": str(next_action.get("title") or _safe_dict(learner_facing.get("next_action")).get("title") or "").strip(),
+            "action_type": str(next_action.get("action_type") or "").strip(),
+            "prescription_authority": str(next_action.get("prescription_authority") or PRESCRIPTION_AUTHORITY),
+        },
+        "latest_outcome": {
+            "training_intent_id": str(primary_outcome.get("training_intent_id") or "").strip(),
+            "status": outcome_status,
+            "score_ratio": primary_outcome.get("score_ratio"),
+            "verified_at": str(primary_outcome.get("verified_at") or "").strip(),
+        },
+        "stages": stages,
+        "authority": {
+            "grading_evidence": "learner_memory_events.learning_evidence",
+            "learner_model": "LearningBrainReadModel",
+            "personalization": "PersonalizationContextPack",
+            "action": "training_intent",
+            "retest": "prescription_outcomes",
+        },
+        "source_status": {
+            "degraded": bool(report.get("degraded")),
+            "learning_brain_degraded": bool(_safe_dict(report.get("authority")).get("learning_brain_degraded")),
+        },
+    }
+
+
+def _dedupe_strings(values: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        text = str(value or "").strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        result.append(text)
+    return result
+
+
+def _evidence_refs_from_learner_facing(learner_facing: dict[str, Any]) -> list[str]:
+    refs: list[Any] = []
+    for attempt in _safe_list(learner_facing.get("recent_attempts")):
+        item = _safe_dict(attempt)
+        refs.append(item.get("key"))
+    for evidence in _safe_list(learner_facing.get("evidence_timeline")):
+        item = _safe_dict(evidence)
+        refs.append(item.get("key"))
+    return _dedupe_strings(refs)
+
+
+def _build_long_term_analytics(learning_brain: dict[str, Any]) -> dict[str, Any]:
+    """D-class: project student-visible long-term analytics from learning_brain.weak_points.
+
+    Purely read — derives from occurrence_timeline already on each weak_point.
+    No new DB reads, no new authority, append-only section on the report.
+    """
+    weak_points = list((learning_brain or {}).get("weak_points") or [])
+
+    recurrent_errors: list[dict[str, Any]] = []
+    for wp in weak_points:
+        timeline = list(wp.get("occurrence_timeline") or [])
+        if len(timeline) < 2:
+            continue
+        dates = sorted(str(e.get("observed_at") or "") for e in timeline)
+        recurrent_errors.append({
+            "concept_id": str(wp.get("concept_id") or ""),
+            "error_code": str(wp.get("error_code") or ""),
+            "occurrence_count": len(timeline),
+            "first_seen_at": dates[0],
+            "last_seen_at": dates[-1],
+        })
+    recurrent_errors.sort(key=lambda x: (-x["occurrence_count"], x["last_seen_at"]))
+
+    active_weak_count = len(weak_points)
+    recurrent_count = len(recurrent_errors)
+    if recurrent_count == 0:
+        trend = "improving"
+    elif recurrent_count > max(1, active_weak_count // 2):
+        trend = "declining"
+    else:
+        trend = "stable"
+
+    return {
+        "recurrent_errors": recurrent_errors,
+        "progression_summary": {
+            "trend_direction": trend,
+            "active_weak_count": active_weak_count,
+            "recurrent_error_count": recurrent_count,
+        },
+    }
 
 
 def _learning_state_inference_flag_state(user_id: str) -> dict[str, Any]:
@@ -426,6 +688,127 @@ def _empty_revalidation_queue(reason: str) -> dict[str, Any]:
     }
 
 
+def _note_assets_projection(
+    *,
+    user_id: str,
+    notebook_card_service: Any | None,
+    source_status: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    if notebook_card_service is None:
+        source_status["note_assets"] = _idle_status()
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": None,
+                "authority": "learner_notebook_cards",
+                "reason": "notebook_card_service_not_configured",
+            },
+        }
+    lister = getattr(notebook_card_service, "list_cards", None)
+    if not callable(lister):
+        source_status["note_assets"] = {"ok": False, "latency_ms": 0, "error": "list_cards_unavailable"}
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": False,
+                "authority": "learner_notebook_cards",
+                "reason": "list_cards_unavailable",
+            },
+        }
+    try:
+        cards = list(lister(user_id) or [])
+    except Exception as exc:
+        source_status["note_assets"] = {"ok": False, "latency_ms": 0, "error": type(exc).__name__}
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": False,
+                "authority": "learner_notebook_cards",
+                "reason": type(exc).__name__,
+            },
+        }
+    items = [_note_asset_item(card, index) for index, card in enumerate(cards[:20])]
+    source_status["note_assets"] = {"ok": True, "latency_ms": 0, "error": None, "count": len(items)}
+    return {
+        "items": items,
+        "count": len(items),
+        "source_status": {
+            "ok": True,
+            "authority": "learner_notebook_cards",
+            "generated_at": datetime.now(_TZ).isoformat(),
+        },
+    }
+
+
+def _note_asset_item(card: dict[str, Any], index: int) -> dict[str, Any]:
+    source_ref = _safe_dict(card.get("source_ref"))
+    card_type = str(card.get("card_type") or "manual_note").strip() or "manual_note"
+    summary = str(_safe_dict(card.get("ai_enhanced_content")).get("summary") or "").strip()
+    has_source_ref = bool(
+        str(source_ref.get("event_id") or source_ref.get("attempt_ref") or source_ref.get("turn_id") or "").strip()
+    )
+    action = _note_asset_action(card_type=card_type, source_ref=source_ref)
+    return {
+        "key": str(card.get("note_id") or f"note-{index}").strip(),
+        "note_id": str(card.get("note_id") or "").strip(),
+        "card_type": card_type,
+        "title": str(card.get("title") or "学习卡片").strip()[:80],
+        "summary": summary[:180],
+        "subject_id": str(card.get("subject_id") or "").strip(),
+        "source_type": str(card.get("source_type") or "").strip(),
+        "source_linked": has_source_ref,
+        "source_label": "来自一次批改/答疑" if has_source_ref else "",
+        "evidence_label": "可追溯到原始学习证据" if has_source_ref else "",
+        "action": action,
+        "updated_at": str(card.get("updated_at") or "").strip(),
+        "version": _safe_int(card.get("version")) or 1,
+    }
+
+
+def _note_asset_action(*, card_type: str, source_ref: dict[str, Any]) -> dict[str, Any]:
+    attempt_ref = str(source_ref.get("attempt_ref") or "").strip()
+    turn_id = str(source_ref.get("turn_id") or "").strip()
+    if card_type in {"scoring_card", "error_pattern_note"}:
+        return {
+            "label": "重新作答" if attempt_ref else "练同类题",
+            "type": "reanswer" if attempt_ref else "probe",
+            "attempt_ref": attempt_ref,
+            "entry_source": "note_asset",
+        }
+    return {
+        "label": "测一下",
+        "type": "probe",
+        "turn_id": turn_id,
+        "entry_source": "note_asset",
+    }
+
+
+def _today_tasks_from_note_assets(note_assets: dict[str, Any]) -> list[dict[str, Any]]:
+    tasks: list[dict[str, Any]] = []
+    for asset in _safe_list(note_assets.get("items")):
+        item = _safe_dict(asset)
+        action = _safe_dict(item.get("action"))
+        note_id = str(item.get("note_id") or "").strip()
+        if not note_id or not action:
+            continue
+        tasks.append(
+            {
+                "task_id": f"note:{note_id}",
+                "title": str(item.get("title") or "复习学习卡片").strip()[:80],
+                "subtitle": str(item.get("summary") or item.get("source_label") or "").strip()[:120],
+                "source": "note_assets",
+                "note_id": note_id,
+                "action": action,
+            }
+        )
+        if len(tasks) >= 3:
+            break
+    return tasks
+
+
 def _learning_report_v2(
     report: dict[str, Any],
     *,
@@ -482,6 +865,10 @@ def _learning_report_v2(
         "latest_conversation_signal": "",
         "source_status": _safe_dict(home_dashboard.get("source_status")),
     }
+    payload["today_prescription"] = _today_prescription_v2(
+        training_prescription=_safe_dict(payload.get("training_prescription")),
+        next_best_actions=_safe_list(payload.get("next_best_actions")),
+    )
     payload["mistake_book"] = mistake_book_projection
     payload["next_training"] = _next_training_v2(next_action=next_action, existing=_safe_list(payload.get("next_training")))
     payload["mastery"] = _mastery_v2(mastery, overview=overview, evidence_stats=evidence_stats)
@@ -505,10 +892,20 @@ def _compact_learning_brain_v2(learning_brain: dict[str, Any]) -> dict[str, Any]
 
     sections = _safe_dict(learning_brain.get("visible_sections"))
     graph_chain = _safe_dict(learning_brain.get("graph_chain"))
+    synthesis_run = _safe_dict(learning_brain.get("synthesis_run"))
+    output_projection_hash = str(
+        learning_brain.get("output_projection_hash") or synthesis_run.get("output_projection_hash") or ""
+    ).strip()
     return {
         "ok": bool(learning_brain.get("ok", True)),
         "projection_subject": str(learning_brain.get("projection_subject") or "").strip(),
         "schema_version": _safe_int(learning_brain.get("schema_version")) or 2,
+        "output_projection_hash": output_projection_hash,
+        "synthesis_run": {
+            "output_projection_hash": output_projection_hash,
+            "status": str(synthesis_run.get("status") or "").strip(),
+            "input_event_count": _safe_int(synthesis_run.get("input_event_count")),
+        },
         "weak_points": [
             _compact_weak_point(item)
             for item in _safe_list(learning_brain.get("weak_points"))[:5]
@@ -557,11 +954,49 @@ def _compact_learning_brain_v2(learning_brain: dict[str, Any]) -> dict[str, Any]
     }
 
 
+def _today_prescription_v2(
+    *,
+    training_prescription: dict[str, Any],
+    next_best_actions: list[Any],
+) -> dict[str, Any]:
+    top_action = _safe_dict(next_best_actions[0] if next_best_actions else {})
+    intent_id = str(training_prescription.get("training_intent_id") or top_action.get("training_intent_id") or "").strip()
+    source = str(
+        top_action.get("source")
+        if top_action.get("degraded") or top_action.get("source") == "dry_run_fallback"
+        else training_prescription.get("source") or top_action.get("source") or "training_intent"
+    ).strip()
+    evidence_refs = _safe_list(training_prescription.get("evidence_refs")) or _safe_list(top_action.get("evidence_refs"))
+    action_type = "starter_action" if not evidence_refs else "retest_training"
+    if source == "dry_run_fallback":
+        action_type = "starter_action"
+    return {
+        "title": str(training_prescription.get("title") or top_action.get("title") or "先补一条可诊断证据").strip(),
+        "why_this_now": str(
+            top_action.get("why_this_now")
+            or training_prescription.get("why_this")
+            or training_prescription.get("subtitle")
+            or ""
+        ).strip(),
+        "evidence_refs": evidence_refs[:5],
+        "source": source,
+        "prescription_authority": PRESCRIPTION_AUTHORITY,
+        "degraded": bool(source == "dry_run_fallback" or training_prescription.get("degraded") or top_action.get("degraded")),
+        "primary_action": {
+            "type": action_type,
+            "intent_id": intent_id,
+            "prescription_authority": PRESCRIPTION_AUTHORITY,
+        },
+    }
+
+
 def _compact_weak_point(item: dict[str, Any]) -> dict[str, Any]:
     return {
         "concept_id": str(item.get("concept_id") or "").strip(),
         "label": str(item.get("label") or item.get("display_title") or "").strip(),
         "evidence_level": str(item.get("evidence_level") or "").strip(),
+        "memory_lifecycle_stage": str(item.get("memory_lifecycle_stage") or "").strip(),
+        "memory_lifecycle_label": str(item.get("memory_lifecycle_label") or "").strip(),
         "confidence": item.get("confidence"),
         "recommended_training": _safe_dict(item.get("recommended_training")),
     }
@@ -573,6 +1008,8 @@ def _compact_visible_truth(item: dict[str, Any], *, index: int) -> dict[str, Any
         "current_truth": str(item.get("current_truth") or "").strip(),
         "evidence_level": str(item.get("evidence_level") or "").strip(),
         "evidence_level_label": str(item.get("evidence_level_label") or "").strip(),
+        "memory_lifecycle_stage": str(item.get("memory_lifecycle_stage") or "").strip(),
+        "memory_lifecycle_label": str(item.get("memory_lifecycle_label") or "").strip(),
         "confidence": item.get("confidence"),
         "display_title": str(item.get("display_title") or item.get("current_truth") or "").strip(),
         "display_meta": str(item.get("display_meta") or "").strip(),
@@ -854,12 +1291,46 @@ def _build_learning_brain(
 
 
 def _learning_evidence_events(events: list[Any]) -> list[Any]:
-    return [
+    return _dedupe_learning_evidence_events([
         event
         for event in list(events or [])
         if str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
         and _is_learning_evidence_payload(event)
-    ]
+    ])
+
+
+def _dedupe_learning_evidence_events(events: list[Any]) -> list[Any]:
+    seen: set[str] = set()
+    result: list[Any] = []
+    for event in events:
+        key = _learning_evidence_identity(event)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(event)
+    return result
+
+
+def _learning_evidence_identity(event: Any) -> str:
+    dedupe_key = str(getattr(event, "dedupe_key", "") or "").strip()
+    if dedupe_key:
+        return f"dedupe:{dedupe_key}"
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    raw = {
+        "source_id": str(getattr(event, "source_id", "") or ""),
+        "turn_id": payload.get("turn_id"),
+        "session_id": payload.get("session_id"),
+        "question_id": payload.get("question_id"),
+        "question_type": payload.get("question_type"),
+        "user_answer": payload.get("user_answer"),
+        "score_awarded": payload.get("score_awarded"),
+        "max_score": payload.get("max_score"),
+        "error_events": payload.get("error_events") or payload.get("errors") or [],
+    }
+    digest = hashlib.sha1(
+        json.dumps(raw, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return f"fingerprint:{digest}"
 
 
 def _is_learning_evidence_payload(event: Any) -> bool:
@@ -974,6 +1445,15 @@ def _mastery_attempt_payload(*, event: Any, payload: dict[str, Any]) -> dict[str
 
 
 def _event_concept(payload: dict[str, Any]) -> str:
+    canonical_topic = _safe_dict(payload.get("canonical_topic"))
+    canonical = str(
+        canonical_topic.get("label")
+        or canonical_topic.get("taxonomy_code")
+        or canonical_topic.get("taxonomy_id")
+        or ""
+    ).strip()
+    if canonical:
+        return canonical
     signal = _safe_dict(payload.get("next_training_signal"))
     if str(signal.get("concept") or "").strip():
         return str(signal.get("concept") or "").strip()
@@ -1012,6 +1492,7 @@ def _study_plan_payload(
     training_prescription: dict[str, Any],
 ) -> dict[str, Any]:
     plan = _safe_dict(home_dashboard.get("study_plan"))
+    plan = _canonicalized_study_plan(plan)
     prescription_plan = _study_plan_from_prescription(training_prescription)
     if any(
         str(plan.get(key) or "").strip()
@@ -1032,6 +1513,7 @@ def _study_plan_payload(
         or str(summary.get("primary_focus") or "").strip()
         or str(_safe_dict(home_dashboard.get("today_focus")).get("title") or "").strip()
     )
+    focus_topic = canonical_learning_topic_label(focus_topic)
     priority_task = str(next_action.get("title") or "").strip()
     coach_note = str(next_action.get("subtitle") or "").strip()
     estimated_minutes = _safe_int(next_action.get("estimated_minutes"))
@@ -1131,6 +1613,20 @@ def _training_prescription_payload(*, learner_facing: dict[str, Any]) -> dict[st
     }
 
 
+def _degraded_dry_run_action(action: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(action or {})
+    payload.update({
+        "status": "degraded",
+        "degraded": True,
+        "source": "dry_run_fallback",
+        "prescription_authority": "training_intent",
+        "title": "先补一题可诊断练习",
+        "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+        "evidence_refs": [],
+    })
+    return payload
+
+
 def _prescription_question_plan(
     *,
     steps: list[Any],
@@ -1173,7 +1669,7 @@ def _study_plan_from_prescription(prescription: dict[str, Any]) -> dict[str, Any
     if not item:
         return {}
     status = str(item.get("status") or "").strip()
-    topic = _student_safe_topic(item.get("display_topic"))
+    topic = canonical_learning_topic_label(item.get("display_topic")) or _student_safe_topic(item.get("display_topic"))
     estimated = _safe_int(item.get("estimated_minutes"))
     if status == "active" and topic:
         return {
@@ -1210,6 +1706,19 @@ def _is_student_safe_study_plan(plan: dict[str, Any]) -> bool:
         return False
     focus = str(plan.get("focus_topic") or plan.get("focusTopic") or "").strip()
     return not focus or bool(_student_safe_topic(focus))
+
+
+def _canonicalized_study_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    if not plan:
+        return {}
+    payload = dict(plan)
+    raw_focus = payload.get("focus_topic") or payload.get("focusTopic")
+    focus = canonical_learning_topic_label(raw_focus)
+    if focus:
+        payload["focus_topic"] = focus
+    elif raw_focus:
+        return {}
+    return payload
 
 
 def _learner_facing_payload(
@@ -1581,7 +2090,7 @@ def _next_action_card(
                 training_mode="mixed_review",
                 reason=str(top.get("meta") or ""),
             )
-            return {
+            return _with_next_best_action_view({
                 "title": "先补一条可诊断证据",
                 "subtitle": "完成 1 题后，系统会生成可靠训练主题",
                 "concept": "",
@@ -1589,44 +2098,63 @@ def _next_action_card(
                 "intent": intent,
                 "cta": "去练习",
                 "estimated_minutes": 3,
-            }
-        return {
+            }, intent=intent)
+        intent = build_learning_training_intent(
+            user_id="",
+            concept_label=concept,
+            error_label=error,
+            evidence_refs=evidence_refs,
+            question_count=3,
+            training_mode="mixed_review",
+            reason=str(top.get("meta") or ""),
+        )
+        return _with_next_best_action_view({
             "title": f"先做 3 道“{concept}”专项题",
             "subtitle": f"目标：把“{error}”这一类错误拉回主线",
             "concept": concept,
             "error": error,
-            "intent": build_learning_training_intent(
-                user_id="",
-                concept_label=concept,
-                error_label=error,
-                evidence_refs=evidence_refs,
-                question_count=3,
-                training_mode="mixed_review",
-                reason=str(top.get("meta") or ""),
-            ),
+            "intent": intent,
             "cta": "开始训练",
             "estimated_minutes": 8,
-        }
+        }, intent=intent)
     if next_training:
         item = _safe_dict(next_training[0])
         title = _clean_learning_text(item.get("display_title") or item.get("claim") or "下一步训练")
         meta = _clean_learning_text(item.get("display_meta") or item.get("display_label") or "")
-        return {
+        intent = build_learning_training_intent(user_id="", reason=meta, question_count=3)
+        return _with_next_best_action_view({
             "title": title or "先完成一组专项训练",
             "subtitle": meta or "完成后系统会继续更新你的学情判断",
             "concept": "",
-            "intent": build_learning_training_intent(user_id="", reason=meta, question_count=3),
+            "intent": intent,
             "cta": "开始训练",
             "estimated_minutes": 8,
-        }
-    return {
+        }, intent=intent)
+    intent = build_learning_training_intent(user_id="", reason="starter", question_count=3)
+    return _with_next_best_action_view({
         "title": "先完成一组练习",
         "subtitle": "完成批改后，系统会生成你的错因和下一步训练",
         "concept": "",
-        "intent": build_learning_training_intent(user_id="", reason="starter", question_count=3),
+        "intent": intent,
         "cta": "去练习",
         "estimated_minutes": 10,
-    }
+    }, intent=intent)
+
+
+def _with_next_best_action_view(card: dict[str, Any], *, intent: dict[str, Any]) -> dict[str, Any]:
+    actions = build_next_best_actions(user_id="", training_intents=[intent], max_actions=1)
+    action = _safe_dict(actions[0] if actions else {})
+    enriched = dict(card)
+    enriched.update({
+        "action_id": action.get("action_id") or "",
+        "training_intent_id": action.get("training_intent_id") or str(intent.get("training_intent_id") or ""),
+        "source": action.get("source") or "training_intent",
+        "prescription_authority": action.get("prescription_authority") or "training_intent",
+        "why_this_now": action.get("why_this_now") or "",
+        "evidence_refs": _safe_list(action.get("evidence_refs")),
+        "intent": _safe_dict(action.get("intent")) or dict(intent),
+    })
+    return enriched
 
 
 def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
@@ -1775,6 +2303,7 @@ def _mastery_payload(
     else:
         scores = [round(float(item.get("value") or 0) * 100) for item in radar_dimensions]
         overall = round(sum(scores) / max(len(scores), 1)) if scores else 0
+    knowledge_summary = _knowledge_map_summary(groups=groups, hotspots=hotspots)
     return {
         "overall_mastery": {
             "score": overall,
@@ -1783,7 +2312,107 @@ def _mastery_payload(
         },
         "groups": groups,
         "hotspots": hotspots,
+        "knowledge_summary": knowledge_summary,
         "review_summary": review or {"total_due": 0, "overdue_count": 0},
+    }
+
+
+def _taxonomy_counts() -> dict[str, int]:
+    stats = taxonomy_tree_stats()
+    return {
+        "total_nodes": _safe_int(stats.get("total_nodes")),
+        "coded_nodes": _safe_int(stats.get("coded_nodes")),
+        "leaf_nodes": _safe_int(stats.get("leaf_nodes")),
+        "unique_codes": _safe_int(stats.get("unique_codes")),
+        "duplicate_code_rows": _safe_int(stats.get("duplicate_code_rows")),
+    }
+
+
+def _knowledge_map_summary(
+    *,
+    groups: list[dict[str, Any]],
+    hotspots: list[dict[str, Any]],
+) -> dict[str, Any]:
+    counts = _taxonomy_counts()
+    parent_refs = {
+        str(_safe_dict(node).get("parent_code") or "").strip()
+        for node in _safe_dict(taxonomy_index().get("nodes_by_id")).values()
+        if str(_safe_dict(node).get("parent_code") or "").strip()
+    }
+    chapter_rows: dict[int, dict[str, Any]] = {}
+    for chapter in textbook_directory():
+        no = _safe_int(_safe_dict(chapter).get("no"))
+        if no <= 0:
+            continue
+        chapter_rows[no] = {
+            "chapter_no": no,
+            "chapter_name": "第" + str(no) + "章 " + str(_safe_dict(chapter).get("name") or "").strip(),
+            "section_count": len(_safe_list(_safe_dict(chapter).get("sections"))),
+            "evaluated_topics": 0,
+            "mastered_topics": 0,
+            "developing_topics": 0,
+            "weak_topics": 0,
+            "top_topics": [],
+            "status": "unseen",
+        }
+
+    observed: dict[str, dict[str, Any]] = {}
+    for item in [
+        chapter
+        for group in groups
+        for chapter in _safe_list(_safe_dict(group).get("chapters"))
+    ] + [hotspot for hotspot in hotspots]:
+        topic = _safe_dict(item)
+        key = str(topic.get("taxonomy_code") or topic.get("name") or "").strip()
+        name = str(topic.get("name") or "").strip()
+        if not key or not name:
+            continue
+        observed[key] = {
+            "name": name,
+            "status": str(topic.get("status") or _score_status(_safe_int(topic.get("mastery")))),
+            "mastery": _safe_int(topic.get("mastery")),
+            "taxonomy_code": str(topic.get("taxonomy_code") or "").strip(),
+            "textbook_chapter_no": _safe_int(topic.get("textbook_chapter_no")),
+        }
+
+    status_counts = {"strong": 0, "normal": 0, "weak": 0, "observed": 0}
+    leaf_evaluated = 0
+    for item in observed.values():
+        status = str(item.get("status") or "observed")
+        status_counts[status if status in status_counts else "observed"] += 1
+        chapter_no = _safe_int(item.get("textbook_chapter_no"))
+        chapter = chapter_rows.get(chapter_no)
+        if chapter is not None:
+            chapter["evaluated_topics"] += 1
+            if status == "strong":
+                chapter["mastered_topics"] += 1
+            elif status == "weak":
+                chapter["weak_topics"] += 1
+            else:
+                chapter["developing_topics"] += 1
+            if len(chapter["top_topics"]) < 3:
+                chapter["top_topics"].append(str(item.get("name") or "").strip())
+        code = str(item.get("taxonomy_code") or "").strip()
+        if code and code not in parent_refs:
+            leaf_evaluated += 1
+    for chapter in chapter_rows.values():
+        if _safe_int(chapter.get("weak_topics")) > 0:
+            chapter["status"] = "weak"
+        elif _safe_int(chapter.get("mastered_topics")) > 0 and _safe_int(chapter.get("developing_topics")) <= 0:
+            chapter["status"] = "strong"
+        elif _safe_int(chapter.get("evaluated_topics")) > 0:
+            chapter["status"] = "developing"
+
+    return {
+        **counts,
+        "total_textbook_chapters": len(chapter_rows),
+        "evaluated_topics": len(observed),
+        "evaluated_leaf_points": leaf_evaluated,
+        "mastered_topics": status_counts["strong"],
+        "developing_topics": status_counts["normal"] + status_counts["observed"],
+        "weak_topics": status_counts["weak"],
+        "unmeasured_leaf_points": max(0, counts["leaf_nodes"] - leaf_evaluated),
+        "textbook_chapters": list(chapter_rows.values()),
     }
 
 
@@ -1941,8 +2570,9 @@ def _display_dimension_label(value: Any) -> str:
         return ""
     if _is_deictic_topic_label(text):
         return ""
-    label = display_taxonomy_label(text, fallback=text)
-    normalized = str(label or text).strip()
+    # student-facing: a code resolves to Chinese (or '' on miss, never the code); human text passes through
+    label = student_facing_label(text)
+    normalized = str(label or "").strip()
     if _is_deictic_topic_label(normalized):
         return ""
     return normalized
@@ -2053,14 +2683,20 @@ def _calibrated_mastery(raw_score: int, stats: dict[str, Any]) -> int:
 
 
 def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) -> str:
-    if weak_names:
-        return weak_names[0]
+    for weak_name in weak_names:
+        topic = canonical_learning_topic_label(weak_name)
+        if topic:
+            return topic
     focus = _safe_dict(home_dashboard.get("today_focus"))
-    return str(focus.get("title") or _safe_dict(home_dashboard.get("today")).get("hint") or "").strip()
+    return canonical_learning_topic_label(
+        str(focus.get("title") or _safe_dict(home_dashboard.get("today")).get("hint") or "").strip()
+    )
 
 
 def _concept_label(concept_id: str) -> str:
-    return display_taxonomy_label(concept_id, fallback=concept_id or "")
+    # SINGLE AUTHORITY, student-facing: a code -> canonical Chinese (or '' on miss, NEVER the code);
+    # already-Chinese text (callers sometimes pass a label) passes through unchanged.
+    return student_facing_label(concept_id)
 
 
 def _student_safe_topic(value: Any) -> str:
@@ -2255,13 +2891,21 @@ def _error_label(error_code: Any) -> str:
 
 
 def _format_answer(value: Any, options: Any = None) -> str:
-    text = str(value or "").strip().upper()
-    if not text:
+    raw_text = str(value or "").strip()
+    if not raw_text:
         return ""
-    letters = [char for char in text if char.isalpha()]
-    if not letters:
-        return _truncate(_clean_learning_text(text), 28)
     option_map = _option_map(options)
+    text = raw_text.upper()
+    if option_map:
+        compact = re.sub(r"[\s,，、;；|/]+", "", text)
+        if compact and all(char in option_map for char in compact):
+            return "、".join(
+                f"{letter}（{_truncate(option_map.get(letter), 18)}）"
+                for letter in compact
+            )
+    if not re.fullmatch(r"[A-Z]+", text):
+        return _truncate(_clean_learning_text(raw_text), 28)
+    letters = [char for char in text if char.isalpha()]
     parts = []
     for letter in letters:
         option_text = option_map.get(letter)

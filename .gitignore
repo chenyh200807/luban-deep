@@ -102,7 +102,31 @@ tmp/eval-gate/
 tmp/observability/
 tmp/arr_*/
 tmp/prelaunch-audit-*/
+tmp/pdfs/
+tmp/plan-completion-audits/
+tmp/arr-lite-current-check/
+tmp/codex_*.txt
+tmp/e2e_case.json
+tmp/e2e_result.json
+tmp/luban_promo_page_v1/
+tmp/luban_promo_pages_selected/
+tmp/luban_sales_100q_manual_v1/
+tmp/luban_sales_manual/
+tmp/luban_sales_manual_pain_v1/
+tmp/luban_sales_manual_v2/
+tmp/luban_sales_manual_v21/
+tmp/paraphrase_council/
+tmp/recompile_spans.json
+tmp/rubric_*.json
+tmp/taxonomy_repair/
+tmp/unify_workflow/
 web/tmp/
+web/test-results/
+web/test-results*/
+deeptutor/tutorbot/.understand-anything/
+
+# Imported external runtime snapshots are local reference material, not deploy authority.
+imported_fastapi_aliyun_ssh_*/
 
 # Cache directories
 cache/
@@ -305,6 +329,14 @@ celerybeat.pid
 
 # Offline compiler outputs; review artifacts must never enter git.
 /artifacts/
+# Exception: case_family assets need version control (owner/reviewer/rollback rely on git history).
+!/artifacts/
+/artifacts/*
+!/artifacts/luban_case_family_assets/
+
+# Official billing exports may contain API-key-level cost details.
+data/user/official_billing/
+var/official_billing/
 
 # Claude Code agent workspace (settings, transcripts, isolated worktrees).
 # Like .codex/.gstack — agent scratch state, must never enter git or reach prod.

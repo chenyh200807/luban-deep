@@ -21,11 +21,11 @@ def _env_flag(name: str, default: bool = False) -> bool:
 def is_billing_enforcement_enabled() -> bool:
     """Single authority for whether real wallet charging is enforced.
 
-    Internal beta defaults to OFF: no balance mutation, no ledger writes,
-    no fail-closed gating. Flip to ON via ``DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED``
-    (1/true/yes/on) once paid billing starts.
+    Launch default is ON: usage is fail-closed against the canonical wallet.
+    Set ``DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED`` to 0/false/no/off only for
+    explicit internal-beta rollback or QA bypass windows.
     """
-    return _env_flag(BILLING_ENFORCEMENT_FLAG, default=False)
+    return _env_flag(BILLING_ENFORCEMENT_FLAG, default=True)
 
 
 def _normalize_text(value: Any) -> str:
@@ -381,10 +381,11 @@ class SupabaseWalletService:
         requested_points = max(0, _coerce_int(amount_points))
         requested_micros = requested_points * 1_000_000
 
-        # Internal beta default: billing enforcement OFF. No balance mutation
-        # and no ledger write — keep the wallet pristine so free-tier usage
-        # never pollures the canonical ledger. The call stays a no-op that
-        # returns a skipped/zero-capture result so the caller flow is unchanged.
+        # Explicit internal-beta override: billing enforcement OFF. No balance
+        # mutation and no ledger write — keep the wallet pristine so QA/free
+        # windows never pollute the canonical ledger. The call stays a no-op
+        # that returns a skipped/zero-capture result so the caller flow is
+        # unchanged.
         if not is_billing_enforcement_enabled():
             return WalletCaptureResult(
                 captured_micros=0,

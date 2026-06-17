@@ -33,8 +33,7 @@ from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.taxonomy.construction_learning_graph import (
     get_learning_graph_node,
 )
-from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
-
+from deeptutor.services.taxonomy.construction_taxonomy import student_facing_label
 
 _ABILITY_DIMENSIONS = (
     "question_reading",
@@ -415,7 +414,8 @@ def _resolve_label(node_id: str) -> str:
     node = get_learning_graph_node(node_id)
     if node and node.get("label"):
         return str(node["label"])
-    return display_taxonomy_label(node_id, fallback=node_id)
+    # student-facing: code -> Chinese name (or generic), never the raw node code
+    return student_facing_label(node_id, generic="相关考点")
 
 
 def _ability_from_error_code(code: str) -> str:

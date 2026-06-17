@@ -1,0 +1,44 @@
+<view class="page">
+  <!-- 处理中 -->
+  <view class="center" wx:if="{{status === 'processing'}}">
+    <view class="spinner"></view>
+    <view class="hint">正在识别手写内容…可稍候，无需重复提交</view>
+  </view>
+
+  <!-- 失败 -->
+  <view class="center" wx:elif="{{status === 'failed'}}">
+    <view class="fail-icon">!</view>
+    <view class="hint">{{failText}}</view>
+    <button class="btn secondary" bindtap="rerun">重新识别</button>
+  </view>
+
+  <!-- 确认页 -->
+  <block wx:elif="{{status === 'awaiting_confirm'}}">
+    <view class="section-title">识别疑点（{{unresolvedCount}}）<text wx:if="{{criticalCount}}" class="critical-note">含 {{criticalCount}} 处关键疑点（数字/工期类）</text></view>
+    <view class="suspicion-empty" wx:if="{{!suspicions.length}}">未发现明显疑点，请快速通读一遍</view>
+    <view class="suspicion {{item.resolvedLocal ? 'resolved' : ''}} {{item.severity === 'critical' ? 'critical' : ''}}"
+          wx:for="{{suspicions}}" wx:key="id" data-index="{{index}}" bindtap="resolveSuspicion">
+      <view class="susp-main">
+        <text class="susp-char" wx:if="{{item.spanText}}">「{{item.spanText}}」</text>
+        <text class="susp-src">{{item.source === 'low_conf' ? '低置信' : item.source === 'engine_diff' ? '双引擎不一致' : '形近字'}}</text>
+        <text class="susp-sug" wx:if="{{item.suggestion}}">可能是：{{item.suggestion}}</text>
+      </view>
+      <view class="susp-state">{{item.resolvedLocal ? '已确认' : '点按确认'}}</view>
+    </view>
+
+    <view class="section-title" wx:if="{{paragraphs.length}}">段落（题干已自动折叠，点击可恢复）</view>
+    <view class="para {{item.included ? '' : 'folded'}}" wx:for="{{paragraphs}}" wx:key="index"
+          data-index="{{index}}" bindtap="toggleParagraph">
+      <view class="para-tag" wx:if="{{item.is_stem_suspect}}">{{item.included ? '已恢复' : '疑似题干 · 未计入作答 · 点击恢复'}}</view>
+      <view class="para-text">{{item.text}}</view>
+    </view>
+
+    <view class="section-title">确认稿（送批改的最终文本，可直接修改）</view>
+    <textarea class="draft" value="{{draftText}}" bindinput="onDraftInput" maxlength="-1" auto-height></textarea>
+
+    <view class="actions">
+      <button class="btn secondary" bindtap="escalate" disabled="{{escalateUsed}}">{{escalateUsed ? '已用过重识别' : '识别效果差？重新识别'}}</button>
+      <button class="btn primary" bindtap="confirm" loading="{{confirming}}">确认并送批改</button>
+    </view>
+  </block>
+</view>

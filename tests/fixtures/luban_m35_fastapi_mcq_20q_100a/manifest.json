@@ -1,0 +1,375 @@
+{
+  "schema_version": "luban_m35_fastapi_mcq_fixture.v1",
+  "source": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库",
+  "source_status": "OK",
+  "requested_question_count": 20,
+  "requested_answer_count": 100,
+  "actual_question_count": 20,
+  "actual_answer_count": 100,
+  "label_authority": "generated_from_official_mcq_key",
+  "fixture_grain": "multiple_choice_option_set",
+  "quality_claim_allowed": false,
+  "official_score_allowed": false,
+  "questions": [
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_21-001",
+      "title": "2015 多选题 EXAM_XW2015_MU_21",
+      "stem": "关于钢化玻璃特性的说法，正确的有(  )。\nA. 使用时可以切割\nB. 可能发生爆炸\nC. 碎后易伤人\nD. 热稳定性差\nE. 机械强度高",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_21",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "c3f3282dbb6bf083d8e47d3ed663769515e8b2bdd3a66fb71b2a0fe0bb0832f1"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_22-002",
+      "title": "2015 多选题 EXAM_XW2015_MU_22",
+      "stem": "根据《建筑施工安全检查标准》\n（JGJ59—2011），\n《模板支架检查评分表》保证项目有(  )。\nA. 施工方案\nB. 支架构造\nC. 底座与托撑\nD. 构配件材质\nE. 支架稳定",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_22",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "2cbee292174f18b18996a56cd8fc9ec16acf5101839c5da0519fb48ecde94c1c"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_23-003",
+      "title": "2015 多选题 EXAM_XW2015_MU_23",
+      "stem": "关于有机防火封堵材料特点的说法，正确的有(  )。\nA. 不能重复使用\nB. 遇火时发泡膨胀\nC. 优异的水密性能\nD. 优异的气密性能\nE. 可塑性好",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_23",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "9c5b9da7118fe0f9384059c5fb56c65beb3e791cb7b1e60c171785615ba1458f"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_24-004",
+      "title": "2015 多选题 EXAM_XW2015_MU_24",
+      "stem": "关于钢筋混凝土预制桩锤击沉桩顺序的说法，正确的有(  )。\nA. 基坑不大时，打桩可逐排打设\nB. 对于密集桩群，从中间开始分头向四周或两边对称施打\nC. 当一侧毗邻建筑物时，由毗邻建筑物处向另一方向施打\nD. 对基础标高不一的桩，宜先浅后深\nE. 对不同规格的桩，宜先小后大",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_24",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "39f1619435bb32a0fa32476f2ecf95f7f134ad795393cc7e831ec6c883762f15"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_25-005",
+      "title": "2015 多选题 EXAM_XW2015_MU_25",
+      "stem": "下列连接节点中，使用于网架结构的有(  )。\nA. 拉铆节点\nB. 螺栓球节点\nC. 板节点\nD. 焊接空心球节点\nE. 相贯节点",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_25",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "82684274b48dda61fbeb0f7fb7b10bad9354b0545f40834ea953f9a4ffea4090"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_26-006",
+      "title": "2015 多选题 EXAM_XW2015_MU_26",
+      "stem": "关于防水混凝土施工的说法，正确的有(  )。\nA. 连续性浇筑，少留施工缝\nB. 宜采用高频机械分层振捣密实\nC. 施工缝宜留置在受剪力较大部位\nD. 养护时间不少于7 天\nE. 冬期施工入模温度不应低于5℃",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_26",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "95c50a9ad316184cfbfa9bf241698169add8a92d43569b978e71424d09b8b0c7"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_27-007",
+      "title": "2015 多选题 EXAM_XW2015_MU_27",
+      "stem": "混凝土振捣作业易发的职业病有(  )。\nA. 电光性眼炎\nB. 一氧化碳中毒\nC. 噪声致聋\nD. 手臂振动病\nE. 苯致白血病",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_27",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "e0940fbd64fa9f0ed607620164a129214ca7f5b8d27eb772f0253f60e93825de"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_28-008",
+      "title": "2015 多选题 EXAM_XW2015_MU_28",
+      "stem": "根据《建筑工程施工质量验收统一标准》(GB50300—2013)，施工单位技术、质量部门\n负责人必须参加验收的分部工程有(  )。\nA. 地基与基础\nB. 主体结构\nC. 建筑装饰装修\nD. 屋面\nE. 建筑节能",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_28",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "72144522b0389f56ea83072ec613f034e46429d87d1ff61ddfe473bb093d5ae2"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_29-009",
+      "title": "2015 多选题 EXAM_XW2015_MU_29",
+      "stem": "下列施工方法中，属于绿色施工的是(  )。\nA. 使用商品混凝土\nB. 采用人造板材模板\nC. 降低机械的满载率\nD. 面砖施工前进行总体排版策划\nE. 采用专业加工配送的钢筋",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_29",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "7bcf4760b9f3c1d51f9e6061d364eff73d9713363c48c9fb485cb713474ae829"
+      }
+    },
+    {
+      "question_id": "MCQ-2015-EXAM_XW2015_MU_30-010",
+      "title": "2015 多选题 EXAM_XW2015_MU_30",
+      "stem": "关于施工现场消防管理的说法，正确的有(  )。\nA. 动火证当日有效\nB. 施工现场严禁吸烟\nC. 应配备义务消防人员\nD. 易燃材料仓库应设在上风方向\nE. 油漆料库内应设置调料间",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2015_MU_30",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "content_hash": "7d1b77dbd454293b32335f20ab9df64d2a2fdd0bb8b5dbf4a0e08717bc9362cd"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_21-001",
+      "title": "2016 多选题 EXAM_XW2016_MU_21",
+      "stem": "室内疏散楼梯踏步最小宽度不小于0.28m 的工程类型有(  )。\nA. 住宅\nB. 小学学校\nC. 宾馆\nD. 大学学校\nE. 体育馆",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_21",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "23639d20dae22abc68841a44a45e1377ac7d48e3ab28476922dc036c8170fde1"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_22-002",
+      "title": "2016 多选题 EXAM_XW2016_MU_22",
+      "stem": "建筑石膏的技术性能包括(  )。\nA. 凝结硬化慢\nB. 硬化时体积微膨胀\nC. 硬化后孔隙率低\nD. 防水性能好\nE. 抗冻性差",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_22",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "1dfa2659db4acb49309b832088b5f8afd05adb8ab0703e56214038148e5ebc4e"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_23-003",
+      "title": "2016 多选题 EXAM_XW2016_MU_23",
+      "stem": "节能装饰型玻璃包括(  )。\nA. 压花玻璃\nB. 彩色平板玻璃\nC. “Low—E”玻璃\nD. 中空玻璃\nE. 真空玻璃",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_23",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "73343380062813d1af254b0b221ab612fed77f8ba16fa84258226b11b5a5cbe8"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_24-004",
+      "title": "2016 多选题 EXAM_XW2016_MU_24",
+      "stem": "可以起到防止深基坑坑底突涌的措施有(  )。\nA. 集水明排\nB. 钻孔减压\nC. 井点降水\nD. 井点回灌\nE. 水平封底隔渗",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_24",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "de1b3e27e2799df371db0fdb806fbfdef5a310ada458f0fd7620b7f3790b4f13"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_25-005",
+      "title": "2016 多选题 EXAM_XW2016_MU_25",
+      "stem": "关于彻筑砂浆的说法，正确的有(  )。\nA. 砂浆应采用机械搅拌\nB. 水泥粉煤灰砂浆搅拌时间不得小于3min\nC. 留置试块为边长7.07cm 的正方体\nD. 同盘砂浆应留置两组试件\nE. 六个试件为一组",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_25",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "bdac805fd227d7c59999c0e0439b0ff505fbd6e9514bb2b49d64a34da8e776e2"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_26-006",
+      "title": "2016 多选题 EXAM_XW2016_MU_26",
+      "stem": "无粘接预应力施工包含的工序有(  )。\nA. 预应力筋下料\nB. 预留孔道\nC. 预应力筋张拉\nD. 孔道灌浆\nE. 锚头处理",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_26",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "b5d327da43a4eeff3cc39b1b21e8ab71842ecba324207483d24ae8c019f3edc9"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_27-007",
+      "title": "2016 多选题 EXAM_XW2016_MU_27",
+      "stem": "关于房面卷材防水施工要求的说法，正确的有(  )。\nA. 先施工细部，在施工大面\nB. 平行屋脊搭接缝应顺流方向\nC. 大坡面铺贴应采用满粘法\nD. 上下两层卷材垂直铺贴\nE. 上下两层卷材边搭接缝错开",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_27",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "82efd447d024d4fed92ef9c7db2aae53d951c19544bf1635b213507205cb6d0c"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_28-008",
+      "title": "2016 多选题 EXAM_XW2016_MU_28",
+      "stem": "根据《建筑工程施工质量验收统一标准》(GB50300—2013)，属于主体子结构工程分部\n的有(  )。\nA. 混凝土结构\nB. 型钢混凝土结构\nC. 铝合金结构\nD. 劲钢( 管) 混凝土结构\nE. 网架和索膜结构",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_28",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "e6f07ac59318888c7dee08c4bc22282182761b714fc7a3a1af5c033d96c2c5f7"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_29-009",
+      "title": "2016 多选题 EXAM_XW2016_MU_29",
+      "stem": "塔式起重机按固定方式进行分类可分为(  )。\nA. 伸缩式\nB. 轨道式\nC. 附墙式\nD. 内爬式\nE. 自升式",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_29",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "054864913c4ad735e6d47562a5b5be9aeebdf3165d01b8269f7370101860ed5d"
+      }
+    },
+    {
+      "question_id": "MCQ-2016-EXAM_XW2016_MU_30-010",
+      "title": "2016 多选题 EXAM_XW2016_MU_30",
+      "stem": "混凝土在高温施工环境下施工，可采取的措施有(  )。\nA. 在早间施工\nB. 在晚间施工\nC. 喷雾\nD. 连续浇筑\nE. 吹风",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_exam_json",
+          "chunk_id": "EXAM_XW2016_MU_30",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.exam_json",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "content_hash": "54cdc2980579a87e0a1e6ea09190f90781833a63ca059aab4e9af555876a814f"
+      }
+    }
+  ]
+}

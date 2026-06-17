@@ -81,12 +81,24 @@
 
 ## 错因映射建议
 
+错因代码以 canonical 错因注册表为准（详见 `mcq-error-taxonomy.md`），从资料字段映射的口径：
+
 - `option_reasoning.error_type = concept_confusion` -> `M03 概念混淆`
-- `fact_error` -> `M01 知识点缺失` 或 `M08 数字串扰`
+- `fact_error` -> `M01 知识点不熟` 或 `M08 规范数字混淆`
 - `trap_alert` 中出现“注意区分” -> `M03` 或 `M04`
 - 题干有“不正确/不妥/错误”而用户按正确项选 -> `M05`
 - 多选缺少正确项 -> `M06`
 - 多选选入错误项 -> `M07`
+
+## 开放裁决证据链（标准答案缺失时）
+
+三路兜底落空转入开放世界裁决时，证据要求**升档**而不是降档：
+
+1. 检索顺序：`kb_chunks`（按 `node_code` / `metadata.exam_matrix` / `metadata.structured_rules`）→ `standard_articles.logic_constraints` → 题库相似题的 `analysis`（只作旁证，不当标准答案）。
+2. 逐选项配证据：每个选项的“成立/不成立”判断必须能指到具体教材/讲义/规范出处；找不到证据的选项如实标“证据不足”，不硬裁。
+3. **教材原文溯源硬规则**：裁决依据必须来自检索到的教材/讲义/规范原文，不可凭模型常识杜撰条文号、数字或程序环节；引用规范时只引检索结果中出现的条文。
+4. 相似题经验、用户题面暗示、模型记忆都不构成裁决 authority；它们只能提示检索方向。
+5. trace 标 `authority_source=open_world`，输出口径“本次按教材依据裁决，非题库标准答案”。
 
 ## 领先体验要求
 

@@ -546,8 +546,8 @@ function stringify(value) {
     assert(loaded.page.data.stage === "result", "successful submit should still land on result stage");
     assert(loaded.page.data.resultScore === 12, "fallback result should preserve server score");
     assert(
-      loaded.page.data.planStrategy.indexOf("已成功提交") >= 0,
-      "fallback result should explain success with simplified display",
+      loaded.page.data.planStrategy.indexOf("先补最薄弱知识点") >= 0,
+      "irregular priority_chapters should not prevent rendering backend action plan strategy",
     );
   });
 
@@ -618,6 +618,21 @@ function stringify(value) {
     assert(storedIntent.attempt_ref === "attempt_signed", "stored intent should carry attempt_ref");
     assert(storedIntent.concept_label === "地下防水", "stored intent should carry knowledge point");
     assert(storedIntent.error_label === "M01", "stored intent should carry error code");
+    assert(
+      storedIntent.followupQuestionContext &&
+        storedIntent.followupQuestionContext.question_id === "q2",
+      "stored intent should carry the wrong-item question context",
+    );
+    assert(
+      storedIntent.followupQuestionContext.user_answer === "B" &&
+        storedIntent.followupQuestionContext.correct_answer === "A",
+      "stored wrong-item context should carry learner and correct answers",
+    );
+    assert(
+      storedIntent.followupQuestionContext.options &&
+        storedIntent.followupQuestionContext.options.A === "先凿毛清理再处理",
+      "stored wrong-item context should carry normalized options",
+    );
     assert(storedIntent.question_count === 3, "stored intent should request three questions");
     assert(
       loaded.reLaunchCalls[0].url.indexOf("/packageDeeptutor/pages/report/report?") === 0 &&

@@ -10,6 +10,18 @@ from deeptutor.tutorbot.agent.tools.base import Tool
 logger = logging.getLogger(__name__)
 
 
+def _coerce_positive_timeout(value: Any, *, default: int) -> int:
+    if value is None:
+        return default
+    try:
+        timeout = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("timeout must be a positive integer") from exc
+    if timeout <= 0:
+        raise ValueError("timeout must be a positive integer")
+    return timeout
+
+
 class BrainstormAdapterTool(Tool):
     @property
     def name(self) -> str:
@@ -50,6 +62,11 @@ class RAGAdapterTool(Tool):
     _DEGRADED_CONTENT = (
         "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及规范数值、题库答案或引用出处时，"
         "必须明确说明当前证据不足。"
+    )
+    _EMPTY_RETRIEVAL_ANSWERS = (
+        "No documents indexed",
+        "No relevant documents found",
+        "Please upload documents first",
     )
 
     def __init__(self) -> None:
@@ -127,6 +144,10 @@ class RAGAdapterTool(Tool):
         if compiled_truth:
             search_kwargs["compiled_learning_truth"] = compiled_truth
             routing_metadata["compiled_learning_truth_available"] = True
+        personalization_context = self._personalization_context()
+        if personalization_context:
+            search_kwargs["personalization_context"] = personalization_context
+            routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
         try:
@@ -161,6 +182,19 @@ class RAGAdapterTool(Tool):
             return self._DEGRADED_CONTENT
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
         sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        answer = str(result.get("answer") or result.get("content") or "").strip()
+        if not sources and self._looks_like_empty_retrieval_answer(answer):
+            self._last_trace_metadata = {
+                "kb_name": kb_name or "",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "empty_index",
+                "error_type": "RAGEmptyIndex",
+            }
+            return self._DEGRADED_CONTENT
         evidence_bundle = (
             result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
         )
@@ -188,7 +222,7 @@ class RAGAdapterTool(Tool):
         )
         if learning_capsule:
             return learning_capsule
-        return str(result.get("answer") or result.get("content") or "")
+        return answer
 
     def set_runtime_context(self, **kwargs: Any) -> None:
         metadata = kwargs.get("metadata")
@@ -202,12 +236,27 @@ class RAGAdapterTool(Tool):
         compiled_truth = self._compiled_learning_truth()
         if compiled_truth:
             preview.setdefault("compiled_learning_truth", compiled_truth)
+        personalization_context = self._personalization_context()
+        if personalization_context:
+            preview.setdefault("personalization_context", personalization_context)
+            routing_metadata = preview.get("routing_metadata")
+            if not isinstance(routing_metadata, dict):
+                routing_metadata = {}
+            routing_metadata["personalization_context_available"] = True
+            preview["routing_metadata"] = routing_metadata
         return preview
 
     def consume_trace_metadata(self) -> dict[str, Any] | None:
         metadata = dict(self._last_trace_metadata)
         self._last_trace_metadata = {}
         return metadata or None
+
+    @classmethod
+    def _looks_like_empty_retrieval_answer(cls, value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        return any(marker in text for marker in cls._EMPTY_RETRIEVAL_ANSWERS)
 
     def _resolve_default_kb(self) -> str:
         metadata = self._runtime_context
@@ -245,6 +294,12 @@ class RAGAdapterTool(Tool):
         if not isinstance(projection, dict):
             return {}
         return dict(projection)
+
+    def _personalization_context(self) -> dict[str, Any]:
+        context = self._runtime_context.get("personalization_context")
+        if not isinstance(context, dict):
+            return {}
+        return dict(context)
 
     @staticmethod
     def _summarize_evidence_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
@@ -402,7 +457,10 @@ class CodeExecutionAdapterTool(Tool):
 
         code = str(kwargs.get("code") or "").strip()
         intent = str(kwargs.get("intent") or "").strip()
-        timeout = int(kwargs.get("timeout", 30) or 30)
+        try:
+            timeout = _coerce_positive_timeout(kwargs.get("timeout"), default=30)
+        except ValueError as exc:
+            return f"Error: invalid code_execution timeout: {exc}"
 
         if not code:
             if not intent:

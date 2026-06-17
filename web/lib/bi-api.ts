@@ -1,4 +1,18 @@
-import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from '@/lib/api'
+import { apiUrl, withAdminAuthorization } from '@/lib/api'
+
+import { BI_WORKBENCH_TITLE } from './brand'
+import {
+  normalizeBiCostReconciliation,
+  type BiCostReconciliationProvider,
+} from './bi-cost-reconciliation'
+
+export function resolveBiAttachmentUrl(url: string | undefined): string {
+  const normalized = (url ?? '').trim()
+  if (!normalized) return ''
+  if (/^https?:\/\//.test(normalized)) return normalized
+  if (normalized.startsWith('/api/')) return apiUrl(normalized)
+  return normalized
+}
 
 export interface BiMetricCard {
   label: string
@@ -6,6 +20,13 @@ export interface BiMetricCard {
   hint?: string
   delta?: string
   tone?: 'neutral' | 'good' | 'warning' | 'critical'
+  /** 后端 BI_METRICS 注册表 id（commit ac999e8e 起每张 overview 卡携带） */
+  metricId?: string
+  /** measured/estimated 成本分量（目前仅总成本卡携带） */
+  measuredValue?: number
+  estimatedValue?: number
+  /** 数据来源声明，如 "usage_ledger" */
+  provenance?: string
 }
 
 export interface BiTrendPoint {
@@ -42,6 +63,8 @@ export interface BiRankItem {
   rate?: number
   hint?: string
   secondary?: string
+  /** 官方账单反推单价校准后的成本（cost models 行携带；原 value 为 UsageLedger 内账原值） */
+  calibratedValue?: number
 }
 
 export interface BiMemberSample {
@@ -285,6 +308,8 @@ export interface BiOverviewData {
   aiQuality?: BiAiQualityPayload
   unitEconomics?: BiUnitEconomicsPayload
   dataTrust?: BiDataTrustPayload
+  /** UsageLedger 逐日成本序列（成本日趋势图单源；reducer 透传，不再依赖 active-trend 的 cost） */
+  dailyCostSeries?: BiBossDailyCostPoint[]
 }
 
 export interface BiTrendData {
@@ -319,10 +344,37 @@ export interface BiMemberData {
   samples: BiMemberSample[]
 }
 
+/**
+ * 官方账单为锚（方案3）：official_total 是当月官方真实账单总额（权威锚），
+ * calibrated_total 是用官方账单 model 级金额反推真实单价后校准的内账估算，
+ * calibration_health 为 calibrated/official 比值（越接近 1 越准），
+ * token_coverage_ratio 为内账 token / 官方 token（漏 token 指标）。
+ * 后端 refresh 前可能返回空对象，归一化后字段全为 undefined。
+ */
+export interface BiCostOfficialAnchor {
+  calibratedTotal?: number
+  officialTotal?: number
+  calibrationHealth?: number
+  tokenCoverageRatio?: number
+  internalTotalTokens?: number
+}
+
 export interface BiCostData {
   cards: BiMetricCard[]
   models: BiRankItem[]
   providers: BiRankItem[]
+  reconciliation: BiCostReconciliationProvider[]
+  /** 官方账单为锚：refresh 前为空对象，归一化为字段全 undefined 的对象 */
+  officialAnchor: BiCostOfficialAnchor
+  /** 自校准刷新时间（ISO）；从未刷新为 null */
+  calibrationRefreshedAt: string | null
+  /** 校准账期，如 "2026-06"；从未刷新为 null */
+  calibrationBillingCycle: string | null
+}
+
+export interface BiCostCalibrationRefreshResult {
+  refreshedAt: string | null
+  billingCycle: string | null
 }
 
 export interface BiTutorBotData {
@@ -389,6 +441,13 @@ export interface BiInviteTestStats {
   exam_stage_breakdown: Array<{ exam_stage: string; count: number }>
   pain_point_breakdown: Array<{ pain_point: string; count: number }>
   weekly_time_breakdown: Array<{ weekly_time: string; count: number }>
+  age_range_breakdown: Array<{ age_range: string; count: number }>
+  province_breakdown: Array<{ province: string; count: number }>
+  education_breakdown: Array<{ education: string; count: number }>
+  occupation_breakdown: Array<{ occupation: string; count: number }>
+  preparation_years_breakdown: Array<{ preparation_years: string; count: number }>
+  knowledge_foundation_breakdown: Array<{ knowledge_foundation: string; count: number }>
+  daily_study_time_breakdown: Array<{ daily_study_time: string; count: number }>
 }
 
 export interface BiInviteTestApplicationsResponse {
@@ -414,8 +473,18 @@ export interface BiLubanFeedbackResponse {
   attempt_count: string
   exam_timeframe: string
   one_word: string
+  feat_case_grading: string
+  feat_error_coach: string
+  feat_qa: string
+  ease_of_use: string
+  accuracy: string
+  speed: string
+  problems: string[]
+  problems_other: string
   top_suggestion: string
   unsolved_pain: string
+  wanted_features: string[]
+  wanted_features_other: string
   phone: string
   wechat_id: string
   status: string
@@ -465,7 +534,12 @@ export interface BiCommercePackage {
   name: string
   tier: string
   points: number
+  turns: number
   priceCny: number
+  originalPriceCny: number
+  badge: string
+  per: string
+  desc: string
   features: string[]
   status: string
   authority: string
@@ -525,6 +599,14 @@ export interface BiCommerceData {
     anomalyCount: number
     creditPoints: number
     debitPoints: number
+    revenueCny: number
+    todayRevenueCny: number
+    recentRevenueCny: number
+    latestRevenueAmountCny: number
+    latestRevenueMemberId: string
+    latestRevenueAt: string
+    revenueCount: number
+    reversalCount: number
   }
   authority: Record<string, string>
   packages: BiCommercePackage[]
@@ -571,6 +653,8 @@ export interface BiBossKpiItem {
   delta?: string
   tone?: BiMetricCard['tone']
   source?: 'overview' | 'members' | 'cost'
+  /** 注册表 metric_id（boss_workbench「今日成本」等卡携带，供可信度徽标查询） */
+  metricId?: string
 }
 
 export interface BiBossActionItem {
@@ -631,7 +715,7 @@ export interface BiFetchOptions {
 
 const DEFAULT_DATA: BiWorkbenchData = {
   overview: {
-    title: 'DeepTutor BI 工作台',
+    title: BI_WORKBENCH_TITLE,
     subtitle: '加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。',
     cards: [],
     highlights: [],
@@ -644,7 +728,15 @@ const DEFAULT_DATA: BiWorkbenchData = {
   tools: { items: [], efficiency: [] },
   knowledge: { items: [], topQueries: [], zeroHitRate: undefined },
   members: { cards: [], tiers: [], risks: [], samples: [] },
-  cost: { cards: [], models: [], providers: [] },
+  cost: {
+    cards: [],
+    models: [],
+    providers: [],
+    reconciliation: [],
+    officialAnchor: {},
+    calibrationRefreshedAt: null,
+    calibrationBillingCycle: null,
+  },
   tutorbots: { cards: [], ranking: [], statusBreakdown: [], recentActive: [], recentMessages: [] },
   anomalies: { items: [] },
 }
@@ -718,6 +810,8 @@ function normalizeMetricCard(item: unknown, fallbackLabel = ''): BiMetricCard {
   const record = asRecord(item)
   const rawValue =
     record.value ?? record.count ?? record.total ?? record.amount ?? record.rate ?? record.score
+  const metricId = toString(record.metric_id ?? record.metricId, '')
+  const provenance = toString(record.provenance, '')
   return {
     label: toString(record.label ?? record.name ?? record.title, fallbackLabel),
     value:
@@ -733,6 +827,10 @@ function normalizeMetricCard(item: unknown, fallbackLabel = ''): BiMetricCard {
       record.tone === 'good' || record.tone === 'warning' || record.tone === 'critical'
         ? (record.tone as BiMetricCard['tone'])
         : 'neutral',
+    metricId: metricId || undefined,
+    measuredValue: optionalNumber(record.measured_value ?? record.measuredValue),
+    estimatedValue: optionalNumber(record.estimated_value ?? record.estimatedValue),
+    provenance: provenance || undefined,
   }
 }
 
@@ -846,8 +944,22 @@ function normalizeLubanFeedbackResponse(item: unknown): BiLubanFeedbackResponse 
     attempt_count: toString(record.attempt_count ?? record.attemptCount, ''),
     exam_timeframe: toString(record.exam_timeframe ?? record.examTimeframe, ''),
     one_word: toString(record.one_word ?? record.oneWord, ''),
+    feat_case_grading: toString(record.feat_case_grading ?? record.featCaseGrading, ''),
+    feat_error_coach: toString(record.feat_error_coach ?? record.featErrorCoach, ''),
+    feat_qa: toString(record.feat_qa ?? record.featQa, ''),
+    ease_of_use: toString(record.ease_of_use ?? record.easeOfUse, ''),
+    accuracy: toString(record.accuracy, ''),
+    speed: toString(record.speed, ''),
+    problems: toArray(record.problems)
+      .map(value => toString(value))
+      .filter(Boolean),
+    problems_other: toString(record.problems_other ?? record.problemsOther, ''),
     top_suggestion: toString(record.top_suggestion ?? record.topSuggestion, ''),
     unsolved_pain: toString(record.unsolved_pain ?? record.unsolvedPain, ''),
+    wanted_features: toArray(record.wanted_features ?? record.wantedFeatures)
+      .map(value => toString(value))
+      .filter(Boolean),
+    wanted_features_other: toString(record.wanted_features_other ?? record.wantedFeaturesOther, ''),
     phone: toString(record.phone, ''),
     wechat_id: toString(record.wechat_id ?? record.wechatId, ''),
     status: toString(record.status, 'submitted'),
@@ -863,7 +975,12 @@ function normalizeCommercePackage(item: unknown): BiCommercePackage {
     name: toString(record.name ?? record.label, '未命名套餐'),
     tier: toString(record.tier ?? record.plan ?? record.level, ''),
     points: toNumber(record.points, 0),
+    turns: toNumber(record.turns, 0),
     priceCny: toNumber(record.price_cny ?? record.priceCny ?? record.price, 0),
+    originalPriceCny: toNumber(record.original_price ?? record.originalPrice, 0),
+    badge: toString(record.badge, ''),
+    per: toString(record.per, ''),
+    desc: toString(record.desc ?? record.description, ''),
     features: toArray(record.features)
       .map(value => toString(value))
       .filter(Boolean),
@@ -1337,7 +1454,7 @@ async function fetchBiJson(
 ): Promise<unknown> {
   const response = await fetch(buildBiUrl(path, params), {
     cache: 'no-store',
-    headers: withAdminAuthorization(BI_API_TOKEN ? withBiApiToken() : undefined),
+    headers: withAdminAuthorization(),
   })
   if (!response.ok) {
     throw new Error(`请求失败: ${response.status} ${path}`)
@@ -1553,7 +1670,7 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     normalizeAlert(item, `告警 ${index + 1}`)
   )
   const overview: BiOverviewData = {
-    title: toString(record.title ?? record.name, 'DeepTutor BI 工作台'),
+    title: toString(record.title ?? record.name, BI_WORKBENCH_TITLE),
     subtitle: toString(
       record.subtitle ?? record.description ?? record.summary,
       '加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。'
@@ -1570,6 +1687,9 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     aiQuality: normalizeAiQualityPayload(raw),
     unitEconomics: normalizeUnitEconomicsPayload(raw),
     dataTrust: normalizeDataTrustPayload(raw),
+    dailyCostSeries:
+      normalizeBossDailyCost(asRecord(firstRecord(raw, ['boss_workbench', 'boss', 'workbench'])))
+        ?.series ?? [],
   }
 
   return {
@@ -1739,13 +1859,81 @@ export async function getBiCost(options: BiFetchOptions = {}): Promise<BiCostDat
     cards: firstArray(raw, ['cards', 'metrics', 'kpis']).map((item, index) =>
       normalizeMetricCard(item, `Cost KPI ${index + 1}`)
     ),
-    models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) =>
-      normalizeRankItem(item, `Model ${index + 1}`)
-    ),
+    models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) => {
+      const rank = normalizeRankItem(item, `Model ${index + 1}`)
+      const calibrated = optionalNumber(asRecord(item).calibrated_value ?? asRecord(item).calibratedValue)
+      return calibrated === undefined ? rank : { ...rank, calibratedValue: calibrated }
+    }),
     providers: firstArray(raw, ['providers', 'sources', 'usage_sources']).map((item, index) =>
       normalizeRankItem(item, `Provider ${index + 1}`)
     ),
+    reconciliation: [],
+    officialAnchor: normalizeCostOfficialAnchor(asRecord(raw).official_anchor),
+    calibrationRefreshedAt: nullableIso(asRecord(raw).calibration_refreshed_at),
+    calibrationBillingCycle: nullableString(asRecord(raw).calibration_billing_cycle),
   }
+}
+
+function normalizeCostOfficialAnchor(raw: unknown): BiCostOfficialAnchor {
+  const record = asRecord(raw)
+  return {
+    calibratedTotal: optionalNumber(record.calibrated_total ?? record.calibratedTotal),
+    officialTotal: optionalNumber(record.official_total ?? record.officialTotal),
+    calibrationHealth: optionalNumber(record.calibration_health ?? record.calibrationHealth),
+    tokenCoverageRatio: optionalNumber(record.token_coverage_ratio ?? record.tokenCoverageRatio),
+    internalTotalTokens: optionalNumber(record.internal_total_tokens ?? record.internalTotalTokens),
+  }
+}
+
+function nullableString(value: unknown): string | null {
+  const text = toString(value, '').trim()
+  return text ? text : null
+}
+
+function nullableIso(value: unknown): string | null {
+  return nullableString(value)
+}
+
+/**
+ * 触发自校准刷新（admin）。POST /api/v1/bi/cost-calibration/refresh。
+ * 拉取百炼官方账单较慢，调用方负责 loading 态。可选 billingCycle 指定账期。
+ */
+export async function refreshBiCostCalibration(
+  billingCycle?: string
+): Promise<BiCostCalibrationRefreshResult> {
+  const response = await fetch(apiUrl('/api/v1/bi/cost-calibration/refresh'), {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(withAdminAuthorization() ?? {}),
+    },
+    body: JSON.stringify(billingCycle ? { billing_cycle: billingCycle } : {}),
+  })
+  if (!response.ok) {
+    throw new Error(`刷新失败: ${response.status}`)
+  }
+  const raw = unwrapPayload(await response.json())
+  const record = asRecord(raw)
+  return {
+    refreshedAt: nullableIso(record.refreshed_at ?? record.calibration_refreshed_at),
+    billingCycle: nullableString(record.billing_cycle ?? record.calibration_billing_cycle),
+  }
+}
+
+export async function getBiCostReconciliation(
+  options: BiFetchOptions = {}
+): Promise<BiCostReconciliationProvider[]> {
+  const raw = unwrapPayload(
+    await fetchBiJson('/api/v1/bi/cost/reconciliation', {
+      provider: 'all',
+      days: options.days,
+      capability: options.capability,
+      entrypoint: options.entrypoint,
+      tier: options.tier,
+    })
+  )
+  return normalizeBiCostReconciliation(raw)
 }
 
 export async function getBiTutorBots(options: BiFetchOptions = {}): Promise<BiTutorBotData> {
@@ -1814,6 +2002,20 @@ export async function getBiCommerce(options: { limit?: number } = {}): Promise<B
       anomalyCount: toNumber(summary.anomaly_count ?? summary.anomalyCount, 0),
       creditPoints: toNumber(summary.credit_points ?? summary.creditPoints, 0),
       debitPoints: toNumber(summary.debit_points ?? summary.debitPoints, 0),
+      revenueCny: toNumber(summary.revenue_cny ?? summary.revenueCny, 0),
+      todayRevenueCny: toNumber(summary.today_revenue_cny ?? summary.todayRevenueCny, 0),
+      recentRevenueCny: toNumber(summary.recent_revenue_cny ?? summary.recentRevenueCny, 0),
+      latestRevenueAmountCny: toNumber(
+        summary.latest_revenue_amount_cny ?? summary.latestRevenueAmountCny,
+        0
+      ),
+      latestRevenueMemberId: toString(
+        summary.latest_revenue_member_id ?? summary.latestRevenueMemberId,
+        ''
+      ),
+      latestRevenueAt: toString(summary.latest_revenue_at ?? summary.latestRevenueAt, ''),
+      revenueCount: toNumber(summary.revenue_count ?? summary.revenueCount, 0),
+      reversalCount: toNumber(summary.reversal_count ?? summary.reversalCount, 0),
     },
     authority: Object.fromEntries(
       Object.entries(authority).map(([key, value]) => [key, toString(value, '')])
@@ -1898,6 +2100,41 @@ export async function getBiInviteTestStats(
       ['weekly_time_breakdown', 'weeklyTimeBreakdown'],
       'weekly_time'
     ) as BiInviteTestStats['weekly_time_breakdown'],
+    age_range_breakdown: normalizeCountRows(
+      raw,
+      ['age_range_breakdown', 'ageRangeBreakdown'],
+      'age_range'
+    ) as BiInviteTestStats['age_range_breakdown'],
+    province_breakdown: normalizeCountRows(
+      raw,
+      ['province_breakdown', 'provinceBreakdown'],
+      'province'
+    ) as BiInviteTestStats['province_breakdown'],
+    education_breakdown: normalizeCountRows(
+      raw,
+      ['education_breakdown', 'educationBreakdown'],
+      'education'
+    ) as BiInviteTestStats['education_breakdown'],
+    occupation_breakdown: normalizeCountRows(
+      raw,
+      ['occupation_breakdown', 'occupationBreakdown'],
+      'occupation'
+    ) as BiInviteTestStats['occupation_breakdown'],
+    preparation_years_breakdown: normalizeCountRows(
+      raw,
+      ['preparation_years_breakdown', 'preparationYearsBreakdown'],
+      'preparation_years'
+    ) as BiInviteTestStats['preparation_years_breakdown'],
+    knowledge_foundation_breakdown: normalizeCountRows(
+      raw,
+      ['knowledge_foundation_breakdown', 'knowledgeFoundationBreakdown'],
+      'knowledge_foundation'
+    ) as BiInviteTestStats['knowledge_foundation_breakdown'],
+    daily_study_time_breakdown: normalizeCountRows(
+      raw,
+      ['daily_study_time_breakdown', 'dailyStudyTimeBreakdown'],
+      'daily_study_time'
+    ) as BiInviteTestStats['daily_study_time_breakdown'],
   }
 }
 
@@ -2238,6 +2475,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     getBiKnowledge(options),
     getBiMembers(options),
     getBiCost(options),
+    getBiCostReconciliation(options),
     getBiTutorBots(options),
     getBiAnomalies(options),
   ])
@@ -2255,6 +2493,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     knowledge,
     members,
     cost,
+    costReconciliation,
     tutorbots,
     anomalies,
   ] = results
@@ -2316,6 +2555,17 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     missingCoreModules.push('cost')
     moduleIssues.cost = cost.reason instanceof Error ? cost.reason.message : '成本加载失败'
     issues.push(moduleIssues.cost)
+  }
+
+  if (costReconciliation.status === 'fulfilled') {
+    data.cost.reconciliation = costReconciliation.value
+  } else {
+    const message =
+      costReconciliation.reason instanceof Error
+        ? costReconciliation.reason.message
+        : '官方成本对账加载失败'
+    moduleIssues.cost = moduleIssues.cost ? `${moduleIssues.cost}; ${message}` : message
+    issues.push(message)
   }
 
   if (tutorbots.status === 'fulfilled') data.tutorbots = tutorbots.value

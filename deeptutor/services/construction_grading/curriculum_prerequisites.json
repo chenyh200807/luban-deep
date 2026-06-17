@@ -1,0 +1,22 @@
+{
+  "_doc": "Expert-curated cross-chapter prerequisite seed (remediation #4). Section/chapter-level (L3/L4) curriculum dependencies for 一建《建筑》: a small, high-precision, finite set — NOT LLM bulk-mined (avoids re-inflating noise). Each edge: a topic that must be understood BEFORE the source topic. provenance=curriculum_seed, confidence high. DAG by construction. src/dst are canonical L3/L4 codes; the graph build maps them onto graph nodes (ancestors are included in the graph).",
+  "edges": [
+    {"src": "1A413040", "dst": "1A412000", "note": "主体结构施工 前置 主要建筑工程材料(钢材/混凝土/砌体)"},
+    {"src": "1A413040", "dst": "1A411010", "note": "主体结构施工 前置 建筑设计与构造(结构体系/荷载)"},
+    {"src": "1A413030", "dst": "1A413020", "note": "地基与基础工程施工 前置 土石方/基坑支护"},
+    {"src": "1A413040", "dst": "1A413030", "note": "主体结构施工 前置 地基与基础工程施工"},
+    {"src": "1A413050", "dst": "1A412031", "note": "屋面与防水工程施工 前置 建筑防水材料"},
+    {"src": "1A413060", "dst": "1A412020", "note": "装饰装修工程施工 前置 装饰装修工程材料"},
+    {"src": "1A413020", "dst": "1A413010", "note": "土石方工程施工 前置 施工测量"},
+    {"src": "1A413030", "dst": "1A413010", "note": "地基与基础工程施工 前置 施工测量"},
+    {"src": "1A412013", "dst": "1A412012", "note": "混凝土性能 前置 水泥性能"},
+    {"src": "1A413040", "dst": "1A412014", "note": "砌体结构施工 前置 砌体材料"},
+    {"src": "1A435000", "dst": "1A432000", "note": "施工成本管理 前置 招投标与合同管理(合同价)"},
+    {"src": "1A434000", "dst": "1A433000", "note": "施工质量管理 前置 施工进度管理(计划基础)"},
+    {"src": "1A413050", "dst": "1A413040", "note": "屋面与防水工程施工 前置 主体结构(结构层完成)"},
+    {"src": "1A413060", "dst": "1A413050", "note": "装饰装修工程施工 前置 屋面与防水(围护完成)"},
+    {"src": "1A422000", "dst": "1A413000", "note": "相关标准应用 前置 对应施工技术"},
+    {"src": "1A436000", "dst": "1A413040", "note": "施工安全管理(主体/脚手架) 前置 主体结构施工"},
+    {"src": "1A437000", "dst": "1A412033", "note": "绿色建造/节能 前置 建筑保温隔热材料"}
+  ]
+}

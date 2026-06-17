@@ -25,10 +25,8 @@
 #   because Docker maps port 8001 from the container to your local machine.
 #
 # REMOTE SERVER deployment (Docker on a server, accessed from another machine):
-#   Set NEXT_PUBLIC_API_BASE_EXTERNAL to your server's public IP or hostname, e.g.:
-#     NEXT_PUBLIC_API_BASE_EXTERNAL=http://203.0.113.10:8001
-#   Without this, the browser will try to reach localhost:8001 on the USER'S laptop
-#   (not the server), and all API calls will fail.
+#   Keep container ports bound to 127.0.0.1 and expose DeepTutor through a reverse
+#   proxy / TLS gateway. Set NEXT_PUBLIC_API_BASE_EXTERNAL to that HTTPS origin.
 # ============================================
 
 services:
@@ -37,8 +35,10 @@ services:
     container_name: deeptutor
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
-      - "${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
+      # Bind host ports to loopback only. Public traffic must enter through
+      # the configured reverse proxy / TLS gateway, not these container ports.
+      - "127.0.0.1:${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
+      - "127.0.0.1:${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
 
     # Load environment variables from .env file
     env_file:

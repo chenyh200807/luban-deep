@@ -45,7 +45,6 @@ COPY tests/fixtures/ /app/tests/fixtures/
 # Use unique placeholders that can be safely replaced in built assets.
 RUN cat > .env.local <<'EOF'
 NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__
-NEXT_PUBLIC_BI_API_TOKEN=__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__
 EOF
 
 # Build Next.js for production with standalone output
@@ -129,7 +128,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     if [ -n "${PIP_INDEX_URL}" ]; then export PIP_INDEX_URL="${PIP_INDEX_URL}"; fi; \
     if [ -n "${PIP_EXTRA_INDEX_URL}" ]; then export PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}"; fi; \
     PIP_NO_CACHE_DIR=0 pip install --upgrade pip; \
-    PIP_NO_CACHE_DIR=0 pip install -r requirements.txt
+    PIP_NO_CACHE_DIR=0 pip install --require-hashes -r requirements/runtime.lock
 
 # ============================================
 # Stage 3: Production Image
@@ -212,12 +211,13 @@ COPY --from=frontend-builder /app/web/public/ ./web/public/
 # Copy application source code
 COPY deeptutor/ ./deeptutor/
 COPY deeptutor_cli/ ./deeptutor_cli/
+COPY contracts/ ./contracts/
 COPY scripts/ ./scripts/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
 
-RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/scripts /app/requirements \
+RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/requirements \
     && chmod a+r /app/pyproject.toml /app/requirements.txt
 
 RUN cat > /usr/local/bin/deeptutor <<'EOF'
@@ -230,6 +230,7 @@ RUN chmod +x /usr/local/bin/deeptutor
 RUN mkdir -p \
     /tmp \
     /var/tmp \
+    tmp \
     data/user/settings \
     data/memory \
     data/user/workspace/memory \
@@ -246,7 +247,7 @@ RUN mkdir -p \
     data/user/logs \
     data/knowledge_bases
 
-RUN chmod 1777 /tmp /var/tmp
+RUN chmod 1777 /tmp /var/tmp tmp
 
 # Create supervisord configuration for running both services
 # Log output goes to stdout/stderr so docker logs can capture them
@@ -264,6 +265,9 @@ command=/bin/bash /app/start-backend.sh
 directory=/app
 autostart=true
 autorestart=true
+; Graceful-shutdown chain: compose stop_grace_period 60s > this 55s > uvicorn
+; --timeout-graceful-shutdown 45s. Default 10s meant SIGKILL mid-stream on deploys.
+stopwaitsecs=55
 stdout_logfile=/dev/fd/1
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/fd/2
@@ -291,13 +295,24 @@ RUN cat > /app/start-backend.sh <<'EOF'
 set -e
 
 BACKEND_PORT=${BACKEND_PORT:-8001}
+# Uvicorn worker processes. Default 1 (single async event loop — already handles high
+# I/O-bound concurrency since LLM turns are awaited, not CPU-bound). Scale to use more
+# CPU cores under load; each worker reloads the full app so total RAM ≈ workers × footprint.
+# With >1 worker, per-process limit state MUST be shared: set DEEPTUTOR_RATE_LIMIT_BACKEND=redis,
+# otherwise per-user quotas/connection caps multiply by the worker count.
+UVICORN_WORKERS=${UVICORN_WORKERS:-1}
 
-echo "[Backend]  🚀 Starting FastAPI backend on port ${BACKEND_PORT}..."
+echo "[Backend]  🚀 Starting FastAPI backend on port ${BACKEND_PORT} (${UVICORN_WORKERS} worker(s))..."
 
 # Run uvicorn directly - the application's logging system already handles:
 # 1. Console output (visible in docker logs)
 # 2. File logging to data/user/logs/ai_tutor_*.log
-exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT}
+# --timeout-graceful-shutdown: drain in-flight turns on SIGTERM instead of waiting
+#   forever on open WebSockets (supervisord stopwaitsecs=55 / compose 60s sit above).
+# --no-access-log: the app's selective access-log middleware already records
+#   non-200s; uvicorn's full access log double-logs every request + health probe.
+exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT} \
+  --workers ${UVICORN_WORKERS} --timeout-graceful-shutdown 45 --no-access-log
 EOF
 
 RUN sed -i 's/\r$//' /app/start-backend.sh && chmod +x /app/start-backend.sh
@@ -329,13 +344,6 @@ else
     echo "[Frontend] 📌 Using local backend API URL: ${API_BASE}"
 fi
 
-BI_API_TOKEN="${NEXT_PUBLIC_BI_API_TOKEN:-}"
-if [ -n "$BI_API_TOKEN" ]; then
-    echo "[Frontend] 📌 BI API Token 已注入只读访问头"
-else
-    echo "[Frontend] 📌 未配置 BI API Token"
-fi
-
 echo "[Frontend] 🚀 Starting Next.js frontend on port ${FRONTEND_PORT}..."
 
 # Replace placeholder in built Next.js files
@@ -344,8 +352,6 @@ find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|__NEXT_PUBLIC_API_BASE_PLACEHOLDER__|${API_BASE}|g" {} \; 2>/dev/null || true
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|http://localhost:${BACKEND_PORT}|${API_BASE}|g" {} \; 2>/dev/null || true
-find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
-    sed -i "s|__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__|${BI_API_TOKEN}|g" {} \; 2>/dev/null || true
 
 # Start Next.js standalone server
 # The standalone server reads PORT and HOSTNAME from environment variables

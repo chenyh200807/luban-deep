@@ -49,16 +49,36 @@ assertContains(
   "recovery should poll long enough for slow answers instead of only checking a few times",
 );
 assertContains(
-  "_finishPendingTurnRecovery: function (serverMessages)",
+  "_finishPendingTurnRecovery: function (serverMessages, options)",
   "package pending turn recovery should have an explicit terminal path for unrecovered cold starts",
 );
 assertContains(
-  "self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);",
+  "keepPendingOnExhausted",
+  "package foreground recovery should unlock input without erasing a still-slow pending turn",
+);
+assertContains(
+  "PENDING_TURN_FOREGROUND_MAX_ATTEMPTS",
+  "package cold-start recovery should use a short foreground window instead of locking the chat for long polling",
+);
+assertContains(
+  "opts.longPoll || opts.unlockOnExhausted ? serverMessages : null",
   "package unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
 );
 assertContains(
   "self._finishPendingTurnRecovery();",
   "package recovery fetch exhaustion should unlock the chat even when no messages can be loaded",
+);
+assertContains(
+  "err && err.statusCode === 404",
+  "package missing conversations should terminate recovery immediately instead of polling or switching base",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === pending.conversationId',
+  "package missing pending conversations should clear the stale current session pointer",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === convId',
+  "package missing restored conversations should clear the stale current session pointer",
 );
 assertContains(
   "isStreaming: false,",

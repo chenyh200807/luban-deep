@@ -106,6 +106,9 @@ function loadChatPage() {
       if (request === "../../utils/citation-format") return {};
       if (request === "../../utils/chat-turn-recovery") return {};
       if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
+      if (request === "../../utils/learning-home-view-model") {
+        return { buildLearningHomeViewModel: function () { return {}; } };
+      }
       if (request === "../../utils/devtools-markdown-fixtures") return {};
       throw new Error("unexpected require: " + request);
     },

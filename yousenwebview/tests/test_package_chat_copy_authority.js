@@ -34,7 +34,8 @@ function assertEqual(actual, expected, message) {
   );
 }
 
-function loadChatPage() {
+function loadChatPage(options) {
+  var opts = options || {};
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
     "utf8",
@@ -73,7 +74,7 @@ function loadChatPage() {
     vibrate: function () {},
   };
   var sandbox = {
-    console: console,
+    console: { warn: function () {}, error: console.error, log: console.log },
     Date: Date,
     Math: Math,
     setTimeout: setTimeout,
@@ -112,7 +113,16 @@ function loadChatPage() {
       setStorageSync: function () {},
       removeStorageSync: function () {},
       setClipboardData: function (payload) {
+        if (opts.clipboardShouldFail) {
+          if (payload && typeof payload.fail === "function") {
+            payload.fail({ errMsg: opts.clipboardErrorMessage || "setClipboardData:fail mocked" });
+          }
+          return;
+        }
         clipboard.push(payload.data);
+        if (payload && typeof payload.success === "function") {
+          payload.success({ errMsg: "setClipboardData:ok" });
+        }
       },
       showToast: function (payload) {
         toasts.push(payload);
@@ -141,6 +151,25 @@ function loadChatPage() {
 }
 
 var loaded = loadChatPage();
+var chatSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
+  "utf8",
+);
+var chatWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxml"),
+  "utf8",
+);
+assert(
+  chatWxml.indexOf("onSaveNotebookCard") >= 0 &&
+    chatWxml.indexOf("存卡") >= 0,
+  "chat AI answer actions should expose the P0A save-card entry",
+);
+assert(
+  chatSource.indexOf("api.saveNotebookCard") >= 0 &&
+    chatSource.indexOf("note_card_saved") >= 0 &&
+    chatSource.indexOf("surfaceTelemetry.trackProductBehavior") >= 0,
+  "chat save-card entry should use NotebookCardService routing and product_behavior authority",
+);
 loaded.page.setData({
   messages: [
     {
@@ -249,7 +278,66 @@ assert(
   "copy should serialize markdown rich-text node arrays instead of object placeholders",
 );
 
-assertEqual(loaded.toasts.length, 0, "copying visible content should not show an empty toast");
+loaded.page.setData({
+  messages: [
+    {
+      id: "a4",
+      role: "ai",
+      content: "第一次新对话回答",
+      renderableContent: "第一次新对话回答",
+      blocks: [],
+      mcqCards: null,
+    },
+  ],
+});
+loaded.page.onCopy({ currentTarget: { dataset: { msgid: "a4" } } });
+loaded.page.setData({
+  messages: [
+    {
+      id: "a5",
+      role: "ai",
+      content: "第二次新对话回答",
+      renderableContent: "第二次新对话回答",
+      blocks: [],
+      mcqCards: null,
+    },
+  ],
+});
+loaded.page.onCopy({ currentTarget: { dataset: { msgid: "a5" } } });
+assertEqual(loaded.clipboard[3], "第一次新对话回答", "first new answer copy should write its visible text");
+assertEqual(loaded.clipboard[4], "第二次新对话回答", "second new answer copy should write its visible text");
+assertEqual(
+  loaded.toasts,
+  [
+    { title: "内容已复制", icon: "success", duration: 1200 },
+    { title: "内容已复制", icon: "success", duration: 1200 },
+    { title: "内容已复制", icon: "success", duration: 1200 },
+    { title: "内容已复制", icon: "success", duration: 1200 },
+    { title: "内容已复制", icon: "success", duration: 1200 },
+  ],
+  "successful copies should show copied feedback every time",
+);
+
+var failedLoaded = loadChatPage({ clipboardShouldFail: true });
+failedLoaded.page.setData({
+  messages: [
+    {
+      id: "a6",
+      role: "ai",
+      content: "这次微信剪贴板拒绝写入",
+      renderableContent: "这次微信剪贴板拒绝写入",
+      blocks: [],
+      mcqCards: null,
+    },
+  ],
+});
+failedLoaded.page.onCopy({ currentTarget: { dataset: { msgid: "a6" } } });
+assertEqual(failedLoaded.clipboard.length, 0, "failed clipboard writes should not be recorded");
+assertEqual(
+  failedLoaded.toasts[0],
+  { title: "复制失败，请重试", icon: "none", duration: 1800 },
+  "failed copy button writes should not redirect users to long-press selection",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

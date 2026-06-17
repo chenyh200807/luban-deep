@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
+from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.capabilities import deep_question as deep_question_module
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
-from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
@@ -52,6 +52,77 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
     await bus.close()
     await consumer
     return events
+
+
+def test_deep_question_builds_case_context_from_full_submission() -> None:
+    raw_case_submission = (
+        "建设单位编制了投资兴建某工程的招标文件。\n"
+        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
+        "回答\n"
+        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
+    )
+
+    context = DeepQuestionCapability._case_grading_context_from_full_submission(
+        raw_case_submission
+    )
+
+    assert context is not None
+    assert context["question_type"] == "case"
+    assert context["construction_grading_result"]["type"] == "case"
+    assert "工程量清单的强制性内容" in context["question_stem"]
+    assert context["user_answer"] == "项目编码、项目名称、项目特征、计量单位和工程量。"
+    assert "建设单位编制了投资兴建某工程" not in context["user_answer"]
+
+
+@pytest.mark.asyncio
+async def test_deep_question_case_grading_scene_without_context_uses_grading_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("case grading should not generate questions")
+
+    async def fake_emit_grading_result(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result({"response": "graded"}, source=self.name)
+
+    captured: dict[str, Any] = {}
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    monkeypatch.setattr(
+        DeepQuestionCapability,
+        "_emit_grading_result",
+        fake_emit_grading_result,
+    )
+    raw_case_submission = (
+        "案例背景：某工程地下室混凝土拆模后发现孔洞。\n"
+        "问题：补充孔洞治理流程。\n"
+        "作答：凿毛、涂刷界面剂、支模、浇筑、养护。"
+    )
+    capability = DeepQuestionCapability()
+    context = UnifiedContext(
+        session_id="s-case-deep-question",
+        user_message=raw_case_submission,
+        config_overrides={},
+        metadata={"question_lifecycle_scene": "case_grading"},
+        language="zh",
+    )
+
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "case_grading_full_submission"
+    assert captured["correct_answer_present"] is False
+    assert captured["graded_context"]["construction_grading_result"]["type"] == "case"
+    assert captured["graded_context"]["user_answer"] == "凿毛、涂刷界面剂、支模、浇筑、养护。"
+    assert context.metadata["question_followup_context"]["question_type"] == "case"
+    assert any(event.type == StreamEventType.RESULT for event in events)
 
 
 @pytest.mark.asyncio
@@ -536,6 +607,139 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_revealed_objective_answer_honors_explicit_brevity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("brief objective answer reveal should use question authority, not LLM")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="是不是因为你按旧题库字母没看我这轮选项？一句话。",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题，系统已展示过答案。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_brief_reveal",
+                "question": "压型金属板采用轻型屋面时，屋面最小坡度宜为多少？",
+                "question_type": "choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+                "user_answer": "A",
+                "is_correct": True,
+                "explanation": "屋面最小坡度：压型金属板：5%。",
+                "reveal_answers": True,
+                "reveal_explanations": True,
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "A（5%）" in response
+    assert "按你这轮题面" in response
+    assert "答案与解析" not in response
+    assert "逐项解析" not in response
+    assert "采分点" not in response
+    assert "\n" not in response
+
+
+@pytest.mark.asyncio
+async def test_deep_question_option_hypothetical_followup_gives_targeted_scoring_feedback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("answered objective option scoring should use question authority")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="C",
+        language="zh",
+        metadata={
+            "raw_user_message": "这里的最高点是不是屋脊？如果我选B，你会怎么扣？",
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_roof",
+                "question": "压型金属板采用轻型屋面时，屋面最小坡度宜为多少？",
+                "question_type": "choice",
+                "options": {"A": "5%", "B": "屋脊", "C": "3%", "D": "最高点"},
+                "correct_answer": "D",
+                "user_answer": "C",
+                "is_correct": False,
+                "explanation": "题干问的是压型金属板屋面构造中的最高点。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "B（屋脊）" in response
+    assert "不得分" in response
+    assert "D（最高点）" in response
+    assert "改写标准答案" in response
+
+
+@pytest.mark.asyncio
 async def test_deep_question_reveals_written_reference_without_followup_llm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -663,16 +867,37 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
 
 
 @pytest.mark.asyncio
-async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
+async def test_deep_question_open_world_grading_when_choice_answer_authority_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    captured: dict[str, Any] = {}
+
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
         def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("missing MCQ authority must not fall back to LLM grading")
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n依据教材判定：正确答案应为 B（混凝土强度），你选 B，判定正确。\n\n"
+                "## 🧐 解析\n模板拆除以混凝土强度达到规范要求为先决条件。"
+            )
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        captured["rag_query"] = query
+        captured["rag_kb_name"] = kb_name
+        captured["rag_kwargs"] = kwargs
+        return {
+            "content": "【教材依据】模板拆除时混凝土强度必须满足规范要求。",
+            "sources": [],
+        }
 
     _install_module(
         monkeypatch,
@@ -689,10 +914,12 @@ async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
         "deeptutor.services.llm.config",
         get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
     )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
 
     context = UnifiedContext(
         user_message="我选B",
         language="zh",
+        knowledge_bases=["construction-exam"],
         metadata={
             "conversation_context_text": "用户刚做完一道选择题。",
             "question_followup_context": {
@@ -710,13 +937,162 @@ async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "grading"
-    assert result_event.metadata["grading_blocked"] is True
+    # 开放世界判分：不再以"缺少标准答案"拒答（grading_blocked 字段随死代码一并移除）。
+    assert "grading_blocked" not in result_event.metadata
     assert result_event.metadata["is_correct"] is None
     assert result_event.metadata["grading_kernel"] == "mcq"
     assert result_event.metadata["correct_answer_present"] is False
-    assert result_event.metadata["question_authority_source"] == "missing"
-    assert "缺少标准答案" in result_event.metadata["response"]
+    assert result_event.metadata["question_authority_source"] == "open_world"
+    assert "缺少标准答案" not in result_event.metadata["response"]
+    assert "依据教材判定" in result_event.metadata["response"]
+    # llm_judge 占位结果不得冒充确定性判分 authority。
     assert "construction_grading_result" not in result_event.metadata
+    # 开放世界裁决必须带 RAG grounding（kb 可用时）。
+    assert captured["rag_kb_name"] == "construction-exam"
+    assert captured["rag_kwargs"]["routing_metadata"]["answer_authority"] == "open_world"
+    grader_question_context = captured["grader_kwargs"]["question_context"]
+    assert grader_question_context["is_correct"] is None
+    assert not str(grader_question_context.get("correct_answer") or "").strip()
+
+
+@pytest.mark.asyncio
+async def test_deep_question_open_world_grading_stays_non_empty_when_grader_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """绝不空输出 / 绝不拒答 backstop（硬约束40,2026-06-17）。
+
+    即使无标准答案、且 open-world ``SubmissionGraderAgent`` 自身失败,用户也必须
+    拿到一条非空的判分回复(降级到确定性 grounded 解析),绝不能是空输出或
+    "缺少标准答案"拒答 —— 这是 "做完题没给答案" 体验事故的最后一道安全网。
+    """
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class FailingSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            pass
+
+        async def process(self, **_kwargs: Any) -> str:
+            raise RuntimeError("open-world grader unavailable")
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        return {"content": "【教材依据】模板拆除时混凝土强度必须满足规范要求。", "sources": []}
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FailingSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        knowledge_bases=["construction-exam"],
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "tb_q_2",
+                "question": "主体结构施工中，模板拆除应优先满足哪项要求？",
+                "question_type": "choice",
+                "options": {"A": "进度计划", "B": "混凝土强度", "C": "材料周转", "D": "现场人数"},
+                "correct_answer": "",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    # 安全网：response 必须非空，绝不拒答、绝不空输出。
+    response = str(result_event.metadata.get("response") or "").strip()
+    assert response, "grader 失败也必须给出非空判分回复（绝不空输出）"
+    assert "缺少标准答案" not in response
+    assert "grading_blocked" not in result_event.metadata
+
+
+@pytest.mark.asyncio
+async def test_deep_question_open_world_fallback_is_honest_when_setup_and_rag_both_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Codex review 加固（2026-06-17）：兜底必须覆盖 grader **构造期** 失败(不止 process),
+    且在检索证据也缺失时**不得虚称"依据教材/规范给你要点"**(否则冒充了不存在的依据)。
+    """
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for grading mode")
+
+    class ConstructorFailingSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            # 构造期就失败：验证 try 已包住 import/构造/set_trace,而不仅是 process。
+            raise RuntimeError("open-world grader construction failed")
+
+    async def failing_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        raise RuntimeError("rag unavailable")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=ConstructorFailingSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+    monkeypatch.setattr(deep_question_module, "rag_search", failing_rag_search, raising=False)
+
+    context = UnifiedContext(
+        user_message="我选B",
+        language="zh",
+        knowledge_bases=["construction-exam"],
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "tb_q_3",
+                "question": "主体结构施工中，模板拆除应优先满足哪项要求？",
+                "question_type": "choice",
+                "options": {"A": "进度计划", "B": "混凝土强度", "C": "材料周转", "D": "现场人数"},
+                "correct_answer": "",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "grading"
+    response = str(result_event.metadata.get("response") or "").strip()
+    # 构造期失败也被兜住：非空、不拒答、不崩。
+    assert response, "构造期失败也必须给出非空判分回复"
+    assert "缺少标准答案" not in response
+    assert "grading_blocked" not in result_event.metadata
+    # 检索证据缺失时不得虚称已"依据教材/规范给你要点"。
+    assert "依据教材/规范给你要点" not in response
 
 
 @pytest.mark.asyncio
@@ -1042,16 +1418,28 @@ async def test_deep_question_clears_stale_item_flags_when_recovering_batch_answe
 
 
 @pytest.mark.asyncio
-async def test_deep_question_fail_closed_when_batch_choice_recovery_is_partial(
+async def test_deep_question_open_world_grading_when_batch_choice_recovery_is_partial(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    captured: dict[str, Any] = {}
+
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
         def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("partial MCQ recovery must not fall back to LLM grading")
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n第1题按题库标准答案判定正确；"
+                "第2题无题库标准答案，依据教材判定你选 C（力学性能）正确。"
+            )
 
     _install_module(
         monkeypatch,
@@ -1110,15 +1498,19 @@ async def test_deep_question_fail_closed_when_batch_choice_recovery_is_partial(
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
-    assert result_event.metadata["grading_blocked"] is True
+    assert "grading_blocked" not in result_event.metadata
     assert result_event.metadata["is_correct"] is None
     assert result_event.metadata["correct_answer_present"] is False
-    assert result_event.metadata["question_authority_source"] == "missing"
+    assert result_event.metadata["question_authority_source"] == "open_world"
+    assert "缺少标准答案" not in result_event.metadata["response"]
+    assert "依据教材判定" in result_event.metadata["response"]
+    # 顶层聚合的 llm_judge 占位结果不得冒充确定性判分 authority。
     assert "construction_grading_result" not in result_event.metadata
+    # 已恢复 authority 的第 1 题保留确定性判定；缺 authority 的第 2 题交开放世界裁决。
     assert [
         item.get("is_correct")
         for item in result_event.metadata["question_followup_context"]["items"]
-    ] == [None, None]
+    ] == [True, None]
 
 
 @pytest.mark.asyncio
@@ -1673,6 +2065,51 @@ def test_related_generation_anchor_accepts_compiled_learning_truth_signal() -> N
     assert "E02" in topic
     assert "evidence_level=L1_repeated" in topic
     assert "policy_action=diagnostic_hint" in topic
+
+
+def test_related_generation_anchor_accepts_personalization_context_without_writing_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    record_calls: list[dict[str, Any]] = []
+
+    def fake_record_memory_event(*args: Any, **kwargs: Any) -> None:
+        record_calls.append({"args": args, "kwargs": kwargs})
+        raise AssertionError("deep_question must not write learner-state truth from context")
+
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.service.LearnerStateService.record_memory_event",
+        fake_record_memory_event,
+        raising=False,
+    )
+
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question_type": "case",
+            "personalization_context": {
+                "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+                "top_claims": [{"concept_id": "1A432000", "evidence_refs": ["event:e1"]}],
+                "active_training_intent": {
+                    "training_intent_id": "lti_1",
+                    "concept_id": "1A432000",
+                    "concept_label": "危大工程专项方案",
+                    "error_code": "E02",
+                    "error_label": "专家论证程序漏项",
+                    "evidence_refs": ["event:e1"],
+                },
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "个性化训练意图" in topic
+    assert "1A432000" in topic
+    assert "危大工程专项方案" in topic
+    assert "专家论证程序漏项" in topic
+    assert record_calls == []
 
 
 def test_related_generation_anchor_uses_l2_compiled_truth_for_stable_personalization() -> None:

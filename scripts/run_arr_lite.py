@@ -28,7 +28,7 @@ async def main() -> None:
         "--mode",
         choices=["lite", "full"],
         default="lite",
-        help="lite=semantic/context/long-dialog-focus; full=adds long-dialog-full",
+        help="ARR quality spine mode; default suites are routing/context, rag grounding, and docs/2026 real-exam bank",
     )
     parser.add_argument(
         "--output-dir",
@@ -41,22 +41,22 @@ async def main() -> None:
     )
     parser.add_argument(
         "--long-dialog-source-json",
-        help="显式指定 long dialog 历史 artifact JSON",
+        help="兼容旧参数；ARR 默认不再执行 long-dialog，请改用 incident_replay/long_dialog_v1_retest 专项 gate",
     )
     parser.add_argument(
         "--max-long-dialog-cases",
         type=int,
-        help="限制 long dialog case 数；lite 默认 1",
+        help="兼容旧参数；ARR 默认不再执行 long-dialog",
     )
     parser.add_argument(
         "--api-base-url",
-        help="提供后，long-dialog-full 将通过真实 /api/v1/ws 执行，而不是本进程 runtime 重放",
+        help="传给 benchmark runtime case；ARR 默认 real-exam spine 不依赖 live WS",
     )
     parser.add_argument(
         "--response-mode",
         choices=["smart", "fast", "deep"],
         default="smart",
-        help="long-dialog 复测使用的响应模式，默认 smart",
+        help="兼容 benchmark response mode，默认 smart",
     )
     parser.add_argument(
         "--report-only",

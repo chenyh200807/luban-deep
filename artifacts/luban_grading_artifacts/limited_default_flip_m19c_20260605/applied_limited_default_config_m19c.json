@@ -1,0 +1,34 @@
+{
+  "allowed_internal_cohort_prefixes": [
+    "qa_",
+    "test_",
+    "operator_"
+  ],
+  "broad_production_default_enabled": false,
+  "canonical_truth_write_enabled": false,
+  "default_cohort_prefixes": [
+    "qa_",
+    "operator_"
+  ],
+  "default_mode": "one_percent_qa_operator_default",
+  "default_percentage": 1,
+  "dryrun_source_execute_flip": false,
+  "env": {
+    "LUBAN_V1_LLM_ADJUDICATOR_COHORT": "qa_,test_,operator_",
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT": "qa_,operator_",
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED": "true"
+  },
+  "limited_default_enabled": true,
+  "production_db_write_enabled": false,
+  "published_registry_emitted": false,
+  "remote_deployment_written": false,
+  "request_flag": "grading_engine_v1_llm_adjudication",
+  "rollback": {
+    "drop_request_flag": "grading_engine_v1_llm_adjudication",
+    "kill_switch_env": "LUBAN_V1_LLM_ADJUDICATOR_ENABLED",
+    "kill_value": "false",
+    "registry_fail_closed": true
+  },
+  "source_config": "M19B production_default_config_dryrun_m19b.json",
+  "writeback": false
+}

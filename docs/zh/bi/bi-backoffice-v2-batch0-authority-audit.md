@@ -2,7 +2,7 @@
 
 状态：Batch 0 交付物 v1
 日期：2026-05-23
-关联计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+关联计划：`docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
 
 本文档是 Batch 0 的核心交付物，输出三件事：
 

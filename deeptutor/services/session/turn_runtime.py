@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import base64
+from collections.abc import AsyncIterator, Sequence
 import contextlib
+from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import logging
 import math
@@ -14,28 +17,19 @@ import os
 import re
 import sqlite3
 import time
-from collections.abc import AsyncIterator, Sequence
-from dataclasses import dataclass, field
-from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
-from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
-from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.api.runtime_metrics import (
+    get_turn_runtime_metrics,
+    normalize_latency_stage_timings,
+)
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
+from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.logging.context import bind_log_context, reset_log_context
-from deeptutor.services.observability import (
-    get_langfuse_observability,
-    get_release_lineage_metadata,
-    get_turn_event_log,
-    get_surface_event_store,
-)
-from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
-from deeptutor.services.observability.turn_event_log import build_turn_observation_event
-from deeptutor.services.path_service import get_path_service
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -43,7 +37,23 @@ from deeptutor.services.exam_track import (
     infer_exam_track_from_text,
     normalize_exam_track,
 )
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
+from deeptutor.services.observability import (
+    get_langfuse_observability,
+    get_release_lineage_metadata,
+    get_surface_event_store,
+    get_turn_event_log,
+)
+from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
+from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
+from deeptutor.services.observability.turn_event_log import build_turn_observation_event
+from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
+    build_choice_result_summary_from_exact_question,
+    build_question_followup_context_from_result_summary,
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
@@ -51,13 +61,20 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import (
+    looks_like_case_grading_submission_context,
+    looks_like_full_case_answer_submission,
+    looks_like_free_text_mcq_grading_request,
+    looks_like_free_text_mcq_question_surface,
+    select_question_lifecycle_skill_names,
+    split_full_case_answer_submission,
+)
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
-    has_explicit_practice_generation_intent,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
+from deeptutor.services.semantic_router import (
+    has_explicit_practice_generation_intent,
 )
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -69,6 +86,10 @@ from deeptutor.services.session.sqlite_store import (
     get_sqlite_session_store,
     normalize_active_object,
     normalize_suspended_object_stack,
+)
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
@@ -133,15 +154,108 @@ def _should_capture_assistant_content(event: StreamEvent) -> bool:
     return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
 
 
+def _result_response_text(metadata: dict[str, Any] | None) -> str:
+    if not isinstance(metadata, dict):
+        return ""
+    containers = [metadata]
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        containers.append(nested)
+    for container in containers:
+        for key in ("response", "assistant_content", "content"):
+            value = container.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
+def _normalize_turn_user_content(value: Any) -> tuple[str, dict[str, Any]]:
+    text = str(value or "").strip()
+    unwrap_depth = 0
+    for _ in range(3):
+        candidate = text.strip()
+        if not candidate.startswith("{"):
+            break
+        try:
+            parsed = json.loads(candidate)
+        except (TypeError, ValueError):
+            break
+        if not (
+            isinstance(parsed, dict)
+            and set(parsed.keys()) == {"content"}
+            and isinstance(parsed.get("content"), str)
+        ):
+            break
+        next_text = str(parsed.get("content") or "").strip()
+        if not next_text or next_text == text:
+            break
+        text = next_text
+        unwrap_depth += 1
+
+    metadata: dict[str, Any] = {}
+    if unwrap_depth:
+        metadata["transport_content_unwrapped"] = True
+        metadata["transport_content_unwrap_depth"] = unwrap_depth
+    return text, metadata
+
+
+def _project_result_response_for_legacy_clients(event: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(event, dict) or str(event.get("type") or "").strip() != StreamEventType.RESULT.value:
+        return event
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return event
+    metadata = event.get("metadata")
+    if not isinstance(metadata, dict) or str(metadata.get("response") or "").strip():
+        return event
+    response = _result_response_text(metadata)
+    if not response:
+        return event
+    projected = dict(event)
+    projected_metadata = dict(metadata)
+    projected_metadata["response"] = normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(response)
+    )
+    projected["metadata"] = projected_metadata
+    return projected
+
+
+def _learning_prompt_intent_trace_metadata(intent: Any) -> dict[str, Any]:
+    if not isinstance(intent, dict):
+        return {}
+    training_intent_id = str(intent.get("training_intent_id") or "").strip()
+    if not training_intent_id:
+        return {}
+    evidence_refs = intent.get("evidence_refs")
+    if not isinstance(evidence_refs, list):
+        evidence_refs = intent.get("supporting_event_ids")
+    attempt_refs = intent.get("attempt_refs")
+    if not isinstance(attempt_refs, list):
+        attempt_refs = intent.get("attempt_ids")
+    metadata: dict[str, Any] = {
+        "gbrain_training_intent_id": training_intent_id,
+        "gbrain_evidence_ref_count": len(evidence_refs) if isinstance(evidence_refs, list) else 0,
+        "gbrain_attempt_ref_count": len(attempt_refs) if isinstance(attempt_refs, list) else 0,
+        "gbrain_prescription_authority": "training_intent",
+    }
+    for source_key, metadata_key in (
+        ("concept_id", "gbrain_concept_id"),
+        ("error_code", "gbrain_error_code"),
+        ("learning_signal_type", "gbrain_learning_signal_type"),
+        ("training_outcome", "gbrain_training_outcome"),
+        ("outcome", "gbrain_training_outcome"),
+        ("source", "gbrain_prompt_source"),
+    ):
+        value = str(intent.get(source_key) or "").strip()
+        if value and metadata_key not in metadata:
+            metadata[metadata_key] = value
+    return metadata
+
+
 def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return ""
     if event.type == StreamEventType.RESULT:
-        metadata = event.metadata or {}
-        response = metadata.get("response")
-        if response is None and isinstance(metadata.get("metadata"), dict):
-            response = metadata["metadata"].get("response")
-        return str(response or "").strip()
+        return _result_response_text(event.metadata or {})
     if event.type == StreamEventType.CONTENT:
         metadata = event.metadata or {}
         if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
@@ -222,6 +336,7 @@ def _request_snapshot_metadata(
     requested_skills: Sequence[str],
     memory_references: Sequence[str],
     llm_selection: dict[str, Any] | None,
+    turn_id: str = "",
 ) -> dict[str, Any]:
     snapshot: dict[str, Any] = {
         "content": content,
@@ -262,7 +377,34 @@ def _request_snapshot_metadata(
         snapshot["content"] = _clip_text(str(snapshot.get("content") or ""), 1000)
         snapshot.pop("config", None)
         snapshot["_truncated"] = True
-    return {"request_snapshot": snapshot}
+    metadata: dict[str, Any] = {"request_snapshot": snapshot}
+    normalized_turn_id = str(turn_id or "").strip()
+    if normalized_turn_id:
+        metadata["turn_id"] = normalized_turn_id
+    client_turn_id = str(config.get("client_turn_id") or payload.get("client_turn_id") or "").strip()
+    if client_turn_id:
+        metadata["client_turn_id"] = client_turn_id
+    return metadata
+
+
+def _assistant_message_metadata(
+    *,
+    turn_id: str,
+    config: dict[str, Any],
+    terminal_status: str,
+) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
+    normalized_turn_id = str(turn_id or "").strip()
+    if normalized_turn_id:
+        metadata["turn_id"] = normalized_turn_id
+        metadata["engine_turn_id"] = normalized_turn_id
+    client_turn_id = str((config or {}).get("client_turn_id") or "").strip()
+    if client_turn_id:
+        metadata["client_turn_id"] = client_turn_id
+    normalized_status = str(terminal_status or "").strip()
+    if normalized_status:
+        metadata["terminal_status"] = normalized_status
+    return metadata
 
 
 def _tutorbot_mirror_session_ids(
@@ -358,8 +500,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     if event.type != StreamEventType.RESULT:
         return metadata
 
-    response = metadata.get("response")
-    if isinstance(response, str):
+    response = _result_response_text(metadata)
+    if response:
         metadata["response"] = normalize_markdown_for_tutorbot(
             coerce_user_visible_answer(response)
         )
@@ -367,13 +509,220 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
     nested = metadata.get("metadata")
     if isinstance(nested, dict):
         nested_metadata = dict(nested)
-        nested_response = nested_metadata.get("response")
-        if isinstance(nested_response, str):
+        nested_response = _result_response_text(nested_metadata)
+        if nested_response:
             nested_metadata["response"] = normalize_markdown_for_tutorbot(
                 coerce_user_visible_answer(nested_response)
             )
         metadata["metadata"] = nested_metadata
     return metadata
+
+
+def _exact_question_followup_context(trace_metadata: dict[str, Any]) -> dict[str, Any] | None:
+    exact_question = trace_metadata.get("exact_question")
+    if not isinstance(exact_question, dict):
+        return None
+    summary = build_choice_result_summary_from_exact_question(exact_question)
+    if not summary:
+        return None
+    return build_question_followup_context_from_result_summary(
+        summary,
+        "",
+        reveal_answers=bool(trace_metadata.get("reveal_answers", False)),
+        reveal_explanations=bool(trace_metadata.get("reveal_explanations", False)),
+    )
+
+
+def _merge_missing_question_authority(
+    target_context: dict[str, Any] | None,
+    authority_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    target = normalize_question_followup_context(target_context)
+    authority = normalize_question_followup_context(authority_context)
+    if not target or not authority:
+        return target
+
+    merged = dict(target)
+    for key in (
+        "correct_answer",
+        "explanation",
+        "grading_key",
+        "evidence_refs",
+        "knowledge_context",
+        "difficulty",
+        "concentration",
+    ):
+        if not merged.get(key) and authority.get(key):
+            merged[key] = authority[key]
+    if not merged.get("options") and authority.get("options"):
+        merged["options"] = authority["options"]
+
+    target_items = target.get("items") if isinstance(target.get("items"), list) else []
+    authority_items = authority.get("items") if isinstance(authority.get("items"), list) else []
+    if target_items and authority_items:
+        authority_by_id = {
+            str(item.get("question_id") or "").strip(): item
+            for item in authority_items
+            if isinstance(item, dict)
+        }
+        merged_items: list[dict[str, Any]] = []
+        for index, item in enumerate(target_items):
+            if not isinstance(item, dict):
+                continue
+            source = authority_by_id.get(str(item.get("question_id") or "").strip())
+            if source is None and index < len(authority_items):
+                source = authority_items[index] if isinstance(authority_items[index], dict) else None
+            merged_item = dict(item)
+            if source:
+                for key in (
+                    "correct_answer",
+                    "explanation",
+                    "grading_key",
+                    "evidence_refs",
+                    "knowledge_context",
+                    "difficulty",
+                    "concentration",
+                ):
+                    if not merged_item.get(key) and source.get(key):
+                        merged_item[key] = source[key]
+                if not merged_item.get("options") and source.get("options"):
+                    merged_item["options"] = source["options"]
+            merged_items.append(merged_item)
+        if merged_items:
+            merged["items"] = merged_items
+            if len(merged_items) == 1:
+                for key, value in merged_items[0].items():
+                    if key != "items":
+                        merged[key] = value
+
+    return normalize_question_followup_context(merged) or merged
+
+
+def _enrich_result_question_authority_from_trace(
+    metadata: dict[str, Any],
+    trace_metadata: dict[str, Any],
+) -> dict[str, Any]:
+    authority_context = _exact_question_followup_context(trace_metadata)
+    if not authority_context:
+        return metadata
+
+    current_context = metadata.get("question_followup_context")
+    active_object = metadata.get("active_object") if isinstance(metadata.get("active_object"), dict) else None
+    active_context = (
+        extract_question_context_from_active_object(active_object)
+        if active_object is not None
+        else None
+    )
+    base_context = (
+        current_context
+        if isinstance(current_context, dict) and current_context
+        else active_context
+    )
+    enriched_context = _merge_missing_question_authority(base_context, authority_context)
+    if not enriched_context:
+        return metadata
+
+    enriched = dict(metadata)
+    enriched["question_followup_context"] = enriched_context
+    if active_object is not None:
+        enriched_active_object = dict(active_object)
+        enriched_active_object["state_snapshot"] = enriched_context
+        enriched["active_object"] = enriched_active_object
+    return enriched
+
+
+class _TurnLatencyStages:
+    def __init__(self) -> None:
+        self._stages_ms: dict[str, float] = {}
+
+    def record_since(self, stage: str, started_at: float) -> None:
+        self._stages_ms[stage] = (time.perf_counter() - started_at) * 1000.0
+
+    def add_duration(self, stage: str, duration_ms: float) -> None:
+        try:
+            value = float(duration_ms)
+        except (TypeError, ValueError):
+            return
+        if value < 0:
+            return
+        self._stages_ms[stage] = self._stages_ms.get(stage, 0.0) + value
+
+    def has_stage(self, stage: str) -> bool:
+        return stage in self._stages_ms
+
+    @contextlib.contextmanager
+    def measure(self, stage: str):
+        started_at = time.perf_counter()
+        try:
+            yield
+        finally:
+            self.record_since(stage, started_at)
+
+    def snapshot(self) -> dict[str, float]:
+        return normalize_latency_stage_timings(self._stages_ms)
+
+
+def _normalize_non_negative_event_counts(value: Any) -> dict[str, int]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: dict[str, int] = {}
+    for key, item in value.items():
+        label = str(key or "").strip()
+        if not label:
+            continue
+        try:
+            count = int(item)
+        except (TypeError, ValueError):
+            continue
+        if count < 0:
+            continue
+        normalized[label] = count
+    return dict(sorted(normalized.items()))
+
+
+def _normalize_llm_stream_telemetry(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    raw_calls = value.get("calls")
+    if not isinstance(raw_calls, list):
+        return {}
+    calls: list[dict[str, Any]] = []
+    for raw_call in raw_calls:
+        if not isinstance(raw_call, dict):
+            continue
+        call_site = str(raw_call.get("call_site") or "").strip()
+        if not call_site:
+            continue
+        call: dict[str, Any] = {"call_site": call_site}
+        for key in ("provider_name", "model"):
+            item = str(raw_call.get(key) or "").strip()
+            if item:
+                call[key] = item
+        for key in ("stream_chunk_count", "stream_content_chunk_count"):
+            try:
+                count = int(raw_call.get(key) or 0)
+            except (TypeError, ValueError):
+                continue
+            if count >= 0:
+                call[key] = count
+        stage_timings_ms = normalize_latency_stage_timings(
+            raw_call.get("stage_timings_ms")
+        )
+        if stage_timings_ms:
+            call["stage_timings_ms"] = stage_timings_ms
+        try:
+            iteration = int(raw_call.get("iteration") or 0)
+        except (TypeError, ValueError):
+            iteration = 0
+        if iteration > 0:
+            call["iteration"] = iteration
+        calls.append(call)
+    if not calls:
+        return {}
+    return {
+        "call_count": len(calls),
+        "calls": calls,
+    }
 
 
 def _build_terminal_turn_observation_event(
@@ -398,6 +747,58 @@ def _build_terminal_turn_observation_event(
         "total_output_tokens": int(usage.get("total_output_tokens") or 0),
         "total_calls": int(usage.get("total_calls") or 0),
     }
+    latency_stages_ms = normalize_latency_stage_timings(trace_metadata.get("latency_stages_ms"))
+    if latency_stages_ms:
+        metadata["latency_stages_ms"] = latency_stages_ms
+    context_build_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("context_build_stage_timings_ms")
+    )
+    if context_build_stage_timings_ms:
+        metadata["context_build_stage_timings_ms"] = context_build_stage_timings_ms
+    start_turn_setup_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("start_turn_setup_stage_timings_ms")
+    )
+    if start_turn_setup_stage_timings_ms:
+        metadata["start_turn_setup_stage_timings_ms"] = start_turn_setup_stage_timings_ms
+    capability_stream_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("capability_stream_stage_timings_ms")
+    )
+    if capability_stream_stage_timings_ms:
+        metadata["capability_stream_stage_timings_ms"] = capability_stream_stage_timings_ms
+    capability_stream_event_counts = _normalize_non_negative_event_counts(
+        trace_metadata.get("capability_stream_event_counts")
+    )
+    if capability_stream_event_counts:
+        metadata["capability_stream_event_counts"] = capability_stream_event_counts
+    llm_stream_telemetry = _normalize_llm_stream_telemetry(
+        trace_metadata.get("llm_stream_telemetry")
+    )
+    if llm_stream_telemetry:
+        metadata["llm_stream_telemetry"] = llm_stream_telemetry
+    for metadata_key in (
+        "authority_applied",
+        "exact_fast_path_hit",
+        "execution_path",
+        "question_lifecycle_scene",
+        "rag_retrieval_degraded",
+        "rag_retrieval_status",
+        "rag_retrieval_error_type",
+        "degraded_exact_answer_guard_applied",
+        "degraded_mcq_grading_guard_applied",
+        "raw_user_id",
+        "member_user_id",
+        "identity_resolution_status",
+        "identity_resolution_source",
+        "identity_matched",
+    ):
+        if metadata_key in trace_metadata:
+            metadata[metadata_key] = trace_metadata[metadata_key]
+    exact_question_summary = _summarize_exact_question_for_observer(trace_metadata.get("exact_question"))
+    if exact_question_summary:
+        metadata["exact_question"] = exact_question_summary
+    lifecycle_decision = trace_metadata.get("question_lifecycle_decision")
+    if isinstance(lifecycle_decision, dict):
+        metadata["question_lifecycle_decision"] = dict(lifecycle_decision)
     return build_turn_observation_event(
         session_id=session_id,
         turn_id=turn_id,
@@ -426,10 +827,10 @@ def _billing_capture_amount_from_usage_summary(
 ) -> tuple[int, dict[str, Any]]:
     if not isinstance(usage_summary, dict):
         return _MINI_PROGRAM_CAPTURE_COST, {
-            "billing_amount_source": "fallback_minimum",
+            "billing_amount_source": "standard_turn",
             "billing_cost_source": "missing_usage_summary",
             "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
-            "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+            "billing_standard_turn_points": _MINI_PROGRAM_CAPTURE_COST,
         }
 
     measured_cost = _usage_summary_float(usage_summary, "total_cost_usd")
@@ -440,8 +841,6 @@ def _billing_capture_amount_from_usage_summary(
         if billable_cost > 0
         else 0
     )
-    amount_points = max(_MINI_PROGRAM_CAPTURE_COST, cost_points)
-
     if measured_cost > 0 and estimated_cost > 0:
         cost_source = "mixed_cost"
     elif measured_cost > 0:
@@ -452,12 +851,10 @@ def _billing_capture_amount_from_usage_summary(
         cost_source = "missing_cost"
 
     metadata: dict[str, Any] = {
-        "billing_amount_source": (
-            cost_source if cost_points >= _MINI_PROGRAM_CAPTURE_COST else "fallback_minimum"
-        ),
+        "billing_amount_source": "standard_turn",
         "billing_cost_source": cost_source,
         "billing_cost_point_scale": _MINI_PROGRAM_CAPTURE_COST_POINT_SCALE,
-        "billing_minimum_points": _MINI_PROGRAM_CAPTURE_COST,
+        "billing_standard_turn_points": _MINI_PROGRAM_CAPTURE_COST,
         "billing_measured_cost": round(measured_cost, 8),
         "billing_estimated_cost": round(estimated_cost, 8),
         "billing_billable_cost": round(billable_cost, 8),
@@ -476,7 +873,7 @@ def _billing_capture_amount_from_usage_summary(
     models = usage_summary.get("models")
     if isinstance(models, dict) and models:
         metadata["usage_models"] = dict(models)
-    return amount_points, metadata
+    return _MINI_PROGRAM_CAPTURE_COST, metadata
 
 
 def _append_trace_link_event(
@@ -506,6 +903,16 @@ def _append_trace_link_event(
             "visibility": _INTERNAL_VISIBILITY,
         }
     )
+
+
+def _public_turn_status_text(*, phase: str, language: str) -> str:
+    normalized_language = str(language or "").strip().lower()
+    zh = normalized_language.startswith("zh")
+    if phase == "understanding":
+        return "已收到，正在理解问题。" if zh else "Received. Understanding your question."
+    if phase == "writing":
+        return "正在组织回答。" if zh else "Preparing the answer."
+    return "正在处理。" if zh else "Working on it."
 
 
 def _env_flag(name: str, default: bool = True) -> bool:
@@ -761,6 +1168,178 @@ def _looks_like_batch_correction_reference(user_message: str) -> bool:
     )
 
 
+def _normalize_question_identity_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    return re.sub(r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+", "", text)
+
+
+def _identity_ngrams(text: str, *, size: int = 2) -> set[str]:
+    normalized = _normalize_question_identity_text(text)
+    if len(normalized) < size:
+        return set()
+    return {normalized[index : index + size] for index in range(0, len(normalized) - size + 1)}
+
+
+def _question_context_matches_free_text_surface(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    message_identity = _normalize_question_identity_text(user_message)
+    if not message_identity:
+        return False
+
+    question_identity = _normalize_question_identity_text(question_context.get("question"))
+    if question_identity:
+        if len(question_identity) >= 10 and question_identity in message_identity:
+            return True
+        question_grams = _identity_ngrams(question_identity)
+        if question_grams:
+            message_grams = _identity_ngrams(message_identity)
+            overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
+            if overlap_ratio >= 0.55:
+                return True
+        return False
+
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    if not isinstance(options, dict) or not options:
+        return False
+    option_hits = 0
+    for value in options.values():
+        option_identity = _normalize_question_identity_text(value)
+        if len(option_identity) >= 2 and option_identity in message_identity:
+            option_hits += 1
+    return option_hits >= min(2, len(options))
+
+
+def _case_context_matches_full_case_surface(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    message_identity = _normalize_question_identity_text(user_message)
+    if not message_identity:
+        return False
+
+    def _has_current_question_anchor(value: Any) -> bool:
+        text = str(value or "")
+        return bool(
+            "【问题" in text
+            or "问题】" in text
+            or re.search(r"问题\s*[：:]", text)
+            or "？" in text
+            or "?" in text
+        )
+
+    def _question_identity_values(context: dict[str, Any]):
+        for key in ("question", "question_stem", "stem"):
+            yield context.get(key)
+        for item in context.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            for key in ("question", "question_stem", "stem"):
+                yield item.get(key)
+
+    for value in _question_identity_values(question_context):
+        if not _has_current_question_anchor(value):
+            continue
+        question_identity = _normalize_question_identity_text(value)
+        if len(question_identity) >= 8 and (
+            question_identity in message_identity or message_identity in question_identity
+        ):
+            return True
+    return False
+
+
+def _annotate_full_case_submission_context(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> dict[str, Any]:
+    _stem, learner_answer = split_full_case_answer_submission(user_message)
+    if not learner_answer.strip():
+        return question_context
+    updated = dict(question_context)
+    updated["user_answer"] = learner_answer.strip()
+    return updated
+
+
+def _full_case_submission_action() -> dict[str, Any]:
+    return {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [],
+        "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
+    }
+
+
+_QUESTION_LIFECYCLE_METADATA_KEYS = (
+    "question_lifecycle_scene",
+    "question_lifecycle_scene_source",
+    "question_lifecycle_scene_confidence",
+    "question_lifecycle_scene_reason",
+    "question_lifecycle_skill_names",
+)
+
+
+def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(config, dict):
+        return {}
+    return {
+        key: config[key]
+        for key in _QUESTION_LIFECYCLE_METADATA_KEYS
+        if config.get(key) not in (None, "", [], {})
+    }
+
+
+def _stamp_case_grading_scene_pre_capability(
+    runtime_config: dict[str, Any],
+    *,
+    user_message: str,
+    followup_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None,
+) -> None:
+    """Stamp the case-grading business fact before capability selection.
+
+    This is not a router and not a scorer. It only writes the canonical lifecycle
+    scene when the current turn already carries a stable case submission fact, so
+    deep_question and TutorBot both consume the same V1 grading authority.
+    """
+
+    if not isinstance(runtime_config, dict):
+        return
+    reason = ""
+    confidence = 0.0
+    if looks_like_full_case_answer_submission(user_message):
+        reason = "full_case_answer_submission"
+        confidence = 1.0
+    elif looks_like_case_grading_submission_context(followup_context, followup_action):
+        reason = "case_submission_context"
+        confidence = 0.96
+    if not reason:
+        return
+
+    runtime_config["question_lifecycle_scene"] = "case_grading"
+    runtime_config["question_lifecycle_scene_source"] = "deterministic_pre_capability"
+    runtime_config["question_lifecycle_scene_confidence"] = confidence
+    runtime_config["question_lifecycle_scene_reason"] = reason
+    runtime_config["question_lifecycle_skill_names"] = list(
+        select_question_lifecycle_skill_names("case_grading")
+    )
+
+
+def _should_ignore_explicit_context_for_free_text_mcq(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    if not (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    ):
+        return False
+    return not _question_context_matches_free_text_surface(user_message, normalized_context)
+
+
 def _submission_action_for_user_message(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -803,6 +1382,26 @@ def _submission_action_for_user_message(
     }
 
 
+def _deterministic_followup_action_for_user_message(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if isinstance(submission, dict) and submission.get("kind") != "ambiguous":
+        return None
+    if not looks_like_question_followup(user_message, normalized_context):
+        return None
+    return {
+        "intent": "ask_followup",
+        "confidence": 0.88,
+        "answers": [],
+        "reason": "用户消息是围绕当前题目的稳定格式追问，不应被解释成改答或提交答案。",
+    }
+
+
 def _has_ambiguous_submission_attempt(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -823,6 +1422,21 @@ async def _resolve_question_followup_context_and_action(
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_explicit = normalize_question_followup_context(explicit_context)
     normalized_action = _normalize_question_followup_action(explicit_action)
+    free_text_mcq_grading_request = (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    )
+    full_case_answer_submission = looks_like_full_case_answer_submission(user_message)
+    if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
+        normalized_explicit = None
+        normalized_action = None
+    if (
+        full_case_answer_submission
+        and normalized_explicit is not None
+        and not _case_context_matches_full_case_surface(user_message, normalized_explicit)
+    ):
+        normalized_explicit = None
+        normalized_action = None
     if (
         normalized_explicit is not None
         and not (normalized_explicit.get("items") or [])
@@ -840,6 +1454,12 @@ async def _resolve_question_followup_context_and_action(
             if merged is not None:
                 normalized_explicit = merged
                 break
+        if full_case_answer_submission:
+            normalized_explicit = _annotate_full_case_submission_context(
+                user_message,
+                normalized_explicit,
+            )
+            return normalized_explicit, _full_case_submission_action()
         submission_context, submission_action = _submission_action_for_user_message(
             user_message,
             normalized_explicit,
@@ -848,6 +1468,11 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_explicit, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
             return normalized_explicit, None
+        if (
+            followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
+            normalized_action = None
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -860,15 +1485,49 @@ async def _resolve_question_followup_context_and_action(
                 )
                 normalized_action = practice_action
             else:
+                deterministic_followup_action = _deterministic_followup_action_for_user_message(
+                    user_message,
+                    normalized_explicit,
+                )
+                if deterministic_followup_action is not None:
+                    return normalized_explicit, deterministic_followup_action
                 normalized_action = await interpret_question_followup_action(
                     user_message,
                     normalized_explicit,
                 )
+                if (
+                    followup_action_route(normalized_action) == "practice_generation"
+                    and not looks_like_practice_generation_request(user_message)
+                ):
+                    normalized_action = None
+        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
+        if (
+            deterministic_followup
+            and followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
+            normalized_action = None
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
+            continue
+        if (
+            full_case_answer_submission
+            and not _case_context_matches_full_case_surface(user_message, normalized_candidate)
+        ):
+            continue
+        if full_case_answer_submission:
+            normalized_candidate = _annotate_full_case_submission_context(
+                user_message,
+                normalized_candidate,
+            )
+            return normalized_candidate, _full_case_submission_action()
+        if (
+            free_text_mcq_grading_request
+            and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
+        ):
             continue
         if (
             not (normalized_candidate.get("items") or [])
@@ -892,6 +1551,12 @@ async def _resolve_question_followup_context_and_action(
                 reset_question_submission_state(normalized_candidate) or normalized_candidate,
                 practice_action,
             )
+        deterministic_followup_action = _deterministic_followup_action_for_user_message(
+            user_message,
+            normalized_candidate,
+        )
+        if deterministic_followup_action is not None:
+            return normalized_candidate, deterministic_followup_action
         deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
         candidate_action = await interpret_question_followup_action(
             user_message,
@@ -1084,6 +1749,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     selected_mode = ""
     execution_path = ""
     exact_fast_path_hit = False
+    exact_question_summary: dict[str, Any] = {}
+    retrieval_metadata: dict[str, Any] = {}
     actual_tool_rounds: int | None = None
     question_lifecycle_scene = ""
     skill_stack: list[str] = []
@@ -1091,6 +1758,7 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     loader_source: dict[str, Any] = {}
     skill_source_status: dict[str, Any] = {}
     lifecycle_metadata: dict[str, Any] = {}
+    llm_stream_telemetry: dict[str, Any] = {}
     lifecycle_metadata_keys = (
         "question_lifecycle_decision",
         "decision_source",
@@ -1174,6 +1842,23 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 loader_source.update(dict(candidate.get("loader_source") or {}))
             if isinstance(candidate.get("skill_source_status"), dict):
                 skill_source_status = dict(candidate.get("skill_source_status") or {})
+            if not llm_stream_telemetry:
+                llm_stream_telemetry = _normalize_llm_stream_telemetry(
+                    candidate.get("llm_stream_telemetry")
+                )
+            if not exact_question_summary and isinstance(candidate.get("exact_question"), dict):
+                exact_question_summary = _summarize_exact_question_for_observer(
+                    candidate.get("exact_question")
+                )
+            for metadata_key in (
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
+            ):
+                if metadata_key in candidate and metadata_key not in retrieval_metadata:
+                    retrieval_metadata[metadata_key] = candidate[metadata_key]
 
     summary = {
         "tool_calls": tool_calls[:8],
@@ -1188,6 +1873,10 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         summary["question_lifecycle_scene"] = question_lifecycle_scene
     if lifecycle_metadata:
         summary.update(lifecycle_metadata)
+    if exact_question_summary:
+        summary["exact_question"] = exact_question_summary
+    if retrieval_metadata:
+        summary.update(retrieval_metadata)
     if skill_stack:
         summary["skill_stack"] = skill_stack
     if skill_trace:
@@ -1196,7 +1885,25 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         summary["loader_source"] = loader_source
     if skill_source_status:
         summary["skill_source_status"] = skill_source_status
+    if llm_stream_telemetry:
+        summary["llm_stream_telemetry"] = llm_stream_telemetry
     return summary
+
+
+def _summarize_exact_question_for_observer(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    metadata = value.get("metadata") if isinstance(value.get("metadata"), dict) else {}
+    summary = {
+        "id": str(value.get("id") or value.get("chunk_id") or "").strip(),
+        "answer_kind": str(value.get("answer_kind") or "").strip(),
+        "question_type": str(value.get("question_type") or "").strip(),
+        "source_group": str(value.get("source_group") or metadata.get("source_group") or "").strip(),
+        "correct_answer": str(value.get("correct_answer") or "").strip(),
+        "source_file": str(metadata.get("source_file") or "").strip(),
+        "content_hash": str(metadata.get("content_hash") or "").strip(),
+    }
+    return {key: item for key, item in summary.items() if item}
 
 
 def _result_selected_mode(
@@ -1472,6 +2179,40 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
     return normalized
 
 
+def _internal_qa_billing_context_identity_candidates(
+    billing_context: dict[str, str],
+) -> list[str]:
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for key in ("user_id", "wallet_user_id", "learning_user_id"):
+        _append(billing_context.get(key))
+
+    if not internal_qa_billing_bypass_enabled():
+        return candidates
+
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        member_service = get_member_console_service()
+        for user_id in list(candidates):
+            try:
+                profile = member_service.get_profile(user_id)
+            except Exception:
+                continue
+            if not isinstance(profile, dict):
+                continue
+            for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+                _append(profile.get(key))
+    except Exception:
+        pass
+    return candidates
+
+
 def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
     if not isinstance(config, dict):
         return None
@@ -1697,6 +2438,47 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
 _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
 
 
+# ---- Global turn-concurrency gate (orderly queue + peak shaving) -------------------
+# Each turn runs an expensive LLM/agent task. Without an admission limit, a surge fires
+# N concurrent LLM calls at once — the provider's rate limit becomes the failure point
+# (a cascade of 429s) instead of a graceful queue. This bounds simultaneously in-flight
+# turns PER WORKER: excess turns wait briefly (orderly queue, FIFO via the semaphore),
+# and if no slot frees within the timeout they are shed with a clean "system busy" event
+# rather than piling onto the LLM. Per-worker (not global-cross-worker): with W workers
+# the effective ceiling is W × _MAX_CONCURRENT_TURNS, which still caps each event loop's
+# memory/CPU and the fan-out to the provider. Tune via env.
+_MAX_CONCURRENT_TURNS = max(1, int(os.getenv("DEEPTUTOR_MAX_CONCURRENT_TURNS", "64")))
+_TURN_QUEUE_TIMEOUT_S = max(0.0, float(os.getenv("DEEPTUTOR_TURN_QUEUE_TIMEOUT_SECONDS", "8")))
+_turn_concurrency_semaphore: "asyncio.Semaphore | None" = None
+
+
+def _get_turn_semaphore() -> "asyncio.Semaphore":
+    # Created lazily inside the running loop (asyncio.Semaphore binds to the active loop).
+    global _turn_concurrency_semaphore
+    if _turn_concurrency_semaphore is None:
+        _turn_concurrency_semaphore = asyncio.Semaphore(_MAX_CONCURRENT_TURNS)
+    return _turn_concurrency_semaphore
+
+
+async def _acquire_turn_slot() -> bool:
+    """Acquire an in-flight-turn slot, waiting up to the queue timeout. True if admitted,
+    False if the worker is saturated and the turn should be shed (system busy)."""
+    sem = _get_turn_semaphore()
+    try:
+        await asyncio.wait_for(sem.acquire(), timeout=_TURN_QUEUE_TIMEOUT_S)
+        return True
+    except asyncio.TimeoutError:
+        return False
+
+
+def _release_turn_slot() -> None:
+    sem = _get_turn_semaphore()
+    try:
+        sem.release()
+    except ValueError:  # released more than acquired — defensive, should not happen
+        pass
+
+
 def _offer_to_subscriber(
     queue: "asyncio.Queue[dict[str, Any] | None]",
     item: dict[str, Any] | None,
@@ -1729,11 +2511,14 @@ class _TurnExecution:
     capability: str
     payload: dict[str, Any]
     turn_view: dict[str, Any] | None = None
+    start_turn_setup_stage_timings_ms: dict[str, float] = field(default_factory=dict)
+    content_transport_metadata: dict[str, Any] = field(default_factory=dict)
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
     deadline_exceeded: bool = False
     persistence_degraded: bool = False
+    terminal_commit_started: bool = False
 
 
 class TurnRuntimeManager:
@@ -1743,6 +2528,12 @@ class TurnRuntimeManager:
     _DEFAULT_FAST_TURN_TIMEOUT_SECONDS = 75.0
     _DEFAULT_TURN_TIMEOUT_SECONDS = 180.0
     _DEFAULT_DEEP_TURN_TIMEOUT_SECONDS = 300.0
+    # Upper bound for the per-session volatile question-context cache. Entries were
+    # only ever added, never removed — on a long-lived worker that is an unbounded
+    # leak (one full question payload per session). Insertion-ordered dict + evict
+    # oldest on overflow ≈ LRU on the write side; DB persistence is the authority,
+    # this cache only papers over read-after-write lag, so eviction is safe.
+    _VOLATILE_QUESTION_CONTEXT_MAX = 2048
 
     def __init__(self, store: SQLiteSessionStore | None = None) -> None:
         self.store = store or get_sqlite_session_store()
@@ -1750,6 +2541,13 @@ class TurnRuntimeManager:
         self._executions: dict[str, _TurnExecution] = {}
         self._volatile_question_contexts: dict[str, dict[str, Any]] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
+
+    def _set_volatile_question_context(self, session_id: str, value: dict[str, Any]) -> None:
+        contexts = self._volatile_question_contexts
+        contexts.pop(session_id, None)  # re-insert at the tail (freshest)
+        contexts[session_id] = value
+        while len(contexts) > self._VOLATILE_QUESTION_CONTEXT_MAX:
+            contexts.pop(next(iter(contexts)), None)
 
     @staticmethod
     def _is_persistence_error(exc: Exception) -> bool:
@@ -1979,7 +2777,13 @@ class TurnRuntimeManager:
                                     write_conversation_learning_evidence_event,
                                 )
 
-                                write_conversation_learning_evidence_event(
+                                # Sync chain that may run a blocking LLM topic inference
+                                # (home_personalization -> infer_learning_topic_with_llm).
+                                # Must NOT run on the event-loop thread: the resolver
+                                # refuses LLM inference there, and any sync I/O inside
+                                # would stall every WS stream on this worker.
+                                await asyncio.to_thread(
+                                    write_conversation_learning_evidence_event,
                                     learner_state_service=learner_state_service,
                                     user_id=user_id,
                                     turn_ref=turn_id,
@@ -1992,7 +2796,9 @@ class TurnRuntimeManager:
                                 logger.debug("Failed to write conversation learning evidence", exc_info=True)
                         if source_bot_id and assistant_content.strip():
                             try:
-                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+                                from deeptutor.services.learner_state import (
+                                    get_bot_learner_overlay_service,
+                                )
 
                                 operations: list[dict[str, Any]] = [
                                     {
@@ -2167,6 +2973,18 @@ class TurnRuntimeManager:
             )
             return bool(updated)
 
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            refreshed_turn = await self._safe_store_call(
+                None,
+                "get_terminal_committed_turn_for_new_request",
+                self.store.get_turn,
+                turn_id,
+                default=None,
+            )
+            return bool(refreshed_turn) and refreshed_turn.get("status") != "running"
+
         execution.task.cancel()
         with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
             await asyncio.wait_for(execution.task, timeout=2.0)
@@ -2201,7 +3019,72 @@ class TurnRuntimeManager:
             if str(turn_id or "").strip()
             else f"mini_program_capture:{session_id}"
         )
+        if internal_qa_billing_bypass_allowed(
+            *_internal_qa_billing_context_identity_candidates(billing_context)
+        ):
+            return {
+                "status": "bypassed",
+                "reason": "internal_qa_billing_bypass",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
+        capture_metadata = {
+            "source": "wx_miniprogram",
+            "turn_id": str(turn_id or "").strip(),
+            "session_id": str(session_id or "").strip(),
+            **billing_metadata,
+        }
+        try:
+            from deeptutor.services.wallet import is_billing_enforcement_enabled
+
+            billing_enforcement_enabled = is_billing_enforcement_enabled()
+        except Exception:
+            billing_enforcement_enabled = False
+        if not billing_enforcement_enabled:
+            try:
+                from deeptutor.services.member_usage_meter import get_member_usage_meter
+
+                meter_key = (
+                    f"mini_program_meter:{turn_id}"
+                    if str(turn_id or "").strip()
+                    else f"mini_program_meter:{session_id}"
+                )
+                get_member_usage_meter().record_usage_event(
+                    wallet_user_id=user_id,
+                    learning_user_id=str(
+                        billing_context.get("learning_user_id")
+                        or billing_context.get("user_id")
+                        or ""
+                    ).strip(),
+                    source="wx_miniprogram",
+                    session_id=str(session_id or "").strip(),
+                    turn_id=str(turn_id or "").strip(),
+                    amount_points=amount_points,
+                    dedupe_key=meter_key,
+                    status="metered_not_charged",
+                    metadata=capture_metadata,
+                )
+                return {
+                    "status": "metered_not_charged",
+                    "reason": "billing_enforcement_disabled",
+                    "wallet_user_id": user_id,
+                    "idempotency_key": idempotency_key,
+                    "amount_points": amount_points,
+                    "billing_amount_source": billing_metadata.get("billing_amount_source"),
+                    "billing_cost_source": billing_metadata.get("billing_cost_source"),
+                    "captured_micros": 0,
+                    "requested_micros": int(amount_points) * 1_000_000,
+                    "balance_after_micros": 0,
+                }
+            except Exception as exc:
+                logger.warning("Failed to meter usage for user %s: %s", user_id, exc, exc_info=True)
+                return {
+                    "status": "failed",
+                    "reason": "usage_meter_error",
+                    "wallet_user_id": user_id,
+                    "idempotency_key": idempotency_key,
+                }
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
 
@@ -2212,12 +3095,7 @@ class TurnRuntimeManager:
                 idempotency_key=idempotency_key,
                 reference_id=str(turn_id or session_id or "").strip(),
                 reason="capture",
-                metadata={
-                    "source": "wx_miniprogram",
-                    "turn_id": str(turn_id or "").strip(),
-                    "session_id": str(session_id or "").strip(),
-                    **billing_metadata,
-                },
+                metadata=capture_metadata,
             )
             return {
                 "status": "captured",
@@ -2369,80 +3247,103 @@ class TurnRuntimeManager:
         history_references: list[str],
     ) -> dict[str, Any]:
         from deeptutor.services.session.context_budget import ContextBudget, pack_context_candidates
+        from deeptutor.services.session.context_builder import count_tokens
         from deeptutor.services.session.context_pack import ContextBlockType, ContextCandidate
-        from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+        from deeptutor.services.session.context_router import (
+            ContextRouteInput,
+            decide_context_route,
+        )
         from deeptutor.services.session.context_sources import ContextSourceLoader
         from deeptutor.services.session.context_trace import (
             build_context_trace_summary,
             resolve_target_escalation_level,
         )
-        from deeptutor.services.session.context_builder import count_tokens
+
+        build_stage_timings_ms: dict[str, float] = {}
+
+        @contextlib.contextmanager
+        def measure_build_stage(stage: str):
+            started_at = time.perf_counter()
+            try:
+                yield
+            finally:
+                build_stage_timings_ms[stage] = (time.perf_counter() - started_at) * 1000.0
 
         active_plan_id = str(active_plan_id or "").strip() or _active_object_plan_id(active_object)
         try:
-            route_decision = decide_context_route(
-                ContextRouteInput(
-                    user_message=raw_user_content,
-                    has_active_question=bool(followup_question_context),
-                    has_active_plan=bool(active_plan_id),
-                    notebook_references=_normalize_reference_tokens(notebook_references),
-                    history_references=_normalize_reference_tokens(history_references),
-                    memory_references=(),
-                    explicit_grounding=False,
-                    session_followup_hint=False,
-                    personal_recall_hint=False,
+            with measure_build_stage("route_resolver"):
+                route_decision = decide_context_route(
+                    ContextRouteInput(
+                        user_message=raw_user_content,
+                        has_active_question=bool(followup_question_context),
+                        has_active_plan=bool(active_plan_id),
+                        notebook_references=_normalize_reference_tokens(notebook_references),
+                        history_references=_normalize_reference_tokens(history_references),
+                        memory_references=(),
+                        explicit_grounding=False,
+                        session_followup_hint=False,
+                        personal_recall_hint=False,
+                    )
                 )
-            )
         except Exception as exc:
             raise _ContextOrchestrationStageError("route_resolver", exc) from exc
-        context_window_tokens = (
-            int(builder.context_window_tokens(llm_config))
-            if hasattr(builder, "context_window_tokens")
-            else max(
-                8192,
-                int(getattr(llm_config, "context_window_tokens", 0) or 0)
-                or int(getattr(llm_config, "max_tokens", 4096) or 4096),
+        with measure_build_stage("context_budget"):
+            context_window_tokens = (
+                int(builder.context_window_tokens(llm_config))
+                if hasattr(builder, "context_window_tokens")
+                else max(
+                    8192,
+                    int(getattr(llm_config, "context_window_tokens", 0) or 0)
+                    or int(getattr(llm_config, "max_tokens", 4096) or 4096),
+                )
             )
-        )
-        budget_parts = self._build_context_budget(
-            context_window_tokens=context_window_tokens,
-            output_reserve_tokens=int(getattr(llm_config, "max_tokens", 1024) or 1024),
-            tools_enabled=bool(payload.get("tools") or payload.get("knowledge_bases")),
-            route_label=route_decision.route_label,
-        )
+            budget_parts = self._build_context_budget(
+                context_window_tokens=context_window_tokens,
+                output_reserve_tokens=int(getattr(llm_config, "max_tokens", 1024) or 1024),
+                tools_enabled=bool(payload.get("tools") or payload.get("knowledge_bases")),
+                route_label=route_decision.route_label,
+            )
         try:
-            history_result = await builder.build(
-                session_id=execution.session_id,
-                llm_config=llm_config,
-                language=language,
-                budget_override=budget_parts["session_budget"],
-                on_event=lambda event: self._persist_and_publish(execution, event),
-            )
+            with measure_build_stage("session_history"):
+                history_result = await builder.build(
+                    session_id=execution.session_id,
+                    llm_config=llm_config,
+                    language=language,
+                    budget_override=budget_parts["session_budget"],
+                    on_event=lambda event: self._persist_and_publish(execution, event),
+                )
         except Exception as exc:
             raise _ContextOrchestrationStageError("session_history", exc) from exc
 
         learner_candidates_payload: dict[str, Any] | None = None
         overlay_payload: dict[str, Any] | None = None
         compiled_learning_truth: dict[str, Any] = {}
+        personalization_context: dict[str, Any] = {}
         compact_memory_context = ""
         try:
-            if user_id and hasattr(learner_state_service, "build_context_candidates"):
-                learner_candidates_payload = learner_state_service.build_context_candidates(
-                    user_id=user_id,
-                    query=raw_user_content,
-                    route=route_decision.route_label,
-                    language=language,
-                )
-                projection = learner_candidates_payload.get("compiled_learning_truth")
-                if isinstance(projection, dict):
-                    compiled_learning_truth = dict(projection)
-            elif user_id:
-                compact_memory_context = learner_state_service.build_context(
-                    user_id=user_id,
-                    language=language,
-                )
-            else:
-                compact_memory_context = memory_service.build_memory_context()
+            with measure_build_stage("learner_state"):
+                if user_id and hasattr(learner_state_service, "build_context_candidates"):
+                    learner_candidates_payload = learner_state_service.build_context_candidates(
+                        user_id=user_id,
+                        query=raw_user_content,
+                        route=route_decision.route_label,
+                        language=language,
+                    )
+                    projection = learner_candidates_payload.get("compiled_learning_truth")
+                    if isinstance(projection, dict):
+                        compiled_learning_truth = dict(projection)
+                    # Grading-to-Brain loop: carry the PersonalizationContextPack (a projection of the same
+                    # compiled truth) so it can be injected into the live turn alongside compiled_learning_truth.
+                    pcp = learner_candidates_payload.get("personalization_context")
+                    if isinstance(pcp, dict):
+                        personalization_context = dict(pcp)
+                elif user_id:
+                    compact_memory_context = learner_state_service.build_context(
+                        user_id=user_id,
+                        language=language,
+                    )
+                else:
+                    compact_memory_context = memory_service.build_memory_context()
         except Exception as exc:
             raise _ContextOrchestrationStageError("learner_state", exc) from exc
 
@@ -2461,9 +3362,10 @@ class TurnRuntimeManager:
             and source_flags_snapshot["overlay"]
         ):
             try:
-                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+                with measure_build_stage("overlay_read"):
+                    from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
-                overlay_payload = get_bot_learner_overlay_service().read_overlay(source_bot_id, user_id)
+                    overlay_payload = get_bot_learner_overlay_service().read_overlay(source_bot_id, user_id)
             except Exception:
                 logger.debug(
                     "Failed to load bot learner overlay for user %s bot %s",
@@ -2489,79 +3391,82 @@ class TurnRuntimeManager:
         history_source_candidates: list[Any] = []
         if target_escalation_level >= 2:
             try:
-                if notebook_loading_allowed and source_flags_snapshot["notebook"]:
-                    notebook_source_candidates = loader.load_notebook_candidates(
-                        user_question=raw_user_content,
-                        notebook_references=notebook_references,
-                        max_candidates=3,
-                        max_excerpt_chars=360,
-                    )
-                    plan_source_candidates = loader.load_active_plan_page_candidates(
-                        user_question=raw_user_content,
-                        user_id=user_id,
-                        plan_id=active_plan_id,
-                        max_candidates=3,
-                        max_excerpt_chars=360,
-                    )
+                with measure_build_stage("source_loader_notebook_plan"):
+                    if notebook_loading_allowed and source_flags_snapshot["notebook"]:
+                        notebook_source_candidates = loader.load_notebook_candidates(
+                            user_question=raw_user_content,
+                            notebook_references=notebook_references,
+                            max_candidates=3,
+                            max_excerpt_chars=360,
+                        )
+                        plan_source_candidates = loader.load_active_plan_page_candidates(
+                            user_question=raw_user_content,
+                            user_id=user_id,
+                            plan_id=active_plan_id,
+                            max_candidates=3,
+                            max_excerpt_chars=360,
+                        )
             except Exception as exc:
                 raise _ContextOrchestrationStageError("source_loader:notebook_plan", exc) from exc
         if target_escalation_level >= 3 and history_loading_allowed and source_flags_snapshot["history"]:
             try:
-                history_source_candidates = await loader.load_history_candidates(
-                    user_question=raw_user_content,
-                    user_id=user_id,
-                    current_session_id=execution.session_id,
-                    history_references=history_references,
-                    max_candidates=2,
-                    max_excerpt_chars=600,
-                )
+                with measure_build_stage("source_loader_history"):
+                    history_source_candidates = await loader.load_history_candidates(
+                        user_question=raw_user_content,
+                        user_id=user_id,
+                        current_session_id=execution.session_id,
+                        history_references=history_references,
+                        max_candidates=2,
+                        max_excerpt_chars=600,
+                    )
             except Exception as exc:
                 raise _ContextOrchestrationStageError("source_loader:history", exc) from exc
 
-        source_priority = {
-            "current_question": 0,
-            "active_plan": 1,
-            "session_history": 2,
-            "learner_card": 3,
-            "overlay": 4,
-            "notebook": 4,
-            "memory": 5,
-            "history": 6,
-        }
-        source_budgets = {
-            "current_question": budget_parts["anchor_budget"],
-            "active_plan": max(0, min(budget_parts["anchor_budget"], int(budget_parts["evidence_budget"] * 0.7)) or budget_parts["anchor_budget"]),
-            "session_history": budget_parts["session_budget"],
-            "learner_card": budget_parts["learner_budget"],
-            "overlay": max(0, int(budget_parts["evidence_budget"] * 0.45)),
-            "notebook": max(0, int(budget_parts["evidence_budget"] * 0.7)),
-            "memory": max(0, int(budget_parts["evidence_budget"] * 0.55)),
-            "history": max(0, int(budget_parts["evidence_budget"] * (0.8 if route_decision.route_label == "cross_session_recall" else 0.45))),
-        }
-        budget = ContextBudget(
-            total_tokens=budget_parts["effective_input_budget"],
-            block_budgets={
-                ContextBlockType.ANCHOR: budget_parts["anchor_budget"],
-                ContextBlockType.SESSION: budget_parts["session_budget"],
-                ContextBlockType.LEARNER: budget_parts["learner_budget"],
-                ContextBlockType.EVIDENCE: budget_parts["evidence_budget"],
-            },
-            source_budgets=source_budgets,
-            source_priority=source_priority,
-            trace_metadata={
-                "route_confidence": route_decision.confidence,
-                "anchor_confidence": 1.0 if route_decision.task_anchor_type.value != "none" else 0.0,
-                "compression_applied": bool(history_result.conversation_summary),
-                "history_search_applied": False,
-                "cache_hits": [],
-                "fallback_path": "",
-                "target_escalation_level": target_escalation_level,
-                "source_flags": dict(source_flags_snapshot),
-                "token_budget_reserved_output": budget_parts["output_reserve_tokens"],
-                "token_budget_tool_reserve": budget_parts["tool_reserve_tokens"],
-                "token_budget_safety_margin": budget_parts["safety_margin_tokens"],
-            },
-        )
+        with measure_build_stage("candidate_build"):
+            source_priority = {
+                "current_question": 0,
+                "active_plan": 1,
+                "session_history": 2,
+                "learner_card": 3,
+                "overlay": 4,
+                "notebook": 4,
+                "memory": 5,
+                "history": 6,
+            }
+            source_budgets = {
+                "current_question": budget_parts["anchor_budget"],
+                "active_plan": max(0, min(budget_parts["anchor_budget"], int(budget_parts["evidence_budget"] * 0.7)) or budget_parts["anchor_budget"]),
+                "session_history": budget_parts["session_budget"],
+                "learner_card": budget_parts["learner_budget"],
+                "overlay": max(0, int(budget_parts["evidence_budget"] * 0.45)),
+                "notebook": max(0, int(budget_parts["evidence_budget"] * 0.7)),
+                "memory": max(0, int(budget_parts["evidence_budget"] * 0.55)),
+                "history": max(0, int(budget_parts["evidence_budget"] * (0.8 if route_decision.route_label == "cross_session_recall" else 0.45))),
+            }
+            budget = ContextBudget(
+                total_tokens=budget_parts["effective_input_budget"],
+                block_budgets={
+                    ContextBlockType.ANCHOR: budget_parts["anchor_budget"],
+                    ContextBlockType.SESSION: budget_parts["session_budget"],
+                    ContextBlockType.LEARNER: budget_parts["learner_budget"],
+                    ContextBlockType.EVIDENCE: budget_parts["evidence_budget"],
+                },
+                source_budgets=source_budgets,
+                source_priority=source_priority,
+                trace_metadata={
+                    "route_confidence": route_decision.confidence,
+                    "anchor_confidence": 1.0 if route_decision.task_anchor_type.value != "none" else 0.0,
+                    "compression_applied": bool(history_result.conversation_summary),
+                    "history_search_applied": False,
+                    "cache_hits": [],
+                    "fallback_path": "",
+                    "target_escalation_level": target_escalation_level,
+                    "source_flags": dict(source_flags_snapshot),
+                    "token_budget_reserved_output": budget_parts["output_reserve_tokens"],
+                    "token_budget_tool_reserve": budget_parts["tool_reserve_tokens"],
+                    "token_budget_safety_margin": budget_parts["safety_margin_tokens"],
+                },
+            )
 
         base_candidates: list[Any] = []
         level2_candidates: list[Any] = []
@@ -2821,76 +3726,79 @@ class TurnRuntimeManager:
             )
 
         try:
-            escalation_attempts: list[int] = [1]
-            pack = pack_context_candidates(base_candidates, budget, route=route_decision)
-            escalation_stop_reason = "target_level_reached" if target_escalation_level <= 1 else ""
-            if target_escalation_level >= 2:
-                escalation_attempts.append(2)
-                if level2_candidates:
-                    pack = pack_context_candidates([*base_candidates, *level2_candidates], budget, route=route_decision)
-                elif route_decision.route_label in {"guided_plan_continuation", "notebook_followup", "personal_recall", "tool_or_grounding_needed"}:
-                    escalation_stop_reason = "no_level2_candidates"
-                else:
-                    escalation_stop_reason = "level2_not_required"
-            if target_escalation_level >= 3:
-                escalation_attempts.append(3)
-                if level3_candidates:
-                    pack = pack_context_candidates(
-                        [*base_candidates, *level2_candidates, *level3_candidates],
-                        budget,
-                        route=route_decision,
-                    )
+            with measure_build_stage("context_pack"):
+                escalation_attempts: list[int] = [1]
+                pack = pack_context_candidates(base_candidates, budget, route=route_decision)
+                escalation_stop_reason = "target_level_reached" if target_escalation_level <= 1 else ""
+                if target_escalation_level >= 2:
+                    escalation_attempts.append(2)
+                    if level2_candidates:
+                        pack = pack_context_candidates([*base_candidates, *level2_candidates], budget, route=route_decision)
+                    elif route_decision.route_label in {"guided_plan_continuation", "notebook_followup", "personal_recall", "tool_or_grounding_needed"}:
+                        escalation_stop_reason = "no_level2_candidates"
+                    else:
+                        escalation_stop_reason = "level2_not_required"
+                if target_escalation_level >= 3:
+                    escalation_attempts.append(3)
+                    if level3_candidates:
+                        pack = pack_context_candidates(
+                            [*base_candidates, *level2_candidates, *level3_candidates],
+                            budget,
+                            route=route_decision,
+                        )
+                        escalation_stop_reason = "target_level_reached"
+                    elif not source_flags_snapshot["history"]:
+                        escalation_stop_reason = "source_flag_disabled:history"
+                    else:
+                        escalation_stop_reason = "no_level3_candidates"
+                if not escalation_stop_reason:
                     escalation_stop_reason = "target_level_reached"
-                elif not source_flags_snapshot["history"]:
-                    escalation_stop_reason = "source_flag_disabled:history"
-                else:
-                    escalation_stop_reason = "no_level3_candidates"
-            if not escalation_stop_reason:
-                escalation_stop_reason = "target_level_reached"
-            pack.trace_metadata["escalation_attempts"] = escalation_attempts
-            pack.trace_metadata["escalation_stop_reason"] = escalation_stop_reason
+                pack.trace_metadata["escalation_attempts"] = escalation_attempts
+                pack.trace_metadata["escalation_stop_reason"] = escalation_stop_reason
         except Exception as exc:
             raise _ContextOrchestrationStageError("context_pack", exc) from exc
-        anchor_text = _render_evidence_block(pack.anchor_block.selected_candidates, language=language)
-        evidence_text = _render_evidence_block(pack.evidence_block.selected_candidates, language=language)
-        memory_context = compact_memory_context or _render_memory_context_from_candidates(
-            pack.learner_block.selected_candidates,
-            language=language,
-        )
-        user_sections: list[str] = []
-        if anchor_text:
-            user_sections.append(anchor_text)
-        if evidence_text:
-            user_sections.append(evidence_text)
-        if user_sections:
-            user_sections.append(
-                ("## 当前用户问题" if language.startswith("zh") else "## Current User Question")
-                + f"\n{raw_user_content}"
+        with measure_build_stage("pack_render"):
+            anchor_text = _render_evidence_block(pack.anchor_block.selected_candidates, language=language)
+            evidence_text = _render_evidence_block(pack.evidence_block.selected_candidates, language=language)
+            memory_context = compact_memory_context or _render_memory_context_from_candidates(
+                pack.learner_block.selected_candidates,
+                language=language,
             )
-            effective_user_message = "\n\n".join(user_sections)
-        else:
-            effective_user_message = raw_user_content
+            user_sections: list[str] = []
+            if anchor_text:
+                user_sections.append(anchor_text)
+            if evidence_text:
+                user_sections.append(evidence_text)
+            if user_sections:
+                user_sections.append(
+                    ("## 当前用户问题" if language.startswith("zh") else "## Current User Question")
+                    + f"\n{raw_user_content}"
+                )
+                effective_user_message = "\n\n".join(user_sections)
+            else:
+                effective_user_message = raw_user_content
 
-        notebook_context = _render_evidence_block(
-            [
-                candidate
-                for candidate in pack.evidence_block.selected_candidates
-                if str(getattr(candidate, "source_bucket", "")) in {"notebook", "active_plan"}
-            ],
-            language=language,
-        )
-        history_context = _render_evidence_block(
-            [
-                candidate
-                for candidate in pack.evidence_block.selected_candidates
-                if str(getattr(candidate, "source_bucket", "")) == "history"
-            ],
-            language=language,
-        )
+            notebook_context = _render_evidence_block(
+                [
+                    candidate
+                    for candidate in pack.evidence_block.selected_candidates
+                    if str(getattr(candidate, "source_bucket", "")) in {"notebook", "active_plan"}
+                ],
+                language=language,
+            )
+            history_context = _render_evidence_block(
+                [
+                    candidate
+                    for candidate in pack.evidence_block.selected_candidates
+                    if str(getattr(candidate, "source_bucket", "")) == "history"
+                ],
+                language=language,
+            )
         history_search_applied = bool(history_context.strip())
         budget.trace_metadata["history_search_applied"] = history_search_applied
         pack.trace_metadata["history_search_applied"] = history_search_applied
         context_trace = build_context_trace_summary(pack, fallback_path="")
+        context_trace["build_stage_timings_ms"] = normalize_latency_stage_timings(build_stage_timings_ms)
         return {
             "route_decision": route_decision,
             "budget": budget,
@@ -2902,19 +3810,25 @@ class TurnRuntimeManager:
             "notebook_context": notebook_context,
             "history_context": history_context,
             "compiled_learning_truth": compiled_learning_truth,
+            "personalization_context": personalization_context,
         }
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+        setup_stages = _TurnLatencyStages()
+        payload_normalize_started_at = time.perf_counter()
         requested_capability = str(payload.get("capability") or "").strip() or None
         capability = requested_capability or ""
         config_capability = requested_capability or "chat"
         session_id = str(payload.get("session_id") or "").strip()
-        raw_user_content = str(payload.get("content") or "").strip()
+        raw_user_content, content_transport_metadata = _normalize_turn_user_content(
+            payload.get("content")
+        )
         raw_config = dict(payload.get("config", {}) or {})
         explicit_chat_mode = "chat_mode" in raw_config
         effective_chat_mode_explicit = explicit_chat_mode
         runtime_only_keys = (
             "_persist_user_message",
+            "client_turn_id",
             "followup_question_context",
             "_question_followup_action",
             "semantic_router_enabled",
@@ -2922,6 +3836,22 @@ class TurnRuntimeManager:
             "semantic_router_scope",
             "interaction_hints",
             "billing_context",
+            "grading_engine_runtime_shadow",
+            "grading_engine_runtime_shadow_engine",
+            "grading_engine_runtime_shadow_mode",
+            "grading_engine_runtime_shadow_cache_student_id",
+            "grading_engine_v1_beta_shadow",
+            "enable_luban_v1_beta_shadow",
+            "grading_engine_m35_artifact_shadow",
+            "grading_engine_m35_artifact_shadow_judge",
+            "grading_engine_m35_artifact_shadow_tier",
+            "grading_engine_pgo_shadow",
+            "grading_engine_v1_controlled_runtime",
+            "grading_engine_v1_llm_adjudication",
+            "grading_engine_objective_candidate",
+            "grading_engine_m31_governed_objective",
+            "grading_engine_textbook_knowledge",
+            "general_knowledge_context",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",
@@ -2952,6 +3882,7 @@ class TurnRuntimeManager:
         multiple_exam_track_mentions = has_multiple_exam_track_mentions(raw_user_content)
         denied_exam_tracks = infer_denied_exam_tracks_from_text(raw_user_content)
         clear_stored_exam_track = False
+        setup_stages.record_since("payload_normalize", payload_normalize_started_at)
         if explicit_exam_track:
             runtime_only_config["exam_track"] = explicit_exam_track
             runtime_interaction_hints = {
@@ -2967,6 +3898,7 @@ class TurnRuntimeManager:
         )
         stored_active_object = None
         candidate_followup_contexts: list[dict[str, Any] | None] = []
+        active_object_lookup_started_at = time.perf_counter()
         if session_id:
             stored_active_object = await self._safe_store_call(
                 None,
@@ -3010,6 +3942,8 @@ class TurnRuntimeManager:
                 )
                 if mirror_followup_context is not None:
                     candidate_followup_contexts.append(mirror_followup_context)
+        setup_stages.record_since("active_object_lookup", active_object_lookup_started_at)
+        followup_resolution_started_at = time.perf_counter()
         (
             runtime_followup_question_context,
             runtime_followup_action,
@@ -3019,6 +3953,13 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        _stamp_case_grading_scene_pre_capability(
+            runtime_only_config,
+            user_message=raw_user_content,
+            followup_context=runtime_followup_question_context,
+            followup_action=runtime_followup_action,
+        )
+        setup_stages.record_since("followup_resolution", followup_resolution_started_at)
         entry_capability_hint = (
             requested_capability
             if requested_capability in {"chat", "tutorbot"}
@@ -3052,10 +3993,14 @@ class TurnRuntimeManager:
             )
         if runtime_followup_action is not None:
             runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
+        public_config_validation_started_at = time.perf_counter()
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
             from deeptutor.services.config import get_model_catalog_service
-            from deeptutor.services.model_selection import LLMSelection, apply_llm_selection_to_catalog
+            from deeptutor.services.model_selection import (
+                LLMSelection,
+                apply_llm_selection_to_catalog,
+            )
 
             validated_public_config = validate_capability_config(config_capability, raw_config)
             llm_selection = LLMSelection.from_payload(payload.get("llm_selection"))
@@ -3067,6 +4012,7 @@ class TurnRuntimeManager:
                 payload = {**payload, "llm_selection": llm_selection.to_dict()}
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
+        setup_stages.record_since("public_config_validation", public_config_validation_started_at)
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
         interaction_profile = _normalize_interaction_profile_name(
             runtime_only_config.get("interaction_profile")
@@ -3108,11 +4054,13 @@ class TurnRuntimeManager:
             }
             runtime_only_config["interaction_hints"] = runtime_interaction_hints
             effective_chat_mode_explicit = True
+        bot_runtime_defaults_started_at = time.perf_counter()
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
             tools=payload.get("tools"),
             knowledge_bases=payload.get("knowledge_bases"),
         )
+        setup_stages.record_since("bot_runtime_defaults", bot_runtime_defaults_started_at)
         selected_capability = requested_capability
         capability = selected_capability or (
             ""
@@ -3126,7 +4074,7 @@ class TurnRuntimeManager:
             **payload,
             "capability": selected_capability,
             "_chat_mode_explicit": effective_chat_mode_explicit,
-            "tools": knowledge_chain_defaults["tools"],
+            "tools": filter_end_user_tools(knowledge_chain_defaults["tools"]),
             "knowledge_bases": knowledge_chain_defaults["knowledge_bases"],
             "config": {
                 **validated_public_config,
@@ -3134,10 +4082,12 @@ class TurnRuntimeManager:
             },
         }
         billing_context = _extract_billing_context(dict(runtime_only_config)) or {}
+        ensure_session_started_at = time.perf_counter()
         session = await self.store.ensure_session(
             payload.get("session_id"),
             owner_key=build_user_owner_key(billing_context.get("user_id")),
         )
+        setup_stages.record_since("ensure_session", ensure_session_started_at)
         session_preferences = session.get("preferences") if isinstance(session, dict) else {}
         if not explicit_exam_track:
             stored_exam_track = normalize_exam_track(
@@ -3210,18 +4160,25 @@ class TurnRuntimeManager:
             preference_updates["interaction_hints"] = runtime_interaction_hints
         elif clear_stored_exam_track:
             preference_updates["interaction_hints"] = {}
+        update_preferences_started_at = time.perf_counter()
         await self.store.update_session_preferences(
             session["id"],
             preference_updates,
         )
+        setup_stages.record_since("update_session_preferences", update_preferences_started_at)
+        recover_orphaned_turns_started_at = time.perf_counter()
         await self._recover_orphaned_running_turns(
             session["id"],
             reason="Recovered orphaned running turn before starting a new turn",
         )
+        setup_stages.record_since("recover_orphaned_turns", recover_orphaned_turns_started_at)
+        cancel_active_turn_started_at = time.perf_counter()
         await self._cancel_active_turn_for_new_request(
             session["id"],
             reason="Cancelled superseded running turn before starting a new turn",
         )
+        setup_stages.record_since("cancel_active_turn", cancel_active_turn_started_at)
+        create_turn_started_at = time.perf_counter()
         try:
             turn = await self.store.create_turn(session["id"], capability=capability)
         except RuntimeError as exc:
@@ -3249,16 +4206,21 @@ class TurnRuntimeManager:
                     f"[turn_runtime] start_turn conflict on session {session['id']}: "
                     "active turn persists after cancel/recovery. Concurrent request detected."
                 ) from retry_exc
+        setup_stages.record_since("create_turn", create_turn_started_at)
         execution = _TurnExecution(
             turn_id=turn["id"],
             session_id=session["id"],
             capability=capability,
-            payload=dict(payload),
+            payload={**dict(payload), "content": raw_user_content},
             turn_view=turn,
+            content_transport_metadata=content_transport_metadata,
         )
+        register_execution_started_at = time.perf_counter()
         async with self._lock:
             self._executions[turn["id"]] = execution
+        setup_stages.record_since("register_execution", register_execution_started_at)
         get_turn_runtime_metrics().record_turn_started()
+        publish_session_event_started_at = time.perf_counter()
         await self._persist_and_publish(
             execution,
             StreamEvent(
@@ -3267,6 +4229,8 @@ class TurnRuntimeManager:
                 metadata={"session_id": session["id"], "turn_id": turn["id"]},
             ),
         )
+        setup_stages.record_since("publish_session_event", publish_session_event_started_at)
+        execution.start_turn_setup_stage_timings_ms = setup_stages.snapshot()
         async with self._lock:
             execution.task = asyncio.create_task(self._run_turn(execution))
         return session, turn
@@ -3294,6 +4258,10 @@ class TurnRuntimeManager:
                 default=False,
             )
             return bool(updated)
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            return True
         execution.task.cancel()
         return True
 
@@ -3313,7 +4281,7 @@ class TurnRuntimeManager:
         last_seq = after_seq
         for item in backlog:
             last_seq = max(last_seq, int(item.get("seq") or 0))
-            yield item
+            yield _project_result_response_for_legacy_clients(item)
 
         queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(
             maxsize=_MAX_LIVE_SUBSCRIBER_QUEUE_SIZE
@@ -3340,9 +4308,9 @@ class TurnRuntimeManager:
                 continue
             last_seq = seq
             if execution is None:
-                yield item
+                yield _project_result_response_for_legacy_clients(item)
             else:
-                _offer_to_subscriber(queue, item)
+                _offer_to_subscriber(queue, _project_result_response_for_legacy_clients(item))
 
         turn = await self._safe_store_call(
             None,
@@ -3368,7 +4336,7 @@ class TurnRuntimeManager:
                 if seq <= last_seq:
                     continue
                 last_seq = seq
-                yield item
+                yield _project_result_response_for_legacy_clients(item)
         finally:
             async with self._lock:
                 execution = self._executions.get(turn_id)
@@ -3412,8 +4380,10 @@ class TurnRuntimeManager:
         usage_scope_state: Any | None = None
         post_turn_refresh_kwargs: dict[str, Any] | None = None
         terminal_status = "failed"
+        turn_slot_acquired = False
         llm_selection_token = None
         turn_started_at = time.perf_counter()
+        latency_stages = _TurnLatencyStages()
         deadline_task = self._schedule_turn_deadline(execution)
         surface_event_store = get_surface_event_store()
         trace_metadata = {
@@ -3426,7 +4396,29 @@ class TurnRuntimeManager:
             "interaction_profile": str(
                 (payload.get("config", {}) or {}).get("interaction_profile", "") or ""
             ).strip(),
+            "start_turn_setup_stage_timings_ms": dict(
+                execution.start_turn_setup_stage_timings_ms or {}
+            ),
+            **dict(execution.content_transport_metadata or {}),
         }
+        await self._persist_and_publish(
+            execution,
+            StreamEvent(
+                type=StreamEventType.PROGRESS,
+                source="turn_runtime",
+                stage="understanding",
+                content=_public_turn_status_text(
+                    phase="understanding",
+                    language=str(payload.get("language", "en") or "en"),
+                ),
+                metadata={
+                    "status_kind": "turn_status",
+                    "phase": "understanding",
+                    "public_safe": True,
+                },
+                visibility=_PUBLIC_VISIBILITY,
+            ),
+        )
         log_context_tokens: dict[str, Any] | None = None
 
         def _build_final_observation_metadata(
@@ -3545,6 +4537,11 @@ class TurnRuntimeManager:
                 content=assistant_content,
                 capability=public_source,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=dict(payload.get("config", {}) or {}),
+                    terminal_status="completed",
+                ),
                 default=None,
             )
             await self._safe_store_call(
@@ -3558,13 +4555,47 @@ class TurnRuntimeManager:
             terminal_status = "completed"
 
         try:
+            # Admission gate: bound concurrent in-flight turns. Wait briefly for a slot
+            # (orderly queue); if the worker is saturated, shed this turn with a clean
+            # "system busy" event instead of firing another LLM call into an overload.
+            turn_slot_acquired = await _acquire_turn_slot()
+            if not turn_slot_acquired:
+                terminal_status = "rejected"
+                # Same public phrasing as unified_ws._public_ws_failure_message —
+                # inlined because the runtime must not import from the transport
+                # layer, and the previous bare reference raised NameError here,
+                # turning the clean "server busy" shed into a generic failure.
+                busy_text = "Unable to start the turn right now. Please try again later."
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.ERROR,
+                        source=capability_name,
+                        content=busy_text,
+                        metadata={"turn_terminal": True, "status": "rejected", "reason": "server_busy"},
+                    ),
+                )
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.DONE,
+                        source=capability_name,
+                        metadata={"status": "rejected", "reason": "server_busy"},
+                    ),
+                )
+                logger.warning(
+                    "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",
+                    _TURN_QUEUE_TIMEOUT_S, _MAX_CONCURRENT_TURNS, turn_id,
+                )
+                return
+
+            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
-            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
-            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.model_selection.runtime import activate_llm_selection
+            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
@@ -3618,6 +4649,7 @@ class TurnRuntimeManager:
                                 if isinstance(payload.get("llm_selection"), dict)
                                 else None
                             ),
+                            turn_id=turn_id,
                         ),
                         default=None,
                     )
@@ -3649,9 +4681,12 @@ class TurnRuntimeManager:
                 )
                 original_stored_suspended_object_stack = list(stored_suspended_object_stack)
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
+                stored_followup_question_context = extract_question_context_from_active_object(
+                    stored_active_object
+                )
             if (
                 stored_active_object is not None
-                and extract_question_context_from_active_object(stored_active_object) is not None
+                and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
             ):
@@ -3695,7 +4730,7 @@ class TurnRuntimeManager:
                         )
             stored_followup_question_context = extract_question_context_from_active_object(
                 stored_active_object
-            )
+            ) or stored_followup_question_context
             if session_id:
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
             session_active_object = None
@@ -3730,6 +4765,12 @@ class TurnRuntimeManager:
                     stored_followup_question_context,
                     volatile_followup_question_context,
                 ],
+            )
+            _stamp_case_grading_scene_pre_capability(
+                request_config,
+                user_message=raw_user_content,
+                followup_context=followup_question_context,
+                followup_action=followup_question_action,
             )
             if followup_question_context:
                 active_object = build_active_object_from_question_context(
@@ -3772,32 +4813,36 @@ class TurnRuntimeManager:
                 followup_question_action=followup_question_action,
             )
             if followup_question_context:
-                self._volatile_question_contexts[session_id] = dict(followup_question_context)
+                self._set_volatile_question_context(session_id, dict(followup_question_context))
             notebook_context = ""
             history_context = ""
             context_pack: Any | None = None
             context_route: str = ""
             task_anchor_type: str = ""
             route_confidence = 0.0
-            try:
-                from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
-
-                preview_route = decide_context_route(
-                    ContextRouteInput(
-                        user_message=raw_user_content,
-                        has_active_question=bool(followup_question_context),
-                        has_active_plan=bool(active_plan_id or _active_object_plan_id(active_object)),
-                        notebook_references=_normalize_reference_tokens(notebook_references),
-                        history_references=_normalize_reference_tokens(history_references),
-                        explicit_grounding=False,
-                        session_followup_hint=False,
+            with latency_stages.measure("context_route_preview"):
+                try:
+                    from deeptutor.services.session.context_router import (
+                        ContextRouteInput,
+                        decide_context_route,
                     )
-                )
-                context_route = preview_route.route_label
-                task_anchor_type = preview_route.task_anchor_type.value
-                route_confidence = float(preview_route.confidence or 0.0)
-            except Exception:
-                logger.debug("Failed to preview context route", exc_info=True)
+
+                    preview_route = decide_context_route(
+                        ContextRouteInput(
+                            user_message=raw_user_content,
+                            has_active_question=bool(followup_question_context),
+                            has_active_plan=bool(active_plan_id or _active_object_plan_id(active_object)),
+                            notebook_references=_normalize_reference_tokens(notebook_references),
+                            history_references=_normalize_reference_tokens(history_references),
+                            explicit_grounding=False,
+                            session_followup_hint=False,
+                        )
+                    )
+                    context_route = preview_route.route_label
+                    task_anchor_type = preview_route.task_anchor_type.value
+                    route_confidence = float(preview_route.confidence or 0.0)
+                except Exception:
+                    logger.debug("Failed to preview context route", exc_info=True)
             trace_metadata["language"] = payload.get("language", "en")
             raw_interaction_hints = (
                 (payload.get("config", {}) or {}).get("interaction_hints")
@@ -3841,6 +4886,7 @@ class TurnRuntimeManager:
                 (interaction_hints or {}).get("response_mode_degrade_reason") or ""
             ).strip()
             trace_metadata["source"] = str((billing_context or {}).get("source", "") or "").strip()
+            trace_metadata.update(_question_lifecycle_metadata_from_config(request_config))
             trace_metadata["active_object"] = dict(active_object) if active_object else {}
             trace_metadata["suspended_object_stack"] = list(stored_suspended_object_stack)
             trace_metadata["turn_semantic_decision"] = (
@@ -3856,37 +4902,42 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
+            enrich_trace_metadata_with_bi_identity(trace_metadata)
+            trace_metadata.update(
+                _learning_prompt_intent_trace_metadata(request_config.get("learning_prompt_intent"))
+            )
             try:
-                usage_scope_cm = observability.usage_scope(
-                    scope_id=turn_id,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    capability=capability_name,
-                )
-                usage_scope_state = usage_scope_cm.__enter__()
-                turn_observation_cm = observability.start_observation(
-                    name=self._initial_turn_trace_name(
-                        capability_name=capability_name,
-                    ),
-                    as_type="chain",
-                    input_payload={"content": raw_user_content},
-                    metadata=trace_metadata,
-                )
-                turn_observation = turn_observation_cm.__enter__()
-                observation_trace_id = ""
-                trace_id_reader = getattr(observability, "observation_trace_id", None)
-                if callable(trace_id_reader):
-                    observation_trace_id = str(
-                        trace_id_reader(turn_observation) or ""
-                    ).strip()
-                if observation_trace_id:
-                    trace_metadata["trace_id"] = observation_trace_id
-                    _append_trace_link_event(
-                        assistant_events,
+                with latency_stages.measure("observability_start"):
+                    usage_scope_cm = observability.usage_scope(
+                        scope_id=turn_id,
                         session_id=session_id,
                         turn_id=turn_id,
-                        trace_id=observation_trace_id,
+                        capability=capability_name,
                     )
+                    usage_scope_state = usage_scope_cm.__enter__()
+                    turn_observation_cm = observability.start_observation(
+                        name=self._initial_turn_trace_name(
+                            capability_name=capability_name,
+                        ),
+                        as_type="chain",
+                        input_payload={"content": raw_user_content},
+                        metadata=trace_metadata,
+                    )
+                    turn_observation = turn_observation_cm.__enter__()
+                    observation_trace_id = ""
+                    trace_id_reader = getattr(observability, "observation_trace_id", None)
+                    if callable(trace_id_reader):
+                        observation_trace_id = str(
+                            trace_id_reader(turn_observation) or ""
+                        ).strip()
+                    if observation_trace_id:
+                        trace_metadata["trace_id"] = observation_trace_id
+                        _append_trace_link_event(
+                            assistant_events,
+                            session_id=session_id,
+                            turn_id=turn_id,
+                            trace_id=observation_trace_id,
+                        )
             except Exception:
                 if turn_observation_cm is not None:
                     with contextlib.suppress(Exception):
@@ -4007,7 +5058,9 @@ class TurnRuntimeManager:
                 history_result = None
                 memory_context = ""
                 compiled_learning_truth: dict[str, Any] = {}
+                personalization_context: dict[str, Any] = {}
                 effective_user_message = raw_user_content
+                context_build_started_at = time.perf_counter()
                 context_trace: dict[str, Any] = {
                     "fallback_path": "legacy",
                     "fallback_stage": "legacy_flag",
@@ -4043,6 +5096,7 @@ class TurnRuntimeManager:
                         notebook_context = orchestrated["notebook_context"]
                         history_context = orchestrated["history_context"]
                         compiled_learning_truth = dict(orchestrated.get("compiled_learning_truth") or {})
+                        personalization_context = dict(orchestrated.get("personalization_context") or {})
                         context_route = orchestrated["route_decision"].route_label
                         task_anchor_type = orchestrated["route_decision"].task_anchor_type.value
                         route_confidence = float(orchestrated["route_decision"].confidence or 0.0)
@@ -4101,6 +5155,22 @@ class TurnRuntimeManager:
                                 projection = learner_state_service.read_compiled_learning_truth(user_id)
                                 if isinstance(projection, dict):
                                     compiled_learning_truth = dict(projection)
+                                    try:
+                                        from deeptutor.services.learner_state.personalization_context import (
+                                            build_personalization_context_pack,
+                                        )
+                                        pcp = build_personalization_context_pack(
+                                            user_id=user_id,
+                                            learning_brain=compiled_learning_truth,
+                                        )
+                                        if isinstance(pcp, dict):
+                                            personalization_context = pcp
+                                    except Exception:
+                                        logger.warning(
+                                            "Legacy path: PCP projection failed (%s); degrading to empty",
+                                            "unknown",
+                                            exc_info=True,
+                                        )
                         except Exception:
                             logger.warning(
                                 "Failed to build learner state context for user %s",
@@ -4226,6 +5296,7 @@ class TurnRuntimeManager:
                     if context_parts:
                         context_parts.append(f"[User Question]\n{raw_user_content}")
                         effective_user_message = "\n\n".join(context_parts)
+                latency_stages.record_since("context_build", context_build_started_at)
 
                 if document_texts and "[Attached Documents]" not in effective_user_message:
                     effective_user_message = (
@@ -4250,6 +5321,7 @@ class TurnRuntimeManager:
                         "token_budget_by_source": dict(context_trace.get("token_budget_by_source", {}) or {}),
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
+                        "context_build_stage_timings_ms": context_trace.get("build_stage_timings_ms"),
                             "fallback_path": context_trace.get("fallback_path", ""),
                         }
                 )
@@ -4275,6 +5347,7 @@ class TurnRuntimeManager:
                         "history_budget": history_result.budget,
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
+                        "authenticated_user_id": str(payload.get("_authenticated_user_id") or "").strip(),
                         **get_release_lineage_metadata(),
                         "bot_id": str(request_config.get("bot_id", "") or "").strip(),
                         "billing_context": billing_context or {},
@@ -4300,6 +5373,12 @@ class TurnRuntimeManager:
                         "suspended_object_stack": stored_suspended_object_stack,
                         "turn_semantic_decision": turn_semantic_decision or {},
                         "interaction_hints": interaction_hints or {},
+                        **_question_lifecycle_metadata_from_config(request_config),
+                        **(
+                            {"general_knowledge_context": request_config["general_knowledge_context"]}
+                            if isinstance(request_config.get("general_knowledge_context"), bool)
+                            else {}
+                        ),
                         **(
                             {
                                 "exam_track": exam_track,
@@ -4342,6 +5421,11 @@ class TurnRuntimeManager:
                             else {}
                         ),
                         **(
+                            {"personalization_context": personalization_context}
+                            if personalization_context
+                            else {}
+                        ),
+                        **(
                             {
                                 "question_followup_context": dict(followup_question_context),
                             }
@@ -4360,6 +5444,7 @@ class TurnRuntimeManager:
 
                 selector_orchestrator = ChatOrchestrator()
                 selector = getattr(selector_orchestrator, "_select_capability", None)
+                capability_selection_started_at = time.perf_counter()
                 if not capability_name and callable(selector):
                     resolved_capability = await selector(context)
                     capability_name = await self._canonicalize_execution_capability(
@@ -4374,6 +5459,7 @@ class TurnRuntimeManager:
                         with contextlib.suppress(Exception):
                             usage_scope_state.capability = capability_name
                     context.active_capability = capability_name
+                latency_stages.record_since("capability_selection", capability_selection_started_at)
 
                 log_context_tokens = bind_log_context(
                     user_id=user_id,
@@ -4382,6 +5468,7 @@ class TurnRuntimeManager:
                 )
 
                 if persist_user_message:
+                    user_message_persist_started_at = time.perf_counter()
                     await self._safe_store_call(
                         execution,
                         "add_user_message",
@@ -4408,21 +5495,68 @@ class TurnRuntimeManager:
                                 if isinstance(payload.get("llm_selection"), dict)
                                 else None
                             ),
+                            turn_id=turn_id,
                         ),
                         default=None,
                     )
+                    latency_stages.record_since("user_message_persist", user_message_persist_started_at)
 
                 orch = selector_orchestrator
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.PROGRESS,
+                        source="turn_runtime",
+                        stage="writing",
+                        content=_public_turn_status_text(
+                            phase="writing",
+                            language=str(payload.get("language", "en") or "en"),
+                        ),
+                        metadata={
+                            "status_kind": "turn_status",
+                            "phase": "writing",
+                            "public_safe": True,
+                        },
+                        visibility=_PUBLIC_VISIBILITY,
+                    ),
+                )
+                capability_stream_started_at = time.perf_counter()
+                capability_stream_stage_timings = _TurnLatencyStages()
+                capability_stream_event_counts: dict[str, int] = {}
+
+                def _record_capability_stream_since_once(stage: str) -> None:
+                    if capability_stream_stage_timings.has_stage(stage):
+                        return
+                    capability_stream_stage_timings.record_since(stage, capability_stream_started_at)
+
                 async for event in orch.handle(context):
+                    _record_capability_stream_since_once("first_event")
+                    event_type_name = str(getattr(event.type, "value", event.type) or "").strip()
+                    if event_type_name:
+                        capability_stream_event_counts[event_type_name] = (
+                            capability_stream_event_counts.get(event_type_name, 0) + 1
+                        )
+                    if event_type_name == "content":
+                        _record_capability_stream_since_once("first_content")
+                    elif event_type_name == "result":
+                        _record_capability_stream_since_once("first_result")
+                    elif event_type_name == "tool_call":
+                        _record_capability_stream_since_once("first_tool_call")
+                    elif event_type_name == "tool_result":
+                        _record_capability_stream_since_once("first_tool_result")
                     if event.type == StreamEventType.SESSION:
                         continue
+                    if _event_visibility(event) == _PUBLIC_VISIBILITY:
+                        _record_capability_stream_since_once("first_public_event")
                     event_source = str(event.source or "").strip()
                     if (
                         event_source
                         and event_source != capability_name
                         and event_source not in {"orchestrator", "turn_runtime"}
                     ):
-                        from deeptutor.runtime.registry.capability_registry import get_capability_registry
+                        from deeptutor.runtime.registry.capability_registry import (
+                            get_capability_registry,
+                        )
 
                         if get_capability_registry().get(event_source) is not None:
                             capability_name = await self._canonicalize_execution_capability(
@@ -4437,7 +5571,21 @@ class TurnRuntimeManager:
                                 with contextlib.suppress(Exception):
                                     usage_scope_state.capability = capability_name
                             context.active_capability = capability_name
+                    if event.type == StreamEventType.RESULT:
+                        result_trace_metadata = {
+                            **trace_metadata,
+                            **dict(event.metadata or {}),
+                        }
+                        event.metadata = _enrich_result_question_authority_from_trace(
+                            dict(event.metadata or {}),
+                            result_trace_metadata,
+                        )
+                    event_persist_started_at = time.perf_counter()
                     payload_event = await self._persist_and_publish(execution, event)
+                    capability_stream_stage_timings.add_duration(
+                        "event_persist_total",
+                        (time.perf_counter() - event_persist_started_at) * 1000.0,
+                    )
                     if (
                         payload_event.get("type") not in {"done", "session"}
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
@@ -4451,6 +5599,13 @@ class TurnRuntimeManager:
                         )
                     elif _should_capture_assistant_content(event):
                         assistant_content += event.content
+                latency_stages.record_since("capability_stream", capability_stream_started_at)
+                trace_metadata["capability_stream_stage_timings_ms"] = (
+                    capability_stream_stage_timings.snapshot()
+                )
+                trace_metadata["capability_stream_event_counts"] = _normalize_non_negative_event_counts(
+                    capability_stream_event_counts
+                )
                 trace_metadata.update(
                     {
                         "active_object": dict(context.metadata.get("active_object", {}) or {}),
@@ -4484,6 +5639,9 @@ class TurnRuntimeManager:
                         ).strip(),
                     }
                 )
+                for metadata_key in _QUESTION_LIFECYCLE_METADATA_KEYS:
+                    if metadata_key in context.metadata:
+                        trace_metadata[metadata_key] = context.metadata[metadata_key]
                 if (
                     isinstance(context.metadata.get("question_followup_context"), dict)
                     and context.metadata.get("question_followup_context")
@@ -4497,6 +5655,7 @@ class TurnRuntimeManager:
                 assistant_content = normalize_markdown_for_tutorbot(
                     coerce_user_visible_answer(assistant_content)
                 )
+                execution.terminal_commit_started = True
                 await self._safe_store_call(
                     execution,
                     "add_assistant_message",
@@ -4506,19 +5665,35 @@ class TurnRuntimeManager:
                     content=assistant_content,
                     capability=capability_name,
                     events=assistant_events,
+                    metadata=_assistant_message_metadata(
+                        turn_id=turn_id,
+                        config=request_config,
+                        terminal_status="completed",
+                    ),
                     default=None,
                 )
                 usage_summary = observability.get_current_usage_summary()
-                billing_capture = self._capture_mobile_points(
+                # Wallet capture / usage metering do sync Supabase HTTP + locked file
+                # I/O — keep them off the event-loop thread (turn finalization runs
+                # for every wx_miniprogram turn).
+                billing_capture = await asyncio.to_thread(
+                    self._capture_mobile_points,
                     billing_context,
                     assistant_content,
                     session_id=session_id,
                     turn_id=turn_id,
                     usage_summary=usage_summary,
                 )
+                if billing_capture and billing_capture.get("status") == "captured":
+                    with contextlib.suppress(Exception):
+                        observability.mark_usage_scope_billable(
+                            turn_id=turn_id,
+                            billing_capture=billing_capture,
+                        )
                 if billing_capture:
                     trace_metadata["billing_capture"] = billing_capture
-                self._record_mobile_learning(
+                await asyncio.to_thread(
+                    self._record_mobile_learning,
                     billing_context,
                     raw_user_content,
                     assistant_content,
@@ -4604,6 +5779,11 @@ class TurnRuntimeManager:
                 content=public_assistant_content,
                 capability=capability_name,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=request_config,
+                    terminal_status=cancelled_status,
+                ),
                 default=None,
             )
             await self._safe_store_call(
@@ -4665,6 +5845,11 @@ class TurnRuntimeManager:
                 content=public_assistant_content,
                 capability=capability_name,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=request_config,
+                    terminal_status="failed",
+                ),
                 default=None,
             )
             await self._safe_store_call(
@@ -4694,6 +5879,8 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if turn_slot_acquired:
+                _release_turn_slot()
             if deadline_task is not None:
                 deadline_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -4713,12 +5900,18 @@ class TurnRuntimeManager:
                 with contextlib.suppress(Exception):
                     usage_scope_cm.__exit__(None, None, None)
             turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
+            trace_metadata["latency_stages_ms"] = latency_stages.snapshot()
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,
                 duration_ms=turn_duration_ms,
+                stage_timings_ms=trace_metadata.get("latency_stages_ms"),
             )
             with contextlib.suppress(Exception):
                 event_log = get_turn_event_log()
+                terminal_trace_metadata = _build_final_observation_metadata(
+                    usage_summary=terminal_usage_summary,
+                    terminal_status=terminal_status,
+                )
                 append_ok = event_log.append(
                     _build_terminal_turn_observation_event(
                         session_id=session_id,
@@ -4726,10 +5919,7 @@ class TurnRuntimeManager:
                         status=terminal_status,
                         capability_name=capability_name,
                         duration_ms=turn_duration_ms,
-                        trace_metadata={
-                            **trace_metadata,
-                            "assistant_content_source": assistant_content_source,
-                        },
+                        trace_metadata=terminal_trace_metadata,
                         usage_summary=terminal_usage_summary,
                     )
                 )
@@ -4794,8 +5984,8 @@ class TurnRuntimeManager:
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
             if active_object is not None:
-                self._volatile_question_contexts[execution.session_id] = dict(
-                    question_followup_context or {}
+                self._set_volatile_question_context(
+                    execution.session_id, dict(question_followup_context or {})
                 )
                 await self._safe_store_call(
                     execution,
@@ -4814,7 +6004,9 @@ class TurnRuntimeManager:
                     default=False,
                 )
             elif question_followup_context is not None:
-                self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
+                self._set_volatile_question_context(
+                    execution.session_id, dict(question_followup_context)
+                )
                 await self._safe_store_call(
                     execution,
                     "set_active_object_from_question_adapter",

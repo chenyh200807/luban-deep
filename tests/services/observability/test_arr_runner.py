@@ -449,7 +449,7 @@ async def test_run_arr_uses_canonical_runner_legacy_view(
                 "generated_at": "2026-04-23 12:00:00",
                 "registry_version": "phase1",
                 "dataset_id": "benchmark_phase1",
-                "requested_suites": ["pr_gate_core", "regression_watch", "incident_replay"],
+                "requested_suites": ["pr_gate_core", "regression_watch", "real_exam_quality_spine"],
             },
             "release_spine": {"release_id": "rel-1"},
             "suite_summaries": [
@@ -540,7 +540,7 @@ async def test_run_arr_uses_canonical_runner_legacy_view(
 
     payload = await run_arr(mode="lite")
 
-    assert captured["suite_names"] == ("pr_gate_core", "regression_watch", "incident_replay")
+    assert captured["suite_names"] == ("pr_gate_core", "regression_watch", "real_exam_quality_spine")
     assert captured["long_dialog_max_cases"] == 1
     assert payload["run_id"] == "arr-lite-1"
     assert payload["suite_summaries"][0]["suite"] == "semantic-router"

@@ -49,7 +49,8 @@ psql "$SUPABASE_DB_URL" -At -v ON_ERROR_STOP=1 <<'SQL'
 with table_rls as (
     select n.nspname as schema_name,
            c.relname as table_name,
-           c.relrowsecurity as rls_enabled
+           c.relrowsecurity as rls_enabled,
+           c.relforcerowsecurity as rls_forced
     from pg_class c
     join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relkind = 'r'
@@ -74,6 +75,7 @@ select json_build_object(
             'schema', t.schema_name,
             'table', t.table_name,
             'rls_enabled', t.rls_enabled,
+            'rls_forced', t.rls_forced,
             'n_policies', coalesce(pc.n_policies, 0),
             'grants', coalesce(ga.grants, array[]::text[])
         ) order by t.table_name

@@ -34,7 +34,7 @@ class PromptCapturingGenerator(Generator):
 def test_generator_tool_names_fail_closed_for_web_search_when_absent() -> None:
     generator = PromptCapturingGenerator()
 
-    assert generator._enabled_tool_names() == ["rag", "code_execution"]
+    assert generator._enabled_tool_names() == ["rag"]
 
 
 @pytest.mark.asyncio

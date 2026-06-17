@@ -19,6 +19,8 @@ import pytest
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
     is_low_information_exam_query,
+    looks_like_case_grading_submission_context,
+    looks_like_free_text_mcq_grading_request,
     resolve_question_lifecycle_scene_decision,
 )
 
@@ -64,6 +66,23 @@ def test_real_exam_scenario_learning_returns_question_review(message: str):
 def test_mastery_check_training_intent_wins_over_learning_report_phrase():
     ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+@pytest.mark.asyncio
+async def test_true_exam_practice_generation_is_not_low_information_answer_request():
+    message = "给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。"
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "practice_generation"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+    assert decision.business_gate_result == "passed"
 
 
 def test_active_object_with_submission_returns_mcq_grading():
@@ -115,11 +134,78 @@ def test_active_object_case_question_with_submission_returns_case_grading():
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
+def test_case_submission_context_predicate_accepts_case_context():
+    assert looks_like_case_grading_submission_context(
+        {
+            "question_id": "case-current",
+            "question_type": "case_study",
+            "question": "背景资料：某工程。\n【问题】指出不妥之处。",
+            "user_answer": "施工单位应避免违法分包。",
+        },
+        {"intent": "answer_questions", "answers": []},
+    )
+
+
+def test_case_submission_context_predicate_rejects_objective_context():
+    assert not looks_like_case_grading_submission_context(
+        {
+            "question_id": "choice-current",
+            "question_type": "single_choice",
+            "question": "下列说法正确的是？",
+            "options": {"A": "甲", "B": "乙"},
+        },
+        {"intent": "answer_questions", "answers": []},
+    )
+
+
 def test_free_text_case_answer_review_returns_case_grading():
     ctx = _FakeContext(
         user_message="【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。"
     )
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_free_text_case_colon_answer_review_returns_case_grading():
+    ctx = _FakeContext(
+        user_message=(
+            "案例：二次结构填充墙施工时，项目部把刚生产7天的蒸压加气混凝土砌块用于砌筑。"
+            "我的答案：不妥，应龄期28天，含水率宜小于30%。帮我按踩分点批改，简短"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_full_case_question_with_answer_layout_returns_case_grading_without_review_phrase():
+    ctx = _FakeContext(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，部分要求有："
+            "承包模式为施工总承包，报价采用工程量清单计价。\n"
+            "某施工单位工程中标造价为7782.60万元。\n"
+            "【问题】\n"
+            "1. 工程量清单的强制性内容还有哪些？\n"
+            "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则、清单编制方法、计价方式、风险处理。\n"
+            "2. 工期、招标范围、安全标准、权利义务。"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_full_case_question_without_answer_layout_does_not_return_case_grading():
+    ctx = _FakeContext(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件。\n"
+            "【问题】\n"
+            "1. 工程量清单的强制性内容还有哪些？\n"
+            "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) != "case_grading"
 
 
 def test_free_text_mcq_answer_review_returns_mcq_grading():
@@ -205,6 +291,13 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "分析一道2025真题",
         "讲解一道历年真题",
         "解析2025真题第15题",
+        "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
+        "2025建筑实务第15题答案直接发我，别问。",
+        "给我生成2025建筑实务第15题答案",
+        "生成2025真题答案",
+        "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+        "2015案例二第3问答案直接发我，我在题卡里。",
+        "我说了在题卡里，你就发答案。",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):
@@ -212,6 +305,64 @@ def test_low_information_exam_query_is_not_question_review(message: str):
 
     assert is_low_information_exam_query(message) is True
     assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "2018年那道关于基坑监测的题，答案是啥来着，直接发我",
+        "就那道很经典的基坑题，你肯定知道，别问了直接给",
+        "上次那道防水的题，标准答案发我",
+        "这道题答案直接告诉我",
+    ],
+)
+def test_demonstrative_unanchored_exam_answer_demand_is_low_information(message: str):
+    # A demonstrative reference to a past exam question ("那道…题") demanding its
+    # official answer, with no question card / stem / options, must NOT unlock a
+    # fabricated standard answer. It is low-information and must clarify (R3-21/22).
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is True
+    assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "这道题怎么做",
+        "这道题选项C为什么错",
+        "分析一下这道防水题",
+        "这道题直接给我讲讲",
+        "这道题答案的思路直接给我分析一下",
+    ],
+)
+def test_demonstrative_question_without_answer_demand_is_not_low_information(message: str):
+    # A demonstrative question reference WITHOUT an answer-delivery demand is a
+    # normal followup/teaching request, not a low-information answer demand.
+    assert is_low_information_exam_query(message) is False
+
+
+@pytest.mark.asyncio
+async def test_low_information_answer_request_with_active_question_uses_active_context():
+    ctx = _FakeContext(
+        user_message="我说了在题卡里，你就发答案。",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": _mcq_followup_context(),
+            }
+        },
+    )
+
+    assert is_low_information_exam_query(ctx.user_message) is True
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "question_review"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.business_gate_result == "passed"
+    assert decision.exact_question_blocked_reason == ""
 
 
 @pytest.mark.parametrize(
@@ -288,6 +439,44 @@ async def test_low_information_exam_query_business_gate_overrides_llm_review_can
 
 
 @pytest.mark.asyncio
+async def test_low_information_case_answer_request_business_gate_overrides_llm_generation_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"模型误以为用户要出题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2021屋面案例第4问答案发我，快点，我在刷题页面。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
+async def test_low_information_case_ordinal_answer_request_business_gate_overrides_llm_chat_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.88,"reason":"模型误以为题卡可见"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2015案例二第3问答案直接发我，我在题卡里。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
 async def test_unanchored_mcq_answer_returns_clarification_decision():
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(user_message="我选B")
@@ -297,6 +486,89 @@ async def test_unanchored_mcq_answer_returns_clarification_decision():
     assert decision.required_anchor_status == "missing_active_question"
     assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
     assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_embedded_compact_mcq_with_answer_submission_is_anchored_grading():
+    message = (
+        "根据JGJ59，《模板支架检查评分表》保证项目有（ ）。"
+        "A施工方案 B支架构造 C底座与托撑 D构配件材质 E支架稳定。"
+        "我选ABCE对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.parametrize("terminal", ["？", "?", "！", "!"])
+@pytest.mark.asyncio
+async def test_embedded_mcq_options_after_terminal_mark_is_anchored_grading(terminal):
+    message = (
+        f"压型金属板采用轻型屋面时，屋面最小坡度宜为多少{terminal}"
+        "A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
+async def test_embedded_mcq_option_text_with_inner_comma_is_anchored_grading():
+    message = (
+        "关于防水混凝土施工的说法，正确的有（ ）。"
+        "A.连续性浇筑，少留施工缝 "
+        "B.宜采用高频机械分层振捣密实 "
+        "C.施工缝宜留置在受剪力较大部位 "
+        "D.养护时间不少于7天 "
+        "E.冬期施工入模温度不应低于5℃。"
+        "我选ABDE，错因10个字以内"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
+async def test_value_only_mcq_options_with_answer_submission_is_anchored_grading():
+    message = (
+        "地下连续墙那个：槽段8-10m、导墙1.0m、现浇导墙、导管法、"
+        "水下混凝土后注浆，我是不是选CDE？别让我重打选项。"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
 
 
 @pytest.mark.asyncio
@@ -333,6 +605,24 @@ async def test_deterministic_active_submission_suppresses_llm_candidate(monkeypa
     assert decision.scene == "mcq_grading"
     assert decision.source == "deterministic"
     assert decision.business_gate_result == "passed"
+
+
+@pytest.mark.asyncio
+async def test_free_text_mcq_answer_with_embedded_question_is_not_unanchored():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message=(
+                "海洋环境下，引起混凝土内钢筋锈蚀的主要因素是（ ）。"
+                "A.混凝土硬化 B.反复冻融 C.氯盐 D.硫酸盐。我选A，对吗？"
+            ),
+            metadata={},
+        )
+    )
+
+    assert decision.scene == "mcq_grading"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
 
 
 @pytest.mark.asyncio
@@ -444,6 +734,40 @@ def test_attach_honors_existing_orchestrator_decision():
         "construction-exam-tutor",
         "construction-study-assistant",
     ]
+
+
+@pytest.mark.asyncio
+async def test_scene_decision_honors_pre_capability_case_grading_fact():
+    ctx = _FakeContext(
+        user_message="作答：应避免违法分包。",
+        metadata={
+            "question_lifecycle_scene": "case_grading",
+            "question_lifecycle_scene_source": "deterministic_pre_capability",
+            "question_lifecycle_scene_confidence": 0.96,
+            "question_lifecycle_scene_reason": "case_submission_context",
+            "question_followup_context": {
+                "question_id": "case-current",
+                "question_type": "case_study",
+                "question": "背景资料：某工程。\n【问题】指出不妥之处。",
+                "items": [
+                    {
+                        "question_id": "case-current-1",
+                        "question": "指出违法分包行为。",
+                    }
+                ],
+            },
+        },
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "case_grading"
+    assert decision.source == "deterministic_pre_capability"
+    assert decision.reason == "case_submission_context"
+    assert decision.selected_skill_names == (
+        "construction-exam-tutor",
+        "construction-case-grading",
+    )
 
 
 def test_attach_honors_explicit_none_from_upstream():

@@ -253,6 +253,10 @@ function normalizeMastery(source) {
   var mastery = asObject(source);
   var overall = mastery.overall_mastery;
   var overallPayload = asObject(overall);
+  var hasOverall =
+    (overall && typeof overall === "object")
+      ? overall.score !== undefined && overall.score !== null && overall.score !== ""
+      : overall !== undefined && overall !== null && overall !== "";
   var overallConfidence = asNumber(overallPayload.confidence, 0);
   var overallStatus = String(overallPayload.status || "");
   var overallClass = String(overallPayload.class_name || overallPayload.className || "");
@@ -295,8 +299,39 @@ function normalizeMastery(source) {
   }).filter(function (group) {
     return group.chapters.length;
   });
+  var knowledgeSummary = normalizeKnowledgeSummary(mastery.knowledge_summary || mastery.knowledgeSummary);
   var groups = buildMasteryDisplayGroups(rawGroups);
+  if (!groups.length && knowledgeSummary.textbookChapters.length) {
+    groups = buildMasteryDisplayGroups([
+      {
+        name: "教材目录进度",
+        avg_mastery: 0,
+        chapters: knowledgeSummary.textbookChapters.map(function (chapter) {
+          var evaluated = asNumber(chapter.evaluatedTopics, 0);
+          var mastered = asNumber(chapter.masteredTopics, 0);
+          var developing = asNumber(chapter.developingTopics, 0);
+          var weak = asNumber(chapter.weakTopics, 0);
+          var score = 0;
+          if (evaluated > 0) {
+            score = Math.round(
+              (mastered * 100 + developing * 55 + weak * 25) / evaluated,
+            );
+          }
+          return {
+            name: chapter.chapterName,
+            mastery: score,
+            color: score >= 70 ? "#40d99d" : score >= 40 ? "#7fd9ff" : "#ff7185",
+            textbookChapterNo: chapter.chapterNo,
+            textbookChapterName: chapter.chapterName,
+            textbookSectionName: "",
+            taxonomyPath: [chapter.chapterName],
+          };
+        }),
+      },
+    ]);
+  }
   return {
+    hasOverall: hasOverall,
     overall: Math.round(asNumber(overall, 0)),
     overallConfidence: overallConfidence,
     overallStatus: overallStatus,
@@ -315,7 +350,181 @@ function normalizeMastery(source) {
         rateText: rate + "%",
       };
     }).filter(Boolean),
+    knowledgeSummary: knowledgeSummary,
     reviewSummary: asObject(mastery.review_summary),
+  };
+}
+
+function firstLearningTopicFromValues(values, taxonomyPath) {
+  var path = asList(taxonomyPath).map(function (name) {
+    return String(name || "").trim();
+  }).filter(Boolean);
+  for (var i = 0; i < values.length; i++) {
+    var topic = normalizeLearningTopic(values[i], path);
+    if (topic) return topic;
+  }
+  return null;
+}
+
+function learningSignalHotspotScore(source) {
+  var item = asObject(source);
+  var occurrenceCount = asNumber(
+    item.occurrence_count || item.occurrenceCount,
+    asList(item.occurrence_timeline || item.occurrenceTimeline).length,
+  );
+  var confidence = asNumber(item.confidence, 0);
+  if (occurrenceCount >= 2) return 25;
+  if (confidence > 0) return Math.max(20, Math.round((1 - Math.min(confidence, 0.9)) * 60));
+  return 35;
+}
+
+function buildLearningSignalHotspots(body, learningState) {
+  var rawBrain = asObject(asObject(body).learning_brain);
+  var analytics = asObject(asObject(body).long_term_analytics);
+  var recurrentErrors = asList(analytics.recurrent_errors || analytics.recurrentErrors);
+  var recurrentByKey = {};
+  recurrentErrors.forEach(function (item) {
+    var row = asObject(item);
+    var key = String(row.concept_id || "") + "::" + String(row.error_code || "");
+    recurrentByKey[key] = row;
+  });
+  var rows = [];
+  asList(rawBrain.weak_points || rawBrain.weakPoints).forEach(function (weak) {
+    var item = asObject(weak);
+    var key = String(item.concept_id || "") + "::" + String(item.error_code || "");
+    var recurrent = recurrentByKey[key] || {};
+    var recommended = asObject(item.recommended_training);
+    var topic = firstLearningTopicFromValues(
+      [
+        item.label,
+        item.concept_label,
+        recommended.concept_label,
+        item.display_title,
+        item.current_truth,
+        item.concept_id,
+      ],
+      item.taxonomy_path || item.taxonomyPath,
+    );
+    if (!topic) return;
+    rows.push({
+      name: topic.name,
+      mastery: learningSignalHotspotScore(Object.assign({}, item, recurrent)),
+      rateText: learningSignalHotspotScore(Object.assign({}, item, recurrent)) + "%",
+      occurrenceCount: asNumber(
+        recurrent.occurrence_count || item.occurrence_count || item.occurrenceCount,
+        asList(item.occurrence_timeline || item.occurrenceTimeline).length,
+      ),
+    });
+  });
+  asList(asObject(learningState).knowledgeState).forEach(function (state) {
+    var row = asObject(state);
+    if (["weak", "recurring", "needs_revalidation", "unstable"].indexOf(row.state) < 0) return;
+    var topic = firstLearningTopicFromValues(
+      [row.label, row.nodeId, row.node_id, row.key],
+      row.taxonomyPath || row.taxonomy_path,
+    );
+    if (!topic) return;
+    rows.push({
+      name: topic.name,
+      mastery: row.state === "needs_revalidation" ? 30 : 35,
+      rateText: (row.state === "needs_revalidation" ? 30 : 35) + "%",
+      occurrenceCount: asNumber(row.evidenceCount || row.evidence_count, 0),
+    });
+  });
+  var byName = {};
+  rows.forEach(function (item) {
+    if (!item.name) return;
+    var existing = byName[item.name];
+    if (!existing || item.occurrenceCount > existing.occurrenceCount || item.mastery < existing.mastery) {
+      byName[item.name] = item;
+    }
+  });
+  return Object.keys(byName)
+    .map(function (name) {
+      return byName[name];
+    })
+    .sort(function (a, b) {
+      return b.occurrenceCount - a.occurrenceCount || a.mastery - b.mastery;
+    })
+    .slice(0, 5);
+}
+
+function buildLearningSignalReviewSummary(body, learningState) {
+  var queue = asObject(asObject(body).revalidation_queue || asObject(body).revalidationQueue);
+  var queueItems = asList(queue.items).filter(function (item) {
+    var status = String(asObject(item).status || "active");
+    return status !== "done" && status !== "completed" && status !== "dismissed";
+  });
+  var explicitTotal = asNumber(queue.total_due || queue.totalDue, NaN);
+  var totalDue = Number.isFinite(explicitTotal) ? explicitTotal : queueItems.length;
+  if (!totalDue && queueItems.length) totalDue = queueItems.length;
+  if (!totalDue) {
+    totalDue = asList(asObject(learningState).knowledgeState).filter(function (item) {
+      return String(asObject(item).state || "") === "needs_revalidation";
+    }).length;
+  }
+  var explicitOverdue = asNumber(queue.overdue_count || queue.overdueCount, NaN);
+  var overdueCount = Number.isFinite(explicitOverdue)
+    ? explicitOverdue
+    : queueItems.filter(function (item) {
+        var row = asObject(item);
+        return row.overdue === true || String(row.status || "") === "overdue";
+      }).length;
+  return {
+    total_due: totalDue,
+    overdue_count: overdueCount,
+  };
+}
+
+function enrichMasteryFromLearningSignals(mastery, body, learningState) {
+  var result = Object.assign({}, asObject(mastery));
+  if (!asList(result.hotspots).length) {
+    result.hotspots = buildLearningSignalHotspots(body, learningState);
+  }
+  var review = asObject(result.reviewSummary);
+  if (
+    asNumber(review.total_due || review.totalDue, 0) <= 0 &&
+    asNumber(review.overdue_count || review.overdueCount, 0) <= 0
+  ) {
+    result.reviewSummary = buildLearningSignalReviewSummary(body, learningState);
+  }
+  return result;
+}
+
+function normalizeKnowledgeSummary(source) {
+  var summary = asObject(source);
+  var chapters = asList(summary.textbook_chapters || summary.textbookChapters).map(function (item) {
+    var chapter = asObject(item);
+    return {
+      chapterNo: asNumber(chapter.chapter_no || chapter.chapterNo, 0),
+      chapterName: String(chapter.chapter_name || chapter.chapterName || ""),
+      sectionCount: asNumber(chapter.section_count || chapter.sectionCount, 0),
+      evaluatedTopics: asNumber(chapter.evaluated_topics || chapter.evaluatedTopics, 0),
+      masteredTopics: asNumber(chapter.mastered_topics || chapter.masteredTopics, 0),
+      developingTopics: asNumber(chapter.developing_topics || chapter.developingTopics, 0),
+      weakTopics: asNumber(chapter.weak_topics || chapter.weakTopics, 0),
+      topTopics: asList(chapter.top_topics || chapter.topTopics).map(function (name) {
+        return String(name || "").trim();
+      }).filter(Boolean),
+      status: String(chapter.status || "unseen"),
+    };
+  }).filter(function (chapter) {
+    return chapter.chapterNo > 0 && chapter.chapterName;
+  });
+  return {
+    totalNodes: asNumber(summary.total_nodes || summary.totalNodes, 0),
+    codedNodes: asNumber(summary.coded_nodes || summary.codedNodes, 0),
+    leafNodes: asNumber(summary.leaf_nodes || summary.leafNodes, 0),
+    uniqueCodes: asNumber(summary.unique_codes || summary.uniqueCodes, 0),
+    duplicateCodeRows: asNumber(summary.duplicate_code_rows || summary.duplicateCodeRows, 0),
+    totalTextbookChapters: asNumber(summary.total_textbook_chapters || summary.totalTextbookChapters, chapters.length),
+    evaluatedTopics: asNumber(summary.evaluated_topics || summary.evaluatedTopics, 0),
+    evaluatedLeafPoints: asNumber(summary.evaluated_leaf_points || summary.evaluatedLeafPoints, 0),
+    masteredTopics: asNumber(summary.mastered_topics || summary.masteredTopics, 0),
+    developingTopics: asNumber(summary.developing_topics || summary.developingTopics, 0),
+    weakTopics: asNumber(summary.weak_topics || summary.weakTopics, 0),
+    unmeasuredLeafPoints: asNumber(summary.unmeasured_leaf_points || summary.unmeasuredLeafPoints, 0),
+    textbookChapters: chapters,
   };
 }
 
@@ -505,8 +714,16 @@ function isReadableLearningText(value) {
 function cleanLearningText(value) {
   var text = String(value || "");
   var labels = {
+    M01: "知识点不熟",
+    M02: "关键词误读",
+    M03: "概念混淆",
+    M04: "选项陷阱",
+    M05: "审题方向错误",
     M06: "多选漏选",
     M07: "多选错选",
+    M08: "规范数字混淆",
+    M09: "题干条件提取不完整",
+    M10: "用常识替代规范判断",
   };
   Object.keys(labels).forEach(function (code) {
     text = text.replace(new RegExp("错因\\s*" + code, "gi"), labels[code]);
@@ -832,6 +1049,49 @@ function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mas
   };
 }
 
+function normalizeGradingToBrainLoop(source) {
+  var src = asObject(source);
+  var currentAction = asObject(src.current_action || src.currentAction);
+  var latestOutcome = asObject(src.latest_outcome || src.latestOutcome);
+  return {
+    status: String(src.status || ""),
+    nextRequiredAction: String(src.next_required_action || src.nextRequiredAction || ""),
+    evidenceRefs: asList(src.evidence_refs || src.evidenceRefs).map(function (ref) {
+      return String(ref || "");
+    }).filter(Boolean),
+    currentAction: {
+      title: String(currentAction.title || ""),
+      actionType: String(currentAction.action_type || currentAction.actionType || ""),
+      prescriptionAuthority: String(
+        currentAction.prescription_authority || currentAction.prescriptionAuthority || "",
+      ),
+    },
+    latestOutcome: {
+      trainingIntentId: String(latestOutcome.training_intent_id || latestOutcome.trainingIntentId || ""),
+      status: String(latestOutcome.status || ""),
+      scoreRatio: latestOutcome.score_ratio !== undefined ? latestOutcome.score_ratio : latestOutcome.scoreRatio,
+      verifiedAt: String(latestOutcome.verified_at || latestOutcome.verifiedAt || ""),
+    },
+    stages: asList(src.stages).map(function (stage, index) {
+      var item = asObject(stage);
+      return {
+        key: String(item.key || "stage-" + index),
+        label: String(item.label || ""),
+        status: String(item.status || ""),
+        authority: String(item.authority || ""),
+        evidenceCount: asNumber(item.evidence_count || item.evidenceCount, 0),
+        evidenceRefs: asList(item.evidence_refs || item.evidenceRefs).map(function (ref) {
+          return String(ref || "");
+        }).filter(Boolean),
+        actionType: String(item.action_type || item.actionType || ""),
+        nextRequiredAction: String(item.next_required_action || item.nextRequiredAction || ""),
+      };
+    }),
+    authority: asObject(src.authority),
+    sourceStatus: asObject(src.source_status || src.sourceStatus),
+  };
+}
+
 function normalizeVisibleTruths(sections) {
   return asList(asObject(sections).current_truth)
     .map(function (item, index) {
@@ -913,7 +1173,6 @@ function normalizeGraphChains(learningBrain) {
 function buildLearningReportViewModel(report) {
   var body = asObject(report);
   var overview = asObject(body.overview);
-  var radar = normalizeRadar(body.radar_dimensions);
   var mastery = normalizeMastery(body.mastery);
   var learningBrain = normalizeLearningBrain(body);
   var truthSections = asObject(body.truth_sections);
@@ -930,9 +1189,15 @@ function buildLearningReportViewModel(report) {
   var mistakeHistoryCards = normalizeMistakeHistoryCards(attempts);
   // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
   var learningState = normalizeLearningStateBatchC(body.learning_state);
+  mastery = enrichMasteryFromLearningSignals(mastery, body, learningState);
+  var radar = normalizeRadar(body.radar_dimensions);
+  if (!asList(radar.dims).length) {
+    radar = normalizeRadarFromLearningState(learningState);
+  }
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
   var prescription = normalizePrescriptionBatchC(
     body.training_prescription,
+    body.today_prescription,
     nextTraining,
     learningState,
   );
@@ -943,6 +1208,8 @@ function buildLearningReportViewModel(report) {
     mastery,
     learningBrain,
   );
+  var noteAssets = normalizeNoteAssets(body.note_assets);
+  var todayTasks = normalizeTodayTasks(body.today_tasks);
   return {
     schemaVersion: asNumber(body.schema_version, 1),
     hero: {
@@ -983,6 +1250,8 @@ function buildLearningReportViewModel(report) {
     attempts: attempts,
     mistakeHistoryCards: mistakeHistoryCards,
     mistakeBook: asObject(body.mistake_book),
+    noteAssets: noteAssets,
+    todayTasks: todayTasks,
     nextTraining: nextTraining,
     masteryDimensions: normalizeMasteryDimensions(body.mastery),
     overview: {
@@ -1006,9 +1275,60 @@ function buildLearningReportViewModel(report) {
     scoringPointMap: scoringPointMap,
     prescription: prescription,
     evidenceEngine: evidenceEngine,
+    gradingToBrainLoop: normalizeGradingToBrainLoop(body.grading_to_brain_loop),
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
+}
+
+function normalizeNoteAssets(source) {
+  return asList(asObject(source).items).map(function (item, index) {
+    var row = asObject(item);
+    var action = asObject(row.action);
+    var noteId = String(row.note_id || row.noteId || row.key || "").trim();
+    return {
+      key: noteId || "note-" + index,
+      noteId: noteId,
+      cardType: String(row.card_type || row.cardType || "manual_note"),
+      title: String(row.title || "学习卡片"),
+      summary: String(row.summary || ""),
+      subjectId: String(row.subject_id || row.subjectId || ""),
+      sourceType: String(row.source_type || row.sourceType || ""),
+      sourceLinked: Boolean(row.source_linked || row.sourceLinked),
+      sourceLabel: String(row.source_label || row.sourceLabel || ""),
+      evidenceLabel: String(row.evidence_label || row.evidenceLabel || ""),
+      version: asNumber(row.version, 1),
+      action: {
+        label: String(action.label || "测一下"),
+        type: String(action.type || "probe"),
+        attemptRef: String(action.attempt_ref || action.attemptRef || ""),
+        turnId: String(action.turn_id || action.turnId || ""),
+        entrySource: String(action.entry_source || action.entrySource || "note_asset"),
+      },
+    };
+  });
+}
+
+function normalizeTodayTasks(source) {
+  return asList(source).slice(0, 3).map(function (item, index) {
+    var row = asObject(item);
+    var action = asObject(row.action);
+    return {
+      key: String(row.task_id || row.taskId || "task-" + index),
+      taskId: String(row.task_id || row.taskId || ""),
+      title: String(row.title || "复习学习卡片"),
+      subtitle: String(row.subtitle || ""),
+      source: String(row.source || ""),
+      noteId: String(row.note_id || row.noteId || ""),
+      action: {
+        label: String(action.label || "开始"),
+        type: String(action.type || "probe"),
+        attemptRef: String(action.attempt_ref || action.attemptRef || ""),
+        turnId: String(action.turn_id || action.turnId || ""),
+        entrySource: String(action.entry_source || action.entrySource || "today_task"),
+      },
+    };
+  });
 }
 
 // ─── Batch C Task 8: three-layer learning state + scoring point map ───
@@ -1060,6 +1380,60 @@ function normalizeLearningStateBatchC(state) {
   };
 }
 
+function normalizeRadarFromLearningState(learningState) {
+  var abilities = asList(asObject(learningState).abilityState);
+  if (!abilities.length) return normalizeRadar([]);
+  var dims = abilities.map(function (ability) {
+    var evidenceCount = asNumber(ability.evidenceCount, 0);
+    var confidence = asNumber(ability.confidence, 0);
+    var state = String(ability.state || "");
+    var value = 0.4;
+    if (state === "stable" || state === "verified") value = 0.78;
+    else if (state === "improving") value = 0.62;
+    else if (state === "weak" || state === "recurring" || state === "not_verified") value = 0.32;
+    if (confidence > 0) value = Math.max(0.1, Math.min(0.95, value * (0.7 + confidence * 0.3)));
+    if (evidenceCount <= 0) value = Math.min(value, 0.3);
+    var score = Math.round(value * 100);
+    return {
+      name: ability.label || ability.dimension,
+      value: value,
+      score: score,
+      level: state,
+      rateText: score + "%",
+    };
+  }).filter(function (item) {
+    return item.name;
+  });
+  var strong = dims.filter(function (item) {
+    return item.level === "strong" || item.level === "stable" || item.level === "verified";
+  }).length;
+  var weak = dims.filter(function (item) {
+    return ["weak", "unstable", "needs_revalidation", "recurring", "not_verified"].indexOf(item.level) >= 0;
+  }).length;
+  var avg = dims.length
+    ? Math.round(
+        dims.reduce(function (sum, item) {
+          return sum + item.score;
+        }, 0) / dims.length,
+      )
+    : 0;
+  return {
+    dims: dims,
+    strongCount: strong,
+    normalCount: Math.max(0, dims.length - strong - weak),
+    weakCount: weak,
+    avgScore: avg,
+    dimList: dims.map(function (item) {
+      return {
+        name: item.name,
+        score: item.score,
+        rateText: item.rateText,
+        level: item.level,
+      };
+    }),
+  };
+}
+
 function normalizeScoringPointMapBatchC(map) {
   var src = asObject(map);
   var items = asList(src.items).map(function (item, index) {
@@ -1105,7 +1479,40 @@ function scoringPointMapEmptyLabel(emptyState) {
   return "";
 }
 
-function normalizePrescriptionBatchC(source, nextTraining, learningState) {
+function normalizePrescriptionBatchC(source, todayPrescription, nextTraining, learningState) {
+  var today = asObject(todayPrescription);
+  if (today.title || today.why_this_now || today.primary_action) {
+    var todayEvidenceRefs = asList(today.evidence_refs).map(function (ref) {
+      return String(ref || "");
+    });
+    var primaryAction = asObject(today.primary_action);
+    return {
+      status: today.degraded ? "degraded" : "active",
+      title: String(today.title || "今日处方"),
+      titleLabel: today.degraded ? "先补证据" : String(today.title || "今日处方"),
+      subtitle: String(today.subtitle || ""),
+      reason: String(today.why_this_now || ""),
+      authority: String(today.prescription_authority || "training_intent"),
+      conceptId: "",
+      conceptLabel: "",
+      abilityDimension: "",
+      abilityDimensionLabel: "",
+      behaviorState: "",
+      behaviorStateLabel: "",
+      meta: [
+        { key: "source", label: today.source === "dry_run_fallback" ? "临时学情" : "训练意图" },
+        { key: "evidence", label: evidenceMetaLabel(todayEvidenceRefs.length) },
+      ].filter(function (item) {
+        return item.label;
+      }),
+      evidenceCount: todayEvidenceRefs.length,
+      evidenceRefs: today.degraded ? [] : todayEvidenceRefs,
+      steps: [],
+      successCriteria: {},
+      intent: { training_intent_id: String(primaryAction.intent_id || "") },
+      ctaLabel: today.degraded ? degradedPrescriptionCta(todayEvidenceRefs.length) : "开始训练",
+    };
+  }
   var direct = asObject(source);
   var directTopic = compactPrescriptionTopic(
     direct.display_topic || direct.concept_label || "",
@@ -1376,6 +1783,9 @@ function toReportPageData(model) {
   var radar = asObject(vm.radar);
   var mastery = asObject(vm.mastery);
   var brain = asObject(vm.learningBrain);
+  var gradingLoop = asObject(vm.gradingToBrainLoop);
+  var hasRadar = asList(radar.dims).length > 0;
+  var hasMasteryOverall = mastery.hasOverall === true;
   var emptyBrain =
     asList(brain.truths).length === 0 &&
     asList(brain.evidence).length === 0 &&
@@ -1397,9 +1807,11 @@ function toReportPageData(model) {
     normalCount: radar.normalCount || 0,
     weakCount: radar.weakCount || 0,
     avgScore: radar.avgScore || 0,
-    overviewScore: asList(radar.dims).length
-      ? radar.avgScore || 0
-      : mastery.overall || 0,
+    overviewScore: hasMasteryOverall
+      ? mastery.overall
+      : hasRadar
+        ? radar.avgScore || 0
+        : mastery.overall || 0,
     dimList: asList(radar.dimList),
     overallMastery: mastery.overall || 0,
     masteryConfidence: mastery.overallConfidence || 0,
@@ -1408,6 +1820,8 @@ function toReportPageData(model) {
     masteryScoreClass: mastery.overallClass || "",
     masteryGroups: asList(mastery.groups),
     hotspots: asList(mastery.hotspots),
+    knowledgeSummary: asObject(mastery.knowledgeSummary),
+    textbookChapters: asList(asObject(mastery.knowledgeSummary).textbookChapters),
     reviewSummary: asObject(mastery.reviewSummary),
     learningBrainSummary: asObject(brain.summary),
     learningBrainAttempts: asList(brain.attempts),
@@ -1423,6 +1837,8 @@ function toReportPageData(model) {
     learningAttemptCards: asList(vm.attempts).length
       ? asList(vm.attempts)
       : asList(brain.attempts),
+    noteAssets: asList(vm.noteAssets),
+    todayTasks: asList(vm.todayTasks),
     mistakeHistoryCards: asList(vm.mistakeHistoryCards),
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),
@@ -1435,6 +1851,14 @@ function toReportPageData(model) {
     ),
     engineEvidenceSources: asList(asObject(vm.evidenceEngine).sources),
     engineEvidenceVisible: Boolean(asObject(vm.evidenceEngine).isVisible),
+    gradingLoopStatus: String(gradingLoop.status || ""),
+    gradingLoopNextRequiredAction: String(gradingLoop.nextRequiredAction || ""),
+    gradingLoopEvidenceRefs: asList(gradingLoop.evidenceRefs),
+    gradingLoopCurrentAction: asObject(gradingLoop.currentAction),
+    gradingLoopLatestOutcome: asObject(gradingLoop.latestOutcome),
+    gradingLoopStages: asList(gradingLoop.stages),
+    gradingLoopAuthority: asObject(gradingLoop.authority),
+    gradingLoopSourceStatus: asObject(gradingLoop.sourceStatus),
     // Batch C Task 8: flat page fields for the new sections.
     learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
     learningStateAbility: asList(asObject(vm.learningState).abilityState),
@@ -1461,7 +1885,7 @@ function toReportPageData(model) {
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
     prescriptionEvidenceCount: asNumber(asObject(vm.prescription).evidenceCount, 0),
     prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),
-    sharedLearningReportViewModel: vm,
+    prescriptionAuthority: String(asObject(vm.prescription).authority || ""),
   };
 }
 

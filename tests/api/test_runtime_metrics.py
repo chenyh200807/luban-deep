@@ -8,7 +8,14 @@ def test_turn_runtime_metrics_snapshot_tracks_ws_and_turn_lifecycle() -> None:
 
     metrics.record_ws_open()
     metrics.record_turn_started()
-    metrics.record_turn_finished(status="completed", duration_ms=150.5)
+    metrics.record_turn_finished(
+        status="completed",
+        duration_ms=150.5,
+        stage_timings_ms={
+            "context_build": 40.0,
+            "capability_stream": 100.5,
+        },
+    )
     metrics.record_ws_close()
 
     snapshot = metrics.snapshot()
@@ -21,6 +28,10 @@ def test_turn_runtime_metrics_snapshot_tracks_ws_and_turn_lifecycle() -> None:
     assert snapshot["turns_cancelled_total"] == 0
     assert snapshot["turns_in_flight"] == 0
     assert snapshot["turn_avg_latency_ms"] == 150.5
+    assert snapshot["turn_stage_avg_latency_ms"] == [
+        {"stage": "capability_stream", "avg_latency_ms": 100.5, "count": 1},
+        {"stage": "context_build", "avg_latency_ms": 40.0, "count": 1},
+    ]
 
 
 def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -> None:
@@ -49,6 +60,10 @@ def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -
             "turns_cancelled_total": 0,
             "turns_in_flight": 0,
             "turn_avg_latency_ms": 222.0,
+            "turn_stage_avg_latency_ms": [
+                {"stage": "context_build", "avg_latency_ms": 40.0, "count": 2},
+                {"stage": "capability_stream", "avg_latency_ms": 120.0, "count": 2},
+            ],
         },
         surface_snapshot={
             "event_counts": [
@@ -100,6 +115,8 @@ def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -
     assert "deeptutor_turns_started_total 3" in body
     assert "deeptutor_turns_failed_total 1" in body
     assert "deeptutor_turn_avg_latency_ms 222.0" in body
+    assert 'deeptutor_turn_stage_avg_latency_ms{stage="context_build"} 40.0' in body
+    assert 'deeptutor_turn_stage_count{stage="capability_stream"} 2' in body
     assert (
         'deeptutor_surface_event_total{event_name="start_turn_sent",status="accepted",surface="web"} 5'
         in body

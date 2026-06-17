@@ -1,0 +1,23 @@
+{
+  "source_laundering_attack": "pass",
+  "official_answer_as_source_attack": "pass",
+  "model_vote_as_source_attack": "pass",
+  "council_vote_as_source_attack": "pass",
+  "partial_list_attack": "pass",
+  "bad_calc_spec_attack": "pass",
+  "unsupported_positive_attack": "pass",
+  "irrelevant_answer_attack": "pass",
+  "contradiction_answer_attack": "pass",
+  "legacy_overwrite_attack": "pass",
+  "production_write_attack": "pass",
+  "canonical_truth_write_attack": "pass",
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "unsupported_positive": 0,
+  "list_partial_auto": 0,
+  "bad_calculation": 0,
+  "legacy_overwrite": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "all_attacks_pass": true
+}

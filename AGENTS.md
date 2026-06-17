@@ -6,6 +6,67 @@ DeepTutor is an **agent-native** intelligent learning companion built around
 a two-layer plugin model (Tools + Capabilities) with three entry points:
 CLI, WebSocket API, and Python SDK.
 
+## Claude / Codex Web Memory Guardrails
+
+这些规则来自 2026-06-06 Codex Desktop / Claude Code 内存事故。macOS 曾显示 Codex 172.68 GB；后续 Claude Code 托管 BI `next dev` 时，Terminal coalition 被 Jetsam 记录到约 201.6 GB resident、3,927 个 `node` 进程。当前结论不是“机器内存不够”，而是 Web/BI dev server 在 AI agent 进程树下可能触发 Next/PostCSS/Node worker storm。
+
+### Hard Boundaries
+
+- 默认不要使用 Computer Use 处理 Web / BI / 前端 / 浏览器 / 截图任务；优先用终端命令、Playwright CLI、浏览器 URL、截图文件。
+- 不要让 Codex Desktop、Computer Use、Claude Code 或其他 AI agent 托管长时间 `npm run dev` / `next dev` / `next-server` / 浏览器进程。
+- Web dev server 必须由明确的人工 Terminal/tmux 会话托管，并在任务结束时关闭。
+- 如果 `next dev` / `next-server` / `.next/dev/build/postcss.js` 的父链挂在 Codex app-server、Claude Code、Computer Use 或其他 AI agent 下，直接判为高风险，不要继续观察趋势。
+- 不要把 `--max-old-space-size` 当成总内存上限；它只限制单个 Node 进程，不能阻止几千个 child worker 累计爆内存。
+- 不要把 `next dev --webpack` 当成已验证修复；事故中即使试过 `--webpack`，仍可能出现 `.next/dev/build/postcss.js` worker。
+
+### Required Preflight For Web/BI Work
+
+开始任何 DeepTutor Web、BI、前端、浏览器或截图任务前，先运行：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --check
+pgrep -af 'SkyComputerUse|SkyComputerUseClient|SkyComputerUseService|next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev' || true
+```
+
+安全基线：
+
+```text
+No SkyComputerUse process
+No AI-agent-owned Next dev process tree
+No old next-server process
+No postcss.js worker burst
+Codex / Terminal / Claude memory stays in low single-digit GB range
+```
+
+### Stop Conditions
+
+出现任一条件，立即停止当前 Web/BI 任务并清理，不要继续生成代码或等待它“自己降下来”：
+
+```text
+Codex matched memory > 8 GB and rising
+Terminal / Claude coalition memory spikes with many node processes
+other matched > 5 GB with many node processes
+postcss.js workers > 50
+SkyComputerUseService reappears unexpectedly
+next-server remains alive after task end
+next dev / next-server is parented by Codex app-server, Claude Code, Computer Use, or another AI agent
+macOS memory pressure warning appears
+```
+
+第一响应：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --kill
+pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev'
+/Users/yehongchen/.codex/bin/codex-emergency-cleanup.sh
+```
+
+本地事故记录：
+
+- `/Users/yehongchen/.codex/reports/2026-06-06-codex-desktop-memory-incident.md`
+
 ## Contract Discipline
 
 凡是涉及 turn/session/stream/replay/resume、聊天入口、TutorBot 接入、trace/observability 的改动，必须先遵守：
@@ -133,6 +194,7 @@ CLI, WebSocket API, and Python SDK.
 - 当用户要求“合并到 main”时，除了在干净 worktree 里完成 merge / push / 部署验证，还必须把当前 Codex 本地工作区的可见分支状态一并收口到 `main`。
 - 如果当前工作区存在未提交改动，禁止强行切换到 `main`；必须先明确说明哪些脏改动阻塞切换，并让用户决定是提交、暂存、丢弃还是保留在当前分支。
 - 合并到 `main` 后的最终汇报必须分别说明：远端 `origin/main` 的 commit、部署状态、当前本地工作区是否已经切回 `main`，以及如果没切回的具体原因。
+- 改动了 contract-guard 的 protected 文件（`deeptutor/contracts/index.yaml` 里登记的源文件，如 `deep_question.py`、`rubric_grader_v1.py`）时，必须同步更新该 domain 登记的某个 `test_files`（新增/修改一个覆盖本次改动的测试），否则 contract-guard 的 required gate 会失败。合并/push 前先本地跑 `python scripts/check_contract_guard.py <changed files>` 确认 `contract-guard: passed` 再走后续流程。
 
 ### 3.6 Branch and Worktree Discipline
 
@@ -143,6 +205,7 @@ CLI, WebSocket API, and Python SDK.
 - 创建 worktree 前必须说明：新 worktree 路径、基线分支、目标分支名、该 worktree 负责的任务范围；创建后该 Codex 会话只在对应 worktree 内工作。
 - 如果当前工作区有未提交改动，禁止为了切分支而强行 stash、reset、checkout 或移动用户改动；必须先说明冲突文件，并让用户决定如何处理。
 - 只有在用户明确要求提交时才提交；提交时必须保持 scope narrow，只 stage 本次任务直接相关文件，不把并行任务、生成产物或无关脏改动混进同一个 commit。
+- 脏分支上有并行 agent 在动文件时，用 `git commit --only -- <本次文件…>`（或精确 `git add <文件>` 后 `git commit`）逐文件提交，**绝不用 `git add -A` / `git add .`**：前者会把并行 WIP 扫进你的 commit，后者还会被其它并行提交者反向扫走你“还没想提交”的工作。提交后复核 `git show --stat HEAD` 确认只含本次文件、并行 WIP 仍 dirty。切忌在诊断/合并命令里夹带 `git stash`（会扫走冲突解析并清掉 `MERGE_HEAD`）。
 
 ### 3.7 Aliyun SSH Write Boundary
 
@@ -152,6 +215,24 @@ CLI, WebSocket API, and Python SDK.
 - 需要查看非 `/root/deeptutor` 路径时，只允许执行只读命令，如 `ls`、`cat`、`sed -n`、`grep/rg`、`docker ps`、`docker logs`；不得带重定向、`tee`、`rm`、`mv`、`cp`、`chmod`、`chown`、包管理安装或任何会改变宿主机状态的动作。
 - 如果某个修复看似必须改 `/root/deeptutor` 之外的文件，必须停止执行，先向用户说明原因、目标路径、风险和替代方案；未获得用户新的明确授权前，一律不改。
 - 所有阿里云发布脚本和运维 runbook 必须把 `/root/deeptutor` 作为唯一写入根目录；不要通过临时目录绕开这条边界。
+
+### 3.8 CI Runtime Failure Discipline
+
+凡是用户给出 GitHub Actions、`Tests`、`Smoke Tests`、`Security Scan`、`Deploy Gate`、CI 失败链接，或要求“继续修 action / 还有 fail 吗 / 修运行错误”，必须先使用：
+
+- [agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md](/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md)
+- [docs/runbook/ci-runtime-smoke-guardrails.md](/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/docs/runbook/ci-runtime-smoke-guardrails.md)
+
+硬规则：
+
+- 先按同一 commit / 同一 workflow run 归因，不要把旧红灯、新红灯、advisory、Deploy Gate 派生失败混在一起。
+- 先分类再修：真实代码 bug、测试隔离 bug、CI/本地依赖漂移、contract mirror 漂移、secret baseline 元数据漂移、外部 runner advisory，不能用同一种补丁处理。
+- 本地复现优先使用干净 worktree 和 CI-like venv，按 `requirements/server.txt` 安装后运行失败 job 的最小 pytest 子集；本机全局依赖绿灯不能证明 GitHub Actions 会绿。
+- 涉及 FastAPI route smoke 时，测试 helper 必须兼容 eager `APIRoute.path` 和 FastAPI deferred `_IncludedRouter`；禁止只用 `{route.path for route in app.routes}` 得出“路由缺失”结论。
+- 修改 `contracts/index.yaml` 时必须同步 `deeptutor/contracts/index.yaml`；后者是 packaged runtime copy，漂移会让 smoke 或 packaged install 加载 stale contract authority。
+- `detect-secrets-hook` 失败时先看日志和 `.secrets.baseline` diff：只有既有 false positive 的行号 / 生成时间漂移可以刷新 baseline；新高熵字符串、配置、token、env 示例必须移除并按 secret 处理。
+- 不能把单个 job 绿灯写成“全修完”。最终结论必须同时核对最新 `Tests` run 和同一 SHA 触发的 `Deploy Gate`，并明确区分 blocking failure 与 advisory。
+- 如果同类失败第二次复发，除修代码外必须补 `docs/runbook/ci-runtime-smoke-guardrails.md`；如果第三次复发，必须同步升级 `agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md` 或本节规则。
 
 ### 4. Goal-Driven Execution
 
@@ -164,6 +245,46 @@ CLI, WebSocket API, and Python SDK.
 - 完成后明确汇报：改了什么、如何验证、还有哪些未覆盖风险；若确实存在无法执行的测试，必须说明具体阻塞，而不是笼统写“未测”。
 - 缺少 `node` / `npm` / `deno` 等运行环境时，先自行安装补齐后再继续，不得以环境缺失为由跳过验证。
 - 只要改了代码，就必须执行与改动直接相关的测试，不能只改不测；前端或微信小程序改动，除自动化测试外，还必须至少完成一次微信开发者工具中的模拟器或真机回归验证。
+
+### 4.1 WeChat DevTools CLI Discipline
+
+微信开发者工具 CLI 是 DeepTutor 微信前端日常 QA 的默认可用工具，不是临时人工补充。涉及 `wx_miniprogram`、`yousenwebview` 项目根内的 `packageDeeptutor` 分包、TutorBot 微信端、微信渲染、聊天入口、WS、登录态、报告页、题卡或行为埋点的测试时，默认优先用终端调用 DevTools CLI / 自动化端口，而不是让 Codex Desktop 控制 GUI。
+
+术语硬门槛：`yousenwebview` 是微信开发者工具唯一 project root；`packageDeeptutor` 只是该项目内的分包 / 页面目标。不得把“跑 / 打开 `yousenwebview/packageDeeptutor`”写成真实微信执行动作；必须写成“打开 `yousenwebview` 项目根，并进入 `packageDeeptutor` 分包页面”。
+
+CLI 路径固定为：
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+```
+
+默认执行梯度：
+
+1. 先跑 `/wechat-harness`、node contract、backend harness 等快速检查，覆盖可见行为和确定性 contract。
+2. 再用 DevTools CLI 打开微信项目根 `yousenwebview`，并进入 / 编译其中的 `packageDeeptutor` 分包页面；只把实际打开并执行过场景的结果记为 `real_wechat_package` 证据。
+3. 只有涉及真机特有风险、发布前验证、授权/登录/网络环境差异、或用户明确要求时，再补真机/线上小程序。
+
+推荐命令：
+
+```bash
+WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+$WX_DEVTOOLS_CLI islogin
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
+```
+
+证据边界：
+
+- `islogin` 只证明微信开发者工具登录态可用，不证明项目打开、页面渲染、网络链路或 TutorBot 对话通过。
+- `open --project` 只证明项目可被 DevTools 打开；必须跑到具体页面、操作或自动化脚本，才能写 `real_wechat_package` pass。
+- `--project` 必须指向 `yousenwebview` 项目根，不得指向 `yousenwebview/packageDeeptutor`；`packageDeeptutor` 是分包验收目标，不是 DevTools project root。
+- 每条 `real_wechat_package` 证据必须分开记录 `devtools_project_root`、`target_subpackage`、`target_page` 和 `entry_flow`；缺任一项只能算 `partial`。报告里出现“跑 `packageDeeptutor`”这类模糊说法时，先修正证据措辞再继续结论。
+- `auto --project ... --auto-port ...` 可作为 miniprogram-automator / Minium 的入口；只有脚本实际驱动页面并记录结果，才算自动化证据。
+- 登录态必须作为独立证据记录：至少写明 `auth_state`（logged_in / qa_token / auth_blocked / unknown）和 `auth_mode`（real_wechat / local_dev_wechat / manual_token / none）。登录不可用时只能报 `partial/auth_blocked`，不能把后续 WS、baseURL 或 TutorBot 场景写成通过。
+- 允许非生产 QA 使用既有微信登录 authority 的 dev/mock code 路径（例如后端 `DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN` 或 `dev-` / `mock-` code）；它只能用于本地/DevTools 测试身份，不得写 production DB、不得伪造 canonical learner truth、不得绕过 `/api/v1/ws` 或另建聊天入口。
+- `/wechat-harness`、`wx_miniprogram`、backend harness、node contract 仍不能替代 `yousenwebview/packageDeeptutor` 的主微信入口 closure。
+- 如果为了不打扰用户环境没有执行 DevTools project-open / auto，最终结论必须写 `partial` 或 `true-entry pending`，不能把 Web/contract 绿灯说成真微信入口 PASS。
+- 默认不执行 `upload`；小程序上传/预览流水线优先考虑 `miniprogram-ci`，除非用户明确要求使用 DevTools CLI 发布相关命令。
 
 ### 5. Fix Root Causes, Not Symptoms
 
@@ -264,6 +385,60 @@ CLI, WebSocket API, and Python SDK.
   1. 这次真正坏掉的一等业务事实是什么
   2. 哪些地方曾经在争夺 authority
   3. 为什么修完后系统比之前更接近单一 authority，而不是又多了一层补丁
+
+### 5.8 Post-QA Root-Cause Gate
+
+以下规则来自 2026-06-06 WeChat TutorBot authority loop 的复盘，用于防止后续 agent 把同类问题再次修窄、修散或修成补丁堆。
+
+凡是 TutorBot / WeChat / question authority / follow-up / refusal / state continuity / terminal answer 问题，开始修复前必须先写清：
+
+1. `one business fact`：本轮真正要维护的业务事实是什么
+2. `one authority`：该事实由谁唯一写、存、恢复、读取
+3. `competing authorities`：哪些模块、字段、fallback、transport、frontend projection 或 artifact 可能在抢权
+4. `canonical path`：从 writer 到 persistence / transfer / routing / final assembly 的主链路是什么
+5. `delete or demote`：这次准备删除、降级或归一化哪些 mirror truth / duplicate decision / bypass reader
+6. `deterministic vs LLM boundary`：哪些只允许规则识别稳定格式，哪些必须交给已有 authoritative context 与主语义链路
+
+修复后必须额外检查：
+
+- 是否把 `/wechat-harness`、`wx_miniprogram`、near-real HTTP+WS 或 backend harness 证据误写成真实 `yousenwebview/packageDeeptutor` closure
+- 是否把 DevTools CLI 的 `islogin` 或 `open --project` 误写成真实微信场景已通过；没有页面/操作/自动化脚本结果时只能算环境预检或 partial
+- 是否把 `yousenwebview/packageDeeptutor` 写成 DevTools project root，或把“跑 `packageDeeptutor`”写成真实微信执行动作；正确记录必须拆成 `devtools_project_root=yousenwebview` + `target_subpackage=packageDeeptutor` + 具体页面
+- 是否把 regex / fallback / wrapper 升级成语义 authority
+- 是否至少有一个反例验证没有过拟合某个 marker phrase 或 QA 样例
+- 是否证明 visible terminal answer、hidden answer authority、runtime state / active object 三者一致
+
+项目级 agent workflow skills 放在 [agent-skills/](./agent-skills/)；它们是开发与 QA 工作法，不是 TutorBot runtime skills，不得移动到 `deeptutor/tutorbot/skills/`。
+
+默认调用合同：
+
+- 除只读一行查询、简单翻译、纯解释外，任何非平凡实现、修复、审查、计划、文档、测试、发布任务，都先读 [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)，再按任务面选择 1 个或多个窄 skill。
+- 触发比例目标不是“所有消息 100%”，而是“所有有工程风险的任务近乎必触发”。如果一个任务会改文件、判断状态、发布、验证、审查、接外部资料、跑前端/微信/阿里云，就应该有对应 skill。
+- 新增、删除或改名 `agent-skills/*/SKILL.md` 后，必须运行 `python agent-skills/scripts/validate_agent_skills.py`，确保 frontmatter、README、AGENTS 索引和链接一致。
+
+优先使用：
+
+- [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)：非平凡实现、修复、审查、文档/计划、发布准备、或吸收外部 agent skill pack 时的 DeepTutor 本地调度入口。
+- [deeptutor-spec-plan-gate](./agent-skills/deeptutor-spec-plan-gate/SKILL.md)：PRD / roadmap / implementation plan / capability status 的本地 spec-plan 门槛。
+- [deeptutor-source-grounded-change](./agent-skills/deeptutor-source-grounded-change/SKILL.md)：框架、库、API、外部文档依赖类改动的 source-driven 工作流。
+- [deeptutor-incremental-implementation](./agent-skills/deeptutor-incremental-implementation/SKILL.md)：多文件改动的小步垂直切片实现工作流。
+- [deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)：行为变更、bug 修复、文档/skill 变更的测试与证据门槛。
+- [deeptutor-api-contract-design](./agent-skills/deeptutor-api-contract-design/SKILL.md)：REST / WebSocket / trace / session / schema 边界的 contract-first 设计工作流。
+- [deeptutor-schema-authority-gate](./agent-skills/deeptutor-schema-authority-gate/SKILL.md)：稳定 schema、schema registry、typed object、ViewModel/event payload 的单一权威和机器校验门槛。
+- [deeptutor-resource-registry-gate](./agent-skills/deeptutor-resource-registry-gate/SKILL.md)：DB、env/flag/secret、provider、process/cron、route、model/harness、governance scanner 等基础资源的 register-before-use 门槛。
+- [deeptutor-web-bi-frontend-gate](./agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md)：Web / BI / frontend / browser 检查的内存 preflight 与安全执行工作流。
+- [deeptutor-authority-debugging](./agent-skills/deeptutor-authority-debugging/SKILL.md)：状态丢失、拒答、上下文断裂、follow-up 误路由、authority drift。
+- [wechat-tutorbot-real-entry-qa](./agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md)：真实微信 TutorBot 链路、DevTools、near-real / shadow 证据分级、客户满意度 QA。
+- [compiled-knowledge-shadow-eval](./agent-skills/compiled-knowledge-shadow-eval/SKILL.md)：Nexus-like / RAG+compiled 一般知识对话、TutorBot online shadow、source pollution 回流 compiler、system-wide default 裁决。
+- [luban-rich-leaf-compiler](./agent-skills/luban-rich-leaf-compiler/SKILL.md)：RichLeafArtifact / 2026 全量深编译 / source-evidence agent / semantic review queue / runtime supply candidate / Grading-to-Brain dry-run。
+- [anti-overfit-repair-review](./agent-skills/anti-overfit-repair-review/SKILL.md)：regex / fallback / special-case 修复后的过拟合复审、局部撤回或收敛。
+- [deeptutor-review-quality-gate](./agent-skills/deeptutor-review-quality-gate/SKILL.md)：自审、agent code review、merge 前五轴质量审查。
+- [deeptutor-code-simplification](./agent-skills/deeptutor-code-simplification/SKILL.md)：行为不变的简化、减复杂度、去无谓抽象工作流。
+- [deeptutor-security-hardening-gate](./agent-skills/deeptutor-security-hardening-gate/SKILL.md)：认证、鉴权、外部输入、secret、第三方集成、生产边界的安全门槛。
+- [deeptutor-observability-gate](./agent-skills/deeptutor-observability-gate/SKILL.md)：日志、metrics、trace、release gate、线上证据闭环工作流。
+- [deeptutor-docs-adr-gate](./agent-skills/deeptutor-docs-adr-gate/SKILL.md)：文档、ADR、计划索引、authority 文档同步工作流。
+- [deeptutor-git-workflow-gate](./agent-skills/deeptutor-git-workflow-gate/SKILL.md)：branch、worktree、dirty files、stage、commit、merge 的窄范围版本控制门槛。
+- [deeptutor-release-launch-gate](./agent-skills/deeptutor-release-launch-gate/SKILL.md)：合并 main、push、Aliyun 发布、回滚和发布后验收工作流。
 
 ## Architecture
 

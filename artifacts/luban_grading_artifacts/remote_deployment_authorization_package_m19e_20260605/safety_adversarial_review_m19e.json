@@ -1,0 +1,54 @@
+{
+  "all_risks_resolved_or_authorization_gated": true,
+  "risks": [
+    {
+      "attack": "real student without qa_/operator_ prefix receives default-on adjudication",
+      "disposition": "pass",
+      "mitigation": "cohort env restricted to qa_,operator_; acceptance requires non-cohort blocked",
+      "risk": "non_cohort_leak"
+    },
+    {
+      "attack": "operator sets a broad/default-all env flag",
+      "disposition": "blocked",
+      "mitigation": "authorization form allows only two limited env vars and explicitly forbids broad flags",
+      "risk": "env_misconfig_broad_default"
+    },
+    {
+      "attack": "registry unavailable causes auto certify or route failure",
+      "disposition": "pass",
+      "mitigation": "M19C/M19D rollback drills require registry unavailable fail-closed with legacy intact",
+      "risk": "registry_missing_fail_open"
+    },
+    {
+      "attack": "provider failure returns positive/auto-certified result",
+      "disposition": "pass",
+      "mitigation": "M19D observed failclosed_count=8 and provider_failure_fail_open=0",
+      "risk": "provider_failure_fail_open"
+    },
+    {
+      "attack": "remote ON cannot be reverted quickly",
+      "disposition": "pass",
+      "mitigation": "env kill, flag off, registry unavailable, and code rollback documented",
+      "risk": "rollback_commands_incomplete"
+    },
+    {
+      "attack": "remote deployment cannot detect leak/cost/failclosed regressions",
+      "disposition": "requires_user_authorization",
+      "mitigation": "observability checklist and stop conditions require all core counters",
+      "risk": "observability_missing_metrics"
+    },
+    {
+      "attack": "M20.1 future delta silently enters M19C/M19D runtime",
+      "disposition": "blocked",
+      "mitigation": "manifest marks M20.1 as future_delta_not_current_runtime; env diff has no registry delta",
+      "risk": "m20_1_delta_absorbed"
+    },
+    {
+      "attack": "operator writes /etc, /var, /opt, /root/luban, or /tmp",
+      "disposition": "blocked",
+      "mitigation": "all proposed write paths are constrained to /root/deeptutor",
+      "risk": "remote_write_outside_root"
+    }
+  ],
+  "summary": "Every required risk is pass, blocked, or requires_user_authorization."
+}

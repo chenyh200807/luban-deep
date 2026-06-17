@@ -101,8 +101,8 @@ function loadAppModule(options) {
   assert(
     Array.isArray(defaultDevtools.globalData.apiCandidates) &&
       defaultDevtools.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      defaultDevtools.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "develop devtools runtime candidates should keep localhost first and remote fallback",
+      defaultDevtools.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "develop devtools runtime candidates should keep local direct isolated from remote",
   );
 
   var explicitLocal = loadAppModule({
@@ -115,8 +115,8 @@ function loadAppModule(options) {
   );
   assert(
     explicitLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "explicit local direct flag should retain localhost-first candidate list with remote fallback",
+      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "explicit local direct flag should keep localhost-first candidate list without remote fallback",
   );
 
   if (fail) {

@@ -231,6 +231,25 @@ run("ai-message-state parity for structured presentation blocks", function () {
   );
 });
 
+run("ai-message-state parity for paper style citation footers", function () {
+  var content = [
+    "屋面防水等级应根据工程重要性确定。〔1〕",
+    "",
+    "依据",
+    "〔1〕2026 建筑实务教材，第 1 章 第 1.4 节。",
+  ].join("\n");
+  var input = {
+    content: content,
+    parseBlocks: true,
+  };
+
+  assertEqual(
+    wxAiState.deriveAiMessageRenderState(input),
+    webAiState.deriveAiMessageRenderState(input),
+    "paper-style citation render state should match across wx/webview",
+  );
+});
+
 run("renderer sample set keeps wx and webview parity", function () {
   var cases = loadStructuredRendererCases();
   cases.forEach(function (sample) {

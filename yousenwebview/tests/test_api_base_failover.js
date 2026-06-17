@@ -56,7 +56,7 @@ function loadApiModule(config) {
           getBaseUrlCandidates: function () {
             return [
               "http://127.0.0.1:8001",
-              "https://test2.yousenjiaoyu.com",
+              "http://127.0.0.1:8012",
             ];
           },
           rememberWorkingBaseUrl: function (baseUrl, useGateway) {
@@ -110,7 +110,7 @@ function loadApiModule(config) {
       }
       requestOptions.success({
         statusCode: 200,
-        data: { token: "remote-token" },
+        data: { token: "local-token" },
       });
     },
   });
@@ -124,23 +124,61 @@ function loadApiModule(config) {
 
   assert(
     loaded.state.requests.length === 2,
-    "local 503 on a POST should trigger remote base fallback",
+    "local 503 on a POST should trigger alternate local base fallback",
   );
   assert(
     loaded.state.requests[0].url === "http://127.0.0.1:8001/api/v1/auth/login",
     "first POST should target localhost",
   );
   assert(
-    loaded.state.requests[1].url === "https://test2.yousenjiaoyu.com/api/v1/auth/login",
-    "second POST should target the remote fallback host",
+    loaded.state.requests[1].url === "http://127.0.0.1:8012/api/v1/auth/login",
+    "second POST should target the alternate local backend",
   );
   assert(
     loaded.state.remembered.length === 1 &&
-      loaded.state.remembered[0].baseUrl === "https://test2.yousenjiaoyu.com" &&
+      loaded.state.remembered[0].baseUrl === "http://127.0.0.1:8012" &&
       loaded.state.remembered[0].useGateway === false,
-    "successful remote fallback should be remembered as the working API base",
+    "successful local fallback should be remembered as the working API base",
   );
-  assert(result && result.token === "remote-token", "request should resolve with fallback response");
+  assert(result && result.token === "local-token", "request should resolve with fallback response");
+
+  var notFoundLoaded = loadApiModule({
+    requestHandler: function (requestOptions) {
+      requestOptions.success({
+        statusCode: 404,
+        data: { detail: "conversation not found" },
+      });
+    },
+  });
+  var notFoundError = null;
+  try {
+    await notFoundLoaded.api.request({
+      url: "/api/v1/conversations/unified_missing/messages",
+      method: "GET",
+      noAuth: true,
+    });
+  } catch (err) {
+    notFoundError = err;
+  }
+  await flushPromises();
+
+  assert(
+    notFoundLoaded.state.requests.length === 1,
+    "HTTP 404 should not trigger base fallback",
+  );
+  assert(
+    notFoundLoaded.state.requests[0].url ===
+      "http://127.0.0.1:8001/api/v1/conversations/unified_missing/messages",
+    "404 request should stay on the authoritative local base",
+  );
+  assert(
+    notFoundLoaded.state.remembered.length === 0,
+    "404 should not remember an alternate working base",
+  );
+  assert(
+    notFoundError && notFoundError.statusCode === 404,
+    "404 should be returned as the resource error",
+  );
 
   if (fail) {
     console.error(errors.join("\n"));

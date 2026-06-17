@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -20,9 +21,33 @@ from deeptutor.services.member_console import external_auth as external_auth_mod
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
+def _active_otp(service: MemberConsoleService) -> str:
+    """Read the active OTP from the service store. The code is deliberately NOT returned
+    in send_phone_code's response (account-takeover guard), so tests read it server-side."""
+    codes = service._load().get("phone_codes") or {}
+    assert codes, "no active OTP in store"
+    return str(next(iter(codes.values()))["code"])
+
+
 @pytest.fixture(autouse=True)
 def _enable_demo_seed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", "1")
+
+
+class _EmptyAliasStore:
+    is_configured = True
+
+    @staticmethod
+    def resolve_alias(*, alias_type: str, alias_value: str):
+        return None
+
+
+@pytest.fixture(autouse=True)
+def _isolate_wallet_identity_alias_store(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _EmptyAliasStore(),
+    )
 
 
 class _FakeWalletBootstrapService:
@@ -30,6 +55,7 @@ class _FakeWalletBootstrapService:
 
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
+        self.grants: list[dict[str, object]] = []
         self.snapshots: dict[str, SimpleNamespace] = {}
 
     def ensure_wallet_seeded(self, **kwargs):
@@ -48,6 +74,54 @@ class _FakeWalletBootstrapService:
             )
             self.snapshots[user_id] = snapshot
         return snapshot
+
+    def grant_points(self, **kwargs):
+        self.grants.append(dict(kwargs))
+        return SimpleNamespace(
+            ledger_event_id="ledger_manual_1",
+            user_id=str(kwargs["user_id"]),
+            event_type="grant",
+            delta_micros=int(kwargs["amount_micros"]),
+            balance_micros=int(kwargs["amount_micros"]),
+            frozen_micros=0,
+            version=1,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type=str(kwargs["reference_type"]),
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:00:00+08:00",
+        )
+
+    def refund_points(self, **kwargs):
+        self.grants.append({"refund": True, **dict(kwargs)})
+        return SimpleNamespace(
+            ledger_event_id="ledger_refund_1",
+            user_id=str(kwargs["user_id"]),
+            event_type="refund",
+            delta_micros=-int(kwargs["amount_micros"]),
+            balance_micros=0,
+            frozen_micros=0,
+            version=2,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type=str(kwargs["reference_type"]),
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:05:00+08:00",
+        )
+
+
+class _FakeMemberDirectory:
+    is_configured = True
+
+    def __init__(self, rows: list[dict[str, object]]) -> None:
+        self.rows = rows
+        self.calls: list[dict[str, int]] = []
+
+    def list_members(self, *, limit: int = 5000) -> list[dict[str, object]]:
+        self.calls.append({"limit": limit})
+        return [dict(row) for row in self.rows]
+
+
+def test_member_console_home_focus_uses_textbook_section_alias() -> None:
+    assert MemberConsoleService._normalize_home_focus_topic("防水工程") == "屋面与防水工程施工"
 
 
 @pytest.mark.asyncio
@@ -131,7 +205,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
     assert snapshot["external_auth_user_id"] == canonical_uid
     assert snapshot["auth_username"] == "user_1499"
     assert wallet_service.calls[0]["user_id"] == canonical_uid
-    assert wallet_service.calls[0]["opening_points"] == 120
+    assert wallet_service.calls[0]["opening_points"] == 0
 
 
 @pytest.mark.asyncio
@@ -228,6 +302,66 @@ async def test_login_with_wechat_code_fails_closed_in_production_even_for_dev_pr
 
     with pytest.raises(RuntimeError, match="Missing WeChat Mini Program credentials."):
         await service.login_with_wechat_code("dev-local-user")
+
+
+def test_trace_identity_resolution_maps_aliases_to_bi_canonical_member(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("wx_live_alias"),
+                "user_id": "wx_live_alias",
+                "canonical_user_id": canonical_uid,
+                "external_auth_user_id": canonical_uid,
+                "alias_user_ids": ["legacy_chat_user_1"],
+                "display_name": "微信学员",
+                "phone": "13912345678",
+                "wx_openid": "oTHl56liveOpenid",
+                "wx_unionid": "union_live_user",
+            }
+        ]
+
+    service._mutate(_seed)
+
+    for raw_user_id, metadata in [
+        ("legacy_chat_user_1", {}),
+        ("wx_live_alias", {}),
+        (canonical_uid, {}),
+        ("", {"wx_openid": "oTHl56liveOpenid"}),
+        ("", {"openid": "oTHl56liveOpenid"}),
+        ("", {"wx_unionid": "union_live_user"}),
+        ("", {"phone": "13912345678"}),
+    ]:
+        resolution = service.resolve_trace_identity_for_bi(
+            raw_user_id=raw_user_id,
+            metadata=metadata,
+        )
+        assert resolution["status"] == "resolved"
+        assert resolution["canonical_user_id"] == canonical_uid
+        assert resolution["member_user_id"] == "wx_live_alias"
+        assert resolution["raw_user_id"] == raw_user_id
+        assert "phone" not in resolution
+
+
+def test_trace_identity_resolution_keeps_unmapped_trace_identity(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    resolution = service.resolve_trace_identity_for_bi(
+        raw_user_id="72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+        metadata={"session_id": "trace-session"},
+    )
+
+    assert resolution == {
+        "status": "unmapped",
+        "canonical_user_id": "",
+        "member_user_id": "",
+        "raw_user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+        "matched_identity": "",
+    }
 
 
 @pytest.mark.asyncio
@@ -363,15 +497,13 @@ def test_production_bootstrap_starts_without_demo_members(
 
     assert data["members"] == []
     assert data["audit_log"] == []
-    assert {package["id"] for package in data["packages"]} == {
-        "advance",
-        "sprint",
-    }
-    assert [package["price"] for package in data["packages"]] == ["99", "199"]
-    assert [package["points"] for package in data["packages"]] == [4400, 9000]
+    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
+    assert [package["price"] for package in data["packages"]] == ["198", "598", "998"]
+    assert [package["turns"] for package in data["packages"]] == [450, 1400, 2500]
+    assert [package["points"] for package in data["packages"]] == [9000, 28000, 50000]
 
 
-def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
+def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
     tmp_path: Path,
 ) -> None:
     service = MemberConsoleService()
@@ -404,9 +536,20 @@ def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
     data = service._load()
     wallet = service.get_wallet("student_demo")
 
-    assert [package["id"] for package in data["packages"]] == ["advance", "sprint"]
-    assert [package["price"] for package in wallet["packages"]] == ["99", "199"]
-    assert [package["points"] for package in wallet["packages"]] == [4400, 9000]
+    assert [package["id"] for package in data["packages"]] == [
+        "starter",
+        "standard",
+        "pro",
+        "ultimate",
+        "vip",
+        "svip",
+        "supreme_svip",
+    ]
+    assert wallet["packages"][0]["id"] == "starter"
+    assert wallet["packages"][0]["status"] == "active"
+    assert wallet["packages"][0]["price"] == "9.9"
+    assert wallet["packages"][-1]["id"] == "supreme_svip"
+    assert wallet["packages"][-1]["turns"] == 2500
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -436,7 +579,7 @@ def test_production_bootstrap_can_create_first_real_member_without_seed_template
 
     assert profile["user_id"] == "prod_first_user"
     assert profile["tier"] == "trial"
-    assert profile["points"] == 120
+    assert profile["points"] == 0
 
 
 def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
@@ -536,7 +679,7 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
     assert dashboard["study_plan"]["study_method"].startswith("先看“防水工程”")
     assert "近 3 天" in dashboard["progress_feedback"]["summary"]
     assert "防水工程" in dashboard["progress_feedback"]["insight"]
-    assert dashboard["progress_feedback"]["cards"][2]["value"] == "9题"
+    assert dashboard["progress_feedback"]["cards"][2]["value"] == "9条证据"
     assert any(
         item["title"] == "刚完成一次专题梳理"
         for item in dashboard["progress_feedback"]["milestones"]
@@ -591,13 +734,13 @@ def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projectio
 
     dashboard = service.get_home_dashboard("focus_user")
 
-    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
+    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造设计的基本要求做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert dashboard["today_focus"] == {
         "label": "今日焦点",
-        "title": "推进建筑构造下一步学习",
+        "title": "推进建筑构造设计的基本要求下一步学习",
         "meta": "结合当前进度动态选择讲解/例题/复盘/自测",
         "query": expected_query,
-        "topic": "建筑构造",
+        "topic": "建筑构造设计的基本要求",
         "tone": "practice",
         "reason": "learner_state_focus",
         "source": "learner_state.study_plan",
@@ -645,8 +788,8 @@ def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
 
     dashboard = service.get_home_dashboard("generic_focus_user")
 
-    assert dashboard["today_focus"]["title"] == "推进建筑构造下一步学习"
-    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
+    assert dashboard["today_focus"]["title"] == "推进建筑构造设计的基本要求下一步学习"
+    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造设计的基本要求做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert "学习计划" not in dashboard["today_focus"]["query"]
     assert "下一步学习推进" not in dashboard["today_focus"]["query"]
     assert "先判断我当前更适合" not in dashboard["today_focus"]["query"]
@@ -725,8 +868,8 @@ def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_aut
 
     dashboard = service.get_home_dashboard("heartbeat_focus_user")
 
-    assert dashboard["today_focus"]["title"] == "推进防水工程下一步学习"
-    assert dashboard["today_focus"]["topic"] == "防水工程"
+    assert dashboard["today_focus"]["title"] == "推进屋面与防水工程施工下一步学习"
+    assert dashboard["today_focus"]["topic"] == "屋面与防水工程施工"
     assert dashboard["today_focus"]["source"] == "learner_state.study_plan+heartbeat"
     assert "周期复习节奏" in dashboard["today_focus"]["query"]
     assert "建筑实务微课" in dashboard["today_focus"]["query"]
@@ -915,6 +1058,98 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     assert claims["canonical_uid"] == canonical_uid
 
 
+def test_internal_qa_billing_bypass_skips_wallet_bootstrap(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    username = "qa_wallet_bypass_user"
+    password = "SyntheticPass123"
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    users_file.write_text(
+        json.dumps(
+            {
+                username: {
+                    "id": canonical_uid,
+                    "username": username,
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    wallet_calls: list[dict[str, object]] = []
+
+    class _FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def ensure_wallet_seeded(**kwargs):
+            wallet_calls.append(dict(kwargs))
+            return None
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _FailingWalletService())
+
+    result = service.login_with_password(username, password)
+    claims = service.verify_access_token(result["token"])
+
+    assert result["token"].startswith("dtm.")
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert wallet_calls == []
+
+
+def test_internal_qa_billing_bypass_keeps_non_qa_wallet_bootstrap(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canonical_uid = "a5732af1-496b-4643-a23c-e74ec7216b94"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    wallet_calls: list[dict[str, object]] = []
+
+    class _RecordingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def ensure_wallet_seeded(**kwargs):
+            wallet_calls.append(dict(kwargs))
+            return None
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                **data["members"][0],
+                "user_id": "user_real_wallet",
+                "auth_username": "student_wallet_user",
+                "external_auth_user_id": canonical_uid,
+                "phone": "",
+            }
+        )
+    )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _RecordingWalletService())
+
+    auth_identity = service._auth_identity_for_member("user_real_wallet")
+
+    assert auth_identity["canonical_uid"] == canonical_uid
+    assert len(wallet_calls) == 1
+    assert wallet_calls[0]["user_id"] == canonical_uid
+
+
 def test_production_without_supabase_sessions_only_blocks_assessment_paths(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -922,6 +1157,11 @@ def test_production_without_supabase_sessions_only_blocks_assessment_paths(
     monkeypatch.delenv("SUPABASE_URL", raising=False)
     monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
     monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.setattr(
+        member_service_module,
+        "SupabaseAssessmentSessionRepository",
+        lambda: SimpleNamespace(is_configured=False),
+    )
 
     service = MemberConsoleService()
 
@@ -1087,8 +1327,9 @@ def test_home_dashboard_uses_canonical_learner_state_for_merged_legacy_user(
     dashboard = service.get_home_dashboard("user_2008")
 
     assert snapshot_user_ids == [canonical_user_id]
-    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
+    # canonical classifier maps "招投标与合同" → chapter "工程招标投标与合同管理"
+    assert dashboard["today_focus"]["title"] == "今日焦点：工程招标投标与合同管理"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练工程招标投标与合同管理"
 
 
 def test_register_with_external_auth_creates_external_user_and_member(
@@ -1109,6 +1350,86 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert result["user"]["username"] == "new_student"
     assert "new_student" in external_users
     assert external_users["new_student"]["phone"] == "+8613812345678"
+
+
+def test_register_with_external_auth_rejects_existing_verified_phone_alias(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13812345678":
+                return {
+                    "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                    "source": "phone_verification",
+                }
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    with pytest.raises(ValueError, match="该手机号已被注册"):
+        service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+
+    assert not users_file.exists()
+
+
+def test_register_with_external_auth_rejects_existing_local_member_phone_without_alias(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                "user_id": "legacy_member",
+                "display_name": "Legacy Student",
+                "phone": "13812345678",
+            }
+        )
+    )
+
+    with pytest.raises(ValueError, match="该手机号已被注册"):
+        service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+
+    assert not users_file.exists()
+
+
+def test_register_with_external_auth_persists_new_phone_identity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: list[dict[str, str]] = []
+
+    monkeypatch.setattr(
+        service,
+        "_persist_phone_identity",
+        lambda *, phone, canonical_uid: persisted.append({"phone": phone, "canonical_uid": canonical_uid}),
+    )
+
+    result = service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+    claims = service.verify_access_token(result["token"])
+
+    assert claims is not None
+    assert persisted == [{"phone": "13812345678", "canonical_uid": claims["canonical_uid"]}]
 
 
 def test_register_with_external_auth_does_not_match_existing_display_name(
@@ -1206,6 +1527,29 @@ def test_external_auth_production_explicit_legacy_env_still_allows_compat_store(
 
     assert user is not None
     assert user["username"] == "legacy_user"
+
+
+def test_ensure_external_auth_user_resets_seeded_test_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    created = external_auth_module.ensure_external_auth_user(
+        "qa_tutorbot_mcq",
+        "OldPass123",
+        phone="13900001001",
+    )
+    updated = external_auth_module.ensure_external_auth_user(
+        "qa_tutorbot_mcq",
+        "NewPass123",
+        phone="13900001001",
+    )
+
+    assert created["id"] == updated["id"]
+    assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "NewPass123") is not None
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2764,6 +3108,7 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
         "generate_llm_deep_explanation",
         _fake_generate_llm_deep_explanation,
     )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
 
     result = asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
     stored = service.get_assessment_report("student_demo", session["quiz_id"])
@@ -2828,6 +3173,7 @@ def test_assessment_deep_explanation_checks_balance_before_llm_generation(
         "generate_llm_deep_explanation",
         _fail_if_called,
     )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
 
     with pytest.raises(RuntimeError, match="assessment_deep_explanation_insufficient_balance"):
         asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
@@ -2952,7 +3298,7 @@ def test_report_analytics_stay_empty_before_any_assessment_or_practice(tmp_path:
     assert profile["chapter_mastery"] == {}
 
 
-def test_explicit_learning_activity_builds_provisional_report_analytics_without_assessment(tmp_path: Path) -> None:
+def test_explicit_learning_activity_does_not_build_provisional_mastery_without_assessment(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -2967,15 +3313,12 @@ def test_explicit_learning_activity_builds_provisional_report_analytics_without_
     dashboard = service.get_mastery_dashboard("blank_user")
     profile = service.get_assessment_profile("blank_user")
 
-    assert any(item["label"] == "建筑构造" and item["score"] > 0 for item in radar["dimensions"])
-    assert dashboard["overall_mastery"] > 0
-    assert any(
-        chapter["name"] == "建筑构造" and chapter["mastery"] > 0
-        for group in dashboard["groups"]
-        for chapter in group["chapters"]
-    )
-    assert profile["score"] > 0
-    assert profile["chapter_mastery"]["建筑构造"]["mastery"] > 0
+    assert radar["dimensions"] == []
+    assert dashboard["overall_mastery"] == 0
+    assert dashboard["groups"] == []
+    assert dashboard["hotspots"] == []
+    assert profile["score"] == 0
+    assert profile["chapter_mastery"] == {}
 
 
 def test_chat_learning_does_not_count_generated_questions_as_completed(tmp_path: Path) -> None:
@@ -3004,7 +3347,7 @@ def test_chat_learning_does_not_count_generated_questions_as_completed(tmp_path:
     assert result["recorded"] is False
     assert result["reason"] == "chat_turn_is_not_completion_authority"
     assert today["today_done"] == 0
-    assert progress_card["value"] == "0题"
+    assert progress_card["value"] == "0次"
 
 
 def test_legacy_chat_learning_counts_are_removed_from_report_progress(tmp_path: Path) -> None:
@@ -3053,7 +3396,7 @@ def test_legacy_chat_learning_counts_are_removed_from_report_progress(tmp_path: 
     )
 
     assert today_progress["today_done"] == 0
-    assert progress_card["value"] == "0题"
+    assert progress_card["value"] == "0次"
     migrated = json.loads(service._data_path.read_text(encoding="utf-8"))
     assert migrated["audit_log"] == []
     assert migrated["migrations"]["chat_learning_counts_removed_v1"] is True
@@ -3069,8 +3412,8 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    send_result = service.send_phone_code("13955556666")
-    result = service.verify_phone_code("13955556666", send_result["debug_code"])
+    service.send_phone_code("13955556666")
+    result = service.verify_phone_code("13955556666", _active_otp(service))
     profile = result["user"]
     today = service.get_today_progress(profile["user_id"])
     external_users = json.loads(users_file.read_text(encoding="utf-8"))
@@ -3078,7 +3421,7 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
 
     assert profile["tier"] == "trial"
     assert result["user_id"] == profile["user_id"]
-    assert profile["points"] == 120
+    assert profile["points"] == 0
     assert profile["level"] == 1
     assert today["today_done"] == 0
     assert today["streak_days"] == 0
@@ -3094,6 +3437,429 @@ def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="验证码错误"):
         service.verify_phone_code("13955556666", "000000")
+
+
+def test_send_phone_code_does_not_return_otp_in_response(tmp_path: Path) -> None:
+    """The OTP must never appear in send_phone_code's result (account-takeover guard)."""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    result = service.send_phone_code("13955556666")
+
+    assert "debug_code" not in result
+    assert "code" not in result
+    # the OTP is still generated and stored server-side
+    assert _active_otp(service)
+
+
+def test_verify_phone_code_locks_out_after_max_attempts(tmp_path: Path) -> None:
+    """After _MAX_OTP_ATTEMPTS wrong guesses the OTP is invalidated — no brute force."""
+    from deeptutor.services.member_console.service import _MAX_OTP_ATTEMPTS
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.send_phone_code("13955556666")
+    real_code = _active_otp(service)
+
+    # exhaust the attempt budget with wrong codes
+    wrong = "000000" if real_code != "000000" else "111111"
+    for _ in range(_MAX_OTP_ATTEMPTS - 1):
+        with pytest.raises(ValueError, match="验证码错误"):
+            service.verify_phone_code("13955556666", wrong)
+    with pytest.raises(ValueError, match="验证码错误次数过多"):
+        service.verify_phone_code("13955556666", wrong)
+
+    # OTP is now invalidated — even the correct code no longer works
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", real_code)
+
+
+def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_auto_external_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    def _unexpected_auto_external_user(_phone: str) -> dict[str, object]:
+        raise AssertionError("phone login should use existing canonical phone alias")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+    monkeypatch.setattr(
+        member_service_module,
+        "ensure_external_auth_user_for_phone",
+        _unexpected_auto_external_user,
+    )
+
+    service.send_phone_code("13955556666")
+    result = service.verify_phone_code("13955556666", _active_otp(service))
+
+    claims = service.verify_access_token(result["token"])
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert result["user_id"] == canonical_uid
+
+
+def test_verify_phone_code_rejects_conflicting_phone_aliases_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {
+                    "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                    "source": "phone_verification",
+                }
+            if alias_type == "phone" and alias_value == "+8613955556666":
+                return {
+                    "user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                    "source": "phone_backfill",
+                }
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="手机号身份冲突"):
+        service.verify_phone_code("13955556666", code)
+
+    assert service._load()["phone_codes"].get("13955556666")
+
+
+def test_verify_phone_code_fails_closed_when_alias_store_lookup_fails_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FailingAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            raise RuntimeError("alias store unavailable")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FailingAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="手机号身份暂时不可用"):
+        service.verify_phone_code("13955556666", code)
+
+    assert service._load()["phone_codes"].get("13955556666")
+
+
+def test_persist_phone_identity_does_not_overwrite_concurrent_alias_owner(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DB_URL", "postgresql://example.invalid/db")
+    monkeypatch.setattr(service, "_trusted_phone_alias_user_ids", lambda _phone: set())
+    queries: list[str] = []
+
+    class _Cursor:
+        def execute(self, query: str, params: tuple[object, ...]) -> None:
+            queries.append(query)
+
+        @staticmethod
+        def fetchone():
+            return None
+
+    class _Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        @staticmethod
+        def cursor():
+            return _Cursor()
+
+    fake_psycopg = SimpleNamespace(connect=lambda *_args, **_kwargs: _Connection())
+    monkeypatch.setitem(sys.modules, "psycopg", fake_psycopg)
+
+    service._persist_phone_identity(
+        phone="13955556666",
+        canonical_uid="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    )
+
+    assert len(queries) == 1
+    assert "WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id" in queries[0]
+
+
+def test_reset_password_with_phone_code_updates_external_auth_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code(
+        "reset_student",
+        "13955556666",
+        code,
+        "NewPass123",
+    )
+
+    assert result["success"] is True
+    assert result["message"] == "密码已重置，请使用新密码登录"
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", code)
+
+
+def test_send_password_reset_code_requires_matching_account_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.send_password_reset_code("reset_student", "13800000000")
+
+    assert service._load()["phone_codes"] == {}
+
+
+def test_send_password_reset_code_delegates_to_sms_authority_for_matching_account(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+
+    result = service.send_password_reset_code("reset_student", "13955556666")
+
+    assert result["sent"] is True
+    assert result["phone"] == "13955556666"
+    assert _active_otp(service)
+
+
+def test_send_password_reset_code_accepts_verified_phone_alias_when_external_auth_phone_is_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    result = service.send_password_reset_code("reset_student", "13955556666")
+
+    assert result["sent"] is True
+    assert result["phone"] == "13955556666"
+    assert _active_otp(service)
+
+
+def test_send_password_reset_code_fails_closed_when_phone_alias_belongs_to_another_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+    other_uid = "047b7b7f-8316-4f95-8bf7-71973c102be7"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": other_uid, "source": "phone_verification"}
+            if alias_type == "phone" and alias_value == "+8613955556666":
+                return {"user_id": canonical_uid, "source": "public_users_backfill"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.send_password_reset_code("reset_student", "13955556666")
+
+    assert service._load()["phone_codes"] == {}
+
+
+def test_reset_password_rejects_mismatched_phone_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.reset_password_with_phone_code(
+            "reset_student",
+            "13800000000",
+            code,
+            "NewPass123",
+        )
+
+    service.reset_password_with_phone_code(
+        "reset_student",
+        "13955556666",
+        code,
+        "NewPass123",
+    )
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+
+
+def test_reset_password_with_phone_code_accepts_verified_alias_without_external_auth_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("reset_student", "13955556666", code, "NewPass123")
+
+    assert result["success"] is True
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", code)
+
+
+def test_reset_password_rejects_weak_password_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="密码必须包含至少一个大写字母"):
+        service.reset_password_with_phone_code(
+            "reset_student",
+            "13955556666",
+            code,
+            "weak123",
+        )
+
+    assert service._load()["phone_codes"].get("13955556666")
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is not None
 
 
 def test_send_phone_code_rejects_invalid_phone_input(tmp_path: Path) -> None:
@@ -3188,6 +3954,44 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     assert result["bound"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["phone"] == "13911112222"
+
+
+@pytest.mark.asyncio
+async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_123456789012",
+            "unionid": "unionid_abcdef",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.login_with_wechat_phone("wx-code", "phone-code-123")
+
+    assert result["bound"] is True
+    assert result["phone"] == "13911112222"
+    assert result["openid"] == "openid_123456789012"
+    assert result["token"].startswith("dtm.")
+
+    claims = service.verify_access_token(result["token"])
+    assert claims is not None
+    assert claims["sub"] == result["user_id"]
+
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["wx_openid"] == "openid_123456789012"
+    assert member["phone"] == "13911112222"
 
 
 @pytest.mark.asyncio
@@ -3390,6 +4194,355 @@ def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path:
     assert dashboard["active_count"] == 1
 
 
+def test_list_members_and_dashboard_use_supabase_member_directory_when_configured(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": "canonical_member_2",
+                "canonical_user_id": "canonical_member_2",
+                "alias_user_ids": ["canonical_member_2"],
+                "display_name": "正式会员 2",
+                "phone": "",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-21T10:00:00+08:00",
+                "last_active_at": "2026-04-23T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_only_member")
+        member["phone"] = "13800138000"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 1
+    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1"]
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert dashboard["total_count"] == 1
+    assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert directory.calls
+
+
+def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-05-26T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": "canonical_member_2",
+                "canonical_user_id": "canonical_member_2",
+                "alias_user_ids": ["canonical_member_2"],
+                "display_name": "正式会员 2",
+                "phone": "15558866509",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-21T10:00:00+08:00",
+                "last_active_at": "2026-05-27T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="6 月真实对话",
+            session_id="unified_recent_chat",
+            owner_key=build_user_owner_key("canonical_member_1"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("unified_recent_chat", "user", "最近一次训练"))
+
+    payload = service.list_members(page=1, page_size=20, sort="last_active_at", order="desc")
+    dashboard = service.get_dashboard()
+    service._get_learner_state_service = lambda: type(  # type: ignore[method-assign]
+        "LearnerStateService",
+        (),
+        {
+            "read_snapshot": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_heartbeat_jobs": lambda *_args, **_kwargs: [],
+            "list_heartbeat_history": lambda *_args, **_kwargs: [],
+            "list_heartbeat_arbitration_history": lambda *_args, **_kwargs: [],
+            "read_profile": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_summary": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_progress": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_memory_events": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+        },
+    )()
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+    detail = service.get_member_360("canonical_member_1")
+
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert payload["items"][0]["user_id"] == "canonical_member_1"
+    assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
+    assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert detail["last_active_at"] > "2026-06-01T00:00:00"
+    assert detail["recent_conversations"][0]["session_id"] == "unified_recent_chat"
+
+
+def test_list_members_supplements_directory_gaps_with_session_active_registered_members(
+    tmp_path: Path,
+) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-05-26T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_missing_from_directory")
+        member["phone"] = "15558866509"
+        member["created_at"] = "2026-04-21T10:00:00+08:00"
+        member["last_active_at"] = "2026-05-20T10:00:00+08:00"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+    asyncio.run(
+        service._store.create_session(
+            title="目录缺口真实对话",
+            session_id="supplement_recent_chat",
+            owner_key=build_user_owner_key("local_missing_from_directory"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("supplement_recent_chat", "user", "今天继续训练"))
+
+    payload = service.list_members(page=1, page_size=20, sort="last_active_at", order="desc")
+    dashboard = service.get_dashboard()
+    read_model_members = {
+        item["user_id"]: item
+        for item in service.list_members_for_bi()
+    }
+
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert payload["total"] == 2
+    assert payload["items"][0]["user_id"] == "local_missing_from_directory"
+    assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
+    assert payload["items"][1]["user_id"] == "canonical_member_1"
+    assert dashboard["total_count"] == 1
+    assert (
+        read_model_members["local_missing_from_directory"]["member_directory_source"]
+        == "member_console_session_activity_supplement"
+    )
+
+
+def test_dashboard_counts_recent_registered_member_windows(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 9, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(
+        user_id: str,
+        *,
+        days_ago: int,
+        phone: str = "15558866508",
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id],
+            "display_name": user_id,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": created_at if created_at is not None else (now - timedelta(days=days_ago)).isoformat(),
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member("member_today", days_ago=0),
+            _member("member_3d", days_ago=3, phone="15558866509"),
+            _member("member_20d", days_ago=20, phone="15558866510"),
+            _member("member_40d", days_ago=40, phone="15558866511"),
+            _member("internal_no_phone", days_ago=0, phone=""),
+            _member("invalid_created_at", days_ago=0, phone="15558866512", created_at="not-a-time"),
+            _member("future_created_at", days_ago=0, phone="15558866513", created_at=(now + timedelta(days=1)).isoformat()),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    dashboard = service.get_dashboard()
+
+    assert dashboard["total_count"] == 6
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["new_7d_count"] == 2
+    assert dashboard["new_30d_count"] == 3
+
+
+def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "canonical_user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "alias_user_ids": ["2d9eac15-5d26-4e93-941b-9ec6345ce6d9"],
+                "display_name": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_overlay(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["phone"] = "15558866508"
+        member["display_name"] = "运营备注名"
+        member["external_auth_user_id"] = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+        member["notes"] = [{"id": "note_1", "content": "需要回访", "created_at": "2026-04-21T10:00:00+08:00"}]
+        data["members"].append(member)
+
+    service._mutate(_seed_overlay)
+
+    payload = service.list_members(page=1, page_size=20)
+    detail = service.get_member_360("2d9eac15-5d26-4e93-941b-9ec6345ce6d9")
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["display_name"] == "运营备注名"
+    assert set(payload["items"][0]["alias_user_ids"]) >= {
+        "legacy_member_1",
+        "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    }
+    assert detail["wallet"]["balance"] == 260
+    assert detail["recent_notes"][0]["content"] == "需要回访"
+
+
+def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
+    class ErrorDirectory:
+        is_configured = True
+
+        def list_members(self, *, limit: int = 5000):
+            raise RuntimeError("supabase unavailable")
+
+    service = MemberConsoleService(member_directory=ErrorDirectory())
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_only_member")
+        member["phone"] = "13800138000"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+
+    payload = service.list_members(page=1, page_size=20)
+
+    assert payload["total"] == 0
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+
+
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -3414,6 +4567,230 @@ def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path
     assert result["success_count"] == 2
     assert result["failure_count"] == 1
     assert result["failed"][0]["user_id"] == "missing"
+
+
+def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.manual_membership_purchase(
+        user_id="manual_user_1",
+        package_id="vip",
+        days=365,
+        operator="admin_demo",
+        reason="线下收款",
+        idempotency_key="manual-purchase-1",
+        phone="13800138000",
+        display_name="张同学",
+    )
+
+    assert result["member"]["tier"] == "vip"
+    assert result["member"]["status"] == "active"
+    assert result["member"]["phone"] == "13800138000"
+    assert result["member"]["display_name"] == "张同学"
+    assert result["package"]["id"] == "vip"
+    assert result["amount_cny"] == 198
+    assert result["points"] == 9000
+    assert result["ledger_event_id"] == "ledger_manual_1"
+    assert wallet_service.grants == [
+        {
+            "user_id": "manual_user_1",
+            "amount_micros": 9_000_000_000,
+            "reference_type": "purchase",
+            "reference_id": result["purchase_id"],
+            "idempotency_key": "purchase:manual_membership:manual-purchase-1",
+            "reason": "manual_membership_purchase",
+            "metadata": {
+                "source": "bi_manual_membership",
+                "channel": "manual_membership",
+                "package_id": "vip",
+                "package_label": "VIP",
+                "tier": "vip",
+                "amount_cny": 198,
+                "operator_id": "admin_demo",
+                "legacy_user_id": "manual_user_1",
+                "wallet_user_id": "manual_user_1",
+                "days": 365,
+                "reason": "线下收款",
+            },
+            "operator_type": "admin",
+            "operator_id": "admin_demo",
+        }
+    ]
+
+    ledger = service.get_ledger("manual_user_1", limit=1, offset=0)["entries"][0]
+    assert ledger["reason"] == "manual_membership_purchase"
+    assert ledger["delta"] == 9000
+    assert ledger["metadata"]["amount_cny"] == 198
+    audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
+    assert audit["target_user"] == "manual_user_1"
+    assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
+
+
+def test_managed_membership_package_persists_and_can_be_purchased(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    package = service.upsert_membership_package(
+        package_id="svip_plus",
+        label="SVIP Plus",
+        tier="svip",
+        points=36000,
+        turns=1800,
+        price="698",
+        original_price="898",
+        badge="高频答疑",
+        per="1800 次 AI 学习额度",
+        desc="AI答疑、案例批改、错因专训、班主任督学服务",
+        status="active",
+        operator="admin_demo",
+        reason="新增高阶套餐",
+        idempotency_key="package-upsert-1",
+    )
+
+    reloaded = MemberConsoleService()
+    reloaded._data_path = service._data_path
+    monkeypatch.setattr(reloaded, "_get_wallet_service", lambda: wallet_service)
+
+    assert package["id"] == "svip_plus"
+    assert package["label"] == "SVIP Plus"
+    assert [item["id"] for item in reloaded.list_membership_packages()][-1] == "svip_plus"
+
+    result = reloaded.manual_membership_purchase(
+        user_id="manual_user_svip_plus",
+        package_id="svip_plus",
+        days=365,
+        operator="admin_demo",
+        reason="企业转账",
+        idempotency_key="manual-svip-plus-1",
+    )
+
+    assert result["package"]["id"] == "svip_plus"
+    assert result["member"]["tier"] == "svip"
+    assert result["amount_cny"] == 698
+    assert result["points"] == 36000
+    assert wallet_service.grants[0]["metadata"]["package_id"] == "svip_plus"
+    assert wallet_service.grants[0]["metadata"]["amount_cny"] == 698
+
+    removed = reloaded.remove_membership_package(
+        "svip_plus",
+        operator="admin_demo",
+        reason="下架高阶套餐",
+        idempotency_key="package-delete-1",
+    )
+
+    assert removed["id"] == "svip_plus"
+    repeated = reloaded.remove_membership_package(
+        "svip_plus",
+        operator="admin_demo",
+        reason="重复请求",
+        idempotency_key="package-delete-1",
+    )
+    assert repeated["id"] == "svip_plus"
+    assert "svip_plus" not in [item["id"] for item in reloaded.list_membership_packages()]
+    audit_actions = [item["action"] for item in reloaded.get_audit_log(page_size=20)["items"]]
+    assert audit_actions.count("membership_package_delete") == 1
+    assert "membership_package_upsert" in audit_actions
+
+
+def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_supreme",
+        package_id="supreme_svip",
+        days=365,
+        operator="admin_demo",
+        reason="误点套餐价",
+        idempotency_key="manual-supreme-1",
+    )
+
+    result = service.reverse_manual_membership_purchase(
+        user_id="manual_user_supreme",
+        purchase_id=purchase["purchase_id"],
+        amount_cny=998,
+        operator="admin_demo",
+        reason="本应 0 元开通，冲销误录 998 元",
+        idempotency_key="reverse-supreme-1",
+    )
+
+    assert result["member"]["tier"] == "supreme_svip"
+    assert result["member"]["status"] == "revoked"
+    assert result["amount_cny"] == -998
+    assert result["points"] == -50000
+    assert result["ledger_event_id"] == "ledger_refund_1"
+    assert wallet_service.grants[-1] == {
+        "refund": True,
+        "user_id": "manual_user_supreme",
+        "amount_micros": 50_000_000_000,
+        "reference_type": "refund",
+        "reference_id": purchase["purchase_id"],
+        "idempotency_key": "refund:manual_membership:reverse-supreme-1",
+        "reason": "manual_membership_reversal",
+        "metadata": {
+            "source": "bi_manual_membership_reversal",
+            "channel": "manual_membership_reversal",
+            "package_id": "supreme_svip",
+            "package_label": "至尊SVIP",
+            "tier": "supreme_svip",
+            "amount_cny": -998,
+            "operator_id": "admin_demo",
+            "legacy_user_id": "manual_user_supreme",
+            "wallet_user_id": "manual_user_supreme",
+            "days": 365,
+            "reason": "本应 0 元开通，冲销误录 998 元",
+            "reversal_of_purchase_id": purchase["purchase_id"],
+        },
+        "operator_type": "admin",
+        "operator_id": "admin_demo",
+    }
+    ledger = service.get_ledger("manual_user_supreme", limit=1, offset=0)["entries"][0]
+    assert ledger["reason"] == "manual_membership_reversal"
+    assert ledger["metadata"]["amount_cny"] == -998
+    audit = service.get_audit_log(action="manual_membership_reversal")["items"][0]
+    assert audit["target_user"] == "manual_user_supreme"
+    assert audit["after"]["reversal_of_purchase_id"] == purchase["purchase_id"]
+
+
+def test_non_supreme_membership_purchase_cannot_be_reversed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_vip",
+        package_id="vip",
+        days=365,
+        operator="admin_demo",
+        reason="VIP 收款",
+        idempotency_key="manual-vip-1",
+    )
+
+    with pytest.raises(ValueError, match="Only supreme_svip"):
+        service.reverse_manual_membership_purchase(
+            user_id="manual_user_vip",
+            purchase_id=purchase["purchase_id"],
+            amount_cny=198,
+            operator="admin_demo",
+            reason="不允许冲销普通会员",
+            idempotency_key="reverse-vip-1",
+        )
 
 
 def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) -> None:
@@ -3557,3 +4934,142 @@ def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.
     assert by_id["waterproof"]["enabled"] is False
     assert by_id["waterproof"]["quality_status"] == "invalid_form_bank"
     assert by_id["decoration"]["quality_status"] == "insufficient_forms"
+
+
+def test_member_360_includes_product_behavior_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.services import observability
+    from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
+
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: store)
+    now_ms = int(time.time() * 1000)
+    store.record_event(
+        {
+            "event_id": "evt-member-360-1",
+            "event_name": "section_viewed",
+            "event_version": 1,
+            "occurred_at_ms": now_ms,
+            "received_at_ms": now_ms + 100,
+            "user_id": "student_demo",
+            "visit_id": "visit-u1-1",
+            "session_id": "",
+            "turn_id": "",
+            "surface": "web",
+            "module": "learning_report",
+            "section": "next_action",
+            "action": "view",
+            "properties_json": {},
+        }
+    )
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    payload = service.get_member_360("student_demo")
+
+    assert payload["behavior"]["summary"]["learning_report_open_count_7d"] == 0
+    assert payload["behavior"]["learning_report_sections"][0]["section"] == "next_action"
+    assert payload["behavior"]["timeline"][0]["event_name"] == "section_viewed"
+
+
+def test_list_members_loads_behavior_summaries_in_one_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services import observability
+
+    class FakeBehaviorStore:
+        def __init__(self):
+            self.batch_calls = 0
+            self.single_calls = 0
+
+        def get_member_behavior_summaries(self, user_ids, *, days=7):
+            self.batch_calls += 1
+            return {
+                str(user_id): {
+                    "learning_report_open_count_7d": 1,
+                    "history_open_count_7d": 0,
+                    "action_start_count_7d": 0,
+                    "cohort": "",
+                    "trust_level": "B",
+                }
+                for user_id in user_ids
+            }
+
+        def get_member_behavior_summary(self, user_id, *, days=7):
+            self.single_calls += 1
+            raise AssertionError("list_members must use get_member_behavior_summaries")
+
+    fake_store = FakeBehaviorStore()
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: fake_store)
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    def _seed_registered_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("real_member_1")
+        member["phone"] = "13800138000"
+        member["display_name"] = "真实会员"
+        data["members"].append(member)
+
+    service._mutate(_seed_registered_member)
+    payload = service.list_members(page=1, page_size=20)
+
+    assert fake_store.batch_calls == 1
+    assert fake_store.single_calls == 0
+    assert payload["items"]
+    assert payload["items"][0]["behavior"]["learning_report_open_count_7d"] == 1
+
+
+def test_list_members_loads_behavior_with_canonical_alias_group(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services import observability
+
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class FakeBehaviorStore:
+        def __init__(self):
+            self.identity_groups = {}
+
+        def get_member_behavior_summaries_for_identity_groups(self, identity_groups, *, days=7):
+            self.identity_groups = identity_groups
+            return {
+                "legacy_member_1": {
+                    "learning_report_open_count_7d": 3,
+                    "history_open_count_7d": 0,
+                    "action_start_count_7d": 0,
+                    "event_count_7d": 3,
+                    "last_event_at_ms": 1,
+                    "cohort": "report_high_no_action",
+                    "cohort_reasons": ["alias events were merged"],
+                    "next_action": "推送下一步训练",
+                    "trust_level": "B",
+                }
+            }
+
+        def get_member_behavior_summaries(self, user_ids, *, days=7):
+            raise AssertionError("member list should use identity-group behavior summaries")
+
+    fake_store = FakeBehaviorStore()
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: fake_store)
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_registered_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["phone"] = "13800138000"
+        member["display_name"] = "真实会员"
+        member["external_auth_user_id"] = canonical_user_id
+        member["alias_user_ids"] = ["legacy_member_1", "wx_member_1"]
+        data["members"].append(member)
+
+    service._mutate(_seed_registered_member)
+    payload = service.list_members(page=1, page_size=20)
+
+    assert payload["items"][0]["behavior"]["learning_report_open_count_7d"] == 3
+    assert set(fake_store.identity_groups["legacy_member_1"]) >= {
+        "legacy_member_1",
+        "wx_member_1",
+        canonical_user_id,
+    }

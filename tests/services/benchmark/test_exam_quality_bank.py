@@ -16,7 +16,7 @@ from deeptutor.services.benchmark.exam_quality_bank import (
 
 def test_loads_real_fixture_with_valid_mcq_records() -> None:
     questions = load_exam_quality_bank()
-    assert questions, "bank fixture must contain questions"
+    assert len(questions) == 337
     assert all(isinstance(q, ExamQuestion) for q in questions)
     for q in questions:
         eq = q.exact_question
@@ -27,6 +27,24 @@ def test_loads_real_fixture_with_valid_mcq_records() -> None:
         assert correct, f"{q.question_id} missing correct_answer"
         assert all(letter in options for letter in correct), q.question_id
         assert str(eq.get("stem") or "").strip(), f"{q.question_id} missing stem"
+
+
+def test_real_fixture_uses_docs_2026_full_exam_years() -> None:
+    questions = load_exam_quality_bank()
+    assert {q.year for q in questions} == set(range(2015, 2026))
+
+
+def test_real_fixture_keeps_docs_2026_source_pointers() -> None:
+    from pathlib import Path
+
+    fixture = Path("deeptutor/services/benchmark/fixtures/exam_quality_bank.json")
+    payload = json.loads(fixture.read_text(encoding="utf-8"))
+    assert payload["source_docs_2026_root"] == "FastAPI20251222/docs/2026/题库"
+    assert payload["years_blocked"] == []
+    assert payload["by_year"]["2024"]["single_choice"] == 21
+    assert payload["by_year"]["2024"]["multiple_choice"] == 10
+    assert len(payload["type_normalizations"]) == 4
+    assert all((item.get("source") or {}).get("docs_2026_path") for item in payload["questions"])
 
 
 def test_single_choice_has_one_letter_multiple_has_more() -> None:

@@ -116,7 +116,15 @@ artifacts/
 # Development and Testing
 # ============================================
 develop/
+.codegraph/
+.gstack/
+.local-runs/
+.playwright-cli/
+playwright-report*/
+**/playwright-report*/
 scripts/extract_numbered_items.sh
+test-results*/
+**/test-results*/
 *.log
 logs/
 *.bak

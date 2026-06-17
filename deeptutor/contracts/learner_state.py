@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+# Multi-worker runtime invariants (uvicorn --workers N, shared container fs):
+# - The learner-state background loops (heartbeat scheduler, outbox flusher, dream
+#   cycle) MUST execute single-instance across workers. Each worker starts its own
+#   loop, but each tick is gated by an exclusive file lock (.heartbeat.lock /
+#   .outbox_flush.lock / dream-cycle watermark lock) so due jobs fire exactly once,
+#   not once per worker — no duplicate LLM calls or duplicate outbound messages.
+# - Outbox items dead-letter (status='dead') after _MAX_OUTBOX_RETRY_ATTEMPTS so a
+#   permanently-failing event stops being re-claimed forever (bounded growth).
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -371,6 +380,7 @@ LEARNER_STATE_INVARIANTS: tuple[str, ...] = (
     "Learning Brain compiled truth is stored under learner_summaries.summary_structured_json.learning_brain, not as a second learner state authority",
     "guide_completion and other structured summaries must not be read as Learning Brain compiled truth",
     "local COMPILED_TRUTH.json is a local/dev cache of offline synthesis output, not a production authority or online synthesis trigger",
+    "notebook cards keyed by metadata.card_type are learner assets and may only write lightweight student_note recall events, not summary refreshes, overlay patches, or mastery/profile/progress promotions",
     "heartbeat jobs are scheduled per user_id",
     "phase 2 overlay, if introduced, must remain local and subordinate to learner state truth",
     "TutorBot workspace memory must not override learner state truth",

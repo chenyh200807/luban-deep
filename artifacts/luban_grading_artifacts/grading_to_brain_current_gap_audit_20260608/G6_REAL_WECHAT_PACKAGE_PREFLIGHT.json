@@ -1,0 +1,62 @@
+{
+  "allowed_scope_after_authorization": "open yousenwebview project root and drive packageDeeptutor page flow",
+  "auth_mode": "none",
+  "auth_state": "unknown",
+  "blocking_reason": "true WeChat package page automation evidence is required; /wechat-harness or DevTools login/open preflight is insufficient",
+  "canonical_truth_written": false,
+  "devtools_project_root": "yousenwebview",
+  "evidence_classification": {
+    "devtools_islogin": "environment_preflight_only",
+    "devtools_open_project": "project_preflight_only",
+    "package_page_automation": "required_missing",
+    "wechat_harness": "shadow_not_real_wechat_package"
+  },
+  "evidence_ok": {
+    "AGENTS.md": true,
+    "scripts/run_wechat_learning_brain_devtools_e2e.py": true,
+    "tests/services/member_console/test_home_dashboard_learning_projection.py": true
+  },
+  "evidence_refs": [
+    "AGENTS.md",
+    "scripts/run_wechat_learning_brain_devtools_e2e.py",
+    "tests/services/member_console/test_home_dashboard_learning_projection.py"
+  ],
+  "execution_mode": "read_only_no_devtools_launch",
+  "gate_id": "G6_real_wechat_package_page_automation",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "devtools_e2e_script_present": true,
+    "devtools_login_or_open_not_counted_as_pass": true,
+    "project_root_is_yousenwebview": true,
+    "target_subpackage_is_packageDeeptutor": true,
+    "true_package_page_automation_executed": false,
+    "wechat_harness_not_counted_as_real": true
+  },
+  "production_write_count": 0,
+  "promotion_path": "verification_evidence_only_no_mastery_write",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "required_authorization": "devtools_or_manual_wechat_qa_window",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "pcp_role": "read_only_feedback_context",
+    "real_entry_evidence_source": "DevTools/miniprogram automation against yousenwebview project root plus packageDeeptutor page flow",
+    "wechat_harness_role": "shadow QA only"
+  },
+  "stop_conditions": [
+    "only /wechat-harness evidence is available",
+    "DevTools islogin/open is reported as scenario pass",
+    "project root is packageDeeptutor instead of yousenwebview",
+    "auth_state/auth_mode is unknown but reported as pass",
+    "page-level automation result is missing",
+    "any canonical learner truth write is requested by this gate"
+  ],
+  "target_subpackage": "packageDeeptutor",
+  "verdict": "true_entry_pending",
+  "without_authorization": "decision_package_only"
+}

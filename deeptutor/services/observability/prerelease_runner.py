@@ -18,6 +18,7 @@ from deeptutor.services.observability.observer_snapshot import build_observer_sn
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts
 from deeptutor.services.observability.oa_runner import build_oa_run
 from deeptutor.services.observability.om_snapshot import build_om_run
+from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload
 from deeptutor.services.observability.release_gate import build_release_gate_report
 from deeptutor.services.observability.surface_ack_smoke import run_surface_ack_smoke
 from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smoke
@@ -269,15 +270,23 @@ def run_prerelease_observability(
     )
 
     plan_completion_payload = get_control_plane_store().latest_payload("plan_completion_audits")
+    incident_payload = get_control_plane_store().latest_payload("incident_ledger", fallback=False)
+    readiness_payload = build_current_release_readiness_matrix_payload(
+        store=get_control_plane_store(),
+        release=(om_payload.get("release") or arr_payload.get("release") or {}),
+    )
 
     release_gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=persisted_benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=persisted_change_impact_payload,
         plan_completion_payload=plan_completion_payload,
+        readiness_payload=readiness_payload,
+        quality_evidence_required=True,
     )
     release_gate_artifacts = _write_control_plane_artifact(
         kind="release_gate_runs",

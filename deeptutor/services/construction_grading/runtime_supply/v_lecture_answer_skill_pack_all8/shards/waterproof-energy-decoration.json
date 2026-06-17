@@ -1,0 +1,2759 @@
+{
+  "answer_units": [
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 年份 | 2024 | 2023 | 2022(批次A) | 2022(批次B) | 2021 | 2020 |",
+          "| 选择题 | 2 | 1 | 1 | 1 | 0 | 1 |",
+          "| 案例题 | 0 | 5 | 5 | 0 | 0 | 0 |",
+          "| 总分值 | 2 | 6 | 6 | 1 | 9 | 1 |",
+          "1. **考点一、防水等级**",
+          "2. **考点二、防水构造**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "防水等级",
+          "防水构造",
+          "蓄水试验",
+          "施工缝",
+          "混凝土防水"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分屋面防水与地下防水的等级划分标准及验收要求；关注2023年及2022年案例题的具体考点。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:考点分布与分值"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第五章 防水工程",
+        "防水工程",
+        "考点分布与分值",
+        "屋面与防水工程施工",
+        "防水等级",
+        "防水构造",
+        "蓄水试验",
+        "施工缝",
+        "混凝土防水"
+      ],
+      "source_excerpt": "### 第五章 防水工程\n\n#### 近五年分值排布\n\n| 年份 | 2024 | 2023 | 2022(批次A) | 2022(批次B) | 2021 | 2020 |\n| :--- | :---: | :---: | :---: | :---: | :---: | :---: |\n| 选择题 | 2 | 1 | 1 | 1 | 0 | 1 |\n| 案例题 | 0 | 5 | 5 | 0 | 0 | 0 |\n| 总分值 | 2 | 6 | 6 | 1 | 9 | 1 |\n\n#### 章节考点体系\n\n**第一节 屋面防水工程**\n1. **考点一、防水等级**\n   - 屋面防水\n   - 地下防水\n   - 室内防水\n2. **考点二、防水构造**\n   - 屋面基本构造层次\n   - 屋面防水构造细则\n3. **考点三、防水验收**\n   - 验收批次\n   - 蓄水试验\n\n**第二节 地下防水工程**\n1. **考点一、防水通用规范**\n   - 地下防水原则\n   - 地下防水设计\n2. **考点二、混凝土防水**\n   - 混凝土防水\n   - 施工缝防水\n3. **考点三、砂浆防水**\n   - 应用场景\n   - 选材要求\n   - 施工要求",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0001_001",
+        "json_page_num": 1,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0001_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "考点分布与分值"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "考点分布与分值",
+      "unit_id": "lecture.waterproof-energy-decoration.0001"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |",
+          "| 选择题 | 2 | 1 | 1 | 0 | 1 |",
+          "| 案例题 | 0 | 5 | 0 | 0 | 0 |",
+          "| 总分值 | 2 | 6 | 1 | 0 | 1 |"
+        ],
+        "mnemonics": [
+          "2023年案例题高分值"
+        ],
+        "must_mentions": [
+          "选择题",
+          "案例题",
+          "总分值"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意分值变化，2023年案例题分值显著增加。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:分值分布"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "近五年分值分布",
+        "防水工程分值分布",
+        "分值分布",
+        "屋面与防水工程施工",
+        "选择题",
+        "案例题",
+        "总分值"
+      ],
+      "source_excerpt": "### 近五年分值分布\n\n| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |\n|------|------|------|------|------|------|\n| 选择题 | 2 | 1 | 1 | 0 | 1 |\n| 案例题 | 0 | 5 | 0 | 0 | 0 |\n| 总分值 | 2 | 6 | 1 | 0 | 1 |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0002_001",
+        "json_page_num": 2,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0002_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "分值分布"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "分值分布",
+      "unit_id": "lecture.waterproof-energy-decoration.0002"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:卷材防水"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "卷材防水",
+        "防水工程",
+        "屋面与防水工程施工"
+      ],
+      "source_excerpt": "### 卷材防水\n\n- 防水要点\n  - 防水外贴法\n  - 外防内贴法",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0003_001",
+        "json_page_num": 3,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0003_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "卷材防水"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "卷材防水",
+      "unit_id": "lecture.waterproof-energy-decoration.0003"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "| 一级     | 不应少于3道 | -        | -        |",
+          "| 二级     | 不应少于2道 | -        | -        |",
+          "| 三级     | 不应少于2道 | 卷材防水层不应少于1道 | - |",
+          "| 四级     | 不应少于1道 | -        | 任选     |",
+          "| 一级     | 不应少于3道 | 为1道，应选P8 | 不少于2道",
+          "防水卷材防水层不应少于1道 | 300mm |"
+        ],
+        "mnemonics": [
+          "精简口诀：一级三道，二级两道"
+        ],
+        "must_mentions": [
+          "一级防水",
+          "三道",
+          "明挖法"
+        ],
+        "red_lines": [
+          "防水层数不足"
+        ],
+        "trap_alerts": [
+          "注意不同防水等级的层数要求"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:防水等级与构造"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "屋面防水工程",
+        "防水等级与构造",
+        "屋面与防水工程施工",
+        "一级防水",
+        "三道",
+        "明挖法"
+      ],
+      "source_excerpt": "### 屋面防水工程\n\n#### 防水等级\n\n| 防水等级 | 防水做法 | 防水卷材 | 防水涂料 |\n|----------|----------|----------|----------|\n| 一级     | 不应少于3道 | -        | -        |\n| 二级     | 不应少于2道 | -        | -        |\n| 三级     | 不应少于2道 | 卷材防水层不应少于1道 | - |\n| 四级     | 不应少于1道 | -        | 任选     |\n\n#### 明挖法地下工程现浇混凝土主体结构防水做法\n\n| 防水等级 | 防水做法 | 防水混凝土 | 外防水层 | 现浇混凝土结构最小厚度 |\n|----------|----------|------------|----------|------------------------|\n| 一级     | 不应少于3道 | 为1道，应选P8 | 不少于2道；防水卷材防水层不应少于1道 | 300mm |\n| 二级     | 不应少于2道 | 为1道，应选P6 | 不少于1道；任选 | 250mm |\n| 三级     | 不应少于1道 | 为1道，应选P6 | - | 200mm |\n\n#### 室内楼地面防水做法\n\n| 防水等级 | 防水做法 | 防水卷材 | 防水涂料 | 水泥基防水材料 |\n|----------|----------|----------|----------|----------------|\n| 一级     | 不应少于2道 | -        | 防水涂料防水层不应少于1道 | - |\n| 二级     | 不应少于1道 | -        | -        | 任选 |\n\n#### 防水构造\n\n卷材、涂膜屋面的基本构造层次（自上而下）\n\n| 屋面类型 | 基本构造层次 |\n|----------|--------------|\n| 正置式   | 保护层、隔热层、防水层、找平层、保温层、找坡层、结构层 |\n|",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0004_001",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0004_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "防水等级与构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "防水等级与构造",
+      "unit_id": "lecture.waterproof-energy-decoration.0004"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 结构找坡层采用细石混凝土找坡，坡度不小于3%",
+          "- 采用材料找坡时，坡度为2%",
+          "- 天沟、檐沟内的找坡不应小于1%",
+          "- 找坡层最薄处厚度不小于20mm",
+          "- 分格缝宽度为5~20mm，纵横间距5~6m，缝内应嵌填密封材料",
+          "- 排气道宽为40mm，纵横间距为6m，每36㎡设一个排气孔"
+        ],
+        "mnemonics": [
+          "找坡3材2沟1，找平分格5到20，排气道40间距6，隔气卷材搭80，温度不低于-5，隔热分格10宽20"
+        ],
+        "must_mentions": [
+          "找坡层",
+          "找平层",
+          "隔气层",
+          "隔热层",
+          "保护层",
+          "坡度",
+          "厚度",
+          "分格缝",
+          "排气道"
+        ],
+        "red_lines": [
+          "坡度不足",
+          "厚度不足",
+          "温度不达标"
+        ],
+        "trap_alerts": [
+          "注意各层次的坡度、厚度和施工温度要求，避免常见错误"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:屋面防水层次构造"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "屋面防水层次构造",
+        "屋面与防水工程施工",
+        "找坡层",
+        "找平层",
+        "隔气层",
+        "隔热层",
+        "保护层",
+        "坡度"
+      ],
+      "source_excerpt": "### 屋面防水层次构造\n\n- **找坡层**\n  - 结构找坡层采用细石混凝土找坡，坡度不小于3%\n  - 采用材料找坡时，坡度为2%\n  - 天沟、檐沟内的找坡不应小于1%\n  - 找坡层最薄处厚度不小于20mm\n\n- **找平层**\n  - 找平层应在水泥砂浆初凝后实干，并应压光抹平\n  - 分格缝宽度为5~20mm，纵横间距5~6m，缝内应嵌填密封材料\n  - 排气道宽为40mm，纵横间距为6m，每36㎡设一个排气孔\n  - 水泥砂浆应分二次抹平，并应及时取出分格条\n  - 找平层的平整度应控制在4mm以内，且应光滑、密实\n\n- **隔气层**\n  - 隔气层铺设应平整、干净、干燥\n  - 隔气层应在结构层与保温层之间\n  - 屋面与墙体接触处，隔气层铺设应向上卷起高度，高出保温层上表面≥150mm\n  - 隔气层采用卷材时可空铺，卷材搭接宽度应为80mm\n  - 冬期施工：防水涂料宜选用非溶剂型涂料\n  - 隔气层施工时的温度不低于-5℃\n\n- **隔热层**\n  - 块体-保护层：宜设置分格缝，分格缝纵横间距≤10m，分格缝宽度宜为20mm\n  - 水泥砂浆-保护层：表面应找平压光，并未设面分格缝，分格面积宜为1㎡\n  - 细石混凝土-保护层：应振捣密实，表面找平压光，分格缝纵横间距≤6m",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0005_001",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0005_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "屋面防水层次构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "屋面防水层次构造",
+      "unit_id": "lecture.waterproof-energy-decoration.0005"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [],
+        "mnemonics": [
+          "低向高铺贴，平行屋脊，搭接500，檐口800，水落口5%"
+        ],
+        "must_mentions": [
+          "低向高铺贴",
+          "平行屋脊",
+          "搭接500",
+          "檐口800",
+          "水落口5%"
+        ],
+        "red_lines": [
+          "错误铺贴方向"
+        ],
+        "trap_alerts": [
+          "错误铺贴方向可能导致漏水"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:屋面防水辅贴方法"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "屋面防水-辅贴方法",
+        "屋面防水辅贴方法",
+        "屋面与防水工程施工",
+        "低向高铺贴",
+        "平行屋脊",
+        "搭接500",
+        "檐口800",
+        "水落口5%"
+      ],
+      "source_excerpt": "### 屋面防水-辅贴方法\n\n- 防水层应由低向高铺贴，搭接缝顺水方向。\n- 墙角、天沟施工宜顺直，搭接缝应顺水方向。\n- 卷材宜平行屋脊铺贴，上下层卷材不得相互垂直铺贴。\n- 立面或大坡面卷材不应顺排水方向铺贴，并宜做成梯级搭接。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0006_001",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0006_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "屋面防水辅贴方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "屋面防水辅贴方法",
+      "unit_id": "lecture.waterproof-energy-decoration.0006"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 长边搭接宽度≥50mm，短边搭接宽度≥70mm",
+          "- 上下层胎体增强材料长边搭接缝应错开，且应≥幅宽的1/3"
+        ],
+        "mnemonics": [
+          "长边50短边70，错开1/3防水优"
+        ],
+        "must_mentions": [
+          "涂膜防水",
+          "搭接宽度",
+          "无纺布"
+        ],
+        "red_lines": [
+          "搭接宽度不足"
+        ],
+        "trap_alerts": [
+          "搭接宽度不足可能导致防水失效"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:涂膜防水胎体增强材料"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "涂膜防水 - 胎体增强材料",
+        "涂膜防水胎体增强材料",
+        "装饰装修与屋面工程相关规定",
+        "涂膜防水",
+        "搭接宽度",
+        "无纺布"
+      ],
+      "source_excerpt": "### 涂膜防水 - 胎体增强材料\n\n- 涂膜防水层的胎体增强材料宜采用：无纺布或化纤无纺布。\n- 长边搭接宽度≥50mm，短边搭接宽度≥70mm。\n- 上下层胎体增强材料长边搭接缝应错开，且应≥幅宽的1/3。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422040_P0007_001",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422040_P0007_001"
+      },
+      "taxonomy": {
+        "node_code": "1A422040",
+        "node_name": "装饰装修与屋面工程相关规定",
+        "topic": "涂膜防水胎体增强材料"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "涂膜防水胎体增强材料",
+      "unit_id": "lecture.waterproof-energy-decoration.0007"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "- 屋面工程各分项工程宜按屋面面积每 **500 ~ 1000㎡** 划分为一个检验批，不足 **500㎡** 为一个检验批",
+          "- 防水、保温各分项工程每个检验批抽检屋面面积 **100㎡/1处**，每处不少于 **10㎡**，且不少于 **3处**"
+        ],
+        "mnemonics": [
+          "500到1000划分批，防水保温百平抽，十平三处要记牢"
+        ],
+        "must_mentions": [
+          "屋面面积",
+          "检验批",
+          "抽检面积"
+        ],
+        "red_lines": [
+          "不按标准划分检验批"
+        ],
+        "trap_alerts": [
+          "易混淆点说明：检验批划分和抽检要求需严格区分"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:屋面防水验收"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "屋面防水验收数量",
+        "屋面防水验收",
+        "屋面与防水工程施工",
+        "屋面面积",
+        "检验批",
+        "抽检面积"
+      ],
+      "source_excerpt": "### 屋面防水验收数量\n\n- 屋面工程各分项工程宜按屋面面积每 **500 ~ 1000㎡** 划分为一个检验批，不足 **500㎡** 为一个检验批。\n- 防水、保温各分项工程每个检验批抽检屋面面积 **100㎡/1处**，每处不少于 **10㎡**，且不少于 **3处**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0008_001",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0008_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "屋面防水验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "屋面防水验收",
+      "unit_id": "lecture.waterproof-energy-decoration.0008"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "石子最大粒径≤40mm",
+          "砂含泥量≤3%",
+          "泥块含量≤1%",
+          "防水砼抗渗等级≥P6，抗压强度≥0.2MPa",
+          "- **浇筑**: 防水混凝土应分层连续浇筑，分层厚度≤500mm",
+          "- **搅拌**: 防水混凝土拌合物应采用机械搅拌，搅拌时间≥2min"
+        ],
+        "mnemonics": [
+          "石子40砂3泥1，抗渗P6压0.2，层500搅2分，温30养14后28"
+        ],
+        "must_mentions": [
+          "石子最大粒径",
+          "砂含泥量",
+          "泥块含量",
+          "抗渗等级",
+          "抗压强度",
+          "分层厚度",
+          "搅拌时间",
+          "施工温度",
+          "养护时间"
+        ],
+        "red_lines": [
+          "超出材料配比限制",
+          "不足养护时间"
+        ],
+        "trap_alerts": [
+          "注意材料配比和养护时间的严格要求，避免因忽视而导致施工质量问题。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:混凝土防水"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土防水",
+        "屋面与防水工程施工",
+        "石子最大粒径",
+        "砂含泥量",
+        "泥块含量",
+        "抗渗等级",
+        "抗压强度",
+        "分层厚度"
+      ],
+      "source_excerpt": "### 混凝土防水\n\n- **配比**: 宜采用硅酸盐、普通水泥；石子最大粒径≤40mm；砂含泥量≤3%；泥块含量≤1%；防水砼抗渗等级≥P6，抗压强度≥0.2MPa。\n- **浇筑**: 防水混凝土应分层连续浇筑，分层厚度≤500mm。\n- **搅拌**: 防水混凝土拌合物应采用机械搅拌，搅拌时间≥2min。\n- **振捣**: 搅拌均匀混凝土设计强度等级的龄期为60d或90d；高温期间施工，大体积混凝土不应大于30℃。\n- **养护**: 防水混凝土保湿保温养护时间不得少于14d，后浇带不得少于28d。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0009_001",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0009_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "混凝土防水"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土防水",
+      "unit_id": "lecture.waterproof-energy-decoration.0009"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- **施工条件**: 防水砂浆应在防水层浇水后2小时内进行",
+          "- **养护要求**: 养护温度不低于5℃，养护时间不少于14天",
+          "- **环境要求**: 施工温度不低于5℃，气温不高于30℃"
+        ],
+        "mnemonics": [
+          "施工温度5到30，养护不少14天"
+        ],
+        "must_mentions": [
+          "沙浆防水",
+          "施工温度",
+          "养护时间"
+        ],
+        "red_lines": [
+          "不符合温度要求施工"
+        ],
+        "trap_alerts": [
+          "注意施工温度和养护时间的要求"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:沙浆防水"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "沙浆防水施工要求",
+        "沙浆防水",
+        "装饰装修工程施工",
+        "施工温度",
+        "养护时间"
+      ],
+      "source_excerpt": "### 沙浆防水施工要求\n\n- **应用场景**: 地下工程整体结构的迎水面或背水面\n- **施工条件**: 防水砂浆应在防水层浇水后2小时内进行\n- **选材要求**: 水泥砂浆应使用硅酸盐水泥，普通硅酸盐水泥，矿渣硅酸盐水泥，特种水泥\n- **养护要求**: 养护温度不低于5℃，养护时间不少于14天\n- **环境要求**: 施工温度不低于5℃，气温不高于30℃\n- **施工方法**: 宜采用多层抹压法施工，最后一层应抹压光",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0010_001",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0010_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "沙浆防水"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "沙浆防水",
+      "unit_id": "lecture.waterproof-energy-decoration.0010"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. 先铺平面，后铺立面，交接处应交替搭接",
+          "2. 内层防水卷材应平铺",
+          "3. 从底面折向立面卷材，固定在永久性保护墙的凸出部位",
+          "4. 卷材顶端应用临时压条固定",
+          "- 改性沥青类防水卷材：150mm",
+          "- 合成高分子类防水卷材：100mm"
+        ],
+        "mnemonics": [
+          "精简口诀：改性沥青150，合成高分子100"
+        ],
+        "must_mentions": [
+          "外防外贴法",
+          "搭接宽度",
+          "改性沥青",
+          "合成高分子"
+        ],
+        "red_lines": [
+          "搭接宽度不足"
+        ],
+        "trap_alerts": [
+          "搭接宽度不足是常见错误，需特别注意。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:防水施工要点"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "外防外贴法",
+        "防水施工要点",
+        "装饰装修工程施工",
+        "搭接宽度",
+        "改性沥青",
+        "合成高分子"
+      ],
+      "source_excerpt": "### 外防外贴法\n\n- **施工步骤**:\n  1. 先铺平面，后铺立面，交接处应交替搭接。\n  2. 内层防水卷材应平铺。\n  3. 从底面折向立面卷材，固定在永久性保护墙的凸出部位。\n  4. 卷材顶端应用临时压条固定。\n\n- **卷材搭接**:\n  - 改性沥青类防水卷材：150mm\n  - 合成高分子类防水卷材：100mm\n  - 上层卷材应盖过下层卷材。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0011_001",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0011_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "防水施工要点"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "防水施工要点",
+      "unit_id": "lecture.waterproof-energy-decoration.0011"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. 地漏管道根部采用密封防水措施",
+          "2. 穿过楼板或墙体的管道套管与管道间采用防水密封材料填实",
+          "3. 穿过楼板的防水套管应高出装饰面层完成面20mm"
+        ],
+        "mnemonics": [
+          "地漏密封，套管填实，套管高出20mm"
+        ],
+        "must_mentions": [
+          "密封防水",
+          "20mm",
+          "防水套管"
+        ],
+        "red_lines": [
+          "未密封导致漏水"
+        ],
+        "trap_alerts": [
+          "忽视密封可能导致漏水"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:室内防水设计构造"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "室内防水设计构造要求",
+        "室内防水设计构造",
+        "装饰装修工程施工",
+        "密封防水",
+        "20mm",
+        "防水套管"
+      ],
+      "source_excerpt": "### 室内防水设计构造要求\n\n1. 地漏管道根部采用密封防水措施。\n2. 穿过楼板或墙体的管道套管与管道间采用防水密封材料填实。\n3. 穿过楼板的防水套管应高出装饰面层完成面20mm。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0012_001",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0012_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "室内防水设计构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "室内防水设计构造",
+      "unit_id": "lecture.waterproof-energy-decoration.0012"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **原因**:",
+          "2. **治理**:",
+          "1. 沿缝剔成**八字形凹槽**",
+          "2. 松散石子剔除，刷洗干净",
+          "3. 水泥素浆打底，抹**1:2.5水泥砂浆**找平压实",
+          "1. **原因**: 粘结不实，存有水分/气体"
+        ],
+        "mnemonics": [
+          "防水缝：漏注不漏槽，一二点五浆。起鼓：小百抽，百三切，大三割，搭接百。"
+        ],
+        "must_mentions": [
+          "促凝胶浆",
+          "八字形凹槽",
+          "1:2.5",
+          "抽气灌胶",
+          "十字切开",
+          "割补法"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分十字切开法（100-300mm）与割补法（>300mm）的工艺区别；注意所有涉及尺寸的参数均为100mm（补丁增量、搭接宽度）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:防水混凝土施工缝与卷材起鼓治理"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "防水砼施工缝漏水治理",
+        "防水工程质量通病防治",
+        "防水混凝土施工缝与卷材起鼓治理",
+        "屋面与防水工程施工",
+        "促凝胶浆",
+        "八字形凹槽",
+        "1:2.5",
+        "抽气灌胶",
+        "十字切开",
+        "割补法"
+      ],
+      "source_excerpt": "### 防水砼施工缝漏水治理\n1. **原因**:\n   - 施工缝位置留设不当\n   - 杂物未清除，新旧混凝土夹层\n   - 钢筋过密，浇捣困难\n   - 骨料集中\n   - 施工缝未处理，粘接不牢\n   - 收缩裂缝\n2. **治理**:\n   - **渗漏部位**: 采用促凝胶浆或氰凝灌浆堵漏。\n   - **不漏部位**: \n     1. 沿缝剔成**八字形凹槽**\n     2. 松散石子剔除，刷洗干净\n     3. 水泥素浆打底，抹**1:2.5水泥砂浆**找平压实\n\n### 屋面卷材起鼓治理\n1. **原因**: 粘结不实，存有水分/气体；受热膨胀。\n2. **治理分级**:\n   - **直径 < 100mm**: 抽气灌胶法。抽气灌胶 -> 压上几块砖 -> 几天后移去。\n   - **直径 100~300mm**: 十字切开法。\n     1. 铲除保护层，按十字形割开鼓泡，放气擦干。\n     2. 清除旧胶，喷灯吹干。\n     3. 预备方形卷材，边长比开刀范围大**100mm**。\n     4. 旧卷材分片粘好，新方形卷材**压入**旧卷材下。\n     5. 覆盖好旧卷材，四边搭接，重做保护层。\n   - **直径 > 300mm**: 割补法。\n     1. 割除鼓泡卷材。\n     2. 喷灯烘烤旧卷材槎口，分层剥开。\n     3. 除去旧胶，依次粘贴好旧卷材。\n     4. 上面铺贴一层新卷材，四周与旧卷材搭接**不小于100mm**。\n     5. 覆盖第二层新卷材，周边压实刮平。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0012_001",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0012_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "防水混凝土施工缝与卷材起鼓治理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "防水混凝土施工缝与卷材起鼓治理",
+      "unit_id": "lecture.waterproof-energy-decoration.0013"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |",
+          "| 选择题 | 0 | 2 | 3/1 | 0 | 3 |",
+          "| 案例题 | 4 | 0 | 0 | 0 | 0 |",
+          "| **总分值** | **4** | **2** | **3/1** | **0** | **3** |",
+          "1. **考点一：建筑节能工程质量验收**",
+          "2. **考点二：建筑节能工程管理要点**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:节能工程考情分析"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第六章 节能工程",
+        "节能工程",
+        "节能工程考情分析",
+        "建筑工程施工技术"
+      ],
+      "source_excerpt": "### 第六章 节能工程\n\n#### 近五年分值排布\n| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |\n| :--- | :---: | :---: | :---: | :---: | :---: |\n| 选择题 | 0 | 2 | 3/1 | 0 | 3 |\n| 案例题 | 4 | 0 | 0 | 0 | 0 |\n| **总分值** | **4** | **2** | **3/1** | **0** | **3** |\n\n#### 章节知识架构\n**第一节 节能施工管理要点**\n1. **考点一：建筑节能工程质量验收**\n   - 节能工程质量验收划分标准\n   - 建筑节能质量验收合格标准\n2. **考点二：建筑节能工程管理要点**\n   - 节能工程方案管理\n   - 节能工程材料管理\n   - 节能工程施工要点\n\n**第二节 节能构造及施工要求**\n1. **考点一：节能材料**\n   - 有机材料\n   - 无机材料\n2. **考点二：屋面节能**\n   - 正置式屋面保温\n   - 倒置式屋面保温\n   - 种植式屋面保温\n3. **考点三：墙体节能**\n   - 外墙外保温\n   - 外墙内保温\n   - 防火隔离带",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413000_P0013_001",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413000_P0013_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413000",
+        "node_name": "建筑工程施工技术",
+        "topic": "节能工程考情分析"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "节能工程考情分析",
+      "unit_id": "lecture.waterproof-energy-decoration.0014"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **施组设计**",
+          "2. **施工准备**",
+          "3. **进场检查**",
+          "4. **见证取样**",
+          "5. **型式检验**",
+          "- 型式检验报告的**有效期不应超过2年**"
+        ],
+        "mnemonics": [
+          "管理：施组方案资质全，样板确认四新评，进场复验型检二。材料：板状泡沫块，纤维三棉，整体喷浇。"
+        ],
+        "must_mentions": [
+          "专项施工方案",
+          "监理人审批",
+          "样板间",
+          "各方确认",
+          "见证取样",
+          "2年",
+          "型式检验"
+        ],
+        "red_lines": [
+          "未编制专项方案",
+          "样板未确认即施工",
+          "型式检验报告过期"
+        ],
+        "trap_alerts": [
+          "注意区分'进场检查'（外观/包装等）与'复验'（性能指标）的区别；型式检验报告有效期严格限制为2年。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:节能工程施工管理与构造"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第一节 节能施工管理要点",
+        "建筑节能工程",
+        "节能工程施工管理与构造",
+        "建筑工程施工技术",
+        "专项施工方案",
+        "监理人审批",
+        "样板间",
+        "各方确认",
+        "见证取样",
+        "2年"
+      ],
+      "source_excerpt": "### 第一节 节能施工管理要点\n\n#### 考点一、建筑节能工程管理要点\n\n1. **施组设计**\n   - 单位工程施工组织设计应包括**建筑节能工程**的施工内容。\n   - 施工前，施工单位应编制**建筑节能工程专项施工方案**。\n\n2. **施工准备**\n   - 承担建筑节能工程的施工企业应具备**相应资质**。\n   - 施工前，施工方应编制《施工方案》，经**监理人审批**。\n   - 施工前，应对节能工程施工人员进行**技术交底**和**操作培训**。\n   - 施工前，采用相同节能设计的房间和构造做法，在现场采用相同材料和工艺制作**样板间**和**样板件**，经**各方确认**后方可施工。\n   - “四新工程”应按要求进行评审、鉴定、备案。\n   - 采用的施工工艺进行评价，并制定**专门施工技术方案**。\n\n3. **进场检查**\n   - 应检查其**品种、规格、数量、包装、外观质量**。\n   - 经监理工程师确认后形成《**进场检查记录**》。\n\n4. **见证取样**\n   - 应进行抽样复验，复验形式为**见证取样**。\n   - 应在监理单位见证下，交由**法定检测单位**检测。\n\n5. **型式检验**\n   - 涉及建筑节能效果的**定型产品、预制构件**、采用**成套技术**现场施工安装的工程，应提供型式检验报告。\n   - 型式检验报告的**有效期不应超过2年**。\n\n### 第二节 节能构造及施工要求\n\n#### 考点一、屋面节能\n\n**屋面保温层的分类**：\n\n| 分类 | 材料举例 |\n| :--- | :--- |\n| **01 板状-材料保温层** | 聚苯乙烯泡沫塑料、硬质聚氨酯泡沫塑料、膨胀珍珠岩制品、泡沫玻璃制品、加气混凝土砌块、泡沫混凝土砌块 |\n| **02 纤维-材料保温层** | 玻璃棉、岩棉、矿渣棉制品 |\n| **03 整体-材料保温层** | 喷涂硬泡聚氨酯、现浇泡沫混凝土 |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413000_P0015_001",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413000_P0015_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413000",
+        "node_name": "建筑工程施工技术",
+        "topic": "节能工程施工管理与构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "节能工程施工管理与构造",
+      "unit_id": "lecture.waterproof-energy-decoration.0015"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "- **型式检验**: 涉及建筑节能效果的型式检验报告有效期不超过2年"
+        ],
+        "mnemonics": [
+          "节能施工：设计含节能，准备需资质，进场检验，见证复验，型式2年"
+        ],
+        "must_mentions": [
+          "节能施工",
+          "资质",
+          "检验",
+          "2年"
+        ],
+        "red_lines": [
+          "无资质施工",
+          "未检验产品使用"
+        ],
+        "trap_alerts": [
+          "注意施工资质和型式检验报告的有效期"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:建筑节能工程管理要点"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "节能施工管理要点",
+        "建筑节能工程管理要点",
+        "节能施工管理",
+        "节能施工",
+        "资质",
+        "检验",
+        "2年"
+      ],
+      "source_excerpt": "### 节能施工管理要点\n\n- **施工设计**: 单位工程施工组织设计应包括建筑节能工程的施工内容。\n- **施工准备**: 承担建筑节能工程的施工企业应具备相应资质，施工前应对施工人员进行技术交底和培训。\n- **进场检验**: 应检查节能产品、规格、数量、包装、外观质量。\n- **见证取样**: 应进行抽样复验，复验完成方可进行施工。\n- **型式检验**: 涉及建筑节能效果的型式检验报告有效期不超过2年。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0016_001",
+        "json_page_num": 16,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0016_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "节能施工管理",
+        "topic": "建筑节能工程管理要点"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "建筑节能工程管理要点",
+      "unit_id": "lecture.waterproof-energy-decoration.0016"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 隔汽层沿墙面四周上翻高度应≥150mm",
+          "- 低压泵送，浇筑高度宜≤1m，分层浇筑厚度≤200mm",
+          "- 养护时间≥7d",
+          "- 一个作业面应分幅喷涂完成，每幅厚度宜≤15mm",
+          "- 硬泡聚氨酯喷涂完成后20min内严禁上人，并及时做保护层"
+        ],
+        "mnemonics": [
+          "隔汽层150上翻，泡沫混凝土1米高，200厚，养护7天，聚氨酯15厚，20分钟禁上人。"
+        ],
+        "must_mentions": [
+          "隔汽层",
+          "泡沫混凝土",
+          "硬泡聚氨酯",
+          "150mm",
+          "1m",
+          "200mm",
+          "7d",
+          "15mm",
+          "20min"
+        ],
+        "red_lines": [
+          "未按要求施工隔汽层",
+          "泡沫混凝土浇筑过厚",
+          "聚氨酯喷涂后未及时保护"
+        ],
+        "trap_alerts": [
+          "注意隔汽层上翻高度和泡沫混凝土浇筑厚度，聚氨酯喷涂后需及时保护。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:屋面节能施工"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "屋面节能施工流程",
+        "屋面节能施工",
+        "装饰装修工程施工",
+        "隔汽层",
+        "泡沫混凝土",
+        "硬泡聚氨酯",
+        "150mm",
+        "1m",
+        "200mm"
+      ],
+      "source_excerpt": "### 屋面节能施工流程\n\n#### 隔汽层施工\n- 设计有隔汽层时，先施工隔汽层，然后施工保温层。\n- 隔汽层沿墙面四周上翻高度应≥150mm。\n\n#### 块材保温层\n- 块材保温层施工，相邻板块错缝拼接，上下层接缝错开。\n- 板间缝隙应采用同类材料填实。\n- 辅助方法：干铺法、粘贴法、浇注法。\n\n#### 泡沫混凝土施工\n- 洗净基层，基层应清理干净，浇水湿润，但不得有积水。\n- 低压泵送，浇筑高度宜≤1m，分层浇筑厚度≤200mm。\n- 浇筑过程中，应随时检测混凝土密实度。\n- 养护时间≥7d。\n\n#### 硬泡聚氨酯\n- 喷涂硬泡聚氨酯保温层施工，喷涂时喷嘴与基面的间距应试验确定。\n- 一个作业面应分幅喷涂完成，每幅厚度宜≤15mm。\n- 当日的作业面应当日连续喷涂完成。\n- 硬泡聚氨酯喷涂完成后20min内严禁上人，并及时做保护层。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "屋面节能施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "屋面节能施工",
+      "unit_id": "lecture.waterproof-energy-decoration.0017"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 屋面坡度",
+          "- **坡度要求**: 倒置式屋面坡度不宜大于3% (注: 讲义标注【教材有误】)",
+          "- 坡度 > 3%: 应采取防止防水、保温、保护层下滑的措施",
+          "- 坡度 > 10%: 应沿“垂直于坡度方向”设置防滑条",
+          "#### 2. 板材施工 (口诀: 小3粘上铺不上)",
+          "- **坡度 ≤ 3%**:"
+        ],
+        "mnemonics": [
+          "小3粘上铺不上"
+        ],
+        "must_mentions": [
+          "干铺法",
+          "粘结法",
+          "防滑条",
+          "垂直坡度"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意教材关于倒置式屋面坡度不宜大于3%的标注可能存在争议（讲义提示【教材有误】），考试以教材原文为准，但需注意实际工程逻辑。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:倒置式屋面施工技术"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "倒置式屋面",
+        "倒置式屋面施工技术",
+        "屋面与防水工程施工",
+        "干铺法",
+        "粘结法",
+        "防滑条",
+        "垂直坡度"
+      ],
+      "source_excerpt": "### 倒置式屋面\n\n#### 1. 屋面坡度\n- **坡度要求**: 倒置式屋面坡度不宜大于3% (注: 讲义标注【教材有误】)。\n- **防滑措施**: \n  - 坡度 > 3%: 应采取防止防水、保温、保护层下滑的措施。\n  - 坡度 > 10%: 应沿“垂直于坡度方向”设置防滑条。\n\n#### 2. 板材施工 (口诀: 小3粘上铺不上)\n- **坡度 ≤ 3%**:\n  - 不上人屋面: **干铺法**\n  - 上人屋面: **粘结法**\n- **坡度 > 3%**:\n  - 所有屋面: **粘结法 + 固定防滑措施**\n\n#### 3. 女儿墙与山墙构造\n- **低女儿墙/山墙**: 保温层应铺到**压顶下**。\n- **高女儿墙/山墙**: 内侧保温层应铺到**顶部**。\n- **变形缝**: 保温层应覆盖变形缝挡墙的**两侧**。\n- **设施基座**: 屋面设施基座与结构层相连时，保温层应包裹基座的**上部**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "倒置式屋面施工技术"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "倒置式屋面施工技术",
+      "unit_id": "lecture.waterproof-energy-decoration.0018"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [],
+        "mnemonics": [
+          "EPS、XPS、PUR、PIR"
+        ],
+        "must_mentions": [
+          "EPS板",
+          "XPS板",
+          "PUR板",
+          "PIR板"
+        ],
+        "red_lines": [
+          "不符合材料要求"
+        ],
+        "trap_alerts": [
+          "注意不同保温材料的适用性和施工要求。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:外墙保温材料"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "外墙外保温常用有机保温材料",
+        "外墙外保温系统",
+        "外墙保温材料",
+        "装饰装修工程施工",
+        "EPS板",
+        "XPS板",
+        "PUR板",
+        "PIR板"
+      ],
+      "source_excerpt": "### 外墙外保温常用有机保温材料\n\n- 挤塑板（XPS板）\n- 聚苯板（EPS板）\n- 聚氨酯泡沫塑料（PUR板）\n- 聚异氰脲酸酯泡沫塑料（PIR板）\n\n#### EPS板薄抹灰系统\n- **总构造**: 粘结层、保温层、抹面层、饰面层\n- **粘结层**: 粘结剂\n- **保温层**: EPS板、XPS板、PUR板或PIR板\n- **抹面层**: 抹面胶浆（玻璃纤维网）\n- **饰面层**: 涂料或饰面砂浆\n\n#### 胶粉聚苯颗粒保温浆料\n- **总构造**: 界面层、保温层、抹面层、饰面层\n- **界面层**: 界面砂浆\n- **保温层**: 胶粉聚苯颗粒保温浆料\n- **抹面层**: 抹面胶浆（玻璃纤维网）\n- **饰面层**: 涂料或饰面砂浆",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0019_001",
+        "json_page_num": 19,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0019_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "外墙保温材料"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "外墙保温材料",
+      "unit_id": "lecture.waterproof-energy-decoration.0019"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. 采用B2保温材料的外墙外保温的防火隔离带，必须燃烧性能为A级，宜为岩棉带",
+          "2. 防火隔离带宽度应≥300mm",
+          "3. 防火棉的密度应≥100kg/m³",
+          "4. 防火隔离带应与基层墙体可靠连接",
+          "5. 防火隔离带不应产生渗透、裂缝、空鼓"
+        ],
+        "mnemonics": [
+          "精简口诀：防火隔离带：A级岩棉，宽300，密100"
+        ],
+        "must_mentions": [
+          "防火隔离带",
+          "A级",
+          "300mm",
+          "100kg/m³"
+        ],
+        "red_lines": [
+          "不符合防火要求"
+        ],
+        "trap_alerts": [
+          "防火隔离带的宽度和密度要求容易被忽视。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:防火隔离带构造要求"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "防火隔离带构造要求",
+        "屋面与防水工程施工",
+        "防火隔离带",
+        "A级",
+        "300mm",
+        "100kg/m³"
+      ],
+      "source_excerpt": "### 防火隔离带构造要求\n\n1. 采用B2保温材料的外墙外保温的防火隔离带，必须燃烧性能为A级，宜为岩棉带。\n2. 防火隔离带宽度应≥300mm。\n3. 防火棉的密度应≥100kg/m³。\n4. 防火隔离带应与基层墙体可靠连接。\n5. 防火隔离带不应产生渗透、裂缝、空鼓。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0020_001",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0020_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "防火隔离带构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "防火隔离带构造要求",
+      "unit_id": "lecture.waterproof-energy-decoration.0020"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 选用",
+          "#### 2. 进场 (一证两书一报告)",
+          "1. **质量证明文件**",
+          "2. **节能性能标识证书**",
+          "3. **门窗节能性能计算书**",
+          "4. **复验报告**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:门窗节能工程验收"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "门窗节能工程",
+        "门窗节能工程验收",
+        "绿色建造的相关规定"
+      ],
+      "source_excerpt": "### 门窗节能工程\n\n#### 1. 选用\n- 门窗节能工程应优先具有**国家门窗节能性能标识**的产品。\n\n#### 2. 进场 (一证两书一报告)\n门窗节能材料、构件进场时，应核查：\n1. **质量证明文件**\n2. **节能性能标识证书**\n3. **门窗节能性能计算书**\n4. **复验报告**\n\n#### 3. 验收 (三性节能三地区)\n**基本要求 (三性检测)**：\n- 气密性\n- 水密性\n- 抗风压性能\n\n**分地区检测重点**：\n- **严寒地区**：①气密性 ②传热系数\n- **夏热冬暖地区**：①气密性 ②玻璃遮阳系数 ③可见光透射比\n- **夏热冬冷地区**：①气密性 ②玻璃遮阳系数 ③可见光透射比 ④传热系数",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422050_P0021_001",
+        "json_page_num": 21,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422050_P0021_001"
+      },
+      "taxonomy": {
+        "node_code": "1A422050",
+        "node_name": "绿色建造的相关规定",
+        "topic": "门窗节能工程验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "门窗节能工程验收",
+      "unit_id": "lecture.waterproof-energy-decoration.0021"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "**1. 验收项目** (口诀：**基层隔缝热保温**)",
+          "**2. 验收数量**",
+          "*   **一般项目**：每个检验批按面积每 **100m²** 抽查 **1** 处，每处应为 **10m²**，且应 **≥3** 处",
+          "*   **屋面工程**：各分项每 **500~1000m²** 为一个检验批，不足 **500m²** 为一个检验批",
+          "#### 1. 外墙节能构造实体检验",
+          "*   **数量**：按单位工程进行，每种节能构造检验 **≥3** 处，每处检查 **1** 个点"
+        ],
+        "mnemonics": [
+          "隐蔽：基层隔缝热保温；外窗：寒寒24知冷暖"
+        ],
+        "must_mentions": [
+          "基层隔缝热保温",
+          "寒寒24知冷暖",
+          "30000m²",
+          "监理工程师见证",
+          "钻芯检验"
+        ],
+        "red_lines": [
+          "不得预先确定检验位置"
+        ],
+        "trap_alerts": [
+          "注意区分外墙钻芯和外窗气密性的实施主体：钻芯可由施工单位实施，气密性必须第三方。注意夏热冬冷地区24m的限制条件。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:节能工程质量验收"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "隐蔽验收",
+        "节能工程验收",
+        "节能工程质量验收",
+        "绿色建造的相关规定",
+        "基层隔缝热保温",
+        "寒寒24知冷暖",
+        "30000m²",
+        "监理工程师见证",
+        "钻芯检验"
+      ],
+      "source_excerpt": "### 隐蔽验收\n\n**1. 验收项目** (口诀：**基层隔缝热保温**)\n*   ① 基层及其表面处理\n*   ② 隔汽层\n*   ③ 保温材料种类、厚度\n*   ④ 保温层敷设方法\n*   ⑤ 板材缝隙填充质量\n*   ⑥ 屋面热桥部位处理\n\n**2. 验收数量**\n*   **一般项目**：每个检验批按面积每 **100m²** 抽查 **1** 处，每处应为 **10m²**，且应 **≥3** 处。\n*   **屋面工程**：各分项每 **500~1000m²** 为一个检验批，不足 **500m²** 为一个检验批。\n\n---\n\n### 考点二、围护结构现场实体检验\n\n#### 1. 外墙节能构造实体检验\n*   **时段**：围护结构节能工程施工完成，应对外墙节能构造进行实体检验。\n*   **项目**：①墙体保温材料种类；②保温层厚度；③保温构造做法。\n*   **单位**：\n    *   **钻芯检验**：由**监理人员见证**，可由**建设单位委托法定检测机构**实施，也可由**施工单位**实施。\n    *   **传热系数/热阻**：由**监理工程师见证**，由**建设单位委托具有资质的检测机构**实施。\n*   **数量**：按单位工程进行，每种节能构造检验 **≥3** 处，每处检查 **1** 个点。\n*   **原则**：随机抽取，分布均匀，具有代表性，**不得预先确定**检验位置。\n\n#### 2. 外窗气密性实体检验\n*   **抽样项目** (口诀：**寒寒24知冷暖**)\n    *   ① **寒冷、严寒**地区；\n    *   ② **夏热冬冷**地区高度 **≥24m**；\n    *   ③ 有**集中供暖或供冷**的建筑。\n*   **抽样单位**：由**监理工程师见证**，由**建设单位委托有资质的检测机构**实施。\n*   **抽样数量**：\n    *   按单位工程进行，每种材质、开启方式、型材系列的外窗检验 **≥3** 樘。\n    *   **合并规则**：同项目、同施工单位且同期施工多个单位工程，可",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422050_P0022_001",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422050_P0022_001"
+      },
+      "taxonomy": {
+        "node_code": "1A422050",
+        "node_name": "绿色建造的相关规定",
+        "topic": "节能工程质量验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "节能工程质量验收",
+      "unit_id": "lecture.waterproof-energy-decoration.0022"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **验收项目** (口诀：**基层隔缝热保温**)",
+          "2. **验收数量**",
+          "- 各分项工程每个检验批按面 **每100m²抽查1处**，每处应为 **10m²**，且应 **≥3处**",
+          "- 屋面各分项 **每500~1000m²** 为一个检验批，**不足500m²** 为一个检验批",
+          "#### 1. 外墙节能构造",
+          "- **数量**：按单位工程进行，每种节能构造检验 **≥3处**，每处检查 **1个点**"
+        ],
+        "mnemonics": [
+          "隐蔽：基层隔缝热保温；外窗：寒寒24知冷暖"
+        ],
+        "must_mentions": [
+          "100m²",
+          "10m²",
+          "≥3处",
+          "500~1000m²",
+          "监理人见证",
+          "建设单位委托",
+          "不得预先确定",
+          "30000m²"
+        ],
+        "red_lines": [
+          "不得预先确定检验位置"
+        ],
+        "trap_alerts": [
+          "注意区分外墙钻芯检验（可施工单位做）与外窗/传热系数检验（必须第三方做）；夏热冬冷地区气密性检测有24m高度限制。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:围护结构节能验收"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "隐蔽验收",
+        "建筑节能工程验收",
+        "围护结构节能验收",
+        "绿色建造的相关规定",
+        "100m²",
+        "10m²",
+        "≥3处",
+        "500~1000m²",
+        "监理人见证",
+        "建设单位委托"
+      ],
+      "source_excerpt": "### 隐蔽验收\n\n1. **验收项目** (口诀：**基层隔缝热保温**)\n   - ① 基层及其表面处理\n   - ② 隔汽层\n   - ③ 保温材料种类、厚度\n   - ④ 保温层敷设方法\n   - ⑤ 板材缝隙填充质量\n   - ⑥ 屋面热桥部位处理\n\n2. **验收数量**\n   - 各分项工程每个检验批按面 **每100m²抽查1处**，每处应为 **10m²**，且应 **≥3处**。\n   - 屋面各分项 **每500~1000m²** 为一个检验批，**不足500m²** 为一个检验批。\n\n### 考点二、围护结构现场实体检验\n\n#### 1. 外墙节能构造\n- **时段**：围护结构节能工程施工完成，应对外墙节能构造进行实体检验。\n- **项目**：①墙体保温材料种类 ②保温层厚度 ③保温构造做法。\n- **单位**：\n  - **钻芯检验**：由 **监理人见证**，可由发包人委托法定检测机构实施，也可由 **施工单位实施**。\n  - **传热系数/热阻**：由 **监理工程师见证**，由 **建设单位委托** 具有资质的检测机构实施。\n- **数量**：按单位工程进行，每种节能构造检验 **≥3处**，每处检查 **1个点**。\n- **原则**：在施工现场由监理单位和施工单位 **随机抽取**，分布均匀、具有代表性，**不得预先确定** 检验位置。\n\n#### 2. 外窗实体检验\n- **抽样项目（气密性）** (口诀：**寒寒24知冷暖**)\n  - ① **寒冷、严寒地区**\n  - ② **夏热冬冷地区** 且高度 **≥24m**\n  - ③ 有 **集中供暖或供冷** 的建筑\n- **抽样单位**：由 **监理工程师见证**，由 **建设单位委托** 有资质的检测机构实施。\n- **抽样数量**：\n  - 按单位工程进行，每种材质、开启方式、型材系列的外窗检验 **≥3樘**。\n  - 同项目、同施工单位且同期施工多个单位工程，可合并计算建筑面积：**每30000m²** 可视为一个单位工程抽样，**不足30000m²** 也视为一",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422050_P0022_001",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422050_P0022_001__2-隐蔽验收"
+      },
+      "taxonomy": {
+        "node_code": "1A422050",
+        "node_name": "绿色建造的相关规定",
+        "topic": "围护结构节能验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "围护结构节能验收",
+      "unit_id": "lecture.waterproof-energy-decoration.0023"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "根据建筑装饰装修工程质量验收规范，装饰装修工程划分为以下 **12个子分部**：",
+          "1. 涂饰",
+          "2. 抹灰",
+          "3. 裱糊与软包",
+          "4. 饰面板",
+          "5. 饰面砖"
+        ],
+        "mnemonics": [
+          "门窗:金木塑玻特种门; 幕墙:玻璃金属人造石; 隔墙:活动骨架玻璃板; 地面:基体竹木板; 吊顶:整体板块格栅吊; 抹灰:一体三面"
+        ],
+        "must_mentions": [
+          "12大子分部",
+          "外墙防水",
+          "清水砌体勾缝",
+          "人造石板幕墙"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'饰面板'（金木石陶塑）与'幕墙'（玻璃金属人造石）的材料范围差异；注意'地面'包含基层铺设。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:子分部工程划分"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "装饰装修十二大子分部",
+        "装饰装修分部工程",
+        "子分部工程划分",
+        "装饰装修工程施工",
+        "12大子分部",
+        "外墙防水",
+        "清水砌体勾缝",
+        "人造石板幕墙"
+      ],
+      "source_excerpt": "### 装饰装修十二大子分部\n\n根据建筑装饰装修工程质量验收规范，装饰装修工程划分为以下 **12个子分部**：\n1. 涂饰\n2. 抹灰\n3. 裱糊与软包\n4. 饰面板\n5. 饰面砖\n6. 地面\n7. 吊顶\n8. 门窗\n9. 细部\n10. 幕墙\n11. 轻质隔墙\n12. 外墙防水\n\n### 核心子分部详细分类与助记\n\n#### 1. 门窗工程\n*   **助记口诀**：**金木塑玻特种门**\n*   **包含内容**：\n    1.  金属门窗安装\n    2.  木门窗安装\n    3.  塑料门窗安装\n    4.  门窗玻璃安装\n    5.  特种门安装\n\n#### 2. 幕墙工程\n*   **助记口诀**：**玻璃金属人造石**\n*   **包含内容**：\n    1.  玻璃幕墙\n    2.  金属幕墙\n    3.  人造石板幕墙\n    4.  石材幕墙\n\n#### 3. 饰面板材\n*   **助记口诀**：**金木石陶塑料板**\n*   **包含内容**：\n    1.  金属板安装\n    2.  木板安装\n    3.  石板安装\n    4.  陶瓷板安装\n    5.  塑料板安装\n\n#### 4. 轻质隔墙\n*   **助记口诀**：**活动骨架玻璃板**\n*   **包含内容**：\n    1.  活动隔墙\n    2.  骨架隔墙\n    3.  玻璃隔墙\n    4.  板材隔墙\n\n#### 5. 建筑地面\n*   **助记口诀**：**基体竹木板**\n*   **包含内容**：\n    1.  基层铺设\n    2.  整体面层铺设\n    3.  板块面层铺设\n    4.  竹、木面层铺设\n\n#### 6. 吊顶工程\n*   **助记口诀**：**整体板块格栅吊**\n*   **包含内容**：\n    1.  整体面层吊顶\n    2.  板块面层吊顶\n    3.  格栅吊顶\n\n#### 7. 抹灰工程\n*   **助记口诀**：**一体三面抹灰层**\n*   **包含内容**：\n    1.  清水砌体勾缝\n    2.  ",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0024_001",
+        "json_page_num": 24,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0024_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "子分部工程划分"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "子分部工程划分",
+      "unit_id": "lecture.waterproof-energy-decoration.0024"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. 抹灰总厚度≥35mm时，应采取加强措施",
+          "2. 不同材料的基体交接处表面抹灰，应采取防止开裂的加强措施",
+          "3. 采用加强网时，加强网与各基体的搭接宽度应≥100mm"
+        ],
+        "mnemonics": [
+          "抹灰35要加强，挂网搭接100长"
+        ],
+        "must_mentions": [
+          "35mm",
+          "100mm",
+          "加强措施"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分抹灰厚度阈值(35mm)与加强网搭接宽度(100mm)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:抹灰工程构造要求"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "墙面抹灰构造要求",
+        "墙面抹灰",
+        "抹灰工程构造要求",
+        "装饰装修工程施工",
+        "35mm",
+        "100mm",
+        "加强措施"
+      ],
+      "source_excerpt": "### 墙面抹灰构造要求\n\n1. 抹灰总厚度≥35mm时，应采取加强措施。\n2. 不同材料的基体交接处表面抹灰，应采取防止开裂的加强措施。\n3. 采用加强网时，加强网与各基体的搭接宽度应≥100mm。加强网应绷紧、钉牢。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0025_001",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0025_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "抹灰工程构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "抹灰工程构造要求",
+      "unit_id": "lecture.waterproof-energy-decoration.0025"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "| **普通抹灰** | **空鼓爆裂不明脱** | 1. 空鼓<br>2. 面层爆灰<br>3. 裂缝<br>4. 表面不平整<br>5. 抹纹、接槎明显<br>6. 抹灰层脱层 |",
+          "| **装饰抹灰** | **脱皮掉色抹粉底，空鼓爆裂不明脱** | 1. 脱皮<br>2. 掉角<br>3. 色差<br>4. 抹纹<br>*(包含普通抹灰所有缺陷)* |"
+        ],
+        "mnemonics": [
+          "普抹：空鼓爆裂不明脱；装抹：脱皮掉色抹粉底"
+        ],
+        "must_mentions": [
+          "空鼓",
+          "爆灰",
+          "裂缝",
+          "脱层"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "装饰抹灰包含普通抹灰的所有缺陷，并增加了特有的外观缺陷。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:抹灰质量缺陷"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "抹灰常见质量缺陷",
+        "抹灰质量缺陷",
+        "装饰装修工程施工",
+        "空鼓",
+        "爆灰",
+        "裂缝",
+        "脱层"
+      ],
+      "source_excerpt": "### 抹灰常见质量缺陷\n\n| 类型 | 总结口诀 | 具体缺陷 |\n| :--- | :--- | :--- |\n| **普通抹灰** | **空鼓爆裂不明脱** | 1. 空鼓<br>2. 面层爆灰<br>3. 裂缝<br>4. 表面不平整<br>5. 抹纹、接槎明显<br>6. 抹灰层脱层 |\n| **装饰抹灰** | **脱皮掉色抹粉底，空鼓爆裂不明脱** | 1. 脱皮<br>2. 掉角<br>3. 色差<br>4. 抹纹<br>*(包含普通抹灰所有缺陷)* |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0025_002",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0025_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "抹灰质量缺陷"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "抹灰质量缺陷",
+      "unit_id": "lecture.waterproof-energy-decoration.0026"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 温湿度要求",
+          "- **水性涂料**：施工环境温度为 **5~35°C** 之间，注意通风换气和防尘",
+          "- **冬季施工**：室内温度 **不低于5°C**，相对湿度在 **85%以下**",
+          "#### 2. 施工前提",
+          "#### 3. 基层含水率 (口诀：溶8乳10木12)",
+          "- **溶剂型涂料**：基层及抹灰面层含水率 **≤ 8%**"
+        ],
+        "mnemonics": [
+          "含水率：溶8乳10木12"
+        ],
+        "must_mentions": [
+          "5~35°C",
+          "8%",
+          "10%",
+          "地面湿作业"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分水性涂料温度范围(5-35)与冬季施工湿度限制(85%)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:涂饰工程施工环境与含水率"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "涂饰工程施工环境与要求",
+        "涂饰工程",
+        "涂饰工程施工环境与含水率",
+        "装饰装修工程施工",
+        "5~35°C",
+        "8%",
+        "10%",
+        "地面湿作业"
+      ],
+      "source_excerpt": "### 涂饰工程施工环境与要求\n\n#### 1. 温湿度要求\n- **水性涂料**：施工环境温度为 **5~35°C** 之间，注意通风换气和防尘。\n- **冬季施工**：室内温度 **不低于5°C**，相对湿度在 **85%以下**。\n- **采暖条件**：室温保持均衡，不得突然变化。\n\n#### 2. 施工前提\n涂饰工程应在 **抹灰、吊顶、细部、地面湿作业、电气工程** 已完成并验收合格后进行。\n\n#### 3. 基层含水率 (口诀：溶8乳10木12)\n- **溶剂型涂料**：基层及抹灰面层含水率 **≤ 8%**\n- **水乳型涂料**：基层及抹灰面层含水率 **≤ 10%**\n- *(隐含考点)* **木材基层**：含水率 **≤ 12%**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0025_003",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0025_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "涂饰工程施工环境与含水率"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "涂饰工程施工环境与含水率",
+      "unit_id": "lecture.waterproof-energy-decoration.0027"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **内墙饰面板**",
+          "- 高度限制：**≤24m**",
+          "- 抗震设防烈度：**≤8度**",
+          "2. **内墙饰面砖**",
+          "- 高度限制：**≤100m**",
+          "- 抗震设防烈度：**≤8度**"
+        ],
+        "mnemonics": [
+          "板24，砖100，8度满粘"
+        ],
+        "must_mentions": [
+          "24m",
+          "100m",
+          "8度",
+          "满粘法"
+        ],
+        "red_lines": [
+          "内墙饰面砖未使用满粘法"
+        ],
+        "trap_alerts": [
+          "注意区分饰面板(24m)和饰面砖(100m)的高度界限，且均受8度抗震限制。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:饰面板工程应用范围"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "饰面板与饰面砖应用范围",
+        "饰面板与饰面砖",
+        "饰面板工程应用范围",
+        "装饰装修工程施工",
+        "24m",
+        "100m",
+        "8度",
+        "满粘法"
+      ],
+      "source_excerpt": "### 饰面板与饰面砖应用范围\n\n1. **内墙饰面板**\n   - 高度限制：**≤24m**\n   - 抗震设防烈度：**≤8度**\n\n2. **内墙饰面砖**\n   - 高度限制：**≤100m**\n   - 抗震设防烈度：**≤8度**\n   - 施工工艺：必须采用**满粘法施工**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0026_001",
+        "json_page_num": 26,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0026_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "饰面板工程应用范围"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "饰面板工程应用范围",
+      "unit_id": "lecture.waterproof-energy-decoration.0028"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 饰面板复验项目",
+          "#### 2. 饰面砖复验项目",
+          "#### 3. 进场验收通用项"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "memorize"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:饰面板与饰面砖复验"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "饰面板与饰面砖进场复验",
+        "进场复验",
+        "饰面板与饰面砖复验",
+        "装饰装修工程施工"
+      ],
+      "source_excerpt": "### 饰面板与饰面砖进场复验\n\n#### 1. 饰面板复验项目\n- **吸水率**：外墙陶瓷板\n- **抗冻性**：寒冷地区外墙陶瓷板\n- **粘结强度**：水泥基粘结料与各基本结构的粘结强度\n- **放射性**：室内用花岗石\n- **甲醛释放量**：室内人造木板\n- **助记口诀**：**吸水冻粘放甲醛**\n\n#### 2. 饰面砖复验项目\n- **放射性**：室内瓷质饰面砖\n- **拉伸粘结强度**：水泥基粘结材料与外墙饰面砖\n- **吸水率**：外墙陶瓷饰面砖\n- **抗冻性**：寒冷地区外墙陶瓷砖\n- **助记口诀**：**吸水冻粘放射性**\n\n#### 3. 进场验收通用项\n①品种 ②规格 ③外观 ④尺寸",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0026_002",
+        "json_page_num": 26,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0026_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "饰面板与饰面砖复验"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "饰面板与饰面砖复验",
+      "unit_id": "lecture.waterproof-energy-decoration.0029"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. 放线",
+          "2. 安装龙骨",
+          "3. 机电管线安装",
+          "4. 安装横撑龙骨",
+          "5. 制作门窗洞口",
+          "6. 安装一侧面板"
+        ],
+        "mnemonics": [
+          "轻质隔墙施工：放线、龙骨、管线、横撑、门窗、面板、填充"
+        ],
+        "must_mentions": [
+          "轻质隔墙",
+          "施工工艺",
+          "放线",
+          "龙骨",
+          "面板"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意轻质隔墙施工的顺序和每个步骤的细节。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:轻质隔墙施工"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "轻质隔墙施工工艺流程",
+        "轻质隔墙施工工艺",
+        "轻质隔墙施工",
+        "装饰装修工程施工",
+        "轻质隔墙",
+        "施工工艺",
+        "放线",
+        "龙骨",
+        "面板"
+      ],
+      "source_excerpt": "### 轻质隔墙施工工艺流程\n\n1. 放线\n2. 安装龙骨\n3. 机电管线安装\n4. 安装横撑龙骨\n5. 制作门窗洞口\n6. 安装一侧面板\n7. 安装填充材料\n8. 安装另一侧面板",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0027_001",
+        "json_page_num": 27,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0027_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "轻质隔墙施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "轻质隔墙施工",
+      "unit_id": "lecture.waterproof-energy-decoration.0030"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. 基层清理、放线",
+          "2. 安装地轨、顶轨",
+          "3. 安装竖向龙骨",
+          "4. 配置横撑龙骨",
+          "5. 安装隔声材料",
+          "6. 安装面板"
+        ],
+        "mnemonics": [
+          "隔墙高过三米，横撑龙骨必备"
+        ],
+        "must_mentions": [
+          "轻钢龙骨",
+          "隔墙高度",
+          "横撑龙骨"
+        ],
+        "red_lines": [
+          "未设置横撑龙骨"
+        ],
+        "trap_alerts": [
+          "隔墙高度超过3m时，必须设置横撑龙骨，否则可能导致结构不稳。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:轻钢龙骨隔墙"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "轻钢龙骨隔墙施工工艺流程",
+        "轻钢龙骨隔墙施工",
+        "轻钢龙骨隔墙",
+        "装饰装修工程施工",
+        "轻钢龙骨",
+        "隔墙高度",
+        "横撑龙骨"
+      ],
+      "source_excerpt": "### 轻钢龙骨隔墙施工工艺流程\n\n1. 基层清理、放线\n2. 安装地轨、顶轨\n3. 安装竖向龙骨\n4. 配置横撑龙骨\n5. 安装隔声材料\n6. 安装面板\n7. 安装门窗框\n8. 安装设备、管线\n9. 接缝处理",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0028_001",
+        "json_page_num": 28,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0028_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "轻钢龙骨隔墙"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "轻钢龙骨隔墙",
+      "unit_id": "lecture.waterproof-energy-decoration.0031"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 第一层采用60mm宽玻璃纤维网格条",
+          "- 第二层玻璃纤维网格条宽度为150mm",
+          "- 板缝玻纤布条宽度50~60mm，阴阳转角处宽度200mm",
+          "- 光面板隔墙基层用石膏嵌子分两遍刮平，总厚度控制在3mm",
+          "- 地面隔墙用基层面110mm厚，1:3水泥砂浆找平层",
+          "- 板缝玻纤布条宽度50~60mm，阴阳转角处宽度200mm"
+        ],
+        "mnemonics": [
+          "GRC板缝60、150，陶粒增强50~60，转角200"
+        ],
+        "must_mentions": [
+          "GRC",
+          "轻质陶粒",
+          "增强水泥",
+          "玻纤网格条"
+        ],
+        "red_lines": [
+          "板缝处理不当"
+        ],
+        "trap_alerts": [
+          "不同材料的板缝处理要求不同，需特别注意玻纤网格条的宽度。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:板材隔墙板缝处理"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "板材隔墙板缝处理",
+        "屋面与防水工程施工",
+        "GRC",
+        "轻质陶粒",
+        "增强水泥",
+        "玻纤网格条"
+      ],
+      "source_excerpt": "### 板材隔墙板缝处理\n\n- **GRC空心轻墙板**\n  - 第一层采用60mm宽玻璃纤维网格条\n  - 第二层玻璃纤维网格条宽度为150mm\n  - 贴完后刮胶找平，刮干净\n\n- **轻质陶粒砌隔墙板**\n  - 板缝、阴阳转角、门窗框边缘处用水泥胶粘剂贴玻纤布条\n  - 板缝玻纤布条宽度50~60mm，阴阳转角处宽度200mm\n  - 光面板隔墙基层用石膏嵌子分两遍刮平，总厚度控制在3mm\n  - 地面隔墙用基层面110mm厚，1:3水泥砂浆找平层\n\n- **增强水泥条板隔墙**\n  - 板缝、阴阳转角和门窗框边缘处用水泥胶粘剂贴玻纤布条\n  - 板缝玻纤布条宽度50~60mm，阴阳转角处宽度200mm\n  - 然后用石膏嵌子分两遍刮平，总厚度控制在3mm",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0029_001",
+        "json_page_num": 29,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0029_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "板材隔墙板缝处理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "板材隔墙板缝处理",
+      "unit_id": "lecture.waterproof-energy-decoration.0032"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 吊杆与龙骨间距参数",
+          "*   $> 2.5m$：设钢制转换层",
+          "*   $> 1.5m$：应设反支撑",
+          "*   吊点距主龙骨端部距离：$\\le 300mm$",
+          "*   次龙骨间距：$\\le 600mm$",
+          "*   主龙骨间距：$\\le 1.2m$"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:吊顶与地面工程构造及工艺"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "吊顶工程构造要求",
+        "吊顶与地面工程",
+        "吊顶与地面工程构造及工艺",
+        "装饰装修工程施工"
+      ],
+      "source_excerpt": "### 吊顶工程构造要求\n\n#### 1. 吊杆与龙骨间距参数\n*   **吊杆长度**：\n    *   $> 2.5m$：设钢制转换层\n    *   $> 1.5m$：应设反支撑\n*   **间距要求**：\n    *   吊点距主龙骨端部距离：$\\le 300mm$\n    *   次龙骨间距：$\\le 600mm$\n    *   主龙骨间距：$\\le 1.2m$\n\n#### 2. 吊杆与龙骨位置要求\n*   **次龙骨**：不得搭接。\n*   **洞口处理**：通风、水电等洞口周围应设**附加龙骨**。\n*   **大跨度处理**：跨度 $> 15m$ 的吊顶，在主龙骨上每隔 **15m** 设一道大龙骨，大龙骨应垂直与主龙骨焊接牢固。\n\n---\n\n### 考点六、地面工程\n\n#### 1. 石材地面铺设——工艺流程\n**流程**：清理基层 $\\rightarrow$ 放线 $\\rightarrow$ 试拼石材 $\\rightarrow$ 铺设结合层砂浆 $\\rightarrow$ 铺设石材 $\\rightarrow$ 养护勾缝\n\n**关键技术要求**：\n*   **铺设**：\n    *   石材背面涂厚度约 **5mm** 厚加胶的素水泥膏或石材专用粘结剂。\n    *   **浅色石材**铺设时应选用**白水泥**作为水泥膏使用。\n*   **养护**：\n    *   石材铺贴完应进行养护，养护时间 **$\\ge 7d$**。\n    *   养护期间石材表面**不得铺设塑料薄膜和洒水**，不得进行勾缝施工。\n*   **勾缝**：\n    *   铺装完成 **28d** 或胶粘剂固化干燥后，进行勾缝。\n    *   要求：清晰、顺直、平整、光滑、深浅一致，缝色与石材颜色基本一致。\n\n#### 2. 瓷砖地面铺设流程\n**流程**：基底处理 $\\rightarrow$ 放线 $\\rightarrow$ 浸砖 $\\rightarrow$ 铺设结合层砂浆 $\\rightarrow$ 铺砖 $\\rightarrow$ 养护 $\\rightarrow$ ",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0030_001",
+        "json_page_num": 30,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0030_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "吊顶与地面工程构造及工艺"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "吊顶与地面工程构造及工艺",
+      "unit_id": "lecture.waterproof-energy-decoration.0033"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 吊杆长度 > 2.5m，需设反支撑",
+          "- 吊杆长度 ≤ 1.5m，设反支撑",
+          "- 次龙骨间距 ≤ 600mm",
+          "- 吊顶面积 > 15m²时，设大龙骨"
+        ],
+        "mnemonics": [
+          "吊杆2.5设反支，次龙600不超距，吊顶15设大龙。"
+        ],
+        "must_mentions": [
+          "吊杆长度",
+          "次龙骨间距",
+          "吊顶面积"
+        ],
+        "red_lines": [
+          "未设反支撑",
+          "次龙骨间距过大",
+          "未设大龙骨"
+        ],
+        "trap_alerts": [
+          "注意吊杆长度和次龙骨间距的要求，避免结构不稳。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:吊顶工程"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "吊顶工程构造要求",
+        "吊顶工程",
+        "装饰装修工程施工",
+        "吊杆长度",
+        "次龙骨间距",
+        "吊顶面积"
+      ],
+      "source_excerpt": "### 吊顶工程构造要求\n\n- 吊杆长度 > 2.5m，需设反支撑。\n- 吊杆长度 ≤ 1.5m，设反支撑。\n- 次龙骨间距 ≤ 600mm。\n- 吊顶面积 > 15m²时，设大龙骨。\n- 大龙骨应垂直与主龙骨焊接牢固。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0031_001",
+        "json_page_num": 31,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0031_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "吊顶工程"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "吊顶工程",
+      "unit_id": "lecture.waterproof-energy-decoration.0034"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **铺设**: 在砖背面涂约5mm厚的素水泥膏（或粘结剂）",
+          "2. **养护**: 瓷砖铺贴完成后进行养护，养护时间≥7天",
+          "3. **勾缝**: 铺装完成28天或胶粘剂固化干燥后，进行勾缝"
+        ],
+        "mnemonics": [
+          "铺5养7勾28"
+        ],
+        "must_mentions": [
+          "素水泥膏",
+          "养护时间",
+          "勾缝"
+        ],
+        "red_lines": [
+          "未按要求养护"
+        ],
+        "trap_alerts": [
+          "注意养护时间和勾缝时间的要求"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:瓷砖地面施工"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "瓷砖地面施工流程",
+        "瓷砖地面施工",
+        "装饰装修工程施工",
+        "素水泥膏",
+        "养护时间",
+        "勾缝"
+      ],
+      "source_excerpt": "### 瓷砖地面施工流程\n\n1. **铺设**: 在砖背面涂约5mm厚的素水泥膏（或粘结剂）。\n2. **养护**: 瓷砖铺贴完成后进行养护，养护时间≥7天。\n3. **勾缝**: 铺装完成28天或胶粘剂固化干燥后，进行勾缝。勾缝时采用专用勾缝剂，要求清晰、顺直、平整、光滑、深浅一致，且缝应略低于砖面。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0032_001",
+        "json_page_num": 32,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0032_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "瓷砖地面施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "瓷砖地面施工",
+      "unit_id": "lecture.waterproof-energy-decoration.0035"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **立柱**: 采用铝合金型材或钢型材",
+          "2. **连接件**: 铝制、钢制、钢铝",
+          "3. **紧固件**: 螺栓、铆钉",
+          "4. **面板**: 玻璃、金属、石材、单板",
+          "5. **密封材料**: 橡胶、密封胶、硅酮结构密封胶",
+          "1. 安装立柱"
+        ],
+        "mnemonics": [
+          "立柱铝钢选，连接螺栓双，开启角度三十度，距离三百毫米。"
+        ],
+        "must_mentions": [
+          "立柱",
+          "铝合金",
+          "钢型材",
+          "抗剪力螺栓",
+          "开启角度",
+          "开启距离"
+        ],
+        "red_lines": [
+          "材料不符",
+          "螺栓不足"
+        ],
+        "trap_alerts": [
+          "注意材料选择和连接件数量，避免结构不稳定。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:玻璃幕墙构造"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "玻璃幕墙构造",
+        "装饰装修工程施工",
+        "立柱",
+        "铝合金",
+        "钢型材",
+        "抗剪力螺栓",
+        "开启角度",
+        "开启距离"
+      ],
+      "source_excerpt": "### 玻璃幕墙构造\n\n1. **立柱**: 采用铝合金型材或钢型材。\n2. **连接件**: 铝制、钢制、钢铝。\n3. **紧固件**: 螺栓、铆钉。\n4. **面板**: 玻璃、金属、石材、单板。\n5. **密封材料**: 橡胶、密封胶、硅酮结构密封胶。\n\n### 幕墙施工流程\n\n1. 安装立柱\n2. 安装横梁\n3. 安装面板\n\n### 施工要求\n\n- 立柱可采用铝合金型材或钢型材。\n- 上、下立柱通过活动接头连接。\n- 每个连接的抗剪力螺栓至少有2个。\n- 面板与框架间隙不大于30°。\n- 开启扇角度不大于30°。\n- 开启距离不大于300mm。\n- 密封胶在接缝内应两面粘结，不应三面粘结。\n- 硅酮结构密封胶与硅酮耐候密封胶不能换位使用。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0033_001",
+        "json_page_num": 33,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0033_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "玻璃幕墙构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "玻璃幕墙构造",
+      "unit_id": "lecture.waterproof-energy-decoration.0036"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 外墙与幕墙的距离，上下层外墙上开口应设宽度≥1.2m的实体墙或挑出宽度≥1.0m、长度≥2开口宽度的防火挑檐",
+          "- 幕墙与建筑物墙之间的空腔应在楼板处、下沿处分别采用矿棉等填充材料填塞，且填塞高度应≥200mm",
+          "对材料对火花应采用厚度不小于1.5mm的防火板，且承托板厚度≥1.5mm",
+          "- 在大于10m的范围内有一根立柱，采用楼板与楼板上下连接通",
+          "- 宜采用厚度≥3mm的铝合金板制造"
+        ],
+        "mnemonics": [
+          "防火挑檐宽1.2，挑出宽1.0，填塞高200，防火板厚1.5，铝板厚3"
+        ],
+        "must_mentions": [
+          "防火挑檐",
+          "填塞高度",
+          "防火板厚度",
+          "铝合金板厚度"
+        ],
+        "red_lines": [
+          "不符合防火要求"
+        ],
+        "trap_alerts": [
+          "防火构造细节易被忽视，需特别注意宽度和材料要求。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:幕墙施工"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "幕墙施工",
+        "屋面与防水工程施工",
+        "防火挑檐",
+        "填塞高度",
+        "防火板厚度",
+        "铝合金板厚度"
+      ],
+      "source_excerpt": "### 幕墙施工\n\n#### 全玻幕墙\n- 全玻幕墙应悬挂在主体结构上。\n- 框架与玻璃之间应采用耐高温硅酮建筑密封胶密封。\n- 用托板和驳接爪不得与玻璃直接接触。\n- 玻璃的接驳口可以现场打注。\n\n#### 点支承玻璃幕墙\n- 以玻璃肋作为支承结构时，应采用钢化夹层玻璃。\n\n#### 石材幕墙\n- 同一幕墙工程应采用同一品牌的密封胶和胶条，不得混用。\n- 用于幕墙立面的粘结密封胶应对应的污染性进行复验。\n- 石材与金属件之间的粘结点（结点）应采用不锈钢材料，不得采用“云石胶”。\n\n#### 防火构造\n- 外墙与幕墙的距离，上下层外墙上开口应设宽度≥1.2m的实体墙或挑出宽度≥1.0m、长度≥2开口宽度的防火挑檐。\n- 幕墙与建筑物墙之间的空腔应在楼板处、下沿处分别采用矿棉等填充材料填塞，且填塞高度应≥200mm；对材料对火花应采用厚度不小于1.5mm的防火板，且承托板厚度≥1.5mm。\n- 在大于10m的范围内有一根立柱，采用楼板与楼板上下连接通。\n- 在有坡度屋面的外伸件上进行防雷连接，应尽去其他锚固。\n- 防雷连接的构件在完成后部应进行防腐油漆。\n- 兼有防雷功能的幕墙面板应：\n  - 宜采用厚度≥3mm的铝合金板制造。\n  - 与主体结构之间的雷系应做有效连接。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413050_P0034_001",
+        "json_page_num": 34,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413050_P0034_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413050",
+        "node_name": "屋面与防水工程施工",
+        "topic": "幕墙施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "幕墙施工",
+      "unit_id": "lecture.waterproof-energy-decoration.0037"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- **燃烧性能**: 装修材料按其燃烧性能划分为 A, B1, B2, B3 四个等级",
+          "| B1 | 难燃材料 |",
+          "| B2 | 可燃材料【不宜采用】|",
+          "| B3 | 易燃材料【严禁采用】|",
+          "- **原则**: 建筑内、外保温系统，宜采用燃烧性能 A 级的保温材料，不宜采用 B2 级，严禁采用 B3 级",
+          "1. 人员密集场所：A 级材料"
+        ],
+        "mnemonics": [
+          "保温防火，A级首选，B2不宜，B3严禁。"
+        ],
+        "must_mentions": [
+          "A级材料",
+          "B1级材料",
+          "防护层厚度",
+          "水平投影面积"
+        ],
+        "red_lines": [
+          "严禁采用 B3 级材料"
+        ],
+        "trap_alerts": [
+          "注意不同场所对材料燃烧性能的要求，尤其是人员密集场所。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:建筑保温系统防火要求"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "民用建筑装饰装修防火设计 - 总纲",
+        "建筑保温系统防火要求",
+        "装饰装修工程施工",
+        "A级材料",
+        "B1级材料",
+        "防护层厚度",
+        "水平投影面积"
+      ],
+      "source_excerpt": "### 民用建筑装饰装修防火设计 - 总纲\n\n- **高层建筑**: 层民用建筑根据其建筑高度、使用功能和楼层的建筑面积可分为一类和二类。\n- **耐火等级**: 民用建筑的耐火等级可分为一、二、三、四级。\n- **燃烧性能**: 装修材料按其燃烧性能划分为 A, B1, B2, B3 四个等级。\n\n#### 装修材料燃烧性能等级\n\n| 等级 | 描述 |\n|------|------|\n| A | 不燃材料【适宜采用】|\n| B1 | 难燃材料 |\n| B2 | 可燃材料【不宜采用】|\n| B3 | 易燃材料【严禁采用】|\n\n### 建筑保温系统防火要求\n\n- **原则**: 建筑内、外保温系统，宜采用燃烧性能 A 级的保温材料，不宜采用 B2 级，严禁采用 B3 级。\n\n- **危险建筑及人密集场所**: \n  1. 人员密集场所：A 级材料。\n  2. 火灾易发场所：用 A 级、燃点高的 B1 级材料。\n  3. 疏散避难场所：应使用 A 级材料。\n\n- **其他场所 B1 级**: 低燃烧高的 B1 级保温材料。\n\n- **防护可 A 可 B1**: \n  - 保温系统采用 A 级不燃材料的防护层。\n  - 采用 B1 级保温材料，防护层厚度不应小于 10mm。\n\n- **无空腔复合保温结构**: \n  - 外墙采用保温材料与墙两侧构件间无空腔复合保温结构。\n  - 燃烧性能等级为 B1、B2 时，保温材料不应大面积采用。\n  - 单个外墙构件的水平投影面积不应大于 50m²。\n\n- **有空腔保温结构**: \n  - 外墙外保温系统的基墙体、装饰层之间的空腔内，应在每层楼板处设置不燃防火封堵材料。\n\n- **人员密集场所**: \n  - 人员密集场所的建筑，其外墙外保温系统的燃烧性能等级应为 A 级。\n\n- **外墙外保温**: \n  - 与构件、装饰层之间无空腔的建筑外保温系统，保温材料应符合下列规定：\n    - 住宅建筑：\n      - 27m ≤ 高度 ≤ 100m\n      - 高度 ≤ 27m\n    - 其他建筑（公建）：\n      - 2",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413060_P0035_001",
+        "json_page_num": 35,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413060_P0035_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413060",
+        "node_name": "装饰装修工程施工",
+        "topic": "建筑保温系统防火要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "建筑保温系统防火要求",
+      "unit_id": "lecture.waterproof-energy-decoration.0038"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **时间**：装修工程室内环境验收，应在工程完工至少**7d**后、交付使用前进行",
+          "2. **原则**：以单体建筑为基本抽检单元，且抽检的房间应具有代表性",
+          "3. **项目**：氡、氨、甲醛、苯、甲苯、二甲苯、TVOC【记忆：氨氡甲苯有机物】",
+          "4. **数量**：",
+          "- ① 抽检数量 ≥ 房间总数的**5%**，每个单体建筑 ≥ **3间**",
+          "- ② 房间总数 < **3间**的，应**全数检测**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:室内环境污染物验收"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "室内污染物的抽检要点",
+        "室内环境污染物验收",
+        "绿色建造的相关规定"
+      ],
+      "source_excerpt": "### 室内污染物的抽检要点\n\n1. **时间**：装修工程室内环境验收，应在工程完工至少**7d**后、交付使用前进行。\n2. **原则**：以单体建筑为基本抽检单元，且抽检的房间应具有代表性。\n3. **项目**：氡、氨、甲醛、苯、甲苯、二甲苯、TVOC【记忆：氨氡甲苯有机物】。\n4. **数量**：\n   - **原则**：\n     - ① 抽检数量 ≥ 房间总数的**5%**，每个单体建筑 ≥ **3间**。\n     - ② 房间总数 < **3间**的，应**全数检测**。\n     - ③ 样板间检测合格的，抽检数量减半，但不少于**3间**。\n   - **例外（★重点）**：\n     - 幼儿园、学校教室、学生宿舍、老年建筑满足：\n       - ① 抽检数量 ≥ 房间总数的**50%**，且 ≥ **20间**。\n       - ② 房间总数 < **20间**的，应**全数检测**。\n\n### 室内污染物的抽检方法\n\n1. **要求（封闭时间）**：\n   - **氡**：\n     - 采用集中通风的民建：空调正常运转下检测。\n     - 采用自然通风的民建：门窗关闭**24h**后检测。\n   - **其它污染物（甲醛、苯等）**：\n     - 采用集中通风的民建：空调正常运转下检测。\n     - 采用自然通风的民建：门窗关闭**1h**后检测。\n2. **时间/位置**：\n   - 距离内墙面应 ≥ **0.5m**。\n   - 距楼地面高度：**0.8~1.5m**。\n   - 检测点应均匀分布，避开通风道和通风口。\n\n### 污染物检测不合格处理\n\n1. **程序**：\n   - ① 查找原因并采取措施进行处理。\n   - ② 对不合格项进行再次检测（二次抽检）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422050_P0036_001",
+        "json_page_num": 36,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422050_P0036_001"
+      },
+      "taxonomy": {
+        "node_code": "1A422050",
+        "node_name": "绿色建造的相关规定",
+        "topic": "室内环境污染物验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "室内环境污染物验收",
+      "unit_id": "lecture.waterproof-energy-decoration.0039"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **检测时间**：应在工程完工至少**7d**后、交付使用前进行",
+          "2. **检测项目**：氡、氨、甲醛、苯、甲苯、二甲苯、TVOC",
+          "3. **抽检数量原则**：",
+          "- 抽检数量 $\\ge$ 房间总数的 **5%**，且每个单体建筑 $\\ge$ **3间**",
+          "- 房间总数 < **3间** 的，应**全数检测**",
+          "- 凡进行了样板间室内环境污染物浓度检测且检测结果合格的，抽检数量**减半**，但不得少于 **3间**"
+        ],
+        "mnemonics": [
+          "污染物：氡氨甲苯有机物；特殊建筑：老少校舍，半数二十；封闭：氡24其他1"
+        ],
+        "must_mentions": [
+          "7d",
+          "5%",
+          "3间",
+          "50%",
+          "20间",
+          "24h",
+          "1h",
+          "0.8~1.5m",
+          "严禁投入使用"
+        ],
+        "red_lines": [
+          "室内环境质量验收不合格的民建，严禁投入使用"
+        ],
+        "trap_alerts": [
+          "注意区分一般建筑(5%, 3间)与敏感建筑(50%, 20间)；注意氡(24h)与其他污染物(1h)的封闭时间区别。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:waterproof-energy-decoration",
+          "topic:民用建筑工程室内环境污染控制"
+        ]
+      },
+      "lecture": "防水&节能&装修工程",
+      "lecture_slug": "waterproof-energy-decoration",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "室内污染物的抽检要点",
+        "室内环境污染物",
+        "民用建筑工程室内环境污染控制",
+        "装饰装修与屋面工程相关规定",
+        "7d",
+        "5%",
+        "3间",
+        "50%",
+        "20间",
+        "24h"
+      ],
+      "source_excerpt": "### 室内污染物的抽检要点\n\n1. **检测时间**：应在工程完工至少**7d**后、交付使用前进行。\n2. **检测项目**：氡、氨、甲醛、苯、甲苯、二甲苯、TVOC。\n3. **抽检数量原则**：\n   - **一般民用建筑**：\n     - 抽检数量 $\\ge$ 房间总数的 **5%**，且每个单体建筑 $\\ge$ **3间**。\n     - 房间总数 < **3间** 的，应**全数检测**。\n     - 凡进行了样板间室内环境污染物浓度检测且检测结果合格的，抽检数量**减半**，但不得少于 **3间**。\n   - **特殊民用建筑 (★重点)**：\n     - 对象：**幼儿园、学校教室、学生宿舍、老年建筑**。\n     - 抽检数量 $\\ge$ 房间总数的 **50%**，且 $\\ge$ **20间**。\n     - 房间总数 < **20间** 的，应**全数检测**。\n\n### 室内污染物的抽检方法\n\n1. **封闭时间要求**：\n   - **氡**：采用自然通风的民建，门窗关闭 **24h** 后检测。\n   - **其他污染物** (甲醛、苯、氨、TVOC等)：采用自然通风的民建，门窗关闭 **1h** 后检测。\n   - **集中通风**：空调正常运转下检测。\n2. **检测点位置**：\n   - 距离内墙面应 $\\ge$ **0.5m**。\n   - 距楼地面高度：**0.8~1.5m**。\n   - 检测点应均匀分布，避开通风道和通风口。\n\n### 污染物检测不合格处理\n\n1. **程序**：查找原因并处理 $\\rightarrow$ 二次抽检。\n2. **二次抽检要求**：抽检量增加 **1倍** (即原数量的2倍)，并包含同类房间及原不合格房间。\n3. **判定**：\n   - 再次检测结果满足要求 $\\rightarrow$ 判定为合格。\n   - 室内环境质量验收不合格的民建，**严禁投入使用**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422040_P0036_001",
+        "json_page_num": 36,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/建筑实务11.20/2025年精讲课讲义合集/已清洗/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422040_P0036_001"
+      },
+      "taxonomy": {
+        "node_code": "1A422040",
+        "node_name": "装饰装修与屋面工程相关规定",
+        "topic": "民用建筑工程室内环境污染控制"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "民用建筑工程室内环境污染控制",
+      "unit_id": "lecture.waterproof-energy-decoration.0040"
+    }
+  ],
+  "manifest": {
+    "answer_unit_count": 40,
+    "content_hash": "1e390e10aee97d2d9c2498620e6652bf671f6cbddb0ac2ce00977759a65f4c4f",
+    "coverage_status": "needs_visual_audit",
+    "lecture": "防水&节能&装修工程",
+    "lecture_slug": "waterproof-energy-decoration",
+    "missing_internal_pages": [
+      14,
+      18,
+      23,
+      37
+    ],
+    "namespace": "lecture_answer_method.waterproof-energy-decoration",
+    "non_exam_exclusion_count": 1,
+    "official_score_allowed": false,
+    "published": false,
+    "schema_version": "luban_lecture_answer_method_shard.v1",
+    "signature": "8eb8d63ff0a1c315638c29af6d40b57b1cad42d67d9386100a6895ce548798ae",
+    "source_aggregate_sha256": "d608052182953cf68e86bd0f26ce72b449458b6d5c96339f9005b08fd178cabe",
+    "status": "release_candidate",
+    "tier": "teaching_answer_method_not_answer_key"
+  },
+  "non_exam_exclusions": [
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_NA_P0038_001",
+      "json_page_num": 38,
+      "reason": "advertising/resource QR codes; invalid for exam answers",
+      "source_chunk_id": "LEC_NA_P0038_001"
+    }
+  ]
+}

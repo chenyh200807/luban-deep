@@ -12,6 +12,32 @@ def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
+def _duplicate_top_level_yaml_keys(path: Path) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line or line[0].isspace() or line.lstrip().startswith("#"):
+            continue
+        if ":" not in line:
+            continue
+        key = line.split(":", 1)[0].strip()
+        if not key:
+            continue
+        if key in seen and key not in duplicates:
+            duplicates.append(key)
+        seen.add(key)
+    return duplicates
+
+
+def test_contract_indexes_do_not_redeclare_top_level_keys() -> None:
+    for path in (
+        ROOT / "contracts" / "index.yaml",
+        ROOT / "deeptutor" / "contracts" / "index.yaml",
+    ):
+        duplicates = _duplicate_top_level_yaml_keys(path)
+        assert duplicates == [], f"{path.relative_to(ROOT)} duplicate top-level keys: {duplicates}"
+
+
 def test_repo_and_package_contract_indexes_match() -> None:
     repo_index = _load_yaml(ROOT / "contracts" / "index.yaml")
     package_index = _load_yaml(ROOT / "deeptutor" / "contracts" / "index.yaml")

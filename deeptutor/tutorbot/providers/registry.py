@@ -150,6 +150,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="VolcEngine Coding Plan",
         backend="openai_compat",
         is_gateway=True,
+        detect_by_base_keyword="volces.com/api/coding",
         default_api_base="https://ark.cn-beijing.volces.com/api/coding/v3",
         strip_model_prefix=True,
     ),
@@ -171,6 +172,7 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="BytePlus Coding Plan",
         backend="openai_compat",
         is_gateway=True,
+        detect_by_base_keyword="bytepluses.com/api/coding",
         default_api_base="https://ark.ap-southeast.bytepluses.com/api/coding/v3",
         strip_model_prefix=True,
     ),
@@ -374,8 +376,13 @@ def find_gateway(
     for spec in PROVIDERS:
         if spec.detect_by_key_prefix and api_key and api_key.startswith(spec.detect_by_key_prefix):
             return spec
-        if spec.detect_by_base_keyword and api_base and spec.detect_by_base_keyword in api_base:
-            return spec
+    base_matches = [
+        spec
+        for spec in PROVIDERS
+        if spec.detect_by_base_keyword and api_base and spec.detect_by_base_keyword in api_base
+    ]
+    if base_matches:
+        return max(base_matches, key=lambda spec: len(spec.detect_by_base_keyword))
     return None
 
 

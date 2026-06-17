@@ -1,0 +1,64 @@
+{
+  "artifact": "remote_deployment_authorization_package_m19e_20260605",
+  "branch": "docs/luban-golden-v0-sop-and-dataset",
+  "broad_production_default": "NO-GO",
+  "canonical_learner_truth_write": "NO-GO",
+  "deploy_or_restart_executed": false,
+  "formal_registry_emission": "NO-GO",
+  "generated_at": "2026-06-04T17:12:02Z",
+  "goal": "authorization package only for future M19F Remote/Aliyun limited default deploy",
+  "head_sha": "76846a375b73a828ee80fc644cc448e21ec477aa",
+  "m19c_evidence_dir": "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605",
+  "m19d_evidence_dir": "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605",
+  "m20_1_delta_included_in_current_default": false,
+  "m20_1_delta_status": "future_delta_not_current_runtime",
+  "next_step": "M19F actual remote deploy only after explicit user authorization",
+  "production_db_write": "NO-GO",
+  "proposed_env": {
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT": "qa_,operator_",
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED": "true"
+  },
+  "public_base_url": "https://test2.yousenjiaoyu.com",
+  "remote_write_executed": false,
+  "repo": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "target_remote_root_if_authorized": "/root/deeptutor",
+  "verdict": "GO",
+  "workflow": {
+    "adversarial_verification": "see safety_adversarial_review_m19e.json",
+    "classify_and_act": {
+      "artifact": "authorization package written locally under artifacts only",
+      "code": "M19C/M19D committed code is candidate release content; no code mutation in M19E",
+      "config": "local M19C/M19D state is read-only evidence; remote config is proposed only",
+      "deploy": "runbook scripts are documented for future M19F; not executed here",
+      "env": "two limited-default env vars only; no broad default and no truth-write env",
+      "observability": "health, cohort, non-cohort, fail-closed, cost, latency, and write gates documented",
+      "rollback": "env kill, flag off, registry unavailable, and code rollback documented"
+    },
+    "fanout_and_synthesize": {
+      "observability_cost": "M19D p50/p95/p99 latency and token/cost budgets form remote acceptance baseline",
+      "release_manager": "M19C local ON + M19D soak GO supports requesting user approval for M19F",
+      "rollback_commander": "three state rollback paths must stay correct before keeping remote ON",
+      "runtime_safety": "append-only limited cohort remains the only allowed runtime behavior"
+    },
+    "generate_and_filter": {
+      "generated_options": [
+        "shadow-only no remote env change",
+        "qa_/operator_ limited default",
+        "qa_/test_/operator_ internal default",
+        "broad production default"
+      ],
+      "rejected_options": [
+        "qa_/test_/operator_ default because test_ is explicit regression only",
+        "broad production default because M19D and master plan keep it NO-GO",
+        "any option writing outside /root/deeptutor",
+        "any option without rollback commands",
+        "any option absorbing M20.1 delta into current runtime"
+      ]
+    },
+    "loop_until_done": "each identified risk is pass, blocked, or requires_user_authorization",
+    "tournament": {
+      "reason": "minimum reversible remote change matching M19C/M19D evidence",
+      "winner": "qa_/operator_ limited default only"
+    }
+  }
+}

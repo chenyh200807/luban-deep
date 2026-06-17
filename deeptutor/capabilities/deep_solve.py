@@ -14,6 +14,7 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import derive_trace_metadata, merge_trace_metadata
+from deeptutor.services.security.tool_access import filter_end_user_tools
 
 
 class DeepSolveCapability(BaseCapability):
@@ -21,7 +22,7 @@ class DeepSolveCapability(BaseCapability):
         name="deep_solve",
         description="Multi-agent problem solving (Plan -> ReAct -> Write).",
         stages=["planning", "reasoning", "writing"],
-        tools_used=["rag", "web_search", "code_execution", "reason"],
+        tools_used=["rag", "web_search", "reason"],
         cli_aliases=["solve"],
         request_schema=get_capability_request_schema("deep_solve"),
     )
@@ -32,7 +33,7 @@ class DeepSolveCapability(BaseCapability):
 
         llm_config = get_llm_config()
         detailed = context.config_overrides.get("detailed_answer", True)
-        enabled_tools = (
+        enabled_tools = filter_end_user_tools(
             self.manifest.tools_used
             if context.enabled_tools is None
             else context.enabled_tools

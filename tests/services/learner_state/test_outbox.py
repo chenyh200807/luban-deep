@@ -162,3 +162,25 @@ def test_claim_pending_skips_retry_backoff_items(tmp_path) -> None:
     claimed = outbox.claim_pending(limit=10)
 
     assert [item.id for item in claimed] == [second.id]
+
+
+def test_mark_failed_dead_letters_after_max_attempts(tmp_path) -> None:
+    from deeptutor.services.learner_state import outbox as outbox_mod
+
+    outbox = LearnerStateOutbox(db_path=tmp_path / "outbox.db")
+    item = outbox.enqueue(
+        user_id="student_demo",
+        event_type="summary_refresh",
+        payload_json={"summary": "perma-fail"},
+        dedupe_key="summary:perma",
+    )
+
+    last = None
+    for _ in range(outbox_mod._MAX_OUTBOX_RETRY_ATTEMPTS):
+        last = outbox.mark_failed(item.id, last_error="permanent schema drift")
+
+    # After MAX attempts the item is dead-lettered, not pending — so it stops being
+    # re-claimed forever (no unbounded growth / wasted flush cycles).
+    assert last is not None
+    assert last.status == "dead"
+    assert outbox.claim_pending(limit=10) == []

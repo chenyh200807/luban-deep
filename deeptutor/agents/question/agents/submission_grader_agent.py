@@ -5,8 +5,8 @@ Single-call grading feedback agent for quiz answer submissions.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Awaitable, Callable
+import json
 from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
@@ -101,6 +101,10 @@ class SubmissionGraderAgent(BaseAgent):
 
         question_type = str(question_context.get("question_type") or "").strip().lower()
         is_correct = question_context.get("is_correct")
+        # 开放世界判分（无题库 grading_result authority）时，fallback 模板必须用诚实措辞，
+        # 不得声称服务端 grading_result / grading_key（contracts/capability.md §硬约束 40）。
+        grading_result = question_context.get("construction_grading_result")
+        authority_present = isinstance(grading_result, dict) and bool(grading_result)
         parsed = parse_explanation_sections(
             explanation_text,
             question_type=question_type,
@@ -146,7 +150,11 @@ class SubmissionGraderAgent(BaseAgent):
         if section_miss_after_repair:
             # 仍缺：用模板兜底，保证 capability 拿到的 sections 不会有空段；
             # trace 仍记录原始缺段名单，便于 release gate 计算完整率。
-            repaired = apply_fallback_templates(parsed, missing=section_miss_after_repair)
+            repaired = apply_fallback_templates(
+                parsed,
+                missing=section_miss_after_repair,
+                authority_present=authority_present,
+            )
             parsed = repaired
 
         trace_collector["explanation_section_miss"] = list(section_miss_after_repair)
@@ -191,9 +199,8 @@ class SubmissionGraderAgent(BaseAgent):
             "Question:",
             str(question_context.get("question", "") or "(none)"),
         ]
-        if not has_authoritative_grading:
-            score = 100 if correctness is True else 0 if correctness is False else 0
-            lines.insert(5, f"Score: {score}")
+        if not has_authoritative_grading and isinstance(correctness, bool):
+            lines.insert(5, f"Score: {100 if correctness else 0}")
         if option_lines:
             lines.extend(["", "Options:", *option_lines])
         lines.extend(
@@ -242,6 +249,25 @@ class SubmissionGraderAgent(BaseAgent):
         knowledge_context = str(question_context.get("knowledge_context", "") or "").strip()
         if knowledge_context:
             lines.extend(["", "Knowledge context:", knowledge_context])
+        item_dicts = [item for item in items if isinstance(item, dict)] if isinstance(items, list) else []
+        missing_answer_authority = not has_authoritative_grading and (
+            any(not str(item.get("correct_answer") or "").strip() for item in item_dicts)
+            if item_dicts
+            else not str(question_context.get("correct_answer") or "").strip()
+        )
+        if missing_answer_authority:
+            lines.extend(
+                [
+                    "",
+                    "Open-world adjudication directive:",
+                    "缺少参考答案的条目没有题库标准答案 authority。对这些条目，你必须先基于"
+                    " grounding 证据与专业推理独立裁决正确答案，再据此明确判定学员答案的对错，"
+                    "并说明判定依据（教材/规范检索证据或专业推理）。",
+                    "禁止以缺少标准答案为由拒绝判分或要求重新生成题目；"
+                    "禁止把你的裁决表述为“题库标准答案/真题官方答案”，表述用“依据教材/规范判定”。"
+                    "已带参考答案（Reference answer）的条目仍以该参考答案为准。",
+                ]
+            )
         if has_authoritative_grading:
             lines.extend(
                 [

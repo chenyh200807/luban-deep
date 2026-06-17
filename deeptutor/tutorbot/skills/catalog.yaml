@@ -10,7 +10,7 @@ skills:
     scene: general
     runtime_scope: production
     authority_scope: presentation_policy
-    token_budget_estimate: 1000
+    token_budget_estimate: 3500
     export_eligible: internal
     required_authorities:
       - rag
@@ -35,7 +35,7 @@ skills:
     scene: practice_generation
     runtime_scope: production
     authority_scope: presentation_policy
-    token_budget_estimate: 1800
+    token_budget_estimate: 3600
     export_eligible: internal
     required_authorities:
       - deep_question
@@ -63,7 +63,7 @@ skills:
     scene: question_review
     runtime_scope: production
     authority_scope: presentation_policy
-    token_budget_estimate: 1700
+    token_budget_estimate: 3600
     export_eligible: internal
     required_authorities:
       - active_question
@@ -89,7 +89,7 @@ skills:
     scene: mcq_grading
     runtime_scope: production
     authority_scope: grading_policy
-    token_budget_estimate: 2100
+    token_budget_estimate: 3300
     export_eligible: internal
     required_authorities:
       - active_question
@@ -115,7 +115,7 @@ skills:
     scene: case_grading
     runtime_scope: production
     authority_scope: grading_policy
-    token_budget_estimate: 2600
+    token_budget_estimate: 4900
     export_eligible: internal
     required_authorities:
       - active_question
@@ -143,7 +143,7 @@ skills:
     scene: learning_evidence_story
     runtime_scope: production
     authority_scope: narration_policy
-    token_budget_estimate: 1700
+    token_budget_estimate: 4900
     export_eligible: internal
     required_authorities:
       - learning_evidence
@@ -154,7 +154,8 @@ skills:
       - mastery_calculation
       - route_decision
       - raw_private_transcript
-    references: []
+    references:
+      - construction-learning-evidence-story/references/degraded-claims.md
     trace_fields:
       - question_lifecycle_scene
       - skill_stack
@@ -168,7 +169,7 @@ skills:
     scene: study_assistant
     runtime_scope: production
     authority_scope: presentation_policy
-    token_budget_estimate: 1700
+    token_budget_estimate: 4300
     export_eligible: internal
     required_authorities:
       - training_intent
@@ -179,7 +180,8 @@ skills:
       - mastery_calculation
       - route_decision
       - grading
-    references: []
+    references:
+      - construction-study-assistant/references/action-selection.md
     trace_fields:
       - question_lifecycle_scene
       - skill_stack
@@ -193,7 +195,7 @@ skills:
     scene: learning_support
     runtime_scope: production
     authority_scope: safety_support_policy
-    token_budget_estimate: 1600
+    token_budget_estimate: 3600
     export_eligible: none
     required_authorities:
       - guardrails
@@ -203,7 +205,8 @@ skills:
       - medical_diagnosis
       - route_decision
       - grading
-    references: []
+    references:
+      - construction-learning-support/references/support-playbook.md
     trace_fields:
       - question_lifecycle_scene
       - skill_stack
@@ -217,7 +220,7 @@ skills:
     scene: practice_generation
     runtime_scope: production
     authority_scope: capability_invocation
-    token_budget_estimate: 1200
+    token_budget_estimate: 2000
     export_eligible: none
     required_authorities:
       - deep_question
@@ -238,7 +241,7 @@ skills:
     scene: topic_review
     runtime_scope: production
     authority_scope: topic_map
-    token_budget_estimate: 900
+    token_budget_estimate: 2400
     export_eligible: internal
     required_authorities:
       - rag

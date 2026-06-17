@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from deeptutor.services.learner_state.learning_brain_lint import lint_learning_brain_projection
+
 
 def _as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
@@ -222,4 +224,22 @@ def build_learning_fact_retrieval_maintenance_report(payload: dict[str, Any]) ->
             "eval_cases": eval_cases,
         },
         "case_audit": audit,
+    }
+
+
+def build_learning_brain_dream_cycle_maintenance_report(
+    *,
+    user_id: str,
+    projection: dict[str, Any],
+    dry_run: bool = True,
+) -> dict[str, Any]:
+    issues = lint_learning_brain_projection(_as_dict(projection))
+    return {
+        "status": "dry_run_ok" if dry_run else "write_disabled",
+        "user_id": str(user_id or "").strip(),
+        "users_scanned": 1 if str(user_id or "").strip() else 0,
+        "issues": issues,
+        "would_refresh_compiled_truth": bool(issues),
+        "dry_run": bool(dry_run),
+        "maintenance_authority": "deeptutor.services.rag.maintenance",
     }

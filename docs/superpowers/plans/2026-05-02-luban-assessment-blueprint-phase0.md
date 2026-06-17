@@ -26,7 +26,7 @@
   - Unit tests for quotas, calculation fallback, source provenance minimum, and fail-closed section gaps.
 - Create `tests/scripts/test_audit_assessment_blueprint_coverage.py`
   - Script-level tests for JSON output with fixture data.
-- Modify `docs/plan/2026-05-02-luban-assessment-blueprint-prd.md`
+- Modify `docs/plan/测评题库与考试模块/2026-05-02-luban-assessment-blueprint-prd.md`
   - Add Phase 0 implementation evidence after tests pass.
 
 ---
@@ -745,7 +745,7 @@ Expected: PASS.
 ### Task 4: Real Supabase Aggregate Smoke And PRD Evidence Update
 
 **Files:**
-- Modify: `docs/plan/2026-05-02-luban-assessment-blueprint-prd.md`
+- Modify: `docs/plan/测评题库与考试模块/2026-05-02-luban-assessment-blueprint-prd.md`
 
 - [ ] **Step 1: Run real aggregate audit**
 

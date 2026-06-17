@@ -17,6 +17,9 @@ fi
 frontend_url="${public_base}/"
 healthz_url="${public_base}/healthz"
 readyz_url="${public_base}/readyz"
+openapi_url="${public_base}/openapi.json"
+docs_url="${public_base}/docs"
+redoc_url="${public_base}/redoc"
 
 probe_url() {
     local label="$1"
@@ -45,15 +48,34 @@ probe_url() {
     return 1
 }
 
+probe_blocked_url() {
+    local label="$1"
+    local url="$2"
+    local status
+
+    status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout "${PROBE_TIMEOUT_SECONDS}" --max-time "${PROBE_TIMEOUT_SECONDS}" "${url}" || true)"
+    if [[ "${status}" == "403" || "${status}" == "404" ]]; then
+        echo "公网探针通过: ${label} 已关闭 -> ${url} (${status})"
+        return 0
+    fi
+
+    echo "发布未通过公网验收: ${label} 必须返回 403/404，当前 ${status} -> ${url}" >&2
+    return 1
+}
+
 echo "执行公网发布验收..."
 echo "验收口径: ${public_base}"
 probe_url "frontend" "${frontend_url}"
 probe_url "healthz" "${healthz_url}" '"alive":true'
 probe_url "readyz" "${readyz_url}" '"ready":true'
+probe_blocked_url "openapi" "${openapi_url}"
+probe_blocked_url "docs" "${docs_url}"
+probe_blocked_url "redoc" "${redoc_url}"
 
 cat <<EOF
 公网发布验收完成。
 前端: ${frontend_url}
 后端健康: ${healthz_url}
 后端就绪: ${readyz_url}
+OpenAPI/docs/redoc: 已验证 403/404
 EOF

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import uuid
 from dataclasses import dataclass
@@ -10,8 +11,14 @@ from typing import Any
 
 from deeptutor.services.path_service import PathService, get_path_service
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_RELATIVE_DB_PATH = Path("data") / "runtime" / "outbox.db"
 _PROCESSING_LEASE_SECONDS = 600
+# Dead-letter threshold: after this many failed attempts an item is parked as 'dead'
+# (no longer claimed) instead of retrying forever. 20 × exponential backoff (cap 3600s)
+# ≈ many hours of retries before giving up.
+_MAX_OUTBOX_RETRY_ATTEMPTS = 20
 
 
 @dataclass(frozen=True)
@@ -208,18 +215,29 @@ class LearnerStateOutbox:
                 (normalized_id,),
             ).fetchone()
             retry_count = int(row["retry_count"] or 0) if row else 0
-            next_attempt_at = _next_attempt_at(retry_count + 1)
+            next_count = retry_count + 1
+            # Dead-letter after MAX attempts so a permanently-failing item (schema drift,
+            # deleted user, malformed payload) stops being re-claimed every flush cycle —
+            # otherwise it accumulates forever and wastes every flush. 'dead' is not
+            # 'pending', so the claim query skips it.
+            next_status = "dead" if next_count >= _MAX_OUTBOX_RETRY_ATTEMPTS else "pending"
+            next_attempt_at = _next_attempt_at(next_count)
             conn.execute(
                 """
                 update learner_state_outbox
-                set status = 'pending',
+                set status = ?,
                     retry_count = retry_count + 1,
                     last_error = ?,
                     next_attempt_at = ?
                 where id = ?
                 """,
-                (normalized_error, next_attempt_at, normalized_id),
+                (next_status, normalized_error, next_attempt_at, normalized_id),
             )
+            if next_status == "dead":
+                logger.warning(
+                    "learner_state outbox item dead-lettered after %d attempts: id=%s last_error=%s",
+                    next_count, normalized_id, normalized_error,
+                )
             row = conn.execute(
                 """
                 select id, user_id, event_type, payload_json, dedupe_key,

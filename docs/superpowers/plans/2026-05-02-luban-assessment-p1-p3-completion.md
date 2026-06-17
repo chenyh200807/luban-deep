@@ -31,7 +31,7 @@
   - Display backend-delivered blueprint counts and section metadata.
   - Stop client fallback profile synthesis when backend seed/profile exists.
 - Modify corresponding JS contract tests.
-- Modify `docs/plan/2026-05-02-luban-assessment-blueprint-prd.md` and `docs/plan/INDEX.md`
+- Modify `docs/plan/测评题库与考试模块/2026-05-02-luban-assessment-blueprint-prd.md` and `docs/plan/INDEX.md`
   - Mark P1-P3 implementation evidence and remaining production rollout gates.
 
 ---
@@ -143,7 +143,7 @@
 ## Task 6: PRD Evidence, Verification, And Merge
 
 **Files:**
-- Modify: `docs/plan/2026-05-02-luban-assessment-blueprint-prd.md`
+- Modify: `docs/plan/测评题库与考试模块/2026-05-02-luban-assessment-blueprint-prd.md`
 - Modify: `docs/plan/INDEX.md`
 
 - [ ] Add P1-P3 implementation evidence with exact code/test entry points.

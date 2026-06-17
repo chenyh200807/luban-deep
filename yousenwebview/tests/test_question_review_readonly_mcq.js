@@ -82,4 +82,35 @@ assertEqual(
   "question review should show the public answer and explanation outside the original-text toggle",
 );
 
+var citedState = aiMessageState.deriveAiMessageRenderState({
+  content: [
+    "屋面防水等级应根据工程重要性确定。〔1〕",
+    "",
+    "依据",
+    "〔1〕2026 建筑实务教材，第 1 章 第 1.4 节。",
+  ].join("\n"),
+  parseBlocks: true,
+});
+
+assertEqual(citedState.mcqCards, null, "paper-style citation text must not become an MCQ card");
+assertEqual(citedState.mcqInteractiveReady, false, "paper-style citation text stays read-only prose");
+if (citedState.renderableContent.indexOf("依据") < 0) {
+  throw new Error("paper-style citation footer should stay visible");
+}
+if (citedState.renderableContent.indexOf("2026 建筑实务教材") < 0) {
+  throw new Error("paper-style citation source should stay visible");
+}
+
+var exactAnswerState = aiMessageState.deriveAiMessageRenderState({
+  content: "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+  parseBlocks: true,
+});
+
+if (exactAnswerState.renderableContent.indexOf("标准答案是 D") < 0) {
+  throw new Error("public TutorBot final answer should keep standard-answer wording visible");
+}
+if (exactAnswerState.blocks && exactAnswerState.blocks.length < 1) {
+  throw new Error("public TutorBot final answer should still render as markdown prose");
+}
+
 console.log("PASS test_question_review_readonly_mcq.js");

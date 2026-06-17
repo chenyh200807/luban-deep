@@ -1,7 +1,7 @@
 # Learning State Inference Contract
 
 > Batch A Task 1 — registers the projection surfaces introduced by
-> `docs/plan/2026-05-22-luban-learning-state-inference-engine-transformation-plan.md`
+> `docs/plan/学习脑与学员记忆/2026-05-22-luban-learning-state-inference-engine-transformation-plan.md`
 > on top of the existing learner-state and learning-report contracts.
 >
 > This contract is **purely additive**: it does not introduce a new

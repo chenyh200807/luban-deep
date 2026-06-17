@@ -17,9 +17,16 @@ from .factory import (
     list_pipelines,
     normalize_provider_name,
 )
+from .evidence_bundle import build_evidence_bundle
 from .exceptions import RAGError, wrap_rag_error
 from .provenance import build_ranking_trace
 from .retrieval_plan import build_retrieval_plan
+from .historical_questions import (
+    build_canonical_question_context,
+    build_historical_question_source,
+    render_historical_question_context,
+    resolve_historical_question,
+)
 
 
 class _RAGRawLogHandler(logging.Handler):
@@ -133,16 +140,35 @@ class RAGService:
 
             try:
                 result = await pipeline.search(query=query, kb_name=kb_name, **kwargs)
-            except RAGError:
+            except RAGError as exc:
+                historical_result = self._build_historical_question_result(
+                    query=query,
+                    kb_name=kb_name,
+                    provider=provider,
+                    search_kwargs=kwargs,
+                    retrieval_error=exc,
+                )
+                if historical_result is not None:
+                    return historical_result
                 raise
             except Exception as exc:
-                raise wrap_rag_error(
+                rag_error = wrap_rag_error(
                     exc,
                     provider=provider,
                     kb_name=kb_name,
                     query=query,
                     stage="service.search",
-                ) from exc
+                )
+                historical_result = self._build_historical_question_result(
+                    query=query,
+                    kb_name=kb_name,
+                    provider=provider,
+                    search_kwargs=kwargs,
+                    retrieval_error=rag_error,
+                )
+                if historical_result is not None:
+                    return historical_result
+                raise rag_error from exc
 
             if not isinstance(result, dict):
                 raise wrap_rag_error(
@@ -175,24 +201,23 @@ class RAGService:
                     ),
                 )
                 fallback_sources = list(result.get("sources") or [])
-                evidence_bundle = {
-                    "bundle_id": "",
-                    "query": result["query"],
-                    "provider": result.get("provider") or provider,
-                    "kb_name": result["kb_name"],
-                    "content_blocks": [result.get("content") or result.get("answer") or ""],
-                    "sources": fallback_sources,
-                    "exact_question": (
+                evidence_bundle = build_evidence_bundle(
+                    query=result["query"],
+                    provider=result.get("provider") or provider,
+                    kb_name=result["kb_name"],
+                    content_blocks=[result.get("content") or result.get("answer") or ""],
+                    sources=fallback_sources,
+                    exact_question=(
                         result.get("exact_question")
                         if isinstance(result.get("exact_question"), dict)
                         else {}
                     ),
-                    "retrieval_plan": fallback_retrieval_plan.to_dict(),
-                    "ranking_trace": build_ranking_trace(fallback_sources),
-                    "retrieval_empty": not bool(result.get("sources")),
-                }
+                    retrieval_plan=fallback_retrieval_plan.to_dict(),
+                    ranking_trace=build_ranking_trace(fallback_sources),
+                )
             result["evidence_bundle"] = evidence_bundle
             result["provider"] = normalize_provider_name(result.get("provider") or provider)
+            self._apply_historical_question_context(result)
 
             answer = result.get("answer") or result.get("content") or ""
             await self._emit_tool_event(
@@ -218,6 +243,140 @@ class RAGService:
         if event_sink is None:
             return
         await event_sink(event_type, message, metadata or {})
+
+    def _apply_historical_question_context(self, result: dict[str, Any]) -> None:
+        if not isinstance(result, dict):
+            return
+        if isinstance(result.get("exact_question"), dict) and result.get("exact_question"):
+            return
+        evidence_bundle = result.get("evidence_bundle")
+        if isinstance(evidence_bundle, dict):
+            existing_exact = evidence_bundle.get("exact_question")
+            if isinstance(existing_exact, dict) and existing_exact:
+                result["exact_question"] = existing_exact
+                return
+        query = str(result.get("query") or "").strip()
+        exact_question = resolve_historical_question(query)
+        if not exact_question:
+            return
+
+        context = build_canonical_question_context(exact_question)
+        rendered = render_historical_question_context(exact_question)
+        source = build_historical_question_source(exact_question)
+        result["exact_question"] = exact_question
+        result["canonical_question_context"] = context
+        sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        if not sources:
+            result["sources"] = [source]
+        answer = str(result.get("answer") or result.get("content") or "").strip()
+        if not answer or self._looks_like_empty_retrieval_answer(answer):
+            result["answer"] = rendered
+            result["content"] = rendered
+
+        evidence_bundle = result.get("evidence_bundle")
+        if not isinstance(evidence_bundle, dict):
+            return
+        evidence_bundle["exact_question"] = exact_question
+        bundle_sources = evidence_bundle.get("sources")
+        if not isinstance(bundle_sources, list) or not bundle_sources:
+            evidence_bundle["sources"] = [source]
+        content_blocks = evidence_bundle.get("content_blocks")
+        if not isinstance(content_blocks, list) or not any(str(item or "").strip() for item in content_blocks):
+            evidence_bundle["content_blocks"] = [rendered]
+        evidence_bundle["retrieval_empty"] = False
+        # historical-question diagnostics live in the canonical bundle's ``trace`` bucket
+        bundle_trace = evidence_bundle.setdefault("trace", {})
+        bundle_trace["canonical_question_context"] = context
+        bundle_trace["historical_question_resolved"] = True
+
+    def _build_historical_question_result(
+        self,
+        *,
+        query: str,
+        kb_name: str,
+        provider: str,
+        search_kwargs: dict[str, Any],
+        retrieval_error: RAGError | None = None,
+    ) -> dict[str, Any] | None:
+        exact_question = resolve_historical_question(query)
+        if not exact_question:
+            return None
+        context = build_canonical_question_context(exact_question)
+        rendered = render_historical_question_context(exact_question)
+        source = build_historical_question_source(exact_question)
+        retrieval_plan = build_retrieval_plan(
+            query,
+            include_questions_default=bool(search_kwargs.get("include_questions", True)),
+            intent=str(search_kwargs.get("intent") or ""),
+            question_type=str(search_kwargs.get("question_type") or ""),
+            routing_metadata=(
+                search_kwargs.get("routing_metadata")
+                if isinstance(search_kwargs.get("routing_metadata"), dict)
+                else {}
+            ),
+        )
+        status = "provider_failed_exact_question_resolved" if retrieval_error is not None else "ok"
+        warning = (
+            {
+                "phase": "provider",
+                "group_name": "historical_question_resolver",
+                "query": query,
+                "message": str(retrieval_error),
+                "provider": str(getattr(retrieval_error, "provider", "") or provider),
+                "stage": str(getattr(retrieval_error, "stage", "") or ""),
+                "retryable": bool(getattr(retrieval_error, "retryable", False)),
+            }
+            if retrieval_error is not None
+            else None
+        )
+        evidence_bundle = build_evidence_bundle(
+            query=query,
+            provider=provider,
+            kb_name=kb_name,
+            content_blocks=[rendered],
+            sources=[source],
+            exact_question=exact_question,
+            retrieval_plan=retrieval_plan.to_dict(),
+            ranking_trace=build_ranking_trace([source]),
+            retrieval_warnings=[warning] if warning else [],
+            retrieval_status=status,
+            retrieval_empty=False,
+            trace={
+                "canonical_question_context": context,
+                "historical_question_resolved": True,
+                **({"warnings": [warning]} if warning else {}),
+            },
+        )
+        payload: dict[str, Any] = {
+            "query": query,
+            "answer": rendered,
+            "content": rendered,
+            "sources": [source],
+            "provider": provider,
+            "kb_name": kb_name,
+            "exact_question": exact_question,
+            "canonical_question_context": context,
+            "evidence_bundle": evidence_bundle,
+            "retrieval_degraded": bool(retrieval_error),
+            "retrieval_status": status,
+        }
+        if warning:
+            payload["warnings"] = [warning]
+        return payload
+
+    @staticmethod
+    def _looks_like_empty_retrieval_answer(value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        return any(
+            marker in text
+            for marker in (
+                "No documents indexed",
+                "No relevant documents found",
+                "Please upload documents first",
+            )
+        )
 
     def _capture_raw_logs(self, event_sink, provider: str):
         from contextlib import ExitStack, contextmanager

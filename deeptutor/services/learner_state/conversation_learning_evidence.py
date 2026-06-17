@@ -48,6 +48,8 @@ def build_learning_evidence_from_conversation_turn(
         structured_answer=_has_structured_learning_fields(assistant),
     )
     refs = _source_refs(assistant=assistant, explicit=source_refs)
+    concept_id = _concept_id(assistant=assistant, intent=intent, refs=refs)
+    error_code = _error_code(assistant=assistant, intent=intent)
     concept_label = _concept_label(assistant=assistant, intent=intent, refs=refs, text=combined_text)
     error_label = _error_label(assistant=assistant, intent=intent, text=combined_text)
     if not summary or not (concept_label or error_label):
@@ -59,6 +61,15 @@ def build_learning_evidence_from_conversation_turn(
         else intent.get("training_intent_id")
         or ""
     ).strip()
+    question_id = str(
+        intent.get("question_id")
+        or intent.get("training_question_id")
+        or intent.get("source_question_id")
+        or ""
+    ).strip()
+    training_outcome = str(intent.get("training_outcome") or intent.get("outcome") or "").strip()
+    improved = training_outcome in {"improved", "training_improved_error"}
+    error_events = [] if improved else _error_events(concept_id=concept_id, error_code=error_code, error_label=error_label)
     redacted_question, redacted = redact_learning_question(user_question)
     payload = {
         "event_type": "learning_evidence",
@@ -67,6 +78,7 @@ def build_learning_evidence_from_conversation_turn(
         "learning_signal_type": signal_type,
         "subject_id": normalized_subject_id,
         "training_intent_id": normalized_training_intent_id or None,
+        "question_id": question_id,
         "attempt_ref": str(intent.get("attempt_ref") or "").strip(),
         "evidence_refs": _intent_evidence_refs(intent),
         "training_question_count": _positive_int(
@@ -76,11 +88,24 @@ def build_learning_evidence_from_conversation_turn(
         "user_question": redacted_question,
         "user_question_redacted": redacted,
         "assistant_explanation_summary": summary,
-        "concept": {"label": concept_label},
-        "error": {"label": error_label},
+        "concept": _concept_payload(concept_id=concept_id, concept_label=concept_label),
+        "error": _error_payload(error_code=error_code, error_label=error_label),
+        "error_events": error_events,
+        "next_training_signal": _next_training_signal(
+            intent=intent,
+            concept_id=concept_id,
+            concept_label=concept_label,
+            error_code=error_code,
+            error_label=error_label,
+            training_intent_id=normalized_training_intent_id,
+        ),
         "evidence_level": "exposed",
         "confidence": 0.45 if signal_type != "still_confused" else 0.3,
         "source_refs": refs,
+        # C-4: conversation signals must never promote/clear grading-established weak points.
+        # _is_improvement() in learning_synthesis gates on claim_promotion_allowed is False;
+        # without this a client-supplied training_outcome='improved' bypasses grading authority.
+        "claim_promotion_allowed": False,
         "quality": {
             "detail_ready": bool(summary and concept_label),
             "progress_countable": False,
@@ -88,8 +113,19 @@ def build_learning_evidence_from_conversation_turn(
             "stable_truth_eligible": False,
             "missing_fields": [] if concept_label else ["concept_label"],
             "degraded_reason": "conversation_signal_not_grading_truth",
+            "evidence_cap_reasons": ["conversation_signal_not_grading_truth"],
         },
     }
+    if improved:
+        payload["score_awarded"] = 1.0
+        payload["max_score"] = 1.0
+    payload["typed_edges"] = _typed_edges_from_conversation(
+        question_id=question_id,
+        concept_id=concept_id,
+        error_code=error_code,
+        training_intent_id=normalized_training_intent_id,
+        improved=improved,
+    )
     return {
         "user_id": str(user_id or "").strip(),
         "source_feature": "conversation_synthesis",
@@ -215,6 +251,31 @@ def _has_structured_learning_fields(assistant: dict[str, Any]) -> bool:
     )
 
 
+def _concept_id(*, assistant: dict[str, Any], intent: dict[str, Any], refs: list[dict[str, Any]]) -> str:
+    raw_concept = assistant.get("concept")
+    nested = raw_concept.get("id") if isinstance(raw_concept, dict) else ""
+    for value in (
+        intent.get("concept_id"),
+        assistant.get("concept_id"),
+        nested,
+        _concept_id_from_refs(refs),
+    ):
+        text = str(value or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def _error_code(*, assistant: dict[str, Any], intent: dict[str, Any]) -> str:
+    raw_error = assistant.get("error")
+    nested = raw_error.get("code") if isinstance(raw_error, dict) else ""
+    for value in (intent.get("error_code"), assistant.get("error_code"), nested):
+        text = str(value or "").strip()
+        if text:
+            return text
+    return ""
+
+
 def _concept_label(*, assistant: dict[str, Any], intent: dict[str, Any], refs: list[dict[str, Any]], text: str) -> str:
     raw_concept = assistant.get("concept")
     nested = raw_concept.get("label") if isinstance(raw_concept, dict) else ""
@@ -264,6 +325,98 @@ def _source_refs(*, assistant: dict[str, Any], explicit: list[dict[str, Any]] | 
     return refs[:8]
 
 
+def _concept_id_from_refs(refs: list[dict[str, Any]]) -> str:
+    for ref in refs:
+        value = str(ref.get("concept_id") or ref.get("node_code") or ref.get("knowledge_id") or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _concept_payload(*, concept_id: str, concept_label: str) -> dict[str, str]:
+    payload: dict[str, str] = {}
+    if concept_id:
+        payload["id"] = concept_id
+    if concept_label:
+        payload["label"] = concept_label
+    return payload
+
+
+def _error_payload(*, error_code: str, error_label: str) -> dict[str, str]:
+    payload: dict[str, str] = {}
+    if error_code:
+        payload["code"] = error_code
+    if error_label:
+        payload["label"] = error_label
+    return payload
+
+
+def _error_events(*, concept_id: str, error_code: str, error_label: str) -> list[dict[str, str]]:
+    if not concept_id or not error_code:
+        return []
+    return [{
+        "error_code": error_code,
+        "concept_tag": concept_id,
+        "diagnosis": error_label or error_code,
+    }]
+
+
+def _next_training_signal(
+    *,
+    intent: dict[str, Any],
+    concept_id: str,
+    concept_label: str,
+    error_code: str,
+    error_label: str,
+    training_intent_id: str,
+) -> dict[str, Any]:
+    return {
+        "source": str(intent.get("source") or "conversation_synthesis").strip(),
+        "concept": concept_id or concept_label,
+        "focus": concept_label or concept_id,
+        "error_code": error_code,
+        "error_label": error_label,
+        "training_intent_id": training_intent_id,
+    }
+
+
+def _typed_edges_from_conversation(
+    *,
+    question_id: str,
+    concept_id: str,
+    error_code: str,
+    training_intent_id: str,
+    improved: bool,
+) -> list[dict[str, Any]]:
+    if not concept_id or not error_code or not training_intent_id:
+        return []
+    error_id = f"{concept_id}:{error_code}"
+    edges = [
+        _edge("error_points_to_training", "error", error_id, "next_training", training_intent_id),
+    ]
+    if question_id:
+        edges.append(_edge("training_uses_question", "next_training", training_intent_id, "question", question_id))
+    if improved:
+        edges.append(_edge("training_improved_error", "next_training", training_intent_id, "error", error_id))
+    return edges
+
+
+def _edge(
+    edge_type: str,
+    from_type: str,
+    from_id: str,
+    to_type: str,
+    to_id: str,
+) -> dict[str, Any]:
+    return {
+        "edge_type": edge_type,
+        "from": {"type": from_type, "id": from_id},
+        "to": {"type": to_type, "id": to_id},
+        "source_feature": "conversation_synthesis",
+        "confidence": 0.45,
+    }
+
+
 def _intent_evidence_refs(intent: dict[str, Any]) -> list[str]:
     refs: list[str] = []
     for value in list(intent.get("evidence_refs") or []):
@@ -301,7 +454,7 @@ def _normalize_concept_phrase(value: str) -> str:
     return text.strip(" ，,。？?：:")
 
 
-def _write_home_projection(*, learner_state_service: Any, user_id: str, payload: dict[str, Any]) -> None:
+def _write_home_projection(*, learner_state_service: Any, user_id: str, payload: dict[str, Any]) -> bool:
     try:
         from deeptutor.services.learner_state.home_personalization import (
             build_home_personalization_projection_from_learning_signal,
@@ -309,13 +462,13 @@ def _write_home_projection(*, learner_state_service: Any, user_id: str, payload:
         )
 
         projection = build_home_personalization_projection_from_learning_signal(payload)
-        write_home_personalization_projection(
+        return write_home_personalization_projection(
             learner_state_service,
             user_id=user_id,
             projection=projection,
         )
     except Exception:
-        return
+        return False
 
 
 def _dedupe_key(*, user_id: str, turn_ref: str, payload: dict[str, Any]) -> str:

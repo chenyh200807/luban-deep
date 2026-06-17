@@ -16,18 +16,83 @@ function buildPresentationEvent(resultMetadata) {
   return presentation;
 }
 
+function extractResultCitations(resultMetadata) {
+  if (!resultMetadata || typeof resultMetadata !== "object") return [];
+  var bundle = resultMetadata.citation_bundle;
+  if (!bundle && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
+    bundle = resultMetadata.metadata.citation_bundle;
+  }
+  if (bundle && Array.isArray(bundle.refs)) return bundle.refs.map(toDisplayCitation);
+  return [];
+}
+
+function toDisplayCitation(ref) {
+  var raw = ref && typeof ref === "object" ? ref : {};
+  return {
+    key: String(raw.key || "").trim(),
+    marker: String(raw.marker || "").trim(),
+    sourceType: String(raw.source_type || raw.sourceType || "").trim(),
+    title: String(raw.title || "").trim(),
+    locator: String(raw.locator || "").trim(),
+    quote: String(raw.public_quote || raw.quote || "").trim(),
+  };
+}
+
+function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
+  var nested =
+    resultMetadata && resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+      ? resultMetadata.metadata
+      : {};
+  var keys = [
+    "api_base",
+    "release_id",
+    "grading_engine_version",
+    "v1_case_graded",
+    "score_authority",
+    "grading_rubric_provenance",
+  ];
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (Object.prototype.hasOwnProperty.call(resultMetadata, key)) {
+      finalEvent[key] = resultMetadata[key];
+    } else if (Object.prototype.hasOwnProperty.call(nested, key)) {
+      finalEvent[key] = nested[key];
+    }
+  }
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
+  var nested =
+    resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+      ? resultMetadata.metadata
+      : {};
   var response = resultMetadata.response;
-  if (typeof response !== "string" && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
-    response = resultMetadata.metadata.response;
+  if (typeof response !== "string" || !response.trim()) {
+    response = resultMetadata.assistant_content;
+  }
+  if (typeof response !== "string" || !response.trim()) {
+    response = resultMetadata.content;
+  }
+  if ((typeof response !== "string" || !response.trim()) && nested) {
+    response = nested.response;
+  }
+  if (typeof response !== "string" || !response.trim()) {
+    response = nested.assistant_content;
+  }
+  if (typeof response !== "string" || !response.trim()) {
+    response = nested.content;
   }
   if (typeof response !== "string" || !response.trim()) return null;
-  return {
+  var finalEvent = {
     type: "final",
     engine: "tutorbot",
     response: response,
   };
+  copyRuntimeDiagnosticFields(finalEvent, resultMetadata);
+  var citations = extractResultCitations(resultMetadata);
+  if (citations.length) finalEvent.citations = citations;
+  return finalEvent;
 }
 
 function normalizeErrorMessage(err) {
@@ -46,6 +111,11 @@ function normalizeErrorMessage(err) {
   var http = raw.match(/^HTTP_(\d+):/i);
   if (http) {
     var status = parseInt(http[1], 10) || 0;
+    if (
+      /billing_quota_exceeded|Insufficient wallet balance|Usage quota exceeded/i.test(raw)
+    ) {
+      return "权益不足，请先充值后继续使用";
+    }
     if (status === 401) return "登录已失效，请重新登录";
     if (status === 429) return "操作过于频繁，请稍后再试";
     if (status >= 500) return "服务暂时不可用，请稍后重试";
@@ -71,6 +141,15 @@ function resolveEventVisibility(event) {
 var RECONNECT_BASE_DELAY_MS = 400;
 var RECONNECT_MAX_DELAY_MS = 4000;
 var RECONNECT_MAX_ATTEMPTS = 5;
+var DEFAULT_IDLE_TIMEOUT_MS = 210000;
+var QUIET_STATUS_AFTER_FIRST_TOKEN_MS = 30000;
+
+function socketUrlToApiBase(socketUrl) {
+  var normalized = String(socketUrl || "").trim();
+  if (normalized.indexOf("wss://") === 0) normalized = "https://" + normalized.slice(6);
+  if (normalized.indexOf("ws://") === 0) normalized = "http://" + normalized.slice(5);
+  return normalized.replace(/\/api\/v1\/ws(?:\?.*)?$/i, "");
+}
 
 function computeReconnectDelayMs(attempt) {
   var safeAttempt = Math.max(1, Number(attempt) || 1);
@@ -150,26 +229,23 @@ function streamChat(opts, callbacks) {
     if (cb.onDone) cb.onDone();
     return function () {};
   }
-  if (!sessionId) {
-    if (cb.onError) cb.onError("会话初始化失败，请重试");
-    if (cb.onDone) cb.onDone();
-    return function () {};
-  }
 
   var aborted = false;
   var doneReceived = false;
   var firstTokenReceived = false;
   var idleTimer = null;
   var slowTimer = null;
+  var quietStatusTimer = null;
   var reconnectTimer = null;
   var socketTask = null;
-  var idleTimeoutMs = Number((opts && opts.idleTimeoutMs) || 60000) || 60000;
+  var idleTimeoutMs = Number((opts && opts.idleTimeoutMs) || DEFAULT_IDLE_TIMEOUT_MS) || DEFAULT_IDLE_TIMEOUT_MS;
   var slowResponseMs = 15000;
   var botId = "";
   var chatId = sessionId;
   var turnId = "";
   var lastSeq = 0;
   var socketUrls = [];
+  var connectedApiBase = "";
   var reconnectAttempts = 0;
   var socketOpen = false;
   var cancelRequested = false;
@@ -222,7 +298,9 @@ function streamChat(opts, callbacks) {
               cb.onStatus({
                 type: "status",
                 data: "awaiting_terminal",
-                content: "已发送停止请求，正在等待本轮结束…",
+                content: timeoutCancelRequested
+                  ? "本轮还在处理，正在等待服务端返回结果…"
+                  : "已发送停止请求，正在等待本轮结束…",
                 eventType: "awaiting_terminal",
                 metadata: { visibility: "public", reason: timeoutCancelRequested ? "idle_timeout" : "user_cancel" },
               });
@@ -230,20 +308,23 @@ function streamChat(opts, callbacks) {
             resetIdleTimer();
             return;
           }
-          failStream("已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果");
+          failStream(
+            timeoutCancelRequested
+              ? "本轮仍在处理中，请稍后在历史记录查看结果"
+              : "已发送停止请求，服务端暂未返回终态，请稍后在历史记录查看结果",
+          );
           return;
         }
-        if (!timeoutCancelRequested && sendCancelTurn("idle_timeout")) {
+        if (!timeoutCancelRequested) {
           timeoutCancelRequested = true;
-          cancelRequested = true;
           terminalWaitTicksAfterCancel = 0;
           clearSlowTimer();
           if (cb.onStatus) {
             cb.onStatus({
               type: "status",
-              data: "cancelling",
-              content: "响应超时，正在停止本轮分析…",
-              eventType: "cancelling",
+              data: "awaiting_terminal",
+              content: "本轮还在处理，正在等待服务端返回结果…",
+              eventType: "awaiting_terminal",
               metadata: { visibility: "public", reason: "idle_timeout" },
             });
           }
@@ -260,6 +341,32 @@ function streamChat(opts, callbacks) {
       clearTimeout(slowTimer);
       slowTimer = null;
     }
+  }
+
+  function clearQuietStatusTimer() {
+    if (quietStatusTimer) {
+      clearTimeout(quietStatusTimer);
+      quietStatusTimer = null;
+    }
+  }
+
+  function resetQuietStatusTimer() {
+    clearQuietStatusTimer();
+    if (!firstTokenReceived || aborted || doneReceived) return;
+    quietStatusTimer = setTimeout(function () {
+      quietStatusTimer = null;
+      if (aborted || doneReceived || !firstTokenReceived) return;
+      if (cb.onStatus) {
+        cb.onStatus({
+          type: "status",
+          data: "analysis_continuing",
+          content: "案例题还在逐项核对题干、采分点和你的作答，请继续等待结果。",
+          eventType: "analysis_continuing",
+          metadata: { visibility: "public", reason: "quiet_after_first_token" },
+        });
+      }
+      resetQuietStatusTimer();
+    }, QUIET_STATUS_AFTER_FIRST_TOKEN_MS);
   }
 
   function clearReconnectTimer() {
@@ -283,6 +390,7 @@ function streamChat(opts, callbacks) {
     aborted = true;
     clearIdleTimer();
     clearSlowTimer();
+    clearQuietStatusTimer();
     clearReconnectTimer();
     emitTelemetry("surface_render_failed", {
       message: normalizeErrorMessage(err),
@@ -362,6 +470,7 @@ function streamChat(opts, callbacks) {
       if (!firstTokenReceived) {
         firstTokenReceived = true;
         clearSlowTimer();
+        resetQuietStatusTimer();
       }
       if (cb.onToken) cb.onToken(String(event.content || ""));
       return;
@@ -385,6 +494,9 @@ function streamChat(opts, callbacks) {
       }
       var finalResponseEvent = buildFinalResponseEvent(eventMetadata);
       if (finalResponseEvent && cb.onFinal) {
+        if (!finalResponseEvent.api_base) {
+          finalResponseEvent.api_base = connectedApiBase || endpoints.getPrimaryBaseUrl(false);
+        }
         finalResponseEvent.engine_session_id = chatId || sessionId;
         finalResponseEvent.engine_turn_id = turnId;
         finalResponseEvent.bot_id = botId;
@@ -418,6 +530,7 @@ function streamChat(opts, callbacks) {
       doneReceived = true;
       clearIdleTimer();
       clearSlowTimer();
+      clearQuietStatusTimer();
       if (cb.onFinal) {
         cb.onFinal({
           type: "final",
@@ -448,6 +561,7 @@ function streamChat(opts, callbacks) {
       .then(function (currentToken) {
         if (aborted || doneReceived) return;
         var socketUrl = socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] || socketUrls[0];
+        connectedApiBase = socketUrlToApiBase(socketUrl);
         var headers = {
           "ngrok-skip-browser-warning": "true",
         };
@@ -493,6 +607,7 @@ function streamChat(opts, callbacks) {
           var raw = typeof res.data === "string" ? res.data : "";
           if (!raw) return;
           try {
+            if (firstTokenReceived) resetQuietStatusTimer();
             handleEvent(JSON.parse(raw));
           } catch (_) {}
         });
@@ -521,14 +636,19 @@ function streamChat(opts, callbacks) {
 
   var startTurnPayload = {
     query: query,
-    conversation_id: sessionId,
     mode: mode,
   };
+  if (sessionId) {
+    startTurnPayload.conversation_id = sessionId;
+  }
   if (clientTurnId) {
     startTurnPayload.client_turn_id = clientTurnId;
   }
   if (opts && opts.capability) {
     startTurnPayload.capability = opts.capability;
+  }
+  if (opts && opts.config && typeof opts.config === "object") {
+    startTurnPayload.config = opts.config;
   }
   if (Array.isArray(opts && opts.tools) && opts.tools.length) {
     startTurnPayload.tools = opts.tools.slice();
@@ -561,9 +681,10 @@ function streamChat(opts, callbacks) {
       var stream = payload.stream || {};
       var bot = payload.bot || {};
       var conversation = payload.conversation || {};
+      var turn = payload.turn || {};
       var preferredBase = endpoints.getPrimaryBaseUrl(false);
       botId = String(bot.id || "").trim();
-      turnId = String((stream.subscribe && stream.subscribe.turn_id) || (payload.turn && payload.turn.id) || "").trim();
+      turnId = String((stream.subscribe && stream.subscribe.turn_id) || turn.id || "").trim();
       chatId = String(stream.chat_id || conversation.id || sessionId).trim();
       lastSeq = Number((stream.resume && stream.resume.seq) || 0) || 0;
       socketUrls = endpoints.getSocketUrlCandidates(
@@ -572,6 +693,16 @@ function streamChat(opts, callbacks) {
       );
       if (!chatId || !turnId || !socketUrls.length) {
         throw new Error("启动流式会话失败");
+      }
+      if (cb.onStarted) {
+        cb.onStarted({
+          conversation: conversation,
+          turn: turn,
+          stream: stream,
+          bot: bot,
+          sessionId: chatId,
+          turnId: turnId,
+        });
       }
       if (
         cb.onUpdatedTitle &&
@@ -623,6 +754,7 @@ function streamChat(opts, callbacks) {
     aborted = true;
     clearIdleTimer();
     clearSlowTimer();
+    clearQuietStatusTimer();
     clearReconnectTimer();
     try {
       if (socketTask) socketTask.close({ code: 1000, reason: "abort" });

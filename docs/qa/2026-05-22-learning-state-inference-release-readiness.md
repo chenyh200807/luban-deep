@@ -3,7 +3,7 @@
 Date: 2026-05-22
 
 Scope: local completion review for
-`docs/plan/2026-05-22-luban-learning-state-inference-engine-transformation-plan.md`.
+`docs/plan/学习脑与学员记忆/2026-05-22-luban-learning-state-inference-engine-transformation-plan.md`.
 
 ## Local Gates Completed
 

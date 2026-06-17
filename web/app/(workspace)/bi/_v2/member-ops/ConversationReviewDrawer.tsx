@@ -2,6 +2,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { BiButton, BiNotice, BiSidePanel } from '@/components/bi-v2'
 import {
   listMemberConversations,
@@ -12,6 +13,11 @@ import {
 } from '@/lib/member-api'
 import { useAuditedAction } from '../useAuditedAction'
 import type { MemberRow } from './data'
+
+const SimpleMarkdownRenderer = dynamic(() => import('@/components/common/SimpleMarkdownRenderer'), {
+  ssr: false,
+  loading: () => <span className="text-xs text-slate-500">正在渲染排版…</span>,
+})
 
 export type ConversationReviewDrawerProps = {
   open: boolean
@@ -29,6 +35,19 @@ const VIEW_REASONS = [
   { key: 'finance', label: '财务核对' },
   { key: 'other', label: '其他（需补充说明）' },
 ]
+
+function normalizeConversationMarkdown(value: string): string {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\s+---\s+/g, '\n\n---\n\n')
+    .replace(/\s+(#{1,6}\s+)/g, '\n\n$1')
+    .replace(/\s+(\*\*题目[一二三四五六七八九十\d]+[：:]\*\*)/g, '\n\n$1')
+    .replace(/\s+(\*\*你的错因[：:]\*\*)/g, '\n\n$1')
+    .replace(/\s+(\*\*踩分点[：:]\*\*)/g, '\n\n$1')
+    .replace(/\s+(\*\*关键记忆点[：:]\*\*)/g, '\n\n$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
 
 // Round 4 S4 (M-B): mock session list dev-only. Production build returns []
 // and the drawer shows "session 列表待接入" state instead of fake conversation
@@ -378,7 +397,7 @@ export function ConversationReviewDrawer({
                       ) : null}
                     </div>
                     <div className="mt-0.5 text-[11px] text-slate-400">{session.at}</div>
-                    <p className="mt-1 text-xs leading-5 text-slate-300">摘要：{session.summary}</p>
+                    <ConversationMarkdown label="摘要" text={session.summary} />
                   </div>
                   <BiButton
                     onClick={() => {
@@ -402,8 +421,10 @@ export function ConversationReviewDrawer({
                       <span className="mt-2 block space-y-1">
                         {messages.slice(0, 6).map(message => (
                           <span key={message.id} className="block rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2">
-                            <span className="font-semibold">{message.role}: </span>
-                            {message.content}
+                            <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200/70">
+                              {message.role}
+                            </span>
+                            <ConversationMarkdown text={message.content} />
                           </span>
                         ))}
                       </span>
@@ -493,6 +514,25 @@ function uniqueOptions(values: Array<string | undefined>): string[] {
   return Array.from(
     new Set(values.map(value => String(value || '').trim()).filter(Boolean))
   ).sort()
+}
+
+function ConversationMarkdown({ label, text }: { label?: string; text: string }) {
+  const content = normalizeConversationMarkdown(text)
+  if (!content) return null
+  return (
+    <div className="mt-2 rounded-2xl border border-white/10 bg-slate-950/30 px-3 py-2">
+      {label ? (
+        <div className="mb-1 text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200/70">
+          {label}
+        </div>
+      ) : null}
+      <SimpleMarkdownRenderer
+        content={content}
+        variant="compact"
+        className="[--background:#0e1624] [--border:rgba(148,163,184,0.22)] [--card:rgba(15,23,42,0.72)] [--foreground:#e5edf8] [--muted:rgba(148,163,184,0.12)] [--muted-foreground:#a9b8cc] [--primary:#67e8f9] [&_h2]:!text-base [&_h3]:!text-sm [&_hr]:!my-3 [&_li]:!my-1 [&_ol]:!my-2 [&_p]:!my-2 [&_strong]:text-slate-50"
+      />
+    </div>
+  )
 }
 
 function formatShortTime(value?: string): string {

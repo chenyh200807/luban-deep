@@ -1,0 +1,258 @@
+[
+  {
+    "concept_id": "c_0a15bd7ef945e197",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 建筑信息模型(BIM)技术 > 建筑信息模型(BIM)软件",
+    "parent": "1A413170",
+    "alias_codes": [
+      "1A413171"
+    ]
+  },
+  {
+    "concept_id": "c_0c7825e5d8680cd7",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目成本分析与控制信息技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413182"
+    ]
+  },
+  {
+    "concept_id": "c_0f6f20ce8881d6d9",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 建筑垃圾监管技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413153"
+    ]
+  },
+  {
+    "concept_id": "c_136f4461e845deea",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工扬尘控制技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413139"
+    ]
+  },
+  {
+    "concept_id": "c_20804c3458e8f885",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工噪声控制技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413165"
+    ]
+  },
+  {
+    "concept_id": "c_2a78e381fdd4f533",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 垃圾管道垂直运输技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413142"
+    ]
+  },
+  {
+    "concept_id": "c_2b01e7f02b522d0f",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目多方协同管理技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413184"
+    ]
+  },
+  {
+    "concept_id": "c_2e3ccbdd9cdf5c4a",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工现场水收集综合利用技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413161"
+    ]
+  },
+  {
+    "concept_id": "c_5740b5bcaa391250",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 劳务工人信息管理技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413152"
+    ]
+  },
+  {
+    "concept_id": "c_599b45d792b0ebae",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工现场太阳能、空气能利用技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413138"
+    ]
+  },
+  {
+    "concept_id": "c_59a758fa5e02a2c6",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 工具式定型化临时设施技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413166"
+    ]
+  },
+  {
+    "concept_id": "c_5a7ccb1eeb65b00f",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目成本分析与控制信息技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413148"
+    ]
+  },
+  {
+    "concept_id": "c_5d7bafca97b79266",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 建筑垃圾监管技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413187"
+    ]
+  },
+  {
+    "concept_id": "c_66ad6056f5008e30",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目多方协同管理技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413150"
+    ]
+  },
+  {
+    "concept_id": "c_67e0c1c27fe62d8f",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 电子商务采购技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413149"
+    ]
+  },
+  {
+    "concept_id": "c_6af690f251838b43",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 现场施工管理信息技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413147"
+    ]
+  },
+  {
+    "concept_id": "c_6e2987642dea5c22",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工现场太阳能、空气能利用技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413163"
+    ]
+  },
+  {
+    "concept_id": "c_8891d0d43aa3a115",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 工具式定型化临时设施技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413141"
+    ]
+  },
+  {
+    "concept_id": "c_8d513b41a5338179",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 建筑垃圾减量化与资源化利用技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413137"
+    ]
+  },
+  {
+    "concept_id": "c_915cbfe93a2f6482",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目物资全过程监管技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413185"
+    ]
+  },
+  {
+    "concept_id": "c_a31cf271b73cd070",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 建筑信息模型(BIM)技术 > 模型创建与使用",
+    "parent": "1A413170",
+    "alias_codes": [
+      "1A413172"
+    ]
+  },
+  {
+    "concept_id": "c_af35c5bf68c15212",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 垃圾管道垂直运输技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413167"
+    ]
+  },
+  {
+    "concept_id": "c_c3911ecd4e0ba8d0",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工扬尘控制技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413164"
+    ]
+  },
+  {
+    "concept_id": "c_c43b11200f8dff40",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工噪声控制技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413140"
+    ]
+  },
+  {
+    "concept_id": "c_c7ca2004a45ded17",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 劳务工人信息管理技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413186"
+    ]
+  },
+  {
+    "concept_id": "c_d5f952de55c1f9e3",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 项目物资全过程监管技术",
+    "parent": "1A413146",
+    "alias_codes": [
+      "1A413151"
+    ]
+  },
+  {
+    "concept_id": "c_e0ad20f97060310f",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 建筑信息模型(BIM)技术 > 模型创建与使用",
+    "parent": "1A413143",
+    "alias_codes": [
+      "1A413145"
+    ]
+  },
+  {
+    "concept_id": "c_ebbee7ac8775c40f",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 施工现场水收集综合利用技术",
+    "parent": "1A413135",
+    "alias_codes": [
+      "1A413136"
+    ]
+  },
+  {
+    "concept_id": "c_ec3bf3c647d354b4",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 现场施工管理信息技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413181"
+    ]
+  },
+  {
+    "concept_id": "c_ee917a66d30c7ee9",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 智慧工地信息技术 > 电子商务采购技术",
+    "parent": "1A413180",
+    "alias_codes": [
+      "1A413183"
+    ]
+  },
+  {
+    "concept_id": "c_f1524e2425913984",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 建筑信息模型(BIM)技术 > 建筑信息模型(BIM)软件",
+    "parent": "1A413143",
+    "alias_codes": [
+      "1A413144"
+    ]
+  },
+  {
+    "concept_id": "c_ffd7d1dedd3da683",
+    "canonical_path": "建筑工程施工技术 > 智能建造新技术 > 绿色施工技术 > 建筑垃圾减量化与资源化利用技术",
+    "parent": "1A413160",
+    "alias_codes": [
+      "1A413162"
+    ]
+  }
+]

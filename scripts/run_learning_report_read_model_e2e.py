@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
+import hashlib
 import json
 import os
 import subprocess
@@ -12,8 +13,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 
@@ -21,15 +23,60 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 DEVTOOLS_CLI = Path("/Applications/wechatwebdevtools.app/Contents/MacOS/cli")
+REDACTED_SECRET = "[REDACTED]"
+REDACT_MODEL_CATALOG_AT_REST_ENV = "DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST"
+
+
+def _apply_local_qa_env(*, user_data_dir: str) -> None:
+    os.environ["DEEPTUTOR_ENV"] = "local"
+    os.environ["DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA"] = "1"
+    os.environ["DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"] = "1"
+    os.environ["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
+    os.environ["DEEPTUTOR_MISTAKE_BOOK_ENABLED"] = "1"
+    os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"] = "1"
+    os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"] = "1"
+    os.environ["DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"] = "10000"
+    os.environ["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"] = "1"
+    os.environ["FF_AUTH_SUPABASE_BACKEND"] = "false"
+    os.environ["SUPABASE_RAG_ENABLED"] = "false"
+    os.environ["DEEPTUTOR_USER_DATA_DIR"] = str(user_data_dir or "").strip()
+    os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV] = "1"
 
 
 def _prepare_local_user_data_dir(user_data_dir: str) -> None:
-    os.environ["DEEPTUTOR_USER_DATA_DIR"] = str(user_data_dir or "").strip()
+    _apply_local_qa_env(user_data_dir=user_data_dir)
     from deeptutor.services.path_service import PathService
     from deeptutor.services.learner_state import service as learner_state_service_module
 
     PathService.reset_instance()
     learner_state_service_module._learner_state_service = None
+
+
+def _redact_secret_fields(value: Any) -> Any:
+    if isinstance(value, dict):
+        redacted: dict[str, Any] = {}
+        for key, item in value.items():
+            if key == "api_key" and str(item or "").strip():
+                redacted[key] = REDACTED_SECRET
+            else:
+                redacted[key] = _redact_secret_fields(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_secret_fields(item) for item in value]
+    return value
+
+
+def _redact_artifact_model_catalog(user_data_dir: str) -> bool:
+    """Keep generated E2E artifacts secret-free without changing runtime env."""
+    catalog_path = Path(user_data_dir).expanduser().resolve() / "settings" / "model_catalog.json"
+    if not catalog_path.exists():
+        return False
+    payload = json.loads(catalog_path.read_text(encoding="utf-8"))
+    redacted = _redact_secret_fields(payload)
+    if redacted == payload:
+        return False
+    catalog_path.write_text(json.dumps(redacted, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return True
 
 
 def _request_json(
@@ -73,6 +120,24 @@ def _wait_for_api(base_url: str, *, timeout_s: float, poll_interval_s: float = 0
     return False
 
 
+def _wait_for_json(
+    *,
+    description: str,
+    fetch: Callable[[], dict[str, Any]],
+    ready: Callable[[dict[str, Any]], bool],
+    timeout_s: float = 10.0,
+    poll_interval_s: float = 0.5,
+) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout_s
+    last_payload: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        last_payload = fetch()
+        if ready(last_payload):
+            return last_payload
+        time.sleep(poll_interval_s)
+    raise AssertionError(f"{description} not ready within {timeout_s:g}s: {json.dumps(last_payload, ensure_ascii=False)}")
+
+
 @contextmanager
 def _local_api_server(
     *,
@@ -90,15 +155,28 @@ def _local_api_server(
     host = parsed.hostname or "127.0.0.1"
     port = parsed.port or (443 if parsed.scheme == "https" else 80)
     env = dict(os.environ)
-    env.setdefault("DEEPTUTOR_ENV", "local")
-    env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
-    env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
-    env["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
-    env["DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"] = "10000"
-    env["DEEPTUTOR_USER_DATA_DIR"] = user_data_dir
-    env["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"] = "1"
-    env["FF_AUTH_SUPABASE_BACKEND"] = "false"
-    env["SUPABASE_RAG_ENABLED"] = "false"
+    _apply_local_qa_env(user_data_dir=user_data_dir)
+    env.update(
+        {
+            "DEEPTUTOR_ENV": os.environ["DEEPTUTOR_ENV"],
+            "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": os.environ["DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA"],
+            "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK": os.environ["DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"],
+            "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK": os.environ[
+                "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
+            ],
+            "DEEPTUTOR_MISTAKE_BOOK_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_ENABLED"],
+            "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"],
+            "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK": os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"],
+            "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS": os.environ[
+                "DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS"
+            ],
+            "DEEPTUTOR_USER_DATA_DIR": os.environ["DEEPTUTOR_USER_DATA_DIR"],
+            REDACT_MODEL_CATALOG_AT_REST_ENV: os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV],
+            "DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN": os.environ["DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN"],
+            "FF_AUTH_SUPABASE_BACKEND": os.environ["FF_AUTH_SUPABASE_BACKEND"],
+            "SUPABASE_RAG_ENABLED": os.environ["SUPABASE_RAG_ENABLED"],
+        }
+    )
     env["PYTHONUNBUFFERED"] = "1"
     env["PYTHONPATH"] = os.pathsep.join(
         [str(PROJECT_ROOT), env.get("PYTHONPATH", "")]
@@ -222,13 +300,24 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
         "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ):
         env.pop(key, None)
-    env.setdefault("DEEPTUTOR_ENV", "local")
-    env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
-    env["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
-    env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
-    env["DEEPTUTOR_USER_DATA_DIR"] = user_data_dir
-    env["FF_AUTH_SUPABASE_BACKEND"] = "false"
-    env["SUPABASE_RAG_ENABLED"] = "false"
+    _apply_local_qa_env(user_data_dir=user_data_dir)
+    env.update(
+        {
+            "DEEPTUTOR_ENV": os.environ["DEEPTUTOR_ENV"],
+            "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": os.environ["DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA"],
+            "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK": os.environ["DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"],
+            "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK": os.environ[
+                "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
+            ],
+            "DEEPTUTOR_MISTAKE_BOOK_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_ENABLED"],
+            "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED": os.environ["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"],
+            "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK": os.environ["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"],
+            "DEEPTUTOR_USER_DATA_DIR": os.environ["DEEPTUTOR_USER_DATA_DIR"],
+            REDACT_MODEL_CATALOG_AT_REST_ENV: os.environ[REDACT_MODEL_CATALOG_AT_REST_ENV],
+            "FF_AUTH_SUPABASE_BACKEND": os.environ["FF_AUTH_SUPABASE_BACKEND"],
+            "SUPABASE_RAG_ENABLED": os.environ["SUPABASE_RAG_ENABLED"],
+        }
+    )
     completed = subprocess.run(
         [
             sys.executable,
@@ -295,19 +384,25 @@ def _visible_sections(report: dict[str, Any]) -> dict[str, Any]:
     return learning_brain.get("visible_sections") if isinstance(learning_brain.get("visible_sections"), dict) else {}
 
 
+def _learning_report_path(event_limit: int) -> str:
+    return f"/api/v1/mobile/learning-report?event_limit={event_limit}&schema_version=2"
+
+
+def _local_qa_phone_code(run_id: str) -> str:
+    digest = hashlib.sha256(str(run_id or "learning-report-e2e").encode("utf-8")).hexdigest()
+    return "139" + str(int(digest[:10], 16) % 100_000_000).zfill(8)
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    os.environ.setdefault("DEEPTUTOR_ENV", "local")
-    os.environ.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
-    os.environ.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
-    os.environ.setdefault("DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS", "10000")
+    _apply_local_qa_env(user_data_dir=args.user_data_dir)
     _prepare_local_user_data_dir(args.user_data_dir)
 
-    run_id = str(args.code or f"dev-learning-report-e2e-{int(time.time())}").strip()
+    run_id = str(args.code or f"dev-learning-report-e2e-{time.time_ns()}-{uuid.uuid4().hex[:8]}").strip()
     login = _request_json(
         method="POST",
         base_url=args.base_url,
         path="/api/v1/wechat/mp/login",
-        body={"code": run_id},
+        body={"code": run_id, "phone_code": _local_qa_phone_code(run_id)},
     )
     token = str(login.get("token") or "").strip()
     user_id = str(login.get("user_id") or "").strip()
@@ -323,7 +418,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         before = _request_json(
             method="GET",
             base_url=args.base_url,
-            path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
+            path=_learning_report_path(args.event_limit),
             token=token,
         )
         _assert(before["authority"]["read_model"] == "learning-report-read-model", "read model authority mismatch")
@@ -351,11 +446,20 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     _assert(after_two_synthesis.get("status") == "ok", "synthesis after two attempts failed")
 
-    after_two = _request_json(
-        method="GET",
-        base_url=args.base_url,
-        path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
-        token=token,
+    after_two = _wait_for_json(
+        description="learning-report after two attempts",
+        fetch=lambda: _request_json(
+            method="GET",
+            base_url=args.base_url,
+            path=_learning_report_path(args.event_limit),
+            token=token,
+        ),
+        ready=lambda payload: (
+            _safe_int(dict(payload.get("overview") or {}).get("attempt_count")) >= 2
+            and _safe_int(dict(payload.get("overview") or {}).get("recent_three_done")) >= 2
+            and _safe_int(dict(payload.get("mistake_book") or {}).get("count")) >= 1
+            and _core_source_status_ok(payload)
+        ),
     )
     _assert(after_two["authority"]["read_model"] == "learning-report-read-model", "read model authority mismatch")
     overview = dict(after_two.get("overview") or {})
@@ -374,6 +478,21 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     _assert(_core_source_status_ok(after_two), "core source_status should be ok after local e2e")
     graph_chain = dict(dict(after_two.get("learning_brain") or {}).get("graph_chain") or {})
     _assert(graph_chain.get("has_training_uses_question") is True, "typed graph should include training -> question")
+    mistake_book = _wait_for_json(
+        description="mistake-book projection after wrong attempts",
+        fetch=lambda: _request_json(
+            method="GET",
+            base_url=args.base_url,
+            path="/api/v1/mobile/mistake-book?include_mastered=true",
+            token=token,
+        ),
+        ready=lambda payload: _safe_int(payload.get("count")) >= 1,
+    )
+    _assert(_safe_int(mistake_book.get("count")) >= 1, "mistake_book should expose at least one canonical item after wrong attempts")
+    _assert(
+        _safe_int(dict(after_two.get("mistake_book") or {}).get("count")) >= 1,
+        "learning-report should project mistake_book count from mistake-book authority",
+    )
 
     improvement_written = _write_grading_attempt(
         user_id=user_id,
@@ -389,11 +508,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         user_data_dir=args.user_data_dir,
     )
     _assert(after_improve_synthesis.get("status") == "ok", "synthesis after improvement failed")
-    after_improve = _request_json(
-        method="GET",
-        base_url=args.base_url,
-        path=f"/api/v1/mobile/learning-report?event_limit={args.event_limit}",
-        token=token,
+    after_improve = _wait_for_json(
+        description="learning-report after improvement",
+        fetch=lambda: _request_json(
+            method="GET",
+            base_url=args.base_url,
+            path=_learning_report_path(args.event_limit),
+            token=token,
+        ),
+        ready=lambda payload: _safe_int(dict(payload.get("overview") or {}).get("attempt_count")) >= 3,
     )
     improved_chain = dict(dict(after_improve.get("learning_brain") or {}).get("graph_chain") or {})
     _assert(
@@ -417,6 +540,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "attempt_count": after_two["overview"]["attempt_count"],
             "unique_question_count": after_two["overview"]["unique_question_count"],
             "recent_three_unique_questions": after_two["overview"]["recent_three_unique_questions"],
+            "mistake_book_count": mistake_book.get("count"),
             "degraded": after_two["degraded"],
             "learning_brain_source": after_two["authority"]["learning_brain_source"],
             "visible_sections": {
@@ -476,10 +600,19 @@ def main() -> int:
         ):
             result = run(args)
     except Exception as exc:
+        _redact_artifact_model_catalog(args.user_data_dir)
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
+    _redact_artifact_model_catalog(args.user_data_dir)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 if __name__ == "__main__":

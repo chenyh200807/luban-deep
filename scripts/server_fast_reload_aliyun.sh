@@ -36,17 +36,53 @@ if [ -f "${LANGFUSE_OVERRIDE_FILE}" ] && docker network inspect "${SHARED_LANGFU
     compose_args+=(-f "${LANGFUSE_OVERRIDE_FILE}")
 fi
 
-docker compose --progress plain "${compose_args[@]}" build deeptutor
-docker compose "${compose_args[@]}" up -d --no-deps --force-recreate deeptutor
-docker compose "${compose_args[@]}" ps deeptutor
-
 backend_port="$(read_env_default BACKEND_PORT 8001)"
 frontend_port="$(read_env_default FRONTEND_PORT 3782)"
+host_git_sha="$(read_env_default DEEPTUTOR_GIT_SHA "")"
+
+existing_container_id="$(docker compose "${compose_args[@]}" ps -q deeptutor || true)"
+if [ -z "${existing_container_id}" ]; then
+    echo "deeptutor 容器不存在，无法执行 no-build 快速发布。请先完整部署。" >&2
+    exit 1
+fi
+
+docker compose "${compose_args[@]}" up -d --no-deps --force-recreate --no-build deeptutor
 container_id="$(docker compose "${compose_args[@]}" ps -q deeptutor)"
 if [ -z "${container_id}" ]; then
     echo "deeptutor 容器未运行，无法执行快速发布。请先完整部署。" >&2
     exit 1
 fi
+
+docker exec "${container_id}" sh -lc '
+set -eu
+rm -rf /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/schemas /app/requirements
+rm -f /app/pyproject.toml /app/requirements.txt
+'
+
+for runtime_path in deeptutor deeptutor_cli contracts scripts schemas requirements pyproject.toml requirements.txt; do
+    if [ -e "${runtime_path}" ]; then
+        docker cp "${runtime_path}" "${container_id}:/app/"
+    fi
+done
+
+docker exec "${container_id}" sh -lc '
+set -eu
+chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/schemas /app/requirements
+chmod a+r /app/pyproject.toml /app/requirements.txt
+chown -R deeptutor:deeptutor /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/schemas /app/requirements /app/pyproject.toml /app/requirements.txt 2>/dev/null || true
+'
+
+if [ -n "${host_git_sha}" ]; then
+    container_git_sha="$(docker inspect "${container_id}" --format '{{range .Config.Env}}{{println .}}{{end}}' | awk -F= '$1 == "DEEPTUTOR_GIT_SHA" {print $2; exit}')"
+    if [ "${container_git_sha}" != "${host_git_sha}" ]; then
+        echo "容器 release lineage 未刷新: host=${host_git_sha} container=${container_git_sha}" >&2
+        exit 1
+    fi
+fi
+
+docker compose "${compose_args[@]}" restart deeptutor
+docker compose "${compose_args[@]}" ps deeptutor
+container_id="$(docker compose "${compose_args[@]}" ps -q deeptutor)"
 
 for _ in $(seq 1 30); do
     health="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container_id}" 2>/dev/null || true)"
@@ -62,7 +98,7 @@ curl -fsS "http://127.0.0.1:${frontend_port}/" >/dev/null
 
 cat <<EOF
 DeepTutor 已完成远端快速重载，等待公网验收。
-适用范围: 已同步到 /root/deeptutor 的候选代码；本脚本会重建并重启 deeptutor 容器，不做 docker cp 热补丁。
+适用范围: 已同步到 /root/deeptutor 的后端候选代码；本脚本不重建镜像，不触发 Next build。
 前端: http://${PUBLIC_HOST}:${frontend_port}
 后端: http://${PUBLIC_HOST}:${backend_port}
 EOF

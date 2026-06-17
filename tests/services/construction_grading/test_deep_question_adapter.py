@@ -3,6 +3,44 @@ from __future__ import annotations
 from deeptutor.services.construction_grading.deep_question_adapter import (
     build_deep_question_grading_result,
 )
+
+
+def test_subjective_triggers_on_unenumerated_or_chinese_or_empty_type_with_reference() -> None:
+    # First-principles case detection: non-choice + has reference -> type=="case", regardless of the
+    # exact (un-enumerated / Chinese / empty) question_type string.
+    for qt in ("subjective", "简答题", "分析题", "", "fill_blank"):
+        qc = {"question_id": f"q-{qt}", "question_type": qt, "question": "简述...",
+              "correct_answer": "应采用专用开关箱"}
+        r = build_deep_question_grading_result(qc, user_answer="专用开关箱")
+        assert r is not None and r["type"] == "case", f"q_type={qt!r} should route to case"
+
+
+def test_no_reference_non_choice_is_not_force_graded() -> None:
+    # non-choice but NO reference answer -> not force-routed to subjective (returns None, legacy handles)
+    qc = {"question_id": "q-noref", "question_type": "作文", "question": "写一篇..."}
+    assert build_deep_question_grading_result(qc, user_answer="...") is None
+
+
+def test_real_mcq_never_routed_to_subjective() -> None:
+    # real choice question -> stays mcq, never subjective (choice veto first)
+    qc = {"question_id": "q-mcq", "question_type": "single_choice", "question": "...",
+          "options": {"A": "x", "C": "y"}, "correct_answer": "C"}
+    r = build_deep_question_grading_result(qc, user_answer="C")
+    assert r is not None and r["type"] == "mcq"
+
+
+def test_coding_question_with_reference_not_routed_to_subjective() -> None:
+    # coding has a reference answer but is graded by execution, not rubric -> must NOT route to case
+    qc = {"question_id": "coding-1", "question_type": "coding", "question": "写代码...",
+          "correct_answer": "print('hello')"}
+    assert build_deep_question_grading_result(qc, user_answer="print('hello')") is None
+
+
+def test_grading_key_reference_triggers_subjective() -> None:
+    qc = {"question_id": "q-gk", "question_type": "x", "question": "...",
+          "grading_key": {"correct_answer": "应..."}}
+    r = build_deep_question_grading_result(qc, user_answer="...")
+    assert r is not None and r["type"] == "case"
 from deeptutor.services.construction_grading.learning_evidence import (
     build_learning_evidence_payload,
 )
@@ -63,3 +101,132 @@ def test_case_grading_preserves_followup_rag_evidence_for_learning_truth_promoti
 
     assert projection["weak_points"]
     assert projection["weak_points"][0]["evidence_level"] == "L1_repeated"
+
+
+def test_client_supplied_answer_key_not_laundered_to_release_truth() -> None:
+    """M-closure: a context/client-supplied correct_answer must score FORMATIVELY but never as
+    governed release-truth (official_score_laundering=0)."""
+    qc = {
+        "question_id": "CLIENT-INJECTED-1",
+        "question_type": "single_choice",
+        "question": "伪造题",
+        "options": [{"key": "A", "value": "x"}, {"key": "C", "value": "y"}],
+        "correct_answer": "C",
+    }
+    result = build_deep_question_grading_result(qc, user_answer="C")
+    assert result is not None
+    # formative score preserved
+    assert result["is_correct"] is True
+    assert result["score_awarded"] == 1.0
+    # but NOT laundered to release-truth
+    assert result["release_truth"] is False
+    assert result["registry_status"] == "unresolved"
+    assert result["answer_key_authority"] == "context_supplied_unverified"
+    assert result["official_release_score"] is False
+    assert result["not_production_grade"] is True
+    # compiled_context says official scoring not allowed
+    assert result["compiled_context"]["diagnostic_policy"]["official_score_allowed"] is False
+
+
+def test_case_result_also_stamped_not_release_truth() -> None:
+    qc = {
+        "question_id": "CASE-X",
+        "question_type": "case",
+        "question": "案例题",
+        "correct_answer": "应组织专家论证。",
+    }
+    result = build_deep_question_grading_result(qc, user_answer="组织专家论证")
+    assert result is not None
+    assert result["release_truth"] is False
+    assert result["answer_key_authority"] == "context_supplied_unverified"
+    assert result["compiled_context"]["schema_version"] == "luban_context_pack.v1"
+
+
+def test_injected_registry_status_cannot_become_release_truth() -> None:
+    """F1 hardening: a client cannot inject registry_status into the question context to flip a
+    context-supplied answer key into a governed release-truth score."""
+    for injected in ("release_candidate", "published"):
+        qc = {
+            "question_id": "EVIL-1",
+            "question_type": "single_choice",
+            "question": "对抗题",
+            "options": [{"key": "A", "value": "a"}, {"key": "C", "value": "c"}],
+            "correct_answer": "C",
+            "registry_status": injected,
+            "answer_key": "C",
+        }
+        r = build_deep_question_grading_result(qc, user_answer="C")
+        assert r is not None
+        assert r["release_truth"] is False, f"laundering via registry_status={injected}"
+        assert r["compiled_context"]["diagnostic_policy"]["official_score_allowed"] is False
+        assert r["answer_key_authority"] == "context_supplied_unverified"
+        # formative score still shown
+        assert r["is_correct"] is True
+        assert r["score_awarded"] == 1.0
+
+
+def test_client_injected_certified_policy_is_not_trusted_without_server_grant() -> None:
+    qc = {
+        "question_id": "EVIL-CERT-1",
+        "question_type": "single_choice",
+        "question": "对抗题",
+        "options": [{"key": "A", "value": "a"}, {"key": "C", "value": "c"}],
+        "correct_answer": "C",
+        "registry_status": "published",
+        "certified_grading_policy": {
+            "status": "published",
+            "policy_id": "client-policy",
+            "rubric_hash": "sha256:client",
+            "grader_version": "client-grader",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+        },
+    }
+
+    result = build_deep_question_grading_result(qc, user_answer="C")
+    assert result is not None
+
+    assert result["release_truth"] is False
+    assert "certified_grading_policy" not in result
+    assert "certified_grading_policy" not in result["next_training_signal"]
+
+
+def test_server_governed_certified_policy_reaches_learning_evidence_trusted_adjudication() -> None:
+    qc = {
+        "question_id": "SERVER-CERT-1",
+        "question_type": "single_choice",
+        "question": "临时用电应采用几级配电？",
+        "options": [{"key": "A", "value": "三级"}, {"key": "B", "value": "两级"}],
+        "answer_key": "A",
+        "correct_answer": "A",
+    }
+    result = build_deep_question_grading_result(
+        qc,
+        user_answer="B",
+        governed_registry_status="published",
+        certified_grading_policy={
+            "status": "published",
+            "policy_id": "policy-objective-v1",
+            "rubric_hash": "sha256:objective-rubric",
+            "grader_version": "objective-grader-v1",
+            "confidence": 0.96,
+            "conflict_status": "resolved",
+        },
+    )
+    assert result is not None
+    assert result["release_truth"] is True
+    assert result["certified_grading_policy"]["policy_id"] == "policy-objective-v1"
+    assert result["next_training_signal"]["certified_grading_policy"]["rubric_hash"] == "sha256:objective-rubric"
+
+    payload = build_learning_evidence_payload(
+        grading_result=result,
+        turn_id="turn-server-cert",
+        governed_certified_authority=True,
+    )
+
+    assert payload["quality"]["evidence_level"] == "L2_confirmed"
+    assert payload["memory_lifecycle_stage"] == "stable_learner_claim"
+    trusted = payload["quality"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-objective-v1"

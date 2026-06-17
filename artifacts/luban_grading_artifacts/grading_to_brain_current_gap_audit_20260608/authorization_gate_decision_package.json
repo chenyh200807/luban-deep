@@ -1,0 +1,168 @@
+{
+  "canonical_truth_written": false,
+  "execution_order": [
+    "G1_limited_production_default",
+    "G6_real_wechat_package_page_automation",
+    "G3_published_registry",
+    "G4_canonical_learner_truth_write",
+    "G2_broad_production_default",
+    "G5_remote_or_db_write"
+  ],
+  "gates": {
+    "G1_limited_production_default": {
+      "allowed_scope_after_authorization": "qa_/operator_ cohort only",
+      "current_state": "candidate_ready_not_executed",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json",
+        "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json",
+        "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/rollback_readiness_drill_m19d.json"
+      ],
+      "flip_mechanism": "env-gated limited default; keep broad default off",
+      "missing_evidence_refs": [],
+      "promotion_path": "runtime_default_only_no_mastery_write",
+      "recommended_next": true,
+      "required_authorization": "explicit_user_authorization_for_limited_default",
+      "rollback": "env kill switch / cohort rollback",
+      "stop_conditions": [
+        "false_positive > 0",
+        "source_mismatch > 0",
+        "fallback failclosed spike",
+        "latency/cost crosses operator threshold"
+      ],
+      "title": "qa_operator_limited_default_flip",
+      "without_authorization": "decision_package_only"
+    },
+    "G2_broad_production_default": {
+      "allowed_scope_after_authorization": "explicitly named cohort expansion only",
+      "current_state": "not_recommended",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/soak_metrics_m19d.json",
+        "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/m19c_m19d_evidence_ledger_m19e.json",
+        "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md"
+      ],
+      "flip_mechanism": "progressive cohort expansion after G1 evidence review",
+      "missing_evidence_refs": [],
+      "promotion_path": "runtime_default_only_no_mastery_write",
+      "recommended_next": false,
+      "required_authorization": "separate_broad_default_authorization_after_limited_soak",
+      "rollback": "same kill switch plus registry/runtime pointer rollback",
+      "stop_conditions": [
+        "limited default evidence stale",
+        "teacher review backlog exceeds operator capacity",
+        "unsupported claim/generic fallback drift"
+      ],
+      "title": "broad_default_flip",
+      "without_authorization": "decision_package_only"
+    },
+    "G3_published_registry": {
+      "allowed_scope_after_authorization": "promote signed candidate to published registry",
+      "current_state": "staged_candidate_only",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "artifacts/luban_grading_artifacts/llm_artifact_compiler_continuous_factory_m20_20260604/deterministic_signer_report_m20.json",
+        "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_signature_m202.json",
+        "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/release_decision_input_m202.json"
+      ],
+      "flip_mechanism": "publish only a signed hash/version bundle; never edit in place",
+      "missing_evidence_refs": [],
+      "promotion_path": "candidate_to_signed_to_published_registry",
+      "recommended_next": false,
+      "required_authorization": "explicit_registry_publish_authorization",
+      "rollback": "version/hash supersession pointer rollback",
+      "stop_conditions": [
+        "missing deterministic signer report",
+        "hash/schema mismatch",
+        "runtime resolver cannot prove previous version rollback"
+      ],
+      "title": "published_registry_promotion",
+      "without_authorization": "decision_package_only"
+    },
+    "G4_canonical_learner_truth_write": {
+      "allowed_scope_after_authorization": "teacher-final plus real retest promotion only",
+      "current_state": "dryrun_candidate_only",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/learning_brain_truth_write_guard_m18d.json",
+        "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl",
+        "tests/services/construction_grading/test_teacher_review_writeback.py"
+      ],
+      "flip_mechanism": "append-only Learning Evidence Ledger write through learner authority",
+      "missing_evidence_refs": [],
+      "promotion_path": "teacher_final_plus_real_retest_only",
+      "recommended_next": false,
+      "required_authorization": "explicit_canonical_learner_truth_write_authorization",
+      "rollback": "append compensating review/retest event; never rewrite history",
+      "stop_conditions": [
+        "shadow/candidate/simulated evidence attempts mastery promotion",
+        "high-risk item lacks teacher-final",
+        "real retest proof missing or stale"
+      ],
+      "title": "canonical_learner_truth_write",
+      "without_authorization": "decision_package_only"
+    },
+    "G5_remote_or_db_write": {
+      "allowed_scope_after_authorization": "Aliyun writes only under /root/deeptutor; DB writes only named learner/grading tables",
+      "current_state": "not_executed",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "AGENTS.md",
+        "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/rollback_commands_m19e.md",
+        "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/m19c_m19d_readiness_rollup_m19e_r.json"
+      ],
+      "flip_mechanism": "run deployment/write plan with exact target path and rollback command",
+      "missing_evidence_refs": [],
+      "promotion_path": "authorized_deploy_or_db_migration_only",
+      "recommended_next": false,
+      "required_authorization": "explicit_remote_or_db_write_authorization",
+      "rollback": "predeclared rollback commands and DB compensation plan",
+      "stop_conditions": [
+        "target path outside /root/deeptutor",
+        "secret/raw env dump required",
+        "write target not named before execution"
+      ],
+      "title": "remote_or_db_write",
+      "without_authorization": "decision_package_only"
+    },
+    "G6_real_wechat_package_page_automation": {
+      "allowed_scope_after_authorization": "open yousenwebview project root and drive packageDeeptutor page flow",
+      "current_state": "verification_required",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "AGENTS.md",
+        "scripts/run_wechat_learning_brain_devtools_e2e.py",
+        "tests/services/member_console/test_home_dashboard_learning_projection.py"
+      ],
+      "flip_mechanism": "DevTools CLI auto or miniprogram automator against project root",
+      "missing_evidence_refs": [],
+      "promotion_path": "verification_evidence_only_no_mastery_write",
+      "recommended_next": false,
+      "required_authorization": "devtools_or_manual_wechat_qa_window",
+      "rollback": "not applicable; verification gate does not write product state",
+      "stop_conditions": [
+        "only /wechat-harness evidence is available",
+        "project root is packageDeeptutor instead of yousenwebview",
+        "login state is unknown but reported as pass"
+      ],
+      "title": "real_wechat_package_page_automation",
+      "without_authorization": "decision_package_only"
+    }
+  },
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence": {},
+  "production_write_count": 0,
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "schema_version": 1,
+  "scope": "read_only_authorization_decision_package",
+  "single_authority": {
+    "grading_truth_source": "signed artifacts + runtime adjudicator + validator",
+    "learner_truth_source": "Learning Evidence Ledger + Learner Model",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "pcp_role": "read_only_feedback_context"
+  }
+}

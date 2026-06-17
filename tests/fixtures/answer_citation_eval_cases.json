@@ -1,0 +1,51 @@
+{
+  "suite": "answer_citation_eval_v1",
+  "cases": [
+    {
+      "case_id": "textbook_roof_waterproofing",
+      "answer": "屋面防水等级应根据工程重要性确定。",
+      "citation_bundle": {
+        "citation_state": "supported",
+        "refs": [
+          {
+            "citation_id": "c1",
+            "marker": "〔1〕",
+            "source_type": "textbook",
+            "source_id": "book_2026_001",
+            "source_span": {
+              "chapter": "1",
+              "section": "1.4"
+            }
+          }
+        ],
+        "claims": [
+          {
+            "claim_id": "claim_1",
+            "text": "屋面防水等级应根据工程重要性确定。",
+            "citation_ids": [
+              "c1"
+            ]
+          }
+        ],
+        "footer_text": "依据\n〔1〕2026 建筑实务教材，第 1 章 第 1.4 节。摘录：屋面防水等级应根据工程重要性确定。"
+      },
+      "expected_claim_refs": [
+        {
+          "claim_text": "屋面防水等级应根据工程重要性确定。",
+          "expected_source_ids": [
+            "book_2026_001"
+          ],
+          "expected_source_span": {
+            "chapter": "1",
+            "section": "1.4"
+          }
+        }
+      ],
+      "forbidden_terms": [
+        "correct_answer",
+        "grading_key",
+        "scoring_points"
+      ]
+    }
+  ]
+}

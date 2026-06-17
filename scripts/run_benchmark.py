@@ -20,7 +20,16 @@ from deeptutor.services.benchmark.runner import (  # noqa: E402
 )
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 
-CANONICAL_SUITES = ("pr_gate_core", "regression_watch", "incident_replay", "exploration_lab")
+CANONICAL_SUITES = (
+    "pr_gate_core",
+    "regression_watch",
+    "real_exam_quality_spine",
+    "incident_replay",
+    "exploration_lab",
+    "luban_case_grading_shadow",
+    "answer_citation_shadow",
+    "m26_context_safety",
+)
 
 
 async def main() -> None:

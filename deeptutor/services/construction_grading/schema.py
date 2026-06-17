@@ -28,6 +28,18 @@ class EvidenceRef:
         return asdict(self)
 
 
+# Canonical schema id for register-before-use (schema-governance P2: this dataclass is the
+# single canonical producer of a grading error event, consumed cross-domain by
+# learner_state/learning_synthesis (the error_events → claim projection). Making the schema
+# VISIBLE to the schema-registry closure so a competing error-event shape can never appear
+# unregistered. Registered as T2 runtime-canonical in contracts/schema_registry.yaml.
+# FIELD-CANONICALIZATION TODO (needs_field_canonicalization: true): the canonical span field
+# here is ``evidence``; the v1 rubric path still emits a parallel ``evidence_span`` for the
+# same fact, and learning_synthesis defensively reads both — that drift is the field-level
+# pinning follow-up (P2#9), separate from this visibility registration.
+GRADING_ERROR_EVENT_SCHEMA_ID = "grading_error_event.v1"
+
+
 @dataclass(frozen=True)
 class GradingErrorEvent:
     error_code: str
