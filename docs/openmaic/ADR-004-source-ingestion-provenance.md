@@ -208,6 +208,19 @@ P0 必须具备：
 - 复杂 OCR、复杂公式、施工图识别可以 P1/P2 增强。
 - P0 若解析置信度不足，必须降级为 `review_required`，不能静默发布。
 
+### 9.1 Document extractor provider boundary
+
+OpenMAIC 612a147 的 document extractor provider foundation 只作为 clean-room 设计输入。DeepTutor 可以学习其 provider-selection gate 形状，但不得复制实现，也不得让 extractor provider 成为第二套资料 authority。
+
+硬规则：
+
+- `SourceIngestionService` 仍是唯一资料解析与 `source_manifest` 写入 authority。
+- extractor provider 只能是 `SourceIngestionService` 内部的可替换解析策略，不能直接写 `lesson_ir`、`source_manifest`、RAG index 或 classroom job payload。
+- provider selection 必须 deterministic、可审计、fail closed；未知 MIME type、能力不满足、低置信度、解析异常必须进入 `review_required`。
+- provider 输出必须先归一化为本 ADR 的 source chunk / provenance / copyright fields，再允许被 `LessonIRService` 消费。
+- 新增 provider 前必须先补 contract/eval：MIME support、capability flags、page/paragraph/table/image provenance、confidence、copyright_level、allowed_use、failure reason。
+- 不允许新增 `classroom_documents`、`exam_classroom_sources` 或课堂专用 RAG mirror truth。
+
 ---
 
 ## 10. 非目标
