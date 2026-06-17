@@ -71,6 +71,27 @@ for key in ('DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE', 'DEEPTUTOR_EXTERNAL_AUTH_SESSI
     if current and '/root/luban' in current:
         raise SystemExit(f'{key} 不允许指向 /root/luban: {current}')
 
+# Legacy WS routers (question/mimic, solve) are fully ANONYMOUS LLM surfaces guarded
+# only by this single flag — one env typo would expose them to the public internet.
+legacy_routers = str(values.get('DEEPTUTOR_ENABLE_LEGACY_ROUTERS') or '').strip().lower()
+if legacy_routers in {'1', 'true', 'yes', 'on'}:
+    raise SystemExit('DEEPTUTOR_ENABLE_LEGACY_ROUTERS 不允许在 production 开启（匿名 LLM WebSocket 面）')
+
+# Multi-worker pairing: heartbeat single-instance lock / WS connection cap / shared
+# rate limits all need the redis backend once workers > 1 (else they degrade per-process).
+workers_raw = str(values.get('UVICORN_WORKERS') or '1').strip()
+try:
+    workers = int(workers_raw or '1')
+except ValueError:
+    workers = 1
+backend = str(values.get('DEEPTUTOR_RATE_LIMIT_BACKEND') or 'sqlite').strip().lower()
+redis_url = str(values.get('DEEPTUTOR_RATE_LIMIT_REDIS_URL') or values.get('REDIS_URL') or '').strip()
+if workers > 1 and (backend != 'redis' or not redis_url):
+    raise SystemExit(
+        f'UVICORN_WORKERS={workers} 需要 DEEPTUTOR_RATE_LIMIT_BACKEND=redis 且配置 '
+        'DEEPTUTOR_RATE_LIMIT_REDIS_URL，否则心跳锁/WS连接帽/限流退化为每进程各一份'
+    )
+
 print('远端发布环境校验通过。')
 print('SERVICE_ENV=' + str(values.get('SERVICE_ENV') or values.get('DEEPTUTOR_ENV') or ''))
 print('APP_ENV=' + str(values.get('APP_ENV') or ''))

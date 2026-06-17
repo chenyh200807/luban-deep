@@ -199,10 +199,20 @@ class _RedisRateLimitBackend(_BaseRateLimitBackend):
                 "DEEPTUTOR_RATE_LIMIT_BACKEND=redis requires the 'redis' package"
             ) from exc
 
-        self._redis = redis.Redis.from_url(redis_url, decode_responses=True)
+        # Short socket timeouts: this is a SYNC client called on the event-loop
+        # thread; a half-dead valkey must stall a request ~1s, not indefinitely.
+        self._redis = redis.Redis.from_url(
+            redis_url,
+            decode_responses=True,
+            socket_timeout=1.0,
+            socket_connect_timeout=1.0,
+        )
         self._namespace = namespace.strip() or "deeptutor:rate-limit"
         self._fallback = _SQLiteRateLimitBackend(_sqlite_backend_path())
-        self._degraded = False
+        # Degraded-mode deadline (monotonic). While in the future we serve from the
+        # SQLite fallback; afterwards we retry Redis so a recovered valkey restores
+        # cross-worker limits without a process restart.
+        self._degraded_until = 0.0
 
     def clear(self) -> None:
         self._fallback.clear()
@@ -211,7 +221,7 @@ class _RedisRateLimitBackend(_BaseRateLimitBackend):
         del now
         if policy.max_requests <= 0 or policy.window_seconds <= 0:
             return None
-        if self._degraded:
+        if time.monotonic() < self._degraded_until:
             return self._fallback.consume(scope_name, key, policy, time.time())
 
         namespaced_key = f"{self._namespace}:{scope_name}:{key}"
@@ -227,9 +237,9 @@ class _RedisRateLimitBackend(_BaseRateLimitBackend):
                 return max(1, math.ceil(ttl / 1000.0))
             return None
         except Exception:
-            self._degraded = True
+            self._degraded_until = time.monotonic() + 30.0
             logger.warning(
-                "Redis rate limit backend failed, falling back to SQLite backend",
+                "Redis rate limit backend failed, falling back to SQLite backend for 30s",
                 exc_info=True,
             )
             return self._fallback.consume(scope_name, key, policy, time.time())
@@ -340,11 +350,21 @@ def _get_backend() -> _BaseRateLimitBackend:
 
 def _client_ip_from_parts(client_host: str, headers: dict[str, str]) -> str:
     if _trust_proxy_headers():
-        forwarded_for = str(headers.get("x-forwarded-for") or headers.get("x-real-ip") or "").strip()
+        # Spoof-resistant client-IP extraction behind the edge proxy.
+        # Prefer X-Real-IP: the edge nginx sets it to $remote_addr (the real client),
+        # OVERWRITING any client-supplied value, so it cannot be forged. Only if it is
+        # absent fall back to the RIGHTMOST X-Forwarded-For hop — the IP our own nginx
+        # appended via $proxy_add_x_forwarded_for. NEVER the leftmost hop: that is
+        # whatever the client sent and is fully attacker-controlled (a forged leftmost
+        # value would let an attacker rotate the rate-limit key and bypass per-IP limits).
+        real_ip = str(headers.get("x-real-ip") or "").strip()
+        if real_ip:
+            return real_ip
+        forwarded_for = str(headers.get("x-forwarded-for") or "").strip()
         if forwarded_for:
-            first_hop = forwarded_for.split(",", 1)[0].strip()
-            if first_hop:
-                return first_hop
+            last_hop = forwarded_for.rsplit(",", 1)[-1].strip()
+            if last_hop:
+                return last_hop
     return client_host or "unknown"
 
 

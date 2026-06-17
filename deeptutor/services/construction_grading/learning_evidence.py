@@ -3,11 +3,24 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from difflib import SequenceMatcher
 from typing import Any
 
-from deeptutor.services.construction_grading.audit import reconcile_grader_output
-from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
+from deeptutor.services.construction_grading.audit import reconcile_grader_output
+from deeptutor.services.construction_grading.certified_grading_adjudication import (
+    GOVERNED_CERTIFIED_AUTHORITY_KEY,
+    attach_certified_grading_adjudication,
+    certified_grading_policy_from_payload,
+    payload_has_governed_certified_grading_authority,
+)
+from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
+from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.taxonomy.learning_topic_resolver import (
+    ResolvedLearningTopic,
+    resolve_learning_topic_from_payload,
+)
+from deeptutor.services.taxonomy.textbook_directory import canonical_topic_options
 
 _REASONING_BLOCK_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*?</(?:think|thinking)>", re.IGNORECASE | re.DOTALL)
 _REASONING_OPEN_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
@@ -20,8 +33,10 @@ def build_learning_evidence_payload(
     grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any],
     turn_id: str = "",
     session_id: str = "",
+    governed_certified_authority: bool = False,
 ) -> dict[str, Any]:
     payload = _grading_result_payload(grading_result)
+    payload.pop(GOVERNED_CERTIFIED_AUTHORITY_KEY, None)
     question_id = _clean_text(payload.get("question_id") or payload.get("id"))
     question_type = _normalize_question_type(payload.get("type") or payload.get("question_type"))
     errors = [_clean_dict(error) for error in list(payload.get("error_events") or [])]
@@ -36,6 +51,12 @@ def build_learning_evidence_payload(
     score_awarded = payload.get("score_awarded")
     max_score = payload.get("max_score")
     next_training_signal = _clean_dict(payload.get("next_training_signal"))
+    payload["next_training_signal"] = next_training_signal
+    payload = attach_certified_grading_adjudication(
+        payload,
+        governed_certified_authority=governed_certified_authority,
+    )
+    next_training_signal = _clean_dict(payload.get("next_training_signal"))
     grading_mode = _clean_text(payload.get("grading_mode"))
     question_stem = _clean_text(
         payload.get("question_stem")
@@ -45,20 +66,24 @@ def build_learning_evidence_payload(
     )
     explanation = payload.get("explanation")
     explanation_missing_reason = _clean_text(payload.get("explanation_missing_reason"))
-    quality = _quality_from_payload(
-        question_id=question_id,
-        question_stem=question_stem,
-        errors=errors,
-        evidence_refs=evidence_refs,
-        grading_mode=grading_mode,
-        score_awarded=score_awarded,
-        max_score=max_score,
-        explanation=explanation,
-        explanation_missing_reason=explanation_missing_reason,
-        next_training_signal=next_training_signal,
+    quality_input = dict(payload)
+    quality_input.update(
+        {
+            "question_id": question_id,
+            "question_stem": question_stem,
+            "score_awarded": score_awarded,
+            "max_score": max_score,
+            "explanation": explanation,
+            "explanation_missing_reason": explanation_missing_reason,
+            "error_events": errors,
+            "evidence_refs": evidence_refs,
+            "grading_mode": grading_mode,
+            "next_training_signal": next_training_signal,
+        }
     )
+    quality = compute_quality_signals(quality_input)
 
-    return {
+    result = {
         "schema_version": 1,
         "event_type": "learning_evidence",
         "legacy_event_type": "construction_grading_error",
@@ -100,9 +125,153 @@ def build_learning_evidence_payload(
         ),
         "quality": quality,
     }
+    result["memory_lifecycle_stage"] = lifecycle_stage_for_evidence_level(
+        result["quality"].get("evidence_level")
+    )
+    canonical_topic = _canonical_topic_from_payload(payload)
+    if canonical_topic:
+        result["canonical_topic"] = _canonical_topic_payload(canonical_topic)
+    for key in (
+        "certified_grading_policy",
+        "claim_promotion_allowed",
+        "preview_only",
+        "mastery_raised",
+        "canonical_truth_written",
+        "high_risk_review",
+    ):
+        if key in payload:
+            result[key] = payload[key]
+    if _is_m35_artifact_rubric(result["rubric"]):
+        result["claim_promotion_allowed"] = False
+        result["preview_only"] = True
+        result["mastery_raised"] = False
+        result["canonical_truth_written"] = False
+    return result
+
+
+def _canonical_topic_from_payload(payload: dict[str, Any]) -> ResolvedLearningTopic | None:
+    return resolve_learning_topic_from_payload(
+        payload,
+        llm_topic_inferer=_deterministic_canonical_topic_inferer,
+    )
+
+
+def _canonical_topic_payload(topic: ResolvedLearningTopic) -> dict[str, str]:
+    return {
+        "label": topic.label,
+        "source": topic.source,
+        "confidence": topic.confidence,
+        "taxonomy_code": topic.taxonomy_code,
+        "taxonomy_id": topic.taxonomy_id,
+        "topic_id": topic.topic_id,
+    }
+
+
+def _deterministic_canonical_topic_inferer(payload: dict[str, Any], candidates: list[str]) -> str:
+    texts = [
+        *[str(item or "") for item in candidates],
+        str(payload.get("question_stem") or payload.get("stem") or payload.get("question_text") or ""),
+        str(payload.get("explanation") or ""),
+    ]
+    best_name = ""
+    best_score = 0.0
+    for text in texts:
+        compact_text = _compact_topic_text(text)
+        if len(compact_text) < 4:
+            continue
+        for option in canonical_topic_options():
+            name = str(option.get("name") or "").strip()
+            compact_name = _compact_topic_text(name)
+            if len(compact_name) < 4:
+                continue
+            score = SequenceMatcher(None, compact_text, compact_name).ratio()
+            if compact_name in compact_text or compact_text in compact_name:
+                score = max(score, 0.95)
+            if score > best_score:
+                best_score = score
+                best_name = name
+    return best_name if best_score >= 0.72 else ""
+
+
+def _compact_topic_text(value: Any) -> str:
+    return re.sub(r"\s+", "", str(value or "").strip())
+
+
+def build_learning_evidence_from_context_pack(
+    *,
+    grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any],
+    compiled_context: dict[str, Any],
+    turn_id: str = "",
+    session_id: str = "",
+) -> dict[str, Any]:
+    """Learning Brain consumer of the unified ``LubanContextPack`` (M26 Task 5/8).
+
+    Builds the standard learning-evidence payload, then derives evidence refs + diagnostic provenance
+    from the SAME compiled context the grading/diagnostic surfaces used — so the Learning Brain does
+    not re-assemble its own context. PREVIEW only: never raises mastery, never writes canonical truth.
+    The pack's ``diagnostic_policy`` decides whether this evidence is official-grade or
+    needs_review/unverified; candidate / open-world evidence stays preview.
+    """
+    payload = build_learning_evidence_payload(
+        grading_result=grading_result, turn_id=turn_id, session_id=session_id
+    )
+    cc = compiled_context if isinstance(compiled_context, dict) else {}
+    policy = cc.get("diagnostic_policy") or {}
+    provenance = cc.get("provenance") or {}
+    source_ctx = cc.get("source_context") or {}
+
+    pack_refs: list[dict[str, Any]] = []
+    for ref in list(source_ctx.get("retrieval_refs") or []):
+        pack_refs.append({
+            "source": "compiled_context_retrieval",
+            "source_type": "rag_evidence",
+            "ref": ref.get("ref"),
+            "content_hash": ref.get("content_hash"),
+            "is_answer_key": False,
+        })
+
+    official = bool(policy.get("official_score_allowed"))
+    payload["compiled_context_provenance"] = {
+        "pack_hash": provenance.get("pack_hash"),
+        "resolution_status": provenance.get("resolution_status"),
+        "registry_status": provenance.get("registry_status"),
+        "official_score_allowed": official,
+        "needs_review_reason": policy.get("needs_review_reason"),
+    }
+    payload["compiled_context_evidence_refs"] = pack_refs
+    # Promotion gate: only signed official grading may propose a claim; candidate/open-world is preview.
+    payload["claim_promotion_allowed"] = official
+    payload["evidence_grade"] = "official_grading_evidence" if official else "preview_needs_retest"
+    payload["mastery_raised"] = False
+    payload["canonical_truth_written"] = False
+    payload["preview_only"] = not official
+    return payload
 
 
 def build_learning_evidence_dedupe_key(*, user_id: str, payload_json: dict[str, Any]) -> str:
+    raw_rubric = payload_json.get("rubric") if isinstance(payload_json.get("rubric"), dict) else {}
+    rubric_id = _clean_text(raw_rubric.get("rubric_id"))
+    artifact_version = _clean_text(raw_rubric.get("artifact_version") or raw_rubric.get("version_id"))
+    if rubric_id or artifact_version:
+        raw = json.dumps(
+            {
+                "key_version": "learning_evidence:v2",
+                "user_id": _clean_text(user_id),
+                "memory_kind": "learning_evidence",
+                "turn_id": payload_json.get("turn_id"),
+                "session_id": payload_json.get("session_id"),
+                "question_type": payload_json.get("question_type"),
+                "question_id": payload_json.get("question_id"),
+                "user_answer": payload_json.get("user_answer"),
+                "rubric_id": rubric_id,
+                "artifact_version": artifact_version,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
     raw = json.dumps(
         {
             "user_id": _clean_text(user_id),
@@ -177,6 +346,9 @@ def _normalized_rubric_block(payload: dict[str, Any]) -> dict[str, Any]:
         "scoring_point_hits": accepted_hits,
         "grader_disagreement": disagreement,
     }
+    artifact_version = _clean_text(raw_rubric.get("artifact_version") or raw_rubric.get("version_id"))
+    if artifact_version:
+        block["artifact_version"] = artifact_version
     return block
 
 
@@ -217,22 +389,93 @@ def _normalize_rubric_specs(raw: Any) -> list[dict[str, Any]]:
             "max_score": entry.get("max_score"),
             "ability_dimension": _clean_text(entry.get("ability_dimension")),
             "knowledge_node_id": _clean_text(entry.get("knowledge_node_id")),
+            **_question_provenance_fields(entry),
         })
     return specs
 
 
+def _question_provenance_fields(entry: dict[str, Any]) -> dict[str, Any]:
+    fields: dict[str, Any] = {}
+    for key in ("question_no", "sub_no", "subquestion_index", "question_index"):
+        if entry.get(key) is not None:
+            fields[key] = entry.get(key)
+    source_qid = _clean_text(entry.get("source_qid"))
+    if source_qid:
+        fields["source_qid"] = source_qid
+    return fields
+
+
 def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
+    match_status = _normalize_point_match_status(hit.get("hit") if "hit" in hit else hit.get("status"))
+    mistake_type = _clean_text(hit.get("mistake_type"))
+    miss_reason = _clean_text(hit.get("miss_reason")) or mistake_type
     cleaned: dict[str, Any] = {
         "point_id": _clean_text(hit.get("point_id")),
-        "hit": bool(hit.get("hit")),
+        "hit": match_status == "hit",
+        "match_status": match_status,
         "awarded_score": hit.get("awarded_score"),
-        "miss_reason": _clean_text(hit.get("miss_reason")),
+        "miss_reason": miss_reason,
         "evidence_text": _clean_text(hit.get("evidence_text")),
     }
     raw_code = _clean_text(hit.get("error_code"))
     if raw_code:
         cleaned["error_code"] = raw_code if raw_code in ERROR_CODE_REGISTRY else "unknown_error"
+    # M32 Task 3: propagate the point-level diagnostic fields the grader already produces
+    # (rubric_grader_v1) so the Learning Brain can explain "哪里错、为什么错、证据来自哪段作答".
+    # Append-only: a hit without these fields stays byte-identical to the legacy shape.
+    if mistake_type:
+        cleaned["mistake_type"] = mistake_type
+    if "evidence_span" in hit:
+        evidence_span = _clean_text(hit.get("evidence_span"))
+        cleaned["evidence_span"] = evidence_span
+    policy_type = _clean_text(hit.get("policy_type"))
+    if policy_type:
+        cleaned["policy_type"] = policy_type
+    required_terms = [term for term in (_clean_text(t) for t in (hit.get("required_terms") or [])) if term]
+    if required_terms:
+        cleaned["required_terms"] = required_terms
+    if "high_risk_review" in hit:
+        cleaned["high_risk_review"] = bool(hit.get("high_risk_review"))
+    source_refs = [_clean_dict(ref) for ref in list(hit.get("source_refs") or []) if isinstance(ref, dict)]
+    source_ref_ids = _normalize_source_ref_ids(hit.get("source_ref_ids"), source_refs=source_refs)
+    if source_ref_ids:
+        cleaned["source_ref_ids"] = source_ref_ids
+    if source_refs:
+        cleaned["source_refs"] = source_refs
+    cleaned.update(_question_provenance_fields(hit))
     return cleaned
+
+
+def _normalize_point_match_status(value: Any) -> str:
+    if isinstance(value, bool):
+        return "hit" if value else "miss"
+    text = _clean_text(value).lower()
+    if text in {"hit", "partial", "miss"}:
+        return text
+    if text in {"true", "yes", "full"}:
+        return "hit"
+    return "miss"
+
+
+def _normalize_source_ref_ids(raw: Any, *, source_refs: list[dict[str, Any]]) -> list[str]:
+    ids = [_clean_text(item) for item in list(raw or []) if _clean_text(item)]
+    for ref in source_refs:
+        ref_id = _clean_text(ref.get("ref_id") or ref.get("source_id") or ref.get("id") or ref.get("ref"))
+        if ref_id:
+            ids.append(ref_id)
+    return list(dict.fromkeys(ids))
+
+
+def _is_m35_artifact_rubric(rubric: dict[str, Any]) -> bool:
+    artifact_version = _clean_text(rubric.get("artifact_version") or rubric.get("version_id")).lower()
+    artifact_family = _clean_text(
+        rubric.get("artifact_family") or rubric.get("artifact_type") or rubric.get("artifact_namespace")
+    ).lower()
+    return artifact_version.startswith("m35_") or artifact_family in {
+        "m35",
+        "m35_scoring_artifact",
+        "luban_m35_scoring_artifact",
+    }
 
 
 def _explanation_payload(value: Any) -> dict[str, Any] | str:
@@ -424,6 +667,39 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         cap_reasons.append("missing_rag_evidence")
     if grading_mode == "open_skill":
         cap_reasons.append("open_skill_requires_repetition_or_manual_confirmation")
+    teacher_final = (
+        next_training_signal.get("teacher_final_grading_result")
+        if isinstance(next_training_signal.get("teacher_final_grading_result"), dict)
+        else {}
+    )
+    trusted_adjudication = (
+        next_training_signal.get("trusted_adjudication")
+        if isinstance(next_training_signal.get("trusted_adjudication"), dict)
+        else teacher_final.get("trusted_adjudication")
+        if isinstance(teacher_final.get("trusted_adjudication"), dict)
+        else {}
+    )
+    if not trusted_adjudication and teacher_final.get("teacher_reviewed") is True:
+        trusted_adjudication = {
+            "source": "teacher_final",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+            "requires_human": False,
+            "legacy_alias": True,
+        }
+    has_governed_certified_authority = payload_has_governed_certified_grading_authority(payload)
+    if certified_grading_policy_from_payload(payload) and not has_governed_certified_authority:
+        cap_reasons.append("certified_grading_policy_requires_governed_release_authority")
+    if _clean_text(trusted_adjudication.get("source")) == "certified_grading_policy" and not has_governed_certified_authority:
+        trusted_adjudication = {}
+    trusted_source = str(trusted_adjudication.get("source") or "").strip()
+    trusted_reviewed = bool(
+        trusted_adjudication.get("eligible") is True
+        or trusted_source == "certified_grading_policy"
+        or trusted_adjudication.get("legacy_alias") is True
+    )
+    if trusted_reviewed:
+        cap_reasons = [reason for reason in cap_reasons if reason != "missing_rag_evidence"]
 
     # ── New quality-gate fields ───────────────────────────────────────────────
     has_question_ref = bool(question_id)
@@ -470,7 +746,7 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
             degraded_parts.append("题干暂缺")
     degraded_reason = "；".join(degraded_parts)
 
-    return {
+    quality = {
         "evidence_level": "L0_observed",
         "writeback_eligible": bool(errors),
         "stable_truth_eligible": False,
@@ -481,6 +757,23 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "missing_fields": missing_fields,
         "degraded_reason": degraded_reason,
     }
+    if trusted_reviewed:
+        source = _clean_text(trusted_adjudication.get("source"))
+        quality["evidence_level"] = "L2_confirmed"
+        quality["stable_truth_eligible"] = True
+        quality["adjudication_authority"] = "trusted_adjudication"
+        if source == "certified_grading_policy":
+            quality["certified_grading_policy_authority"] = True
+        quality["legacy_aliases"] = {
+            "teacher_reviewed": True,
+            "teacher_review_authority": "trusted_adjudication",
+        }
+        quality["trusted_adjudication"] = {
+            key: value
+            for key, value in dict(trusted_adjudication or {}).items()
+            if key != "eligible"
+        }
+    return quality
 
 
 def _quality_from_payload(

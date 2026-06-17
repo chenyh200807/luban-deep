@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.learner_state.learning_synthesis import (
     find_concept_evidence,
     find_next_training_targets,
@@ -8,6 +7,7 @@ from deeptutor.services.learner_state.learning_synthesis import (
     render_learning_truth_summary_md,
     synthesize_learning_truth,
 )
+from deeptutor.services.learner_state.service import LearnerStateEvent
 
 
 def _learning_event(
@@ -145,6 +145,7 @@ def test_synthesis_keeps_single_observation_out_of_stable_truth() -> None:
 
     assert projection["weak_points"] == []
     assert projection["observed_candidates"][0]["evidence_level"] == "L0_observed"
+    assert projection["observed_candidates"][0]["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert projection["compiled_objects"]["concept:1A432000"]["evidence_level"] == "L0_observed"
 
 
@@ -158,7 +159,256 @@ def test_synthesis_promotes_repeated_error_to_l1() -> None:
     assert weak["concept_id"] == "1A432000"
     assert weak["error_code"] == "E02"
     assert weak["evidence_level"] == "L1_repeated"
+    assert weak["memory_lifecycle_stage"] == "stable_learner_claim"
     assert weak["supporting_event_ids"] == ["evt1", "evt2"]
+
+
+def test_synthesis_projects_trusted_ai_adjudication_from_supporting_evidence() -> None:
+    quality = {
+        "evidence_level": "L0_observed",
+        "writeback_eligible": True,
+        "trusted_adjudication": {
+            "source": "llm_jury",
+            "confidence": 0.91,
+            "conflict_status": "resolved",
+            "requires_human": False,
+        },
+    }
+
+    projection = synthesize_learning_truth([
+        _learning_event("evt1", quality=quality),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9", quality=quality),
+    ])
+
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "llm_jury"
+    assert trusted["confidence"] == 0.91
+    assert trusted["conflict_status"] == "resolved"
+    assert trusted["requires_human"] is False
+
+
+def test_synthesis_promotes_single_certified_policy_evidence_to_l2() -> None:
+    quality = {
+        "evidence_level": "L2_confirmed",
+        "writeback_eligible": True,
+        "stable_truth_eligible": True,
+        "trusted_adjudication": {
+            "source": "certified_grading_policy",
+            "confidence": 0.93,
+            "conflict_status": "resolved",
+            "requires_human": False,
+            "policy_id": "policy-case-v1",
+            "rubric_hash": "sha256:rubric",
+            "grader_version": "rubric-grader-v1",
+        },
+    }
+
+    projection = synthesize_learning_truth([
+        _learning_event("evt1", quality=quality),
+    ])
+
+    weak = projection["weak_points"][0]
+    assert weak["evidence_level"] == "L2_confirmed"
+    assert weak["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert weak["supporting_event_ids"] == ["evt1"]
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["confidence"] == 0.93
+    assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-case-v1"
+    assert trusted["rubric_hash"] == "sha256:rubric"
+    assert trusted["grader_version"] == "rubric-grader-v1"
+
+
+def test_synthesis_uses_canonical_topic_over_conflicting_legacy_concept_tag() -> None:
+    event = _learning_event("evt1")
+    event.payload_json["canonical_topic"] = {
+        "label": "施工临时用电",
+        "taxonomy_code": "1A431050",
+        "taxonomy_id": "1A431050",
+        "source": "canonical_classified",
+        "confidence": "medium",
+    }
+
+    projection = synthesize_learning_truth([event])
+
+    assert projection["observed_candidates"][0]["concept_id"] == "1A431050"
+    assert "concept:1A431050" in projection["compiled_objects"]
+    assert "concept:1A432000" not in projection["compiled_objects"]
+
+
+def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
+    observed_projection = synthesize_learning_truth([_learning_event("evt1")])
+    repeated_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+    ])
+    confirmed_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _manual_confirmation(),
+    ])
+    stale_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+        _learning_event("evt3", improved=True, observed_at="2026-05-18T14:00:00+08:00"),
+    ])
+    superseded_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+        _manual_correction(),
+    ])
+
+    assert observed_projection["observed_candidates"][0]["claim_status"] == "observed"
+    assert observed_projection["observed_candidates"][0]["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert repeated_projection["weak_points"][0]["claim_status"] == "repeated"
+    assert repeated_projection["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert confirmed_projection["weak_points"][0]["claim_status"] == "confirmed"
+    assert confirmed_projection["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert stale_projection["stale_claims"][0]["claim_status"] == "stale"
+    assert superseded_projection["compiled_objects"]["error:1A432000:E02"]["claim_status"] == "superseded"
+    assert repeated_projection["weak_points"][0]["lifecycle"]["status"] == "repeated"
+
+
+def test_trusted_adjudication_single_error_promotes_to_confirmed_claim() -> None:
+    event = _learning_event(
+        "trusted_adjudication_evt",
+        quality={
+            "evidence_level": "L2_confirmed",
+            "writeback_eligible": True,
+            "adjudication_authority": "trusted_adjudication",
+            "trusted_adjudication": {
+                "source": "llm_jury",
+                "confidence": 0.92,
+                "conflict_status": "resolved",
+                "requires_human": False,
+            },
+        },
+    )
+    event.payload_json["next_training_signal"]["trusted_adjudication"] = event.payload_json["quality"]["trusted_adjudication"]
+
+    projection = synthesize_learning_truth([event])
+
+    assert projection["observed_candidates"] == []
+    weak = projection["weak_points"][0]
+    assert weak["concept_id"] == "1A432000"
+    assert weak["error_code"] == "E02"
+    assert weak["evidence_level"] == "L2_confirmed"
+    assert weak["claim_status"] == "confirmed"
+    assert weak["lifecycle"]["status"] == "confirmed"
+    assert projection["synthesis_run"]["trusted_adjudication"]["source"] == "llm_jury"
+
+
+def test_real_retest_improvement_decays_teacher_final_confirmed_claim() -> None:
+    teacher_final = _learning_event(
+        "teacher_final_evt",
+        quality={
+            "evidence_level": "L0_observed",
+            "writeback_eligible": True,
+            "teacher_reviewed": True,
+            "teacher_review_authority": "teacher_final_grading_result",
+        },
+    )
+    teacher_final.payload_json["next_training_signal"]["teacher_final_grading_result"] = {
+        "teacher_reviewed": True,
+        "points": [{"point_id": "r1", "mastery_eligible": False}],
+    }
+    real_retest = _learning_event(
+        "real_retest_pass",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+        quality={
+            "evidence_level": "L2_real_retest",
+            "writeback_eligible": True,
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+        },
+    )
+    real_retest.payload_json["claim_promotion_allowed"] = True
+
+    projection = synthesize_learning_truth([teacher_final, real_retest])
+
+    assert projection["weak_points"] == []
+    assert projection["improvement_signals"][0]["event_id"] == "real_retest_pass"
+    assert projection["stale_claims"][0]["claim_status"] == "stale"
+    assert projection["compiled_objects"]["error:1A432000:E02"]["decay_state"] == "improving"
+
+
+def test_real_retest_improvement_keeps_certified_policy_trusted_summary() -> None:
+    certified_final = _learning_event(
+        "certified_final_evt",
+        quality={
+            "evidence_level": "L2_confirmed",
+            "writeback_eligible": True,
+            "stable_truth_eligible": True,
+            "trusted_adjudication": {
+                "source": "certified_grading_policy",
+                "confidence": 0.94,
+                "conflict_status": "resolved",
+                "requires_human": False,
+                "policy_id": "policy-case-v1",
+                "rubric_hash": "sha256:rubric",
+                "grader_version": "rubric-grader-v1",
+            },
+        },
+    )
+    real_retest = _learning_event(
+        "real_retest_pass",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+        quality={
+            "evidence_level": "L2_real_retest",
+            "writeback_eligible": True,
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+        },
+    )
+    real_retest.payload_json["claim_promotion_allowed"] = True
+
+    projection = synthesize_learning_truth([certified_final, real_retest])
+
+    assert projection["weak_points"] == []
+    assert projection["stale_claims"][0]["claim_status"] == "stale"
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["confidence"] == 0.94
+    assert trusted["conflict_status"] == "resolved"
+    assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-case-v1"
+
+
+def test_low_measurement_confidence_retest_does_not_clear_weakness() -> None:
+    teacher_final = _learning_event(
+        "teacher_final_evt",
+        quality={
+            "evidence_level": "L0_observed",
+            "writeback_eligible": True,
+            "teacher_reviewed": True,
+            "teacher_review_authority": "teacher_final_grading_result",
+        },
+    )
+    teacher_final.payload_json["next_training_signal"]["teacher_final_grading_result"] = {
+        "teacher_reviewed": True,
+        "points": [{"point_id": "r1", "mastery_eligible": False}],
+    }
+    low_confidence_retest = _learning_event(
+        "low_confidence_retest_pass",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+        quality={
+            "evidence_level": "L2_real_retest",
+            "writeback_eligible": True,
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+        },
+    )
+    low_confidence_retest.payload_json["claim_promotion_allowed"] = True
+    low_confidence_retest.payload_json["measurement_confidence"] = {"level": "low", "reasons": ["too_fast"]}
+
+    projection = synthesize_learning_truth([teacher_final, low_confidence_retest])
+
+    assert projection["improvement_signals"] == []
+    assert projection["stale_claims"] == []
+    assert projection["weak_points"][0]["claim_status"] == "confirmed"
 
 
 def test_synthesis_expands_all_errors_in_event() -> None:
@@ -392,6 +642,50 @@ def test_chat_only_event_is_not_learning_evidence() -> None:
     assert projection["compiled_objects"] == {}
 
 
+def test_conversation_synthesis_graph_edges_are_read_without_promoting_stable_truth() -> None:
+    projection = synthesize_learning_truth([
+        LearnerStateEvent(
+            event_id="conv1",
+            user_id="student_demo",
+            source_feature="conversation_synthesis",
+            source_id="turn_1",
+            source_bot_id=None,
+            memory_kind="learning_evidence",
+            dedupe_key="conv1",
+            created_at="2026-06-03T10:00:00+08:00",
+            payload_json={
+                "event_type": "learning_evidence",
+                "evidence_source": "conversation_synthesis",
+                "question_id": "probe_q1",
+                "error_events": [
+                    {
+                        "concept_tag": "1A432000",
+                        "error_code": "M01",
+                        "diagnosis": "知识点不熟",
+                    }
+                ],
+                "quality": {
+                    "evidence_cap_reasons": ["conversation_signal_not_grading_truth"],
+                    "stable_truth_eligible": False,
+                },
+                "typed_edges": [
+                    {
+                        "edge_type": "error_points_to_training",
+                        "from": {"type": "error", "id": "1A432000:M01"},
+                        "to": {"type": "next_training", "id": "lti_123"},
+                        "source_feature": "conversation_synthesis",
+                        "confidence": 0.45,
+                    }
+                ],
+            },
+        )
+    ])
+
+    assert projection["weak_points"] == []
+    assert projection["typed_graph"]["edges"][0]["edge_type"] == "error_points_to_training"
+    assert projection["typed_graph"]["edges"][0]["source_feature"] == "conversation_synthesis"
+
+
 def test_manual_correction_supersedes_automatic_claim() -> None:
     projection = synthesize_learning_truth([
         _learning_event("evt1"),
@@ -473,3 +767,192 @@ def test_render_learning_truth_summary_md_is_teacher_readable() -> None:
     assert "学习事实编译" in summary
     assert "1A432000" in summary
     assert "E02" in summary
+
+
+def _shadow_authority_event(event_id: str) -> LearnerStateEvent:
+    # A leaked shadow row written directly into learner_memory_events (should NEVER happen by
+    # construction, but the read path must defensively exclude it so claims/PCP stay clean).
+    ev = _learning_event(event_id)
+    payload = dict(ev.payload_json)
+    payload["authority"] = "best_quality_4model_shadow"
+    payload["candidate_only"] = True
+    return LearnerStateEvent(
+        event_id=ev.event_id, user_id=ev.user_id, source_feature=ev.source_feature,
+        source_id=ev.source_id, source_bot_id=ev.source_bot_id, memory_kind=ev.memory_kind,
+        dedupe_key=ev.dedupe_key, created_at=ev.created_at, payload_json=payload)
+
+
+def test_leaked_shadow_evidence_is_excluded_from_synthesis() -> None:
+    # SAFETY NET (Step 0): even if a shadow-authority / not-writeback-eligible row somehow lands in the
+    # event table, the read path must drop it — it must never become a claim / weak point / PCP input.
+    proj = synthesize_learning_truth([
+        _shadow_authority_event("shadow1"),
+        _shadow_authority_event("shadow2"),  # would be L1_repeated stable truth if not excluded
+    ])
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert "error:1A432000:E02" not in proj["compiled_objects"]
+
+
+def test_not_writeback_eligible_evidence_is_excluded_from_synthesis() -> None:
+    proj = synthesize_learning_truth([
+        _learning_event("ne1", quality={"evidence_level": "L0_observed", "writeback_eligible": False}),
+        _learning_event("ne2", quality={"evidence_level": "L0_observed", "writeback_eligible": False}),
+    ])
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+
+
+def test_eligible_evidence_still_consumed_after_safety_filter() -> None:
+    # Regression guard: the defensive filter must NOT drop legitimate writeback_eligible evidence.
+    proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
+    assert "error:1A432000:E02" in proj["compiled_objects"]
+
+
+def test_open_world_grading_repeats_escalate_to_claim_via_canonical_topic() -> None:
+    """断点修复端到端：开放世界（无 node_code）批改经真实 writer 产出的证据，
+    凭 canonical_topic（taxonomy resolver 命中）聚合——同主题同错因重复两次
+    必须升级为 L1_repeated claim。评分开放世界 ⇒ 记忆也开放世界。"""
+    from deeptutor.services.construction_grading.writeback import (
+        write_case_grading_event_learning_evidence,
+    )
+
+    class _Evt:
+        def __init__(self, event_id: str) -> None:
+            self.event_id = event_id
+
+    class _Svc:
+        def __init__(self) -> None:
+            self.payloads: list[dict] = []
+
+        def append_memory_event(self, user_id: str, **kwargs):
+            self.payloads.append(kwargs["payload_json"])
+            return _Evt(f"evt-open-{len(self.payloads)}")
+
+    svc = _Svc()
+    for attempt in (1, 2):
+        write_case_grading_event_learning_evidence(
+            learner_state_service=svc,
+            user_id="student_demo",
+            grading_event={
+                "event_type": "case_grading_completed",
+                "question_id": f"OPEN-{attempt}",
+                "awarded_score": 0,
+                "max_score": 1,
+                "scoring_points": [
+                    {
+                        "point_id": "P1",
+                        "knowledge_point": "屋面与防水工程施工",
+                        "hit": "miss",
+                        "score": 0,
+                        "max_score": 1,
+                        "mistake_type": "miss",
+                        "evidence_span": "卷材搭接宽度不足",
+                        "policy_type": "exact_required",
+                    }
+                ],
+            },
+            source_id=f"turn-open-{attempt}",
+            question_stem="题库外案例：某屋面工程卷材防水施工……指出不妥之处。",
+            node_code="",
+        )
+
+    for payload in svc.payloads:
+        topic = payload.get("canonical_topic") or {}
+        assert topic.get("taxonomy_code") == "1A413050", "writer 必须先解析出 canonical_topic"
+    events = [
+        LearnerStateEvent(
+            event_id=f"evt-open-{idx}",
+            user_id="student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-open-{idx}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            dedupe_key=f"evt-open-{idx}",
+            created_at=f"2026-06-1{idx}T10:00:00+08:00",
+            payload_json=payload,
+        )
+        for idx, payload in enumerate(svc.payloads, 1)
+    ]
+    projection = synthesize_learning_truth(events)
+
+    weak = [
+        item
+        for item in projection["weak_points"]
+        if item.get("concept_id") == "1A413050"
+    ]
+    assert weak, f"开放世界重复错误必须聚合成 claim，got weak_points={projection['weak_points']}"
+    assert weak[0]["evidence_level"] == "L1_repeated"
+
+
+def _rich_leaf_candidate_event(event_id: str, *, leaf_id: str = "1A435000-B010") -> LearnerStateEvent:
+    # Shape produced by the RichLeaf learning-evidence candidate bridge and replayed
+    # through the artifact-only sandbox readback gate (scripts/run_luban_rich_leaf_*).
+    return LearnerStateEvent(
+        event_id=event_id,
+        user_id="rich_leaf_sandbox_learner",
+        source_feature="rich_leaf_shadow_candidate",
+        source_id=f"case:{event_id}",
+        source_bot_id="construction-exam-sandbox",
+        memory_kind="learning_evidence",
+        dedupe_key=event_id,
+        created_at="2026-06-12T00:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "candidate_only": True,
+            "preview_only": True,
+            "claim_promotion_allowed": False,
+            "question_id": f"case:{event_id}",
+            "rich_leaf_trace": {"leaf_id": leaf_id, "case_id": f"case:{event_id}"},
+            "quality": {
+                "candidate_only": True,
+                "authority": "rich_leaf_v23_shadow_candidate",
+                "writeback_eligible": False,
+                "progress_countable": False,
+                "truth_eligible": False,
+                "stable_truth_eligible": False,
+                "evidence_level": "preview_needs_retest",
+            },
+        },
+    )
+
+
+def test_candidate_evidence_is_observed_in_review_only_channel() -> None:
+    # The release-eligibility safety net must keep excluding candidates from truth,
+    # but synthesis must still OBSERVE them in a review-only channel instead of
+    # silently dropping them (Grading-to-Brain closure: synthesis must consume
+    # candidates without granting authority).
+    proj = synthesize_learning_truth([
+        _rich_leaf_candidate_event("rl1", leaf_id="1A435000-B010"),
+        _rich_leaf_candidate_event("rl2", leaf_id="1A435000-B022"),
+    ])
+    observations = proj["candidate_observations"]
+    assert len(observations) == 2
+    assert {item["event_id"] for item in observations} == {"rl1", "rl2"}
+    first = next(item for item in observations if item["event_id"] == "rl1")
+    assert first["leaf_id"] == "1A435000-B010"
+    assert first["candidate_only"] is True
+    assert first["review_only"] is True
+    assert first["claim_promotion_allowed"] is False
+    assert first["excluded_from_truth_reason"] == "not_release_eligible"
+    # authority invariants: never truth, never claim, never compiled
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert proj["compiled_objects"] == {}
+
+
+def test_leaked_shadow_evidence_is_observed_but_still_excluded_from_truth() -> None:
+    proj = synthesize_learning_truth([
+        _shadow_authority_event("shadow1"),
+        _shadow_authority_event("shadow2"),
+    ])
+    assert len(proj["candidate_observations"]) == 2
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert "error:1A432000:E02" not in proj["compiled_objects"]
+
+
+def test_release_eligible_evidence_is_not_in_candidate_observations() -> None:
+    proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
+    assert proj["candidate_observations"] == []
+    assert "error:1A432000:E02" in proj["compiled_objects"]

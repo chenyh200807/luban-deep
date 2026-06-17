@@ -7,6 +7,7 @@ import pytest
 from deeptutor.services.question_followup import (
     annotate_batch_submission_context,
     apply_followup_action_to_context,
+    answers_match,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -17,6 +18,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
+    should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
@@ -34,6 +36,85 @@ def test_detect_requested_question_type_prefers_explicit_written_case() -> None:
 def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("先别给答案，只问我第1问") is False
     assert detect_answer_reveal_preference("先不要直接给答案，先给作答要求") is False
+    assert detect_answer_reveal_preference("不要先给答案，先考我") is False
+    assert detect_answer_reveal_preference("出3道建筑实务单选题，先不公布答案。") is False
+
+
+def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
+    question_set = {
+        "question_id": "quiz_generated",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "grading_key": {"correct_answer": "A"},
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "grading_key": {"correct_answer": "B"},
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt(
+        "第1题我选AC，第2题我选BD，批改一下。",
+        question_set,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "batch",
+        "answers": [
+            {"index": 1, "question_id": "q_1", "user_answer": "AC"},
+            {"index": 2, "question_id": "q_2", "user_answer": "BD"},
+        ],
+    }
+
+
+def test_build_choice_result_summary_reads_canonical_answer_from_exact_question_metadata() -> None:
+    summary = build_choice_result_summary_from_exact_question(
+        {
+            "id": "historical:q1",
+            "answer_kind": "mcq",
+            "stem": "历史建筑高度怎么算？",
+            "options": [
+                {"key": "A", "value": "檐口顶点"},
+                {"key": "B", "value": "屋脊"},
+                {"key": "C", "value": "墙顶点"},
+                {"key": "D", "value": "最高点"},
+            ],
+            "analysis": "应按室外设计地坪至建（构）筑物最高点计算。",
+            "metadata": {"canonical_correct_answer": "D"},
+        }
+    )
+
+    assert summary is not None
+    qa_pair = summary["results"][0]["qa_pair"]
+    assert qa_pair["correct_answer"] == "D"
+    assert qa_pair["explanation"] == "应按室外设计地坪至建（构）筑物最高点计算。"
+
+
+def test_resolve_submission_attempt_rejects_multi_option_single_choice_without_item_anchor() -> None:
+    target, submission = resolve_submission_attempt(
+        "我选AC，批改一下。",
+        {
+            "question_id": "q_single",
+            "question": "单选题。",
+            "question_type": "single_choice",
+            "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+            "grading_key": {"correct_answer": "A"},
+        },
+    )
+
+    assert target is not None
+    assert submission is None
 
 
 def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
@@ -47,6 +128,59 @@ def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -
     }
 
     assert should_reveal_reference_material("直接告诉我答案", question_context) is False
+
+
+def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt() -> None:
+    question_context = {
+        "question_id": "quiz_generated",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2"},
+                "grading_key": {"correct_answer": "B"},
+            },
+        ],
+    }
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第2题答案和解析，不要批第1题。",
+        question_context,
+    ) is True
+    assert should_reveal_reference_material(
+        "现在公布第2题答案和解析，不要批第1题。",
+        question_context,
+    ) is False
+
+    attempted_context = dict(question_context)
+    attempted_context["items"] = [dict(item) for item in question_context["items"]]
+    attempted_context["items"][1]["user_answer"] = "A"
+    attempted_context["items"][1]["is_correct"] = False
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第2题答案和解析，不要批第1题。",
+        attempted_context,
+    ) is False
+
+    assert should_block_unanswered_reference_reveal(
+        "第2题参考哪个规范？先不要公布答案。",
+        question_context,
+    ) is True
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第3题答案和解析。",
+        question_context,
+    ) is True
 
 
 def test_unanswered_question_reveals_when_learner_explicitly_concedes() -> None:
@@ -89,6 +223,164 @@ def test_resolve_submission_maps_judgment_text_to_option_key() -> None:
 
     assert target is not None
     assert answer == "B"
+
+
+def test_resolve_submission_attempt_extracts_explicit_natural_option_values() -> None:
+    target, submission = resolve_submission_attempt(
+        "五个候选是施工方案、支架构造、底座与托撑、构配件材质、支架稳定。我只勾施工方案+支架构造+支架稳定，能拿满吗？",
+        {
+            "question_id": "q_template_support",
+            "question": "模板支架检查评分表保证项目包括哪些？",
+            "question_type": "choice",
+            "options": {
+                "A": "施工方案",
+                "B": "支架构造",
+                "C": "底座与托撑",
+                "D": "构配件材质",
+                "E": "支架稳定",
+            },
+            "correct_answer": "ABE",
+            "multi_select": True,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "ABE",
+        "question_id": "q_template_support",
+    }
+
+
+def test_resolve_submission_attempt_maps_answer_value_to_current_option_key() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt("我答25年", question_context)
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_uses_answer_tail_not_option_table_letters() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        (
+            "室内工程防水设计工作年限不应低于（ ）。"
+            "A.50年 B.25年 C.20年 D.15年，我答25年，直接判，一句话"
+        ),
+        question_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_uses_letter_tail_not_option_table_letters() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        (
+            "室内工程防水设计工作年限不应低于（ ）。"
+            "A.50年 B.25年 C.20年 D.15年，我答B，直接判，一句话"
+        ),
+        question_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_does_not_treat_option_table_as_answer() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        "室内工程防水设计工作年限不应低于（ ）。A.50年 B.25年 C.20年 D.15年",
+        question_context,
+    )
+
+    assert target is not None
+    assert submission is None
+
+
+def test_answers_match_compares_option_value_to_current_correct_letter() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    assert answers_match("25年", "B", question_context) is True
+    assert answers_match("50年", "B", question_context) is False
+
+
+def test_resolve_submission_attempt_extracts_explicit_letters_after_option_table() -> None:
+    target, submission = resolve_submission_attempt(
+        (
+            "地下连续墙施工质量控制多选：A.槽段长度8-10m B.导墙高度1.0m "
+            "C.现浇钢筋混凝土导墙 D.导管法连续浇筑混凝土 "
+            "E.设计强度后墙底注浆。我实际选的是ACDE，对吗？"
+        ),
+        {
+            "question_id": "q_wall",
+            "question": "地下连续墙施工质量控制，下列说法正确的有？",
+            "question_type": "choice",
+            "options": {
+                "A": "槽段长度8-10m",
+                "B": "导墙高度1.0m",
+                "C": "现浇钢筋混凝土导墙",
+                "D": "导管法连续浇筑混凝土",
+                "E": "设计强度后墙底注浆",
+            },
+            "correct_answer": "CDE",
+            "multi_select": True,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "ACDE",
+        "question_id": "q_wall",
+    }
 
 
 def test_resolve_submission_attempt_accepts_subjective_case_answer() -> None:
@@ -166,6 +458,100 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
 
     assert target is not None
     assert submission is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "为什么不是B？一句话。",
+        "为什么不是 B？一句话。",
+        "B为什么不对？",
+        "B为啥错？",
+        "那C为什么不对？一句话。",
+        "C为什么不对",
+        "B怎么扣？",
+        "C不对吗？",
+        "A错在哪里？一句话",
+        "A错在哪？",
+        "A哪里错了？",
+        "那C呢？",
+        "那C呢？一句话",
+        "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
+        "我不是要重新提交C",
+        "如果我选B，你会怎么扣？",
+        "这里是不是屋脊？如果选B会怎么判？",
+        "不选A为什么不行？",
+        "不是提交C，解释一下C错在哪里。",
+        "别把B当我的答案，我是问B为什么扣分。",
+    ],
+)
+def test_resolve_submission_attempt_keeps_option_challenge_as_followup(
+    message: str,
+) -> None:
+    question_context = {
+        "question_id": "q_ratio",
+        "question": "某企业本期营业收入为1000万元，利润总额为50万元，则营业利润率为？",
+        "question_type": "choice",
+        "options": {"A": "2%", "B": "3%", "C": "4%", "D": "5%"},
+        "correct_answer": "D",
+        "user_answer": "B",
+        "is_correct": False,
+    }
+
+    target, submission = resolve_submission_attempt(message, question_context)
+
+    assert target is not None
+    assert submission is None
+    assert looks_like_question_followup(message, question_context) is True
+
+
+def test_resolve_submission_attempt_keeps_option_value_challenge_as_followup() -> None:
+    question_context = {
+        "question_id": "q_diaphragm_wall",
+        "question": "关于地下连续墙施工要求，正确的有（ ）。",
+        "question_type": "multiple_choice",
+        "options": {
+            "A": "地下连续墙单元槽段长度宜为8～10m",
+            "B": "导墙高度不应小于1.0m",
+            "C": "应设置现浇钢筋混凝土导墙",
+            "D": "水下混凝土应采用导管法连续浇筑",
+            "E": "混凝土达到设计强度后方可进行墙底注浆",
+        },
+        "correct_answer": "CDE",
+        "user_answer": "ACDE",
+        "is_correct": False,
+    }
+
+    target, submission = resolve_submission_attempt("那1.0m行不行？一句话", question_context)
+
+    assert target is not None
+    assert submission is None
+    assert looks_like_question_followup("那1.0m行不行？一句话", question_context) is True
+
+
+@pytest.mark.parametrize("message", ["我选B", "我改成B", "答案是B", "B"])
+def test_resolve_submission_attempt_keeps_explicit_option_submission(
+    message: str,
+) -> None:
+    target, submission = resolve_submission_attempt(
+        message,
+        {
+            "question_id": "q_ratio",
+            "question": "某企业本期营业收入为1000万元，利润总额为50万元，则营业利润率为？",
+            "question_type": "choice",
+            "options": {"A": "2%", "B": "3%", "C": "4%", "D": "5%"},
+            "correct_answer": "D",
+            "user_answer": "B",
+            "is_correct": False,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_ratio",
+    }
 
 
 @pytest.mark.parametrize(
@@ -901,6 +1287,8 @@ def test_normalize_question_followup_context_preserves_compact_evidence_refs() -
             "source": "evidence_bundle",
             "field": "kb_chunks",
             "content": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
+            "source_type": "evidence_bundle",
+            "public_quote": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
         }
     ]
 
@@ -1474,6 +1862,45 @@ def test_grading_key_persisted_in_followup_context_item_from_result_summary() ->
     assert items[0].get("grading_key", {}).get("correct_answer") == "B"
 
 
+def test_hidden_grading_key_supplies_followup_correct_answer_when_public_answer_is_empty() -> None:
+    from deeptutor.services.question_followup import (
+        build_question_followup_context_from_result_summary,
+    )
+
+    result_summary = {
+        "results": [
+            {
+                "qa_pair": {
+                    "question_id": "q_1",
+                    "question": "自由时差是多少？",
+                    "question_type": "choice",
+                    "options": {"A": "0天", "B": "1天", "C": "2天", "D": "3天"},
+                    "correct_answer": "",
+                    "explanation": "",
+                    "grading_key": {
+                        "correct_answer": "B",
+                        "scoring_points": ["自由时差=紧后最早开始-本工作最早完成"],
+                        "common_traps": [],
+                        "source": "lightweight_batch_llm",
+                    },
+                }
+            }
+        ]
+    }
+
+    ctx = build_question_followup_context_from_result_summary(
+        result_summary,
+        rendered_response="自由时差是多少？",
+        reveal_answers=False,
+    )
+
+    assert ctx is not None
+    item = (ctx.get("items") or [])[0]
+    assert item["correct_answer"] == "B"
+    assert item["grading_key"]["correct_answer"] == "B"
+    assert ctx["correct_answer"] == "B"
+
+
 def test_redact_question_followup_context_for_public_strips_hidden_authority() -> None:
     from deeptutor.services.question_followup import (
         redact_question_followup_context_for_public,
@@ -1617,3 +2044,115 @@ def test_redact_question_followup_context_for_public_drops_evidence_entry_with_h
     assert rubrics[0]["source_fields"] == ["stem"]
     assert "source_fields" not in rubrics[1]
     assert rubrics[1]["criterion"] == "C2"
+
+
+def test_redact_question_followup_context_for_public_drops_pgo_official_answer_fields() -> None:
+    """PGO shadow/contract payloads contain official answer verbatim slices.
+
+    Those fields are internal grading authority and must not be projected into
+    public question follow-up context, even when nested under a shadow result.
+    """
+
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "case_1",
+        "items": [
+            {
+                "question_id": "case_1_sub1",
+                "pgo_shadow_result": {
+                    "official_slice": "应由见证人员记录其取样、现场检测情况",
+                    "atomic_official_slice": "应由见证人员记录其取样、现场检测情况",
+                    "official_sub_answer_verbatim": "参考答案逐字片段",
+                    "official_analysis": "官方解析逐字文本",
+                    "term_provenance": [{"term": "见证记录", "chunk_id": "c1"}],
+                    "flaw_span": "试验员如实记录了其取样",
+                    "correction_span": "应由见证人员记录其取样",
+                    "base_rule": "见证记录应由见证人员制作",
+                    "exception_items": ["例外逐字文本"],
+                    "evidence_refs": [
+                        {"source": "pgo", "field": "official_slice", "value": "应由见证人员记录其取样"},
+                        {"source": "pgo", "source_field": "pgo.atomic_official_slice", "content": "官方切片路径泄露"},
+                        {"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"},
+                    ],
+                    "source_fields": ["pgo.atomic_official_slice", "stem"],
+                    "student_evidence_span": "学生写了见证人员记录",
+                },
+            }
+        ],
+    }
+
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+
+    for forbidden in (
+        "official_slice",
+        "atomic_official_slice",
+        "official_sub_answer_verbatim",
+        "official_analysis",
+        "term_provenance",
+        "flaw_span",
+        "correction_span",
+        "base_rule",
+        "exception_items",
+        "参考答案逐字片段",
+        "官方解析逐字文本",
+        "试验员如实记录",
+        "官方切片路径泄露",
+    ):
+        assert forbidden not in blob, f"public followup leaked PGO authority field {forbidden}"
+    result = public["items"][0]["pgo_shadow_result"]
+    assert result["evidence_refs"] == [
+        {"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"}
+    ]
+    assert result["source_fields"] == ["stem"]
+    assert result["student_evidence_span"] == "学生写了见证人员记录"
+
+
+def test_redact_question_followup_context_for_public_drops_grading_authority_fields() -> None:
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "qs_authority",
+        "items": [
+            {
+                "question_id": "q_authority",
+                "construction_grading_result": {
+                    "quality_gates": {
+                        "score_authority": "official_total_x_verdict_coverage",
+                        "per_point_score_authority": "pending_calibration_not_official",
+                        "answer_key_authority": "signed_registry_only",
+                        "official_total_score_authority": "official_answer_verbatim",
+                    },
+                    "evidence_refs": [
+                        {"field": "answer_key_authority", "value": "signed_registry_only"},
+                        {"field": "public_status", "value": "ok"},
+                    ],
+                    "source_fields": ["answer_key_authority", "public_status"],
+                    "public_status": "ok",
+                },
+            }
+        ],
+    }
+
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+    for forbidden in (
+        "score_authority",
+        "per_point_score_authority",
+        "answer_key_authority",
+        "official_total_score_authority",
+        "official_answer_verbatim",
+        "signed_registry_only",
+    ):
+        assert forbidden not in blob
+    result = public["items"][0]["construction_grading_result"]
+    assert result["public_status"] == "ok"
+    assert result["evidence_refs"] == [{"field": "public_status", "value": "ok"}]
+    assert result["source_fields"] == ["public_status"]

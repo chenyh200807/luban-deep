@@ -14,7 +14,7 @@ import subprocess
 _UNKNOWN_GIT_SHA = "unknown"
 _UNKNOWN_ENV = "unknown"
 _UNSET_PROMPT_VERSION = "unset"
-_EMPTY_FF_SNAPSHOT = "none"
+_EMPTY_FF_SNAPSHOT = hashlib.sha256(b"{}").hexdigest()[:12]
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,16 +75,39 @@ def _resolve_git_sha() -> str:
     return resolved or _UNKNOWN_GIT_SHA
 
 
+def _git_output(*args: str) -> str:
+    repo_root = _repo_root()
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(repo_root), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        return ""
+    return str(completed.stdout or "").strip()
+
+
 def _resolve_environment() -> str:
-    return _env_value("DEEPTUTOR_ENV", "APP_ENV", "ENVIRONMENT", "ENV") or _UNKNOWN_ENV
+    explicit = _env_value("DEEPTUTOR_ENV", "APP_ENV", "ENVIRONMENT", "ENV")
+    if explicit:
+        return explicit
+    return "local" if (_repo_root() / ".git").exists() else _UNKNOWN_ENV
 
 
 def _resolve_prompt_version() -> str:
-    return _env_value(
+    explicit = _env_value(
         "DEEPTUTOR_PROMPT_VERSION",
         "PROMPT_VERSION",
         "NEXT_PUBLIC_PROMPT_VERSION",
-    ) or _UNSET_PROMPT_VERSION
+    )
+    if explicit:
+        return explicit
+    git_sha = _resolve_git_sha()
+    if git_sha != _UNKNOWN_GIT_SHA:
+        return f"git-{git_sha}"
+    return _UNSET_PROMPT_VERSION
 
 
 # Engine-level gray-release flag families. These switches move runtime
@@ -157,11 +180,22 @@ def _resolve_git_dirty() -> str:
         return "true"
     if value in {"0", "false", "no", "off"}:
         return "false"
+    status = _git_output("status", "--porcelain", "--untracked-files=normal")
+    if status:
+        return "true"
+    if (_repo_root() / ".git").exists():
+        return "false"
     return "unknown"
 
 
 def _resolve_deploy_manifest_hash() -> str:
-    return _env_value("DEEPTUTOR_DEPLOY_MANIFEST_HASH", "DEPLOY_MANIFEST_HASH") or "unset"
+    explicit = _env_value("DEEPTUTOR_DEPLOY_MANIFEST_HASH", "DEPLOY_MANIFEST_HASH")
+    if explicit:
+        return explicit
+    tree_hash = _git_output("rev-parse", "--short=12", "HEAD^{tree}")
+    if tree_hash:
+        return f"local-{tree_hash}"
+    return "unset"
 
 
 def _build_release_lineage() -> ReleaseLineage:

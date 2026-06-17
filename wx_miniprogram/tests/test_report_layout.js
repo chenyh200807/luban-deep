@@ -79,7 +79,7 @@ assert(
 );
 assertIncludes(reportWxml, "今日学习复盘", "first viewport should be framed as a learner review");
 assertIncludes(reportWxml, "掌握可信度", "first viewport should show mastery confidence");
-assertIncludes(reportWxml, "{{overallMastery}}%", "first viewport should bind mastery from the read model");
+assertIncludes(reportWxml, "{{overviewScore}}%", "first viewport should bind the overview authority score from the read model");
 assertIncludes(reportWxml, "{{masteryStatusLabel}}", "first viewport should render mastery confidence status from the read model");
 assertIncludes(reportWxml, "今日", "first viewport should include today's progress");
 assertIncludes(reportWxml, "近3天", "first viewport should include recent 3 day progress");

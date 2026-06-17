@@ -99,6 +99,45 @@ assert(
   "workflow status should sanitize raw terminal/internal error strings",
 );
 
+var caseToolEntry = workflowStatus.buildWorkflowEntry({
+  eventType: "tool_call",
+  toolName: "grade_answer",
+  seq: 5,
+  metadata: { args: { question: "建筑实务案例题背景资料很长" } },
+});
+assert(
+  caseToolEntry.badge === "案例批改",
+  "case grading should use a learner-facing progress badge",
+);
+assert(
+  caseToolEntry.title === "正在逐项匹配采分点",
+  "case grading should explain the concrete grading step",
+);
+assert(
+  caseToolEntry.detail.indexOf("资料较多") >= 0 &&
+    caseToolEntry.detail.indexOf("请稍等") >= 0,
+  "case grading should set patient expectations for longer analysis",
+);
+
+var slowStatus = workflowStatus.normalizeWorkflowStatus({ data: "slow_response" });
+assert(
+  slowStatus.headline === "资料较多，正在继续深度核对",
+  "slow response should explain that deep checking is still happening",
+);
+assert(
+  slowStatus.subline.indexOf("查依据") >= 0 &&
+    slowStatus.subline.indexOf("对采分点") >= 0,
+  "slow response should make system work visible without raw internals",
+);
+
+var unknownCaseStatus = workflowStatus.normalizeWorkflowStatus(
+  "请批改这道案例题，材料比较长",
+);
+assert(
+  unknownCaseStatus.headline === "正在拆解案例资料和作答结构",
+  "case-like free text status should map to case workflow wording",
+);
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

@@ -9,6 +9,8 @@ from typing import Any, Mapping
 ALLOWED_CONTRACT_DOMAINS = {
     "routing_contract",
     "grounding_contract",
+    "citation_contract",
+    "grading_quality_contract",
     "continuity_contract",
     "surface_contract",
     "production_replay_contract",
@@ -22,6 +24,8 @@ ALLOWED_CASE_TIERS = {
 }
 
 ALLOWED_EXECUTION_KINDS = {
+    "case_grading_eval",
+    "answer_citation_eval",
     "static_contract_eval",
     "live_ws_replay",
     "surface_parity_eval",
@@ -31,8 +35,22 @@ ALLOWED_FAILURE_TAXONOMY_SCOPE = {
     "FAIL_ROUTE_WRONG",
     "FAIL_CONTEXT_LOSS",
     "FAIL_GROUNDEDNESS",
+    "FAIL_CITATION_MISSING",
+    "FAIL_UNSUPPORTED_CITATION",
+    "FAIL_HIDDEN_AUTHORITY_LEAK",
     "FAIL_CONTINUITY",
     "FAIL_SURFACE_DELIVERY",
+    "FAIL_COMPILED_CONTEXT_AUTHORITY_DRIFT",
+    "FAIL_OPEN_WORLD_REFUSAL",
+    "FAIL_OFFICIAL_SCORE_LAUNDERING",
+    "FAIL_ANSWER_KEY_OVERRIDE",
+    "FAIL_SOURCE_LAUNDERING",
+    "FAIL_CANDIDATE_PROMOTED_TO_TRUTH",
+    "FAIL_CANDIDATE_RELEASE_TRUTH",
+    "FAIL_LEARNING_EVIDENCE_LOOP_BREAK",
+    "FAIL_LB_UNSAFE_PROMOTION",
+    "FAIL_WRAPPER_POLICY_DRIFT",
+    "FAIL_CANONICAL_TRUTH_WRITE",
 }
 
 ALLOWED_ORIGIN_TYPES = {
@@ -41,6 +59,7 @@ ALLOWED_ORIGIN_TYPES = {
     "surface_smoke",
     "incident_replay",
     "production_trace",
+    "execution_plan",
     "manual",
 }
 

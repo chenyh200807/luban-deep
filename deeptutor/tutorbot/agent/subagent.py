@@ -2,9 +2,9 @@
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+import uuid
 
 from loguru import logger
 
@@ -15,9 +15,15 @@ from deeptutor.tutorbot.config.schema import ExecToolConfig
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.utils.helpers import build_assistant_message
 
+if TYPE_CHECKING:
+    from deeptutor.tutorbot.config.schema import WebSearchConfig
+
 
 class SubagentManager:
     """Manages background subagent execution."""
+
+    # Hard ceiling on concurrently running subagents per manager (anti-fan-out DoS).
+    _MAX_RUNNING_SUBAGENTS = 8
 
     def __init__(
         self,
@@ -29,6 +35,7 @@ class SubagentManager:
         web_proxy: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = True,
+        enable_exec: bool = True,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -40,6 +47,7 @@ class SubagentManager:
         self.web_proxy = web_proxy
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
+        self.enable_exec = enable_exec
         self._running_tasks: dict[str, asyncio.Task[None]] = {}
         self._session_tasks: dict[str, set[str]] = {}  # session_key -> {task_id, ...}
 
@@ -52,6 +60,20 @@ class SubagentManager:
         session_key: str | None = None,
     ) -> str:
         """Spawn a subagent to execute a task in the background."""
+        # Defense-in-depth resource cap: each spawn launches an independent LLM-driven
+        # subagent. Without a ceiling, a single driver (or a compromised prompt on a
+        # trusted bot) can fan out unbounded concurrent subagents — an LLM-cost / CPU /
+        # memory DoS. End-user chat already cannot reach `spawn` (END_USER_BLOCKED_TOOLS);
+        # this bounds the trusted/admin paths too.
+        if len(self._running_tasks) >= self._MAX_RUNNING_SUBAGENTS:
+            logger.warning(
+                "Subagent spawn refused: {} already running (cap {})",
+                len(self._running_tasks), self._MAX_RUNNING_SUBAGENTS,
+            )
+            return (
+                f"Spawn refused: {self._MAX_RUNNING_SUBAGENTS} subagents already running. "
+                "Wait for one to finish before spawning another."
+            )
         task_id = str(uuid.uuid4())[:8]
         display_label = label or task[:30] + ("..." if len(task) > 30 else "")
         origin = {"channel": origin_channel, "chat_id": origin_chat_id}
@@ -94,6 +116,7 @@ class SubagentManager:
                 web_search_config=self.web_search_config,
                 web_proxy=self.web_proxy,
                 restrict_to_workspace=self.restrict_to_workspace,
+                enable_exec=self.enable_exec,
             )
 
             system_prompt = self._build_subagent_prompt()

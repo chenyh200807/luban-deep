@@ -8,7 +8,7 @@ from collections.abc import AsyncGenerator
 from typing import Any
 
 from deeptutor.logging import get_logger
-from deeptutor.services.llm.openai_http_client import make_openai_client
+from deeptutor.services.llm.openai_http_client import get_pooled_openai_client
 from deeptutor.services.llm.provider_registry import find_by_name, strip_provider_prefix
 
 from .config import get_token_limit_kwargs
@@ -113,15 +113,14 @@ async def sdk_complete(
         provider_name, model, api_key, base_url,
     )
 
-    default_headers: dict[str, str] = {"x-session-affinity": uuid.uuid4().hex}
+    # Per-call headers ride on the request (extra_headers=) so the client —
+    # and its httpx connection pool — can be shared process-wide. The old
+    # per-call make_openai_client() leaked one unclosed pool per LLM call.
+    request_headers: dict[str, str] = {"x-session-affinity": uuid.uuid4().hex}
     if extra_headers:
-        default_headers.update(extra_headers)
+        request_headers.update(extra_headers)
 
-    client = make_openai_client(
-        effective_key,
-        base_url=effective_base,
-        default_headers=default_headers,
-    )
+    client = get_pooled_openai_client(effective_key, base_url=effective_base)
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))
     temperature_val = float(kwargs.pop("temperature", 0.7))
@@ -145,7 +144,7 @@ async def sdk_complete(
     )
     payload.update(kwargs)
 
-    response = await client.chat.completions.create(**payload)
+    response = await client.chat.completions.create(extra_headers=request_headers, **payload)
     choices = getattr(response, "choices", None) or []
     if not choices:
         return (
@@ -194,15 +193,12 @@ async def sdk_stream(
         provider_name, model, api_key, base_url,
     )
 
-    default_headers: dict[str, str] = {"x-session-affinity": uuid.uuid4().hex}
+    # Shared pooled client + per-request headers (see sdk_complete for rationale).
+    request_headers: dict[str, str] = {"x-session-affinity": uuid.uuid4().hex}
     if extra_headers:
-        default_headers.update(extra_headers)
+        request_headers.update(extra_headers)
 
-    client = make_openai_client(
-        effective_key,
-        base_url=effective_base,
-        default_headers=default_headers,
-    )
+    client = get_pooled_openai_client(effective_key, base_url=effective_base)
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))
     temperature_val = float(kwargs.pop("temperature", 0.7))
@@ -233,7 +229,7 @@ async def sdk_stream(
         payload["stream_options"] = {"include_usage": True}
     payload.update(kwargs)
 
-    stream_response = await client.chat.completions.create(**payload)
+    stream_response = await client.chat.completions.create(extra_headers=request_headers, **payload)
     accumulated_content = ""
     usage: dict[str, int] | None = None
     async for chunk in stream_response:

@@ -31,9 +31,147 @@ websocket_routes:
     reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
       progress events only, creates no turn/session state.
 
+# REST route EXISTENCE allowlist (RESOURCE_GOVERNANCE_FIX_PLAN Layer 3 · P2,
+# INFRA_REGISTRATION_COVERAGE_AUDIT §6).
+#
+# WS already has an existence gate (websocket_routes above). REST only had AUTH
+# gates (secure_router) + a report-only runtime_route_inventory — no "a new REST
+# router must be registered" existence闸. This list closes that gap, mirroring
+# the WS allowlist EXACTLY: scripts/ci/check_rest_route_allowlist.py reflects the
+# live FastAPI app's PRODUCTION HTTP surface (legacy routers disabled) and fails
+# CI when a reflected ROUTER MOUNT PREFIX is not listed here.
+#
+# It does NOT overlap the WS guard: the WS guard governs APIWebSocketRoute; this
+# governs APIRoute (HTTP). The grain is the MOUNT PREFIX (leading static path
+# segments — where include_router(prefix=...) mounts), NOT every leaf path: the
+# report-only inventory already enumerates leaves for auth. This gate answers the
+# governance question the inventory does not — "should this router EXIST?".
+#
+# DISCIPLINE: records CURRENT STATE only. Every mount registered today is
+# grandfathered (止血: a NEW include_router at an unlisted prefix fails CI, not a
+# one-shot cleanup). Adding/removing a mount here changes NO behavior — it only
+# makes the existing reflected mount machine-checkable. An entry may be listed
+# but not currently reflected (behind-flag router); that does not fail the gate.
+http_routes:
+  - {prefix: /, reason: "Root liveness redirect / index."}
+  - {prefix: /healthz, reason: "Liveness probe."}
+  - {prefix: /readyz, reason: "Readiness probe."}
+  - {prefix: /metrics, reason: "Prometheus metrics (require_metrics_access)."}
+  - {prefix: /metrics/prometheus, reason: "Prometheus scrape endpoint (require_metrics_access)."}
+  - {prefix: /api/attachments, reason: "Session attachment download."}
+  - {prefix: /api/v1/agent-config, reason: "Agent config read/write."}
+  - {prefix: /api/v1/assessment, reason: "Assessment quiz lifecycle."}
+  - {prefix: /api/v1/auth, reason: "External auth: login / register / code / reset."}
+  - {prefix: /api/v1/bi, reason: "BI cockpit read models + ops actions."}
+  - {prefix: /api/v1/billing, reason: "Wallet / ledger / checkout / usage read models."}
+  - {prefix: /api/v1/chat, reason: "Chat feedback + start-turn HTTP adapters."}
+  - {prefix: /api/v1/conversations, reason: "Conversation / message read models."}
+  - {prefix: /api/v1/homepage, reason: "Homepage dashboard read model."}
+  - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
+  - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
+  - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
+  - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
+  - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
+  - {prefix: /api/v1/memory, reason: "Learner memory read models."}
+  - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
+  - {prefix: /api/v1/observability, reason: "Observability read models."}
+  - {prefix: /api/v1/photo-answer, reason: "Photo-answer OCR + solve adapter."}
+  - {prefix: /api/v1/plan, reason: "Plan read model."}
+  - {prefix: /api/v1/practice, reason: "Practice read models."}
+  - {prefix: /api/v1/profile, reason: "Profile read model."}
+  - {prefix: /api/v1/question-notebook, reason: "Question-notebook CRUD."}
+  - {prefix: /api/v1/sessions, reason: "Session read models."}
+  - {prefix: /api/v1/settings, reason: "Settings CRUD."}
+  - {prefix: /api/v1/system, reason: "System status / heartbeat."}
+  - {prefix: /api/v1/tutor-state, reason: "Tutor-state read models."}
+  - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
+
+member_console_controls:
+  manual_membership_reversal:
+    path: /api/v1/member/manual-purchase/reverse
+    authority: MemberConsoleService -> wallet_ledger
+    semantics:
+      - Manual membership reversal is append-only; it must not delete or mutate the original purchase ledger row.
+      - Only supreme_svip manual membership purchases can be reversed through this control.
+      - The reversal writes a wallet refund ledger event with negative metadata.amount_cny so BI commerce revenue is netted by wallet_ledger.
+      - The control is an audited admin write and requires X-Idempotency-Key.
+
+mobile_http_read_models:
+  billing_usage:
+    path: /api/v1/billing/usage
+    authority: wallet_snapshot + wallet_ledger_or_member_usage_meter
+    semantics:
+      - Wallet snapshot read failure returns status=degraded and no quota rows.
+      - When billing enforcement is enabled, wallet ledger is the canonical commerce
+        usage authority; ledger read failure must not make the whole usage read model
+        unavailable, and the adapter returns status=ok with empty usage entries and
+        the snapshot plan.
+      - When billing enforcement is disabled for internal beta, MemberUsageMeter may
+        provide the non-financial usage display source with charging_status=metered_not_charged;
+        it must not mutate wallet balance or wallet ledger. The temporary default display
+        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS;
+        public display labels remain percentage-based rather than exposing remaining turn counts.
+      - Usage windows are display read models only; they are not capability routing,
+        request config, learner-state, or turn authority.
+
+mobile_http_auth_controls:
+  password_reset:
+    path: /api/v1/auth/reset-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account recovery is a public, rate-limited HTTP auth adapter, not a
+        turn/session/capability entrypoint.
+      - Request must prove username, registered phone, and SMS code before changing
+        the external auth password.
+      - Successful reset invalidates existing external auth sessions, consumes the
+        SMS code, returns no token, and never auto-logs in.
+      - Reset must not write learner summaries, learner memory events, profile,
+        progress, goals, wallet, capability route state, or turn/session state.
+  wechat_phone_login:
+    path: /api/v1/wechat/mp/login
+    authority: MemberConsoleService.login_with_wechat_phone
+    semantics:
+      - Quick login is a public, rate-limited HTTP auth adapter that requires both
+        wx.login code and getPhoneNumber phone_code.
+      - The route must fail closed when phone_code is absent; wx.login code alone
+        must not issue a full learner token.
+      - The returned token is minted only after WeChat phone authorization has
+        been exchanged and bound to the canonical member identity.
+      - The mini-program primary quick-login button must use getPhoneNumber and
+        keep audit-safe copy that does not expose WeChat wording in the UI.
+
+bi_admin_rbac:
+  authority: deeptutor/services/member_console/rbac.py + admin_store.py (data/user/bi_admins.json) + service.can_access (端点 enforce)
+  semantics:
+    - BI 后台权限的唯一定义来源是 rbac.py 的角色权限矩阵；端点与前端都从这里派生，
+      不得各自硬编码权限判断。
+    - 4 个角色 (super_admin/admin/operator/analyst) × 5 tab × 4 操作 (view/export/write/high_risk)。
+    - super_admin 角色恒为全权且可管理权限 (LOCKED_ROLES)，不可被编辑/降级/移除，
+      env 引导管理员 (DEEPTUTOR_ADMIN_USER_IDS) 恒为 super_admin，防止超管锁死自己。
+    - 超管可编辑非锁定角色的权限矩阵 (角色级，影响所有该角色管理员)，并可对单个管理员
+      设置 per-user 权限覆盖 (精确到人)。生效权限 = 角色权限[可编辑] 叠加 per-user 覆盖。
+    - 端点 enforce：BI 数据端点按 service.can_access 逐 (tab, action) 裁决 (require_bi_permission)，
+      唯一授权依据是生效权限矩阵，不用 is_admin 布尔旁路；管理端点要求 super_admin
+      (can_manage_permissions)。super_admin/admin 默认全权，admin 被收权后端点立即拒绝。
+    - 授权 fail-closed：持久化中出现非法/被篡改 role 时视为非管理员 (不回落 admin)；
+      service 写方法 (set_admin_role/set_role_permissions/set_user_permission_overrides/
+      remove_admin_user) 自校验 actor 为 super_admin (PermissionError)，是 HTTP gate 之外的纵深。
+    - 所有权限变更 (增删管理员、改角色、编辑角色权限、个人覆盖) 写入【独立 append-only
+      审计文件 bi_admin_audit.jsonl】(O_APPEND 原子追加、永不重写历史，防止被刷掉)；
+      bi_admins.json 内 legacy 审计仍合并读取。
+    - 权限存储是文件持久化 (bind-mount)，非 turn/session/capability/learner-state authority。
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only TutorBot shadow opt-in. When
+        present in start-turn config, or in the mobile HTTP bootstrap top-level
+        compatibility field that is normalized into that config, turn runtime
+        must project it into UnifiedContext.metadata for the TutorBot compiled
+        teaching-context service; it must not create a second knowledge
+        authority, mutate canonical learner truth, or open any WebSocket route
+        other than /api/v1/ws.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -57,6 +195,8 @@ domains:
       - deeptutor/services/learner_state/training_intent.py
       - deeptutor/services/learner_state/conversation_learning_evidence.py
       - deeptutor/services/learner_state/home_personalization.py
+      - deeptutor/services/learner_state/personalization_context.py
+      - deeptutor/services/learner_state/next_best_action.py
     sensitive_patterns:
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
@@ -70,19 +210,37 @@ domains:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
+      - tests/api/test_unified_ws_answer_citations.py
+      - tests/api/test_rate_limit.py
+      - tests/api/test_unified_ws_connection_cap.py
+      - tests/services/citations/test_quality.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
       - tests/services/session/test_prompt_partition.py
       - tests/services/session/test_sqlite_store.py
+      - tests/services/session/test_tutorbot_sqlite_adapter.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_personalization_context.py
+      - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
+      - tests/services/learner_state/test_m32_waterproof_next_best_action.py
+      - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
+      - tests/services/construction_grading/test_m32_waterproof_topic_runtime_supply.py
+      - tests/scripts/test_luban_m32_grading_to_brain_waterproof_slice.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
       - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/observability/test_turn_runtime_observer_event.py
+      - tests/api/test_unified_ws_error_boundary.py
+      - tests/services/test_runtime_env_fail_closed.py
+      - tests/services/learner_state/test_subjective_focus_priority.py
+      - tests/services/learner_state/test_dispute_revalidation_readside.py
+      - tests/services/learner_state/test_home_personalization_imports.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -118,12 +276,26 @@ domains:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
+      - tests/api/test_unified_ws_connection_cap.py
+      - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_question_lifecycle_acceptance.py
+      - tests/capabilities/test_request_contracts.py
+      - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
+      - tests/capabilities/test_deep_question_reference_feedback.py
+      - tests/capabilities/test_deep_question_general_knowledge_context.py
+      - tests/capabilities/test_deep_question_general_knowledge_grounding.py
+      - tests/capabilities/test_deep_question_rich_leaf_grounding.py
+      - tests/capabilities/test_deep_question_unresolved_switch.py
+      - tests/core/test_deep_question_active_object.py
+      - tests/capabilities/test_deep_question_learning_evidence_preview.py
+      - tests/capabilities/test_deep_question_grading_to_brain_writeback.py
+      - tests/core/test_deep_question_case_rubric_v1.py
+      - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_render_presentation.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
@@ -131,7 +303,22 @@ domains:
       - deeptutor/capabilities/request_contracts.py
 
   rag:
-    summary: Grounding entry point, retrieval contract, exact-question and authority semantics.
+    summary: Grounding entry point, retrieval contract, exact-question, compiled teaching overlay, and authority semantics.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only compiled teaching overlay
+        opt-in for TutorBot / Chat agent execution. Consumers must reuse
+        deeptutor.services.compiled_knowledge.general_knowledge, emit only
+        teaching-tier metadata, fail open on low confidence or active question
+        context, and must not create a second RAG/KB/taxonomy/learner-memory
+        authority or write canonical learner truth.
+      - lecture_answer_method_context / luban_lecture_answer_method_context is
+        a runtime-only lecture answer-method teaching overlay for high-fit
+        construction-exam TutorBot questions. Consumers must reuse
+        deeptutor.services.compiled_knowledge.lecture_answer_methods and the
+        tracked all8 runtime_supply manifest, emit only teaching-tier metadata,
+        fail open on low confidence/off-syllabus/active-question contexts, and
+        must not create an answer-key, official-score, second RAG/KB/taxonomy,
+        learner-memory authority, or canonical learner-truth write.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -151,6 +338,8 @@ domains:
       - deeptutor/services/exam_track.py
     test_files:
       - tests/services/rag/test_rag_pipelines.py
+      - tests/services/rag/test_kbv5_pipeline.py
+      - tests/services/rag/test_historical_question_resolver.py
       - tests/services/rag/test_index_versioning.py
       - tests/services/rag/test_supabase_strategy.py
       - tests/agents/chat/test_agentic_parallel_tools.py
@@ -158,6 +347,13 @@ domains:
       - tests/services/rag/test_retrieval_quality.py
       - tests/services/rag/test_provenance_boost_rollout.py
       - tests/services/rag/test_compiled_truth_rollout.py
+      - tests/services/rag/test_compiled_truth_source.py
+      - tests/services/rag/test_learning_fact_retrieval_pipeline.py
+      - tests/services/rag/test_maintenance.py
+      - tests/services/rag/test_retrieval_plan.py
+      - tests/services/rag/test_evidence_bundle.py
+      - tests/services/citations/test_normalizer.py
+      - tests/services/citations/test_quality.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -189,15 +385,15 @@ domains:
     schema_files: []
 
   learner_state:
-    summary: Learner long-term state, summary/profile/progress ownership, guide and heartbeat writeback boundaries.
+    summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
       - docs/contracts/error_code_registry.md
       - docs/contracts/learning-state-inference.md
-      - docs/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
-      - docs/plan/2026-04-15-bot-learner-overlay-prd.md
-      - docs/plan/2026-04-24-learner-state-overlay-completion-evidence.md
+      - docs/plan/学习脑与学员记忆/2026-04-15-learner-state-memory-guided-learning-prd.md
+      - docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-prd.md
+      - docs/plan/学习脑与学员记忆/2026-04-24-learner-state-overlay-completion-evidence.md
       - deeptutor/contracts/error_codes.py
       - deeptutor/contracts/learner_state.py
       - contracts/index.yaml
@@ -215,6 +411,8 @@ domains:
       - deeptutor/agents/guide/**/*.py
       - deeptutor/services/notebook/*.py
       - deeptutor/services/notebook/**/*.py
+      - deeptutor/services/notebook_card/*.py
+      - deeptutor/services/notebook_card/**/*.py
       - deeptutor/api/routers/guide.py
       - deeptutor/api/routers/notebook.py
       - deeptutor/api/routers/tutor_state.py
@@ -234,6 +432,7 @@ domains:
       - deeptutor/tutorbot/agent/memory.py
       - deeptutor/agents/guide/guide_manager.py
       - deeptutor/services/notebook/service.py
+      - deeptutor/services/notebook_card/service.py
       - deeptutor/contracts/learner_state.py
     test_files:
       - tests/api/test_system_router.py
@@ -245,11 +444,20 @@ domains:
       - tests/services/learner_state/test_outbox.py
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
+      - tests/services/learner_state/test_dream_cycle.py
+      - tests/services/learner_state/test_learning_trajectory.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
+      - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_learning_state_projection.py
+      - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_personalization_context.py
+      - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
+      - tests/services/learner_state/test_m32_waterproof_next_best_action.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
@@ -263,14 +471,64 @@ domains:
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
       - tests/services/learner_state/heartbeat/test_arbitration.py
+      # Member console service participates in learner/member authority gates.
+      - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
+      - tests/services/member_console/test_admin_store.py
+      - tests/services/member_console/test_admin_management.py
+      - tests/services/member_console/test_rbac.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
+      - tests/services/learner_state/test_d_class_occurrence_timeline.py
+      - tests/services/learner_state/test_d_class_long_term_analytics.py
+      - tests/services/notebook_card/test_service.py
+      - tests/api/test_notebook_card_routing.py
+      - tests/services/test_runtime_env_fail_closed.py
+      - tests/services/learner_state/test_learner_signal_lightup.py
+      - tests/services/learner_state/test_subjective_focus_projection.py
+      - tests/services/learner_state/test_scoring_point_focus.py
+      - tests/api/test_learner_signal_endpoint.py
+      - tests/services/learner_state/test_home_personalization_imports.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
       - supabase/migrations/20260415000200_bot_learner_overlay.sql
       - supabase/migrations/20260419000100_learner_state_rls.sql
+      - supabase/migrations/20260531000100_learner_notebook_cards.sql
+
+  # Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
+  # I-5: These test files were added during M7/M32 but not registered in contract guard.
+  luban_grading_engine:
+    summary: Luban grading object compiler, rubric grader, and grading-to-brain evidence payload authority.
+    authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
+    protected_patterns:
+      - deeptutor/services/construction_grading/per_question_grading_object.py
+      - deeptutor/services/construction_grading/per_question_grading_judge.py
+      - deeptutor/services/construction_grading/case_rubric_pgo_supply.py
+      - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/learning_evidence.py
+      - scripts/build_luban_pgo_runtime_supply.py
+      - scripts/verify_luban_pgo_runtime_supply.py
+      - scripts/run_luban_pgo_stage5_canary_gate.py
+      - deeptutor/services/question_followup.py
+      - deeptutor/tutorbot/agent/loop.py
+    test_files:
+      - tests/services/construction_grading/test_per_question_grading_object.py
+      - tests/services/construction_grading/test_per_question_grading_judge.py
+      - tests/services/construction_grading/test_case_rubric_pgo_supply.py
+      - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/scripts/test_build_luban_pgo_runtime_supply.py
+      - tests/scripts/test_verify_luban_pgo_runtime_supply.py
+      - tests/scripts/test_luban_pgo_stage5_canary_gate.py
+      - tests/services/construction_grading/test_learning_evidence.py
+      - tests/services/test_question_followup.py
+      - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
+      - tests/services/construction_grading/test_case_grading_fusion.py
+      - tests/services/construction_grading/test_compiled_registry_resolver.py
+      - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
+      - tests/services/construction_grading/test_rich_leaf_runtime.py
+    schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
 # domains. Records authority / allowed event types / projection grammar /
@@ -290,10 +548,13 @@ learning_state_inference:
     - behavior_state
     - prescription
     - scoring_point_map
+    - PersonalizationContextPack
+    - today_prescription
   forbidden:
     - second learner memory table
     - frontend mastery derivation
     - recommendation authority outside training_intent / learning_report_read_model
+    - compiled truth override of exact question / standard / textbook authority
     - new chat WebSocket route outside /api/v1/ws
     - LLM-fabricated scoring_point_hits bypassing audit.reconcile_grader_output
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md

@@ -1,7 +1,7 @@
 export type MemberRow = {
   user_id: string
   phone_masked: string
-  tier: 'trial' | 'vip' | 'svip'
+  tier: 'trial' | 'vip' | 'svip' | 'supreme_svip'
   status: 'active' | 'expiring' | 'expired' | 'paused'
   risk: number
   last_active: string
@@ -11,6 +11,14 @@ export type MemberRow = {
   region?: string
   notes_count?: number
   feedback_count?: number
+  behavior_learning_report_7d?: number
+  behavior_history_7d?: number
+  behavior_cohort?: string
+  behavior_trust?: string
+  behavior_next_action?: string
+  behavior_reasons?: string[]
+  behavior_event_count_7d?: number
+  behavior_last_event_at_ms?: number
 }
 
 export type MemberColumnKey =
@@ -25,6 +33,10 @@ export type MemberColumnKey =
   | 'region'
   | 'notes'
   | 'feedback'
+  | 'behavior_report'
+  | 'behavior_history'
+  | 'behavior_cohort'
+  | 'behavior_next_action'
 
 export type MemberColumnDef = {
   key: MemberColumnKey
@@ -36,15 +48,19 @@ export type MemberColumnDef = {
 export const ALL_COLUMNS: MemberColumnDef[] = [
   { key: 'phone', label: '手机号', sortable: true },
   { key: 'tier', label: 'Tier', sortable: true },
-  { key: 'status', label: '状态' },
+  { key: 'status', label: '状态', sortable: true },
   { key: 'risk', label: '风险', sortable: true, align: 'right' },
-  { key: 'last_active', label: '最近活跃' },
+  { key: 'last_active', label: '最近活跃', sortable: true },
   { key: 'balance', label: '余额(点)', sortable: true, align: 'right' },
   { key: 'expires_at', label: '到期', sortable: true },
   { key: 'paid_first', label: '首充' },
   { key: 'region', label: '地区' },
   { key: 'notes', label: '备注数', align: 'right' },
   { key: 'feedback', label: '反馈数', align: 'right' },
+  { key: 'behavior_report', label: '学情7日', sortable: true, align: 'right' },
+  { key: 'behavior_history', label: '历史7日', sortable: true, align: 'right' },
+  { key: 'behavior_cohort', label: '行为队列' },
+  { key: 'behavior_next_action', label: '建议动作' },
 ]
 
 export const DEFAULT_COLUMNS: MemberColumnKey[] = [
@@ -52,13 +68,17 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
   'tier',
   'status',
   'risk',
+  'behavior_report',
+  'behavior_history',
+  'behavior_cohort',
+  'behavior_next_action',
   'last_active',
   'balance',
   'expires_at',
 ]
 
 export type MemberFilters = {
-  tier: '' | 'trial' | 'vip' | 'svip'
+  tier: '' | 'trial' | 'vip' | 'svip' | 'supreme_svip'
   status: '' | 'active' | 'expiring' | 'expired' | 'paused'
   riskMin: number
   expiringDays: number // 0 = 不限
@@ -72,6 +92,12 @@ export const DEFAULT_FILTERS: MemberFilters = {
   expiringDays: 0,
   notPaid: false,
 }
+
+export type MemberSortDir = 'asc' | 'desc'
+export type MemberSortKey = Extract<
+  MemberColumnKey,
+  'phone' | 'tier' | 'status' | 'risk' | 'last_active' | 'balance' | 'expires_at' | 'paid_first' | 'region' | 'notes' | 'feedback'
+>
 
 export type SavedView = {
   id: string
@@ -255,4 +281,51 @@ export function filterMembers(
     }
     return true
   })
+}
+
+export function sortMembers(
+  rows: ReadonlyArray<MemberRow>,
+  key: MemberSortKey,
+  dir: MemberSortDir
+): MemberRow[] {
+  const direction = dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => compareMemberRows(a, b, key) * direction)
+}
+
+function compareMemberRows(a: MemberRow, b: MemberRow, key: MemberSortKey): number {
+  if (key === 'risk') return a.risk - b.risk
+  if (key === 'balance') return a.balance_points - b.balance_points
+  if (key === 'notes') return (a.notes_count ?? 0) - (b.notes_count ?? 0)
+  if (key === 'feedback') return (a.feedback_count ?? 0) - (b.feedback_count ?? 0)
+  if (key === 'expires_at') return compareDateLike(a.expires_at, b.expires_at)
+  if (key === 'paid_first') return compareDateLike(a.paid_at_first ?? '', b.paid_at_first ?? '')
+  if (key === 'last_active') return compareDateLike(a.last_active, b.last_active)
+  if (key === 'phone') return compareText(a.phone_masked, b.phone_masked)
+  return compareText(String(a[key] ?? ''), String(b[key] ?? ''))
+}
+
+function compareText(a: string, b: string): number {
+  return a.localeCompare(b, 'zh-CN', { numeric: true, sensitivity: 'base' })
+}
+
+function compareDateLike(a: string, b: string): number {
+  return normalizeDateLike(a) - normalizeDateLike(b)
+}
+
+function normalizeDateLike(value: string): number {
+  if (!value || value === '—') return 0
+  const parsed = Date.parse(value)
+  if (!Number.isNaN(parsed)) return parsed
+  const monthDay = /^(\d{2})\/(\d{2})$/.exec(value)
+  if (monthDay) {
+    const year = new Date().getFullYear()
+    return Date.UTC(year, Number(monthDay[1]) - 1, Number(monthDay[2]))
+  }
+  if (value.includes('刚刚')) return Date.now()
+  const relative = /(\d+)\s*(分钟|小时|天)前/.exec(value)
+  if (!relative) return 0
+  const amount = Number(relative[1])
+  const unit = relative[2]
+  const factor = unit === '分钟' ? 60000 : unit === '小时' ? 3600000 : 86400000
+  return Date.now() - amount * factor
 }

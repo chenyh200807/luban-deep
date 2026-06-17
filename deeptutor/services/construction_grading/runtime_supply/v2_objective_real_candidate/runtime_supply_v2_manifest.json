@@ -1,0 +1,18 @@
+{
+  "schema_version": "luban_objective_answer_key.v2_real_candidate",
+  "namespace": "objective_answer_key_real",
+  "status": "real_source_candidate",
+  "release_authority": null,
+  "published": false,
+  "official_answer_role": "seed_from_public_exam_papers",
+  "count": 62,
+  "rejected_count": 0,
+  "conflict_count": 0,
+  "content_hash": "1cec421ce7f3aad4af8440104e51ffd95c96a3ae994a15dd0ced0ac83d40069d",
+  "source_hashes": {
+    "exam_quality_bank.json": "4fd0146e710f1410e3705d79343fd2bbba0b5f84432583579eeb3e06eb2e63b2"
+  },
+  "signature": "366178d447d482ed1149b581b2f67bc749f59c6d7757f992209c8cb9c9013e3d",
+  "separate_from_case_registry": true,
+  "rollback_pointer": "legacy (bundle missing / hash mismatch -> fail-closed; objective lane absent)"
+}

@@ -16,8 +16,8 @@
 # activate enforcement.
 #
 # Exit codes:
-#   0  — secret absent (skip+warn), OR audit clean (no monitored table exposed)
-#   1  — at least one monitored table still grants anon/authenticated
+#   0  — secret absent (skip+warn), OR audit clean
+#   1  — at least one monitored table has RLS/grant/FORCE violations
 #   2  — secret present but audit could not run (psql missing / connection error)
 
 set -euo pipefail
@@ -27,6 +27,7 @@ AUDIT="${AUDIT:-scripts/ci/live_rls_audit.sh}"
 # Tables hardened by 20260529000300 (user_*/questions_bank/mock_exams) and
 # 20260530000100 (wallets, H10) — none may grant anon/authenticated.
 MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams wallets}"
+REQUIRE_FORCE_RLS="${REQUIRE_FORCE_RLS:-true}"
 
 if [ -z "${SUPABASE_DB_URL:-}" ]; then
     echo "[SKIP] check_live_rls_regression: SUPABASE_DB_URL not set."
@@ -49,6 +50,28 @@ audit_json="$(bash "$AUDIT")" || {
 
 violations=0
 for t in $MONITORED_TABLES; do
+    present="$(printf '%s' "$audit_json" \
+        | jq -r --arg t "$t" 'any(.tables[]; .table == $t)')"
+    if [ "$present" != "true" ]; then
+        echo "[FAIL] public.$t is missing from live RLS audit output" >&2
+        violations=$((violations + 1))
+        continue
+    fi
+
+    rls_enabled="$(printf '%s' "$audit_json" \
+        | jq -r --arg t "$t" '(.tables[] | select(.table == $t) | .rls_enabled)')"
+    if [ "$rls_enabled" != "true" ]; then
+        echo "[FAIL] public.$t has rls_enabled=$rls_enabled" >&2
+        violations=$((violations + 1))
+    fi
+
+    rls_forced="$(printf '%s' "$audit_json" \
+        | jq -r --arg t "$t" '(.tables[] | select(.table == $t) | .rls_forced)')"
+    if [ "$REQUIRE_FORCE_RLS" = "true" ] && [ "$rls_forced" != "true" ]; then
+        echo "[FAIL] public.$t has rls_forced=$rls_forced" >&2
+        violations=$((violations + 1))
+    fi
+
     exposed="$(printf '%s' "$audit_json" \
         | jq -r --arg t "$t" '
             (.tables[] | select(.table == $t) | .grants // [])
@@ -61,10 +84,11 @@ for t in $MONITORED_TABLES; do
 done
 
 if [ "$violations" -gt 0 ]; then
-    echo "[FAIL] check_live_rls_regression: $violations monitored table(s) expose anon/authenticated grants." >&2
+    echo "[FAIL] check_live_rls_regression: $violations monitored table RLS violation(s)." >&2
     echo "  → Apply supabase/migrations/20260529000300_rls_harden_user_tables.sql to this database." >&2
+    echo "  → Ensure monitored tables have RLS enabled, FORCE RLS enabled, and no anon/authenticated grants." >&2
     exit 1
 fi
 
-echo "[OK] check_live_rls_regression: no monitored table grants anon/authenticated."
+echo "[OK] check_live_rls_regression: monitored tables have RLS enabled, FORCE RLS enabled, and no anon/authenticated grants."
 exit 0

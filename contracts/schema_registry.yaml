@@ -1,0 +1,675 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Luban grading typed-object Schema Registry — Policy-as-code single authority.
+#
+# This file is the ONE machine-readable catalog of which grading/scoring typed
+# objects may be used, what their canonical field names are, and which authority
+# values each field may carry. It turns the AGENTS.md §5.7 documentary hard gate
+# ("禁止第三套 schema" / 单一权威) into a real, deterministic CI gate enforced by
+# scripts/check_schema_registry.py.
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/UNIFIED_GRADING_OBJECT_SCHEMA.md  (§1 inventory, §2 canonical)
+#   docs/plan/鲁班knowql/KNOWQL_BUILDOUT_BLUEPRINT.md      (§2 single-authority spine, §4 D2)
+# Code authority (do not duplicate the field list — derive in tests if drift risked):
+#   deeptutor/services/construction_grading/unified_grading_object.py
+#   deeptutor/services/construction_grading/grading_object_adapters.py
+#
+# THIS REGISTRY IS NOT A TRANSPORT, NOT A RELEASE/CANONICAL-WRITE AUTHORITY.
+# It is a deterministic policy filter. It grants no official-score authority.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+#
+# Only schemas that are BASE / CROSS-CONSUMER / PERSISTED MUST be registered to
+# be usable — i.e. the ones where a single field-name drift would create a
+# SECOND AUTHORITY or crash a cross-agent reader. Concretely a schema MUST be
+# registered when it is any of:
+#   - read by more than one consumer (grader, KnowQL query layer, learner brain), OR
+#   - persisted to an artifact / DB / answer-key release that other runs read, OR
+#   - a grading/scoring/answer-key typed object whose field names other code
+#     binds to by name (max_score / statement / authority_source / span_hash …).
+#
+# Ephemeral, single-function-internal dicts are NOT required to register — a
+# local intermediate dict that never escapes one function is out of scope. The
+# guard only inspects code that emits a `schema = "…"` / `schema_id` /
+# `schema_version` literal OR constructs a grading object with named fields.
+scope_rule:
+  must_register_if_any:
+    - cross_consumer            # read by grader AND/OR query layer AND/OR learner brain
+    - persisted                 # written to artifact / DB / answer-key release others read
+    - named_field_binding       # other code binds to its field names (max_score/statement/…)
+  not_required:
+    - ephemeral_internal_dict   # never escapes one function; no cross-reader contract
+
+# ── Completeness closure (full-set scan, three-tier, no orphan) ──────────────
+#
+# "Registered-or-you-can't-use" is only honest if EVERY schema identifier in the
+# codebase has an explicit verdict. This section makes the catalog CLOSED: every
+# typed-object / grading / canonical-contract schema-version literal in
+# deeptutor/ scripts/ contracts/ lands in exactly one tier — registered (T1),
+# registered-as-runtime-canonical (T2), or covered by an explicit T3 carve-out
+# rule (an ephemeral one-shot artifact). No "unlisted so I'll just use it" gap.
+#
+# Authoritative full set is REGENERATED in code+test (no hand-maintained copy):
+#   scripts/check_schema_registry.py::collect_all_schema_identifiers()
+#   tests/scripts/test_schema_registry.py::test_full_set_is_closed_three_tier
+# The grep the task started from ("SCHEMA = " + '"schema":' + 'schema_version":')
+# yields 152, but it MISSES the SCHEMA_ID= / schema_id: / *_SCHEMA= literal forms
+# — and 8 of the 9 T1 grading objects live ONLY in those missed forms. So the
+# honest full set is the UNION across all literal forms. The "152" was an
+# incomplete baseline; the live count below is the closed authority this section
+# keys off and is pinned by tests/scripts/test_schema_registry.py.
+completeness_closure:
+  full_set_count: 209            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts)
+  primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
+  tier_counts:
+    tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
+    tier2_runtime_canonical: 30      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot)
+    tier3_ephemeral_artifact: 170    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2)
+  # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
+  # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
+  # not in T1/T2 MUST match a tier3_carve_out pattern (no uncovered identifier).
+
+# ── Tier3 carve-out: ephemeral one-shot artifacts (rule, NOT 1:1 registration) ─
+#
+# Tier3 = audit / eval / ab / gate / report / packet / record / work_orders /
+# review / smoke / diagnostic / probe / closure / decision / analysis /
+# preflight / dry_run / spot_check / trace / seed / validation / shard / etc.
+# These are produced once and never re-read by a runtime contract, so registering
+# each by name would be bureaucratic. Instead the guard treats any schema id that
+# matches a carve-out pattern AND is not in T1/T2 as an allowed ephemeral artifact
+# (it never needs a registry entry, and the guard's unregistered-name fail does
+# not fire on it). The closure test asserts these patterns cover 100% of the
+# non-T1/non-T2 remainder, so the carve-out can't silently leave a gap.
+tier3_carve_out:
+  rule: >-
+    A schema-version literal that is NOT a registered T1 grading typed object and
+    NOT a registered T2 runtime-canonical contract is an allowed ephemeral
+    artifact iff its name matches one of artifact_name_patterns below. Such
+    artifacts are write-once eval/audit/release-pipeline outputs with no
+    cross-run runtime contract; they require no per-name registration.
+  # Substring patterns (matched case-insensitively against the schema id). Kept as
+  # a closed list so the completeness test can prove full coverage of the T3 set.
+  artifact_name_patterns:
+    - _audit
+    - _eval
+    - _ab.            # four_arm_*_ab.v1 / *_three_arm_eval / *_ab variants
+    - _ab_
+    - _gate           # *_strong_go_gate / *_readback_gate / *_coverage_gate
+    - _report
+    - _packet
+    - _packets
+    - _record         # operator_signature_record / *_audit_record
+    - _work_orders
+    - _review
+    - _reviewed
+    - _decision
+    - _decisions
+    - _analysis
+    - _preflight
+    - _dry_run
+    - _spot_check
+    - _trace          # judge_grading_to_brain_trace
+    - _seed
+    - _validation
+    - _shard          # semantic_review_shard(s) — review batching, not topic_shard runtime
+    - _shards
+    - _candidate      # *_candidate / *_candidates / *_candidate_batch / *_candidate_patch
+    - _candidates
+    - _probe
+    - _closure
+    - _smoke
+    - _diagnostic
+    - _fixture        # m35_fastapi_*_fixture (test fixtures)
+    - _ledger         # compiler_status_ledger
+    - _crosscheck
+    - _coverage       # taxonomy_coverage_expansion / source_corpus_coverage_gate / p0a_coverage
+    - _expansion
+    - _readback
+    - _repair         # residual_source_repair / source_alignment_repairs handled in T2 by name
+    - _refinement
+    - _rebuild
+    - _rehome
+    - _reanchor
+    - _relink
+    - _recompile
+    - _linking
+    - _skeleton
+    - _inventory
+    - _corpus
+    - _backfill
+    - _streaming      # runtime_token_pack_streaming_ab (A/B over the pack, not the pack)
+    - _projection     # context_pack_projection_ab / pcp_nba_candidate_projection
+    - _before_after
+    - _split_analysis
+    - _signature
+    - _template
+    - _completion
+    - _patch
+    - _feedback
+    - _staging        # registry_candidate_staging
+    - _promotion_registry  # canonical_promotion_registry.m33 (local learner-state gate, not runtime)
+    - _reconciliation
+    - _kb_v5_export   # offline snapshot export, runtime uses live DB
+    - _topic_shard    # waterproof topic shard enumeration (manifest lane only, no runtime payload reader)
+    - _sample         # distillation_sample / phase1_sample_manifest
+    - _distillation
+    - _residual
+    - _shadow         # *_shadow / *_shadow_review / *_shadow_ab (shadow experiments)
+    - _blind          # three_model_blind_ab / qwen_blind_residual
+    - _quality        # legacy_compilation_quality_audit / runtime_pack_semantic_quality_audit
+    - _compat         # learning_evidence_current_standard_compat_audit
+    - _interop        # rich_leaf_interop_audit
+    - _runner         # llm_deep_compile_runner (one-shot batch runner manifest)
+    - _deployment     # frozen_v11_deployment_eval
+    - _regression     # runtime_supply_regression (validation of a candidate, not installed)
+    - _typed_policy   # build_luban_typed_policy_artifacts (review artifact)
+    - _hard_gate_rules  # compiler_hard_gate_rules (compile-time rule dump)
+    - _decision_seed
+    - rich_leaf_deep_compile_candidate   # explicit: candidate, candidate_only
+    - luban_lecture_compiler             # teaching-card persistence, no runtime contract reader
+    - luban_rubric_compiler              # compiler utility, consumed only by case-rubric scripts
+    - luban_taxonomy_book_derived_rebuild
+    - luban_rich_leaf_v2_taxonomy_leaf_linking
+    - luban_rich_leaf_source_evidence_agent
+    - grading_artifact.v1                # human_validation_slice one-shot (NOT case_grading_artifact.v1)
+    # — explicitly-classified Tier3 ids whose name lacks a generic artifact token —
+    # (each confirmed by reading its producer + finding no runtime/cross-consumer reader)
+    - _authorization_package    # controlled_default / test_learner_writeback authorization (governance, one-shot)
+    - _full_compile             # rich_leaf_frozen_full_compile (build artifact; runtime pins the .v2.3 pack, not this)
+    - _compile.v               # rich_leaf_scoring_point_compile.v1 (compile-step artifact). Its
+                               # runtime_token_pack_units converge to the single typed-object
+                               # authority luban_grading_object.v1 via grading_object_adapters
+                               # .map_rich_leaf_unit (KnowQL ① convergence; proven by
+                               # test_dual_schema_converges_to_single_canonical_authority).
+    - runtime_token_pack.v1     # superseded pack version (runtime pins luban_rich_leaf_runtime_token_pack.v2.3 only)
+    - runtime_token_pack.v2     # superseded pack version (NOT .v2.3, which is the T2 runtime-pinned pack)
+    - runtime_supply_bundle     # luban_runtime_supply_bundle.v1 = M21 one-shot interim, no runtime reader
+    - pgo_runtime_supply_verification  # read-only verification report; runtime reads the T2 bank slot, not this report
+    - ai_governed_gold_labeling # luban_m35_ai_governed_gold_labeling.v1 = one-shot gold labeling run
+    - rich_leaf_typed_artifact  # case-eval-only typed artifact, test-only reader
+    # — dash-namespaced one-off bakeoff/consensus/jury/distillation script result envelopes —
+    # (surfaced 2026-06-14 by the closure-honesty fix: `_FULLSET_NAMESPACE_RE` now also matches
+    #  `luban-` (dash) so these persisted `schema_version: "luban-…"` artifact tags enter the
+    #  full set instead of silently escaping. Each is a one-shot script-persistence
+    #  result-envelope label with no runtime/cross-consumer reader → T3 ephemeral artifact.)
+    - luban-consensus            # consensus-coverage / -gold-shadow / -gold-manifest / -gold-expanded
+    - luban-deepseek-distillation # deepseek distillation metrics run
+    - luban-frontier-adjudication # jury frontier adjudication packet + predictions
+    - luban-heldout              # heldout post-label gate run
+    - luban-multimodel-jury      # multimodel jury gold run
+    - luban-shadow-expansion     # shadow expansion gate run
+    - luban-agentic-model-bakeoff # agentic model bakeoff run
+    - fastapi_case_subquestions  # luban_m35_fastapi_case_subquestions_20q_100a.v1 (artifact_version= judge-trace/readback label)
+
+# ── Canonical authority vocabulary (single source for the guard) ─────────────
+# Mirrors deeptutor/services/construction_grading/unified_grading_object.py.
+authority_vocabulary:
+  authority_source:             # AUTHORITY_SOURCES (4-value enum, object- and point-level)
+    - official_answer
+    - textbook_cited
+    - owner
+    - pending_calibration
+  span_backed_authorities:      # authorities that MUST carry a span_hash projection proof
+    - official_answer
+    - textbook_cited
+    - owner
+  score_authority:              # per-point score authority (must-not-mint gate)
+    - pending_calibration_not_official
+    - official_answer
+  hit_status:
+    - hit
+    - partial
+    - miss
+    - contradiction
+    - not_evaluated
+
+# ── Canonical drift map (deprecated field name -> canonical field name) ──────
+# When the guard sees a drift name used for a registered grading concept, it
+# fails and points at the canonical name. Source: UNIFIED §1.1 drift table.
+drift_field_map:
+  weight: max_score             # #1 case_artifact per-point split name
+  canonical_answer: statement   # #1 case_artifact statement name
+  label: statement              # #3 scoring_point_assets statement name
+  answer_key: statement         # #4 m31 objective statement name
+  atomic_official_slice: statement  # #8 per_question statement name
+
+schemas:
+  # ── CANONICAL (the one usable grading typed-object schema) ─────────────────
+  - name: luban_grading_object.v1
+    version: v1
+    status: canonical
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/unified_grading_object.py
+    # The approved field names. Using a drift name (see drift_field_map) for any
+    # of these concepts on a grading object is a hard fail.
+    canonical_fields:
+      object_level:
+        - schema_id
+        - object_id
+        - question_type
+        - official_total_score
+        - official_total_score_authority
+        - authority_source
+        - scoring_points
+        - official_score_allowed       # structural const False
+        - canonical_write_allowed      # structural const False
+      point_level:
+        - point_id
+        - statement
+        - authority_source
+        - span_hash
+        - max_score
+        - score_authority
+        - hit_status
+        - required_terms
+        - term_provenance
+    # Per-field authority_source domain (which authority values are valid where).
+    authority_model:
+      authority_source: [official_answer, textbook_cited, owner, pending_calibration]
+      official_total_score_authority: [official_answer]
+      score_authority: [pending_calibration_not_official, official_answer]
+    # Drift field names that must NEVER appear on a v1 object/point.
+    forbidden_drift_fields:
+      - weight
+      - canonical_answer
+      - answer_key
+      - label
+      - atomic_official_slice
+    # A grading point with a span-backed authority MUST carry span_hash; the
+    # guard flags a span-backed point that drops it.
+    span_hash_required_for: [official_answer, textbook_cited, owner]
+    required_tests:
+      - tests/services/construction_grading/test_unified_grading_object.py
+      - tests/scripts/test_schema_registry.py
+
+  # ── DEPRECATED (8 pre-existing shapes — each points at its adapter) ────────
+  # All map INTO luban_grading_object.v1 via grading_object_adapters.py. New code
+  # must emit the canonical schema (directly or via the adapter), not these.
+  - name: case_grading_artifact.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_student_answer_grading_eval.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_case_grading_artifact
+    canonical_target: luban_grading_object.v1
+    drift_fields: [weight, canonical_answer]   # weight->max_score, canonical_answer->statement
+
+  - name: luban.rich_leaf_artifact.v0
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/rich_leaf_artifacts.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_rich_leaf_unit
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # statement already canonical; policy_type->sub_type
+
+  - name: luban_scoring_point_assets.v0.1
+    status: deprecated
+    owner: source_compiler
+    module: deeptutor/services/source_compiler/scoring_point_asset_compiler.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_scoring_point_assets
+    canonical_target: luban_grading_object.v1
+    drift_fields: [label]                      # label->statement
+
+  - name: luban_m31_governed_objective_pointer.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_objective_answer_key_record
+    canonical_target: luban_grading_object.v1
+    drift_fields: [answer_key]                 # answer_key->statement
+
+  - name: luban_arbitration_gold_panel.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_arbitration_gold_panel.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_gold_panel_row
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # consensus_verdict->hit_status (state, not a field name)
+
+  - name: m35_ai_governed_gold.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/m35_ai_governed_gold.py
+    # Protocol-level quality gate, not a per-point object. Aligned by const-flag
+    # semantics (official_score_allowed=False, is_release_truth=False) rather than
+    # a point adapter, so it has NO adapter entry — see UNIFIED §3 #6 / §4 R2.
+    adapter: const_flag_aligned
+    canonical_target: luban_grading_object.v1
+    drift_fields: []
+
+  - name: compact_scoring_artifact.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_student_answer_grading_eval.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_compact_scoring_artifact
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # expected_points[]->statement (list->per-point)
+
+  - name: luban_per_question_grading_object.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/per_question_grading_object.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_per_question_grading_object
+    canonical_target: luban_grading_object.v1
+    drift_fields: [atomic_official_slice]      # atomic_official_slice->statement
+
+# ── TIER 2 · runtime-consumed canonical contracts (cross-consumer / persisted) ─
+#
+# These are NOT grading typed objects (that's T1 above) — they are the OTHER
+# canonical contracts that a runtime serving / grading / learner-brain path truly
+# READS BACK as input. A single field-name drift here crashes a cross-consumer
+# reader or mints a second authority, exactly the must-register bar in scope_rule.
+# Each entry was verified by reading the producer AND a runtime/cross-consumer
+# reader (cited in `consumed_by`); none is a name-only guess.
+#
+# Field-level canonicalization is NOT yet pinned for these (that is T1's job for
+# the grading object). Where the field contract is not yet frozen we mark
+# `needs_field_canonicalization: true` as an honest TODO rather than inventing a
+# field list. The guard's drift/authority checks therefore DO NOT fire on T2 (no
+# fabricated canonical field set); the guard only (a) recognizes the name as
+# registered so it is never flagged "unregistered", and (b) emits an OPTIONAL
+# warning if a T2 file is touched while marked needs_field_canonicalization, to
+# nudge eventual field-level pinning. T2 grants no official-score / write authority.
+tier2_canonical_contracts:
+  # — assessment report read-model (persisted schema_version, gates DB read-back) —
+  - name: p0a-v1
+    status: runtime_canonical
+    owner: assessment
+    canonical_for: assessment report read-model schema version (persisted; gates session report DB read-back)
+    module: deeptutor/services/assessment/session_repository.py
+    consumed_by: deeptutor/services/assessment/report_read_model.py (REPORT_SCHEMA_VERSION read-back)
+    needs_field_canonicalization: true   # dash-format id (P0#2): collector now sees it via the namespace + dash-suffix
+
+  # — learner-state runtime read-model (P2: registry beyond grading) —
+  - name: learning_report_read_model.v2
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the learning-report read model — single producer + single schema authority (contracts/learning-report.md)
+    module: deeptutor/services/learner_state/learning_report_read_model.py
+    consumed_by: deeptutor/api/routers/mobile.py (GET /api/v1/mobile/learning-report) + WeChat mini-program learning-report client (wx_miniprogram + yousenwebview/packageDeeptutor; verified no web/ Next.js consumer)
+    needs_field_canonicalization: true   # wire payload keeps integer schema_version (1 default / 2 opt-in)
+
+  # — RAG deterministic retrieval plan (P2: registry beyond grading) —
+  - name: rag_retrieval_plan.v1
+    status: runtime_canonical
+    owner: rag
+    canonical_for: the deterministic source-aware retrieval plan — single producer + single schema authority (contracts/rag.md)
+    module: deeptutor/services/rag/retrieval_plan.py
+    consumed_by: deeptutor/services/rag/service.py + deeptutor/services/rag/pipelines/kbv5.py + deeptutor/services/rag/pipelines/supabase.py (build_retrieval_plan across all retrieval lanes)
+    needs_field_canonicalization: true   # wire payload (to_dict) keeps integer schema_version (1)
+
+  # — RAG evidence bundle (P2#8 consolidation: 4 inline assembly sites → one builder) —
+  - name: rag_evidence_bundle.v1
+    status: runtime_canonical
+    owner: rag
+    canonical_for: the RAG retrieval evidence bundle — single-authority builder (build_evidence_bundle) for every lane (kbv5 / supabase / llamaindex-fallback / historical-question), replacing 4 drifting inline shapes
+    module: deeptutor/services/rag/evidence_bundle.py
+    consumed_by: deeptutor/services/rag/maintenance.py (audit validator) + deeptutor/tutorbot/agent/tools/deeptutor_tools.py + deeptutor/tools/builtin/__init__.py (boundary trace summaries) + deeptutor/capabilities/deep_question.py (grading-grounding) + deeptutor/agents/question/coordinator.py (evidence refs)
+    needs_field_canonicalization: false   # P2#9-style PINNED: canonical_fields = EvidenceBundle dataclass; lane-specific diagnostics live under `trace`; drift is BLOCKING
+    canonical_fields:
+      - bundle_id
+      - query
+      - provider
+      - kb_name
+      - content_blocks
+      - sources
+      - exact_question
+      - retrieval_plan
+      - ranking_trace
+      - retrieval_empty
+      - query_shape
+      - retrieval_status
+      - retrieval_degraded
+      - warning_count
+      - trace
+
+  # — learner-state PersonalizationContextPack (P2: registry beyond grading) —
+  - name: personalization_context_pack.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the PersonalizationContextPack — single producer + single schema authority (contracts/learner-state.md)
+    module: deeptutor/services/learner_state/personalization_context.py
+    consumed_by: deeptutor/capabilities/deep_question.py + deeptutor/services/construction_grading/runtime_llm_adjudicator.py + deeptutor/services/construction_grading/writeback.py + deeptutor/services/rag/compiled_truth_source.py (cross-domain PCP readers)
+    needs_field_canonicalization: true   # pack payload keeps integer schema_version (1) + source tag
+
+  # — learner-state training_intent prescription authority (P2: registry beyond grading) —
+  - name: learning_training_intent.v2
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the training_intent — sole prescription authority + single schema producer (contracts/learner-state.md)
+    module: deeptutor/services/learner_state/training_intent.py
+    consumed_by: deeptutor/services/learner_state/home_personalization.py + learning_report_read_model.py + personalization_context.py + next_best_action.py + scoring_point_map_read_model.py + revalidation_queue.py + deeptutor/services/construction_grading/writeback.py
+    needs_field_canonicalization: true   # payload keeps integer intent_version (2) + documented v1 legacy keys
+
+  # — grading error-event (P2: error_events target; cross-domain consumed by learner_state) —
+  - name: grading_error_event.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: the canonical grading error event (GradingErrorEvent) — single typed-object producer consumed by the learner_state error_events → claim projection
+    module: deeptutor/services/construction_grading/schema.py
+    consumed_by: deeptutor/services/learner_state/learning_synthesis.py (error_events → explainable claim) + attempt_detail_read_model.py + learning_report_read_model.py
+    needs_field_canonicalization: true   # FIELD TODO: canonical span field is ``evidence``; v1 rubric path still emits parallel ``evidence_span`` for the same fact (P2#9 pinning)
+
+  # — canonical knowledge spine (manifest → graph/index/unified/repairs/clauses) —
+  - name: luban_canonical_knowledge_manifest.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: runtime-supply lane inventory (master manifest pinning every signed lane shard by content_hash)
+    module: deeptutor/services/construction_grading/canonical_knowledge_manifest.py
+    consumed_by: deeptutor/services/construction_grading/canonical_knowledge_manifest.py::verify_manifest (fail-closed gate for all runtime-supply lanes)
+    needs_field_canonicalization: true
+
+  - name: luban_canonical_knowledge_graph.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: prerequisite/related edges for tutor runtime
+    module: deeptutor/services/construction_grading/knowledge_graph.py
+    consumed_by: deeptutor/services/construction_grading/canonical_knowledge_runtime.py::_load_graph (→ resolve_canonical_knowledge, read by capabilities/deep_question.py)
+    needs_field_canonicalization: true
+
+  - name: luban_canonical_taxonomy_index.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: key→canonical-code resolution spine (concept_id / question node / free text → canonical)
+    module: scripts/run_luban_canonical_taxonomy_index.py
+    consumed_by: deeptutor/services/construction_grading/canonical_resolution.py::_index (runtime resolve(), read by deep_question.py)
+    needs_field_canonicalization: true
+
+  - name: luban_canonical_unified_knowledge.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: per-node unified teaching context (textbook/standard/lecture/question merged on canonical spine)
+    module: deeptutor/services/construction_grading/knowledge_unification.py::build_unified_bundle
+    consumed_by: deeptutor/services/construction_grading/canonical_knowledge_runtime.py::_load (→ resolve_canonical_knowledge, read by capabilities/deep_question.py + general_knowledge.py)
+    needs_field_canonicalization: true
+
+  - name: luban_canonical_unified_knowledge_source_alignment_repairs.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: source-filter repair overlay applied during canonical-knowledge runtime resolve
+    module: scripts/run_luban_m34_source_alignment_repair_compile.py
+    consumed_by: deeptutor/services/construction_grading/canonical_knowledge_runtime.py::_load_source_alignment_repairs (bound by source_bundle_content_hash at runtime)
+    needs_field_canonicalization: true
+
+  - name: luban_standard_clauses.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: external-regulation verbatim authority lane (persisted in runtime-supply manifest)
+    module: scripts/run_luban_standards_compile.py
+    consumed_by: deeptutor/services/construction_grading/canonical_knowledge_manifest.py::enum_shards (v_standard_clauses lane, content_hash pinned)
+    needs_field_canonicalization: true
+
+  # — durable identity / compiled-knowledge registries —
+  - name: luban_concept_registry.v3
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: durable concept identity (concept_id / aliases / merged+deprecated state) — prevents concept_id breakage across learner-state rewrites
+    module: deeptutor/services/construction_grading/concept_registry.py
+    consumed_by: deeptutor/services/construction_grading/canonical_resolution.py::_registry (runtime resolve_code_to_canonical / is_deprecated, read by deep_question.py)
+    needs_field_canonicalization: true
+
+  - name: compiled_knowledge_registry.v2
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: signed compiled answer/context bundle pinned by canonical_pointer for the grader + context-pack builder
+    module: scripts/run_luban_knowledge_compiler_release_candidate_m30.py
+    consumed_by: deeptutor/services/construction_grading/compiled_registry_resolver.py::verify_bundle/load_supply (runtime resolve_question/resolve_node, fail-closed)
+    needs_field_canonicalization: true
+
+  - name: luban_case_rubric_scored_pgo.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: PGO case-rubric runtime supply bank, hash-pinned by canonical_pointer and selected only by explicit bank slot
+    module: deeptutor/services/construction_grading/case_rubric_pgo_supply.py
+    consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_rubric_bank (LUBAN_CASE_RUBRIC_BANK_SLOT=pgo; default remains legacy)
+    needs_field_canonicalization: true   # FIELD TODO: candidate bank record fields are validated by validate_pgo_runtime_supply; full canonical field pinning can follow once PGO lane is promoted
+
+  - name: luban_lecture_answer_skill_pack.v1
+    status: runtime_canonical
+    owner: compiled_knowledge
+    canonical_for: lecture-derived answer-method teaching overlay pack manifest (release_candidate; not official score authority)
+    module: scripts/run_luban_lecture_answer_skill_pack_compile.py
+    consumed_by: deeptutor/services/compiled_knowledge/lecture_answer_methods.py::_load_index_cached (manifest-pinned runtime_supply reader for resolve_lecture_answer_method_context)
+    needs_field_canonicalization: true
+
+  - name: luban_lecture_answer_method_shard.v1
+    status: runtime_canonical
+    owner: compiled_knowledge
+    canonical_for: manifest-pointed lecture answer-method shard documents read by the teaching overlay resolver
+    module: scripts/run_luban_lecture_answer_skill_pack_compile.py::build_shard
+    consumed_by: deeptutor/services/compiled_knowledge/lecture_answer_methods.py::_load_index_cached (loads each manifest shard and reads answer_units)
+    needs_field_canonicalization: true
+
+  - name: luban_full_knowledge_compiler.m30
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: m30 compiled-knowledge bundle stamp the runtime resolver loads
+    module: deeptutor/services/construction_grading/full_knowledge_compiler.py
+    consumed_by: deeptutor/services/construction_grading/compiled_registry_resolver.py (imports full_knowledge_compiler; bundle resolved at runtime)
+    needs_field_canonicalization: true
+
+  # — runtime context packs / bundles / grading packet (serving-path reads) —
+  - name: luban_context_pack.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: cross-consumer compiled teaching/grading context pack (single authority for all surfaces)
+    module: deeptutor/services/construction_grading/compiled_context.py
+    consumed_by: capabilities/deep_question.py + compiled_registry_resolver.py + deep_question_adapter.py + objective_runtime_adapter.py + open_world_diagnostic.py (runtime serving)
+    needs_field_canonicalization: false   # P2#9 PINNED: fields canonicalized below; drift is BLOCKING
+    # canonical field set = LubanContextPack dataclass fields (compiled_context.py). A drift
+    # (producer adds/renames a field without updating this list, or vice versa) fails
+    # tests/scripts/test_schema_registry.py::test_context_pack_v1_fields_pinned_match_producer.
+    canonical_fields:
+      - question_context
+      - source_context
+      - rubric_context
+      - learner_context
+      - diagnostic_policy
+      - budget_policy
+      - provenance
+      - schema_version
+      - surfaces_supported
+
+  - name: luban.compiled_context_pack.rich_leaf.v0
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: rich-leaf task-scoped compiled context pack (field selection for case grading / AI review)
+    module: deeptutor/services/construction_grading/rich_leaf_artifacts.py
+    consumed_by: deeptutor/services/construction_grading/rich_leaf_artifacts.py builder + case-grading flow (task-scoped projection)
+    needs_field_canonicalization: true
+
+  - name: luban_rich_leaf_runtime_token_pack.v2.3
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: frozen rich-leaf runtime token pack (the version the serving runtime pins)
+    module: scripts/run_luban_rich_leaf_frozen_full_compile.py
+    consumed_by: deeptutor/services/construction_grading/rich_leaf_runtime.py::PACK_SCHEMA (schema-pinned read; rich_leaf_runtime read by capabilities/deep_question.py)
+    needs_field_canonicalization: true
+
+  - name: luban_rich_leaf_context_bundle.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: runtime context bundle derived from the token pack (the serving lookup index)
+    module: deeptutor/services/construction_grading/rich_leaf_runtime.py
+    consumed_by: deeptutor/services/construction_grading/rich_leaf_runtime.py::BUNDLE_SCHEMA + _load_index (runtime serving via deep_question.py)
+    needs_field_canonicalization: false   # P2#9 PINNED: per-record field set canonicalized below; drift is BLOCKING
+    # canonical field set = ``_RECORD_FIELDS`` (rich_leaf_runtime.py) — the per-record contract
+    # carried into the runtime bundle (lifecycle flags deliberately excluded; see producer comment).
+    # A drift fails test_rich_leaf_context_bundle_v1_record_fields_pinned_match_producer.
+    canonical_fields:
+      - unit_id
+      - leaf_id
+      - leaf_name_path
+      - compiled_context
+      - confidence
+      - source_lane
+      - source_ref
+      - relative_path
+
+  - name: luban_runtime_grading_packet.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: runtime grading decision packet handed to the LLM adjudicator (point_ids / student_answer / schema_version)
+    module: deeptutor/services/construction_grading/runtime_llm_adjudicator.py
+    consumed_by: deeptutor/services/construction_grading/runtime_llm_adjudicator.py adjudicator loop + safety validator (runtime grading)
+    needs_field_canonicalization: true
+
+  - name: luban_per_question_grading_contract.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: judge-ready per-question scoring contract derived from official answer slices (Phase B atomic checklist)
+    module: deeptutor/services/construction_grading/per_question_grading_object.py
+    consumed_by: deeptutor/services/construction_grading/per_question_grading_object.py::validate_grading_contract + scripts/run_luban_per_question_grading_ab.py (review-only today; production wiring requires owner gate)
+    needs_field_canonicalization: true
+
+  - name: luban_case_rubric_scored_pgo.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: PGO-derived case-rubric runtime-supply bank slot (release_candidate/default-off; no per-point official score minting)
+    module: deeptutor/services/construction_grading/case_rubric_pgo_supply.py
+    consumed_by: deeptutor/services/construction_grading/rubric_grader_v1.py::_rubric_bank/load_rubric when LUBAN_CASE_RUBRIC_BANK_SLOT=pgo (hash-pinned bank reader)
+    needs_field_canonicalization: true
+
+  # — released answer key / runtime grading verdict / gate (grading-path reads) —
+  - name: luban_objective_answer_key.v2_release_candidate
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: governed objective answer-key release the runtime extractor binds to (namespace objective_answer_key_governed)
+    module: deeptutor/services/construction_grading/objective_answer_key_compiler.py
+    consumed_by: deeptutor/services/construction_grading/objective_governed_registry_extractor.py::SCHEMA_VERSION (runtime governed-registry extraction)
+    needs_field_canonicalization: true
+
+  - name: question_grading_artifact.v0
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: per-question published-artifact status the runtime auto-certification gate binds to
+    module: deeptutor/services/construction_grading/question_grading_artifacts.py
+    consumed_by: deeptutor/services/construction_grading/artifact_runtime_gate.py (runtime gate via question_grading_registry; gate input built by case_kernel.py / runtime_shadow_adapter.py)
+    needs_field_canonicalization: true
+
+  - name: luban_artifact_first_llm_judge_result.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: artifact-first LLM judge verdict shape consumed by downstream grading enrichment
+    module: deeptutor/services/construction_grading/artifact_first_llm_judge.py
+    consumed_by: deeptutor/services/construction_grading/judge_point_enrichment.py + m35_artifact_shadow.py (runtime grading consumers)
+    needs_field_canonicalization: true
+
+  # — persisted cross-session / observability contracts —
+  - name: assessment_session_v1
+    status: runtime_canonical
+    owner: assessment
+    canonical_for: persisted assessment session row re-read for cross-device resume (DB repository contract)
+    module: deeptutor/services/assessment/session_repository.py
+    consumed_by: deeptutor/services/assessment/session_repository.py::get_session_for_resume (persist + schema_version-checked re-read)
+    needs_field_canonicalization: true
+
+  - name: causal_oa_v1
+    status: runtime_canonical
+    owner: observability
+    canonical_for: causal-OA observability record shape (producer→runner cross-consumer); outside the grading spine
+    module: deeptutor/services/observability/causal_oa.py
+    consumed_by: deeptutor/services/observability/oa_runner.py (emits kind=causal_oa_v1; cross-consumer observability contract)
+    needs_field_canonicalization: true

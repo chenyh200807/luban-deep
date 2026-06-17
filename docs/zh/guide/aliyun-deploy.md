@@ -16,12 +16,15 @@
 - 发布完成的唯一公网验收口径是：本地发起端对 `https://test2.yousenjiaoyu.com` 的 `front page`、`/healthz`、`/readyz` 探针全部通过；`docker compose ps` 或远端 `127.0.0.1` 只能算内部就绪，不能直接当成“已上线”。
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
+- 日常小程序同步不是完整部署。只改 `yousenwebview/packageDeeptutor/**`、`yousenwebview/app.js`、`yousenwebview/app.json`、`yousenwebview/app.wxss`、`yousenwebview/project.config.json`、`yousenwebview/sitemap.json`、`yousenwebview/tests/**` 或 `docs/**` 时，只运行 `ALLOW_MAIN_BRANCH_DEPLOY=1 bash scripts/sync_to_aliyun.sh once`，再按需要走微信 DevTools 预览/上传；不要运行 `deploy_aliyun.sh`，也不要触发 Docker rebuild。
+- [scripts/deploy_aliyun.sh](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/scripts/deploy_aliyun.sh) 会在完整重建前读取远端 `.env` 的 `DEEPTUTOR_GIT_SHA` 并计算 diff；如果变更只包含文档/微信小程序源码/小程序测试，会拒绝重建。只有确认必须重建镜像时，才允许显式设置 `FORCE_FULL_REBUILD=1`。
 - 如果本地当前工作区很脏，但要发布的是已经提交并 push 的特定 commit，先从目标 commit 创建干净临时 worktree，再从该 worktree 执行同步/发布；不要在脏 `main` 上靠 `ALLOW_DIRTY_DEPLOY=1` 把无关文件一起带上阿里云。
 - `git status` 干净、`DEEPTUTOR_GIT_DIRTY=false` 只证明 Git tracked surface 干净，不证明发布面干净。任何本地 dry-run、审计、测试生成的 ignored 目录，例如 `artifacts/`、`.gstack/`、`.local-runs/`，必须同时被 `sync_to_aliyun.sh`、deploy manifest hash 和 `.dockerignore` 排除；否则仍可能被 `rsync` 或 Docker build context 带到 `/root/deeptutor`。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
   - 但远端写入根仍必须固定为 `Aliyun-ECS-2:/root/deeptutor`
+- fail-closed 环境硬约束（2026-06-11 起，详见已知坑 #11）：`is_production_environment()` 把未设置 / 拼错 / `staging` 等一律按生产处理；生产 `.env` 必须配 `DEEPTUTOR_AUTH_SECRET` 和 `DEEPTUTOR_ATTEMPT_REF_SECRET`，否则启动或首次使用即失败。`validate_aliyun_release_env.sh` 会校验，但发布前应自行确认远端 `.env` 已含这两项。
 
 建议发布前固定执行：
 
@@ -29,7 +32,9 @@
 git branch --show-current
 git status --short
 git ls-files artifacts/
-python scripts/check_contract_guard.py
+# protected 文件改动必须带本次 commit 的 changed files，否则测不出 domain 关系（见已知坑 #11）
+python scripts/check_contract_guard.py $(git show --pretty= --name-only --first-parent HEAD)
+FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
 python scripts/verify_runtime_assets.py
 ```
 
@@ -186,6 +191,9 @@ docker compose down
 # 仅重启现有容器，不发布代码
 bash scripts/restart_aliyun.sh
 
+# 日常小程序源码/文档同步，不重建容器
+ALLOW_MAIN_BRANCH_DEPLOY=1 bash scripts/sync_to_aliyun.sh once
+
 # Python 后端 / Prompt / YAML 快速发布
 PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/redeploy_aliyun_fast.sh
 
@@ -207,6 +215,65 @@ Observability 验收不要打公网 `/metrics`。改用：
 bash scripts/verify_aliyun_observability.sh
 ```
 
+### Docker 日志与记录留存
+
+如果要排查 Docker 高负载、Langfuse/ClickHouse 日志膨胀、或准备执行
+`systemctl restart docker` 这类主机级操作，必须先把 Docker 日志和运行记录
+留存在 `/root/deeptutor` 内，再重启或清理。不要把日志备份写到 `/tmp`、
+`/root/luban`、`/var` 或其他系统目录。
+
+当前统一留存位置：
+
+- 文本目录：`/root/deeptutor/data/ops/docker-log-capture-<UTC timestamp>/`
+- 压缩包：`/root/deeptutor/data/ops/docker-log-capture-<UTC timestamp>.tar.gz`
+- 最新一次指针：`/root/deeptutor/data/ops/latest-docker-log-capture.txt`
+
+2026-06-04 真实事故排查时的留存目录是：
+
+- `/root/deeptutor/data/ops/docker-log-capture-20260604T031742Z`
+- `/root/deeptutor/data/ops/docker-log-capture-20260604T031742Z.tar.gz`
+
+该目录包含最近 24 小时的容器日志、`docker ps -a`、`docker stats`、
+`docker inspect`、`docker events` 和 Docker 磁盘状态。本次原始文本约 504M，
+压缩后约 16M；最大文件是 `jgzk-langfuse-clickhouse` 的最近 24 小时日志。
+
+推荐捕获命令：
+
+```bash
+cd /root/deeptutor
+ts=$(date -u +%Y%m%dT%H%M%SZ)
+out="data/ops/docker-log-capture-$ts"
+mkdir -p "$out/logs" "$out/inspect"
+echo "$out" > data/ops/latest-docker-log-capture.txt
+
+{
+  date
+  hostname
+  uptime
+  df -hT
+  docker system df
+  docker ps -a --no-trunc
+} > "$out/00-host-and-docker-state.txt" 2>&1
+
+docker stats --no-stream > "$out/01-docker-stats.txt" 2>&1 || true
+docker events --since 24h --until 0s > "$out/02-docker-events-last-24h.txt" 2>&1 || true
+
+for c in $(docker ps -a --format "{{.Names}}"); do
+  safe=$(printf "%s" "$c" | tr "/ " "__")
+  docker inspect "$c" > "$out/inspect/$safe.inspect.json" 2>&1 || true
+  docker logs --since 24h "$c" > "$out/logs/$safe.last-24h.stdout-stderr.txt" 2>&1 || true
+done
+
+find "$out" -type f -printf "%s %p\n" | sort -nr > "$out/99-file-sizes.txt"
+tar -czf "$out.tar.gz" -C "$(dirname "$out")" "$(basename "$out")"
+du -sh "$out" "$out.tar.gz"
+```
+
+只有确认上面的文本目录和压缩包都存在后，才执行 Docker 重启、日志截断、
+`docker system prune` 或 Langfuse 降载操作。Docker 重启后还要重新确认
+`deeptutor` 容器进入 `healthy`，并从本地发起端验证公网 `/healthz` 与
+`/readyz`。
+
 如果本次发布前本地生成过 ignored 产物，还要确认它们没有进入远端发布面：
 
 ```bash
@@ -224,9 +291,10 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
   - 覆盖前先自动生成远端代码快照
   - 再执行远端发布环境校验
   - 再先执行一次远端 `python3 scripts/backup_data.py --project-root /root/deeptutor`
-  - 再基于 `/root/deeptutor` 中的候选代码重建并重启 `deeptutor` 容器
+  - 再用已有镜像 `--no-build` 重建容器以刷新 `.env` release lineage
+  - 再把 `/root/deeptutor` 中的后端运行时代码受控刷新到容器 `/app`，并重启 `deeptutor` 容器进程
   - 重启完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
-  - 适合不需要完整前端/依赖重建排障的后端候选；不再做 `docker cp` 容器热补丁
+  - 适合 Python 后端、Prompt、YAML、TutorBot skill 资产等不需要前端/依赖/镜像重建的候选；若触碰 `Dockerfile`、`requirements*`、`pyproject.toml`、`web/`、`wx_miniprogram/`、`yousenwebview/` 或部署 compose 面，脚本会拒绝，必须改用 `deploy_aliyun.sh`
 - `deploy_aliyun.sh`
   - 先同步，再执行 `docker compose up -d --build`
   - 覆盖前同样会先生成远端代码快照并校验远端发布环境
@@ -234,6 +302,34 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
   - 远端重建完成后，会先做一次公网域名探针验收，再做一次 observability 内网验收
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
+
+### 2026-06-15/16 快速发布性能教训：fast path 必须 no-build
+
+本次只改 Python 后端逻辑（Nexus 案例题输出与评分 ctx），第二次同步日志已经显示
+`Number of files transferred: 0`，说明源码没有重复全量上传；真正耗时来自
+`redeploy_aliyun_fast.sh` 仍会执行 `docker compose ... build deeptutor`。只要 Docker
+缓存没有完整命中，`python-base` / `production` 层就可能重新下载 Debian、Rust、Python
+runtime.lock 依赖，看起来像“又全部重新下”。
+
+现行规则：
+
+- `sync_to_aliyun.sh` 负责代码面，通常很快；不要把 `rsync` 日志里的文件列表误读成全量上传。
+- `redeploy_aliyun_fast.sh` 是后端 no-build 快路径：同步代码、注入 release lineage、运行态备份、用已有镜像 `--no-build` 刷新容器 env，再把受控后端运行时代码刷新进容器 `/app` 并重启进程。
+- 容器 `/app` 不是 `/root/deeptutor` 的 bind mount；只 rsync 到宿主机不会让运行时代码生效。fast path 的容器内刷新必须由 `server_fast_reload_aliyun.sh` 统一执行，禁止手工 `docker cp` 热补丁。
+- fast path 只允许后端运行时代码面：`deeptutor/`、`deeptutor_cli/`、`contracts/`、`scripts/`、`schemas/`、`requirements/` 只作为已安装依赖的约束文件随代码刷新；不能用它安装新依赖。
+- 触碰 `Dockerfile`、`requirements*`、`pyproject.toml`、`web/`、`wx_miniprogram/`、`yousenwebview/`、部署 compose 面或 Node/package 锁文件时，`redeploy_aliyun_fast.sh` 必须拒绝，改走 `deploy_aliyun.sh`。
+- fast path 仍必须保留 `/root/deeptutor` 代码快照、runtime 备份、host/container SHA 对齐、公网 `/healthz` `/readyz`、observability 验收；不能用“快”绕过 release truth。
+- SSH 断开（`Connection reset by peer` / `Broken pipe`）不等于远端 build 停止。必须先只读检查
+  `docker compose --progress plain ... build`、`buildkit/executor`、容器 SHA 和 `/root/deeptutor/.env`
+  SHA，再决定是否重跑。
+- 多个本地窗口/agent 同时同步或部署同一台阿里云，会共享 Docker build cache、镜像 tag、容器名
+  `deeptutor`，可能互相拖慢或最后由后完成的一路覆盖前一路。发布前先查远端是否已有 build/deploy
+  进程；发现已有进程时只轮询等待，不要启动第二个 deploy。
+
+后续优化方向（需要单独实现成正式脚本和 runbook，不得临时手工热补丁）：
+
+- 增加远端发布锁：在 `/root/deeptutor/data/ops/` 下记录当前 deploy pid、目标 SHA、开始时间和
+  owner。锁存在且进程仍活跃时，新发布默认拒绝或进入只读等待模式。
 
 ### 代码回滚
 
@@ -582,6 +678,64 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
 - 如果远端已经出现 `/root/deeptutor/artifacts`，清理命令只能写 `/root/deeptutor` 内；不得为了临时中转或备份写 `/tmp`、`/root/luban`、`/var` 或系统目录。
 - 清理后必须重新发布并确认 Docker build context 回落到合理体量；不要只删远端目录后直接宣布上线完成。
 
+### 11. 2026-06-11 fail-closed 环境 + CI 门连锁（上线前根因加固复盘）
+
+这次上线前根因加固把 `is_production_environment()` 改成 **fail-closed**：只有显式声明为 `local/dev/development/test/testing/ci/eval` 才算非生产；**未设置 / 拼错 / `staging` / 未知值一律按生产处理**，dev 后门默认关闭。配套两条运维硬约束：
+
+- 生产（含任何非上述白名单环境，包括 env 漏设的情况）**必须配置 `DEEPTUTOR_AUTH_SECRET` 和 `DEEPTUTOR_ATTEMPT_REF_SECRET`**。缺 `DEEPTUTOR_AUTH_SECRET` 启动即拒；缺 `DEEPTUTOR_ATTEMPT_REF_SECRET` 在首次签 attempt ref 时拒（不再回落 dev 默认值）。`redeploy_aliyun_fast.sh` 已在重启前跑 `validate_aliyun_release_env.sh`，本次发布日志确认 `SERVICE_ENV=production`、`APP_ENV=production` 且校验通过。
+- 这意味着 fail-closed 把“env 漏设”从“后门敞开”变成“按生产收紧”。代价是：本地 / CI / DevTools QA 必须显式 `export DEEPTUTOR_ENV=local`（pytest 由 `tests/conftest.py` 模块级 `setdefault` 自动钉成 `local`）。
+
+两个直接踩到的坑：
+
+- **import 期副作用 + fail-closed 会炸裸 import。** `attempt_refs.py` 原本在 import 时跑 `_log_secret_fingerprint() -> _secret()`。fail-closed 下未设环境=生产、又没 secret，于是 CI 的 “Import Check”（裸 `python -c "import deeptutor.api.routers.unified_ws"`，无 `.env`、无 secret）在 import 阶段就 `RuntimeError` 崩溃，CLI 工具 / 脚本同样会崩。根因是“import 期可 raise 的副作用”，不是 fail-closed 本身。修法是**把强制延迟到使用时**：import 期诊断容忍缺 secret（只告警），`_secret()` 真正签名 / 校验时仍 fail-closed。本地能蒙混是因为开发机 `.env` 带 `SERVICE_ENV=development`，`env_store.load()` 会把它 `setdefault` 进 `os.environ`，让 `runtime_environment()` 误判非生产——这也是测试里要 `monkeypatch.setenv("DEEPTUTOR_ENV","production")` 才稳的原因。
+- **改 protected 文件会触发一连串 contract-guard / CI 门**，逐个被前一个门遮住，容易打地鼠。这次的连锁是：`contract_guard`（改 `unified_ws.py`/`attempt_refs.py` 这类 protected 文件，commit 必须同时含该 domain 已登记的测试——新测试要先登记进 `contracts/index.yaml` 的 `domains.<域>.test_files`，并 re-mirror 到 `deeptutor/contracts/index.yaml`）→ `Secure router fail-on-new`（新增 import 会移动 bare `APIRouter()` 行号，要刷新 `scripts/ci/baselines/secure_routers_baseline.txt`）→ `Import Check`（见上一条）。
+
+下次改动后端再发布前，按这组顺序本地自检，避免 push 上去才发现 main 变红：
+
+```bash
+# 1) contract-guard 要带本次 commit 的 changed files（不带参数测不出 protected/domain 关系）
+python3 scripts/check_contract_guard.py $(git show --pretty= --name-only --first-parent HEAD)
+# 2) secure-router 基线（加了 import 就可能要刷行号）
+FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
+# 3) NameError / undefined-name 门
+ruff check --select F821,F811 deeptutor deeptutor_cli scripts
+# 4) Import Check：在 fail-closed 生产口径下裸 import 不能崩
+env -u DEEPTUTOR_ATTEMPT_REF_SECRET DEEPTUTOR_ENV=production python3 -c \
+  "from deeptutor.api.routers.unified_ws import unified_websocket; print('import OK')"
+```
+
+另外两条运维事实记录：
+
+- `redeploy_aliyun_fast.sh` 同步的是**本地工作树**（不是 `origin/main`），且 `--delete` 镜像代码面。`.env*`、`.secrets*`、`data`、`artifacts`、`tmp`、`*.log` 已排除，生产配置 / 数据 / 上传文件安全；但脏 `main` 上 `ALLOW_DIRTY_DEPLOY=1` 会把未提交的无关文件（如别人并发在写的 `docs/`）一并带上生产。优先按 §发布硬护栏 用干净 worktree。
+- GitHub `Deploy Gate` workflow 长期 9–10s 快速失败，且早于本次改动就存在（与代码无关）；判断 main CI 是否因本次改动变红，看 `Tests` workflow 的具体 job，不要被 `Deploy Gate` 误导。
+
+### 12. 2026-06-11 detached HEAD 禁止发布 + 并发发布撞车
+
+这次想用“干净 worktree 发布”避免脏 `main` 把无关改动带上生产（§发布硬护栏 §19），于是 `git worktree add --detach <sha>` 建了一个游离（detached HEAD，只指向某个 commit、不在任何分支上）的 worktree，结果 `sync_to_aliyun.sh` 直接拒绝：
+
+```
+无法识别当前分支；禁止在 detached HEAD 直接发布。
+```
+
+根因不是 bug，而是发布要可追溯：release_id / lineage 需要一个分支名来记录“这次是从哪条线发的”。游离 HEAD 没有分支名，发布记录无法定位来源，所以脚本干脆禁止。
+
+正确做法是从目标 commit 检出一个**具名分支**再发布，而不是游离 HEAD：
+
+```bash
+# 推荐：建 worktree 时直接给一个临时具名分支
+git worktree add /tmp/deploy-snapshot -b deploy-<shortsha> origin/main
+# 或：已经建成 detached worktree，进去补一个分支
+cd /tmp/deploy-snapshot && git checkout -b deploy-<shortsha>
+```
+
+分支名只要不是 `main` 就同时满足两条护栏：detached 护栏（要有分支名）和“禁止从 `main` 直发”护栏（分支名 ≠ `main`）。worktree 是干净的就不用加 `ALLOW_DIRTY_DEPLOY`。用完记得 `git worktree remove <path>` 并删临时分支。
+
+同日还撞到**并发发布**：两个发布进程同时对同一台阿里云发布，一个在发 `d59cd37c`、另一个在发更新的 `be971a14`，期间长时间 docker build 把 SSH 拖断（`Connection reset by peer` / `Broken pipe`，脚本 `EXIT 255`）。教训：
+
+- **同一时间只允许一条发布在跑。** 发布前先确认没有别的发布在进行：看 `data/releases/code/` 里最新 manifest 的时间戳、`docker compose ps` 容器创建时间、`.env` 的 `DEEPTUTOR_GIT_SHA`，确认它们指向你预期的版本。
+- **SSH 在长 build 中途断不会停机。** `up -d --force-recreate` 在 build 之后才跑；build 被打断时旧容器继续服务（本次公网 `front/healthz/readyz` 全程 200），但磁盘可能停在“已同步新代码、容器仍是旧镜像”的半同步状态，需要重新发布对齐。
+- **并发覆盖会自愈但要核对。** 本次一个进程把磁盘 rsync 回了旧 `d59cd37c`，又被另一个进程的 `be971a14` 发布重新同步盖回——靠 manifest 时间戳 + 磁盘 sentinel 文件 md5 才能确认最终落到哪个版本。多人/多 agent 共同发布时，发布后必须用这两样东西核对最终状态，不能假设“我发的就是最后生效的”。
+
 ## 回滚步骤
 
 如果发布后出现问题，先判断是“代码/镜像问题”还是“运行态数据问题”。
@@ -608,3 +762,39 @@ bash scripts/deploy_aliyun.sh
 ```
 
 不要把“代码版本回滚”和“运行态数据回滚”混成一步；先判断是哪一层出问题，再分别执行。
+
+### 13. 2026-06-12 prompt 资产发布耗时复盘（两次部署才闭环）
+
+这次只改了 TutorBot skill prompt 资产 + 一处 `_SCENE_REFERENCE_FILES` 注入，本应一次 `redeploy_aliyun_fast.sh` 闭环，实际多花了一倍时间。根因和规则：
+
+| 信号 | 是否阻断 | 根因 | 下次处理 |
+| --- | --- | --- | --- |
+| 脚本拒绝："禁止直接从 main 发布" | 阻断 | 在脏 main 工作区直接跑发布脚本，没有先建干净候选分支 | 发布前第一步就建干净 worktree（`git worktree add /tmp/deeptutor-release-<sha> <sha> -b release/<topic>`），不要先试脏 main 再被脚本打回 |
+| 首次部署后远端 `contract_guard` readiness FAIL | 阻断（required gate） | `question_lifecycle_skills.py` 是 contract-sensitive 文件，commit 集里没有同步更新 contract surface。本地无参跑 `check_contract_guard.py` 通过是**假阴性**：脏工作树里恰好有别的 contracts 改动掩蔽了要求 | 发布前用真实变更集跑：`python scripts/check_contract_guard.py $(git diff --name-only origin/main..HEAD)`。contract-sensitive 文件改动必须与 contract surface 更新在同一个发布集里，否则远端 readiness 必 FAIL，要二次 commit + 二次部署 |
+| 修 contract 文件时工作树同文件有他人脏改动 | 不阻断但易夹带 | 直接 `git add` 会把无关脏 hunk 一起带进发布 | 用 `git show :file` 取 index 版本插入自己的行，`git hash-object -w` + `git update-index --cacheinfo` 只 stage 自己的 hunk；工作树副本另行同步插入保持一致 |
+
+通用结论：**prompt/skill 资产改动如果触碰了任何 contract-sensitive 的注入/路由代码，发布成本就从"快速重启"升级为"contract 闭环 + 快速重启"**。预估工时时按后者算，并在 commit 前就把 contract 条款补齐，避免部署后被远端 readiness gate 打回重来。
+
+### 14. 2026-06-14 SSH 断开先三查别盲目重跑 + 并行进程把超集 push 到 origin/main
+
+§12 讲了并发发布撞车 + SSH 长 build 断开会留下半同步态。这次补两个 §12 没覆盖的角度，核心是：**SSH 断开 ≠ 你的部署失败，盲目重跑才是真危险**。
+
+1. **SSH 断开后先三查，再决定动不动。** 远端 Next.js build ~6.5min，静默期连接常被 reset（`Connection reset by peer`/`Broken pipe`）。不要立刻重跑发布脚本——重跑会与在飞的并行 build 撞同一容器 = 损坏。先查：
+   - 远端构建进程：`ssh Aliyun-ECS-2 "ps aux | grep -E 'next build|up -d --build|buildkit/executor' | grep -v grep"`
+   - `origin/main` SHA：`git fetch origin main && git rev-parse origin/main`——并行进程可能在你 push 后又把超集推过你。
+   - 容器 SHA + 容器内代码：`docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}' | grep DEEPTUTOR_GIT_SHA`，再 `docker compose -f /root/deeptutor/docker-compose.yml exec -T deeptutor grep -c '<你的新符号>' <改动文件>`。
+
+2. **并行进程可能把"你的 main + 别的分支"合成超集 push 到 origin/main 并部署。** 本次：我 push 了我的 release（`e61b8fa37`），SSH 在远端 build 断开；排查发现另一进程把它 + feat 分支 + member-permission 合成 `08a697030`，push 到 origin/main 并部署。我的代码随它上线，`origin/main == host .env == container == 08a697030` 四层对齐——这是 **closed release，不是 drift**。判据：容器内你的新符号出现且**仅 1 次**（cherry-pick + merge 无重复）。
+
+3. **等并行 build 落定用后台 `until` 轮询，不要前台 sleep、也不要重连重跑：**
+
+   ```bash
+   for i in $(seq 1 40); do
+     P=$(ssh Aliyun-ECS-2 "ps aux|grep -E 'next build|up -d --build|buildkit/executor'|grep -v grep|wc -l"|tr -d ' ')
+     [ "${P:-1}" = 0 ] && { ssh Aliyun-ECS-2 "docker inspect deeptutor --format '{{.Created}}'; docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}'|grep DEEPTUTOR_GIT_SHA"; break; }
+     sleep 20
+   done
+   ```
+   落定后跑正常 post-deploy 验证（host .env / container / 公网端点 / 可观测性四层）。
+
+4. **要把生产 pin 到恰好你的 push（而非超集）= 回退并行 actor 的工作——先上报用户，绝不静默 undo 不属于你的部署。**

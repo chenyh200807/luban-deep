@@ -3,7 +3,7 @@
 适用：PR #19 (BI v2 enforced invariant) 合并 main 后，从本地 → 阿里云 `/root/deeptutor` 同步 → 真用户 Stage 1 灰度演练。
 
 关联：
-- 计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+- 计划：`docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
 - 灰度 runbook：`docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`
 - 项目宪法：`AGENTS.md` §3.7 Aliyun SSH Write Boundary
 

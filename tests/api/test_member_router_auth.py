@@ -304,6 +304,217 @@ def test_member_router_exposes_batch_and_audit_endpoints(monkeypatch: pytest.Mon
     assert exported.headers["content-type"].startswith("text/csv")
 
 
+def test_member_router_manual_purchase_requires_idempotency_and_forwards_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _manual_membership_purchase(**kwargs: object) -> dict[str, object]:
+        calls.append(dict(kwargs))
+        return {
+            "member": {"user_id": kwargs["user_id"], "tier": "vip"},
+            "package": {"id": kwargs["package_id"], "label": "VIP"},
+            "amount_cny": 198,
+            "points": 9000,
+            "purchase_id": "manual_membership_1",
+            "ledger_event_id": "ledger_manual_1",
+            "audit_id": "audit_manual_1",
+            "deduped": False,
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type("FakeMemberService", (), {"manual_membership_purchase": staticmethod(_manual_membership_purchase)})(),
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/member/manual-purchase",
+            json={"user_id": "u1", "package_id": "vip", "days": 365},
+        )
+        created = client.post(
+            "/api/v1/member/manual-purchase",
+            headers={"X-Idempotency-Key": "manual-purchase-1"},
+            json={
+                "user_id": "u1",
+                "package_id": "vip",
+                "days": 365,
+                "reason": "线下收款",
+                "phone": "13800138000",
+                "display_name": "张同学",
+            },
+        )
+
+    assert missing_key.status_code == 400
+    assert created.status_code == 200
+    assert created.json()["ledger_event_id"] == "ledger_manual_1"
+    assert calls == [
+        {
+            "user_id": "u1",
+            "package_id": "vip",
+            "days": 365,
+            "operator": "admin_demo",
+            "reason": "线下收款",
+            "idempotency_key": "manual-purchase-1",
+            "phone": "13800138000",
+            "display_name": "张同学",
+            "amount_cny": None,
+        }
+    ]
+
+
+def test_member_router_manual_purchase_reversal_requires_idempotency_and_forwards_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _reverse_manual_membership_purchase(**kwargs: object) -> dict[str, object]:
+        calls.append(dict(kwargs))
+        return {
+            "member": {"user_id": kwargs["user_id"], "tier": "supreme_svip", "status": "revoked"},
+            "amount_cny": -998,
+            "points": -50000,
+            "purchase_id": kwargs["purchase_id"],
+            "ledger_event_id": "ledger_refund_1",
+            "audit_id": "audit_reversal_1",
+            "deduped": False,
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"reverse_manual_membership_purchase": staticmethod(_reverse_manual_membership_purchase)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/member/manual-purchase/reverse",
+            json={"user_id": "u1", "purchase_id": "manual_membership_1", "amount_cny": 998},
+        )
+        reversed_purchase = client.post(
+            "/api/v1/member/manual-purchase/reverse",
+            headers={"X-Idempotency-Key": "manual-reverse-1"},
+            json={
+                "user_id": "u1",
+                "purchase_id": "manual_membership_1",
+                "amount_cny": 998,
+                "reason": "本应 0 元开通，冲销误录 998 元",
+            },
+        )
+
+    assert missing_key.status_code == 400
+    assert reversed_purchase.status_code == 200
+    assert reversed_purchase.json()["ledger_event_id"] == "ledger_refund_1"
+    assert calls == [
+        {
+            "user_id": "u1",
+            "purchase_id": "manual_membership_1",
+            "amount_cny": 998,
+            "operator": "admin_demo",
+            "reason": "本应 0 元开通，冲销误录 998 元",
+            "idempotency_key": "manual-reverse-1",
+        }
+    ]
+
+
+def test_member_router_package_management_requires_idempotency_and_forwards_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _list_membership_packages() -> list[dict[str, object]]:
+        calls.append({"action": "list"})
+        return [{"id": "svip", "label": "SVIP", "tier": "svip", "points": 28000}]
+
+    def _upsert_membership_package(*, package_id: str, **kwargs: object) -> dict[str, object]:
+        calls.append({"action": "upsert", "package_id": package_id, **kwargs})
+        return {"id": package_id, "label": kwargs["label"], "tier": kwargs["tier"], "points": kwargs["points"]}
+
+    def _remove_membership_package(package_id: str, **kwargs: object) -> dict[str, object]:
+        calls.append({"action": "delete", "package_id": package_id, **kwargs})
+        return {"id": package_id, "label": "SVIP Plus"}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {
+                "list_membership_packages": staticmethod(_list_membership_packages),
+                "upsert_membership_package": staticmethod(_upsert_membership_package),
+                "remove_membership_package": staticmethod(_remove_membership_package),
+            },
+        )(),
+    )
+
+    with TestClient(app) as client:
+        listed = client.get("/api/v1/member/packages")
+        missing_key = client.put(
+            "/api/v1/member/packages/svip_plus",
+            json={"label": "SVIP Plus", "tier": "svip", "points": 36000, "turns": 1800, "price": "698"},
+        )
+        saved = client.put(
+            "/api/v1/member/packages/svip_plus",
+            headers={"X-Idempotency-Key": "package-upsert-1"},
+            json={
+                "label": "SVIP Plus",
+                "tier": "svip",
+                "points": 36000,
+                "turns": 1800,
+                "price": "698",
+                "status": "active",
+                "reason": "新增高阶套餐",
+            },
+        )
+        deleted = client.delete(
+            "/api/v1/member/packages/svip_plus?reason=%E4%B8%8B%E6%9E%B6",
+            headers={"X-Idempotency-Key": "package-delete-1"},
+        )
+
+    assert listed.status_code == 200
+    assert listed.json()["items"][0]["id"] == "svip"
+    assert missing_key.status_code == 400
+    assert saved.status_code == 200
+    assert saved.json()["id"] == "svip_plus"
+    assert deleted.status_code == 200
+    assert calls == [
+        {"action": "list"},
+        {
+            "action": "upsert",
+            "package_id": "svip_plus",
+            "label": "SVIP Plus",
+            "tier": "svip",
+            "points": 36000,
+            "turns": 1800,
+            "price": "698",
+            "original_price": "",
+            "badge": "",
+            "per": "",
+            "desc": "",
+            "status": "active",
+            "operator": "admin_demo",
+            "reason": "新增高阶套餐",
+            "idempotency_key": "package-upsert-1",
+        },
+        {
+            "action": "delete",
+            "package_id": "svip_plus",
+            "operator": "admin_demo",
+            "reason": "下架",
+            "idempotency_key": "package-delete-1",
+        },
+    ]
+
+
 def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch) -> None:
     app = _build_app()
     app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)

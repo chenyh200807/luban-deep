@@ -26,9 +26,7 @@ const LOCAL_BASE_URL =
   (typeof __LOCAL_BASE_URL__ !== "undefined" && __LOCAL_BASE_URL__) ||
   "http://127.0.0.1:8001";
 const USE_LOCAL_DEVTOOLS =
-  typeof __USE_LOCAL_DEVTOOLS__ !== "undefined"
-    ? __USE_LOCAL_DEVTOOLS__
-    : false;
+  typeof __USE_LOCAL_DEVTOOLS__ !== "undefined" ? __USE_LOCAL_DEVTOOLS__ : false;
 const HOST_SYS_INFO_KEY = "yousen_host_sys_info";
 const DEFAULT_HOST_SYS_INFO = {
   is_audit: 0,
@@ -511,15 +509,7 @@ function buildDeeptutorBaseCandidates(baseUrl) {
     "http://127.0.0.1:8001",
     "http://127.0.0.1:8012",
   ];
-  const remoteFallbacks = [NGROK_URL, PROD_API].filter((item) => {
-    const normalized = String(item || "").trim();
-    return (
-      normalized &&
-      /^https?:\/\//.test(normalized) &&
-      !isLocalBaseUrl(normalized)
-    );
-  });
-  return uniqBaseUrls([normalizedBase].concat(localFallbacks, remoteFallbacks));
+  return uniqBaseUrls([normalizedBase].concat(localFallbacks));
 }
 
 function requestHostSysInfo() {

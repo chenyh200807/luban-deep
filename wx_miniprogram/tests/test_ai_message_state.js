@@ -123,6 +123,29 @@ run("plain text without mcq strips receipt but keeps body", function () {
   assertEqual(state.mcqInteractiveReady, false, "plain text should not become interactive");
 });
 
+run("paper style citation footer stays visible markdown content", function () {
+  var text = [
+    "屋面防水等级应根据工程重要性确定。〔1〕",
+    "",
+    "依据",
+    "〔1〕2026 建筑实务教材，第 1 章 第 1.4 节。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  assert(state.renderableContent.indexOf("〔1〕") >= 0, "citation marker should remain visible");
+  assert(state.renderableContent.indexOf("依据") >= 0, "citation footer should remain visible");
+  assert(
+    state.renderableContent.indexOf("2026 建筑实务教材") >= 0,
+    "citation source should remain visible",
+  );
+  assertEqual(state.mcqCards, null, "citation text should not create mcq cards");
+  assertEqual(state.mcqInteractiveReady, false, "citation text should stay non-interactive");
+});
+
 run("long markdown tables use compact cards on mobile", function () {
   var text = [
     "| 序号 | 安排内容 | 判断 | 理由 |",

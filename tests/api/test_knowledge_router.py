@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from deeptutor.api.dependencies import AuthContext, get_current_user
 
 try:
     from fastapi import FastAPI
@@ -18,16 +19,30 @@ pytestmark = pytest.mark.skipif(FastAPI is None or TestClient is None, reason="f
 
 if FastAPI is not None and TestClient is not None:
     knowledge_router_module = importlib.import_module("deeptutor.api.routers.knowledge")
+    secure_router_module = importlib.import_module("deeptutor.api._secure_router")
     router = knowledge_router_module.router
 else:  # pragma: no cover - optional dependency in lightweight envs
     knowledge_router_module = None
+    secure_router_module = None
     router = None
 
 
-def _build_app(admin: bool = True) -> FastAPI:
+def _ctx(*, is_admin: bool = False) -> AuthContext:
+    return AuthContext(
+        user_id="knowledge_test_user",
+        provider="test",
+        token="test-token",
+        claims={"sub": "knowledge_test_user"},
+        is_admin=is_admin,
+    )
+
+
+def _build_app(admin: bool = True, auth: bool = True) -> FastAPI:
     if FastAPI is None or router is None:  # pragma: no cover - guarded by pytestmark
         raise RuntimeError("fastapi is not installed")
     app = FastAPI()
+    if auth:
+        app.dependency_overrides[get_current_user] = lambda: _ctx(is_admin=admin)
     if admin:
         app.dependency_overrides[knowledge_router_module.require_admin] = lambda: None
     app.include_router(router, prefix="/api/v1/knowledge")
@@ -134,8 +149,67 @@ def test_rag_providers_returns_registered_backends() -> None:
                 "name": "Supabase",
                 "description": "Read-only remote retrieval powered by your Supabase knowledge base.",
             },
+            {
+                "id": "kbv5",
+                "name": "KB v5",
+                "description": "Read-only KB v5 retrieval via the canonical direct Postgres function.",
+            },
         ]
     }
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/knowledge/health",
+        "/api/v1/knowledge/rag-providers",
+        "/api/v1/knowledge/configs",
+        "/api/v1/knowledge/default",
+        "/api/v1/knowledge/list",
+        "/api/v1/knowledge/demo/config",
+    ],
+)
+def test_knowledge_read_routes_require_auth(path: str) -> None:
+    with TestClient(_build_app(auth=False)) as client:
+        response = client.get(path)
+
+    _assert_admin_required(response)
+
+
+def test_knowledge_progress_ws_requires_auth(monkeypatch: pytest.MonkeyPatch) -> None:
+    from starlette.websockets import WebSocketDisconnect
+
+    monkeypatch.setattr(secure_router_module, "resolve_auth_context", lambda _authorization: None)
+
+    with TestClient(_build_app(auth=False)) as client:
+        with pytest.raises(WebSocketDisconnect):
+            with client.websocket_connect("/api/v1/knowledge/demo/progress/ws"):
+                pass
+
+
+def test_knowledge_progress_ws_accepts_authenticated_user(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    kb_root = tmp_path / "knowledge_bases"
+    storage = kb_root / "demo" / "llamaindex_storage"
+    storage.mkdir(parents=True)
+    monkeypatch.setattr(knowledge_router_module, "_kb_base_dir", kb_root)
+    monkeypatch.setattr(
+        secure_router_module,
+        "resolve_auth_context",
+        lambda _authorization: _ctx(is_admin=False),
+    )
+
+    with TestClient(_build_app(auth=True, admin=False)) as client:
+        with client.websocket_connect(
+            "/api/v1/knowledge/demo/progress/ws",
+            headers={"authorization": "Bearer test-token"},
+        ) as websocket:
+            message = websocket.receive_json()
+
+    assert message["type"] == "progress"
+    assert message["data"]["stage"] == "completed"
 
 
 def test_rag_providers_runtime_error_is_sanitized(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -299,6 +373,36 @@ def test_sync_folder_rejects_unsafe_historical_path(monkeypatch, tmp_path: Path)
 
     assert response.status_code == 400
     assert "allowed root" in response.json()["detail"].lower()
+
+
+def test_list_linked_folders_skips_malformed_metadata(monkeypatch, tmp_path: Path) -> None:
+    class _MalformedFolderKBManager(_FakeKBManager):
+        def get_linked_folders(self, kb_name: str) -> list[dict]:
+            return [
+                {"path": "/missing-id"},
+                {
+                    "id": "folder-1",
+                    "path": str(tmp_path),
+                    "added_at": "2026-01-01T00:00:00",
+                    "file_count": 0,
+                },
+            ]
+
+    manager = _MalformedFolderKBManager(tmp_path / "knowledge_bases")
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/knowledge/kb-safe/linked-folders")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": "folder-1",
+            "path": str(tmp_path),
+            "added_at": "2026-01-01T00:00:00",
+            "file_count": 0,
+        }
+    ]
 
 
 def test_upload_returns_409_when_kb_needs_reindex(monkeypatch, tmp_path: Path) -> None:

@@ -43,5 +43,6 @@
 .btn-manual::after { border:none; }
 .btn-manual.off { opacity:0.5; }
 .btn-manual-txt { display:block; font-size:27rpx; line-height:1; font-weight:720; color:#f8fbff; letter-spacing:0.2rpx; white-space:nowrap; transform:translateY(1rpx); }
-.foot { display:flex; justify-content:center; margin-top:18rpx; }
+.foot { display:flex; justify-content:center; align-items:center; gap:18rpx; margin-top:18rpx; }
 .foot-link { font-size:23rpx; color:rgba(114,174,255,0.82); }
+.foot-sep { font-size:22rpx; color:rgba(226,232,240,0.22); }

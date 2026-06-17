@@ -1,0 +1,15 @@
+{
+  "council_vote_as_source": 0,
+  "covered_point_count": 13,
+  "drop_count": 0,
+  "external_as_textbook": 0,
+  "formal_registry_emitted": false,
+  "input_external_point_count": 13,
+  "model_vote_as_source": 0,
+  "official_answer_as_external_source": 0,
+  "pending_count": 12,
+  "production_runtime_connected": false,
+  "review_only_count": 1,
+  "verified_count": 0,
+  "verified_without_verbatim_exact_match": 0
+}

@@ -431,6 +431,16 @@
   background: rgba(255,255,255,0.08);
   display: flex; align-items: center; justify-content: center;
 }
+.act-btn-note {
+  width: auto;
+  min-width: 72rpx;
+  padding: 0 12rpx;
+}
+.act-note-text {
+  font-size: 20rpx;
+  font-weight: 800;
+  color: rgba(191,219,254,0.82);
+}
 .act-btn:active { background: rgba(255,255,255,0.18); }
 .act-on { background: rgba(59,130,246,0.2); }
 .act-sep { width: 1rpx; height: 24rpx; background: rgba(255,255,255,0.08); margin: 0 2rpx; }
@@ -674,6 +684,14 @@
   font-size: 20rpx;
   line-height: 1.5;
   color: rgba(148,163,184,0.78);
+}
+.runtime-meta-text {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 20rpx;
+  line-height: 1.5;
+  color: rgba(148,163,184,0.76);
+  overflow-wrap: anywhere;
 }
 .workflow-toggle {
   display: inline-flex;
@@ -1356,20 +1374,52 @@
   font-size: 26rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx;
 }
 
-/* ── 引用 — 柔和分隔 ─────────────────────────── */
-.cite-list { margin-top: 16rpx; padding-top: 14rpx; border-top: 1rpx solid rgba(255,255,255,0.06); }
+/* ── 依据 — 独立参考文献区 ─────────────────────── */
+.cite-list {
+  margin-top: 24rpx;
+  padding: 18rpx 18rpx 16rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(125,211,252,0.16);
+  background: rgba(8,13,24,0.42);
+}
 .cite-head {
-  display: block; margin-bottom: 10rpx;
-  font-size: 22rpx; font-weight: 700; letter-spacing: 2rpx; color: rgba(148,163,184,0.72);
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12rpx;
+  margin-bottom: 12rpx; padding-bottom: 10rpx;
+  border-bottom: 1rpx solid rgba(125,211,252,0.10);
+}
+.cite-head-main {
+  font-size: 23rpx; font-weight: 800; letter-spacing: 2rpx; color: rgba(186,230,253,0.94);
+}
+.cite-head-sub {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 18rpx; color: rgba(148,163,184,0.62);
 }
 .cite {
   display: flex; align-items: flex-start; gap: 12rpx; margin-bottom: 10rpx;
-  padding: 12rpx 14rpx; border-radius: 14rpx;
-  background: rgba(255,255,255,0.03); border: 1rpx solid rgba(148,163,184,0.08);
+  padding: 12rpx 0 0;
+  background: transparent;
 }
-.cite-key { font-size: 22rpx; color: #60a5fa; font-weight: 700; flex-shrink: 0; }
-.cite-body { flex: 1; min-width: 0; }
-.cite-title { font-size: 22rpx; color: rgba(203,213,225,0.78); line-height: 1.5; }
+.cite + .cite { border-top: 1rpx solid rgba(148,163,184,0.08); }
+.cite-key {
+  min-width: 48rpx;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 20rpx; color: rgba(96,165,250,0.92); font-weight: 800; flex-shrink: 0;
+}
+.cite-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.cite-title { font-size: 22rpx; color: rgba(226,232,240,0.86); line-height: 1.48; font-weight: 650; }
+.cite-locator {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 20rpx; line-height: 1.45; color: rgba(125,211,252,0.74);
+}
+.cite-toggle {
+  align-self: flex-start;
+  padding: 4rpx 0;
+  font-size: 20rpx;
+  line-height: 1.4;
+  color: rgba(96,165,250,0.90);
+  font-weight: 650;
+}
+.cite-quote { font-size: 20rpx; line-height: 1.55; color: rgba(148,163,184,0.72); }
 
 
 /* ═══════════════════════════════════════════════
@@ -1564,6 +1614,158 @@
   padding: 80rpx 0; text-align: center;
 }
 .billing-empty-txt { font-size: 26rpx; color: rgba(255,255,255,0.4); }
+
+.guest-tip {
+  margin: 24rpx 36rpx 0;
+  padding: 18rpx 18rpx 18rpx 22rpx;
+  border-radius: 26rpx;
+  border: 1rpx solid rgba(247, 201, 107, 0.16);
+  background:
+    linear-gradient(135deg, rgba(247, 201, 107, 0.12), rgba(96, 165, 250, 0.08)),
+    rgba(15, 23, 42, 0.46);
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
+}
+.guest-tip-copy {
+  flex: 1;
+  min-width: 0;
+}
+.guest-tip-title {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.3;
+  font-weight: 820;
+  color: rgba(255, 255, 255, 0.94);
+}
+.guest-tip-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  line-height: 1.36;
+  color: rgba(203, 213, 225, 0.68);
+}
+.guest-tip-action {
+  flex-shrink: 0;
+  height: 58rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 250, 252, 0.92);
+  box-shadow: 0 10rpx 24rpx rgba(2, 6, 23, 0.18);
+}
+.guest-tip-action:active {
+  transform: scale(0.98);
+}
+.guest-tip-action-txt {
+  font-size: 23rpx;
+  font-weight: 820;
+  color: #0f172a;
+}
+
+.paywall-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1280;
+  background: rgba(2, 6, 23, 0.58);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.paywall-mask.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.paywall-panel {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 28rpx;
+  z-index: 1281;
+  padding: 30rpx;
+  border-radius: 30rpx;
+  border: 1rpx solid rgba(255,255,255,0.1);
+  background: #0f172a;
+  box-shadow: 0 30rpx 80rpx rgba(0,0,0,0.32);
+  transform: translateY(120%);
+  transition: transform 0.26s cubic-bezier(0.16,1,0.3,1);
+}
+.paywall-panel.show {
+  transform: translateY(0);
+}
+.paywall-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+.paywall-kicker {
+  display: block;
+  font-size: 21rpx;
+  line-height: 1;
+  font-weight: 760;
+  color: rgba(125, 211, 252, 0.78);
+}
+.paywall-title {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 34rpx;
+  line-height: 1.2;
+  font-weight: 880;
+  color: #fff;
+}
+.paywall-close {
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.paywall-close-icon {
+  font-size: 38rpx;
+  line-height: 1;
+  color: rgba(226, 232, 240, 0.7);
+}
+.paywall-text {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 25rpx;
+  line-height: 1.55;
+  color: rgba(226, 232, 240, 0.72);
+}
+.paywall-actions {
+  margin-top: 28rpx;
+  display: flex;
+  gap: 16rpx;
+}
+.paywall-secondary,
+.paywall-primary {
+  flex: 1;
+  height: 86rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.paywall-secondary {
+  background: rgba(255,255,255,0.07);
+}
+.paywall-primary {
+  background: linear-gradient(135deg, #60a5fa, #34d399);
+}
+.paywall-secondary-txt,
+.paywall-primary-txt {
+  font-size: 27rpx;
+  font-weight: 820;
+}
+.paywall-secondary-txt { color: rgba(226, 232, 240, 0.76); }
+.paywall-primary-txt { color: #07111f; }
 
 .usage-row {
   padding: 28rpx 32rpx;
@@ -1896,11 +2098,15 @@
 }
 
 /* ── 引用来源 ──────────────────────────────── */
-.page.light .cite-list { border-color: #e6edf8; }
-.page.light .cite-head { color: #8b98ad; }
-.page.light .cite { background: #f8fbff; border-color: #e2eaf7; }
+.page.light .cite-list { background: #f8fbff; border-color: #d8e8fb; }
+.page.light .cite-head { border-color: #e2eaf7; }
+.page.light .cite-head-main { color: #2563eb; }
+.page.light .cite-head-sub { color: #8b98ad; }
+.page.light .cite + .cite { border-color: #e6edf8; }
 .page.light .cite-key { color: #2f6bff; }
-.page.light .cite-title { color: #607086; }
+.page.light .cite-title { color: #334155; }
+.page.light .cite-locator { color: #2563eb; }
+.page.light .cite-quote { color: #64748b; }
 
 /* ── 操作栏（气泡外） ─────────────────────── */
 .page.light .act-btn { background: #eef4ff; }
@@ -2001,6 +2207,7 @@
 .page.light .thinking-panel .thinking-label { color: #1f2d45; }
 .page.light .thinking-sub { color: #7b8aa2; }
 .page.light .workflow-meta-text { color: #6b7a90; }
+.page.light .runtime-meta-text { color: #6b7a90; }
 .page.light .workflow-toggle {
   background: rgba(255,255,255,0.92);
   border-color: #d7e3f5;

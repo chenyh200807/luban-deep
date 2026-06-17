@@ -84,11 +84,18 @@ def test_mobile_read_model_uses_shared_learning_brain_projection() -> None:
     assert model["typed_graph_edges"][0]["display_path"] == "案例题：第 001 题 → 知识点：工程招标投标与合同管理"
     assert any(edge["edge_type"] == "training_not_improved_error" for edge in model["typed_graph_edges"])
     assert model["compiled_objects"]["concept:1A432000"]["current_truth"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
+    assert model["compiled_objects"]["concept:1A432000"]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert model["compiled_objects"]["concept:1A432000"]["memory_lifecycle_label"] == "稳定学情判断"
     assert model["compiled_objects"]["question:wechat-harness-case-001"]["current_truth"] == "题目 专项训练 001 触发了 采分点遗漏 相关错因。"
+    assert model["compiled_objects"]["question:wechat-harness-case-001"]["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert model["compiled_objects"]["question:wechat-harness-case-001"]["memory_lifecycle_label"] == "短期观察"
     assert model["compiled_objects"]["submission:wechat-harness-learning-brain-demo123-1"]["display_meta"] == "作答记录：第 1 次作答"
     assert model["weak_points"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
+    assert model["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert model["weak_points"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert model["visible_sections"]["current_truth"][0]["object_key"] == ""
     assert model["visible_sections"]["current_truth"][0]["display_title"] == "工程招标投标与合同管理 上出现 采分点遗漏 错因"
+    assert model["visible_sections"]["current_truth"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert model["visible_sections"]["current_truth"][0]["display_meta"] == "知识点：工程招标投标与合同管理"
     assert model["visible_sections"]["next_training"][0]["error_code"] == ""
     assert model["visible_sections"]["next_training"][0]["display_meta"] == (
@@ -223,3 +230,30 @@ def test_read_model_hides_internal_mcq_codes_and_event_ids_from_visible_sections
     assert "多选漏选" in visible_text
     assert "多选错选" in visible_text
     assert "最近一次批改" in visible_text
+
+
+def test_read_model_preserves_legacy_supporting_event_ids_as_evidence_refs() -> None:
+    projection = _projection()
+    concept = projection["compiled_objects"]["concept:1A432000"]
+    concept.pop("claim_status", None)
+    concept.pop("lifecycle", None)
+    concept.pop("evidence_refs", None)
+    weak = projection["weak_points"][0]
+    weak.pop("claim_status", None)
+    weak.pop("lifecycle", None)
+    weak.pop("evidence_refs", None)
+
+    model = build_learning_brain_read_model(
+        user_id="student_demo",
+        projection=projection,
+        surface="mobile",
+    )
+
+    compiled = model["compiled_objects"]["concept:1A432000"]
+    weak_point = model["weak_points"][0]
+    assert compiled["evidence_refs"] == ["evt1", "evt2"]
+    assert weak_point["evidence_refs"] == ["evt1", "evt2"]
+    assert compiled["claim_status"] == "observed"
+    assert weak_point["claim_status"] == "observed"
+    assert compiled["lifecycle"] == {}
+    assert weak_point["lifecycle"] == {}

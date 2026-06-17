@@ -1,4 +1,4 @@
-// test_billing_payment_availability.js — test build billing must not expose pricing/payment flow
+// test_billing_payment_availability.js — test build billing exposes wallet entitlements, not payment flow
 // Run: node wx_miniprogram/tests/test_billing_payment_availability.js
 
 var fs = require("fs");
@@ -18,7 +18,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage(usagePayload) {
+function loadBillingPage(walletPayload, ledgerPayload, usagePayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../pages/billing/billing.js"),
     "utf8",
@@ -55,6 +55,27 @@ function loadBillingPage(usagePayload) {
               },
             });
           },
+          getWallet: function () {
+            return Promise.resolve(walletPayload || { balance: 9000 });
+          },
+          getLedger: function () {
+            return Promise.resolve(
+              ledgerPayload || {
+                entries: [
+                  {
+                    id: "ledger_1",
+                    event_type: "debit",
+                    reason: "capture",
+                    delta: -20,
+                    balance_after: 8980,
+                    reference_type: "ai_usage",
+                    created_at: "2026-06-01T10:20:00+08:00",
+                  },
+                ],
+                has_more: false,
+              },
+            );
+          },
           unwrapResponse: function (raw) { return raw; },
         };
       }
@@ -83,10 +104,16 @@ function loadBillingPage(usagePayload) {
   var loaded = loadBillingPage();
   await loaded.page._loadUsage();
 
-  assert(loaded.page.data.usagePrimaryLabel === "剩余 75%", "billing should hydrate percent usage label");
+  assert(loaded.page.data.usagePrimaryLabel === "剩余 99.8%", "billing should hydrate wallet entitlement percent label");
   assert(
-    loaded.page.data.usageRows.map(function (item) { return item.key; }).join(",") === "weekly",
-    "billing should expose only the weekly percentage row to users",
+    loaded.page.data.usageRows.map(function (item) { return item.key; }).join(",") === "wallet_percent,usage_record",
+    "billing should expose wallet percent and usage record rows",
+  );
+  assert(
+    loaded.page.data.ledgerRows.length === 1 &&
+      loaded.page.data.ledgerRows[0].title === "AI 学习消耗" &&
+      loaded.page.data.ledgerRows[0].usageLabel === "-0.22%",
+    "billing should normalize wallet ledger rows to percent-only records",
   );
   assert(!("selectedPkg" in loaded.page.data), "billing should not keep a default package while pricing is hidden");
   assert(!("selectedPkgPrice" in loaded.page.data), "billing should not keep a default price while pricing is hidden");
@@ -95,6 +122,19 @@ function loadBillingPage(usagePayload) {
   assert(loaded.calls.checkouts.length === 0, "billing should not create checkout orders while pricing is hidden");
   assert(loaded.calls.payments.length === 0, "billing should not invoke payment while pricing is hidden");
   assert(loaded.calls.modal.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
+
+  var degraded = loadBillingPage({
+    balance: 0,
+  }, { entries: [] }, {
+    status: "degraded",
+    display: { primary_label: "额度暂不可用", primary_percent: 100 },
+    quota: { rows: [] },
+  });
+  await degraded.page._loadUsage();
+  assert(
+    degraded.page.data.usagePrimaryLabel === "权益暂不可用",
+    "billing degraded terminal state should not look like active syncing",
+  );
 
   if (fail) {
     console.error(errors.join("\n"));

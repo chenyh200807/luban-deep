@@ -199,9 +199,14 @@ run("freeCourse AI entry should use guarded cross-home navigation", function () 
     "utf8",
   );
 
+  // 2026-06-13 稳定性修订：入口仍先播导学动效，但宿主页必须先显式
+  // loadSubpackage；DevTools/真机在冷缓存下直接 navigateTo 分包页会偶发 fail。
   assert(
-    freeCourseSource.indexOf("app.openDeeptutorLogin(") >= 0,
-    "freeCourse entry should go through guarded cross-home navigation",
+    freeCourseSource.indexOf("_deeptutorNavLockUntil") >= 0 &&
+      freeCourseSource.indexOf("wx.loadSubpackage") >= 0 &&
+      freeCourseSource.indexOf("name: 'packageDeeptutor'") >= 0 &&
+      freeCourseSource.indexOf("pages/onboarding/onboarding") >= 0,
+    "freeCourse entry should preload packageDeeptutor before guarded onboarding navigation",
   );
 });
 

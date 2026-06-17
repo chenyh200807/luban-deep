@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import secrets
+import sqlite3
 import string
 import threading
 import time
@@ -72,18 +73,32 @@ from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
 )
-from deeptutor.services.learner_state.home_personalization import normalize_home_focus_topic_label
 from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
+from deeptutor.services.learner_state.home_personalization import canonical_home_focus_topic_label
+from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
     load_external_auth_users,
+    reset_external_auth_password,
+    validate_external_auth_password,
     verify_external_auth_user,
 )
+from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.admin_store import (
+    load_admins,
+    load_audit,
+    load_role_permissions,
+    remove_admin,
+    set_admin,
+    set_role_permissions,
+    set_user_overrides,
+)
+from deeptutor.services.member_console.directory import get_member_directory_read_model
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
@@ -91,7 +106,16 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+# Max wrong OTP guesses before the code is invalidated (brute-force lockout).
+_MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
+_TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
+    {
+        "phone_backfill",
+        "member_console_backfill",
+        "phone_verification",
+    }
+)
 
 
 def _assessment_writeback_worker_count() -> int:
@@ -119,9 +143,25 @@ def _parse_time(value: str | None) -> datetime:
     if not value:
         return _now()
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=_TZ)
+        return parsed.astimezone(_TZ)
     except ValueError:
         return _now()
+
+
+def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> bool:
+    if not value:
+        return False
+    try:
+        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=_TZ)
+    age = now - created_at.astimezone(_TZ)
+    return timedelta(0) <= age <= timedelta(days=days)
 
 
 def _slugify_phone(value: str) -> str:
@@ -460,7 +500,7 @@ def _topic_waterproof_dev_candidates() -> list[QuestionCandidate]:
                 ),
                 answer=answer,
                 source_type="DEV_FALLBACK",
-                node_code="1A414010",
+                node_code="1A413050",
                 source_meta={
                     "topic": "防水",
                     "semantic_signature": f"dev_waterproof_sig_{index}",
@@ -530,12 +570,17 @@ AUDIT_IDEMPOTENCY_INDEX_MAX = 10_000
 
 
 class MemberConsoleService:
-    def __init__(self) -> None:
+    # One-shot guard so the default-auth-secret warning is not logged per token verify.
+    _warned_default_auth_secret = False
+
+    def __init__(self, *, member_directory: Any | None = None) -> None:
         self._lock = threading.RLock()
         self._path_service = get_path_service()
         self._store = get_sqlite_session_store()
         self._data_path = self._path_service.get_settings_file("member_console")
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        self._member_directory_explicit = member_directory is not None
+        self._member_directory = member_directory or get_member_directory_read_model()
         self._assessment_sessions_supabase_required_but_missing = False
         self._assessment_session_repository = self._build_assessment_session_repository()
         self._wechat_access_token: str = ""
@@ -725,24 +770,112 @@ class MemberConsoleService:
     def _default_packages() -> list[dict[str, Any]]:
         return [
             {
-                "id": "advance",
-                "label": "精学版",
-                "points": 4400,
-                "price": "99",
+                "id": "vip",
+                "label": "VIP",
+                "points": 9000,
+                "turns": 450,
+                "price": "198",
+                "original_price": "298",
                 "badge": "",
-                "per": "每周稳定学习额度",
-                "desc": "适合日常学习、错题讲解、章节复盘",
+                "per": "450 次 AI 学习额度",
+                "per_turn_price": "0.44",
+                "audience": "有基础的、二战的、在职的考生",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告",
             },
             {
-                "id": "sprint",
-                "label": "通关版",
-                "points": 9000,
-                "price": "199",
-                "badge": "适合考前冲刺",
-                "per": "高频冲刺备考额度",
-                "desc": "适合案例批改、整卷复盘、冲刺提分",
+                "id": "svip",
+                "label": "SVIP",
+                "points": 28000,
+                "turns": 1400,
+                "price": "598",
+                "original_price": "798",
+                "badge": "班主任督学",
+                "per": "1400 次 AI 学习额度",
+                "per_turn_price": "0.427",
+                "audience": "基础偏弱、学习时间充裕、疑问频繁的考生",
+                "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
+            },
+            {
+                "id": "supreme_svip",
+                "label": "至尊SVIP",
+                "points": 50000,
+                "turns": 2500,
+                "price": "998",
+                "original_price": "1298",
+                "badge": "最高性价比",
+                "per": "2500 次 AI 学习额度",
+                "per_turn_price": "0.399",
+                "audience": "零基础纯自学，对考试没信心，处处需答疑的考生",
+                "desc": "AI答疑、案例批改、错因专训、定制个人学习规划、摸底测试、专题测评、学习报告、班主任督学服务",
             },
         ]
+
+    @staticmethod
+    def _normalize_membership_package(item: dict[str, Any]) -> dict[str, Any]:
+        package_id = str(item.get("id") or item.get("package_id") or "").strip()
+        label = str(item.get("label") or item.get("name") or package_id).strip()
+        tier = str(item.get("tier") or item.get("plan") or package_id).strip()
+        if not package_id:
+            raise ValueError("package id is required")
+        try:
+            points = int(item.get("points") or 0)
+        except (TypeError, ValueError):
+            points = 0
+        try:
+            turns = int(item.get("turns") or 0)
+        except (TypeError, ValueError):
+            turns = 0
+        price = str(item.get("price") or item.get("price_cny") or item.get("priceCny") or "0").strip()
+        status = str(item.get("status") or item.get("state") or "active").strip() or "active"
+        if status not in {"active", "draft", "archived"}:
+            status = "active"
+        package = {
+            "id": package_id,
+            "label": label or package_id,
+            "tier": tier or package_id,
+            "points": max(0, points),
+            "turns": max(0, turns),
+            "price": price or "0",
+            "original_price": str(item.get("original_price") or item.get("originalPrice") or "").strip(),
+            "badge": str(item.get("badge") or "").strip(),
+            "per": str(item.get("per") or "").strip(),
+            "per_turn_price": str(item.get("per_turn_price") or item.get("perTurnPrice") or "").strip(),
+            "audience": str(item.get("audience") or "").strip(),
+            "desc": str(item.get("desc") or item.get("description") or "").strip(),
+            "status": status,
+        }
+        if not package["per"] and package["turns"] > 0:
+            package["per"] = f"{package['turns']} 次 AI 学习额度"
+        if not package["per_turn_price"] and package["turns"] > 0:
+            try:
+                per_turn_price = float(package["price"]) / package["turns"]
+                package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
+            except (TypeError, ValueError, ZeroDivisionError):
+                package["per_turn_price"] = ""
+        return package
+
+    @classmethod
+    def _normalize_package_catalog(cls, packages: Any) -> list[dict[str, Any]]:
+        defaults = [cls._normalize_membership_package(item) for item in cls._default_packages()]
+        if not isinstance(packages, list) or not packages:
+            return defaults
+        normalized: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for item in packages:
+            if not isinstance(item, dict):
+                continue
+            try:
+                package = cls._normalize_membership_package(item)
+            except ValueError:
+                continue
+            if package["id"] in seen:
+                continue
+            normalized.append(package)
+            seen.add(package["id"])
+        for package in defaults:
+            if package["id"] not in seen:
+                normalized.append(package)
+        return normalized or defaults
 
     @staticmethod
     def _empty_data() -> dict[str, Any]:
@@ -770,7 +903,7 @@ class MemberConsoleService:
             "last_active_at": _iso(now),
             "expire_at": _iso(now + timedelta(days=30)),
             "avatar_url": "",
-            "points_balance": 120,
+            "points_balance": 0,
             "level": 1,
             "xp": 0,
             "study_days": 0,
@@ -1452,13 +1585,15 @@ class MemberConsoleService:
             return data
         data = json.loads(self._data_path.read_text(encoding="utf-8"))
         data.setdefault("members", [])
-        data["packages"] = self._default_packages()
+        normalized_packages = self._normalize_package_catalog(data.get("packages"))
+        packages_changed = normalized_packages != data.get("packages")
+        data["packages"] = normalized_packages
         data.setdefault("audit_log", [])
         data.setdefault("assessment_sessions", {})
         data.setdefault("phone_codes", {})
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
-        if self._apply_legacy_chat_learning_migration(data):
+        if self._apply_legacy_chat_learning_migration(data) or packages_changed:
             self._save_unlocked(data)
         return data
 
@@ -1631,7 +1766,18 @@ class MemberConsoleService:
             matched_indexes = sorted({key_to_index[key] for key in keys if key in key_to_index})
             if not matched_indexes:
                 index = len(members)
-                member["alias_user_ids"] = [str(member.get("user_id") or "").strip()]
+                member["alias_user_ids"] = sorted(
+                    {
+                        str(value or "").strip()
+                        for value in [
+                            member.get("user_id"),
+                            member.get("canonical_user_id"),
+                            member.get("external_auth_user_id"),
+                            *list(member.get("alias_user_ids") or []),
+                        ]
+                        if str(value or "").strip()
+                    }
+                )
                 member["canonical_user_id"] = (
                     str(member.get("external_auth_user_id") or "").strip()
                     if is_uuid_like(str(member.get("external_auth_user_id") or "").strip())
@@ -1656,6 +1802,316 @@ class MemberConsoleService:
                 key_to_index[key] = index
 
         return members
+
+    def _member_overlay_keys_for_directory(self, member: dict[str, Any]) -> set[str]:
+        keys = {
+            str(member.get("user_id") or "").strip(),
+            str(member.get("canonical_user_id") or "").strip(),
+            str(member.get("external_auth_user_id") or "").strip(),
+            *[str(value or "").strip() for value in list(member.get("alias_user_ids") or [])],
+        }
+        phone = _normalize_phone_input(str(member.get("phone") or ""))
+        if phone:
+            keys.add(f"phone:{phone}")
+        return {key for key in keys if key}
+
+    def _member_console_overlay_index(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        overlays: dict[str, dict[str, Any]] = {}
+        for raw_member in data.get("members") or []:
+            if not isinstance(raw_member, dict):
+                continue
+            for key in self._member_overlay_keys_for_directory(raw_member):
+                overlays.setdefault(key, raw_member)
+        return overlays
+
+    def _merge_member_console_overlay(
+        self,
+        member: dict[str, Any],
+        overlay: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not overlay:
+            return member
+        merged = deepcopy(member)
+        overlay_aliases = {
+            str(value or "").strip()
+            for value in [
+                overlay.get("user_id"),
+                overlay.get("canonical_user_id"),
+                overlay.get("external_auth_user_id"),
+                *list(overlay.get("alias_user_ids") or []),
+            ]
+            if str(value or "").strip()
+        }
+        merged["alias_user_ids"] = sorted(
+            {
+                str(value or "").strip()
+                for value in [
+                    *list(merged.get("alias_user_ids") or []),
+                    *list(overlay_aliases),
+                ]
+                if str(value or "").strip()
+            }
+        )
+        if not str(merged.get("phone") or "").strip():
+            phone = self._registered_phone_for_bi(overlay)
+            if phone:
+                merged["phone"] = phone
+        if str(merged.get("display_name") or "").strip() in {"", str(merged.get("user_id") or "").strip()}:
+            display_name = str(overlay.get("display_name") or "").strip()
+            if display_name:
+                merged["display_name"] = display_name
+        for field in (
+            "avatar_url",
+            "level",
+            "xp",
+            "study_days",
+            "review_due",
+            "focus_topic",
+            "chapter_mastery",
+            "chapter_practice_stats",
+            "daily_practice_counts",
+            "ledger",
+            "notes",
+            "badges",
+            "earned_badge_ids",
+        ):
+            value = overlay.get(field)
+            if value not in (None, "", [], {}):
+                merged[field] = deepcopy(value)
+        return merged
+
+    def _member_directory_authority(self) -> str:
+        return (
+            "supabase.phone_identity_aliases+v_members"
+            if self._member_directory_explicit
+            or is_production_environment()
+            or env_flag("MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY", default=False)
+            else "member_console"
+        )
+
+    def _member_directory_enabled(self) -> bool:
+        return self._member_directory_authority() == "supabase.phone_identity_aliases+v_members"
+
+    def _load_member_directory_members_for_bi(
+        self,
+        data: dict[str, Any],
+        *,
+        include_session_activity_supplements: bool = False,
+    ) -> list[dict[str, Any]]:
+        directory = self._member_directory
+        if not self._member_directory_enabled() or not bool(getattr(directory, "is_configured", False)):
+            members = self._members_for_bi(data)
+            for member in members:
+                member.setdefault("member_directory_source", "member_console")
+            return members
+        try:
+            members = list(directory.list_members(limit=5000))
+        except Exception:
+            logger.warning("Failed to load Supabase member directory read model", exc_info=True)
+            return []
+        overlay_index = self._member_console_overlay_index(data)
+        merged_members: list[dict[str, Any]] = []
+        for member in members:
+            if not isinstance(member, dict) or not self._is_registered_member_for_bi(member):
+                continue
+            overlay = None
+            for key in self._member_overlay_keys_for_directory(member):
+                overlay = overlay_index.get(key)
+                if overlay is not None:
+                    break
+            normalized = self._merge_member_console_overlay(deepcopy(member), overlay)
+            if not self._is_registered_member_for_bi(normalized):
+                continue
+            normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
+            merged_members.append(normalized)
+        if not include_session_activity_supplements:
+            return merged_members
+        directory_keys = {
+            key
+            for member in merged_members
+            for key in self._canonical_member_keys_for_bi(member)
+        }
+        local_members = self._members_for_bi(data)
+        local_members_with_activity = self._merge_session_activity_for_member_list(
+            [deepcopy(member) for member in local_members]
+        )
+        for original, local_member in zip(local_members, local_members_with_activity, strict=False):
+            local_keys = self._canonical_member_keys_for_bi(local_member)
+            if not local_keys or any(key in directory_keys for key in local_keys):
+                continue
+            if _parse_time(local_member.get("last_active_at")) <= _parse_time(original.get("last_active_at")):
+                continue
+            local_member.setdefault("member_directory_source", "member_console_session_activity_supplement")
+            merged_members.append(local_member)
+            directory_keys.update(local_keys)
+        return merged_members
+
+    def _merge_session_activity_for_member_list(self, members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if not members:
+            return members
+        owner_to_members: dict[str, list[dict[str, Any]]] = {}
+        for member in members:
+            member_user_id = str(member.get("user_id") or "").strip()
+            for identity in self._member_session_identity_values(member, member_user_id):
+                owner_key = build_user_owner_key(identity)
+                if owner_key:
+                    owner_to_members.setdefault(owner_key, []).append(member)
+        if not owner_to_members:
+            return members
+
+        try:
+            db_path = self._store.db_path
+            latest_by_owner: dict[str, float] = {}
+            owner_keys = list(owner_to_members)
+            with sqlite3.connect(db_path, timeout=2.0) as conn:
+                for start in range(0, len(owner_keys), 500):
+                    chunk = owner_keys[start : start + 500]
+                    placeholders = ",".join("?" for _ in chunk)
+                    rows = conn.execute(
+                        f"""
+                        SELECT owner_key, MAX(updated_at) AS latest_updated_at
+                        FROM sessions
+                        WHERE archived = 0 AND owner_key IN ({placeholders})
+                        GROUP BY owner_key
+                        """,
+                        chunk,
+                    ).fetchall()
+                    for owner_key, latest_updated_at in rows:
+                        try:
+                            latest_by_owner[str(owner_key)] = float(latest_updated_at or 0)
+                        except (TypeError, ValueError):
+                            continue
+        except Exception:
+            logger.warning("Failed to merge session activity into BI member list", exc_info=True)
+            return members
+
+        for owner_key, latest_updated_at in latest_by_owner.items():
+            latest_iso = self._session_time_to_iso(latest_updated_at)
+            if not latest_iso:
+                continue
+            for member in owner_to_members.get(owner_key, []):
+                member["last_active_at"] = self._later_timestamp(
+                    member.get("last_active_at"),
+                    latest_iso,
+                )
+        return members
+
+    @staticmethod
+    def _normalize_trace_identity(value: Any, *, phone_field: bool = False) -> str:
+        raw = str(value or "").strip()
+        if not raw:
+            return ""
+        phone = _normalize_phone_input(raw)
+        if phone_field and len(phone) == 11:
+            return phone
+        if len(phone) == 11 and (raw == phone or raw.startswith("+86") or raw.startswith("86")):
+            return phone
+        return raw
+
+    @classmethod
+    def _trace_identity_values(
+        cls,
+        *,
+        raw_user_id: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> list[str]:
+        values: list[str] = []
+        seen: set[str] = set()
+
+        def add(value: Any, *, phone_field: bool = False) -> None:
+            normalized = cls._normalize_trace_identity(value, phone_field=phone_field)
+            if normalized and normalized not in seen:
+                values.append(normalized)
+                seen.add(normalized)
+
+        add(raw_user_id)
+        if isinstance(metadata, dict):
+            for key in (
+                "user_id",
+                "uid",
+                "canonical_uid",
+                "canonical_user_id",
+                "member_id",
+                "external_auth_user_id",
+                "openid",
+                "wx_openid",
+                "unionid",
+                "wx_unionid",
+            ):
+                add(metadata.get(key))
+            for key in ("phone", "mobile", "mobile_phone"):
+                add(metadata.get(key), phone_field=True)
+        return values
+
+    def resolve_trace_identity_for_bi(
+        self,
+        *,
+        raw_user_id: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        raw = str(raw_user_id or "").strip()
+        candidates = self._trace_identity_values(raw_user_id=raw, metadata=metadata)
+        if not candidates:
+            return {
+                "status": "missing",
+                "canonical_user_id": "",
+                "member_user_id": "",
+                "raw_user_id": raw,
+                "matched_identity": "",
+            }
+
+        identity_index: dict[str, dict[str, str]] = {}
+        for member in self._members_for_bi(self._load()):
+            member_user_id = str(member.get("user_id") or "").strip()
+            canonical_user_id = (
+                str(member.get("canonical_user_id") or "").strip()
+                or str(member.get("external_auth_user_id") or "").strip()
+                or member_user_id
+            )
+            if not member_user_id or not canonical_user_id:
+                continue
+            for key in (
+                "user_id",
+                "canonical_user_id",
+                "external_auth_user_id",
+                "phone",
+                "wx_openid",
+                "wx_unionid",
+            ):
+                identity = self._normalize_trace_identity(
+                    member.get(key),
+                    phone_field=(key == "phone"),
+                )
+                if identity:
+                    identity_index[identity] = {
+                        "canonical_user_id": canonical_user_id,
+                        "member_user_id": member_user_id,
+                    }
+            for alias in list(member.get("alias_user_ids") or []):
+                identity = self._normalize_trace_identity(alias)
+                if identity:
+                    identity_index[identity] = {
+                        "canonical_user_id": canonical_user_id,
+                        "member_user_id": member_user_id,
+                    }
+
+        for candidate in candidates:
+            match = identity_index.get(candidate)
+            if match:
+                return {
+                    "status": "resolved",
+                    "canonical_user_id": match["canonical_user_id"],
+                    "member_user_id": match["member_user_id"],
+                    "raw_user_id": raw,
+                    "matched_identity": candidate,
+                }
+        return {
+            "status": "unmapped",
+            "canonical_user_id": "",
+            "member_user_id": "",
+            "raw_user_id": raw,
+            "matched_identity": "",
+        }
 
     @staticmethod
     def _member_signal_score(member: dict[str, Any]) -> int:
@@ -1973,7 +2429,12 @@ class MemberConsoleService:
             member["external_auth_provider"] = str(member.get("external_auth_provider") or "wallet_alias").strip()
         if not canonical_uid:
             canonical_uid = str(member.get("user_id") or "").strip()
-        if is_uuid_like(canonical_uid):
+        if is_uuid_like(canonical_uid) and not internal_qa_billing_bypass_allowed(
+            canonical_uid,
+            member.get("user_id"),
+            member.get("auth_username"),
+            member.get("username"),
+        ):
             wallet_service = self._get_wallet_service()
             if getattr(wallet_service, "is_configured", False):
                 try:
@@ -2128,15 +2589,26 @@ class MemberConsoleService:
                 raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
             return secret
 
-        secret = str(
+        configured = str(
             os.getenv("DEEPTUTOR_AUTH_SECRET")
             or os.getenv("MEMBER_CONSOLE_AUTH_SECRET")
             or os.getenv("WECHAT_MP_TOKEN_SECRET")
             or os.getenv("WECHAT_MP_APP_SECRET")
             or os.getenv("WECHAT_MP_APPSECRET")
-            or "deeptutor-dev-member-secret"
+            or ""
         ).strip()
-        return secret
+        if not configured:
+            # Non-production fallback. The literal is public (in source), so any token
+            # signed with it is forgeable — acceptable only on a developer machine, never
+            # on a shared/staging host. Warn once so a misconfigured staging is visible.
+            if not type(self)._warned_default_auth_secret:
+                type(self)._warned_default_auth_secret = True
+                logger.warning(
+                    "Using the public default auth secret — set DEEPTUTOR_AUTH_SECRET. "
+                    "Tokens signed with the default are forgeable; never run staging like this."
+                )
+            return "deeptutor-dev-member-secret"
+        return configured
 
     @staticmethod
     def _extract_access_token(auth_header: str | None) -> str:
@@ -2228,7 +2700,13 @@ class MemberConsoleService:
         if not raw:
             return None
         if raw.startswith("demo-token-"):
+            # Unsigned demo tokens grant any uid without verification — a full account
+            # takeover if ever reachable. Fail closed in production AND require an explicit
+            # opt-in flag elsewhere (default off), so a misconfigured DEEPTUTOR_ENV alone
+            # cannot open this door.
             if is_production_environment():
+                return None
+            if os.getenv("DEEPTUTOR_DEMO_TOKENS_ENABLED", "").strip().lower() not in ("1", "true", "yes"):
                 return None
             value = raw[len("demo-token-") :]
             return {"uid": value.split("-", 1)[0], "provider": "demo"}
@@ -2257,9 +2735,251 @@ class MemberConsoleService:
     def verify_access_token(self, token: str) -> dict[str, Any] | None:
         return self._verify_access_token(token)
 
-    def is_admin_user(self, user_id: str | None) -> bool:
+    def _bi_admins_path(self) -> Path:
+        return self._path_service.user_data_dir / "bi_admins.json"
+
+    def _env_admin_user_ids(self) -> set[str]:
+        """env 引导名单（bootstrap/保底，UI 不可移除）。"""
+        return self._admin_user_ids()
+
+    def get_admin_role(self, user_id: str | None) -> str | None:
+        """返回 BI 角色：env 引导→super_admin；文件→其角色；非管理员→None。"""
         resolved = str(user_id or "").strip()
-        return bool(resolved) and resolved in self._admin_user_ids()
+        if not resolved:
+            return None
+        if resolved in self._env_admin_user_ids():
+            return rbac.ROLE_SUPER_ADMIN
+        record = load_admins(self._bi_admins_path()).get(resolved)
+        if not record:
+            return None
+        # fail-closed：持久化中出现非法/被篡改的 role 不再回落 admin（normalize 默认会提权），
+        # 而是视为非管理员并告警。授权权威必须在坏数据面前关闭，而非开放。
+        raw = str(record.get("role") or "").strip()
+        if not rbac.is_valid_role(raw):
+            logger.warning(
+                "bi_admins.json 含非法角色 %r (user=%s)，fail-closed 视为非管理员", raw, resolved
+            )
+            return None
+        return raw
+
+    def is_admin_user(self, user_id: str | None) -> bool:
+        """兼容旧布尔门：super_admin / admin 视为完整管理员。"""
+        return rbac.is_full_admin(self.get_admin_role(user_id))
+
+    def _role_permissions_store(self) -> dict[str, Any]:
+        return load_role_permissions(self._bi_admins_path())
+
+    def _user_overrides(self, user_id: str) -> dict[str, Any]:
+        record = load_admins(self._bi_admins_path()).get(str(user_id or "").strip()) or {}
+        ov = record.get("permission_overrides")
+        return ov if isinstance(ov, dict) else {}
+
+    def get_effective_permissions(self, user_id: str | None) -> dict[str, list[str]]:
+        """某管理员的最终生效权限矩阵（角色权限[可被编辑] 叠加 per-user 覆盖）。"""
+        role = self.get_admin_role(user_id)
+        if role is None:
+            return {tab: [] for tab in rbac.TABS}
+        effective = rbac.resolve_effective_permissions(
+            role, self._role_permissions_store(), self._user_overrides(str(user_id or "").strip())
+        )
+        return rbac.matrix_to_lists(effective)
+
+    def can_access(self, user_id: str | None, tab: str, action: str) -> bool:
+        role = self.get_admin_role(user_id)
+        if role is None:
+            return False
+        effective = rbac.resolve_effective_permissions(
+            role, self._role_permissions_store(), self._user_overrides(str(user_id or "").strip())
+        )
+        return rbac.can_resolved(effective, tab, action)
+
+    def can_manage_permissions(self, user_id: str | None) -> bool:
+        return rbac.can_manage_permissions(self.get_admin_role(user_id))
+
+    def roles_payload(self) -> dict[str, Any]:
+        """角色定义 + 生效权限矩阵（含管理员已编辑）+ 可编辑标记。"""
+        return rbac.roles_payload(self._role_permissions_store())
+
+    def set_role_permissions(
+        self, *, actor: str, role: str, matrix: dict[str, Any], at: str = ""
+    ) -> dict[str, Any]:
+        """权限管理员编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可编辑 BI 角色权限")
+        if not rbac.is_valid_role(role):
+            raise ValueError(f"未知角色: {role}")
+        if not rbac.is_role_editable(role):
+            raise ValueError("超级管理员角色恒为全权，不可编辑")
+        normalized = rbac.normalize_matrix(matrix)
+        set_role_permissions(self._bi_admins_path(), role, normalized, actor=actor, at=at)
+        return self.roles_payload()
+
+    def set_user_permission_overrides(
+        self, *, actor: str, user_id: str, overrides: dict[str, Any], at: str = ""
+    ) -> list[dict[str, Any]]:
+        """精确到人：给某管理员设个人权限覆盖（env 超管 + super_admin 角色不可覆盖）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可设置个人权限覆盖")
+        normalized = str(user_id or "").strip()
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("系统引导超级管理员恒为全权，不可设置个人权限覆盖")
+        role = self.get_admin_role(normalized)
+        if role is None:
+            raise ValueError("该用户不是管理员")
+        if role in rbac.LOCKED_ROLES:
+            raise ValueError("超级管理员恒为全权，不可设置个人权限覆盖")
+        norm = rbac.normalize_matrix(overrides)
+        # 只保留调用方明确提交的 tab（未提交的 tab 不写 override，回落角色默认）
+        submitted = {tab: norm[tab] for tab in overrides.keys() if tab in rbac.TABS}
+        set_user_overrides(self._bi_admins_path(), normalized, submitted, actor=actor, at=at)
+        return self.list_admin_user_ids()
+
+    def _safe_member_display_name(self, user_id: str) -> str:
+        try:
+            profile = self.get_profile(user_id)
+            return str(profile.get("display_name") or profile.get("username") or "")
+        except Exception:
+            return ""
+
+    def list_admin_user_ids(self) -> list[dict[str, Any]]:
+        """合并 env 引导(super_admin,不可改/删) + 运行时增量(带角色+生效权限+个人覆盖)。"""
+        env_ids = self._env_admin_user_ids()
+        file_admins = load_admins(self._bi_admins_path())
+        role_store = self._role_permissions_store()
+        out: list[dict[str, Any]] = []
+        super_eff = rbac.resolve_role_permissions(rbac.ROLE_SUPER_ADMIN, role_store)
+        for uid in sorted(env_ids):
+            out.append(
+                {
+                    "user_id": uid,
+                    "role": rbac.ROLE_SUPER_ADMIN,
+                    "role_label": rbac.ROLE_LABELS[rbac.ROLE_SUPER_ADMIN],
+                    "display_name": self._safe_member_display_name(uid),
+                    "source": "env",
+                    "removable": False,
+                    "editable": False,
+                    "has_overrides": False,
+                    "accessible_tabs": rbac.accessible_tabs_resolved(super_eff),
+                    "effective_matrix": rbac.matrix_to_lists(super_eff),
+                }
+            )
+        for uid in sorted(set(file_admins) - env_ids):
+            record = file_admins[uid]
+            raw_role = str(record.get("role") or "").strip()
+            if not rbac.is_valid_role(raw_role):
+                # fail-closed：非法角色条目不在管理员列表里展示成正常 admin
+                logger.warning("跳过 bi_admins.json 中非法角色条目 %r (user=%s)", raw_role, uid)
+                continue
+            role = raw_role
+            overrides = record.get("permission_overrides")
+            overrides = overrides if isinstance(overrides, dict) else {}
+            eff = rbac.resolve_effective_permissions(role, role_store, overrides)
+            out.append(
+                {
+                    "user_id": uid,
+                    "role": role,
+                    "role_label": rbac.ROLE_LABELS[role],
+                    "display_name": record.get("display_name")
+                    or self._safe_member_display_name(uid),
+                    "granted_by": record.get("granted_by") or "",
+                    "granted_at": record.get("granted_at") or "",
+                    "source": "runtime",
+                    "removable": True,
+                    "editable": True,
+                    "has_overrides": bool(overrides),
+                    "permission_overrides": rbac.normalize_matrix(overrides)
+                    if overrides
+                    else {},
+                    "accessible_tabs": rbac.accessible_tabs_resolved(eff),
+                    "effective_matrix": rbac.matrix_to_lists(eff),
+                }
+            )
+        return out
+
+    def set_admin_role(
+        self, *, actor: str, user_id: str, role: str, display_name: str = "", at: str = ""
+    ) -> list[dict[str, Any]]:
+        """新增管理员或改其角色（service 层自校验 actor，纵深防御）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可分配 BI 管理员角色")
+        normalized = str(user_id or "").strip()
+        if not normalized:
+            raise ValueError("user_id is required")
+        if not rbac.is_valid_role(role):
+            raise ValueError(f"未知角色: {role}")
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("系统引导管理员恒为超级管理员，不可改角色")
+        set_admin(
+            self._bi_admins_path(),
+            normalized,
+            role=role,
+            display_name=display_name,
+            actor=actor,
+            granted_at=at,
+        )
+        return self.list_admin_user_ids()
+
+    def add_admin_user(
+        self, user_id: str, *, actor: str = "", role: str = rbac.ROLE_ADMIN, at: str = ""
+    ) -> list[dict[str, Any]]:
+        normalized = str(user_id or "").strip()
+        if not normalized:
+            raise ValueError("user_id is required")
+        if normalized in self._env_admin_user_ids():
+            return self.list_admin_user_ids()
+        return self.set_admin_role(actor=actor, user_id=normalized, role=role, at=at)
+
+    def remove_admin_user(
+        self, user_id: str, *, actor: str = "", at: str = ""
+    ) -> list[dict[str, Any]]:
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可移除 BI 管理员")
+        normalized = str(user_id or "").strip()
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("系统引导管理员不可通过界面移除（防止锁死超管）")
+        remove_admin(self._bi_admins_path(), normalized, actor=actor, removed_at=at)
+        return self.list_admin_user_ids()
+
+    def list_admin_audit(self, limit: int = 200) -> list[dict[str, Any]]:
+        audit = load_audit(self._bi_admins_path())
+        return list(reversed(audit))[: max(1, min(int(limit), 1000))]
+
+    def search_members_for_admin(self, *, q: str, limit: int = 10) -> list[dict[str, Any]]:
+        """按手机号/姓名/user_id 模糊搜真实会员，供添加管理员选人（手机号脱敏）。"""
+        query = str(q or "").strip().lower()
+        directory = self._member_directory
+        try:
+            members = (
+                list(directory.list_members(limit=5000))
+                if bool(getattr(directory, "is_configured", False))
+                else []
+            )
+        except Exception:
+            logger.warning("search_members_for_admin: directory load failed", exc_info=True)
+            members = []
+        results: list[dict[str, Any]] = []
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            uid = str(member.get("user_id") or "").strip()
+            if not uid:
+                continue
+            name = str(member.get("display_name") or member.get("identifier") or "")
+            phone = str(member.get("phone") or "")
+            if query and query not in f"{uid} {name} {phone}".lower():
+                continue
+            masked = (phone[:3] + "****" + phone[-4:]) if len(phone) >= 7 else phone
+            results.append(
+                {
+                    "user_id": uid,
+                    "display_name": name,
+                    "phone_masked": masked,
+                    "current_role": self.get_admin_role(uid),
+                }
+            )
+            if len(results) >= limit:
+                break
+        return results
 
     def _get_wechat_mp_credentials(self) -> tuple[str, str]:
         app_id = str(
@@ -2748,9 +3468,145 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def _fallback_member_behavior_summary(self, *, trust_level: str = "C") -> dict[str, Any]:
+        return {
+            "learning_report_open_count_7d": 0,
+            "history_open_count_7d": 0,
+            "action_start_count_7d": 0,
+            "event_count_7d": 0,
+            "last_event_at_ms": 0,
+            "cohort": "",
+            "cohort_reasons": [],
+            "next_action": "检查埋点状态",
+            "trust_level": trust_level,
+        }
+
+    def _get_product_behavior_store(self):
+        from deeptutor.services.observability import get_product_behavior_store
+
+        return get_product_behavior_store()
+
+    def _load_member_behavior_payload(self, user_id: str) -> dict[str, Any]:
+        try:
+            store = self._get_product_behavior_store()
+            return {
+                "summary": store.get_member_behavior_summary(user_id, days=7),
+                "learning_report_sections": store.get_learning_report_section_breakdown(user_id, days=7),
+                "timeline": store.get_member_timeline(user_id, days=7, limit=20),
+            }
+        except Exception:
+            logger.warning("Failed to load product behavior for member: user_id=%s", user_id, exc_info=True)
+            return {
+                "summary": self._fallback_member_behavior_summary(),
+                "learning_report_sections": [],
+                "timeline": [],
+            }
+
+    @staticmethod
+    def _member_behavior_identity_group(member: dict[str, Any]) -> list[str]:
+        identities = [
+            member.get("user_id"),
+            member.get("canonical_user_id"),
+            member.get("external_auth_user_id"),
+            *list(member.get("alias_user_ids") or []),
+        ]
+        seen: set[str] = set()
+        out: list[str] = []
+        for value in identities:
+            normalized = str(value or "").strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            out.append(normalized)
+        return out
+
+    def _load_member_behavior_payload_for_member(self, member: dict[str, Any]) -> dict[str, Any]:
+        user_id = str(member.get("user_id") or "").strip()
+        identities = self._member_behavior_identity_group(member)
+        try:
+            store = self._get_product_behavior_store()
+            summary_groups = getattr(store, "get_member_behavior_summaries_for_identity_groups", None)
+            section_groups = getattr(store, "get_learning_report_section_breakdown_for_identity_group", None)
+            timeline_groups = getattr(store, "get_member_timeline_for_identity_group", None)
+            if callable(summary_groups) and callable(section_groups) and callable(timeline_groups):
+                return {
+                    "summary": summary_groups({user_id: identities}, days=7).get(
+                        user_id,
+                        self._fallback_member_behavior_summary(),
+                    ),
+                    "learning_report_sections": section_groups(identities, days=7),
+                    "timeline": timeline_groups(identities, days=7, limit=20),
+                }
+            return self._load_member_behavior_payload(user_id)
+        except Exception:
+            logger.warning("Failed to load product behavior for member: user_id=%s", user_id, exc_info=True)
+            return {
+                "summary": self._fallback_member_behavior_summary(),
+                "learning_report_sections": [],
+                "timeline": [],
+            }
+
+    def _load_member_behavior_summaries_for_members(
+        self,
+        members: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        group_by_user_id = {
+            str(item.get("user_id") or "").strip(): self._member_behavior_identity_group(item)
+            for item in members
+            if str(item.get("user_id") or "").strip()
+        }
+        try:
+            store = self._get_product_behavior_store()
+            grouped_loader = getattr(store, "get_member_behavior_summaries_for_identity_groups", None)
+            if callable(grouped_loader):
+                return grouped_loader(group_by_user_id, days=7)
+            return self._load_member_behavior_summaries(list(group_by_user_id))
+        except Exception:
+            logger.warning("Failed to load product behavior summaries for member list", exc_info=True)
+            return {
+                user_id: self._fallback_member_behavior_summary()
+                for user_id in group_by_user_id
+            }
+
+    def _load_member_behavior_summaries(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
+        try:
+            return self._get_product_behavior_store().get_member_behavior_summaries(user_ids, days=7)
+        except Exception:
+            logger.warning("Failed to load product behavior summaries for member list", exc_info=True)
+            return {
+                user_id: self._fallback_member_behavior_summary()
+                for user_id in user_ids
+            }
+
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = self._members_for_bi(data)
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(data)
+        )
+        behavior_summaries = self._load_member_behavior_summaries_for_members(members)
+        behavior_health = {
+            "learning_report_open_count_7d": sum(
+                int(summary.get("learning_report_open_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "history_open_count_7d": sum(
+                int(summary.get("history_open_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "action_start_count_7d": sum(
+                int(summary.get("action_start_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "event_count_7d": sum(
+                int(summary.get("event_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "low_trust_count": sum(
+                1
+                for summary in behavior_summaries.values()
+                if str(summary.get("trust_level") or "C") != "A"
+            ),
+        }
         now = _now()
         active_count = sum(1 for item in members if item["status"] == "active")
         expiring_soon_count = sum(
@@ -2761,7 +3617,17 @@ class MemberConsoleService:
         new_today_count = sum(
             1
             for item in members
-            if (_now() - _parse_time(item["created_at"])) <= timedelta(days=1)
+            if _is_created_within_days(item.get("created_at"), now=now, days=1)
+        )
+        new_7d_count = sum(
+            1
+            for item in members
+            if _is_created_within_days(item.get("created_at"), now=now, days=7)
+        )
+        new_30d_count = sum(
+            1
+            for item in members
+            if _is_created_within_days(item.get("created_at"), now=now, days=30)
         )
         churn_risk_count = sum(1 for item in members if item["risk_level"] == "high")
         tiers: dict[str, int] = {}
@@ -2785,9 +3651,16 @@ class MemberConsoleService:
             "active_count": active_count,
             "expiring_soon_count": expiring_soon_count,
             "new_today_count": new_today_count,
+            "new_7d_count": new_7d_count,
+            "new_30d_count": new_30d_count,
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),
+            "authority": {
+                "members": self._member_directory_authority(),
+                "member_overlay": "member_console",
+                "behavior": "product_behavior_events",
+            },
             "tier_breakdown": [
                 {"tier": tier, "count": count}
                 for tier, count in sorted(tiers.items(), key=lambda item: item[0])
@@ -2801,6 +3674,7 @@ class MemberConsoleService:
                 "total": len(data["audit_log"]),
                 "by_action": self._aggregate_actions(data["audit_log"]),
             },
+            "behavior_health": behavior_health,
             "recommendations": recommendations,
         }
 
@@ -2830,7 +3704,12 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = self._members_for_bi(data)
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
+            )
+        )
         search_text = str(search or "").strip().lower()
         now = _now()
         heartbeat_user_ids: set[str] | None = None
@@ -2897,8 +3776,10 @@ class MemberConsoleService:
         total = len(filtered)
         start = max(0, (page - 1) * page_size)
         end = start + page_size
+        page_items = filtered[start:end]
+        behavior_summaries = self._load_member_behavior_summaries_for_members(page_items)
         items = []
-        for item in filtered[start:end]:
+        for item in page_items:
             items.append(
                 {
                     "user_id": item["user_id"],
@@ -2916,6 +3797,10 @@ class MemberConsoleService:
                     "review_due": item["review_due"],
                     "canonical_user_id": item.get("canonical_user_id") or item["user_id"],
                     "alias_user_ids": item.get("alias_user_ids") or [item["user_id"]],
+                    "behavior": behavior_summaries.get(
+                        item["user_id"],
+                        self._fallback_member_behavior_summary(),
+                    ),
                 }
             )
         return {
@@ -2935,14 +3820,42 @@ class MemberConsoleService:
                 "has_heartbeat_job": has_heartbeat_job,
                 "has_overlay_candidates": has_overlay_candidates,
             },
+            "authority": {
+                "members": self._member_directory_authority(),
+                "member_overlay": "member_console",
+                "behavior": "product_behavior_events",
+            },
         }
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
-        return deepcopy(self._members_for_bi(self._load()))
+        data = self._load()
+        return deepcopy(
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
+            )
+        )
 
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
-        member = deepcopy(self._find_member(data, user_id))
+        try:
+            member = deepcopy(self._find_member(data, user_id))
+        except KeyError:
+            member = None
+            for item in self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(
+                    data,
+                    include_session_activity_supplements=True,
+                )
+            ):
+                if str(item.get("user_id") or "").strip() == user_id or user_id in set(item.get("alias_user_ids") or []):
+                    member = deepcopy(item)
+                    break
+            if member is None:
+                raise
+        member = self._merge_session_activity_for_member_list([member])[0]
+        member.setdefault("ledger", [])
+        member.setdefault("notes", [])
         member["wallet"] = {
             "balance": member.pop("points_balance"),
             "packages": data["packages"],
@@ -3004,6 +3917,7 @@ class MemberConsoleService:
             logger.warning("Failed to load bot overlays for member 360: user_id=%s", user_id, exc_info=True)
             member["bot_overlays"] = []
         member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
+        member["behavior"] = self._load_member_behavior_payload_for_member(member)
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:
@@ -3806,6 +4720,620 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def list_membership_packages(self) -> list[dict[str, Any]]:
+        return deepcopy(self._load().get("packages") or self._default_packages())
+
+    def upsert_membership_package(
+        self,
+        *,
+        package_id: str,
+        label: str,
+        tier: str,
+        points: int,
+        turns: int = 0,
+        price: str,
+        original_price: str = "",
+        badge: str = "",
+        per: str = "",
+        desc: str = "",
+        status: str = "active",
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        draft = self._normalize_membership_package(
+            {
+                "id": package_id,
+                "label": label,
+                "tier": tier,
+                "points": points,
+                "turns": turns,
+                "price": price,
+                "original_price": original_price,
+                "badge": badge,
+                "per": per,
+                "desc": desc,
+                "status": status,
+            }
+        )
+        if not re.fullmatch(r"[A-Za-z0-9_:-]{1,80}", draft["id"]):
+            raise ValueError("package_id must be 1-80 chars of [a-zA-Z0-9_:-]")
+        if draft["points"] <= 0:
+            raise ValueError("package points must be positive")
+        if draft["turns"] <= 0:
+            raise ValueError("package turns must be positive")
+        amount = self._package_amount_cny(draft)
+        draft["price"] = str(int(amount) if float(amount).is_integer() else amount)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            if self._find_audit_id_by_idempotency_key(
+                data,
+                "membership_package_upsert",
+                normalized_key,
+                operator=normalized_operator,
+            ):
+                for existing in data.get("packages") or []:
+                    if str(existing.get("id") or "").strip() == draft["id"]:
+                        return deepcopy(existing)
+            packages = data.setdefault("packages", self._default_packages())
+            index = next(
+                (idx for idx, item in enumerate(packages) if str(item.get("id") or "").strip() == draft["id"]),
+                None,
+            )
+            before = deepcopy(packages[index]) if index is not None else {}
+            if index is None:
+                packages.append(deepcopy(draft))
+            else:
+                packages[index] = deepcopy(draft)
+            audit = self._append_audit(
+                data,
+                action="membership_package_upsert",
+                target_user=draft["id"],
+                reason=reason or "membership_package_upsert",
+                before=before,
+                after=draft,
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "membership_package_upsert",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return deepcopy(draft)
+
+        return self._mutate(_apply)
+
+    def remove_membership_package(
+        self,
+        package_id: str,
+        *,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_package_id = str(package_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_package_id:
+            raise ValueError("package_id is required")
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "membership_package_delete",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            packages = data.setdefault("packages", self._default_packages())
+            index = next(
+                (idx for idx, item in enumerate(packages) if str(item.get("id") or "").strip() == normalized_package_id),
+                None,
+            )
+            if existing_audit_id:
+                if index is None:
+                    return {"id": normalized_package_id}
+                return deepcopy(packages[index])
+            if index is None:
+                raise ValueError(f"Unknown membership package: {normalized_package_id}")
+            removed = deepcopy(packages.pop(index))
+            audit = self._append_audit(
+                data,
+                action="membership_package_delete",
+                target_user=normalized_package_id,
+                reason=reason or "membership_package_delete",
+                before=removed,
+                after={},
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "membership_package_delete",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return removed
+
+        return self._mutate(_apply)
+
+    def _resolve_membership_package(
+        self,
+        data: dict[str, Any],
+        package_id: str,
+    ) -> dict[str, Any]:
+        normalized_package_id = str(package_id or "").strip()
+        if not normalized_package_id:
+            raise ValueError("package_id is required")
+        for item in list(data.get("packages") or self._default_packages()):
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("id") or "").strip() == normalized_package_id:
+                if str(item.get("status") or "active").strip() != "active":
+                    raise ValueError(f"Membership package is not active: {normalized_package_id}")
+                return dict(item)
+        raise ValueError(f"Unknown membership package: {normalized_package_id}")
+
+    @staticmethod
+    def _package_amount_cny(package: dict[str, Any], override: float | int | str | None = None) -> float:
+        value = override if override is not None else package.get("price_cny", package.get("price", 0))
+        try:
+            amount = float(value or 0)
+        except (TypeError, ValueError):
+            amount = 0.0
+        if amount < 0:
+            raise ValueError("amount_cny must be non-negative")
+        return int(amount) if amount.is_integer() else amount
+
+    def manual_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        package_id: str,
+        days: int,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str,
+        phone: str = "",
+        display_name: str = "",
+        amount_cny: float | int | str | None = None,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+        safe_days = max(1, min(int(days or 0), 3650))
+
+        def _load_purchase_inputs(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._ensure_member(data, normalized_user_id)
+            package = self._resolve_membership_package(data, package_id)
+            if existing_audit_id is not None:
+                return {
+                    "deduped": True,
+                    "audit_id": existing_audit_id,
+                    "member": deepcopy(member),
+                    "package": package,
+                }
+            return {
+                "deduped": False,
+                "member": deepcopy(member),
+                "package": package,
+            }
+
+        purchase_inputs = self._mutate(_load_purchase_inputs)
+        package = dict(purchase_inputs["package"])
+        if purchase_inputs.get("deduped"):
+            return {
+                "member": purchase_inputs["member"],
+                "package": package,
+                "amount_cny": self._package_amount_cny(package, amount_cny),
+                "points": int(package.get("points") or 0),
+                "purchase_id": "",
+                "ledger_event_id": "",
+                "audit_id": purchase_inputs.get("audit_id", ""),
+                "deduped": True,
+            }
+
+        points = max(0, int(package.get("points") or 0))
+        if points <= 0:
+            raise ValueError("package points must be positive")
+        amount = self._package_amount_cny(package, amount_cny)
+        package_tier = str(package.get("tier") or package.get("id") or "").strip()
+        package_label = str(package.get("label") or package.get("name") or package.get("id") or "").strip()
+        purchase_id = f"manual_membership_{uuid.uuid4().hex[:12]}"
+
+        if phone or display_name:
+            def _persist_manual_identity(data: dict[str, Any]) -> None:
+                member = self._ensure_member(data, normalized_user_id)
+                if phone:
+                    member["phone"] = _normalize_phone_input(phone) or str(phone).strip()
+                if display_name:
+                    member["display_name"] = str(display_name).strip()
+
+            self._mutate(_persist_manual_identity)
+        wallet_identity = self._auth_identity_for_member(normalized_user_id)
+        wallet_user_id = str(wallet_identity.get("canonical_uid") or normalized_user_id).strip()
+
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            raise RuntimeError("wallet_service_not_configured")
+        if hasattr(wallet_service, "ensure_wallet_seeded"):
+            wallet_service.ensure_wallet_seeded(
+                user_id=wallet_user_id,
+                opening_points=0,
+                plan_id=package_tier,
+                reference_type="manual_membership_purchase",
+                reference_id=purchase_id,
+                idempotency_key=f"wallet_seed:manual_membership:{normalized_key}",
+                metadata={
+                    "source": "bi_manual_membership",
+                    "operator_id": normalized_operator,
+                    "legacy_user_id": normalized_user_id,
+                    "wallet_user_id": wallet_user_id,
+                },
+            )
+        metadata = {
+            "source": "bi_manual_membership",
+            "channel": "manual_membership",
+            "package_id": str(package.get("id") or "").strip(),
+            "package_label": package_label,
+            "tier": package_tier,
+            "amount_cny": amount,
+            "operator_id": normalized_operator,
+            "legacy_user_id": normalized_user_id,
+            "wallet_user_id": wallet_user_id,
+            "days": safe_days,
+            "reason": str(reason or "").strip(),
+        }
+        mutation = wallet_service.grant_points(
+            user_id=wallet_user_id,
+            amount_micros=points * 1_000_000,
+            reference_type="purchase",
+            reference_id=purchase_id,
+            idempotency_key=f"purchase:manual_membership:{normalized_key}",
+            reason="manual_membership_purchase",
+            metadata=metadata,
+            operator_type="admin",
+            operator_id=normalized_operator,
+        )
+        ledger_event_id = str(getattr(mutation, "ledger_event_id", "") or "")
+        created_at = str(getattr(mutation, "created_at", "") or _iso())
+
+        def _apply_entitlement(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._ensure_member(data, normalized_user_id)
+            if existing_audit_id is not None:
+                return {
+                    "member": deepcopy(member),
+                    "audit_id": existing_audit_id,
+                    "deduped": True,
+                }
+            before = deepcopy(member)
+            if phone:
+                member["phone"] = _normalize_phone_input(phone) or str(phone).strip()
+            if display_name:
+                member["display_name"] = str(display_name).strip()
+            base = max(_parse_time(member.get("expire_at")), _now())
+            member["tier"] = package_tier
+            member["status"] = "active"
+            member["expire_at"] = _iso(base + timedelta(days=safe_days))
+            member["points_balance"] = int(member.get("points_balance") or 0) + points
+            ledger_entry = {
+                "id": ledger_event_id or purchase_id,
+                "delta": points,
+                "reason": "manual_membership_purchase",
+                "created_at": created_at,
+                "metadata": metadata,
+            }
+            member.setdefault("ledger", []).insert(0, ledger_entry)
+            after = deepcopy(member)
+            audit = self._append_audit(
+                data,
+                action="manual_membership_purchase",
+                target_user=normalized_user_id,
+                reason=str(reason or "").strip() or "manual_membership_purchase",
+                before=before,
+                after={
+                    "member": after,
+                    "package_id": str(package.get("id") or "").strip(),
+                    "purchase_id": purchase_id,
+                    "ledger_event_id": ledger_event_id,
+                    "amount_cny": amount,
+                    "points": points,
+                    "days": safe_days,
+                },
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return {
+                "member": after,
+                "audit_id": audit["id"],
+                "deduped": False,
+            }
+
+        entitlement = self._mutate(_apply_entitlement)
+        return {
+            "member": entitlement["member"],
+            "package": package,
+            "amount_cny": amount,
+            "points": points,
+            "purchase_id": purchase_id,
+            "ledger_event_id": ledger_event_id,
+            "audit_id": entitlement.get("audit_id", ""),
+            "deduped": bool(entitlement.get("deduped", False)),
+        }
+
+    def _find_latest_manual_membership_purchase_audit(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+        purchase_id: str = "",
+    ) -> dict[str, Any] | None:
+        normalized_purchase_id = str(purchase_id or "").strip()
+        candidates = []
+        for item in data.get("audit_log") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("action") or "") != "manual_membership_purchase":
+                continue
+            if str(item.get("target_user") or "").strip() != user_id:
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            candidate_purchase_id = str(after.get("purchase_id") or "").strip()
+            if normalized_purchase_id and candidate_purchase_id != normalized_purchase_id:
+                continue
+            candidates.append(item)
+        if not candidates:
+            return None
+        return max(candidates, key=lambda item: _parse_time(item.get("created_at")))
+
+    def _has_manual_membership_reversal(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+        purchase_id: str,
+    ) -> bool:
+        normalized_purchase_id = str(purchase_id or "").strip()
+        for item in data.get("audit_log") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("action") or "") != "manual_membership_reversal":
+                continue
+            if str(item.get("target_user") or "").strip() != user_id:
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            if str(after.get("reversal_of_purchase_id") or "").strip() == normalized_purchase_id:
+                return True
+        return False
+
+    def reverse_manual_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        purchase_id: str = "",
+        amount_cny: float | int | str | None = None,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+
+        def _load_reversal_inputs(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._find_member(data, normalized_user_id)
+            purchase_audit = self._find_latest_manual_membership_purchase_audit(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=purchase_id,
+            )
+            if purchase_audit is None:
+                raise ValueError("manual membership purchase was not found")
+            purchase_after = purchase_audit.get("after") if isinstance(purchase_audit.get("after"), dict) else {}
+            resolved_purchase_id = str(purchase_after.get("purchase_id") or "").strip()
+            if not resolved_purchase_id:
+                raise ValueError("manual membership purchase has no purchase_id")
+            if existing_audit_id is not None:
+                return {
+                    "deduped": True,
+                    "audit_id": existing_audit_id,
+                    "member": deepcopy(member),
+                    "purchase_after": dict(purchase_after),
+                }
+            if self._has_manual_membership_reversal(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=resolved_purchase_id,
+            ):
+                raise ValueError("manual membership purchase was already reversed")
+            return {
+                "deduped": False,
+                "member": deepcopy(member),
+                "purchase_after": dict(purchase_after),
+            }
+
+        reversal_inputs = self._mutate(_load_reversal_inputs)
+        purchase_after = dict(reversal_inputs["purchase_after"])
+        resolved_purchase_id = str(purchase_after.get("purchase_id") or purchase_id or "").strip()
+        package_id = str(purchase_after.get("package_id") or "").strip()
+        if package_id != "supreme_svip":
+            raise ValueError("Only supreme_svip manual membership purchases can be reversed")
+        if reversal_inputs.get("deduped"):
+            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)}, amount_cny)
+            return {
+                "member": reversal_inputs["member"],
+                "amount_cny": -abs(original_amount),
+                "points": -abs(int(purchase_after.get("points") or 0)),
+                "purchase_id": resolved_purchase_id,
+                "ledger_event_id": "",
+                "audit_id": reversal_inputs.get("audit_id", ""),
+                "deduped": True,
+            }
+
+        package = {
+            "id": package_id,
+            "label": "至尊SVIP",
+            "points": purchase_after.get("points", 0),
+            "price": purchase_after.get("amount_cny", 0),
+        }
+        for item in [*(self._load().get("packages") or []), *self._default_packages()]:
+            if isinstance(item, dict) and str(item.get("id") or "").strip() == package_id:
+                package = dict(item)
+                break
+        package_label = str(package.get("label") or package.get("name") or package_id).strip()
+        points = abs(int(purchase_after.get("points") or package.get("points") or 0))
+        if points <= 0:
+            raise ValueError("reversal points must be positive")
+        original_amount = self._package_amount_cny(package, amount_cny if amount_cny is not None else purchase_after.get("amount_cny"))
+        if original_amount <= 0:
+            raise ValueError("reversal amount_cny must be positive")
+        reversal_amount = -abs(original_amount)
+        wallet_identity = self._auth_identity_for_member(normalized_user_id)
+        wallet_user_id = str(wallet_identity.get("canonical_uid") or normalized_user_id).strip()
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            raise RuntimeError("wallet_service_not_configured")
+        refund_points = getattr(wallet_service, "refund_points", None)
+        if not callable(refund_points):
+            raise RuntimeError("wallet_refund_not_supported")
+        days = int(purchase_after.get("days") or 0)
+        metadata = {
+            "source": "bi_manual_membership_reversal",
+            "channel": "manual_membership_reversal",
+            "package_id": package_id,
+            "package_label": package_label,
+            "tier": "supreme_svip",
+            "amount_cny": reversal_amount,
+            "operator_id": normalized_operator,
+            "legacy_user_id": normalized_user_id,
+            "wallet_user_id": wallet_user_id,
+            "days": days,
+            "reason": str(reason or "").strip(),
+            "reversal_of_purchase_id": resolved_purchase_id,
+        }
+        mutation = refund_points(
+            user_id=wallet_user_id,
+            amount_micros=points * 1_000_000,
+            reference_type="refund",
+            reference_id=resolved_purchase_id,
+            idempotency_key=f"refund:manual_membership:{normalized_key}",
+            reason="manual_membership_reversal",
+            metadata=metadata,
+            operator_type="admin",
+            operator_id=normalized_operator,
+        )
+        ledger_event_id = str(getattr(mutation, "ledger_event_id", "") or "")
+        created_at = str(getattr(mutation, "created_at", "") or _iso())
+
+        def _apply_reversal(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._find_member(data, normalized_user_id)
+            if existing_audit_id is not None:
+                return {
+                    "member": deepcopy(member),
+                    "audit_id": existing_audit_id,
+                    "deduped": True,
+                }
+            if self._has_manual_membership_reversal(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=resolved_purchase_id,
+            ):
+                raise ValueError("manual membership purchase was already reversed")
+            before = deepcopy(member)
+            member["status"] = "revoked"
+            member["auto_renew"] = False
+            member["expire_at"] = _iso(_now())
+            member["points_balance"] = max(0, int(member.get("points_balance") or 0) - points)
+            ledger_entry = {
+                "id": ledger_event_id or f"reversal_{resolved_purchase_id}",
+                "delta": -points,
+                "reason": "manual_membership_reversal",
+                "created_at": created_at,
+                "metadata": metadata,
+            }
+            member.setdefault("ledger", []).insert(0, ledger_entry)
+            after = deepcopy(member)
+            audit = self._append_audit(
+                data,
+                action="manual_membership_reversal",
+                target_user=normalized_user_id,
+                reason=str(reason or "").strip() or "manual_membership_reversal",
+                before=before,
+                after={
+                    "member": after,
+                    "package_id": package_id,
+                    "reversal_of_purchase_id": resolved_purchase_id,
+                    "ledger_event_id": ledger_event_id,
+                    "amount_cny": reversal_amount,
+                    "points": -points,
+                },
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return {
+                "member": after,
+                "audit_id": audit["id"],
+                "deduped": False,
+            }
+
+        entitlement = self._mutate(_apply_reversal)
+        return {
+            "member": entitlement["member"],
+            "amount_cny": reversal_amount,
+            "points": -points,
+            "purchase_id": resolved_purchase_id,
+            "ledger_event_id": ledger_event_id,
+            "audit_id": entitlement.get("audit_id", ""),
+            "deduped": bool(entitlement.get("deduped", False)),
+        }
+
     def update_subscription(
         self,
         user_id: str,
@@ -4033,19 +5561,7 @@ class MemberConsoleService:
         return list(scoped.values())
 
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
-        learning = self._ensure_learning_profile(member)
-        items: list[dict[str, Any]] = []
-        has_signal = False
-        daily_target = max(1, int(member.get("daily_target") or 30))
-        for key, value in (member.get("chapter_mastery") or {}).items():
-            chapter_name = value.get("name") or key
-            stats = learning["chapter_stats"].get(chapter_name) or {}
-            done = int(stats.get("done") or 0)
-            mastery = round((done / daily_target) * 100) if done > 0 else 0
-            if mastery > 0:
-                has_signal = True
-            items.append({"name": chapter_name, "mastery": mastery})
-        return items if has_signal else []
+        return []
 
     def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         last_assessment_items = self._last_assessment_mastery_items(member)
@@ -4285,18 +5801,18 @@ class MemberConsoleService:
 
         if focus_topic:
             weak_names = {
-                str(item.get("name") or "").strip()
+                self._normalize_home_focus_topic(item.get("name"))
                 for item in weak_nodes
-                if str(item.get("name") or "").strip()
+                if self._normalize_home_focus_topic(item.get("name"))
             }
             if snapshot is not None:
                 progress = dict(getattr(snapshot, "progress", {}) or {})
                 knowledge_map = dict(progress.get("knowledge_map") or {})
                 weak_names.update(
-                    str(item or "").strip()
+                    self._normalize_home_focus_topic(item)
                     for item in list(knowledge_map.get("weak_points") or [])
-                    if str(item or "").strip()
-            )
+                    if self._normalize_home_focus_topic(item)
+                )
             tone = "practice" if focus_topic in weak_names else "plan"
             if not focus_query:
                 focus_query = self._build_adaptive_focus_query(
@@ -4349,7 +5865,7 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_home_focus_topic(value: Any) -> str:
-        return normalize_home_focus_topic_label(value)
+        return canonical_home_focus_topic_label(value)
 
     def _pick_home_focus_topic(
         self,
@@ -5606,6 +7122,17 @@ class MemberConsoleService:
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        try:
+            existing_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            raise ValueError("手机号身份冲突，请联系客服") from exc
+        if existing_alias_ids:
+            raise ValueError("该手机号已被注册，请直接登录或找回密码")
+        if self._local_member_user_ids_for_phone(normalized_phone):
+            raise ValueError("该手机号已被注册，请直接登录或找回密码")
         external_user = create_external_auth_user(username, password, phone=phone)
         member = self._ensure_member_for_external_auth(username, external_user)
         auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
@@ -5613,9 +7140,136 @@ class MemberConsoleService:
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
         )
+        self._persist_phone_identity(
+            phone=normalized_phone,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
-    async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+    @staticmethod
+    def _phone_alias_values(phone: str) -> list[str]:
+        normalized = _normalize_phone_input(phone)
+        if not normalized:
+            return []
+        return [normalized, f"+86{normalized}"]
+
+    def _trusted_phone_alias_user_ids(self, phone: str) -> set[str]:
+        values = self._phone_alias_values(phone)
+        if not values:
+            return set()
+        try:
+            from deeptutor.services.wallet.identity import get_wallet_identity_store
+
+            store = get_wallet_identity_store()
+        except Exception as exc:
+            logger.warning("phone alias store unavailable for phone=%s: %s", phone[-4:], exc)
+            raise ValueError("手机号身份暂时不可用，请稍后重试") from exc
+        if not getattr(store, "is_configured", False):
+            return set()
+        resolved: set[str] = set()
+        for alias_value in values:
+            try:
+                row = store.resolve_alias(alias_type="phone", alias_value=alias_value)
+            except Exception as exc:
+                logger.warning("phone alias lookup failed for phone=%s: %s", phone[-4:], exc)
+                raise ValueError("手机号身份暂时不可用，请稍后重试") from exc
+            if not isinstance(row, dict):
+                continue
+            source = str(row.get("source") or "").strip()
+            user_id = str(row.get("user_id") or "").strip()
+            if source not in _TRUSTED_PHONE_ALIAS_SOURCES or not is_uuid_like(user_id):
+                continue
+            resolved.add(user_id)
+        if len(resolved) > 1:
+            raise ValueError("手机号身份冲突，请联系客服")
+        return resolved
+
+    def _local_member_user_ids_for_phone(self, phone: str) -> set[str]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            return set()
+        found: set[str] = set()
+        data = self._load()
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            if _slugify_phone(str(member.get("phone") or "")) != normalized_phone:
+                continue
+            for key in ("user_id", "external_auth_user_id", "merged_into"):
+                candidate = str(member.get(key) or "").strip()
+                if candidate:
+                    found.add(candidate)
+        return found
+
+    def _linked_member_phone_matches_account(
+        self,
+        *,
+        external_user: dict[str, Any],
+        username: str,
+        phone: str,
+    ) -> tuple[bool, set[str]]:
+        external_user_id = str(external_user.get("id") or "").strip()
+        account_ids = {external_user_id} if is_uuid_like(external_user_id) else set()
+        linked_phone_match = False
+        data = self._load()
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            linked = str(member.get("auth_username") or "").strip() == username
+            if external_user_id and str(member.get("external_auth_user_id") or "").strip() == external_user_id:
+                linked = True
+            if not linked:
+                continue
+            for key in ("user_id", "external_auth_user_id", "merged_into"):
+                candidate = str(member.get(key) or "").strip()
+                if is_uuid_like(candidate):
+                    account_ids.add(candidate)
+            if _slugify_phone(str(member.get("phone") or "")) == phone:
+                linked_phone_match = True
+        return linked_phone_match, account_ids
+
+    def _resolve_password_reset_account(self, username: str, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        normalized_username = str(username or "").strip()
+        external_user = get_external_auth_user(normalized_username)
+        if not external_user:
+            raise ValueError("账号或手机号不匹配")
+        linked_phone_match, account_ids = self._linked_member_phone_matches_account(
+            external_user=external_user,
+            username=normalized_username,
+            phone=normalized_phone,
+        )
+        external_phone_match = _slugify_phone(str(external_user.get("phone") or "")) == normalized_phone
+        try:
+            phone_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            logger.warning(
+                "password reset phone alias conflict: username=%s phone=%s error=%s",
+                normalized_username,
+                normalized_phone[-4:],
+                exc,
+            )
+            raise ValueError("账号或手机号不匹配") from exc
+        if phone_alias_ids and account_ids.isdisjoint(phone_alias_ids):
+            raise ValueError("账号或手机号不匹配")
+        if external_phone_match or linked_phone_match or (phone_alias_ids and not account_ids.isdisjoint(phone_alias_ids)):
+            return {
+                "username": normalized_username,
+                "phone": normalized_phone,
+                "external_user": external_user,
+                "account_ids": sorted(account_ids),
+            }
+        raise ValueError("账号或手机号不匹配")
+
+    def _resolve_verified_phone_canonical_uid(self, phone: str) -> str:
+        alias_ids = self._trusted_phone_alias_user_ids(phone)
+        if not alias_ids:
+            return ""
+        return next(iter(alias_ids))
+
+    async def _resolve_wechat_login_identity(self, code: str) -> dict[str, str]:
         normalized = str(code or "").strip()
         if not normalized:
             raise ValueError("code is required")
@@ -5658,6 +7312,17 @@ class MemberConsoleService:
             return str(target["user_id"])
 
         target_user_id = self._mutate(_apply)
+        return {
+            "user_id": target_user_id,
+            "openid": openid,
+            "unionid": unionid,
+        }
+
+    async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+        identity = await self._resolve_wechat_login_identity(code)
+        target_user_id = identity["user_id"]
+        openid = identity["openid"]
+        unionid = identity["unionid"]
         auth_identity = self._auth_identity_for_member(target_user_id)
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
@@ -5671,6 +7336,10 @@ class MemberConsoleService:
             openid=auth_identity["openid"] or openid,
             unionid=auth_identity["unionid"] or unionid,
         )
+
+    async def login_with_wechat_phone(self, code: str, phone_code: str) -> dict[str, Any]:
+        identity = await self._resolve_wechat_login_identity(code)
+        return await self.bind_phone_for_wechat(identity["user_id"], phone_code)
 
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()
@@ -5858,15 +7527,40 @@ class MemberConsoleService:
                 "delivery": delivery,
                 "message": message,
             }
+            # Never return the OTP in the HTTP response — a network-observable code is an
+            # account-takeover primitive if the SMS gateway/env is ever misconfigured.
+            # Surface it server-side only (debug log) for local/test visibility.
             if delivery != "sms":
-                result["debug_code"] = debug_code
+                logger.debug("debug OTP for %s: %s (delivery=%s)", normalized, debug_code, delivery)
             return result
 
         return self._mutate(_apply)
 
+    def send_password_reset_code(self, username: str, phone: str) -> dict[str, Any]:
+        resolved = self._resolve_password_reset_account(username, phone)
+        return self.send_phone_code(str(resolved["phone"]))
+
     def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        try:
+            existing_alias_ids = self._trusted_phone_alias_user_ids(phone)
+        except ValueError as exc:
+            logger.warning(
+                "phone identity persist skipped due to conflicting phone aliases: phone=%s canonical_uid=%s error=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+                exc,
+            )
+            return
+        if existing_alias_ids and canonical_uid not in existing_alias_ids:
+            logger.warning(
+                "phone identity persist skipped: phone=%s existing_canonical=%s requested_canonical=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                ",".join(sorted(existing_alias_ids)),
+                canonical_uid,
+            )
             return
         db_url = str(os.getenv("DB_URL") or os.getenv("DATABASE_URL") or "").strip()
         if not db_url:
@@ -5886,8 +7580,8 @@ class MemberConsoleService:
 
             with conn_ctx as conn:
                 cur = conn.cursor()
-                # ON CONFLICT 采用 last-writer-wins：同一手机号永远指向最近一次经过
-                # OTP/微信绑定验证的 canonical UUID，无需额外时间戳守卫。
+                # 仅创建缺失 alias 或刷新同一 canonical UUID 的已验证时间；
+                # 并发冲突时不覆盖 owner。
                 # user_identity_aliases.user_id 是 uuid 类型；users.id 是 text 类型，
                 # 两者均存同一 UUID 字符串，psycopg 驱动会做隐式转换。
                 cur.execute(
@@ -5896,13 +7590,22 @@ class MemberConsoleService:
                         (alias_type, alias_value, user_id, source, confidence, verified_at)
                     VALUES (%s, %s, %s::uuid, %s, %s, now())
                     ON CONFLICT (alias_type, alias_value) DO UPDATE SET
-                        user_id     = EXCLUDED.user_id,
                         confidence  = EXCLUDED.confidence,
                         verified_at = EXCLUDED.verified_at,
                         updated_at  = now()
+                    WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
+                    RETURNING user_id
                     """,
                     ("phone", phone, canonical_uid, "phone_verification", 1.0),
                 )
+                persisted = cur.fetchone()
+                if not persisted:
+                    logger.warning(
+                        "phone identity persist skipped after concurrent owner conflict: phone=%s canonical_uid=%s",
+                        phone[-4:] if len(phone) >= 4 else "****",
+                        canonical_uid,
+                    )
+                    return
                 # users.phone 只在空时写入，避免覆盖已有值
                 cur.execute(
                     "UPDATE public.users SET phone = %s WHERE id = %s AND (phone IS NULL OR phone = '')",
@@ -5923,35 +7626,131 @@ class MemberConsoleService:
         if not normalized:
             raise ValueError("手机号格式不正确")
         provided_code = str(code or "").strip()
+        canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
 
-        def _apply(data: dict[str, Any]) -> str:
+        # Brute-force lockout: a 6-digit OTP must not be guessable within its 10-min
+        # TTL. Count wrong attempts per phone and invalidate the OTP after _MAX_OTP_ATTEMPTS,
+        # forcing a fresh code. The counter is persisted via the mutation (we must NOT
+        # raise inside _apply, or the increment rolls back), then we raise outside.
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
             record = (data.get("phone_codes") or {}).get(normalized) or {}
             expected_code = str(record.get("code") or "").strip()
             expires_at = _parse_time(record.get("expires_at"))
             if not expected_code:
-                raise ValueError("验证码不存在，请先获取验证码")
+                return {"status": "missing"}
             if expires_at < _now():
-                raise ValueError("验证码已过期，请重新获取")
+                data.get("phone_codes", {}).pop(normalized, None)
+                return {"status": "expired"}
             if provided_code != expected_code:
-                raise ValueError("验证码错误")
+                attempts = int(record.get("attempts") or 0) + 1
+                if attempts >= _MAX_OTP_ATTEMPTS:
+                    data.get("phone_codes", {}).pop(normalized, None)
+                    return {"status": "locked"}
+                record["attempts"] = attempts
+                data.setdefault("phone_codes", {})[normalized] = record
+                return {"status": "wrong", "remaining": _MAX_OTP_ATTEMPTS - attempts}
             data.get("phone_codes", {}).pop(normalized, None)
-            return normalized
+            return {"status": "ok", "phone": normalized}
 
-        verified_phone = self._mutate(_apply)
-        external_user = ensure_external_auth_user_for_phone(verified_phone)
-        external_username = str(external_user.get("username") or "").strip()
-        member = self._ensure_member_for_external_auth(external_username, external_user)
-        auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
-        token = self._issue_access_token(
-            user_id=auth_identity["user_id"],
-            canonical_uid=auth_identity["canonical_uid"],
+        outcome = self._mutate(_apply)
+        status = str(outcome.get("status"))
+        if status == "missing":
+            raise ValueError("验证码不存在，请先获取验证码")
+        if status == "expired":
+            raise ValueError("验证码已过期，请重新获取")
+        if status == "locked":
+            raise ValueError("验证码错误次数过多，请重新获取验证码")
+        if status != "ok":
+            raise ValueError("验证码错误")
+        verified_phone = str(outcome.get("phone") or normalized)
+        if canonical_uid:
+            def _apply_verified_alias(data: dict[str, Any]) -> dict[str, Any]:
+                member = self._ensure_member(data, canonical_uid)
+                if not _normalize_phone_input(str(member.get("phone") or "")):
+                    member["phone"] = verified_phone
+                member["last_active_at"] = _iso()
+                return deepcopy(member)
+
+            member = self._mutate(_apply_verified_alias)
+            auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+            token = self._issue_access_token(
+                user_id=auth_identity["user_id"],
+                canonical_uid=auth_identity["canonical_uid"],
+            )
+            return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+        else:
+            external_user = ensure_external_auth_user_for_phone(verified_phone)
+            external_username = str(external_user.get("username") or "").strip()
+            member = self._ensure_member_for_external_auth(external_username, external_user)
+            auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+            token = self._issue_access_token(
+                user_id=auth_identity["user_id"],
+                canonical_uid=auth_identity["canonical_uid"],
+            )
+            # 手机号持久化到 Supabase（不影响认证主流程）
+            self._persist_phone_identity(
+                phone=verified_phone,
+                canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            )
+            return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+
+    def reset_password_with_phone_code(
+        self,
+        username: str,
+        phone: str,
+        code: str,
+        password: str,
+    ) -> dict[str, Any]:
+        resolved_account = self._resolve_password_reset_account(username, phone)
+        normalized_phone = str(resolved_account["phone"])
+        normalized_username = str(resolved_account["username"])
+        normalized_password = str(password or "")
+        validate_external_auth_password(normalized_password)
+
+        provided_code = str(code or "").strip()
+
+        # Same brute-force lockout as verify_phone_code: persist the wrong-attempt
+        # counter inside the mutation (no raise), invalidate after _MAX_OTP_ATTEMPTS,
+        # then raise outside.
+        def _consume_verified_code(data: dict[str, Any]) -> dict[str, Any]:
+            current = (data.get("phone_codes") or {}).get(normalized_phone) or {}
+            expected_code = str(current.get("code") or "").strip()
+            expires_at = _parse_time(current.get("expires_at"))
+            if not expected_code:
+                return {"status": "missing"}
+            if expires_at < _now():
+                data.get("phone_codes", {}).pop(normalized_phone, None)
+                return {"status": "expired"}
+            if provided_code != expected_code:
+                attempts = int(current.get("attempts") or 0) + 1
+                if attempts >= _MAX_OTP_ATTEMPTS:
+                    data.get("phone_codes", {}).pop(normalized_phone, None)
+                    return {"status": "locked"}
+                current["attempts"] = attempts
+                data.setdefault("phone_codes", {})[normalized_phone] = current
+                return {"status": "wrong"}
+            data.get("phone_codes", {}).pop(normalized_phone, None)
+            return {"status": "ok"}
+
+        outcome = self._mutate(_consume_verified_code)
+        status = str(outcome.get("status"))
+        if status == "missing":
+            raise ValueError("验证码不存在，请先获取验证码")
+        if status == "expired":
+            raise ValueError("验证码已过期，请重新获取")
+        if status == "locked":
+            raise ValueError("验证码错误次数过多，请重新获取验证码")
+        if status != "ok":
+            raise ValueError("验证码错误")
+        reset_result = reset_external_auth_password(
+            normalized_username,
+            normalized_password,
         )
-        # 手机号持久化到 Supabase（不影响认证主流程）
-        self._persist_phone_identity(
-            phone=verified_phone,
-            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
-        )
-        return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+        return {
+            "success": True,
+            "message": "密码已重置，请使用新密码登录",
+            "sessions_invalidated": int(reset_result.get("sessions_invalidated") or 0),
+        }
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

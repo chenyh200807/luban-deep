@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "lbp_001_confirmed_retest",
+      "learner_id": "fixture_student_001",
+      "learning_brain": {
+        "weak_points": [
+          {
+            "concept_id": "1A432000",
+            "concept_label": "危大工程专项方案",
+            "error_code": "E02",
+            "error_label": "专家论证程序漏项",
+            "claim_status": "confirmed",
+            "evidence_level": "L2_confirmed",
+            "evidence_refs": ["event:e1", "attempt:a1"]
+          }
+        ],
+        "typed_graph": {
+          "edges": [
+            {"edge_type": "error_points_to_training", "from": {"type": "error", "id": "1A432000:E02"}, "to": {"type": "next_training", "id": "training:retest"}, "evidence_event_id": "event:e1"}
+          ]
+        }
+      },
+      "active_training_intent": {
+        "training_intent_id": "lti_confirmed_001",
+        "concept_id": "1A432000",
+        "concept_label": "危大工程专项方案",
+        "error_code": "E02",
+        "error_label": "专家论证程序漏项",
+        "evidence_refs": ["event:e1", "attempt:a1"],
+        "status": "active"
+      },
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["generic_encouragement"], "expected_action_type": "retest_training"}
+    },
+    {
+      "case_id": "lbp_002_no_evidence_starter",
+      "learner_id": "fixture_student_002",
+      "learning_brain": {"weak_points": [], "typed_graph": {"edges": []}},
+      "active_training_intent": {},
+      "expected": {"must_reference_evidence": false, "forbidden_action_types": ["retest_training", "fake_personalized_review"], "expected_action_type": "starter_action"}
+    },
+    {
+      "case_id": "lbp_003_repeated_weak_point",
+      "learner_id": "fixture_student_003",
+      "learning_brain": {"weak_points": [{"concept_id": "1A432000", "concept_label": "危大工程专项方案", "error_code": "E02", "claim_status": "repeated", "evidence_level": "L1_repeated", "evidence_refs": ["event:e3a", "event:e3b"]}], "typed_graph": {"edges": [{"edge_type": "error_points_to_training", "from": {"type": "error", "id": "1A432000:E02"}, "to": {"type": "next_training", "id": "training:targeted"}, "evidence_event_id": "event:e3a"}]}},
+      "active_training_intent": {"training_intent_id": "lti_repeated_003", "concept_id": "1A432000", "error_code": "E02", "evidence_refs": ["event:e3a", "event:e3b"], "status": "active"},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["generic_encouragement"], "expected_action_type": "targeted_practice"}
+    },
+    {
+      "case_id": "lbp_004_stale_needs_retest",
+      "learner_id": "fixture_student_004",
+      "learning_brain": {"weak_points": [{"concept_id": "1A412000", "concept_label": "施工测量", "error_code": "E04", "claim_status": "stale", "evidence_level": "L2_confirmed", "evidence_refs": ["event:e4"], "lifecycle": {"needs_retest": true}}]},
+      "active_training_intent": {"training_intent_id": "lti_stale_004", "concept_id": "1A412000", "error_code": "E04", "evidence_refs": ["event:e4"], "status": "active"},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["generic_encouragement"], "expected_action_type": "retest_training"}
+    },
+    {
+      "case_id": "lbp_005_contradicted_claim",
+      "learner_id": "fixture_student_005",
+      "learning_brain": {"weak_points": [{"concept_id": "1A420000", "error_code": "E05", "claim_status": "contradicted", "evidence_level": "L2_confirmed", "evidence_refs": ["event:e5a"], "conflicting_event_ids": ["event:e5b"]}]},
+      "active_training_intent": {"training_intent_id": "lti_contradicted_005", "concept_id": "1A420000", "error_code": "E05", "evidence_refs": ["event:e5a"], "status": "active"},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["retest_training", "targeted_practice"], "expected_action_type": "review_needed"}
+    },
+    {
+      "case_id": "lbp_006_exact_question_conflict",
+      "learner_id": "fixture_student_006",
+      "learning_brain": {"weak_points": [{"concept_id": "1A432000", "error_code": "E06", "claim_status": "confirmed", "evidence_level": "L2_confirmed", "evidence_refs": ["event:e6"]}]},
+      "active_training_intent": {"training_intent_id": "lti_exact_006", "concept_id": "1A432000", "error_code": "E06", "evidence_refs": ["event:e6"], "status": "active"},
+      "authority_context": {"exact_question_conflict": true},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["compiled_truth_override"], "expected_action_type": "exact_question_authority"}
+    },
+    {
+      "case_id": "lbp_007_standard_authority_conflict",
+      "learner_id": "fixture_student_007",
+      "learning_brain": {"weak_points": [{"concept_id": "GB50345", "error_code": "E07", "claim_status": "confirmed", "evidence_level": "L2_confirmed", "evidence_refs": ["event:e7"]}]},
+      "active_training_intent": {"training_intent_id": "lti_standard_007", "concept_id": "GB50345", "error_code": "E07", "evidence_refs": ["event:e7"], "status": "active"},
+      "authority_context": {"standard_authority_conflict": true},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["compiled_truth_override"], "expected_action_type": "standard_authority"}
+    },
+    {
+      "case_id": "lbp_008_notebook_subjective_focus",
+      "learner_id": "fixture_student_008",
+      "learning_brain": {"weak_points": [], "notebook_focus": [{"topic": "地下防水", "evidence_refs": []}]},
+      "active_training_intent": {},
+      "expected": {"must_reference_evidence": false, "forbidden_action_types": ["mastery_claim", "weak_point_action"], "expected_action_type": "review_saved_note"}
+    },
+    {
+      "case_id": "lbp_009_training_intent_absent",
+      "learner_id": "fixture_student_009",
+      "learning_brain": {"weak_points": [{"concept_id": "1A432000", "error_code": "E09", "claim_status": "repeated", "evidence_level": "L1_repeated", "evidence_refs": ["event:e9a", "event:e9b"]}]},
+      "active_training_intent": {},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["frontend_only_action"], "expected_action_type": "create_training_intent_candidate"}
+    },
+    {
+      "case_id": "lbp_010_improved_after_training",
+      "learner_id": "fixture_student_010",
+      "learning_brain": {"weak_points": [{"concept_id": "1A432000", "error_code": "E10", "claim_status": "superseded", "evidence_level": "L3_mastery_signal", "evidence_refs": ["event:e10"], "superseded_by_event_ids": ["event:improved"]}], "typed_graph": {"edges": [{"edge_type": "training_improved_error", "from": {"type": "next_training", "id": "training:e10"}, "to": {"type": "error", "id": "1A432000:E10"}, "evidence_event_id": "event:improved"}]}},
+      "active_training_intent": {"training_intent_id": "lti_improved_010", "concept_id": "1A432000", "error_code": "E10", "evidence_refs": ["event:e10"], "status": "active"},
+      "expected": {"must_reference_evidence": true, "forbidden_action_types": ["weak_point_action"], "expected_action_type": "maintenance_review"}
+    }
+  ]
+}

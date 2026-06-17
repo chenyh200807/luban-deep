@@ -10,6 +10,7 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
+    annotate_submission_context_from_message,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
@@ -24,7 +25,16 @@ from deeptutor.services.question_lifecycle_skills import (
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
-from deeptutor.services.semantic_router import build_active_object_from_question_context
+from deeptutor.services.security.tool_access import filter_end_user_tools
+from deeptutor.services.semantic_router import (
+    apply_active_object_transition,
+    build_active_object_from_question_context,
+)
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
@@ -41,7 +51,7 @@ class TutorBotCapability(BaseCapability):
         name="tutorbot",
         description="Full TutorBot runtime bridge backed by TutorBotManager.",
         stages=["responding"],
-        tools_used=["rag", "web_search", "code_execution", "reason", "brainstorm", "paper_search"],
+        tools_used=["rag", "web_search", "reason", "brainstorm", "paper_search"],
         cli_aliases=["tutorbot"],
         request_schema=get_capability_request_schema("chat"),
     )
@@ -55,18 +65,26 @@ class TutorBotCapability(BaseCapability):
         policy = self._mode_policy(context)
         response_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
+        runtime_default_tools = list(runtime_defaults.default_tools or []) if runtime_defaults else []
+        runtime_default_kbs = list(runtime_defaults.default_knowledge_bases or []) if runtime_defaults else []
+        effective_knowledge_bases = list(context.knowledge_bases or []) or runtime_default_kbs
 
         manager = get_tutorbot_manager()
         await manager.ensure_bot_running(bot_id, config=self._default_bot_config(context))
 
         chunks: list[str] = []
+        citation_sources: list[dict[str, Any]] = []
         turn_summary: dict[str, Any] = {
             "authority_applied": False,
             "exact_question": {},
             "rag_rounds": [],
             "rag_saturation": {},
         }
-        stream_public_deltas = self._stream_public_deltas_enabled() and not hide_generated_answers
+        citation_enabled = answer_citations_enabled()
+        stream_public_deltas = (
+            self._stream_public_deltas_enabled()
+            and not hide_generated_answers
+        )
         public_stream_buffer = ""
         streamed_public_text = ""
         public_stream_started = False
@@ -84,8 +102,14 @@ class TutorBotCapability(BaseCapability):
             "source": self._billing_source(context) or "ws",
             "title": manager._infer_conversation_title(context.user_message),
             "bot_id": bot_id,
-            "default_tools": self._session_default_tools(context, response_mode=response_mode),
-            "knowledge_bases": list(context.knowledge_bases or []),
+            "default_tools": self._session_default_tools(
+                context,
+                response_mode=response_mode,
+                runtime_default_tools=runtime_default_tools,
+                effective_knowledge_bases=effective_knowledge_bases,
+            ),
+            "knowledge_bases": effective_knowledge_bases,
+            "answer_citations_required": citation_enabled,
             "requested_response_mode": policy.requested_mode,
             "selected_mode": policy.selected_mode,
             "effective_response_mode": policy.effective_mode,
@@ -108,11 +132,16 @@ class TutorBotCapability(BaseCapability):
             session_metadata["preferred_model"] = policy.preferred_model
         if runtime_defaults:
             session_metadata["kb_aliases"] = list(runtime_defaults.supabase_kb_aliases or [])
+            if runtime_default_kbs:
+                session_metadata["default_knowledge_bases"] = runtime_default_kbs
         session_metadata["suppress_answer_reveal_on_generate"] = (
             self._suppress_answer_reveal_on_generate(context)
         )
         if self._current_info_required(context):
             session_metadata["current_info_required"] = True
+        general_knowledge_context_flag = context.config_overrides.get("general_knowledge_context")
+        if isinstance(general_knowledge_context_flag, bool):
+            session_metadata["general_knowledge_context"] = general_knowledge_context_flag
         for metadata_key in (
             "question_lifecycle_decision",
             "decision_source",
@@ -128,6 +157,7 @@ class TutorBotCapability(BaseCapability):
             "question_lifecycle_scene_reason",
             "question_lifecycle_skill_names",
             "question_lifecycle_clarification",
+            "general_knowledge_context",
         ):
             if metadata_key in context.metadata:
                 session_metadata[metadata_key] = context.metadata[metadata_key]
@@ -144,8 +174,8 @@ class TutorBotCapability(BaseCapability):
         turn_id = str((context.metadata or {}).get("turn_id") or "").strip()
         if turn_id:
             session_metadata["turn_id"] = turn_id
-        if context.knowledge_bases:
-            session_metadata["default_kb"] = context.knowledge_bases[0]
+        if effective_knowledge_bases:
+            session_metadata["default_kb"] = effective_knowledge_bases[0]
         if user_id:
             session_metadata["user_id"] = user_id
         active_object = (
@@ -164,7 +194,7 @@ class TutorBotCapability(BaseCapability):
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
             exam_catalog_response = build_question_lifecycle_exam_catalog_response(
-                context.user_message,
+                self._raw_user_message(context),
                 context.metadata if isinstance(context.metadata, dict) else {},
             )
         if exam_catalog_response:
@@ -173,15 +203,17 @@ class TutorBotCapability(BaseCapability):
                 source=self.name,
                 metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
             ):
-                await stream.content(
-                    exam_catalog_response,
-                    source=self.name,
-                    stage="responding",
-                    metadata={
-                        "execution_engine": "tutorbot_runtime",
-                        "call_kind": "exam_catalog_query",
-                    },
-                )
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "exam_catalog_query",
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        exam_catalog_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 result_payload = {
                     "response": exam_catalog_response,
                     "bot_id": bot_id,
@@ -215,14 +247,42 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_skill_names",
                     "question_lifecycle_clarification",
                     "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "grading_engine_version",
+                    "v1_case_graded",
+                    "score_authority",
+                    "grading_rubric_provenance",
+                    "case_grading_stream_mode",
+                    "case_grading_adjudication_strategy",
+                    "case_grading_adjudication_group_count",
+                    "case_grading_adjudication_point_count",
+                    "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 await stream.result(result_payload, source=self.name)
             return
 
         clarification_response = build_question_lifecycle_clarification_response(
-            context.user_message,
+            self._raw_user_message(context),
             str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
         )
         if clarification_response:
@@ -231,15 +291,17 @@ class TutorBotCapability(BaseCapability):
                 source=self.name,
                 metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
             ):
-                await stream.content(
-                    clarification_response,
-                    source=self.name,
-                    stage="responding",
-                    metadata={
-                        "execution_engine": "tutorbot_runtime",
-                        "call_kind": "lifecycle_clarification",
-                    },
-                )
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "lifecycle_clarification",
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        clarification_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 result_payload = {
                     "response": clarification_response,
                     "bot_id": bot_id,
@@ -273,9 +335,37 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_skill_names",
                     "question_lifecycle_clarification",
                     "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "grading_engine_version",
+                    "v1_case_graded",
+                    "score_authority",
+                    "grading_rubric_provenance",
+                    "case_grading_stream_mode",
+                    "case_grading_adjudication_strategy",
+                    "case_grading_adjudication_group_count",
+                    "case_grading_adjudication_point_count",
+                    "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 await stream.result(result_payload, source=self.name)
             return
 
@@ -356,6 +446,7 @@ class TutorBotCapability(BaseCapability):
             )
             sources = metadata.get("sources") if isinstance(metadata, dict) else None
             if isinstance(sources, list) and sources:
+                citation_sources.extend(item for item in sources if isinstance(item, dict))
                 await stream.sources(
                     sources,
                     source=self.name,
@@ -381,13 +472,14 @@ class TutorBotCapability(BaseCapability):
                 session_metadata=session_metadata,
             )
             final_response = response or "".join(chunks)
+            exact_state_summary = build_choice_result_summary_from_exact_question(
+                turn_summary["exact_question"]
+            )
             if turn_summary["authority_applied"]:
                 display_result_summary = None
-                state_result_summary = None
+                state_result_summary = exact_state_summary
             else:
-                state_result_summary = build_choice_result_summary_from_exact_question(
-                    turn_summary["exact_question"]
-                )
+                state_result_summary = exact_state_summary
                 # TutorBot free text is not grading authority. Only render
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
@@ -414,12 +506,25 @@ class TutorBotCapability(BaseCapability):
                 free_text_render_summary = extract_choice_result_summary_from_text(final_response)
             render_summary = display_result_summary or free_text_render_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
+            exact_authority_revealed = bool(
+                turn_summary["authority_applied"] and state_result_summary
+            )
+            state_reveal_answers = True if exact_authority_revealed else reveal_answers
+            state_reveal_explanations = True if exact_authority_revealed else reveal_explanations
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
                 parsed_result_summary=render_summary,
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
+            )
+            citation_metadata: dict[str, Any] = {}
+            visible_response = apply_answer_citation_metadata(
+                citation_metadata,
+                response=visible_response,
+                sources=citation_sources,
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
             )
             final_visible_delta = visible_response
             if streamed_public_text:
@@ -452,9 +557,10 @@ class TutorBotCapability(BaseCapability):
                 or policy.execution_path,
                 "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
                 "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
-                "reveal_answers": reveal_answers,
-                "reveal_explanations": reveal_explanations,
+                "reveal_answers": state_reveal_answers,
+                "reveal_explanations": state_reveal_explanations,
             }
+            result_payload.update(citation_metadata)
             # Propagate hermes question-lifecycle telemetry fields out of
             # session_metadata (set by tutorbot/agent/loop.py when the
             # question lifecycle builder ran). Diagnostic only; per
@@ -474,9 +580,44 @@ class TutorBotCapability(BaseCapability):
                 "skill_trace",
                 "loader_source",
                 "skill_source_status",
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
+                "grading_to_brain_loop",
+                "learning_evidence_event_id",
+                "release_id",
+                "git_sha",
+                "deployment_environment",
+                "grading_engine_version",
+                "v1_case_graded",
+                "score_authority",
+                "grading_rubric_provenance",
+                "case_grading_stream_mode",
+                "case_grading_adjudication_strategy",
+                "case_grading_adjudication_group_count",
+                "case_grading_adjudication_point_count",
+                "luban_general_knowledge_context",
+                "luban_general_knowledge_context_status",
+                "llm_stream_telemetry",
+                "presentation",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
+            # Grading-to-Brain 公开投影（与练题入口同口径）：PCP/intent 是服务端
+            # 内部权威数据，只在 runtime/session metadata 供渲染与观测，不随
+            # result 下发；next_best_action 只下发展示级字段。
+            if "next_best_action" in session_metadata:
+                from deeptutor.services.construction_grading.writeback import (
+                    public_grading_to_brain_meta,
+                )
+
+                result_payload.update(
+                    public_grading_to_brain_meta(
+                        {"next_best_action": session_metadata.get("next_best_action")}
+                    )
+                )
             # Presentation gating — three orthogonal contracts (regression
             # matrix in tests/core/test_capabilities_runtime.py + tests/
             # capabilities/test_tutorbot_authority.py):
@@ -518,16 +659,22 @@ class TutorBotCapability(BaseCapability):
             if state_result_summary:
                 # Authority-gated: question_followup_context + active_object
                 # only emitted when exact_question authority is present.
-                result_payload["question_followup_context"] = (
-                    build_question_followup_context_from_result_summary(
-                        state_result_summary,
-                        final_response,
-                        reveal_answers=reveal_answers,
-                        reveal_explanations=reveal_explanations,
-                    )
+                question_followup_context = build_question_followup_context_from_result_summary(
+                    state_result_summary,
+                    final_response,
+                    reveal_answers=state_reveal_answers,
+                    reveal_explanations=state_reveal_explanations,
                 )
+                question_followup_context = (
+                    annotate_submission_context_from_message(
+                        self._raw_user_message(context),
+                        question_followup_context,
+                    )
+                    or question_followup_context
+                )
+                result_payload["question_followup_context"] = question_followup_context
                 if result_payload["question_followup_context"]:
-                    result_payload["active_object"] = (
+                    next_active_object = (
                         build_active_object_from_question_context(
                             result_payload["question_followup_context"],
                             source_turn_id=turn_id,
@@ -535,6 +682,26 @@ class TutorBotCapability(BaseCapability):
                         )
                         or {}
                     )
+                    transitioned_active_object, transitioned_stack = apply_active_object_transition(
+                        previous_active_object=active_object,
+                        previous_suspended_object_stack=context.metadata.get("suspended_object_stack"),
+                        turn_semantic_decision={
+                            "relation_to_active_object": "switch_to_new_object",
+                            "next_action": "route_to_grading",
+                            "allowed_patch": ["set_active_object"],
+                            "confidence": 1.0,
+                            "reason": "exact-question authority emitted a new active question object.",
+                            "target_object_ref": {},
+                        },
+                        resolved_active_object=next_active_object,
+                    )
+                    result_payload["active_object"] = transitioned_active_object or next_active_object
+                    result_payload["suspended_object_stack"] = transitioned_stack
+                    context.metadata["question_followup_context"] = dict(
+                        result_payload["question_followup_context"]
+                    )
+                    context.metadata["active_object"] = dict(result_payload["active_object"])
+                    context.metadata["suspended_object_stack"] = list(transitioned_stack)
             await stream.result(result_payload, source=self.name)
 
     @staticmethod
@@ -663,16 +830,37 @@ class TutorBotCapability(BaseCapability):
         return True
 
     @staticmethod
-    def _session_default_tools(context: UnifiedContext, *, response_mode: str) -> list[str]:
-        enabled_tools = list(context.enabled_tools or [])
+    def _dedupe_strings(values: list[str]) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        for value in values:
+            normalized = str(value or "").strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            result.append(normalized)
+        return result
+
+    @classmethod
+    def _session_default_tools(
+        cls,
+        context: UnifiedContext,
+        *,
+        response_mode: str,
+        runtime_default_tools: list[str] | None = None,
+        effective_knowledge_bases: list[str] | None = None,
+    ) -> list[str]:
+        enabled_tools = filter_end_user_tools(context.enabled_tools or [])
+        runtime_tools = filter_end_user_tools(runtime_default_tools or [])
+        knowledge_bases = list(effective_knowledge_bases or [])
         if response_mode == "fast":
             tools: list[str] = []
-            if "rag" in enabled_tools or context.knowledge_bases:
+            if "rag" in enabled_tools or "rag" in runtime_tools or knowledge_bases:
                 tools.append("rag")
             if "web_search" in enabled_tools:
                 tools.append("web_search")
-            return tools
-        return enabled_tools
+            return cls._dedupe_strings(tools)
+        return cls._dedupe_strings([*enabled_tools, *runtime_tools])
 
     @staticmethod
     def _current_info_required(context: UnifiedContext) -> bool:
@@ -699,6 +887,12 @@ class TutorBotCapability(BaseCapability):
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
         return str(billing_context.get("source") or "").strip().lower()
+
+    @staticmethod
+    def _raw_user_message(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        raw = str(metadata.get("raw_user_message") or "").strip()
+        return raw or str(context.user_message or "").strip()
 
     def _suppress_answer_reveal_on_generate(self, context: UnifiedContext) -> bool:
         explicit_preference = detect_answer_reveal_preference(context.user_message)

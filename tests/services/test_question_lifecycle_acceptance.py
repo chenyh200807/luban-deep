@@ -7,7 +7,7 @@ this file is the cross-cutting check that the Task 3 wire + Task 2.5 shim
 together satisfy the Task 4 (follow-up + grading) and Task 5 (TutorBot scene
 sync) acceptance criteria.
 
-Plan: docs/plan/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md
+Plan: docs/plan/题目生命周期与助教运行时/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md
 """
 
 from __future__ import annotations
@@ -20,6 +20,8 @@ from deeptutor.services.question_lifecycle_skills import (
     attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     derive_question_lifecycle_scene,
+    looks_like_full_case_answer_submission,
+    split_full_case_answer_submission,
 )
 
 
@@ -71,6 +73,78 @@ def test_case_grading_loads_construction_case_grading_skill():
     skill_ctx = build_question_lifecycle_skill_context(ctx)
     assert "construction-case-grading" in skill_ctx.skill_names
     assert "# Construction Case Grading" in skill_ctx.instructions
+
+
+def test_free_text_case_grading_loads_no_fake_score_guard():
+    ctx = _FakeContext(
+        user_message=(
+            "案例：二次结构填充墙施工时，项目部把刚生产7天的蒸压加气混凝土砌块用于砌筑。"
+            "我的答案：不妥，应龄期28天，含水率宜小于30%。帮我按踩分点批改，简短"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
+    assert "construction-case-grading" in skill_ctx.skill_names
+    assert "模型常识" in skill_ctx.instructions
+    assert "本次不硬估标准分" in skill_ctx.instructions
+
+
+def test_case_grading_detects_exam_sheet_answer_layout():
+    ctx = _FakeContext(
+        user_message=(
+            "【背景资料】某施工单位中标新建教学楼工程。\n"
+            "【问题】\n"
+            "现场质量检查的“三检”制度是哪三检？\n"
+            "回答\n"
+            "作答：\n"
+            "“三检”制度是指自检、互检、专检。"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
+
+
+def test_full_case_answer_submission_predicate_is_shared_runtime_guard():
+    text = (
+        "【背景资料】某施工单位中标新建教学楼工程。\n"
+        "【问题】\n"
+        "现场质量检查的“三检”制度是哪三检？\n"
+        "回答\n"
+        "作答：\n"
+        "“三检”制度是指自检、互检、专检。"
+    )
+    assert looks_like_full_case_answer_submission(text)
+    stem, answer = split_full_case_answer_submission(text)
+    assert "【问题】" in stem
+    assert answer == "“三检”制度是指自检、互检、专检。"
+    assert not looks_like_full_case_answer_submission("这个案例题第1问为什么错？")
+
+
+def test_full_case_answer_submission_accepts_inline_problem_marker_with_case_context():
+    text = (
+        "案例背景：某施工单位承接一项工程。问题：指出施工现场质量检查制度包括哪些内容。"
+        " 作答：施工现场质量检查包括自检、互检、专检。"
+    )
+    ctx = _FakeContext(user_message=text)
+
+    assert attach_question_lifecycle_scene_to_context(ctx) == "case_grading"
+    assert looks_like_full_case_answer_submission(text)
+    stem, answer = split_full_case_answer_submission(text)
+    assert "问题：指出施工现场质量检查制度" in stem
+    assert answer == "施工现场质量检查包括自检、互检、专检。"
+
+
+def test_case_grading_detects_case_background_answer_layout():
+    ctx = _FakeContext(
+        user_message=(
+            "案例背景：某工程地下室混凝土拆模后发现孔洞。\n"
+            "问题：补充孔洞治理流程。\n"
+            "作答：凿毛、涂刷界面剂、支模、浇筑、养护。"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
 
 
 def test_pre_submission_followup_loads_question_review_skill():

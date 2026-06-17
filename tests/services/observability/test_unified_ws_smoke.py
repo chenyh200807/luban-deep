@@ -102,3 +102,34 @@ def test_run_unified_ws_smoke_keeps_ws_success_when_metrics_capture_fails(monkey
     assert result["metrics_capture"]["ok"] is False
     assert result["metrics_capture"]["status_code"] == 404
     assert "metrics not exposed" in result["metrics_capture"]["error"]
+
+
+def test_run_unified_ws_smoke_sends_bearer_token(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_load_metrics(*, api_base_url: str) -> dict:
+        return {"turn_runtime": {}}
+
+    def fake_connect(url: str, **kwargs):
+        captured["url"] = url
+        captured["headers"] = kwargs.get("additional_headers")
+        return _FakeConnector()
+
+    monkeypatch.setattr(
+        "deeptutor.services.observability.unified_ws_smoke.load_metrics_snapshot_async",
+        fake_load_metrics,
+    )
+    monkeypatch.setattr("deeptutor.services.observability.unified_ws_smoke.websockets.connect", fake_connect)
+
+    result = asyncio.run(
+        run_unified_ws_smoke(
+            api_base_url="http://127.0.0.1:8001",
+            message="请回复 ok",
+            auth_token="demo-token-student_demo",
+        )
+    )
+
+    assert result["passed"] is True
+    assert result["auth_configured"] is True
+    assert captured["url"] == "ws://127.0.0.1:8001/api/v1/ws"
+    assert captured["headers"] == {"Authorization": "Bearer demo-token-student_demo"}

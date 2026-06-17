@@ -155,6 +155,27 @@ def test_repeated_misses_on_same_point_aggregate_into_one_item() -> None:
     assert sorted(item["evidence_refs"]) == ["e1", "e2"]
 
 
+def test_cross_epoch_point_id_namespace_does_not_auto_merge_and_reports_risk() -> None:
+    projection = build_scoring_point_map_read_projection(
+        events=[
+            _case_event(event_id="legacy", point_id="Q10::SP1", point_label="钢筋调直工艺"),
+            _case_event(event_id="pgo", point_id="sp_abcd1234", point_label="钢筋调直工艺"),
+        ],
+        user_id="student_demo",
+    )
+
+    assert {item["point_id"] for item in projection["items"]} == {"Q10::SP1", "sp_abcd1234"}
+    risk_groups = projection["source_status"]["point_id_namespace_duplicate_risks"]
+    assert risk_groups == [
+        {
+            "label": "钢筋调直工艺",
+            "granularity": "scoring_point",
+            "point_ids": ["Q10::SP1", "sp_abcd1234"],
+            "risk": "cross_epoch_point_id_namespace_not_merged",
+        }
+    ]
+
+
 def test_hits_do_not_count_as_misses() -> None:
     """A correct attempt on the rubric point is NOT a miss; the item
     only counts misses (``miss_count`` excludes ``hit=True``)."""

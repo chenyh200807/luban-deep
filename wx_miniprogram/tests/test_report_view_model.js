@@ -10,6 +10,11 @@ var yousenVmPath = path.join(
 );
 var wxReportPath = path.join(__dirname, "../pages/report/report.js");
 var wxReportWxmlPath = path.join(__dirname, "../pages/report/report.wxml");
+var wxTaxonomyPath = path.join(__dirname, "../utils/taxonomy.js");
+var yousenTaxonomyPath = path.join(
+  __dirname,
+  "../../yousenwebview/packageDeeptutor/utils/taxonomy.js",
+);
 
 var wxVm = require(wxVmPath);
 var yousenVm = require(yousenVmPath);
@@ -35,6 +40,44 @@ var report = {
     overall_mastery: { score: 52, confidence: 0.55, status: "developing" },
     groups: [{ name: "薄弱点", chapters: [{ name: "屋面与防水工程施工", mastery: 28 }] }],
     hotspots: [{ name: "屋面与防水工程施工", mastery: 28 }],
+    knowledge_summary: {
+      total_nodes: 3735,
+      coded_nodes: 3733,
+      leaf_nodes: 2786,
+      unique_codes: 1284,
+      duplicate_code_rows: 2449,
+      total_textbook_chapters: 13,
+      evaluated_topics: 2,
+      evaluated_leaf_points: 1,
+      mastered_topics: 0,
+      developing_topics: 1,
+      weak_topics: 1,
+      unmeasured_leaf_points: 2785,
+      textbook_chapters: [
+        {
+          chapter_no: 1,
+          chapter_name: "第1章 建筑工程设计技术",
+          section_count: 5,
+          evaluated_topics: 1,
+          mastered_topics: 0,
+          developing_topics: 1,
+          weak_topics: 0,
+          top_topics: ["建筑构造设计要求"],
+          status: "developing",
+        },
+        {
+          chapter_no: 3,
+          chapter_name: "第3章 建筑工程施工技术",
+          section_count: 8,
+          evaluated_topics: 1,
+          mastered_topics: 0,
+          developing_topics: 0,
+          weak_topics: 1,
+          top_topics: ["屋面与防水工程施工"],
+          status: "weak",
+        },
+      ],
+    },
     review_summary: { total_due: 2, overdue_count: 1 },
   },
   attempts: [
@@ -104,6 +147,11 @@ assert.strictEqual(wxModel.overview.todayDone, 4);
 assert.strictEqual(wxModel.radar.weakCount, 1);
 assert.strictEqual(wxModel.mastery.overall, 52);
 assert.strictEqual(wxModel.mastery.overallStatusLabel, "正在形成");
+assert.strictEqual(wxModel.mastery.knowledgeSummary.totalTextbookChapters, 13);
+assert.strictEqual(wxModel.mastery.knowledgeSummary.leafNodes, 2786);
+assert.strictEqual(wxModel.mastery.knowledgeSummary.codedNodes, 3733);
+assert.strictEqual(wxModel.mastery.knowledgeSummary.uniqueCodes, 1284);
+assert.strictEqual(wxModel.mastery.knowledgeSummary.textbookChapters.length, 2);
 assert.strictEqual(wxModel.mastery.groups[0].expanded, false);
 assert.strictEqual(wxModel.mastery.groups[0].chapterCount, 1);
 assert.strictEqual(wxModel.mastery.groups[0].previewText, "1 个子章节");
@@ -128,6 +176,8 @@ assert("mistakeBook" in wxModel);
 var pageData = wxVm.toReportPageData(wxModel);
 assert.strictEqual(pageData.todayDone, 4);
 assert.strictEqual(pageData.masteryStatusLabel, "正在形成");
+assert.strictEqual(pageData.knowledgeSummary.totalTextbookChapters, 13);
+assert.strictEqual(pageData.textbookChapters[0].chapterName, "第1章 建筑工程设计技术");
 assert.strictEqual(pageData.learningBrainAttempts[0].title, "主体结构验收条件");
 assert.strictEqual(
   pageData.learningAttemptCards[0].subjectId,
@@ -169,6 +219,17 @@ assert(
   wxReportWxml.indexOf('wx:if="{{item.expanded}}"') >= 0 &&
     wxReportWxml.indexOf("group-preview-list") < 0,
   "wx report mastery map must hide child chapters until a group is expanded",
+);
+assert(
+  wxReportWxml.indexOf("教材目录进度") >= 0 &&
+    wxReportWxml.indexOf("textbookChapters") >= 0 &&
+    wxReportWxml.indexOf("knowledgeSummary") >= 0,
+  "wx report page must render read-model knowledge_summary textbook chapters",
+);
+assert.strictEqual(
+  fs.readFileSync(wxTaxonomyPath, "utf8"),
+  fs.readFileSync(yousenTaxonomyPath, "utf8"),
+  "wx and yousen taxonomy display helpers must stay byte-identical",
 );
 
 var noisyReport = {
@@ -620,6 +681,48 @@ assert.strictEqual(
 assert.strictEqual(
   wxVm.toReportPageData(zeroEvidenceFlagOnVm).engineEvidenceSources.length,
   0,
+);
+
+var explicitZeroMasteryReport = {
+  ok: true,
+  schema_version: 2,
+  overview: {},
+  radar_dimensions: [
+    {
+      name: "1A411011",
+      value: 0.62,
+      score: 62,
+      level: "normal",
+      taxonomy_path: ["建筑工程技术", "建筑设计与构造", "建筑设计", "建筑物分类与构成"],
+    },
+  ],
+  mastery: {
+    overall_mastery: {
+      score: 0,
+      confidence: 0.86,
+      status: "stable",
+    },
+    groups: [],
+    hotspots: [],
+    review_summary: { total_due: 1, overdue_count: 0 },
+  },
+  learner_facing: {},
+  learning_brain: {},
+  freshness: { event_count: 2 },
+  next_training: [],
+};
+var explicitZeroMasteryPage = wxVm.toReportPageData(
+  wxVm.buildLearningReportViewModel(explicitZeroMasteryReport),
+);
+assert.strictEqual(
+  explicitZeroMasteryPage.overallMastery,
+  0,
+  "explicit zero mastery must survive page-data normalization",
+);
+assert.strictEqual(
+  explicitZeroMasteryPage.overviewScore,
+  0,
+  "report overview score must not hide a real zero mastery behind radar fallback",
 );
 
 // Keyword-only / rubric_pending honesty.

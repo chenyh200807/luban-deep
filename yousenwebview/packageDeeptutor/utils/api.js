@@ -42,7 +42,11 @@ function parseHttpError(message) {
   if (payloadText) {
     try {
       payload = JSON.parse(payloadText);
-      if (payload && typeof payload === "object" && payload.detail !== undefined) {
+      if (
+        payload &&
+        typeof payload === "object" &&
+        payload.detail !== undefined
+      ) {
         detailText = String(payload.detail || "").trim() || payloadText;
       }
     } catch (_err) {}
@@ -54,10 +58,19 @@ function parseHttpError(message) {
   };
 }
 
-function createHttpError(statusCode) {
+function createHttpError(statusCode, payload) {
   var status = Number(statusCode) || 0;
-  var err = new Error("HTTP_" + status);
+  var suffix = "";
+  if (payload !== undefined) {
+    try {
+      suffix = ": " + JSON.stringify(payload);
+    } catch (_err) {
+      suffix = "";
+    }
+  }
+  var err = new Error("HTTP_" + status + suffix);
   err.statusCode = status;
+  err.payload = payload || null;
   return err;
 }
 
@@ -120,7 +133,7 @@ function describeRequestError(err, fallbackMsg, opts) {
   }
   if (info.isTimeout) {
     if (options.context === "wechat_login") {
-      return "微信登录服务响应超时，请稍后重试";
+      return "快速登录服务响应超时，请稍后重试";
     }
     return "请求超时，请稍后重试";
   }
@@ -130,9 +143,9 @@ function describeRequestError(err, fallbackMsg, opts) {
   if (info.status >= 500) {
     if (options.context === "wechat_login") {
       if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
-        return "微信手机号授权服务暂时不可用，请稍后重试";
+        return "手机号验证服务暂时不可用，请稍后重试";
       }
-      return "微信登录服务暂时不稳定，请稍后重试";
+      return "快速登录服务暂时不稳定，请稍后重试";
     }
     return "服务暂时不可用，请稍后重试";
   }
@@ -255,7 +268,8 @@ function rawRequest(opts) {
   var noAuth = opts.noAuth || false;
   var retryCount = opts._retryCount || 0;
   var baseIndex = opts._baseIndex || 0;
-  var baseCandidates = opts._baseCandidates ||
+  var baseCandidates =
+    opts._baseCandidates ||
     endpoints.getBaseUrlCandidates(useGateway, opts.baseUrl);
 
   var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
@@ -294,33 +308,20 @@ function rawRequest(opts) {
           return;
         }
 
-        if (
-          !opts.url.startsWith("http") &&
-          res.statusCode === 404 &&
-          baseIndex + 1 < baseCandidates.length
-        ) {
-          var nextBaseOn404 = baseCandidates[baseIndex + 1];
-          console.warn(
-            "[API] HTTP 404 on " + fullUrl + ", fallback to " + nextBaseOn404,
-          );
-          request(
-            Object.assign({}, opts, {
-              _baseCandidates: baseCandidates,
-              _baseIndex: baseIndex + 1,
-            }),
-          )
-            .then(resolve)
-            .catch(reject);
-          return;
-        }
-
         if (res.statusCode === 401) {
           if (noAuth) {
-            reject(createHttpError(401));
+            // noAuth 401: reject with a sanitized opaque error so the raw backend payload
+            // (e.g. {"detail":"用户名或密码错误"}) is never embedded in the error message
+            // string visible to UI layers. statusCode and payload are available on the
+            // error object for programmatic inspection only. (2026-06-12 security fix)
+            var noAuthErr = new Error("HTTP_401");
+            noAuthErr.statusCode = 401;
+            noAuthErr.payload = res.data || null;
+            reject(noAuthErr);
             return;
           }
           if (opts.suppressAuthRedirect) {
-            reject(createHttpError(401));
+            reject(createHttpError(401, res.data));
             return;
           }
           if (opts.skipAuthRefresh) {
@@ -360,9 +361,7 @@ function rawRequest(opts) {
         }
 
         if (res.statusCode === 503) {
-          var e503 = new Error("FEATURE_DISABLED");
-          e503.code = "FEATURE_DISABLED";
-          reject(e503);
+          reject(createHttpError(503, res.data));
           return;
         }
 
@@ -395,7 +394,7 @@ function rawRequest(opts) {
           return;
         }
 
-        reject(createHttpError(res.statusCode));
+        reject(createHttpError(res.statusCode, res.data));
       },
       fail: function (err) {
         if (err.errMsg && err.errMsg.includes("abort")) {
@@ -453,15 +452,18 @@ function rawRequest(opts) {
 
   if (inFlightKey) {
     IN_FLIGHT_REQUESTS[inFlightKey] = pendingPromise;
-    pendingPromise.then(function () {
-      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
-        delete IN_FLIGHT_REQUESTS[inFlightKey];
-      }
-    }, function () {
-      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
-        delete IN_FLIGHT_REQUESTS[inFlightKey];
-      }
-    });
+    pendingPromise.then(
+      function () {
+        if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+          delete IN_FLIGHT_REQUESTS[inFlightKey];
+        }
+      },
+      function () {
+        if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+          delete IN_FLIGHT_REQUESTS[inFlightKey];
+        }
+      },
+    );
   }
 
   return pendingPromise;
@@ -475,6 +477,17 @@ function wxLogin(code) {
     url: "/api/v1/wechat/mp/login",
     method: "POST",
     data: { code: code },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
+/** 手机号授权快速登录 */
+function wxLoginWithPhone(code, phoneCode) {
+  return request({
+    url: "/api/v1/wechat/mp/login",
+    method: "POST",
+    data: { code: code, phone_code: phoneCode },
     useGateway: true,
     noAuth: true,
   });
@@ -512,7 +525,7 @@ function getPoints() {
   return requestStateGet("/api/v1/billing/points");
 }
 
-/** 获取使用限额 */
+/** 获取旧版使用概览 */
 function getUsage() {
   return requestStateGet("/api/v1/billing/usage");
 }
@@ -551,7 +564,8 @@ function getLearningBrainProjection(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   return requestStateGet(
-    "/api/v1/learning-brain/projection?event_limit=" + Math.min(Math.round(limit), 500),
+    "/api/v1/learning-brain/projection?event_limit=" +
+      Math.min(Math.round(limit), 500),
     opts,
   );
 }
@@ -561,21 +575,21 @@ function getLearningReport(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   var options = opts && typeof opts === "object" ? opts : {};
-  var schemaVersion = Number(options.schemaVersion || options.schema_version || 1);
+  var schemaVersion = Number(
+    options.schemaVersion || options.schema_version || 1,
+  );
   var query =
     "/api/v1/mobile/learning-report?event_limit=" +
     Math.min(Math.round(limit), 500);
   if (schemaVersion === 2) query += "&schema_version=2";
-  return requestStateGet(
-    query,
-    opts,
-  );
+  return requestStateGet(query, opts);
 }
 
 /** 获取单次作答详情 */
 function getLearningAttemptDetail(attemptRef, opts) {
   return requestStateGet(
-    "/api/v1/mobile/learning-attempts/" + encodeURIComponent(String(attemptRef || "")),
+    "/api/v1/mobile/learning-attempts/" +
+      encodeURIComponent(String(attemptRef || "")),
     opts,
   );
 }
@@ -589,16 +603,54 @@ function saveMistakeBookItem(payload) {
   });
 }
 
+/** 保存 source-linked 学习卡片；后端按 metadata.card_type 分流到 NotebookCardService */
+function saveNotebookCard(payload) {
+  var input = payload && typeof payload === "object" ? payload : {};
+  var metadata = Object.assign({}, input.metadata || {}, {
+    card_type: input.card_type || input.cardType || "manual_note",
+    subject_id: input.subject_id || input.subjectId || "",
+    source_bot_id: input.source_bot_id || input.sourceBotId || "",
+    source_type: input.source_type || input.sourceType || "manual",
+    source_ref: input.source_ref || input.sourceRef || {},
+    evidence_event_ids:
+      input.evidence_event_ids || input.evidenceEventIds || [],
+    ai_enhanced_content:
+      input.ai_enhanced_content || input.aiEnhancedContent || {},
+  });
+  return request({
+    url: "/api/v1/notebook/add_record",
+    method: "POST",
+    data: {
+      notebook_ids: input.notebook_ids || input.notebookIds || [],
+      record_type: input.record_type || input.recordType || "chat",
+      title: input.title || "学习卡片",
+      summary: "",
+      user_query: input.user_query || input.userQuery || "",
+      output: input.output || "",
+      metadata: metadata,
+      kb_name: input.kb_name || input.kbName || null,
+    },
+  });
+}
+
 function getMistakeBook(params, opts) {
   var query = [];
   var input = params && typeof params === "object" ? params : {};
   if (input.subject_id || input.subjectId) {
-    query.push("subject_id=" + encodeURIComponent(String(input.subject_id || input.subjectId)));
+    query.push(
+      "subject_id=" +
+        encodeURIComponent(String(input.subject_id || input.subjectId)),
+    );
   }
-  if (input.include_mastered !== undefined || input.includeMastered !== undefined) {
+  if (
+    input.include_mastered !== undefined ||
+    input.includeMastered !== undefined
+  ) {
     query.push(
       "include_mastered=" +
-        encodeURIComponent(String(Boolean(input.include_mastered || input.includeMastered))),
+        encodeURIComponent(
+          String(Boolean(input.include_mastered || input.includeMastered)),
+        ),
     );
   }
   return requestStateGet(
@@ -609,7 +661,9 @@ function getMistakeBook(params, opts) {
 
 function removeMistakeBookItem(attemptRef) {
   return request({
-    url: "/api/v1/mobile/mistake-book/items/" + encodeURIComponent(String(attemptRef || "")),
+    url:
+      "/api/v1/mobile/mistake-book/items/" +
+      encodeURIComponent(String(attemptRef || "")),
     method: "DELETE",
   });
 }
@@ -659,7 +713,9 @@ function startChatTurn(payload) {
 
 /** 获取公开运行时能力 */
 function getRuntimeCapabilities() {
-  return requestStateGet("/api/v1/system/public-capabilities", { noAuth: true });
+  return requestStateGet("/api/v1/system/public-capabilities", {
+    noAuth: true,
+  });
 }
 
 /** 获取对话消息 */
@@ -726,7 +782,9 @@ function submitFeedback(data) {
 /** 上传意见反馈截图/录屏，返回可被 BI 打开的附件 URL */
 function uploadFeedbackAttachment(file) {
   var input = file || {};
-  var filePath = String(input.temp_path || input.tempFilePath || input.path || "").trim();
+  var filePath = String(
+    input.temp_path || input.tempFilePath || input.path || "",
+  ).trim();
   if (!filePath) {
     return Promise.reject(new Error("ATTACHMENT_FILE_REQUIRED"));
   }
@@ -836,6 +894,7 @@ module.exports = {
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
+  wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   getUserInfo: getUserInfo,
   getTodayProgress: getTodayProgress,
@@ -850,6 +909,7 @@ module.exports = {
   getLearningReport: getLearningReport,
   getLearningAttemptDetail: getLearningAttemptDetail,
   saveMistakeBookItem: saveMistakeBookItem,
+  saveNotebookCard: saveNotebookCard,
   getMistakeBook: getMistakeBook,
   removeMistakeBookItem: removeMistakeBookItem,
   markMistakeBookItemMastered: markMistakeBookItemMastered,

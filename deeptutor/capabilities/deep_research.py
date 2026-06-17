@@ -16,6 +16,7 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import derive_trace_metadata, merge_trace_metadata, new_call_id
+from deeptutor.services.security.tool_access import filter_end_user_tools
 
 
 class DeepResearchCapability(BaseCapability):
@@ -23,7 +24,7 @@ class DeepResearchCapability(BaseCapability):
         name="deep_research",
         description="Multi-agent deep research with report generation.",
         stages=["rephrasing", "decomposing", "researching", "reporting"],
-        tools_used=["rag", "web_search", "paper_search", "code_execution"],
+        tools_used=["rag", "web_search", "paper_search"],
         cli_aliases=["research"],
         request_schema=get_capability_request_schema("deep_research"),
     )
@@ -40,11 +41,11 @@ class DeepResearchCapability(BaseCapability):
         llm_config = get_llm_config()
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None
         topic = context.user_message
-        enabled_tools = set(
+        enabled_tools = set(filter_end_user_tools(
             self.manifest.tools_used
             if context.enabled_tools is None
             else context.enabled_tools
-        )
+        ))
         request_config = validate_research_request_config(context.config_overrides)
         config = build_research_runtime_config(
             base_config=load_config_with_main("main.yaml"),

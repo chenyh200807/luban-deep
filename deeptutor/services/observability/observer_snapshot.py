@@ -6,10 +6,13 @@ import re
 import sqlite3
 import time
 from collections import Counter
+from collections import defaultdict
 from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+
+from deeptutor.api.runtime_metrics import normalize_latency_stage_timings
 
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
@@ -17,6 +20,10 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 from deeptutor.services.observability.surface_events import get_surface_event_store
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
+from deeptutor.services.observability.runtime_incidents import (
+    classify_runtime_incidents_from_backend_logs,
+)
+from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
 from deeptutor.services.path_service import get_path_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -107,6 +114,83 @@ def _default_backend_log_paths(*, days: int) -> list[Path]:
         paths.append(path_service.get_logs_dir() / f"deeptutor_{day}.log")
     paths.append(PROJECT_ROOT / "tmp" / "backend.log")
     return paths
+
+
+def _default_product_behavior_db_path() -> Path:
+    return get_path_service().get_chat_history_db().with_name("product_behavior.db")
+
+
+def _counter_from_rows(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    counter: Counter[str] = Counter()
+    for row in rows:
+        value = str(row.get(key) or "unknown").strip() or "unknown"
+        counter[value] += 1
+    return dict(sorted(counter.items(), key=lambda item: item[0]))
+
+
+def _build_product_behavior_snapshot(
+    *,
+    db_path: Path | None,
+    days: int,
+    limit: int,
+) -> dict[str, Any]:
+    target = (db_path or _default_product_behavior_db_path()).expanduser().resolve()
+    window_days = max(int(days or 1), 1)
+    base: dict[str, Any] = {
+        "db_path": str(target),
+        "window_days": window_days,
+        "event_count": 0,
+        "sample_limit": max(int(limit or 1), 1),
+        "module_distribution": {},
+        "event_distribution": {},
+        "surface_distribution": {},
+        "p0_path_counts": {
+            "history_open": 0,
+            "learning_report_open": 0,
+            "learning_report_next_action_view": 0,
+            "training_started": 0,
+            "review_started": 0,
+            "retest_started_or_completed": 0,
+        },
+        "missing_reason": "",
+        "read_error": "",
+    }
+    if not target.exists():
+        base["missing_reason"] = "product behavior db missing"
+        return base
+
+    try:
+        rows = SQLiteProductBehaviorStore(target).query_raw_events(
+            {"days": window_days},
+            limit=max(int(limit or 1), 1),
+        )
+    except Exception as exc:
+        base["read_error"] = str(exc)
+        return base
+
+    base["event_count"] = len(rows)
+    base["module_distribution"] = _counter_from_rows(rows, "module")
+    base["event_distribution"] = _counter_from_rows(rows, "event_name")
+    base["surface_distribution"] = _counter_from_rows(rows, "surface")
+    p0 = base["p0_path_counts"]
+    for row in rows:
+        module = str(row.get("module") or "")
+        event_name = str(row.get("event_name") or "")
+        section = str(row.get("section") or "")
+        action = str(row.get("action") or "")
+        if module == "history" and event_name == "module_viewed":
+            p0["history_open"] += 1
+        if module == "learning_report" and event_name == "module_viewed":
+            p0["learning_report_open"] += 1
+        if module == "learning_report" and section == "next_action" and event_name == "section_viewed":
+            p0["learning_report_next_action_view"] += 1
+        if event_name == "learning_action_started" and action == "start_training":
+            p0["training_started"] += 1
+        if event_name == "learning_action_started" and action == "start_review":
+            p0["review_started"] += 1
+        if event_name in {"learning_action_started", "learning_action_completed"} and action == "start_retest":
+            p0["retest_started_or_completed"] += 1
+    return base
 
 
 def _sqlite_count(conn: sqlite3.Connection, query: str, params: tuple[Any, ...]) -> int:
@@ -369,6 +453,15 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         for item in events
         if isinstance(item.get("retrieval_hit"), bool)
     ]
+    stage_latency_totals: dict[str, float] = defaultdict(float)
+    stage_latency_counts: Counter[str] = Counter()
+    for item in events:
+        metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        for stage, duration_ms in normalize_latency_stage_timings(
+            metadata.get("latency_stages_ms")
+        ).items():
+            stage_latency_totals[stage] += duration_ms
+            stage_latency_counts[stage] += 1
     error_count = sum(
         count
         for status, count in status_counter.items()
@@ -384,6 +477,11 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         "error_ratio": round(error_count / event_count, 4) if event_count else None,
         "avg_latency_ms": round(sum(latencies) / len(latencies), 1) if latencies else None,
         "p95_latency_ms": _percentile(latencies, 0.95),
+        "latency_stage_avg_ms": {
+            stage: round(stage_latency_totals[stage] / count, 1)
+            for stage, count in sorted(stage_latency_counts.items(), key=lambda item: item[0])
+            if count
+        },
         "avg_tokens": round(sum(token_values) / len(token_values), 1) if token_values else None,
         "retrieval_hit_ratio": round(sum(1 for item in retrieval_values if item) / len(retrieval_values), 4)
         if retrieval_values
@@ -453,6 +551,8 @@ def build_observer_snapshot(
     conversation_limit: int = 100,
     backend_log_paths: list[Path] | None = None,
     backend_log_tail_lines: int = 1000,
+    product_behavior_db_path: Path | None = None,
+    product_behavior_limit: int = 5000,
 ) -> dict[str, Any]:
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
@@ -480,6 +580,12 @@ def build_observer_snapshot(
         days=event_days,
         tail_lines=backend_log_tail_lines,
     )
+    product_behavior = _build_product_behavior_snapshot(
+        db_path=product_behavior_db_path,
+        days=event_days,
+        limit=product_behavior_limit,
+    )
+    runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
     trace_linkage = _build_trace_linkage_snapshot(turn_events)
     surface_payload = surface_snapshot if isinstance(surface_snapshot, dict) else get_surface_event_store().snapshot()
     surface_coverage = surface_payload.get("coverage") if isinstance(surface_payload, dict) else []
@@ -557,6 +663,22 @@ def build_observer_snapshot(
             reason=str(recent_conversations.get("read_error") or "no recent conversations in window"),
             now=now,
         ),
+        "product_behavior": _source_entry(
+            "product_behavior",
+            has_data=int(product_behavior.get("event_count") or 0) > 0,
+            source_id=str(product_behavior.get("db_path") or ""),
+            sample_count=int(product_behavior.get("event_count") or 0),
+            confidence="medium"
+            if int(product_behavior.get("event_count") or 0) > 0
+            and not product_behavior.get("read_error")
+            else "low",
+            reason=str(
+                product_behavior.get("read_error")
+                or product_behavior.get("missing_reason")
+                or "no product behavior events in window"
+            ),
+            now=now,
+        ),
         "backend_logs": _source_entry(
             "backend_logs",
             has_data=int(backend_logs.get("scanned_lines") or 0) > 0,
@@ -611,6 +733,8 @@ def build_observer_snapshot(
         blind_spots.append({"type": "missing_om_snapshot", "severity": "high"})
     if not has_quality_run:
         blind_spots.append({"type": "missing_quality_run", "severity": "high"})
+    elif benchmark_payload and not arr_payload:
+        blind_spots.append({"type": "missing_arr_run", "severity": "medium"})
     if not has_surface_coverage:
         blind_spots.append({"type": "missing_surface_coverage", "severity": "medium"})
     if not daily_trend_payload:
@@ -625,6 +749,25 @@ def build_observer_snapshot(
         )
     elif int(recent_conversations.get("session_count") or 0) <= 0:
         blind_spots.append({"type": "missing_recent_conversation_evidence", "severity": "medium"})
+    if product_behavior.get("read_error"):
+        blind_spots.append(
+            {
+                "type": "product_behavior_evidence_read_error",
+                "severity": "medium",
+                "evidence": {"read_error": product_behavior.get("read_error")},
+            }
+        )
+    elif int(product_behavior.get("event_count") or 0) <= 0:
+        blind_spots.append(
+            {
+                "type": "missing_product_behavior_evidence",
+                "severity": "medium",
+                "evidence": {
+                    "reason": product_behavior.get("missing_reason")
+                    or "no product behavior events in window"
+                },
+            }
+        )
     if int(backend_logs.get("scanned_lines") or 0) <= 0:
         blind_spots.append({"type": "missing_backend_log_evidence", "severity": "medium"})
     if int(trace_linkage.get("trace_id_count") or 0) <= 0:
@@ -642,7 +785,9 @@ def build_observer_snapshot(
         "turn_events": turn_summary,
         "turn_event_log": turn_log_stats,
         "recent_conversations": recent_conversations,
+        "product_behavior": product_behavior,
         "backend_logs": backend_logs,
+        "runtime_incidents": runtime_incidents,
         "langfuse_trace_linkage": trace_linkage,
         "source_runs": {
             "om_run_id": (om_payload or {}).get("run_id"),
@@ -662,7 +807,9 @@ def build_observer_snapshot(
             "surface_snapshot": surface_payload,
             "live_metrics_snapshot": metrics_snapshot or {},
             "recent_conversations": recent_conversations,
+            "product_behavior": product_behavior,
             "backend_logs": backend_logs,
+            "runtime_incidents": runtime_incidents,
             "langfuse_trace_linkage": trace_linkage,
         },
     }

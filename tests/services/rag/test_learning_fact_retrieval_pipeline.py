@@ -60,6 +60,33 @@ def test_compiled_truth_plan_materializes_only_when_retrieval_plan_allows_it() -
     assert compiled_plan[0]["results"][0]["source_type"] == "compiled_learning_truth"
 
 
+def test_compiled_truth_plan_materializes_personalization_context_pack() -> None:
+    pipeline = SupabasePipeline()
+    plan = build_retrieval_plan(
+        "我老是案例题采分点漏写怎么办",
+        routing_metadata={"personalization_context_available": True},
+    )
+
+    compiled_plan = pipeline._compiled_truth_plan(
+        retrieval_plan=plan,
+        compiled_learning_truth=None,
+        personalization_context={
+            "source": "PersonalizationContextPack",
+            "top_claims": [
+                {
+                    "claim_id": "claim_1",
+                    "claim_status": "repeated",
+                    "label": "该学员反复漏写专家论证。",
+                    "evidence_refs": ["evt1", "evt2"],
+                }
+            ],
+        },
+    )
+
+    assert compiled_plan[0]["group_name"] == "compiled_learning_truth"
+    assert compiled_plan[0]["results"][0]["chunk_id"] == "compiled-truth:personalization:claim_1"
+
+
 def test_fuse_plan_results_keeps_exact_question_ahead_of_compiled_truth() -> None:
     pipeline = SupabasePipeline()
     fused = pipeline._fuse_plan_results(

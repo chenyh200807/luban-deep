@@ -1,7 +1,6 @@
 // package/freeCourseDetails/freeCourseDetails.js
 var hostApiMap = require('../../api/baseApi')
 var hostConfig = require('../../utils/config')
-var utilMd5 = require('../../utils/md5.js');
 
 let polyvModule = null;
 
@@ -44,6 +43,22 @@ function getPolyvModule() {
       loadedModule && loadedModule.default ? loadedModule.default : loadedModule;
   }
   return polyvModule;
+}
+
+function getPolyvSignature(source, vid) {
+  const payload = source && typeof source === 'object' ? source : {};
+  const signatureMap = payload.polyv_signatures || payload.video_signatures || {};
+  const mapped = vid && signatureMap && typeof signatureMap === 'object' ? signatureMap[vid] : null;
+  const signatureSource = mapped && typeof mapped === 'object' ? mapped : payload;
+  const ts = signatureSource.polyv_ts || signatureSource.video_ts || signatureSource.videoTs || signatureSource.ts;
+  const sign = signatureSource.polyv_sign || signatureSource.video_sign || signatureSource.videoSign || signatureSource.sign;
+  if (!ts || !sign) {
+    return null;
+  }
+  return {
+    ts: ts,
+    sign: String(sign)
+  };
 }
 
 Page({
@@ -198,7 +213,7 @@ Page({
         polyvModule.destroy();
       }
     },
-    requestVideoSrc: function(vid, shouldAutoPlay) {
+    requestVideoSrc: function(vid, shouldAutoPlay, signatureSource) {
       if (!vid) {
         return;
       }
@@ -212,15 +227,17 @@ Page({
       this.videoRequestSeq = requestSeq;
       this.pendingAutoPlaySeq = shouldAutoPlay ? requestSeq : 0;
       this.videoReady = false;
-      const timestamp = Date.parse(new Date());
-      const secretKey = 'mnABa9XMn8';
-      const ts = timestamp;
-      const sign = utilMd5.hexMD5(secretKey + vid + ts);
+      const signedRequest = getPolyvSignature(signatureSource, vid);
+      if (!signedRequest) {
+        this.pendingAutoPlaySeq = 0;
+        console.error('polyv signed request unavailable');
+        return;
+      }
       const that = this;
       polyv.getVideo({
         vid: vid,
-        ts: ts,
-        sign: sign,
+        ts: signedRequest.ts,
+        sign: signedRequest.sign,
         callback: function(videoInfo) {
           if (requestSeq !== that.videoRequestSeq) {
             return;
@@ -249,7 +266,7 @@ Page({
         return;
       }
       try {
-        this.requestVideoSrc(playId, true);
+      this.requestVideoSrc(playId, true, initial && initial.item ? initial.item : detail);
       } catch (error) {
         this.pendingAutoPlaySeq = 0;
         console.error('video init failed', error);
@@ -389,7 +406,7 @@ Page({
         });
         this.scheduleBeishuHide();
         if (video_id) {
-          this.requestVideoSrc(video_id, true);
+          this.requestVideoSrc(video_id, true, currentChapter);
         }
       } else {
         const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
@@ -411,7 +428,7 @@ Page({
     },
     //第三方视频
     publicVideo: function(id) {
-      this.requestVideoSrc(id, true);
+      this.requestVideoSrc(id, true, this.data.gratisDetail);
     },
     staPlay: function() {
       this.pendingAutoPlaySeq = 0;

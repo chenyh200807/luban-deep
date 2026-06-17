@@ -5,6 +5,7 @@ var helpers = require("../../utils/helpers");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
+var auth = require("../../utils/auth");
 
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
@@ -36,52 +37,60 @@ function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
   });
 }
 
-function _formatUsageReset(resetAt) {
-  if (!resetAt) return "";
-  var date = new Date(resetAt);
-  if (isNaN(date.getTime())) return "";
-  var now = new Date();
-  var sameDay = date.toDateString() === now.toDateString();
-  var hh = String(date.getHours()).padStart(2, "0");
-  var mm = String(date.getMinutes()).padStart(2, "0");
-  return sameDay ? hh + ":" + mm + " 重置" : date.getMonth() + 1 + " 月 " + date.getDate() + " 日重置";
-}
-
-function _usageLabel(row) {
-  var key = String(row.key || "");
-  if (key === "weekly") return "本周额度";
-  return String(row.label || "使用限额").replace("使用限额", "限额");
-}
-
-function _normalizeUsage(raw) {
+function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
-  var display = data.display || {};
-  var quota = data.quota || {};
-  var sourceRows = display.rows || quota.rows || data.rows || [];
-  var rows = sourceRows.filter(function (row) {
-    return String(row.key || "") !== "five_hour";
-  }).map(function (row) {
-    var remaining = Math.max(0, Math.min(100, Math.round(Number(row.remaining_percent) || 0)));
-    var resetLabel = _formatUsageReset(row.reset_at);
-    var remainingLabel = "剩余 " + remaining + "%";
-    return {
-      key: row.key || "",
-      label: _usageLabel(row),
-      remainingLabel: remainingLabel,
-      remainingPercent: remaining,
-      resetLabel: resetLabel,
-      detailLabel: remainingLabel + (resetLabel ? "，" + resetLabel : ""),
-      barStyle: "width:" + remaining + "%",
-    };
-  });
-  var primary = rows[0] || {};
-  var primaryPercent = Math.max(0, Math.min(100, Math.round(Number(display.primary_remaining_percent || display.primary_percent || primary.remainingPercent || 0))));
+  var balance = Number(data.balance || data.points || data.display_balance || 0);
+  if (!isFinite(balance)) balance = 0;
+  var percent = _walletPercent(balance, ledgerRaw);
+  var percentLabel = "剩余 " + _formatPercent(percent);
+  var rows = [
+    {
+      key: "wallet_percent",
+      label: "当前权益",
+      detailLabel: percentLabel,
+    },
+  ];
+  var packages = Array.isArray(data.packages) ? data.packages : [];
+  var topPackage = packages[0] || {};
+  if (topPackage && topPackage.points) {
+    rows.push({
+      key: "usage_record",
+      label: "使用记录",
+      detailLabel: "按使用记录",
+    });
+  } else if (usageFallback) {
+    rows.push({
+      key: "usage_record",
+      label: "使用记录",
+      detailLabel: "按使用记录",
+    });
+  }
   return {
-    usagePrimaryLabel: display.primary_label || "剩余 " + primaryPercent + "%",
+    usagePrimaryLabel: percentLabel,
     usageRows: rows,
     usageDetailShow: false,
     usageLoading: false,
   };
+}
+
+function _walletPercent(balance, ledgerRaw) {
+  var data = api.unwrapResponse ? api.unwrapResponse(ledgerRaw) : ledgerRaw || {};
+  var entries = Array.isArray(data.entries) ? data.entries : [];
+  var debits = 0;
+  var positive = 0;
+  entries.forEach(function (entry) {
+    var delta = Number(entry.delta || 0);
+    if (delta > 0) positive += delta;
+    if (delta < 0) debits += Math.abs(delta);
+  });
+  var denominator = Math.max(1, Math.round(positive), Math.round(balance + debits), Math.round(balance));
+  return Math.max(0, Math.min(100, (Number(balance || 0) / denominator) * 100));
+}
+
+function _formatPercent(value) {
+  var rounded = Math.round(Number(value || 0) * 10) / 10;
+  if (Math.abs(rounded - Math.round(rounded)) < 0.001) return String(Math.round(rounded)) + "%";
+  return rounded.toFixed(1) + "%";
 }
 
 function buildLinkItems(workspaceFlags) {
@@ -93,7 +102,7 @@ function buildLinkItems(workspaceFlags) {
   if (flagsValue.reportEnabled !== false) {
     items.push({ id: "diagnostic", icon: "🔍", title: "摸底报告" });
   }
-  items.push({ id: "membership", icon: "👑", title: "会员额度" });
+  items.push({ id: "membership", icon: "👑", title: "权益充值" });
   items.push({ id: "feedback", icon: "💬", title: "意见反馈" });
   items.push({ id: "terms", icon: "📄", title: "服务条款" });
   return items;
@@ -145,6 +154,7 @@ Page({
 
     // 隐藏了"学习计划"（后期开发）
     linkItems: buildLinkItems(flags.getWorkspaceFlags()),
+    isGuestPreview: false,
   },
 
   onLoad: function () {
@@ -173,20 +183,33 @@ Page({
     helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
-    var self = this;
-    runtime.checkAuth(function () {
-      self._loadUserInfo();
-      self._loadUsage();
-    });
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
+    this.setData({ isGuestPreview: false });
+    this._loadUserInfo();
+    this._loadUsage();
   },
 
   _loadUsage: function () {
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
     var self = this;
     self.setData({ usageLoading: true });
-    api
-      .getUsage()
-      .then(function (raw) {
-        self.setData(_normalizeUsage(raw));
+    Promise.all([
+      api.getWallet(),
+      api.getUsage().catch(function () {
+        return null;
+      }),
+      api.getLedger(20).catch(function () {
+        return null;
+      }),
+    ])
+      .then(function (results) {
+        self.setData(_normalizeWalletUsage(results[0], results[1], results[2]));
       })
       .catch(function () {
         self.setData({ usageLoading: false, usageRows: [], usageDetailShow: false });
@@ -194,6 +217,10 @@ Page({
   },
 
   openUsageDetail: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     if (!this.data.usageRows.length) return;
     this.setData({ usageDetailShow: true });
   },
@@ -203,6 +230,10 @@ Page({
   },
 
   _loadUserInfo: function () {
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
     var self = this;
     api
       .getUserInfo()
@@ -265,6 +296,10 @@ Page({
 
   // ── 修改昵称 ──────────────────────────────────
   onChangeName: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var self = this;
     helpers.vibrate("light");
     wx.showModal({
@@ -288,6 +323,10 @@ Page({
 
   // ── 修改头像 ──────────────────────────────────
   onChangeAvatar: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var self = this;
     helpers.vibrate("light");
     wx.chooseMedia({
@@ -327,11 +366,19 @@ Page({
 
   // ── 设置交互 ──────────────────────────────────
   onExamDateChange: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     this.setData({ examDate: e.detail.value });
     this._saveSettings({ exam_date: e.detail.value });
   },
 
   setDailyTarget: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ dailyTarget: val });
@@ -339,6 +386,10 @@ Page({
   },
 
   setDifficulty: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ difficultyPref: val });
@@ -346,6 +397,10 @@ Page({
   },
 
   setExplainStyle: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ explainStyle: val });
@@ -353,6 +408,10 @@ Page({
   },
 
   onReminderChange: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var val = e.detail.value;
     this.setData({ reviewReminder: val });
     this._saveSettings({ review_reminder: val });
@@ -373,6 +432,10 @@ Page({
   },
 
   _saveSettings: function (patch) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     api.updateSettings(patch).catch(function () {
       wx.showToast({ title: "保存失败，请重试", icon: "none" });
     });
@@ -393,6 +456,34 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
+  goQuickLogin: function () {
+    this._requireLogin();
+  },
+
+  _requireLogin: function () {
+    runtime.redirectToLogin(route.profile());
+  },
+
+  _showGuestPreview: function () {
+    this.setData({
+      isGuestPreview: true,
+      username: "未登录用户",
+      avatarChar: "游",
+      level: 1,
+      xp: 0,
+      usageLoading: false,
+      usagePrimaryLabel: "登录后查看权益",
+      usageRows: [],
+      usageDetailShow: false,
+      examDate: "",
+      dailyTarget: 30,
+      difficultyPref: "medium",
+      explainStyle: "detailed",
+      reviewReminder: false,
+      badges: _normalizeBadges(null, [], this.data.badges),
+    });
+  },
+
   openFeedbackPage: function () {
     helpers.vibrate("light");
     wx.navigateTo({ url: route.feedback({ source: "profile" }) });
@@ -402,6 +493,10 @@ Page({
     var id = e.currentTarget.dataset.id;
     helpers.vibrate("light");
     if (id === "assessment") {
+      if (!auth.isLoggedIn()) {
+        this._requireLogin();
+        return;
+      }
       if (!flags.ensureFeatureEnabled("assessment", { redirect: false })) return;
       wx.navigateTo({ url: route.assessment() });
     } else if (id === "diagnostic") {
@@ -418,6 +513,19 @@ Page({
   },
 
   logout: function () {
+    if (this.data.isGuestPreview || !auth.isLoggedIn()) {
+      wx.showModal({
+        title: "退出体验",
+        content: "确定要退出先体验导学吗？",
+        confirmColor: "#ef4444",
+        success: function (res) {
+          if (res.confirm) {
+            runtime.logout();
+          }
+        },
+      });
+      return;
+    }
     wx.showModal({
       title: "退出登录",
       content: "确定要退出登录吗？",

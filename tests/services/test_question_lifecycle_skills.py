@@ -134,6 +134,25 @@ def test_project_lifecycle_scene_from_metadata_preserves_authoritative_scene() -
     assert ctx.metadata["trace_metadata"]["question_lifecycle_scene"] == "question_review"
 
 
+def test_learning_scenes_load_reference_assets() -> None:
+    story = build_question_lifecycle_skill_context(
+        UnifiedContext(metadata={"question_lifecycle_scene": "learning_evidence_story"})
+    )
+    assistant = build_question_lifecycle_skill_context(
+        UnifiedContext(metadata={"question_lifecycle_scene": "study_assistant"})
+    )
+    support = build_question_lifecycle_skill_context(
+        UnifiedContext(metadata={"question_lifecycle_scene": "learning_support"})
+    )
+
+    assert "降级叙述与证据引用细则" in story.instructions
+    assert "主动作决策细则" in assistant.instructions
+    assert "情绪支持响应手册" in support.instructions
+    assert story.source_status.complete is True
+    assert assistant.source_status.complete is True
+    assert support.source_status.complete is True
+
+
 def test_legacy_scene_builder_preserves_reference_loading() -> None:
     mcq = build_question_lifecycle_skill_context_from_legacy_scene("mcq")
     case_grading = build_question_lifecycle_skill_context_from_legacy_scene("case_grading")

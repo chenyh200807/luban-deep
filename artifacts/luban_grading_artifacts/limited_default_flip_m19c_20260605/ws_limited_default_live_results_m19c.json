@@ -1,0 +1,308 @@
+{
+  "canonical_truth_written": false,
+  "category_counts": {
+    "default_on": 42,
+    "explicit_test_cohort": 10,
+    "kill_switch": 3,
+    "non_cohort": 5,
+    "provider_failure": 3,
+    "qwen_fallback": 5,
+    "registry_unavailable": 2,
+    "rollback_drop_request_flag_pair": 15
+  },
+  "cohort_coverage": [
+    "operator_",
+    "qa_",
+    "test_"
+  ],
+  "default_on_attached": true,
+  "default_on_cohort_coverage": [
+    "operator_",
+    "qa_"
+  ],
+  "harness_session_write_calls": 100,
+  "legacy_equal_rate": 1.0,
+  "live_llm_calls_executed": false,
+  "non_cohort_real_student_blocked": true,
+  "production_write_count": 0,
+  "real_entry": "/api/v1/ws TestClient",
+  "sample_rows": [
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "qa_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "operator_m19c_default"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "default_on",
+      "legacy_present": true,
+      "limited_default_applied": true,
+      "production_default": "limited_cohort_on",
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "qa_m19c_default"
+    }
+  ],
+  "submission_count": 100,
+  "target_min_submissions": 100
+}

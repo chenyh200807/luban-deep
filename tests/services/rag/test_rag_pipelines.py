@@ -80,6 +80,51 @@ def _learning_fact_supabase_config(supabase_module, *, compiled_truth_enabled: b
     )
 
 
+def test_historical_question_projection_trims_query_option_tail_comment(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    payload = {
+        "exercises": [
+            {
+                "type": "single_choice",
+                "question_data": {
+                    "stem": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。",
+                    "options": [
+                        {"key": "A", "value": "1%"},
+                        {"key": "B", "value": "2%"},
+                        {"key": "C", "value": "3%"},
+                        {"key": "D", "value": "5%"},
+                    ],
+                    "correct_answer": "D",
+                    "analysis": "屋面最小坡度：压型金属板：5%。",
+                },
+            }
+        ]
+    }
+    (tmp_path / "questions.json").write_text(
+        json.dumps(payload, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    exact_question = resolve_historical_question(
+        (
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我听别人说A，直接判"
+        ),
+        question_bank_dir=str(tmp_path),
+    )
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "A"
+    assert exact_question["options"] == [
+        {"key": "A", "value": "5%"},
+        {"key": "B", "value": "1%"},
+        {"key": "C", "value": "2%"},
+        {"key": "D", "value": "3%"},
+    ]
+    assert exact_question["metadata"]["option_surface"] == "query"
+
+
 async def _run_learning_fact_search(
     monkeypatch: pytest.MonkeyPatch,
     *,
@@ -247,7 +292,7 @@ def test_list_available_providers() -> None:
     from deeptutor.tools.rag_tool import get_available_providers
 
     providers = get_available_providers()
-    assert [p["id"] for p in providers] == ["llamaindex", "supabase"]
+    assert [p["id"] for p in providers] == ["llamaindex", "supabase", "kbv5"]
 
 
 def test_factory_has_pipeline() -> None:
@@ -452,10 +497,11 @@ async def test_learning_fact_search_records_stage_timings_and_skips_heavy_steps(
         query="根据我的薄弱点安排下一道训练题，不要讲通用知识。",
     )
 
-    timings = result["evidence_bundle"]["stage_timings_ms"]
+    # supabase lane diagnostics moved into the canonical bundle's ``trace`` bucket (consolidation)
+    timings = result["evidence_bundle"]["trace"]["stage_timings_ms"]
     assert timings["total"] >= 0
     assert "primary_plan" in timings
-    assert result["evidence_bundle"]["performance_policy"] == {
+    assert result["evidence_bundle"]["trace"]["performance_policy"] == {
         "intent_fast_path": True,
         "compiled_only_fast_path": True,
         "rerank_enabled": False,
@@ -989,6 +1035,14 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
                         "score": 0.83,
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
+                        "metadata": {
+                            "source_id": "question_2026_roof_001",
+                            "source_table": "questions_bank",
+                            "stable_id": "question_2026_roof_001:stem",
+                            "source_span": {"question": "Q1", "section": "roof"},
+                            "content_hash": "hash-question-roof",
+                            "quote_hash": "quote-question-roof",
+                        },
                     }
                 ],
             }
@@ -1148,6 +1202,14 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
                         "score": 0.83,
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
+                        "metadata": {
+                            "source_id": "question_2026_roof_001",
+                            "source_table": "questions_bank",
+                            "stable_id": "question_2026_roof_001:stem",
+                            "source_span": {"question": "Q1", "section": "roof"},
+                            "content_hash": "hash-question-roof",
+                            "quote_hash": "quote-question-roof",
+                        },
                     }
                 ],
             }
@@ -1170,8 +1232,14 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
 
     assert result["evidence_bundle"]["kb_name"] == "construction-exam"
     assert result["evidence_bundle"]["retrieval_empty"] is False
-    assert result["evidence_bundle"]["source_plan"]["search_questions_bank"] is True
+    assert result["evidence_bundle"]["trace"]["source_plan"]["search_questions_bank"] is True
     assert result["evidence_bundle"]["sources"][0]["chunk_id"] == "question-q-fuzzy"
+    assert result["evidence_bundle"]["sources"][0]["source_id"] == "question_2026_roof_001"
+    assert result["evidence_bundle"]["sources"][0]["source_table"] == "questions_bank"
+    assert result["evidence_bundle"]["sources"][0]["stable_id"] == "question_2026_roof_001:stem"
+    assert result["evidence_bundle"]["sources"][0]["source_span"] == {"question": "Q1", "section": "roof"}
+    assert result["evidence_bundle"]["sources"][0]["content_hash"] == "hash-question-roof"
+    assert result["evidence_bundle"]["sources"][0]["quote_hash"] == "quote-question-roof"
 
 
 @pytest.mark.asyncio

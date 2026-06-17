@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
 import time
 from typing import Any
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
+from deeptutor.services.runtime_env import env_flag
 
 _PASS = "PASS"
 _FAIL = "FAIL"
@@ -18,6 +20,12 @@ _RELEASE_SPINE_KEYS = (
     "ff_snapshot_hash",
     "deploy_manifest_hash",
 )
+MINIMUM_RELEASE_BENCHMARK_SUITES = (
+    "pr_gate_core",
+    "regression_watch",
+    "real_exam_quality_spine",
+)
+REQUIRED_READINESS_CHECKS = ("contract_guard", "playwright", "wechat_devtools")
 
 
 def _gate_entry(
@@ -50,8 +58,11 @@ def _gate_relevant_case(item: dict[str, Any]) -> bool:
     return bool(item.get("gate_eligible")) or tier in {"gate_stable", "regression_tier"}
 
 
-def _long_dialog_requires_live_ws(case_results: list[dict[str, Any]]) -> bool:
-    return any(str(item.get("suite") or "").startswith("long-dialog") for item in case_results)
+def _is_long_dialog_case(item: dict[str, Any]) -> bool:
+    return any(
+        str(item.get(field) or "").startswith("long-dialog")
+        for field in ("suite", "source_suite")
+    )
 
 
 def _long_dialog_live_ws_ready(
@@ -59,17 +70,19 @@ def _long_dialog_live_ws_ready(
     case_results: list[dict[str, Any]],
     execution_context: dict[str, Any],
 ) -> bool:
-    if not _long_dialog_requires_live_ws(case_results):
+    long_dialog_suites = {
+        str(item.get(field) or "").strip()
+        for item in case_results
+        for field in ("suite", "source_suite")
+        if str(item.get(field) or "").strip().startswith("long-dialog")
+    }
+    if not long_dialog_suites:
         return True
     api_base_url = str(execution_context.get("api_base_url") or "").strip()
     suite_modes = execution_context.get("suite_execution_modes") or {}
     if not api_base_url:
         return False
-    return all(
-        mode == "live_ws"
-        for suite, mode in suite_modes.items()
-        if str(suite).startswith("long-dialog")
-    )
+    return all(suite_modes.get(suite) == "live_ws" for suite in long_dialog_suites)
 
 
 def _has_release_value(release: dict[str, Any], key: str) -> bool:
@@ -152,12 +165,25 @@ def _payload_git_sha(payload: dict[str, Any] | None) -> str:
     return str(release.get("git_sha") or "").strip()
 
 
+def _unique_strings(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        normalized = str(value or "").strip()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        result.append(normalized)
+    return result
+
+
 def _stale_input_names(
     *,
     current_release: dict[str, Any],
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
     benchmark_payload: dict[str, Any] | None,
+    incident_payload: dict[str, Any] | None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None,
@@ -171,6 +197,7 @@ def _stale_input_names(
         ("om", om_payload),
         ("arr", arr_payload),
         ("benchmark", benchmark_payload),
+        ("incident", incident_payload),
         ("aae", aae_payload),
         ("oa", oa_payload),
         ("change_impact", change_impact_payload),
@@ -187,11 +214,14 @@ def build_release_gate_report(
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
     benchmark_payload: dict[str, Any] | None = None,
+    incident_payload: dict[str, Any] | None = None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None = None,
     plan_completion_payload: dict[str, Any] | None = None,
+    readiness_payload: dict[str, Any] | None = None,
     release: dict[str, Any] | None = None,
+    quality_evidence_required: bool = False,
 ) -> dict[str, Any]:
     if _is_prerelease_plan_placeholder(plan_completion_payload):
         plan_completion_payload = None
@@ -205,12 +235,39 @@ def build_release_gate_report(
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
     ws_main_path_healthy = unified_ws_smoke_ok is not False
     orphaned_turns = int(om_health.get("orphaned_turns") or 0)
+    readiness_rows = (readiness_payload or {}).get("rows") or []
+    readiness_rows_by_check = {
+        str(item.get("check_id") or "").strip(): item
+        for item in readiness_rows
+        if str(item.get("check_id") or "").strip()
+    }
+    readiness_missing_checks = [
+        check_id for check_id in REQUIRED_READINESS_CHECKS if check_id not in readiness_rows_by_check
+    ] if readiness_payload is not None else []
+    readiness_non_pass_rows = [
+        row
+        for check_id, row in readiness_rows_by_check.items()
+        if check_id in REQUIRED_READINESS_CHECKS
+        and bool(row.get("required", True))
+        and str(row.get("status") or "").upper() != _PASS
+    ] if readiness_payload is not None else []
+    readiness_blockers = _unique_strings(
+        [
+            *[
+                blocker
+                for row in readiness_non_pass_rows
+                for blocker in (row.get("blockers") or [f"{row.get('check_id')}_not_pass"])
+            ],
+            *[f"{check_id}_missing" for check_id in readiness_missing_checks],
+        ]
+    )
     p0_ready = (
         om_health.get("ready") is True
         and release_complete
         and not release_dirty
         and ws_main_path_healthy
         and orphaned_turns == 0
+        and not readiness_blockers
     )
     gate_results.append(
         _gate_entry(
@@ -218,19 +275,23 @@ def build_release_gate_report(
             status=_PASS if p0_ready else _FAIL,
             summary="readyz、release lineage 与 ws 主链路可用"
             if p0_ready
-            else "runtime readiness、release lineage 或 ws 主链路异常",
+            else "runtime readiness、release lineage、release readiness 或 ws 主链路异常",
             evidence=[
                 f"ready={om_health.get('ready')}",
                 f"release_complete={release_complete}",
                 f"git_dirty={resolved_release.get('git_dirty')}",
                 f"unified_ws_smoke_ok={unified_ws_smoke_ok}",
                 f"orphaned_turns={orphaned_turns}",
+                f"readiness_required_failures={len(readiness_non_pass_rows) + len(readiness_missing_checks)}",
+                f"readiness_missing_checks={','.join(readiness_missing_checks) if readiness_missing_checks else 'none'}",
+                f"readiness_blockers={','.join(readiness_blockers) if readiness_blockers else 'none'}",
             ],
             blockers=[] if p0_ready else [
                 *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
                 *(["runtime_release_dirty"] if release_dirty else []),
                 *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
                 *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
+                *readiness_blockers,
             ],
         )
     )
@@ -256,10 +317,27 @@ def build_release_gate_report(
     benchmark_manifest = canonical_benchmark_manifest or embedded_benchmark_manifest
     benchmark_case_results = (benchmark_payload or {}).get("case_results") or (arr_payload or {}).get("benchmark_case_results") or []
     benchmark_blind_spots = (benchmark_payload or {}).get("blind_spots") or (arr_payload or {}).get("blind_spots") or []
+    runtime_incidents = (incident_payload or {}).get("runtime_incidents") or []
+    blocking_runtime_incidents = [item for item in runtime_incidents if bool(item.get("release_blocking"))]
     arr_summary = (arr_payload or {}).get("summary") or {}
     benchmark_summary = (benchmark_payload or {}).get("summary") or {}
     arr_diff = (benchmark_payload or {}).get("baseline_diff") or (arr_payload or {}).get("baseline_diff") or {}
-    execution_context = (benchmark_payload or {}).get("execution_context") or (arr_payload or {}).get("execution_context") or {}
+    execution_context = (
+        (benchmark_payload or {}).get("execution_context")
+        or ((benchmark_payload or {}).get("legacy") or {}).get("execution_context")
+        or (arr_payload or {}).get("execution_context")
+        or {}
+    )
+    requested_suites = [
+        str(item)
+        for item in (benchmark_manifest.get("requested_suites") or [])
+        if str(item).strip()
+    ]
+    missing_required_suites = [
+        suite
+        for suite in MINIMUM_RELEASE_BENCHMARK_SUITES
+        if suite not in set(requested_suites)
+    ]
     benchmark_pass_rate = _benchmark_pass_rate(benchmark_case_results) if benchmark_case_results else arr_summary.get("pass_rate")
     if benchmark_pass_rate is None:
         benchmark_pass_rate = benchmark_summary.get("pass_rate")
@@ -302,10 +380,18 @@ def build_release_gate_report(
             p2_status = _FAIL
             p2_summary = "long-dialog 未通过真实 /api/v1/ws 执行"
             p2_blockers.append("long_dialog_not_live_ws")
+        if p2_status != _FAIL and quality_evidence_required and missing_required_suites:
+            p2_status = _FAIL
+            p2_summary = "benchmark 未覆盖最小 release 质量套件"
+            p2_blockers.append("benchmark_minimum_suite_missing")
         if p2_status != _FAIL and has_new_critical:
             p2_status = _FAIL
             p2_summary = "benchmark 出现新增 regression 或 new failure"
             p2_blockers.append("new_benchmark_regression")
+        elif p2_status != _FAIL and blocking_runtime_incidents:
+            p2_status = _FAIL
+            p2_summary = "incident replay 捕获到 blocking runtime incident"
+            p2_blockers.append("incident_replay_runtime_regression")
         elif p2_status != _FAIL and isinstance(pass_rate, (int, float)) and float(pass_rate) < 0.9:
             p2_status = _WARN
             p2_summary = "benchmark pass rate 偏低，但当前没有新增 regression"
@@ -317,12 +403,17 @@ def build_release_gate_report(
             evidence=[
                 f"benchmark_run_id={benchmark_manifest.get('run_id')}",
                 f"requested_suites={benchmark_manifest.get('requested_suites')}",
+                f"required_suites={list(MINIMUM_RELEASE_BENCHMARK_SUITES)}",
+                f"missing_required_suites={missing_required_suites}",
+                f"quality_evidence_required={quality_evidence_required}",
                 f"pass_rate={benchmark_pass_rate}",
                 f"regressions={new_critical_regressions}",
                 f"new_failures={len(arr_diff.get('new_failures') or [])}",
                 f"gate_failures={len(gate_failures)}",
                 f"gate_skips={len(gate_skips)}",
                 f"long_dialog_live_ws={live_ws_ready}",
+                f"incident_run_id={((incident_payload or {}).get('run_manifest') or {}).get('run_id')}",
+                f"blocking_runtime_incidents={len(blocking_runtime_incidents)}",
             ],
             blockers=p2_blockers,
         )
@@ -331,8 +422,9 @@ def build_release_gate_report(
     aae_scorecard = (aae_payload or {}).get("scorecard") or {}
     aae_composite = (aae_payload or {}).get("composite") or {}
     aae_coverage = (aae_payload or {}).get("coverage_summary") or {}
-    p3_status = _SKIP
-    p3_summary = "未提供 AAE run"
+    p3_status = _FAIL if quality_evidence_required else _SKIP
+    p3_summary = "未提供 AAE run；当前质量 gate 要求 current-release AAE" if quality_evidence_required else "未提供 AAE run"
+    p3_blockers = ["missing_aae_run"] if quality_evidence_required else []
     if aae_payload:
         satisfaction_score = aae_scorecard.get("paid_student_satisfaction_score") or {}
         proxy_heavy = bool(satisfaction_score.get("is_proxy"))
@@ -342,6 +434,7 @@ def build_release_gate_report(
         composite_value = aae_composite.get("value")
         p3_status = _PASS
         p3_summary = "AAE 关键分数可用"
+        p3_blockers = []
         if satisfaction_available and not proxy_heavy:
             p3_summary = "AAE 已接入真实满意度反馈"
         elif feedback_status and feedback_status != "ok":
@@ -355,6 +448,7 @@ def build_release_gate_report(
         if isinstance(composite_value, (int, float)) and composite_value < 0.75:
             p3_status = _FAIL
             p3_summary = "AAE composite 低于最低门槛"
+            p3_blockers = ["aae_composite_below_floor"]
     gate_results.append(
         _gate_entry(
             gate="P3 AAE",
@@ -366,8 +460,9 @@ def build_release_gate_report(
                 f"proxy_paid_satisfaction={((aae_scorecard.get('paid_student_satisfaction_score') or {}).get('is_proxy'))}",
                 f"feedback_storage_status={aae_coverage.get('feedback_storage_status')}",
                 f"feedback_total={aae_coverage.get('feedback_total')}",
+                f"quality_evidence_required={quality_evidence_required}",
             ],
-            blockers=["aae_composite_below_floor"] if p3_status == _FAIL else [],
+            blockers=p3_blockers,
         )
     )
 
@@ -483,6 +578,7 @@ def build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
@@ -514,5 +610,99 @@ def build_release_gate_report(
             "oa_run_id": (oa_payload or {}).get("run_id"),
             "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
             "plan_completion_run_id": (plan_completion_payload or {}).get("run_id"),
+            "readiness_run_id": (readiness_payload or {}).get("run_id"),
+            "incident_run_id": ((incident_payload or {}).get("run_manifest") or {}).get("run_id"),
         },
+        "readiness_summary": {
+            "required_checks": list(REQUIRED_READINESS_CHECKS),
+            "missing_checks": readiness_missing_checks,
+            "non_pass_checks": [str(row.get("check_id") or "") for row in readiness_non_pass_rows],
+            "blockers": readiness_blockers,
+        },
+    }
+
+
+# --- G3: canonical registry publish flow (master plan §0.26 / M33-ACT) ---
+# Default OFF. Publishing the canonical registry (release_candidate -> published) is the production
+# answer-authority flip; it requires a deliberate, instantly-revocable authorization, never an
+# inferred one.
+PUBLISH_ENABLED_FLAG = "LUBAN_REGISTRY_PUBLISH_ENABLED"
+
+
+def publish_canonical_registry(
+    manifest: dict[str, Any],
+    supply_root: "str | Path",
+    *,
+    release_gate_report: dict[str, Any],
+    authorized: bool,
+    published_at: str,
+    superseded_version: str | None = None,
+) -> dict[str, Any]:
+    """Promote a SIGNED ``release_candidate`` canonical manifest to ``status=published`` (M33-ACT G3).
+
+    Triple fail-closed gate — ALL must hold or NOTHING is signed (manifest stays release_candidate):
+      1. env flag ``LUBAN_REGISTRY_PUBLISH_ENABLED`` is on (default OFF -> instantly revocable)
+      2. explicit ``authorized=True`` from the caller (per-gate owner sign-off)
+      3. ``release_gate_report`` is a PASS *and* TRUSTED (not stale vs HEAD)
+    then ``verify_manifest`` (recompute manifest hash/signature + re-check every shard's bytes on disk)
+    before any promotion. On any failure returns a refusal ``{published: False, reason, manifest}``;
+    only full authorization returns ``{published: True, manifest: <published>, rollback_pointer, ...}``.
+    Authority is granted ONLY here by the explicit gates — never inferred from the bundle/manifest.
+    """
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import canonical_knowledge_manifest as ckm
+
+    def _refusal(reason: str) -> dict[str, Any]:
+        return {"published": False, "reason": reason, "manifest": dict(manifest)}
+
+    if supply_root is None:  # structured refusal instead of an uncaught Path(None) TypeError
+        return _refusal("supply_root_missing")
+    if not (manifest.get("shards") or []):  # an empty manifest is not a publishable authority
+        return _refusal("manifest_has_no_shards")
+    if not env_flag(PUBLISH_ENABLED_FLAG, default=False):
+        return _refusal("publish_disabled")
+    if authorized is not True:  # strict: only literal True authorizes (truthy values must not pass)
+        return _refusal("not_authorized")
+    report = release_gate_report or {}
+    if str(report.get("final_status") or "").upper() != _PASS:
+        return _refusal("release_gate_not_pass")
+    if str(report.get("verdict") or "").upper() != "TRUSTED":
+        return _refusal("release_gate_stale")
+    ok, vreason = ckm.verify_manifest(manifest, Path(supply_root))
+    if not ok:
+        return _refusal(f"manifest_verify_failed:{vreason}")
+    # Defense-in-depth: verify_manifest only checks each shard's manifest-pinned self-reported hash. For
+    # a production publish, additionally re-verify each records-based shard's CONTENT (recompute records
+    # hash + signature) via the lane signer's own verifier, so a records-tampered shard whose
+    # self-reported hash still matches the pin cannot be published. Non-records lanes (concept_registry /
+    # taxonomy index) carry their own structure and stay covered by the manifest pin + the runtime
+    # resolver's fail-closed verification at consumption.
+    import json as _json
+
+    from deeptutor.services.construction_grading.full_knowledge_compiler import verify_lane_bundle
+
+    for s in manifest.get("shards") or []:
+        sp = Path(supply_root) / str(s.get("path") or "")
+        try:
+            sdoc = _json.loads(sp.read_text("utf-8"))
+        except Exception:  # noqa: BLE001
+            return _refusal(f"shard_unreadable:{s.get('lane')}")
+        if isinstance(sdoc.get("records"), list) and not verify_lane_bundle(
+            sdoc, str(s.get("namespace") or "")
+        ):
+            return _refusal(f"shard_content_tamper:{s.get('lane')}")
+    try:
+        published = ckm.promote_to_published(
+            manifest, superseded_version=superseded_version, published_at=published_at
+        )
+    except ValueError as exc:
+        return _refusal(f"promote_rejected:{exc}")
+    return {
+        "published": True,
+        "reason": "ok",
+        "manifest": published,
+        "rollback_pointer": published.get("rollback_pointer"),
+        "superseded_version": superseded_version,
+        "published_at": published_at,
     }

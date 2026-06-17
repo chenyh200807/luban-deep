@@ -92,7 +92,6 @@ function loadEndpointsModule(options) {
       candidates: [
         "http://127.0.0.1:8001",
         "http://127.0.0.1:8012",
-        "https://test2.yousenjiaoyu.com",
       ],
     },
   });
@@ -101,24 +100,22 @@ function loadEndpointsModule(options) {
     [
       "http://127.0.0.1:8001",
       "http://127.0.0.1:8012",
-      "https://test2.yousenjiaoyu.com",
     ],
-    "runtime-configured candidates should stay localhost first with remote fallback and no extra reordering",
+    "runtime-configured local candidates should stay localhost first with no extra reordering",
   );
 
-  remoteRuntimeLoaded.endpoints.rememberWorkingBaseUrl("https://test2.yousenjiaoyu.com", false);
+  remoteRuntimeLoaded.endpoints.rememberWorkingBaseUrl("http://127.0.0.1:8012", false);
   assert(
-    remoteRuntimeLoaded.appState.globalData.apiUrl === "https://test2.yousenjiaoyu.com",
+    remoteRuntimeLoaded.appState.globalData.apiUrl === "http://127.0.0.1:8012",
     "rememberWorkingBaseUrl should persist into app globalData",
   );
   assertEqual(
     remoteRuntimeLoaded.endpoints.getBaseUrlCandidates(false),
     [
-      "https://test2.yousenjiaoyu.com",
-      "http://127.0.0.1:8001",
       "http://127.0.0.1:8012",
+      "http://127.0.0.1:8001",
     ],
-    "after a successful remote fallback, remote should become the remembered primary without inventing extra candidates",
+    "after a successful local fallback, that local base should become the remembered primary without inventing remote candidates",
   );
 
   var strictRemoteRuntimeLoaded = loadEndpointsModule({

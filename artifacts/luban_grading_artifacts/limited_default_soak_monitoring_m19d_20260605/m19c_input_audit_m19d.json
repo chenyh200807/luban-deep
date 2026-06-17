@@ -1,0 +1,28 @@
+{
+  "allowed_internal_cohort_prefixes": [
+    "qa_",
+    "test_",
+    "operator_"
+  ],
+  "broad_production_default": "NO-GO",
+  "canonical_learner_truth_write": "NO-GO",
+  "default_cohort_prefixes": [
+    "qa_",
+    "operator_"
+  ],
+  "env_baseline": {
+    "LUBAN_V1_LLM_ADJUDICATOR_ENABLED": null,
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT": null,
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED": null
+  },
+  "formal_registry_emitted": false,
+  "git_branch_status": "## docs/luban-golden-v0-sop-and-dataset...origin/docs/luban-golden-v0-sop-and-dataset [ahead 16]",
+  "git_head": "f16ab829",
+  "m19c_limited_default_flip": "GO",
+  "m19c_non_cohort_blocked": true,
+  "m19c_state": "ON",
+  "no_staged_changes": true,
+  "production_db_write_enabled": false,
+  "remote_deployment_written": false,
+  "staged_files": []
+}

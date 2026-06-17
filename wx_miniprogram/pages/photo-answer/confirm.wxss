@@ -1,0 +1,27 @@
+.page { padding: 32rpx; min-height: 100vh; background: #f6f7f9; box-sizing: border-box; }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; gap: 24rpx; }
+.spinner { width: 64rpx; height: 64rpx; border: 6rpx solid #dfe6f5; border-top-color: #2f6df6; border-radius: 50%; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hint { font-size: 28rpx; color: #888; }
+.fail-icon { width: 80rpx; height: 80rpx; line-height: 80rpx; text-align: center; background: #e74c3c; color: #fff; border-radius: 50%; font-size: 48rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: #333; margin: 32rpx 0 16rpx; }
+.critical-note { color: #e74c3c; font-weight: 400; font-size: 24rpx; margin-left: 12rpx; }
+.suspicion { display: flex; justify-content: space-between; align-items: center; background: #fff; border-left: 8rpx solid #e67e22; border-radius: 12rpx; padding: 20rpx 24rpx; margin-bottom: 12rpx; }
+.suspicion.critical { border-left-color: #e74c3c; }
+.suspicion.resolved { opacity: 0.5; border-left-color: #2ecc71; }
+.susp-char { font-size: 30rpx; font-weight: 600; margin-right: 12rpx; }
+.susp-src { font-size: 22rpx; color: #999; margin-right: 12rpx; }
+.susp-sug { font-size: 24rpx; color: #2f6df6; }
+.susp-state { font-size: 22rpx; color: #999; flex-shrink: 0; }
+.para { background: #fff; border-radius: 12rpx; padding: 20rpx 24rpx; margin-bottom: 12rpx; }
+.para.folded { background: #eef1f6; }
+.para.folded .para-text { color: #999; font-size: 24rpx; max-height: 80rpx; overflow: hidden; }
+.para-tag { font-size: 22rpx; color: #e67e22; margin-bottom: 8rpx; }
+.para-text { font-size: 28rpx; color: #333; line-height: 1.7; }
+.draft { width: 100%; min-height: 320rpx; background: #fff; border-radius: 12rpx; padding: 24rpx; font-size: 30rpx; line-height: 1.8; box-sizing: border-box; }
+.actions { display: flex; gap: 20rpx; margin: 40rpx 0; }
+.btn { flex: 1; border-radius: 16rpx; font-size: 30rpx; }
+.btn.primary { background: #2f6df6; color: #fff; }
+.btn.secondary { background: #fff; color: #2f6df6; border: 2rpx solid #2f6df6; }
+.btn.secondary[disabled] { color: #aaa; border-color: #ddd; background: #f3f3f3; }
+.suspicion-empty { font-size: 26rpx; color: #999; background: #fff; border-radius: 12rpx; padding: 24rpx; }

@@ -396,6 +396,8 @@ async function mockMemberOpsApis(
         active_count: memberItems.length,
         expiring_soon_count: 0,
         new_today_count: 0,
+        new_7d_count: 0,
+        new_30d_count: 0,
         churn_risk_count: 0,
         health_score: 92,
         auto_renew_coverage: 0,

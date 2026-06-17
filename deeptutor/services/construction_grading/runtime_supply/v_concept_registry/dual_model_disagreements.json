@@ -1,0 +1,154 @@
+[
+ {
+  "concept_id": "c_040cebe460ef818e",
+  "name": "墙体变形防治措施",
+  "opus_grounded": true,
+  "opus": "隔墙变形通病真实",
+  "codex_grounded": false,
+  "codex": "隔墙变形泛化"
+ },
+ {
+  "concept_id": "c_161f53df78bf852c",
+  "name": "高效施工设备选用",
+  "opus_grounded": false,
+  "opus": "节能设备选用泛化",
+  "codex_grounded": true,
+  "codex": "节能设备选用"
+ },
+ {
+  "concept_id": "c_19a16ecc8c12f265",
+  "name": "板材脱落预防方法",
+  "opus_grounded": true,
+  "opus": "隔墙板材脱落通病",
+  "codex_grounded": false,
+  "codex": "板材脱落泛化"
+ },
+ {
+  "concept_id": "c_28f7203ab0323ec8",
+  "name": "墙体变形预防措施",
+  "opus_grounded": true,
+  "opus": "隔墙变形预防真实",
+  "codex_grounded": false,
+  "codex": "隔墙变形泛化"
+ },
+ {
+  "concept_id": "c_35b0b7a2067783fb",
+  "name": "建筑工程企业资质与施工组织",
+  "opus_grounded": true,
+  "opus": "资质与施工组织真实",
+  "codex_grounded": false,
+  "codex": "拼接章节泛化"
+ },
+ {
+  "concept_id": "c_3d60181ea2ea5565",
+  "name": "第4章 相关法规",
+  "opus_grounded": false,
+  "opus": "章节标题非考点",
+  "codex_grounded": true,
+  "codex": "法规章节真实"
+ },
+ {
+  "concept_id": "c_3f53b6a06c2e875b",
+  "name": "第5章 相关标准",
+  "opus_grounded": false,
+  "opus": "章节标题非考点",
+  "codex_grounded": true,
+  "codex": "标准章节真实"
+ },
+ {
+  "concept_id": "c_417c2ecb8e1b3f06",
+  "name": "局部空拼安装法适用范围",
+  "opus_grounded": false,
+  "opus": "非标准安装法名",
+  "codex_grounded": true,
+  "codex": "钢结构安装法"
+ },
+ {
+  "concept_id": "c_42b70d0c1f80bc05",
+  "name": "适宜施工温湿度范围",
+  "opus_grounded": true,
+  "opus": "隔墙施工环境条件",
+  "codex_grounded": false,
+  "codex": "隔墙温湿泛化"
+ },
+ {
+  "concept_id": "c_517523563c906fe5",
+  "name": "局部空拼安装法适用范围",
+  "opus_grounded": false,
+  "opus": "非标准安装法名",
+  "codex_grounded": true,
+  "codex": "钢结构安装法"
+ },
+ {
+  "concept_id": "c_558d935d5862db12",
+  "name": "按施工方法分类",
+  "opus_grounded": true,
+  "opus": "幕墙按施工方法分类",
+  "codex_grounded": false,
+  "codex": "幕墙分类错配"
+ },
+ {
+  "concept_id": "c_71bd47456e7627c0",
+  "name": "快拆体系要求",
+  "opus_grounded": true,
+  "opus": "快拆模板体系真实",
+  "codex_grounded": false,
+  "codex": "快拆未成独点"
+ },
+ {
+  "concept_id": "c_7b9d3f2daec21623",
+  "name": "墙体变形防治措施",
+  "opus_grounded": true,
+  "opus": "隔墙变形防治真实考点",
+  "codex_grounded": false,
+  "codex": "隔墙变形泛化"
+ },
+ {
+  "concept_id": "c_9bd152bcd72cc207",
+  "name": "板材脱落预防方法",
+  "opus_grounded": true,
+  "opus": "隔墙板材脱落防治",
+  "codex_grounded": false,
+  "codex": "板材脱落泛化"
+ },
+ {
+  "concept_id": "c_a14044bd06d9d6b1",
+  "name": "考核与评估机制",
+  "opus_grounded": true,
+  "opus": "劳务分包考核评估",
+  "codex_grounded": false,
+  "codex": "劳务流程泛化"
+ },
+ {
+  "concept_id": "c_b00ceff50b0819e5",
+  "name": "注浆与质量控制",
+  "opus_grounded": false,
+  "opus": "注浆参数误归地连墙",
+  "codex_grounded": true,
+  "codex": "注浆质控考点"
+ },
+ {
+  "concept_id": "c_bdb112d7c16525d0",
+  "name": "适宜施工温湿度范围",
+  "opus_grounded": true,
+  "opus": "隔墙作业温湿度条件真实",
+  "codex_grounded": false,
+  "codex": "隔墙温湿泛化"
+ },
+ {
+  "concept_id": "c_ede3455965f78fb5",
+  "name": "建筑工程企业资质与施工组织",
+  "opus_grounded": true,
+  "opus": "企业资质施工组织真实",
+  "codex_grounded": false,
+  "codex": "拼接章节泛化"
+ },
+ {
+  "concept_id": "c_f201db1ede9089f7",
+  "name": "快拆体系要求",
+  "opus_grounded": true,
+  "opus": "快拆模板体系真实",
+  "codex_grounded": false,
+  "codex": "快拆未成独点"
+ }
+]

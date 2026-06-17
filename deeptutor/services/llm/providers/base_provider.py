@@ -24,7 +24,7 @@ from ..exceptions import (
     LLMRateLimitError,
     LLMTimeoutError,
 )
-from ..traffic_control import TrafficController
+from ..traffic_control import TrafficController, get_provider_traffic_controller
 from ..types import AsyncStreamGenerator, TutorResponse
 
 T = TypeVar("T")
@@ -46,17 +46,13 @@ class BaseLLMProvider(ABC):
         self.api_key = getattr(config, "get_api_key", lambda: config.api_key)()
         self.base_url = config.base_url or config.effective_url
 
-        # Isolation: Each provider gets its own traffic controller instance
+        # Shared provider bulkhead: factory, RoutingProvider, and TutorBot providers all use
+        # the same process-local limiter for the same provider/runtime limits.
         self.traffic_controller: TrafficController
-        traffic_controller = getattr(config, "traffic_controller", None)
-        if isinstance(traffic_controller, TrafficController):
-            self.traffic_controller = traffic_controller
-        else:
-            self.traffic_controller = TrafficController(
-                provider_name=self.provider_name,
-                max_concurrency=getattr(config, "max_concurrency", 20),
-                requests_per_minute=getattr(config, "requests_per_minute", 600),
-            )
+        self.traffic_controller = get_provider_traffic_controller(
+            provider_name=self.provider_name,
+            config=config,
+        )
 
     async def complete(self, prompt: str, **kwargs: object) -> TutorResponse:
         """Run a completion call for the provider."""

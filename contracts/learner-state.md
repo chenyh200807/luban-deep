@@ -7,7 +7,7 @@
 - 学员级长期状态的单一权威
 - `Summary / Profile / Progress / Goals / Memory Events / Heartbeat`
 - Guided Learning / Notebook / Quiz / TutorBot 对长期状态的写回边界
-- 学员级状态与 TutorBot workspace memory 的边界
+- 学员级状态与 TutorBot runtime sandbox / session cache 的边界
 - 第一阶段 Supabase 复用表与新增表的职责
 
 ## 单一控制面
@@ -25,6 +25,117 @@
 3. 如未来确有需要，可以新增 `bot_id + user_id` overlay，但它只能是后置能力，不能提前成为平行主真相。
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
+6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
+
+### Compact Context 读取边界
+
+- `LearnerStateService.build_compact_context()` 只渲染 learner profile、summary、progress、goals 这类稳定学员事实；它不得读取 `learner_memory_events`，也不得把 recall evidence 当作每轮默认上下文。
+- `learner_memory_events` 只在明确 recall-like 路由或 `build_context_candidates()` 判定需要 memory hits 时读取。普通问答的 compact learner context 必须避免额外 memory-event read，以降低每轮上下文构建延迟，同时保持 memory events 作为 durable learner evidence authority。
+
+### Learning Evidence Pipeline
+
+- `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。
+- `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
+- 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
+- `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
+- PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的
+  preview-only `learning_evidence` 写入同一个 `learner_memory_events` ledger。该事件只允许携带
+  `artifact_version`、`point_id`、verdict、score coverage 摘要和 read-model 所需字段，不得持久化
+  逐字 `official_slice`，不得写 official score，不得促升 mastery，且必须保持
+  `claim_promotion_allowed=false` 与 `canonical_truth_written=false`。
+
+### Dream Cycle 夜间巩固与投影缓存（2026-06-12）
+
+- `LearningBrainDreamCycle`（learner_state/dream_cycle.py）是唯一的后台巩固调度器：周期性对有学习证据的用户执行 `synthesize_learning_truth(dry_run=False, event_limit=None)`（全量历史）。它不计算任何新事实，不构成第二合成权威；合成只在 `learning_synthesis` 内，持久化与 canonical 促升门控只在 `canonical_truth_policy` / `write_compiled_learning_truth` 内。
+- 默认关：`LUBAN_LEARNING_BRAIN_DREAM_CYCLE_ENABLED`（fail-closed）；间隔由 `LUBAN_LEARNING_BRAIN_DREAM_CYCLE_INTERVAL_HOURS` 控制（默认 24h）。生产环境候选用户限定既有 `qa_`/`operator_` canonical cohort——dream cycle 不得放宽任何授权门。
+- `read_compiled_learning_truth` 的产物是**可重建的只读投影缓存**（read model），不是第二记忆权威；任何消费方（TutorBot turn、trajectory 查询）必须实现 cache-miss 回退到 dry-run synthesis，不得因缓存缺失而拒绝服务或自造画像。
+- `learning_trajectory.find_learning_trajectory` 是 typed_graph / weak_points / improvement_signals 之上的纯只读多跳组合视图（错因→训练→改善→复测建议）；其 `retest_recommendation` 是建议而非促升，canonical 促升仍只认 teacher-final / real_retest。
+- 多 worker 单执行者：dream cycle 的 watermark（`.dream_cycle_last_run`）与互斥锁（`.dream_cycle.lock`）、outbox flush 的互斥锁（`.outbox_flush.lock`）都落在 learner state root 下，经 `worker_file_lock.try_exclusive_file_lock`（fcntl 非阻塞排他）表达"同一时刻只有一个 worker 实际执行"；锁被占=本 tick 跳过，不排队、不重试、不引入第二调度权威；watermark 跨重启生效，重启不再触发重复巩固；删除 `.dream_cycle_last_run` 是运维强制立即重跑的唯一入口。
+
+## 2026-06-09 Workspace 撤回与正名决策
+
+撤回旧解释：不得再把“每个会员一个独立 workspace”理解成“每个会员或每个 TutorBot 都有一套独立长期学习记忆系统”。该解释会制造第二套 learner truth，已被本 contract 退役。
+
+保留正确目标：每个会员可以拥有独立的学员可见资产空间，用于笔记、附件、收藏、导出、学习页 projection、权限隔离和用户掌控感。但这个空间只是 `owner-scoped learner asset namespace`，不是 learner-state authority。
+
+TutorBot 侧同步正名：
+
+- 退役概念：`TutorBot workspace = 独立学习空间 / 独立长期记忆`。
+- 保留能力：`TutorBot RuntimeSandbox = 工具运行隔离 / 临时产物 / channel cache / debug replay`。
+- 长期学习事实只允许进入 `LearnerStateService` 和其 durable store。
+
+### 五个一等概念
+
+后续设计只允许围绕以下五个一等概念扩展，禁止再把 workspace 扩张成第六套学习真相：
+
+| 概念 | 职责 | 禁止承担 |
+| --- | --- | --- |
+| `LearnerState` | 学习证据、画像、弱点、掌握度、复测变化、next action 的长期 truth | bot 局部猜测、手动笔记直接改 mastery |
+| `SessionStore` | 所有聊天/session 历史、turn replay、channel conversation continuity | 长期 profile / progress / weak point |
+| `BotProfile` | TutorBot 人格、教学风格、技能绑定、channel 绑定 | 学员长期状态 |
+| `LearnerWorkspace` | 学员可见资产空间：笔记、附件、收藏、导出、学习页 projection | 学习事实判断、推荐处方、compiled truth |
+| `RuntimeSandbox` | 工具执行隔离、临时文件、短期 cache、debug artifact | 任何 durable learner truth |
+
+### 迁移映射
+
+| 旧 TutorBot workspace 内容 | 收敛后的 authority |
+| --- | --- |
+| persona / soul | `BotProfile` / bot template registry |
+| skills | Skill / Capability registry + `bot_id` binding |
+| sessions | `SessionStore` |
+| channel config | TutorBot channel config service |
+| cron / heartbeat | learner heartbeat service + global arbitration |
+| memory consolidation | `LearnerStateService` event/synthesis pipeline, or conversation-only session summary |
+| media / attachments | owner-scoped attachment store with quota / retention |
+| logs / replay | observability / trace / session replay |
+| tool scratch files | `RuntimeSandbox` |
+
+### 禁止模式
+
+- `per_user_workspace -> PROFILE/SUMMARY/PROGRESS/COMPILED_TRUTH`
+- `TutorBot workspace memory -> LearnerState overwrite`
+- `workspace_summary -> learner profile`
+- `manual_note -> mastery++`
+- `calendar_completed -> mastered`
+- `bot overlay -> global weak point`
+- `per-user workspace -> copied rubric / KB / runtime_supply`
+
+## P0A NotebookCard / NoteAssets Contract
+
+`NotebookCardService` 是 P0A 学习卡片的唯一写/读/删 authority。它管理的是
+owner-scoped 用户资产，不是 learner truth。生产持久化表为
+`learner_notebook_cards`，按 `user_id + note_id` 隔离，带 RLS 与 `version` 乐观并发。
+
+卡片写入边界：
+
+- 入口复用 `POST /api/v1/notebook/add_record`，以 `metadata.card_type` 作为分流键。
+- 命中 `scoring_card / error_pattern_note / review_note / manual_note` 时，必须走
+  `NotebookCardService.save_card()`；未命中时 legacy `NotebookManager` 行为保持不变。
+- 卡片保存只能调用 `LearnerStateService.record_notebook_writeback()` 追加一条低权重
+  `student_note` recall 事件。
+- 卡片保存、更新、删除不得调用 `refresh_from_turn()`、`_rewrite_summary()`、
+  `patch_overlay()`、compiled-truth refresh 或任何 mastery/profile/progress promotion。
+- `mastery_effect` 在 P0A 固定为 `none`；调用方传入其他值必须被忽略。
+- 删除语义是 archive 用户资产，`learning_evidence` 不物理删除。
+
+读取投影边界：
+
+- `GET /api/v1/mobile/learning-report` 可以只读投影 `note_assets` 与最多 3 条
+  `today_tasks`。
+- `note_assets` 的 authority 字段必须指向 `learner_notebook_cards`。
+- `today_tasks` 是 read-only projection，只能从 learning-report read model 生成；P0A
+  不允许新增 planner CRUD、完成状态落库、延期、周/月日历或第二首页 reader。
+- 若卡片缺少 `source_ref`，前端不得展示“可追溯到历史证据/稳定诊断”的判断，只能把它当作
+  学员自记资产。
+
+行为埋点边界：
+
+- P0A 事件必须复用 `surface-events -> product_behavior_events`，不得新增 learner-workspace
+  专用埋点 endpoint。
+- 允许事件名：`note_card_suggested`、`note_card_saved`、`note_card_rejected`、
+  `note_action_started`、`probe_requested_from_note`、`today_task_rendered`、
+  `today_task_started`。
+- 行为事件 metadata 不得包含原始作答、完整聊天文本、手机号、验证码或完整自由文本。
 
 ## Member Console / BI Audit Boundary
 
@@ -32,8 +143,44 @@
   `ops_action_result`、`feedback_triage`、`bi_export_request`。
 - 这些记录不是 learner state writeback，不得修改 `learner_summaries`、
   `learner_memory_events`、profile、progress、goals、heartbeat 或 overlay 真相。
+- BI 会员列表 / 会员经营总量的 eligibility authority 是 Supabase
+  `public.user_identity_aliases` 中 `alias_type='phone'` 且来源可信的手机号身份：
+  `phone_backfill`、`member_console_backfill`、`phone_verification`。`public_users_backfill`
+  是批量迁移 / 测试污染高风险来源，不得计入真实运营会员。`public.v_members` 只负责为这些
+  phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
+  只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
+  生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。
+- `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
+  0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
+  authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
+  profile、learner summary 或 learner memory。
+- 会员套餐目录可以通过 audited admin endpoint 增删改，并由 `member_console.packages` 作为 BI
+  commerce 的套餐目录 authority；这只改变后续可售 / 可人工开通的套餐配置，不回写历史购买流水，
+  不改变 wallet ledger 的收入事实，也不得成为 learner-state 或会员余额的第二套 authority。
+- BI / member-console 可以提供传统会员管理式的人工开通 / 续费入口，但该入口必须同时满足三条边界：
+  权益变更写 `member_console` 审计，点数 / 收入事实写 `WalletService.grant_points()` 产生的
+  `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state
+  事实。若 wallet service 不可用，人工付费开通必须 fail-closed，不能只改会员到期时间。
+- BI 会员运营新增窗口指标（例如今日、近 7 天、近 30 天新增）只能在上述可信会员目录内按
+  canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
+  行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
+  `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
+- BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做
+  read-model overlay；当 Supabase 目录暂时缺少一个本地已注册、手机号可信且有 session 活跃
+  证据的会员时，`member_console` 可以把该会员作为
+  `member_console_session_activity_supplement` 补入列表。这个补入只修正运营读模型可见性和排序，
+  不改变 Supabase 会员 eligibility authority，不得写 learner state，也不得作为新增会员窗口指标
+  或钱包/学习事实的 canonical source。
+- `member_console` 的角色权限矩阵与 per-user 权限覆盖只属于 BI/admin 控制面访问控制。它们可以决定
+  管理员能看哪些运营 tab、执行哪些运营动作，但不得改变 learner profile、progress、goals、
+  learner_memory_events、wallet ledger、turn/session state 或任何学习事实 authority。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
+- 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理
+  登录密码、手机号验证码和密码找回；这些是账户凭证 authority，不是 learner-state
+  writeback。`/api/v1/auth/reset-password` 成功后只能更新 external auth 密码、消费验证码并
+  失效旧 auth session，不得写 `learner_summaries`、`learner_memory_events`、profile、
+  progress、goals、heartbeat 或 assessment / turn state，也不得返回登录 token。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment
@@ -49,7 +196,7 @@
 
 实现设计见：
 
-- [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/2026-04-15-bot-learner-overlay-service-design.md)
+- [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-service-design.md)
 
 但必须满足以下硬约束：
 
@@ -134,6 +281,9 @@ Overlay 必须支持：
   `user_stats.knowledge_map.projections.home_personalization`。服务层读回时可暴露为
   `progress.home_personalization` 以便页面消费，但不得把同一 projection 放入平行表、
   本地 JSON 或 member-console cache 作为第二套权威。
+- 学情页教材目录进度不得写入 `user_stats.knowledge_map` 作为第二套主真相。它只能由
+  `learning-report-read-model` 读取 taxonomy/textbook-directory 与已有 learning evidence 后即时投影，
+  用来展示章节覆盖和证据定位，不得反向覆盖 mastery、weak points 或 diagnosis。
 
 必须真实接入：
 
@@ -175,6 +325,33 @@ Overlay 必须支持：
   只能读取 `learner_summaries.summary_structured_json.learning_brain`，不得让本地缓存
   与 durable store 竞争权威；生产环境即使 Supabase core store 未配置，也不得 fail-open
   读取本地 `COMPILED_TRUTH.json`；在线链路不得为了召回临时重跑 synthesis。
+- 生产环境写 canonical learner-truth 默认 **fail-closed**（M33-ACT G4）：
+  `write_compiled_learning_truth` 在 `is_production_environment()` 下默认只返回 preview 投影、
+  不落盘，从而保持 `canonical_truth_written=false` 安全不变量。该硬挡只能由
+  `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）显式打开；该 flag 的翻转
+  本身还受 trusted adjudication / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
+  即使 flag=true，生产写入仍必须受
+  `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT` 前缀门约束，默认只允许
+  `qa_,operator_`；非 cohort 用户继续 preview/fail-closed，不得写入 durable store。
+  如果需要 broad real-student canonical write，必须额外显式打开
+  `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED` 或兼容别名
+  `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED`，并且 projection 的
+  `synthesis_run.trusted_adjudication` 必须证明最终裁决来源可信。对外 contract 与主链路
+  统一使用 `trusted_adjudication`；历史 `teacher_final` / `teacher_reviewed` 字段只能作为
+  legacy alias 兼容旧读者，不得再作为真人老师终审前置或 UI 主文案。AI 裁决来源（如
+  `llm_jury` / `ai_jury`）必须同时满足最低置信度
+  `LUBAN_CANONICAL_LEARNER_TRUTH_AI_ADJUDICATION_MIN_CONFIDENCE`（默认 0.85）和
+  `conflict_status=resolved`；低置信、冲突未解决、shadow draft、candidate-only 一律不得写
+  canonical truth。真人老师只能作为 `human_teacher` / `human_qa_teacher` 等 trusted
+  adjudication source 之一，不得成为 broad 默认链路的必需前置。
+  生产环境即使 flag=true，也必须写入 Supabase/core-store 的
+  `learner_summaries.summary_structured_json.learning_brain` 并从同一 core-store 读回；
+  core-store 未配置或 writer 失败时继续 preview/fail-closed，不得退回本地
+  `COMPILED_TRUTH.json` 作为 production authority。
+  `synthesize_learning_truth(dry_run=False)` 生成的 `summary_refresh` 不得绕过同一 promotion
+  policy 写入 `summary_structured_json.learning_brain`；promotion 不允许时只能刷新摘要文本，
+  不得把 projection 通过 learner summary 旁路写成 durable canonical-ish truth。
+  非生产路径不受此 flag 影响。
 
 #### `learner_memory_events`
 
@@ -210,6 +387,17 @@ Overlay 必须支持：
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
+- Grading-to-Brain loop seam：`build_context_candidates` 除 `compiled_learning_truth` 外，必须再返回
+  `personalization_context`（PersonalizationContextPack）。它是**对同一 `compiled_learning_truth` 的投影**
+  （单一 authority，不是第二次读取、不是第二套推荐器），由 `build_personalization_context_pack` 生成；
+  无 compiled truth 时降级为空 claims（`top_claims=[]`），**绝不**伪造。`personalization_context` 与 claims
+  的写入证据仍受 `synthesize_learning_truth` 的 release-eligibility 读过滤约束：shadow/candidate 或
+  `quality.writeback_eligible=False` 的事件即使泄漏进 `learner_memory_events`，也不得进入 claim / PCP。
+- 手动笔记/卡片来源的召回（recall）注入必须可识别且降权：`build_context_candidates`
+  对 `memory_kind` 以 `notebook_` 开头或 `payload.metadata.source_label="student_note"`
+  的命中，统一打顶层 `source_label="student_note"`、`weight ≤ 0.4`，并在注入文案前缀
+  「（学员自记，不代表已掌握）」。学员主观笔记只作低权重个性化上下文，**不得**被当作
+  已掌握证据、不得反向覆盖 learner state（PRD §1.2 / §5）。其余 `memory_hit` 候选行为不变。
 - Home dashboard 个性化只能读取 learner-state projection、同一 learner snapshot
   内最近的 canonical `learning_evidence`，或 starter pool。`member_console`
   请求路径不得同步运行完整 learning report，也不得根据 weak point 现场重新推导
@@ -218,6 +406,18 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- 学情 / 首页展示 topic、Home dashboard 用户可见的 `today_focus` 与 recommended prompt
+  topic 必须来自同一 learner-state / taxonomy authority 的 canonical label，并经
+  taxonomy canonical resolver 对齐到教材目录 canonical 章/节名称。学情、每日任务、
+  assessment evidence、next-best-action、`member_console`、learning report read model
+  和微信 view model 只能提供证据与行动信号，不得从题干句子、prompt 文案、泛指词
+  （如“本题为”“这题”）、自由文本、旧缓存 topic、frontend 解析结果或未入教材目录的
+  短语反推出新的 focus / 推荐；无法映射到 canonical 教材章节或小节时必须丢弃或回退到
+  最近有效 `learning_evidence` / starter projection。
+- `member_console` 的首页 focus adapter 只能委托
+  `learner_state.home_personalization.canonical_home_focus_topic_label()`；该 helper
+  对用户可见首页主题先使用教材目录 alias / 章节目 canonical 名，再回退到 taxonomy
+  canonical label，避免 `member_console` 形成第二套 topic 归一化 authority。
 - 生产 Supabase 写入任何 learner-state 外键表（包括 `learner_memory_events`、
   `learner_summaries`、`learning_plans`、`learning_plan_pages`、`heartbeat_jobs` 和
   overlay 表）前，writeback pipeline 必须先确保同一个 canonical `user_id` 已存在于
@@ -542,11 +742,19 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
    所有写动作经 `useAuditedAction` → 注册在
    `deeptutor/contracts/bi_v2_write_endpoints.py` 的真实 endpoint。
 
+7. **Langfuse / BI 身份互证边界**：Langfuse trace 可以记录
+   `identity_resolution_status`、`raw_user_id`、`member_user_id` 和
+   `identity_matched`，用于把观测 user/session 归一到
+   `MemberConsoleService` 输出的 canonical member id。Langfuse 不得成为第二套会员
+   authority，不得反写会员资料，不得把手机号作为 trace user id 或额外 PII 扩散；未映射
+   trace 只能标记为 `unmapped`，进入待绑定/排查队列。
+
 ### 单一权威清单
 
 | 子事实 | 唯一 authority | BI v2 前端职责 |
 |---|---|---|
-| 会员身份 / Tier / 状态 | `MemberConsoleService` + auth identity | 只读 + 受控写经 audited endpoint |
+| 会员身份 / Tier / 状态 | Supabase trusted phone aliases + `public.v_members` read model；`member_console` 仅 overlay 运营备注 / 审计 | 只读 + 受控写经 audited endpoint |
+| Langfuse trace 身份归一 | Supabase trusted identity projection exposed through `MemberConsoleService` | 只读互证；unmapped 只排查，不创建会员 |
 | 钱包余额 / 流水 | `WalletService` | 只读 + idempotency 兜底（P1 接 etag/undo） |
 | 学习事实 / 掌握度 | `learner_state` read model | 只读，禁止前端写 |
 | 反馈 | `FeedbackService` (P0) | 列表读，triage 在 useAuditedAction 接入后才启用 |
@@ -572,7 +780,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 
 ### 关联文档
 
-- 计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+- 计划：`docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
 - 灰度 runbook：`docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`
 - 阿里云部署 + 手动测试：`docs/zh/bi/bi-backoffice-v2-aliyun-deploy.md`
 - WRITE_ENDPOINTS 注册表：`deeptutor/contracts/bi_v2_write_endpoints.py`

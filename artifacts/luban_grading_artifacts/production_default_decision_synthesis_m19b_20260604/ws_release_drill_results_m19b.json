@@ -1,0 +1,209 @@
+{
+  "canonical_truth_written": false,
+  "category_counts": {
+    "cohort_flag_on": 128,
+    "fallback": 5,
+    "kill_switch": 3,
+    "malformed_registry": 2,
+    "non_cohort": 5,
+    "provider_failure": 2,
+    "rollback_flag_off_pair": 30
+  },
+  "cohort_coverage": [
+    "operator_",
+    "qa_",
+    "test_"
+  ],
+  "harness_session_write_calls": 205,
+  "legacy_equal_rate": 1.0,
+  "live_llm_calls_executed": false,
+  "non_cohort_real_student_blocked": true,
+  "normal_flag_on_adjudication_attached": true,
+  "production_write_count": 0,
+  "provider_mode": "deterministic_in_process_provider_for_release_guard_drill",
+  "real_entry": "/api/v1/ws TestClient",
+  "sample_rows": [
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-00",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-02",
+      "user": "test_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-30-03",
+      "user": "operator_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-01",
+      "user": "qa_m19b_release"
+    },
+    {
+      "adjudication_attached": true,
+      "canonical_truth_written": false,
+      "kind": "cohort_flag_on",
+      "legacy_present": true,
+      "production_write": false,
+      "question_id": "M2-2015-31-02",
+      "user": "test_m19b_release"
+    }
+  ],
+  "submission_count": 205,
+  "target_min_submissions": 205
+}

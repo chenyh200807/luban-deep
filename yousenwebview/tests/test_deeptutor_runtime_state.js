@@ -83,10 +83,20 @@ run("runtime state reads and writes app globalData when app is available", funct
 
   runtime.markGoHome();
   runtime.setPendingConversationId("conv_42");
-  runtime.setPendingChatIntent("继续上次的问题", "DEEP", {
-    source: "assessment_result_wrong_item",
-    attempt_ref: "attempt_signed",
-  });
+  runtime.setPendingChatIntent(
+    "继续上次的问题",
+    "DEEP",
+    {
+      source: "assessment_result_wrong_item",
+      attempt_ref: "attempt_signed",
+    },
+    {
+      question_id: "q_wrong_1",
+      question: "地下防水卷材搭接做法正确的是？",
+      question_type: "choice",
+      user_answer: "B",
+    },
+  );
   runtime.setNetworkAvailable(false);
   runtime.setAuthRedirecting(true);
 
@@ -111,6 +121,11 @@ run("runtime state reads and writes app globalData when app is available", funct
     app.globalData.pendingChatPromptIntent &&
       app.globalData.pendingChatPromptIntent.attempt_ref === "attempt_signed",
     "pending chat prompt intent should sync into app globalData",
+  );
+  assert(
+    app.globalData.pendingChatFollowupQuestionContext &&
+      app.globalData.pendingChatFollowupQuestionContext.question_id === "q_wrong_1",
+    "pending chat followup question context should sync into app globalData",
   );
   assert(app.globalData.networkAvailable === false, "network availability should sync into app globalData");
   assert(app.globalData._authRedirecting === true, "auth redirecting should sync into app globalData");
@@ -141,12 +156,21 @@ run("runtime state reads and writes app globalData when app is available", funct
     "pending chat intent should preserve prompt intent",
   );
   assert(
+    intent.followupQuestionContext &&
+      intent.followupQuestionContext.question_id === "q_wrong_1",
+    "pending chat intent should preserve followup question context",
+  );
+  assert(
     app.globalData.pendingChatQuery === "",
     "pending chat query should clear in app globalData after consume",
   );
   assert(
     app.globalData.pendingChatMode === "AUTO",
     "pending chat mode should reset in app globalData after consume",
+  );
+  assert(
+    app.globalData.pendingChatFollowupQuestionContext === null,
+    "pending chat followup question context should clear in app globalData after consume",
   );
   assert(app.globalData.pendingChatPromptIntent === null, "pending chat prompt intent should clear after consume");
   runtime.setWorkspaceBack("/packageDeeptutor/pages/report/report", "学情");
@@ -245,7 +269,12 @@ run("runtime pending conversation and intent still work without app fallback", f
   var runtime = loadRuntime({ token: "token_demo" });
 
   runtime.setPendingConversationId("conv_42");
-  runtime.setPendingChatIntent("继续上次的问题", "DEEP", { concept_label: "地下防水" });
+  runtime.setPendingChatIntent(
+    "继续上次的问题",
+    "DEEP",
+    { concept_label: "地下防水" },
+    { question_id: "q_fallback_1", question: "防水题", question_type: "choice" },
+  );
 
   assert(
     runtime.peekPendingConversationId() === "conv_42",
@@ -264,10 +293,18 @@ run("runtime pending conversation and intent still work without app fallback", f
   assert(intent.query === "继续上次的问题", "pending chat intent should preserve query");
   assert(intent.mode === "DEEP", "pending chat intent should preserve mode");
   assert(intent.promptIntent.concept_label === "地下防水", "pending chat intent should preserve prompt intent");
+  assert(
+    intent.followupQuestionContext.question_id === "q_fallback_1",
+    "pending chat intent should preserve followup context without app fallback",
+  );
 
   var emptyIntent = runtime.consumePendingChatIntent();
   assert(emptyIntent.query === "", "pending chat query should clear after consume");
   assert(emptyIntent.mode === "AUTO", "pending chat mode should reset to AUTO after consume");
+  assert(
+    emptyIntent.followupQuestionContext === null,
+    "pending followup context should clear after consume",
+  );
 });
 
 if (fail) {

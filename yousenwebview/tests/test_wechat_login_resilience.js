@@ -85,6 +85,13 @@ function loadPage(relativePath, options) {
           user: { user_id: "user_1" },
         });
       },
+      wxLoginWithPhone: function () {
+        return Promise.resolve({
+          token: "token_1",
+          expires_at: 1800000000,
+          user: { user_id: "user_1" },
+        });
+      },
       bindPhone: function () {
         return Promise.resolve({ ok: true });
       },
@@ -178,22 +185,24 @@ function loadPage(relativePath, options) {
   var pageCases = [
     {
       path: "packageDeeptutor/pages/login/login.js",
-      handler: "handleWechatLogin",
+      handler: "handleWechatPhoneNumber",
     },
     {
       path: "packageDeeptutor/pages/register/register.js",
-      handler: "handleWechatRegister",
+      handler: "handleWechatPhoneNumber",
     },
   ];
 
-  await run("wechat login should retry once with a fresh wx.login code after transient upstream failure", async function () {
+  await run("phone-authorized quick login should retry once with a fresh wx.login code after transient upstream failure", async function () {
     for (var i = 0; i < pageCases.length; i++) {
       var attempts = 0;
+      var phoneCodes = [];
       var loaded = loadPage(pageCases[i].path, {
         loginCodes: ["code-first", "code-second"],
         api: {
-          wxLogin: function (code) {
+          wxLoginWithPhone: function (code, phoneCode) {
             attempts += 1;
+            phoneCodes.push(phoneCode);
             if (attempts === 1) {
               return Promise.reject(new Error("HTTP_502: {\"detail\":\"WeChat code2Session request timed out. Please try again.\"}"));
             }
@@ -209,14 +218,18 @@ function loadPage(relativePath, options) {
         },
       });
 
-      loaded.page[pageCases[i].handler]();
+      loaded.page[pageCases[i].handler]({ detail: { code: "phone-code-1" } });
       await flushPromises();
       await flushPromises();
       await flushPromises();
 
       assert(
         attempts === 2,
-        pageCases[i].path + " should retry wxLogin once after transient upstream failure",
+        pageCases[i].path + " should retry wxLoginWithPhone once after transient upstream failure",
+      );
+      assert(
+        phoneCodes.length === 2 && phoneCodes[0] === "phone-code-1" && phoneCodes[1] === "phone-code-1",
+        pageCases[i].path + " should reuse the same explicit phone authorization code across the retry",
       );
       assert(
         loaded.state.wxLoginCalls === 2 &&
@@ -235,7 +248,7 @@ function loadPage(relativePath, options) {
     var loaded = loadPage("packageDeeptutor/pages/login/login.js", {
       loginCodes: ["code-first", "code-second"],
       api: {
-        wxLogin: function () {
+        wxLoginWithPhone: function () {
           return Promise.reject(new Error("NETWORK_ERROR: request:fail timeout"));
         },
         shouldRetryWechatLogin: function () {
@@ -247,7 +260,7 @@ function loadPage(relativePath, options) {
       },
     });
 
-    loaded.page.handleWechatLogin();
+    loaded.page.handleWechatPhoneNumber({ detail: { code: "phone-code-1" } });
     await flushPromises();
     await flushPromises();
     await flushPromises();

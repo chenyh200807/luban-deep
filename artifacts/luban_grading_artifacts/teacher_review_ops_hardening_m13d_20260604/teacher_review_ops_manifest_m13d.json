@@ -1,0 +1,22 @@
+{
+  "stage": "M13D Teacher Review Ops Hardening for Limited Release",
+  "input_artifacts": {
+    "b_qa1": "artifacts/luban_grading_artifacts/qa_productization_b_line_20260604",
+    "m12": "artifacts/luban_grading_artifacts/internal_live_qa_runtime_drill_m12_20260604",
+    "m13": "artifacts/luban_grading_artifacts/formal_release_candidate_gate_m13_20260604"
+  },
+  "touches_scoring_authority": false,
+  "touches_runtime": false,
+  "production_write_count": 0,
+  "lb_canonical_writeback": 0,
+  "source_authority_mutation": false,
+  "required_outputs": [
+    "teacher_review_ops_manifest_m13d.json",
+    "review_queue_consolidated_m13d.jsonl",
+    "teacher_packets_m13d",
+    "teacher_action_dryrun_m13d.jsonl",
+    "operator_metrics_m13d.json",
+    "mistaken_accept_guard_audit_m13d.json",
+    "FINDING_teacher_review_ops_hardening_m13d_20260604.md"
+  ]
+}

@@ -525,7 +525,12 @@ def test_supabase_candidate_prefers_confirmed_taxonomy_code_over_generic_metadat
     )
 
     assert candidate is not None
-    assert candidate.chapter == "建筑高度计算方法"
+    # node_code 1A411011-02-d has no leaf in the canonical taxonomy → resolves to its base
+    # 1A411011, whose canonical chapter is "建筑物分类与构成" (verified in both the current
+    # book-derived compiled taxonomy and the pre-rebuild backup; "建筑高度计算方法" exists
+    # nowhere in the taxonomy). The point of this test — prefer the confirmed taxonomy code's
+    # chapter over the generic source_meta.chapter_name "这题" — is unchanged.
+    assert candidate.chapter == "建筑物分类与构成"
 
 
 def test_supabase_candidate_rejects_multi_prompt_case_stem_for_click_assessment() -> None:

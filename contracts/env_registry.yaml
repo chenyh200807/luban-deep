@@ -1,0 +1,498 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# env / flag / credential registry — "registered-or-you-can't-read-it".
+#
+# This file is the ONE machine-readable catalog of every environment variable,
+# feature flag, and credential the codebase reads. It turns the
+# RESOURCE_GOVERNANCE_FIX_PLAN root-cause business fact —
+#   "每个共享资源在被使用前，必须能被机器确认它登记在唯一 canonical 清单里"
+# — into a deterministic CI gate enforced by scripts/check_env_registry.py,
+# wired into the SAME contract-guard runner (NOT a new governance system).
+#
+# Sibling registries it mirrors EXACTLY (same shape, same runner):
+#   contracts/schema_registry.yaml + scripts/check_schema_registry.py
+#   contracts/db_registry.yaml     + scripts/check_db_registry.py
+#
+# DISCIPLINE:
+#   - Deterministic POLICY FILTER, not a transport, not a secret store.
+#     It grants no access and reads no secret value — it only records that a
+#     name is registered. Adding an entry changes NO behavior; it makes an
+#     existing reference machine-checkable.
+#   - Single canonical list. No second env inventory may exist. .env.example is
+#     a PROJECTION/subset of this registry for local bring-up (see below), not a
+#     competing authority.
+#   - Records CURRENT STATE only. The 284 references found in deeptutor/+scripts/
+#     today are grandfathered. The gate's job is 止血 (stop new drift), not a
+#     one-shot cleanup.
+#
+# THE DANGER THIS GUARDS (why feature_flags are called out separately):
+#   A misspelled feature flag makes runtime_env.env_flag(name) silently return
+#   its `default` → 灰度看似生效实则没生效 (假灰度). KB v5 (KBV5_RAG_ENABLED) and
+#   LUBAN_V1 (LUBAN_V1_*_ENABLED) gray-release correctness depend on these names
+#   being exact. A typo is the same failure shape as the learner-memory "假绿".
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/RESOURCE_GOVERNANCE_FIX_PLAN.md      (Layer 2 · P1, §5+§3)
+#   docs/plan/鲁班knowql/ENV_FLAG_INVENTORY.md               (the read-only盘点)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+# An env name MUST register when production code reads it via any of the read
+# entry points below. Tests/fixtures are out of scope.
+scope_rule:
+  read_entry_points:
+    - os.getenv("NAME")
+    - os.environ["NAME"] / os.environ.get("NAME")
+    - env_store.get("NAME") / get_env_store().get("NAME")
+    - runtime_env.env_flag("NAME")   # ← the machine signal "this is a boolean flag"
+  must_register_if_any:
+    - production_env_reference        # any UPPER_SNAKE literal read in deeptutor/ or scripts/
+    - feature_flag_read               # any name read through env_flag()  → must be a registered feature_flag
+  not_required:
+    - test_or_fixture_reference       # under tests/ ; no production contract
+    - dynamic_or_lowercase_key        # os.getenv(var) / os.getenv("lower") — not a governed literal
+
+# ── .env.example relationship (诚实说明，不造第二份竞争清单) ──────────────────
+# .env.example is a PROJECTION (subset) of this registry: the ~52 keys a fresh
+# local checkout must fill to boot. This registry is the canonical superset of
+# EVERY referenced name (284). They are intentionally NOT line-for-line equal;
+# .env.example deliberately omits prod-only / cohort / ops keys. Do not promote
+# .env.example into a second authority.
+env_example_relationship:
+  canonical: contracts/env_registry.yaml
+  projection: .env.example
+  rule: "registered_envs ⊇ keys(.env.example)"
+
+# ── Feature flags (the boolean gray-release surface — most dangerous, typo = 假灰度)
+# Every BOOLEAN gray-release / kill-switch flag is listed here with its default
+# and gray-release semantics. There are TWO read mechanisms in this codebase:
+#   1. runtime_env.env_flag("NAME")  — the canonical reader (33 names).
+#   2. os.environ.get("NAME","").strip().lower() in (truthy…)  — hand-rolled
+#      boolean parse used by the LUBAN_V1 / Luban kill-switches (12 names).
+# The scanner's ENFORCEMENT (rule b) keys ONLY on mechanism 1 (env_flag) — that
+# is the deterministic machine signal "this is a flag", so a NEW env_flag() typo
+# fails. Mechanism-2 flags are read like any env, so the scanner protects them via
+# rule (a) (the name must be a registered env). We still LIST mechanism-2 flags
+# here because they ARE the most gray-release-critical names (LUBAN_V1_* / KB) and
+# an honest inventory must show the full boolean surface, not just the env_flag
+# subset. (A future hardening could route mechanism-2 reads through env_flag to
+# bring them under rule b too — out of this minimal收权 scope.)
+#   default = value returned when the var is unset — a typo silently yields THIS.
+#   read    = env_flag | hand_rolled    (which mechanism reads it)
+#   kind ∈ {killswitch, rollout, shadow, dev, config, fallback}
+feature_flags:
+  - {name: ASSESSMENT_PREWARM_FORMS, default: false, kind: rollout}
+  - {name: ASSESSMENT_USE_SUPABASE, default: false, kind: rollout}
+  - {name: DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED, default: true, kind: killswitch}
+  - {name: DEEPTUTOR_ENABLE_API_DOCS, default: false, kind: config}
+  - {name: DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA, default: false, kind: dev}
+  - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
+  - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
+  - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
+  - {name: DEEPTUTOR_SEMANTIC_ROUTER_ENABLED, default: true, kind: killswitch}
+  - {name: DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE, default: false, kind: shadow}
+  - {name: DISABLE_SSL_VERIFY, default: false, kind: killswitch}  # security: on = disable TLS verify
+  - {name: FF_EMBEDDING_CACHE_ENABLED, default: false, kind: rollout}
+  - {name: KBV5_RAG_ENABLED, default: false, kind: rollout}        # KB v5 gray-release核心
+  - {name: LANGFUSE_CAPTURE_INPUT, default: false, kind: config}
+  - {name: LANGFUSE_CAPTURE_OUTPUT, default: false, kind: config}
+  - {name: LANGFUSE_DEBUG, default: false, kind: config}
+  - {name: LANGFUSE_ENABLED, default: false, kind: killswitch}
+  - {name: LANGFUSE_HTTPX_TRUST_ENV, default: false, kind: config}
+  - {name: LANGFUSE_MASK_PII, default: false, kind: config}        # PII
+  - {name: LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED, default: false, kind: rollout}
+  - {name: MEMBER_CONSOLE_USE_REAL_SMS, default: false, kind: killswitch}  # off = mock SMS
+  - {name: MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY, default: false, kind: rollout}
+  - {name: QUESTION_LIFECYCLE_DECISION_AUTHORITY, default: true, kind: killswitch}  # no _ENABLED suffix
+  - {name: SUPABASE_RAG_COMPILED_TRUTH_ENABLED, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_ENABLE_EXACT_QUESTION, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_ENABLE_RERANK, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_ENABLED, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_EXACT_QUESTION_TEXT_FIRST, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_INCLUDE_QUESTIONS, default: true, kind: rollout}
+  - {name: SUPABASE_RAG_PROVENANCE_BOOST_ENABLED, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_QUERY_EXPANSION, default: false, kind: rollout}
+  - {name: SUPABASE_RAG_QUERY_PLAN_TRACE_ENABLED, default: false, kind: shadow, read: env_flag}
+  - {name: SUPABASE_RAG_SECOND_PASS, default: false, kind: rollout, read: env_flag}
+  # ── mechanism 2: hand-rolled os.environ.get(...).strip().lower() boolean gates.
+  # These are the LUBAN_V1 / Luban gray-release kill-switches — the MOST
+  # release-critical flags in the repo. Listed for an honest inventory; enforced
+  # via rule (a) (registered env) rather than rule (b) (env_flag).
+  - {name: LUBAN_V1_CONTROLLED_RUNTIME_ENABLED, default: true, kind: killswitch, read: hand_rolled}
+  - {name: LUBAN_CASE_RUBRIC_V1_ENABLED, default: true, kind: killswitch, read: hand_rolled}
+  - {name: LUBAN_V1_LLM_ADJUDICATOR_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON, default: false, kind: dev, read: hand_rolled}
+  - {name: LUBAN_V1_BETA_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
+  - {name: LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
+  - {name: LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_M35_ARTIFACT_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
+  - {name: LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED, default: true, kind: killswitch, read: hand_rolled}
+  - {name: LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED, default: false, kind: killswitch, read: hand_rolled}
+  - {name: DEEPTUTOR_DEMO_TOKENS_ENABLED, default: false, kind: dev, read: hand_rolled}
+
+# ── Credentials (secret kind — 并入此 registry，不另建凭据系统) ───────────────
+# Names whose VALUE is a secret. Listed here only as NAMES (never values) so the
+# single inventory answers "what secrets does the system depend on / who owns
+# them". detect-secrets still guards plaintext; check_secret_envs.py guards the
+# one prod fail-closed secret. This list is the catalog those two lack.
+credentials:
+  - {name: LLM_API_KEY, owner: llm_runtime}
+  - {name: EMBEDDING_API_KEY, owner: embedding_runtime}
+  - {name: SEARCH_API_KEY, owner: search_runtime}
+  - {name: DEEPSEEK_API_KEY, owner: provider_deepseek}
+  - {name: DEEPSEEK_BILLING_API_KEY, owner: provider_deepseek}
+  - {name: DASHSCOPE_API_KEY, owner: provider_dashscope}
+  - {name: OPENAI_API_KEY, owner: provider_openai}
+  - {name: DEEPTUTOR_OPENAI_API_KEY, owner: provider_openai}
+  - {name: ANTHROPIC_API_KEY, owner: provider_anthropic}
+  - {name: GROQ_API_KEY, owner: provider_groq}
+  - {name: COHERE_API_KEY, owner: provider_cohere}
+  - {name: BRAVE_API_KEY, owner: provider_brave}
+  - {name: TAVILY_API_KEY, owner: provider_tavily}
+  - {name: JINA_API_KEY, owner: provider_jina}
+  - {name: BAIDU_OCR_API_KEY, owner: provider_baidu_ocr}
+  - {name: BAIDU_OCR_SECRET_KEY, owner: provider_baidu_ocr}
+  - {name: ALIYUN_SMS_ACCESS_KEY_ID, owner: aliyun_sms}
+  - {name: ALIYUN_SMS_ACCESS_KEY_SECRET, owner: aliyun_sms}
+  - {name: ALIBABA_CLOUD_ACCESS_KEY_ID, owner: aliyun_sdk, needs_verification: true}   # 与 ALICLOUD_*/ALIYUN_SMS_* 三套并存，收敛待 work order
+  - {name: ALIBABA_CLOUD_ACCESS_KEY_SECRET, owner: aliyun_sdk, needs_verification: true}
+  - {name: ALICLOUD_ACCESS_KEY_ID, owner: aliyun_sdk, needs_verification: true}
+  - {name: ALICLOUD_ACCESS_KEY_SECRET, owner: aliyun_sdk, needs_verification: true}
+  - {name: BAILIAN_BILLING_ACCESS_KEY_ID, owner: bailian_billing}
+  - {name: BAILIAN_BILLING_ACCESS_KEY_SECRET, owner: bailian_billing}
+  - {name: BAILIAN_TELEMETRY_ACCESS_KEY_ID, owner: bailian_telemetry}
+  - {name: BAILIAN_TELEMETRY_ACCESS_KEY_SECRET, owner: bailian_telemetry}
+  - {name: WECHAT_MP_APP_SECRET, owner: wechat_mp}
+  - {name: WECHAT_MP_TOKEN_SECRET, owner: wechat_mp}
+  - {name: SUPABASE_KEY, owner: supabase}
+  - {name: SUPABASE_ANON_KEY, owner: supabase}
+  - {name: SUPABASE_SERVICE_KEY, owner: supabase}
+  - {name: SUPABASE_SERVICE_ROLE_KEY, owner: supabase}
+  - {name: LANGFUSE_PUBLIC_KEY, owner: langfuse}
+  - {name: LANGFUSE_SECRET_KEY, owner: langfuse}
+  - {name: DEEPTUTOR_ATTEMPT_REF_SECRET, owner: deeptutor_core}      # already guarded by check_secret_envs.py
+  - {name: DEEPTUTOR_AUTH_SECRET, owner: deeptutor_core}
+  - {name: MEMBER_CONSOLE_AUTH_SECRET, owner: member_console}
+  - {name: DEEPTUTOR_METRICS_TOKEN, owner: deeptutor_core}
+  - {name: DEEPTUTOR_WS_SMOKE_TOKEN, owner: ops_smoke}
+  - {name: DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN, owner: ops_smoke}
+  - {name: DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN, owner: test2_cohort}
+  - {name: DEEPTUTOR_TEST2_COHORT_PASSWORD, owner: test2_cohort}
+  - {name: DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD, owner: qa}
+  - {name: GITHUB_TOKEN, owner: ci}
+
+# ── Aliases (deliberate fallback spellings — NOT drift) ──────────────────────
+# `os.getenv(X) or os.getenv(Y)` accepted-alias pairs. The canonical is on the
+# left. Registered so the scanner does not flag the alias as "unregistered".
+aliases:
+  - {alias: WECHAT_MP_APPSECRET, canonical: WECHAT_MP_APP_SECRET}   # service.py:2517-2518 explicit fallback
+  - {alias: WECHAT_MP_APPID, canonical: WECHAT_MP_APP_ID}           # service.py:2816-2817 explicit fallback
+  - {alias: OPENAI_APIKEY, canonical: OPENAI_API_KEY}
+  - {alias: BAILIAN_BILLING_APIKEY_ID, canonical: BAILIAN_BILLING_ACCESS_KEY_ID}
+  - {alias: BAILIAN_TELEMETRY_APIKEY_ID, canonical: BAILIAN_TELEMETRY_ACCESS_KEY_ID}
+  - {alias: CORS_ORIGIN, canonical: CORS_ORIGINS}
+
+# ── Grandfathered envs (存量 — the full referenced set, current state) ────────
+# Every UPPER_SNAKE env literal read in deeptutor/ + scripts/ today. Adding a row
+# here is the deliberate, reviewable act of registering an env; the scanner fails
+# any NEW reference whose name is absent from registry (feature_flags ∪
+# credentials ∪ aliases ∪ this list). This is current-state only — zero behavior
+# change. Some carry needs_verification in ENV_FLAG_INVENTORY.md (liveness not
+# confirmed); they are still registered (never deleted blindly).
+grandfathered_envs:
+  - ALIBABA_CLOUD_ACCESS_KEY_ID
+  - ALIBABA_CLOUD_ACCESS_KEY_SECRET
+  - ALICLOUD_ACCESS_KEY_ID
+  - ALICLOUD_ACCESS_KEY_SECRET
+  - ALIYUN_SMS_ACCESS_KEY_ID
+  - ALIYUN_SMS_ACCESS_KEY_SECRET
+  - ALIYUN_SMS_SIGN_NAME
+  - ALIYUN_SMS_TEMPLATE_CODE
+  - ANTHROPIC_API_KEY
+  - APP_BRAND_NAME
+  - ASSESSMENT_PREWARM_FORMS
+  - ASSESSMENT_USE_SUPABASE
+  - ASSESSMENT_WRITEBACK_WORKERS
+  - BACKEND_PORT
+  - BAIDU_OCR_API_KEY
+  - BAIDU_OCR_SECRET_KEY
+  - BAILIAN_BILLING_ACCESS_KEY_ID
+  - BAILIAN_BILLING_ACCESS_KEY_SECRET
+  - BAILIAN_BILLING_APIKEY_ID
+  - BAILIAN_BILLING_ENDPOINT
+  - BAILIAN_BILLING_MAX_RESULTS
+  - BAILIAN_BILLING_PRODUCT_CODE
+  - BAILIAN_BILLING_PRODUCT_TYPE
+  - BAILIAN_BILLING_REGION_ID
+  - BAILIAN_BILLING_WORKSPACE_ID
+  - BAILIAN_TELEMETRY_ACCESS_KEY_ID
+  - BAILIAN_TELEMETRY_ACCESS_KEY_SECRET
+  - BAILIAN_TELEMETRY_APIKEY_ID
+  - BAILIAN_TELEMETRY_BASE_URL
+  - BAILIAN_TELEMETRY_TIMEOUT_S
+  - BAILIAN_TELEMETRY_VERIFY_SSL
+  - BAILIAN_TELEMETRY_WORKSPACE_ID
+  - BI_RECON_BEHAVIOR_DB
+  - BRAVE_API_KEY
+  - CHAT_DEFAULT_MODE
+  - CHAT_STYLE_PROFILE
+  - COHERE_API_KEY
+  - CONDA_DEFAULT_ENV
+  - CORS_ORIGIN
+  - CORS_ORIGINS
+  - DASHSCOPE_API_KEY
+  - DASHSCOPE_BASE_URL
+  - DATABASE_URL
+  - DB_URL
+  - DEEPSEEK_API_KEY
+  - DEEPSEEK_BASE_URL
+  - DEEPSEEK_BILLING_API_KEY
+  - DEEPSEEK_BILLING_BASE_URL
+  - DEEPSEEK_BILLING_EXPORT_MAX_BYTES
+  - DEEPSEEK_BILLING_USAGE_EXPORT_DIR
+  - DEEPSEEK_M35_ADVERSARIAL_MODEL
+  - DEEPSEEK_M35_BLIND_MODEL
+  - DEEPTUTOR_ADMIN_USER_IDS
+  - DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN
+  - DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK
+  - DEEPTUTOR_ATTEMPT_REF_SECRET
+  - DEEPTUTOR_AUTH_MAX_SESSION_AGE_SECONDS
+  - DEEPTUTOR_AUTH_SECRET
+  - DEEPTUTOR_AUTH_TOKEN_TTL_SECONDS
+  - DEEPTUTOR_BI_PUBLIC_ENABLED
+  - DEEPTUTOR_CANCEL_GRACE_S
+  - DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED
+  - DEEPTUTOR_CONTRACT_INDEX_PATH
+  - DEEPTUTOR_CORS_ALLOW_ORIGINS
+  - DEEPTUTOR_DEBUG_ERRORS
+  - DEEPTUTOR_DEMO_TOKENS_ENABLED
+  - DEEPTUTOR_ENABLE_API_DOCS
+  - DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA
+  - DEEPTUTOR_ENABLE_LEGACY_ROUTERS
+  - DEEPTUTOR_ENV
+  - DEEPTUTOR_ENV_FILE
+  - DEEPTUTOR_ENV_PATH
+  - DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT
+  - DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE
+  - DEEPTUTOR_FILE_LOG_LEVEL
+  - DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD
+  - DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK
+  - DEEPTUTOR_LEARNING_REPORT_CORE_SOURCE_TIMEOUT_MS
+  - DEEPTUTOR_LEARNING_REPORT_SOURCE_WORKERS
+  - DEEPTUTOR_LOG_FILE_FORMAT
+  - DEEPTUTOR_LOG_JSON
+  - DEEPTUTOR_LLM_ACQUIRE_TIMEOUT_SECONDS
+  - DEEPTUTOR_LLM_MAX_CONCURRENCY
+  - DEEPTUTOR_LLM_REQUESTS_PER_MINUTE
+  - DEEPTUTOR_MAX_CONCURRENT_TURNS
+  - DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED
+  - DEEPTUTOR_METRICS_TOKEN
+  - DEEPTUTOR_MISTAKE_BOOK_ENABLED
+  - DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK
+  - DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED
+  - DEEPTUTOR_MODE
+  - DEEPTUTOR_OBSERVABILITY_STORE_DIR
+  - DEEPTUTOR_OBSERVER_EVENT_DIR
+  - DEEPTUTOR_OPENAI_API_KEY
+  - DEEPTUTOR_RATE_LIMIT_BACKEND
+  - DEEPTUTOR_RATE_LIMIT_DB_PATH
+  - DEEPTUTOR_RATE_LIMIT_NAMESPACE
+  - DEEPTUTOR_RATE_LIMIT_REDIS_URL
+  - DEEPTUTOR_SEMANTIC_ROUTER_ENABLED
+  - DEEPTUTOR_SEMANTIC_ROUTER_SCOPE
+  - DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE
+  - DEEPTUTOR_SKIP_ENV_CHECK
+  - DEEPTUTOR_SQLITE_SESSION_PATH
+  - DEEPTUTOR_STRICT_CONTRACT_CHECK
+  - DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN
+  - DEEPTUTOR_TEST2_COHORT_PASSWORD
+  - DEEPTUTOR_TEST2_COHORT_PHONE
+  - DEEPTUTOR_TEST2_COHORT_USERNAME
+  - DEEPTUTOR_TEST2_SOAK_SAMPLE_ID
+  - DEEPTUTOR_TEST2_SOAK_SCENARIO
+  - DEEPTUTOR_TEST2_SYNTHESIS_CONTAINER
+  - DEEPTUTOR_TEST2_SYNTHESIS_PROJECT_ROOT
+  - DEEPTUTOR_TEST2_SYNTHESIS_SSH_HOST
+  - DEEPTUTOR_TRUST_PROXY_HEADERS
+  - DEEPTUTOR_TURN_QUEUE_TIMEOUT_SECONDS
+  - DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN
+  - DEEPTUTOR_USER_DATA_DIR
+  - DEEPTUTOR_WS_SMOKE_TOKEN
+  - DISABLE_SSL_VERIFY
+  - EMBEDDING_API_KEY
+  - EMBEDDING_API_VERSION
+  - EMBEDDING_BINDING
+  - EMBEDDING_DIMENSION
+  - EMBEDDING_HOST
+  - EMBEDDING_MODEL
+  - FEEDBACK_DATABASE_URL
+  - FF_AUTH_SUPABASE_BACKEND
+  - FF_EMBEDDING_CACHE_ENABLED
+  - FRONTEND_PORT
+  - GITHUB_TOKEN
+  - GPT55_M35_ADJUDICATOR_MODEL
+  - GROQ_API_KEY
+  - HERMES_EDU_SOURCE
+  - INVITE_TEST_APPLICATIONS_PATH
+  - INVITE_TEST_DATABASE_URL
+  - JINA_API_KEY
+  - KBV5_DB_URL
+  - KBV5_RAG_DATA_VERSION
+  - KBV5_RAG_ENABLED
+  - KBV5_RAG_TOP_K
+  - LANGFUSE_BASE_URL
+  - LANGFUSE_CAPTURE_INPUT
+  - LANGFUSE_CAPTURE_OUTPUT
+  - LANGFUSE_DEBUG
+  - LANGFUSE_ENABLED
+  - LANGFUSE_ENVIRONMENT
+  - LANGFUSE_FLUSH_AT
+  - LANGFUSE_FLUSH_INTERVAL
+  - LANGFUSE_HOST
+  - LANGFUSE_HTTPX_TRUST_ENV
+  - LANGFUSE_MASK_PII
+  - LANGFUSE_MODEL_PRICING_JSON
+  - LANGFUSE_PUBLIC_KEY
+  - LANGFUSE_RECON_URL
+  - LANGFUSE_SECRET_KEY
+  - LANGFUSE_TIMEOUT_S
+  - LANGFUSE_TRACING_ENVIRONMENT
+  - LLM_API_KEY
+  - LLM_API_VERSION
+  - LLM_BINDING
+  - LLM_HOST
+  - LLM_MODEL
+  - LLM_TIMEOUT_ANTHROPIC_TOTAL_S
+  - LLM_TIMEOUT_CONNECT_S
+  - LLM_TIMEOUT_TOTAL_S
+  - LLM_TREAT_PRIVATE_AS_LOCAL
+  - LLM_USAGE_COST_CENTER
+  - LLM_USAGE_RUNTIME_ENVIRONMENT
+  - LUBAN_2026_SOURCE_ROOT
+  - LUBAN_CASE_RUBRIC_BANK_SLOT
+  - LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED
+  - LUBAN_CASE_RUBRIC_V1_ENABLED
+  - LUBAN_DATA_DIR
+  - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT
+  - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED
+  - LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED
+  - LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED
+  - LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED
+  - LUBAN_M31_GOVERNED_OBJECTIVE_COHORT
+  - LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED
+  - LUBAN_M35_ARTIFACT_JUDGE_MODEL
+  - LUBAN_M35_ARTIFACT_SHADOW_ENABLED
+  - LUBAN_OBJECTIVE_CANDIDATE_COHORT
+  - LUBAN_RUBRIC_EXTRACTION_CACHE_MAX_ENTRIES
+  - LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS
+  - LUBAN_SEMANTIC_EDGES
+  - LUBAN_SUPPLY_DEV_ARTIFACTS
+  - LUBAN_TAX_PATH
+  - LUBAN_TEXTBOOK_KNOWLEDGE_COHORT
+  - LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED
+  - LUBAN_V1_ADJUDICATOR_MAX_CONCURRENT
+  - LUBAN_V1_ADJUDICATOR_TIMEOUT_S
+  - LUBAN_V1_BETA_SHADOW_COHORT
+  - LUBAN_V1_BETA_SHADOW_ENABLED
+  - LUBAN_V1_CONTROLLED_RUNTIME_COHORT
+  - LUBAN_V1_CONTROLLED_RUNTIME_ENABLED
+  - LUBAN_V1_LLM_ADJUDICATOR_COHORT
+  - LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON
+  - LUBAN_V1_LLM_ADJUDICATOR_ENABLED
+  - LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT
+  - LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED
+  - MEMBER_CONSOLE_ACCESS_TOKEN_TTL_SECONDS
+  - MEMBER_CONSOLE_ADMIN_USER_IDS
+  - MEMBER_CONSOLE_AUTH_SECRET
+  - MEMBER_CONSOLE_MAX_SESSION_AGE_SECONDS
+  - MEMBER_CONSOLE_USE_REAL_SMS
+  - MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY
+  - NEXT_PUBLIC_CHAT_DEFAULT_MODE
+  - NEXT_PUBLIC_SUPABASE_URL
+  - NOTEBOOK_CARD_DATABASE_URL
+  - OPENAI_APIKEY
+  - OPENAI_API_KEY
+  - OPENAI_BASE_URL
+  - PYTHONUNBUFFERED
+  - QUESTIONS_BANK_DB_URL
+  - QUESTION_LIFECYCLE_DECISION_AUTHORITY
+  - QWEN_M35_ADVERSARIAL_MODEL
+  - QWEN_M35_BLIND_MODEL
+  - QWEN_MODEL
+  - RAG_PROVIDER
+  - REDIS_URL
+  - SEARCH_API_KEY
+  - SEARCH_BASE_URL
+  - SEARCH_PROVIDER
+  - SEARCH_PROXY
+  - SEARXNG_BASE_URL
+  - SUPABASE_ANON_KEY
+  - SUPABASE_DB_URL
+  - SUPABASE_KEY
+  - SUPABASE_RAG_COMPILED_TRUTH_ENABLED
+  - SUPABASE_RAG_COMPILED_TRUTH_MAX_CHARS_PER_DOC
+  - SUPABASE_RAG_COMPILED_TRUTH_MAX_DOCS
+  - SUPABASE_RAG_COMPILED_TRUTH_MAX_TOTAL_CHARS
+  - SUPABASE_RAG_DEFAULT_DESCRIPTION
+  - SUPABASE_RAG_DEFAULT_KB_NAME
+  - SUPABASE_RAG_ENABLED
+  - SUPABASE_RAG_ENABLE_EXACT_QUESTION
+  - SUPABASE_RAG_ENABLE_RERANK
+  - SUPABASE_RAG_EXACT_QUESTION_MAX_TEXT_LEN
+  - SUPABASE_RAG_EXACT_QUESTION_MIN_SIMILARITY
+  - SUPABASE_RAG_EXACT_QUESTION_TEXT_FIRST
+  - SUPABASE_RAG_FETCH_COUNT
+  - SUPABASE_RAG_INCLUDE_QUESTIONS
+  - SUPABASE_RAG_MATCH_THRESHOLD
+  - SUPABASE_RAG_MAX_PER_DOCUMENT
+  - SUPABASE_RAG_MAX_QUERY_VARIANTS
+  - SUPABASE_RAG_PROVENANCE_BOOST_ENABLED
+  - SUPABASE_RAG_QUERY_EXPANSION
+  - SUPABASE_RAG_QUERY_PLAN_TRACE_ENABLED
+  - SUPABASE_RAG_QUERY_VARIANT_CONCURRENCY
+  - SUPABASE_RAG_QUESTION_WEIGHT_EXAM
+  - SUPABASE_RAG_QUESTION_WEIGHT_QUESTIONS
+  - SUPABASE_RAG_RERANK_MODEL
+  - SUPABASE_RAG_RERANK_TIMEOUT_S
+  - SUPABASE_RAG_RERANK_WINDOW
+  - SUPABASE_RAG_SECOND_PASS
+  - SUPABASE_RAG_SECOND_PASS_MAX_DUP_RATIO
+  - SUPABASE_RAG_SECOND_PASS_MIN_HITS
+  - SUPABASE_RAG_SECOND_PASS_QUERIES
+  - SUPABASE_RAG_SOURCES
+  - SUPABASE_RAG_TEXT_WEIGHT
+  - SUPABASE_RAG_TIMEOUT_S
+  - SUPABASE_RAG_TOP_K
+  - SUPABASE_RAG_VECTOR_WEIGHT
+  - SUPABASE_RAG_WEIGHT_COMPILED_TRUTH
+  - SUPABASE_RAG_WEIGHT_EXAM
+  - SUPABASE_RAG_WEIGHT_QUESTIONS
+  - SUPABASE_RAG_WEIGHT_QUESTION_EXACT_TEXT
+  - SUPABASE_RAG_WEIGHT_QUESTION_EXACT_VECTOR
+  - SUPABASE_RAG_WEIGHT_STANDARD
+  - SUPABASE_RAG_WEIGHT_STANDARD_CODE_EXACT
+  - SUPABASE_RAG_WEIGHT_STANDARD_PRECISION
+  - SUPABASE_RAG_WEIGHT_TEXTBOOK
+  - SUPABASE_SERVICE_KEY
+  - SUPABASE_SERVICE_ROLE_KEY
+  - SUPABASE_URL
+  - TAVILY_API_KEY
+  - TERM
+  - TEST2_BASE_URL
+  - TURN_RUNTIME_FIRST_SUBSCRIBER_GRACE_SECONDS
+  - TURN_RUNTIME_TURN_TIMEOUT_SECONDS
+  - TUTORBOT_STREAM_PUBLIC_DELTAS
+  - UVICORN_WORKERS
+  - VIRTUAL_ENV
+  - WECHAT_MP_APPID
+  - WECHAT_MP_APPSECRET
+  - WECHAT_MP_APP_ID
+  - WECHAT_MP_APP_SECRET
+  - WECHAT_MP_TOKEN_SECRET
+  - WECHAT_QA_BASE_URL
+  - WX_DEVTOOLS_CLI
+  - X_DATABASE_URL

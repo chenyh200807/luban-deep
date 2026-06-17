@@ -302,50 +302,8 @@ Page({
     return { token: token };
   },
   handleWechatLogin: function () {
-    var self = this;
-    if (self.data.wechatLoading || self.data.loading) return;
-    self.setData({ wechatLoading: true, errorMsg: "" });
-    wx.login({
-      success: function (loginRes) {
-        if (!loginRes.code) {
-          self.setData({
-            wechatLoading: false,
-            errorMsg: "微信登录失败，请重试",
-          });
-          return;
-        }
-        api
-          .wxLogin(loginRes.code)
-          .then(function (resp) {
-            self._completeWechatAuth(resp);
-          })
-          .then(function () {
-            wx.switchTab({ url: "/pages/chat/chat" });
-          })
-          .catch(function (err) {
-            var m = String((err && err.message) || "");
-            var msg = "微信登录失败，请重试";
-            if (m.includes("credentials")) msg = "后端未配置微信小程序密钥";
-            else if (m.includes("NETWORK_")) msg = "网络连接失败";
-            else if (m && !m.startsWith("HTTP_")) msg = m;
-            self.setData({ errorMsg: msg });
-          })
-          .then(
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-            function () {
-              self.setData({ wechatLoading: false });
-            },
-          );
-      },
-      fail: function () {
-        self.setData({
-          wechatLoading: false,
-          errorMsg: "无法获取微信登录凭证",
-        });
-      },
-    });
+    if (this.data.wechatLoading || this.data.loading) return;
+    this.setData({ errorMsg: "请先完成手机号验证，也可使用手机号验证码登录" });
   },
   handleWechatPhoneNumber: function (e) {
     var self = this;
@@ -353,43 +311,32 @@ Page({
     var phoneCode =
       e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
-      // 拒绝授权手机号：必须授权才能继续，给出明确提示
-      self.setData({ errorMsg: "请授权手机号才能继续使用" });
+      self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
 
-    // 显式 getPhoneNumber 授权路径：始终 wx.login + bindPhone 同步完成。
-    // 与 register.js / yousenwebview canonical 一致——bindPhone 的唯一写入点，
-    // 不依赖 auth.isLoggedIn（已登录无手机号的用户走 bind_phone_only 面板的手动绑定）。
     wx.login({
       success: function (loginRes) {
         if (!loginRes.code) {
           self.setData({
             wechatLoading: false,
-            errorMsg: "微信登录失败，请重试",
+            errorMsg: "快速登录失败，请重试",
           });
           return;
         }
         api
-          .wxLogin(loginRes.code)
+          .wxLoginWithPhone(loginRes.code, phoneCode)
           .then(function (resp) {
             self._completeWechatAuth(resp);
-            return api.bindPhone(phoneCode);
-          })
-          .then(function (resp) {
-            var inner = resp.data || resp;
-            if (inner && inner.token) {
-              auth.setToken(inner.token, inner.expires_at, inner);
-            }
             wx.switchTab({ url: "/pages/chat/chat" });
           })
           .catch(function (err) {
             var m = String((err && err.message) || "");
-            var msg = "微信手机号登录失败，请重试";
-            if (m.includes("credentials")) msg = "后端未配置微信小程序密钥";
+            var msg = "快速登录失败，请重试";
+            if (m.includes("credentials")) msg = "后端未配置小程序密钥";
             else if (m.includes("getuserphonenumber"))
-              msg = "微信手机号授权失败";
+              msg = "手机号验证失败";
             else if (m.includes("NETWORK_")) msg = "网络连接失败";
             else if (m && !m.startsWith("HTTP_")) msg = m;
             self.setData({ errorMsg: msg });
@@ -406,7 +353,7 @@ Page({
       fail: function () {
         self.setData({
           wechatLoading: false,
-          errorMsg: "无法获取微信登录凭证",
+          errorMsg: "无法获取登录凭证",
         });
       },
     });

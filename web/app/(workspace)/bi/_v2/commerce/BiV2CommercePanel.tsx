@@ -1,15 +1,8 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import {
-  AlertTriangle,
-  Calendar,
-  CreditCard,
-  FileText,
-  RefreshCw,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react'
+import { Calendar, Pencil, Plus, RefreshCw, Save, Trash2, UserPlus, X } from 'lucide-react'
+import type { FormEvent, ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BiButton,
@@ -34,6 +27,8 @@ import {
   type BiCommercePackage,
   type BiCommerceRechargeRecord,
 } from '@/lib/bi-api'
+import { deleteMembershipPackage, manualPurchaseMembership, upsertMembershipPackage } from '@/lib/member-api'
+import { CommerceCockpit } from '@/components/bi-cockpit/CommerceCockpit'
 
 type Tab = 'recharges' | 'ledger' | 'packages'
 
@@ -60,6 +55,22 @@ const STATUS_TONE: Record<string, BiStatusTone> = {
 const EMPTY_RECHARGES: BiCommerceRechargeRecord[] = []
 const EMPTY_WALLET_ROWS: BiCommerceLedgerRow[] = []
 const EMPTY_PACKAGE_ROWS: BiCommercePackage[] = []
+const EMPTY_PACKAGE_FORM = {
+  id: '',
+  label: '',
+  tier: 'vip',
+  points: '9000',
+  turns: '450',
+  price: '198',
+  originalPrice: '',
+  badge: '',
+  per: '',
+  desc: '',
+  status: 'active',
+  reason: '',
+}
+
+type PackageFormState = typeof EMPTY_PACKAGE_FORM
 
 function commerceSourceLabel(value: string) {
   if (!value) return '--'
@@ -92,7 +103,11 @@ function tableStatus(loading: boolean, error: string, rowCount: number) {
 function matchesQuery(values: Array<string | number | null | undefined>, query: string) {
   if (!query) return true
   const normalized = query.toLowerCase()
-  return values.some(value => String(value ?? '').toLowerCase().includes(normalized))
+  return values.some(value =>
+    String(value ?? '')
+      .toLowerCase()
+      .includes(normalized)
+  )
 }
 
 export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2CommercePanelProps) {
@@ -126,12 +141,23 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     void load()
   }, [flagEnabled, load])
 
+  useEffect(() => {
+    if (!flagEnabled || typeof window === 'undefined') return
+    const reloadCommerce = () => void load()
+    window.addEventListener('bi:commerce-mutated', reloadCommerce)
+    return () => window.removeEventListener('bi:commerce-mutated', reloadCommerce)
+  }, [flagEnabled, load])
+
   const rechargeRows = useMemo(
     () => data?.rechargeRecords ?? EMPTY_RECHARGES,
     [data?.rechargeRecords]
   )
   const ledgerRows = useMemo(() => data?.ledger ?? EMPTY_WALLET_ROWS, [data?.ledger])
   const packageRows = useMemo(() => data?.packages ?? EMPTY_PACKAGE_ROWS, [data?.packages])
+  const activePackageRows = useMemo(
+    () => packageRows.filter(row => (row.status || 'active') === 'active'),
+    [packageRows]
+  )
   const summary = data?.summary
   const normalizedGlobalQuery = globalQuery.trim().toLowerCase()
 
@@ -202,7 +228,12 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     } else if (filteredPackages.length > 0) {
       setTab('packages')
     }
-  }, [filteredLedger.length, filteredPackages.length, filteredRecharges.length, normalizedGlobalQuery])
+  }, [
+    filteredLedger.length,
+    filteredPackages.length,
+    filteredRecharges.length,
+    normalizedGlobalQuery,
+  ])
 
   const rechargeColumns = useMemo<BiTableColumn<BiCommerceRechargeRecord>[]>(
     () => [
@@ -220,13 +251,21 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         key: 'points',
         label: '入账(点)',
         align: 'right',
-        render: row => <BiMoneyCell amount={row.points} currency="POINT" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />,
+        render: row => (
+          <BiMoneyCell
+            amount={row.points}
+            currency="POINT"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
+        ),
       },
       { key: 'channel', label: '来源', render: row => commerceSourceLabel(row.channel) },
       {
         key: 'status',
         label: '状态',
-        render: row => <BiStatusPill tone={STATUS_TONE[row.status] ?? 'slate'} label={row.status || 'unknown'} />,
+        render: row => (
+          <BiStatusPill tone={STATUS_TONE[row.status] ?? 'slate'} label={row.status || 'unknown'} />
+        ),
       },
       { key: 'at', label: '时间', render: row => <BiDateTime value={row.createdAt} /> },
     ],
@@ -248,13 +287,21 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
       {
         key: 'kind',
         label: '类型',
-        render: row => <BiStatusPill tone={KIND_TONE[row.kind] ?? 'slate'} label={row.kind || row.eventType} />,
+        render: row => (
+          <BiStatusPill tone={KIND_TONE[row.kind] ?? 'slate'} label={row.kind || row.eventType} />
+        ),
       },
       {
         key: 'amount',
         label: '金额(点)',
         align: 'right',
-        render: row => <BiMoneyCell amount={row.amount} currency="POINT" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />,
+        render: row => (
+          <BiMoneyCell
+            amount={row.amount}
+            currency="POINT"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
+        ),
       },
       {
         key: 'authority',
@@ -270,8 +317,8 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     return (
       <section className="space-y-4">
         <BiV2DataSourceBanner tone="amber">
-          BI_COMMERCE_V2_ENABLED 未开启 · 商品账务不会展示半成品数据。开启前需完成只读 API、
-          admin 鉴权、mock 边界与前端 smoke。
+          BI_COMMERCE_V2_ENABLED 未开启 · 商品账务不会展示半成品数据。开启前需完成只读 API、 admin
+          鉴权、mock 边界与前端 smoke。
         </BiV2DataSourceBanner>
       </section>
     )
@@ -293,64 +340,40 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
           </BiButton>
         }
       >
-          BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}，入账/钱包流水读取{' '}
-          {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
-          {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
+        BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}
+        ，充值记录读取 {data?.authority.recharge_records ?? 'loading'}，钱包流水读取{' '}
+        {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
+        {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
       </BiV2DataSourceBanner>
 
       {error ? (
-        <BiNotice tone="rose">
-          商品账务 API 不可用：{error}。当前不会回退到 mock。
-        </BiNotice>
+        <BiNotice tone="rose">商品账务 API 不可用：{error}。当前不会回退到 mock。</BiNotice>
       ) : null}
 
-      {data?.warnings.length ? (
-        <BiNotice tone="amber">
-          {data.warnings.join(' · ')}
-        </BiNotice>
-      ) : null}
+      {data?.warnings.length ? <BiNotice tone="amber">{data.warnings.join(' · ')}</BiNotice> : null}
 
       {globalQuery.trim() ? (
         <BiNotice tone="slate">
-          全局搜索：<code className="font-mono">{globalQuery.trim()}</code> · 当前按订单 /
-          流水 / 会员 / 套餐字段过滤商品账务读模型。
+          全局搜索：<code className="font-mono">{globalQuery.trim()}</code> · 当前按订单 / 流水 /
+          会员 / 套餐字段过滤商品账务读模型。
         </BiNotice>
       ) : null}
 
-      <AnomalyBar anomalies={data?.anomalies ?? []} loading={loading} />
+      <CommerceCockpit data={data} />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <SummaryTile
-          icon={CreditCard}
-          label="入账流水"
-          value={summary?.rechargeCount ?? 0}
-          hint={`入账 ${summary?.creditPoints ?? 0} 点`}
-        />
-        <SummaryTile
-          icon={Wallet}
-          label="钱包流水"
-          value={summary?.ledgerCount ?? 0}
-          hint={`扣减 ${summary?.debitPoints ?? 0} 点`}
-        />
-        <SummaryTile
-          icon={FileText}
-          label="套餐权益"
-          value={summary?.packageCount ?? 0}
-          hint={data?.authority.packages ?? '加载中'}
-        />
-        <SummaryTile
-          icon={AlertTriangle}
-          label="账务异常"
-          value={summary?.anomalyCount ?? 0}
-          hint={data?.authority.anomalies ?? '规则加载中'}
-        />
-      </div>
+      <ManualMembershipPurchasePanel
+        packages={activePackageRows}
+        onCreated={async () => {
+          setTab('recharges')
+          await load()
+        }}
+      />
 
       <div className="flex items-center gap-2 border-b border-white/10">
         <TabBtn
           active={tab === 'recharges'}
           onClick={() => setTab('recharges')}
-          label={`入账流水 (${filteredRecharges.length})`}
+          label={`充值记录 (${filteredRecharges.length})`}
         />
         <TabBtn
           active={tab === 'ledger'}
@@ -400,14 +423,18 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
             rowKey={row => row.ledgerEventId || row.id}
             status={tableStatus(loading, error, filteredRecharges.length)}
             errorMessage={error}
-            emptyTitle="暂无入账流水"
-            emptyHint="订单 authority 未接入时，只展示 wallet_ledger / member_console 中可证明的入账。"
+            emptyTitle="暂无充值记录"
+            emptyHint="支付/订单 authority 未上线或无订单写入；赠点、初始化、人工授信只在钱包流水中展示。"
             rowAction={row => (
               <BiButton
-                onClick={() => setExpandedRechargeId(expandedRechargeId === row.ledgerEventId ? null : row.ledgerEventId)}
+                onClick={() =>
+                  setExpandedRechargeId(
+                    expandedRechargeId === row.ledgerEventId ? null : row.ledgerEventId
+                  )
+                }
                 variant="secondary"
                 size="xs"
-                aria-label={`查看入账流水 ${row.id || row.ledgerEventId} 详情`}
+                aria-label={`查看充值记录 ${row.id || row.ledgerEventId} 详情`}
               >
                 {expandedRechargeId === row.ledgerEventId ? '收起' : '详情'}
               </BiButton>
@@ -450,76 +477,198 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
       ) : null}
 
       {tab === 'packages' ? (
-        <PackageGrid packages={filteredPackages} loading={loading} error={error} />
+        <PackageManagementPanel
+          packages={filteredPackages}
+          loading={loading}
+          error={error}
+          onChanged={async () => {
+            setTab('packages')
+            await load()
+          }}
+        />
       ) : null}
     </section>
   )
 }
 
-function AnomalyBar({ anomalies, loading }: { anomalies: ReadonlyArray<BiCommerceAnomaly>; loading: boolean }) {
-  if (loading) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs text-slate-300">
-        正在加载账务异常规则…
-      </div>
-    )
-  }
-  if (anomalies.length === 0) {
-    return (
-      <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-xs text-emerald-100">
-        当前未发现账务异常；高危修账动作仍保持禁用。
-      </div>
-    )
-  }
-  return (
-    <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-rose-100">
-        <AlertTriangle className="h-4 w-4" aria-hidden />
-        账务异常行动条 · {anomalies.reduce((sum, item) => sum + item.affected, 0)} 项待复核
-      </div>
-      <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-        {anomalies.map(item => (
-          <article key={item.ruleId} className="rounded-2xl border border-white/10 bg-[#101927] px-3 py-2 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <BiIdToken value={item.ruleId} className="font-semibold text-slate-100" />
-              <div className="flex gap-1">
-                <BiStatusPill tone={severityTone(item.severity)} label={item.severity} />
-                <BiStatusPill tone={trustTone(item.trust)} label={item.trust || 'N/A'} />
-              </div>
-            </div>
-            <div className="mt-1 text-slate-200">{item.description}</div>
-            <div className="mt-0.5 text-[11px] text-slate-400">
-              <BiDateTime value={item.detectedAt} /> · 影响 {item.affected} 项 · owner:{' '}
-              {item.owner || '--'}
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SummaryTile({
-  icon: Icon,
-  label,
-  value,
-  hint,
+function ManualMembershipPurchasePanel({
+  packages,
+  onCreated,
 }: {
-  icon: LucideIcon
-  label: string
-  value: number
-  hint: string
+  packages: ReadonlyArray<BiCommercePackage>
+  onCreated: () => Promise<void> | void
 }) {
+  const [userId, setUserId] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [packageId, setPackageId] = useState('')
+  const [days, setDays] = useState('365')
+  const [amountCny, setAmountCny] = useState('')
+  const [reason, setReason] = useState('线下收款')
+  const [submitting, setSubmitting] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
+
+  const selectedPackage = useMemo(
+    () => packages.find(item => item.id === packageId) ?? packages[0],
+    [packageId, packages]
+  )
+
+  useEffect(() => {
+    if (!selectedPackage) return
+    if (!packageId) setPackageId(selectedPackage.id)
+    if (!amountCny) setAmountCny(String(selectedPackage.priceCny || ''))
+  }, [amountCny, packageId, selectedPackage])
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const parsedDays = Number(days)
+    const parsedAmount = amountCny.trim() ? Number(amountCny) : undefined
+    if (!userId.trim() || !selectedPackage || !Number.isFinite(parsedDays) || parsedDays <= 0) {
+      setError('请填写会员 ID、套餐和有效天数')
+      return
+    }
+    if (parsedAmount !== undefined && (!Number.isFinite(parsedAmount) || parsedAmount < 0)) {
+      setError('实收金额必须是非负数字')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    setNotice('')
+    try {
+      const result = await manualPurchaseMembership({
+        user_id: userId.trim(),
+        package_id: selectedPackage.id,
+        days: Math.floor(parsedDays),
+        reason: reason.trim(),
+        phone: phone.trim() || undefined,
+        display_name: displayName.trim() || undefined,
+        amount_cny: parsedAmount,
+      })
+      setNotice(`已开通 ${result.member.tier}，收入流水 ${result.ledger_event_id || result.purchase_id}`)
+      setUserId('')
+      setDisplayName('')
+      setPhone('')
+      await Promise.resolve(onCreated())
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : '人工开通失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 shadow-lg shadow-black/15">
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-        <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
+    <form
+      onSubmit={submit}
+      className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4 text-xs shadow-lg shadow-black/10"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-black text-white">
+            <UserPlus className="h-4 w-4 text-cyan-200" aria-hidden />
+            人工开通会员
+          </h3>
+        </div>
+        <BiButton
+          type="submit"
+          variant="primary"
+          size="xs"
+          disabled={submitting || packages.length === 0}
+          aria-label="提交人工开通会员"
+        >
+          {submitting ? '写入中' : '开通'}
+        </BiButton>
       </div>
-      <div className="mt-1 text-2xl font-black tabular-nums text-white">{value}</div>
-      <div className="mt-1 truncate text-[11px] text-slate-400" title={hint}>
-        {hint}
+
+      <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-6">
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">会员 ID</span>
+          <input
+            value={userId}
+            onChange={event => setUserId(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="user_id / 手机号"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">姓名</span>
+          <input
+            value={displayName}
+            onChange={event => setDisplayName(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="选填"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">手机号</span>
+          <input
+            value={phone}
+            onChange={event => setPhone(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="选填"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">套餐</span>
+          <BiSelect
+            value={selectedPackage?.id ?? ''}
+            onChange={event => {
+              const next = packages.find(item => item.id === event.target.value)
+              setPackageId(event.target.value)
+              setAmountCny(next ? String(next.priceCny || '') : '')
+            }}
+            aria-label="选择人工开通套餐"
+          >
+            {packages.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.points}点
+              </option>
+            ))}
+          </BiSelect>
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">有效天数</span>
+          <input
+            type="number"
+            min={1}
+            max={3650}
+            value={days}
+            onChange={event => setDays(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">实收 ¥</span>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={amountCny}
+            onChange={event => setAmountCny(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          />
+        </label>
       </div>
-    </div>
+
+      <label className="mt-2 block space-y-1">
+        <span className="text-[11px] text-slate-400">备注</span>
+        <input
+          value={reason}
+          onChange={event => setReason(event.target.value)}
+          className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          placeholder="线下收款、补录、企业转账"
+        />
+      </label>
+
+      {selectedPackage ? (
+        <p className="mt-2 text-[11px] text-slate-400">
+          当前套餐：{selectedPackage.name} · {selectedPackage.points} 点 · ¥
+          {selectedPackage.priceCny}
+        </p>
+      ) : null}
+      {notice ? <BiNotice tone="emerald">{notice}</BiNotice> : null}
+      {error ? <BiNotice tone="rose">{error}</BiNotice> : null}
+    </form>
   )
 }
 
@@ -558,24 +707,35 @@ function RechargeDetailRow({
   if (!row) return null
   return (
     <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs">
-      <h4 className="text-sm font-black text-white">入账流水 {row.id || row.ledgerEventId}</h4>
+      <h4 className="text-sm font-black text-white">充值记录 {row.id || row.ledgerEventId}</h4>
       <ul className="mt-2 space-y-1 text-slate-300">
         <li>
-          会员：<BiIdToken value={row.userId} />
+          会员：
+          <BiIdToken value={row.userId} />
         </li>
         <li>
-          入账：<BiMoneyCell amount={row.points} currency="POINT" align="left" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />
+          充值：
+          <BiMoneyCell
+            amount={row.points}
+            currency="POINT"
+            align="left"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
         </li>
-        <li>来源：{commerceSourceLabel(row.channel)} · 状态：{row.status}</li>
         <li>
-          idempotency_key：<BiIdToken value={row.idempotencyKey || '--'} />
+          来源：{commerceSourceLabel(row.channel)} · 状态：{row.status}
+        </li>
+        <li>
+          idempotency_key：
+          <BiIdToken value={row.idempotencyKey || '--'} />
         </li>
         <li>
           authority：{row.authority || '--'} · trust {row.trust || '--'}
         </li>
         {ledger ? (
           <li>
-            关联 ledger：<BiIdToken value={ledger.id} /> · {ledger.referenceType || '--'} /{' '}
+            关联 ledger：
+            <BiIdToken value={ledger.id} /> · {ledger.referenceType || '--'} /{' '}
             <BiIdToken value={ledger.referenceId || '--'} />
           </li>
         ) : null}
@@ -588,20 +748,29 @@ function LedgerDetailRow({ row }: { row?: BiCommerceLedgerRow }) {
   if (!row) return null
   return (
     <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs">
-      <h4 className="text-sm font-black text-white">ledger <BiIdToken value={row.id} /> 元数据</h4>
+      <h4 className="text-sm font-black text-white">
+        ledger <BiIdToken value={row.id} /> 元数据
+      </h4>
       <ul className="mt-2 space-y-1 text-slate-300">
         <li>
-          会员：<BiIdToken value={row.userId} />
+          会员：
+          <BiIdToken value={row.userId} />
         </li>
         <li>
           类型：{row.kind} · 金额：
-          <BiMoneyCell amount={row.amount} currency="POINT" align="left" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />
+          <BiMoneyCell
+            amount={row.amount}
+            currency="POINT"
+            align="left"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
         </li>
         <li>
           reference：{row.referenceType || '--'} / <BiIdToken value={row.referenceId || '--'} />
         </li>
         <li>
-          idempotency_key：<BiIdToken value={row.idempotencyKey || '--'} />
+          idempotency_key：
+          <BiIdToken value={row.idempotencyKey || '--'} />
         </li>
         <li>
           authority：{row.authority || '--'} · trust {row.trust || '--'}
@@ -617,49 +786,386 @@ function LedgerDetailRow({ row }: { row?: BiCommerceLedgerRow }) {
   )
 }
 
-function PackageGrid({
+function PackageManagementPanel({
   packages,
   loading,
   error,
+  onChanged,
 }: {
   packages: ReadonlyArray<BiCommercePackage>
   loading: boolean
   error: string
+  onChanged: () => Promise<void> | void
 }) {
-  if (loading) {
-    return <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">套餐加载中…</div>
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null)
+  const [form, setForm] = useState<PackageFormState>(EMPTY_PACKAGE_FORM)
+  const [submitting, setSubmitting] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [formError, setFormError] = useState('')
+
+  function patchForm<K extends keyof PackageFormState>(key: K, value: PackageFormState[K]) {
+    setForm(current => ({ ...current, [key]: value }))
   }
-  if (error) {
-    return <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-6 text-center text-xs text-rose-100">套餐加载失败：{error}</div>
+
+  function openCreate() {
+    setEditingPackageId(null)
+    setForm({ ...EMPTY_PACKAGE_FORM })
+    setFormError('')
+    setNotice('')
+    setEditorOpen(true)
   }
-  if (packages.length === 0) {
-    return <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">暂无套餐权益数据。</div>
+
+  function openEdit(pkg: BiCommercePackage) {
+    setEditingPackageId(pkg.id)
+    setForm({
+      id: pkg.id,
+      label: pkg.name,
+      tier: pkg.tier || pkg.id,
+      points: String(pkg.points || ''),
+      turns: String(pkg.turns || ''),
+      price: String(pkg.priceCny || ''),
+      originalPrice: pkg.originalPriceCny ? String(pkg.originalPriceCny) : '',
+      badge: pkg.badge || '',
+      per: pkg.per || '',
+      desc: pkg.desc || pkg.features.join('、'),
+      status: pkg.status || 'active',
+      reason: '',
+    })
+    setFormError('')
+    setNotice('')
+    setEditorOpen(true)
   }
+
+  async function savePackage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const packageId = form.id.trim()
+    const points = Number(form.points)
+    const turns = Number(form.turns)
+    if (!packageId || !form.label.trim() || !form.tier.trim()) {
+      setFormError('请填写套餐 ID、名称和层级')
+      return
+    }
+    if (!Number.isFinite(points) || points <= 0 || !Number.isFinite(turns) || turns <= 0) {
+      setFormError('点数和次数必须是正数')
+      return
+    }
+    setSubmitting(true)
+    setFormError('')
+    setNotice('')
+    try {
+      await upsertMembershipPackage(packageId, {
+        label: form.label.trim(),
+        tier: form.tier.trim(),
+        points: Math.floor(points),
+        turns: Math.floor(turns),
+        price: form.price.trim(),
+        original_price: form.originalPrice.trim(),
+        badge: form.badge.trim(),
+        per: form.per.trim(),
+        desc: form.desc.trim(),
+        status: form.status as 'active' | 'draft' | 'archived',
+        reason: form.reason.trim() || (editingPackageId ? '编辑套餐' : '新增套餐'),
+      })
+      setNotice(editingPackageId ? '套餐已更新' : '套餐已新增')
+      setEditorOpen(false)
+      await Promise.resolve(onChanged())
+    } catch (exc) {
+      setFormError(exc instanceof Error ? exc.message : '套餐保存失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function removePackage(pkg: BiCommercePackage) {
+    if (!window.confirm(`删除套餐 ${pkg.name}？历史收入流水不会删除。`)) return
+    setSubmitting(true)
+    setFormError('')
+    setNotice('')
+    try {
+      await deleteMembershipPackage(pkg.id, '删除套餐')
+      setNotice('套餐已删除')
+      if (editingPackageId === pkg.id) setEditorOpen(false)
+      await Promise.resolve(onChanged())
+    } catch (exc) {
+      setFormError(exc instanceof Error ? exc.message : '套餐删除失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
-    <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-      {packages.map(pkg => (
-        <li key={pkg.id} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-black text-white">{pkg.name}</h3>
-              <p className="text-[11px] text-slate-400">{pkg.tier.toUpperCase()}</p>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="text-xs text-slate-400">
+          member_console.packages · {packages.length} 个套餐
+        </div>
+        <BiButton onClick={openCreate} variant="primary" size="xs" aria-label="新增会员套餐">
+          <Plus className="h-3 w-3" aria-hidden />
+          新增套餐
+        </BiButton>
+      </div>
+
+      {loading ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">
+          套餐加载中…
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-6 text-center text-xs text-rose-100">
+          套餐加载失败：{error}
+        </div>
+      ) : null}
+
+      {notice ? <BiNotice tone="emerald">{notice}</BiNotice> : null}
+      {formError ? <BiNotice tone="rose">{formError}</BiNotice> : null}
+
+      {editorOpen ? (
+        <form
+          onSubmit={savePackage}
+          className="rounded-2xl border border-cyan-300/25 bg-[#0d1828] p-4 text-xs shadow-lg shadow-black/15"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-black text-white">
+              {editingPackageId ? `编辑 ${editingPackageId}` : '新增套餐'}
+            </h3>
+            <div className="flex items-center gap-2">
+              <BiButton
+                type="button"
+                onClick={() => setEditorOpen(false)}
+                variant="ghost"
+                size="xs"
+                aria-label="关闭套餐编辑"
+              >
+                <X className="h-3 w-3" aria-hidden />
+                关闭
+              </BiButton>
+              <BiButton
+                type="submit"
+                variant="primary"
+                size="xs"
+                disabled={submitting}
+                aria-label="保存套餐"
+              >
+                <Save className="h-3 w-3" aria-hidden />
+                {submitting ? '保存中' : '保存'}
+              </BiButton>
             </div>
-            <BiStatusPill tone={STATUS_TONE[pkg.status] ?? 'slate'} label={pkg.status || 'unknown'} />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <BiMoneyCell amount={pkg.points} currency="POINT" align="left" trust={pkg.trust as 'A' | 'B' | 'C' | 'D'} />
-            <BiMoneyCell amount={pkg.priceCny} currency="CNY" align="right" trust={pkg.trust as 'A' | 'B' | 'C' | 'D'} />
+
+          <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-6">
+            <PackageField label="套餐 ID">
+              <input
+                value={form.id}
+                onChange={event => patchForm('id', event.target.value)}
+                disabled={Boolean(editingPackageId)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60 disabled:text-slate-500"
+                placeholder="svip_plus"
+              />
+            </PackageField>
+            <PackageField label="名称">
+              <input
+                value={form.label}
+                onChange={event => patchForm('label', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="SVIP Plus"
+              />
+            </PackageField>
+            <PackageField label="层级">
+              <input
+                value={form.tier}
+                onChange={event => patchForm('tier', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="svip"
+              />
+            </PackageField>
+            <PackageField label="点数">
+              <input
+                type="number"
+                min={1}
+                value={form.points}
+                onChange={event => patchForm('points', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+              />
+            </PackageField>
+            <PackageField label="次数">
+              <input
+                type="number"
+                min={1}
+                value={form.turns}
+                onChange={event => patchForm('turns', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+              />
+            </PackageField>
+            <PackageField label="状态">
+              <BiSelect
+                value={form.status}
+                onChange={event => patchForm('status', event.target.value)}
+                aria-label="套餐状态"
+              >
+                <option value="active">active</option>
+                <option value="draft">draft</option>
+                <option value="archived">archived</option>
+              </BiSelect>
+            </PackageField>
+            <PackageField label="现价 ¥">
+              <input
+                value={form.price}
+                onChange={event => patchForm('price', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="598"
+              />
+            </PackageField>
+            <PackageField label="原价 ¥">
+              <input
+                value={form.originalPrice}
+                onChange={event => patchForm('originalPrice', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="798"
+              />
+            </PackageField>
+            <PackageField label="标签">
+              <input
+                value={form.badge}
+                onChange={event => patchForm('badge', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="班主任督学"
+              />
+            </PackageField>
+            <PackageField label="每次说明">
+              <input
+                value={form.per}
+                onChange={event => patchForm('per', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="1400 次 AI 学习额度"
+              />
+            </PackageField>
+            <PackageField label="备注">
+              <input
+                value={form.reason}
+                onChange={event => patchForm('reason', event.target.value)}
+                className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+                placeholder="新增/调价原因"
+              />
+            </PackageField>
           </div>
-          <ul className="mt-2 space-y-0.5 text-[11px] text-slate-300">
-            {pkg.features.map((feature, index) => (
-              <li key={`${pkg.id}-${index}`}>· {feature}</li>
-            ))}
-          </ul>
-          <p className="mt-2 truncate text-[10px] text-slate-400" title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'} · P0 只读`}>
-            authority: {pkg.authority || '--'} · trust {pkg.trust || '--'} · P0 只读
-          </p>
-        </li>
-      ))}
-    </ul>
+
+          <PackageField label="权益描述" className="mt-2 block">
+            <textarea
+              value={form.desc}
+              onChange={event => patchForm('desc', event.target.value)}
+              className="min-h-[72px] w-full resize-y rounded-lg border border-white/10 bg-[#0e1624] px-3 py-2 text-xs text-white outline-none focus:border-cyan-300/60"
+              placeholder="AI答疑、案例批改、错因专训、班主任督学服务"
+            />
+          </PackageField>
+        </form>
+      ) : null}
+
+      {packages.length === 0 && !loading && !error ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">
+          暂无套餐权益数据。
+        </div>
+      ) : null}
+
+      <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {packages.map(pkg => (
+          <li
+            key={pkg.id}
+            className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-black text-white">{pkg.name}</h3>
+                  {pkg.badge ? (
+                    <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[10px] font-bold text-amber-100">
+                      {pkg.badge}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {pkg.id} · {pkg.tier.toUpperCase()}
+                </p>
+              </div>
+              <BiStatusPill
+                tone={STATUS_TONE[pkg.status] ?? 'slate'}
+                label={pkg.status || 'active'}
+              />
+            </div>
+            <div className="mt-2 flex items-baseline justify-between">
+              <BiMoneyCell
+                amount={pkg.points}
+                currency="POINT"
+                align="left"
+                trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+              />
+              <BiMoneyCell
+                amount={pkg.priceCny}
+                currency="CNY"
+                align="right"
+                trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+              />
+            </div>
+            <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-400">
+              <span>{pkg.turns || 0} 次</span>
+              {pkg.originalPriceCny ? <span>原价 ¥{pkg.originalPriceCny}</span> : null}
+              {pkg.per ? <span>{pkg.per}</span> : null}
+            </div>
+            <ul className="mt-2 space-y-0.5 text-[11px] text-slate-300">
+              {(pkg.features.length ? pkg.features : pkg.desc ? [pkg.desc] : []).map((feature, index) => (
+                <li key={`${pkg.id}-${index}`}>· {feature}</li>
+              ))}
+            </ul>
+            <div className="mt-3 flex items-center gap-2">
+              <BiButton
+                onClick={() => openEdit(pkg)}
+                variant="secondary"
+                size="xs"
+                aria-label={`编辑套餐 ${pkg.name}`}
+                title="编辑套餐"
+              >
+                <Pencil className="h-3 w-3" aria-hidden />
+                编辑
+              </BiButton>
+              <BiButton
+                onClick={() => void removePackage(pkg)}
+                variant="ghost"
+                size="xs"
+                disabled={submitting}
+                aria-label={`删除套餐 ${pkg.name}`}
+                title="删除套餐"
+              >
+                <Trash2 className="h-3 w-3" aria-hidden />
+                删除
+              </BiButton>
+            </div>
+            <p
+              className="mt-2 truncate text-[10px] text-slate-400"
+              title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'}`}
+            >
+              authority: {pkg.authority || '--'} · trust {pkg.trust || '--'}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function PackageField({
+  label,
+  className = 'space-y-1',
+  children,
+}: {
+  label: string
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <label className={className}>
+      <span className="text-[11px] text-slate-400">{label}</span>
+      {children}
+    </label>
   )
 }

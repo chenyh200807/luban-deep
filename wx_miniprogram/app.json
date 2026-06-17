@@ -34,6 +34,11 @@
       "root": "pages/legal",
       "name": "legal",
       "pages": ["terms"]
+    },
+    {
+      "root": "pages/photo-answer",
+      "name": "photoAnswer",
+      "pages": ["capture", "confirm"]
     }
   ],
   "preloadRule": {

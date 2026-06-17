@@ -1,4 +1,6 @@
 from pathlib import Path
+import json
+import re
 
 from deeptutor.services.config.env_store import EnvStore
 from deeptutor.services.config.model_catalog import ModelCatalogService
@@ -247,3 +249,69 @@ def test_sanitize_redacts_api_keys(tmp_path: Path) -> None:
     assert profile["api_key"] == ""
     assert profile["api_key_configured"] is True
     assert profile["api_key_last4"] == "1234"
+
+
+def test_save_can_redact_model_catalog_at_rest_without_changing_runtime_catalog(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST", "1")
+    catalog_path = tmp_path / "model_catalog.json"
+    service = ModelCatalogService(path=catalog_path)
+
+    saved = service.save(
+        {
+            "version": 1,
+            "services": {
+                "llm": {
+                    "active_profile_id": "llm-profile-default",
+                    "active_model_id": "llm-model-default",
+                    "profiles": [
+                        {
+                            "id": "llm-profile-default",
+                            "name": "Default LLM Endpoint",
+                            "binding": "openai",
+                            "base_url": "https://example.test/v1",
+                            "api_key": "sk-runtime-secret-1234567890",
+                            "api_version": "",
+                            "extra_headers": {},
+                            "models": [{"id": "llm-model-default", "name": "gpt", "model": "gpt"}],
+                        }
+                    ],
+                },
+                "embedding": {
+                    "active_profile_id": "embedding-profile-default",
+                    "active_model_id": "embedding-model-default",
+                    "profiles": [
+                        {
+                            "id": "embedding-profile-default",
+                            "name": "Default Embedding Endpoint",
+                            "binding": "openai",
+                            "base_url": "https://embedding.example.test/v1",
+                            "api_key": "sk-embedding-secret-1234567890",
+                            "api_version": "",
+                            "extra_headers": {},
+                            "models": [
+                                {
+                                    "id": "embedding-model-default",
+                                    "name": "text-embedding",
+                                    "model": "text-embedding",
+                                }
+                            ],
+                        }
+                    ],
+                },
+                "search": {"active_profile_id": None, "profiles": []},
+            },
+        }
+    )
+
+    rendered = catalog_path.read_text(encoding="utf-8")
+    persisted = json.loads(rendered)
+
+    assert saved["services"]["llm"]["profiles"][0]["api_key"] == "sk-runtime-secret-1234567890"
+    assert saved["services"]["embedding"]["profiles"][0]["api_key"] == "sk-embedding-secret-1234567890"
+    assert persisted["services"]["llm"]["profiles"][0]["api_key"] == "[REDACTED]"
+    assert persisted["services"]["embedding"]["profiles"][0]["api_key"] == "[REDACTED]"
+    assert not re.search(r"sk-[A-Za-z0-9_-]{10,}", rendered)
+    assert not re.search(r'api_key"\s*:\s*"(?!\[REDACTED\]|\s*")', rendered)

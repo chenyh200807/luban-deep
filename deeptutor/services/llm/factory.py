@@ -59,6 +59,7 @@ from .executors import (
     sdk_complete,
     sdk_stream,
 )
+from .traffic_control import get_provider_traffic_controller
 from .types import TutorResponse, TutorStreamChunk
 from .utils import is_local_llm_server
 
@@ -75,6 +76,34 @@ DEFAULT_RETRY_DELAY = settings.retry.base_delay
 DEFAULT_EXPONENTIAL_BACKOFF = settings.retry.exponential_backoff
 
 CallKwargs = dict[str, object]
+
+
+def _try_get_llm_config_for_traffic() -> LLMConfig | None:
+    try:
+        return get_llm_config()
+    except Exception:
+        return None
+
+
+def _explicit_traffic_config(
+    *,
+    model: str | None,
+    api_key: str | None,
+    base_url: str | None,
+    api_version: str | None,
+    binding: str | None,
+    provider_name: str,
+    provider_mode: str,
+) -> LLMConfig:
+    return LLMConfig(
+        model=model or "",
+        api_key=api_key or "",
+        base_url=base_url,
+        api_version=api_version,
+        binding=binding or provider_name or "openai",
+        provider_name=provider_name or binding or "openai",
+        provider_mode=provider_mode or "standard",
+    )
 
 
 def litellm_available() -> bool:
@@ -236,9 +265,11 @@ async def complete(
     extra_headers: dict[str, str] = {}
     reasoning_effort = kwargs.pop("reasoning_effort", None)
     explicit_extra_headers = kwargs.pop("extra_headers", None)
+    traffic_config: LLMConfig | None = None
 
     if not model or not base_url or api_key is None or not binding:
         config = get_llm_config()
+        traffic_config = config
         model = model or config.model
         api_key = api_key if api_key is not None else config.api_key
         base_url = base_url or config.base_url
@@ -256,6 +287,18 @@ async def complete(
         spec = find_by_name(provider_name)
         if spec is not None:
             provider_mode = spec.mode
+        traffic_config = _try_get_llm_config_for_traffic()
+
+    if traffic_config is None:
+        traffic_config = _explicit_traffic_config(
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            api_version=api_version,
+            binding=binding,
+            provider_name=provider_name,
+            provider_mode=provider_mode,
+        )
 
     if isinstance(explicit_extra_headers, Mapping):
         extra_headers = {str(key): str(value) for key, value in explicit_extra_headers.items()}
@@ -318,63 +361,64 @@ async def complete(
         messages_value: list[dict[str, object]] | None,
     ) -> str | TutorResponse:
         try:
-            if provider_mode == "oauth" and provider_name == "openai_codex":
-                raise LLMConfigError(
-                    "openai_codex requires OAuth login in CLI. "
-                    "Run `deeptutor provider login openai-codex` first."
-                )
-            if provider_mode == "oauth":
-                raise LLMConfigError(
-                    f"{provider_name} requires OAuth session. "
-                    "Run `deeptutor provider login ...` first."
-                )
-            if provider_mode != "direct":
-                if not litellm_available():
+            async with get_provider_traffic_controller(provider_name=provider_name, config=traffic_config):
+                if provider_mode == "oauth" and provider_name == "openai_codex":
                     raise LLMConfigError(
-                        f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                        "openai_codex requires OAuth login in CLI. "
+                        "Run `deeptutor provider login openai-codex` first."
                     )
-                return await litellm_complete(
+                if provider_mode == "oauth":
+                    raise LLMConfigError(
+                        f"{provider_name} requires OAuth session. "
+                        "Run `deeptutor provider login ...` first."
+                    )
+                if provider_mode != "direct":
+                    if not litellm_available():
+                        raise LLMConfigError(
+                            f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                        )
+                    return await litellm_complete(
+                        prompt=prompt_value,
+                        system_prompt=system_prompt_value,
+                        provider_name=provider_name,
+                        model=model_value,
+                        api_key=api_key_value,
+                        base_url=base_url_value,
+                        api_version=api_version_value,
+                        messages=messages_value,
+                        extra_headers=extra_headers or None,
+                        reasoning_effort=reasoning_effort,
+                        return_response_object=True,
+                        **extra_kwargs,
+                    )
+
+                if use_local_fallback:
+                    return await local_provider.complete(
+                        prompt=prompt_value,
+                        system_prompt=system_prompt_value,
+                        model=model_value,
+                        api_key=api_key_value,
+                        base_url=base_url_value,
+                        messages=messages_value,
+                        return_response_object=True,
+                        **extra_kwargs,
+                    )
+                from . import cloud_provider
+
+                direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
+                return await cloud_provider.complete(
                     prompt=prompt_value,
                     system_prompt=system_prompt_value,
-                    provider_name=provider_name,
                     model=model_value,
                     api_key=api_key_value,
                     base_url=base_url_value,
                     api_version=api_version_value,
+                    binding=direct_binding if provider_mode == "direct" else (binding_value or "openai"),
                     messages=messages_value,
                     extra_headers=extra_headers or None,
-                    reasoning_effort=reasoning_effort,
                     return_response_object=True,
                     **extra_kwargs,
                 )
-
-            if use_local_fallback:
-                return await local_provider.complete(
-                    prompt=prompt_value,
-                    system_prompt=system_prompt_value,
-                    model=model_value,
-                    api_key=api_key_value,
-                    base_url=base_url_value,
-                    messages=messages_value,
-                    return_response_object=True,
-                    **extra_kwargs,
-                )
-            from . import cloud_provider
-
-            direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
-            return await cloud_provider.complete(
-                prompt=prompt_value,
-                system_prompt=system_prompt_value,
-                model=model_value,
-                api_key=api_key_value,
-                base_url=base_url_value,
-                api_version=api_version_value,
-                binding=direct_binding if provider_mode == "direct" else (binding_value or "openai"),
-                messages=messages_value,
-                extra_headers=extra_headers or None,
-                return_response_object=True,
-                **extra_kwargs,
-            )
         except Exception as exc:
             if isinstance(exc, LLMConfigError):
                 raise
@@ -481,9 +525,11 @@ async def stream(
     extra_headers: dict[str, str] = {}
     reasoning_effort = kwargs.pop("reasoning_effort", None)
     explicit_extra_headers = kwargs.pop("extra_headers", None)
+    traffic_config: LLMConfig | None = None
 
     if not model or not base_url or api_key is None or not binding:
         config = get_llm_config()
+        traffic_config = config
         model = model or config.model
         api_key = api_key if api_key is not None else config.api_key
         base_url = base_url or config.base_url
@@ -501,6 +547,18 @@ async def stream(
         spec = find_by_name(provider_name)
         if spec is not None:
             provider_mode = spec.mode
+        traffic_config = _try_get_llm_config_for_traffic()
+
+    if traffic_config is None:
+        traffic_config = _explicit_traffic_config(
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            api_version=api_version,
+            binding=binding,
+            provider_name=provider_name,
+            provider_mode=provider_mode,
+        )
 
     if isinstance(explicit_extra_headers, Mapping):
         extra_headers = {str(key): str(value) for key, value in explicit_extra_headers.items()}
@@ -547,97 +605,98 @@ async def stream(
         provider_usage_details: dict[str, float] | None = None
         for attempt in range(total_attempts):
             try:
-                if provider_mode == "oauth" and provider_name == "openai_codex":
-                    raise LLMConfigError(
-                        "openai_codex requires OAuth login in CLI. "
-                        "Run `deeptutor provider login openai-codex` first."
-                    )
-                if provider_mode == "oauth":
-                    raise LLMConfigError(
-                        f"{provider_name} requires OAuth session. "
-                        "Run `deeptutor provider login ...` first."
-                    )
-
-                if provider_mode != "direct":
-                    if not litellm_available():
+                async with get_provider_traffic_controller(provider_name=provider_name, config=traffic_config):
+                    if provider_mode == "oauth" and provider_name == "openai_codex":
                         raise LLMConfigError(
-                            f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                            "openai_codex requires OAuth login in CLI. "
+                            "Run `deeptutor provider login openai-codex` first."
                         )
-                    async for chunk in litellm_stream(
-                        prompt=prompt,
-                        system_prompt=system_prompt,
-                        provider_name=provider_name,
-                        model=model,
-                        api_key=api_key,
-                        base_url=base_url,
-                        api_version=api_version,
-                        messages=messages,
-                        extra_headers=extra_headers or None,
-                        reasoning_effort=reasoning_effort,
-                        return_stream_chunks=True,
-                        **extra_kwargs,
-                    ):
-                        if isinstance(chunk, TutorStreamChunk):
-                            if chunk.usage:
-                                provider_usage_details = _normalize_provider_usage(chunk.usage)
-                            if chunk.delta:
-                                has_yielded = True
-                                streamed_chunks.append(chunk.delta)
-                                yield chunk.delta
-                            continue
-                        has_yielded = True
-                        streamed_chunks.append(chunk)
-                        yield chunk
-                elif use_local_fallback:
-                    async for chunk in local_provider.stream(
-                        prompt=prompt,
-                        system_prompt=system_prompt,
-                        model=model,
-                        api_key=api_key,
-                        base_url=base_url,
-                        messages=messages,
-                        return_stream_chunks=True,
-                        **extra_kwargs,
-                    ):
-                        if isinstance(chunk, TutorStreamChunk):
-                            if chunk.usage:
-                                provider_usage_details = _normalize_provider_usage(chunk.usage)
-                            if chunk.delta:
-                                has_yielded = True
-                                streamed_chunks.append(chunk.delta)
-                                yield chunk.delta
-                            continue
-                        has_yielded = True
-                        streamed_chunks.append(chunk)
-                        yield chunk
-                else:
-                    from . import cloud_provider
+                    if provider_mode == "oauth":
+                        raise LLMConfigError(
+                            f"{provider_name} requires OAuth session. "
+                            "Run `deeptutor provider login ...` first."
+                        )
 
-                    direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
-                    async for chunk in cloud_provider.stream(
-                        prompt=prompt,
-                        system_prompt=system_prompt,
-                        model=model,
-                        api_key=api_key,
-                        base_url=base_url,
-                        api_version=api_version,
-                        binding=direct_binding if provider_mode == "direct" else (binding or "openai"),
-                        messages=messages,
-                        extra_headers=extra_headers or None,
-                        return_stream_chunks=True,
-                        **extra_kwargs,
-                    ):
-                        if isinstance(chunk, TutorStreamChunk):
-                            if chunk.usage:
-                                provider_usage_details = _normalize_provider_usage(chunk.usage)
-                            if chunk.delta:
-                                has_yielded = True
-                                streamed_chunks.append(chunk.delta)
-                                yield chunk.delta
-                            continue
-                        has_yielded = True
-                        streamed_chunks.append(chunk)
-                        yield chunk
+                    if provider_mode != "direct":
+                        if not litellm_available():
+                            raise LLMConfigError(
+                                f"{provider_name} requires the provider SDK execution path, but it is unavailable."
+                            )
+                        async for chunk in litellm_stream(
+                            prompt=prompt,
+                            system_prompt=system_prompt,
+                            provider_name=provider_name,
+                            model=model,
+                            api_key=api_key,
+                            base_url=base_url,
+                            api_version=api_version,
+                            messages=messages,
+                            extra_headers=extra_headers or None,
+                            reasoning_effort=reasoning_effort,
+                            return_stream_chunks=True,
+                            **extra_kwargs,
+                        ):
+                            if isinstance(chunk, TutorStreamChunk):
+                                if chunk.usage:
+                                    provider_usage_details = _normalize_provider_usage(chunk.usage)
+                                if chunk.delta:
+                                    has_yielded = True
+                                    streamed_chunks.append(chunk.delta)
+                                    yield chunk.delta
+                                continue
+                            has_yielded = True
+                            streamed_chunks.append(chunk)
+                            yield chunk
+                    elif use_local_fallback:
+                        async for chunk in local_provider.stream(
+                            prompt=prompt,
+                            system_prompt=system_prompt,
+                            model=model,
+                            api_key=api_key,
+                            base_url=base_url,
+                            messages=messages,
+                            return_stream_chunks=True,
+                            **extra_kwargs,
+                        ):
+                            if isinstance(chunk, TutorStreamChunk):
+                                if chunk.usage:
+                                    provider_usage_details = _normalize_provider_usage(chunk.usage)
+                                if chunk.delta:
+                                    has_yielded = True
+                                    streamed_chunks.append(chunk.delta)
+                                    yield chunk.delta
+                                continue
+                            has_yielded = True
+                            streamed_chunks.append(chunk)
+                            yield chunk
+                    else:
+                        from . import cloud_provider
+
+                        direct_binding = "azure_openai" if provider_name == "azure_openai" else "openai"
+                        async for chunk in cloud_provider.stream(
+                            prompt=prompt,
+                            system_prompt=system_prompt,
+                            model=model,
+                            api_key=api_key,
+                            base_url=base_url,
+                            api_version=api_version,
+                            binding=direct_binding if provider_mode == "direct" else (binding or "openai"),
+                            messages=messages,
+                            extra_headers=extra_headers or None,
+                            return_stream_chunks=True,
+                            **extra_kwargs,
+                        ):
+                            if isinstance(chunk, TutorStreamChunk):
+                                if chunk.usage:
+                                    provider_usage_details = _normalize_provider_usage(chunk.usage)
+                                if chunk.delta:
+                                    has_yielded = True
+                                    streamed_chunks.append(chunk.delta)
+                                    yield chunk.delta
+                                continue
+                            has_yielded = True
+                            streamed_chunks.append(chunk)
+                            yield chunk
                 usage_details = provider_usage_details
                 usage_source = "provider"
                 if usage_details is None:

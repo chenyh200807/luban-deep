@@ -51,12 +51,11 @@ def test_plan_completion_marks_changed_paths_done(tmp_path: Path) -> None:
     assert audit["items"][0]["status"] == "DONE"
 
 
-def test_plan_completion_fails_when_explicit_path_is_not_in_diff(tmp_path: Path) -> None:
+def test_plan_completion_full_scope_fails_when_explicit_path_is_missing(tmp_path: Path) -> None:
     plan = tmp_path / "docs" / "plan" / "sample.md"
     target = tmp_path / "scripts" / "run_ws_capacity_probe.py"
     plan.parent.mkdir(parents=True)
     target.parent.mkdir(parents=True)
-    target.write_text("# probe\n", encoding="utf-8")
     plan.write_text("- [ ] Create: `scripts/run_ws_capacity_probe.py`\n", encoding="utf-8")
 
     audit = build_plan_completion_audit(
@@ -70,6 +69,86 @@ def test_plan_completion_fails_when_explicit_path_is_not_in_diff(tmp_path: Path)
     assert audit["summary"]["not_done"] == 1
     assert audit["blockers"] == ["plan_item_not_done"]
     assert audit["items"][0]["status"] == "NOT_DONE"
+
+
+def test_plan_completion_full_scope_accepts_current_state_existing_path(tmp_path: Path) -> None:
+    plan = tmp_path / "docs" / "plan" / "sample.md"
+    target = tmp_path / "scripts" / "run_ws_capacity_probe.py"
+    plan.parent.mkdir(parents=True)
+    target.parent.mkdir(parents=True)
+    target.write_text("# probe\n", encoding="utf-8")
+    plan.write_text("- [ ] Create: `scripts/run_ws_capacity_probe.py`\n", encoding="utf-8")
+
+    audit = build_plan_completion_audit(
+        plan_paths=[plan],
+        changed_files=[],
+        scope_mode="full",
+        project_root=tmp_path,
+    )
+
+    assert audit["status"] == "PASS"
+    assert audit["summary"]["done"] == 1
+    assert audit["items"][0]["status"] == "DONE"
+    assert audit["items"][0]["evidence"] == ["current_state_existing:scripts/run_ws_capacity_probe.py"]
+
+
+def test_plan_completion_full_scope_accepts_declared_complete_step_without_path(tmp_path: Path) -> None:
+    plan = tmp_path / "docs" / "plan" / "sample.md"
+    plan.parent.mkdir(parents=True)
+    plan.write_text("- [x] **Step 1: Run focused verification**\n", encoding="utf-8")
+
+    audit = build_plan_completion_audit(
+        plan_paths=[plan],
+        changed_files=[],
+        scope_mode="full",
+        project_root=tmp_path,
+    )
+
+    assert audit["status"] == "PASS"
+    assert audit["summary"]["done"] == 1
+    assert audit["items"][0]["status"] == "DONE"
+    assert audit["items"][0]["evidence"] == ["declared_complete"]
+
+
+def test_plan_completion_full_scope_accepts_declared_complete_existing_path(tmp_path: Path) -> None:
+    plan = tmp_path / "docs" / "plan" / "sample.md"
+    target = tmp_path / "tests" / "services" / "test_probe.py"
+    plan.parent.mkdir(parents=True)
+    target.parent.mkdir(parents=True)
+    target.write_text("def test_probe():\n    assert True\n", encoding="utf-8")
+    plan.write_text("- [x] Test: `tests/services/test_probe.py`\n", encoding="utf-8")
+
+    audit = build_plan_completion_audit(
+        plan_paths=[plan],
+        changed_files=[],
+        scope_mode="full",
+        project_root=tmp_path,
+    )
+
+    assert audit["status"] == "PASS"
+    assert audit["summary"]["done"] == 1
+    assert audit["items"][0]["status"] == "DONE"
+    assert audit["items"][0]["evidence"] == ["declared_complete_existing:tests/services/test_probe.py"]
+
+
+def test_plan_completion_normalizes_line_qualified_repo_paths(tmp_path: Path) -> None:
+    plan = tmp_path / "docs" / "plan" / "sample.md"
+    target = tmp_path / "deeptutor" / "services" / "worker.py"
+    plan.parent.mkdir(parents=True)
+    target.parent.mkdir(parents=True)
+    target.write_text("# worker\n", encoding="utf-8")
+    plan.write_text("- Modify: `deeptutor/services/worker.py:331`\n", encoding="utf-8")
+
+    audit = build_plan_completion_audit(
+        plan_paths=[plan],
+        changed_files=[],
+        scope_mode="full",
+        project_root=tmp_path,
+    )
+
+    assert audit["status"] == "PASS"
+    assert audit["items"][0]["paths"] == ["deeptutor/services/worker.py"]
+    assert audit["items"][0]["evidence"] == ["current_state_existing:deeptutor/services/worker.py"]
 
 
 def test_plan_completion_default_scope_does_not_block_future_plan_items(tmp_path: Path) -> None:

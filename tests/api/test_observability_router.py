@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import time
 
 import pytest
 
@@ -158,6 +159,118 @@ def test_surface_event_router_rejects_unknown_event_name() -> None:
 
     assert response.status_code == 400
     assert "Unsupported event_name" in response.json()["detail"]
+
+
+def test_surface_event_router_persists_product_behavior_event(tmp_path) -> None:
+    observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
+    app = _build_app()
+    now_ms = int(time.time() * 1000)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-product-1",
+                "surface": "web",
+                "event_name": "module_viewed",
+                "collected_at_ms": now_ms,
+                "sent_at_ms": now_ms + 100,
+                "metadata": {
+                    "visit_id": "visit-u1-1",
+                    "module": "learning_report",
+                    "action": "view",
+                    "release_id": "rel-web-1",
+                },
+            },
+        )
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "accepted"
+    summary = observability_module.get_product_behavior_store().get_member_behavior_summary("admin_demo")
+    assert summary["learning_report_open_count_7d"] == 1
+
+
+def test_surface_event_router_surfaces_product_behavior_persistence_failure(monkeypatch) -> None:
+    class FailingBehaviorStore:
+        def record_event(self, event):
+            raise RuntimeError("disk unavailable")
+
+    monkeypatch.setattr(observability_module, "get_product_behavior_store", lambda: FailingBehaviorStore())
+    app = _build_app()
+    now_ms = int(time.time() * 1000)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-product-persist-fail",
+                "surface": "web",
+                "event_name": "module_viewed",
+                "collected_at_ms": now_ms,
+                "metadata": {
+                    "visit_id": "visit-fail-1",
+                    "module": "learning_report",
+                    "action": "view",
+                },
+            },
+        )
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "accepted"
+    assert response.json()["product_behavior_status"] == "persistence_failed"
+    snapshot = observability_module.get_surface_event_store().snapshot()
+    assert {
+        "surface": "web",
+        "event_name": "module_viewed",
+        "status": "product_behavior_persistence_failed",
+        "count": 1,
+    } in snapshot["event_counts"]
+
+
+def test_surface_event_router_rejects_product_behavior_without_visit_id(tmp_path) -> None:
+    observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
+    app = _build_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-product-no-visit",
+                "surface": "web",
+                "event_name": "module_viewed",
+                "metadata": {
+                    "module": "learning_report",
+                    "action": "view",
+                },
+            },
+        )
+
+    assert response.status_code == 400
+    assert "visit_id is required" in response.json()["detail"]
+
+
+def test_surface_event_router_accepts_error_event_without_visit_id(tmp_path) -> None:
+    observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
+    app = _build_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-product-error-no-visit",
+                "surface": "web",
+                "event_name": "event_error",
+                "metadata": {
+                    "module": "learning_report",
+                    "action": "error",
+                    "error_code": "observer_unavailable",
+                },
+            },
+        )
+
+    assert response.status_code == 202
+    timeline = observability_module.get_product_behavior_store().get_member_timeline("admin_demo")
+    assert timeline[0]["event_name"] == "event_error"
 
 
 def test_control_plane_router_returns_latest_and_history() -> None:

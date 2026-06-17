@@ -80,6 +80,57 @@ def test_select_sources_routes_standard_query_away_from_question_bank() -> None:
     assert plan.search_exam_chunks is False
 
 
+def test_citation_wording_does_not_turn_textbook_query_into_standard_query() -> None:
+    query = "防火门等级和使用部位怎么区分？请按2026年一级建造师建筑实务教材口径回答，并在最后附依据。"
+    plan = select_sources(query, include_questions_default=True)
+    weights = resolve_group_weights(
+        query,
+        base_source_weights={"standard": 1.4, "textbook": 1.0, "exam": 0.7, "questions_bank": 0.4, "standard_precision": 2.2},
+        base_question_weights={"standard": 1.4, "textbook": 1.0, "exam": 1.2, "questions_bank": 1.5, "standard_precision": 2.2},
+    )
+
+    assert plan.query_shape == "concept_like"
+    assert plan.search_textbook_chunks is True
+    assert plan.search_questions_bank is False
+    assert weights["textbook"] > weights["standard"]
+
+
+def test_design_requirement_wording_is_not_calculation_query() -> None:
+    plan = select_sources("建筑防水等级划分依据和设防要求分别是什么，请系统解释原因", include_questions_default=True)
+
+    assert plan.query_shape == "concept_like"
+    assert plan.search_questions_bank is False
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "求总工期",
+        "求流水步距",
+        "求最大弯矩",
+        "求配筋率",
+        "求混凝土用量",
+    ],
+)
+def test_short_calculation_requests_still_route_to_calc_like(query: str) -> None:
+    plan = select_sources(query, include_questions_default=True)
+
+    assert plan.query_shape == "calc_like"
+
+
+def test_normative_standard_phrasing_still_routes_to_standard_sources() -> None:
+    plan = select_sources("建筑防火规范对防火门等级使用部位有哪些规定", include_questions_default=True)
+
+    assert plan.query_shape == "standard_like"
+    assert plan.search_questions_bank is False
+
+
+def test_standard_answer_wording_is_not_normative_standard_query() -> None:
+    plan = select_sources("这道题的标准答案和采分标准是什么", include_questions_default=True)
+
+    assert plan.query_shape != "standard_like"
+
+
 def test_select_sources_keeps_question_bank_for_mcq_like_query() -> None:
     plan = select_sources("单选题：确定屋面防水工程的防水等级应根据什么", include_questions_default=True)
 
@@ -134,6 +185,16 @@ def test_resolve_group_weights_matches_query_shape() -> None:
 
     assert mcq_weights["questions_bank"] > mcq_weights["standard"]
     assert standard_weights["standard"] > standard_weights["questions_bank"]
+
+
+def test_resolve_group_weights_prefers_textbook_for_concept_teaching() -> None:
+    weights = resolve_group_weights(
+        "防火门等级和使用部位怎么区分",
+        base_source_weights={"standard": 1.4, "textbook": 1.0, "exam": 0.7, "questions_bank": 0.4, "standard_precision": 2.2},
+        base_question_weights={"standard": 1.4, "textbook": 1.0, "exam": 1.2, "questions_bank": 1.5, "standard_precision": 2.2},
+    )
+
+    assert weights["textbook"] > weights["standard"]
 
 
 def test_dedupe_ranked_results_removes_duplicate_stems() -> None:

@@ -29,7 +29,9 @@ from collections import OrderedDict, defaultdict
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.service import LearnerStateEvent
+from deeptutor.services.learner_state.subjective_focus import subjective_focus_projection
 from deeptutor.services.learner_state.training_intent import (
+    PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
     prioritize_training_intents,
 )
@@ -151,10 +153,16 @@ def build_scoring_point_map_read_projection(
         row.pop("evidence_seen", None)
         row["next_action"] = _next_action(row, user_id=user_id)
         items.append(row)
-    _apply_training_intent_priority(items)
+    # 关注线（G3 surgical 落点）：subjective_focus 事件 → concept 权重，喂进唯一消费
+    # prioritize_training_intents 的这一处。无 subjective_focus 事件时 inert（写入侧=🟡）。
+    _apply_training_intent_priority(
+        items,
+        focus_weights=subjective_focus_projection(events, now_iso=now_iso),
+    )
 
     scoring_point_items = sum(1 for item in items if item["granularity"] == "scoring_point")
     keyword_only_items = sum(1 for item in items if item["granularity"] == "keyword_only")
+    point_id_namespace_duplicate_risks = _point_id_namespace_duplicate_risks(items)
 
     empty_state = _resolve_empty_state(
         items=items,
@@ -167,6 +175,7 @@ def build_scoring_point_map_read_projection(
         "empty_state": empty_state,
         "source_status": {
             "authority": "learner_memory_events.learning_evidence",
+            "prescription_authority": PRESCRIPTION_AUTHORITY,
             "model": "rule_based_v1",
             "total_case_event_count": total_case_event_count,
             "map_eligible_event_count": map_eligible_event_count,
@@ -175,6 +184,7 @@ def build_scoring_point_map_read_projection(
             ),
             "scoring_point_items": scoring_point_items,
             "keyword_only_items": keyword_only_items,
+            "point_id_namespace_duplicate_risks": point_id_namespace_duplicate_risks,
         },
     }
 
@@ -240,6 +250,29 @@ def _resolve_empty_state(
     return "rubric_pending"
 
 
+def _point_id_namespace_duplicate_risks(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_label: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for item in items:
+        label = str(item.get("label") or "").strip()
+        granularity = str(item.get("granularity") or "").strip()
+        point_id = str(item.get("point_id") or "").strip()
+        if label and granularity and point_id:
+            by_label[(label, granularity)].add(point_id)
+    risks: list[dict[str, Any]] = []
+    for (label, granularity), point_ids in sorted(by_label.items()):
+        if len(point_ids) <= 1:
+            continue
+        risks.append(
+            {
+                "label": label,
+                "granularity": granularity,
+                "point_ids": sorted(point_ids),
+                "risk": "cross_epoch_point_id_namespace_not_merged",
+            }
+        )
+    return risks
+
+
 def _next_action(row: dict[str, Any], *, user_id: str) -> dict[str, Any]:
     """Build the canonical training_intent v2 for this map row."""
     primary_error_code = row["error_codes"][0] if row["error_codes"] else ""
@@ -259,11 +292,20 @@ def _next_action(row: dict[str, Any], *, user_id: str) -> dict[str, Any]:
     return {"kind": kind, "intent": intent}
 
 
-def _apply_training_intent_priority(items: list[dict[str, Any]]) -> None:
-    intents = [
-        _safe_dict(_safe_dict(item.get("next_action")).get("intent"))
-        for item in items
-    ]
+def _apply_training_intent_priority(
+    items: list[dict[str, Any]],
+    focus_weights: dict[str, float] | None = None,
+) -> None:
+    weights = focus_weights or {}
+    intents: list[dict[str, Any]] = []
+    for item in items:
+        intent = _safe_dict(_safe_dict(item.get("next_action")).get("intent"))
+        concept_id = str(intent.get("concept_id") or "").strip()
+        if concept_id and concept_id in weights:
+            # 关注线（A 层）：打 subjective_focus_weight，_intent_priority 的 α=0.5
+            # 上限随即生效——关注重排同档采分点，但盖不过证据关键弱点。不进掌握。
+            intent = {**intent, "subjective_focus_weight": weights[concept_id]}
+        intents.append(intent)
     prioritized = prioritize_training_intents(intents, max_active=3)
     by_id = {
         str(intent.get("training_intent_id") or ""): intent

@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Download, Funnel, RefreshCw, ShieldAlert } from "lucide-react";
+import { BI_WORKBENCH_TITLE } from "../../../../lib/brand";
 
 type BiBossHeaderProps = {
   days: 7 | 30 | 90;
@@ -43,7 +44,7 @@ export function BiBossHeader({
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">最近同步：{lastUpdatedLabel}</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">DeepTutor BI 工作台</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">{BI_WORKBENCH_TITLE}</h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             经营、质量、会员、TutorBot 四条主线的轻量总览入口。
           </p>

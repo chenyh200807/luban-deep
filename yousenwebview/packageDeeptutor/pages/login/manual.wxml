@@ -88,6 +88,8 @@
 
         <view class="foot">
           <text class="foot-link" bindtap="goRegister">去注册</text>
+          <text class="foot-sep">|</text>
+          <text class="foot-link" bindtap="goPasswordReset">忘记密码</text>
         </view>
 
       </view>

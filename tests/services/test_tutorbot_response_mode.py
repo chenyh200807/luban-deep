@@ -1,5 +1,6 @@
 from deeptutor.tutorbot.response_mode import (
     build_mode_execution_policy,
+    looks_like_explicit_brevity_request,
     normalize_requested_response_mode,
     resolve_requested_response_mode,
     select_response_mode,
@@ -133,3 +134,17 @@ def test_select_response_mode_prefers_fast_for_structured_submission_followup() 
 
     assert selected_mode == "fast"
     assert reason == "structured_submission"
+
+
+def test_select_response_mode_prefers_explicit_brevity_over_active_object() -> None:
+    assert looks_like_explicit_brevity_request("别展开，一句话告诉我，我选C对不对。")
+
+    selected_mode, reason = select_response_mode(
+        "smart",
+        user_message="是不是因为你按旧题库字母没看我这轮选项？一句话。",
+        interaction_hints={},
+        has_active_object=True,
+    )
+
+    assert selected_mode == "fast"
+    assert reason == "explicit_brevity"

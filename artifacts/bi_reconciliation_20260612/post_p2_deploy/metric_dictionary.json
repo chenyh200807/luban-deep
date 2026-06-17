@@ -1,0 +1,534 @@
+[
+ {
+  "metric_id": "effective_learning_members",
+  "label": "有效学习成功会员数",
+  "group": "north_star",
+  "definition": "窗口内有真实手机号会员身份，并完成至少一次有效学习会话或学习成果的会员数。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "boss",
+  "drilldown": "member_ops",
+  "display_hint": "北极星指标",
+  "refresh_cadence": "近实时 (overview API)",
+  "degraded_note": "session store / member_console 任一降级时数值偏低；overview banner 同步标红。",
+  "label_aliases": [
+   "有效学习成功会员"
+  ],
+  "mapping": {
+   "metric_id": "effective_learning_members",
+   "bi_api_path": "overview:north_star.value",
+   "langfuse_kind": "",
+   "business_kind": "supabase_members",
+   "tolerance_pct": 5.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "registered_members",
+  "label": "真实注册会员数",
+  "group": "growth",
+  "definition": "通过会员系统 canonical member 口径过滤后的真实手机号会员数，不包含测试、探针和演练账号。",
+  "authority": "member_console",
+  "trust_level": "A",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (Supabase REST)",
+  "degraded_note": "",
+  "label_aliases": [
+   "真实注册会员"
+  ],
+  "mapping": {
+   "metric_id": "registered_members",
+   "bi_api_path": "members:dashboard.total_count",
+   "langfuse_kind": "",
+   "business_kind": "supabase_members",
+   "tolerance_pct": 1.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "activated_members",
+  "label": "激活会员数",
+  "group": "growth",
+  "definition": "窗口内至少有一次真实学习会话的注册会员数。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (聚合 session_store)",
+  "degraded_note": "session_store 同步延迟时窗口尾部样本偏少。",
+  "label_aliases": [
+   "活跃学习者"
+  ],
+  "mapping": {
+   "metric_id": "activated_members",
+   "bi_api_path": "overview:growth_funnel.steps[id=activated_members].value",
+   "langfuse_kind": "",
+   "business_kind": "supabase_members",
+   "tolerance_pct": 5.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "active_learning_sessions",
+  "label": "活跃学习会话",
+  "group": "overview",
+  "definition": "窗口内更新过的会话数。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "TutorBot 回写降级时仅基于客户端 events，可能漏会话。",
+  "label_aliases": [
+   "活跃学习会话数"
+  ],
+  "mapping": {
+   "metric_id": "active_learning_sessions",
+   "bi_api_path": "overview:summary.total_sessions",
+   "langfuse_kind": "daily_traces",
+   "business_kind": "",
+   "tolerance_pct": 5.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "success_turn_rate",
+  "label": "回合成功率",
+  "group": "ai_quality",
+  "definition": "成功完成的回合数占总回合数的比例。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "quality",
+  "drilldown": "feedback",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "Langfuse 评估延迟时分子滞后，分母先到，比例偏低。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "success_turn_rate",
+   "bi_api_path": "overview:summary.success_turn_rate",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 5.0,
+   "gap_note": "Langfuse 侧无等价成功率口径（trace 级状态未回写），P1 仅记录 BI 值"
+  }
+ },
+ {
+  "metric_id": "avg_session_depth",
+  "label": "平均会话深度",
+  "group": "overview",
+  "definition": "每个会话的平均消息数。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "overview",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "avg_session_depth",
+   "bi_api_path": "overview:summary.avg_session_depth",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 5.0,
+   "gap_note": "Langfuse trace 深度口径与会话消息数口径不同，仅记录 BI 值"
+  }
+ },
+ {
+  "metric_id": "notebook_saves",
+  "label": "Notebook 保存",
+  "group": "learning_evidence",
+  "definition": "问题笔记沉淀量。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "overview",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "",
+  "label_aliases": [
+   "笔记沉淀"
+  ],
+  "mapping": {
+   "metric_id": "notebook_saves",
+   "bi_api_path": "overview:summary.notebook_saves",
+   "langfuse_kind": "",
+   "business_kind": "behavior_db",
+   "tolerance_pct": 5.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "total_cost_usd",
+  "label": "总成本",
+  "group": "unit_economics",
+  "definition": "窗口内全量 AI 调用总成本 (USD)，measured（provider 回报）与 estimated（tiktoken 估算）分列。",
+  "authority": "observability.usage_ledger",
+  "trust_level": "B",
+  "owner": "platform",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (UsageLedger 聚合)",
+  "degraded_note": "estimated 分量按定价表估算；与 Langfuse/官方账单残差由对账 harness 持续核对。",
+  "label_aliases": [
+   "近 24h LLM 成本",
+   "近 7d 总成本"
+  ],
+  "mapping": {
+   "metric_id": "total_cost_usd",
+   "bi_api_path": "cost:cards[label=总成本].value",
+   "langfuse_kind": "daily_cost",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": ""
+  }
+ },
+ {
+  "metric_id": "total_tokens",
+  "label": "总 Token",
+  "group": "unit_economics",
+  "definition": "窗口内全量 AI 调用总 token 数（measured + estimated 分列）。",
+  "authority": "observability.usage_ledger",
+  "trust_level": "B",
+  "owner": "platform",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (UsageLedger 聚合)",
+  "degraded_note": "",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "total_tokens",
+   "bi_api_path": "cost:cards[label=总 Token].value",
+   "langfuse_kind": "daily_observations",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "Langfuse 侧 observations 数量与 token 数不可等值比，仅记录双方分量"
+  }
+ },
+ {
+  "metric_id": "today_cost_usd",
+  "label": "今日成本",
+  "group": "unit_economics",
+  "definition": "自然日（本地时区）内全量 AI 调用总成本 (USD)。",
+  "authority": "observability.usage_ledger",
+  "trust_level": "B",
+  "owner": "boss",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (UsageLedger 聚合)",
+  "degraded_note": "",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "today_cost_usd",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "自然日窗口与对账 harness 的 N 天窗口不同口径，P1 不做等值比，由 P3 日粒度对账覆盖"
+  }
+ },
+ {
+  "metric_id": "avg_turn_cost_usd",
+  "label": "平均回合成本",
+  "group": "unit_economics",
+  "definition": "窗口总成本除以窗口回合数；回合数来自会话事实，成本来自 UsageLedger。",
+  "authority": "observability.usage_ledger",
+  "trust_level": "B",
+  "owner": "platform",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "分子含窗口内非回合内调用（评分/合成等），高于纯聊天回合边际成本。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "avg_turn_cost_usd",
+   "bi_api_path": "cost:cards[label=平均回合成本].value",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "派生指标（ledger 成本 ÷ 会话回合数），无独立外部真相，仅记录"
+  }
+ },
+ {
+  "metric_id": "member_active_count",
+  "label": "活跃会员",
+  "group": "member_ops",
+  "definition": "member_console canonical 口径下当前状态为 active 的会员数。",
+  "authority": "member_console",
+  "trust_level": "A",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (Supabase REST)",
+  "degraded_note": "",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "member_active_count",
+   "bi_api_path": "members:dashboard.active_count",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 1.0,
+   "gap_note": "canonical 口径在 member_console 聚合，外部暂不可独立复算（同 registered_members）"
+  }
+ },
+ {
+  "metric_id": "expiring_soon_members",
+  "label": "7 天内到期",
+  "group": "member_ops",
+  "definition": "7 天内会员权益到期的 canonical 会员数。",
+  "authority": "member_console",
+  "trust_level": "A",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 (Supabase REST)",
+  "degraded_note": "",
+  "label_aliases": [
+   "即将到期会员"
+  ],
+  "mapping": {
+   "metric_id": "expiring_soon_members",
+   "bi_api_path": "members:dashboard.expiring_soon_count",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 1.0,
+   "gap_note": "到期窗口为 member_console 派生口径，仅记录"
+  }
+ },
+ {
+  "metric_id": "renewal_risk_members",
+  "label": "续费风险会员数",
+  "group": "member_ops",
+  "definition": "即将到期、沉默、高风险或高成本低效果的会员集合。",
+  "authority": "member_console",
+  "trust_level": "B",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "每 5 分钟 (member_console 聚合)",
+  "degraded_note": "学习证据未同步时风险评分偏低。",
+  "label_aliases": [
+   "续费风险会员",
+   "流失预警"
+  ],
+  "mapping": {
+   "metric_id": "renewal_risk_members",
+   "bi_api_path": "members:dashboard.churn_risk_count",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 5.0,
+   "gap_note": "风险集合为派生口径，业务库无独立真相，仅记录值"
+  }
+ },
+ {
+  "metric_id": "member_health_score",
+  "label": "会员健康评分",
+  "group": "member_health",
+  "definition": "由学习行为、会员价值、学习效果、AI 体验和运营关系组成的透明风险评分；样本不足时只展示风险标签和原因。",
+  "authority": "bi_service",
+  "trust_level": "C",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "每 15 分钟",
+  "degraded_note": "样本量 < 阈值时仅展示风险标签和原因，不展示分值。",
+  "label_aliases": [
+   "会员健康"
+  ],
+  "mapping": {
+   "metric_id": "member_health_score",
+   "bi_api_path": "overview:member_health.score.value",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "复合评分无外部真相源，仅记录值与样本量"
+  }
+ },
+ {
+  "metric_id": "mastery_improvement",
+  "label": "章节掌握度提升",
+  "group": "teaching_effect",
+  "definition": "基于 member learner state 中章节掌握度和弱点闭环信号计算的学习效果指标。",
+  "authority": "learner_state",
+  "trust_level": "C",
+  "owner": "teaching",
+  "drilldown": "teaching_effect",
+  "display_hint": "",
+  "refresh_cadence": "每 15 分钟",
+  "degraded_note": "learner_state read model 同步延迟时窗口尾部掌握度偏低；样本量 < 10 时不展示。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "mastery_improvement",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "2026-06-12 实拍：overview 仅暴露 teaching_effect.chapter_progress 逐章 mastery，无聚合提升值——注册指标未被 payload 实际承载"
+  }
+ },
+ {
+  "metric_id": "ai_quality_score",
+  "label": "AI 教学质量分",
+  "group": "ai_quality",
+  "definition": "v1 承载工程成功率（成功回合占比）作为代理；反馈/追问/RAG 信号综合分列入 P3。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "quality",
+  "drilldown": "feedback",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "Langfuse / 用户反馈源任一缺数据时切到 placeholder，不参与排名。",
+  "label_aliases": [
+   "AI 质量"
+  ],
+  "mapping": {
+   "metric_id": "ai_quality_score",
+   "bi_api_path": "overview:ai_quality.engineering_success_rate",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 5.0,
+   "gap_note": "实拍 ai_quality.value=None，payload 实际承载 engineering_success_rate 代理字段——口径与注册定义不一致；Langfuse observations 总量与质量分不可比，不做等值对账"
+  }
+ },
+ {
+  "metric_id": "cost_per_effective_learning",
+  "label": "单有效学习成本",
+  "group": "unit_economics",
+  "definition": "窗口总 AI 成本除以有效学习成功会员数；收入未接入时只展示成本侧。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "boss",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "每 5 分钟",
+  "degraded_note": "成本估算 C 级时此指标也降级到 C 级。",
+  "label_aliases": [
+   "单次学习成本"
+  ],
+  "mapping": {
+   "metric_id": "cost_per_effective_learning",
+   "bi_api_path": "overview:unit_economics.value",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 15.0,
+   "gap_note": "2026-06-12 实拍 value=None（cost=0.0198、有效学习者=10，本应可算）——已注册已展示但值未接线"
+  }
+ },
+ {
+  "metric_id": "behavior.module.open_count",
+  "label": "模块打开次数",
+  "group": "product_behavior",
+  "definition": "窗口内用户进入学习产品模块的次数，来自 product_behavior_events indexed raw read model。",
+  "authority": "product_behavior_store",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 indexed raw read",
+  "degraded_note": "visit_id、release_id 或 section visibility 缺失时降级为 B/C。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "behavior.module.open_count",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "behavior_db",
+   "tolerance_pct": 5.0,
+   "gap_note": "overview payload 不直接暴露，经 member-ops 聚合；P1 先 DB 侧单源记录"
+  }
+ },
+ {
+  "metric_id": "behavior.learning_report.section_view_count",
+  "label": "学情 section 浏览次数",
+  "group": "product_behavior",
+  "definition": "窗口内学情页 section 进入视口或 fallback 渲染曝光次数。",
+  "authority": "product_behavior_store",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 indexed raw read",
+  "degraded_note": "小程序/yousen 曝光口径未完成三端一致 smoke 前保持 B 级。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "behavior.learning_report.section_view_count",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "behavior_db",
+   "tolerance_pct": 5.0,
+   "gap_note": "overview payload 不直接暴露；P1 先 DB 侧单源记录"
+  }
+ },
+ {
+  "metric_id": "behavior.funnel.report_to_training",
+  "label": "学情到训练转化",
+  "group": "product_behavior",
+  "definition": "学情浏览后进入训练的用户或 visit 占比。",
+  "authority": "product_behavior_store",
+  "trust_level": "B",
+  "owner": "product",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 indexed raw read",
+  "degraded_note": "缺 visit_id 时不进入 A 级漏斗。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "behavior.funnel.report_to_training",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "behavior_db",
+   "tolerance_pct": 5.0,
+   "gap_note": "派生漏斗，P1 先 DB 侧记录分量"
+  }
+ },
+ {
+  "metric_id": "behavior.member_ops.report_high_no_action",
+  "label": "学情高频无行动",
+  "group": "product_behavior",
+  "definition": "7 天学情打开不少于 3 次且训练/复测开始为 0 的会员队列。",
+  "authority": "product_behavior_store",
+  "trust_level": "B",
+  "owner": "ops",
+  "drilldown": "member_ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时 indexed raw read",
+  "degraded_note": "低可信 cohort 只允许人工参考，不进入自动运营队列。",
+  "label_aliases": [],
+  "mapping": {
+   "metric_id": "behavior.member_ops.report_high_no_action",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "behavior_db",
+   "tolerance_pct": 5.0,
+   "gap_note": "运营队列口径，P1 先 DB 侧记录分量"
+  }
+ },
+ {
+  "metric_id": "data_trust_score",
+  "label": "数据可信度分",
+  "group": "data_trust",
+  "definition": "基于接口降级、数据源缺口、指标口径完整度和更新时间形成的可信度摘要。",
+  "authority": "bi_service",
+  "trust_level": "A",
+  "owner": "engineering",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "v1 不计算数值分（payload value 显式为 null），仅暴露 status 与 degraded_modules；数值化列入 P3。",
+  "label_aliases": [
+   "数据可信"
+  ],
+  "mapping": {
+   "metric_id": "data_trust_score",
+   "bi_api_path": "",
+   "langfuse_kind": "",
+   "business_kind": "",
+   "tolerance_pct": 1.0,
+   "gap_note": "v1 显式 value=null（registry degraded_note 已声明），数值化列入 P3"
+  }
+ }
+]

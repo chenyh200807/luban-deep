@@ -14,14 +14,14 @@
     },
     {
       "prompt_type": "knowledge_map",
-      "text": "帮我整理施工管理和质量验收的高频考点地图",
+      "text": "梳理施工质量管理的高频考点",
       "intent": {
         "job": "knowledge_map"
       }
     },
     {
       "prompt_type": "mistake_review",
-      "text": "带我复盘材料检验题常见错因和避坑方法",
+      "text": "复盘主要建筑工程材料的性能与应用里的材料检验错因",
       "intent": {
         "job": "mistake_review"
       }

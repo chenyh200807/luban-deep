@@ -11,6 +11,10 @@ def new_call_id(prefix: str = "call") -> str:
     return f"{prefix}-{uuid4().hex[:10]}"
 
 
+def _is_nonblank_trace_value(value: str | None) -> bool:
+    return value is not None and value != ""
+
+
 def build_trace_metadata(
     *,
     call_id: str,
@@ -29,13 +33,13 @@ def build_trace_metadata(
         "label": label,
         "call_kind": call_kind,
     }
-    if trace_id:
+    if _is_nonblank_trace_value(trace_id):
         metadata["trace_id"] = trace_id
-    if trace_role:
+    if _is_nonblank_trace_value(trace_role):
         metadata["trace_role"] = trace_role
-    if trace_group:
+    if _is_nonblank_trace_value(trace_group):
         metadata["trace_group"] = trace_group
-    if trace_kind:
+    if _is_nonblank_trace_value(trace_kind):
         metadata["trace_kind"] = trace_kind
     metadata.update({k: v for k, v in extra.items() if v is not None})
     return metadata
@@ -60,12 +64,21 @@ def derive_trace_metadata(
         "phase": phase,
         "label": label,
         "call_kind": call_kind,
+    }
+    metadata.update({key: value for key, value in overrides.items() if value is not None})
+    trace_overrides = {
         "trace_id": trace_id,
         "trace_role": trace_role,
         "trace_group": trace_group,
         "trace_kind": trace_kind,
     }
-    metadata.update({key: value for key, value in overrides.items() if value is not None})
+    metadata.update(
+        {
+            key: value
+            for key, value in trace_overrides.items()
+            if _is_nonblank_trace_value(value)
+        }
+    )
     metadata.update({key: value for key, value in extra.items() if value is not None})
     return metadata
 

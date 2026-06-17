@@ -49,18 +49,8 @@ _EXACT_QUESTION_ENDINGS = (
     "正确的是",
     "错误的是",
 )
-_STANDARD_HINTS = (
-    "规范",
-    "标准",
-    "条文",
-    "要求",
-    "依据",
-    "规定",
-    "第",
-    "gb",
-    "jgj",
-    "cjj",
-)
+_STANDARD_HINTS = ("规范", "标准", "条文")
+_STANDARD_NON_NORMATIVE_PHRASES = ("标准答案", "评分标准", "采分标准")
 _QUESTION_HINTS = (
     "真题",
     "做题",
@@ -83,11 +73,12 @@ _CONTRAST_MARKERS = ("区别", "不同", "差异", "联系", "关系", "对比")
 observability = get_langfuse_observability()
 _TOKEN_RE = re.compile(r"[A-Za-z0-9./_-]+|[\u4e00-\u9fff]{2,12}")
 _NODE_CODE_RE = re.compile(r"\b\d+(?:\.\d+){1,3}\b")
-_STANDARD_CODE_RE = re.compile(r"(?:GB|JGJ|CJJ|GB/T|JGJ/T)\s*\d", re.IGNORECASE)
+_STANDARD_CODE_RE = re.compile(r"(?:GB/T|JGJ/T|GB|JGJ|CJJ|CECS|DBJ|DB)\s*[- ]?\d", re.IGNORECASE)
 _STANDARD_CODE_EXTRACT_RE = re.compile(
     r"((?:GB|JGJ|CJJ|DBJ|DB)(?:/T)?)\s*(\d{2,5})(?:[-—](\d{4}))?",
     re.IGNORECASE,
 )
+_STANDARD_ARTICLE_RE = re.compile(r"(?:第\s*)?\d+(?:\.\d+){1,4}\s*条")
 _EXAM_OPTION_RE = re.compile(r"(?:^|\n|\s)[A-E][\.．、\)]\s*\S")
 _EXAM_SPLIT_RE = re.compile(r"(?:^|\n|\s)[A-E][\.．、\)]\s*")
 _INLINE_MCQ_OPTION_MARKER = re.compile(r"(?:^|[\s。；;！？?）\)])([A-E][.、．:：])")
@@ -107,6 +98,12 @@ _MCQ_STEM_RE = re.compile(
 _CASE_BACKGROUND_MARKERS = ("【背景资料】", "背景资料")
 _CASE_QUESTION_MARKERS = ("【问题】", "\n问题：", "\n问题:", "\n问题\n", "问题：", "问题:")
 _CASE_SUBQUESTION_RE = re.compile(r"(?:^|\n)\s*(\d+)[\.、]\s*")
+_CALC_REQUEST_RE = re.compile(
+    r"计算|求解|算一[下算]|工程量|面积|体积|造价|索赔|"
+    r"(?:^|[，。；;、\s])求(?:出|得|取|一下|算)?\s*"
+    r"(?:总?工期|流水步距|流水节拍|最大弯矩|弯矩|配筋率|混凝土用量|用量|费用|"
+    r"数量|高度|长度|厚度|强度|荷载|承载力|偏差|时间|面积|体积|造价|工程量|索赔)"
+)
 _STATIC_SYNONYMS: dict[str, tuple[str, ...]] = {
     "防水等级": ("一级防水", "二级防水", "三级防水"),
     "设防要求": ("防水设防", "设防层数", "防水层数"),
@@ -686,8 +683,17 @@ def is_question_like_query(query: str) -> bool:
 
 
 def is_standard_like_query(query: str) -> bool:
-    lowered = str(query or "").strip().lower()
-    return bool(_STANDARD_CODE_RE.search(lowered)) or any(token in lowered for token in _STANDARD_HINTS)
+    text = str(query or "").strip()
+    lowered = text.lower()
+    if not text:
+        return False
+    if _STANDARD_CODE_RE.search(text) or _STANDARD_ARTICLE_RE.search(text):
+        return True
+    if "教材" in text and not any(token in text for token in _STANDARD_HINTS):
+        return False
+    if any(phrase in text for phrase in _STANDARD_NON_NORMATIVE_PHRASES):
+        return False
+    return any(token in lowered for token in _STANDARD_HINTS)
 
 
 def is_exam_like_query(query: str) -> bool:
@@ -715,7 +721,7 @@ def classify_query_shape(query: str) -> str:
         return "case_like"
     if is_standard_like_query(text):
         return "standard_like"
-    if re.search(r"计算|求|算一[下算]|工程量|面积|体积|造价|索赔", text):
+    if _CALC_REQUEST_RE.search(text):
         return "calc_like"
     return "concept_like"
 
@@ -846,8 +852,8 @@ def resolve_group_weights(
         weights["questions_bank"] = min(weights.get("questions_bank", 0.4), 0.35)
         weights["exam"] = min(weights.get("exam", 0.7), 0.45)
     elif plan.query_shape == "concept_like":
-        weights["textbook"] = max(weights.get("textbook", 1.0), 1.1)
-        weights["standard"] = max(weights.get("standard", 1.0), 1.25)
+        weights["textbook"] = max(weights.get("textbook", 1.0), 1.55)
+        weights["standard"] = min(weights.get("standard", 1.0), 1.0)
         weights["questions_bank"] = min(weights.get("questions_bank", 0.4), 0.25)
         weights["exam"] = min(weights.get("exam", 0.7), 0.35)
 

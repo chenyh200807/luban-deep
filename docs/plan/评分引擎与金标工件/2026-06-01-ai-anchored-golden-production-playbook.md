@@ -1,0 +1,149 @@
+# 无人类专家时的 AI 锚定 Golden 数据集生产 Playbook（平台无关·可复用经验）
+
+> **定位**：这是一份**平台无关**的方法论沉淀。任何 AI agent 平台（Claude Code、Codex、其他）在「没有人类专家、但要为主观题/开放题做评测 golden」时，都能照此复刻。
+> **本项目 worked example**：[v2.2 §6.10 v0 AI 锚定管线](2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md)（一建建筑实务案例题，20 题 / 100 样本 / 踩字口径 / 点级一致性 0.9885）。
+> **核心信念**：最有复用价值的不是"最终成功态"，而是**踩了哪些坑、怎么迭代修正**——本文第 5 节是重点。
+
+---
+
+## 0. 何时用 + 产出什么（先定性，避免自欺）
+
+**适用条件**：需要一个评测主观题 AI 批改的 golden，但 ① 没有 ≥2 名人类专家做双盲标注，② 可能也没有真实学生作答。
+
+**铁律级定性**：本方法产出的是 **v0 synthetic 锚定集 = directional 级**：
+- **不报人类 IRR、不宣称"通过生产门"**。
+- 它能测：模型批改能否对齐官方采分点、识别构造的典型错误。
+- 它**测不了**：真实学生千奇百怪的表达、官方答案本身的模糊地带、需人类裁量的边界。
+- **顶级人类共识 golden（双盲 + IRR + 仲裁）= v1 目标态，待真人到位**。
+
+**为什么不能假装 AI = 人类专家**：若「AI 造答案 → AI 标命中 → 拿去评测 AI 批改」，就是**自产自销/循环论证**——你只测了"模型 A 同不同意模型 B"，而非"模型对不对"。golden 的全部价值在于**独立于被测系统的 ground truth**。下一节是破解循环的关键。
+
+---
+
+## 1. 核心方法：5 角色 AI 锚定管线
+
+把"标注"拆成 5 个职责单一的角色，每个角色只做机械、可验证的事，AI **不充当"谁对谁错"的主观权威**（那是它不可信、也会循环的地方）：
+
+| 角色 | 输入 | 输出 | 关键约束 |
+|---|---|---|---|
+| ① 采分点拆解员 | 官方满分答案 + 规范/教材 | `gold_scoring_points`（点+分值+依据） | **对照官方答案机械拆，不发明**；分值标"专家判断非官方" |
+| ② 学生答案构造员 | 题 + 采分点 | 5 份按 archetype 注入**已知错误**的答案 + **构造台账** | 台账写死"这份实际命中/漏哪些点"（programmatic ground truth） |
+| ③ 独立盲标员 | 采分点 + 单份答案（**看不到台账/官方标注**） | 逐点 hit/miss + 错因码 | **context 隔离**——模拟"独立标注" |
+| ④ 对照核验 | 台账 vs 盲标 | 客观一致性 | **纯代码、非 agent**（保证非循环） |
+| ⑤ 效度锚 | 分歧项 | 裁定 | 对照官方答案 + 规范/教材原文 |
+
+archetype 建议覆盖：完整满分 / 半对 / 口号化空泛 / 漏关键条件 / 误用规范或概念混淆。
+
+---
+
+## 2. 为什么这样不循环（ground truth 三锚）
+
+ground truth 来自三个**非 AI 主观裁量**的锚：
+1. **官方满分答案**——采分点照它拆，不由 AI 发明。
+2. **规范条文 + 教材原文**——术语的权威出处（见第 3 节）。
+3. **构造台账**——学生答案是"按故意命中/漏某点"构造的，**命中与否是构造时写死的客观事实**，不是事后主观判断。
+
+**破循环的关键**：角色 ③ 盲标员看不到台账，它独立还原"这份答案命中了什么"；角色 ④ 用纯代码比"盲标 vs 台账"。台账不是 AI 事后判的，是构造时写死的——所以"盲标能否还原台账"是**可验证的客观一致性**，不是"两个 AI 互相同意"。
+
+---
+
+## 3. 关键口径：踩字给分 + 术语锚教材原文（领域适配，但思路通用）
+
+**踩字给分**（一建案例的真实阅卷口径，其他考试/领域按各自标准答案规则替换）：
+- **命中 = 考生写出规范术语原文那几个字**（如"诚实信用""依法履约"）。
+- **近义/口号/大白话不给分**（"诚信经营"≠"诚实信用"）。
+- **列举型采分点**：按写出的规范术语**原文个数**给分（写一半数量→一半分）。
+
+**术语必须可 trace 到权威原文**（教材/官方评分细则）——否则"标准答案"是 AI 编的，判卷无依据。本项目实证：教材列着合同 6 原则原文，真题答案 = 教材术语应用。
+
+> **通用化**：任何领域，先问"标准答案的每个采分点，其'必须写出的关键词'从哪本权威来？"。把这个口径在角色 ①②③ 的 prompt 里写死，AI 就不会按自己的宽松尺度放水。
+
+---
+
+## 4. 平台无关的实现要点
+
+- **强制结构化输出**：每个角色的输出用 schema 强制（JSON Schema / 工具调用 / function calling）。否则 agent 会写 markdown 散文，下游无法消费。
+- **context 隔离做"独立"**：用**独立 subagent / 独立会话**跑盲标员，让它物理上看不到台账——这比"同一上下文里左右手互搏"可信得多。
+- **对照核验用代码不用 agent**：一致性计算（hit 方向比对、cluster、CI）是确定性逻辑，写代码，别让 agent 算（避免又引入主观）。
+- **零依赖优先**：一致性统计（如 AC1、加权一致、bootstrap）尽量纯标准库手写（约 100–150 行），别为它引入重数值栈依赖（违背简洁原则）。
+- **编排可重入**：生产 N 题用 pipeline/并行编排；务必支持**失败重跑 + 缓存成功**（见第 5 节 agent 故障坑）。
+
+---
+
+## 5. 踩坑与迭代修正（本 playbook 最核心的复用价值）
+
+每一条都是真实踩过的坑 + 治本修法，未来直接避开：
+
+| # | 坑（症状） | 根因 | 治本修法 |
+|---|---|---|---|
+| 1 | **打补丁漩涡**：每轮 review 都能挑出新统计漏洞，文档越改越厚 | 把"依赖未来数据的 estimator 选择"当成"已冻结的计划决策"内联进文档（抽象层错位） | 文档只声明**门槛语义 + 原则**；具体统计方法下沉到一个"会用真实数据校准的计算模块"。**3+ 修复在不同处暴露新问题 = 架构错了，停止打补丁、质疑架构**（systematic-debugging Phase 4.5） |
+| 2 | **采分点拆过头**：列举类被拆成 23 个 0.25 分微点，鸡零狗碎 | "一律拆原子点消除 partial"矫枉过正 | **区分两类**：离散异质要点→拆原子点；**同质列举→不拆，用 `list_rule` 计数阈值规则**（"命中≥4 项满分，每少 1 扣 0.5"），与罚则同类固化为可执行规则 |
+| 3 | **盲标系统性偏松**：AI 爱做近义匹配（"诚信经营≈诚实信用"判命中），构造与盲标**一起偏松、互相一致刷出高分**，但偏离真实阅卷 | 两个 AI 角色共享同一个宽松尺度，**AI 多轮自查发现不了**（它们一起偏） | **必须有人类锚（PO 抽查）**——这是 AI 自己补不了的环节；人类一句"得写出那几个字"就抓出来了。然后把口径（踩字）写进所有角色 prompt 重跑 |
+| 4 | **全局耦合罚则题**：含"多答不得分"的题，自动判分在 0/7~4/7 剧烈摆动 | 一个子问题的答题行为清零其他采分点，规则没固化 | 把罚则写成判分器**可执行规则**（`penalty_rule`：触发条件 + 牵连范围 + 计数口径），消除摆动 |
+| 5 | **partial 边界飘** | 采分点粒度太粗（一个点含多要点） | 拆原子要点（每点单一可二值），或一致性按 hit 侧二值化（partial 归非 hit 侧） |
+| 6 | **agent 没调结构化输出**：大题（多采分点）盲标 agent 输出散文、不调 schema 工具 → 该题结果缺失、一致性假性暴跌 | 输出长 + schema 复杂时 agent 倾向写文字 | 编排支持**失败重跑 + 缓存成功**（resume）；故障是技术问题不是质量问题，别误判为"判定不一致" |
+| 7 | **采分点分值和 ≠ 整题分值** | 拆解 agent 没严格满足约束 | prompt 加硬约束；落地时**按比例机械缩放**对齐（标 rescaled，不擅改教研判断） |
+| 8 | **参数传递 bug**：编排框架的 args 没正确传成数组 | 平台传参机制 | 数据**内联进脚本**（可靠），别依赖外部传参 |
+| 9 | **RAG evidence 到 trace 但不进评分 authority**：RAG arm 看似接通，证据 refs 增加，但分数与 baseline 完全一致 | 当前评分 kernel 只用 `grading_key / grading_rubric / correct_answer projection` 决定分数，`evidence_rows` 只进 provenance，不参与评分点生成 | 不让 RAG 直接改分，避免第二评分权威。公平路径是：RAG 检索 -> rubric candidate -> 结构化校验 -> 进入 `grading_key.scoring_points`，再由唯一 kernel 评分 |
+| 10 | **artifact-first false positive**：答案里出现单个术语，但语境是错的 / 口号化 / 误用规范，keyword kernel 仍给分 | 仅靠 substring 踩字无法判断“术语出现在正确语境中” | 把 false positive 分类入 reviewer backlog；短期用 v0 directional 报告，不在 runner 二次扣分；中期在 kernel 提案里只处理 penalty_rule 和术语形态归一化，语境裁量留给 v1 人审或后续结构化规则 |
+| 11 | **术语形态漏判**：官方原文术语在答案中只差括号、顿号、标点形态，ledger 视为命中，kernel 原始 substring 漏给 | 原文术语匹配缺少“标点/括号归一化”，但又不能滑向同义词扩展 | 只允许做官方术语的标点/括号归一化，不引入近义词；该改动必须进唯一评分 kernel，经单独提案审批 |
+| 12 | **术语归一化 vs overmatch 的张力**：归一化会让更多官方术语命中，但也会让过宽词、整段 label fallback、A/B 填空串位更容易误命中 | (b) 多匹配与 (c) 少匹配方向相反，不能只看平均分差；必须同时看 precision、hallucination 和 false positive severity | 归一化只进唯一 kernel；artifact compiler 不能在无官方术语时退回整段 label；过宽词如 `原则` 不作为独立采分词；填空题增加结构化 `answer_label` 约束；剩余语境误命中进 reviewer backlog，不用 runner 二次扣分 |
+| 13 | **false-miss 灌水**：空 `required_terms` / 无可核验锚点被静默判成 `miss=0`，再标 `deterministic/class A`，会把“无法核验”伪装成“确定性没答中” | 同源 A/B 会一起 miss，1.0 agreement 反而掩盖 bug；PO adversarial spotcheck 是必要闸口 | official answer 必须作为合法本地精确锚源；无可核验术语必须 `verifiable=false` + `class B`，禁止进入确定性认证；旧 independent labels 不得默认回灌；订正报告见 `artifacts/luban_no_human_v1_5/20260601_textbook_anchored/FINDING_false_miss_correction_r1.md` |
+| 14 | **list_rule 分母灌水**：列举题全写对却只得约 0.6 倍分，例如 Q11 四区/防疫物资/重点场所 | denominator 用了 repaired required_terms，混入 junk、整句锚、非术语 fallback；同时普通 split 会把括号内顿号误拆 | 列举型 denominator 必须优先取官方显式列举术语；split 只在括号外发生；junk / scoring instruction / quote fragments 清掉；substring 大白话风险（如“上厕所的”）退 `class B`，不自动认证。订正报告见 `artifacts/luban_no_human_v1_5/r2_corrected_list_rule_20260601/FINDING_list_rule_denominator_correction_r2.md` |
+| 15 | **教材锚被 JSON 衍生字段污染**：看似 textbook anchor，实际匹配到整份 JSON、`grading_keywords`、`official_answer` 或碎公式；覆盖率虚高 | 采集器把 JSON 全文当教材源，并把 official answer 混在同等锚源；计算/图识别/跨科目点也被塞进踩字覆盖率 | 教材主锚只读 `content_blocks[].content_markdown`，并保留 `chunk_id/node_code/page_num`；official-only 降 `official_answer_weak/B`；计算点 `point_type=calculation` 纯数值核验；图点 `exam_figure`；非教材/跨科目降 B。订正报告见 `artifacts/luban_no_human_v1_5/content_markdown_reanchor_20260602/FINDING_content_markdown_reanchor_r3.md` |
+| 16 | **verify-on-write 缺失 + 短通用词过松**：点级 `anchor_source=textbook` 可能没有非空 `chunk_id` 或 quote 核不到目标 chunk；`防护/浇筑/限制` 这类短词可误给分 | 只在 term-level 找过字符串，没有在写 point metadata 时再次验证 `chunk_id+quote ∈ content_markdown`；短词可从教材任意位置扩成无关短语 | 写入 point 前执行 verify-on-write：每个 required term 都必须有有效 textbook anchor；混合 weak/textbook 整点降 B；短通用单术语只能扩到采分点文本已指向且可回核的更长短语，扩不出降 B。r4 pilot gate 见 `artifacts/luban_no_human_v1_5/content_markdown_reanchor_pilot_gate_20260602/FINDING_pilot_gate_verify_on_write_r4.md` |
+
+---
+
+## 6. 天花板与红线（永远诚实标注）
+
+- **天花板**：一致性数字是"**两个 AI 角色在同一标准下的一致性**"，**不是 AI-vs-人类真相**。踩字口径让它贴近真实阅卷尺度、且让判定更客观（写没写出原文术语是事实，比近义裁量客观），但仍是 v0 directional。
+- **红线**：缺人类一致性/仲裁/效度的 golden，结论**只能写 directional / shadow，永远不能写"通过生产门"**。
+- **唯一人类锚**：PO 抽查（建议 ≥10%）——尤其抓"AI 双方一起偏"的系统偏差（坑 #3）。这是整套方法里 AI 不可替代的一环。
+
+### 6.1 v1 人锚定切片
+
+v1 的第一步不是再跑一个 AI 评测，而是把小切片交给真人/PO 盲标：
+
+- v0 `ground_truth_ledger` 保留，用于可比性。
+- PO label 作为更高权威校验层，用来测试 ledger 是否可信。
+- PO 不看 baseline / RAG / artifact-first 预测，不看 ledger，不看 blind_grade。
+- 回收后只用确定性脚本计算 human-vs-ledger 与 human-vs-artifact-first。
+
+当前 worked example:
+
+- `artifacts/luban_human_validation_v1/po_slice_20260601/`
+- 24 samples / 12 cases / 131 point-label rows.
+- 状态：awaiting human labels。AI 不得代填。
+
+---
+
+## 7. 迁移到其他平台（如 Codex）：平台无关 vs 平台相关
+
+复刻时，**方法骨架照搬，只换平台相关的实现机制**：
+
+**平台无关（直接照搬）**：
+- 5 角色管线 + ground truth 三锚 + 非循环原理（§1、§2）
+- 踩字口径 + 术语锚教材原文（§3）
+- 全部踩坑修法（§5）
+- 天花板与红线 + PO 人类锚（§6）
+- schema 设计、archetype 清单、对照核验逻辑
+
+**平台相关（按各平台 API 替换）**：
+- **多 agent 编排**：Claude Code 用 workflow/subagent；Codex 用其 agent/exec 机制或脚本循环。
+- **结构化输出强制**：JSON Schema / function calling / tool 强制的具体写法。
+- **context 隔离**：怎么开"看不到台账"的独立标注会话（独立进程/独立 exec/独立 thread）。
+- **失败重跑 + 缓存**：各平台的 resume/缓存机制不同；没有的话自己存中间结果 + 跳过已完成项。
+- **并发与 token 预算**：并发上限、单次 token 上限按平台调。
+
+> **给 Codex 复刻者的一句话**：把本文 §1–§6 当规格，§5 当避坑清单，§7 当适配层。先用 1 道题走通 5 角色（pilot），验证"独立盲标能还原构造台账"，再规模化——别一次性全量（坑 #6 会让你白跑）。
+
+---
+
+## 8. 度量演进（别停在 v0）
+
+- **v0**（本方法）：100 份 synthetic、AI 锚定、directional。go/no-go 级。
+- **v1**：≥2 名人类专家双盲 + IRR（Krippendorff α / Gwet AC1 / QWK）+ 仲裁。生产门级。
+- **v2+**：扩规模（≥300→≥1000）、真实学生答案（T1）替换 synthetic、错因码达统计功效。
+
+老版本冻结不可变，新版只追加。

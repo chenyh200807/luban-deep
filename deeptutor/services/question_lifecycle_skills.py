@@ -147,6 +147,15 @@ _SCENE_REFERENCE_FILES: dict[str, dict[str, tuple[str, ...]]] = {
             "references/error-taxonomy.md",
         )
     },
+    "learning_evidence_story": {
+        "construction-learning-evidence-story": ("references/degraded-claims.md",)
+    },
+    "study_assistant": {
+        "construction-study-assistant": ("references/action-selection.md",)
+    },
+    "learning_support": {
+        "construction-learning-support": ("references/support-playbook.md",)
+    },
 }
 
 _LECTURE_TOPIC_REFERENCES = {
@@ -184,15 +193,42 @@ async def resolve_question_lifecycle_scene_decision(
     this function's business-gated ``QuestionLifecycleSceneDecision``.
     """
 
-    scene = derive_question_lifecycle_scene(ctx)
     user_message = str(getattr(ctx, "user_message", None) or "").strip()
     metadata = getattr(ctx, "metadata", None) or {}
-    unanchored_submission = _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+    if isinstance(metadata, dict) and "question_lifecycle_scene" in metadata:
+        pre_scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
+        if pre_scene is not None:
+            source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
+            reason = str(
+                metadata.get("question_lifecycle_scene_reason")
+                or "pre-stamped lifecycle scene"
+            ).strip()
+            try:
+                confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
+            except (TypeError, ValueError):
+                confidence = 1.0
+            return QuestionLifecycleSceneDecision(
+                scene=pre_scene,
+                source=source or "metadata",
+                confidence=confidence,
+                reason=reason,
+                required_anchor_status="satisfied",
+                selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
+                business_gate_result="pre_stamped_scene",
+            )
+    scene = derive_question_lifecycle_scene(ctx)
+    unanchored_submission = (
+        _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+        and scene != "mcq_grading"
+    )
     ambiguous_multi_submission = _looks_like_ambiguous_multi_question_submission(
         user_message,
         metadata,
     )
-    low_information_exam_query = is_low_information_exam_query(user_message)
+    low_information_exam_query = is_low_information_exam_query(
+        user_message
+    ) and not _low_information_query_can_use_active_question(user_message, metadata)
+    free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
         if isinstance(metadata, dict)
@@ -210,7 +246,14 @@ async def resolve_question_lifecycle_scene_decision(
             business_gate_result="resolved_clarification_option",
         )
     proposal: QuestionLifecycleSceneDecision | None = None
-    if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
+    if enable_llm and (
+        low_information_exam_query
+        or (
+            scene is None
+            and not free_text_mcq_answer_request
+            and _should_use_llm_scene_proposal(ctx)
+        )
+    ):
         proposal = await _llm_question_lifecycle_scene_proposal(ctx)
     llm_candidate = _llm_candidate_payload(proposal)
 
@@ -419,11 +462,83 @@ def is_low_information_exam_query(query: str) -> bool:
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
         return False
+    if _looks_like_explicit_question_generation_request(text):
+        return False
+    answer_request_markers = (
+        "答案",
+        "正确答案",
+        "标准答案",
+        "直接告诉",
+        "只要答案",
+        "发答案",
+        "给答案",
+        "发我",
+        "直接发",
+        "直接给",
+    )
+    concrete_stem_markers = (
+        "下列",
+        "正确的是",
+        "错误的是",
+        "不正确的是",
+        "不宜",
+        "应为",
+    )
+    case_question_index_pattern = (
+        r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9]{0,16}"
+        r"案例(?:第?[0-9一二两三四五六七八九十]+)?第?[0-9一二两三四五六七八九十]+问"
+    )
+    if (
+        re.search(case_question_index_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    demonstrative_question_ref_pattern = (
+        r"(?:那道|这道|那一道|这一道|上次那道|刚才那道|上面那道|那个|这个)"
+        r"[一-鿿A-Za-z0-9《》]{0,20}题"
+    )
+    # An explanation request ("直接给我讲讲 / 分析这道题") is a teaching followup,
+    # not an answer-delivery demand — do not divert it to clarification.
+    explanation_verb_markers = ("讲", "解释", "说说", "分析", "聊聊", "梳理", "推导", "为什么")
+    if (
+        re.search(demonstrative_question_ref_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not any(verb in text for verb in explanation_verb_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    objective_question_index_pattern = (
+        r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9《》]{0,20}"
+        r"第?[0-9一二两三四五六七八九十]+题"
+    )
+    if (
+        re.search(objective_question_index_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    if (
+        "题卡" in text
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
     if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
         return False
     if _looks_like_exam_catalog_query(query):
         return False
     if _looks_like_year_only_exam_review_query(text):
+        return True
+    if (
+        any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
         return True
     explicit_action_markers = (
         "分析",
@@ -461,6 +576,58 @@ def is_low_information_exam_query(query: str) -> bool:
     return False
 
 
+def _low_information_query_can_use_active_question(query: str, metadata: Any) -> bool:
+    """Allow current-card answer requests to use the active question authority.
+
+    Low-information exam inventory queries stay blocked even when stale session
+    state contains an old active question. The only safe exception is a message
+    that points at the current visible card without naming an external year,
+    case/question ordinal, or exam inventory filter.
+    """
+
+    if not _active_question_context_from_metadata(metadata):
+        return False
+    text = re.sub(r"\s+", "", str(query or "").strip())
+    if not text:
+        return False
+    if not any(marker in text for marker in ("题卡", "当前题", "这题", "这道题", "本题")):
+        return False
+    if re.search(r"20\d{2}|案例|第[0-9一二两三四五六七八九十]+[题问]", text):
+        return False
+    if any(marker in text for marker in ("真题", "试题", "题库", "试卷", "历年", "往年")):
+        return False
+    return True
+
+
+def _looks_like_explicit_question_generation_request(text: str) -> bool:
+    """Return True when the user asks the system to create a new question object."""
+
+    normalized = re.sub(r"\s+", "", str(text or "").strip())
+    if not normalized:
+        return False
+    generation_markers = (
+        "出题",
+        "出一道",
+        "出一题",
+        "给我出",
+        "帮我出",
+        "生成一道",
+        "生成一题",
+        "来一道",
+        "来一题",
+        "考我",
+        "先考我",
+        "测我",
+    )
+    if any(marker in normalized for marker in generation_markers):
+        return True
+    generation_patterns = (
+        r"(?:给我|帮我|来|出|生成)[一二两三四五六七八九十0-9几]{0,3}道?(?:真题|试题|题|单选题|多选题|选择题|判断题)",
+        r"(?:先|直接)?(?:考我|测我)",
+    )
+    return any(re.search(pattern, normalized) for pattern in generation_patterns)
+
+
 def build_question_lifecycle_clarification_response(message: str, reason: str) -> str:
     """Student-visible clarification for lifecycle turns missing an anchor."""
 
@@ -478,11 +645,13 @@ def build_question_lifecycle_clarification_response(message: str, reason: str) -
     if reason == "low_information_exam_query":
         topic = str(message or "").strip() or "真题"
         return (
-            f"你提到的是“{topic}”，但还没有指定要做哪件事。\n\n"
+            f"我知道你是想直接要“{topic}”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。"
+            "如果我只凭“那道真题”直接给答案，就是在编。\n\n"
             "你可以这样继续：\n"
-            "1. 查看这一类真题目录或考点范围\n"
-            "2. 让我出一套真题风格练习\n"
-            "3. 粘贴具体题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手"
+            "0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n"
+            "1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n"
+            "2. 查看这一类真题目录或考点范围\n"
+            "3. 让我出一套真题风格练习"
         )
     return ""
 
@@ -647,16 +816,37 @@ _QUESTION_REVIEW_SCENARIO_RE = re.compile(
 )
 
 _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
+    "案例：",
+    "案例:",
     "案例题",
+    "案例分析题",
+    "背景材料",
     "背景资料",
+    "背景信息",
+    "案例背景",
 )
 _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "我的答案",
+    "作答",
     "请批改",
     "批改",
     "估分",
     "漏掉",
     "采分点",
+)
+_FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS: tuple[str, ...] = (
+    "【问题】",
+    "【问题",
+    "问题】",
+)
+_FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE = re.compile(
+    r"问题\s*[：:]",
+    re.IGNORECASE,
+)
+_FREE_TEXT_CASE_ANSWER_MARKER_RE = re.compile(
+    r"(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
+    r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*",
+    re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "单选题",
@@ -675,9 +865,20 @@ _FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
     re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
-    r"(?:^|[\s，。；;：:])A[\.．、:：\s][^，。；;\n]{0,80}"
-    r"(?:[\s，。；;：:])B[\.．、:：\s]",
-    re.IGNORECASE,
+    r"(?:^|[\s，。；;：:？！!?）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff])).{0,240}?"
+    r"(?:[\s，。；;：:])B(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))",
+    re.IGNORECASE | re.DOTALL,
+)
+_FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS: tuple[str, ...] = (
+    "正确答案",
+    "标准答案",
+    "只要答案",
+    "直接告诉",
+    "怎么选",
+    "选哪个",
+    "讲解",
+    "解析",
+    "真题应该怎么选",
 )
 
 _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
@@ -691,6 +892,43 @@ _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
         "mcq",
     }
 )
+_CASE_GRADING_CONTEXT_TYPES: frozenset[str] = frozenset(
+    {
+        "case",
+        "case_study",
+        "case_background",
+        "calculation",
+        "written",
+        "subjective",
+        "short_answer",
+        "essay",
+        "open_ended",
+    }
+)
+
+
+def looks_like_case_grading_submission_context(
+    question_context: dict[str, Any] | None,
+    followup_action: dict[str, Any] | None,
+) -> bool:
+    """Return true when an existing question-domain submission is case grading.
+
+    This predicate is intentionally narrower than full scene derivation. It
+    exists so turn runtime can stamp the already-known case-grading fact before
+    capability selection without becoming a second lifecycle decider.
+    """
+
+    from deeptutor.services.question_followup import (  # noqa: WPS433
+        followup_action_route,
+        normalize_question_followup_context,
+    )
+
+    if followup_action_route(followup_action) != "submission":
+        return False
+    normalized = normalize_question_followup_context(question_context)
+    if normalized is None:
+        return False
+    return _is_case_grading_context_row(normalized)
 
 
 def derive_question_lifecycle_scene(ctx: Any) -> str | None:
@@ -726,10 +964,22 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     user_message = (getattr(ctx, "user_message", None) or "").strip()
     if not user_message:
         return None
-    if is_low_information_exam_query(user_message):
-        return None
 
     metadata = getattr(ctx, "metadata", None) or {}
+    question_context = _active_question_context_from_metadata(metadata)
+    raw_low_information_exam_query = is_low_information_exam_query(user_message)
+    can_use_active_question_for_low_information = (
+        raw_low_information_exam_query
+        and _low_information_query_can_use_active_question(user_message, metadata)
+    )
+    low_information_exam_query = (
+        raw_low_information_exam_query and not can_use_active_question_for_low_information
+    )
+    if low_information_exam_query:
+        return None
+    if can_use_active_question_for_low_information and question_context:
+        return "question_review"
+
     if isinstance(metadata, dict):
         clarification_intent = _resolve_clarification_option_intent(user_message, metadata)
         if clarification_intent == "exam_catalog_query":
@@ -739,7 +989,14 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     if _looks_like_exam_catalog_query(user_message):
         return "exam_catalog_query"
 
-    question_context = normalize_question_followup_context(
+    if _looks_like_free_text_mcq_answer_request(user_message):
+        return None
+    if _looks_like_free_text_mcq_grading(user_message):
+        return "mcq_grading"
+    if _looks_like_free_text_case_grading(user_message):
+        return "case_grading"
+
+    question_context = question_context or normalize_question_followup_context(
         metadata.get("question_followup_context") if isinstance(metadata, dict) else None
     ) or {}
 
@@ -809,6 +1066,94 @@ def _should_use_llm_scene_proposal(ctx: Any) -> bool:
         "没动力",
     )
     return any(hint in user_message for hint in hints)
+
+
+def _looks_like_free_text_mcq_answer_request(text: str) -> bool:
+    query = str(text or "").strip()
+    if not query:
+        return False
+    if not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(query):
+        return False
+    if _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(query):
+        return False
+    return any(marker in query for marker in _FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS)
+
+
+def looks_like_free_text_mcq_answer_request(text: str) -> bool:
+    """Return true when the current message itself anchors an MCQ answer request.
+
+    This is not a lifecycle scene by itself: a pasted full MCQ plus "just tell
+    me the answer" should normally stay in TutorBot, not the strict exact-bank
+    question-review pipeline. The predicate exists so entry adapters can stop a
+    stale active card from stealing the turn.
+    """
+
+    return _looks_like_free_text_mcq_answer_request(text)
+
+
+def looks_like_free_text_mcq_grading_request(text: str) -> bool:
+    """Return true when the message contains a full free-text MCQ grading request."""
+
+    return _looks_like_free_text_mcq_grading(str(text or ""))
+
+
+def looks_like_free_text_mcq_question_surface(text: str) -> bool:
+    """Return true when the message carries its own MCQ option surface."""
+
+    user_message = str(text or "")
+    return (
+        _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
+        or _looks_like_value_only_mcq_option_surface(user_message)
+    )
+
+
+def _is_case_grading_context_row(row: dict[str, Any]) -> bool:
+    q_type = str(row.get("question_type") or row.get("type") or "").strip().lower()
+    if q_type in _CASE_GRADING_CONTEXT_TYPES:
+        return True
+    grading_result = row.get("construction_grading_result")
+    if (
+        isinstance(grading_result, dict)
+        and str(grading_result.get("type") or "").strip().lower() == "case"
+    ):
+        return True
+    if q_type in _MCQ_QUESTION_TYPES or row.get("options"):
+        return False
+    question_text = str(
+        row.get("question") or row.get("question_stem") or row.get("stem") or ""
+    )
+    if any(marker in question_text for marker in ("案例", "背景资料", "【问题】")):
+        return True
+    for item in row.get("items") or []:
+        if isinstance(item, dict) and _is_case_grading_context_row(item):
+            return True
+    return False
+
+
+def looks_like_full_case_answer_submission(text: str) -> bool:
+    """Return true when the message carries its own full case stem plus student answer surface."""
+
+    return _looks_like_full_case_answer_submission(str(text or ""))
+
+
+def split_full_case_answer_submission(text: str) -> tuple[str, str]:
+    """Split a full case grading submission into current stem and learner answer."""
+
+    raw = str(text or "").strip()
+    if not raw or not _looks_like_full_case_answer_submission(raw):
+        return "", raw
+    markers = [
+        marker
+        for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(raw)
+        if any(pos < marker.start() for pos in _full_case_question_surface_positions(raw))
+    ]
+    if not markers:
+        return "", raw
+    marker = markers[-1]
+    stem = raw[:marker.start()].strip()
+    answer = raw[marker.end():].strip()
+    answer = _FREE_TEXT_CASE_ANSWER_MARKER_RE.sub("", answer, count=1).strip()
+    return stem, answer or raw
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:
@@ -1003,16 +1348,68 @@ def project_question_lifecycle_scene_from_metadata(ctx: Any) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+def _active_question_context_from_metadata(metadata: Any) -> dict[str, Any]:
+    if not isinstance(metadata, dict):
+        return {}
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            normalize_question_followup_context,
+        )
+    except Exception:
+        return {}
+
+    direct = normalize_question_followup_context(metadata.get("question_followup_context"))
+    if direct:
+        return direct
+
+    active_object = metadata.get("active_object")
+    if not isinstance(active_object, dict):
+        return {}
+    snapshot = active_object.get("state_snapshot")
+    if not isinstance(snapshot, dict):
+        return {}
+    return normalize_question_followup_context(snapshot) or {}
+
+
 def _looks_like_free_text_case_grading(user_message: str) -> bool:
+    if _looks_like_full_case_answer_submission(user_message):
+        return True
     return any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS) and any(
         marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS
+    )
+
+
+def _full_case_question_surface_positions(user_message: str) -> list[int]:
+    positions: set[int] = set()
+    for marker in _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS:
+        start = user_message.find(marker)
+        while start >= 0:
+            positions.add(start)
+            start = user_message.find(marker, start + len(marker))
+    if any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS):
+        positions.update(
+            match.start()
+            for match in _FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE.finditer(user_message)
+        )
+    return sorted(positions)
+
+
+def _looks_like_full_case_answer_submission(user_message: str) -> bool:
+    question_positions = _full_case_question_surface_positions(user_message)
+    if not question_positions:
+        return False
+    return any(
+        any(pos < marker.start() for pos in question_positions)
+        for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(user_message)
     )
 
 
 def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
     has_question_signal = any(
         marker in user_message for marker in _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS
-    ) or (_FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None)
+    ) or (
+        _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
+    ) or _looks_like_value_only_mcq_option_surface(user_message)
     has_option_selection = _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message) is not None
     has_grading_action = has_option_selection or any(
         marker in user_message
@@ -1020,6 +1417,44 @@ def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
         if marker != "我选"
     )
     return has_question_signal and has_grading_action
+
+
+def _looks_like_value_only_mcq_option_surface(user_message: str) -> bool:
+    if not _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message):
+        return False
+    head = re.split(
+        r"(?:我\s*)?(?:是不是\s*)?(?:选|答|答案(?:是|为)?)\s*[A-Ea-e]",
+        str(user_message or ""),
+        maxsplit=1,
+    )[0]
+    fragments = [
+        fragment.strip(" 　。.!！?；;，,、：:")
+        for fragment in re.split(r"[、，,；;]", head)
+        if fragment.strip(" 　。.!！?；;，,、：:")
+    ]
+    if len(fragments) < 4:
+        return False
+    option_like = 0
+    for fragment in fragments:
+        if len(fragment) < 2:
+            continue
+        if re.search(r"\d", fragment) or any(
+            marker in fragment
+            for marker in (
+                "导墙",
+                "槽段",
+                "混凝土",
+                "导管",
+                "注浆",
+                "施工",
+                "支架",
+                "方案",
+                "构造",
+                "稳定",
+            )
+        ):
+            option_like += 1
+    return option_like >= 3
 
 
 def _looks_like_unanchored_mcq_answer_submission(

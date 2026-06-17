@@ -17,6 +17,7 @@ from deeptutor.services.benchmark.incident import (  # noqa: E402
     write_incident_replay_artifacts,
 )
 from deeptutor.services.benchmark.runner import run_benchmark, write_benchmark_artifacts  # noqa: E402
+from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 
 
@@ -27,11 +28,49 @@ def _payload_from_record(record: dict | None) -> dict | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _payload_release(payload: dict | None) -> dict:
+    if not isinstance(payload, dict):
+        return {}
+    release = payload.get("release")
+    if isinstance(release, dict) and release:
+        return release
+    release_spine = payload.get("release_spine")
+    return release_spine if isinstance(release_spine, dict) else {}
+
+
+def _same_release_spine(expected: dict, actual: dict) -> bool:
+    expected_git_sha = str((expected or {}).get("git_sha") or "").strip()
+    actual_git_sha = str((actual or {}).get("git_sha") or "").strip()
+    if expected_git_sha and actual_git_sha:
+        return expected_git_sha == actual_git_sha
+    expected_release_id = str((expected or {}).get("release_id") or "").strip()
+    actual_release_id = str((actual or {}).get("release_id") or "").strip()
+    if expected_release_id and actual_release_id:
+        return expected_release_id == actual_release_id
+    return False
+
+
+def _latest_same_release_payload(store, kind: str, *, release: dict) -> dict | None:
+    try:
+        records = store.list_runs(kind, limit=100)
+    except (FileNotFoundError, TypeError, ValueError):
+        records = []
+    for record in records:
+        payload = _payload_from_record(record)
+        if isinstance(payload, dict) and _same_release_spine(release, _payload_release(payload)):
+            return payload
+    latest = store.latest_payload(kind, fallback=False)
+    if isinstance(latest, dict) and _same_release_spine(release, _payload_release(latest)):
+        return latest
+    return None
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor benchmark incident replay.")
     parser.add_argument("--incident-id", required=True)
     parser.add_argument("--output-dir", default=str(PROJECT_ROOT / "tmp" / "benchmark" / "incident"))
     parser.add_argument("--api-base-url")
+    parser.add_argument("--observer-json")
     args = parser.parse_args()
 
     store = get_control_plane_store()
@@ -49,10 +88,16 @@ async def main() -> None:
         release_id=str((payload.get("release_spine") or {}).get("release_id") or ""),
         payload=payload,
     )
+    observer_payload = (
+        load_payload_json(args.observer_json, expected_kind="observer_snapshots")
+        if args.observer_json
+        else _latest_same_release_payload(store, "observer_snapshots", release=payload.get("release_spine") or {})
+    )
 
     incident_payload = build_incident_replay_report(
         benchmark_payload=payload,
         incident_id=args.incident_id,
+        observer_payload=observer_payload,
     )
     incident_paths = write_incident_replay_artifacts(incident_payload, output_dir=output_dir / "incident")
     incident_store_paths = store.write_run(

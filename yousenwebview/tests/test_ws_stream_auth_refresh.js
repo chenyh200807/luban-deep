@@ -101,7 +101,7 @@ function loadWsStream(config) {
           },
           startChatTurn: function (payload) {
             startPayloads.push(payload || {});
-            return Promise.resolve({
+            return Promise.resolve(config.startResponse || {
               stream: {
                 url: "/api/v1/ws",
                 subscribe: { turn_id: "turn_1" },
@@ -160,6 +160,11 @@ function loadWsStream(config) {
           _close: function (payload) {
             if (handlers.close) handlers.close(payload || {});
           },
+          _message: function (payload) {
+            if (handlers.message) {
+              handlers.message({ data: JSON.stringify(payload || {}) });
+            }
+          },
         };
         connects.push(options);
         tasks.push(task);
@@ -181,6 +186,15 @@ function loadWsStream(config) {
     sent: sent,
     startPayloads: startPayloads,
     runTimers: runTimers,
+    getTimerDelays: function () {
+      return timers
+        .filter(function (handle) {
+          return !handle.cleared;
+        })
+        .map(function (handle) {
+          return handle.delay;
+        });
+    },
     getEnsureTokenCalls: function () {
       return ensureTokenCalls;
     },
@@ -218,6 +232,43 @@ function loadWsStream(config) {
     assert(
       loaded.connects[0].header.Authorization === "Bearer fresh-token-1",
       "initial socket connect should use refreshed bearer token instead of stale snapshot",
+    );
+  });
+
+  await run("first-turn stream should let start-turn create the conversation", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var started = [];
+
+    loaded.wsStream.streamChat(
+      { query: "错题复盘：房子", clientTurnId: "client_turn_new" },
+      {
+        onStarted: function (payload) {
+          started.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(loaded.startPayloads.length === 1, "start-turn should run even without a pre-created session id");
+    assert(
+      !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "conversation_id"),
+      "first-turn payload should omit conversation_id so backend start-turn owns session creation",
+    );
+    assert(
+      started.length === 1 &&
+        started[0].sessionId === "conv_1" &&
+        started[0].turnId === "turn_1",
+      "stream should surface backend-created conversation and turn ids to the page",
+    );
+    loaded.tasks[0]._open();
+    assert(
+      loaded.sent[0].type === "subscribe_turn" && loaded.sent[0].turn_id === "turn_1",
+      "socket should subscribe to the authoritative turn returned by start-turn",
     );
   });
 
@@ -312,7 +363,71 @@ function loadWsStream(config) {
     );
   });
 
-  await run("idle timeout should cancel the authoritative turn before surfacing timeout", async function () {
+  await run("start-turn payload should send only canonical followup question context", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+
+    loaded.wsStream.streamChat(
+      {
+        query: "我选A",
+        sessionId: "conv_1",
+        followupQuestionContext: {
+          question_id: "q_visible_1",
+          question: "压型金属板屋面最低坡度是多少？",
+          question_type: "choice",
+          options: { A: "5%", B: "1%" },
+          user_answer: "A",
+        },
+        structuredSubmitContext: {
+          questions: [{ question_id: "q_visible_1", selected_answer: "A" }],
+        },
+      },
+      { onError: function () {} },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.startPayloads[0] &&
+        loaded.startPayloads[0].followup_question_context &&
+        loaded.startPayloads[0].followup_question_context.question_id === "q_visible_1",
+      "start-turn should receive canonical followup question context",
+    );
+    assert(
+      !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "structuredSubmitContext") &&
+        !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "structured_submit_context"),
+      "start-turn payload must not grow a second structured submit authority",
+    );
+  });
+
+  await run("default idle budget should outlive long case grading turns", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+
+    loaded.wsStream.streamChat(
+      { query: "请批改这道案例题", sessionId: "conv_1" },
+      {
+        onStatus: function () {},
+        onError: function () {},
+        onDone: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.getTimerDelays().some(function (delay) {
+        return delay >= 210000;
+      }),
+      "default idle timeout should wait beyond the 180s server turn deadline",
+    );
+  });
+
+  await run("idle timeout should wait for terminal event without cancelling authoritative turn", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],
     });
@@ -335,16 +450,19 @@ function loadWsStream(config) {
     loaded.runTimers(5);
 
     assert(loaded.sent[0].type === "subscribe_turn", "idle timeout should subscribe first");
-    assert(loaded.sent[1].type === "cancel_turn", "idle timeout should cancel the active turn");
+    assert(
+      loaded.sent.length === 1,
+      "idle timeout must not cancel the authoritative server turn",
+    );
     assert(
       statuses.some(function (item) {
-        return item.data === "cancelling" && item.metadata && item.metadata.reason === "idle_timeout";
+        return item.data === "awaiting_terminal" && item.metadata && item.metadata.reason === "idle_timeout";
       }),
-      "idle timeout should expose a visible cancelling status",
+      "idle timeout should expose a visible terminal-wait status",
     );
   });
 
-  await run("idle timeout should wait for terminal outcome after cancelling", async function () {
+  await run("repeated idle ticks should keep waiting for terminal outcome", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],
     });
@@ -376,11 +494,120 @@ function loadWsStream(config) {
     loaded.runTimers(5);
 
     assert(loaded.sent[0].type === "subscribe_turn", "idle timeout should subscribe first");
-    assert(loaded.sent[1].type === "cancel_turn", "idle timeout should send cancel once");
-    assert(errors.length === 0, "second idle tick after cancel should not surface page-level timeout");
+    assert(
+      loaded.sent.length === 1,
+      "repeated idle ticks must not send cancel_turn",
+    );
+    assert(errors.length === 0, "second idle tick while waiting should not surface page-level timeout");
     assert(
       statuses.some(function (item) { return item.data === "awaiting_terminal"; }),
       "second idle tick should wait for the canonical terminal event",
+    );
+  });
+
+  await run("idle wait exhaustion should not claim a stop request was sent", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var errors = [];
+
+    loaded.wsStream.streamChat(
+      {
+        query: "请分析一套完整的复习方案",
+        sessionId: "conv_1",
+        idleTimeoutMs: 5,
+        maxTerminalWaitTicksAfterCancel: 1,
+      },
+      {
+        onStatus: function () {},
+        onError: function (message) {
+          errors.push(message);
+        },
+        onDone: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.runTimers(5);
+    loaded.runTimers(5);
+    loaded.runTimers(5);
+
+    assert(loaded.sent.length === 1, "idle exhaustion must not send cancel_turn");
+    assert(errors.length === 1, "idle exhaustion should surface one local wait-exhausted message");
+    assert(
+      errors[0].indexOf("停止请求") === -1,
+      "idle exhaustion message must not claim a stop request was sent",
+    );
+  });
+
+  await run("long gap after first token should keep visible case-analysis status alive", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var statuses = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请批改这道案例题", sessionId: "conv_1" },
+      {
+        onStatus: function (payload) {
+          statuses.push(payload);
+        },
+        onError: function () {},
+        onDone: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "content",
+      seq: 1,
+      content: "这道案例题我已经进入逐采分点批改。",
+    });
+    loaded.runTimers(30000);
+
+    assert(
+      statuses.some(function (item) {
+        return item.data === "analysis_continuing" && item.metadata && item.metadata.reason === "quiet_after_first_token";
+      }),
+      "long silence after first visible token should show a continuing-analysis status",
+    );
+    assert(loaded.sent.length === 1, "quiet visible-status tick must not cancel or resend the turn");
+  });
+
+  await run("public result should surface assistant_content as final response", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请批改案例题", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        assistant_content: "这是当前轮的最终批改答案",
+      },
+    });
+
+    assert(
+      finals.some(function (item) { return item.response === "这是当前轮的最终批改答案"; }),
+      "current page should render result.metadata.assistant_content without waiting for history recovery",
     );
   });
 

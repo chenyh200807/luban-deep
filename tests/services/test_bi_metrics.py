@@ -48,6 +48,31 @@ def test_metric_by_id_rejects_unknown_metric() -> None:
         metric_by_id("unknown_metric")
 
 
+def test_bi_metric_dictionary_includes_product_behavior_metrics() -> None:
+    ids = {metric.metric_id for metric in BI_METRICS}
+
+    assert {
+        "behavior.module.open_count",
+        "behavior.learning_report.section_view_count",
+        "behavior.funnel.report_to_training",
+        "behavior.member_ops.report_high_no_action",
+    }.issubset(ids)
+
+
+def test_product_behavior_metrics_drill_into_member_ops() -> None:
+    for metric_id in [
+        "behavior.module.open_count",
+        "behavior.learning_report.section_view_count",
+        "behavior.funnel.report_to_training",
+        "behavior.member_ops.report_high_no_action",
+    ]:
+        metric = metric_by_id(metric_id)
+        assert metric.group == "product_behavior"
+        assert metric.drilldown == "member_ops"
+        assert metric.owner in {"product", "ops"}
+        assert metric.trust_level in {"A", "B"}
+
+
 def test_metric_registry_ts_in_sync() -> None:
     """Round 3 D drift guard: the generated TS mirror must match BI_METRICS.
 

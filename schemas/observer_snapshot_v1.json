@@ -35,6 +35,7 @@
       "additionalProperties": { "$ref": "#/definitions/source" }
     },
     "blind_spots": { "type": "array", "items": { "type": "object" } },
+    "runtime_incidents": { "type": "array", "items": { "type": "object" } },
     "turn_events": { "type": "object" },
     "turn_event_log": { "type": "object" },
     "source_runs": { "type": "object" },

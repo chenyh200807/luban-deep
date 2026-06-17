@@ -44,7 +44,7 @@
       <view class="overview-metrics" wx:if="{{reportDetailView == 'home'}}">
         <view class="metric-chip metric-chip-progress">
           <text class="metric-label">近 3 天</text>
-          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}题</text>
+          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}次练习</text>
           <view class="metric-sparkline">
             <view class="metric-spark one"></view>
             <view class="metric-spark two"></view>
@@ -73,6 +73,31 @@
 
       <view class="degraded-hint" wx:if="{{reportDetailView == 'home' && degradedHint}}">
         <text class="degraded-hint-text">{{degradedHint}}</text>
+      </view>
+
+      <view class="guest-report-card" wx:if="{{reportDetailView == 'home' && isGuestPreview}}">
+        <view class="guest-report-copy">
+          <text class="guest-report-kicker">先看学情模块</text>
+          <text class="guest-report-title">开始训练后自动生成你的个人学情</text>
+          <text class="guest-report-desc">当前只展示模块结构；真实诊断、错题沉淀和学习记录写回需要快速登录。</text>
+        </view>
+        <view class="guest-report-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
+          <text class="guest-report-action-txt">快速登录</text>
+        </view>
+      </view>
+
+      <view class="today-task-strip" wx:if="{{reportDetailView == 'home' && todayTasks.length}}">
+        <view class="today-task-controls">
+          <text class="today-task-control" catchtap="compressTodayTasks">今天时间少</text>
+          <text class="today-task-control" catchtap="rotateTodayTasks">换一组</text>
+        </view>
+        <view class="today-task-item" wx:for="{{todayTasks}}" wx:key="key" data-taskid="{{item.taskId || item.key}}" bindtap="startTodayTask">
+          <view>
+            <text class="today-task-title">{{item.title}}</text>
+            <text class="today-task-sub">{{item.subtitle || '来自你的学习卡片'}}</text>
+          </view>
+          <text class="today-task-action">{{item.action.label || '开始'}}</text>
+        </view>
       </view>
 
       <view class="report-home-shell" wx:if="{{reportDetailView == 'home'}}">
@@ -424,6 +449,7 @@
                   <text class="brain-row-meta">{{item.meta}}</text>
                   <text class="brain-diagnosis-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
                   <text class="brain-action-line">{{item.action}}</text>
+                  <text class="brain-challenge-action" data-key="{{item.key}}" catchtap="challengeDiagnosis">我其实会，测一下</text>
                 </view>
               </view>
             </block>
@@ -474,6 +500,16 @@
                   data-key="{{item.key}}"
                   catchtap="toggleMistakeBookmark"
                 >收藏错题</text>
+                <text
+                  class="attempt-action note-card-action"
+                  data-key="{{item.key}}"
+                  catchtap="saveAttemptNotebookCard"
+                >保存学习卡</text>
+                <text
+                  class="attempt-action note-card-action primary"
+                  data-key="{{item.key}}"
+                  catchtap="startAttemptProbe"
+                >测一下</text>
               </view>
             </view>
             <block wx:if="{{!learningAttemptCards.length}}">
@@ -483,6 +519,19 @@
                 <text class="brain-edge-event" wx:if="{{item.eventLabel}}">{{item.eventLabel}}</text>
               </view>
             </block>
+          </view>
+
+          <view class="brain-column" wx:if="{{noteAssets.length}}">
+            <text class="brain-column-title">学习卡片</text>
+            <text class="brain-column-sub">收藏后只作为用户资产和低权重复习线索</text>
+            <view class="note-asset-row" wx:for="{{noteAssets}}" wx:key="key">
+              <view>
+                <text class="note-asset-title">{{item.title}}</text>
+                <text class="note-asset-summary">{{item.summary}}</text>
+                <text class="note-asset-source" wx:if="{{item.sourceLinked}}">{{item.sourceLabel || '已关联学习证据'}}</text>
+              </view>
+              <text class="note-asset-action" data-noteid="{{item.noteId}}" bindtap="startNoteAssetAction">{{item.action.label || '测一下'}}</text>
+            </view>
           </view>
 
           <view class="brain-column" wx:if="{{learningTrainingLoops.length || learningBrainChains.length}}">
@@ -665,6 +714,24 @@
             <text class="mastery-unit">%</text>
           </view>
           <text class="mastery-label">总体掌握度</text>
+          <view class="mastery-map-row" wx:if="{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}">
+            <view class="mastery-map-item">
+              <text class="mastery-map-num">{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}</text>
+              <text class="mastery-map-label">教材章节</text>
+            </view>
+            <view class="mastery-map-item">
+              <text class="mastery-map-num">{{knowledgeSummary.leafNodes || knowledgeSummary.leaf_nodes}}</text>
+              <text class="mastery-map-label">最细知识点</text>
+            </view>
+            <view class="mastery-map-item">
+              <text class="mastery-map-num">{{knowledgeSummary.evaluatedTopics || knowledgeSummary.evaluated_topics}}</text>
+              <text class="mastery-map-label">已定位主题</text>
+            </view>
+            <view class="mastery-map-item warn">
+              <text class="mastery-map-num">{{knowledgeSummary.weakTopics || knowledgeSummary.weak_topics}}</text>
+              <text class="mastery-map-label">薄弱主题</text>
+            </view>
+          </view>
           <view class="mastery-sub-row">
             <view class="mastery-sub-item">
               <text class="mastery-sub-num">{{reviewSummary.total_due || 0}}</text>
@@ -680,6 +747,25 @@
               <text class="mastery-sub-num">{{hotspots.length}}</text>
               <text class="mastery-sub-label">热点</text>
             </view>
+          </view>
+        </view>
+
+        <view class="section-header" wx:if="{{textbookChapters.length}}">
+          <text class="section-title">教材目录进度</text>
+          <text class="section-subtitle">先按 13 章看全局，再展开章节看知识点</text>
+        </view>
+
+        <view class="textbook-directory glass-card" wx:if="{{textbookChapters.length}}">
+          <view
+            class="directory-row status-{{item.status}}"
+            wx:for="{{textbookChapters}}"
+            wx:key="chapterNo"
+          >
+            <view class="directory-main">
+              <text class="directory-title">{{item.chapterName}}</text>
+              <text class="directory-meta">{{item.sectionCount}} 节 · 已定位 {{item.evaluatedTopics}} · 薄弱 {{item.weakTopics}}</text>
+            </view>
+            <text class="directory-status">{{item.weakTopics ? '需补强' : item.evaluatedTopics ? '有证据' : '未覆盖'}}</text>
           </view>
         </view>
 
@@ -743,22 +829,28 @@
         <view class="training-loop-head">
           <view>
             <text class="training-loop-kicker">训练闭环</text>
-            <text class="training-loop-title">{{prescriptionStatus == 'degraded' ? '先补证据，再生成专项训练' : '先修根因，再做验证'}}</text>
+            <text class="training-loop-title">{{gradingLoopStatus == 'improved' ? '复测已验证，继续巩固' : gradingLoopStatus == 'needs_retest' ? '证据已形成，下一步做复测' : prescriptionStatus == 'degraded' ? '先补证据，再生成专项训练' : '先修根因，再做验证'}}</text>
           </view>
-          <text class="training-loop-badge">{{prescriptionCtaLabel || '开始训练'}}</text>
+          <text class="training-loop-badge">{{gradingLoopCurrentAction.actionType || prescriptionCtaLabel || '开始训练'}}</text>
         </view>
-        <text class="training-loop-desc">{{prescriptionStatus == 'degraded' ? '这里不是重复摸底。系统已经看到你的学习记录，但还缺少稳定的题目主题或错因链，所以先用一题高质量作答校准处方。' : '按诊断、补弱、验证三步执行：先定位错因，再做同类专项，最后用新题确认是否真正回到主线。'}}</text>
-        <view class="training-loop-meter">
+        <text class="training-loop-desc">{{gradingLoopStatus ? '这条闭环来自同一份 Learning Brain：批改证据进入长期画像，再生成个性化动作和复测要求。' : prescriptionStatus == 'degraded' ? '这里不是重复摸底。系统已经看到你的学习记录，但还缺少稳定的题目主题或错因链，所以先用一题高质量作答校准处方。' : '按诊断、补弱、验证三步执行：先定位错因，再做同类专项，最后用新题确认是否真正回到主线。'}}</text>
+        <view class="training-loop-meter" wx:if="{{!gradingLoopStages.length}}">
           <view class="training-loop-dot active"><text>1</text></view>
           <view class="training-loop-line"></view>
           <view class="training-loop-dot"><text>2</text></view>
           <view class="training-loop-line"></view>
           <view class="training-loop-dot"><text>3</text></view>
         </view>
+        <view class="grading-loop-stages" wx:if="{{gradingLoopStages.length}}">
+          <view class="grading-loop-stage status-{{item.status}}" wx:for="{{gradingLoopStages}}" wx:key="key">
+            <text class="grading-loop-stage-label">{{item.label}}</text>
+            <text class="grading-loop-stage-status">{{item.status == 'ready' ? '已接入' : item.status == 'verified' ? '已验证' : item.status == 'due' ? '待复测' : '待补齐'}}</text>
+          </view>
+        </view>
         <view class="training-loop-stats">
-          <text>{{prescriptionEvidenceCount || 0}} 条证据</text>
+          <text>{{gradingLoopEvidenceRefs.length || prescriptionEvidenceCount || 0}} 条证据</text>
           <text>{{prescriptionSteps.length || 1}} 个步骤</text>
-          <text>{{prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
+          <text>{{gradingLoopStatus == 'improved' ? '已改善' : gradingLoopStatus == 'needs_retest' ? '待复测' : prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
         </view>
         <view class="training-action-card" bindtap="executeTrainingAction" hover-class="training-action-card-pressed">
           <view>

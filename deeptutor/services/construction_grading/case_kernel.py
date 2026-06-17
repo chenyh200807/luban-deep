@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 import re
+from collections.abc import Callable
 from typing import Any
 
 from deeptutor.services.construction_grading.normalization import (
@@ -18,6 +20,8 @@ from deeptutor.services.construction_grading.schema import (
 )
 
 _VAGUE_PHRASES = ("加强管理", "加强现场管理", "严格检查", "注意安全", "落实责任", "提高意识")
+_OVERBROAD_GRADING_KEYWORDS = {"原则", "材料"}
+logger = logging.getLogger(__name__)
 
 
 class CaseGradingSkillKernel:
@@ -30,6 +34,9 @@ class CaseGradingSkillKernel:
         user_answer: str,
         evidence_rows: list[dict[str, Any]] | None = None,
         grading_key: dict[str, Any] | None = None,
+        artifact_shadow: bool = False,
+        grading_artifact: dict[str, Any] | None = None,
+        artifact_judge_fn: Callable[[dict[str, Any], str], dict[str, Any]] | None = None,
     ) -> CaseGradingResult:
         """Grade a case-type submission.
 
@@ -51,6 +58,7 @@ class CaseGradingSkillKernel:
         rubric_specs: list[dict[str, Any]]
         mode: CaseGradingMode
         gk_specs = _grading_key_rubric_specs(grading_key)
+        penalty_rules = _grading_key_penalty_rules(grading_key)
         if gk_specs:
             rubric_specs = gk_specs
             mode = "curated_rubric"
@@ -63,11 +71,20 @@ class CaseGradingSkillKernel:
                 grading_source = "open_skill_fallback"
 
         answer_text = str(user_answer or "").strip()
+        answer_norm = _normalize_official_term(answer_text)
         item_results: list[CaseRubricItemResult] = []
         error_events: list[GradingErrorEvent] = []
         for spec in rubric_specs:
             keywords = list(spec["keywords"])
-            matched = [keyword for keyword in keywords if keyword and keyword in answer_text]
+            required_context = _normalize_official_term(spec.get("required_context"))
+            match_text = _answer_label_segment(answer_text, spec.get("answer_label"))
+            match_norm = _normalize_official_term(match_text)
+            context_ok = not required_context or required_context in match_norm
+            matched = [
+                keyword
+                for keyword in keywords
+                if context_ok and _official_keyword_matches(keyword, match_norm)
+            ]
             status = "full" if matched else "miss"
             max_score = float(spec["score"])
             awarded = max_score if matched else 0.0
@@ -106,10 +123,15 @@ class CaseGradingSkillKernel:
                 )
             )
 
+        item_results, applied_penalties = _apply_penalty_rules(
+            item_results,
+            answer_text=answer_text,
+            penalty_rules=penalty_rules,
+        )
         score_awarded = sum(item.awarded_score for item in item_results)
         max_score = sum(item.max_score for item in item_results)
         rewrite = _build_rewrite_answer(item_results)
-        return CaseGradingResult(
+        result = CaseGradingResult(
             question_id=str(row.get("id") or row.get("original_id") or row.get("question_id") or "").strip(),
             grading_mode=mode,
             score_awarded=score_awarded,
@@ -125,8 +147,103 @@ class CaseGradingSkillKernel:
                 # plan §Phase 3 Step 3.4 / Batch D.2 — single trace label
                 "grading_source": grading_source,
                 "case_grading_mode": mode,
+                "penalty_rules_applied": applied_penalties,
             },
         )
+        try:
+            shadow = _build_m35_artifact_shadow(
+                enabled=artifact_shadow,
+                question_id=result.question_id,
+                student_answer=answer_text,
+                artifact=grading_artifact,
+                judge_fn=artifact_judge_fn,
+            )
+        except Exception as exc:  # noqa: BLE001 - shadow must never break legacy grading.
+            logger.debug("M35 artifact shadow skipped: %s", exc, exc_info=True)
+            shadow = None
+        if shadow:
+            return _with_m35_artifact_shadow(result, shadow)
+        return result
+
+
+class _CaseGradingResultWithM35Shadow(CaseGradingResult):
+    def to_dict(self) -> dict[str, Any]:
+        payload = super().to_dict()
+        payload["luban_m35_artifact_shadow"] = dict(self._luban_m35_artifact_shadow)
+        return payload
+
+
+def _with_m35_artifact_shadow(
+    result: CaseGradingResult,
+    shadow: dict[str, Any],
+) -> CaseGradingResult:
+    wrapped = _CaseGradingResultWithM35Shadow(
+        question_id=result.question_id,
+        grading_mode=result.grading_mode,
+        score_awarded=result.score_awarded,
+        max_score=result.max_score,
+        rubric_items=result.rubric_items,
+        evidence_refs=result.evidence_refs,
+        error_events=result.error_events,
+        rewrite_answer=result.rewrite_answer,
+        next_training_signal=result.next_training_signal,
+    )
+    object.__setattr__(wrapped, "_luban_m35_artifact_shadow", shadow)
+    return wrapped
+
+
+def _build_m35_artifact_shadow(
+    *,
+    enabled: bool,
+    question_id: str,
+    student_answer: str,
+    artifact: dict[str, Any] | None,
+    judge_fn: Callable[[dict[str, Any], str], dict[str, Any]] | None,
+) -> dict[str, Any] | None:
+    if not enabled or not isinstance(artifact, dict) or artifact.get("artifact_missing") or judge_fn is None:
+        return None
+
+    from deeptutor.services.construction_grading import rubric_grader_v1
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_kill_switch_active,
+        m35_runtime_status_from_v0,
+    )
+
+    if m35_kill_switch_active():
+        return None
+
+    status_map = m35_runtime_status_from_v0(artifact)
+    quality_gates = artifact.get("quality_gates") if isinstance(artifact.get("quality_gates"), dict) else {}
+    if _m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates):
+        return None
+    event = rubric_grader_v1.grade_artifact_shadow(
+        qid=question_id,
+        student_answer=student_answer,
+        artifact=artifact,
+        judge_fn=judge_fn,
+    )
+    if not event:
+        return None
+    return {
+        "artifact_version": artifact.get("version_id"),
+        "legacy_artifact_status": status_map["legacy_artifact_status"],
+        "m35_runtime_status": status_map["m35_runtime_status"],
+        "point_matches": [dict(point) for point in list(event.get("point_matches") or [])],
+        "official_score_allowed": bool(status_map["official_score_allowed"]),
+        "source_validity": quality_gates.get("source_refs_verified_rate"),
+    }
+
+
+def _m35_artifact_shadow_blocked(
+    *,
+    status_map: dict[str, Any],
+    quality_gates: dict[str, Any],
+) -> bool:
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_artifact_shadow_blocked,
+    )
+
+    return m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates)
 
 
 def _question_evidence_refs(row: dict[str, Any]) -> list[EvidenceRef]:
@@ -158,6 +275,115 @@ def _external_evidence_refs(rows: list[dict[str, Any]]) -> list[EvidenceRef]:
         if is_meaningful(value):
             refs.append(EvidenceRef(source=source, field=field, value=value))
     return refs
+
+
+def _normalize_official_term(value: Any) -> str:
+    return re.sub(r"[\s()（）《》〈〉、,，；;:：。.!！?？\"'“”‘’/／~-]+", "", str(value or ""))
+
+
+def _official_keyword_variants(keyword: Any) -> list[str]:
+    raw = str(keyword or "")
+    variants = [_normalize_official_term(raw)]
+    optional_removed = re.sub(r"[（(][^()（）]{1,6}[)）]", "", raw)
+    if optional_removed != raw:
+        variants.append(_normalize_official_term(optional_removed))
+    for source in (raw, optional_removed):
+        if "或" in source:
+            variants.extend(_normalize_official_term(part) for part in source.split("或"))
+        if "/" in source or "／" in source:
+            parts = re.split(r"[/／]", source)
+            prefix = _common_variant_prefix(parts)
+            variants.extend(_normalize_official_term(part) for part in parts)
+            variants.extend(_normalize_official_term(prefix + part) for part in parts[1:] if prefix)
+    return [variant for variant in dict.fromkeys(variants) if variant]
+
+
+def _common_variant_prefix(parts: list[str]) -> str:
+    first = parts[0].strip() if parts else ""
+    if len(parts) < 2 or len(first) < 4:
+        return ""
+    match = re.match(r"^([\u4e00-\u9fffA-Za-z0-9]+?)(?:不受限制|受限制|太小|太大|过厚|过低|过高)$", first)
+    return match.group(1) if match else ""
+
+
+def _answer_label_segment(answer_text: str, answer_label: Any) -> str:
+    label = str(answer_label or "").strip()
+    if not label:
+        return answer_text
+    pattern = re.compile(
+        rf"(?:^|[\n；;。])\s*{re.escape(label)}\s*[：:、.．]\s*(.*?)(?=(?:[\n；;。]\s*[A-Z]\s*[：:、.．])|$)",
+        flags=re.S | re.I,
+    )
+    match = pattern.search(answer_text)
+    return match.group(1) if match else ""
+
+
+def _official_keyword_matches(keyword: Any, answer_norm: str) -> bool:
+    raw = str(keyword or "").strip()
+    if not raw or raw in _OVERBROAD_GRADING_KEYWORDS:
+        return False
+    return any(variant in answer_norm for variant in _official_keyword_variants(raw))
+
+
+def _point_id_from_criterion(criterion: str) -> str:
+    if "::" not in criterion:
+        return ""
+    return criterion.split("::", 1)[0].strip()
+
+
+def _grading_key_penalty_rules(grading_key: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(grading_key, dict):
+        return []
+    rules = grading_key.get("penalty_rules")
+    if not isinstance(rules, list):
+        return []
+    return [rule for rule in rules if isinstance(rule, dict)]
+
+
+def _apply_penalty_rules(
+    items: list[CaseRubricItemResult],
+    *,
+    answer_text: str,
+    penalty_rules: list[dict[str, Any]],
+) -> tuple[list[CaseRubricItemResult], list[str]]:
+    if not penalty_rules:
+        return items, []
+    zero_point_ids: set[str] = set()
+    applied: list[str] = []
+    for rule in penalty_rules:
+        if rule.get("type") != "multi_answer_no_score":
+            continue
+        trigger = rule.get("trigger") if isinstance(rule.get("trigger"), dict) else {}
+        pattern = str(trigger.get("pattern") or "").strip()
+        max_answered = int(trigger.get("max_answered_items") or 0)
+        if not pattern or max_answered <= 0:
+            continue
+        if len(re.findall(re.escape(pattern), answer_text)) <= max_answered:
+            continue
+        scoped_ids = {str(point_id).strip() for point_id in rule.get("zero_point_ids") or [] if str(point_id).strip()}
+        if scoped_ids:
+            zero_point_ids.update(scoped_ids)
+            applied.append(str(rule.get("rule_id") or rule.get("type") or "multi_answer_no_score"))
+    if not zero_point_ids:
+        return items, applied
+    adjusted: list[CaseRubricItemResult] = []
+    for item in items:
+        point_id = _point_id_from_criterion(item.criterion)
+        if point_id in zero_point_ids:
+            adjusted.append(
+                CaseRubricItemResult(
+                    criterion=item.criterion,
+                    max_score=item.max_score,
+                    awarded_score=0.0,
+                    status="miss",
+                    keywords=item.keywords,
+                    evidence_text=item.evidence_text,
+                    source_fields=item.source_fields,
+                )
+            )
+        else:
+            adjusted.append(item)
+    return adjusted, applied
 
 
 def _grading_key_rubric_specs(grading_key: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -201,6 +427,8 @@ def _grading_key_rubric_specs(grading_key: dict[str, Any] | None) -> list[dict[s
                     "keywords": keywords,
                     "score": float(item.get("score") or item.get("max_score") or 1),
                     "source_fields": ["grading_key.scoring_points"],
+                    "answer_label": str(item.get("answer_label") or "").strip(),
+                    "required_context": str(item.get("required_context") or "").strip(),
                 }
             )
     return specs

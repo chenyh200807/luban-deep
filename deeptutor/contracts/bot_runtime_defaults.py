@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+logger = logging.getLogger(__name__)
 
 
 class BotRuntimeDefaults(BaseModel):
@@ -60,6 +63,17 @@ def resolve_bot_runtime_defaults(
     for defaults in BOT_RUNTIME_DEFAULTS:
         if normalized_bot_id and normalized_bot_id in {_normalize(item) for item in defaults.bot_ids}:
             return defaults
+    if normalized_bot_id:
+        # G7 register-before-use: a non-empty bot_id that resolves to no registry
+        # entry is a SILENT fallback to the default capability engine (not the
+        # intended tutorbot_runtime). Surface it as an observable signal instead of
+        # returning None silently — bot_id is request data, so this is the only
+        # place an unregistered value becomes visible.
+        logger.warning(
+            "unknown bot_id %r not in BOT_RUNTIME_DEFAULTS registry; "
+            "caller will fall back to the default capability engine",
+            normalized_bot_id,
+        )
     return None
 
 

@@ -10,9 +10,9 @@ from deeptutor.services.wallet.service import (
 )
 
 
-def test_is_billing_enforcement_enabled_defaults_off(monkeypatch) -> None:
+def test_is_billing_enforcement_enabled_defaults_on_for_launch(monkeypatch) -> None:
     monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
-    assert is_billing_enforcement_enabled() is False
+    assert is_billing_enforcement_enabled() is True
 
 
 @pytest.mark.parametrize("raw", ["1", "true", "TRUE", "yes", "on"])
@@ -21,7 +21,7 @@ def test_is_billing_enforcement_enabled_honors_truthy_env(monkeypatch, raw: str)
     assert is_billing_enforcement_enabled() is True
 
 
-@pytest.mark.parametrize("raw", ["", "0", "false", "off", "no"])
+@pytest.mark.parametrize("raw", ["0", "false", "off", "no"])
 def test_is_billing_enforcement_enabled_treats_falsey_env_as_off(monkeypatch, raw: str) -> None:
     monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raw)
     assert is_billing_enforcement_enabled() is False
@@ -286,9 +286,10 @@ def test_capture_points_is_idempotent_by_ledger_key() -> None:
 
 
 def test_record_usage_points_is_noop_when_enforcement_disabled(monkeypatch) -> None:
-    # Internal beta default: enforcement OFF -> no balance mutation, no ledger
-    # write. The wallet stays pristine and the call returns a skipped result.
-    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    # Explicit internal-beta override: enforcement OFF -> no balance mutation,
+    # no ledger write. The wallet stays pristine and the call returns a skipped
+    # result.
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     client = _FakeWalletRestClient()
     service = SupabaseWalletService(
         base_url="https://example.supabase.co",

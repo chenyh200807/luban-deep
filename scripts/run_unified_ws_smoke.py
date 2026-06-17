@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -22,6 +23,11 @@ def main() -> None:
     parser.add_argument("--message", default="请只回复“ok”。")
     parser.add_argument("--language", default="zh")
     parser.add_argument("--capability")
+    parser.add_argument(
+        "--auth-token",
+        default=os.getenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN") or os.getenv("DEEPTUTOR_WS_SMOKE_TOKEN") or "",
+        help="Bearer token for the authenticated /api/v1/ws smoke.",
+    )
     parser.add_argument("--timeout-seconds", type=float, default=60.0)
     args = parser.parse_args()
 
@@ -31,6 +37,7 @@ def main() -> None:
             message=args.message,
             language=args.language,
             capability=args.capability,
+            auth_token=args.auth_token,
             timeout_seconds=args.timeout_seconds,
         )
     )
@@ -42,4 +49,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

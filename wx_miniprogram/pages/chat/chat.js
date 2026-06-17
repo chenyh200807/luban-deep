@@ -43,6 +43,8 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
+var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v2";
+var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
 function normalizePendingTurn(raw) {
   var source = raw && typeof raw === "object" ? raw : {};
@@ -107,31 +109,7 @@ function isGenericFocusQuery(query) {
   );
 }
 
-function extractFocusTopic(title) {
-  var text = String(title || "")
-    .replace(/^今日焦点[:：]\s*/, "")
-    .trim();
-  text = text
-    .replace(/^推进\s*/, "")
-    .replace(/^讲清\s*/, "")
-    .replace(/^梳理\s*/, "")
-    .replace(/^继续推进\s*/, "")
-    .replace(/\s*下一步学习$/, "")
-    .replace(/\s*核心考点$/, "")
-    .replace(/\s*的?专项训练$/, "")
-    .replace(/^先做\s*/, "")
-    .replace(/\s+/g, "");
-  if (
-    !text ||
-    text === "保持节奏，继续推进" ||
-    text === "按当前状态推进建筑实务"
-  )
-    return "建筑实务";
-  return text;
-}
-
 function buildFocusDisplayTitle(focus, title) {
-  var payload = focus && typeof focus === "object" ? focus : {};
   var text = String(title || "")
     .replace(/^今日焦点[:：]\s*/, "")
     .replace(/\s+/g, " ")
@@ -139,17 +117,13 @@ function buildFocusDisplayTitle(focus, title) {
   if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text))
     return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
-  var topic = String(payload.topic || payload.focus_topic || "").trim();
-  if (topic && /^推进.+下一步学习$/.test(text)) return "推进" + topic;
   if (
     text &&
     text !== "保持节奏，继续推进" &&
     text !== "按当前状态推进建筑实务"
   )
     return text;
-  text = extractFocusTopic(title);
-  if (!text || text === "建筑实务") return "今日推进";
-  return text.length > 12 ? text.slice(0, 12) : text;
+  return "今日推进";
 }
 
 function buildFocusDisplayMeta(focus, meta) {
@@ -161,6 +135,59 @@ function buildFocusDisplayMeta(focus, meta) {
   if (text === "starter") return "生成学情基线";
   if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
   return text.length > 8 ? "" : text;
+}
+
+function readCachedHomeDashboard() {
+  try {
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function")
+      return null;
+    var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
+    if (!cached || typeof cached !== "object") return null;
+    if (
+      Date.now() - (Number(cached.cachedAt) || 0) >
+      HOME_DASHBOARD_CACHE_MAX_AGE_MS
+    )
+      return null;
+    return cached.dashboard && typeof cached.dashboard === "object"
+      ? cached.dashboard
+      : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCachedHomeDashboard(dashboard) {
+  try {
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
+      return;
+    if (!dashboard || typeof dashboard !== "object") return;
+    wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
+      cachedAt: Date.now(),
+      dashboard: dashboard,
+    });
+  } catch (_) {}
+}
+
+function buildHomeDashboardUpdate(dashboard) {
+  var d = dashboard && typeof dashboard === "object" ? dashboard : {};
+  var today = d.today || {};
+  var homeModel = learningHomeViewModel.buildLearningHomeViewModel(d);
+  var focus = d.today_focus || today.focus || {};
+
+  var update = {};
+  update.reviewCount = homeModel.reviewCount;
+
+  update.focusLabel = homeModel.focusLabel;
+  update.focusTone = homeModel.focusTone;
+  update.focusTitle = buildFocusDisplayTitle(focus, homeModel.focusTitle);
+  update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
+  update.focusText = update.focusTitle;
+  update.focusQuery = homeModel.focusQuery;
+  update.focusActionType = homeModel.focusActionType;
+  update.focusPromptIntent = homeModel.focusPromptIntent;
+  update.recommendedPrompts = homeModel.recommendedPrompts;
+  update.showStaticExamples = !homeModel.recommendedPrompts.length;
+  return update;
 }
 
 function normalizeAnswerMode(value) {
@@ -475,6 +502,21 @@ Page({
     if (app.globalData.goHomeFlag) {
       app.globalData.goHomeFlag = false;
       this.clearMessages();
+    }
+    // 拍照作答确认稿回填（confirm 页写入 globalData，消费后即清，用户检查后手动发送）
+    if (app.globalData.photoAnswerPayload) {
+      var photoPayload = app.globalData.photoAnswerPayload;
+      app.globalData.photoAnswerPayload = null;
+      var photoText = String(photoPayload.confirmed_text || "").trim();
+      if (photoText) {
+        this._inputText = photoText;
+        this.setData({ inputText: photoText });
+        wx.showToast({
+          title: "识别稿已填入输入框，请检查后发送",
+          icon: "none",
+          duration: 2500,
+        });
+      }
     }
     if (
       isDeletedConversationId(
@@ -984,7 +1026,19 @@ Page({
           self._clearPendingTurn();
           return true;
         })
-        .catch(function () {
+        .catch(function (err) {
+          if (err && err.statusCode === 404) {
+            if (
+              wx.getStorageSync("current_session_id") === pending.conversationId
+            ) {
+              self._sid = "s_" + Date.now();
+              self._convId = null;
+              wx.removeStorageSync("current_session_id");
+              wx.removeStorageSync("current_session_ts");
+            }
+            self._finishPendingTurnRecovery();
+            return false;
+          }
           if (attempt < maxAttempts) {
             return new Promise(function (resolve) {
               setTimeout(
@@ -1090,7 +1144,10 @@ Page({
     this.setData(update);
   },
 
-  _onDone: function () {
+  _onDone: function (options) {
+    var wasRecoveringTurn = !!this._recoveringTurn;
+    var skipHistoryRecovery = !!(options && options.skipHistoryRecovery);
+    var renderedAnswer = false;
     if (this._timer) {
       clearInterval(this._timer);
       this._timer = null;
@@ -1105,11 +1162,12 @@ Page({
       var state = normalized.state;
       var u = normalized.updates;
       u["messages[" + idx + "].streaming"] = false;
-      if (
+      renderedAnswer = !!(
         state.renderableContent ||
         (state.blocks && state.blocks.length) ||
         (state.mcqCards && state.mcqCards.length)
-      ) {
+      );
+      if (renderedAnswer) {
         u["messages[" + idx + "].thinkingStatus"] = "";
         u["messages[" + idx + "].thinkingBadge"] = "";
         u["messages[" + idx + "].thinkingSub"] = "";
@@ -1155,9 +1213,24 @@ Page({
     }
     this._streamId = null;
     this._abort = null;
-    if (!this._recoveringTurn) {
-      this._clearPendingTurn();
+    if (wasRecoveringTurn) {
+      this._recoveringTurn = true;
+      return;
     }
+    if (!skipHistoryRecovery && !renderedAnswer && (this._pendingTurn || this._loadPendingTurn())) {
+      var recoverySelf = this;
+      this._recoveringTurn = true;
+      this._pendingRecoveryActive = true;
+      this._recoverTurnFromHistory().then(function (recovered) {
+        recoverySelf._pendingRecoveryActive = false;
+        if (!recovered) {
+          recoverySelf._recoveringTurn = false;
+        }
+      });
+      return;
+    }
+    this._recoveringTurn = false;
+    this._clearPendingTurn();
   },
 
   _onError: function (m) {
@@ -1283,6 +1356,10 @@ Page({
       if (d.citations) {
         updates["messages[" + idx + "].citations"] =
           citationFormat.formatCitations(d.citations);
+      }
+      if (d.next_best_action && d.next_best_action.title) {
+        // Grading-to-Brain：ws-stream-pure 已投影为展示字段（无内部权威数据）
+        updates["messages[" + idx + "].nextBestAction"] = d.next_best_action;
       }
       if (d.engine) {
         updates["messages[" + idx + "].engine"] = d.engine;
@@ -1478,6 +1555,39 @@ Page({
     );
   },
 
+  _buildVisibleCardFollowupContext: function (card, userAnswer) {
+    var source = card || {};
+    var optionMap = {};
+    var options = Array.isArray(source.options) ? source.options : [];
+    for (var i = 0; i < options.length; i++) {
+      var option = options[i] || {};
+      var key = String(option.key || "")
+        .trim()
+        .toUpperCase();
+      var text = String(option.text || option.value || "").trim();
+      if (key && text) optionMap[key] = text;
+    }
+    var context = {
+      question_id: String(
+        source.questionId ||
+          (source.followupContext && source.followupContext.question_id) ||
+          "",
+      ).trim(),
+      question: String(source.stem || "").trim(),
+      question_type: source.questionType || "choice",
+      options: optionMap,
+      user_answer: String(userAnswer || "").trim(),
+    };
+    if (
+      !context.question &&
+      !context.question_id &&
+      !Object.keys(optionMap).length
+    ) {
+      return null;
+    }
+    return context;
+  },
+
   _buildMcqSubmitPayload: function (cards) {
     var selections = [];
     var structuredQuestions = [];
@@ -1538,15 +1648,27 @@ Page({
     if (selections.length === 1) {
       for (var m = 0; m < items.length; m++) {
         var singleCard = items[m];
-        if (!singleCard || !singleCard.followupContext) continue;
+        if (!singleCard) continue;
         if (Number(singleCard.index) !== Number(selections[0].index)) continue;
+        var singleUserAnswer = selections[0].keys.join("");
+        var visibleSingleContext = this._buildVisibleCardFollowupContext(
+          singleCard,
+          singleUserAnswer,
+        );
         followupQuestionContext = Object.assign(
           {},
-          singleCard.followupContext,
+          visibleSingleContext || {},
+          singleCard.followupContext || {},
           {
-            user_answer: selections[0].keys.join(""),
+            user_answer: singleUserAnswer,
           },
         );
+        if (
+          !followupQuestionContext.question &&
+          !followupQuestionContext.question_id
+        ) {
+          followupQuestionContext = null;
+        }
         break;
       }
     } else {
@@ -1554,12 +1676,23 @@ Page({
       var questionLines = [];
       for (var n = 0; n < items.length; n++) {
         var compositeCard = items[n];
-        if (!compositeCard || !compositeCard.followupContext) continue;
-        compositeItems.push(
-          Object.assign({}, compositeCard.followupContext, {
-            user_answer: this._selectedMcqKeys(compositeCard).join(""),
-          }),
+        if (!compositeCard) continue;
+        var compositeUserAnswer = this._selectedMcqKeys(compositeCard).join("");
+        var visibleCompositeContext = this._buildVisibleCardFollowupContext(
+          compositeCard,
+          compositeUserAnswer,
         );
+        var compositeContext = Object.assign(
+          {},
+          visibleCompositeContext || {},
+          compositeCard.followupContext || {},
+          {
+            user_answer: compositeUserAnswer,
+          },
+        );
+        if (!compositeContext.question && !compositeContext.question_id)
+          continue;
+        compositeItems.push(compositeContext);
         questionLines.push(
           "第" +
             (compositeCard.index || n + 1) +
@@ -1578,9 +1711,9 @@ Page({
     }
     var text =
       selections.length === 1 && followupQuestionContext
-        ? "提交作答，请批改：我选" + selections[0].keys.join("、")
-        : "提交作答，请批改：" + rows.join("；");
-    if (missingContext) {
+        ? "我选" + selections[0].keys.join("、")
+        : rows.join("；");
+    if (missingContext && !followupQuestionContext) {
       return {
         text: this._buildFallbackMcqJudgePrompt(items, selections),
         structuredSubmitContext: {
@@ -1604,32 +1737,20 @@ Page({
 
   _loadDashboard: function () {
     var self = this;
-    api
+    var cachedDashboard = readCachedHomeDashboard();
+    if (cachedDashboard) {
+      self.setData(buildHomeDashboardUpdate(cachedDashboard));
+    }
+    return api
       .getHomeDashboard()
       .then(function (resp) {
         var d = unwrap(resp) || {};
-        var today = d.today || {};
-        var homeModel = learningHomeViewModel.buildLearningHomeViewModel(d);
-        var focus = d.today_focus || today.focus || {};
-
-        var update = {};
-        update.reviewCount = homeModel.reviewCount;
-
-        update.focusLabel = homeModel.focusLabel;
-        update.focusTone = homeModel.focusTone;
-        update.focusTitle = buildFocusDisplayTitle(focus, homeModel.focusTitle);
-        update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
-        update.focusText = update.focusTitle;
-        update.focusQuery = homeModel.focusQuery;
-        update.focusActionType = homeModel.focusActionType;
-        update.focusPromptIntent = homeModel.focusPromptIntent;
-        update.recommendedPrompts = homeModel.recommendedPrompts;
-        update.showStaticExamples = !homeModel.recommendedPrompts.length;
-
-        self.setData(update);
+        writeCachedHomeDashboard(d);
+        self.setData(buildHomeDashboardUpdate(d));
       })
       .catch(function (err) {
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
+        if (cachedDashboard) return;
         // 降级：仍显示默认焦点条
         self.setData({
           focusTone: "plan",
@@ -1743,6 +1864,22 @@ Page({
       enableReason: nextReason,
       answerMode: nextMode,
       modeHintText: this._getModeHintText(nextMode),
+    });
+  },
+
+  // 拍照作答入口：跳拍照页；确认稿经 app.globalData.photoAnswerPayload 在 onShow 回填
+  onPhotoAnswer: function () {
+    helpers.vibrate("light");
+    var questionId =
+      "chat-" +
+      (this._convId ||
+        this._sid ||
+        wx.getStorageSync("current_session_id") ||
+        "freeform");
+    wx.navigateTo({
+      url:
+        "/pages/photo-answer/capture?question_id=" +
+        encodeURIComponent(questionId),
     });
   },
 
@@ -1912,6 +2049,21 @@ Page({
     this._send(e.currentTarget.dataset.text);
   },
 
+  // Grading-to-Brain 闭环最后一跳：下一步训练卡片可执行——tap 直接经既有
+  // 发送管线发起定向练题请求（出题权威仍在服务端 TutorBot，端上零新权威）。
+  onNextBestActionTap: function (e) {
+    if (this.data.isStreaming) return;
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var nba = this.data.messages[idx] && this.data.messages[idx].nextBestAction;
+    if (!nba || !nba.title) return;
+    helpers.vibrate("light");
+    // 投影层已净化；此处再兜底截长，组装文案对注入面保持惰性。
+    var target = String(nba.target || nba.title || "").slice(0, 80);
+    if (!target) return;
+    this._send("针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。");
+  },
+
   stopStream: function () {
     helpers.vibrate("light");
     this._stop({ cancelTurn: true });
@@ -1994,6 +2146,24 @@ Page({
     wx.setStorageSync("current_session_ts", Date.now());
 
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
+    if (
+      sendOptions.followupQuestionContext &&
+      typeof sendOptions.followupQuestionContext === "object"
+    ) {
+      userMsg.followupQuestionContext = sendOptions.followupQuestionContext;
+    }
+    if (
+      sendOptions.structuredSubmitContext &&
+      typeof sendOptions.structuredSubmitContext === "object"
+    ) {
+      userMsg.structuredSubmitContext = sendOptions.structuredSubmitContext;
+    }
+    if (
+      sendOptions.promptIntent &&
+      typeof sendOptions.promptIntent === "object"
+    ) {
+      userMsg.promptIntent = sendOptions.promptIntent;
+    }
     var aiMsg = {
       id: "a" + self._counter++,
       role: "ai",
@@ -2099,6 +2269,7 @@ Page({
         sessionId: self._sid,
         mode: self.data.answerMode,
         tools: selectedTools,
+        config: { bot_id: "construction-exam-coach" },
         interactionProfile: tutorInteraction.profile,
         interactionHints: tutorInteraction.hints,
         clientTurnId: _turnId,
@@ -2200,7 +2371,15 @@ Page({
           data.conversation || data,
         );
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (err && err.statusCode === 404) {
+          if (wx.getStorageSync("current_session_id") === convId) {
+            wx.removeStorageSync("current_session_id");
+            wx.removeStorageSync("current_session_ts");
+          }
+          self._convId = null;
+          self._sid = "s_" + Date.now();
+        }
         if (!self.data.messages.length) {
           self.setData({ hasMessages: false });
         }
@@ -2470,7 +2649,7 @@ Page({
     wx.showActionSheet({
       itemList: [
         this.data.isDark ? "切换浅色模式" : "切换深色模式",
-        "额度中心",
+        "权益中心",
         "个人中心",
       ],
       success: function (res) {
@@ -2820,10 +2999,26 @@ Page({
     // 移除旧的 AI 回复，重新发送
     var newMsgs = msgs.slice(0, aiIdx);
     this.setData({ messages: newMsgs });
-    this._send(userMsg.content, {
+    var retryOptions = {
       reuseUserMessage: true,
       persistUserMessage: false,
-    });
+    };
+    if (
+      userMsg.followupQuestionContext &&
+      typeof userMsg.followupQuestionContext === "object"
+    ) {
+      retryOptions.followupQuestionContext = userMsg.followupQuestionContext;
+    }
+    if (
+      userMsg.structuredSubmitContext &&
+      typeof userMsg.structuredSubmitContext === "object"
+    ) {
+      retryOptions.structuredSubmitContext = userMsg.structuredSubmitContext;
+    }
+    if (userMsg.promptIntent && typeof userMsg.promptIntent === "object") {
+      retryOptions.promptIntent = userMsg.promptIntent;
+    }
+    this._send(userMsg.content, retryOptions);
   },
 
   onThumbUp: function (e) {

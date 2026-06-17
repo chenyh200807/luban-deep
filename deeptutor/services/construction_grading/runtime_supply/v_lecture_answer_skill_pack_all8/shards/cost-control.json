@@ -1,0 +1,2472 @@
+{
+  "answer_units": [
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 近五年分值分布",
+          "| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |",
+          "| **选择题** | 0 | 0 | 0 | 0 | 0 |",
+          "| **案例题** | 18 | 10 | 12/18 | 12 | 20 |",
+          "| **总分值** | 18 | 10 | 12/18 | 12 | 20 |",
+          "#### 2. 核心考点大纲"
+        ],
+        "mnemonics": [
+          "造价成本纯案例，计算索赔是核心"
+        ],
+        "must_mentions": [
+          "工程量清单",
+          "综合单价",
+          "合同价款",
+          "价值工程",
+          "ABC分类"
+        ],
+        "red_lines": [
+          "计算过程错误",
+          "漏项"
+        ],
+        "trap_alerts": [
+          "本章不考选择题，复习时不要死记硬背定义，要注重计算过程和管理流程的理解。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:章节考情与大纲"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第五章 工程造价及成本管理",
+        "工程造价及成本管理",
+        "章节考情与大纲",
+        "施工成本管理",
+        "工程量清单",
+        "综合单价",
+        "合同价款",
+        "价值工程",
+        "ABC分类"
+      ],
+      "source_excerpt": "### 第五章 工程造价及成本管理\n\n#### 1. 近五年分值分布\n| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |\n| :--- | :---: | :---: | :---: | :---: | :---: |\n| **选择题** | 0 | 0 | 0 | 0 | 0 |\n| **案例题** | 18 | 10 | 12/18 | 12 | 20 |\n| **总分值** | 18 | 10 | 12/18 | 12 | 20 |\n\n#### 2. 核心考点大纲\n**第一节 工程造价管理**\n*   **考点一、工程量清单计价**\n    *   范围、构成、特点\n    *   编制要求\n    *   风险约定\n*   **考点二、工程造价形成**\n    *   分部分项工程量清单与计价表\n    *   措施项目清单与计价表\n    *   其他项目清单与计价表\n    *   规税项目清单与计价表\n*   **考点三、工程造价管理**\n    *   工程造价特点、阶段\n    *   工程造价构成\n    *   工程造价审查\n*   **考点四、施工商务管理**\n    *   项目资金管理\n    *   合同价款确定\n    *   合同价款调整\n    *   合同价款支付\n\n**第二节 施工成本管理**\n*   **考点一、成本计划**\n    *   价值工程原理\n    *   工程材料管理（采储费计算、ABC分类法）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0001_001",
+        "json_page_num": 1,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0001_001__2-第五章-工程造价及成本管理"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "章节考情与大纲"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "章节考情与大纲",
+      "unit_id": "lecture.cost-control.0002"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [],
+        "mnemonics": [],
+        "must_mentions": [
+          "价值工程",
+          "制造成本",
+          "完全成本",
+          "因素分析法",
+          "单位工程量成本比较法"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分成本核算的“制造成本”与“完全成本”范畴；掌握“因素分析法”在成本分析中的应用。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:成本管理全流程大纲"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第二节 施工成本管理（续）",
+        "施工成本管理体系",
+        "成本管理全流程大纲",
+        "施工成本管理",
+        "价值工程",
+        "制造成本",
+        "完全成本",
+        "因素分析法",
+        "单位工程量成本比较法"
+      ],
+      "source_excerpt": "### 第二节 施工成本管理（续）\n\n#### 资源投入与机械成本\n*   三、劳动力投入量\n*   四、机械台班投入量\n*   五、施工机械成本比较（**单位工程量成本比较法**）\n\n#### 考点二、成本控制\n*   一、价值工程原理\n\n#### 考点三、成本核算\n*   一、制造成本\n*   二、完全成本\n\n#### 考点四、成本分析\n*   一、因素分析法\n\n#### 考点五、成本考核\n*   一、考核内容",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0002_001",
+        "json_page_num": 2,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0002_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "成本管理全流程大纲"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成本管理全流程大纲",
+      "unit_id": "lecture.cost-control.0003"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 定义与适用范围",
+          "#### 2. 计价构成（定量）",
+          "由以下五部分组成明细表：",
+          "1. **分部分项工程**",
+          "2. **措施项目**",
+          "3. **其他项目**"
+        ],
+        "mnemonics": [
+          "国资必清单；编名特单量，投标不能变；分措其规税"
+        ],
+        "must_mentions": [
+          "国有资金",
+          "不得变动",
+          "项目特征",
+          "综合单价",
+          "暂列金额",
+          "暂估价"
+        ],
+        "red_lines": [
+          "修改清单工程量",
+          "修改项目特征"
+        ],
+        "trap_alerts": [
+          "注意表格下方的'不得变动'标注，这是案例题常见的改错点：投标人擅自修改了清单中的工程量或项目特征。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:工程量清单计价模式"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工程量清单计价",
+        "工程量清单计价模式",
+        "工程计价管理",
+        "国有资金",
+        "不得变动",
+        "项目特征",
+        "综合单价",
+        "暂列金额",
+        "暂估价"
+      ],
+      "source_excerpt": "### 工程量清单计价\n\n#### 1. 定义与适用范围\n- **定性**：是一种主要由市场定价的计价模式。\n- **强制性**：使用**国有资金投资**的建设工程发承包，**必须**采用工程量清单计价。\n\n#### 2. 计价构成（定量）\n由以下五部分组成明细表：\n1. **分部分项工程**\n2. **措施项目**\n3. **其他项目**\n4. **规费**\n5. **税金**\n\n#### 3. 清单编制与填写规则（图示核心逻辑）\n- **招标人（发包方）职责**：提供工程量清单，包含**项目编码、项目名称、项目特征、计量单位、工程量**。\n- **投标人（承包方）职责**：填写**综合单价、合价**。\n- **铁律（红线）**：招标人提供的清单内容（编码、名称、特征、单位、工程量）**不得变动**。\n\n#### 4. 实例参数解析\n- **过梁 (010503005001)**：C25混凝土，工程量 17.27 m³。\n- **有梁板 (010505001001)**：C30混凝土，模板厚度10cm以内，安装高度3.6m~6m，工程量 212.44 m³。\n- **重点强调**：**项目特征描述**（如混凝土强度、高度）是确定综合单价的关键依据（图中红框高亮）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435010_P0003_001",
+        "json_page_num": 3,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435010_P0003_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435010",
+        "node_name": "工程计价管理",
+        "topic": "工程量清单计价模式"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工程量清单计价模式",
+      "unit_id": "lecture.cost-control.0004"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 5 | **计日工** |",
+          "| 6 | **总承包服务费** |",
+          "| 7 | **索赔与现场签证** |",
+          "> **注**：此表接上一页（序号1-4：暂列金额、暂估价、材料暂估价、专业工程暂估价），共同构成完整的其他项目费体系"
+        ],
+        "mnemonics": [
+          "暂列暂估计日工，总包服务索赔签"
+        ],
+        "must_mentions": [
+          "计日工",
+          "总承包服务费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'暂列金额'（可能发生也可能不发生）与'暂估价'（必然发生但价格未定）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:其他项目费构成"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "其他项目清单与计价汇总表（续）",
+        "其他项目清单与计价汇总表",
+        "其他项目费构成",
+        "施工成本管理",
+        "计日工",
+        "总承包服务费"
+      ],
+      "source_excerpt": "### 其他项目清单与计价汇总表（续）\n\n| 序号 | 项目名称 |\n| :--- | :--- |\n| 5 | **计日工** |\n| 6 | **总承包服务费** |\n| 7 | **索赔与现场签证** |\n\n> **注**：此表接上一页（序号1-4：暂列金额、暂估价、材料暂估价、专业工程暂估价），共同构成完整的其他项目费体系。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0004_001",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0004_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "其他项目费构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "其他项目费构成",
+      "unit_id": "lecture.cost-control.0005"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 规费 (不可竞争费用)",
+          "#### 2. 税金 (不可竞争费用)"
+        ],
+        "mnemonics": [
+          "五险一金入规费，税金基数扣设备"
+        ],
+        "must_mentions": [
+          "社会保险费",
+          "住房公积金",
+          "不计税工程设备"
+        ],
+        "red_lines": [
+          "规费作为不可竞争费用",
+          "税金作为不可竞争费用"
+        ],
+        "trap_alerts": [
+          "计算税金时，务必注意扣除'按规定不计税的工程设备金额'，这是案例题常见的计算陷阱。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:规费与税金计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "附录H 规费、税金项目计价表",
+        "规费与税金",
+        "规费与税金计算",
+        "施工成本管理",
+        "社会保险费",
+        "住房公积金",
+        "不计税工程设备"
+      ],
+      "source_excerpt": "### 附录H 规费、税金项目计价表\n\n#### 1. 规费 (不可竞争费用)\n*   **社会保险费** (五险):\n    *   养老保险费\n    *   失业保险费\n    *   医疗保险费\n    *   工伤保险费\n    *   生育保险费\n*   **住房公积金** (一金)\n\n#### 2. 税金 (不可竞争费用)\n*   **计算基础**: 分部分项工程费 + 措施项目费 + 其他项目费 + 规费 - **按规定不计税的工程设备金额**\n*   **计算公式**: 税金 = 计算基础 × 税率",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0004_002",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0004_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "规费与税金计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "规费与税金计算",
+      "unit_id": "lecture.cost-control.0006"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 招标工程量清单",
+          "1. 编制招标控制价",
+          "2. 编制投标报价",
+          "3. 计算工程量",
+          "4. 工程索赔",
+          "5. 工程结（决）算"
+        ],
+        "mnemonics": [
+          "作用：量价索赔找结算；依据：四价设施招标点；风险排除：法定约定不可抗"
+        ],
+        "must_mentions": [
+          "招标人负责",
+          "一致",
+          "无限风险",
+          "人工费调整",
+          "不可抗力"
+        ],
+        "red_lines": [
+          "不得采用无限风险",
+          "所有风险"
+        ],
+        "trap_alerts": [
+          "投标报价时，项目编码、名称、特征、单位、工程量五项必须与招标人提供的一致，不得修改。计价风险不得约定'无限风险'。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:计价规范与风险管理"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工程量清单计价体系",
+        "工程量清单计价",
+        "计价规范与风险管理",
+        "招标人负责",
+        "一致",
+        "无限风险",
+        "人工费调整",
+        "不可抗力"
+      ],
+      "source_excerpt": "### 工程量清单计价体系\n\n#### 1. 招标工程量清单\n- **责任主体**：准确性和完整性由**招标人**负责。\n- **核心作用**（口诀：量价索赔找结算）：\n  1. 编制招标控制价\n  2. 编制投标报价\n  3. 计算工程量\n  4. 工程索赔\n  5. 工程结（决）算\n\n#### 2. 投标报价\n- **编制要求**：\n  - 投标人应按招标人提供的工程量清单填报价格。\n  - **五统一原则**：投标人的**项目编码、项目名称、项目特征、计量单位、工程量**必须与招标人提供的一致。\n  - **总价一致性**：投标总价 = 分部分项工程费 + 措施项目费 + 其他项目费 + 规费 + 税金。\n- **编制依据**（口诀：四价设施招标点）：\n  1. 工程量清单计价规范\n  2. 政府部门计价办法\n  3. 企业定额或政府计价定额\n  4. 市场价格或造价部门**造价信息**\n  5. 设计文件及相关资料\n  6. **施工组织设计**或施工方案\n  7. **招标文件**、工量清单及答疑纪要\n  8. **标准规范**、技术资料\n  9. 工程特点、现场情况\n\n#### 3. 计价风险管理\n- **合同要求**：合同中应明确计价风险及风险范围，**不得**采用无限风险、所有风险或类似语句。\n- **风险排除范围**（口诀：法定约定不可抗）：\n  1. **法律、法规、规章、政策变化**\n  2. 住建部门发布的**人工费调整**\n  3. 合同约定的市场价格波动范围\n  4. **不可抗力**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435020_P0005_001",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435020_P0005_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435020",
+        "node_name": "工程量清单计价",
+        "topic": "计价规范与风险管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "计价规范与风险管理",
+      "unit_id": "lecture.cost-control.0007"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 强制性",
+          "工程量清单计价在以下方面具有强制性规定：",
+          "1. **工程量计算规则**",
+          "2. **工程量清单编制方法**",
+          "3. **计价方式**",
+          "4. **风险处理**"
+        ],
+        "mnemonics": [
+          "强制性：量价风险竞争范；规范性：三价一量三计价；完整性：招投计算完整性"
+        ],
+        "must_mentions": [
+          "强制性",
+          "规范性",
+          "完整性",
+          "综合单价",
+          "量价风险竞争范"
+        ],
+        "red_lines": [
+          "清单计价必须采用综合单价形式"
+        ],
+        "trap_alerts": [
+          "考试常考查'强制性'包含的具体内容，需利用口诀精准记忆，避免与'规范性'混淆。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:工程量清单计价特点"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工程量清单计价的特点",
+        "工程量清单计价",
+        "工程量清单计价特点",
+        "施工成本管理",
+        "强制性",
+        "规范性",
+        "完整性",
+        "综合单价",
+        "量价风险竞争范"
+      ],
+      "source_excerpt": "### 工程量清单计价的特点\n\n#### 1. 强制性\n工程量清单计价在以下方面具有强制性规定：\n1. **工程量计算规则**\n2. **工程量清单编制方法**\n3. **计价方式**\n4. **风险处理**\n5. **费用竞争**\n6. **使用范围**\n\n#### 2. 规范性\n需遵循统一标准的方面：\n1. 计价方式\n2. 计价表格\n3. 计价风险\n4. 招标控制价编制与复核\n5. 投标报价编制与复核\n6. 合同价款调整\n7. 分部分项工程量清单编制\n\n#### 3. 完整性\n贯穿工程建设全过程：\n1. 工程招标\n2. 工程投标\n3. 过程计价\n4. 结算\n\n#### 4. 统一性\n- 采用**综合单价**形式。\n\n#### 5. 竞争性\n#### 6. 法定性",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0006_001",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0006_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "工程量清单计价特点"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工程量清单计价特点",
+      "unit_id": "lecture.cost-control.0008"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 造价组成 (8项)",
+          "1. 建筑工程费",
+          "2. 设备购置费",
+          "3. 设备安装工程费",
+          "4. 工具、器具及生产家具购置费",
+          "5. 其他工程和费用"
+        ],
+        "mnemonics": [
+          "特点：动次大差；阶段：估概预合结决算"
+        ],
+        "must_mentions": [
+          "动次大差",
+          "估概预合结决算"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意造价阶段的顺序不可颠倒，特别是结算与决算的区别。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:工程造价形成机制"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "建设工程造价体系",
+        "建设工程造价",
+        "工程造价形成机制",
+        "施工成本管理",
+        "动次大差",
+        "估概预合结决算"
+      ],
+      "source_excerpt": "### 建设工程造价体系\n\n#### 1. 造价组成 (8项)\n1. 建筑工程费\n2. 设备购置费\n3. 设备安装工程费\n4. 工具、器具及生产家具购置费\n5. 其他工程和费用\n6. 预备费\n7. 固定资产投资方向调节税\n8. 建设期投资贷款利息\n\n#### 2. 造价特点 (口诀：动次大差)\n- **动**态性\n- **层**次性\n- **大**额性\n- **个**别性和差异性\n\n#### 3. 造价阶段 (口诀：估概预合结决算)\n- 投资**估**算\n- 工程**概**算\n- 工程**预**算\n- **合**同价\n- **结**算价\n- **决**算价",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0007_001",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0007_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "工程造价形成机制"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工程造价形成机制",
+      "unit_id": "lecture.cost-control.0009"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 定义与原则",
+          "#### 2. 定量 (双量)",
+          "- **工程量**: 物理计量单位 (如 10000m³ 砖墙、土方、混凝土)",
+          "#### 3. 定价 (双价)",
+          "#### 4. 要素单价"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "综合单价",
+          "人材机管利",
+          "实体项目"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "模板工程是有条件计入实体项目清单，而土方、支护、地基是无条件计入。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:清单与计价表构成"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "分部分项工程量清单与计价表",
+        "分部分项工程量清单",
+        "清单与计价表构成",
+        "施工成本管理",
+        "综合单价",
+        "人材机管利",
+        "实体项目"
+      ],
+      "source_excerpt": "### 分部分项工程量清单与计价表\n\n#### 1. 定义与原则\n- **原则**: 永久工程实体项目 (合同标的物)\n- **实体项目清单归属**:\n  - **无条件计入**: ①土方工程 ②支护工程 ③地基处理\n  - **有条件计入**: ④模板工程\n\n#### 2. 定量 (双量)\n- **工程量**: 物理计量单位 (如 10000m³ 砖墙、土方、混凝土)\n- **消耗量**: 完成对应工程量投入的资源 (人工工日、材料消耗、机械台班)\n\n#### 3. 定价 (双价)\n- **工程单价**: 人+材+机\n- **综合单价**: 人+材+机+管+利\n- **全费用综合单价**: 人+材+机+管+利+规+税\n\n#### 4. 要素单价\n- 人工单价、机械单价、材料单价",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0007_002",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0007_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "清单与计价表构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "清单与计价表构成",
+      "unit_id": "lecture.cost-control.0010"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 定义与定性",
+          "#### 2. 人工费组成 (口诀：特工加班要奖津)",
+          "1. **特**殊情况下支付的工资",
+          "2. **计**时计件工资",
+          "3. **加**班加点工资",
+          "4. **奖**金"
+        ],
+        "mnemonics": [
+          "人工费组成：特工加班要奖津"
+        ],
+        "must_mentions": [
+          "特工加班要奖津",
+          "窝工费",
+          "计日工"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "窝工索赔时只能索赔人工窝工费（通常打折），不能索赔利润。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:人工费构成与计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "综合单价详解：人工费",
+        "人工费",
+        "人工费构成与计算",
+        "施工成本管理",
+        "特工加班要奖津",
+        "窝工费",
+        "计日工"
+      ],
+      "source_excerpt": "### 综合单价详解：人工费\n\n#### 1. 定义与定性\n- **定义**: 完成一个计量单位（分部分项工程/分价措施项目）的人工费。\n- **公式**: 人工费 = 人工工日消耗量 × 人工日工资单价\n\n#### 2. 人工费组成 (口诀：特工加班要奖津)\n1. **特**殊情况下支付的工资\n2. **计**时计件工资\n3. **加**班加点工资\n4. **奖**金\n5. **津**贴、补贴\n\n#### 3. 人工单价计算模型 (示例)\n- **正常施工**: 200元/工日 (干一天活给的钱)\n- **窝工状态**: 200元/工日 × 60% (歇一天给的钱，通常按折算比例)\n- **计日工**: 200元/工日 × 1.2(管理) × 1.1(利润) × 1.05(风险)\n  - 构成: 日工资 + 管理费 + 利润 + 风险",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0007_003",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0007_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "人工费构成与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "人工费构成与计算",
+      "unit_id": "lecture.cost-control.0011"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **基本定义**",
+          "2. **机械台班单价组成 (7项)**",
+          "3. **特殊单价计算**"
+        ],
+        "mnemonics": [
+          "机械费：人料双修旧场税"
+        ],
+        "must_mentions": [
+          "机上人工费",
+          "燃料动力费",
+          "经常修理费",
+          "大修理费",
+          "折旧费",
+          "安拆费",
+          "税费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "区分自有机械窝工（折旧费）与租赁机械窝工（租赁费）的赔偿标准不同。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:机械费组成与计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "机械费组成与计算",
+        "施工机械使用费",
+        "施工成本管理",
+        "机上人工费",
+        "燃料动力费",
+        "经常修理费",
+        "大修理费",
+        "折旧费",
+        "安拆费"
+      ],
+      "source_excerpt": "### 机械费组成与计算\n\n1. **基本定义**\n   - **定性公式**: 机械费 = 机械台班消耗量 × 机械台班单价\n\n2. **机械台班单价组成 (7项)**\n   - ① 机上人工费\n   - ② 燃料动力费\n   - ③ 经常修理费\n   - ④ 大修理费\n   - ⑤ 折旧费\n   - ⑥ 安拆费及场外运费\n   - ⑦ 税费\n   - **助记口诀**: **人料双修旧场税**\n\n3. **特殊单价计算**\n   - **窝工单价 (停工损失)**:\n     - **自有机械**: 仅计算**折旧费**\n     - **租赁机械**: 计算**租赁费**\n   - **计日工综合单价**: 机械单价 + 管理费 + 利润 + 风险",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0008_001",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0008_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "机械费组成与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "机械费组成与计算",
+      "unit_id": "lecture.cost-control.0012"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **基本定义**",
+          "2. **材料单价计算公式 (核心)**",
+          "- **公式**: `材料单价 = (材料原价 + 运杂费) × (1 + 运输损耗率%) × (1 + 采购保管费率%)`",
+          "3. **材料单价组成 (4项)**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "净用量",
+          "损耗量",
+          "材料原价",
+          "运杂费",
+          "采购保管费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "材料单价计算是连乘：(原价+运杂)×(1+损耗)×(1+采保)，切勿漏乘括号。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:材料费计算公式"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "材料费组成与计算",
+        "材料费",
+        "材料费计算公式",
+        "施工成本管理",
+        "净用量",
+        "损耗量",
+        "材料原价",
+        "运杂费",
+        "采购保管费"
+      ],
+      "source_excerpt": "### 材料费组成与计算\n\n1. **基本定义**\n   - **定性公式**: 材料费 = 材料消耗量 × 材料单价\n   - **消耗量公式**: 材料消耗量 = 净用量 + 损耗量\n\n2. **材料单价计算公式 (核心)**\n   - **公式**: `材料单价 = (材料原价 + 运杂费) × (1 + 运输损耗率%) × (1 + 采购保管费率%)`\n\n3. **材料单价组成 (4项)**\n   - ① 材料原价 (出厂价)\n   - ② 运杂费\n   - ③ 场外运输损耗\n   - ④ 采购保管费 (包含：采购费、保管费、仓储费、仓储损耗)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0008_002",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0008_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "材料费计算公式"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "材料费计算公式",
+      "unit_id": "lecture.cost-control.0013"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 管理费 (Management Fee)",
+          "**组成内容 (16项)**:",
+          "1. 管理人员工资",
+          "2. 工会经费",
+          "3. 办公费",
+          "4. 差旅交通费"
+        ],
+        "mnemonics": [
+          "口诀：工会办差两劳工，三税一检两财使"
+        ],
+        "must_mentions": [
+          "检验试验费",
+          "破坏性试验",
+          "新结构",
+          "综合单价",
+          "全费用综合单价",
+          "工会办差两劳工"
+        ],
+        "red_lines": [
+          "破坏性试验费计入管理费",
+          "业主委托检测费计入管理费"
+        ],
+        "trap_alerts": [
+          "注意区分'检验试验费'（管理费）与'研究试验费'（工程建设其他费）的区别；破坏性试验和新材料试验不属于管理费。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:综合单价的组成与计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "综合单价费用构成体系",
+        "综合单价费用构成",
+        "综合单价的组成与计算",
+        "施工成本管理",
+        "检验试验费",
+        "破坏性试验",
+        "新结构",
+        "综合单价",
+        "全费用综合单价",
+        "工会办差两劳工"
+      ],
+      "source_excerpt": "### 综合单价费用构成体系\n\n#### 1. 管理费 (Management Fee)\n**取费标准 (Calculation Basis)**:\n- **大基数**: 人工费 + 材料费 + 机械费\n- **中基数**: 人工费 + 机械费\n- **小基数**: 人工费\n\n**组成内容 (16项)**:\n1. 管理人员工资\n2. 工会经费\n3. 办公费\n4. 差旅交通费\n5. 劳动保护费\n6. 劳动保险费\n7. 职工福利费\n8. 职工教育经费\n9. 税金 (企业管理费中的税金，非增值税)\n10. 城市维护建设税\n11. 地方教育附加税\n12. **检验试验费**\n13. 财产保险费\n14. 财务费\n15. 固定资产使用费\n16. 工具用具使用费\n\n#### 2. 利润 (Profit)\n**取费标准**:\n- **大基数**: 人工费 + 材料费 + 机械费 + 管理费\n- **中基数**: 人工费 + 机械费\n- **小基数**: 人工费\n\n#### 3. 检验试验费 (Inspection and Testing Fee)\n**包含内容**:\n- 施工单位进行的一般鉴定、检查所发生的费用\n- 施工单位自设实验室进行试验所耗用的材料等费用\n\n**不包含内容 (Forbidden)**:\n- 新结构、新材料的试验费\n- 对构件做破坏性试验的费用\n- 特殊要求检验试验费\n- 建设单位委托检测机构进行检测的费用\n\n### 工程单价计算公式\n\n| 单价类型 | 计算公式 |\n| :--- | :--- |\n| **工料单价** | 人工费 + 材料费 + 机械费 |\n| **综合单价** | (人+材+机) × (1+管理费率%) × (1+利润率%) |\n| **全费用综合单价** | [(人+材+机) × (1+管理费率%) × (1+利润率%)] × (1+规费费率%) × (1+增值税税率%) |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0009_001",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0009_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "综合单价的组成与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "综合单价的组成与计算",
+      "unit_id": "lecture.cost-control.0014"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **本质**：不构成实体工程，但以构成实体工程为目的的临时性方法、手段",
+          "2. **定项分类**：",
+          "| 1 | **安全文明施工** | **不可竞争**：安全文明施工费、规费、税金",
+          "| 2 | 夜间施工 | |",
+          "| 3 | 非夜间施工照明 | |",
+          "| 4 | 二次搬运 | |"
+        ],
+        "mnemonics": [
+          "二大夜，水已冬，保文明"
+        ],
+        "must_mentions": [
+          "不可竞争",
+          "基数乘以费率",
+          "劳务工人实名制费用"
+        ],
+        "red_lines": [
+          "安全文明施工费作为竞争性费用"
+        ],
+        "trap_alerts": [
+          "注意区分单价措施项目（可计量）与总价措施项目（费率计算）；牢记安全文明施工费包含劳务工人实名制费用且不可竞争。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:措施项目清单与计价"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "措施项目清单与计价表",
+        "措施项目清单",
+        "措施项目清单与计价",
+        "施工成本管理",
+        "不可竞争",
+        "基数乘以费率",
+        "劳务工人实名制费用"
+      ],
+      "source_excerpt": "### 措施项目清单与计价表\n\n1. **本质**：不构成实体工程，但以构成实体工程为目的的临时性方法、手段。\n2. **定项分类**：\n   - **单价措施项目**：可准确计算措施量，与工程实体关系密切。\n   - **总价措施项目**：不能准确计算措施量，以“基数 × 费率”的形式计取。\n\n### 一般措施项目一览表\n\n| 序号 | 项目名称 | 备注/包含内容 |\n| :--- | :--- | :--- |\n| 1 | **安全文明施工** | **不可竞争**：安全文明施工费、规费、税金。<br>包含：环境保护、文明施工、安全施工、临时设施、**劳务工人实名制费用**。 |\n| 2 | 夜间施工 | |\n| 3 | 非夜间施工照明 | |\n| 4 | 二次搬运 | |\n| 5 | 冬雨期施工 | |\n| 6 | 大型机械设备进出场及安拆 | |\n| 7 | 施工排水 | |\n| 8 | 施工降水 | |\n| 9 | 地上、地下设施、建筑物的临时保护设施 | |\n| 10 | 已完工程及设备保护 | |\n\n**助记口诀**：二大夜，水已冬，保文明",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0010_001",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0010_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "措施项目清单与计价"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "措施项目清单与计价",
+      "unit_id": "lecture.cost-control.0015"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **管理原则**：监管有措、筹措有章、支出有据、管理有序、监督有效",
+          "2. **管理细则**：",
+          "- **标准**：房屋建筑工程提取标准为 **3%**",
+          "- 建设单位在合同中单独约定，并于工程开工后**一个月内**向承包单位支付**至少50%**的安全生产费用",
+          "- 总包单位应当在合同中单独约定，并于分包工程开工后**一个月内**将**至少50%**企业安全生产费用直接支付给分包单位并监督使用"
+        ],
+        "mnemonics": [
+          "房建提三点，开工一月半"
+        ],
+        "must_mentions": [
+          "单列",
+          "不得删减",
+          "3%",
+          "50%",
+          "退回建设单位"
+        ],
+        "red_lines": [
+          "安全费用参与竞标降价"
+        ],
+        "trap_alerts": [
+          "注意安全费用的'不可竞争'属性，以及'结余退回'的规定（很多考生误以为归施工单位）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:安全生产费用管理"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "企业安全生产费用",
+        "安全生产费用管理",
+        "施工成本管理",
+        "单列",
+        "不得删减",
+        "3%",
+        "50%",
+        "退回建设单位"
+      ],
+      "source_excerpt": "### 企业安全生产费用\n\n1. **管理原则**：监管有措、筹措有章、支出有据、管理有序、监督有效。\n2. **管理细则**：\n   - **列项**：施工方编制投标报价应**单列**安全生产费用，**竞标时不得删减**。\n   - **提取**：施工方应于**月末**按工程进度计算提取企业安全生产费用。\n   - **标准**：房屋建筑工程提取标准为 **3%**。\n   - **支付**：\n     - 建设单位在合同中单独约定，并于工程开工后**一个月内**向承包单位支付**至少50%**的安全生产费用。\n     - 总包单位应当在合同中单独约定，并于分包工程开工后**一个月内**将**至少50%**企业安全生产费用直接支付给分包单位并监督使用。\n   - **决算**：工程竣工决算后结余的企业安全生产费用，应当**退回建设单位**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0010_002",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0010_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "安全生产费用管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "安全生产费用管理",
+      "unit_id": "lecture.cost-control.0016"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **本质**：过渡项目清单与计价表",
+          "2. **内涵（构成）**："
+        ],
+        "mnemonics": [
+          "双暂总包计日工"
+        ],
+        "must_mentions": [
+          "暂列金额",
+          "暂估价",
+          "计日工",
+          "总包服务费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "区分暂列金额（预留金，可能不发生）与暂估价（必然发生，价格未定）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:其他项目清单构成"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "其他项目清单与计价表",
+        "其他项目清单",
+        "其他项目清单构成",
+        "施工成本管理",
+        "暂列金额",
+        "暂估价",
+        "计日工",
+        "总包服务费"
+      ],
+      "source_excerpt": "### 其他项目清单与计价表\n\n1. **本质**：过渡项目清单与计价表。\n2. **内涵（构成）**：\n   - **暂列金额**\n   - **暂估价**\n   - **计日工**\n   - **总包服务费**\n\n**助记口诀**：双暂总包计日工",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0010_003",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0010_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "其他项目清单构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "其他项目清单构成",
+      "unit_id": "lecture.cost-control.0017"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **定性**：",
+          "2. **招标阶段处理规则**：",
+          "1. **规费**（**不可竞争**）：",
+          "2. **增值税**（**不可竞争**）：",
+          "- **税率**：**9%**",
+          "1. **按要素计算**："
+        ],
+        "mnemonics": [
+          "五险：老工医生失业险；暂估价：老大（实体）家孩子"
+        ],
+        "must_mentions": [
+          "暂估价",
+          "综合单价",
+          "不可竞争",
+          "规费",
+          "增值税",
+          "9%"
+        ],
+        "red_lines": [
+          "规费税金参与竞争报价"
+        ],
+        "trap_alerts": [
+          "材料暂估价是计入'综合单价'，而专业工程暂估价是直接填'金额'；规费包含五险一金，注意'工伤'和'生育'保险不可遗漏。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:工程造价构成与计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "合同价款调整因素",
+        "工程造价构成与计算",
+        "施工成本管理",
+        "暂估价",
+        "综合单价",
+        "不可竞争",
+        "规费",
+        "增值税",
+        "9%"
+      ],
+      "source_excerpt": "### 合同价款调整因素\n- **法律法规变化**、**物价变化**、**项目特征不符**、**工程变更**、**工程量偏差**\n- **不可抗力**、**现场签证**、**索赔**、**工程量清单缺项**\n- **暂估价**、**计日工**、**总承包服务费**、**提前竣工或赶工补偿**、**误期赔偿**\n\n### 暂估价管理\n1. **定性**：\n   - 材料-暂估价（单价）\n   - 设备-暂估价（单价）\n   - 专业工程-暂估价\n   - *助记*：“老大”（实体）家孩子\n2. **招标阶段处理规则**：\n   - **材料暂估价**：按招标工程量清单中列明的单价计入综合单价。\n   - **专业工程暂估价**：按招标工程量清单中列出的金额填写。\n\n### 规费税金清单与计价表\n1. **规费**（**不可竞争**）：\n   - **性质**：地方政府权力部门规定，强制企业缴纳。\n   - **构成**：\n     - **住房公积金**\n     - **社会保险**（五险）：养老保险、工伤保险、医疗保险、生育保险、失业保险。\n     - *助记*：老工医生失业险\n2. **增值税**（**不可竞争**）：\n   - **税率**：**9%**\n\n### 考点三、工程造价管理\n#### 建安工程造价（费）计算\n1. **按要素计算**：\n   - 公式：`(人工费 + 材料费 + 机械费) × (1 + 管理费率%) × (1 + 利润率%) × (1 + 规费费率%) × (1 + 税率%)`\n   - 构成：(人+材+机) + 管理费 + 利润 + 风险费 + 规费 + 税金\n2. **按构成计算**：\n   - 公式：`(分部分项工程费 + 措施项目费 + 其他项目费) × (1 + 规费费率%) × (1 + 税率%)`\n   - 构成：分部分项工程费 + 措施项目费 + 其他项目费 + 规费 + 税金",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0011_001",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0011_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "工程造价构成与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工程造价构成与计算",
+      "unit_id": "lecture.cost-control.0018"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **固定总价合同**",
+          "2. **可调总价合同**",
+          "- 适用条件：规模较大、工期较长（**一年以上**）、技术复杂、施工图不完整、设计变更较多",
+          "3. **固定单价合同**",
+          "4. **可调单价合同**",
+          "5. **成本加酬金合同**"
+        ],
+        "mnemonics": [
+          "小短单固总，大长复可总"
+        ],
+        "must_mentions": [
+          "一年以内",
+          "一年以上",
+          "图纸完备",
+          "灾后重建"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'固定单价'与'可调单价'的区别在于图纸是否完备及不可预见因素多少；区分'固定总价'与'可调总价'的关键在于工期是否超过一年。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:合同计价模式选择"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "施工合同计价方式选择",
+        "施工合同计价方式",
+        "合同计价模式选择",
+        "工程合同管理",
+        "一年以内",
+        "一年以上",
+        "图纸完备",
+        "灾后重建"
+      ],
+      "source_excerpt": "### 施工合同计价方式选择\n\n1. **固定总价合同**\n   - 适用条件：规模较小、工期较短（**一年以内**）、技术简单。\n2. **可调总价合同**\n   - 适用条件：规模较大、工期较长（**一年以上**）、技术复杂、施工图不完整、设计变更较多。\n3. **固定单价合同**\n   - 适用条件：技术难度小、图纸完备。\n4. **可调单价合同**\n   - 适用条件：施工图不完整、施工过程中可能发生各种不可预见因素较多、需要根据现场实际情况重新组价议价。\n5. **成本加酬金合同**\n   - 适用条件：灾后重建、新型项目、对施工内容及经济指标不确定。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A432020_P0012_001",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A432020_P0012_001"
+      },
+      "taxonomy": {
+        "node_code": "1A432020",
+        "node_name": "工程合同管理",
+        "topic": "合同计价模式选择"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "合同计价模式选择",
+      "unit_id": "lecture.cost-control.0019"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **分部分项工程费调价**：",
+          "- **重新组价**：既无适用也无类似，或虽有适用或类似但**量变>15%**，由承包人提出，发承包双方按**成本加利润**原则协商确定",
+          "2. **措施项目费调整**："
+        ],
+        "mnemonics": [
+          "有适直接用，无适找类似，双无量变大，成本加利润"
+        ],
+        "must_mentions": [
+          "适用单价",
+          "类似单价",
+          "15%",
+          "成本加利润",
+          "放弃"
+        ],
+        "red_lines": [
+          "未按时提交措施费调整方案视为放弃"
+        ],
+        "trap_alerts": [
+          "安全文明施工费调整'不考虑'浮动，其他措施费'考虑'浮动；变更导致方案改变必须主动提出调整，否则视为放弃。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:变更估价原则"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工程变更调价原则",
+        "工程变更调价",
+        "变更估价原则",
+        "施工成本管理",
+        "适用单价",
+        "类似单价",
+        "15%",
+        "成本加利润",
+        "放弃"
+      ],
+      "source_excerpt": "### 工程变更调价原则\n\n1. **分部分项工程费调价**：\n   - **适用单价**：已标价工程量清单中有适用项目，采用该项目的单价。\n   - **类似单价**：没有适用但有类似项目，参照类似项目的单价。\n   - **重新组价**：既无适用也无类似，或虽有适用或类似但**量变>15%**，由承包人提出，发承包双方按**成本加利润**原则协商确定。\n\n2. **措施项目费调整**：\n   - **安全文明施工费**：据实调整，不得考虑施工单位报价浮动因素。\n   - **其他总价措施费**：据实调整，应当考虑施工单位报价浮动因素。\n\n> **★ 重点提示**：工程变更引起施工方案改变，承包人应提出**调整措施费**，并将实施方案提交发包人确认。详细说明与原方案相比措施费的变化情况，否则视为承包人**放弃**调整措施费的权利。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0012_002",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0012_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "变更估价原则"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "变更估价原则",
+      "unit_id": "lecture.cost-control.0020"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 工地总成本（直接费+现场经费）= **500万元**",
+          "- 公司管理费率 = **10%** (500×10%=50万元)",
+          "- 利润率 = **6%** [(500+50)×6%=33万元]",
+          "- 不含税合同价 = **583万元**",
+          "- 非施工单位原因导致工地总成本增加至 **623万元**",
+          "1. **总成本增加**：623 - 500 = **123万元**"
+        ],
+        "mnemonics": [
+          "差额乘系数"
+        ],
+        "must_mentions": [
+          "总费用法",
+          "143.42万元"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算索赔时，不仅要计算直接成本的增加，还要按比例计算管理费和利润的增加。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:索赔计算方法"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "费用索赔计算（总费用法）",
+        "总费用法",
+        "索赔计算方法",
+        "施工成本管理",
+        "143.42万元"
+      ],
+      "source_excerpt": "### 费用索赔计算（总费用法）\n\n**定义**：又称总成本法，通过计算工程总成本的增加额加上合理的管理费和利润来确定索赔金额。\n\n**计算实例解析**：\n- **已知条件**：\n  - 工地总成本（直接费+现场经费）= **500万元**\n  - 公司管理费率 = **10%** (500×10%=50万元)\n  - 利润率 = **6%** [(500+50)×6%=33万元]\n  - 不含税合同价 = **583万元**\n  - 非施工单位原因导致工地总成本增加至 **623万元**\n\n- **计算过程**：\n  1. **总成本增加**：623 - 500 = **123万元**\n  2. **总部管理费增加**：123 × 10% = **12.3万元**\n  3. **利润增加**：(123 + 12.3) × 6% = **8.12万元**\n  4. **索赔总额**：123 + 12.3 + 8.12 = **143.42万元**\n  - *验证公式*：(623 × 1.1 × 1.06) - 583 = 143.42万元",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0012_003",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0012_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "索赔计算方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "索赔计算方法",
+      "unit_id": "lecture.cost-control.0021"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **定义与定性**",
+          "2. **定量公式**",
+          "3. **支付规则 (定项)**",
+          "- **支付时间**：预付款的预付时间应不迟于约定的**开工日期前7天**",
+          "- 付款期满后**7天内**仍未支付，承包人可在**第8天起暂停施工**"
+        ],
+        "mnemonics": [
+          "前七后七，八天停工，索赔全拿"
+        ],
+        "must_mentions": [
+          "开工日期前7天",
+          "第8天起",
+          "合理利润",
+          "无息借款"
+        ],
+        "red_lines": [
+          "预付款计算基数包含暂列金额"
+        ],
+        "trap_alerts": [
+          "计算预付款时，务必先从合同价中减去'暂列金额'。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:预付款支付与起扣"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "预付款管理",
+        "工程预付款",
+        "预付款支付与起扣",
+        "施工成本管理",
+        "开工日期前7天",
+        "第8天起",
+        "合理利润",
+        "无息借款"
+      ],
+      "source_excerpt": "### 预付款管理\n\n1. **定义与定性**\n   - 定义：发包人支付的一笔启动资金，用于承包人购买主材、设备。\n   - 定性：业主借给施工单位的一笔**无息借款**。\n\n2. **定量公式**\n   - $预付款 = (合同价 - 暂列金额) \\times 支付比例$\n\n3. **支付规则 (定项)**\n   - **支付时间**：预付款的预付时间应不迟于约定的**开工日期前7天**。\n   - **逾期后果**：\n     - 发包人没有按时支付预付款的，承包人可催告发包人支付。\n     - 付款期满后**7天内**仍未支付，承包人可在**第8天起暂停施工**。\n     - 发包人承担由此增加的**费用和工期**，并向承包人支付**合理利润**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0013_001",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0013_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "预付款支付与起扣"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "预付款支付与起扣",
+      "unit_id": "lecture.cost-control.0022"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **起扣点 (Start Deduction Point)**",
+          "2. **进度款 (Progress Payment)**"
+        ],
+        "mnemonics": [
+          "总减暂，减去预付除比重"
+        ],
+        "must_mentions": [
+          "起扣点",
+          "主材比重",
+          "暂列金额"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意公式中'暂列金额'的扣除，以及'主材比重'作为除数。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:起扣点与进度款计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "起扣点与进度款",
+        "起扣点与进度款计算",
+        "施工成本管理",
+        "起扣点",
+        "主材比重",
+        "暂列金额"
+      ],
+      "source_excerpt": "### 起扣点与进度款\n\n1. **起扣点 (Start Deduction Point)**\n   - **定义**：从剩余工程款中主材及构件价值相当于预付款数额时起扣。\n   - **机制**：此后每次结算工程款时，按材料所占比重抵扣进度款，直至工程竣工前全部扣清。\n   - **定量公式**：\n     $$起扣点 = (合同价 - 暂列金额) - \\frac{预付款}{主材比重}$$\n\n2. **进度款 (Progress Payment)**\n   - **计算公式**：\n     $$(当月有效工作量 \\times 合同价) - 保修金 - 预付款 - 罚款$$\n     或\n     $$已完工程款 - 保修金 - 预付款 - 罚款$$\n   - **说明**：直至工程竣工前全部扣清。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0013_002",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0013_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "起扣点与进度款计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "起扣点与进度款计算",
+      "unit_id": "lecture.cost-control.0023"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. **公式结构**",
+          "$$\\Delta P = P_0 [A + (B_1 \\times \\frac{F_{t1}}{F_{01}} + B_2 \\times \\frac{F_{t2}}{F_{02}} + \\dots + B_n \\times \\frac{F_{tn}}{F_{0n}}) - 1]$$",
+          "2. **参数定义**",
+          "- $P_0$：调值前的工程合同价款（**签约合同价**）",
+          "- $B_1 \\dots B_n$：各可调因子的**变值权重**（可调部分的权重）",
+          "- $F_{t1} \\dots F_{tn}$：各可调因子的**现行价格指数**"
+        ],
+        "mnemonics": [
+          "现行四二"
+        ],
+        "must_mentions": [
+          "前42天",
+          "定值权重",
+          "签约合同价"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "Ft取值时间是'周期最后一天前42天'，非当月最后一天。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:调值公式法"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "竣工结算：调值公式法",
+        "调值公式",
+        "调值公式法",
+        "施工成本管理",
+        "前42天",
+        "定值权重",
+        "签约合同价"
+      ],
+      "source_excerpt": "### 竣工结算：调值公式法\n\n1. **公式结构**\n   $$\\Delta P = P_0 [A + (B_1 \\times \\frac{F_{t1}}{F_{01}} + B_2 \\times \\frac{F_{t2}}{F_{02}} + \\dots + B_n \\times \\frac{F_{tn}}{F_{0n}}) - 1]$$\n\n2. **参数定义**\n   - $\\Delta P$：需调整的价格差额\n   - $P_0$：调值前的工程合同价款（**签约合同价**）\n   - $A$：**定值权重**（不可调部分的权重）\n   - $B_1 \\dots B_n$：各可调因子的**变值权重**（可调部分的权重）\n   - $F_{t1} \\dots F_{tn}$：各可调因子的**现行价格指数**\n     - **取值规则**：约定付款证书相关周期**最后一天的前42天**的各可调因子价格指数。\n   - $F_{01} \\dots F_{0n}$：**基准日期**的各可调因子的价格指数",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0013_003",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0013_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "调值公式法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "调值公式法",
+      "unit_id": "lecture.cost-control.0024"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **成本计划**",
+          "2. **成本控制**",
+          "3. **成本核算**",
+          "4. **成本分析**",
+          "5. **成本考核**"
+        ],
+        "mnemonics": [
+          "计价资，控赢值，核制造，分因素"
+        ],
+        "must_mentions": [
+          "价值工程",
+          "赢得值法",
+          "制造成本法",
+          "因素分析法"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "考试常以单选题形式考察环节与方法的对应关系，特别是'控制-赢得值法'和'分析-因素分析法'的配对。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "causal_principle",
+      "intent": [
+        "grading_keywords",
+        "trap_detection",
+        "why_explain"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:成本管理环节与方法"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第二节 施工成本管理",
+        "施工成本管理体系",
+        "成本管理环节与方法",
+        "施工成本管理",
+        "价值工程",
+        "赢得值法",
+        "制造成本法",
+        "因素分析法"
+      ],
+      "source_excerpt": "### 第二节 施工成本管理\n\n本节展示了施工成本管理的五个核心环节及其对应的关键管理方法/原理：\n\n1. **成本计划**\n   - 对应方法/原理：**价值工程原理**、**资源投入管理**\n\n2. **成本控制**\n   - 对应方法：**赢得值法** (Earned Value Management)\n\n3. **成本核算**\n   - 对应方法：**制造成本法**\n\n4. **成本分析**\n   - 对应方法：**因素分析法**\n\n5. **成本考核**\n   - 对应内容：考核的内容",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0014_001",
+        "json_page_num": 14,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0014_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "成本管理环节与方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成本管理环节与方法",
+      "unit_id": "lecture.cost-control.0025"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **工期分解**：根据**总工期生产进度网络节点计划**分解",
+          "2. **进度分解**：按**月形象进度计划**分解",
+          "3. **成本分解**：按施工项目**直接成本**和**间接成本**分解",
+          "4. **费用分解**：按成本编制的**工、料、机费用**分解"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "网络节点计划",
+          "月形象进度",
+          "直接成本",
+          "间接成本"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'工期分解'依据的是网络节点，而'进度分解'依据的是月形象进度。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:施工目标成本分解方法"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "施工目标成本分解",
+        "施工目标成本",
+        "施工目标成本分解方法",
+        "施工成本计划",
+        "网络节点计划",
+        "月形象进度",
+        "直接成本",
+        "间接成本"
+      ],
+      "source_excerpt": "### 施工目标成本分解\n\n1. **工期分解**：根据**总工期生产进度网络节点计划**分解。\n2. **进度分解**：按**月形象进度计划**分解。\n3. **成本分解**：按施工项目**直接成本**和**间接成本**分解。\n4. **费用分解**：按成本编制的**工、料、机费用**分解。\n\n### 成本构成分解\n- **生产成本**\n- **质量成本**\n- **工期成本**\n- **不可预见成本**（如：罚款）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435010_P0015_001",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435010_P0015_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435010",
+        "node_name": "施工成本计划",
+        "topic": "施工目标成本分解方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "施工目标成本分解方法",
+      "unit_id": "lecture.cost-control.0026"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 编制目标要求 (口诀：科一先行适时考)",
+          "#### 2. 编制依据 (口诀：量价标书合定案)",
+          "1. 图纸工程**量**",
+          "2. “人材机”**价**格",
+          "3. 成本控制指**标**",
+          "4. 目标责任**书**"
+        ],
+        "mnemonics": [
+          "要求：科一先行适时考；依据：量价标书合定案"
+        ],
+        "must_mentions": [
+          "科学性",
+          "统一性",
+          "先进性",
+          "可行性",
+          "适时性",
+          "图纸工程量",
+          "人材机价格",
+          "目标责任书",
+          "企业定额",
+          "施工方案"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "编制依据中是'企业定额'而非'预算定额'；编制程序中'分解目标成本'是第二步，位于'编制草案'之前。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:成本计划编制要求、依据与程序"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "成本计划编制",
+        "成本计划",
+        "成本计划编制要求、依据与程序",
+        "施工成本计划",
+        "科学性",
+        "统一性",
+        "先进性",
+        "可行性",
+        "适时性",
+        "图纸工程量"
+      ],
+      "source_excerpt": "### 成本计划编制\n\n#### 1. 编制目标要求 (口诀：科一先行适时考)\n- **科**学性\n- **统**一性\n- **先**进性\n- **可**行性\n- **适**时性\n\n#### 2. 编制依据 (口诀：量价标书合定案)\n1. 图纸工程**量**\n2. “人材机”**价**格\n3. 成本控制指**标**\n4. 目标责任**书**\n5. 劳务分包**合**同\n6. 企业**定**额\n7. 施工方**案**\n\n#### 3. 编制程序\n1. **定依据**：搜集整理各类有关资料\n2. **定目标**：分解目标成本\n3. **定草案**：编制成本计划草案\n4. **定计划**：编制正式成本计划",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435010_P0015_002",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435010_P0015_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435010",
+        "node_name": "施工成本计划",
+        "topic": "成本计划编制要求、依据与程序"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成本计划编制要求、依据与程序",
+      "unit_id": "lecture.cost-control.0027"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 核心概念",
+          "- **评价标准**: 选择价值系数最高（通常 $V \\ge 1$）的方案为最佳方案",
+          "#### 2. 计算流程 (案例解析)",
+          "- A方案: 成本120万元, 功能系数 0.33",
+          "- B方案: 成本150万元, 功能系数 0.35",
+          "- C方案: 成本130万元, 功能系数 0.32"
+        ],
+        "mnemonics": [
+          "计算口诀：先求和，再求比(成本系数)，后相除(V=F/C)，选最大。途径口诀：双向最牛，单向保底，同向看幅度。"
+        ],
+        "must_mentions": [
+          "价值系数",
+          "功能系数",
+          "成本系数",
+          "V=F/C",
+          "方案比选"
+        ],
+        "red_lines": [
+          "计算成本系数分母错误"
+        ],
+        "trap_alerts": [
+          "计算题陷阱：题目给出的可能是'成本'绝对值，计算价值系数时必须先转化为'成本系数'(即该方案成本占总成本的比例)，切勿直接用功能系数除以成本绝对值。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:价值工程应用"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "价值工程 (Value Engineering)",
+        "价值工程",
+        "价值工程应用",
+        "施工成本管理",
+        "价值系数",
+        "功能系数",
+        "成本系数",
+        "V=F/C",
+        "方案比选"
+      ],
+      "source_excerpt": "### 价值工程 (Value Engineering)\n\n#### 1. 核心概念\n- **公式**: $V = F / C$\n  - $V$: 价值 (Value)\n  - $F$: 功能系数 (Function)\n  - $C$: 成本系数 (Cost)\n- **目的**: 进行方案比选，确定最佳方案。\n- **评价标准**: 选择价值系数最高（通常 $V \\ge 1$）的方案为最佳方案。\n\n#### 2. 计算流程 (案例解析)\n**已知条件**:\n- A方案: 成本120万元, 功能系数 0.33\n- B方案: 成本150万元, 功能系数 0.35\n- C方案: 成本130万元, 功能系数 0.32\n\n**计算步骤**:\n1. **计算总成本**: $120 + 150 + 130 = 400$ (万元)\n2. **计算成本系数** ($C_i = \\text{成本}_i / \\text{总成本}$):\n   - A方案: $120 / 400 = 0.3$\n   - B方案: $150 / 400 = 0.375$\n   - C方案: $130 / 400 = 0.325$\n3. **计算价值系数** ($V_i = F_i / C_i$):\n   - A方案: $0.33 / 0.3 = 1.1$\n   - B方案: $0.35 / 0.375 \\approx 0.93$\n   - C方案: $0.32 / 0.325 \\approx 0.98$\n4. **结论**: $1.1 > 0.98 > 0.93$，故 **A方案** 为最佳方案。\n\n#### 3. 提高价值的5条途径\n根据公式 $V = F/C$，通过调整分子分母关系提高价值：\n1. **双向型 (最理想)**: 功能 $\\uparrow$ + 成本 $\\downarrow$ (功能提高，成本下降)\n2. **改进型**: 功能 $\\uparrow$ + 成本 - (功能提高，成本不变)\n3. **节约型**: 功能 - + 成本 $\\downarrow$ (功能不变，成本下降)\n4. **投资",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0016_001",
+        "json_page_num": 16,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0016_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "价值工程应用"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "价值工程应用",
+      "unit_id": "lecture.cost-control.0028"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 三个基本参数",
+          "#### 2. 四个评价指标",
+          "*   CV > 0: 费用节约",
+          "*   CV < 0: 费用超支",
+          "*   CV = 0: 无费用偏差",
+          "*   SV > 0: 进度超前"
+        ],
+        "mnemonics": [
+          "CV/SV看0，CPI/SPI看1；大好小坏"
+        ],
+        "must_mentions": [
+          "BCWS",
+          "BCWP",
+          "ACWP",
+          "CV",
+          "SV",
+          "CPI",
+          "SPI"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "考试常考计算题，需准确区分BCWS(计划量×预算价)、BCWP(已完量×预算价)、ACWP(已完量×实际价)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:赢值法评价指标与计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "赢值法（挣值法）核心概念与评价标准",
+        "赢值法(挣值法)",
+        "赢值法评价指标与计算",
+        "施工成本管理",
+        "BCWS",
+        "BCWP",
+        "ACWP",
+        "CV",
+        "SV",
+        "CPI"
+      ],
+      "source_excerpt": "### 赢值法（挣值法）核心概念与评价标准\n\n#### 1. 三个基本参数\n*   **BCWS (计划工作预算费用)**: $\\sum (计划工作量 \\times 预算单价)$\n*   **BCWP (已完工作预算费用)**: $\\sum (已完工作量 \\times 预算单价)$\n*   **ACWP (已完工作实际费用)**: $\\sum (已完工作量 \\times 实际单价)$\n\n#### 2. 四个评价指标\n*   **CV (费用偏差)** = BCWP - ACWP\n    *   CV > 0: 费用节约\n    *   CV < 0: 费用超支\n    *   CV = 0: 无费用偏差\n*   **SV (进度偏差)** = BCWP - BCWS\n    *   SV > 0: 进度超前\n    *   SV < 0: 进度拖后\n    *   SV = 0: 无进度偏差\n*   **CPI (费用绩效指数)** = BCWP / ACWP\n    *   CPI > 1: 费用节约\n    *   CPI < 1: 费用超支\n    *   CPI = 1: 无费用偏差\n*   **SPI (进度绩效指数)** = BCWP / BCWS\n    *   SPI > 1: 进度超前\n    *   SPI < 1: 进度拖后\n    *   SPI = 1: 无进度偏差",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "赢值法评价指标与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "赢值法评价指标与计算",
+      "unit_id": "lecture.cost-control.0029"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 劳动力需求计划调节要素",
+          "编制劳动力需求计划时，应注意调节以下要素：",
+          "1.  **工程量**",
+          "2.  **劳动力投入量**",
+          "3.  **劳动效率**",
+          "4.  **持续时间**"
+        ],
+        "mnemonics": [
+          "量力而行上两班，持续劳动没效率"
+        ],
+        "must_mentions": [
+          "工程量",
+          "劳动力投入量",
+          "劳动效率",
+          "持续时间",
+          "班次"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算劳动力投入量时，分母是(班次×班时×天数)，分子是总工时(工日×8)。注意单位统一。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:劳动力需求计划与投入量计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "人工成本控制",
+        "人工成本",
+        "劳动力需求计划与投入量计算",
+        "施工成本管理",
+        "工程量",
+        "劳动力投入量",
+        "劳动效率",
+        "持续时间",
+        "班次"
+      ],
+      "source_excerpt": "### 人工成本控制\n\n#### 1. 劳动力需求计划调节要素\n编制劳动力需求计划时，应注意调节以下要素：\n1.  **工程量**\n2.  **劳动力投入量**\n3.  **劳动效率**\n4.  **持续时间**\n5.  **每班工作时间**\n6.  **班次**\n\n#### 2. 劳动力投入量计算\n*   **公式**: $劳动力投入量 = \\frac{劳动力投入总工时}{班次 \\times 班时 \\times 持续时间}$\n*   **定义**:\n    *   **劳动力投入总工时** = 总的工日 × 每工日时长 (通常为 **8h**)\n    *   **班次** = 一班倒 / 两班倒 / 三班倒\n    *   **班时** = 每班工作时间 (题目给定，一般是 **8h**)\n    *   **持续时间** = 该工作总的持续时间 (工期)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0017_002",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0017_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "劳动力需求计划与投入量计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "劳动力需求计划与投入量计算",
+      "unit_id": "lecture.cost-control.0030"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **机械需用量计算**",
+          "2. **单位工程量成本比较法**"
+        ],
+        "mnemonics": [
+          "固定：折大管理占利息；可变：材料燃料小工资"
+        ],
+        "must_mentions": [
+          "固定费用",
+          "可变费用",
+          "折旧费",
+          "大修理费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'大修理费'(固定)与'小修理费'(可变)的归属。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:机械投入量与成本构成"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "机械投入量与成本构成",
+        "机械设备成本",
+        "施工成本管理",
+        "固定费用",
+        "可变费用",
+        "折旧费",
+        "大修理费"
+      ],
+      "source_excerpt": "### 机械投入量与成本构成\n\n1. **机械需用量计算**\n   - 公式：$$ \\text{机械需用量} = \\frac{\\text{完成工作总量}}{\\text{台班数} \\times \\text{台班工作量} \\times \\text{影响系数} \\times \\text{利用系数}} $$\n\n2. **单位工程量成本比较法**\n   - **使用成本** = 固定费用 + 可变费用\n   - **固定费用**：与产量、时间无关，恒定不变。\n     - 包括：折旧费、大修理费、机械管理费、投资应付利息、固定资产占用费。\n     - **助记**：折大管理占利息\n   - **可变费用**：随产量、时间变化，正比上升。\n     - 包括：工资、燃料动力费、小修理费、直接材料费。\n     - **助记**：材料燃料小工资\n   - **单位工程量成本公式**：\n     $$ \\text{单位工程量成本} = \\frac{\\text{固定费用} + \\text{单位时间可变费用} \\times \\text{实际作业时间}}{\\text{单位作业时间产量} \\times \\text{实际作业时间}} $$",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0018_001",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0018_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "机械投入量与成本构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "机械投入量与成本构成",
+      "unit_id": "lecture.cost-control.0031"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **采购费**",
+          "2. **储存费**",
+          "$$ \\text{储存费} = \\frac{\\text{单次采购量} \\times \\text{采购单价} \\times \\text{年储存费率}}{2} $$",
+          "*(注：分母为2表示平均库存量)*",
+          "3. **总采购储存费**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "总采购量",
+          "每次采购量",
+          "单次采购费",
+          "年储存费率"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "储存费公式中必须除以2（平均库存概念）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:最优采购批量计算"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "采购费与储存费计算",
+        "材料采购储存费",
+        "最优采购批量计算",
+        "施工成本管理",
+        "总采购量",
+        "每次采购量",
+        "单次采购费",
+        "年储存费率"
+      ],
+      "source_excerpt": "### 采购费与储存费计算\n\n1. **采购费**\n   $$ \\text{采购费} = \\frac{\\text{总采购量}}{\\text{每次采购量}} \\times \\text{单次采购费} $$\n\n2. **储存费**\n   $$ \\text{储存费} = \\frac{\\text{单次采购量} \\times \\text{采购单价} \\times \\text{年储存费率}}{2} $$\n   *(注：分母为2表示平均库存量)*\n\n3. **总采购储存费**\n   $$ \\text{采储费} = \\text{采购费} + \\text{储存费} $$",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0018_002",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0018_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "最优采购批量计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "最优采购批量计算",
+      "unit_id": "lecture.cost-control.0032"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "| **A类** | 主要材料 | 70%~75% | 0~75% | 严格盘点，重点控制 |",
+          "| **B类** | 次要材料 | 20%~25% | 75%~95% | 分类控制，管理大类 |",
+          "| **C类** | 一般材料 | 5%~10% | 95%~100% | 简化管理，定期检查 |"
+        ],
+        "mnemonics": [
+          "A类重点75，B类次要95"
+        ],
+        "must_mentions": [
+          "A类",
+          "B类",
+          "C类",
+          "重点控制",
+          "分类控制",
+          "简化管理"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "考试常考累计占比的分界点(75%, 95%)以及对应的管理措施。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:材料ABC分类管理"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "ABC分类法",
+        "材料ABC分类管理",
+        "施工成本管理",
+        "A类",
+        "B类",
+        "C类",
+        "重点控制",
+        "分类控制",
+        "简化管理"
+      ],
+      "source_excerpt": "### ABC分类法\n\n| 分类 | 类别 | 资金占比 | 累计占比 | 采取措施 |\n| :--- | :--- | :--- | :--- | :--- |\n| **A类** | 主要材料 | 70%~75% | 0~75% | 严格盘点，重点控制 |\n| **B类** | 次要材料 | 20%~25% | 75%~95% | 分类控制，管理大类 |\n| **C类** | 一般材料 | 5%~10% | 95%~100% | 简化管理，定期检查 |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0018_003",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0018_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "材料ABC分类管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "材料ABC分类管理",
+      "unit_id": "lecture.cost-control.0033"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 制造成本法 (Project Costing)",
+          "#### 2. 完全成本法 (Full Costing)",
+          "#### 3. 费用构成"
+        ],
+        "mnemonics": [
+          "制造成本：人材机管措"
+        ],
+        "must_mentions": [
+          "制造成本法",
+          "完全成本法",
+          "直接费",
+          "间接费"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'现场管理费'(入制造成本)与'企业管理费'(入期间费用)"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:成本核算方法与构成"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "成本核算方法体系",
+        "成本核算方法",
+        "成本核算方法与构成",
+        "施工成本管理",
+        "制造成本法",
+        "完全成本法",
+        "直接费",
+        "间接费"
+      ],
+      "source_excerpt": "### 成本核算方法体系\n\n#### 1. 制造成本法 (Project Costing)\n- **人**: 支付给生产工人的工资、奖金\n- **材**: 所消耗的主、辅材料、构配件，周转材料的摊销费或租赁费\n- **机**: 施工机械的使用费或租赁费\n- **管**: 现场施工组织与管理所发生的全部管理费\n- **措**: 施工措施费\n\n#### 2. 完全成本法 (Full Costing)\n- **公式A**: 中标造价 - 期间费用(企业管理费) - 利润 - 税金\n- **公式B**: 中标造价 - 利润 - 税金\n\n#### 3. 费用构成\n- **直接费**: 人工费 + 材料费 + 机械费 + 其他直接费\n- **间接费**: 项目管理费",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0019_001",
+        "json_page_num": 19,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0019_001"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "成本核算方法与构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成本核算方法与构成",
+      "unit_id": "lecture.cost-control.0034"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "#### 1. 分析步骤",
+          "1. **确定对象**: 计算实际值与目标值的差异",
+          "2. **确定指标**: 将各指标按 **“产量 $\\rightarrow$ 单价 $\\rightarrow$ 损耗率”** 顺序排列",
+          "3. **计算目标**: 各计划指标相乘，作为替代基数",
+          "4. **顺序替换**: 按排列顺序进行三次替换，保留每次替换结果",
+          "5. **比较差异**: 将每次替换结果与前一次结果比较，得出该因素影响"
+        ],
+        "mnemonics": [
+          "因素分析：先量后价再损耗"
+        ],
+        "must_mentions": [
+          "因素分析法",
+          "排序",
+          "替代",
+          "差异"
+        ],
+        "red_lines": [
+          "顺序颠倒"
+        ],
+        "trap_alerts": [
+          "计算题必考点：务必记住'先量后价再损耗'的顺序，且每次只替换一个因素。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:因素分析法计算步骤"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "因素分析法 (连环置换法)",
+        "因素分析法",
+        "因素分析法计算步骤",
+        "施工成本管理",
+        "排序",
+        "替代",
+        "差异"
+      ],
+      "source_excerpt": "### 因素分析法 (连环置换法)\n\n#### 1. 分析步骤\n1. **确定对象**: 计算实际值与目标值的差异。\n2. **确定指标**: 将各指标按 **“产量 $\\rightarrow$ 单价 $\\rightarrow$ 损耗率”** 顺序排列。\n3. **计算目标**: 各计划指标相乘，作为替代基数。\n4. **顺序替换**: 按排列顺序进行三次替换，保留每次替换结果。\n5. **比较差异**: 将每次替换结果与前一次结果比较，得出该因素影响。\n\n#### 2. 计算方法 (连环置换)\n- **定差异**: 实际成本 - 计划成本\n- **定顺序**: **先量后价再损耗** (产量 $\\rightarrow$ 单价 $\\rightarrow$ 损耗率)\n- **定目标**: $T = Q_{plan} \\times P_{plan} \\times (1 + L_{plan})$\n\n#### 3. 替换过程 (示例)\n- **第一次替换 (量)**: $S_1 = Q_{new} \\times P_{old} \\times (1 + L_{old})$\n  - **量变影响**: $S_1 - T$ (产量变化引起的成本增加额)\n- **第二次替换 (价)**: $S_2 = Q_{new} \\times P_{new} \\times (1 + L_{old})$\n  - **价变影响**: $S_2 - S_1$ (单价变化引起的成本增加额)\n- **第三次替换 (损)**: $S_3 = Q_{new} \\times P_{new} \\times (1 + L_{new})$\n  - **损耗影响**: $S_3 - S_2$ (损耗率变化引起的成本增加额)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0019_002",
+        "json_page_num": 19,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0019_002"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "因素分析法计算步骤"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "因素分析法计算步骤",
+      "unit_id": "lecture.cost-control.0035"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **目标完成**: 项目目标成本和阶段性成本完成情况",
+          "2. **项目经理**: 项目经理成本责任制的落实情况",
+          "3. **部门岗位**: 对各部门、岗位责任成本的检查、考核",
+          "4. **成本计划**: 成本计划的编制落实、情况",
+          "5. **成本核算**: 施工成本核算的真实性、符合性",
+          "6. **考核兑现**: 考核兑现情况"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "目标完成",
+          "责任制",
+          "真实性",
+          "兑现"
+        ],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:cost-control",
+          "topic:成本考核的具体内容"
+        ]
+      },
+      "lecture": "费用控制（成本＋造价）",
+      "lecture_slug": "cost-control",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "成本考核内容",
+        "成本考核的具体内容",
+        "施工成本管理",
+        "目标完成",
+        "责任制",
+        "真实性",
+        "兑现"
+      ],
+      "source_excerpt": "### 成本考核内容\n\n1. **目标完成**: 项目目标成本和阶段性成本完成情况。\n2. **项目经理**: 项目经理成本责任制的落实情况。\n3. **部门岗位**: 对各部门、岗位责任成本的检查、考核。\n4. **成本计划**: 成本计划的编制落实、情况。\n5. **成本核算**: 施工成本核算的真实性、符合性。\n6. **考核兑现**: 考核兑现情况。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A435000_P0019_003",
+        "json_page_num": 19,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A435000_P0019_003"
+      },
+      "taxonomy": {
+        "node_code": "1A435000",
+        "node_name": "施工成本管理",
+        "topic": "成本考核的具体内容"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成本考核的具体内容",
+      "unit_id": "lecture.cost-control.0036"
+    }
+  ],
+  "manifest": {
+    "answer_unit_count": 35,
+    "content_hash": "4ae67b82b89dd918a732d69cddf9f83a2084c0bfcb38e950cfd387c06ec962e9",
+    "coverage_status": "needs_visual_audit",
+    "lecture": "费用控制（成本＋造价）",
+    "lecture_slug": "cost-control",
+    "missing_internal_pages": [
+      20
+    ],
+    "namespace": "lecture_answer_method.cost-control",
+    "non_exam_exclusion_count": 2,
+    "official_score_allowed": false,
+    "published": false,
+    "schema_version": "luban_lecture_answer_method_shard.v1",
+    "signature": "bc4fbc39894d1e7806037a1dbaeed2bde7a79421d02d13721d42de5380ee5241",
+    "source_aggregate_sha256": "68966d58dc106b8b42c9bed6e2546c6884ab6916d3aa67834e2af8f4cd4d7b35",
+    "status": "release_candidate",
+    "tier": "teaching_answer_method_not_answer_key"
+  },
+  "non_exam_exclusions": [
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_1A435000_P0001_001",
+      "json_page_num": 1,
+      "reason": "cover/meta course page; invalid for exam answers",
+      "source_chunk_id": "LEC_1A435000_P0001_001"
+    },
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_1A435000_P0021_001",
+      "json_page_num": 21,
+      "reason": "advertising/resource QR codes; invalid for exam answers",
+      "source_chunk_id": "LEC_1A435000_P0021_001"
+    }
+  ]
+}

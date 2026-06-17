@@ -15,6 +15,12 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
+function flushPromises() {
+  return Promise.resolve().then(function () {
+    return Promise.resolve();
+  });
+}
+
 async function run(name, fn) {
   try {
     await fn();
@@ -32,6 +38,7 @@ function loadChatPage() {
   var pageDef = null;
   var telemetryCalls = [];
   var streamCalls = [];
+  var streamCallbacks = [];
   var sandbox = {
     console: console,
     Date: Date,
@@ -59,8 +66,9 @@ function loadChatPage() {
       if (request === "../../utils/ai-message-state") return {};
       if (request === "../../utils/ws-stream") {
         return {
-          streamChat: function (opts) {
+          streamChat: function (opts, callbacks) {
             streamCalls.push(opts || {});
+            streamCallbacks.push(callbacks || {});
             return function () {};
           },
         };
@@ -83,6 +91,7 @@ function loadChatPage() {
           shouldAutoEnableWebSearch: function () {
             return false;
           },
+          vibrate: function () {},
         };
       }
       if (request === "../../utils/logger") {
@@ -199,6 +208,7 @@ function loadChatPage() {
     page: page,
     telemetryCalls: telemetryCalls,
     streamCalls: streamCalls,
+    streamCallbacks: streamCallbacks,
   };
 }
 
@@ -220,6 +230,275 @@ function loadChatPage() {
         loaded.streamCalls[0].sessionId === "tb_conv_001",
       "_doSend should continue into ws stream after telemetry",
     );
+  });
+
+  await run("first _doSend should skip pre-created conversation and adopt start-turn ids", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "";
+    loaded.page._convId = null;
+
+    loaded.page._doSend("错题复盘：房子");
+
+    assert(loaded.streamCalls.length === 1, "first send should enter ws stream directly");
+    assert(
+      loaded.streamCalls[0].sessionId === "",
+      "first send should not require a pre-created conversation id",
+    );
+
+    loaded.streamCallbacks[0].onStarted({
+      sessionId: "tb_created_1",
+      turnId: "turn_created_1",
+      conversation: { id: "tb_created_1" },
+      turn: { id: "turn_created_1" },
+    });
+
+    assert(loaded.page._sid === "tb_created_1", "start-turn conversation id should become page session id");
+    assert(loaded.page._convId === "tb_created_1", "start-turn conversation id should become page conversation id");
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.conversationId === "tb_created_1" &&
+        loaded.page._pendingTurn.turnId === "turn_created_1",
+      "pending turn recovery should persist the authoritative ids after start-turn returns",
+    );
+  });
+
+  await run("first _doSend should not send a local draft session as conversation_id", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "s_1780445194569";
+    loaded.page._convId = null;
+
+    loaded.page._doSend("继续追问房子专项训练");
+
+    assert(loaded.streamCalls.length === 1, "local draft session should still enter ws stream");
+    assert(
+      loaded.streamCalls[0].sessionId === "",
+      "local draft session must not be sent as the backend conversation id",
+    );
+    assert(
+      !loaded.page._pendingTurn,
+      "pending turn should wait for the authoritative start-turn conversation id",
+    );
+  });
+
+  await run("mcq submit should convert visible card state into canonical followup context", async function () {
+    var loaded = loadChatPage();
+    var payload = loaded.page._buildMcqSubmitPayload([
+      {
+        index: 1,
+        questionId: "visible_q1",
+        stem: "压型金属板屋面最低坡度是多少？",
+        questionType: "single_choice",
+        options: [
+          { key: "A", text: "5%", selected: true },
+          { key: "B", text: "1%" },
+          { key: "C", text: "2%" },
+          { key: "D", text: "3%" },
+        ],
+      },
+    ]);
+
+    assert(payload && payload.followupQuestionContext, "visible card submit should carry followup context");
+    if (payload && payload.followupQuestionContext) {
+      assert(
+        payload.followupQuestionContext.question_id === "visible_q1",
+        "visible card followup context should preserve question id",
+      );
+      assert(
+        payload.followupQuestionContext.question === "压型金属板屋面最低坡度是多少？",
+        "visible card followup context should preserve stem",
+      );
+      assert(
+        payload.followupQuestionContext.options &&
+          payload.followupQuestionContext.options.A === "5%",
+        "visible card followup context should preserve options",
+      );
+      assert(
+        payload.followupQuestionContext.user_answer === "A",
+        "visible card followup context should preserve learner answer",
+      );
+    }
+  });
+
+  await run("retry should resend the original followup question context", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "tb_conv_retry";
+    loaded.page._convId = "tb_conv_retry";
+
+    loaded.page._doSend("我选A", {
+      followupQuestionContext: {
+        question_id: "retry_q1",
+        question: "压型金属板屋面最低坡度是多少？",
+        question_type: "choice",
+        user_answer: "A",
+      },
+    });
+    var aiMessage = loaded.page.data.messages[1];
+    loaded.page.data.isStreaming = false;
+
+    loaded.page.onRetry({ currentTarget: { dataset: { msgid: aiMessage.id } } });
+
+    assert(loaded.streamCalls.length === 2, "retry should start a new stream turn");
+    assert(
+      loaded.streamCalls[1].followupQuestionContext &&
+        loaded.streamCalls[1].followupQuestionContext.question_id === "retry_q1",
+      "retry should preserve the original followup question context",
+    );
+    assert(
+      loaded.streamCalls[1].persistUserMessage === false,
+      "retry should still avoid duplicating the persisted user message",
+    );
+  });
+
+  await run("done callback during recovery should not erase pending turn identity", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_recover",
+      baselineCount: 0,
+      query: "你是谁",
+      clientTurnId: "client_recover_1",
+      turnId: "turn_recover_1",
+      createdAt: Date.now(),
+    };
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = true;
+    loaded.page._streamId = "missing-stream-message";
+    loaded.page.setData({
+      messages: [],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_recover_1",
+      "transport done after an error must not erase the pending turn before history recovery can use it",
+    );
+    assert(
+      loaded.page._recoveringTurn === true,
+      "transport done after an error must not mark recovery as finished",
+    );
+  });
+
+  await run("done without visible answer should recover from canonical history", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_done_empty",
+      baselineCount: 0,
+      query: "你能做什么",
+      clientTurnId: "client_done_empty_1",
+      turnId: "turn_done_empty_1",
+      createdAt: Date.now(),
+    };
+    var recoveryCalls = [];
+    var cleared = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-empty";
+    loaded.page._find = function (id) {
+      return id === "a-empty" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function (options) {
+      recoveryCalls.push(options || {});
+      return Promise.resolve(true);
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-empty", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      recoveryCalls.length === 1,
+      "terminal done with no rendered answer should trigger history recovery",
+    );
+    assert(
+      recoveryCalls.length === 1 && recoveryCalls[0].unlockOnExhausted === true,
+      "empty terminal recovery should unlock the composer if history still has no answer",
+    );
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_done_empty_1",
+      "empty terminal recovery should keep pending identity until recovery finishes",
+    );
+    assert(!cleared, "empty terminal recovery should not clear pending synchronously");
+  });
+
+  await run("error recovery exhaustion should not start a second terminal recovery", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_error_exhausted",
+      baselineCount: 0,
+      query: "你是谁",
+      clientTurnId: "client_error_exhausted_1",
+      turnId: "turn_error_exhausted_1",
+      createdAt: Date.now(),
+    };
+    var recoveryCalls = [];
+    var cleared = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-error-empty";
+    loaded.page._find = function (id) {
+      return id === "a-error-empty" ? 0 : -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function (options) {
+      recoveryCalls.push(options || {});
+      return Promise.resolve(false);
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-error-empty", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("连接失败");
+    await flushPromises();
+
+    assert(
+      recoveryCalls.length === 1,
+      "once error recovery is exhausted, terminal cleanup should not start a second history recovery",
+    );
+    assert(cleared, "exhausted error recovery should clear pending so the composer unlocks");
+    assert(loaded.page.data.isStreaming === false, "exhausted error recovery should stop streaming UI");
   });
 
   if (fail) {

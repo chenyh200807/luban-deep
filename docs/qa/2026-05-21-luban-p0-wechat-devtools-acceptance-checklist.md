@@ -1,24 +1,52 @@
-# 鲁班智考 P0 微信开发者工具人工验收脚本
+# 鲁班智考 P0 微信开发者工具验收脚本
 
 | 字段 | 值 |
 |---|---|
-| **Plan** | [docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) §7.7 |
-| **回归矩阵** | [docs/plan/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
+| **Plan** | [docs/plan/题目生命周期与助教运行时/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) §7.7 |
+| **回归矩阵** | [docs/plan/题目生命周期与助教运行时/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
 | **承接 HEAD** | `862f80fa fix: redact public ws grading authority` |
 | **本地后端** | `scripts/start_local_learning_brain.sh start --no-web` → `http://127.0.0.1:8001` |
 | **预计耗时** | 4 × 5 min = 20 min |
 | **回滚阈值** | 任一脚本中出现 ✗ 即 NO-GO（plan §6.3） |
+| **主验收面** | DevTools project root = `yousenwebview`；目标业务面 = `packageDeeptutor` 分包；`wx_miniprogram` 只作为 shadow / render-contract 辅助面 |
 
 ---
 
 ## 通用配置
 
-1. 微信开发者工具 → 项目 → `wx_miniprogram/`
+优先用 CLI 完成登录态、打开项目和自动化端口预检：
+
+```bash
+WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+$WX_DEVTOOLS_CLI islogin
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
+```
+
+`islogin` 只算 DevTools 账号环境预检；`open --project` 只算项目打开预检。必须完成下方 A-D 场景或自动化脚本输出，才能写 `real_wechat_package` PASS。若只跑到 `/wechat-harness`、node contract、`islogin` 或 `open --project`，结论必须写 `partial / true-entry pending`。
+
+每次记录登录证据：`auth_state`（logged_in / qa_token / auth_blocked / unknown）和 `auth_mode`（real_wechat / local_dev_wechat / manual_token / none）。登录不可用时只能写 `partial/auth_blocked`；非生产 QA token 必须来自既有 `/api/v1/wechat/mp/login` authority，不能绕过 app auth、不能写 production DB。
+
+## 防复发记录：project root / subpackage 拆分
+
+2026-06-07 复盘：曾再次把“跑 `yousenwebview/packageDeeptutor` / 跑 `packageDeeptutor`”写成真实微信链路目标，说明旧规则只写了正确命令，但没有把模糊措辞设为证据阻断项。之后所有 `real_wechat_package` 记录必须显式拆分：
+
+- 正确：`devtools_project_root=yousenwebview`
+- 正确：`target_subpackage=packageDeeptutor`
+- 正确：`target_page=/packageDeeptutor/pages/chat/chat` 或实际页面
+- 错误：`cli open --project .../yousenwebview/packageDeeptutor`
+- 错误：只写“`packageDeeptutor` PASS”或“跑了 `packageDeeptutor`”
+
+缺少 project root / target subpackage / target page 任一字段时，只能写 `partial`，不能写真实微信入口 PASS。
+
+1. 微信开发者工具 → 项目 → `yousenwebview/`
 2. 详情 → 本地设置 → 启用「不校验合法域名」
 3. 在 app/config 把 ws 入口指向 `ws://127.0.0.1:8001/api/v1/ws`
 4. 编译并点开聊天页
 
 > 每条 ✗ 都必须截图保存到 `.gstack/qa-reports/screenshots-2026-05-21-luban-p0-wx/` 并在末尾备注。
+
+> 不默认执行 `upload`。发布、预览包或 CI 流水线另走明确授权的发布步骤，不能混入本 P0 验收。
 
 ---
 

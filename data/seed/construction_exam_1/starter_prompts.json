@@ -14,14 +14,14 @@
     },
     {
       "prompt_type": "concept_explain",
-      "text": "用考试语言讲清主体结构验收最容易失分的点",
+      "text": "讲清楚主体结构工程施工的关键判断",
       "intent": {
         "job": "concept_explain"
       }
     },
     {
       "prompt_type": "practice_prompt",
-      "text": "出一道防水工程案例题，做完后帮我拆采分点",
+      "text": "用 3 道题训练屋面与防水工程施工",
       "intent": {
         "job": "case_grading"
       }

@@ -90,9 +90,9 @@ def _build_delta_detail(current: int, previous: int) -> str:
         return "刚开始形成连续输出"
     delta = current - previous
     if delta > 0:
-        return "比前 3 天多 " + str(delta) + " 题"
+        return "比前 3 天多 " + str(delta) + " 次练习"
     if delta < 0:
-        return "比前 3 天少 " + str(abs(delta)) + " 题"
+        return "比前 3 天少 " + str(abs(delta)) + " 次练习"
     return "和前 3 天基本持平"
 
 
@@ -192,22 +192,22 @@ def build_progress_feedback(
     if recent_three > 0 and previous_three > 0:
         delta = recent_three - previous_three
         change_text = (
-            "多 " + str(delta) + " 题"
+            "多 " + str(delta) + " 次练习"
             if delta > 0
-            else "少 " + str(abs(delta)) + " 题"
+            else "少 " + str(abs(delta)) + " 次练习"
             if delta < 0
             else "和前 3 天持平"
         )
-        summary = "近 3 天累计完成 " + str(recent_three) + " 题，" + change_text + "，进步轨迹开始变得清晰"
+        summary = "近 3 天累计完成 " + str(recent_three) + " 次练习，" + change_text + "，进步轨迹开始变得清晰"
     elif recent_three > 0:
-        summary = "近 3 天已累计完成 " + str(recent_three) + " 题，节奏刚刚建立起来，继续推进就会看到更稳的变化"
+        summary = "近 3 天已累计完成 " + str(recent_three) + " 次练习，节奏刚刚建立起来，继续推进就会看到更稳的变化"
     elif streak > 0:
         summary = "已连续学习 " + str(streak) + " 天，今天再完成一轮练习，系统就能给出更明确的变化反馈"
     else:
         summary = "先完成今天的第一轮练习，系统会开始记录你的节奏变化和薄弱点推进"
 
     if focus_name and focus_done > 0:
-        insight = "这段时间你主要在推进“" + focus_name + "”，累计已完成 " + str(focus_done) + " 题"
+        insight = "这段时间你主要在补“" + focus_name + "”，已积累 " + str(focus_done) + " 条练习证据"
     elif focus_name:
         insight = "系统已经把“" + focus_name + "”锁定为当前主攻，接下来几轮练习后这里会最先出现变化"
     elif review_due_count > 0:
@@ -220,7 +220,7 @@ def build_progress_feedback(
     cards = [
         {
             "label": "近 3 天完成",
-            "value": str(recent_three) + "题",
+            "value": str(recent_three) + "次",
             "detail": delta_detail,
             "tone_class": "tone-good" if recent_three > previous_three else "tone-accent" if recent_three > 0 else "tone-warn",
         },
@@ -231,9 +231,9 @@ def build_progress_feedback(
             "tone_class": "tone-good" if streak >= 3 else "tone-accent",
         },
         {
-            "label": "主攻推进",
-            "value": str(focus_done) + "题" if focus_done > 0 else "待启动",
-            "detail": "最近在推“" + focus_name + "”" if focus_name else "主攻章节会在练习后自动锁定",
+            "label": "主攻主题",
+            "value": str(focus_done) + "条证据" if focus_done > 0 else "待启动",
+            "detail": "最近在补“" + focus_name + "”" if focus_name else "主攻章节会在练习后自动锁定",
             "tone_class": "tone-good" if focus_done >= 6 else "tone-accent" if focus_name else "tone-warn",
         },
         {
@@ -250,7 +250,7 @@ def build_progress_feedback(
             milestones.append(
                 {
                     "title": "最近 3 天明显提速",
-                    "detail": "相比前 3 天，多完成了 " + str(recent_three - previous_three) + " 题",
+                    "detail": "相比前 3 天，多完成了 " + str(recent_three - previous_three) + " 次练习",
                     "tone_class": "tone-good",
                 }
             )
@@ -258,7 +258,7 @@ def build_progress_feedback(
             milestones.append(
                 {
                     "title": "最近 3 天保持输出",
-                    "detail": "累计已完成 " + str(recent_three) + " 题，节奏没有断开",
+                    "detail": "累计已完成 " + str(recent_three) + " 次练习，节奏没有断开",
                     "tone_class": "tone-accent",
                 }
             )
@@ -266,7 +266,7 @@ def build_progress_feedback(
         milestones.append(
             {
                 "title": "主攻章节开始沉淀",
-                "detail": "“" + focus_name + "”累计已完成 " + str(focus_done) + " 题，已经有持续推进的迹象",
+                "detail": "“" + focus_name + "”已积累 " + str(focus_done) + " 条练习证据，已经有持续推进的迹象",
                 "tone_class": "tone-good" if focus_done >= 6 else "tone-accent",
             }
         )
@@ -288,7 +288,7 @@ def build_progress_feedback(
         milestones.append(
             {
                 "title": "今日学习已经启动",
-                "detail": "今天已完成 " + str(done) + "/" + str(target) + "，把当天目标打满会更容易看到正向反馈",
+                "detail": "今天已完成 " + str(done) + "/" + str(target) + " 次练习，把当天目标打满会更容易看到正向反馈",
                 "tone_class": "tone-accent",
             }
         )

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -11,6 +12,8 @@ from deeptutor.services.path_service import get_path_service
 from .env_store import get_env_store
 
 CATALOG_PATH = get_path_service().get_settings_file("model_catalog")
+REDACTED_SECRET = "[REDACTED]"
+REDACT_MODEL_CATALOG_AT_REST_ENV = "DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST"
 
 
 def _service_shell() -> dict[str, Any]:
@@ -37,6 +40,24 @@ def _default_catalog() -> dict[str, Any]:
             "search": _search_shell(),
         },
     }
+
+
+def _redact_api_keys_for_persistence(value: Any) -> Any:
+    if isinstance(value, dict):
+        redacted: dict[str, Any] = {}
+        for key, item in value.items():
+            if key == "api_key" and str(item or "").strip():
+                redacted[key] = REDACTED_SECRET
+            else:
+                redacted[key] = _redact_api_keys_for_persistence(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_api_keys_for_persistence(item) for item in value]
+    return value
+
+
+def _should_redact_catalog_at_rest() -> bool:
+    return os.getenv(REDACT_MODEL_CATALOG_AT_REST_ENV, "").strip().lower() in {"1", "true", "yes"}
 
 
 class ModelCatalogService:
@@ -79,8 +100,9 @@ class ModelCatalogService:
             self._preserve_existing_secrets(normalized, existing)
         self._normalize(normalized)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        persisted = _redact_api_keys_for_persistence(normalized) if _should_redact_catalog_at_rest() else normalized
         with open(self.path, "w", encoding="utf-8") as handle:
-            json.dump(normalized, handle, indent=2, ensure_ascii=False)
+            json.dump(persisted, handle, indent=2, ensure_ascii=False)
         return normalized
 
     def apply(self, catalog: dict[str, Any] | None = None) -> dict[str, str]:
@@ -457,7 +479,7 @@ class ModelCatalogService:
                 if str(profile.get("api_key") or "").strip():
                     continue
                 existing_key = str(existing_profile.get("api_key") or "").strip()
-                if existing_key:
+                if existing_key and existing_key != REDACTED_SECRET:
                     profile["api_key"] = existing_key
 
     def get_active_profile(self, catalog: dict[str, Any], service_name: str) -> dict[str, Any] | None:

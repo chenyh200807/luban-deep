@@ -1,9 +1,9 @@
-/* eslint-disable i18n/no-literal-ui-text */
 "use client";
 
 import type {
   BiBossActionItem,
   BiBossWorkbench,
+  BiCostData,
   BiMemberData,
   BiRetentionData,
   BiTrendData,
@@ -20,6 +20,7 @@ import { BiDataTrustPanel } from "./BiDataTrustPanel";
 import { BiGrowthFunnelPanel } from "./BiGrowthFunnelPanel";
 import { BiMemberHealthPanel } from "./BiMemberHealthPanel";
 import { BiNorthStarPanel } from "./BiNorthStarPanel";
+import { BiCostReconciliationPanel } from "./BiCostReconciliationPanel";
 
 type BiBossHomeTabProps = {
   loading: boolean;
@@ -29,6 +30,7 @@ type BiBossHomeTabProps = {
   trend: BiTrendData;
   retention: BiRetentionData;
   members: BiMemberData;
+  cost: BiCostData;
   moduleIssues: BiWorkbenchModuleIssues;
   onNavigateFromBossQueue: (item?: BiBossActionItem) => void;
   onOpenLearnerDetail: (sample: { user_id: string; display_name: string }) => void;
@@ -42,6 +44,7 @@ export function BiBossHomeTab({
   trend,
   retention,
   members,
+  cost,
   moduleIssues,
   onNavigateFromBossQueue,
   onOpenLearnerDetail,
@@ -84,6 +87,8 @@ export function BiBossHomeTab({
       />
 
       <BiDataTrustPanel dataTrust={overview?.dataTrust} operatingRhythm={overview?.operatingRhythm} />
+
+      <BiCostReconciliationPanel providers={cost.reconciliation} />
 
       <BiBossSnapshotGrid
         overview={overview}

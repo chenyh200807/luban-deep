@@ -32,7 +32,7 @@
 
       <view class="glass-card footer-card">
         <text class="footer-title">提示</text>
-        <text class="footer-text">如果你对条款内容、数据使用或会员权益有疑问，请先暂停敏感操作，并联系产品负责人确认。</text>
+        <text class="footer-text">如果你不同意本条款或无法准确理解相关内容，请先停止使用相关功能；如有疑问，可通过产品内反馈或客服渠道联系我们。</text>
       </view>
 
       <view style="height: 160rpx"></view>

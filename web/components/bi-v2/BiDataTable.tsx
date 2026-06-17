@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { AlertCircle, ArrowDown, ArrowUp, Inbox, Loader2 } from 'lucide-react'
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, Inbox, Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 // First-page cap. Plan §7.4: "5 万会员表必须虚拟滚动 + cursor 分页，首屏最多渲染 50 行"。
@@ -36,6 +36,8 @@ export type BiDataTableProps<T> = {
   sortKey?: string
   sortDir?: 'asc' | 'desc'
   onSort?: (key: string) => void
+  onRowClick?: (row: T) => void
+  rowAriaLabel?: (row: T) => string
   rowAction?: (row: T) => ReactNode
   caption?: string
   cursorFooter?: ReactNode
@@ -70,6 +72,8 @@ export function BiDataTable<T>({
   sortKey,
   sortDir,
   onSort,
+  onRowClick,
+  rowAriaLabel,
   rowAction,
   caption,
   cursorFooter,
@@ -155,6 +159,15 @@ export function BiDataTable<T>({
                 return (
                   <th
                     key={c.key}
+                    aria-sort={
+                      sorted
+                        ? sortDir === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : c.sortable
+                          ? 'none'
+                          : undefined
+                    }
                     className={`sticky top-0 z-[1] border-b border-white/10 bg-[#151d2b] px-3 py-2 font-bold ${
                       c.align === 'right'
                         ? 'text-right'
@@ -168,8 +181,9 @@ export function BiDataTable<T>({
                       <button
                         type="button"
                         onClick={() => onSort(c.key)}
-                        className="inline-flex items-center gap-1 hover:text-cyan-200"
+                        className="inline-flex min-h-7 items-center gap-1 rounded-lg px-1.5 py-1 text-slate-300 transition hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40"
                         aria-label={`按 ${c.label} ${sorted && sortDir === 'asc' ? '降序' : '升序'} 排序`}
+                        title={`按${c.label}${sorted && sortDir === 'asc' ? '降序' : '升序'}排序`}
                       >
                         {c.label}
                         {sorted ? (
@@ -178,7 +192,9 @@ export function BiDataTable<T>({
                           ) : (
                             <ArrowDown className="h-3 w-3" aria-hidden />
                           )
-                        ) : null}
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-45" aria-hidden />
+                        )}
                       </button>
                     ) : (
                       c.label
@@ -187,7 +203,7 @@ export function BiDataTable<T>({
                 )
               })}
               {rowAction ? (
-                <th className="sticky right-0 top-0 z-[2] border-b border-l border-white/10 bg-[#151d2b] px-3 py-2 text-right font-bold">
+                <th className="sticky right-0 top-0 z-[2] min-w-[9.25rem] border-b border-l border-white/10 bg-[#151d2b] px-3 py-2 text-right font-bold">
                   动作
                 </th>
               ) : null}
@@ -219,13 +235,33 @@ export function BiDataTable<T>({
             {(status === 'ok' || status === 'stale') &&
               visibleRows.map(row => {
                 const key = rowKey(row)
+                const clickable = Boolean(onRowClick)
                 return (
                   <tr
                     key={key}
-                    className="group border-b border-white/5 bg-[#0e1624] last:border-0 hover:bg-cyan-300/[0.06]"
+                    tabIndex={clickable ? 0 : undefined}
+                    aria-label={clickable ? rowAriaLabel?.(row) : undefined}
+                    onClick={clickable ? () => onRowClick?.(row) : undefined}
+                    onKeyDown={
+                      clickable
+                        ? event => {
+                            if (event.key !== 'Enter' && event.key !== ' ') return
+                            event.preventDefault()
+                            onRowClick?.(row)
+                          }
+                        : undefined
+                    }
+                    className={`group border-b border-white/5 bg-[#0e1624] last:border-0 hover:bg-cyan-300/[0.06] ${
+                      clickable
+                        ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300/45'
+                        : ''
+                    }`}
                   >
                     {selectable ? (
-                      <td className="border-b border-white/5 bg-[#0e1624] px-3 py-2 align-top group-hover:bg-cyan-300/[0.04]">
+                      <td
+                        className="border-b border-white/5 bg-[#0e1624] px-3 py-2 align-top group-hover:bg-cyan-300/[0.04]"
+                        onClick={event => event.stopPropagation()}
+                      >
                         <input
                           type="checkbox"
                           aria-label={`选择 ${key}`}
@@ -250,7 +286,10 @@ export function BiDataTable<T>({
                       </td>
                     ))}
                     {rowAction ? (
-                      <td className="sticky right-0 border-b border-l border-white/10 bg-[#101622] px-3 py-2 text-right align-top group-hover:bg-[#102035]">
+                      <td
+                        className="sticky right-0 min-w-[9.25rem] border-b border-l border-white/10 bg-[#101622] px-3 py-2 text-right align-top group-hover:bg-[#102035]"
+                        onClick={event => event.stopPropagation()}
+                      >
                         {rowAction(row)}
                       </td>
                     ) : null}

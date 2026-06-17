@@ -124,3 +124,27 @@ def test_assessment_forms_security_hotfix_is_narrow_service_role_only() -> None:
         if " public." in line
     }
     assert touched_tables == {"assessment_forms", "assessment_forms_public"}
+
+
+def test_live_rls_regression_tables_force_rls() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260613000100_force_rls_on_sensitive_tables.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    for table in (
+        "user_profiles",
+        "user_stats",
+        "user_goals",
+        "user_logs",
+        "user_emotion_logs",
+        "user_badges",
+        "learner_mistake_book_items",
+        "questions_bank",
+        "mock_exams",
+        "wallets",
+    ):
+        assert f"alter table public.{table} force row level security;" in sql

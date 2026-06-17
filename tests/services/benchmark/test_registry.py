@@ -28,12 +28,16 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 7
+    assert len(registry.cases) == 14
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
+        "real_exam_quality_spine",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
+        "answer_citation_shadow",
+        "m26_context_safety",
     }
 
 
@@ -108,6 +112,24 @@ def test_long_dialog_case_uses_canonical_vocab() -> None:
     assert case.expected_contract
 
 
+def test_real_exam_quality_spine_uses_docs_2026_bank() -> None:
+    registry = _load_registry()
+    case = registry.cases["quality.real_exam_bank.docs_2026.mcq"]
+
+    assert registry.suites["real_exam_quality_spine"].case_ids == (
+        "quality.real_exam_bank.docs_2026.mcq",
+    )
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "regression_tier"
+    assert case.execution_kind == "static_contract_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/exam_quality_bank.json"
+    assert case.origin_ref == "FastAPI20251222/docs/2026/题库"
+    assert case.promotion_status == "promoted"
+    assert "FAIL_ANSWER_KEY_OVERRIDE" in case.failure_taxonomy_scope
+    assert "FAIL_SOURCE_LAUNDERING" in case.failure_taxonomy_scope
+
+
 def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     registry = _load_registry()
     wx_case = registry.cases["surface.wx.renderer.parity"]
@@ -142,10 +164,123 @@ def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     assert web_case.expected_contract
 
 
+def test_luban_case_grading_shadow_case_uses_canonical_vocab() -> None:
+    registry = _load_registry()
+    case = registry.cases["grading.luban_case_golden.v0"]
+
+    assert registry.suites["luban_case_grading_shadow"].case_ids == (
+        "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5",
+    )
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "grading.luban_case_golden.v0"
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "case_grading_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json"
+    assert case.expected_contract == "luban_case_grading_v0_directional_shadow_not_production_gate"
+    assert case.failure_taxonomy_scope == ()
+    assert case.origin_type == "manual"
+    assert case.promotion_status == "candidate"
+
+
+def test_luban_case_grading_no_human_shadow_case_is_registered_but_not_production_gate() -> None:
+    registry = _load_registry()
+    case = registry.cases["grading.luban_case_golden_no_human.v1_5"]
+
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "grading.luban_case_golden_no_human.v1_5"
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "case_grading_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json"
+    assert case.expected_contract == "luban_case_grading_no_human_v1_5_shadow_not_production_gate"
+    assert case.failure_taxonomy_scope == ()
+    assert case.origin_type == "manual"
+    assert case.promotion_status == "candidate"
+
+
+def test_luban_case_grading_shadow_fixtures_self_declare_non_production_gate() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    for source_fixture in (
+        "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
+        "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
+    ):
+        payload = json.loads((repo / source_fixture).read_text(encoding="utf-8"))
+        redline = str(payload.get("redline") or "")
+        status = str(payload.get("status") or "")
+        assert "非生产门" in redline
+        assert "PO_signoff_pending" in status or "no_human" in status
+
+
+def test_answer_citation_shadow_case_uses_canonical_vocab() -> None:
+    registry = _load_registry()
+    case = registry.cases["answer.citation.paper_style.v0"]
+
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "answer.citation.paper_style.v0"
+    assert case.contract_domain == "citation_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "answer_citation_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "tests/fixtures/answer_citation_eval_cases.json"
+    assert case.expected_contract == "paper_style_answer_citation_contract"
+    assert case.failure_taxonomy_scope == (
+        "FAIL_CITATION_MISSING",
+        "FAIL_UNSUPPORTED_CITATION",
+        "FAIL_HIDDEN_AUTHORITY_LEAK",
+    )
+    assert case.origin_type == "execution_plan"
+    assert case.promotion_status == "candidate"
+
+
+def test_m26_context_safety_cases_use_canonical_vocab() -> None:
+    registry = _load_registry()
+    compiled = registry.cases["grading.compiled_context.safety_contract"]
+    open_world = registry.cases["grading.open_world_diagnostic.safety_contract"]
+    learning_loop = registry.cases["learning_brain.evidence_loop.safety_contract"]
+
+    assert registry.suites["m26_context_safety"].case_ids == (
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract",
+    )
+    assert compiled.case_tier == "regression_tier"
+    assert compiled.expected_contract == "compiled_context_authority_safety_contract"
+    assert "FAIL_COMPILED_CONTEXT_AUTHORITY_DRIFT" in compiled.failure_taxonomy_scope
+    assert "FAIL_OFFICIAL_SCORE_LAUNDERING" in compiled.failure_taxonomy_scope
+    assert "FAIL_ANSWER_KEY_OVERRIDE" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANDIDATE_PROMOTED_TO_TRUTH" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANDIDATE_RELEASE_TRUTH" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANONICAL_TRUTH_WRITE" in compiled.failure_taxonomy_scope
+
+    assert open_world.expected_contract == "open_world_diagnostic_fail_open_safety_contract"
+    assert "FAIL_OPEN_WORLD_REFUSAL" in open_world.failure_taxonomy_scope
+    assert "FAIL_SOURCE_LAUNDERING" in open_world.failure_taxonomy_scope
+    assert "FAIL_CANONICAL_TRUTH_WRITE" in open_world.failure_taxonomy_scope
+
+    assert learning_loop.contract_domain == "continuity_contract"
+    assert learning_loop.expected_contract == "grading_evidence_to_learning_brain_loop_contract"
+    assert "FAIL_LEARNING_EVIDENCE_LOOP_BREAK" in learning_loop.failure_taxonomy_scope
+    assert "FAIL_LB_UNSAFE_PROMOTION" in learning_loop.failure_taxonomy_scope
+
+
 def test_all_case_ids_exist() -> None:
     registry = _load_registry()
 
     assert set(registry.cases) == {
+        "answer.citation.paper_style.v0",
+        "quality.real_exam_bank.docs_2026.mcq",
+        "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5",
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract",
         "routing.semantic_router.case_set",
         "routing.context_orchestration.case_set",
         "grounding.rag.case_set",

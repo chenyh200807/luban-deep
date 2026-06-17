@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from deeptutor.services.construction_grading.audit import evaluate_grading_supabase_audit
 from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.construction_grading.writeback import (
+    write_case_grading_event_learning_evidence,
+    write_grading_error_events,
+)
 
 
 class _FakeEvent:
@@ -120,10 +123,139 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
+    assert call["payload_json"]["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert service.progress_patches
     projection = service.progress_patches[0]["patch"]["home_personalization"]
     assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
     assert projection["source_status"]["learning_report"] == "projection"
+
+
+def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None:
+    service = _FakeLearnerStateService()
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        source_bot_id="construction-exam-coach",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
+        grading_event={
+            "event_type": "case_grading_completed",
+            "student_id": "student-1",
+            "question_id": "Q10",
+            "awarded_score": 0.0,
+            "max_score": 1.0,
+            "high_risk_review": True,
+            "scoring_points": [
+                {
+                    "point_id": "P4",
+                    "knowledge_point": "钢筋调直工艺",
+                    "policy_type": "exact_required",
+                    "hit": "miss",
+                    "score": 0.0,
+                    "max_score": 1.0,
+                    "mistake_type": "near_synonym_not_exact",
+                    "evidence_span": "普通钢筋调直机",
+                    "required_terms": ["数控钢筋调直切断机"],
+                }
+            ],
+        },
+    )
+
+    assert result["writeback_count"] == 1
+    assert len(service.calls) == 1
+    call = service.calls[0]
+    assert call["source_feature"] == "construction_grading"
+    assert call["memory_kind"] == "learning_evidence"
+    assert call["source_bot_id"] == "construction-exam-coach"
+    payload = call["payload_json"]
+    assert payload["event_type"] == "learning_evidence"
+    assert payload["legacy_event_type"] == "case_grading_completed"
+    assert payload["grading_event"]["event_type"] == "case_grading_completed"
+    assert payload["preview_only"] is True
+    assert payload["claim_promotion_allowed"] is False
+    assert payload["canonical_truth_written"] is False
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert payload["rubric"]["rubric_id"] == "case_rubric_scored_v1"
+    assert payload["rubric"]["artifact_version"] == "rubric_scored_v1"
+    assert payload["score_awarded"] == 0.0
+    assert payload["awarded_score"] == 0.0
+    assert payload["next_training_signal"]["concept"] == "1A413050"
+    assert payload["next_training_signal"]["focus"] == "钢筋调直工艺"
+    assert payload["next_training_signal"]["error_code"] == "E02"
+    error = payload["error_events"][0]
+    assert error["concept_tag"] == "1A413050"
+    assert error["error_code"] == "E02"
+    assert error["mistake_type"] == "near_synonym_not_exact"
+    assert error["evidence_span"] == "普通钢筋调直机"
+    assert payload["errors"] == payload["error_events"]
+    hit = payload["rubric"]["scoring_point_hits"][0]
+    assert hit["point_id"] == "P4"
+    assert hit["hit"] is False
+    assert hit["policy_type"] == "exact_required"
+    assert hit["required_terms"] == ["数控钢筋调直切断机"]
+    assert payload["weak_points"][0]["concept_label"] == "钢筋调直工艺"
+    assert payload["weak_points"][0]["concept_id"] is None
+
+
+def test_v1_case_grading_writeback_dedupe_uses_rubric_identity_not_outcome() -> None:
+    service = _FakeLearnerStateService()
+    base_event = {
+        "event_type": "case_grading_completed",
+        "student_id": "student-1",
+        "question_id": "Q10",
+        "awarded_score": 0.0,
+        "max_score": 1.0,
+        "high_risk_review": True,
+        "scoring_points": [
+            {
+                "point_id": "P4",
+                "knowledge_point": "钢筋调直工艺",
+                "policy_type": "exact_required",
+                "hit": "miss",
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": "near_synonym_not_exact",
+                "evidence_span": "普通钢筋调直机",
+                "required_terms": ["数控钢筋调直切断机"],
+            }
+        ],
+    }
+
+    first = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
+        grading_event=base_event,
+    )
+    rescored_event = {
+        **base_event,
+        "awarded_score": 1.0,
+        "scoring_points": [
+            {
+                **base_event["scoring_points"][0],
+                "hit": "hit",
+                "score": 1.0,
+                "mistake_type": "",
+            }
+        ],
+    }
+    second = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
+        grading_event=rescored_event,
+    )
+
+    assert first["dedupe_key"] == second["dedupe_key"]
 
 
 def test_writeback_auto_saves_wrong_attempt_to_mistake_book() -> None:
@@ -339,3 +471,317 @@ def test_writeback_persists_prescription_verification_payload() -> None:
         "score_ratio": 1.0,
         "verified_at": "2026-05-22T10:00:00+08:00",
     }
+
+
+def test_writeback_preserves_m35_point_evidence_without_canonical_truth() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-m35-q1",
+        source_bot_id="construction-exam",
+        grading_result={
+            "type": "case",
+            "question_id": "Q1-NA",
+            "score_awarded": 6,
+            "max_score": 10,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {"concept": "1A432000", "focus": "专项方案审批"},
+            "rubric": {
+                "artifact_version": "m35_case_scoring_20260609",
+                "rubric_mode": "curated_rubric",
+                "scoring_points": [
+                    {"point_id": "Q1-NA::P2", "label": "专项方案审批", "max_score": 2},
+                ],
+                "scoring_point_hits": [
+                    {
+                        "point_id": "Q1-NA::P2",
+                        "hit": False,
+                        "awarded_score": 0,
+                        "error_code": "E02",
+                        "mistake_type": "omitted",
+                        "evidence_span": "",
+                        "source_ref_ids": ["2026_case_set_x#p2"],
+                        "high_risk_review": True,
+                    },
+                ],
+            },
+        },
+    )
+
+    assert count == 1
+    payload = service.calls[0]["payload_json"]
+    assert payload["rubric"]["artifact_version"] == "m35_case_scoring_20260609"
+    hit = payload["rubric"]["scoring_point_hits"][0]
+    assert hit["point_id"] == "Q1-NA::P2"
+    assert hit["match_status"] == "miss"
+    assert hit["awarded_score"] == 0
+    assert hit["mistake_type"] == "omitted"
+    assert hit["source_ref_ids"] == ["2026_case_set_x#p2"]
+    assert hit["high_risk_review"] is True
+    assert payload["canonical_truth_written"] is False
+
+
+def test_writeback_attaches_canonical_topic_for_open_world_grading() -> None:
+    """开放世界批改（无 node_code）：writer seam 必须经 taxonomy resolver
+    产出 canonical_topic（命中才写、不命中留空 fail-open），让合成层能把
+    重复错误聚合成 claim。"""
+    service = _FakeLearnerStateService()
+    grading_event = {
+        "event_type": "case_grading_completed",
+        "question_id": "OPEN-1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面与防水工程施工",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "搭接宽度不足",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=grading_event,
+        source_id="turn-open-1",
+        question_stem="案例背景：某屋面防水工程采用卷材防水……指出施工不妥之处。",
+        node_code="",
+    )
+
+    assert result["writeback_count"] == 1
+    payload = service.calls[0]["payload_json"]
+    assert payload.get("error_events"), "开放世界也必须有 error_events"
+    topic = payload.get("canonical_topic") or {}
+    assert topic.get("label") == "屋面与防水工程施工", "采分点 knowledge_point 携带 taxonomy 叶子标签时必须命中"
+    assert topic.get("taxonomy_code") == "1A413050"
+
+
+def test_writeback_canonical_topic_fail_open_when_unresolvable() -> None:
+    service = _FakeLearnerStateService()
+    grading_event = {
+        "event_type": "case_grading_completed",
+        "question_id": "OPEN-2",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {"point_id": "P1", "knowledge_point": "xq", "hit": "miss", "score": 0, "max_score": 1,
+             "mistake_type": "miss", "evidence_span": "", "policy_type": "exact_required"}
+        ],
+    }
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=grading_event,
+        source_id="turn-open-2",
+        question_stem="zz",
+        node_code="",
+    )
+
+    assert result["writeback_count"] == 1
+    assert "canonical_topic" not in service.calls[0]["payload_json"]
+
+
+class _BrainAwareLearnerStateService(_FakeLearnerStateService):
+    def __init__(self, *, cached_projection: dict | None = None) -> None:
+        super().__init__()
+        self._cached_projection = cached_projection
+        self.synthesize_calls: list[dict] = []
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict:
+        return dict(self._cached_projection or {})
+
+    def synthesize_learning_truth(self, user_id: str, *, dry_run: bool = True, event_limit=None):
+        self.synthesize_calls.append({"user_id": user_id, "dry_run": dry_run, "event_limit": event_limit})
+        return {"projection": {"compiled_objects": []}}
+
+
+def _case_event_for_recorder() -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": "CASE-R1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面与防水工程施工",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "搭接宽度不足",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def test_record_case_grading_to_brain_is_the_single_turn_side_seam() -> None:
+    """recorder = writeback + intent + 画像(缓存优先) + PCP + NBA 的唯一组合 seam；
+    聊天与练题两个入口都只 update 它返回的 meta，不得各自再拼装。"""
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection={
+        "compiled_objects": [
+            {
+                "object_id": "1A413050:M06",
+                "object_type": "error",
+                "claim_status": "confirmed",
+                "concept_id": "1A413050",
+                "label": "屋面与防水工程施工：采分点遗漏",
+                "supporting_event_ids": ["evt_cached"],
+                "confidence": 0.9,
+            }
+        ],
+    })
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r1:CASE-R1",
+        question_stem="案例……",
+        user_answer="作答……",
+        node_code="",
+        session_id="sess-1",
+    )
+
+    assert meta["learning_evidence_event_id"] == "evt-1"
+    assert meta["grading_to_brain_loop"]["authority"] == "learner_memory_events.learning_evidence"
+    assert meta["learning_training_intent"]["concept_label"] == "屋面与防水工程施工"
+    # 缓存优先：有 compiled 投影时不内联重算
+    assert service.synthesize_calls == []
+    pcp = meta["personalization_context"]
+    assert pcp["top_claims"][0]["claim_id"] == "1A413050:M06"
+    assert meta["next_best_action"]["prescription_authority"] == "training_intent"
+
+
+def test_record_case_grading_to_brain_falls_back_to_inline_synthesis() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection=None)
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r2:CASE-R1",
+    )
+
+    assert meta["learning_evidence_event_id"]
+    assert len(service.synthesize_calls) == 1
+    assert service.synthesize_calls[0] == {"user_id": "student-1", "dry_run": True, "event_limit": 50}
+
+
+def test_record_case_grading_to_brain_can_skip_expensive_personalization_projection() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection=None)
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r2:CASE-R1",
+        include_personalization_projection=False,
+    )
+
+    assert meta["learning_evidence_event_id"]
+    assert meta["learning_training_intent"]["source"] == "grading_to_brain_loop"
+    assert "personalization_context" not in meta
+    assert "next_best_action" not in meta
+    assert service.synthesize_calls == []
+
+
+def test_record_case_grading_to_brain_non_case_event_returns_empty() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService()
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event={"status": "unavailable"},
+        source_id="turn-r3",
+    )
+    assert meta == {}
+    assert service.calls == []
+
+
+def _sub_event(qid: str, knowledge_point: str) -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": qid,
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": knowledge_point,
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "略",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def test_record_batch_grading_splits_evidence_per_sub_question() -> None:
+    """batch 合并事件跨主题混染治理：recorder 必须按子事件各写一条
+    learning_evidence（独立 dedupe、独立 canonical_topic），不得把
+    两个不相关主题的错误压进同一条证据。渲染用的合并事件不受影响。"""
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    sub_a = _sub_event("SUB-1", "屋面与防水工程施工")
+    sub_b = _sub_event("SUB-2", "工程招标投标与合同管理")
+    merged = {
+        "event_type": "case_grading_completed",
+        "question_id": "PARENT-1",
+        "awarded_score": 0,
+        "max_score": 2,
+        "rubric_provenance": "batch",
+        "scoring_points": [
+            dict(sp, source_qid=ev["question_id"])
+            for ev in (sub_a, sub_b)
+            for sp in ev["scoring_points"]
+        ],
+        "items": [sub_a, sub_b],
+    }
+    service = _BrainAwareLearnerStateService()
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=merged,
+        source_id="turn-b1:PARENT-1",
+        question_stem="综合案例背景……",
+        node_code="",
+    )
+
+    assert len(service.calls) == 2, "必须按子题各写一条证据"
+    qids = sorted(call["payload_json"].get("question_id") for call in service.calls)
+    assert qids == ["SUB-1", "SUB-2"]
+    topics = {
+        call["payload_json"]["question_id"]:
+            (call["payload_json"].get("canonical_topic") or {}).get("taxonomy_code", "")
+        for call in service.calls
+    }
+    assert topics["SUB-1"] == "1A413050"
+    assert topics["SUB-1"] != topics["SUB-2"], "两个子题的概念归属不得混染"
+    # dedupe key 必须互异
+    assert service.calls[0]["dedupe_key"] != service.calls[1]["dedupe_key"]
+    # meta 回执聚合
+    assert meta["grading_to_brain_loop"]["writeback_count"] == 2
+    assert meta["learning_evidence_event_id"], "保留首条 event_id 兼容既有消费方"
+    assert len(meta["grading_to_brain_loop"]["event_ids"]) == 2

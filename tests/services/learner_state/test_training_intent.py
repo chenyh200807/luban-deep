@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from deeptutor.services.learner_state.training_intent import (
+    PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
     prioritize_training_intents,
 )
 from deeptutor.services.learner_state.home_personalization import (
     build_home_personalization_projection_from_learning_signal,
+    write_home_personalization_projection,
 )
 
 
@@ -22,6 +24,7 @@ def test_training_intent_contains_concept_error_attempt_and_question_count() -> 
     )
 
     assert intent["source"] == "learning_report"
+    assert intent["prescription_authority"] == PRESCRIPTION_AUTHORITY
     assert intent["concept_label"] == "主体结构"
     assert intent["error_label"] == "多选漏选"
     assert intent["attempt_refs"] == ["ref1"]
@@ -117,11 +120,42 @@ def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -
     )
 
     assert projection is not None
+    # learning_evidence already resolved "防水工程" to canonical node 1A413000-C24; the home
+    # projection must NOT override a resolved taxonomy node with the textbook-section alias
+    # (merge resolution: ship branch behavior per owner decision).
     assert projection["today_focus"]["title"] == "今日焦点：防水工程"
     intent = projection["recommended_prompts"][0]["intent"]
     assert intent["concept_label"] == "防水工程"
     assert intent["error_label"] == "M01"
     assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
+    written: dict[str, object] = {}
+
+    class _FakeLearnerStateService:
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> None:
+            written["user_id"] = user_id
+            written["patch"] = patch
+
+    assert write_home_personalization_projection(
+        _FakeLearnerStateService(), user_id="u_assessment", projection=projection
+    )
+    assert written["patch"] == {"home_personalization": projection}
+
+
+def test_home_projection_still_canonicalizes_free_text_alias_to_textbook_section() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["主体结构"],
+            "error_codes": ["M01"],
+            "event_id": "evt_subjective_alias",
+            "attempt_ref": "attempt_ref_alias",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：主体结构工程施工"
+    assert projection["recommended_prompts"][0]["intent"]["concept_label"] == "主体结构工程施工"
 
 
 def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
@@ -307,3 +341,22 @@ def test_prioritize_training_intents_caps_active_and_queues_rest() -> None:
     assert [item["status"] for item in ranked].count("active") == 3
     assert [item["status"] for item in ranked].count("queued") == 2
     assert ranked[0]["priority"] >= ranked[-1]["priority"]
+
+
+def test_training_intent_schema_id_is_registered_as_t2() -> None:
+    """The sole prescription authority's canonical SCHEMA_ID must be registered T2 in the
+    schema registry (no unregistered/competing training_intent schema can appear). This is
+    the register-before-use promotion of a previously integer-versioned, closure-invisible
+    cross-domain runtime contract (schema-governance P2, registry beyond grading)."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.learner_state.training_intent import SCHEMA_ID
+
+    assert SCHEMA_ID == "learning_training_intent.v2"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert SCHEMA_ID in t2_names, f"{SCHEMA_ID} must be a registered T2 runtime-canonical contract"

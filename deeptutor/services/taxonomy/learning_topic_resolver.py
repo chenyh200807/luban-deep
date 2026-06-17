@@ -1,20 +1,27 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import re
-import threading
 from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
+import json
+import logging
+import re
 from typing import Any, Callable
 
 from deeptutor.services.taxonomy.taxonomy_authority import (
     normalize_taxonomy_code as _normalize_authority_taxonomy_code,
+)
+from deeptutor.services.taxonomy.taxonomy_authority import (
     taxonomy_index,
 )
+from deeptutor.services.taxonomy.textbook_directory import (
+    canonical_topic_options,
+    is_non_topic_label,
+    resolve_canonical_option,
+)
 
-_CODE_RE = re.compile(r"1A\d{3,6}(?:-\d{2})?(?:-[a-z])?", re.IGNORECASE)
+_CODE_RE = re.compile(r"1A\d{3,6}(?:-[0-9A-Za-z]+)*", re.IGNORECASE)
 _DEICTIC_TOPIC_RE = re.compile(r"^(?:这|这道|这一|这个|本|该|此|当前)(?:道|个|类)?(?:题|题目|选择题|案例题|真题)$")
 _GENERIC_TOPIC_LABELS = {
     "这题",
@@ -29,6 +36,11 @@ _GENERIC_TOPIC_LABELS = {
     "当前题目",
     "当前考点",
     "当前知识点",
+    "本题为",
+    "题干",
+    "问题",
+    "案例题",
+    "选择题",
     "本次错因",
     "薄弱点",
     "知识点",
@@ -40,6 +52,9 @@ _GENERIC_TOPIC_LABELS = {
     "建筑实务入门诊断",
     "入门摸底",
 }
+_QUESTION_STEM_MARKER_RE = re.compile(
+    r"(?:什么|如何|为什么|怎么|是否|哪些|哪项|指出|写出|说明|分析|判断|应考虑|正确做法|不妥|多答不得分|本题)"
+)
 
 TopicInferer = Callable[[dict[str, Any], list[str]], str]
 
@@ -69,7 +84,15 @@ def compile_taxonomy_payload(
     *,
     source_path: str,
     content_sha256: str,
+    deprecated_codes: set[str] | None = None,
 ) -> dict[str, Any]:
+    """Compile the canonical outline into the legacy taxonomy authority artifact.
+
+    ``deprecated_codes`` (single-authority projection): codes the concept_registry (B) adjudicated as
+    fabricated via Opus+Codex dual-model review are EXCLUDED here, so this artifact never serves a
+    fabricated concept as a label — A stays a consistent projection of B's truth, not a divergent
+    second authority. Empty/None preserves legacy behaviour."""
+    deprecated = {str(c) for c in (deprecated_codes or set())}
     nodes: list[dict[str, Any]] = []
 
     def walk(items: list[Any], path_names: list[str]) -> None:
@@ -79,6 +102,9 @@ def compile_taxonomy_payload(
             code = str(item.get("code") or item.get("node_code") or "").strip()
             name = normalize_learning_topic_text(item.get("name") or item.get("title"))
             if not code or not name:
+                continue
+            if code in deprecated:  # B-adjudicated fabricated concept -> never serve it
+                walk(list(item.get("children") or []), [*path_names, name])
                 continue
             next_path = [*path_names, name]
             keywords = [
@@ -125,6 +151,7 @@ def compile_taxonomy_payload(
             "path": source_path,
             "sha256": content_sha256,
             "meta": dict(payload.get("meta") or {}),
+            "stats": _outline_tree_stats(payload),
         },
         "nodes": nodes,
         "nodes_by_id": {node["id"]: node for node in nodes},
@@ -136,6 +163,36 @@ def compile_taxonomy_payload(
         "duplicate_codes": sorted(code for code, count in code_counts.items() if count > 1),
         "ambiguous_codes": sorted(ambiguous_codes),
         "ambiguous_names": sorted(ambiguous_names),
+    }
+
+
+def _outline_tree_stats(payload: dict[str, Any]) -> dict[str, int]:
+    total_nodes = 0
+    leaf_nodes = 0
+    code_counts: Counter[str] = Counter()
+
+    def walk(items: list[Any]) -> None:
+        nonlocal total_nodes, leaf_nodes
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            total_nodes += 1
+            code = _normalize_authority_taxonomy_code(item.get("code") or item.get("node_code"))
+            if code:
+                code_counts[code] += 1
+            children = list(item.get("children") or [])
+            if children:
+                walk(children)
+            else:
+                leaf_nodes += 1
+
+    walk(list(payload.get("outline_structure") or []))
+    return {
+        "total_nodes": total_nodes,
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": leaf_nodes,
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
     }
 
 
@@ -163,27 +220,25 @@ def resolve_learning_topic_from_payload(
         if topic:
             return topic
 
+    llm_already_tried = False
     if (
         specific_focus_candidates
         and llm_topic_inferer is not None
         and _has_topic_evidence(payload, evidence_candidates)
     ):
-        inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:
-            return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
-        fallback = _personalized_focus_from_candidates(specific_focus_candidates)
-        if fallback:
-            return fallback
-        return None
+        topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
+        llm_already_tried = True
+        if topic:
+            return topic
 
     for code in _taxonomy_code_candidates(payload, evidence_candidates):
-        node = index["nodes_by_code"].get(code)
+        node = index["nodes_by_code"].get(code) or index["nodes_by_code"].get(code.casefold())
         if node:
             return ResolvedLearningTopic(
                 label=str(node.get("name") or code),
                 source="taxonomy_code",
                 confidence="high",
-                taxonomy_code=code,
+                taxonomy_code=str(node.get("code") or code),
                 taxonomy_id=str(node.get("id") or ""),
             )
 
@@ -192,11 +247,11 @@ def resolve_learning_topic_from_payload(
         if topic:
             return topic
 
-    if llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
-        inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:
-            return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
-        return _personalized_focus_from_candidates(evidence_candidates)
+    # branch 2: only invoke LLM when branch 1 did not already try (avoids double LLM call)
+    if not llm_already_tried and llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
+        topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
+        if topic:
+            return topic
     return None
 
 
@@ -214,19 +269,24 @@ def _resolve_confirmed_label(label: str, index: dict[str, dict[str, dict[str, An
 
 
 def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]) -> str:
+    # CANONICAL CLASSIFIER (not free generation): the LLM must PICK ONE canonical chapter/section name from
+    # the fixed option list, or return empty — it may NOT invent a topic. This is what keeps every
+    # recommendation on-canonical (the old free-generation prompt produced off-taxonomy junk, e.g. it would
+    # echo its own role string '一级建造师建筑实务学习主题归纳'). The pick is exact-validated by the caller.
+    option_names = [opt["name"] for opt in canonical_topic_options()]
     prompt = {
-        "task": "infer_one_construction_exam_learning_topic",
+        "task": "classify_evidence_into_one_canonical_construction_exam_topic",
         "rules": [
-            "Return only one concise Chinese learning topic.",
-            "Do not return pronouns such as 这题、本题、当前考点.",
-            "Do not invent a taxonomy code.",
-            "Use the user's evidence text only.",
+            "You MUST return exactly one name copied verbatim from canonical_options, or an empty string.",
+            "Do NOT invent, summarize, paraphrase, or return anything not in canonical_options.",
+            "If no option clearly fits the evidence, return an empty string.",
         ],
-        "candidates": candidates[:8],
+        "canonical_options": option_names,
         "evidence": {
             "question_stem": str(payload.get("question_stem") or "")[:800],
             "simple_explanation": str(payload.get("simple_explanation") or "")[:800],
             "explanation": str(payload.get("explanation") or "")[:800],
+            "hints": candidates[:8],
         },
     }
     try:
@@ -235,7 +295,8 @@ def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]
         async def call_llm() -> str:
             return await complete(
                 json.dumps(prompt, ensure_ascii=False),
-                system_prompt="你是一级建造师建筑实务学习主题归纳器。只输出一个短主题，不要解释。",
+                system_prompt="你是一建《建筑实务》考点分类器。只能从给定 canonical_options 里原样选一个名称，"
+                "或返回空字符串；不得自创、改写或归纳。",
                 max_retries=0,
                 temperature=0,
                 max_tokens=32,
@@ -246,21 +307,18 @@ def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]
         except RuntimeError:
             result = asyncio.run(call_llm())
         else:
-            result_holder: dict[str, str] = {}
-            error_holder: dict[str, BaseException] = {}
-
-            def runner() -> None:
-                try:
-                    result_holder["value"] = asyncio.run(call_llm())
-                except BaseException as exc:
-                    error_holder["error"] = exc
-
-            thread = threading.Thread(target=runner, name="learning-topic-llm", daemon=True)
-            thread.start()
-            thread.join()
-            if error_holder:
-                return ""
-            result = result_holder.get("value", "")
+            # NEVER block the event-loop thread waiting on an LLM call. The old code
+            # spawned a thread and join(90s)-ed it here, which froze every WS stream
+            # and heartbeat on this worker for up to 90s per post-turn refresh.
+            # Async callers must run the whole sync chain via asyncio.to_thread(...)
+            # (see turn_runtime post-turn refresh) — then this branch is never hit.
+            # If it is hit anyway, degrade to an LLM miss: deterministic resolution
+            # has already run, returning "" only skips the optional LLM fallback.
+            logging.getLogger(__name__).warning(
+                "infer_learning_topic_with_llm called on the event-loop thread; "
+                "skipping LLM topic inference (wrap caller in asyncio.to_thread)"
+            )
+            return ""
     except Exception:
         return ""
     return normalize_learning_topic_text(result.splitlines()[0] if result else "")
@@ -278,7 +336,38 @@ def normalize_learning_topic_text(value: Any) -> str:
         return ""
     if _DEICTIC_TOPIC_RE.fullmatch(compact):
         return ""
+    if _looks_like_question_stem_label(text):
+        return ""
+    # single authority for "is this a real textbook topic" — drops front/back-matter + marketing noise
+    # (讲义封底免费听课资源 …) so it never reaches the conversation page's recommended topics.
+    if is_non_topic_label(text):
+        return ""
     return text
+
+
+def canonical_learning_topic_label(value: Any) -> str:
+    text = normalize_learning_topic_text(value)
+    if not text:
+        return ""
+    topic = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
+    if topic:
+        return topic.label
+    option = resolve_canonical_option(text)
+    if option:
+        return str(option.get("name") or "").strip()
+    return ""
+
+
+def _looks_like_question_stem_label(text: str) -> bool:
+    compact = _compact(text)
+    if compact.startswith(("本题为", "题目为", "问题为", "案例背景")):
+        return True
+    if len(compact) > 48:
+        return True
+    if len(compact) > 18 and _QUESTION_STEM_MARKER_RE.search(compact):
+        return True
+    has_question_shape = any(marker in text for marker in ("?", "？", "\n", "\r", "（", "）", "(", ")"))
+    return bool(len(compact) > 4 and has_question_shape and _QUESTION_STEM_MARKER_RE.search(compact))
 
 
 @lru_cache(maxsize=1)
@@ -361,12 +450,29 @@ def _has_topic_evidence(payload: dict[str, Any], candidates: list[str]) -> bool:
     return any(str(payload.get(key) or "").strip() for key in ("question_stem", "simple_explanation", "explanation"))
 
 
-def _personalized_focus_from_candidates(candidates: list[str]) -> ResolvedLearningTopic | None:
-    for label in candidates:
-        text = normalize_learning_topic_text(label)
-        if text and not _CODE_RE.fullmatch(text):
-            return ResolvedLearningTopic(label=text, source="evidence_inferred", confidence="low")
-    return None
+def _classify_to_canonical_option(picked: Any) -> ResolvedLearningTopic | None:
+    """Validate the LLM classifier's pick against the FIXED canonical chapter/section option set. The pick
+    is accepted ONLY if it exactly matches a real option (no fuzzy) — so a recommendation is provably
+    on-canonical. Anything else (free text, garbage, '') -> None (recommend nothing)."""
+    text = normalize_learning_topic_text(picked)
+    if not text:
+        return None
+    opt = resolve_canonical_option(text)
+    if not opt:
+        return None
+    node = _load_topic_index()["nodes_by_name"].get(_compact(str(opt.get("name") or "")))
+    if node:
+        return ResolvedLearningTopic(
+            label=str(node.get("name") or opt["name"]),
+            source="canonical_classified",
+            confidence="medium",
+            taxonomy_code=str(node.get("code") or ""),
+            taxonomy_id=str(node.get("id") or ""),
+        )
+    return ResolvedLearningTopic(
+        label=str(opt["name"]), source="canonical_classified", confidence="medium",
+        taxonomy_code=str(opt.get("code") or ""), taxonomy_id="",
+    )
 
 
 def _compact(value: Any) -> str:
@@ -376,6 +482,7 @@ def _compact(value: Any) -> str:
 __all__ = [
     "ResolvedLearningTopic",
     "TopicInferer",
+    "canonical_learning_topic_label",
     "compile_taxonomy_payload",
     "infer_learning_topic_with_llm",
     "normalize_learning_topic_text",

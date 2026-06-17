@@ -1,0 +1,22 @@
+{
+  "source_laundering_attack": "pass",
+  "official_answer_source_attack": "pass",
+  "model_vote_source_attack": "pass",
+  "council_vote_source_attack": "pass",
+  "partial_list_auto_attack": "pass",
+  "bad_calculation_spec_attack": "pass",
+  "unsupported_positive_attack": "pass",
+  "legacy_overwrite_attack": "pass",
+  "production_db_write_attack": "pass",
+  "lb_canonical_truth_write_attack": "pass",
+  "accepted_list_delta_with_incomplete_auto_coverage": 7,
+  "accepted_machine_delta_with_incomplete_calc_spec": 8,
+  "why_not_failure": "accepted deltas remain candidate-only / work-order; no auto_certifiable or source truth is signed",
+  "rejected_attack_variants": 6,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "legacy_overwrite": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "all_attacks_pass": true
+}

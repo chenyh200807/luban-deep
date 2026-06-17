@@ -28,8 +28,16 @@ var chatWxml = fs.readFileSync(
   path.join(__dirname, "../pages/chat/chat.wxml"),
   "utf8",
 );
+var packageChatWxml = fs.readFileSync(
+  path.join(__dirname, "../../yousenwebview/packageDeeptutor/pages/chat/chat.wxml"),
+  "utf8",
+);
 var chatWxss = fs.readFileSync(
   path.join(__dirname, "../pages/chat/chat.wxss"),
+  "utf8",
+);
+var packageChatWxss = fs.readFileSync(
+  path.join(__dirname, "../../yousenwebview/packageDeeptutor/pages/chat/chat.wxss"),
   "utf8",
 );
 
@@ -44,6 +52,10 @@ function assert(condition, message) {
 
 function hasSelector(selector) {
   return chatWxss.indexOf(selector) >= 0;
+}
+
+function packageHasSelector(selector) {
+  return packageChatWxss.indexOf(selector) >= 0;
 }
 
 assert(
@@ -69,9 +81,33 @@ assert(
   "packageDeeptutor chat.js should mirror terminal result.response replacement",
 );
 assert(
+  chatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0 &&
+    packageChatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0,
+  "both chat surfaces should bind to construction-exam-coach so backend defaults inject textbook RAG",
+);
+assert(
   wxWsStream.indexOf("buildFinalResponseEvent") >= 0 &&
     packageWsStream.indexOf("buildFinalResponseEvent") >= 0,
   "both ws-stream surfaces should forward public result.response to onFinal",
+);
+assert(
+  wxWsStream.indexOf("startTurnPayload.config = opts.config") >= 0 &&
+    packageWsStream.indexOf("startTurnPayload.config = opts.config") >= 0,
+  "both ws-stream surfaces should forward bot runtime config to start-turn",
+);
+assert(
+  chatWxml.indexOf("cite-head-sub") >= 0 &&
+    chatWxml.indexOf("References") >= 0 &&
+    chatWxml.indexOf("ct.locator") >= 0 &&
+    chatWxml.indexOf("ct.quote") >= 0,
+  "wx_miniprogram chat.wxml should render structured references at the message tail",
+);
+assert(
+  packageChatWxml.indexOf("cite-head-sub") >= 0 &&
+    packageChatWxml.indexOf("References") >= 0 &&
+    packageChatWxml.indexOf("ct.locator") >= 0 &&
+    packageChatWxml.indexOf("ct.quote") >= 0,
+  "packageDeeptutor chat.wxml should mirror structured references at the message tail",
 );
 assert(
   chatWxml.indexOf("b.type==='steps' && b.isStructured") >= 0,
@@ -108,6 +144,14 @@ assert(hasSelector(".md-recap"), "wxss should style recap cards");
 assert(hasSelector(".md-chart"), "wxss should style chart cards");
 assert(hasSelector(".md-chart-fallback-title"), "wxss should style chart fallback title");
 assert(hasSelector(".md-chart-strategy"), "wxss should style chart fallback helper copy");
+assert(
+  hasSelector(".cite-locator") && hasSelector(".cite-quote"),
+  "wx_miniprogram wxss should style citation locator and quote rows",
+);
+assert(
+  packageHasSelector(".cite-locator") && packageHasSelector(".cite-quote"),
+  "packageDeeptutor wxss should style citation locator and quote rows",
+);
 assert(
   hasSelector(".page.light .md-chart") && hasSelector(".page.light .md-recap"),
   "light theme should preserve structured block styling",
