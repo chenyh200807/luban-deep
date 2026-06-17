@@ -4420,30 +4420,61 @@ class DeepQuestionCapability(BaseCapability):
                         grounding_context, grounding_sources = _format_grading_grounding_context(rag_result)
                     except Exception as exc:
                         grounding_error = str(exc)
-                from deeptutor.agents.question.agents.submission_grader_agent import (
-                    SubmissionGraderAgent,
-                )
+                # 硬约束40 backstop（2026-06-17，"做完题没给答案"事故安全网）：
+                # open-world 判分链路（import / 构造 / set_trace_callback / process）任一环
+                # 失败,都绝不让判分轮崩成空输出 / 拒答。整段包进 try,失败降级为非空回复并保留
+                # 本题供重试；不冒充确定性判定，也不在无检索证据时虚称"依据教材/规范"。
+                answer = ""
+                try:
+                    from deeptutor.agents.question.agents.submission_grader_agent import (
+                        SubmissionGraderAgent,
+                    )
 
-                agent = SubmissionGraderAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
-                # plan §Phase 4 Step 4.2 / Gap 4 — pass shared trace_collector
-                # (see above) so the agent can write explanation_section_miss &
-                # parsed sections back into single-writer trace.
-                answer = await agent.process(
-                    user_message=raw_user_message,
-                    question_context=graded_context,
-                    history_context=str(
-                        context.metadata.get("conversation_context_text", "") or ""
-                    ).strip(),
-                    grounding_context=grounding_context,
-                    on_content_chunk=_content_sink,
-                    trace_collector=grader_trace,
-                )
+                    agent = SubmissionGraderAgent(
+                        language=context.language,
+                        api_key=llm_config.api_key,
+                        base_url=llm_config.base_url,
+                        api_version=llm_config.api_version,
+                    )
+                    agent.set_trace_callback(self._build_trace_bridge(stream))
+                    # plan §Phase 4 Step 4.2 / Gap 4 — pass shared trace_collector
+                    # (see above) so the agent can write explanation_section_miss &
+                    # parsed sections back into single-writer trace.
+                    answer = await agent.process(
+                        user_message=raw_user_message,
+                        question_context=graded_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                        grounding_context=grounding_context,
+                        on_content_chunk=_content_sink,
+                        trace_collector=grader_trace,
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "LUBAN open_world grader failed; grounded fallback qid={} err={}",
+                        graded_context.get("question_id") or "(none)",
+                        exc,
+                    )
+                    _ua = str(graded_context.get("user_answer") or "").strip()
+                    _ground = str(grounding_context or "").strip()
+                    _head = "## 📊 阅卷结论\n" + (
+                        f"已收到你的作答：{_ua}。" if _ua else "已收到你的作答。"
+                    )
+                    if _ground:
+                        answer = (
+                            _head
+                            + "判分服务暂时不稳定，先依据教材/规范给你要点，本题已为你保留，可稍后再判一次。\n\n"
+                            + "## 🧐 解析\n"
+                            + _ground
+                        )
+                    else:
+                        # 检索证据也缺失：诚实表述，不冒称已"依据教材/规范"给出依据。
+                        answer = (
+                            _head
+                            + "判分服务暂时不稳定，没能完成本题判分，本题已为你保留，可稍后再判一次。\n\n"
+                            + "## 🧐 下一步\n请对照教材该考点的关键规范要求，逐条核对你的作答是否覆盖；稍后重试可获得逐点判定。"
+                        )
             post_grading_next_action = _build_post_grading_generation_ack(raw_user_message)
             if post_grading_next_action:
                 answer = (

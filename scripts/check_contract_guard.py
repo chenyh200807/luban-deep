@@ -13,6 +13,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = REPO_ROOT / "contracts" / "index.yaml"
+PACKAGE_INDEX_PATH = REPO_ROOT / "deeptutor" / "contracts" / "index.yaml"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
@@ -126,7 +127,49 @@ _UPSTREAM_FORBIDDEN_PATHS: tuple[tuple[str, str], ...] = (
 _UPSTREAM_FORBIDDEN_ROUTE_RE = re.compile(r"['\"]\/api\/v1\/partners(?:\/|\b)")
 
 
+def _find_duplicate_top_level_yaml_keys(path: Path) -> list[str]:
+    seen: dict[str, int] = {}
+    duplicates: list[str] = []
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line or line[0].isspace() or line.lstrip().startswith("#"):
+            continue
+        match = re.match(r"^([A-Za-z0-9_.-]+)\s*:", line)
+        if not match:
+            continue
+        key = match.group(1)
+        first_lineno = seen.get(key)
+        if first_lineno is not None:
+            duplicates.append(
+                f"{path.relative_to(REPO_ROOT).as_posix()}:{lineno}: {key} "
+                f"(first declared at line {first_lineno})"
+            )
+            continue
+        seen[key] = lineno
+    return duplicates
+
+
+def evaluate_contract_index_yaml_structure(
+    paths: tuple[Path, ...] = (INDEX_PATH, PACKAGE_INDEX_PATH),
+) -> tuple[bool, str]:
+    failures: list[str] = []
+    for path in paths:
+        if not path.exists():
+            failures.append(f"{path.relative_to(REPO_ROOT).as_posix()}: missing")
+            continue
+        failures.extend(_find_duplicate_top_level_yaml_keys(path))
+    if failures:
+        return (
+            False,
+            "contract-index-yaml-guard: failed — duplicate top-level key(s)\n"
+            + "\n".join(failures),
+        )
+    return True, "contract-index-yaml-guard: passed"
+
+
 def load_contract_index() -> dict[str, Any]:
+    ok, message = evaluate_contract_index_yaml_structure((INDEX_PATH,))
+    if not ok:
+        raise ValueError(message)
     payload = yaml.safe_load(INDEX_PATH.read_text(encoding="utf-8")) or {}
     domains = payload.get("domains")
     if not isinstance(domains, dict) or not domains:
@@ -562,6 +605,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"contract-guard: failed to determine changed files: {exc}", file=sys.stderr)
         return 2
 
+    index_yaml_ok, index_yaml_message = evaluate_contract_index_yaml_structure()
+    index_yaml_stream = sys.stdout if index_yaml_ok else sys.stderr
+    print(index_yaml_message, file=index_yaml_stream)
+
     ok, message = evaluate_changed_files(changed_files)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)
@@ -604,7 +651,7 @@ def main(argv: list[str] | None = None) -> int:
     mistake_stream = sys.stdout if mistake_ok else sys.stderr
     print(mistake_message, file=mistake_stream)
 
-    return 0 if (ok and code_ok and node_ok and lifecycle_ok
+    return 0 if (index_yaml_ok and ok and code_ok and node_ok and lifecycle_ok
                  and upstream_ok and ws_ok and schema_ok and route_model_ok
                  and evidence_ok and mistake_ok) else 1
 

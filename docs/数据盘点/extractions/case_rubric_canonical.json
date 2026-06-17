@@ -1,0 +1,3372 @@
+{
+ "_meta": {
+  "name": "真题案例 canonical per-point rubric",
+  "source": "佑森解析抽取(431采分点/5年,已独立复核)",
+  "authority": "training_org_analysis_yousen",
+  "NOT_official": true,
+  "judge_rule": "小题得分=min(Σ命中×point_score, sub_q_total)封顶",
+  "coverage": "2021/2022补考/2023/2024/2025;缺2015-2020+2022正考(待补)",
+  "built_at": "2026-06-16"
+ },
+ "rubric": {
+  "2021": {
+   "1": {
+    "1": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥之一:要求分包单位与招用的建筑工人签订劳务合同",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "分包单位与建筑工人应签订劳动合同",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "不妥之二:要求分包单位做好农民工工资发放工作",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "应推行分包单位农民工工资委托施工总承包单位代发制度",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 2.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "超市、医疗、法律咨询、职工书屋、文体活动室",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "聚氯乙烯防水卷材;氯化聚乙烯防水卷材;氯化聚乙烯-橡胶共混防水卷材;三元丁橡胶防水卷材",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "常用屋面隔离层包括:干铺塑料膜;土工布;卷材;铺抹低强度等级砂浆",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "屋面淋水时间2h;蓄水时间24h",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "\"1\":保护层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "\"2\":隔离层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "\"3\":保温层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "\"4\":防水层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "\"5\":找平层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "\"6\":找坡层",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "\"7\":结构层",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "2": {
+    "1": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "组织形式:依次施工、平行施工、流水施工",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "工艺参数:施工过程、流水强度",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "时间参数:流水节拍、流水步距、施工工期",
+       "score": 1.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "布置仓库、堆场,布置加工厂,布置场内临时运输道路",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "还应考虑地基承载力、地基平整度、周边排水、楼层平台通道、出入口防护门以及升降机周边的防护围栏等",
+       "score": 1.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "②→⑦进度拖后1个月",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "⑥→⑧进度正常",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "⑤→⑧进度提前1个月",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "第8月底工程的实际进展拖后1个月",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "绘制从第9月开始到工程结束的双代号网络计划图(图3-2):⑥→⑦、⑥→⑧、⑦→⑧、⑧→⑨,⑥→⑧及⑦前后含波形线虚工作",
+       "score": 3.0,
+       "type": "计算结果"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "主体结构验收实体还需具备的条件①墙面上的施工孔洞按规定镶堵密实,并作隐蔽工程验收记录",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②楼层标高控制线应清楚弹出墨线,并做醒目标志",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③主体分部工程验收前,可完成样板间或样板单元的室内粉刷",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "施工方项目负责人、施工单位技术、质量部门负责人参加",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "3": {
+    "1": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "分为5个等级",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "沉降基准点和位移基准点",
+       "score": 2.0,
+       "type": "分类"
+      },
+      {
+       "seq": 3,
+       "text": "设置要求包括:在特等、一等沉降观测时,不应少于4个;其他等级沉降观测时不应少于3个;沉降观测基准点之间应形成闭合环",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "还包括:沉陷收缩、干燥收缩、碳化收缩、凝结收缩等收缩裂缝",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "原因①混凝土原材料质量不合格,如骨料含泥量大",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②水泥或掺合料用量超出规范规定",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③混凝土水胶比、坍落度偏大,和易性差",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "④混凝土浇筑振捣差,养护不及时或养护差",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "龄期:28天",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "含水率:宜小于30%",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "质量要求:①水平灰缝厚度和竖向灰缝宽度不应超过15mm;②填充墙砌筑砂浆的灰缝饱满度均应不小于80%,且竖缝应填满砂浆不得有透明缝、瞎缝、假缝",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "铺设结合层砂浆、铺砖、养护、检查验收、勾缝、成品保护",
+       "score": 2.0,
+       "type": "程序"
+      },
+      {
+       "seq": 2,
+       "text": "平整、光滑、深浅一致,且缝应略低于砖面",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "4": {
+    "1": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "装饰装修工程,节能工程,智能化建筑,电梯工程,给排水工程,采暖与通风工程,消防工程,管道安装工程,厂区绿化工程",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "预付备料款(12500-1000)×25%=2875.00万元",
+       "score": 2.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "起扣点(12500-1000)-2875/70%=7392.86万元",
+       "score": 2.0,
+       "type": "计算步骤"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)统一管理、分级负责",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)归口协调、流程管控",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(3)资金集中、预算控制",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(4)以收定支、集中调剂",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)总成本增加:950000-920000=300.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "(2)公司管理费增加:300×10%=30.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "(3)利润增加:(300+30)×5%=16.50万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 4,
+       "text": "(4)索赔值:300+30+16.5=346.50万元",
+       "score": 1.0,
+       "type": "计算结果"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 9.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "供应渠道①企业自有设备调配",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②市场租赁设备",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③专门购置机械设备",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "④专业分包队伍自带设备",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "固定费用包括:①折旧费;②大修理费;③机械管理费;④投资应付利息;⑤固定资产占用费",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "6": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)不成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "(2)成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "(3)成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "(4)成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 5,
+       "text": "(5)不成立",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    }
+   },
+   "5": {
+    "1": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)应由电气技术人员编制《临时用电组织》",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "(2)总配电箱应设在靠近进场电源的区域",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "(3)电缆穿过临建设施时,应套钢管保护",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 4,
+       "text": "(4)临时用电施工完成后,应经编制、审核、批准部门和使用单位共同验收合格后方可使用",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "(5)对临时用电安全隐患必须及时处理,并应履行复查验收手续",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 6,
+       "text": "(6)维修临时用电设备由电工完成,应有人监护",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 7,
+       "text": "(7)《临时用电组织设计》报具有法人资格企业的技术负责人批准",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥处的正确做法①项目经理应为绿色施工组织实施的第一责任人",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "②整个施工现场应实行封闭管理",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "③应每日测量体温,定期核酸检测",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 4,
+       "text": "④现场生活区、办公区、作业区定期投放和喷洒灭虫、消毒药物",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "措施:第一时间报告:在2h内向施工现场所在地建设行政主管部门和卫生防疫等部门进行报告;第一时间启动应急预案;隔离相关人员;第一时间停止施工;等待卫生防疫部门进行处置",
+       "score": 2.0,
+       "type": "措施"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)拆除作业必须由上而下逐层进行,严禁上下同时作业",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 2,
+       "text": "(2)连墙件必须随脚手架逐层拆除,分段拆除高差不应大于2步",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 3,
+       "text": "(3)拆除的构配件应采用起重设备吊运或人工传递到地面,严禁抛掷",
+       "score": 1.0,
+       "type": "措施"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "检测参数名称①地基与基础的桩基检测试验:承载力,桩身完整性",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②钢筋连接的机械连接现场检验:抗拉强度",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③混凝土性能检测参数:标准养护试件强度、同条件试件强度、抗渗性能",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "④建筑节能的围护结构现场实体检验:外墙节能构造",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "确定抽检频次条件还有:施工流水段划分、工程量、施工环境",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 9.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "围护结构子分部工程:墙体节能工程;幕墙节能工程;门窗节能工程;屋面节能工程;地面节能工程",
+       "score": 5.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "复验的性能指标:密度;导热系数或热阻;压缩强度或抗压强度;垂直于板面方向的抗拉强度;吸水率;燃烧性能",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    }
+   }
+  },
+  "2022": {
+   "1": {
+    "1": {
+     "sub_q_total_score": 12.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "\"1\"注册建造师,1人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "\"2\"注册一级建造师,1人(岗位证书,1人)",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "\"3\"安全生产考核证C类,1人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "\"4\"注册安全工程师,2人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "\"5\"注册建造师,2人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "\"6\"特种作业操作证,3人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "\"7\"特种作业操作证,2人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 8,
+       "text": "\"8\"特种作业操作证,1人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 9,
+       "text": "\"9\"特种作业操作证,1人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 10,
+       "text": "\"10\"特种作业操作证,15人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 11,
+       "text": "\"11\"技工证,12人(岗位证书,12人)",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 12,
+       "text": "\"12\"木工证,20人",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)直径10mm钢筋:重量偏差不合格",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "理由:10mm的HPB300钢筋理论重量为0.617×(801+795+810)=1485g;重量偏差(1325-1485)/1485×100%=-10.77%,超过规范要求的-10%",
+       "score": 1.5,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "(2)直径20mm钢筋检测:①强屈比检测合格",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "理由:抗拉强度/屈服强度=650/510=1.27>1.25",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 5,
+       "text": "②屈强比检测合格",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "理由:屈服强度实测值/屈服强度标准值=510/400=1.27<1.30",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 7,
+       "text": "③最大力下的总伸长率合格",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 8,
+       "text": "理由:实测最大力下总伸长率为12%,>规范要求的9%",
+       "score": 0.5,
+       "type": "判断"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "沉降缝、伸缩缝、变形缝、抗震缝、施工缝,分格缝",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "2": {
+    "1": {
+     "sub_q_total_score": 4.5,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)源头减量措施还包括:①永临结合、②临时设施和周转材料重复利用、③施工过程管控等",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)金属类:废弃钢筋、钢管、铁丝",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(3)非金属类:废弃混凝土、砂浆、水泥",
+       "score": 1.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)花费最低:(300+100)×3+410×2=2020元",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "(2)调整后的网络图",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "(3)关键线路:①A-B-D-H;②A-B-E-G-H",
+       "score": 1.0,
+       "type": "计算结果"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)关键工作的调整",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)改变某些工作间的逻辑关系",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(3)剩余工作重新编制进度计划",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(4)非关键工作调整",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "(5)资源调整",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 7.5,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)地下防水工程:\"特细体注水\"①特殊施工法结构防水",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②细部构造防水",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③主体结构防水",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "④注浆",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "⑤排水",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "(2)企业自评、设计认可、建立核定、业主验收、政府监督",
+       "score": 2.5,
+       "type": "程序"
+      }
+     ]
+    }
+   },
+   "3": {
+    "1": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)质量问题分三类:质量通病、质量缺陷、质量事故",
+       "score": 1.5,
+       "type": "分类"
+      },
+      {
+       "seq": 2,
+       "text": "(2)受力性能、耐久性能、安装功能",
+       "score": 1.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)不妥之处:①上下层的钢筋网钢筋交叉点均进行了相隔交错扎牢",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:单向板的四周两行钢筋交叉点应每点扎牢,中间部分交叉点可相隔交错扎牢",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "②所有绑扎点的钢丝扣方向一致",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:绑扎点的钢丝扣要成八字形,以免网片歪斜变形",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "(2)板的钢筋在上,次梁的钢筋居中,主梁的钢筋在下",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.5,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)不妥之一:先砌筑墙体、再砌筑砖垛",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:砖垛应与所附砖墙同时咬槎砌筑",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "(2)不妥之二:砖垛每隔2皮与砖墙搭砌",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:砖垛应隔皮与砖墙搭砌",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "(3)不妥之三:砖柱选用至少1/2砖长砌筑",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "正确做法:砖柱应选用整砖砌筑",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)公历纪元、北京时间作为统一时间基准",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)沉降观测周期和时间要求:①在基础完工后和地下室砌完后开始观测",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②民用高层建筑宜以每加高2~3层观测1次",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③如果建筑施工均匀增高,应至少在每增加荷载的25%、50%、75%、100%时,各测1次",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "④暂时停工,停工时及重新开工要各测1次,停工期间每2~3月测1次",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "⑤竣工后运营阶段的观测次数:在第一年观测3~4次,第二年观测2~3次,第三年开始每年1次,到沉降达到稳定状态和满足观测要求为止",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "4": {
+    "1": {
+     "sub_q_total_score": 8.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)清单计价特点:强制性、法定性、完整性、强制性、规范性、统一性",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)投标报价编制依据:①《计价规范》",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②国家或省级、行业建设主管部门颁发的计价办法",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③企业定额,国家或省级、行业建设主管部门颁发的计价定额",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "④施工现场情况、工程特点及拟定的投标施工组织设计或施工方案",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "⑤市场价格信息或工程造价管理机构发布的工程造价信息",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "⑥其他的相关资料",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)质量、物资、法律部门",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)质量要求、造价、承包范围。法律部门",
+       "score": 1.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "包括:资质等级、社会信誉、资金情况、施工业绩、履约能力、管理水平",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 10.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)变更后的费用:(236-165)/165=43%>15%,应调整综合单价",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "原价量:165×1.15=189.75m³",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "新价量:236-189.75=46.25m³",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 4,
+       "text": "变更后费用:189.75×35.68+46.25×30.68=8189.23元",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 5,
+       "text": "(2)费用增加:8189.23-35.68×165=2302.03元",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 6,
+       "text": "(3)调价因素:①法律法规变化",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 7,
+       "text": "②项目特征描述不符",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 8,
+       "text": "③工程量清单缺项",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 9,
+       "text": "④计日工",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 10,
+       "text": "⑤现场签证",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 11,
+       "text": "⑥不可抗力",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      },
+      {
+       "seq": 12,
+       "text": "⑦提前竣工(赶工补偿)",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出5项,即得5分"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)事项\"1\"工期及费用索赔均成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "理由:建设单位未及时交付设计图纸属于建设单位应承担责任",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "(2)事项\"2\"4.9万利息索赔成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "理由:建设单位延迟30天支付100万元进度款,应承担违约责任",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 5,
+       "text": "(3)事项\"3\"项目部办公室重建费用6万元索赔不成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "理由:项目部办公室2次位置变动增加费用属于承包商应承担的责任,该费用已经包括在工程造价措施费里的临时设施费中",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    }
+   },
+   "5": {
+    "1": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)混凝土工程容易发生:①高空坠落",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②物体打击",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③触电",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(2)包括:①模板支拆施工安全",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "②钢筋加工及绑扎、安装作业安全",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "③混凝土浇筑高处作业安全",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "④混凝土浇筑设备使用安全",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)选择依据:①工程特点、②工程量多少、③工期要求",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)选择原则:①稳定性、②经济性、③安全性",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)不妥之处:①水管直接埋地穿过临时道路",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:供水管线穿路处均要套以铁管,并埋入地下0.6m处,以防重压",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "②道路两侧排水纵沟,坡度0.1%",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:排水沟沿道路两侧布置,纵向坡度不小于0.2%",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "③消火栓最大间距150米",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "正确做法:消火栓间距不应大于120m",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 7,
+       "text": "(2)供水管直径:DN=√(4Q/3.14*v*1000)=93.41mm,取100mm管径(DN100)",
+       "score": 1.0,
+       "type": "计算结果"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)厕所:①现场应设置水冲式或移动式厕所,其大小应根据作业人员数量设置",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "②现场厕所地面应硬化,门窗应齐全",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "③现场厕所应设专人负责清扫、消毒,化类池应及时清掏",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(2)淋浴间:①淋浴间内应设置满足需要的淋浴喷头",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "②盥洗设施应设置满足作业人员使用的盥洗池,并应使用节水器具",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1)3个点",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "(2)不合格。甲醛浓度含量:(0.1+0.11+0.1+0.09+0.11)/5=0.102,超过II类民用建筑上限0.08",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "(3)监测点布置:①室内环境污染物浓度现场检测点应距房间地面高度0.8-1.5m;距房间内墙面不应小于0.5m",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "②检测点应均匀分布,且应避开通风道和通风口",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   }
+  },
+  "2023": {
+   "1": {
+    "1": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥①:试验员如实记录其取样、现场检测等情况,制作了见证记录",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:应由见证人员记录其取样、现场检测情况,制作见证记录",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "不妥②:总包项目部按照建设单位要求,每月向检测机构支付当期检测费用",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:建设单位应当在编制工程概预算时合理核算建设工程质量检测费用,单独列支并按照合同约定及时支付",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "见证记录内容:取样、制样、标识、封志、送检、现场检测",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "图1-1 麻面",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "图1-2 裂缝",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "图1-3 层间错台",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "图1-4 露筋",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "图1-5 孔洞",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "图1-6 蜂窝",
+       "score": 0.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "1-基础垫层;2-防水找平层;3-防水加强层;4-卷材防水层;5-防水保护层;6-贴止水带;7-止水钢板",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "清理表面",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 2,
+       "text": "支设模板",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 3,
+       "text": "洒水湿润",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 4,
+       "text": "涂抹混凝土界面剂",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 5,
+       "text": "用高一强度等级的细石混凝土仔细浇筑密实",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 6,
+       "text": "保温保湿养护不少于7天",
+       "score": 1.0,
+       "type": "程序"
+      }
+     ]
+    }
+   },
+   "2": {
+    "1": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "关键线路:①→②→③→④→⑥→⑦→⑧",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "总工期:3+3+6+6+3=21个月",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "流水节拍数:基础施工3个月;上部结构6个月",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 4,
+       "text": "成倍节拍 ①流水步距:3个月",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 5,
+       "text": "成倍节拍 ②专业对数:1+1+2+1=5个",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 6,
+       "text": "成倍节拍 ③总工期:(2+5-1)×3=18个月",
+       "score": 1.0,
+       "type": "计算步骤"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "表格内容:A-承载力;B-抗拉强度;C-配合比设计;D-粘接强度",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "还包括:①工艺改变;②设计变更;③材料、设备的规格、型号或数量变化",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥一:袋装水泥堆放于仓库地面",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:袋装水泥应存入仓库",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "不妥二:室外露天采光井采用编织布覆盖固定",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:室外露天采光井全部用盖板盖严并固定,同时铺上塑料薄膜",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "不妥三:砌体每日砌筑高度不超过1.5m",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "正确做法:每天砌筑高度不得超过1.2m",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "还应有:施工单位项目技术负责人、设计单位项目负责人、施工单位质量管理部门负责人、施工单位技术管理部门负责人",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "还包括:结构位置和尺寸偏差、钢筋保护层厚度、合同约定的其他项目",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "3": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥①:项目部在开工后编制了项目质量计划",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:项目质量计划应在项目策划过程中编制",
+       "score": 0.5,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "不妥②:根据工程进展实施静态管理",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:根据工程进展实施动态管理",
+       "score": 0.5,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "关键部位和环节还有①影响结构安全的关键部位、关键环节",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "②采用新技术、新工艺的部位和环节",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "③隐蔽工程验收",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "还有:钻芯法、低应变法、声波透射法",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "抽检数量:不应少于总桩数的20%且不应少于10根。每根柱子承台下的桩抽检数量不应少于1根",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥①:受压接头不宜大于75%",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:受压接头可不受限制",
+       "score": 0.5,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "不妥②:直接承受动力荷载的结构构件采用机械连接时,不宜超过50%",
+       "score": 0.5,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:直接承受动力荷载的结构构件采用机械连接时,不应超过50%",
+       "score": 0.5,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "专用工具包括:量尺、通规、止规、管钳扳手、扭力扳手",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥①:找平层的分格缝设置不当",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "不妥②:屋面板因温度变化产生胀缩",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "不妥③:卷材搭接长度太小",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "钉钉子法①:当施工后不久,卷材有下滑趋势时,可在卷材的上部离屋脊300~450mm范围内钉三排50mm长圆钉,钉眼上灌胶结料",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 5,
+       "text": "钉钉子法②:卷材流淌后,横向搭接者有错动,应清除边缘翘起处的旧胶结料,重新浇灌胶结料,并压实刮平",
+       "score": 1.0,
+       "type": "措施"
+      }
+     ]
+    }
+   },
+   "4": {
+    "1": {
+     "sub_q_total_score": 2.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "包括:建筑施工图、结构施工图",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "采用固定价格应注意明确包死价的种类",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "采用固定价格必须把风险范围约定清楚",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "应当把风险费用的计算方法约定清楚",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "竣工结算方式和时间的约定",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "违约条款",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "现场文明、安全有序、整洁卫生、不扰民、绿色环保",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "措施费:(1800+3000+3300+1200)×16%=1488万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "安全文明施工费:(1800+3000+3300+1200)×6%=558万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "签约合同价①分部分项:1800+3000+3300+1200=9300万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 4,
+       "text": "②措施:1488万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 5,
+       "text": "③其他:100+200×(1+5%)=310万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 6,
+       "text": "签约合同价:(9300+1488+310)×(1+2.05%)×(1+9%)=12345万元",
+       "score": 1.0,
+       "type": "计算结果"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "成本比较 E:(3200+560×8)/(120×8)=8元/m³",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "成本比较 F:(3800+785×8)/(180×8)=7元/m³",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "成本比较 G:(4200+795×8)/(220×8)=6元/m³;G设备单位工程量成本最低,选G设备",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 4,
+       "text": "包括:适应性、高效性、稳定性、安全性",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "6": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "3000/(5×20)=30人",
+       "score": 2.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "需要考虑的因素还有:工程量、持续时间、班次、每班工作时间",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "5": {
+    "1": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "安全检查形式:日常巡查、专项检查、定期安全检查、季节性安全检查、节假日安全检查、开工复工安全检查、专业性安全检查",
+       "score": 4.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "作业班组安全检查时间:班前、班中、班后",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "塔吊布置应考虑的因素还包括:①基础设置;②塔吊附墙杆件的位置、距离;③周边环境;④覆盖范围",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "塔式起重机一般项目还包括:①附着;②基础与轨道;③结构设施;④电气安全",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "错误①:坠落高度超过2m的安装使用梯子攀登作业",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "正确做法:坠落高度超过2m时,应设置操作平台",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "错误②:施工层搭设的水平通道不设置防护栏杆",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "正确做法:水平通道两侧应设置防护",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "错误③:作为水平通道的钢梁一侧两端头设置安全绳",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "正确做法:应在钢梁一侧设置连续的安全绳,安全绳宜采用钢丝绳",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 7,
+       "text": "以黄黑(或红白)相间的条纹标示",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "错误一:仅按照项目临时用电施工组织设计进行施工用电管理;正确做法:装饰装修工程施工阶段,应补充编制单项施工用电方案",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "错误二:现场瓷砖切割机与砂浆搅拌机共用一个开关箱;正确做法:用电设备必须配备专用的开关箱,严禁2台及以上用电设备共用一个开关箱",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "错误三:主教学楼一开关箱使用插座插头与配电箱连接;正确做法:配电箱、开关箱的电源进线端严禁采用插头和插座做活动连接",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "评分项:安全耐久、健康舒适、生活便利、环境宜居",
+       "score": 4.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "总分:(400+90+70+80+80+70+40)/10=83分",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 3,
+       "text": "不满足三星级(85分)标准",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    }
+   }
+  },
+  "2024": {
+   "1": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "B 混凝土固定泵;C 布料机;D 串筒;E 振捣棒;F 反铲挖掘机",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) A-B-C-D-E",
+       "score": 2.0,
+       "type": "程序"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 溜管、溜槽",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 施工现场太阳能光伏发电照明技术、空气能热水技术",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 汽油、柴油、燃气",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "不妥当",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "理由:建造阶段的能源总用量宜采用施工工序能耗估算法计算",
+       "score": 2.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "改正一:碳排放计算时间从项目开工起至项目竣工验收止",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "改正二:施工场地区域外的机械设备不应计入",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "改正三:现场制作的构件和部品产生的碳排放应计入",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 4,
+       "text": "改正四:建造阶段临时设施使用过程中消耗的能源产生的碳排放应计入",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    }
+   },
+   "2": {
+    "1": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 关键线路 B→E→I",
+       "score": 2.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 工作A的总时差为2周;工作F的总时差为3周",
+       "score": 2.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 3,
+       "text": "(3)① 工期索赔成立",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "(3)② 工期索赔不成立",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 排桩混凝土灌注桩桩身混凝土强度不应低于C25",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 应先施工灌注桩,后施工截水帷幕",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "(3) 灌注桩顶部泛浆高度不应小于500mm",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 4,
+       "text": "(4) 基坑内支撑的拆除顺序应与支护结构的设计工况一致",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 5,
+       "text": "(5) 应由建设方委托具备相应资质的第三方进行基坑监测",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "A-技术;B-商务;C-工程;D-质量;E-质量",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 2.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "抗渗混凝土的最小受冻临界强度值:20MPa",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 2.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "① 低温型灌浆料施工开始24h内的灌浆部位温度不低于-5℃",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "② 灌浆施工过程中施工环境温度不低于0℃",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "3": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 自检、互检、专检",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 理化试验、无损检测",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "主要受力钢筋数量、间距、保护层厚度、混凝土强度",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 框架梁底、柱边",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)① 填充墙墙顶口最后3皮砖应在下部墙砌完14d后砌筑",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 3,
+       "text": "(2)② 外窗下为空心砖墙时,将窗台板改为细石混凝土并加配钢筋",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 4,
+       "text": "(2)③ 柱与填充墙接触面应设加强网片",
+       "score": 1.0,
+       "type": "措施"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 色差、掉角、脱皮",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2)① 幕墙后置埋件和槽式预埋件的现场拉拔力",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(2)② 幕墙的耐风压性能及层间变形性能",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "幕墙节能工程、门窗节能工程、屋面节能工程、地面节能工程",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "4": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 工程量计算规则",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 工程量清单编制方法",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(3) 计价方式",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(4) 风险处理",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "(5) 费用竞争",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "工期、招标范围、安全标准、法律法规、权利义务、报价编制",
+       "score": 6.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 将工程分包给不具备相应资质单位的",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 将主体结构的施工分包给其他单位的,钢结构工程除外",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(3) 专业工程中非劳务作业部分再分包的",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(4) 将其承包的劳务再分包的",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "(5) 专业承包人除计取劳务作业费外,还计取主要材料款和大中型施工机械设备、主要周转材料费用的",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 目标成本=7222.22×(1-10%)=6500万元",
+       "score": 2.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 成本盈亏异常分析、质量成本分析、资金成本分析、其他有利因素和不利因素分析",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 分部分项工程费=6000+100=6100万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 措施项目费=6100×10%=610万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "(3) 其他项目费=268+119+90×1.03=480万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 4,
+       "text": "(4) 规费=(6100+610+480)×2%=144万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 5,
+       "text": "(5) 税金=(6100+610+480+144)×9%=660万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 6,
+       "text": "(6) 结算价=6100+610+480+144+660=7994万元",
+       "score": 1.0,
+       "type": "计算结果"
+      }
+     ]
+    }
+   },
+   "5": {
+    "1": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 挖土机械作业安全",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出3项即得3分"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 降水设施与临时用电安全",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出3项即得3分"
+      },
+      {
+       "seq": 3,
+       "text": "(3) 桩基施工的安全防范",
+       "score": 1.0,
+       "type": "列举",
+       "partial_credit_rule": "写出3项即得3分"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 试样规格;代表批量;施工部位;计划检测试验时间",
+       "score": 4.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 养护箱或养护池",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 查安全制度、查安全措施、查安全防护、查操作行为",
+       "score": 4.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 物体打击、机械伤害、触电",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 连接扣件的抗滑移、立杆稳定性;悬挑架钢梁挠度",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(2) 吊篮平面布置、全剖面图、非标吊篮节点图,施工升降机及其他特殊部位布置及构造详图",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "(1) 制订绩效评价标准;形成绩效评价结果",
+       "score": 2.0,
+       "type": "程序"
+      },
+      {
+       "seq": 2,
+       "text": "(2)① 项目环保、工期目标完成情况",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "(2)② 合同履约率、相关方满意度",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "(2)③ 项目综合效益",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   }
+  },
+  "2025": {
+   "1": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "钢筋绑扎机器人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "混凝土整平机器人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "钢结构焊接机器人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "现场清扫机器人",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "测量放线机器人",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "BIM、物联网、大数据、区块链、人工智能",
+       "score": 5.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "改正:装配式建筑垃圾产生量每万平方米不大于200t,且不包括工程渣土、工程泥浆",
+       "score": 2.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "废旧木材、钢筋余料、塑料等",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "预拌砂浆的使用时间应按照厂方提供的说明书确定",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "骨料应采取遮阳防晒等措施;必要时对粗骨料喷雾降温",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "混凝土宜选用水化热较低的水泥",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "混凝土浇筑宜在早间或晚间进行,且宜连续浇筑",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "防水材料施工环境最高气温不宜超过35℃",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "2": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "调整前关键线路 A→B→E→F→H",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 2,
+       "text": "调整前总工期 19个月",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 3,
+       "text": "调整后总工期 20个月",
+       "score": 1.0,
+       "type": "计算结果"
+      },
+      {
+       "seq": 4,
+       "text": "非关键工作调整;剩余工作重新编制进度计划",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "材料的数量、运输车辆、见证人员",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "供应商、施工单位",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "安全保证措施、质量技术保证措施、季节性施工保证措施",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "地基承载力、导轨架的附墙位置和距离、楼层平台通道、出入口防护门",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "吸声、隔振",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "隔声性能、混响时间",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    }
+   },
+   "3": {
+    "1": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "灌注桩混凝土强度检验试件取样不正确",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "桩长、桩径",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "低应变法、高应变法、声波透射法、钻芯法",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "改正①:有主、次梁的楼板宜顺次梁方向浇筑",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 2,
+       "text": "改正②:单向板宜沿板的长边方向浇筑",
+       "score": 1.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "钢筋保护层厚度、结构位置与尺寸偏差、合约约定的项目;必要时可检验其他项目",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 3.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "对板底接缝高差及宽度进行校核",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 2,
+       "text": "将构件重新起吊,通过可调支托进行调节",
+       "score": 1.0,
+       "type": "程序"
+      },
+      {
+       "seq": 3,
+       "text": "先主梁后次梁,先低后高",
+       "score": 1.0,
+       "type": "程序"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "严重流淌、中等流淌、轻微流淌",
+       "score": 1.0,
+       "type": "分类"
+      },
+      {
+       "seq": 2,
+       "text": "严重流淌:可考虑拆除重铺",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 3,
+       "text": "轻微流淌:如不发生渗漏,一般可不予治理",
+       "score": 1.0,
+       "type": "措施"
+      },
+      {
+       "seq": 4,
+       "text": "中等流淌:切割法、局部切除重铺、钉钉子法",
+       "score": 3.0,
+       "type": "措施"
+      }
+     ]
+    }
+   },
+   "4": {
+    "1": {
+     "sub_q_total_score": 4.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "①潜在投标人数量较多的项目;②大型、技术复杂的项目",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "①合格制;②有限数量制",
+       "score": 2.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 8.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "计划、组织、协调方案",
+       "score": 3.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "(1)正确",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 3,
+       "text": "(2)不正确(主体设计不得分包给其他单位)",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "(3)不正确(不得转包,也不得将设计和施工业务一并/分别分包给其他单位)",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 5,
+       "text": "(4)不正确",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 6,
+       "text": "(5)不正确(禁止分包单位将其承包的工程再分包)",
+       "score": 1.0,
+       "type": "判断"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "甲方不妥:对所有投标人提出的招标文件疑问,在投标截止日前5日书面回复",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 2,
+       "text": "理由:应当在投标截止时间至少15日前书面或网站通知所有招标文件收受人;不足15日的应顺延提交投标文件截止时间",
+       "score": 2.0,
+       "type": "改错"
+      },
+      {
+       "seq": 3,
+       "text": "乙方不妥:乙方对通用条款个别内容提出修改意见",
+       "score": 1.0,
+       "type": "判断"
+      },
+      {
+       "seq": 4,
+       "text": "理由:通用条款应不加修改的引用",
+       "score": 1.0,
+       "type": "改错"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 7.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "12.10-0.72-1.10=10.28亿元",
+       "score": 3.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "工程投标、施工准备、施工过程、竣工验收",
+       "score": 4.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "分部分项工程费=2200×12000/10000=2640.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 2,
+       "text": "措施项目费=2640×10%=264.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 3,
+       "text": "其他项目费=70+26=96.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 4,
+       "text": "规费=(2640+264+96)×2%=60.00万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 5,
+       "text": "增值税=(2640+264+96+60)×9%=275.40万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      },
+      {
+       "seq": 6,
+       "text": "造价=2640+264+96+60+275.4=3335.40万元",
+       "score": 1.0,
+       "type": "计算步骤"
+      }
+     ]
+    }
+   },
+   "5": {
+    "1": {
+     "sub_q_total_score": 5.5,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "项目经理应取得注册建造师职业资格证、安全生产考核合格证B证",
+       "score": 2.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "①参与组织对项目各阶段的重大决策",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②主持项目管理机构工作",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③决定授权范围内的项目资源使用",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "④在组织制度的框架下制订项目管理机构管理制度",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 6,
+       "text": "⑤参与选择并直接管理具有相应资质的分包人",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 7,
+       "text": "⑥在授权范围内与项目相关方进行直接沟通",
+       "score": 0.5,
+       "type": "列举"
+      },
+      {
+       "seq": 8,
+       "text": "⑦法定代表人和组织授予的其他权利",
+       "score": 0.5,
+       "type": "列举"
+      }
+     ]
+    },
+    "2": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "质量监管、安全监管、从业人员实名制管理、移动数据采集、视频监控、基础数据管理、应用维护子系统",
+       "score": 3.0,
+       "type": "列举",
+       "partial_credit_rule": "写出3项即得3分"
+      },
+      {
+       "seq": 2,
+       "text": "工地扬尘监测数据、现场环境噪声监测数据、工地小气候气象监测数据",
+       "score": 3.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "3": {
+     "sub_q_total_score": 5.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "B 企业安全管理部门",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "C 项目责任工程师",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "D 项目安全管理部门",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "E 班组",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "F 项目责任工程师",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "4": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "机械类、电器类、辐射类、高坠类",
+       "score": 4.0,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "①施工企业未取得安全生产许可证,擅自从事建筑施工活动",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②施工单位主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书,从事相关工作",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③特种作业人员未取得特种作业人员操作资格证书上岗作业",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 5,
+       "text": "④危险性较大的分部分项工程未编制、未审核专项施工方案",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    },
+    "5": {
+     "sub_q_total_score": 6.0,
+     "judge_rule": "min(Σ命中采分点×point_score, sub_q_total_score) 封顶",
+     "points": [
+      {
+       "seq": 1,
+       "text": "\"听\"、\"测\"、\"运转试验\"",
+       "score": 1.5,
+       "type": "列举"
+      },
+      {
+       "seq": 2,
+       "text": "①现场安全标志设置情况",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 3,
+       "text": "②劳动防护用品使用情况",
+       "score": 1.0,
+       "type": "列举"
+      },
+      {
+       "seq": 4,
+       "text": "③现场安全防护情况",
+       "score": 1.0,
+       "type": "列举"
+      }
+     ]
+    }
+   }
+  }
+ }
+}
