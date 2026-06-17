@@ -6,7 +6,7 @@ description: 把一建建筑实务考点造成"图解微课卡"的量产线。�
 # 鲁班图解微课 · 量产 skill(v0 骨架)
 
 > 本目录是 **skill 设计骨架**(暂放 artifacts;ready 后提升到 `agent-skills/luban-diagram-microlesson-production/`)。
-> 配套实现:同级 `../SCHEMA.md`(schema 脊柱)、`../render_card.py` / `../render_network_card.py`(渲染器)、`../validate_schema_drafts.py`(校验门)、`../F16_qigu.json` / `../N01_network_keypath.json`(脚手架)。
+> 配套实现:同级 `../SCHEMA.md`(schema 脊柱)、`../render_card.py` / `../render_network_card.py` / `../render_contrast_card.py`(渲染器)、`../validate_schema_drafts.py`(校验门)、`../build_card_narration.mjs`(旁白派生+离线配音)、`references/narration-spec.md`(旁白总纲)、`../cdp_shot.mjs`(零依赖手机截图)、`../F16_qigu.json` / `../N01_network_keypath.json` / `../C01_construction_joint_contrast.schema_draft.json`(脚手架)。
 
 ## 这套 skill 解决什么
 
@@ -19,10 +19,17 @@ Phase 0  选考点 → 归原型(7 选 1,见下表)→ 混合考点走兜底(见
 Phase 1  锚 authority:采分点→已签发/候选(诚实标非官方,每个 scoring_point 必带 kind + 候选 source_ref 加"(教研草拟·候选·未签发)"后缀)、
          错因→ERROR_CODE_REGISTRY、知识→canonical taxonomy、前置/易混→从 live knowledge graph 拉(见 [[knowledge-graph-already-wired-no-db-needed]])
          采分点只在 scoring_points[] 定义一次,正误/诊断 body 用 *_binding 引用,不复制(reference-not-duplicate)
-Phase 2  读 references/style-guide.md + 对应 references/type-<原型>.md → 填 schema(luban_diagram_microlesson.v1)+ 旁白脚本
-Phase 3  渲染:数据驱动型(graph/diagnosis)参数→自动 SVG;构造/工序型用图元/手作 SVG
-Phase 4  验收门:validate_schema_drafts.py 过 + 手机 390px 无横滚 + student-safe(不漏 source_ref/P编号/schema/candidate)+ 采分点绑定对 + 不文生图构造图
-Phase 5  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同类题正确率提升;不过不铺量
+Phase 2  读 references/style-guide.md + 对应 references/type-<原型>.md → 填 schema(luban_diagram_microlesson.v1)
+         旁白【不手写】,只在 narration.voice_hint 配音色(旁白由 Phase 3 从字段派生)
+Phase 3  旁白预生成(do-once,见 references/narration-spec.md):node ../build_card_narration.mjs <card>.json
+         → 按总纲从卡字段【派生】旁白(默认精简:点错 loss_display + 采分表达 scoring_expression)
+         → 离线配音 + 朗读规范化 + ffprobe 量时长 → 预存 mp3(走 CDN,gitignore)+ timing.json(入库)
+         生产换云 TTS 只改配音一环;运行时不实时合成。先 --print 校稿再配音
+Phase 4  渲染:render_<原型>_card.py → 自动接同名 timing → 有声交互卡(旁白播放器 + <audio> + 时间轴同步:
+         播到某段高亮/reveal 对应锚点 why/item/scoring/wrap)。数据驱动型参数→自动 SVG;构造/工序型用图元/手作 SVG
+Phase 5  验收门:validate_schema_drafts.py 过 + 手机 390px 无横滚(../cdp_shot.mjs 截图)+ student-safe(不漏
+         source_ref/E-code/采分点 id/schema/candidate)+ 采分点绑定对 + 不文生图 + 旁白派生自白名单字段
+Phase 6  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同类题正确率提升;不过不铺量
 ```
 
 ## 原型选择指南(7 选 1,按"难在哪"而非章节)
@@ -37,7 +44,7 @@ Phase 5  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同�
 | ⑥ 采分点/诊断 | 答案×采分点逐点判读 | `references/type-diagnosis.md` | `diagnosis[]` |
 | (七) 数值/记忆 | 定义/规范数值/参数辨析 | `references/type-value_memory.md` | **不动画化**:静态卡/表格 |
 
-**懒加载**:每次只读 `style-guide.md` + 当前原型那一个 `type-*.md`,不读全部(规模化不变慢,借 diagram-design 范式)。
+**懒加载**:每次只读 `style-guide.md` + 当前原型那一个 `type-*.md`;造有声卡时再读 `narration-spec.md`(旁白总纲)。不读全部(规模化不变慢,借 diagram-design 范式)。
 
 ## 红线(违反即返工)
 
@@ -46,9 +53,10 @@ Phase 5  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同�
 3. **student-safe 靠白名单,不靠自觉**:卡内显式列 `rendering_contract.student_safe_fields` / `internal_only_fields`;学生端只渲染白名单,内部字段(`source_ref` / `error_code`(E03/E06) / `scoring_point` id / `kind` / `P10`/`P11` / `schema` / `candidate` / 母题包)只进 HTML 注释或后台。错因给学生看 `loss_display` 汉语名(如"位置判据缺失"),**绝不露 E-code**。(参考实现:`../C01_construction_joint_contrast.schema_draft.json`)
 4. **不上运行时图谱 DB**(前置/易混查 live adjacency 表,O(1);见记忆)。
 5. **先讲后测**:讲解(①–⑥步)在前,小练/复测在后,对新生友好。
-6. **不接 TTS / 不写 learner_state / 不接生产判分**,直到学员验证门过。
-7. **每条动效通向一次练习/反馈**,否则只是"看爽了"非"学会了"。
-8. **不分裂 schema_version**:body 待定的原型先用 `<原型>_draft` 的 `template_type` 收口,沿用 `luban_diagram_microlesson.v1`,绝不为草稿另起版本号(同 D01/C01 模式)。
+6. **运行时不实时 TTS / 不写 learner_state / 不接生产判分**,直到学员验证门过。旁白用**离线预生成音频**(do-once 存档、运行时只拉取播放,见 Phase 3 + `references/narration-spec.md`),**不在运行时实时合成**——这才是"预存复用"。
+7. **旁白不手写,从卡字段派生**(卡是唯一源,见总纲):手写旁白=双份 truth,改卡会漂移、不可量产。schema 只配 `narration.voice_hint`。
+8. **每条动效通向一次练习/反馈**,否则只是"看爽了"非"学会了"。
+9. **不分裂 schema_version**:body 待定的原型先用 `<原型>_draft` 的 `template_type` 收口,沿用 `luban_diagram_microlesson.v1`,绝不为草稿另起版本号(同 D01/C01 模式)。
 
 ## 元规律(为什么这套成立)
 
