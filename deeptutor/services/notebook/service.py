@@ -282,17 +282,23 @@ class NotebookManager:
             metadata=dict(metadata or {}),
             source_bot_id=source_bot_id or None,
         )
-        await learner_state_service.refresh_from_turn(
-            user_id=normalized_user_id,
-            user_message=normalized_title or normalized_user_query or f"Notebook {notebook_id}",
-            assistant_message=assistant_message,
-            session_id=str(notebook_id),
-            capability="notebook" if not source_bot_id else f"notebook:{source_bot_id}",
-            language=str((metadata or {}).get("ui_language", "en") or "en"),
-            timestamp=datetime.now().isoformat(),
-            source_bot_id=source_bot_id or None,
-        )
-        if source_bot_id:
+        # 写回收权（G1）：手动工作台卡片（metadata 带 card_type）只走上面的轻路径
+        # record_notebook_writeback，跳过 refresh_from_turn（summary LLM 改写 /
+        # compiled-truth refresh）与 patch_overlay（Bot-Learner Overlay 污染）。
+        # 无 card_type 的 legacy 记录行为完全不变。
+        is_manual_card = bool(str((metadata or {}).get("card_type", "")).strip())
+        if not is_manual_card:
+            await learner_state_service.refresh_from_turn(
+                user_id=normalized_user_id,
+                user_message=normalized_title or normalized_user_query or f"Notebook {notebook_id}",
+                assistant_message=assistant_message,
+                session_id=str(notebook_id),
+                capability="notebook" if not source_bot_id else f"notebook:{source_bot_id}",
+                language=str((metadata or {}).get("ui_language", "en") or "en"),
+                timestamp=datetime.now().isoformat(),
+                source_bot_id=source_bot_id or None,
+            )
+        if source_bot_id and not is_manual_card:
             try:
                 from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
