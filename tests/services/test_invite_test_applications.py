@@ -80,6 +80,15 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "acceptInterview": True,
                 "consent": True,
                 "status": "submitted",
+                "rawPayload": {
+                    "province": "浙江",
+                    "ageRange": "25-34",
+                    "education": "本科",
+                    "occupation": "施工员",
+                    "preparationYears": "1 年",
+                    "knowledgeFoundation": "基础薄弱",
+                    "dailyStudyTime": "1 小时",
+                },
             },
             {
                 "id": "app-2",
@@ -95,6 +104,39 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "acceptInterview": False,
                 "consent": True,
                 "status": "submitted",
+                "rawPayload": {
+                    "province": "江苏",
+                    "ageRange": "35-44",
+                    "education": "大专",
+                    "occupation": "项目经理",
+                    "preparationYears": "2 年",
+                    "knowledgeFoundation": "有基础",
+                    "dailyStudyTime": "30 分钟",
+                },
+            },
+            {
+                "id": "app-archived",
+                "createdAt": "2026-05-15T10:00:00.000Z",
+                "sourcePage": "invite-test",
+                "name": "归档学员",
+                "phone": "13700137000",
+                "email": "archived@example.com",
+                "examType": "一建建筑实务",
+                "examStage": "刚开始备考",
+                "painPoint": "知识点记不住",
+                "weeklyTime": "30-60 分钟",
+                "acceptInterview": True,
+                "consent": True,
+                "status": "archived",
+                "rawPayload": {
+                    "province": "北京",
+                    "ageRange": "45+",
+                    "education": "硕士",
+                    "occupation": "工程总监",
+                    "preparationYears": "3 年以上",
+                    "knowledgeFoundation": "基础扎实",
+                    "dailyStudyTime": "2 小时",
+                },
             },
         ],
     )
@@ -111,6 +153,14 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
     assert stats["summary"]["accept_interview_count"] == 1
     assert stats["summary"]["with_wrong_question_count"] == 1
     assert {"exam_type": "二建建筑实务", "count": 1} in stats["exam_type_breakdown"]
+    assert {"age_range": "25-34", "count": 1} in stats["age_range_breakdown"]
+    assert {"province": "浙江", "count": 1} in stats["province_breakdown"]
+    assert {"education": "本科", "count": 1} in stats["education_breakdown"]
+    assert {"occupation": "施工员", "count": 1} in stats["occupation_breakdown"]
+    assert {"preparation_years": "1 年", "count": 1} in stats["preparation_years_breakdown"]
+    assert {"knowledge_foundation": "基础薄弱", "count": 1} in stats["knowledge_foundation_breakdown"]
+    assert {"daily_study_time": "1 小时", "count": 1} in stats["daily_study_time_breakdown"]
+    assert {"age_range": "45+", "count": 1} not in stats["age_range_breakdown"]
 
 
 @pytest.mark.asyncio
@@ -513,3 +563,4 @@ async def test_invite_test_store_hides_archived_rows_by_default(tmp_path: Path) 
     assert [item["id"] for item in default_listing["items"]] == ["app-visible"]
     assert [item["id"] for item in archived_listing["items"]] == ["app-archived"]
     assert stats["summary"]["total_applications"] == 1
+    assert stats["summary"]["unique_contacts"] == 1

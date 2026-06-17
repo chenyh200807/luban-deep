@@ -40,6 +40,7 @@ _EXPORT_DATASET_LABELS = {
     "member_audit_log": "操作审计导出",
     "member_list": "会员名单导出",
     "feedback_ai": "AI 反馈导出",
+    "invite_test_applications": "内测申请导出",
     "luban_feedback": "内测回访导出",
     "commerce_ledger": "钱包流水导出",
     "product_behavior_raw": "产品行为 raw events",
