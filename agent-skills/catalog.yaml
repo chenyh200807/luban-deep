@@ -93,3 +93,7 @@ skills:
     path: agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md
     lane: wechat-qa
     expected_use: conditional
+  - name: external-tool-absorption-boundary
+    path: agent-skills/external-tool-absorption-boundary/SKILL.md
+    lane: tooling
+    expected_use: conditional

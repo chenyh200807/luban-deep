@@ -432,6 +432,7 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - [compiled-knowledge-shadow-eval](./agent-skills/compiled-knowledge-shadow-eval/SKILL.md)：Nexus-like / RAG+compiled 一般知识对话、TutorBot online shadow、source pollution 回流 compiler、system-wide default 裁决。
 - [luban-rich-leaf-compiler](./agent-skills/luban-rich-leaf-compiler/SKILL.md)：RichLeafArtifact / 2026 全量深编译 / source-evidence agent / semantic review queue / runtime supply candidate / Grading-to-Brain dry-run。
 - [luban-diagram-microlesson](./agent-skills/luban-diagram-microlesson/SKILL.md)：图解微课卡 authoring / 确定性 renderer / 一屏一重点翻页 deck / 单一权威边界（renderer 不判分·candidate 不冒充签发·学生端不露内部词）/ 微信 web-view 沙盒 / 零依赖 CDP 验收。
+- [external-tool-absorption-boundary](./agent-skills/external-tool-absorption-boundary/SKILL.md)：采纳/升级 gstack、Claude Code 插件、marketplace skill、CLI、MCP、共享 hook 时，审计并中和其默认行为（auto-commit / CLAUDE.md 注入 / 越权 hook / telemetry），不越过单一权威、分支纪律、register-before-use。
 - [anti-overfit-repair-review](./agent-skills/anti-overfit-repair-review/SKILL.md)：regex / fallback / special-case 修复后的过拟合复审、局部撤回或收敛。
 - [deeptutor-review-quality-gate](./agent-skills/deeptutor-review-quality-gate/SKILL.md)：自审、agent code review、merge 前五轴质量审查。
 - [deeptutor-code-simplification](./agent-skills/deeptutor-code-simplification/SKILL.md)：行为不变的简化、减复杂度、去无谓抽象工作流。
