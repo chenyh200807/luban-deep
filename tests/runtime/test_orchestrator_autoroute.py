@@ -538,6 +538,97 @@ async def test_orchestrator_lifecycle_runs_before_preselected_tutorbot_for_quest
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_routes_mcq_grading_through_lifecycle_over_preselected_tutorbot() -> None:
+    """Root-cause regression (2026-06-17): answering an active MCQ must be graded.
+
+    Production: a high-intent user answered an active single-choice question
+    ("我选B"). ``_select_capability`` had a first-class branch for ``case_grading``
+    but NOT ``mcq_grading``, so the turn fell through to the preselected
+    ``tutorbot`` capability as a generic "preselected" turn — grading never ran
+    and the user got no answer ("一直叫做题，答案又不给"). ``mcq_grading`` must run
+    through the question-lifecycle grading path like ``case_grading`` does, not be
+    swallowed by the preselect bypass.
+    """
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    mcq_context = {
+        "question_id": "wp-001",
+        "question": "地下室外墙防水层应设置在哪一侧？",
+        "question_type": "choice",
+        "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）"},
+        "correct_answer": "B",
+    }
+    context = UnifiedContext(
+        session_id="s-mcq-grading-preselected-tutorbot",
+        active_capability="tutorbot",
+        user_message="我选B",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": dict(mcq_context),
+            },
+            "question_followup_context": dict(mcq_context),
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    # The scene authority correctly identifies the MCQ submission ...
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
+    # ... the preselected tutorbot must NOT swallow the grading turn (the bug) ...
+    assert context.metadata["mcq_grading_preselect_bypass_recovered"] == "tutorbot"
+    # ... so the turn reaches the grading authority (deep_question), not "no answer".
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+    assert registry.captured[0] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_mcq_grading_guard_does_not_fire_when_preselect_is_deep_question() -> None:
+    """Codex review 负向用例（2026-06-17）：mcq_grading 守卫必须收窄,不可过火。
+
+    当 preselected capability 本就是判分能力 deep_question 时,既有 preselect 路径已
+    正确准备提交上下文并判分,守卫**不得**介入(不写 mcq_grading_preselect_bypass_recovered),
+    避免守卫从"修 tutorbot 吞判分"漂移成"拦所有 preselect"。
+    """
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    mcq_context = {
+        "question_id": "wp-002",
+        "question": "地下室外墙防水层应设置在哪一侧？",
+        "question_type": "choice",
+        "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）"},
+        "correct_answer": "B",
+    }
+    context = UnifiedContext(
+        session_id="s-mcq-grading-preselect-deep-question",
+        active_capability="deep_question",
+        user_message="我选B",
+        config_overrides={},
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": dict(mcq_context),
+            },
+            "question_followup_context": dict(mcq_context),
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
+    # 守卫不介入：preselect=deep_question 本就判分。
+    assert "mcq_grading_preselect_bypass_recovered" not in context.metadata
+    assert registry.captured[0] == "deep_question"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_new_review_request_replaces_stale_active_question() -> None:
     """Explicit free-text review must materialize a new reviewed question.
 
