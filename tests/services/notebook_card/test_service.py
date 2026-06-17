@@ -94,3 +94,52 @@ def test_card_update_uses_optimistic_concurrency():
             expected_version=1,
             patch={"title": "过期更新"},
         ))
+
+
+class _ConflatedZeroRowStore:
+    def __init__(self, *, existing: bool) -> None:
+        self.existing = existing
+
+    def upsert_card(self, row):
+        return dict(row)
+
+    def get_card(self, user_id, note_id):
+        if not self.existing:
+            return None
+        return {"user_id": user_id, "note_id": note_id, "version": 2}
+
+    def update_card(self, *_args, **_kwargs):
+        raise OptimisticConcurrencyError("no row matched version filter")
+
+    def list_cards(self, *_args, **_kwargs):
+        return []
+
+
+def test_card_update_distinguishes_missing_from_supabase_zero_row_conflict():
+    svc = NotebookCardService(
+        store=_ConflatedZeroRowStore(existing=False),
+        learner_state_service=_LearnerSpy(),
+    )
+
+    with pytest.raises(KeyError):
+        asyncio.run(svc.update_card(
+            user_id="u1",
+            note_id="missing",
+            expected_version=1,
+            patch={"title": "new"},
+        ))
+
+
+def test_card_update_keeps_stale_conflict_when_card_exists_after_zero_row():
+    svc = NotebookCardService(
+        store=_ConflatedZeroRowStore(existing=True),
+        learner_state_service=_LearnerSpy(),
+    )
+
+    with pytest.raises(OptimisticConcurrencyError):
+        asyncio.run(svc.update_card(
+            user_id="u1",
+            note_id="note_1",
+            expected_version=1,
+            patch={"title": "new"},
+        ))

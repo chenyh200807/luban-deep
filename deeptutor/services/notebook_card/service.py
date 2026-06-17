@@ -4,7 +4,10 @@ from datetime import datetime
 from typing import Any
 import uuid
 
-from deeptutor.services.notebook_card.store import NotebookCardStore
+from deeptutor.services.notebook_card.store import (
+    NotebookCardStore,
+    OptimisticConcurrencyError,
+)
 
 _CARD_TYPES = {"scoring_card", "error_pattern_note", "review_note", "manual_note"}
 
@@ -50,7 +53,17 @@ class NotebookCardService:
         safe_patch = {k: v for k, v in dict(patch or {}).items()
                       if k not in {"user_id", "note_id", "mastery_effect", "version"}}
         safe_patch["updated_at"] = _iso_now()
-        updated = self._store.update_card(user_id, note_id, safe_patch, expected_version=expected_version)
+        try:
+            updated = self._store.update_card(
+                user_id,
+                note_id,
+                safe_patch,
+                expected_version=expected_version,
+            )
+        except OptimisticConcurrencyError:
+            if self._store.get_card(user_id, note_id) is None:
+                raise KeyError(f"card not found: {user_id}/{note_id}") from None
+            raise
         if updated is None:
             raise KeyError(f"card not found: {user_id}/{note_id}")
         return updated
