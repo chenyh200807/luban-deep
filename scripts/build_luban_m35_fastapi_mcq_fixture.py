@@ -25,6 +25,16 @@ def _wrong_options(options: list[dict[str, Any]], correct: list[str]) -> list[st
     return [str(option.get("key") or "").upper() for option in options if str(option.get("key") or "").upper() not in correct_set]
 
 
+def _score_answer(answer: str, correct: list[str], options: list[dict[str, Any]], max_score: float) -> float:
+    selected = sorted(char for char in str(answer or "").upper() if char.isalpha())
+    correct_set = set(correct)
+    if selected == correct:
+        return max_score
+    if any(option not in correct_set for option in selected):
+        return 0.0
+    return min(max_score, 0.5 * len(selected))
+
+
 def _answer_variants(correct: list[str], options: list[dict[str, Any]]) -> list[tuple[str, str, float]]:
     max_score = 2.0
     wrong = _wrong_options(options, correct)
@@ -34,7 +44,7 @@ def _answer_variants(correct: list[str], options: list[dict[str, Any]]) -> list[
     empty = ""
     return [
         ("correct", "".join(correct), max_score),
-        ("missing_one", missing, max_score / 2 if missing and missing != "".join(correct) else max_score),
+        ("missing_one", missing, _score_answer(missing, correct, options, max_score)),
         ("wrong_only", wrong_only, 0.0),
         ("overselect", overselect, 0.0 if wrong else max_score),
         ("blank", empty, 0.0),
@@ -128,7 +138,8 @@ def build_fixture(*, source_dir: Path, output_dir: Path, target_question_count: 
                         "correct_answer": "".join(item["correct_answer"]),
                         "wrong_options": wrong_options,
                         "overselect_policy": "zero_score_if_any_wrong_option_selected",
-                        "missing_correct_option_policy": "partial_credit_without_wrong_options",
+                        "missing_correct_option_policy": "0.5_per_selected_correct_option_without_wrong_options",
+                        "partial_credit_per_selected_correct_option": 0.5,
                     },
                     "label_authority": "generated_from_official_mcq_key",
                     "label_scope": "deterministic_mcq_variant",

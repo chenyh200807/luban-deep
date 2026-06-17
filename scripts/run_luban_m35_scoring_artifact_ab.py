@@ -44,23 +44,60 @@ def _limited_rows(rows: list[dict[str, Any]], limit: int) -> list[dict[str, Any]
     return rows[:limit]
 
 
-def _artifact_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _manifest_artifacts(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    artifacts: dict[str, dict[str, Any]] = {}
+    for question in manifest.get("questions") or []:
+        question_id = str(question.get("question_id") or "")
+        points = question.get("scoring_points") or []
+        if not question_id or not points:
+            continue
+        verified_points = sum(
+            1
+            for point in points
+            if any(
+                ref.get("source_type") == "exam_reference_answer"
+                and ref.get("verified") is True
+                for ref in (point.get("source_refs") or [])
+            )
+        )
+        artifacts[question_id] = {
+            "question_id": question_id,
+            "scoring_points": points,
+            "artifact_missing": False,
+            "verified_source_point_count": verified_points,
+            "source_pollution_count": 0,
+        }
+    return artifacts
+
+
+def _artifact_summary(rows: list[dict[str, Any]], manifest: dict[str, Any]) -> dict[str, Any]:
     question_ids = sorted({str(row.get("question_id") or "") for row in rows})
+    manifest_artifacts = _manifest_artifacts(manifest)
     artifacts = {
-        question_id: build_question_grading_artifact(question_id)
+        question_id: manifest_artifacts.get(question_id)
+        or build_question_grading_artifact(question_id)
         for question_id in question_ids
         if question_id
     }
     available = [item for item in artifacts.values() if not item.get("artifact_missing")]
     total_points = sum(len(item.get("scoring_points") or []) for item in available)
     verified_points = sum(
-        1
+        int(item.get("verified_source_point_count"))
+        if item.get("verified_source_point_count") is not None
+        else sum(
+            1
+            for point in (item.get("scoring_points") or [])
+            if point.get("source_status") == "ok"
+        )
         for item in available
-        for point in (item.get("scoring_points") or [])
-        if point.get("source_status") == "ok"
     )
     source_pollution = sum(
-        int((item.get("quality_gates") or {}).get("source_pollution_count") or 0)
+        int(
+            item.get("source_pollution_count")
+            if item.get("source_pollution_count") is not None
+            else (item.get("quality_gates") or {}).get("source_pollution_count")
+            or 0
+        )
         for item in available
     )
     return {
@@ -185,7 +222,7 @@ def build_report(
     sampled_rows = _limited_rows(rows, fixture_limit)
     manifest = _read_json(manifest_path)
     label_audit = audit_label_authority(answers_path)
-    artifact_summary = _artifact_summary(sampled_rows)
+    artifact_summary = _artifact_summary(sampled_rows, manifest)
 
     label_quality_allowed = bool(label_audit.get("quality_claim_allowed"))
     metrics = _metrics(sampled_rows, artifact_summary)

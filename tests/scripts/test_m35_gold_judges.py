@@ -6,6 +6,7 @@ monkeypatched; a real provider call in this file is a bug.
 """
 
 import json
+import subprocess
 
 import pytest
 
@@ -239,6 +240,124 @@ def test_http_judge_abstain_never_raises_and_never_fabricates(monkeypatch):
     }
 
 
+# ------------------------------------------------ transport retry (network fluctuation)
+
+
+def test_retry_transport_retries_transient_then_succeeds(monkeypatch):
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+    calls = {"n": 0}
+
+    def flaky():
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise JudgeTransportError("connection reset", retryable=True)
+        return "ok"
+
+    assert judges._retry_transport(flaky) == "ok"
+    assert calls["n"] == 3
+
+
+def test_retry_transport_does_not_retry_deterministic_failure(monkeypatch):
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+    calls = {"n": 0}
+
+    def hard():
+        calls["n"] += 1
+        raise JudgeTransportError("http_401: unauthorized", retryable=False)
+
+    with pytest.raises(JudgeTransportError):
+        judges._retry_transport(hard)
+    assert calls["n"] == 1
+
+
+def test_retry_transport_exhausts_attempts_and_reraises(monkeypatch):
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+    calls = {"n": 0}
+
+    def always():
+        calls["n"] += 1
+        raise JudgeTransportError("timeout after 60s", retryable=True)
+
+    with pytest.raises(JudgeTransportError):
+        judges._retry_transport(always)
+    assert calls["n"] == judges.TRANSPORT_RETRY_ATTEMPTS
+
+
+def test_http_post_json_marks_5xx_retryable_and_4xx_not(monkeypatch):
+    import io
+    import urllib.error
+
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+
+    calls = {"n": 0}
+
+    def raise_503(req, timeout):
+        calls["n"] += 1
+        raise urllib.error.HTTPError("http://x", 503, "busy", None, io.BytesIO(b"busy"))
+
+    monkeypatch.setattr(judges.urllib.request, "urlopen", raise_503)
+    with pytest.raises(JudgeTransportError):
+        judges._http_post_json("http://x", {}, {"a": 1}, 1.0)
+    assert calls["n"] == judges.TRANSPORT_RETRY_ATTEMPTS  # transient: retried to the cap
+
+    calls_4xx = {"n": 0}
+
+    def raise_401(req, timeout):
+        calls_4xx["n"] += 1
+        raise urllib.error.HTTPError("http://x", 401, "no", None, io.BytesIO(b"no"))
+
+    monkeypatch.setattr(judges.urllib.request, "urlopen", raise_401)
+    with pytest.raises(JudgeTransportError):
+        judges._http_post_json("http://x", {}, {"a": 1}, 1.0)
+    assert calls_4xx["n"] == 1  # deterministic: no retry
+
+
+def test_http_post_json_retries_incomplete_read_mid_stream(monkeypatch):
+    import http.client
+
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+    calls = {"n": 0}
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            calls["n"] += 1
+            if calls["n"] < 2:
+                raise http.client.IncompleteRead(b"")  # connection dropped mid-read
+            return b'{"choices": [{"message": {"content": "ok"}}]}'
+
+    monkeypatch.setattr(judges.urllib.request, "urlopen", lambda req, timeout: _Resp())
+    body = judges._http_post_json("http://x", {}, {"a": 1}, 1.0)
+    assert body["choices"][0]["message"]["content"] == "ok"
+    assert calls["n"] == 2  # truncated stream is retryable, not a hard failure
+
+
+def test_run_cli_retries_on_timeout_then_succeeds(monkeypatch):
+    monkeypatch.setattr(judges.time, "sleep", lambda _s: None)
+    calls = {"n": 0}
+
+    class _Proc:
+        returncode = 0
+        stdout = "out"
+        stderr = ""
+
+    def fake_run(*a, **k):
+        calls["n"] += 1
+        if calls["n"] < 2:
+            raise subprocess.TimeoutExpired(cmd="codex", timeout=60)
+        return _Proc()
+
+    monkeypatch.setattr(judges.subprocess, "run", fake_run)
+    rc, out, _err = judges._run_cli(["codex", "exec"], 60)
+    assert (rc, out) == (0, "out")
+    assert calls["n"] == 2
+
+
 # ---------------------------------------------------------------- CLI judges
 
 
@@ -379,9 +498,8 @@ def test_build_live_judges_requires_all_prerequisites(monkeypatch):
     message = str(exc_info.value)
     assert "DEEPSEEK_API_KEY" in message
     assert "DASHSCOPE_API_KEY" in message
-    assert "claude" in message
-    # gpt-codex is benched (quota until 2026-06-11 08:31): not a prerequisite.
     assert "codex" not in message
+    assert "claude" not in message
 
 
 def test_build_live_judges_returns_five_judges_and_stats(monkeypatch):
@@ -390,11 +508,11 @@ def test_build_live_judges_returns_five_judges_and_stats(monkeypatch):
         env={"DEEPSEEK_API_KEY": "sk-d", "DASHSCOPE_API_KEY": "sk-q"}
     )
     assert sorted(judge_fns) == [
+        "claude-opus-4-8",
         "deepseek-chat",
         "deepseek-reasoner",
-        "fable",
-        "opus",
-        "qwen-max",
+        "gpt-codex",
+        "qwen-plus",
     ]
     assert all(callable(fn) for fn in judge_fns.values())
     assert isinstance(stats, JudgeStats)

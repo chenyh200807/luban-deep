@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """Live judge adapters for the M35 R2 AI-governed gold labeling pipeline.
 
-Five judges across three providers (explicit roles pinned by
+Five no-Claude HTTP judges (explicit roles pinned by
 ``run_luban_m35_ai_governed_gold_labeling.LIVE_MODEL_ROLES``):
 
   - ``deepseek-chat``     (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)   -> blind panel
-  - ``fable``             (claude CLI, ``claude-fable-5``)        -> blind panel
   - ``qwen-max``          (DashScope compatible-mode HTTP,
                            ``DASHSCOPE_API_KEY``)                 -> blind panel
+  - ``qwen-plus``         (DashScope compatible-mode HTTP,
+                           ``DASHSCOPE_API_KEY``)                 -> blind panel
   - ``deepseek-reasoner`` (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)   -> arbiter
-  - ``opus``              (claude CLI, ``claude-opus-4-8``)       -> adversarial prosecutor
+  - ``qwen-turbo``        (DashScope compatible-mode HTTP,
+                           ``DASHSCOPE_API_KEY``)                 -> adversarial prosecutor
 
-``gpt-codex`` (codex CLI) is benched from the live panel on 2026-06-10: the
-Codex subscription quota is exhausted until the 2026-06-11 08:31 reset (48.7%
-abstain rate in the R2 sample run). Its adapter is kept below so the panel
-can be restored once quota returns.
+Claude and Codex adapters are kept below but are not part of the default
+2026-06-11 panel because Claude Code is session-limited and Codex CLI is too
+slow inside mutation replay in this environment.
 
 Every adapter takes ``(scoring_point, student_answer, official_anchor)`` and
 returns ``{"verdict": hit|partial|miss, "evidence_span", "confidence"}``.
@@ -31,12 +32,15 @@ reproduce the original text verbatim); abstains are never cached.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 from pathlib import Path
+import random
 import shutil
 import subprocess
 import tempfile
 import threading
+import time
 from typing import Any, Callable, Mapping
 import urllib.error
 import urllib.request
@@ -57,6 +61,8 @@ DASHSCOPE_DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 DEEPSEEK_MODEL = "deepseek-chat"
 DEEPSEEK_REASONER_MODEL = "deepseek-reasoner"
 QWEN_MODEL = "qwen-max"
+QWEN_PROSECUTOR_MODEL = "qwen-plus"
+QWEN_TURBO_MODEL = "qwen-turbo"
 CLAUDE_MODELS = {"opus": "claude-opus-4-8", "fable": "claude-fable-5"}
 
 # List-price estimates (USD per 1M tokens) for metered HTTP providers only.
@@ -66,11 +72,54 @@ PRICING_USD_PER_MTOKEN = {
     "deepseek-chat": {"input": 0.28, "output": 0.42, "basis": "deepseek list price, cache-miss"},
     "deepseek-reasoner": {"input": 0.28, "output": 0.42, "basis": "deepseek list price, cache-miss"},
     "qwen-max": {"input": 0.33, "output": 1.32, "basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"},
+    "qwen-plus": {"input": 0.11, "output": 0.44, "basis": "dashscope qwen-plus CNY0.8/3.2 per 1M at 7.25 CNY/USD"},
+    "qwen-turbo": {"input": 0.041, "output": 0.083, "basis": "dashscope qwen-turbo CNY0.3/0.6 per 1M at 7.25 CNY/USD"},
 }
 
 
 class JudgeTransportError(Exception):
-    """Transport-level failure (HTTP error, timeout, CLI failure)."""
+    """Transport-level failure (HTTP error, timeout, CLI failure).
+
+    ``retryable`` marks transient network fluctuation (timeout, connection
+    reset, 429, 5xx, CLI hang) that a bounded backoff retry can ride out;
+    deterministic failures (auth, 4xx, unparseable body, CLI quota) stay
+    ``False`` so callers fail fast instead of hammering a wall.
+    """
+
+    def __init__(self, message: str, *, retryable: bool = False) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+
+
+# Bounded backoff so a momentary network blip (incl. sleep/wake severing live
+# sockets) does not turn a single judge call into a permanent abstention.
+TRANSPORT_RETRY_ATTEMPTS = 4  # 1 initial try + up to 3 retries
+TRANSPORT_RETRY_BASE_DELAY_SECONDS = 1.0  # 1s, 2s, 4s exponential
+TRANSPORT_RETRY_MAX_DELAY_SECONDS = 8.0
+
+
+def _retry_transport(operation: Callable[[], Any]) -> Any:
+    """Run ``operation``, retrying only ``retryable`` transport failures.
+
+    Retries on transient network fluctuation with exponential backoff plus
+    jitter; re-raises deterministic failures immediately and re-raises the
+    last transient failure once attempts are exhausted (callers then abstain,
+    exactly as before — the retry layer is transparent to verdict semantics).
+    """
+    last_error: JudgeTransportError | None = None
+    for attempt in range(TRANSPORT_RETRY_ATTEMPTS):
+        try:
+            return operation()
+        except JudgeTransportError as exc:
+            last_error = exc
+            if not exc.retryable or attempt == TRANSPORT_RETRY_ATTEMPTS - 1:
+                raise
+            delay = min(
+                TRANSPORT_RETRY_MAX_DELAY_SECONDS,
+                TRANSPORT_RETRY_BASE_DELAY_SECONDS * (2**attempt),
+            )
+            time.sleep(delay + random.uniform(0, delay * 0.25))
+    raise last_error  # unreachable: loop returns or raises above
 
 
 class JudgeStats:
@@ -175,8 +224,16 @@ def build_judge_prompt(
         f"【官方评分标准·本采分点（满分 {point.get('max_score')} 分）】\n{point.get('criterion') or ''}\n\n"
         f"【学生作答】\n{student_answer}\n\n"
         "【判定规则】\n"
-        "- hit：学生作答完整覆盖该采分点要求的关键判断和关键内容（允许同义改写）。\n"
-        "- partial：只覆盖了该采分点的一部分关键内容，或关键判断正确但理由/做法不完整。\n"
+        "- 点隔离铁律：只就【本采分点】判定。学生作答常同时包含多个采分点的内容，"
+        "判定时忽略与本采分点无关的部分，也不得仅因措辞/顺序不同或夹杂其它采分点内容而降级——"
+        "这条只用于排除无关内容的干扰，不降低本采分点自身的覆盖要求。\n"
+        "- 多部分采分点：若本采分点的标准本身含多个子项（如多步计算、N 项清单、多个"
+        "“不妥+正确做法”配对），hit 要求覆盖其全部或绝大部分子项；只答其中少数子项"
+        "（即便答对）判 partial；几乎未覆盖判 miss。\n"
+        "- hit：完整覆盖本采分点的关键判断与关键内容（单一事实点=该事实到位；"
+        "多部分点=子项基本齐全），允许同义改写。\n"
+        "- partial：仅命中本采分点的部分关键内容（多部分点只答少数子项），"
+        "或关键判断正确但理由/做法确有实质缺失。\n"
         "- miss：未覆盖该采分点，或关键判断错误，或仅复述题干/口号式表述而无具体内容。\n"
         "- evidence_span 必须是从学生作答中逐字摘录的最短支撑片段；miss 时为空字符串。\n\n"
         "只输出一行 JSON（不要 markdown 代码块、不要任何解释文字）：\n"
@@ -276,25 +333,42 @@ def parse_codex_jsonl(stdout: str) -> tuple[str | None, dict[str, int] | None]:
 def _http_post_json(
     url: str, headers: dict[str, str], payload: dict[str, Any], timeout: float
 ) -> dict[str, Any]:
-    """POST JSON, return decoded JSON body. Raises JudgeTransportError."""
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json", **headers},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        detail = ""
+    """POST JSON, return decoded JSON body. Retries transient failures."""
+
+    def _attempt() -> dict[str, Any]:
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json", **headers},
+            method="POST",
+        )
         try:
-            detail = exc.read().decode("utf-8", errors="replace")[:200]
-        except Exception:
-            pass
-        raise JudgeTransportError(f"http_{exc.code}: {detail}") from exc
-    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
-        raise JudgeTransportError(f"{type(exc).__name__}: {exc}") from exc
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = ""
+            try:
+                detail = exc.read().decode("utf-8", errors="replace")[:200]
+            except Exception:
+                pass
+            raise JudgeTransportError(
+                f"http_{exc.code}: {detail}",
+                retryable=exc.code == 429 or 500 <= exc.code < 600,
+            ) from exc
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            OSError,
+            http.client.HTTPException,
+        ) as exc:
+            # Includes IncompleteRead / RemoteDisconnected / BadStatusLine —
+            # a response truncated mid-stream is transient network fluctuation.
+            raise JudgeTransportError(f"{type(exc).__name__}: {exc}", retryable=True) from exc
+        except ValueError as exc:
+            # Unparseable body is deterministic given the same response.
+            raise JudgeTransportError(f"{type(exc).__name__}: {exc}", retryable=False) from exc
+
+    return _retry_transport(_attempt)
 
 
 _NEUTRAL_CWD: str | None = None
@@ -311,21 +385,30 @@ def _neutral_cwd() -> str:
 
 
 def _run_cli(cmd: list[str], timeout: float, cwd: str | None = None) -> tuple[int, str, str]:
-    """Run a CLI judge subprocess. Raises JudgeTransportError on timeout."""
-    try:
-        proc = subprocess.run(
-            cmd,
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=cwd or _neutral_cwd(),
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise JudgeTransportError(f"timeout after {timeout}s") from exc
-    except OSError as exc:
-        raise JudgeTransportError(f"{type(exc).__name__}: {exc}") from exc
-    return proc.returncode, proc.stdout or "", proc.stderr or ""
+    """Run a CLI judge subprocess, retrying transient hangs.
+
+    A CLI hang/timeout (the shape network fluctuation and sleep/wake take for
+    codex/claude) is retryable; a clean non-zero exit (quota, auth, parse) is
+    returned as-is so the caller classifies it without futile retries.
+    """
+
+    def _attempt() -> tuple[int, str, str]:
+        try:
+            proc = subprocess.run(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=cwd or _neutral_cwd(),
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise JudgeTransportError(f"timeout after {timeout}s", retryable=True) from exc
+        except OSError as exc:
+            raise JudgeTransportError(f"{type(exc).__name__}: {exc}", retryable=True) from exc
+        return proc.returncode, proc.stdout or "", proc.stderr or ""
+
+    return _retry_transport(_attempt)
 
 
 # ---------------------------------------------------------------- adapters
@@ -383,6 +466,7 @@ def _chat_completions_call(
     model: str,
     prompt: str,
     timeout: float = JUDGE_TIMEOUT_SECONDS,
+    max_tokens: int = 400,
 ) -> tuple[str | None, dict[str, int] | None]:
     body = _http_post_json(
         url,
@@ -391,7 +475,8 @@ def _chat_completions_call(
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.0,
-            "max_tokens": 400,
+            "max_tokens": max_tokens,
+            "response_format": {"type": "json_object"},
             "stream": False,
         },
         timeout,
@@ -427,18 +512,33 @@ def make_deepseek_reasoner_judge(
         "deepseek-reasoner",
         stats,
         lambda prompt: _chat_completions_call(
-            url, api_key, DEEPSEEK_REASONER_MODEL, prompt, timeout=REASONER_TIMEOUT_SECONDS
+            url,
+            api_key,
+            DEEPSEEK_REASONER_MODEL,
+            prompt,
+            timeout=REASONER_TIMEOUT_SECONDS,
+            max_tokens=1200,
         ),
     )
 
 
-def make_qwen_judge(api_key: str, stats: JudgeStats, base_url: str | None = None) -> JudgeFn:
+def make_qwen_model_judge(
+    model_id: str,
+    model: str,
+    api_key: str,
+    stats: JudgeStats,
+    base_url: str | None = None,
+) -> JudgeFn:
     url = f"{(base_url or DASHSCOPE_DEFAULT_BASE_URL).rstrip('/')}/chat/completions"
     return _wrap_judge(
-        "qwen-max",
+        model_id,
         stats,
-        lambda prompt: _chat_completions_call(url, api_key, QWEN_MODEL, prompt),
+        lambda prompt: _chat_completions_call(url, api_key, model, prompt),
     )
+
+
+def make_qwen_judge(api_key: str, stats: JudgeStats, base_url: str | None = None) -> JudgeFn:
+    return make_qwen_model_judge("qwen-max", QWEN_MODEL, api_key, stats, base_url=base_url)
 
 
 def _codex_error_message(stdout: str) -> str | None:
@@ -541,8 +641,6 @@ def build_live_judges(
         missing.append("DEEPSEEK_API_KEY")
     if not dashscope_key:
         missing.append("DASHSCOPE_API_KEY")
-    if not shutil.which("claude"):
-        missing.append("claude binary on PATH")
     if missing:
         raise RuntimeError(
             "live judges unavailable, missing prerequisites: " + ", ".join(missing)
@@ -556,10 +654,19 @@ def build_live_judges(
         "deepseek-reasoner": make_deepseek_reasoner_judge(
             deepseek_key, stats, base_url=key_of("DEEPSEEK_BASE_URL") or None
         ),
-        "qwen-max": make_qwen_judge(
-            dashscope_key, stats, base_url=key_of("DASHSCOPE_BASE_URL") or None
+        "qwen-plus": make_qwen_model_judge(
+            "qwen-plus",
+            QWEN_PROSECUTOR_MODEL,
+            dashscope_key,
+            stats,
+            base_url=key_of("DASHSCOPE_BASE_URL") or None,
         ),
-        "opus": make_claude_judge("opus", CLAUDE_MODELS["opus"], stats),
-        "fable": make_claude_judge("fable", CLAUDE_MODELS["fable"], stats),
+        # Cross-vendor CLI seats. Opus arbitrates split / majority-review points
+        # only (low volume). Codex/GPT prosecutes accepted points (per-point, so
+        # its usage-cap abstention -> row downgrade is monitored via the manifest
+        # adversarial_prosecutor_abstained count). Neither runs in mutation
+        # replay, so CLI latency does not multiply across the 900+ mutation cases.
+        "claude-opus-4-8": make_claude_judge("claude-opus-4-8", CLAUDE_MODELS["opus"], stats),
+        "gpt-codex": make_codex_judge(stats),
     }
     return judge_fns, stats

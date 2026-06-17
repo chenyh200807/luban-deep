@@ -72,4 +72,6 @@ def test_builds_multiselect_fixture_with_answer_variants(tmp_path):
     assert rows[0]["student_answer"] == "BE"
     assert rows[0]["gold_score"] == 2.0
     assert rows[1]["variant"] == "missing_one"
+    assert rows[1]["gold_score"] == 0.5
     assert rows[1]["label_authority"] == "generated_from_official_mcq_key"
+    assert rows[1]["scoring_protocol"]["partial_credit_per_selected_correct_option"] == 0.5

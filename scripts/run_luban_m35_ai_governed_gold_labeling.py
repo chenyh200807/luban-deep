@@ -36,7 +36,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
+import threading
 from typing import Any, Callable, Mapping
 
 REPO = Path(__file__).resolve().parents[1]
@@ -55,12 +57,20 @@ SCHEMA_VERSION = "luban_m35_ai_governed_gold_labeling.v1"
 DEFAULT_FIXTURE_DIR = REPO / "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a"
 DOWNGRADE_LABEL_AUTHORITY = "ai_council_directional"
 MIN_JUDGE_MODELS = 5
-# Explicit live panel (2026-06-10): gpt-codex is benched until the Codex
-# quota reset (2026-06-11 08:31), so roles cannot follow sorted-id order.
+# Live panel (2026-06-11, multipart-fix + production-aligned blind):
+#   blind  = deepseek-chat / qwen-plus / deepseek-reasoner -> reliable HTTP,
+#            runs in mutation replay; computes Fleiss kappa. The weak Qwen
+#            variants (qwen-max / qwen-turbo) are dropped — they are not the
+#            production grading models and were the noisy raters (qwen-max
+#            over-flagged partial, qwen-turbo could not score partial at all).
+#   arbiter = claude-opus-4-8 (CLI)  -> cross-vendor adjudication, low volume.
+#   prosecutor = gpt-codex (CLI)     -> GPT cross-vendor scrutiny per accepted
+#            point; its usage-cap abstention downgrades the row, so the manifest
+#            adversarial_prosecutor_abstained count is monitored every run.
 LIVE_MODEL_ROLES: dict[str, Any] = {
-    "blind_panel": ["deepseek-chat", "fable", "qwen-max"],
-    "arbiter": "deepseek-reasoner",
-    "adversarial_prosecutor": "opus",
+    "blind_panel": ["deepseek-chat", "qwen-plus", "deepseek-reasoner"],
+    "arbiter": "claude-opus-4-8",
+    "adversarial_prosecutor": "gpt-codex",
 }
 MIN_INDEPENDENT_ACCEPTS = 3
 KAPPA_STOP_THRESHOLD = 0.6
@@ -109,6 +119,9 @@ _REPLACED_ROW_FIELDS = {
     "gold_score",
     "gold_point_matches",
     "point_label_provenance",
+    "sample_bucket",
+    "sample_bucket_provenance",
+    "evidence_span_audit",
     "ai_governed_gold",
     "downgrade_reasons",
     "adversarial_review",
@@ -407,21 +420,40 @@ def _mutation_test(
 ) -> dict[str, Any]:
     cases: list[dict[str, Any]] = []
     for mutation in mutate_student_answer(student_answer):
-        stable = all(
-            _panel_majority_verdict(
+        point_checks = []
+        for result in point_results:
+            original = result["consolidated_verdict"]
+            mutated = _panel_majority_verdict(
                 result["point"], mutation["text"], anchor, judge_fns, roles["blind_panel"]
             )
-            == result["consolidated_verdict"]
-            for result in point_results
-        )
+            stable = mutated == original
+            if mutation["mutation_type"] == "meaning_preserving":
+                accepted = stable
+            elif mutated == "no_consensus":
+                accepted = False
+            else:
+                accepted = _CREDIT_RANK[mutated] <= _CREDIT_RANK[original]
+            point_checks.append(
+                {
+                    "point_id": result["point"].get("point_id"),
+                    "original_verdict": original,
+                    "mutated_verdict": mutated,
+                    "stable": stable,
+                    "accepted": accepted,
+                }
+            )
+        stable = all(check["stable"] for check in point_checks)
+        accepted = all(check["accepted"] for check in point_checks)
         cases.append(
             {
                 "mutation_id": mutation["mutation_id"],
                 "mutation_type": mutation["mutation_type"],
                 "stable": stable,
+                "accepted": accepted,
+                "point_checks": point_checks,
             }
         )
-    stable_count = sum(1 for case in cases if case["stable"])
+    stable_count = sum(1 for case in cases if case["accepted"])
     return {
         "passed": stable_count == len(cases),
         "case_count": len(cases),
@@ -444,6 +476,154 @@ def _evidence_span(result: dict[str, Any]) -> str:
         if vote and vote["evidence_span"]:
             return vote["evidence_span"]
     return ""
+
+
+def _set_evidence_span(result: dict[str, Any], span: str) -> None:
+    for model_id in result["supporting_model_ids"]:
+        vote = result["blind_votes"].get(model_id) or result["arbiter_vote"]
+        if vote and vote["evidence_span"]:
+            vote["evidence_span"] = span
+            return
+
+
+def _repair_span_by_whitespace(span: str, answer_text: str) -> str | None:
+    """Map a whitespace-collapsed model span back to the unique original slice."""
+    compact_span = re.sub(r"\s+", "", span)
+    if not compact_span:
+        return None
+    compact_to_original: list[int] = []
+    compact_answer_chars: list[str] = []
+    for index, char in enumerate(answer_text):
+        if char.isspace():
+            continue
+        compact_to_original.append(index)
+        compact_answer_chars.append(char)
+    compact_answer = "".join(compact_answer_chars)
+    starts: list[int] = []
+    start = compact_answer.find(compact_span)
+    while start >= 0:
+        starts.append(start)
+        start = compact_answer.find(compact_span, start + 1)
+    if len(starts) != 1:
+        return None
+    compact_start = starts[0]
+    compact_end = compact_start + len(compact_span) - 1
+    original_start = compact_to_original[compact_start]
+    original_end = compact_to_original[compact_end] + 1
+    return answer_text[original_start:original_end]
+
+
+def _audit_evidence_spans(
+    point_results: list[dict[str, Any]], student_answer: str
+) -> dict[str, Any]:
+    """Deterministically audit positive evidence spans.
+
+    Models may judge semantics, but a positive evidence span must be a literal
+    substring of the student answer. This keeps the transport/model layer from
+    becoming a second authority for evidence text.
+    """
+    violations: list[dict[str, Any]] = []
+    repairs: list[dict[str, Any]] = []
+    answer_text = str(student_answer or "")
+    for result in point_results:
+        verdict = str(result.get("consolidated_verdict") or "")
+        if verdict not in {"hit", "partial"}:
+            continue
+        span = _evidence_span(result).strip()
+        point_id = str((result.get("point") or {}).get("point_id") or "")
+        if not span:
+            violations.append(
+                {
+                    "point_id": point_id,
+                    "status": verdict,
+                    "evidence_span": "",
+                    "reason": "positive_span_missing",
+                }
+            )
+        elif span not in answer_text:
+            repaired = _repair_span_by_whitespace(span, answer_text)
+            if repaired is not None:
+                _set_evidence_span(result, repaired)
+                repairs.append(
+                    {
+                        "point_id": point_id,
+                        "original_evidence_span": span,
+                        "repaired_evidence_span": repaired,
+                        "repair": "unique_whitespace_normalized_match",
+                    }
+                )
+            else:
+                violations.append(
+                    {
+                        "point_id": point_id,
+                        "status": verdict,
+                        "evidence_span": span,
+                        "reason": "positive_span_not_in_answer",
+                    }
+                )
+    return {
+        "passed": not violations,
+        "checked_positive_point_count": sum(
+            1
+            for result in point_results
+            if result.get("consolidated_verdict") in {"hit", "partial"}
+        ),
+        "repair_count": len(repairs),
+        "repairs": repairs,
+        "violations": violations,
+    }
+
+
+def _sample_bucket(
+    gold_point_matches: list[dict[str, Any]],
+    points: list[dict[str, Any]],
+) -> tuple[str, dict[str, Any]]:
+    """Assign answer-level sample_bucket from point verdicts only.
+
+    This is deliberately not derived from ability labels, score ranges, or
+    upstream fixture metadata. It is a controlled taxonomy projection of the
+    council's point-level judgment.
+    """
+    status_counts = Counter(str(match.get("status") or "") for match in gold_point_matches)
+    point_policy_by_id = {
+        str(point.get("point_id") or ""): str(point.get("policy_type") or "")
+        for point in points
+    }
+    non_hit_point_ids = [
+        str(match.get("point_id") or "")
+        for match in gold_point_matches
+        if str(match.get("status") or "") != "hit"
+    ]
+    if not gold_point_matches:
+        bucket = "external_source_required"
+        reason = "no_point_judgments"
+    elif status_counts.get("unadjudicated"):
+        bucket = "external_source_required"
+        reason = "unadjudicated_point"
+    elif status_counts.get("hit") == len(gold_point_matches):
+        bucket = "hit"
+        reason = "all_points_hit"
+    elif any(point_policy_by_id.get(point_id) == "calc" for point_id in non_hit_point_ids):
+        bucket = "calculation"
+        reason = "non_hit_calculation_point"
+    elif status_counts.get("partial"):
+        bucket = "partial"
+        reason = "contains_partial_point"
+    elif status_counts.get("hit") and status_counts.get("miss"):
+        bucket = "list_incomplete"
+        reason = "mixed_hit_and_miss_points"
+    elif status_counts.get("miss") == len(gold_point_matches):
+        bucket = "miss"
+        reason = "all_points_miss"
+    else:
+        bucket = "partial"
+        reason = "fallback_mixed_point_status"
+    return bucket, {
+        "basis": "point_verdicts",
+        "reason": reason,
+        "status_counts": dict(status_counts),
+        "non_hit_point_ids": non_hit_point_ids,
+    }
 
 
 def _reproducibility_hash(
@@ -473,14 +653,28 @@ def _label_single_row(
     question: dict[str, Any],
     judge_fns: Mapping[str, JudgeFn],
     roles: dict[str, Any],
+    *,
+    point_cache: Mapping[str, dict[str, Any]] | None = None,
+    append_point_checkpoint: Callable[[str, dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     student_answer = str(row.get("student_answer") or "")
     anchor = _official_anchor(question)
     points = list(question.get("scoring_points") or [])
 
-    point_results = [
-        _reconcile_point(point, student_answer, anchor, judge_fns, roles) for point in points
-    ]
+    answer_id = str(row.get("answer_id") or "")
+    point_results: list[dict[str, Any]] = []
+    for point in points:
+        point_id = str(point.get("point_id") or "")
+        cache_key = _point_checkpoint_key(answer_id, point_id)
+        cached = (point_cache or {}).get(cache_key)
+        if cached is not None:
+            point_results.append(cached)
+            continue
+        result = _reconcile_point(point, student_answer, anchor, judge_fns, roles)
+        if append_point_checkpoint is not None:
+            append_point_checkpoint(cache_key, result)
+        point_results.append(result)
+
     # Fleiss kappa requires a constant rater count per item: points where a
     # panelist abstained are excluded (and counted) instead of being faked.
     kappa_items: list[Counter] = []
@@ -503,6 +697,9 @@ def _label_single_row(
         downgrade_reasons.append("insufficient_independent_blind_accepts")
     if source_anchor["source_ref_count"] <= 0 or not source_anchor["field_level_citations"]:
         downgrade_reasons.append("missing_field_level_source_anchor")
+    evidence_span_audit = _audit_evidence_spans(point_results, student_answer)
+    if evidence_span_audit["passed"] is not True:
+        downgrade_reasons.append("evidence_span_audit_failed")
 
     adversarial_review: dict[str, Any] | None = None
     if not downgrade_reasons:
@@ -543,6 +740,7 @@ def _label_single_row(
         }
         for result in point_results
     ]
+    sample_bucket, sample_bucket_provenance = _sample_bucket(gold_point_matches, points)
     point_label_provenance = [
         {
             "point_id": str(result["point"].get("point_id") or ""),
@@ -574,6 +772,9 @@ def _label_single_row(
             "directionality_flag": label_authority,
             "gold_score": gold_score,
             "gold_point_matches": gold_point_matches,
+            "sample_bucket": sample_bucket,
+            "sample_bucket_provenance": sample_bucket_provenance,
+            "evidence_span_audit": evidence_span_audit,
             "point_label_provenance": point_label_provenance,
         }
     )
@@ -608,6 +809,7 @@ def _label_single_row(
                 "reconciliation_by_deterministic_code": True,
                 "independent_accept_count": accept_count,
                 "score_sum_consistent": True,
+                "evidence_span_audit_passed": evidence_span_audit["passed"] is True,
             },
         },
     }
@@ -658,6 +860,141 @@ def _stop_condition(kappa: float | None, mutation_pass_rate: float | None) -> di
     }
 
 
+CHECKPOINT_FILENAME = "row_checkpoint.jsonl"
+CHECKPOINT_META_FILENAME = "row_checkpoint.meta.json"
+POINT_CHECKPOINT_FILENAME = "point_checkpoint.jsonl"
+
+
+def _point_checkpoint_key(answer_id: str, point_id: str) -> str:
+    return f"{answer_id}::{point_id}"
+
+
+def _checkpoint_meta_matches(meta_path: Path, fingerprint: str) -> bool:
+    if not meta_path.exists():
+        return False
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return meta.get("fingerprint") == fingerprint
+
+
+def _serialize_outcome(outcome: dict[str, Any]) -> dict[str, Any]:
+    """JSON-safe view of a per-row outcome (Counter -> dict)."""
+    return {
+        "row": outcome["row"],
+        "kappa_items": [dict(item) for item in outcome["kappa_items"]],
+        "kappa_excluded": outcome["kappa_excluded"],
+        "mutation_totals": outcome["mutation_totals"],
+    }
+
+
+def _deserialize_outcome(data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "row": data["row"],
+        "kappa_items": [Counter(item) for item in data.get("kappa_items") or []],
+        "kappa_excluded": int(data.get("kappa_excluded") or 0),
+        "mutation_totals": data.get("mutation_totals") or {"cases": 0, "stable": 0},
+    }
+
+
+def _checkpoint_fingerprint(
+    roles: Mapping[str, Any],
+    answers_path: Path,
+    manifest_path: Path,
+    limit: int,
+    question_ids: tuple[str, ...] | None,
+) -> str:
+    """Fingerprint the run config so a checkpoint can only resume an identical run.
+
+    A different panel, prompt-bearing schema, or input set must NOT silently
+    reuse rows judged under the old config — that would mix incompatible gold.
+    """
+    payload = json.dumps(
+        {
+            "schema": SCHEMA_VERSION,
+            "protocol": PROTOCOL_VERSION,
+            "roles": roles,
+            "answers_path": str(answers_path),
+            "manifest_path": str(manifest_path),
+            "limit": limit,
+            "question_ids": sorted(question_ids or []),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _load_checkpoint(
+    checkpoint_path: Path, meta_path: Path, fingerprint: str
+) -> dict[str, dict[str, Any]]:
+    """Return completed ``{answer_id: outcome}`` only when the config matches."""
+    if not checkpoint_path.exists() or not meta_path.exists():
+        return {}
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    if meta.get("fingerprint") != fingerprint:
+        return {}  # config changed: ignore stale rows, caller starts fresh
+    done: dict[str, dict[str, Any]] = {}
+    for line in checkpoint_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue  # torn final line from an interrupted append; skip it
+        answer_id = record.get("answer_id")
+        if answer_id and isinstance(record.get("outcome"), dict):
+            done[str(answer_id)] = _deserialize_outcome(record["outcome"])
+    return done
+
+
+def _load_point_checkpoint(
+    checkpoint_path: Path, meta_path: Path, fingerprint: str
+) -> dict[str, dict[str, Any]]:
+    """Return completed ``{answer_id::point_id: point_result}`` when config matches."""
+    if not checkpoint_path.exists() or not _checkpoint_meta_matches(meta_path, fingerprint):
+        return {}
+    done: dict[str, dict[str, Any]] = {}
+    for line in checkpoint_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+        except ValueError:
+            continue
+        key = str(record.get("key") or "")
+        result = record.get("result")
+        if key and isinstance(result, dict):
+            done[key] = result
+    return done
+
+
+def _append_checkpoint(checkpoint_path: Path, answer_id: str, outcome: dict[str, Any]) -> None:
+    """Durably append one completed row so sleep/kill cannot lose finished work."""
+    line = json.dumps(
+        {"answer_id": answer_id, "outcome": _serialize_outcome(outcome)},
+        ensure_ascii=False,
+    )
+    with open(checkpoint_path, "a", encoding="utf-8") as handle:
+        handle.write(line + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def _append_point_checkpoint(checkpoint_path: Path, key: str, result: dict[str, Any]) -> None:
+    line = json.dumps({"key": key, "result": result}, ensure_ascii=False)
+    with open(checkpoint_path, "a", encoding="utf-8") as handle:
+        handle.write(line + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
 def run_labeling(
     *,
     answers_path: Path,
@@ -692,14 +1029,72 @@ def run_labeling(
         labelable.append((row, question))
 
     # Rows are independent; judge calls dominate wall time, so rows may be
-    # labeled concurrently. Outcomes merge in input order (deterministic).
-    with ThreadPoolExecutor(max_workers=max(1, row_workers)) as pool:
-        outcomes = list(
-            pool.map(
-                lambda pair: _label_single_row(pair[0], pair[1], judge_fns, roles),
-                labelable,
-            )
+    # labeled concurrently. Each finished row is durably checkpointed so a
+    # sleep/kill mid-run loses at most the rows still in flight; a re-run with
+    # the same config resumes from the checkpoint. Outcomes merge in input
+    # order (deterministic) regardless of completion order.
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = out_dir / CHECKPOINT_FILENAME
+    point_checkpoint_path = out_dir / POINT_CHECKPOINT_FILENAME
+    meta_path = out_dir / CHECKPOINT_META_FILENAME
+    fingerprint = _checkpoint_fingerprint(
+        roles, answers_path, manifest_path, limit, question_ids
+    )
+    meta_matches = _checkpoint_meta_matches(meta_path, fingerprint)
+    done = _load_checkpoint(checkpoint_path, meta_path, fingerprint)
+    if not meta_matches:
+        # Fresh (or config-invalidated) run: reset checkpoints, pin fingerprint.
+        checkpoint_path.write_text("", encoding="utf-8")
+        point_checkpoint_path.write_text("", encoding="utf-8")
+        meta_path.write_text(
+            json.dumps({"fingerprint": fingerprint}, ensure_ascii=False),
+            encoding="utf-8",
         )
+    else:
+        checkpoint_path.touch(exist_ok=True)
+        point_checkpoint_path.touch(exist_ok=True)
+
+    point_cache = _load_point_checkpoint(point_checkpoint_path, meta_path, fingerprint)
+    results_by_id: dict[str, dict[str, Any]] = dict(done)
+    pending = [
+        pair
+        for pair in labelable
+        if str(pair[0].get("answer_id") or "") not in results_by_id
+    ]
+    checkpoint_lock = threading.Lock()
+    point_checkpoint_lock = threading.Lock()
+
+    def _label_and_checkpoint(
+        pair: tuple[dict[str, Any], dict[str, Any]],
+    ) -> tuple[str, dict[str, Any]]:
+        answer_id = str(pair[0].get("answer_id") or "")
+
+        def append_point(cache_key: str, result: dict[str, Any]) -> None:
+            with point_checkpoint_lock:
+                _append_point_checkpoint(point_checkpoint_path, cache_key, result)
+                point_cache[cache_key] = result
+
+        outcome = _label_single_row(
+            pair[0],
+            pair[1],
+            judge_fns,
+            roles,
+            point_cache=point_cache,
+            append_point_checkpoint=append_point,
+        )
+        with checkpoint_lock:
+            _append_checkpoint(checkpoint_path, answer_id, outcome)
+        return answer_id, outcome
+
+    if pending:
+        with ThreadPoolExecutor(max_workers=max(1, row_workers)) as pool:
+            for answer_id, outcome in pool.map(_label_and_checkpoint, pending):
+                results_by_id[answer_id] = outcome
+
+    outcomes = [
+        results_by_id[str(pair[0].get("answer_id") or "")] for pair in labelable
+    ]
 
     kappa_items: list[Counter] = []
     kappa_excluded = 0
@@ -766,7 +1161,10 @@ def run_labeling(
 
 
 def live_api_key_envs_present(env: Mapping[str, str] | None = None) -> list[str]:
-    env = os.environ if env is None else env
+    if env is None:
+        from scripts.m35_gold_judges import load_dotenv_file
+
+        env = {**load_dotenv_file(REPO / ".env"), **dict(os.environ)}
     return [name for name in LIVE_API_KEY_ENVS if str(env.get(name) or "").strip()]
 
 

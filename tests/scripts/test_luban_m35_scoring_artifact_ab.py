@@ -128,3 +128,64 @@ def test_quality_claim_requires_computed_quality_metrics(tmp_path):
     # the runner must NOT mark quality as claimable.
     assert report["metrics"]["point_precision"] is None
     assert report["quality_claim_allowed"] is False
+
+
+def test_fastapi_manifest_scoring_points_are_used_as_artifacts(tmp_path):
+    import json as _json
+
+    from scripts.run_luban_m35_scoring_artifact_ab import build_report
+
+    answers = tmp_path / "student_answers.jsonl"
+    answers.write_text(
+        _json.dumps(
+            {
+                "answer_id": "A1",
+                "question_id": "Q2023-01__P01",
+                "student_answer": "由见证人员记录取样和现场检测情况。",
+                "label_authority": "estimated_metadata_only",
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        _json.dumps(
+            {
+                "fixture_id": "fastapi_case_subquestions",
+                "questions": [
+                    {
+                        "question_id": "Q2023-01__P01",
+                        "scoring_points": [
+                            {
+                                "point_id": "Q2023-01__P01::SP01",
+                                "criterion": "应由见证人员记录其取样、现场检测情况。",
+                                "source_refs": [
+                                    {
+                                        "source_type": "exam_reference_answer",
+                                        "verified": True,
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    report = build_report(
+        tier="cached_judge_replay",
+        answers_path=answers,
+        manifest_path=manifest,
+        fixture_limit=0,
+        allow_live_provider_sample=False,
+    )
+
+    assert report["metrics"]["compiled_hit_rate"] == 1.0
+    assert report["metrics"]["wrong_path_rate"] == 0.0
+    assert report["metrics"]["source_validity"] == 1.0
+    assert report["artifact_first"]["artifact_available_count"] == 1

@@ -58,6 +58,7 @@ def _build_slice(
     question_ids: tuple[str, ...] = SLICE_QUESTION_IDS,
     per_question: int = 2,
     point_specs: dict | None = None,
+    answer_text: str | None = None,
 ) -> tuple[Path, Path, list[dict]]:
     source_rows = [
         json.loads(line)
@@ -70,7 +71,11 @@ def _build_slice(
         selected.extend(matching[:per_question])
     assert selected, "fixture slice must not be empty"
     rows = [
-        {**row, "sample_bucket": BUCKET_CYCLE[index % len(BUCKET_CYCLE)]}
+        {
+            **row,
+            "student_answer": answer_text if answer_text is not None else row["student_answer"],
+            "sample_bucket": BUCKET_CYCLE[index % len(BUCKET_CYCLE)],
+        }
         for index, row in enumerate(selected)
     ]
 
@@ -281,14 +286,15 @@ def test_one_level_prosecutor_objection_is_resolved_by_blind_supermajority(tmp_p
 
 
 def test_mutation_instability_downgrades_and_triggers_stop_condition(tmp_path):
-    # Both required terms are destroyed by hard-coded mutation rules
-    # (synonym_swap kills 不妥, subject_swap kills 试验员) -> 4/6 stable cases.
+    # Meaning-preserving mutations must remain stable. Here exact marker terms
+    # are destroyed by synonym_swap and punctuation_normalize -> 4/6 accepted.
     _, rows, manifest, _, _ = _run(
         tmp_path,
         _stub_judges(),
         question_ids=("Q2023-01__P01",),
         per_question=1,
-        point_specs={"Q2023-01__P01": [(["不妥", "试验员"], 2.0)]},
+        answer_text="不妥；试验员制作见证记录。",
+        point_specs={"Q2023-01__P01": [(["不妥", "；"], 2.0)]},
     )
 
     assert len(rows) == 1
@@ -302,6 +308,159 @@ def test_mutation_instability_downgrades_and_triggers_stop_condition(tmp_path):
     assert manifest["mutation_pass_rate"] == pytest.approx(4 / 6, abs=1e-6)
     assert manifest["stop_condition_triggered"] is True
     assert "mutation_pass_rate_below_threshold" in manifest["stop_condition"]["reasons"]
+
+
+def test_invalid_positive_evidence_span_downgrades_row(tmp_path):
+    def invalid_span_judge(point: dict, student_answer: str, official_anchor: dict) -> dict:
+        return {
+            "verdict": "hit",
+            "evidence_span": "这段证据不在学生作答中",
+            "confidence": 0.9,
+        }
+
+    _, rows, manifest, _, _ = _run(
+        tmp_path,
+        {f"stub-judge-{index}": invalid_span_judge for index in range(1, 6)},
+        question_ids=("Q2023-01__P01",),
+        per_question=1,
+    )
+
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["label_authority"] == "ai_council_directional"
+    assert "ai_governed_gold" not in row
+    assert "evidence_span_audit_failed" in row["downgrade_reasons"]
+    assert row["evidence_span_audit"]["passed"] is False
+    assert row["evidence_span_audit"]["violations"][0]["reason"] == "positive_span_not_in_answer"
+    assert manifest["gold_row_count"] == 0
+
+
+def test_evidence_span_auditor_repairs_unique_whitespace_collapsed_span(tmp_path):
+    def collapsed_span_judge(point: dict, student_answer: str, official_anchor: dict) -> dict:
+        return {
+            "verdict": "hit",
+            "evidence_span": "作答：问题1：不妥之处：试验员如实记录",
+            "confidence": 0.9,
+        }
+
+    _, rows, manifest, _, _ = _run(
+        tmp_path,
+        {f"stub-judge-{index}": collapsed_span_judge for index in range(1, 6)},
+        question_ids=("Q2023-01__P01",),
+        per_question=1,
+        answer_text="作答：\n问题1：不妥之处：试验员如实记录。",
+        point_specs={"Q2023-01__P01": [(["试验员"], 2.0)]},
+    )
+
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["label_authority"] == "ai_governed_gold"
+    assert row["evidence_span_audit"]["passed"] is True
+    assert row["evidence_span_audit"]["repair_count"] == 1
+    assert row["gold_point_matches"][0]["evidence_span"] == "作答：\n问题1：不妥之处：试验员如实记录"
+    assert manifest["gold_row_count"] == 1
+
+
+def test_bucket_taxonomist_derives_answer_bucket_from_point_verdicts(tmp_path):
+    _, rows, _, output_dir, _ = _run(
+        tmp_path,
+        _stub_judges(),
+        question_ids=("Q2023-01__P01",),
+        per_question=1,
+        answer_text="这里只写了见证记录，没有覆盖另一个采分点。",
+        point_specs={"Q2023-01__P01": [(["见证记录"], 1.0), (["取样"], 1.0)]},
+    )
+
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["sample_bucket"] == "list_incomplete"
+    assert row["sample_bucket_provenance"]["basis"] == "point_verdicts"
+    assert row["sample_bucket_provenance"]["status_counts"] == {"hit": 1, "miss": 1}
+
+    payload = audit(output_dir / "student_answers.jsonl")
+    assert payload["sample_bucket_counts"] == {"list_incomplete": 1}
+    assert payload["missing_contract_answer_ids"] == []
+
+
+def test_point_checkpoint_resume_skips_completed_point_after_interruption(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
+
+    answers_path, manifest_path, _ = _build_slice(
+        tmp_path,
+        question_ids=("Q2023-01__P01",),
+        per_question=1,
+        point_specs={"Q2023-01__P01": [(["见证记录"], 1.0), (["取样"], 1.0)]},
+    )
+    output_dir = tmp_path / "out"
+    original_answer = json.loads(answers_path.read_text(encoding="utf-8").splitlines()[0])[
+        "student_answer"
+    ]
+
+    def fail_on_second_point(point, student_answer, official_anchor):
+        if str(point.get("point_id")).endswith("SP02"):
+            raise RuntimeError("simulated interruption after first point")
+        return _term_judge(point, student_answer, official_anchor)
+
+    with pytest.raises(RuntimeError, match="simulated interruption"):
+        run_labeling(
+            answers_path=answers_path,
+            manifest_path=manifest_path,
+            judge_fns={f"stub-judge-{i}": fail_on_second_point for i in range(1, 6)},
+            output_dir=output_dir,
+        )
+
+    point_checkpoint = output_dir / "point_checkpoint.jsonl"
+    assert point_checkpoint.read_text(encoding="utf-8").strip()
+
+    original_first_point_calls = {"n": 0}
+
+    def resume_blind_judge(point, student_answer, official_anchor):
+        if (
+            str(point.get("point_id")).endswith("SP01")
+            and student_answer == original_answer
+        ):
+            original_first_point_calls["n"] += 1
+        return _term_judge(point, student_answer, official_anchor)
+
+    result = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns={
+            "stub-judge-1": resume_blind_judge,
+            "stub-judge-2": resume_blind_judge,
+            "stub-judge-3": resume_blind_judge,
+            "stub-judge-4": _term_judge,
+            # Force an adversarial downgrade before mutation replay. The test
+            # is about point-reconcile checkpointing, not mutation calls.
+            "stub-judge-5": _verdict_judge("miss"),
+        },
+        output_dir=output_dir,
+    )
+
+    assert result["manifest"]["row_count"] == 1
+    assert original_first_point_calls["n"] == 0
+
+
+def test_adversarial_mutation_downgrade_is_accepted(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import _mutation_test
+
+    point = _scoring_point("Q2023-01__P01", 1, ["试验员"], 2.0)
+    result = _mutation_test(
+        [
+            {
+                "point": point,
+                "consolidated_verdict": "hit",
+            }
+        ],
+        "试验员制作见证记录。",
+        {"question_id": "Q2023-01__P01"},
+        _stub_judges(),
+        {"blind_panel": ["stub-judge-1", "stub-judge-2", "stub-judge-3"]},
+    )
+    subject_swap = next(case for case in result["cases"] if case["mutation_id"] == "subject_swap")
+    assert subject_swap["stable"] is False
+    assert subject_swap["accepted"] is True
+    assert result["passed"] is True
 
 
 def test_low_fleiss_kappa_triggers_stop_condition(tmp_path):
@@ -333,8 +492,13 @@ def test_fewer_than_five_judge_models_is_rejected(tmp_path):
 
 
 def test_explicit_live_roles_pin_the_user_mandated_panel(tmp_path):
-    """2026-06-10 panel: blind = deepseek-chat + fable + qwen-max,
-    arbiter = deepseek-reasoner, prosecutor = opus (gpt-codex benched)."""
+    """2026-06-11 multipart-fix panel: production-aligned blind + cross-vendor CLI.
+
+    Both weak Qwen variants (qwen-max / qwen-turbo) are dropped — they are not
+    the production grading models and were the noisy raters. Blind is the three
+    reliable HTTP judges; Opus arbitrates; Codex/GPT prosecutes (per-point, so
+    its abstention is monitored via adversarial_prosecutor_abstained).
+    """
     from scripts.run_luban_m35_ai_governed_gold_labeling import (
         LIVE_MODEL_ROLES,
         run_labeling,
@@ -343,11 +507,11 @@ def test_explicit_live_roles_pin_the_user_mandated_panel(tmp_path):
     live_ids = [*LIVE_MODEL_ROLES["blind_panel"], LIVE_MODEL_ROLES["arbiter"],
                 LIVE_MODEL_ROLES["adversarial_prosecutor"]]
     assert sorted(live_ids) == [
+        "claude-opus-4-8",
         "deepseek-chat",
         "deepseek-reasoner",
-        "fable",
-        "opus",
-        "qwen-max",
+        "gpt-codex",
+        "qwen-plus",
     ]
     judge_fns = {model_id: _term_judge for model_id in live_ids}
     answers_path, manifest_path, _ = _build_slice(tmp_path)
@@ -359,10 +523,12 @@ def test_explicit_live_roles_pin_the_user_mandated_panel(tmp_path):
         explicit_roles=LIVE_MODEL_ROLES,
     )
     roles = result["manifest"]["model_roles"]
-    assert roles["blind_panel"] == ["deepseek-chat", "fable", "qwen-max"]
-    assert roles["arbiter"] == "deepseek-reasoner"
-    assert roles["adversarial_prosecutor"] == "opus"
-    assert "gpt-codex" not in json.dumps(roles)
+    assert sorted(roles["blind_panel"]) == ["deepseek-chat", "deepseek-reasoner", "qwen-plus"]
+    assert roles["arbiter"] == "claude-opus-4-8"
+    assert roles["adversarial_prosecutor"] == "gpt-codex"
+    # Both weak Qwen variants dropped from every role.
+    assert "qwen-max" not in json.dumps(roles)
+    assert "qwen-turbo" not in json.dumps(roles)
 
 
 def test_explicit_roles_must_cover_exactly_the_judge_set(tmp_path):
@@ -598,3 +764,99 @@ def test_pipeline_source_has_no_network_imports():
     source = SCRIPT.read_text(encoding="utf-8")
     for banned in ("requests", "httpx", "urllib", "aiohttp", "websocket", "http.client", "socket"):
         assert banned not in source, f"network-capable token {banned!r} found in pipeline source"
+
+
+def test_checkpoint_resume_skips_completed_rows(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
+
+    answers_path, manifest_path, _ = _build_slice(tmp_path)
+    output_dir = tmp_path / "out"
+
+    calls = {"n": 0}
+
+    def counting_judge(point, student_answer, official_anchor):
+        calls["n"] += 1
+        return _term_judge(point, student_answer, official_anchor)
+
+    first = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns={f"stub-judge-{i}": counting_judge for i in range(1, 6)},
+        output_dir=output_dir,
+    )
+    assert calls["n"] > 0
+    assert (output_dir / "row_checkpoint.jsonl").read_text(encoding="utf-8").strip()
+
+    # Identical config -> every row resumes from the checkpoint, so a judge that
+    # would explode is never invoked, and the manifest is reproduced.
+    def exploding_judge(point, student_answer, official_anchor):
+        raise AssertionError("resume must not re-judge a checkpointed row")
+
+    second = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns={f"stub-judge-{i}": exploding_judge for i in range(1, 6)},
+        output_dir=output_dir,
+    )
+    assert second["manifest"]["row_count"] == first["manifest"]["row_count"]
+    assert second["manifest"]["gold_row_count"] == first["manifest"]["gold_row_count"]
+
+
+def test_checkpoint_config_change_does_not_resume_stale_rows(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
+
+    answers_path, manifest_path, _ = _build_slice(tmp_path)
+    output_dir = tmp_path / "out"
+
+    run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns=_stub_judges(),
+        output_dir=output_dir,
+    )
+
+    # A different panel (new model ids) changes the fingerprint; the stale
+    # checkpoint must be ignored so incompatible rows are never silently reused.
+    calls = {"n": 0}
+
+    def counting_judge(point, student_answer, official_anchor):
+        calls["n"] += 1
+        return _term_judge(point, student_answer, official_anchor)
+
+    run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns={f"other-judge-{i}": counting_judge for i in range(1, 6)},
+        output_dir=output_dir,
+    )
+    assert calls["n"] > 0
+
+
+def test_checkpoint_tolerates_torn_final_line(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
+
+    answers_path, manifest_path, _ = _build_slice(tmp_path)
+    output_dir = tmp_path / "out"
+
+    first = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns=_stub_judges(),
+        output_dir=output_dir,
+    )
+    checkpoint = output_dir / "row_checkpoint.jsonl"
+    checkpoint.write_text(
+        checkpoint.read_text(encoding="utf-8") + '{"answer_id": "x", "outcome": {tru',
+        encoding="utf-8",
+    )
+
+    def exploding_judge(point, student_answer, official_anchor):
+        raise AssertionError("intact checkpointed rows must still resume")
+
+    second = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns={f"stub-judge-{i}": exploding_judge for i in range(1, 6)},
+        output_dir=output_dir,
+    )
+    assert second["manifest"]["row_count"] == first["manifest"]["row_count"]
