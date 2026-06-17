@@ -1,0 +1,330 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "topic_id": "roof_membrane_bulge_repair",
+  "title": "屋面卷材防水 · 起鼓割补",
+  "taxonomy_ref": "1A434000",
+  "visual_baseline": {
+    "path": "artifacts/luban_case_family_assets/F16/F16_roof_waterproofing_micro_lesson_card_v1.html",
+    "role": "v0 visual baseline only"
+  },
+  "authority": {
+    "judging_artifact_id": "Q18-1A434000::qga_v0_20260604",
+    "judging_authority_label": "培训机构(佑森)教研估分，非官方阅卷",
+    "source_boundary": "本卡为母题图解训练卡；图形为教学示意，不冒充规范详图。数值、尺寸、验收时间等正式版本必须由母题包 source_ref 签发。",
+    "student_boundary": "这是培训机构教研的估分讲解，不是官方阅卷；图为教学示意，具体数值以教材和规范为准。"
+  },
+  "learning_goal": "学生能把“起鼓割补”从一句泛泛的修补，拆成可得分的施工闭环：识别起鼓、割开排气、干燥清理、基层处理、嵌填修补、增铺附加层、重铺封严、检验闭环。",
+  "scenario": {
+    "caption": "卷材与基层之间夹气或夹水，受热膨胀形成鼓泡。修补的核心不是“盖一层新卷材”，而是先释放病因，再恢复层间连续防水。",
+    "diagram_type": "roof_section_step_reveal",
+    "diagram_disclaimer": "确定性 SVG 剖面示意；用于教学理解和答题表达，不是规范节点详图。"
+  },
+  "why_lose_points_html": "很多答案会写“修补防水层”“重新铺卷材”，方向没错，但阅卷看的是<b>病因有没有处理</b>和<b>防水闭环有没有恢复</b>。漏掉“排气干燥、基层处理、附加层、封严检验”，就容易变成弱表达。",
+  "steps": [
+    {
+      "id": "identify_bulge",
+      "no": 1,
+      "tab": "识别起鼓",
+      "action": "先识别起鼓，不要直接写“加强维修”",
+      "brief": "起鼓的本质是卷材下方气体或水汽顶起防水层。答题时先说清楚病害识别，后面措施才有对象。",
+      "why": "如果题干给的是鼓泡、空鼓、隆起，答案不能只写泛泛维修，要先把病害对象说出来。",
+      "scoring_expression": "检查并确认卷材防水层起鼓部位，分析为基层潮湿、气体未排尽或粘结不牢等原因造成。",
+      "common_loss": "只写“修补防水层”“加强处理”，没有说明起鼓对象和修补逻辑，阅卷时很难给到措施分。",
+      "exam_binding": {
+        "kind": "teaching_step",
+        "score_point_id": null,
+        "label": "场景识别",
+        "max_score": null,
+        "source_refs": ["diagram_microlesson_compile::roof_membrane_bulge_repair#step1"]
+      }
+    },
+    {
+      "id": "cut_bulge",
+      "no": 2,
+      "tab": "割开鼓泡",
+      "action": "沿鼓泡割开，先释放内部气体",
+      "brief": "割补不是整片撕掉。先沿鼓泡作十字形或丁字形切口，让鼓泡内部气体和水汽有出口。",
+      "why": "不先割开排气，直接覆盖新卷材，内部气体仍会继续顶起，修了也会再鼓。",
+      "scoring_expression": "沿起鼓部位割开，使鼓泡内部气体或水汽排出。",
+      "common_loss": "只写“切除鼓泡”但没写排气目的，容易被判为措施不完整。",
+      "exam_binding": {
+        "kind": "signed_candidate",
+        "score_point_id": "P10",
+        "label": "放气",
+        "max_score": "0.75",
+        "source_refs": ["Q18-1A434000::qga_v0_20260604#P10"]
+      }
+    },
+    {
+      "id": "vent_dry",
+      "no": 3,
+      "tab": "排气干燥",
+      "action": "排气、干燥，这是很多人漏掉的关键",
+      "brief": "起鼓和潮气有关，所以修补前必须把气、水汽和潮湿基层处理掉。否则新层只是把问题盖住。",
+      "why": "“排气干燥”比“处理一下”更容易得分，因为它说出了起鼓病因和修补前提。",
+      "scoring_expression": "排尽气体和水汽，使基层及卷材下表面充分干燥。",
+      "common_loss": "写“清理干净”但不写排气、干燥，无法体现你知道起鼓原因。",
+      "exam_binding": {
+        "kind": "signed_candidate",
+        "score_point_id": "P10",
+        "label": "擦干 / 排气",
+        "max_score": "0.75",
+        "source_refs": ["Q18-1A434000::qga_v0_20260604#P10"]
+      }
+    },
+    {
+      "id": "clean_prime",
+      "no": 4,
+      "tab": "基层处理",
+      "action": "清理基层，再补刷基层处理剂",
+      "brief": "卷材能不能粘牢，取决于基层是否干净、干燥，以及处理剂是否到位。",
+      "why": "直接热熔或粘贴新卷材，会漏掉“基层处理”这个阅卷很爱看的过程点。",
+      "scoring_expression": "清除旧胶结料和杂物，清理、干燥基层，必要时补刷基层处理剂。",
+      "common_loss": "只写“重新铺贴卷材”，没有基层清理和处理剂，答案像结果句，不像施工措施。",
+      "exam_binding": {
+        "kind": "signed_candidate",
+        "score_point_id": "P10",
+        "label": "清除旧胶结料",
+        "max_score": "0.75",
+        "source_refs": ["Q18-1A434000::qga_v0_20260604#P10"]
+      }
+    },
+    {
+      "id": "fill_repair",
+      "no": 5,
+      "tab": "嵌填修补",
+      "action": "嵌填修补，把基层缺陷先补平",
+      "brief": "基层有空鼓、凹陷或裂缝时，必须先补平。否则上面的附加层和新卷材仍然没有稳定支撑。",
+      "why": "防水不是只看最上面那层卷材。基层不稳，上面再贴也不稳。",
+      "scoring_expression": "对切开后暴露的凹陷、裂缝或缺陷进行嵌填、修补、找平处理。",
+      "common_loss": "把“嵌填修补”和“铺附加层”混成一句，容易漏掉基层缺陷处理。",
+      "exam_binding": {
+        "kind": "teaching_step",
+        "score_point_id": null,
+        "label": "基层缺陷处理",
+        "max_score": null,
+        "source_refs": ["diagram_microlesson_compile::roof_membrane_bulge_repair#step5"]
+      }
+    },
+    {
+      "id": "reinforcement_layer",
+      "no": 6,
+      "tab": "附加层",
+      "action": "增铺附加层，要盖过病害边缘",
+      "brief": "附加层的价值是跨过原损伤边缘，把薄弱区包住。它不是随便贴一块小补丁。",
+      "why": "附加层盖不够，等于薄弱区还露在外面；它要盖过病害边缘把弱点包住，这正是修补牢不牢的关键。",
+      "scoring_expression": "在修补部位增铺附加层，附加层应覆盖并超出原起鼓或切割边缘一定范围。",
+      "common_loss": "只写“加铺卷材”，没有“附加层”和“覆盖边缘范围”的意识。",
+      "exam_binding": {
+        "kind": "teaching_step",
+        "score_point_id": null,
+        "label": "附加层覆盖范围",
+        "max_score": null,
+        "source_refs": ["diagram_microlesson_compile::roof_membrane_bulge_repair#step6"]
+      }
+    },
+    {
+      "id": "new_membrane_seal",
+      "no": 7,
+      "tab": "新卷材封严",
+      "action": "热熔或粘贴新卷材，搭接封严",
+      "brief": "新卷材不是贴上就完。搭接、压实、封边，是防水修补最终能不能闭合的关键。",
+      "why": "很多学生会写“重新铺卷材”，但漏“搭接封严”。这个词能直接体现防水闭合。",
+      "scoring_expression": "喷灯烘烤软化后分层剥开旧卷材，铺贴新卷材并压实，与原防水层搭接牢固，边缘和搭接缝应封严。",
+      "common_loss": "写“重新铺贴”但没有分层剥开、搭接、压实、封严，属于方向对但表达不够得分。",
+      "exam_binding": {
+        "kind": "signed_candidate",
+        "score_point_id": "P11",
+        "label": "喷灯烘烤 / 分层剥开 / 重贴新卷材",
+        "max_score": "0.75",
+        "source_refs": ["Q18-1A434000::qga_v0_20260604#P11"]
+      }
+    },
+    {
+      "id": "water_test",
+      "no": 8,
+      "tab": "检验闭环",
+      "action": "最后做蓄水或淋水检验，证明修补有效",
+      "brief": "工程题喜欢考闭环。修补完成后要通过蓄水或淋水检验确认不渗漏。",
+      "why": "这一步把“施工措施”闭合成“质量验收”。案例题里经常就是最后的闭环表达。",
+      "scoring_expression": "修补完成后进行蓄水或淋水试验，检查确认无渗漏后方可验收。",
+      "common_loss": "答到铺贴新卷材就停，缺少检验验收，容易丢掉质量闭环。",
+      "exam_binding": {
+        "kind": "teaching_step",
+        "score_point_id": null,
+        "label": "质量检验闭环",
+        "max_score": null,
+        "source_refs": ["diagram_microlesson_compile::roof_membrane_bulge_repair#step8"]
+      }
+    }
+  ],
+  "scoring_points": [
+    {
+      "id": "P10",
+      "tier": "exact_required",
+      "max_score": "0.75",
+      "keywords": ["放气", "擦干", "清除旧胶结料"],
+      "source_ref": "Q18-1A434000::qga_v0_20260604",
+      "used_by_steps": ["cut_bulge", "vent_dry", "clean_prime"]
+    },
+    {
+      "id": "P11",
+      "tier": "high_risk_review",
+      "max_score": "0.75",
+      "keywords": ["喷灯烘烤", "分层剥开", "重贴新卷材"],
+      "source_ref": "Q18-1A434000::qga_v0_20260604",
+      "used_by_steps": ["new_membrane_seal"]
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "weak_repair",
+      "text": "修补防水层，加强处理。",
+      "error_code": "E03",
+      "why": "表达过泛，缺少病因处理和具体工序。",
+      "jump_step_id": "cut_bulge"
+    },
+    {
+      "id": "direct_cover",
+      "text": "在鼓泡处直接加铺一层新卷材。",
+      "error_code": "E06",
+      "why": "程序顺序错误，漏排气、干燥、基层处理和新旧搭接闭合。",
+      "jump_step_id": "vent_dry"
+    },
+    {
+      "id": "missing_reinforcement",
+      "text": "割开晾干后重新铺贴。",
+      "error_code": "E03",
+      "why": "漏附加层和搭接封严，答案方向对但不够采分。",
+      "jump_step_id": "reinforcement_layer"
+    },
+    {
+      "id": "no_test",
+      "text": "重贴卷材后结束。",
+      "error_code": "E06",
+      "why": "缺少蓄水或淋水检验，工程闭环不完整。",
+      "jump_step_id": "water_test"
+    }
+  ],
+  "warm_correction_html": "<b>你已经抓住了“割补”这个大方向，这很好。</b>真正拉开分差的是四个动词：<b>放气、干燥、附加、封严</b>。答题时先处理病因，再恢复防水闭合，最后检验不渗漏。这套顺序记住，遇到变题也不会乱。",
+  "memory_hook": "先放气干燥，再附加封严，最后试水闭环。",
+  "narration": {
+    "kind": "subtitle_autoplay",
+    "voice": "teacher_warm",
+    "total_seconds_hint": 82,
+    "boundary": "字幕式旁白，文本由本 schema 提供，不接 TTS、不在前端临场生成。",
+    "opening": {
+      "seconds": 7,
+      "script": "这题不是背八个动作，是看你有没有把起鼓修补的闭环写完整：先治病因，再恢复防水，最后检验不渗漏。跟我走一遍。"
+    },
+    "steps": [
+      {
+        "step_id": "identify_bulge",
+        "seconds": 9,
+        "script": "先别急着写“维修”。你看这块鼓起来，是卷材下面的气和水汽顶起来的。答题第一句，先把“起鼓”这个病害识别出来，后面的措施才有对象。"
+      },
+      {
+        "step_id": "cut_bulge",
+        "seconds": 10,
+        "script": "处理它不是整片撕掉。沿着鼓泡割一个十字或丁字口，先让里面的气体和水汽有地方跑出来。不放气就盖新卷材，过几天还会再鼓。"
+      },
+      {
+        "step_id": "vent_dry",
+        "seconds": 9,
+        "script": "割开之后最关键、也是最多人漏的一步：排气、干燥。把气和水汽排尽，让基层和卷材底面彻底干。写“排气干燥”比写“清理一下”更得分。"
+      },
+      {
+        "step_id": "clean_prime",
+        "seconds": 9,
+        "script": "接着清理基层。把旧胶结料和杂物清掉，基层干净又干燥，再补刷一道基层处理剂。新卷材粘不粘得牢，全看这一步。"
+      },
+      {
+        "step_id": "fill_repair",
+        "seconds": 9,
+        "script": "如果割开后发现基层有凹陷、裂缝，要先嵌填修补找平。基层不稳，上面的附加层和新卷材贴得再好也站不住。"
+      },
+      {
+        "step_id": "reinforcement_layer",
+        "seconds": 10,
+        "script": "现在增铺附加层。注意它要盖过原来病害的边缘，把薄弱区整个包住，不是随手贴一小块补丁。这一步决定修补牢不牢。"
+      },
+      {
+        "step_id": "new_membrane_seal",
+        "seconds": 10,
+        "script": "再铺新卷材。喷灯烘烤软化、分层剥开旧层，铺贴压实，和原防水层搭接，边缘和搭接缝都要封严。防水能不能闭合就在这里。"
+      },
+      {
+        "step_id": "water_test",
+        "seconds": 9,
+        "script": "最后别忘了闭环。修完做蓄水或淋水试验，确认不渗漏才算验收通过。案例题常常就考你这最后一句。"
+      }
+    ],
+    "error_reveals": [
+      {
+        "error_id": "weak_repair",
+        "jump_step_id": "cut_bulge",
+        "seconds": 7,
+        "script": "写“处理起鼓、加强维修”太泛了。阅卷看的是你有没有具体动作：先沿鼓泡割开放气。没有工序，措施分很难给。",
+        "correction_hint": "先写出“割开放气”这个具体动作。"
+      },
+      {
+        "error_id": "direct_cover",
+        "jump_step_id": "vent_dry",
+        "seconds": 8,
+        "script": "直接加铺一层新卷材，是顺序错了。底下的气和水汽没排、基层没干，盖上去过阵子照样鼓，等于没修。",
+        "correction_hint": "先排气、干燥、处理基层，再铺新卷材。"
+      },
+      {
+        "error_id": "missing_reinforcement",
+        "jump_step_id": "reinforcement_layer",
+        "seconds": 7,
+        "script": "割开晾干就重铺，少了附加层。附加层要盖过病害边缘、把薄弱区包住，没有它，搭接处最容易再渗。",
+        "correction_hint": "补上附加层，并盖过病害边缘。"
+      },
+      {
+        "error_id": "no_test",
+        "jump_step_id": "water_test",
+        "seconds": 7,
+        "script": "铺完就结束，闭环没收尾。最后那句蓄水或淋水检验，是用来证明真的不渗漏，漏了它就白白丢分。",
+        "correction_hint": "结尾加一句蓄水或淋水检验。"
+      }
+    ],
+    "practice_feedback": {
+      "correct_script": "对。你抓住了核心：割开排气只是开头，真正得分的是基层处理、附加层覆盖和搭接封严这条防水闭环。",
+      "incorrect_script": "再想想。这份答案有割开、排气、干燥，但直接铺了新卷材——漏的是基层处理、附加层和搭接封严这一层闭环。跳回附加层那一步对照一下。"
+    }
+  },
+  "practice": {
+    "kind": "retest_mcq",
+    "title": "复测题：判断漏点",
+    "review_step_id": "reinforcement_layer",
+    "stem": "学生答案：“将鼓泡处割开，排气擦干后直接铺贴新卷材并压实。” 这份答案最可能漏掉哪类关键表达？",
+    "options": [
+      {
+        "id": "A",
+        "text": "漏写起鼓病害识别",
+        "is_correct": false,
+        "feedback": "题干已经给出起鼓，答案也提到鼓泡处割开，主要漏点不在识别。"
+      },
+      {
+        "id": "B",
+        "text": "漏写基层处理、附加层和搭接封严闭合",
+        "is_correct": true,
+        "feedback": "对。它有割开、排气、干燥，但直接铺新卷材，少了基层处理、附加层覆盖和搭接封严。"
+      },
+      {
+        "id": "C",
+        "text": "漏写施工单位责任",
+        "is_correct": false,
+        "feedback": "本题考施工工序和采分表达，不是责任主体判断。"
+      },
+      {
+        "id": "D",
+        "text": "漏写卷材品牌和型号",
+        "is_correct": false,
+        "feedback": "考试通常不要求写品牌型号，核心是工序、病因处理和防水闭合。"
+      }
+    ],
+    "next_action": "答错时跳回 step=6；答对后进入同考点变题。"
+  }
+}

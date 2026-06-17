@@ -1,0 +1,126 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "C01_construction_joint_placement",
+  "template_type": "contrast_pair_reveal_draft",
+  "title": "混凝土施工缝 · 留置与处理(对错对照)",
+  "taxonomy_ref": "1A413040",
+  "_status_note": "schema draft;⑤对比原型第一张;暂无 contrast renderer,先 schema 先行(同 D01 模式)。template_type 用 *_draft 收口,不当 production;body=contrast_items[] 与 steps[]/diagnosis[] 互斥,沿用 luban_diagram_microlesson.v1 不分裂版本。",
+  "authority": {
+    "judging_artifact_id": null,
+    "status": "candidate_teaching_prototype",
+    "judging_authority_label": "培训机构教研估分,非官方阅卷;采分点为候选,未签发",
+    "source_boundary": "采分点与处理要求来自教材/规范常识的教研整理,标 candidate;正式分值/口径须经母题包签发后才升 signed。图为教学示意,非规范节点详图。",
+    "student_boundary": "这是教研讲解,不是官方阅卷;施工缝的具体部位和处理以教材、规范和你的考试大纲为准。"
+  },
+  "student_goal": "把'施工缝'从'随便留一道缝'纠正成可得分的两件事:留在哪(受剪力较小且便于施工),和继续浇筑前怎么处理(清浮浆、凿毛、湿润、铺同配合比砂浆)。",
+  "scenario": {
+    "caption": "案例题常考'指出施工缝留置/处理的不妥之处并写正确做法'。丢分不是不知道有施工缝,是说不清'留在哪'和'接缝怎么处理'。",
+    "diagram_type": "left_wrong_right_correct",
+    "diagram_disclaimer": "左错右对示意图(确定性 SVG,待渲染器);用于答题表达,非规范详图。"
+  },
+  "why_lose_points_html": "很多答案只写'施工缝留置不当'或'处理一下接缝',方向对但<b>没说清部位判据</b>和<b>接缝处理工序</b>,阅卷给不到措施分。拉开分差的就是'受剪力较小且便于施工'+'清浮浆/凿毛/湿润/铺浆'这两组关键词。",
+  "contrast_items": [
+    {
+      "id": "joint_position",
+      "axis": "施工缝留在哪",
+      "wrong": {
+        "text": "凭手感随意留,留在受剪力较大的支座附近或不便施工的部位,不看具体判据。",
+        "loss_display": "位置判据缺失"
+      },
+      "right": {
+        "text": "施工缝留在结构受剪力较小且便于施工的部位(如柱留基础顶面、梁/牛腿下面;梁板留在跨中 1/3 范围内)。",
+        "scoring_expression": "施工缝应留设在结构受剪力较小且便于施工的部位。"
+      },
+      "scoring_point_binding": "SP_position",
+      "role": "candidate"
+    },
+    {
+      "id": "joint_treatment",
+      "axis": "继续浇筑前怎么处理接缝",
+      "wrong": {
+        "text": "接着直接浇筑新混凝土,不处理已硬化的接缝面。",
+        "loss_display": "漏接缝处理工序"
+      },
+      "right": {
+        "text": "继续浇筑前清除水泥薄膜和松动石子/软弱层,凿毛、冲洗并充分湿润(不积水),再铺同配合比水泥砂浆,振捣使新旧结合密实。",
+        "scoring_expression": "继续浇筑前清除浮浆和松动石子、凿毛、充分湿润,并铺设同配合比水泥砂浆后再浇筑。"
+      },
+      "scoring_point_binding": "SP_treatment",
+      "role": "candidate"
+    }
+  ],
+  "scoring_points": [
+    {
+      "id": "SP_position",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "max_score": null,
+      "keywords": ["受剪力较小", "便于施工", "部位"],
+      "source_ref": "diagram_microlesson_compile::construction_joint_placement#position (教研草拟·候选·未签发)",
+      "used_by_items": ["joint_position"]
+    },
+    {
+      "id": "SP_treatment",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "max_score": null,
+      "keywords": ["清除浮浆", "凿毛", "湿润", "同配合比水泥砂浆"],
+      "source_ref": "diagram_microlesson_compile::construction_joint_placement#treatment (教研草拟·候选·未签发)",
+      "used_by_items": ["joint_treatment"]
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "vague_position",
+      "text": "施工缝留置不当/留在合适位置。",
+      "error_code": "E03",
+      "loss_display": "位置判据缺失",
+      "why": "只说'不当/合适'没给判据,阅卷无法判断你是否知道'受剪力较小且便于施工'。",
+      "jump_item_id": "joint_position"
+    },
+    {
+      "id": "skip_treatment",
+      "text": "重新支模直接浇筑后续混凝土。",
+      "error_code": "E06",
+      "loss_display": "漏接缝处理工序",
+      "why": "漏掉接缝处理,新旧混凝土结合不牢,既是质量隐患也丢处理分。",
+      "jump_item_id": "joint_treatment"
+    }
+  ],
+  "warm_correction_html": "<b>你知道'施工缝不能随便留'这个方向是对的。</b>真正得分的是两组词:留在<b>受剪力较小且便于施工</b>的部位、继续浇筑前<b>清浮浆+凿毛+湿润+铺同配合比砂浆</b>。记住这两组,这类'指出不妥+正确做法'的题就稳了。",
+  "memory_hook": "缝留剪力小处,浇前凿毛湿润铺浆。",
+  "practice": {
+    "kind": "retest_mcq",
+    "title": "复测题:判断施工缝处理",
+    "review_item_id": "joint_treatment",
+    "stem": "某柱混凝土施工缝留在基础顶面,继续浇筑前直接浇了新混凝土。下列哪项最准确?",
+    "options": [
+      {"id": "A", "text": "做法正确,位置和处理都没问题。", "is_correct": false, "feedback": "位置对,但漏了接缝处理。"},
+      {"id": "B", "text": "位置妥当,但继续浇筑前应清浮浆、凿毛、湿润并铺同配合比砂浆。", "is_correct": true, "feedback": "对——位置在受剪力较小部位妥当,差的是接缝处理工序。"},
+      {"id": "C", "text": "位置不妥,应改留到别处。", "is_correct": false, "feedback": "柱施工缝留在基础顶面本就妥当,位置不是问题;真正缺的是接缝处理。"}
+    ],
+    "next_action": "再练 1 道'指出不妥之处并写正确做法'的施工缝案例小问。"
+  },
+  "narration": {
+    "voice_hint": "Tingting",
+    "mode": "prerendered_audio",
+    "_note": "旁白按 narration-spec.md 总纲从卡字段【派生】(不手写),离线预生成音频存档;运行时 WebView 拉取播放(非实时 TTS)。本字段只配音色。"
+  },
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title", "scenario.caption", "why_lose_points_html",
+      "contrast_items[].axis", "contrast_items[].wrong.text", "contrast_items[].wrong.loss_display",
+      "contrast_items[].right.text", "contrast_items[].right.scoring_expression",
+      "common_errors[].text", "common_errors[].loss_display", "common_errors[].why",
+      "warm_correction_html", "memory_hook", "practice", "authority.student_boundary"
+    ],
+    "_narration_note": "旁白文本由 narration-spec 总纲从上列白名单字段(caption/contrast_items/scoring_points keywords/warm/hook)派生,故天然 student-safe;不另列。",
+    "internal_only_fields": [
+      "scoring_points[].id", "scoring_points[].source_ref", "scoring_points[].kind",
+      "contrast_items[].scoring_point_binding", "common_errors[].error_code",
+      "authority.judging_artifact_id", "authority.source_boundary", "_status_note",
+      "narration.voice_hint", "narration.mode", "narration._note"
+    ],
+    "student_safe_note": "学生端只渲染 student_safe_fields;错因用 loss_display 的汉语名(如'位置判据缺失'),绝不渲染 error_code(E03/E06)、scoring_point id(SP_*)、source_ref、kind 等内部词;internal_only 只进 HTML 注释或后台。"
+  }
+}

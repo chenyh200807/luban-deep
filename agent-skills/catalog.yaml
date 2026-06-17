@@ -81,6 +81,10 @@ skills:
     path: agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md
     lane: frontend
     expected_use: conditional
+  - name: luban-diagram-microlesson
+    path: agent-skills/luban-diagram-microlesson/SKILL.md
+    lane: luban
+    expected_use: conditional
   - name: luban-rich-leaf-compiler
     path: agent-skills/luban-rich-leaf-compiler/SKILL.md
     lane: luban
@@ -88,4 +92,8 @@ skills:
   - name: wechat-tutorbot-real-entry-qa
     path: agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md
     lane: wechat-qa
+    expected_use: conditional
+  - name: external-tool-absorption-boundary
+    path: agent-skills/external-tool-absorption-boundary/SKILL.md
+    lane: tooling
     expected_use: conditional

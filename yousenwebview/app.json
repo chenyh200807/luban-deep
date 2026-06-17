@@ -35,7 +35,8 @@
         "pages/billing/billing",
         "pages/practice/practice",
         "pages/assessment/assessment",
-        "pages/legal/terms"
+        "pages/legal/terms",
+        "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },
     {

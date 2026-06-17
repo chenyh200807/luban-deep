@@ -1,0 +1,216 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "template_type": "answer_point_diagnosis_draft",
+  "topic_id": "concrete_slab_curing_crack_diagnosis",
+  "title": "现浇楼板表面龟裂 · 养护与处理采分诊断",
+  "taxonomy_ref": "1A415000",
+  "provenance": {
+    "kind": "candidate_teaching_prototype",
+    "note": "本卡采分点为教研草拟，未绑定已签发判分工件；仅用于验证 answer_point_diagnosis 模板的字段通用性，不得作为正式评分依据。"
+  },
+  "authority": {
+    "judging_artifact_id": null,
+    "judging_authority_label": "培训机构教研草拟估分，非官方阅卷",
+    "source_boundary": "采分点与判读为教研草拟原型(candidate_teaching_prototype)；尚无 source_ref 指向已签发判分工件。分值、关键词、规范天数等正式版本必须由上游母题包签发后再替换本草案。",
+    "student_boundary": "这是培训机构教研的草拟讲解，不是官方阅卷；判读用于帮你看清表达差距，具体以教材和规范为准。"
+  },
+  "learning_goal": "学生能把“混凝土楼板龟裂养护与处理”从一句泛泛的“盖膜抹平”，对照采分骨架看清自己命中了哪几点、哪点只写了一半、哪点完全漏掉，并知道下一步怎么补。",
+  "question": {
+    "case_caption": "某现浇钢筋混凝土楼板浇筑完成后第二天，表面出现不规则龟裂裂缝。",
+    "stem": "施工单位应针对该楼板采取哪些养护和裂缝处理措施？",
+    "stem_disclaimer": "案例题干为教学改写示意，用于演示采分判读，不是某次真题原文。"
+  },
+  "model_answer_skeleton": [
+    {
+      "ref": "A1",
+      "point": "浇筑后及时覆盖并洒水保湿养护，保持表面湿润。",
+      "links_scoring_point": "Pa"
+    },
+    {
+      "ref": "A2",
+      "point": "按规范保证养护时间与温湿度，养护不少于规定天数。",
+      "links_scoring_point": "Pb"
+    },
+    {
+      "ref": "A3",
+      "point": "对已出现裂缝先检查、分析判断，再按规范方法修补处理。",
+      "links_scoring_point": "Pc"
+    },
+    {
+      "ref": "A4",
+      "point": "分析龟裂成因（养护不到位、失水过快、塑性收缩等），落实整改。",
+      "links_scoring_point": "Pd"
+    }
+  ],
+  "scoring_points": [
+    {
+      "id": "Pa",
+      "tier": "exact_required",
+      "max_score": "0.50",
+      "keywords": ["覆盖", "洒水", "保湿养护"],
+      "kind": "candidate_teaching_prototype",
+      "source_ref": "diagram_microlesson_compile::concrete_slab_curing_crack#Pa"
+    },
+    {
+      "id": "Pb",
+      "tier": "exact_required",
+      "max_score": "0.50",
+      "keywords": ["养护时间", "不少于", "温湿度"],
+      "kind": "candidate_teaching_prototype",
+      "source_ref": "diagram_microlesson_compile::concrete_slab_curing_crack#Pb"
+    },
+    {
+      "id": "Pc",
+      "tier": "high_risk_review",
+      "max_score": "0.50",
+      "keywords": ["检查", "分析裂缝", "按规范修补"],
+      "kind": "candidate_teaching_prototype",
+      "source_ref": "diagram_microlesson_compile::concrete_slab_curing_crack#Pc"
+    },
+    {
+      "id": "Pd",
+      "tier": "list_rule",
+      "max_score": "0.50",
+      "keywords": ["原因分析", "失水过快", "整改"],
+      "kind": "candidate_teaching_prototype",
+      "source_ref": "diagram_microlesson_compile::concrete_slab_curing_crack#Pd"
+    }
+  ],
+  "student_sample": {
+    "answer_text": "浇筑完马上盖上塑料薄膜并洒水保湿，过两天发现裂缝就用水泥砂浆抹平。",
+    "note": "示例作答，用于演示命中 / 部分命中 / 漏点的判读，非真实考生答卷。"
+  },
+  "diagnosis": [
+    {
+      "scoring_point_id": "Pa",
+      "display_label": "及时覆盖保湿养护",
+      "status": "hit",
+      "matched_span": "浇筑完马上盖上塑料薄膜并洒水保湿",
+      "gap": "",
+      "student_comment": "这一点你写到位了：覆盖加洒水保湿都说清楚了，养护的第一步抓住了。"
+    },
+    {
+      "scoring_point_id": "Pb",
+      "display_label": "养护时间与温湿度",
+      "status": "miss",
+      "matched_span": "",
+      "gap": "没有写养护持续时间和温湿度控制，阅卷看不到“养护不少于规定天数”。",
+      "student_comment": "差一句最关键的：养护要保证天数（不少于规定时间），这点漏了最可惜。"
+    },
+    {
+      "scoring_point_id": "Pc",
+      "display_label": "裂缝检查与规范修补",
+      "status": "partial",
+      "matched_span": "用水泥砂浆抹平",
+      "gap": "提到了修补，但只写“抹平”，没有先检查、分析裂缝再按规范方法处理，表达偏弱。",
+      "student_comment": "方向对，你想到要修补。再补一步：先检查判断裂缝，再按规范方法修补，分就稳了。"
+    },
+    {
+      "scoring_point_id": "Pd",
+      "display_label": "成因分析与整改",
+      "status": "miss",
+      "matched_span": "",
+      "gap": "没有分析龟裂成因（养护不到位、失水过快等），少了原因到整改的闭环。",
+      "student_comment": "最后一块没写：说一句裂缝是怎么来的、怎么整改，案例题很爱看这层闭环。"
+    }
+  ],
+  "diagnosis_summary": {
+    "encouragement": "你已经抓住了养护的开头，就差“养护时间、先查再修、说清成因”这三步。补齐它们，遇到变题也不慌。"
+  },
+  "common_errors": [
+    {
+      "id": "patch_without_diagnose",
+      "text": "发现裂缝直接用水泥砂浆抹平。",
+      "error_code": "E03",
+      "why": "未先检查裂缝、分析原因就直接修补，处理不规范，容易被判表达不完整。",
+      "links_scoring_point": "Pc",
+      "correction_hint": "先检查、判断裂缝原因，再按规范方法修补。"
+    },
+    {
+      "id": "skip_curing_time",
+      "text": "盖膜洒水后就结束养护。",
+      "error_code": "E06",
+      "why": "缺少养护时间和温湿度控制，养护闭环不完整。",
+      "links_scoring_point": "Pb",
+      "correction_hint": "补一句养护不少于规定天数、保持温湿度。"
+    }
+  ],
+  "warm_correction_html": "<b>你已经把养护的第一步写对了，这很好。</b>真正拉开分差的是三件事：<b>养护要够时间、修补前先查清原因、答完说清成因和整改</b>。把这三步补上，这道题就从“方向对”变成“写得到分”。",
+  "memory_hook": "先保湿，再够时间，查清原因再修补，最后说成因。",
+  "practice": {
+    "kind": "retest_mcq",
+    "title": "复测题：判断漏点",
+    "stem": "上面这份答案“盖膜洒水保湿后，裂缝直接用砂浆抹平”，最主要漏掉了哪类得分表达？",
+    "options": [
+      {
+        "id": "A",
+        "text": "漏写覆盖和保湿养护",
+        "is_correct": false,
+        "feedback": "这点答案已经写到了（盖薄膜并洒水保湿），不是主要漏点。"
+      },
+      {
+        "id": "B",
+        "text": "漏写养护时间，且修补未先检查分析原因",
+        "is_correct": true,
+        "feedback": "对。它有覆盖保湿，但缺养护天数，修补也只写“抹平”，没有先查原因再按规范处理。"
+      },
+      {
+        "id": "C",
+        "text": "漏写施工单位资质",
+        "is_correct": false,
+        "feedback": "本题考养护与裂缝处理工序，不是资质判断。"
+      },
+      {
+        "id": "D",
+        "text": "漏写混凝土强度等级",
+        "is_correct": false,
+        "feedback": "题干未要求写强度等级，核心是养护闭环和裂缝规范处理。"
+      }
+    ],
+    "next_action": "答对后进入同考点变题；答错时回到“养护时间与裂缝检查”两点对照。"
+  },
+  "evidence_refs": [
+    {
+      "ref": "diagram_microlesson_compile::concrete_slab_curing_crack",
+      "role": "candidate_teaching_prototype",
+      "note": "教研草拟编译来源，未签发；正式上线前需替换为已签发判分工件 source_ref。"
+    }
+  ],
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title",
+      "authority.student_boundary",
+      "question.case_caption",
+      "question.stem",
+      "model_answer_skeleton[].point",
+      "student_sample.answer_text",
+      "diagnosis[].display_label",
+      "diagnosis[].status",
+      "diagnosis[].matched_span",
+      "diagnosis[].gap",
+      "diagnosis[].student_comment",
+      "diagnosis_summary.encouragement",
+      "common_errors[].text",
+      "common_errors[].correction_hint",
+      "warm_correction_html",
+      "memory_hook",
+      "practice.stem",
+      "practice.options[].text",
+      "practice.options[].feedback"
+    ],
+    "internal_only_fields": [
+      "provenance",
+      "authority.judging_artifact_id",
+      "authority.source_boundary",
+      "scoring_points[].id",
+      "scoring_points[].source_ref",
+      "scoring_points[].kind",
+      "diagnosis[].scoring_point_id",
+      "common_errors[].error_code",
+      "common_errors[].links_scoring_point",
+      "evidence_refs",
+      "rendering_contract"
+    ],
+    "boundary_note": "学生端渲染只允许读取 student_safe_fields；internal_only_fields（含 source_ref / 采分点 id / error_code / schema 内部结构）一律不得出现在学生可见文本中。"
+  }
+}

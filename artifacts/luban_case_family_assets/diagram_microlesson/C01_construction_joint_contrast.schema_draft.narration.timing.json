@@ -1,0 +1,42 @@
+{
+  "audio": "C01_construction_joint_contrast.schema_draft.narration.mp3",
+  "totalSec": 66.186,
+  "derived_from": "fields",
+  "segments": [
+    {
+      "id": "opening",
+      "anchor": "why",
+      "text": "案例题常考'指出施工缝留置/处理的不妥之处并写正确做法'。丢分不是不知道有施工缝,是说不清'留在哪'和'接缝怎么处理'。我们一个一个看。",
+      "startSec": 0,
+      "durSec": 13.441
+    },
+    {
+      "id": "axis_joint_position",
+      "anchor": "item:joint_position",
+      "text": "先看施工缝留在哪。常见丢分是位置判据缺失;记住要写:施工缝应留设在结构受剪力较小且便于施工的部位。",
+      "startSec": 13.941,
+      "durSec": 11.334
+    },
+    {
+      "id": "axis_joint_treatment",
+      "anchor": "item:joint_treatment",
+      "text": "再看继续浇筑前怎么处理接缝。常见丢分是漏接缝处理工序;记住要写:继续浇筑前清除浮浆和松动石子、凿毛、充分湿润,并铺设同配合比水泥砂浆后再浇筑。",
+      "startSec": 25.775,
+      "durSec": 16.844
+    },
+    {
+      "id": "scoring",
+      "anchor": "scoring",
+      "text": "这道题的采分关键就这几组词:受剪力较小、便于施工、部位、清除浮浆、凿毛、湿润、同配合比水泥砂浆。写到了就稳。",
+      "startSec": 43.119,
+      "durSec": 13.269
+    },
+    {
+      "id": "closing",
+      "anchor": "wrap",
+      "text": "把这两组采分词记牢,这类题就稳了。记住:缝留剪力小处,浇前凿毛湿润铺浆。",
+      "startSec": 56.888,
+      "durSec": 8.498
+    }
+  ]
+}

@@ -54,6 +54,12 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   rollback, and post-launch verification workflow.
 - `luban-rich-leaf-compiler`: RichLeafArtifact / 2026 source compilation /
   review queue / runtime supply candidate workflow.
+- `luban-diagram-microlesson`: 图解微课卡 authoring / 确定性 renderer / 一屏一重点
+  翻页 deck UX / 单一权威边界 / web-view 沙盒 / 零依赖 CDP 验收 workflow.
+- `external-tool-absorption-boundary`: adopting/upgrading a plugin, marketplace skill,
+  gstack, CLI, MCP, or shared hook — audit + neutralize opinionated defaults
+  (auto-commit, CLAUDE.md injection, blocking hooks, telemetry) so they never
+  override single authority, branch discipline, or register-before-use.
 
 Keep `AGENTS.md` as the hard-gate index. Put long procedures and reusable
 checklists here so project entry files stay thin.
@@ -104,7 +110,8 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 - Ground in sources: `deeptutor-source-grounded-change`
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
-  `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`
+  `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
+  `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
   `luban-rich-leaf-compiler`
@@ -116,6 +123,7 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
   `deeptutor-observability-gate`
 - Version and ship: `deeptutor-git-workflow-gate`,
   `deeptutor-release-launch-gate`
+- Tooling and absorption: `external-tool-absorption-boundary`
 
 ## External Skill Absorption Boundary
 
