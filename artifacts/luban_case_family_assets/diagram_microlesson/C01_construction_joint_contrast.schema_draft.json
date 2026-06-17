@@ -101,6 +101,11 @@
     ],
     "next_action": "再练 1 道'指出不妥之处并写正确做法'的施工缝案例小问。"
   },
+  "narration": {
+    "voice_hint": "Tingting",
+    "mode": "prerendered_audio",
+    "_note": "旁白按 narration-spec.md 总纲从卡字段【派生】(不手写),离线预生成音频存档;运行时 WebView 拉取播放(非实时 TTS)。本字段只配音色。"
+  },
   "rendering_contract": {
     "student_safe_fields": [
       "title", "scenario.caption", "why_lose_points_html",
@@ -109,10 +114,12 @@
       "common_errors[].text", "common_errors[].loss_display", "common_errors[].why",
       "warm_correction_html", "memory_hook", "practice", "authority.student_boundary"
     ],
+    "_narration_note": "旁白文本由 narration-spec 总纲从上列白名单字段(caption/contrast_items/scoring_points keywords/warm/hook)派生,故天然 student-safe;不另列。",
     "internal_only_fields": [
       "scoring_points[].id", "scoring_points[].source_ref", "scoring_points[].kind",
       "contrast_items[].scoring_point_binding", "common_errors[].error_code",
-      "authority.judging_artifact_id", "authority.source_boundary", "_status_note"
+      "authority.judging_artifact_id", "authority.source_boundary", "_status_note",
+      "narration.voice_hint", "narration.mode", "narration._note"
     ],
     "student_safe_note": "学生端只渲染 student_safe_fields;错因用 loss_display 的汉语名(如'位置判据缺失'),绝不渲染 error_code(E03/E06)、scoring_point id(SP_*)、source_ref、kind 等内部词;internal_only 只进 HTML 注释或后台。"
   }

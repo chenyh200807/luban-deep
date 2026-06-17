@@ -68,6 +68,15 @@ h1{margin:0;font-size:clamp(22px,3.4vw,34px);line-height:1.2}
 .whycard h2{margin:0 0 7px;font-size:16px;color:#1d4ed8}
 .whycard p{margin:0;color:#33425a;font-size:14px}
 .whycard b{color:var(--ink)}
+.narrator{background:#0f1f3a;border-radius:18px;padding:16px 18px;margin:0 0 18px;color:#eaf1ff;box-shadow:var(--shadow)}
+.narrator .npar{display:flex;align-items:center;gap:14px}
+.narr-play{flex:0 0 auto;min-height:48px;padding:12px 18px;border-radius:13px;border:0;background:var(--progress);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.narr-play.playing{background:#fff;color:var(--progress)}
+.narr-meta{font-size:13px;color:#a9c2ef;line-height:1.5}
+.narr-sub{margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;min-height:48px}
+.narr-track{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.narr-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--progress),var(--correct));border-radius:inherit;transition:width .25s linear}
+.narr-focus{outline:4px solid var(--progress);outline-offset:5px;border-radius:20px}
 .rows{display:grid;gap:18px}
 .crow{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
 .crow-head{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.7)}
@@ -199,6 +208,71 @@ document.querySelectorAll(".option").forEach((btn)=>{
   });
 });
 """
+
+
+# 旁白同步: 读预存音频 + timing, 播到某段就高亮/reveal 对应卡内锚点。无 TTS, 不重新合成。
+_NARR_JS = r"""
+(function(){
+  const tEl = document.getElementById("narrTiming");
+  const audio = document.getElementById("narrAudio");
+  const btn = document.getElementById("narrPlay");
+  if(!tEl || !audio || !btn) return;
+  const timing = JSON.parse(tEl.textContent);
+  const sub = document.getElementById("narrSub");
+  const bar = document.getElementById("narrBar");
+  function elForAnchor(a){
+    if(a === "why") return document.querySelector('[data-anchor="why"]');
+    if(a === "scoring") return document.querySelector('[data-anchor="scoring"]');
+    if(a === "wrap") return document.querySelector('[data-anchor="wrap"]');
+    if(a && a.indexOf("item:") === 0) return document.querySelector('.crow[data-item="'+a.slice(5)+'"]');
+    return null;
+  }
+  let cur = null;
+  function focus(seg){
+    document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus"));
+    const el = elForAnchor(seg.anchor);
+    if(!el) return;
+    el.classList.add("narr-focus");
+    const rc = el.querySelector(".right-card"); if(rc) rc.classList.add("revealed");
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  audio.addEventListener("timeupdate",()=>{
+    const t = audio.currentTime;
+    let seg = timing.segments[0];
+    for(const s of timing.segments){ if(t >= s.startSec) seg = s; }
+    if(seg && seg.id !== cur){ cur = seg.id; if(sub) sub.textContent = seg.text; focus(seg); }
+    if(bar) bar.style.width = (timing.totalSec ? Math.min(100,(t/timing.totalSec)*100) : 0) + "%";
+  });
+  function setBtn(){
+    const playing = !audio.paused;
+    btn.classList.toggle("playing", playing);
+    btn.setAttribute("aria-pressed", playing ? "true" : "false");
+    btn.textContent = playing ? "⏸ 暂停讲解" : (audio.currentTime > 0 ? "▶ 继续讲解" : ("▶ 听老师讲(" + Math.round(timing.totalSec) + " 秒)"));
+  }
+  btn.addEventListener("click",()=>{ if(audio.paused) audio.play(); else audio.pause(); });
+  audio.addEventListener("play", setBtn);
+  audio.addEventListener("pause", setBtn);
+  audio.addEventListener("ended",()=>{
+    document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus"));
+    cur = null; setBtn();
+    if(sub) sub.textContent = "讲完啦——自己点开对照、做下面的复测题试试。";
+  });
+})();
+"""
+
+
+def narration_player(timing: dict[str, Any]) -> str:
+    total = int(round(timing.get("totalSec") or 0))
+    return (
+        '<div class="narrator">'
+        '<div class="npar">'
+        f'<button class="narr-play" id="narrPlay" type="button" aria-pressed="false">▶ 听老师讲({total} 秒)</button>'
+        '<div class="narr-meta">老师拿着这张卡给你讲<br>讲到哪里,卡上就高亮哪里</div>'
+        '</div>'
+        '<div class="narr-sub" id="narrSub">点上面,老师带你把这道题讲一遍;你随时能暂停,也能自己点开下面的对照和复测。</div>'
+        '<div class="narr-track" aria-hidden="true"><i id="narrBar"></i></div>'
+        '</div>'
+    )
 
 
 def esc(value: Any) -> str:
@@ -419,7 +493,7 @@ def client_payload(schema: dict[str, Any]) -> str:
     )
 
 
-def render(schema: dict[str, Any]) -> str:
+def render(schema: dict[str, Any], timing: dict[str, Any] | None = None) -> str:
     validate(schema)
     title = esc(schema.get("title"))
     student_goal = esc(schema.get("student_goal"))
@@ -437,6 +511,18 @@ def render(schema: dict[str, Any]) -> str:
     source_boundary_comment = str(authority.get("source_boundary") or "").replace("--", "—")
     judging_comment = str(authority.get("judging_authority_label") or "").replace("--", "—")
     data = client_payload(schema)
+
+    narr_player = ""
+    narr_tags = ""
+    if timing:
+        audio_src = esc(timing.get("audio") or "")
+        timing_json = trusted_json_for_script(timing)
+        narr_player = narration_player(timing)
+        narr_tags = (
+            f'<audio id="narrAudio" src="{audio_src}" preload="auto"></audio>'
+            f'<script type="application/json" id="narrTiming">{timing_json}</script>'
+            f"<script>{_NARR_JS}</script>"
+        )
 
     practice_block = ""
     if practice:
@@ -483,8 +569,8 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
     <a class="qn" href="#errors">② 错因自查</a>
     <a class="qn" href="#practice">③ 复测一题</a>
   </nav>
-
-  <div class="whycard">
+  {narr_player}
+  <div class="whycard" data-anchor="why">
     <h2>为什么这个点容易丢分</h2>
     <p>{why_html}</p>
   </div>
@@ -495,7 +581,7 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
   <div class="feedback correct" id="revealDone" style="display:none">✅ 两组都看完了——现在去下面练一题,把它变成你自己的。</div>
 
   <section class="section" aria-label="候选采分点">
-    <div class="bar">
+    <div class="bar" data-anchor="scoring">
       <h2>候选采分点 · 写到才稳</h2>
       <p class="hint">教研估分的关键得分表达,非官方阅卷。</p>
       <div class="score-grid">{score_cards(schema)}</div>
@@ -511,7 +597,7 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
   </section>
 {practice_block}
 
-  <div class="wrap-card">
+  <div class="wrap-card" data-anchor="wrap">
     <b>暖纠正</b>
     <p style="margin:7px 0 0">{warm}</p>
     <div class="memhook">记忆钩子 · <strong>{memory_hook}</strong></div>
@@ -524,6 +610,7 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
 </main>
 <script type="application/json" id="cardData">{data}</script>
 <script>{_JS}</script>
+{narr_tags}
 </body>
 </html>"""
 
@@ -535,14 +622,18 @@ def main(argv: list[str]) -> int:
     schema_path = Path(argv[1])
     out_path = Path(argv[2]) if len(argv) > 2 else schema_path.with_suffix(".rendered.html")
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    html_out = render(schema)
+    # 预存旁白(do-once): 若存在同名 .narration.timing.json 则接上有声旁白
+    timing_path = schema_path.with_name(f"{schema_path.stem}.narration.timing.json")
+    timing = json.loads(timing_path.read_text(encoding="utf-8")) if timing_path.exists() else None
+    html_out = render(schema, timing)
     out_path.write_text(html_out, encoding="utf-8")
     print(f"rendered: {schema_path} -> {out_path}")
     print(
         f"  contrast_items={len(schema.get('contrast_items') or [])} "
         f"scoring_points={len(schema.get('scoring_points') or [])} "
         f"errors={len(schema.get('common_errors') or [])} "
-        f"practice={'yes' if schema.get('practice') else 'no'}"
+        f"practice={'yes' if schema.get('practice') else 'no'} "
+        f"narration={'yes(' + str(len(timing.get('segments') or [])) + '段/' + str(round(timing.get('totalSec') or 0)) + 's)' if timing else 'no'}"
     )
     return 0
 

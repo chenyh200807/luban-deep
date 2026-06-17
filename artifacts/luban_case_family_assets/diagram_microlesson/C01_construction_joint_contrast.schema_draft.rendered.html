@@ -40,6 +40,15 @@ h1{margin:0;font-size:clamp(22px,3.4vw,34px);line-height:1.2}
 .whycard h2{margin:0 0 7px;font-size:16px;color:#1d4ed8}
 .whycard p{margin:0;color:#33425a;font-size:14px}
 .whycard b{color:var(--ink)}
+.narrator{background:#0f1f3a;border-radius:18px;padding:16px 18px;margin:0 0 18px;color:#eaf1ff;box-shadow:var(--shadow)}
+.narrator .npar{display:flex;align-items:center;gap:14px}
+.narr-play{flex:0 0 auto;min-height:48px;padding:12px 18px;border-radius:13px;border:0;background:var(--progress);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.narr-play.playing{background:#fff;color:var(--progress)}
+.narr-meta{font-size:13px;color:#a9c2ef;line-height:1.5}
+.narr-sub{margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;min-height:48px}
+.narr-track{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.narr-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--progress),var(--correct));border-radius:inherit;transition:width .25s linear}
+.narr-focus{outline:4px solid var(--progress);outline-offset:5px;border-radius:20px}
 .rows{display:grid;gap:18px}
 .crow{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
 .crow-head{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.7)}
@@ -142,8 +151,8 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
     <a class="qn" href="#errors">② 错因自查</a>
     <a class="qn" href="#practice">③ 复测一题</a>
   </nav>
-
-  <div class="whycard">
+  <div class="narrator"><div class="npar"><button class="narr-play" id="narrPlay" type="button" aria-pressed="false">▶ 听老师讲(66 秒)</button><div class="narr-meta">老师拿着这张卡给你讲<br>讲到哪里,卡上就高亮哪里</div></div><div class="narr-sub" id="narrSub">点上面,老师带你把这道题讲一遍;你随时能暂停,也能自己点开下面的对照和复测。</div><div class="narr-track" aria-hidden="true"><i id="narrBar"></i></div></div>
+  <div class="whycard" data-anchor="why">
     <h2>为什么这个点容易丢分</h2>
     <p>很多答案只写'施工缝留置不当'或'处理一下接缝',方向对但<b>没说清部位判据</b>和<b>接缝处理工序</b>,阅卷给不到措施分。拉开分差的就是'受剪力较小且便于施工'+'清浮浆/凿毛/湿润/铺浆'这两组关键词。</p>
   </div>
@@ -170,7 +179,7 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
   <div class="feedback correct" id="revealDone" style="display:none">✅ 两组都看完了——现在去下面练一题,把它变成你自己的。</div>
 
   <section class="section" aria-label="候选采分点">
-    <div class="bar">
+    <div class="bar" data-anchor="scoring">
       <h2>候选采分点 · 写到才稳</h2>
       <p class="hint">教研估分的关键得分表达,非官方阅卷。</p>
       <div class="score-grid"><div class="score-card"><b>须写到关键词</b><span>写到这些词更稳:受剪力较小 / 便于施工 / 部位</span></div><div class="score-card"><b>须写到关键词</b><span>写到这些词更稳:清除浮浆 / 凿毛 / 湿润 / 同配合比水泥砂浆</span></div></div>
@@ -194,7 +203,7 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
     <p class="next-action">再练 1 道&#x27;指出不妥之处并写正确做法&#x27;的施工缝案例小问。</p>
   </section>
 
-  <div class="wrap-card">
+  <div class="wrap-card" data-anchor="wrap">
     <b>暖纠正</b>
     <p style="margin:7px 0 0"><b>你知道'施工缝不能随便留'这个方向是对的。</b>真正得分的是两组词:留在<b>受剪力较小且便于施工</b>的部位、继续浇筑前<b>清浮浆+凿毛+湿润+铺同配合比砂浆</b>。记住这两组,这类'指出不妥+正确做法'的题就稳了。</p>
     <div class="memhook">记忆钩子 · <strong>缝留剪力小处,浇前凿毛湿润铺浆。</strong></div>
@@ -259,6 +268,54 @@ document.querySelectorAll(".option").forEach((btn)=>{
     }
   });
 });
+</script>
+<audio id="narrAudio" src="C01_construction_joint_contrast.schema_draft.narration.mp3" preload="auto"></audio><script type="application/json" id="narrTiming">{"audio":"C01_construction_joint_contrast.schema_draft.narration.mp3","totalSec":66.186,"derived_from":"fields","segments":[{"id":"opening","anchor":"why","text":"案例题常考'指出施工缝留置/处理的不妥之处并写正确做法'。丢分不是不知道有施工缝,是说不清'留在哪'和'接缝怎么处理'。我们一个一个看。","startSec":0,"durSec":13.441},{"id":"axis_joint_position","anchor":"item:joint_position","text":"先看施工缝留在哪。常见丢分是位置判据缺失;记住要写:施工缝应留设在结构受剪力较小且便于施工的部位。","startSec":13.941,"durSec":11.334},{"id":"axis_joint_treatment","anchor":"item:joint_treatment","text":"再看继续浇筑前怎么处理接缝。常见丢分是漏接缝处理工序;记住要写:继续浇筑前清除浮浆和松动石子、凿毛、充分湿润,并铺设同配合比水泥砂浆后再浇筑。","startSec":25.775,"durSec":16.844},{"id":"scoring","anchor":"scoring","text":"这道题的采分关键就这几组词:受剪力较小、便于施工、部位、清除浮浆、凿毛、湿润、同配合比水泥砂浆。写到了就稳。","startSec":43.119,"durSec":13.269},{"id":"closing","anchor":"wrap","text":"把这两组采分词记牢,这类题就稳了。记住:缝留剪力小处,浇前凿毛湿润铺浆。","startSec":56.888,"durSec":8.498}]}</script><script>
+(function(){
+  const tEl = document.getElementById("narrTiming");
+  const audio = document.getElementById("narrAudio");
+  const btn = document.getElementById("narrPlay");
+  if(!tEl || !audio || !btn) return;
+  const timing = JSON.parse(tEl.textContent);
+  const sub = document.getElementById("narrSub");
+  const bar = document.getElementById("narrBar");
+  function elForAnchor(a){
+    if(a === "why") return document.querySelector('[data-anchor="why"]');
+    if(a === "scoring") return document.querySelector('[data-anchor="scoring"]');
+    if(a === "wrap") return document.querySelector('[data-anchor="wrap"]');
+    if(a && a.indexOf("item:") === 0) return document.querySelector('.crow[data-item="'+a.slice(5)+'"]');
+    return null;
+  }
+  let cur = null;
+  function focus(seg){
+    document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus"));
+    const el = elForAnchor(seg.anchor);
+    if(!el) return;
+    el.classList.add("narr-focus");
+    const rc = el.querySelector(".right-card"); if(rc) rc.classList.add("revealed");
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  audio.addEventListener("timeupdate",()=>{
+    const t = audio.currentTime;
+    let seg = timing.segments[0];
+    for(const s of timing.segments){ if(t >= s.startSec) seg = s; }
+    if(seg && seg.id !== cur){ cur = seg.id; if(sub) sub.textContent = seg.text; focus(seg); }
+    if(bar) bar.style.width = (timing.totalSec ? Math.min(100,(t/timing.totalSec)*100) : 0) + "%";
+  });
+  function setBtn(){
+    const playing = !audio.paused;
+    btn.classList.toggle("playing", playing);
+    btn.setAttribute("aria-pressed", playing ? "true" : "false");
+    btn.textContent = playing ? "⏸ 暂停讲解" : (audio.currentTime > 0 ? "▶ 继续讲解" : ("▶ 听老师讲(" + Math.round(timing.totalSec) + " 秒)"));
+  }
+  btn.addEventListener("click",()=>{ if(audio.paused) audio.play(); else audio.pause(); });
+  audio.addEventListener("play", setBtn);
+  audio.addEventListener("pause", setBtn);
+  audio.addEventListener("ended",()=>{
+    document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus"));
+    cur = null; setBtn();
+    if(sub) sub.textContent = "讲完啦——自己点开对照、做下面的复测题试试。";
+  });
+})();
 </script>
 </body>
 </html>
