@@ -484,6 +484,7 @@ domains:
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
       - tests/services/learner_state/test_d_class_long_term_analytics.py
       - tests/services/notebook_card/test_service.py
+      - tests/services/notebook/test_notebook_lightweight_writeback.py
       - tests/api/test_notebook_card_routing.py
       - tests/services/test_runtime_env_fail_closed.py
       - tests/services/learner_state/test_learner_signal_lightup.py
