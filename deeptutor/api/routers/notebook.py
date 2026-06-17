@@ -509,42 +509,57 @@ async def update_record(
 @router.patch("/cards/{note_id}")
 async def update_notebook_card(
     note_id: str,
-    request: CardPatchRequest,
+    request: CardPatchRequest | UpdateNotebookCardRequest,
     current_user: AuthContext = Depends(get_current_user),
 ):
     """编辑学习卡片（乐观并发：stale version → 409）。走 NotebookCardService，不新增 cards writer。"""
     try:
+        patch = dict(request.patch or {}) if isinstance(request, CardPatchRequest) else {
+            key: value
+            for key, value in {
+                "title": request.title,
+                "raw_user_content": request.raw_user_content,
+                "ai_enhanced_content": request.ai_enhanced_content,
+                "user_control_status": request.user_control_status,
+                "use_for_personalization": request.use_for_personalization,
+            }.items()
+            if value is not None
+        }
         updated = await get_notebook_card_service().update_card(
             user_id=current_user.user_id,
             note_id=note_id,
             expected_version=int(request.expected_version),
-            patch=dict(request.patch or {}),
+            patch=patch,
         )
         return {"success": True, "card": updated}
     except KeyError:
-        raise HTTPException(status_code=404, detail="card not found")
+        raise HTTPException(status_code=404, detail="Notebook card not found")
     except OptimisticConcurrencyError:
-        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
 
 
 @router.delete("/cards/{note_id}")
 async def delete_notebook_card(
     note_id: str,
-    expected_version: int,
+    request: DeleteNotebookCardRequest | None = None,
+    expected_version: int | None = None,
     current_user: AuthContext = Depends(get_current_user),
 ):
     """软删学习卡片（archived_at；乐观并发：stale version → 409）。"""
     try:
+        version = request.expected_version if request is not None else expected_version
+        if version is None:
+            raise HTTPException(status_code=422, detail="expected_version is required")
         deleted = await get_notebook_card_service().delete_card(
             user_id=current_user.user_id,
             note_id=note_id,
-            expected_version=int(expected_version),
+            expected_version=int(version),
         )
         return {"success": True, "card": deleted}
     except KeyError:
-        raise HTTPException(status_code=404, detail="card not found")
+        raise HTTPException(status_code=404, detail="Notebook card not found")
     except OptimisticConcurrencyError:
-        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
 
 
 @router.get("/health")
