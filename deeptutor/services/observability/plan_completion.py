@@ -41,6 +41,11 @@ _PATH_EXTENSIONS = (
     ".css",
     ".html",
 )
+_LINE_QUALIFIED_PATH_RE = re.compile(
+    r"^(?P<path>.+(?:"
+    + "|".join(re.escape(extension) for extension in _PATH_EXTENSIONS)
+    + r")):\d+$"
+)
 _COMMAND_PREFIXES = {
     "pytest",
     "python",
@@ -138,6 +143,9 @@ def _looks_like_repo_path(path: str) -> bool:
 
 def _normalize_local_path(token: str, *, project_root: Path, repo_path_only: bool = False) -> str | None:
     value = token.strip().strip("'\"").rstrip(".,:;)")
+    line_qualified = _LINE_QUALIFIED_PATH_RE.match(value)
+    if line_qualified:
+        value = line_qualified.group("path")
     if not value or value.startswith(("http://", "https://", "wss://", "ws://")):
         return None
     candidate = Path(value).expanduser()
@@ -311,6 +319,7 @@ def _evaluate_item(
     changed_files: set[str],
     evidence_files: list[str],
     project_root: Path,
+    scope_mode: str,
 ) -> dict[str, Any]:
     paths = list(item.get("paths") or [])
     commands = list(item.get("commands") or [])
@@ -323,23 +332,46 @@ def _evaluate_item(
             for path in paths
             if not (project_root / path).exists() and not _path_has_changed(path, changed_files=changed_files)
         ]
+        declared_existing_paths = [
+            path
+            for path in paths
+            if item.get("declared_complete")
+            and path not in changed_paths
+            and path not in missing_paths
+        ]
+        current_state_existing_paths = [
+            path
+            for path in paths
+            if scope_mode == "full"
+            and path not in changed_paths
+            and path not in missing_paths
+            and path not in declared_existing_paths
+        ]
         unchanged_paths = [
             path
             for path in paths
-            if path not in changed_paths and path not in missing_paths
+            if path not in changed_paths
+            and path not in missing_paths
+            and path not in declared_existing_paths
+            and path not in current_state_existing_paths
         ]
         evidence.extend(f"changed:{path}" for path in changed_paths)
+        evidence.extend(f"declared_complete_existing:{path}" for path in declared_existing_paths)
+        evidence.extend(f"current_state_existing:{path}" for path in current_state_existing_paths)
         evidence.extend(f"missing:{path}" for path in missing_paths)
         evidence.extend(f"unchanged:{path}" for path in unchanged_paths)
-        if len(changed_paths) == len(paths):
+        done_paths = {*changed_paths, *declared_existing_paths, *current_state_existing_paths}
+        if len(done_paths) == len(paths):
             status = _DONE
-        elif changed_paths:
+        elif done_paths:
             status = _PARTIAL
         else:
             status = _NOT_DONE
         return {**item, "status": status, "evidence": evidence}
 
     if commands:
+        if item.get("declared_complete"):
+            return {**item, "status": _DONE, "evidence": ["declared_complete"]}
         if evidence_files:
             evidence.extend(f"evidence:{path}" for path in evidence_files)
             return {**item, "status": _PARTIAL, "evidence": evidence}
@@ -348,6 +380,9 @@ def _evaluate_item(
     if evidence_files:
         evidence.extend(f"evidence:{path}" for path in evidence_files)
         return {**item, "status": _PARTIAL, "evidence": evidence}
+
+    if item.get("declared_complete"):
+        return {**item, "status": _DONE, "evidence": ["declared_complete"]}
 
     return {**item, "status": _UNVERIFIABLE, "evidence": ["no_local_path_or_evidence"]}
 
@@ -393,6 +428,7 @@ def build_plan_completion_audit(
             changed_files=changed_set,
             evidence_files=normalized_evidence,
             project_root=root,
+            scope_mode=normalized_scope_mode,
         )
         if item.get("scope") == "in_scope"
         else item

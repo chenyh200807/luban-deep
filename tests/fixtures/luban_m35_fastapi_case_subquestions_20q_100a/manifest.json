@@ -1,0 +1,1905 @@
+{
+  "schema_version": "luban_m35_fastapi_case_fixture.v1",
+  "source": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+  "source_status": "OK",
+  "requested_question_count": 20,
+  "requested_answer_count": 100,
+  "actual_question_count": 27,
+  "actual_answer_count": 167,
+  "label_authority": "estimated_metadata_only",
+  "fixture_grain": "subquestion",
+  "quality_claim_allowed": false,
+  "official_score_allowed": false,
+  "questions": [
+    {
+      "question_id": "Q2023-01__P01",
+      "title": "质量检测、混凝土缺陷与后浇带防水 / 问题1",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0011_01`\n\n【背景资料】某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。各单位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作：\n\n1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。\n2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。\n4. 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。\n\n项目部编制的基础底板混凝土施工方案中确定了底板混凝土后浇带留设的位置，明确了后浇带处的基础垫层、卷材防水层、防水加强层、防水找平层、防水保护层、止水钢板、外贴止水带等防水构造要求见图1-7。\n\n【问题】1. 指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）混凝土试件制作与取样见证记录内容还有哪些？",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0011_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "3df3cbc51478c1da26191445fbcb38f9448f20671244ee312f0fef4c8d872837"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-01__P01::SP01",
+          "criterion": "① 不妥之处：试验员如实记录了其取样、现场检测等情况，制作了见证记录；正确做法：应由见证人员记录其取样、现场检测情况，制作见证记录。",
+          "max_score": 3.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "835d7b22833d81eadd3da3ee7781a637584a4b5b4c6cbd18e9ca5e0e33f888b7",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P01::SP02",
+          "criterion": "② 不妥之处：总包项目部按照建设单位要求，每月向检测机构支付当期检测费用；正确做法：建设单位应当在编制工程概预算时合理核算建设工程质量检测费用，单独列支并按照合同约定及时支付。\n\n见证记录内容还包括：取样、制样、标识、封志、送检、现场检测。",
+          "max_score": 3.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "da2b18441063108c521ca7a9bd75c26f769b3d0216afa0c9ac51472c7e6106a5",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A433000_P0011_01",
+            "source_year": 2023,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 7.0,
+            "fragment_quote_hash": "ced625631644724d68fef7627f87e0947b952c04a39fe8ced46e1d6db1c3d688",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-01__P02",
+      "title": "质量检测、混凝土缺陷与后浇带防水 / 问题2",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0011_01`\n\n【背景资料】某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。各单位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作：\n\n1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。\n2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。\n4. 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。\n\n项目部编制的基础底板混凝土施工方案中确定了底板混凝土后浇带留设的位置，明确了后浇带处的基础垫层、卷材防水层、防水加强层、防水找平层、防水保护层、止水钢板、外贴止水带等防水构造要求见图1-7。\n\n【问题】2. 写出图1-1～图1-6显示的质量缺陷名称。（表示为图1-1-麻面）",
+      "total_score": 3.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0011_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "d3b8251bbc1de0906a14b2ee8fbbc62b7ab88618f073cff670a826dcf9a3e196"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-01__P02::SP01",
+          "criterion": "图1-1-麻面；图1-2-裂缝；图1-3-层间错台；图1-4-露筋；图1-5-孔洞；图1-6-蜂窝。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "8b000b9cd5096631a413ef3fd087eaf9830d0941716ff60eeba242c7fe268e3c",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A433000_P0011_01",
+            "source_year": 2023,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 3.0,
+            "fragment_quote_hash": "8b000b9cd5096631a413ef3fd087eaf9830d0941716ff60eeba242c7fe268e3c",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-01__P03",
+      "title": "质量检测、混凝土缺陷与后浇带防水 / 问题3",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0011_01`\n\n【背景资料】某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。各单位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作：\n\n1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。\n2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。\n4. 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。\n\n项目部编制的基础底板混凝土施工方案中确定了底板混凝土后浇带留设的位置，明确了后浇带处的基础垫层、卷材防水层、防水加强层、防水找平层、防水保护层、止水钢板、外贴止水带等防水构造要求见图1-7。\n\n【问题】3. 写出图1-7中防水构造层编号的构造名称。（表示为1-基础垫层）",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0011_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "89ec278f930153e480d544829c4cd731526105482b1514e33e667528affaaaa3"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-01__P03::SP01",
+          "criterion": "1-基础垫层；2-防水找平层；3-防水加强层；4-卷材防水层；5-防水保护层；6-贴止水带；7-止水钢板。",
+          "max_score": 5.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "c3e7b7e24226e5c7883969f7df716da44b6379b7eec6409160eb7e07c7786823",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A433000_P0011_01",
+            "source_year": 2023,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "c3e7b7e24226e5c7883969f7df716da44b6379b7eec6409160eb7e07c7786823",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-01__P04",
+      "title": "质量检测、混凝土缺陷与后浇带防水 / 问题4",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0011_01`\n\n【背景资料】某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。各单位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作：\n\n1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。\n2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。\n4. 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。\n\n项目部编制的基础底板混凝土施工方案中确定了底板混凝土后浇带留设的位置，明确了后浇带处的基础垫层、卷材防水层、防水加强层、防水找平层、防水保护层、止水钢板、外贴止水带等防水构造要求见图1-7。\n\n【问题】4. 补充完整混凝土表面孔洞质量缺陷治理工艺流程内容。",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0011_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "46d3218e578d1babfd19bd51c64293bd7d1136ed8ad65e997c84863da07ffa07"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-01__P04::SP01",
+          "criterion": "(1) 清理表面；",
+          "max_score": 1.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "123372adb99c39f3069bfa63275690db21db46b36f7969b8e996bfd5ae838e24",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P04::SP02",
+          "criterion": "(2) 支设模板；",
+          "max_score": 1.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "3c8e4a1a0f946afd5e6cac789033be68efacc9895f983b32cff4b70a9e0355bf",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P04::SP03",
+          "criterion": "(3) 洒水湿润；",
+          "max_score": 1.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "76674869e9d8503e50d5beaa955b34f3069d354177357063760cae5e96ce3184",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P04::SP04",
+          "criterion": "(4) 涂抹混凝土界面剂；",
+          "max_score": 1.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "1a9a7bd3dfec82d68ffe85cb9bea597d3deea2492840a057c2d5794d603f3d66",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P04::SP05",
+          "criterion": "(5) 用高一强度等级的细石混凝土仔细浇筑密实；",
+          "max_score": 0.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "6a00a05f000518a2799dbdc2f140341f1887709f9e22055338ad82bf9d017331",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-01__P04::SP06",
+          "criterion": "(6) 保温保湿养护不少于7天。",
+          "max_score": 0.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0011_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "aa62fb758df4275ba93ad0a2d32cd0ac856f062e85b9738238903363827dc1d5",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 4,
+            "chunk_id": "EXAM_1A433000_P0011_01",
+            "source_year": 2023,
+            "source_field": "exercises[3].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "8a1b044d6aa6dedfaa39d0b517a2ba9ad6247380e96b7b873a67d4d4afffa7ae",
+            "allocation_rule": "front_loaded_half_point_remainder",
+            "point_count": 6,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-02__P01",
+      "title": "网络计划、流水施工与雨期施工 / 问题1",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0012_02` / `EXAM_1A433000_P0013_01`\n\n### 案例背景\n\n某新建商品住宅项目，建筑面积2.4万平方米，地下二层，地上十六层，由两栋结构类型与建筑规模完全相同的单体建筑组成。总承包项目部进场后，绘制了进度计划网络图如图2所示。\n\n**图2 项目进度计划网络图（月）**\n\n- 节点①→②：围护及开挖1，耗时3个月\n- 节点②→③：基础施工1，耗时3个月\n- 节点③→④：上部结构1，耗时6个月\n- 节点④→⑧：装饰装修1，耗时3个月\n- 节点②→⑤：围护及开挖2，耗时3个月\n- 节点⑤→⑥：基础施工2，耗时3个月\n- 节点⑥→⑦：上部结构2，耗时6个月\n- 节点⑦→⑧：装饰装修2，耗时3个月\n\n项目部针对四个施工过程拟采用四个专业施工队组织流水施工，各施工过程的流水节拍见表2-1。\n\n**表2-1 流水节拍表（部分）**\n| 施工过程编号 | 施工过程       | 流水节拍（月） |\n|--------------|----------------|----------------|\n| I            | 围护及开挖     | 3              |\n| II           | 基础施工       | 3              |\n| III          | 上部结构       | 6              |\n| IV           | 装饰装修       | 3              |\n\n建设单位要求缩短工期，项目部决定增加相应的专业施工队，组织成倍节拍流水施工。项目部编制了施工检测试验计划，部分内容见表2-2。\n\n**表2-2 检测试验内容表**\n| 类别         | 检测试验项目             | 主要检测试验参数 |\n|--------------|--------------------------|------------------|\n| 地基与基础   | 桩基                     | A                |\n|              |                          | 桩身完整性      |\n| 钢筋连接     | 机械连接现场检验         | B                |\n| 砌筑砂浆     | C                        | 强度等级、稠度  |\n| 装饰装修     | 饰面砖粘贴               | D                |\n\n项目部编制了雨期施工专项方案，内容包括：\n1. 袋装水泥堆放于仓库地面；\n2. 浇筑板、墙、柱混凝土时可适当减小坍落度；\n3. 室外露天采光井采用编织布覆盖固定；\n4. 砌体每日砌筑高度不超过1.5m；\n5. 抹灰基层涂刷水性涂料时，含水率不得大于10%。\n\n项目主体结构完成后，总监理工程师组织施工单位项目负责人等对主体结构分部工程进行验收。验收时发现部分同条件养护试件强度不符合要求。经协商，采用回弹-取芯法对该批次对应的混凝土进行实体强度检验。\n\n【问题】1. 写出图2的关键线路（采用节点方式表达，如①→②）和总工期。写出表2-1中基础施工和上部结构的流水节拍数。分别计算成倍节拍流水的流水步距、专业施工队数和总工期。",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0012_02",
+          "verified": false
+        },
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0013_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "dff3210b771e08969b7a73b249d5df6cbd17d214738524cb4ec6ad923b475815"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-02__P01::SP01",
+          "criterion": "（1）关键线路：①→②→③→④→⑥→⑦→⑧。",
+          "max_score": 1.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "2de1942004dfe47b4cde5fd0eb2964b770ba9c7a610a7dfaa10a42b2f397f987",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P01::SP02",
+          "criterion": "（2）总工期：3+3+6+6+3=21个月。",
+          "max_score": 1.5,
+          "policy_type": "calc",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "5ed2e18f151111a26edbcee9a58ab7d370e8ef7decf03fb99d8cc6053a180561",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P01::SP03",
+          "criterion": "（3）流水节拍数：基础施工3个月；上部结构6个月。",
+          "max_score": 1.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "6fa278a7af30b5d0a50a70a2323749bc525567e5a5351519824f4eff1020ea31",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P01::SP04",
+          "criterion": "（4）成倍节拍：\n① 流水步距：3个月；\n② 专业对数：1+1+2+1=5个。\n③ 总工期：（2+5-1）×3=18个月。",
+          "max_score": 1.5,
+          "policy_type": "calc",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "218a9c25a56e6ede8233b08fc0cd34205614ab2082940421a1d627170560ed6c",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A433000_P0012_02",
+            "source_year": 2023,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "109c013a07f5500d369382ffc100dfbd02bdedd6b73a35cf5a4851ff47c68f5b",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 4,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-02__P02",
+      "title": "网络计划、流水施工与雨期施工 / 问题2",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0012_02` / `EXAM_1A433000_P0013_01`\n\n### 案例背景\n\n某新建商品住宅项目，建筑面积2.4万平方米，地下二层，地上十六层，由两栋结构类型与建筑规模完全相同的单体建筑组成。总承包项目部进场后，绘制了进度计划网络图如图2所示。\n\n**图2 项目进度计划网络图（月）**\n\n- 节点①→②：围护及开挖1，耗时3个月\n- 节点②→③：基础施工1，耗时3个月\n- 节点③→④：上部结构1，耗时6个月\n- 节点④→⑧：装饰装修1，耗时3个月\n- 节点②→⑤：围护及开挖2，耗时3个月\n- 节点⑤→⑥：基础施工2，耗时3个月\n- 节点⑥→⑦：上部结构2，耗时6个月\n- 节点⑦→⑧：装饰装修2，耗时3个月\n\n项目部针对四个施工过程拟采用四个专业施工队组织流水施工，各施工过程的流水节拍见表2-1。\n\n**表2-1 流水节拍表（部分）**\n| 施工过程编号 | 施工过程       | 流水节拍（月） |\n|--------------|----------------|----------------|\n| I            | 围护及开挖     | 3              |\n| II           | 基础施工       | 3              |\n| III          | 上部结构       | 6              |\n| IV           | 装饰装修       | 3              |\n\n建设单位要求缩短工期，项目部决定增加相应的专业施工队，组织成倍节拍流水施工。项目部编制了施工检测试验计划，部分内容见表2-2。\n\n**表2-2 检测试验内容表**\n| 类别         | 检测试验项目             | 主要检测试验参数 |\n|--------------|--------------------------|------------------|\n| 地基与基础   | 桩基                     | A                |\n|              |                          | 桩身完整性      |\n| 钢筋连接     | 机械连接现场检验         | B                |\n| 砌筑砂浆     | C                        | 强度等级、稠度  |\n| 装饰装修     | 饰面砖粘贴               | D                |\n\n项目部编制了雨期施工专项方案，内容包括：\n1. 袋装水泥堆放于仓库地面；\n2. 浇筑板、墙、柱混凝土时可适当减小坍落度；\n3. 室外露天采光井采用编织布覆盖固定；\n4. 砌体每日砌筑高度不超过1.5m；\n5. 抹灰基层涂刷水性涂料时，含水率不得大于10%。\n\n项目主体结构完成后，总监理工程师组织施工单位项目负责人等对主体结构分部工程进行验收。验收时发现部分同条件养护试件强度不符合要求。经协商，采用回弹-取芯法对该批次对应的混凝土进行实体强度检验。\n\n【问题】2. 写出表2-2中A、B、C、D处的内容。除了施工进度调整外，还有哪些情况需要调整施工检测试验计划？",
+      "total_score": 4.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0012_02",
+          "verified": false
+        },
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0013_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "c03ed3e86780f8ed7043930d7768b61472bfee8624438c5cadc9fc1bd8ba21ee"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-02__P02::SP01",
+          "criterion": "（1）表格内容：\nA-承载力；B-抗拉强度；C-配合比设计；D-粘接强度。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "044bf510e25324412f50290c4583989fd86a0d7f8f388d72feffe5dff6df07bb",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P02::SP02",
+          "criterion": "（2）还包括：\n① 工艺改变；② 设计变更；③ 材料、设备的规格、型号或数量变化。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "2026e434bc639f3d74f2ee7351ab1bc829ac7f2b1ac835dc6d0e09b1222d5a37",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A433000_P0012_02",
+            "source_year": 2023,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 4.0,
+            "fragment_quote_hash": "7f4286be3269ed706c076918e5ec2201c0cdf483ddcdc132c32e2a5216beb620",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-02__P03",
+      "title": "网络计划、流水施工与雨期施工 / 问题3",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0012_02` / `EXAM_1A433000_P0013_01`\n\n### 案例背景\n\n某新建商品住宅项目，建筑面积2.4万平方米，地下二层，地上十六层，由两栋结构类型与建筑规模完全相同的单体建筑组成。总承包项目部进场后，绘制了进度计划网络图如图2所示。\n\n**图2 项目进度计划网络图（月）**\n\n- 节点①→②：围护及开挖1，耗时3个月\n- 节点②→③：基础施工1，耗时3个月\n- 节点③→④：上部结构1，耗时6个月\n- 节点④→⑧：装饰装修1，耗时3个月\n- 节点②→⑤：围护及开挖2，耗时3个月\n- 节点⑤→⑥：基础施工2，耗时3个月\n- 节点⑥→⑦：上部结构2，耗时6个月\n- 节点⑦→⑧：装饰装修2，耗时3个月\n\n项目部针对四个施工过程拟采用四个专业施工队组织流水施工，各施工过程的流水节拍见表2-1。\n\n**表2-1 流水节拍表（部分）**\n| 施工过程编号 | 施工过程       | 流水节拍（月） |\n|--------------|----------------|----------------|\n| I            | 围护及开挖     | 3              |\n| II           | 基础施工       | 3              |\n| III          | 上部结构       | 6              |\n| IV           | 装饰装修       | 3              |\n\n建设单位要求缩短工期，项目部决定增加相应的专业施工队，组织成倍节拍流水施工。项目部编制了施工检测试验计划，部分内容见表2-2。\n\n**表2-2 检测试验内容表**\n| 类别         | 检测试验项目             | 主要检测试验参数 |\n|--------------|--------------------------|------------------|\n| 地基与基础   | 桩基                     | A                |\n|              |                          | 桩身完整性      |\n| 钢筋连接     | 机械连接现场检验         | B                |\n| 砌筑砂浆     | C                        | 强度等级、稠度  |\n| 装饰装修     | 饰面砖粘贴               | D                |\n\n项目部编制了雨期施工专项方案，内容包括：\n1. 袋装水泥堆放于仓库地面；\n2. 浇筑板、墙、柱混凝土时可适当减小坍落度；\n3. 室外露天采光井采用编织布覆盖固定；\n4. 砌体每日砌筑高度不超过1.5m；\n5. 抹灰基层涂刷水性涂料时，含水率不得大于10%。\n\n项目主体结构完成后，总监理工程师组织施工单位项目负责人等对主体结构分部工程进行验收。验收时发现部分同条件养护试件强度不符合要求。经协商，采用回弹-取芯法对该批次对应的混凝土进行实体强度检验。\n\n【问题】3. 指出雨期施工专项方案中的不妥之处，并写出正确做法。（本小题3项不妥，多答不得分）",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0012_02",
+          "verified": false
+        },
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0013_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "de33648787954cfcf34beee6c27e042a79142f309103af47ff1b476c5d5c2907"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-02__P03::SP01",
+          "criterion": "不妥之一：“袋装水泥堆放于仓库地面”；\n正确做法：袋装水泥应存入仓库。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "63cbce84436604286ef1a2c8612a85ef1ce80e18fdca51fca8b5da671253f528",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P03::SP02",
+          "criterion": "不妥之二：“室外露天采光井采用编织布覆盖固定”；\n正确做法：室外露天采光井全部用盖板盖严并固定，同时铺上塑料薄膜。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "9f372cb5e1cec76faac9ed181e9faeb2d6bd82752fc2c2cf48ced958ac0bdaee",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-02__P03::SP03",
+          "criterion": "不妥之三：“砌体每日砌筑高度不超过1.5m”；\n正确做法：每天砌筑高度不得超过1.2m。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A433000_P0012_02",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "9960e6c317cf5852e0b1145cab3590919cc7f1e94d321e4b89a42921b6a1945e",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A433000_P0012_02",
+            "source_year": 2023,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "db48fe96b492704a55b1544f6bb74af476d1ee5a573838730505cfbc2d61a131",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 3,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-02__P04",
+      "title": "网络计划、流水施工与雨期施工 / 问题4",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A433000_P0012_02` / `EXAM_1A433000_P0013_01`\n\n### 案例背景\n\n某新建商品住宅项目，建筑面积2.4万平方米，地下二层，地上十六层，由两栋结构类型与建筑规模完全相同的单体建筑组成。总承包项目部进场后，绘制了进度计划网络图如图2所示。\n\n**图2 项目进度计划网络图（月）**\n\n- 节点①→②：围护及开挖1，耗时3个月\n- 节点②→③：基础施工1，耗时3个月\n- 节点③→④：上部结构1，耗时6个月\n- 节点④→⑧：装饰装修1，耗时3个月\n- 节点②→⑤：围护及开挖2，耗时3个月\n- 节点⑤→⑥：基础施工2，耗时3个月\n- 节点⑥→⑦：上部结构2，耗时6个月\n- 节点⑦→⑧：装饰装修2，耗时3个月\n\n项目部针对四个施工过程拟采用四个专业施工队组织流水施工，各施工过程的流水节拍见表2-1。\n\n**表2-1 流水节拍表（部分）**\n| 施工过程编号 | 施工过程       | 流水节拍（月） |\n|--------------|----------------|----------------|\n| I            | 围护及开挖     | 3              |\n| II           | 基础施工       | 3              |\n| III          | 上部结构       | 6              |\n| IV           | 装饰装修       | 3              |\n\n建设单位要求缩短工期，项目部决定增加相应的专业施工队，组织成倍节拍流水施工。项目部编制了施工检测试验计划，部分内容见表2-2。\n\n**表2-2 检测试验内容表**\n| 类别         | 检测试验项目             | 主要检测试验参数 |\n|--------------|--------------------------|------------------|\n| 地基与基础   | 桩基                     | A                |\n|              |                          | 桩身完整性      |\n| 钢筋连接     | 机械连接现场检验         | B                |\n| 砌筑砂浆     | C                        | 强度等级、稠度  |\n| 装饰装修     | 饰面砖粘贴               | D                |\n\n项目部编制了雨期施工专项方案，内容包括：\n1. 袋装水泥堆放于仓库地面；\n2. 浇筑板、墙、柱混凝土时可适当减小坍落度；\n3. 室外露天采光井采用编织布覆盖固定；\n4. 砌体每日砌筑高度不超过1.5m；\n5. 抹灰基层涂刷水性涂料时，含水率不得大于10%。\n\n项目主体结构完成后，总监理工程师组织施工单位项目负责人等对主体结构分部工程进行验收。验收时发现部分同条件养护试件强度不符合要求。经协商，采用回弹-取芯法对该批次对应的混凝土进行实体强度检验。\n\n【问题】4. 主体结构工程的分部工程验收还应有哪些人员参加？结构实体检验除混凝土强度外还有哪些项目？",
+      "total_score": null,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0012_02",
+          "verified": false
+        },
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A433000_P0013_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "7ec006419cba534ef34d49bf43fe0d52fef8c4e66fa76f87e66a1e6e382af2ed"
+      }
+    },
+    {
+      "question_id": "Q2023-03__P01",
+      "title": "项目质量计划、灌注桩与装配式质量控制 / 问题1",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A434000_P0015_01`\n\n【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师认为屋面卷材流淌现象的原因分析和钉钉子法存在问题，要求施工单位按要求整改。\n\n【问题】1. 指出工程质量计划编制和管理中的不妥之处，并写出正确做法。工程质量计划中应设置质量控制点的关键部位和环节有哪些？",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A434000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "a3195e70f2255839ad75e765e2300e11494107fffc249662cb4318f6c28c86ba"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-03__P01::SP01",
+          "criterion": "①“项目部在开工后编制了项目质量计划”；正确做法：项目质量计划应在项目策划过程中编制。②“根据工程进展实施静态管理；”正确做法：根据工程进展实施动态管理。（3）关键部位和环节还有：【关关验四新】①影响结构安全的关键部位、关键环节；②采用新技术、新工艺的部位和环节；③隐蔽工程验收。",
+          "max_score": 5.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "dc47385aa8a340b60d5f1edc0ecf30268a1dc4e2bf8ad32cf3acab97c31a87e3",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A434000_P0015_01",
+            "source_year": 2023,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "dc47385aa8a340b60d5f1edc0ecf30268a1dc4e2bf8ad32cf3acab97c31a87e3",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-03__P02",
+      "title": "项目质量计划、灌注桩与装配式质量控制 / 问题2",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A434000_P0015_01`\n\n【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师认为屋面卷材流淌现象的原因分析和钉钉子法存在问题，要求施工单位按要求整改。\n\n【问题】2. 灌注桩桩身完整性检测方法还有哪些？桩身完整性抽检数量的标准规定有哪些？",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A434000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "383db8461f54aa1dabc63d8fc0dcb8d0c0815c29ed8f3f7599f357c7e02bf3a1"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-03__P02::SP01",
+          "criterion": "(1) 还有：钻芯法、低应变法、声波透射法。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "b10516c6214cf4d4e7ba9fb4ecda1a344f7c119477933281dde6fc4bf3bc9040",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-03__P02::SP02",
+          "criterion": "(2) 抽检数量：不应少于总桩数的 20%且不应少于 10 根。每根柱子承台下的桩抽检数量不应少于 1 根。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "b9dd3ef0a1deb8d1f0d30f5f74bcdf2c916360a4060fb92ce68cfde41b326eb7",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A434000_P0015_01",
+            "source_year": 2023,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "e50a155237f0641490321c7c041fa250886d7b14ee317b2f0a483100ae6dd220",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-03__P03",
+      "title": "项目质量计划、灌注桩与装配式质量控制 / 问题3",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A434000_P0015_01`\n\n【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师认为屋面卷材流淌现象的原因分析和钉钉子法存在问题，要求施工单位按要求整改。\n\n【问题】3. 指出钢筋连接接头面积百分率等要求中的不妥之处，并写出正确做法。（本问题 2 项不妥之处，多答不得分）现场钢筋直螺纹接头加工和安装质量检测专用工具有哪些？",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A434000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "1e63410a03c695e19d091b56d4b298941491f129af58b6d7402f3d7380c6e7b8"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-03__P03::SP01",
+          "criterion": "(1) 不妥之处：①“受压接头不宜大于 75%”；正确做法：受压接头可不受限制。②“直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%”；正确做法：直接承受动力荷载的结构构件采用机械连接时，不应超过 50%。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "cdb981623f4a141691d03fc4b64930825135af0402e4adedf01107950bda70ae",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-03__P03::SP02",
+          "criterion": "(2) 包括：量尺、通规、止规、管钳扳手、扭力扳手。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "828135897e34572b08811c7f0d3d8fac003778d2428ed99515783151f72b5c27",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A434000_P0015_01",
+            "source_year": 2023,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "b04072b328b48a7484d77a50572a9eae31b0f7f4d95ed14fdcb8ab26cfa39f85",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-03__P04",
+      "title": "项目质量计划、灌注桩与装配式质量控制 / 问题4",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A434000_P0015_01`\n\n【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师认为屋面卷材流淌现象的原因分析和钉钉子法存在问题，要求施工单位按要求整改。\n\n【问题】4. 写出屋面卷材流淌原因分析中的不妥项（本问题 3 项不妥之处，多答不得分）写出钉钉子法的正确做法。",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A434000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "0693346cd22baf8706a52b4c3eaa389193109daa45282b0661befc141682bb6d"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-03__P04::SP01",
+          "criterion": "(1) 不妥之处：①“找平层的分格缝设置不当”。②“屋面板因温度变化产生胀缩”。③“卷材搭接长度太小”。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "79c9db6f39d30871db9c0d3471eb53148f8f1140a0a5055c756a5d3c5152695f",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2023-03__P04::SP02",
+          "criterion": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A434000_P0015_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "19dcf25d078e22b28e3bb05750fb6cf1893c6de6ec93af5b4fa1dc7e5c12f8c4",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 4,
+            "chunk_id": "EXAM_1A434000_P0015_01",
+            "source_year": 2023,
+            "source_field": "exercises[3].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "c37983ce6b5c49f8a2eca286fa76a5e03fc240eb4a372cd6f0ca130553dcc107",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-05__P01",
+      "title": "学校工程安全检查、绿色建筑与钢结构 / 问题1",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A436000_P0019_01`\n\n【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插座插头与配电箱连接。\n4. 专业电工在断电后对木工加工机械进行检查和清理。\n\n工程竣工后，项目部组织专家对整体工程进行绿色建筑评价，评分结果见表 5-1。家提出资源节约项和提高与创新加分项评分偏低，为主要扣分项，建议重点整改。\n\n**表 5-1 绿色建筑评价分值表（部分）**\n| 控制项基础分值 | 评价指标评分项分值 | 提高与创新加分项分值 |\n|----------------|--------------------|----------------------|\n| 评价分值       | 400                | 100                  | 100                  | 200                  | 100                  | 100                  |\n| 实际得分       | 400                | 90                   | 70                   | 80                   | 80                   | 70                   | 40                   |\n\n【问题】1. 建筑工程施工安全检查的主要形式还有哪些？作业班组安全检查的时间有哪些？",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0019_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "eaefcaea5c4c7e3865ca789e00cd276876b07ca2291c421cf7b3dd8eb76fb853"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-05__P01::SP01",
+          "criterion": "日常巡查、专项检查、经常性安全检查、设备设施安全验收检查；班前、班中、班后。",
+          "max_score": 7.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0019_01",
+              "source_year": 2023,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "69cc58069c7b027372470e12c688f0ea8d0f02d735ffd627ddb88098649e45ae",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A436000_P0019_01",
+            "source_year": 2023,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 7.0,
+            "fragment_quote_hash": "69cc58069c7b027372470e12c688f0ea8d0f02d735ffd627ddb88098649e45ae",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-05__P02",
+      "title": "学校工程安全检查、绿色建筑与钢结构 / 问题2",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A436000_P0019_01`\n\n【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插座插头与配电箱连接。\n4. 专业电工在断电后对木工加工机械进行检查和清理。\n\n工程竣工后，项目部组织专家对整体工程进行绿色建筑评价，评分结果见表 5-1。家提出资源节约项和提高与创新加分项评分偏低，为主要扣分项，建议重点整改。\n\n**表 5-1 绿色建筑评价分值表（部分）**\n| 控制项基础分值 | 评价指标评分项分值 | 提高与创新加分项分值 |\n|----------------|--------------------|----------------------|\n| 评价分值       | 400                | 100                  | 100                  | 200                  | 100                  | 100                  |\n| 实际得分       | 400                | 90                   | 70                   | 80                   | 80                   | 70                   | 40                   |\n\n【问题】2. 施工现场布置塔吊时应考虑的因素还有哪些？安全检查标准中塔式起重机的一般项目有哪些？",
+      "total_score": 4.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0019_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "fa535a093550860b095a93e2e04c282f643d748ca26ad3a20f1a17c14a518b99"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-05__P02::SP01",
+          "criterion": "基础设置、塔吊附墙杆件的位置与距离、周边环境、覆盖范围；附着、基础与轨道、结构设施、电气安全。",
+          "max_score": 4.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0019_01",
+              "source_year": 2023,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "942460b0fdfffdcaa9e2ec25b4b135b77fbb2f68b3a70590c5eb949ea7322d10",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A436000_P0019_01",
+            "source_year": 2023,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 4.0,
+            "fragment_quote_hash": "942460b0fdfffdcaa9e2ec25b4b135b77fbb2f68b3a70590c5eb949ea7322d10",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-05__P03",
+      "title": "学校工程安全检查、绿色建筑与钢结构 / 问题3",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A436000_P0019_01`\n\n【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插座插头与配电箱连接。\n4. 专业电工在断电后对木工加工机械进行检查和清理。\n\n工程竣工后，项目部组织专家对整体工程进行绿色建筑评价，评分结果见表 5-1。家提出资源节约项和提高与创新加分项评分偏低，为主要扣分项，建议重点整改。\n\n**表 5-1 绿色建筑评价分值表（部分）**\n| 控制项基础分值 | 评价指标评分项分值 | 提高与创新加分项分值 |\n|----------------|--------------------|----------------------|\n| 评价分值       | 400                | 100                  | 100                  | 200                  | 100                  | 100                  |\n| 实际得分       | 400                | 90                   | 70                   | 80                   | 80                   | 70                   | 40                   |\n\n【问题】3. 指出钢结构施工高处作业安全防护方案中的不妥之处，并写出正确做法。（本问题 3 项不妥，多答不得分）安全防护栏杆的条纹警戒标示用什么颜色？",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0019_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "a551e48a1e9c3fb53a4b0b5a6c12825ee29dc17038eade63f02c971eb763237b"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-05__P03::SP01",
+          "criterion": "不妥之处：① 坠落高度超过 2m 的安装使用梯子攀登作业；② 施工层搭设的水平通道不设置防护栏杆；③ 作为水平通道的钢梁一侧两端头设置安全绳。正确做法：① 坠落高度超过 2m 时，应设置操作平台；② 通道，水平通道两侧应设置防护；③ 应在钢梁一侧设置连续的安全绳，安全绳宜采用钢丝绳。安全防护栏杆的条纹警戒标示为黑黄或红白相间。",
+          "max_score": 7.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0019_01",
+              "source_year": 2023,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "01d8f85fd70192d0fbc706602bb497c65e06469f4d4a43fc2dd533fd257904d3",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A436000_P0019_01",
+            "source_year": 2023,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 7.0,
+            "fragment_quote_hash": "01d8f85fd70192d0fbc706602bb497c65e06469f4d4a43fc2dd533fd257904d3",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-05__P04",
+      "title": "学校工程安全检查、绿色建筑与钢结构 / 问题4",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A436000_P0019_01`\n\n【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插座插头与配电箱连接。\n4. 专业电工在断电后对木工加工机械进行检查和清理。\n\n工程竣工后，项目部组织专家对整体工程进行绿色建筑评价，评分结果见表 5-1。家提出资源节约项和提高与创新加分项评分偏低，为主要扣分项，建议重点整改。\n\n**表 5-1 绿色建筑评价分值表（部分）**\n| 控制项基础分值 | 评价指标评分项分值 | 提高与创新加分项分值 |\n|----------------|--------------------|----------------------|\n| 评价分值       | 400                | 100                  | 100                  | 200                  | 100                  | 100                  |\n| 实际得分       | 400                | 90                   | 70                   | 80                   | 80                   | 70                   | 40                   |\n\n【问题】4. 指出装修阶段施工用电专项安全检查中的不妥之处，并写出正确做法。（本小题 3 项不妥，多答不得分）",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0019_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "27a6caa487b1aa0f5d066ef336be37d1ee401ad16306b299b9b9248eb387b34d"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-05__P04::SP01",
+          "criterion": "不妥之处：① 仅按项目临时用电施工组织设计进行施工用电管理；② 现场瓷砖切割机与砂浆搅拌机共用一个开关箱；③ 主教学楼一开关箱使用插座插头与配电箱连接。正确做法：① 装饰装修施工阶段，应补充编制单项施工用电方案；② 用电设备必须配备专用的开关箱，严禁 2 台及以上用电设备共用一个开关箱；③ 配电箱、开关箱的电源进线端严禁采用插头和插座做活动连接。",
+          "max_score": 6.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0019_01",
+              "source_year": 2023,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "a2b42aca23ee4646e5180370de902d5b8c726919d4bdef6ee0c8e6e8c1c7a1d5",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 4,
+            "chunk_id": "EXAM_1A436000_P0019_01",
+            "source_year": 2023,
+            "source_field": "exercises[3].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "a2b42aca23ee4646e5180370de902d5b8c726919d4bdef6ee0c8e6e8c1c7a1d5",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2023-05__P05",
+      "title": "学校工程安全检查、绿色建筑与钢结构 / 问题5",
+      "stem": "- 年份：2023\n- 来源 chunk：`EXAM_1A436000_P0019_01`\n\n【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插座插头与配电箱连接。\n4. 专业电工在断电后对木工加工机械进行检查和清理。\n\n工程竣工后，项目部组织专家对整体工程进行绿色建筑评价，评分结果见表 5-1。家提出资源节约项和提高与创新加分项评分偏低，为主要扣分项，建议重点整改。\n\n**表 5-1 绿色建筑评价分值表（部分）**\n| 控制项基础分值 | 评价指标评分项分值 | 提高与创新加分项分值 |\n|----------------|--------------------|----------------------|\n| 评价分值       | 400                | 100                  | 100                  | 200                  | 100                  | 100                  |\n| 实际得分       | 400                | 90                   | 70                   | 80                   | 80                   | 70                   | 40                   |\n\n【问题】5. 写出表 5-1 中绿色建筑评价指标空缺评分项。计算绿色建筑评价总得分。并判断是否满足绿色三星标准？",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0019_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "b831b4d0f0137d3d9897274a4f94829d9d7564b65b8da908cd7dc7a2779b1e11"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2023-05__P05::SP01",
+          "criterion": "空缺评分项：安全耐久、健康舒适、生活便利、环境宜居。总分：(400+90+70+80+80+70+40)/10=83分。不满足三星级（85分）标准。",
+          "max_score": 6.0,
+          "policy_type": "calc",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0019_01",
+              "source_year": 2023,
+              "source_field": "exercises[4].question_data.correct_answer",
+              "quote_hash": "02f107aa2863518f56fa5ec9e96f23490467692fe2a0dc8d8d79881bab2eca51",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 5,
+            "chunk_id": "EXAM_1A436000_P0019_01",
+            "source_year": 2023,
+            "source_field": "exercises[4].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "02f107aa2863518f56fa5ec9e96f23490467692fe2a0dc8d8d79881bab2eca51",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-04__P01",
+      "title": "工程总承包、资格预审、分包与造价 / 问题1",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A432000_P0015_01`\n\n【背景资料】\n\n某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元，建设单位（甲方）采用工程总承包模式发包。甲方鉴于工程潜在的投标人数量等条件，确定对投标人进行资格预审。招标文件约定：实行公开招投标；采用工程量清单计价；工期自 2020 年 3 月 1 日起至 2023 年 3 月 31 日止；执行《建设项目工程总承包合同（示范文本）》GF-2020-0216。甲方对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n\n工程由某建设集团公司（乙方）中标，中标价为 12.10 亿元。其中：利润 7200.00 万元，规费 2100.00 万元，税金 1.10 亿元。乙方对总承包合同示范文本通用条款个别内容提出了修改意见，对专用条款部分内容进行了细化和补充。经协商，双方签订了工程总承包合同。\n\n投标前，乙方在投标方案中进行了技术、商务和管理策划，其中管理策划包括：分包方案、经验分析等 5 项内容。中标后，乙方成立了工程总承包项目部，将工程项目的设计和施工任务向集团内符合相应能力的管理部门和相应资质的子公司安排如下：\n\n（1）工程设计总承包由集团工程设计部承担；\n（2）住宅工程主体设计分包给集团设计公司；\n（3）工程施工总承包分包给集团建筑工程公司；\n（4）工程机电安装工程由集团建筑工程公司分包给集团安装公司；\n（5）工程装饰设计与施工分包给集团装饰公司。\n\n在甲方对部分工程安排提出异议后，乙方进行了调整。\n\n乙方按照完全成本法向工程总承包项目部核算了工程施工项目成本，并要求集团各参建单位认真做好成本控制管理工作，成本控制从时间上贯穿于包括施工过程等各阶段。\n\n应甲方要求，在相关单位工程顶部新增钢结构装饰架。2022 年 9 月，乙方提交了装饰架报价：分部分项工程工程量 2200.00t，综合单价 12000 元/t，措施费为分部分项工程费的 10%，总承包管理费 70.00 万元，计工日 26.00 万元，规费费率为 2%，增值税税率为 9%。\n\n【问题】1. 通常进行资格预审的工程有哪些特点？资格预审的方法有哪些？",
+      "total_score": 4.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A432000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "ff59d4394082f87ac2de796f98ae34b1984b1b4825b30f536cff03099f332ea5"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-04__P01::SP01",
+          "criterion": "（1）①潜在投标人数量较多的项目；②大型、技术复杂的项目。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "b147c3dda3be5b4a7f577a2cb9a543ba0f86335d53aeac3f90557ece5191220e",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-04__P01::SP02",
+          "criterion": "（2）①合格制；②有限数量制。",
+          "max_score": 2.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "de1182d2548b712b284b594c1e19bc8f7b0286dad209b4c4431921e6c096679d",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A432000_P0015_01",
+            "source_year": 2025,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 4.0,
+            "fragment_quote_hash": "1abb6bc0fa784bbf130b305195816c57e95d58df01685c9b70a082091a0e7c70",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-04__P02",
+      "title": "工程总承包、资格预审、分包与造价 / 问题2",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A432000_P0015_01`\n\n【背景资料】\n\n某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元，建设单位（甲方）采用工程总承包模式发包。甲方鉴于工程潜在的投标人数量等条件，确定对投标人进行资格预审。招标文件约定：实行公开招投标；采用工程量清单计价；工期自 2020 年 3 月 1 日起至 2023 年 3 月 31 日止；执行《建设项目工程总承包合同（示范文本）》GF-2020-0216。甲方对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n\n工程由某建设集团公司（乙方）中标，中标价为 12.10 亿元。其中：利润 7200.00 万元，规费 2100.00 万元，税金 1.10 亿元。乙方对总承包合同示范文本通用条款个别内容提出了修改意见，对专用条款部分内容进行了细化和补充。经协商，双方签订了工程总承包合同。\n\n投标前，乙方在投标方案中进行了技术、商务和管理策划，其中管理策划包括：分包方案、经验分析等 5 项内容。中标后，乙方成立了工程总承包项目部，将工程项目的设计和施工任务向集团内符合相应能力的管理部门和相应资质的子公司安排如下：\n\n（1）工程设计总承包由集团工程设计部承担；\n（2）住宅工程主体设计分包给集团设计公司；\n（3）工程施工总承包分包给集团建筑工程公司；\n（4）工程机电安装工程由集团建筑工程公司分包给集团安装公司；\n（5）工程装饰设计与施工分包给集团装饰公司。\n\n在甲方对部分工程安排提出异议后，乙方进行了调整。\n\n乙方按照完全成本法向工程总承包项目部核算了工程施工项目成本，并要求集团各参建单位认真做好成本控制管理工作，成本控制从时间上贯穿于包括施工过程等各阶段。\n\n应甲方要求，在相关单位工程顶部新增钢结构装饰架。2022 年 9 月，乙方提交了装饰架报价：分部分项工程工程量 2200.00t，综合单价 12000 元/t，措施费为分部分项工程费的 10%，总承包管理费 70.00 万元，计工日 26.00 万元，规费费率为 2%，增值税税率为 9%。\n\n【问题】2. 投标方案策划中的管理策划内容还有哪些？分别答出乙方对工程设计和施工任务的各项安排是否正确？",
+      "total_score": 8.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A432000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "59553a0437b3f15948bb46ffa9142d836a5ce53dcd33226ba3a678c4ba02ceac"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-04__P02::SP01",
+          "criterion": "（1）计划、组织、协调方案。",
+          "max_score": 4.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "43f9ecaaa17f85b627307ea46a7b842da8b828c1b7fec05a6ef3b978cee74ce2",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-04__P02::SP02",
+          "criterion": "（2）\n“（1）”正确。\n“（2）”不正确。\n【解析】工程总承包企业应当加强对分包的管理，不得将工程总承包项目转包，也不得将工程总承包项目中设计和施工业务一并或者分别分包给其他单位。\n“（3）”不正确。\n【解析】禁止分包单位将其承包的工程再分包。\n“（4）”不正确。\n【解析】禁止分包单位将其承包的工程再分包。\n“（5）”正确。",
+          "max_score": 4.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "1e69c508c77a723c971bed314b2e2557ebd1a899b58fb548751fb5b4d7947597",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A432000_P0015_01",
+            "source_year": 2025,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 8.0,
+            "fragment_quote_hash": "ce9d0c4a29327a44da270d53aa10dac4914cd472702edf60b9541b2352965df1",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-04__P03",
+      "title": "工程总承包、资格预审、分包与造价 / 问题3",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A432000_P0015_01`\n\n【背景资料】\n\n某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元，建设单位（甲方）采用工程总承包模式发包。甲方鉴于工程潜在的投标人数量等条件，确定对投标人进行资格预审。招标文件约定：实行公开招投标；采用工程量清单计价；工期自 2020 年 3 月 1 日起至 2023 年 3 月 31 日止；执行《建设项目工程总承包合同（示范文本）》GF-2020-0216。甲方对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n\n工程由某建设集团公司（乙方）中标，中标价为 12.10 亿元。其中：利润 7200.00 万元，规费 2100.00 万元，税金 1.10 亿元。乙方对总承包合同示范文本通用条款个别内容提出了修改意见，对专用条款部分内容进行了细化和补充。经协商，双方签订了工程总承包合同。\n\n投标前，乙方在投标方案中进行了技术、商务和管理策划，其中管理策划包括：分包方案、经验分析等 5 项内容。中标后，乙方成立了工程总承包项目部，将工程项目的设计和施工任务向集团内符合相应能力的管理部门和相应资质的子公司安排如下：\n\n（1）工程设计总承包由集团工程设计部承担；\n（2）住宅工程主体设计分包给集团设计公司；\n（3）工程施工总承包分包给集团建筑工程公司；\n（4）工程机电安装工程由集团建筑工程公司分包给集团安装公司；\n（5）工程装饰设计与施工分包给集团装饰公司。\n\n在甲方对部分工程安排提出异议后，乙方进行了调整。\n\n乙方按照完全成本法向工程总承包项目部核算了工程施工项目成本，并要求集团各参建单位认真做好成本控制管理工作，成本控制从时间上贯穿于包括施工过程等各阶段。\n\n应甲方要求，在相关单位工程顶部新增钢结构装饰架。2022 年 9 月，乙方提交了装饰架报价：分部分项工程工程量 2200.00t，综合单价 12000 元/t，措施费为分部分项工程费的 10%，总承包管理费 70.00 万元，计工日 26.00 万元，规费费率为 2%，增值税税率为 9%。\n\n【问题】3. 答出甲、乙方在招投标工作中的不妥之处。并说明理由。",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A432000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "312dcfb95d4dd659c9260f06726a33e0b437522f7e688debae70e0f31a78ff32"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-04__P03::SP01",
+          "criterion": "甲方不妥：对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n理由：应当在投标截止时间至少 15 日前，书面或网站通知所有招标文件收受人。不足 15 日的，招标人应顺延提交投标文件的截止时间。\n乙方不妥：乙方对通用条款个别内容提出了修改意见。\n理由：通用条款应不加修改的引用。",
+          "max_score": 5.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "2c44a7cd13e371e7ad1fa90ce9a42e365a9b8902192b4b71a156b3ca746c4d2a",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A432000_P0015_01",
+            "source_year": 2025,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "2c44a7cd13e371e7ad1fa90ce9a42e365a9b8902192b4b71a156b3ca746c4d2a",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-04__P04",
+      "title": "工程总承包、资格预审、分包与造价 / 问题4",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A432000_P0015_01`\n\n【背景资料】\n\n某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元，建设单位（甲方）采用工程总承包模式发包。甲方鉴于工程潜在的投标人数量等条件，确定对投标人进行资格预审。招标文件约定：实行公开招投标；采用工程量清单计价；工期自 2020 年 3 月 1 日起至 2023 年 3 月 31 日止；执行《建设项目工程总承包合同（示范文本）》GF-2020-0216。甲方对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n\n工程由某建设集团公司（乙方）中标，中标价为 12.10 亿元。其中：利润 7200.00 万元，规费 2100.00 万元，税金 1.10 亿元。乙方对总承包合同示范文本通用条款个别内容提出了修改意见，对专用条款部分内容进行了细化和补充。经协商，双方签订了工程总承包合同。\n\n投标前，乙方在投标方案中进行了技术、商务和管理策划，其中管理策划包括：分包方案、经验分析等 5 项内容。中标后，乙方成立了工程总承包项目部，将工程项目的设计和施工任务向集团内符合相应能力的管理部门和相应资质的子公司安排如下：\n\n（1）工程设计总承包由集团工程设计部承担；\n（2）住宅工程主体设计分包给集团设计公司；\n（3）工程施工总承包分包给集团建筑工程公司；\n（4）工程机电安装工程由集团建筑工程公司分包给集团安装公司；\n（5）工程装饰设计与施工分包给集团装饰公司。\n\n在甲方对部分工程安排提出异议后，乙方进行了调整。\n\n乙方按照完全成本法向工程总承包项目部核算了工程施工项目成本，并要求集团各参建单位认真做好成本控制管理工作，成本控制从时间上贯穿于包括施工过程等各阶段。\n\n应甲方要求，在相关单位工程顶部新增钢结构装饰架。2022 年 9 月，乙方提交了装饰架报价：分部分项工程工程量 2200.00t，综合单价 12000 元/t，措施费为分部分项工程费的 10%，总承包管理费 70.00 万元，计工日 26.00 万元，规费费率为 2%，增值税税率为 9%。\n\n【问题】4. 按照完全成本法计算的工程施工项目成本是多少亿元？（保留小数点后两位）施工成本控制过程从时间上贯穿于哪些阶段？",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A432000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "22649e99b5b166ee074459d19054b52ee4a6c956417360f43c48dcec3bf6b878"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-04__P04::SP01",
+          "criterion": "（1）12.10-0.72-1.10=10.28 亿元。",
+          "max_score": 3.5,
+          "policy_type": "calc",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "9c437279e291e86f963e18c40f6279d996f351e51cd7bdcfc59110937600fb5e",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-04__P04::SP02",
+          "criterion": "（2）工程投标、施工准备、施工过程、竣工验收。",
+          "max_score": 3.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "f3c9fd13a6180e73e0d8955c693d47e6555acbb68d68b9b43b992ed52dfea10e",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 4,
+            "chunk_id": "EXAM_1A432000_P0015_01",
+            "source_year": 2025,
+            "source_field": "exercises[3].question_data.correct_answer",
+            "official_score": 7.0,
+            "fragment_quote_hash": "83e4a2705b0f44109ffa246197020e1c0ac877d063365b2ecb9e4d035dd1e5e1",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-04__P05",
+      "title": "工程总承包、资格预审、分包与造价 / 问题5",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A432000_P0015_01`\n\n【背景资料】\n\n某旧城改造工程，建筑面积 20.50 万平方米，总投资 12.80 亿元，建设单位（甲方）采用工程总承包模式发包。甲方鉴于工程潜在的投标人数量等条件，确定对投标人进行资格预审。招标文件约定：实行公开招投标；采用工程量清单计价；工期自 2020 年 3 月 1 日起至 2023 年 3 月 31 日止；执行《建设项目工程总承包合同（示范文本）》GF-2020-0216。甲方对所有投标人提出的招标文件疑问，在投标截止日前 5 日书面回复了提出问题的投标人。\n\n工程由某建设集团公司（乙方）中标，中标价为 12.10 亿元。其中：利润 7200.00 万元，规费 2100.00 万元，税金 1.10 亿元。乙方对总承包合同示范文本通用条款个别内容提出了修改意见，对专用条款部分内容进行了细化和补充。经协商，双方签订了工程总承包合同。\n\n投标前，乙方在投标方案中进行了技术、商务和管理策划，其中管理策划包括：分包方案、经验分析等 5 项内容。中标后，乙方成立了工程总承包项目部，将工程项目的设计和施工任务向集团内符合相应能力的管理部门和相应资质的子公司安排如下：\n\n（1）工程设计总承包由集团工程设计部承担；\n（2）住宅工程主体设计分包给集团设计公司；\n（3）工程施工总承包分包给集团建筑工程公司；\n（4）工程机电安装工程由集团建筑工程公司分包给集团安装公司；\n（5）工程装饰设计与施工分包给集团装饰公司。\n\n在甲方对部分工程安排提出异议后，乙方进行了调整。\n\n乙方按照完全成本法向工程总承包项目部核算了工程施工项目成本，并要求集团各参建单位认真做好成本控制管理工作，成本控制从时间上贯穿于包括施工过程等各阶段。\n\n应甲方要求，在相关单位工程顶部新增钢结构装饰架。2022 年 9 月，乙方提交了装饰架报价：分部分项工程工程量 2200.00t，综合单价 12000 元/t，措施费为分部分项工程费的 10%，总承包管理费 70.00 万元，计工日 26.00 万元，规费费率为 2%，增值税税率为 9%。\n\n【问题】5. 分步列式计算钢结构装饰架的造价是多少万元？（保留小数点后两位）",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A432000_P0015_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "e089af6f5f96a49b3e50d06b04ac5c0eb66ff1c7d8dc5719f3dd7e08f56f9bfb"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-04__P05::SP01",
+          "criterion": "分部分项工程费：2200×12000/10000=2640.00 万元。\n措施项目费：2640×10%=264.00 万元。\n其他项目费：70+26=96.00 万元。\n规费：（2640+264+96+60）×2%=60.00 万元。\n增值税：（2640+264+96+60）×9%=275.40 万元。\n造价：2640+264+96+60+275.4=3335.40 万元。",
+          "max_score": 6.0,
+          "policy_type": "calc",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A432000_P0015_01",
+              "source_year": 2025,
+              "source_field": "exercises[4].question_data.correct_answer",
+              "quote_hash": "9806cbbefd25fd69f1015594147f03750a54b0758face6277f80efa19c289a8b",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 5,
+            "chunk_id": "EXAM_1A432000_P0015_01",
+            "source_year": 2025,
+            "source_field": "exercises[4].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "9806cbbefd25fd69f1015594147f03750a54b0758face6277f80efa19c289a8b",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-05__P01",
+      "title": "项目经理权限、监管系统、动火审批与安全检查 / 问题1",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A436000_P0017_01`\n\n【案例背景】\n\n某酒店工程，地下2层，地上26层，建筑面积8.5万平方米。框架-剪力墙结构，大厅高度10.0m，裙房为钢结构。\n\n施工总承包单位中标后开始组织施工。施工总承包单位委派了具备相应执业资格和施工总承包项目管理经验的项目经理，按照项目管理规范授予其相应权限，包括：参与项目招投标和合同签订工作、参与项目管理机构组建和大宗资源供应单位的选择等，为项目管理创造条件。\n\n项目部安装使用的施工现场监管信息系统业务应用层包括：环境监管、协同处置等5个子系统。系统监管数据如环境监管数据、监控视频数据等，为项目管理提供了有力支撑。\n\n目技术负责人就施工现场动火审批程序（见表5）向施工管理人员进行技术交底，特别强调了动火证当日开具、当日有效。\n\n**表5 现场动火审批程序**\n| 动火级别 | 填写动火申请表 | 审查批准 |\n|----------|----------------|-----------|\n| 一级     | A              | B         |\n| 二级     | C              | D / 项目经理 |\n| 三级     | E              | F / 项目安全管理部门 |\n\n公司安全管理部门对项目安全管理进行例行检查中发现：项目部在施工安全危险源辨识中按施工工作活动的专业进行分类，包括：爆炸类、火灾类、物质类等7种类型；一层大厅危险性较大的高支模专项施工方案，未组织专家论证，符合判定为安全管理重大事故隐患的条件，要求停工整改。\n\n施工过程中，主管部门安全管理人员主要采用“看”、“问”、“量”等方法进行现场安全检查；查看安全管理资料，如各类人员持证上岗情况等；巡视施工现场，检查现场安全设施及机械设备安全装置配置等情况。\n\n【问题】1. 施工总承包工程项目经理应具备的执业资格有哪些？项目管理规范规定的项目经理权限还有哪些？",
+      "total_score": 5.5,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0017_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "8ffe10829d5433824836dfcb83b530f2df770f1b708e80fe97427090c3e7d31a"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-05__P01::SP01",
+          "criterion": "（1）项目经理应取得注册建造师职业资格证书、安全生产考核合格证书B证。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "6086bae306fa9558c689e67f1dee1ceb9759d7e25bd2dc6e6780d3230b76025d",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-05__P01::SP02",
+          "criterion": "（2）还包括：①参与组织对项目各阶段的重大决策；②主持项目管理机构工作；③决定授权范围内的项目资源使用；④在组织制度的框架下制订项目管理机构管理制度；⑤参与选择并直接管理具有相应资质的分包人；⑥在授权范围内与项目相关方进行直接沟通；⑦法定代表人和组织授予的其他权利。",
+          "max_score": 2.5,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[0].question_data.correct_answer",
+              "quote_hash": "24a9260a1773b9a4937e75cc088fe396c6398c51e076ccbf8b6b6eeabc94d734",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 1,
+            "chunk_id": "EXAM_1A436000_P0017_01",
+            "source_year": 2025,
+            "source_field": "exercises[0].question_data.correct_answer",
+            "official_score": 5.5,
+            "fragment_quote_hash": "350790e379f71e8fea8077d48b56b15eae66c3fc10f90ffa00cdc3a896b9399a",
+            "allocation_rule": "front_loaded_half_point_remainder",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-05__P02",
+      "title": "项目经理权限、监管系统、动火审批与安全检查 / 问题2",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A436000_P0017_01`\n\n【案例背景】\n\n某酒店工程，地下2层，地上26层，建筑面积8.5万平方米。框架-剪力墙结构，大厅高度10.0m，裙房为钢结构。\n\n施工总承包单位中标后开始组织施工。施工总承包单位委派了具备相应执业资格和施工总承包项目管理经验的项目经理，按照项目管理规范授予其相应权限，包括：参与项目招投标和合同签订工作、参与项目管理机构组建和大宗资源供应单位的选择等，为项目管理创造条件。\n\n项目部安装使用的施工现场监管信息系统业务应用层包括：环境监管、协同处置等5个子系统。系统监管数据如环境监管数据、监控视频数据等，为项目管理提供了有力支撑。\n\n目技术负责人就施工现场动火审批程序（见表5）向施工管理人员进行技术交底，特别强调了动火证当日开具、当日有效。\n\n**表5 现场动火审批程序**\n| 动火级别 | 填写动火申请表 | 审查批准 |\n|----------|----------------|-----------|\n| 一级     | A              | B         |\n| 二级     | C              | D / 项目经理 |\n| 三级     | E              | F / 项目安全管理部门 |\n\n公司安全管理部门对项目安全管理进行例行检查中发现：项目部在施工安全危险源辨识中按施工工作活动的专业进行分类，包括：爆炸类、火灾类、物质类等7种类型；一层大厅危险性较大的高支模专项施工方案，未组织专家论证，符合判定为安全管理重大事故隐患的条件，要求停工整改。\n\n施工过程中，主管部门安全管理人员主要采用“看”、“问”、“量”等方法进行现场安全检查；查看安全管理资料，如各类人员持证上岗情况等；巡视施工现场，检查现场安全设施及机械设备安全装置配置等情况。\n\n【问题】2. 施工现场监管信息系统业务应用层子系统还有哪些？现场环境监管数据中包括哪些监测数据？",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0017_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "3e7175b37c3b5e6443e50dd6b875d0d68ed75372fb0b4511ab07903fc7266b2d"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-05__P02::SP01",
+          "criterion": "（1）质量监管、安全监管、从业人员实名制管理、移动数据采集、视频监控、基础数据管理、应用维护子系统。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "b336bf11033ffa9fb7ba7a63cc9bf01aaaa000c314c3c43603d190fa48ff0978",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-05__P02::SP02",
+          "criterion": "（2）工地扬尘监测数据、现场环境噪声监测数据、工地小气候气象监测数据。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[1].question_data.correct_answer",
+              "quote_hash": "d258fcd85abf6c3eb5ef9f774fd7573a2070413719a106666bf668724deba8e5",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 2,
+            "chunk_id": "EXAM_1A436000_P0017_01",
+            "source_year": 2025,
+            "source_field": "exercises[1].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "23ee7ada0c02fad83ee4d943f9a00c368c2055d4590fb5cf5b8646265e34bd8c",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-05__P03",
+      "title": "项目经理权限、监管系统、动火审批与安全检查 / 问题3",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A436000_P0017_01`\n\n【案例背景】\n\n某酒店工程，地下2层，地上26层，建筑面积8.5万平方米。框架-剪力墙结构，大厅高度10.0m，裙房为钢结构。\n\n施工总承包单位中标后开始组织施工。施工总承包单位委派了具备相应执业资格和施工总承包项目管理经验的项目经理，按照项目管理规范授予其相应权限，包括：参与项目招投标和合同签订工作、参与项目管理机构组建和大宗资源供应单位的选择等，为项目管理创造条件。\n\n项目部安装使用的施工现场监管信息系统业务应用层包括：环境监管、协同处置等5个子系统。系统监管数据如环境监管数据、监控视频数据等，为项目管理提供了有力支撑。\n\n目技术负责人就施工现场动火审批程序（见表5）向施工管理人员进行技术交底，特别强调了动火证当日开具、当日有效。\n\n**表5 现场动火审批程序**\n| 动火级别 | 填写动火申请表 | 审查批准 |\n|----------|----------------|-----------|\n| 一级     | A              | B         |\n| 二级     | C              | D / 项目经理 |\n| 三级     | E              | F / 项目安全管理部门 |\n\n公司安全管理部门对项目安全管理进行例行检查中发现：项目部在施工安全危险源辨识中按施工工作活动的专业进行分类，包括：爆炸类、火灾类、物质类等7种类型；一层大厅危险性较大的高支模专项施工方案，未组织专家论证，符合判定为安全管理重大事故隐患的条件，要求停工整改。\n\n施工过程中，主管部门安全管理人员主要采用“看”、“问”、“量”等方法进行现场安全检查；查看安全管理资料，如各类人员持证上岗情况等；巡视施工现场，检查现场安全设施及机械设备安全装置配置等情况。\n\n【问题】3. 答出表5中B-F处的部门或人员。（如：A 项目经理）",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0017_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "8fbf9435baa0b6e4e57c69efb807721936dedcc71c2952c81f5528f240649ef5"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-05__P03::SP01",
+          "criterion": "B 企业安全管理部门；C 项目责任工程师；D 项目安全管理部门；E 班组；F 项目责任工程师。",
+          "max_score": 5.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[2].question_data.correct_answer",
+              "quote_hash": "7f78847456409972ba6dcdd1416bc42102919e79b4b0a139f79cb797f21309ef",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 3,
+            "chunk_id": "EXAM_1A436000_P0017_01",
+            "source_year": 2025,
+            "source_field": "exercises[2].question_data.correct_answer",
+            "official_score": 5.0,
+            "fragment_quote_hash": "7f78847456409972ba6dcdd1416bc42102919e79b4b0a139f79cb797f21309ef",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-05__P04",
+      "title": "项目经理权限、监管系统、动火审批与安全检查 / 问题4",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A436000_P0017_01`\n\n【案例背景】\n\n某酒店工程，地下2层，地上26层，建筑面积8.5万平方米。框架-剪力墙结构，大厅高度10.0m，裙房为钢结构。\n\n施工总承包单位中标后开始组织施工。施工总承包单位委派了具备相应执业资格和施工总承包项目管理经验的项目经理，按照项目管理规范授予其相应权限，包括：参与项目招投标和合同签订工作、参与项目管理机构组建和大宗资源供应单位的选择等，为项目管理创造条件。\n\n项目部安装使用的施工现场监管信息系统业务应用层包括：环境监管、协同处置等5个子系统。系统监管数据如环境监管数据、监控视频数据等，为项目管理提供了有力支撑。\n\n目技术负责人就施工现场动火审批程序（见表5）向施工管理人员进行技术交底，特别强调了动火证当日开具、当日有效。\n\n**表5 现场动火审批程序**\n| 动火级别 | 填写动火申请表 | 审查批准 |\n|----------|----------------|-----------|\n| 一级     | A              | B         |\n| 二级     | C              | D / 项目经理 |\n| 三级     | E              | F / 项目安全管理部门 |\n\n公司安全管理部门对项目安全管理进行例行检查中发现：项目部在施工安全危险源辨识中按施工工作活动的专业进行分类，包括：爆炸类、火灾类、物质类等7种类型；一层大厅危险性较大的高支模专项施工方案，未组织专家论证，符合判定为安全管理重大事故隐患的条件，要求停工整改。\n\n施工过程中，主管部门安全管理人员主要采用“看”、“问”、“量”等方法进行现场安全检查；查看安全管理资料，如各类人员持证上岗情况等；巡视施工现场，检查现场安全设施及机械设备安全装置配置等情况。\n\n【问题】4. 按照施工活动专业分类的危险源类型还有哪些？判定为安全管理重大事故隐患的条件还有哪些？",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0017_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "f154bb6433048e3e33e915f2c522acac4deee0110cfb659de274117740b50d65"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-05__P04::SP01",
+          "criterion": "（1）机械类、电器类、辐射类、高坠类。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "6de19e5af5eedf22f0e25282de6032c1576f9d1bec8264010e00e53d1b0ae939",
+              "verified": true
+            }
+          ]
+        },
+        {
+          "point_id": "Q2025-05__P04::SP02",
+          "criterion": "（2）包括：①施工企业未取得安全生产许可证，擅自从事建筑施工活动；②施工单位主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书，从事相关工作；③特种作业人员未取得特种作业人员操作资格证书上岗作业；④危险性较大的分部分项工程未编制、未审核专项施工方案。",
+          "max_score": 3.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[3].question_data.correct_answer",
+              "quote_hash": "17f875f01c4537214e1034c3b05d5eff2286504e5d85c4178854e3542f9cf9fd",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 4,
+            "chunk_id": "EXAM_1A436000_P0017_01",
+            "source_year": 2025,
+            "source_field": "exercises[3].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "abb8715b415348d4b3684b1236c52240e12ab5555dcda88ec17ff03b183e6d67",
+            "allocation_rule": "equal_half_point_split",
+            "point_count": 2,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    },
+    {
+      "question_id": "Q2025-05__P05",
+      "title": "项目经理权限、监管系统、动火审批与安全检查 / 问题5",
+      "stem": "- 年份：2025\n- 来源 chunk：`EXAM_1A436000_P0017_01`\n\n【案例背景】\n\n某酒店工程，地下2层，地上26层，建筑面积8.5万平方米。框架-剪力墙结构，大厅高度10.0m，裙房为钢结构。\n\n施工总承包单位中标后开始组织施工。施工总承包单位委派了具备相应执业资格和施工总承包项目管理经验的项目经理，按照项目管理规范授予其相应权限，包括：参与项目招投标和合同签订工作、参与项目管理机构组建和大宗资源供应单位的选择等，为项目管理创造条件。\n\n项目部安装使用的施工现场监管信息系统业务应用层包括：环境监管、协同处置等5个子系统。系统监管数据如环境监管数据、监控视频数据等，为项目管理提供了有力支撑。\n\n目技术负责人就施工现场动火审批程序（见表5）向施工管理人员进行技术交底，特别强调了动火证当日开具、当日有效。\n\n**表5 现场动火审批程序**\n| 动火级别 | 填写动火申请表 | 审查批准 |\n|----------|----------------|-----------|\n| 一级     | A              | B         |\n| 二级     | C              | D / 项目经理 |\n| 三级     | E              | F / 项目安全管理部门 |\n\n公司安全管理部门对项目安全管理进行例行检查中发现：项目部在施工安全危险源辨识中按施工工作活动的专业进行分类，包括：爆炸类、火灾类、物质类等7种类型；一层大厅危险性较大的高支模专项施工方案，未组织专家论证，符合判定为安全管理重大事故隐患的条件，要求停工整改。\n\n施工过程中，主管部门安全管理人员主要采用“看”、“问”、“量”等方法进行现场安全检查；查看安全管理资料，如各类人员持证上岗情况等；巡视施工现场，检查现场安全设施及机械设备安全装置配置等情况。\n\n【问题】5. 现场安全检查方法还有哪些？“看”的方法中，还应检查哪些现场安全情况？",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "source_type": "fastapi_case_markdown_chunk",
+          "chunk_id": "EXAM_1A436000_P0017_01",
+          "verified": false
+        }
+      ],
+      "question_authority_ref": {
+        "module": "FastAPI20251222.docs.2026.case_markdown",
+        "source_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/近三年案例题_按学生答卷排版.md",
+        "content_hash": "726b8d26f7253aadb57ad78e120d67457be78100a2700248e0c345ad60d4ee76"
+      },
+      "scoring_points": [
+        {
+          "point_id": "Q2025-05__P05::SP01",
+          "criterion": "（1）“听”、“测”、“运转试验”。（2）包括：①现场安全标志设置情况；②劳动防护用品使用情况；③现场安全防护情况。",
+          "max_score": 6.0,
+          "policy_type": "qualitative",
+          "required_terms": [],
+          "negative_evidence": [],
+          "source_refs": [
+            {
+              "source_type": "exam_reference_answer",
+              "source_id": "EXAM_1A436000_P0017_01",
+              "source_year": 2025,
+              "source_field": "exercises[4].question_data.correct_answer",
+              "quote_hash": "d26b5d94a7755fd91abb74a88403218857a3924e8f79116027f5e465f1cf6d99",
+              "verified": true
+            }
+          ]
+        }
+      ],
+      "answer_key_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "extraction": "deterministic_regex_no_llm",
+        "validated_by": "rubric_compiler.validate_rubric",
+        "subquestions": [
+          {
+            "subquestion_index": 5,
+            "chunk_id": "EXAM_1A436000_P0017_01",
+            "source_year": 2025,
+            "source_field": "exercises[4].question_data.correct_answer",
+            "official_score": 6.0,
+            "fragment_quote_hash": "d26b5d94a7755fd91abb74a88403218857a3924e8f79116027f5e465f1cf6d99",
+            "allocation_rule": "single_point_full_score",
+            "point_count": 1,
+            "scoring_policy_note": null
+          }
+        ]
+      }
+    }
+  ],
+  "answer_key_authority": "exam_reference_answer",
+  "answer_key_build_script": "scripts/build_luban_m35_official_answer_keys.py",
+  "answer_key_source_files": {
+    "2023": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2023年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2023.json",
+    "2025": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库/2025年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2025.json"
+  },
+  "work_orders": [
+    {
+      "question_id": "Q2023-02__P04",
+      "reason": "missing_official_subquestion_score",
+      "detail": "official score is null for subquestion(s) [4]",
+      "source_chunk_ids": [
+        "EXAM_1A433000_P0012_02",
+        "EXAM_1A433000_P0013_01"
+      ],
+      "source_year": 2023
+    }
+  ]
+}

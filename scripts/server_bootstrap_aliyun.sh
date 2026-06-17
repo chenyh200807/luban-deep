@@ -27,7 +27,10 @@ if ! docker compose version >/dev/null 2>&1; then
     exit 1
 fi
 
-mkdir -p data/user data/knowledge_bases
+mkdir -p data/user data/knowledge_bases data/runtime
+# The container runs as uid 10001 (Dockerfile USER deeptutor); bind mounts created
+# here as root would be unwritable inside the container on a fresh host. Idempotent.
+chown -R 10001:10001 data/user data/knowledge_bases data/runtime 2>/dev/null || true
 
 if [ ! -f .env ]; then
     cp deployment/aliyun/aliyun.env.example .env

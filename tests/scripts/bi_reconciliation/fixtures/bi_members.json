@@ -1,0 +1,1066 @@
+{
+ "window_days": 7,
+ "dashboard": {
+  "total_count": 93,
+  "active_count": 93,
+  "expiring_soon_count": 0,
+  "new_today_count": 0,
+  "new_7d_count": 10,
+  "new_30d_count": 29,
+  "churn_risk_count": 0,
+  "health_score": 100,
+  "auto_renew_coverage": 0,
+  "tier_breakdown": [
+   {
+    "tier": "free",
+    "count": 1
+   },
+   {
+    "tier": "trial",
+    "count": 92
+   }
+  ],
+  "expiry_breakdown": [
+   {
+    "label": "07-09",
+    "count": 10
+   },
+   {
+    "label": "12-31",
+    "count": 83
+   }
+  ],
+  "admin_ops": {
+   "window_days": 7,
+   "total": 0,
+   "by_action": []
+  },
+  "recommendations": [
+   "当前会员状态稳定，可继续推进高分用户的 SVIP 升级。"
+  ]
+ },
+ "cards": [
+  {
+   "label": "活跃会员",
+   "value": 93,
+   "hint": "总会员 93"
+  },
+  {
+   "label": "7 天内到期",
+   "value": 0,
+   "hint": "建议跟进续费"
+  },
+  {
+   "label": "流失预警",
+   "value": 0,
+   "hint": "健康分 100"
+  }
+ ],
+ "tiers": [
+  {
+   "tier": "trial",
+   "count": 92,
+   "label": "trial",
+   "value": 92
+  },
+  {
+   "tier": "free",
+   "count": 1,
+   "label": "free",
+   "value": 1
+  }
+ ],
+ "risks": [
+  {
+   "risk_level": "low",
+   "count": 93,
+   "label": "low",
+   "value": 93
+  }
+ ],
+ "statuses": [
+  {
+   "status": "active",
+   "count": 93
+  }
+ ],
+ "expiring_members": [
+  {
+   "user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+   "display_name": "qa_compiled_shadow",
+   "phone": "<redacted>",
+   "tier": "trial",
+   "status": "active",
+   "segment": "general",
+   "risk_level": "low",
+   "auto_renew": false,
+   "created_at": "2026-06-09T09:55:40.732745+08:00",
+   "last_active_at": "2026-06-09T16:54:06.713720+08:00",
+   "expire_at": "2026-07-09T09:55:40.732745+08:00",
+   "avatar_url": "",
+   "points_balance": 120,
+   "level": 1,
+   "xp": 0,
+   "study_days": 0,
+   "review_due": 0,
+   "focus_topic": "入门摸底",
+   "focus_query": "帮我做一次入门摸底测试",
+   "exam_date": "",
+   "daily_target": 30,
+   "difficulty_preference": "medium",
+   "explanation_style": "detailed",
+   "review_reminder": true,
+   "earned_badge_ids": [],
+   "chapter_mastery": {
+    "建筑构造": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "地基基础": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "防水工程": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "主体结构": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "建筑材料": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工测量": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "模板脚手架": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "装饰装修": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "机电安装": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "安全管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "质量验收": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "合同索赔": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "绿色施工": {
+     "name": "<redacted>",
+     "mastery": 0
+    }
+   },
+   "last_assessment": {},
+   "notes": [],
+   "ledger": [],
+   "daily_practice_counts": {},
+   "chapter_practice_stats": {
+    "建筑构造": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "地基基础": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "防水工程": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "主体结构": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "建筑材料": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工测量": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "模板脚手架": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "装饰装修": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "机电安装": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "安全管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "质量验收": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "合同索赔": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "绿色施工": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    }
+   },
+   "last_study_date": "",
+   "last_practice_at": "",
+   "auth_username": "qa_compiled_shadow",
+   "external_auth_provider": "fastapi20251222_simple_auth",
+   "external_auth_user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+   "alias_user_ids": [
+    "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+    "auth_72af0948a25345b88b3ba9eb"
+   ],
+   "canonical_user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+   "member_directory_source": "member_console_session_activity_supplement"
+  },
+  {
+   "user_id": "auth_31b902de22ff4bc78a1d7691",
+   "display_name": "qa_compiled_shadow_125347",
+   "phone": "<redacted>",
+   "tier": "trial",
+   "status": "active",
+   "segment": "general",
+   "risk_level": "low",
+   "auto_renew": false,
+   "created_at": "2026-06-09T12:53:48.841401+08:00",
+   "last_active_at": "2026-06-09T12:54:32.872224+08:00",
+   "expire_at": "2026-07-09T12:53:48.841401+08:00",
+   "avatar_url": "",
+   "points_balance": 120,
+   "level": 1,
+   "xp": 0,
+   "study_days": 0,
+   "review_due": 0,
+   "focus_topic": "入门摸底",
+   "focus_query": "帮我做一次入门摸底测试",
+   "exam_date": "",
+   "daily_target": 30,
+   "difficulty_preference": "medium",
+   "explanation_style": "detailed",
+   "review_reminder": true,
+   "earned_badge_ids": [],
+   "chapter_mastery": {
+    "建筑构造": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "地基基础": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "防水工程": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "主体结构": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "建筑材料": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工测量": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "模板脚手架": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "装饰装修": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "机电安装": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "安全管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "质量验收": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "合同索赔": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "绿色施工": {
+     "name": "<redacted>",
+     "mastery": 0
+    }
+   },
+   "last_assessment": {},
+   "notes": [],
+   "ledger": [],
+   "daily_practice_counts": {},
+   "chapter_practice_stats": {
+    "建筑构造": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "地基基础": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "防水工程": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "主体结构": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "建筑材料": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工测量": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "模板脚手架": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "装饰装修": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "机电安装": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "安全管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "质量验收": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "合同索赔": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "绿色施工": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    }
+   },
+   "last_study_date": "",
+   "last_practice_at": "",
+   "auth_username": "qa_compiled_shadow_125347",
+   "external_auth_provider": "fastapi20251222_simple_auth",
+   "external_auth_user_id": "31b902de-22ff-4bc7-8a1d-769135d8e03e",
+   "merged_into": "31b902de-22ff-4bc7-8a1d-769135d8e03e",
+   "alias_user_ids": [
+    "31b902de-22ff-4bc7-8a1d-769135d8e03e",
+    "auth_31b902de22ff4bc78a1d7691"
+   ],
+   "canonical_user_id": "31b902de-22ff-4bc7-8a1d-769135d8e03e",
+   "member_directory_source": "member_console_session_activity_supplement"
+  },
+  {
+   "user_id": "auth_cb0ccebe31914ee18bc05309",
+   "display_name": "qa_compiled_shadow_130014",
+   "phone": "<redacted>",
+   "tier": "trial",
+   "status": "active",
+   "segment": "general",
+   "risk_level": "low",
+   "auto_renew": false,
+   "created_at": "2026-06-09T13:00:15.668114+08:00",
+   "last_active_at": "2026-06-09T13:01:01.585177+08:00",
+   "expire_at": "2026-07-09T13:00:15.668114+08:00",
+   "avatar_url": "",
+   "points_balance": 120,
+   "level": 1,
+   "xp": 0,
+   "study_days": 0,
+   "review_due": 0,
+   "focus_topic": "入门摸底",
+   "focus_query": "帮我做一次入门摸底测试",
+   "exam_date": "",
+   "daily_target": 30,
+   "difficulty_preference": "medium",
+   "explanation_style": "detailed",
+   "review_reminder": true,
+   "earned_badge_ids": [],
+   "chapter_mastery": {
+    "建筑构造": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "地基基础": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "防水工程": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "主体结构": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "建筑材料": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工测量": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "模板脚手架": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "装饰装修": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "机电安装": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "安全管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "质量验收": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "合同索赔": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "绿色施工": {
+     "name": "<redacted>",
+     "mastery": 0
+    }
+   },
+   "last_assessment": {},
+   "notes": [],
+   "ledger": [],
+   "daily_practice_counts": {},
+   "chapter_practice_stats": {
+    "建筑构造": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "地基基础": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "防水工程": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "主体结构": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "建筑材料": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工测量": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "模板脚手架": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "装饰装修": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "机电安装": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "安全管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "质量验收": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "合同索赔": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "绿色施工": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    }
+   },
+   "last_study_date": "",
+   "last_practice_at": "",
+   "auth_username": "qa_compiled_shadow_130014",
+   "external_auth_provider": "fastapi20251222_simple_auth",
+   "external_auth_user_id": "cb0ccebe-3191-4ee1-8bc0-53099caef7f7",
+   "merged_into": "cb0ccebe-3191-4ee1-8bc0-53099caef7f7",
+   "alias_user_ids": [
+    "auth_cb0ccebe31914ee18bc05309",
+    "cb0ccebe-3191-4ee1-8bc0-53099caef7f7"
+   ],
+   "canonical_user_id": "cb0ccebe-3191-4ee1-8bc0-53099caef7f7",
+   "member_directory_source": "member_console_session_activity_supplement"
+  },
+  {
+   "user_id": "auth_ed1b7e62b31d4061b11d1de2",
+   "display_name": "qa_compiled_shadow_130249",
+   "phone": "<redacted>",
+   "tier": "trial",
+   "status": "active",
+   "segment": "general",
+   "risk_level": "low",
+   "auto_renew": false,
+   "created_at": "2026-06-09T13:02:50.879866+08:00",
+   "last_active_at": "2026-06-09T13:07:47.324313+08:00",
+   "expire_at": "2026-07-09T13:02:50.879866+08:00",
+   "avatar_url": "",
+   "points_balance": 120,
+   "level": 1,
+   "xp": 0,
+   "study_days": 0,
+   "review_due": 0,
+   "focus_topic": "入门摸底",
+   "focus_query": "帮我做一次入门摸底测试",
+   "exam_date": "",
+   "daily_target": 30,
+   "difficulty_preference": "medium",
+   "explanation_style": "detailed",
+   "review_reminder": true,
+   "earned_badge_ids": [],
+   "chapter_mastery": {
+    "建筑构造": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "地基基础": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "防水工程": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "主体结构": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "建筑材料": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工测量": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "模板脚手架": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "装饰装修": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "机电安装": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "安全管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "质量验收": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "合同索赔": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "绿色施工": {
+     "name": "<redacted>",
+     "mastery": 0
+    }
+   },
+   "last_assessment": {},
+   "notes": [],
+   "ledger": [],
+   "daily_practice_counts": {},
+   "chapter_practice_stats": {
+    "建筑构造": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "地基基础": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "防水工程": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "主体结构": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "建筑材料": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工测量": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "模板脚手架": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "装饰装修": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "机电安装": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "安全管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "质量验收": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "合同索赔": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "绿色施工": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    }
+   },
+   "last_study_date": "",
+   "last_practice_at": "",
+   "auth_username": "qa_compiled_shadow_130249",
+   "external_auth_provider": "fastapi20251222_simple_auth",
+   "external_auth_user_id": "ed1b7e62-b31d-4061-b11d-1de280e4c12e",
+   "merged_into": "ed1b7e62-b31d-4061-b11d-1de280e4c12e",
+   "alias_user_ids": [
+    "auth_ed1b7e62b31d4061b11d1de2",
+    "ed1b7e62-b31d-4061-b11d-1de280e4c12e"
+   ],
+   "canonical_user_id": "ed1b7e62-b31d-4061-b11d-1de280e4c12e",
+   "member_directory_source": "member_console_session_activity_supplement"
+  },
+  {
+   "user_id": "auth_ad6a31ef4e0f421d8957b48f",
+   "display_name": "qa_compiled_shadow_132841",
+   "phone": "<redacted>",
+   "tier": "trial",
+   "status": "active",
+   "segment": "general",
+   "risk_level": "low",
+   "auto_renew": false,
+   "created_at": "2026-06-09T13:28:42.435778+08:00",
+   "last_active_at": "2026-06-09T13:33:28.753287+08:00",
+   "expire_at": "2026-07-09T13:28:42.435778+08:00",
+   "avatar_url": "",
+   "points_balance": 120,
+   "level": 1,
+   "xp": 0,
+   "study_days": 0,
+   "review_due": 0,
+   "focus_topic": "入门摸底",
+   "focus_query": "帮我做一次入门摸底测试",
+   "exam_date": "",
+   "daily_target": 30,
+   "difficulty_preference": "medium",
+   "explanation_style": "detailed",
+   "review_reminder": true,
+   "earned_badge_ids": [],
+   "chapter_mastery": {
+    "建筑构造": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "地基基础": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "防水工程": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "主体结构": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "建筑材料": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "施工测量": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "模板脚手架": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "装饰装修": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "机电安装": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "安全管理": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "质量验收": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "合同索赔": {
+     "name": "<redacted>",
+     "mastery": 0
+    },
+    "绿色施工": {
+     "name": "<redacted>",
+     "mastery": 0
+    }
+   },
+   "last_assessment": {},
+   "notes": [],
+   "ledger": [],
+   "daily_practice_counts": {},
+   "chapter_practice_stats": {
+    "建筑构造": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "地基基础": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "防水工程": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "主体结构": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "建筑材料": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "施工测量": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "模板脚手架": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "装饰装修": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "机电安装": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "安全管理": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "质量验收": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "合同索赔": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    },
+    "绿色施工": {
+     "done": 0,
+     "correct": 0,
+     "last_activity_at": ""
+    }
+   },
+   "last_study_date": "",
+   "last_practice_at": "",
+   "auth_username": "qa_compiled_shadow_132841",
+   "external_auth_provider": "fastapi20251222_simple_auth",
+   "external_auth_user_id": "ad6a31ef-4e0f-421d-8957-b48f9c57d704",
+   "merged_into": "ad6a31ef-4e0f-421d-8957-b48f9c57d704",
+   "alias_user_ids": [
+    "ad6a31ef-4e0f-421d-8957-b48f9c57d704",
+    "auth_ad6a31ef4e0f421d8957b48f"
+   ],
+   "canonical_user_id": "ad6a31ef-4e0f-421d-8957-b48f9c57d704",
+   "member_directory_source": "member_console_session_activity_supplement"
+  }
+ ],
+ "chapter_progress": [
+  {
+   "chapter_id": "主体结构",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "合同索赔",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "地基基础",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "安全管理",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "建筑材料",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "建筑构造",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "施工测量",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  },
+  {
+   "chapter_id": "施工管理",
+   "name": "<redacted>",
+   "mastery": 0,
+   "member_count": 11,
+   "status": "weak",
+   "evidence": "11 名真实会员样本平均掌握度 0%"
+  }
+ ],
+ "samples": [
+  {
+   "user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+   "display_name": "qa_compiled_shadow",
+   "tier": "trial",
+   "status": "active",
+   "risk_level": "low",
+   "last_active_at": "2026-06-09T16:54:06.713720+08:00",
+   "detail": "到期时间 2026-07-09T09:55:40.732745+08:00"
+  },
+  {
+   "user_id": "auth_31b902de22ff4bc78a1d7691",
+   "display_name": "qa_compiled_shadow_125347",
+   "tier": "trial",
+   "status": "active",
+   "risk_level": "low",
+   "last_active_at": "2026-06-09T12:54:32.872224+08:00",
+   "detail": "到期时间 2026-07-09T12:53:48.841401+08:00"
+  },
+  {
+   "user_id": "auth_cb0ccebe31914ee18bc05309",
+   "display_name": "qa_compiled_shadow_130014",
+   "tier": "trial",
+   "status": "active",
+   "risk_level": "low",
+   "last_active_at": "2026-06-09T13:01:01.585177+08:00",
+   "detail": "到期时间 2026-07-09T13:00:15.668114+08:00"
+  },
+  {
+   "user_id": "auth_ed1b7e62b31d4061b11d1de2",
+   "display_name": "qa_compiled_shadow_130249",
+   "tier": "trial",
+   "status": "active",
+   "risk_level": "low",
+   "last_active_at": "2026-06-09T13:07:47.324313+08:00",
+   "detail": "到期时间 2026-07-09T13:02:50.879866+08:00"
+  },
+  {
+   "user_id": "auth_ad6a31ef4e0f421d8957b48f",
+   "display_name": "qa_compiled_shadow_132841",
+   "tier": "trial",
+   "status": "active",
+   "risk_level": "low",
+   "last_active_at": "2026-06-09T13:33:28.753287+08:00",
+   "detail": "到期时间 2026-07-09T13:28:42.435778+08:00"
+  }
+ ]
+}

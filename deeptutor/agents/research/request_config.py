@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
+from deeptutor.services.security.tool_access import filter_end_user_tools
 
 ResearchMode = Literal["notes", "report", "comparison", "learning_path"]
 ResearchDepth = Literal["quick", "standard", "deep", "manual"]
@@ -90,13 +91,9 @@ def build_research_execution_policy(
     if "papers" in request_config.sources:
         source_tools.add("paper_search")
 
-    allow_code_execution = (
-        bool(request_config.sources)
-        and "code_execution" in enabled_tools
-        and request_config.mode == "comparison"
-        and request_config.depth == "deep"
-    )
-    effective_tools = sorted(source_tools | ({"code_execution"} if allow_code_execution else set()))
+    safe_enabled_tools = set(filter_end_user_tools(enabled_tools))
+    allow_code_execution = False
+    effective_tools = sorted(source_tools & safe_enabled_tools)
 
     planning = {
         "rephrase": {

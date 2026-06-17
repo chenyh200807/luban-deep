@@ -242,16 +242,82 @@ gates:
     assert "plan_completion_audit_missing" in gate["reason"]
 
 
+def test_eval_gate_runner_runs_release_report_only_after_control_plane_producers(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    marker_path = tmp_path / "control_plane_ready.txt"
+    release_payload = tmp_path / "release_gate.json"
+    release_code = (
+        "import json, pathlib; "
+        f"marker = pathlib.Path({str(marker_path)!r}); "
+        f"payload_path = pathlib.Path({str(release_payload)!r}); "
+        "ready = marker.exists(); "
+        "payload = dict(kind='release_gate_runs', payload=dict("
+        "final_status='WARN' if ready else 'FAIL', "
+        "recommendation='hold_with_conditions' if ready else 'hold', "
+        "blockers=[] if ready else ['runtime_or_release_lineage_incomplete']"
+        ")); "
+        "payload_path.write_text(json.dumps(payload), encoding='utf-8'); "
+        "print('Final status: ' + ('WARN' if ready else 'FAIL')); "
+        "print('JSON: ' + str(payload_path))"
+    )
+    writer_code = f"from pathlib import Path; Path({str(marker_path)!r}).write_text('ready', encoding='utf-8')"
+    gates_path.write_text(
+        f"""
+version: 1
+gates:
+  release_gate_report_only:
+    command:
+      - "python"
+      - "-c"
+      - {json.dumps(release_code)}
+  control_plane_writer:
+    command:
+      - "python"
+      - "-c"
+      - {json.dumps(writer_code)}
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    assert [gate["name"] for gate in summary["gates"]] == ["control_plane_writer", "release_gate_report_only"]
+    release_gate = summary["gates"][1]
+    assert release_gate["status"] == "PASS"
+
+
 def test_eval_gate_yaml_turns_coverage_gaps_into_runnable_gates() -> None:
     gates = (PROJECT_ROOT / "eval" / "gates.yaml").read_text(encoding="utf-8")
 
     assert "required_paths:\n      - \"web/package-lock.json\"" in gates
-    assert "test:wechat-harness:e2e:ci" in gates
+    assert "test:wechat-harness:e2e" in gates
+    assert "test:wechat-harness:e2e:ci" not in gates
+    assert "requires externally hosted web server via WEB_BASE_URL" in gates
     assert "tests/fixtures/long_dialog_v1_retest_source.json" in gates
     assert "--start-local-api" in gates
     assert "web/node_modules/.bin/playwright" not in gates
     assert "requires --source-json historical artifact" not in gates
     assert "requires local API server" not in gates
+
+    package_json = json.loads((PROJECT_ROOT / "web" / "package.json").read_text(encoding="utf-8"))
+    scripts = package_json["scripts"]
+    assert scripts["test:wechat-harness"] == "npm run test:wechat-harness:data"
+    assert "PW_START_WEB_SERVER" not in scripts["test:wechat-harness:e2e"]
+    assert "PW_WEB_PORT" in scripts["test:wechat-harness:e2e:self-hosted"]
+    assert "--reporter=list,html" in scripts["test:wechat-harness:e2e:self-hosted"]
+    assert "--trace=retain-on-failure" in scripts["test:wechat-harness:e2e:self-hosted"]
+
+    playwright_config = (PROJECT_ROOT / "web" / "playwright.config.ts").read_text(encoding="utf-8")
+    assert "PW_WEB_PORT" in playwright_config
+    assert "PORT=${WEB_SERVER_PORT} npm run dev" in playwright_config
 
 
 def test_standalone_deep_scripts_resolve_repo_checkout_without_external_pythonpath() -> None:

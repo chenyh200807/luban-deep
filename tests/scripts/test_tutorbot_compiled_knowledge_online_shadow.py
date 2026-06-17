@@ -1,0 +1,260 @@
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+
+import pytest
+
+
+REPO = Path(__file__).resolve().parents[2]
+_spec = importlib.util.spec_from_file_location(
+    "shadow",
+    REPO / "scripts" / "run_tutorbot_compiled_knowledge_online_shadow.py",
+)
+shadow = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = shadow
+
+
+def test_pair_metrics_detect_compiled_hit_and_answer_improvement() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = shadow.ShadowCase(
+        case_id="c1",
+        query="施工合同索赔成立条件是什么？",
+        expected="hit",
+        path_terms=("索赔",),
+        answer_terms=("索赔", "合同"),
+    )
+    control = {
+        "visible_response": "可以看合同条款。",
+        "result_metadata": {"total_tokens": 100},
+    }
+    treatment = {
+        "visible_response": "施工合同索赔成立要看索赔事件、合同约定和证据。",
+        "result_metadata": {
+            "total_tokens": 130,
+            "luban_general_knowledge_context": {
+                "authority": "luban_general_knowledge_context",
+                "tier": "teaching_context_not_answer_key",
+                "official_score_allowed": False,
+                "llm_may_decide_correctness": False,
+                "leaf_name_path": "智能建造新技术 > 工程变更、新增工程与索赔 > 工程索赔类型与条件",
+                "confidence": {"status": "high", "source_category_count": 2},
+                "sources": {"textbook": [{"text_preview": "索赔条件"}], "lecture": [{"text_preview": "合同索赔"}]},
+            },
+        },
+    }
+
+    row = shadow.evaluate_pair(case, control=control, treatment=treatment)
+
+    assert row["compiled_hit"] is True
+    assert row["wrong_path"] is False
+    assert row["source_valid"] is True
+    assert row["answer_improved"] is True
+    assert row["token_delta"] == 30
+
+
+def test_start_turn_body_uses_mobile_top_level_shadow_flag() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = shadow.ShadowCase(
+        case_id="c1",
+        query="施工合同索赔成立条件是什么？",
+        expected="hit",
+    )
+
+    control = shadow._build_start_turn_body(case=case, conversation_id="conv1", arm="rag_only")
+    treatment = shadow._build_start_turn_body(case=case, conversation_id="conv2", arm="compiled")
+
+    assert control["general_knowledge_context"] is False
+    assert treatment["general_knowledge_context"] is True
+    assert control["config"] == {
+        "bot_id": "construction-exam-coach",
+        "general_knowledge_context": False,
+    }
+    assert treatment["config"] == {
+        "bot_id": "construction-exam-coach",
+        "general_knowledge_context": True,
+    }
+
+
+def test_select_cases_can_resume_failed_shadow_subset() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    cases = shadow._select_cases(
+        limit=50,
+        case_ids=["open_013", "off_021", "open_050"],
+    )
+
+    assert [case.case_id for case in cases] == ["open_013", "off_021", "open_050"]
+
+
+def test_pair_metrics_treat_low_confidence_hit_as_wrong_path() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = shadow.ShadowCase(
+        case_id="c2",
+        query="双代号网络计划总时差怎么算？",
+        expected="open",
+        path_terms=("总时差",),
+        answer_terms=("总时差",),
+    )
+
+    row = shadow.evaluate_pair(
+        case,
+        control={"visible_response": "总时差看网络计划。", "result_metadata": {}},
+        treatment={
+            "visible_response": "总时差看网络计划。",
+            "result_metadata": {
+                "luban_general_knowledge_context": {
+                    "leaf_name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的分类与代号",
+                    "sources": {"lecture": [{"text_preview": "网络计划总时差"}]},
+                }
+            },
+        },
+    )
+
+    assert row["compiled_hit"] is True
+    assert row["fail_open"] is False
+    assert row["wrong_path"] is True
+    assert row["source_valid"] is False
+
+
+def test_pair_metrics_allow_open_construction_query_when_path_and_sources_match() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = shadow.ShadowCase(
+        case_id="open_ok",
+        query="大体积混凝土温控有哪些要点？",
+        expected="open",
+        path_terms=("大体积混凝土", "温控"),
+        answer_terms=("温控",),
+    )
+
+    row = shadow.evaluate_pair(
+        case,
+        control={"visible_response": "要控制温度。", "result_metadata": {}},
+        treatment={
+            "visible_response": "大体积混凝土温控要控制入模温度、内外温差和养护。",
+            "result_metadata": {
+                "luban_general_knowledge_context": {
+                    "authority": "luban_general_knowledge_context",
+                    "tier": "teaching_context_not_answer_key",
+                    "official_score_allowed": False,
+                    "llm_may_decide_correctness": False,
+                    "leaf_name_path": "主体结构工程施工 > 混凝土结构工程施工 > 大体积混凝土温控",
+                    "confidence": {"status": "high", "source_category_count": 2},
+                    "sources": {
+                        "textbook": [{"text_preview": "大体积混凝土温控"}],
+                        "lecture": [{"text_preview": "温控养护"}],
+                    },
+                }
+            },
+        },
+    )
+
+    assert row["compiled_hit"] is True
+    assert row["wrong_path"] is False
+    assert row["source_valid"] is True
+
+
+def test_pair_metrics_treat_off_domain_compiled_pack_as_wrong_path() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = shadow.ShadowCase(
+        case_id="off_bad",
+        query="帮我写一首关于咖啡的诗",
+        expected="open",
+    )
+
+    row = shadow.evaluate_pair(
+        case,
+        control={"visible_response": "可以。", "result_metadata": {}},
+        treatment={
+            "visible_response": "咖啡诗。",
+            "result_metadata": {
+                "luban_general_knowledge_context": {
+                    "authority": "luban_general_knowledge_context",
+                    "tier": "teaching_context_not_answer_key",
+                    "official_score_allowed": False,
+                    "llm_may_decide_correctness": False,
+                    "leaf_name_path": "建筑工程技术 > 建筑设计",
+                    "confidence": {"status": "high", "source_category_count": 2},
+                    "sources": {
+                        "textbook": [{"text_preview": "建筑"}],
+                        "lecture": [{"text_preview": "设计"}],
+                    },
+                }
+            },
+        },
+    )
+
+    assert row["compiled_hit"] is True
+    assert row["wrong_path"] is True
+    assert row["source_valid"] is False
+
+
+def test_default_case_path_terms_reject_green_construction_system_false_positive() -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    case = next(item for item in shadow.DEFAULT_CASES if item.case_id == "open_020")
+    row = shadow.evaluate_pair(
+        case,
+        control={"visible_response": "四节一环保指节能、节地、节水、节材和环境保护。", "result_metadata": {}},
+        treatment={
+            "visible_response": "绿色施工信息化系统包含项目管理信息系统。",
+            "result_metadata": {
+                "luban_general_knowledge_context": {
+                    "authority": "luban_general_knowledge_context",
+                    "tier": "teaching_context_not_answer_key",
+                    "official_score_allowed": False,
+                    "llm_may_decide_correctness": False,
+                    "leaf_name_path": "装饰装修工程施工 > 绿色施工信息化系统应用 > 项目管理信息系统子系统",
+                    "confidence": {"status": "high", "source_category_count": 2},
+                    "sources": {
+                        "textbook": [{"text_preview": "绿色施工信息化"}],
+                        "lecture": [{"text_preview": "项目管理信息系统"}],
+                    },
+                }
+            },
+        },
+    )
+
+    assert row["wrong_path"] is True
+
+
+@pytest.mark.asyncio
+async def test_run_turn_or_error_records_recoverable_shadow_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    async def _raise_recoverable(**_kwargs):
+        raise shadow.ShadowRecoverableServiceError("service_restart")
+
+    monkeypatch.setattr(shadow, "_run_turn", _raise_recoverable)
+    case = shadow.ShadowCase(case_id="c3", query="高层住宅的建筑高度是怎么界定的？", expected="hit")
+
+    result = await shadow._run_turn_or_error(
+        client=None,
+        ws_url="wss://example.test/api/v1/ws",
+        token="token",
+        headers={},
+        conversation_id="conv",
+        case=case,
+        arm="compiled",
+        timeout_seconds=1,
+    )
+
+    assert result["shadow_error"] == "ShadowRecoverableServiceError: service_restart"
+    assert result["shadow_error_stage"] == "turn_transport"
+    assert result["case_id"] == "c3"

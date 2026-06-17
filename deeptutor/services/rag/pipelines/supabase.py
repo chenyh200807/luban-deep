@@ -20,6 +20,7 @@ from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.rag.compiled_truth_source import materialize_compiled_truth_documents
+from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
@@ -470,37 +471,37 @@ def _build_evidence_bundle(
     query_shape: str,
     rewritten,
     second_pass_queries: list[str],
+    retrieval_warnings: list[Any] | None = None,
 ) -> dict[str, Any]:
-    return {
-        "bundle_id": hashlib.sha256(f"{kb_name}:{query}".encode("utf-8")).hexdigest()[:16],
-        "query": query,
-        "provider": provider,
-        "kb_name": kb_name,
-        "query_shape": query_shape,
-        "retrieval_query": str(rewritten.primary_query or query).strip(),
-        "query_rewrite": {
-            "normalized_query": str(rewritten.normalized_query or "").strip(),
-            "keywords": list(rewritten.keywords or []),
-            "standard_codes": list(rewritten.standard_codes or []),
-            "reasons": list(rewritten.reasons or []),
-            "second_pass_queries": list(second_pass_queries or []),
+    # Thin adapter over the single-authority builder: maps the supabase lane's inputs to the
+    # canonical contract + packs supabase-specific diagnostics (query rewrite / source plan)
+    # into the bundle's ``trace`` bucket. retrieval_degraded/status/warning_count are derived
+    # by the builder from ``retrieval_warnings`` (no post-mutation needed).
+    return build_evidence_bundle(
+        query=query,
+        provider=provider,
+        kb_name=kb_name,
+        content_blocks=content_blocks,
+        sources=sources,
+        exact_question=exact_question,
+        retrieval_plan=(retrieval_plan.to_dict() if hasattr(retrieval_plan, "to_dict") else {}),
+        ranking_trace=ranking_trace,
+        query_shape=query_shape,
+        retrieval_warnings=retrieval_warnings,
+        trace={
+            "retrieval_query": str(rewritten.primary_query or query).strip(),
+            "query_rewrite": {
+                "normalized_query": str(rewritten.normalized_query or "").strip(),
+                "keywords": list(rewritten.keywords or []),
+                "standard_codes": list(rewritten.standard_codes or []),
+                "reasons": list(rewritten.reasons or []),
+                "second_pass_queries": list(second_pass_queries or []),
+            },
+            "source_plan": (
+                source_plan.to_trace_dict() if hasattr(source_plan, "to_trace_dict") else {}
+            ),
         },
-        "source_plan": (
-            source_plan.to_trace_dict()
-            if hasattr(source_plan, "to_trace_dict")
-            else {}
-        ),
-        "retrieval_plan": (
-            retrieval_plan.to_dict()
-            if hasattr(retrieval_plan, "to_dict")
-            else {}
-        ),
-        "ranking_trace": dict(ranking_trace or {}),
-        "content_blocks": list(content_blocks or []),
-        "sources": list(sources or []),
-        "exact_question": dict(exact_question or {}),
-        "retrieval_empty": not bool(sources),
-    }
+    )
 
 
 def _weighted_rrf_fusion(
@@ -820,6 +821,8 @@ class SupabasePipeline:
         routing_metadata = kwargs.get("routing_metadata")
         routing_metadata = routing_metadata if isinstance(routing_metadata, dict) else {}
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
+        personalization_context = kwargs.get("personalization_context")
+        personalization_context = personalization_context if isinstance(personalization_context, dict) else None
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -849,6 +852,8 @@ class SupabasePipeline:
                 routing_metadata={
                     **routing_metadata,
                     "compiled_learning_truth_available": bool(compiled_learning_truth),
+                    "personalization_context_available": bool(personalization_context)
+                    or bool(routing_metadata.get("personalization_context_available")),
                 },
             )
             query_shape = rewritten.query_shape or classify_query_shape(query)
@@ -886,6 +891,7 @@ class SupabasePipeline:
             compiled_truth_plan = self._compiled_truth_plan(
                 retrieval_plan=retrieval_plan,
                 compiled_learning_truth=compiled_learning_truth,
+                personalization_context=personalization_context,
                 config=config,
             )
             compiled_truth_final_enabled = self._compiled_truth_final_enabled(
@@ -1132,18 +1138,33 @@ class SupabasePipeline:
         )
         content = "\n\n".join(block for block in content_blocks if block)
 
-        sources = _dedupe_source_items([
-            {
-                "title": item.get("card_title") or item.get("title") or "Document",
-                "content": str(item.get("rag_content") or "")[:200],
-                "source": item.get("source") or item.get("source_doc") or item.get("card_title") or "",
-                "page": item.get("page_num") or item.get("page") or "",
-                "chunk_id": item.get("chunk_id") or item.get("id") or "",
-                "score": round(float(item.get("score") or 0.0), 4),
-                "source_type": item.get("source_type") or "",
-            }
-            for item in final_results
-        ])
+        source_items: list[dict[str, Any]] = []
+        for item in final_results:
+            raw_metadata = item.get("metadata")
+            metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
+            source_items.append(
+                {
+                    "title": item.get("card_title") or item.get("title") or "Document",
+                    "content": str(item.get("rag_content") or "")[:200],
+                    "source": item.get("source") or item.get("source_doc") or item.get("card_title") or "",
+                    "page": item.get("page_num") or item.get("page") or "",
+                    "chunk_id": item.get("chunk_id") or item.get("id") or "",
+                    "score": round(float(item.get("score") or 0.0), 4),
+                    "source_type": item.get("source_type") or "",
+                    "source_id": metadata.get("source_id") or item.get("source_id") or "",
+                    "source_table": metadata.get("source_table") or item.get("_source_table") or item.get("source_table") or "",
+                    "stable_id": metadata.get("stable_id") or item.get("stable_id") or "",
+                    "source_span": metadata.get("source_span") or item.get("source_span") or {},
+                    "content_hash": metadata.get("content_hash") or item.get("content_hash") or "",
+                    "quote_hash": metadata.get("quote_hash") or item.get("quote_hash") or "",
+                    "node_code": metadata.get("node_code") or item.get("node_code") or "",
+                    "taxonomy_path": metadata.get("taxonomy_path") or item.get("taxonomy_path") or "",
+                    "chapter": metadata.get("chapter") or item.get("chapter") or "",
+                    "chapter_name": metadata.get("chapter_name") or item.get("chapter_name") or "",
+                    "section": metadata.get("section") or item.get("section") or "",
+                }
+            )
+        sources = _dedupe_source_items(source_items)
         evidence_bundle = _build_evidence_bundle(
             query=query,
             provider="supabase",
@@ -1157,6 +1178,8 @@ class SupabasePipeline:
             query_shape=query_shape,
             rewritten=rewritten,
             second_pass_queries=second_pass_queries,
+            # builder derives retrieval_degraded/status/warning_count from this (fully populated here)
+            retrieval_warnings=retrieval_warnings,
         )
         stage_timings_ms["total"] = round((time.perf_counter() - total_started_at) * 1000, 1)
         performance_policy = {
@@ -1166,8 +1189,9 @@ class SupabasePipeline:
             "second_pass_enabled": bool(effective_second_pass_enabled),
             "primary_query_count": len(primary_queries),
         }
-        evidence_bundle["stage_timings_ms"] = dict(stage_timings_ms)
-        evidence_bundle["performance_policy"] = dict(performance_policy)
+        # post-build diagnostics (total timing is only knowable after the bundle) → trace bucket
+        evidence_bundle["trace"]["stage_timings_ms"] = dict(stage_timings_ms)
+        evidence_bundle["trace"]["performance_policy"] = dict(performance_policy)
 
         payload = {
             "query": query,
@@ -1180,12 +1204,9 @@ class SupabasePipeline:
             "retrieval_degraded": bool(retrieval_warnings),
             "retrieval_status": "partial" if retrieval_warnings else "ok",
         }
-        payload["evidence_bundle"]["retrieval_degraded"] = bool(retrieval_warnings)
-        payload["evidence_bundle"]["retrieval_status"] = str(payload["retrieval_status"])
-        payload["evidence_bundle"]["warning_count"] = len(retrieval_warnings)
         if retrieval_warnings:
             payload["warnings"] = list(retrieval_warnings)
-            payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
+            payload["evidence_bundle"]["trace"]["warnings"] = list(retrieval_warnings)
         if exact_question:
             payload["exact_question"] = exact_question
         trace_metadata = {
@@ -1258,13 +1279,20 @@ class SupabasePipeline:
         *,
         retrieval_plan,
         compiled_learning_truth: Any,
+        personalization_context: Any = None,
         config: SupabaseSearchConfig | None = None,
     ) -> list[dict[str, Any]]:
         source_group = getattr(retrieval_plan, "source_groups", {}).get("compiled_learning_truth")
         if not source_group or not getattr(source_group, "enabled", False):
             return []
         documents = materialize_compiled_truth_documents(
-            compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            (
+                compiled_learning_truth
+                if isinstance(compiled_learning_truth, dict)
+                else personalization_context
+                if isinstance(personalization_context, dict)
+                else None
+            ),
             max_documents=config.compiled_truth_max_documents if config else 6,
             max_chars_per_doc=config.compiled_truth_max_chars_per_doc if config else 700,
             max_total_chars=config.compiled_truth_max_total_chars if config else 2400,

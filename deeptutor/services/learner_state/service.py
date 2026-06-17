@@ -1,34 +1,44 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import logging
-import re
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+import os
 from pathlib import Path
+import re
 from typing import Any, Literal
+import uuid
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.learning_plan import LearningPlanService
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    canonical_truth_production_write_cohort_allowed,
+    canonical_truth_promotion_decision,
+)
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
 )
 from deeptutor.services.learner_state.heartbeat.service import _normalize_heartbeat_result_json
 from deeptutor.services.learner_state.heartbeat.store import _coerce_datetime
-from deeptutor.services.learner_state.outbox import (
-    LearnerStateOutbox as LearnerStateOutboxService,
-    LearnerStateOutboxItem,
-)
 from deeptutor.services.learner_state.learning_brain_read_model import (
     extract_learning_brain_projection,
     wrap_learning_brain_projection,
 )
-from deeptutor.services.path_service import PathService, get_path_service
+from deeptutor.services.learner_state.outbox import (
+    LearnerStateOutbox as LearnerStateOutboxService,
+)
+from deeptutor.services.learner_state.outbox import (
+    LearnerStateOutboxItem,
+)
+from deeptutor.services.learner_state.personalization_context import (
+    build_personalization_context_pack,
+)
 from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseSyncCoreStore
+from deeptutor.services.learning_plan import LearningPlanService
+from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 llm_stream: Any | None = None
@@ -75,7 +85,6 @@ _FILENAMES = {
     "events": "MEMORY_EVENTS.jsonl",
     "compiled_truth": "COMPILED_TRUTH.json",
 }
-
 
 @dataclass
 class LearnerStateEvent:
@@ -179,6 +188,12 @@ class LearnerStateService:
     def _safe_lock(self, user_id: str) -> asyncio.Lock:
         return self._locks.setdefault(user_id, asyncio.Lock())
 
+    def _local_projection_fallback_enabled(self) -> bool:
+        return (
+            not is_production_environment()
+            and env_flag("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", default=False)
+        )
+
     @property
     def outbox_service(self) -> LearnerStateOutboxService:
         return self._outbox_service
@@ -253,7 +268,19 @@ class LearnerStateService:
             progress["chapters"] = []
         return progress
 
+    def _read_profile_local_raw(self, user_id: str) -> dict[str, Any]:
+        path = self._path(user_id, "profile")
+        if not path.exists():
+            return {}
+        try:
+            content = path.read_text(encoding="utf-8").strip()
+            return dict(json.loads(content)) if content else {}
+        except Exception:
+            return {}
+
     def _read_profile_raw(self, user_id: str) -> dict[str, Any]:
+        if self._local_projection_fallback_enabled():
+            return self._read_profile_local_raw(user_id)
         if bool(getattr(self._core_store, "is_configured", False)):
             try:
                 remote = self._core_store.read_profile(user_id)
@@ -261,7 +288,10 @@ class LearnerStateService:
                 remote = None
             if remote:
                 return dict(remote)
-        path = self._path(user_id, "profile")
+        return self._read_profile_local_raw(user_id)
+
+    def _read_progress_local_raw(self, user_id: str) -> dict[str, Any]:
+        path = self._path(user_id, "progress")
         if not path.exists():
             return {}
         try:
@@ -280,6 +310,8 @@ class LearnerStateService:
             return ""
 
     def _read_progress_raw(self, user_id: str) -> dict[str, Any]:
+        if self._local_projection_fallback_enabled():
+            return self._read_progress_local_raw(user_id)
         if bool(getattr(self._core_store, "is_configured", False)):
             try:
                 remote = self._core_store.read_progress(user_id)
@@ -287,14 +319,7 @@ class LearnerStateService:
                 remote = None
             if remote:
                 return dict(remote)
-        path = self._path(user_id, "progress")
-        if not path.exists():
-            return {}
-        try:
-            content = path.read_text(encoding="utf-8").strip()
-            return dict(json.loads(content)) if content else {}
-        except Exception:
-            return {}
+        return self._read_progress_local_raw(user_id)
 
     def _ensure_seed_state(self, user_id: str) -> None:
         profile_path = self._path(user_id, "profile")
@@ -340,7 +365,7 @@ class LearnerStateService:
     def write_profile(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         remote_profile = dict(profile or {})
-        if bool(getattr(self._core_store, "is_configured", False)):
+        if bool(getattr(self._core_store, "is_configured", False)) and not self._local_projection_fallback_enabled():
             try:
                 remote_profile = dict(self._core_store.write_profile(normalized, profile) or remote_profile)
             except Exception:
@@ -400,11 +425,30 @@ class LearnerStateService:
     def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         payload = dict(projection or {})
+        promotion = canonical_truth_promotion_decision(user_id=normalized, projection=payload)
+        if is_production_environment() and not promotion.allowed:
+            return extract_learning_brain_projection(payload)
+        if bool(getattr(self._core_store, "is_configured", False)):
+            writer = getattr(self._core_store, "write_compiled_learning_truth", None)
+            if callable(writer):
+                try:
+                    remote = writer(normalized, payload)
+                except Exception:
+                    logger.exception("write_compiled_learning_truth core-store write failed: user_id=%s", normalized)
+                    if is_production_environment():
+                        return extract_learning_brain_projection(payload)
+                else:
+                    return extract_learning_brain_projection(remote if isinstance(remote, dict) else payload)
+            if is_production_environment():
+                return extract_learning_brain_projection(payload)
         if is_production_environment():
             return extract_learning_brain_projection(payload)
         path = self._path(normalized, "compiled_truth")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
+        # 原子写：dream cycle 线程与 turn 读线程并发时不能出现撕裂读。
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        tmp_path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
+        os.replace(tmp_path, path)
         return extract_learning_brain_projection(payload)
 
     def read_progress(self, user_id: str) -> dict[str, Any]:
@@ -421,7 +465,7 @@ class LearnerStateService:
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         remote_progress = dict(progress or {})
-        if bool(getattr(self._core_store, "is_configured", False)):
+        if bool(getattr(self._core_store, "is_configured", False)) and not self._local_projection_fallback_enabled():
             try:
                 remote_progress = dict(self._core_store.write_progress(normalized, progress) or remote_progress)
             except Exception:
@@ -510,6 +554,10 @@ class LearnerStateService:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
         local_events = self._list_local_memory_events(normalized)
+        if self._local_projection_fallback_enabled():
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-max(int(limit), 0):]
         if (
             local_events
             and not is_production_environment()
@@ -570,6 +618,23 @@ class LearnerStateService:
             return []
         return events
 
+    def list_local_memory_event_user_ids(self) -> list[str]:
+        """只读枚举本地存在 memory events 文件的用户 ID（dream cycle 候选集）。
+
+        不创建任何状态；只有 seed 文件而无事件的用户不会出现。"""
+        root = self._learner_root
+        if not root.exists():
+            return []
+        user_ids: list[str] = []
+        try:
+            children = sorted(root.iterdir())
+        except OSError:
+            return []
+        for child in children:
+            if child.is_dir() and (child / _FILENAMES["events"]).exists():
+                user_ids.append(child.name)
+        return user_ids
+
     def list_learning_evidence_events(
         self,
         user_id: str,
@@ -589,6 +654,10 @@ class LearnerStateService:
             )
             and _iso_unknown_or_gte(event.created_at, since)
         ]
+        if self._local_projection_fallback_enabled():
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-max(int(limit), 0):]
         if local_events and not is_production_environment():
             if limit is None or limit < 0:
                 return local_events
@@ -760,7 +829,18 @@ class LearnerStateService:
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
         self._enqueue_memory_event_outbox(event)
+        self._maybe_auto_synthesize_learning_truth(event)
         return event
+
+    def _maybe_auto_synthesize_learning_truth(self, event: LearnerStateEvent) -> None:
+        if event.memory_kind != "learning_evidence":
+            return
+        if not _auto_synthesis_enabled_for_user(event.user_id):
+            return
+        try:
+            self.synthesize_learning_truth(event.user_id, dry_run=False)
+        except Exception:
+            logger.exception("learning evidence auto synthesis failed: user_id=%s event_id=%s", event.user_id, event.event_id)
 
     def _enqueue_memory_event_outbox(self, event: LearnerStateEvent) -> None:
         self._outbox_service.enqueue(
@@ -803,16 +883,27 @@ class LearnerStateService:
         summary_md = render_learning_truth_summary_md(projection)
         if dry_run:
             return {"projection": projection, "summary_md": summary_md, "outbox_item": None}
+        promotion = canonical_truth_promotion_decision(user_id=normalized, projection=projection)
         self.write_compiled_learning_truth(normalized, projection)
+        summary_structured_json = (
+            wrap_learning_brain_projection(projection)
+            if promotion.allowed
+            else None
+        )
         outbox_item = self._enqueue_summary_refresh(
             user_id=normalized,
             summary_md=summary_md,
             source_feature="learning_synthesis",
             source_id="nightly_synthesis",
             source_bot_id=None,
-            summary_structured_json=wrap_learning_brain_projection(projection),
+            summary_structured_json=summary_structured_json,
         )
-        return {"projection": projection, "summary_md": summary_md, "outbox_item": outbox_item}
+        return {
+            "projection": projection,
+            "summary_md": summary_md,
+            "outbox_item": outbox_item,
+            "canonical_truth_promotion": promotion.to_dict(),
+        }
 
     def record_turn_event(
         self,
@@ -1444,11 +1535,18 @@ class LearnerStateService:
         max_chars: int = 1400,
     ) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
-        snapshot = self.read_snapshot(normalized, event_limit=3)
+        profile = self._read_profile_raw(normalized)
+        summary = self._read_summary_raw(normalized)
+        progress = self._read_progress_raw(normalized)
+        if not profile or not summary.strip() or not progress:
+            self._ensure_seed_state(normalized)
+            profile = self._read_profile_raw(normalized)
+            summary = self._read_summary_raw(normalized)
+            progress = self._read_progress_raw(normalized)
         segments = [
-            self._compact_profile_segment(snapshot.profile, language=language),
-            self._compact_summary_segment(snapshot.summary, language=language),
-            self._compact_progress_segment(snapshot.progress, language=language),
+            self._compact_profile_segment(profile, language=language),
+            self._compact_summary_segment(summary, language=language),
+            self._compact_progress_segment(progress, language=language),
             self._compact_goals_segment(self.read_goals(normalized), language=language),
         ]
         segments = [segment for segment in segments if segment.get("content")]
@@ -1485,6 +1583,28 @@ class LearnerStateService:
                 max_hits=max_memory_hits,
             )
         candidates = learner_candidates + memory_candidates
+        # Grading-to-Brain loop seam: surface the PersonalizationContextPack as a PROJECTION of the SAME
+        # compiled_learning_truth just read (one authority — NOT a second read / second recommender), so
+        # turn_runtime can inject it into the live turn. Degrades to empty claims when no truth exists.
+        # Fail-safe: this runs on EVERY turn — a PCP build error must NOT break context building / lose
+        # compiled_learning_truth; degrade to an empty PCP instead.
+        try:
+            personalization_context = build_personalization_context_pack(
+                user_id=normalized,
+                learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            )
+        except Exception as _pcp_exc:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
+            logger.warning(
+                "build_context_candidates: PCP projection failed (%s); degrading to empty",
+                type(_pcp_exc).__name__,
+                exc_info=True,
+            )
+            personalization_context = {
+                "top_claims": [],
+                "next_best_action_candidates": [],
+                "source": "PersonalizationContextPack",
+                "schema_version": 1,
+            }
         return {
             "user_id": normalized,
             "query": query_text,
@@ -1494,6 +1614,7 @@ class LearnerStateService:
             "memory_candidates": memory_candidates,
             "candidates": candidates,
             "compiled_learning_truth": compiled_learning_truth,
+            "personalization_context": personalization_context,
         }
 
     async def refresh_from_turn(
@@ -1661,6 +1782,12 @@ class LearnerStateService:
         default_user_id: str,
     ) -> LearnerStateEvent | None:
         if not isinstance(data, dict):
+            return None
+        if _is_superseded_event_payload(data.get("payload_json")):
+            # Taxonomy-superseded events (payload_json.taxonomy_supersede.superseded=true)
+            # are audit-trail only: they must never reach projections/read models.
+            # This is the single conversion point for all read paths (local + Supabase),
+            # so filtering here keeps every reader consistent.
             return None
         return LearnerStateEvent(
             event_id=str(data.get("event_id", "") or ""),
@@ -2148,7 +2275,7 @@ class LearnerStateService:
             ),
             "",
             "## 备考主线" if str(language).lower().startswith("zh") else "## Study Focus",
-            f"- 默认场景：建筑工程类考试与《建筑工程管理与实务》学习" if str(language).lower().startswith("zh") else "- Default context: construction exam preparation and practice learning",
+            "- 默认场景：建筑工程类考试与《建筑工程管理与实务》学习" if str(language).lower().startswith("zh") else "- Default context: construction exam preparation and practice learning",
             f"- 会员等级：{_display(profile.get('tier'))}" if str(language).lower().startswith("zh") else f"- Membership tier: {_display(profile.get('tier'))}",
             f"- 账号状态：{_display(profile.get('status'))}" if str(language).lower().startswith("zh") else f"- Account status: {_display(profile.get('status'))}",
             f"- 考试日期：{_display(profile.get('exam_date'))}" if str(language).lower().startswith("zh") else f"- Exam date: {_display(profile.get('exam_date'))}",
@@ -2328,6 +2455,14 @@ def get_learner_state_service() -> LearnerStateService:
     return _learner_state_service
 
 
+def _auto_synthesis_enabled_for_user(user_id: str) -> bool:
+    if not env_flag("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", default=False):
+        return False
+    if is_production_environment():
+        return canonical_truth_production_write_cohort_allowed(user_id)
+    return True
+
+
 def _normalize_user_id(user_id: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(user_id or "").strip())
     if not cleaned:
@@ -2497,6 +2632,14 @@ def _iso_unknown_or_gte(value: str | None, minimum: str | None) -> bool:
     except ValueError:
         return True
     return _iso_gte(text, minimum)
+
+
+def _is_superseded_event_payload(payload_json: Any) -> bool:
+    """True when payload_json carries taxonomy_supersede.superseded=true (audit-only rows)."""
+    if not isinstance(payload_json, dict):
+        return False
+    supersede = payload_json.get("taxonomy_supersede")
+    return isinstance(supersede, dict) and bool(supersede.get("superseded"))
 
 
 def _dedupe_events_by_id(events: list[LearnerStateEvent]) -> list[LearnerStateEvent]:

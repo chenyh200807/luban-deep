@@ -532,6 +532,110 @@ async def test_agentic_chat_pipeline_smart_responding_streams_chunks_when_teachi
 
 
 @pytest.mark.asyncio
+async def test_agentic_chat_pipeline_smart_responding_streams_chunks_when_citations_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fake_stream_messages(_messages, max_tokens: int):
+        assert max_tokens == 1800
+        yield "第一段。"
+        yield "第二段。"
+
+    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="什么是流水步距？",
+        config_overrides={"chat_mode": "smart"},
+        language="zh",
+    )
+
+    content, _trace = await pipeline._stage_smart_responding(
+        context,
+        "knowledge_explainer",
+        bus,
+    )
+
+    content_events = [event for event in bus._history if event.type.value == "content"]
+    assert content == "第一段。第二段。"
+    assert [event.content for event in content_events] == ["第一段。", "第二段。"]
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_answer_now_streams_chunks_when_citations_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fake_stream_messages(_messages, max_tokens: int):
+        assert max_tokens == 1800
+        yield "先给结论。"
+        yield "再补依据。"
+
+    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="继续",
+        config_overrides={},
+        language="zh",
+    )
+
+    content, _trace = await pipeline._stage_answer_now(
+        context=context,
+        answer_now_context={
+            "original_user_message": "这题怎么做？",
+            "partial_response": "已有材料",
+            "events": [],
+        },
+        answer_type="knowledge_explainer",
+        stream=bus,
+    )
+
+    content_events = [event for event in bus._history if event.type.value == "content"]
+    assert content == "先给结论。再补依据。"
+    assert [event.content for event in content_events] == ["先给结论。", "再补依据。"]
+
+
+@pytest.mark.asyncio
+async def test_agentic_chat_pipeline_social_greeting_streams_content_when_citations_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    pipeline = AgenticChatPipeline(language="zh")
+    bus = StreamBus()
+    context = UnifiedContext(
+        user_message="你好",
+        config_overrides={},
+        language="zh",
+    )
+
+    content, _trace = await pipeline._stage_social_greeting_response(context, bus)
+
+    content_events = [event for event in bus._history if event.type.value == "content"]
+    assert content
+    assert [event.content for event in content_events] == [content]
+
+
+@pytest.mark.asyncio
 async def test_agentic_chat_pipeline_exact_authority_path_still_buffers_final_response(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

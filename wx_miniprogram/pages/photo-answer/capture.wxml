@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="header">
+    <view class="title">拍照作答</view>
+    <view class="subtitle" wx:if="{{questionId}}">题号：{{questionId}}（最多 6 页，按页序拍摄）</view>
+  </view>
+
+  <view class="error" wx:if="{{errorText}}">{{errorText}}</view>
+
+  <view class="grid">
+    <view class="thumb" wx:for="{{pages}}" wx:key="index">
+      <image src="{{item.tempPath}}" mode="aspectFill" class="thumb-img" />
+      <view class="badge page-no">第{{index + 1}}页</view>
+      <view class="badge status uploading" wx:if="{{item.status === 'uploading'}}">上传中</view>
+      <view class="badge status failed" wx:if="{{item.status === 'failed'}}">失败</view>
+      <view class="badge status warn" wx:if="{{item.qualityIssues.length}}">建议重拍</view>
+      <view class="remove" data-index="{{index}}" bindtap="removePage" wx:if="{{!submitting}}">×</view>
+    </view>
+    <view class="thumb add" bindtap="addPhotos" wx:if="{{pages.length < 6}}">
+      <view class="add-icon">＋</view>
+      <view class="add-text">拍摄/相册</view>
+    </view>
+  </view>
+
+  <view class="tips">
+    <view>· 只拍本题答案区域，光线充足、纸面放平</view>
+    <view>· 多页答案按书写顺序逐页拍摄</view>
+    <view>· 识别后会有确认页，可修改后再提交批改</view>
+  </view>
+
+  <button class="submit-btn" bindtap="submitAll" loading="{{submitting}}" disabled="{{submitting || !pages.length}}">
+    开始识别（{{pages.length}} 页）
+  </button>
+</view>

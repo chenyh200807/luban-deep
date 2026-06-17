@@ -10,6 +10,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import time
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -39,6 +42,119 @@ logger = logging.getLogger(__name__)
 # 128K chars comfortably fits a long tutoring message + attachment metadata + config
 # while killing the amplification vector. Applies to every message type at the entry.
 _MAX_WS_INBOUND_FRAME_CHARS = 128 * 1024
+
+# Per-user concurrent WS connection cap (anti fd/memory-exhaustion DoS). The connect
+# rate limit (60/60s) bounds reconnect *rate*, not the number of simultaneously OPEN
+# connections — one account could hold hundreds open, each carrying subscription tasks.
+# Shared across workers via Redis (valkey) so the cap is a true per-user limit, not
+# per-process (with W workers a per-process counter would allow W × cap). Admins exempt.
+_MAX_WS_CONNECTIONS_PER_USER = 8
+# Redis ZSET members older than this are purged on the next acquire. This self-heals a
+# crashed worker's never-released entries (no permanent lock-out), and makes the limit
+# fail-OPEN (a very-long-idle connection may stop being counted) rather than fail-closed.
+_WS_CONN_TTL_SECONDS = 3600
+_active_ws_connections: dict[str, int] = {}
+_active_ws_connections_lock = asyncio.Lock()
+_ws_conn_redis: "object | None" = None
+_ws_conn_redis_resolved = False
+
+
+def _get_ws_conn_redis() -> "object | None":
+    """Reuse the rate-limit Redis (valkey) config for a shared connection counter.
+    Returns None when Redis isn't configured/available — callers fall back to the
+    per-process counter."""
+    global _ws_conn_redis, _ws_conn_redis_resolved
+    if _ws_conn_redis_resolved:
+        return _ws_conn_redis
+    _ws_conn_redis_resolved = True
+    backend = str(os.getenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")).strip().lower()
+    url = str(os.getenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL") or "").strip()
+    if backend != "redis" or not url:
+        return None
+    try:
+        import redis
+
+        # Sync client used on the event-loop thread — short socket timeouts so a
+        # half-dead valkey degrades to the per-process counter instead of stalling
+        # every WS connect/disconnect indefinitely.
+        _ws_conn_redis = redis.Redis.from_url(
+            url,
+            decode_responses=True,
+            socket_timeout=1.0,
+            socket_connect_timeout=1.0,
+        )
+    except Exception:  # noqa: BLE001 — any failure → fall back to per-process
+        logger.warning("WS conn cap: Redis client init failed; using per-process counter", exc_info=True)
+        _ws_conn_redis = None
+    return _ws_conn_redis
+
+
+async def _try_acquire_ws_slot(user_id: str) -> str | None:
+    """Reserve a per-user connection slot. Returns an opaque token (pass to release) or
+    None if the cap is hit. Shared across workers via a self-healing Redis ZSET; falls
+    back to a per-process counter (fail-open) when Redis is unavailable."""
+    token = uuid.uuid4().hex
+    client = _get_ws_conn_redis()
+    if client is not None:
+        key = f"deeptutor:ws-conn:{user_id}"
+        now = time.time()
+        try:
+            pipe = client.pipeline()
+            pipe.zremrangebyscore(key, 0, now - _WS_CONN_TTL_SECONDS)  # purge crashed-worker leftovers
+            pipe.zadd(key, {token: now})
+            pipe.zcard(key)
+            pipe.expire(key, _WS_CONN_TTL_SECONDS)
+            results = pipe.execute()
+            count = int(results[2])
+            if count > _MAX_WS_CONNECTIONS_PER_USER:
+                client.zrem(key, token)  # over cap — undo our reservation
+                return None
+            return f"redis:{token}"
+        except Exception:  # noqa: BLE001 — Redis hiccup → fall through to per-process
+            logger.warning("WS conn cap: Redis acquire failed; using per-process counter", exc_info=True)
+    async with _active_ws_connections_lock:
+        current = _active_ws_connections.get(user_id, 0)
+        if current >= _MAX_WS_CONNECTIONS_PER_USER:
+            return None
+        _active_ws_connections[user_id] = current + 1
+    return "local"
+
+
+async def _release_ws_slot(user_id: str, token: str) -> None:
+    if token.startswith("redis:"):
+        client = _get_ws_conn_redis()
+        if client is not None:
+            try:
+                client.zrem(f"deeptutor:ws-conn:{user_id}", token[len("redis:"):])
+            except Exception:  # noqa: BLE001 — entry self-heals via TTL purge
+                logger.warning("WS conn cap: Redis release failed; entry will TTL-expire", exc_info=True)
+        return
+    async with _active_ws_connections_lock:
+        remaining = _active_ws_connections.get(user_id, 0) - 1
+        if remaining > 0:
+            _active_ws_connections[user_id] = remaining
+        else:
+            _active_ws_connections.pop(user_id, None)
+
+
+def _discard_current_subscription_task(
+    subscription_tasks: dict[str, asyncio.Task[None]],
+    key: str,
+    task: asyncio.Task[None],
+) -> None:
+    if subscription_tasks.get(key) is task:
+        subscription_tasks.pop(key, None)
+
+
+async def _await_stopped_subscription_task(key: str, task: asyncio.Task[None]) -> None:
+    if not task.done():
+        task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        logger.exception("Unified WS subscription task failed during cleanup: %s", key)
 
 _LEGACY_INTERACTION_HINT_KEYS = (
     "profile",
@@ -187,7 +303,7 @@ def _bind_authenticated_user(
         "source": str(billing_context.get("source") or "authenticated_ws").strip() or "authenticated_ws",
         "user_id": requested_user_id or current_user.user_id,
     }
-    return {**payload, "config": config}
+    return {**payload, "config": config, "_authenticated_user_id": current_user.user_id}
 
 
 # plan §Phase 3 Step 3.2 / Batch C Gap 3 — public payload redaction at the
@@ -197,7 +313,22 @@ def _bind_authenticated_user(
 _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "grading_key",
     "scoring_points",
+    "minimal_rationale",
     "correct_answer",
+    "official_answer",
+    "official_slice",
+    "atomic_official_slice",
+    "official_sub_answer_verbatim",
+    "official_analysis",
+    "term_provenance",
+    "flaw_span",
+    "correction_span",
+    "base_rule",
+    "exception_items",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "answer_key_authority",
     "explanation",
 )
 
@@ -209,10 +340,14 @@ _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
 _EVIDENCE_FIELD_KEYS: tuple[str, ...] = ("field", "source_field", "source_key", "name")
 
 
+def _is_hidden_payload_key(value: str) -> bool:
+    return any(part in _HIDDEN_PAYLOAD_KEYS for part in value.split("."))
+
+
 def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
     for key in _EVIDENCE_FIELD_KEYS:
         sibling = value.get(key)
-        if isinstance(sibling, str) and sibling in _HIDDEN_PAYLOAD_KEYS:
+        if isinstance(sibling, str) and _is_hidden_payload_key(sibling):
             return True
     return False
 
@@ -266,7 +401,7 @@ def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any] | None:
             kept = [
                 item
                 for item in value
-                if not (isinstance(item, str) and item in _HIDDEN_PAYLOAD_KEYS)
+                if not (isinstance(item, str) and _is_hidden_payload_key(item))
             ]
             if not kept:
                 continue
@@ -386,28 +521,47 @@ async def unified_websocket(ws: WebSocket) -> None:
     )
     if current_user is None:
         return  # ws already closed (4401 or 1013)
+
+    # Per-user concurrent connection cap (admins exempt). Acquire before doing any work;
+    # release in the finally below. Over-cap → 1013 and return.
+    ws_slot_user = None if current_user.is_admin else str(current_user.user_id)
+    ws_slot_token: str | None = None
+    if ws_slot_user is not None:
+        ws_slot_token = await _try_acquire_ws_slot(ws_slot_user)
+        if ws_slot_token is None:
+            logger.warning("Unified WS connection cap hit for user=%s", ws_slot_user)
+            await ws.close(code=1013, reason="Too many concurrent connections")
+            return
+
     get_turn_runtime_metrics().record_ws_open()
     closed = False
     subscription_tasks: dict[str, asyncio.Task[None]] = {}
+    send_lock = asyncio.Lock()
 
     async def safe_send(data: dict[str, Any]) -> None:
         nonlocal closed
         if closed:
             return
-        try:
-            await ws.send_json(data)
-        except Exception:
-            closed = True
+        async with send_lock:
+            if closed:
+                return
+            try:
+                await ws.send_json(data)
+            except Exception:
+                # Transport send failed: the peer is gone. Mark closed so the rest
+                # of the loop stops touching the socket — but log it (never silent),
+                # so a flapping client / send-side bug is observable.
+                logger.warning(
+                    "Unified WS send failed; marking connection closed (event_type=%s)",
+                    data.get("type") if isinstance(data, dict) else None,
+                )
+                closed = True
 
     async def stop_subscription(key: str) -> None:
         task = subscription_tasks.pop(key, None)
         if task is None:
             return
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        await _await_stopped_subscription_task(key, task)
 
     async def subscribe_turn(turn_id: str, after_seq: int = 0) -> None:
         from deeptutor.services.session import get_turn_runtime_manager
@@ -418,11 +572,17 @@ async def unified_websocket(ws: WebSocket) -> None:
                 await safe_send(_clamp_event_for_public(_redact_event_for_public(event)))
 
         await stop_subscription(turn_id)
-        subscription_tasks[turn_id] = spawn_task(
-            _forward(),
-            name=f"ws.subscribe_turn:{turn_id}",
-            on_error=lambda _exc: subscription_tasks.pop(turn_id, None),
-        )
+        task: asyncio.Task[None] | None = None
+
+        async def _run_subscription() -> None:
+            try:
+                await _forward()
+            finally:
+                if task is not None:
+                    _discard_current_subscription_task(subscription_tasks, turn_id, task)
+
+        task = spawn_task(_run_subscription(), name=f"ws.subscribe_turn:{turn_id}")
+        subscription_tasks[turn_id] = task
 
     async def subscribe_session(session_id: str, after_seq: int = 0) -> None:
         from deeptutor.services.session import get_turn_runtime_manager
@@ -434,11 +594,17 @@ async def unified_websocket(ws: WebSocket) -> None:
 
         key = f"session:{session_id}"
         await stop_subscription(key)
-        subscription_tasks[key] = spawn_task(
-            _forward(),
-            name=f"ws.subscribe_session:{session_id}",
-            on_error=lambda _exc: subscription_tasks.pop(key, None),
-        )
+        task: asyncio.Task[None] | None = None
+
+        async def _run_subscription() -> None:
+            try:
+                await _forward()
+            finally:
+                if task is not None:
+                    _discard_current_subscription_task(subscription_tasks, key, task)
+
+        task = spawn_task(_run_subscription(), name=f"ws.subscribe_session:{session_id}")
+        subscription_tasks[key] = task
 
     try:
         while not closed:
@@ -475,6 +641,20 @@ async def unified_websocket(ws: WebSocket) -> None:
                     closed = True
                     return
 
+                # Per-user DAILY turn budget. The burst limit above (10/60s) stops spikes
+                # but not sustained burn: 10/min for 24h = ~14k turns/day, each a paid LLM
+                # call — an economic DoS on one account. This caps total turns/user/day so a
+                # single account cannot drain the API budget. Generous headroom for real
+                # study; tune via set_rate_limit_policy("ws_start_turn_daily", max, window).
+                if not await enforce_websocket_rate_limit(
+                    ws,
+                    "ws_start_turn_daily",
+                    default_max_requests=500,
+                    default_window_seconds=86400.0,
+                ):
+                    closed = True
+                    return
+
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()
@@ -505,6 +685,21 @@ async def unified_websocket(ws: WebSocket) -> None:
                     continue
                 except ValidationError:
                     await safe_send({"type": "error", "content": _public_validation_message("start_turn")})
+                    continue
+                except asyncio.CancelledError:
+                    # Cancellation is control flow, not a turn failure — never swallow it.
+                    raise
+                except Exception:
+                    # Boundary contract: a single-turn execution error must NOT tear
+                    # down the receive loop. Emit a turn-level error event and keep
+                    # serving the connection; only transport/protocol errors disconnect.
+                    logger.exception("Unified WS start_turn failed (unhandled)")
+                    await safe_send(
+                        _build_error_event(
+                            content=_public_ws_failure_message("start turn"),
+                            session_id=str(msg.get("session_id") or ""),
+                        )
+                    )
                     continue
                 await subscribe_turn(turn["id"], after_seq=0)
                 continue
@@ -622,7 +817,23 @@ async def unified_websocket(ws: WebSocket) -> None:
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()
-                cancelled = await runtime.cancel_turn(cancel_message.turn_id)
+                try:
+                    cancelled = await runtime.cancel_turn(cancel_message.turn_id)
+                except asyncio.CancelledError:
+                    # Cancellation is control flow, not a turn failure — never swallow it.
+                    raise
+                except Exception:
+                    # Same boundary contract as start_turn: a single cancel operation
+                    # error must not disconnect the client. Emit a turn-level error
+                    # event and keep serving the connection.
+                    logger.exception("Unified WS cancel_turn failed (unhandled)")
+                    await safe_send(
+                        _build_error_event(
+                            content=_public_ws_failure_message("cancel turn"),
+                            turn_id=cancel_message.turn_id,
+                        )
+                    )
+                    continue
                 if not cancelled:
                     await safe_send(_build_error_event(content="Turn not found", turn_id=cancel_message.turn_id))
                 continue
@@ -638,6 +849,10 @@ async def unified_websocket(ws: WebSocket) -> None:
         )
     finally:
         closed = True
-        for key in list(subscription_tasks.keys()):
-            await stop_subscription(key)
-        get_turn_runtime_metrics().record_ws_close()
+        try:
+            for key in list(subscription_tasks.keys()):
+                await stop_subscription(key)
+        finally:
+            get_turn_runtime_metrics().record_ws_close()
+            if ws_slot_user is not None and ws_slot_token is not None:
+                await _release_ws_slot(ws_slot_user, ws_slot_token)

@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from loguru import logger
+from deeptutor.services.llm.traffic_control import get_provider_traffic_controller
 
 
 @dataclass
@@ -45,6 +46,7 @@ class LLMResponse:
     usage: dict[str, int] = field(default_factory=dict)
     reasoning_content: str | None = None  # Kimi, DeepSeek-R1 etc.
     thinking_blocks: list[dict] | None = None  # Anthropic extended thinking
+    telemetry: dict[str, Any] = field(default_factory=dict)
     
     @property
     def has_tool_calls(self) -> bool:
@@ -97,6 +99,15 @@ class LLMProvider(ABC):
         self.api_key = api_key
         self.api_base = api_base
         self.generation: GenerationSettings = GenerationSettings()
+
+    def _provider_traffic_controller(self, provider_name: str):
+        try:
+            from deeptutor.services.llm.config import get_llm_config
+
+            config = get_llm_config()
+        except Exception:  # noqa: BLE001 — provider calls must not fail because config metrics are unavailable
+            config = None
+        return get_provider_traffic_controller(provider_name=provider_name, config=config)
 
     @staticmethod
     def _sanitize_empty_content(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -189,10 +200,48 @@ class LLMProvider(ABC):
         total_tokens = float(usage.get("total_tokens") or (prompt_tokens + completion_tokens))
         if total_tokens <= 0:
             return None
-        return {
+        normalized = {
             "input": prompt_tokens,
             "output": completion_tokens,
             "total": total_tokens,
+        }
+        cache_hit_tokens = float(usage.get("prompt_cache_hit_tokens") or 0.0)
+        cache_miss_tokens = float(usage.get("prompt_cache_miss_tokens") or 0.0)
+        if cache_hit_tokens > 0 or cache_miss_tokens > 0:
+            normalized["input_cache_hit"] = cache_hit_tokens
+            normalized["input_cache_miss"] = cache_miss_tokens
+        return normalized
+
+    @staticmethod
+    def _build_stream_telemetry(
+        *,
+        provider_name: str,
+        model: str,
+        stream_chunk_count: int,
+        stream_content_chunk_count: int,
+        stage_timings_ms: dict[str, float],
+    ) -> dict[str, Any]:
+        """Return safe provider stream telemetry without prompts or content."""
+        timings: dict[str, float] = {}
+        for raw_stage, raw_ms in stage_timings_ms.items():
+            stage = str(raw_stage or "").strip()
+            if not stage or len(stage) > 80:
+                continue
+            if not all(ch.isalnum() or ch in {"_", "-", ".", ":"} for ch in stage):
+                continue
+            try:
+                duration_ms = float(raw_ms)
+            except (TypeError, ValueError):
+                continue
+            if duration_ms < 0:
+                continue
+            timings[stage] = round(duration_ms, 2)
+        return {
+            "provider_name": str(provider_name or "").strip(),
+            "model": str(model or "").strip(),
+            "stream_chunk_count": max(int(stream_chunk_count), 0),
+            "stream_content_chunk_count": max(int(stream_content_chunk_count), 0),
+            "stage_timings_ms": dict(sorted(timings.items())),
         }
 
     @abstractmethod

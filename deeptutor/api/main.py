@@ -43,6 +43,10 @@ from deeptutor.utils.network.circuit_breaker import get_circuit_breaker_snapshot
 logger = get_logger("API")
 
 
+def _api_docs_enabled() -> bool:
+    return env_flag("DEEPTUTOR_ENABLE_API_DOCS", default=not is_production_environment())
+
+
 class _SuppressWsNoise(logging.Filter):
     """Suppress noisy uvicorn logs for WebSocket connection churn."""
 
@@ -212,7 +216,7 @@ def _persist_launch_readiness_check(app: FastAPI) -> None:
             payload=payload,
         )
     except Exception as exc:
-        logger.warning("Failed to persist launch readiness check: %s", exc, exc_info=True)
+        logger.warning(f"Failed to persist launch readiness check: {exc}", exc_info=True)
 
 
 def get_readyz_payload(app: FastAPI | None = None) -> tuple[int, dict[str, object]]:
@@ -395,6 +399,47 @@ async def lifespan(app: FastAPI):
         logger.error(str(e))
         startup_failures.append(f"required_env: {e}")
 
+    # Billing visibility: if production is serving with billing enforcement OFF, every
+    # turn is free to the user and full-cost to the operator. That may be intentional
+    # (beta), but it must never be a *silent* misconfiguration — emit a loud warning so
+    # ops can see it in logs.
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+        from deeptutor.services.wallet.service import is_billing_enforcement_enabled
+
+        if is_production_environment() and not is_billing_enforcement_enabled():
+            logger.warning(
+                "BILLING ENFORCEMENT IS DISABLED IN PRODUCTION — every LLM turn is free to "
+                "the user and full-cost to the operator. Set DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED=true "
+                "to charge, or confirm this is an intentional free-beta window."
+            )
+    except Exception:
+        logger.debug("billing enforcement startup check skipped", exc_info=True)
+
+    # Multi-worker safety visibility: the TutorBot heartbeat single-instance lock,
+    # the per-user WS connection cap and cross-worker rate limits all coordinate
+    # through the redis (valkey) backend. With UVICORN_WORKERS>1 and a non-redis
+    # backend those guards silently degrade to per-process behavior (N× duplicate
+    # heartbeats, N× connection caps) — loud warning, same pattern as billing above.
+    try:
+        workers = int(str(os.getenv("UVICORN_WORKERS", "1")).strip() or "1")
+        rate_limit_backend = str(os.getenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")).strip().lower()
+        redis_url = str(
+            os.getenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL") or ""
+        ).strip()
+        if workers > 1 and (rate_limit_backend != "redis" or not redis_url):
+            logger.warning(
+                "UVICORN_WORKERS=%s but DEEPTUTOR_RATE_LIMIT_BACKEND=%s (redis url %s) — "
+                "cross-worker guards (heartbeat single-instance lock, per-user WS connection "
+                "cap) are DEGRADED to per-process behavior. Set DEEPTUTOR_RATE_LIMIT_BACKEND=redis "
+                "and DEEPTUTOR_RATE_LIMIT_REDIS_URL=redis://valkey:6379/0 for multi-worker runs.",
+                workers,
+                rate_limit_backend or "unset",
+                "set" if redis_url else "MISSING",
+            )
+    except Exception:
+        logger.debug("multi-worker config consistency check skipped", exc_info=True)
+
     app.state.readiness_ready = bool(app.state.readiness_checks) and all(
         app.state.readiness_checks.values()
     )
@@ -460,6 +505,9 @@ app = FastAPI(
     title=get_api_title(),
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/docs" if _api_docs_enabled() else None,
+    redoc_url="/redoc" if _api_docs_enabled() else None,
+    openapi_url="/openapi.json" if _api_docs_enabled() else None,
     # Disable automatic trailing slash redirects to prevent protocol downgrade issues
     # when deployed behind HTTPS reverse proxies (e.g., nginx).
     # Without this, FastAPI's 307 redirects may change HTTPS to HTTP.
@@ -560,8 +608,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_allow_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # With allow_credentials=True, pin methods/headers instead of "*": a wildcard here
+    # turns any future origin misconfig into a full credentialed cross-origin surface.
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Metrics-Token"],
 )
 
 # Mount a filtered view over user outputs.
@@ -599,12 +649,14 @@ from deeptutor.api.routers import (
     guide,
     invite_test,
     knowledge,
+    learner_signal,
     learning_brain,
     member,
     memory,
     mobile,
     notebook,
     observability,
+    photo_answer,
     plugins_api,
     question,
     sessions,
@@ -633,6 +685,7 @@ else:
     )
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
+app.include_router(learner_signal.router, prefix="/api/v1/learner-signal", tags=["learner_signal"])
 if runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False):
     app.include_router(learning_brain.router, prefix="/api/v1/learning-brain", tags=["learning-brain"])
 
@@ -650,6 +703,9 @@ app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
 app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
+# Photo-answer OCR input layer — feature-flagged (DEEPTUTOR_PHOTO_ANSWER_ENABLED,
+# default off → endpoints 404). Plan: docs/plan/2026-06-10-luban-photo-answer-*.md
+app.include_router(photo_answer.router, prefix="/api/v1/photo-answer", tags=["photo-answer"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 app.include_router(attachments.router, prefix="/api/attachments", tags=["attachments"])
 

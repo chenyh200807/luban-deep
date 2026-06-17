@@ -34,6 +34,7 @@ DeepTutor 必须优先保证：
 - 身份 / 工具 / 知识库绑定 / 表现风格不能混成多套平行概念
 - 联网搜索工具必须由 config runtime 统一判定可用性；未配置时关闭，不得由入口、capability 或 provider fallback 各自决定。
 - 账户事实与学习事实必须分权：钱包余额、点数、冻结余额、会员账户 projection 只能由 wallet / member authority 输出，不能写入 learner profile、turn runtime 或 capability payload 作为第二份真相。
+- 账号凭证事实与学习事实必须分权：登录密码、手机号验证码、密码找回只能由 member/external auth authority 输出，不能写入 learner state、turn runtime 或 capability payload。
 
 ## 当前必须单点治理的控制面
 
@@ -45,6 +46,9 @@ DeepTutor 必须优先保证：
 - turn / session / stream / replay / resume
 - turn trace 词汇表
 - TutorBot 作为业务身份接入 turn
+- 出库 public stream redaction：hidden grading authority（如 `official_slice`、
+  `answer_key_authority`、`score_authority`）只能留在服务端内部 payload，
+  不得通过 `/api/v1/ws` result/progress metadata 或 question follow-up projection 外泄。
 
 专项文档：
 
@@ -101,6 +105,24 @@ DeepTutor 必须优先保证：
 
 - [contracts/learner-state.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/learner-state.md)
 
+### 6. Account/Auth Credential Boundary
+
+负责：
+
+- 移动端账号注册、登录、短信验证码和密码找回凭证变更
+
+专项索引：
+
+- [contracts/index.yaml](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/contracts/index.yaml) 的 `mobile_http_auth_controls`
+
+硬约束：
+
+- 账号密码找回只能由 `MemberConsoleService -> external_auth` 修改账号凭证。
+- `/api/v1/auth/reset-password` 必须校验账号、注册手机号和短信验证码。
+- 短信验证码只能证明手机号控制权，不能单独证明账号所有权；注册、手机号验证码登录和找回密码必须先通过 `MemberConsoleService` 解析可信手机号身份，发现多个 canonical 归属时必须 fail closed。
+- 成功后必须失效旧 external auth session、消费验证码、不返回 token、不自动登录。
+- 该链路不得写 learner-state、turn/session/runtime state 或 capability route/config state。
+
 ## AI / 工程师工作规则
 
 任何涉及以下边界的改动，不能直接动代码，必须先读 contract：
@@ -110,6 +132,7 @@ DeepTutor 必须优先保证：
 - `rag / retrieval / exact-question / authority`
 - `tutorbot business identity / default knowledge chain`
 - `learner state / summary / profile / guided learning writeback / heartbeat`
+- `mobile account credential / phone code / password reset`
 - `assessment TestSet / deferred feedback / per-item learning evidence`
 - `config runtime / provider resolution / env semantics`
 

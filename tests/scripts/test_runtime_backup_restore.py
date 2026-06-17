@@ -72,6 +72,39 @@ def test_backup_archive_contains_data_user_tree(tmp_path: Path) -> None:
         _restore_project_root(service, original_root, original_user_dir)
 
 
+def test_backup_archive_skips_runtime_file_that_disappears(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    service, original_root, original_user_dir = _use_project_root(tmp_path)
+    try:
+        user_data_dir = service.user_data_dir
+        _write_sample_user_data(user_data_dir)
+        volatile_path = user_data_dir / "chat_history.db-wal"
+        volatile_path.write_text("wal", encoding="utf-8")
+        original_add = tarfile.TarFile.add
+
+        def _race_once(self: tarfile.TarFile, name, *args, **kwargs):
+            if Path(name) == volatile_path:
+                volatile_path.unlink()
+                raise FileNotFoundError(str(volatile_path))
+            return original_add(self, name, *args, **kwargs)
+
+        monkeypatch.setattr(tarfile.TarFile, "add", _race_once)
+
+        archive_path = create_backup_archive(
+            user_data_dir=user_data_dir,
+            project_root=service.project_root,
+            backup_dir=resolve_backup_dir(service.project_root),
+        )
+
+        assert archive_path.exists()
+        with tarfile.open(archive_path, "r:gz") as tar:
+            names = tar.getnames()
+
+        assert "data/user/chat_history.db" in names
+        assert "data/user/chat_history.db-wal" not in names
+    finally:
+        _restore_project_root(service, original_root, original_user_dir)
+
+
 def test_restore_archive_recreates_user_data_tree(tmp_path: Path) -> None:
     service, original_root, original_user_dir = _use_project_root(tmp_path)
     try:

@@ -125,6 +125,7 @@ async def test_question_review_bank_hit_renders_non_interactive_review_card(
     assert calls
     assert calls[0]["lightweight_generation"] is True
     assert calls[0]["allow_lightweight_fallback"] is False
+    assert calls[0]["allow_similar_source_variant"] is True
     result = next(event for event in events if event.type == StreamEventType.RESULT)
     assert "### 第 1 题" in result.metadata["response"]
     assert "关于混凝土保护层厚度" in result.metadata["response"]
@@ -182,12 +183,88 @@ async def test_question_review_bank_miss_does_not_fallback_to_generated_question
 
     assert calls
     assert calls[0]["allow_lightweight_fallback"] is False
+    assert calls[0]["allow_similar_source_variant"] is True
     result = next(event for event in events if event.type == StreamEventType.RESULT)
     assert "还没有定位到" in result.metadata["response"]
     assert "请把完整题干" in result.metadata["response"]
     assert result.metadata["active_object"] == {}
     assert result.metadata["question_followup_context"] == {}
     assert "presentation" not in result.metadata
+
+
+@pytest.mark.asyncio
+async def test_question_review_variant_marks_generated_card_as_variant(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[dict[str, Any]] = []
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, _callback) -> None:
+            pass
+
+        def set_trace_callback(self, _callback) -> None:
+            pass
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            calls.append(dict(kwargs))
+            return {
+                "results": [
+                    {
+                        "success": True,
+                        "qa_pair": {
+                            "question_id": "q_variant",
+                            "question": "关于混凝土保护层厚度，下列说法正确的是（ ）。",
+                            "question_type": "choice",
+                            "options": {
+                                "A": "直接接触土体浇筑的构件不应小于50mm",
+                                "B": "直接接触土体浇筑的构件不应小于70mm",
+                            },
+                            "correct_answer": "",
+                            "explanation": "",
+                            "grading_key": {
+                                "correct_answer": "B",
+                                "source": "similar_question_variant",
+                                "minimal_rationale": "基于相似来源变式：直接接触土体浇筑的构件不应小于70mm。",
+                            },
+                            "metadata": {
+                                "source": "similar_question_variant",
+                                "question_review_variant_mode": True,
+                                "knowledge_context": "题库参考资料：直接接触土体浇筑的构件不应小于70mm。",
+                            },
+                        },
+                    }
+                ],
+                "trace": {
+                    "lightweight_counters": {
+                        "bank_hits": 0,
+                        "llm_calls": 1,
+                        "retriever_calls": 1,
+                        "lightweight_batch_fallback": "similar_source_variant",
+                    }
+                },
+            }
+
+    monkeypatch.setattr("deeptutor.agents.question.coordinator.AgentCoordinator", FakeCoordinator)
+    _patch_llm_config(monkeypatch)
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+
+    assert calls
+    assert calls[0]["allow_lightweight_fallback"] is False
+    assert calls[0]["allow_similar_source_variant"] is True
+    result = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "基于题库/知识库相似来源生成的变式题" in result.metadata["response"]
+    assert "不是原题复刻" in result.metadata["response"]
+    assert "正确答案" in result.metadata["response"]
+    assert result.metadata["active_object"] == {}
+    assert result.metadata["question_followup_context"] == {}
+    block = result.metadata["presentation"]["blocks"][0]
+    assert block["review_mode"] is True
+    assert block["submit_hint"] == "题目讲评，已展示解析，不需要提交答案。"
 
 
 def test_deep_question_does_not_contain_question_review_evidence_parser() -> None:
@@ -274,6 +351,7 @@ async def test_question_review_missing_canonical_result_does_not_parse_template_
 
     assert calls
     assert calls[0]["allow_lightweight_fallback"] is False
+    assert calls[0]["allow_similar_source_variant"] is True
     result = next(event for event in events if event.type == StreamEventType.RESULT)
     assert "还没有定位到" in result.metadata["response"]
     assert "请把完整题干" in result.metadata["response"]

@@ -51,6 +51,14 @@ export const WRITE_ENDPOINTS = {
     description: "Invite-test application delete: growth ops soft-deletes an application by archiving it. Backend hides archived applications from the default pool and records invite_test_application_delete audit with idempotency dedup.",
     audit_action: "invite_test_application_delete",
   },
+  ["feedback.luban_feedback.update"]: {
+    key: "feedback.luban_feedback.update",
+    method: "PATCH",
+    path_template: "/api/v1/bi/luban-feedback/responses/{response_id}",
+    requires_idempotency: true,
+    description: "Luban survey follow-up edit: growth ops updates only the operator-owned status and operator_note fields. Backend preserves the original survey answers and records luban_feedback_response_update audit with idempotency dedup.",
+    audit_action: "luban_feedback_response_update",
+  },
   ["member.ops_action.record"]: {
     key: "member.ops_action.record",
     method: "POST",
@@ -64,18 +72,19 @@ export const WRITE_ENDPOINTS = {
     method: "POST",
     path_template: "/api/v1/bi/export-jobs",
     requires_idempotency: true,
-    description: "BI export request: admin asks for a scrubbed export job. Backend records bi_export_request audit with dataset, filters, scrubbing, rate-limit metadata, and idempotency dedup before any export job is shown in the UI.",
+    description: "BI export request: admin asks for a scrubbed export job. Backend records bi_export_request audit with dataset, filters, scrubbing, rate-limit metadata, and idempotency dedup before any export job is shown in the UI. product_behavior_raw is the only P0 raw_mode=true dataset; all other datasets remain scrubbed. P0 records the raw export audit trail and returns ready raw CSV/JSON content directly from product_behavior_events.",
     audit_action: "bi_export_request",
   },
 } as const satisfies Record<string, BiV2WriteEndpoint>;
 
-export type BiV2WriteEndpointKey = "member.conversation.view_full" | "feedback.ai.triage" | "feedback.invite_test.update" | "feedback.invite_test.delete" | "member.ops_action.record" | "bi.export.request";
+export type BiV2WriteEndpointKey = "member.conversation.view_full" | "feedback.ai.triage" | "feedback.invite_test.update" | "feedback.invite_test.delete" | "feedback.luban_feedback.update" | "member.ops_action.record" | "bi.export.request";
 
 export const ALL_BI_V2_WRITE_KEYS: BiV2WriteEndpointKey[] = [
   "member.conversation.view_full",
   "feedback.ai.triage",
   "feedback.invite_test.update",
   "feedback.invite_test.delete",
+  "feedback.luban_feedback.update",
   "member.ops_action.record",
   "bi.export.request",
 ];
@@ -116,6 +125,14 @@ export const WRITE_ENDPOINT_LIST: readonly BiV2WriteEndpoint[] = [
     audit_action: "invite_test_application_delete",
   },
   {
+    key: "feedback.luban_feedback.update",
+    method: "PATCH",
+    path_template: "/api/v1/bi/luban-feedback/responses/{response_id}",
+    requires_idempotency: true,
+    description: "Luban survey follow-up edit: growth ops updates only the operator-owned status and operator_note fields. Backend preserves the original survey answers and records luban_feedback_response_update audit with idempotency dedup.",
+    audit_action: "luban_feedback_response_update",
+  },
+  {
     key: "member.ops_action.record",
     method: "POST",
     path_template: "/api/v1/bi/member/{user_id}/ops-action",
@@ -128,7 +145,7 @@ export const WRITE_ENDPOINT_LIST: readonly BiV2WriteEndpoint[] = [
     method: "POST",
     path_template: "/api/v1/bi/export-jobs",
     requires_idempotency: true,
-    description: "BI export request: admin asks for a scrubbed export job. Backend records bi_export_request audit with dataset, filters, scrubbing, rate-limit metadata, and idempotency dedup before any export job is shown in the UI.",
+    description: "BI export request: admin asks for a scrubbed export job. Backend records bi_export_request audit with dataset, filters, scrubbing, rate-limit metadata, and idempotency dedup before any export job is shown in the UI. product_behavior_raw is the only P0 raw_mode=true dataset; all other datasets remain scrubbed. P0 records the raw export audit trail and returns ready raw CSV/JSON content directly from product_behavior_events.",
     audit_action: "bi_export_request",
   },
 ];

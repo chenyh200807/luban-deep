@@ -169,6 +169,8 @@ def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | 
         ).strip()
         if source == "conversation_synthesis":
             continue
+        if _is_preview_or_simulated(payload):
+            continue
         score_ratio = _score_ratio_value(
             _safe_dict(payload.get("prescription_result")).get(
                 "score_ratio", payload.get("score_ratio")
@@ -183,6 +185,14 @@ def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | 
         if success is require_success:
             return event
     return None
+
+
+def _is_preview_or_simulated(payload: dict[str, Any]) -> bool:
+    if payload.get("qa_simulated") is True or payload.get("preview_only") is True:
+        return True
+    if payload.get("claim_promotion_allowed") is False:
+        return True
+    return False
 
 
 def _assigned_needs_followup(events: list[Any]) -> bool:

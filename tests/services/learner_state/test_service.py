@@ -6,9 +6,15 @@ import sqlite3
 
 import pytest
 
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
 import deeptutor.services.learner_state.service as learner_state_service_module
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
+from deeptutor.services.learner_state.service import (
+    LearnerStateEvent,
+    LearnerStateOutboxService,
+    LearnerStateService,
+)
 
 
 class _PathServiceStub:
@@ -92,6 +98,10 @@ class _CoreStoreStub:
     def read_compiled_learning_truth(self, _user_id: str):
         return dict(self.compiled_learning_truth)
 
+    def write_compiled_learning_truth(self, _user_id: str, projection: dict[str, object]):
+        self.compiled_learning_truth = {"learning_brain": dict(projection)}
+        return dict(projection)
+
     def read_memory_events(self, _user_id: str, limit: int | None = 20):
         rows = [dict(item) for item in self.memory_events]
         if limit is None or limit < 0:
@@ -135,6 +145,11 @@ class _CoreStoreStub:
 
 class _DisabledCoreStoreStub:
     is_configured = False
+
+
+class _FailingCompiledTruthCoreStore(_CoreStoreStub):
+    def write_compiled_learning_truth(self, _user_id: str, _projection: dict[str, object]):
+        raise RuntimeError("compiled truth sync failed")
 
 
 def _make_service(tmp_path, *, core_store=None):
@@ -373,6 +388,100 @@ def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
     assert events[0].source_feature == "assessment_testset"
 
 
+def test_taxonomy_superseded_events_are_skipped_by_all_readers(tmp_path) -> None:
+    """payload_json.taxonomy_supersede.superseded=true rows are audit-only: no reader sees them."""
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_superseded",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:old-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-old-axis",
+                "taxonomy_supersede": {
+                    "superseded": True,
+                    "reason": "taxonomy_book_derived_rebuild_20260612",
+                },
+            },
+            "dedupe_key": "evt_superseded",
+            "created_at": "2026-06-01T00:00:00+00:00",
+        },
+        {
+            "event_id": "evt_live",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:new-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-new-axis",
+                "taxonomy_supersede": {"superseded": False},
+            },
+            "dedupe_key": "evt_live",
+            "created_at": "2026-06-02T00:00:00+00:00",
+        },
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    memory_ids = [event.event_id for event in service.list_memory_events("student_demo", limit=20)]
+    assert "evt_superseded" not in memory_ids
+    assert "evt_live" in memory_ids
+
+    evidence_ids = [
+        event.event_id
+        for event in service.list_learning_evidence_events("student_demo", limit=20)
+    ]
+    assert "evt_superseded" not in evidence_ids
+    assert "evt_live" in evidence_ids
+
+    assert service.read_learning_evidence_event("student_demo", "evt_superseded") is None
+    live = service.read_learning_evidence_event("student_demo", "evt_live")
+    assert live is not None
+    assert live.event_id == "evt_live"
+
+
+def test_taxonomy_superseded_local_events_are_skipped(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    live = service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn:new-axis",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-new-axis"},
+    )
+    event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    superseded_line = json.dumps(
+        {
+            "event_id": "evt_local_superseded",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:old-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-old-axis",
+                "taxonomy_supersede": {"superseded": True},
+            },
+            "dedupe_key": "evt_local_superseded",
+            "created_at": "2026-06-01T00:00:00+00:00",
+        },
+        ensure_ascii=False,
+    )
+    with event_path.open("a", encoding="utf-8") as handle:
+        handle.write(superseded_line + "\n")
+
+    memory_ids = [event.event_id for event in service.list_memory_events("student_demo", limit=20)]
+    assert "evt_local_superseded" not in memory_ids
+    assert live.event_id in memory_ids
+
+
 def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
     service = _make_service(tmp_path)
     saved = service.append_memory_event(
@@ -521,6 +630,109 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
     assert "E02" not in visible_text
 
 
+def test_production_summary_refresh_does_not_bypass_canonical_truth_cohort_gate(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT", "qa_,operator_")
+    monkeypatch.delenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", raising=False)
+    monkeypatch.delenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED", raising=False)
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    for index in range(2):
+        service.append_memory_event(
+            "real_student_1",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("real_student_1", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("real_student_1", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["canonical_truth_promotion"]["allowed"] is False
+    assert result["canonical_truth_promotion"]["reason"] == "production_cohort_required"
+    assert core_store.compiled_learning_truth == {}
+    assert "summary_structured_json" not in pending[-1].payload_json
+
+
+def test_production_broad_ai_jury_adjudication_writes_canonical_truth_and_summary_projection(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT", "qa_,operator_")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    for index in range(2):
+        service.append_memory_event(
+            "real_student_1",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {
+                    "evidence_level": "L0_observed",
+                    "writeback_eligible": True,
+                    "trusted_adjudication": {
+                        "source": "llm_jury",
+                        "confidence": 0.93,
+                        "conflict_status": "resolved",
+                        "requires_human": False,
+                    },
+                },
+            },
+        )
+
+    result = service.synthesize_learning_truth("real_student_1", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("real_student_1", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["canonical_truth_promotion"]["allowed"] is True
+    assert result["canonical_truth_promotion"]["adjudication_source"] == "llm_jury"
+    assert core_store.compiled_learning_truth["learning_brain"]["subject"] == "construction_exam_learning_truth"
+    assert (
+        pending[-1].payload_json["summary_structured_json"]["learning_brain"]["synthesis_run"][
+            "trusted_adjudication"
+        ]["source"]
+        == "llm_jury"
+    )
+
+
 def test_learner_state_synthesis_reads_remote_memory_events_when_configured(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.memory_events = [
@@ -614,6 +826,59 @@ def test_learner_state_local_projection_fallback_reads_local_events_before_remot
     assert [event.source_id for event in events] == ["local-turn"]
 
 
+def test_learner_state_local_projection_fallback_does_not_touch_remote_projection_reads(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", "1")
+
+    class CountingCoreStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls: list[str] = []
+
+        def read_profile(self, user_id: str):
+            self.calls.append(f"read_profile:{user_id}")
+            return super().read_profile(user_id)
+
+        def write_profile(self, user_id: str, profile: dict[str, object]):
+            self.calls.append(f"write_profile:{user_id}")
+            return super().write_profile(user_id, profile)
+
+        def read_progress(self, user_id: str):
+            self.calls.append(f"read_progress:{user_id}")
+            return super().read_progress(user_id)
+
+        def write_progress(self, user_id: str, progress: dict[str, object]):
+            self.calls.append(f"write_progress:{user_id}")
+            return super().write_progress(user_id, progress)
+
+        def read_memory_events(self, user_id: str, limit: int | None = 20):
+            self.calls.append(f"read_memory_events:{user_id}")
+            return super().read_memory_events(user_id, limit=limit)
+
+        def read_learning_evidence_events(
+            self,
+            user_id: str,
+            limit: int | None = 100,
+            since: str | None = None,
+        ):
+            self.calls.append(f"read_learning_evidence_events:{user_id}")
+            return super().read_learning_evidence_events(user_id, limit=limit, since=since)
+
+    core_store = CountingCoreStore()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    snapshot = service.read_snapshot("student_demo")
+    events = service.list_memory_events("student_demo", limit=20)
+    evidence_events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert snapshot.profile["display_name"] == "陈同学"
+    assert events == []
+    assert evidence_events == []
+    assert core_store.calls == []
+
+
 def test_learner_state_non_production_falls_back_to_local_memory_events_when_remote_empty(tmp_path) -> None:
     core_store = _CoreStoreStub()
     service = _make_service(tmp_path, core_store=core_store)
@@ -675,6 +940,84 @@ def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox
     assert len(pending_learning_events) == 1
 
 
+def test_learning_evidence_append_auto_synthesizes_for_enabled_cohort(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "turn_id": "turn-1",
+            "question_id": "case-1",
+            "question_type": "case",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [
+                {"error_code": "E02", "concept_tag": "1A431050", "diagnosis": "漏写临时用电组织设计。"}
+            ],
+            "next_training_signal": {"concept": "1A431050", "focus": "施工临时用电"},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+        dedupe_key="turn-1",
+    )
+
+    compiled = service.read_compiled_learning_truth("qa_auto_synthesis_user")
+
+    assert compiled["subject"] == "construction_exam_learning_truth"
+    assert compiled["observed_candidates"][0]["concept_id"] == "1A431050"
+
+
+def test_learning_evidence_auto_synthesis_does_not_rerun_for_duplicate_dedupe(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    service = _make_service(tmp_path, core_store=_CoreStoreStub())
+    calls = 0
+    original = service.synthesize_learning_truth
+
+    def counted_synthesis(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    service.synthesize_learning_truth = counted_synthesis  # type: ignore[method-assign]
+    payload = {
+        "event_type": "learning_evidence",
+        "question_id": "case-1",
+        "score_awarded": 0,
+        "max_score": 1,
+        "error_events": [{"error_code": "E02", "concept_tag": "1A431050"}],
+        "next_training_signal": {"concept": "1A431050", "focus": "施工临时用电"},
+        "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+    }
+
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json=payload,
+        dedupe_key="same-event",
+    )
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1-retry",
+        memory_kind="learning_evidence",
+        payload_json=payload,
+        dedupe_key="same-event",
+    )
+
+    assert calls == 1
+
+
 def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.compiled_learning_truth = {
@@ -682,12 +1025,17 @@ def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) 
         "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
     }
     service = _make_service(tmp_path, core_store=core_store)
-    service.write_compiled_learning_truth(
-        "student_demo",
-        {
-            "subject": "stale_local_projection",
-            "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
-        },
+    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "subject": "stale_local_projection",
+                "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
     )
 
     projection = service.read_compiled_learning_truth("student_demo")
@@ -726,8 +1074,9 @@ def test_learner_state_configured_core_store_is_compiled_truth_authority(tmp_pat
 
     projection = service.read_compiled_learning_truth("student_demo")
 
-    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:old"
-    assert projection["weak_points"][0]["error_code"] == "E02"
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:new"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
 
 
 def test_learner_state_production_without_core_store_does_not_read_local_compiled_truth(
@@ -837,6 +1186,25 @@ def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path
     assert "memory_hit" not in compact["content"]
     assert any(segment["source_tag"] == "learner_profile" for segment in compact["segments"])
     assert any(segment["source_tag"] == "learner_goals" for segment in compact["segments"])
+
+
+def test_learner_state_build_compact_context_does_not_read_memory_events(tmp_path) -> None:
+    class CountingCoreStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.memory_event_reads = 0
+
+        def read_memory_events(self, _user_id: str, limit: int | None = 20):
+            self.memory_event_reads += 1
+            return super().read_memory_events(_user_id, limit=limit)
+
+    core_store = CountingCoreStore()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    compact = service.build_compact_context("student_demo", language="zh")
+
+    assert compact["segments"]
+    assert core_store.memory_event_reads == 0
 
 
 def test_learner_state_build_context_candidates_default_skips_memory_hits(tmp_path) -> None:
@@ -1382,3 +1750,246 @@ def test_learner_state_heartbeat_job_sync_enqueues_outbox_event(tmp_path) -> Non
     assert delivery_event.payload_json["payload_json"]["delivery"]["state"] == "sent"
     assert delivery_event.payload_json["payload_json"]["audit"]["status"] == "ok"
     assert job_event.id != first.id
+
+
+def test_build_context_candidates_includes_personalization_context_single_source(tmp_path) -> None:
+    # Grading-to-Brain loop Step 2: build_context_candidates must ALSO surface the PersonalizationContextPack
+    # so the runtime can inject it. It must be a PROJECTION of the SAME compiled_learning_truth (one
+    # authority) — byte-identical to building the PCP directly from that compiled truth.
+    from deeptutor.services.learner_state.personalization_context import (
+        build_personalization_context_pack,
+    )
+
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "learning_brain": {
+            "subject": "construction_exam_learning_truth",
+            "compiled_objects": [
+                {"object_id": "claim-1", "object_type": "learner_claim", "claim_status": "confirmed",
+                 "concept_id": "1A432000", "label": "防水卷材搭接", "evidence_refs": ["ev-1"]},
+            ],
+        },
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+
+    candidates = service.build_context_candidates("student_demo")
+    assert "personalization_context" in candidates                      # the loop-closing seam
+    pcp = candidates["personalization_context"]
+    # single source: PCP is a projection of the SAME compiled truth the candidates already read
+    expected = build_personalization_context_pack(
+        user_id="student_demo", learning_brain=candidates["compiled_learning_truth"])
+    assert pcp["top_claims"] == expected["top_claims"]
+    assert pcp["source"] == "PersonalizationContextPack"
+
+
+def test_build_context_candidates_personalization_context_empty_when_no_truth(tmp_path) -> None:
+    # No compiled truth -> PCP degrades gracefully (empty claims), never fabricated / never absent-key.
+    service = _make_service(tmp_path)
+    candidates = service.build_context_candidates("student_demo")
+    assert "personalization_context" in candidates
+    assert candidates["personalization_context"]["top_claims"] == []
+
+
+# ---------------------------------------------------------------------------
+# G4 — canonical learner-truth production write override (master plan §0.26 / M33-ACT G4)
+# ---------------------------------------------------------------------------
+# The override is a fail-closed env gate: in production, canonical learner-truth stays dry-run /
+# preview (never persisted -> canonical_truth_written invariant holds) UNLESS the operator explicitly
+# turns the flag on. Turning it on is itself gated downstream on teacher-final / real-retest authority
+# + per-gate sign-off; the code only makes the capability "one authorization away, instantly revocable".
+
+_G4_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
+_G4_COHORT = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT"
+
+
+def test_canonical_truth_production_write_blocked_by_default(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Default OFF: production + no override flag -> truth is NOT persisted (preview only)."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = _make_service(tmp_path)
+    returned = service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+        },
+    )
+    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
+    assert not path.exists()  # canonical_truth_written invariant preserved
+    # preview projection is still returned, just not persisted
+    assert returned["weak_points"][0]["error_code"] == "E02"
+
+
+def test_canonical_truth_production_write_override_explicit_false_blocked(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Explicit OFF: flag=false -> still not persisted (unauthorized write stays blocked)."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "false")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x"})
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_fail_closed_on_garbage(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail-closed: an unrecognized flag value is treated as unauthorized -> not persisted."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "maybe")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x"})
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_enabled_requires_core_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized production still needs configured core-store; local JSON is not production authority."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+        },
+    )
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+    assert service.read_compiled_learning_truth("student_demo") == {}
+
+
+def test_canonical_truth_production_write_override_enabled_writes_core_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized: production + flag=true + core-store -> canonical learner-truth is persisted remotely."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "qa_student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {"output_projection_hash": "sha256:test2"},
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("qa_student_demo")
+
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:test2"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert not (tmp_path / "learner_state" / "qa_student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_blocks_non_cohort_core_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized G4 still remains qa_/operator_ scoped; non-cohort users stay preview-only."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    monkeypatch.setenv(_G4_COHORT, "qa_,operator_")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    returned = service.write_compiled_learning_truth(
+        "real_student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {"output_projection_hash": "sha256:blocked"},
+        },
+    )
+
+    assert returned["synthesis_run"]["output_projection_hash"] == "sha256:blocked"
+    assert service.read_compiled_learning_truth("real_student_demo") == {}
+    assert core_store.compiled_learning_truth == {}
+
+
+def test_canonical_truth_broad_trusted_adjudication_still_requires_stable_claim(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Broad AI-first authority cannot promote L0-only observations into canonical truth."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    monkeypatch.setenv(_G4_COHORT, "qa_,operator_")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "true")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    returned = service.write_compiled_learning_truth(
+        "real_student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "observed_candidates": [{"memory_lifecycle_stage": "short_term_learning_memory"}],
+            "synthesis_run": {
+                "output_projection_hash": "sha256:l0-only",
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                },
+            },
+        },
+    )
+
+    assert returned["synthesis_run"]["output_projection_hash"] == "sha256:l0-only"
+    assert service.read_compiled_learning_truth("real_student_demo") == {}
+    assert core_store.compiled_learning_truth == {}
+
+
+def test_canonical_truth_production_core_store_write_failure_fails_closed(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail-closed: production core-store write errors return preview and do not write local fallback."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    service = _make_service(tmp_path, core_store=_FailingCompiledTruthCoreStore())
+
+    returned = service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+        },
+    )
+
+    assert returned["weak_points"][0]["error_code"] == "E04"
+    assert service.read_compiled_learning_truth("student_demo") == {}
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_non_production_write_persists_regression(tmp_path) -> None:
+    """Regression: non-production write still persists (override never touches non-prod path)."""
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x", "weak_points": []})
+    assert (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_list_local_memory_event_user_ids_enumerates_users_with_events(tmp_path) -> None:
+    """dream cycle 候选集枚举：只返回本地有 memory events 文件的用户；
+    只有 seed 状态（无事件）的用户不出现。只读，不创建任何状态。"""
+    service = _make_service(tmp_path)
+    service.append_memory_event(
+        "stu_alpha",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence"},
+    )
+    service.append_memory_event(
+        "stu_beta",
+        source_feature="turn",
+        source_id="turn-2",
+        memory_kind="turn",
+        payload_json={},
+    )
+    service.read_profile("stu_gamma_no_events")
+
+    assert service.list_local_memory_event_user_ids() == ["stu_alpha", "stu_beta"]

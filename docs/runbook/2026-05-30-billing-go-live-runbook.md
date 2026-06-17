@@ -6,9 +6,9 @@
 
 ## 0. 背景与目标
 
-- B1 计费止血（PR#79）已合入，但**挂在 `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED` 开关后，默认 OFF**（`wallet/service.py:28 is_billing_enforcement_enabled() → _env_flag(..., default=False)`）。当前**休眠 = 钱包零变动、零 ledger 写、零拦截**（内测免费）。
+- B1 计费止血（PR#79）已合入；2026-06-13 上线态改为**代码默认 ON**（`wallet/service.py is_billing_enforcement_enabled() → _env_flag(..., default=True)`）。只有当环境变量 `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED=0/false/no/off` 被显式设置时，才进入内测休眠（钱包零变动、零 ledger 写、零拦截）。
 - 历史污染：B1 修复前的旧扣费只插 ledger 不减余额，导致生产 **86/977 钱包 `balance_micros` > Σ(delta_micros)**（净偏差约 **+8928 点**）。指挥官已定：**豁免追扣，只把余额校正到 Σdelta 真值**（修腐败，不向用户追钱）。
-- 上线当天顺序：**①校正余额到 Σdelta 干净基线 → ②翻 flag ON（从干净基线开始真扣费）**。
+- 上线当天顺序：**①校正余额到 Σdelta 干净基线 → ②确认线上 env 未显式关闭或改为 true 并重建容器（从干净基线开始真扣费）**。
 
 ## 1. 凭证与边界纪律（每步通用）
 
@@ -34,7 +34,7 @@ HOST=$(printf '%s' "$DB_URL" | sed -E 's#^[a-z]+://##; s#^[^@]*@##; s#[:/?].*##'
 | S1 | 余额校正 **dry-run** + 审 diff | 工程→指挥官审 | diff 行数=86 | 无（只读）|
 | S2 | 余额校正 **execute**（唯一 live 写）| 指挥官明确授权 | updated_rows 数 | 见 §6 |
 | S3 | 校正后 audit 归零 | 工程 | ledger_sum_diff_count=**0** | 见 §6 |
-| S4 | 翻 flag ON + 重建容器 | 指挥官明确授权 | /readyz 200 | §5 翻回 OFF |
+| S4 | 确认/翻 flag ON + 重建容器 | 指挥官明确授权 | /readyz 200 | §5 显式 false |
 | S5 | 真机 smoke | 工程 | 余额真递减 | §5 翻回 OFF |
 
 > **S1/S3/审计命令、rebuild dry-run 已在 2026-05-30 验证通过**（见 §3、§7）。当天 S1/S3 只需重跑确认，**S2 才第一次加 `--execute` 写库**。
@@ -88,9 +88,9 @@ SUPABASE_DB_URL="$CONN" python3 scripts/audit_wallet_projection_consistency.py -
 
 ---
 
-## 6. S4 — 翻 flag ON（⚠️ 真扣费开始，仅当天指挥官授权后）
+## 6. S4 — 确认/翻 flag ON（⚠️ 真扣费开始，仅当天指挥官授权后）
 
-flag 由进程 `os.getenv(DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED)` 读取；容器经 `docker-compose env_file: .env`（`docker-compose.yml:41`）在**启动时**注入 env，故改 `.env` 后**必须 force-recreate 容器**（`docker restart` 不重载 env_file）。
+flag 由进程 `os.getenv(DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED)` 读取；代码默认 ON，但 `.env` 里的显式 `false/0/no/off` 会覆盖默认值。容器经 `docker-compose env_file: .env`（`docker-compose.yml:41`）在**启动时**注入 env，故改 `.env` 后**必须 force-recreate 容器**（`docker restart` 不重载 env_file）。
 
 ```bash
 # 在阿里云远端（写边界 /root/deeptutor 内）：
@@ -106,7 +106,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://test2.yousenjiaoyu.com/readyz  
 
 > 也可用 `bash scripts/server_fast_reload_aliyun.sh`（同样 `up -d --force-recreate`，但附带 build/验收，更重）；env-only 翻转用上面的纯 recreate 更快。
 
-**回滚（任一异常立即执行）**：把 `.env` 的该行改回 `=false`（或删除），再次 `up -d --force-recreate deeptutor`，回到休眠 OFF（钱包零变动）。
+**回滚（任一异常立即执行）**：把 `.env` 的该行改回 `=false`，再次 `up -d --force-recreate deeptutor`，回到显式休眠 OFF（钱包零变动）。删除该行不再等同关闭，因为代码默认 ON。
 
 ## 7. S5 — 翻 flag 后真机 smoke（已文档化命令，当天人工核验）
 
@@ -132,7 +132,7 @@ psql "$CONN" -At -F$'\t' -c "select delta_micros, balance_after_micros from publ
 | 已 2026-05-30 验证（只读/dry-run，当天只需重跑确认） | 当天才**首次** live 执行（需指挥官授权）|
 |---|---|
 | S1 rebuild dry-run（status=dry_run）| **S2** rebuild `--execute`（唯一 live 余额写）|
-| S1 逐户 diff SELECT（86 行已存档）| **S4** edit `.env` + force-recreate（翻 flag ON）|
+| S1 逐户 diff SELECT（86 行已存档）| **S4** audit `.env` + force-recreate（确认/翻 flag ON）|
 | S3 audit 命令（当前 ledger_sum_diff_count=86）| **S5** 真机扣费 smoke |
 
 ## 9. 残留风险

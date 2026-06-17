@@ -61,6 +61,20 @@
         </view>
       </view>
 
+      <view class="notice-panel">
+        <view class="notice-head">
+          <text class="notice-kicker">用户须知</text>
+          <text class="notice-link" bindtap="openTerms">服务条款</text>
+        </view>
+        <text class="notice-intro">继续注册即表示你已阅读并理解以下重点说明：</text>
+        <view class="notice-list">
+          <view class="notice-item" wx:for="{{registerNoticeItems}}" wx:key="*this">
+            <text class="notice-dot"></text>
+            <text class="notice-text">{{item}}</text>
+          </view>
+        </view>
+      </view>
+
       <view class="action-panel" style="padding-bottom: {{safeBottom + 24}}px">
         <view class="err" wx:if="{{errorMsg}}">
           <text class="err-txt">{{errorMsg}}</text>

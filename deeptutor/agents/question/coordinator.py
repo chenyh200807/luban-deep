@@ -27,9 +27,9 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.services.rag.exact_authority import build_mcq_review_notes_from_exact_question
 from deeptutor.services.search import is_web_search_runtime_available
-from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
+from deeptutor.tools.rag_tool import rag_search
 
 
 def _qa_pair_template_dict(qa_pair: QAPair, templates: list[QuestionTemplate]) -> dict[str, Any]:
@@ -143,6 +143,7 @@ class AgentCoordinator:
         lightweight_generation: bool = False,
         require_explanation: bool = True,
         allow_lightweight_fallback: bool = True,
+        allow_similar_source_variant: bool = False,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
@@ -312,7 +313,11 @@ class AgentCoordinator:
                 for pair in qa_pairs_objects
             ]
         elif lightweight_generation:
-            if allow_lightweight_fallback:
+            use_similar_source_variant = (
+                allow_similar_source_variant
+                and self._has_similar_source_variant_anchor(anchor_payload)
+            )
+            if allow_lightweight_fallback or use_similar_source_variant:
                 qa_pair_objects = await self._lightweight_batch_generate(
                     templates=templates[:requested],
                     user_topic=user_topic,
@@ -320,6 +325,12 @@ class AgentCoordinator:
                     history_context=history_context,
                     counters=lightweight_trace_counters,
                 )
+                if use_similar_source_variant:
+                    self._mark_similar_source_variant(
+                        qa_pairs=qa_pair_objects,
+                        anchor_payload=anchor_payload,
+                        counters=lightweight_trace_counters,
+                    )
                 qa_pairs = [
                     {"template": _qa_pair_template_dict(pair, templates), "qa_pair": pair.__dict__, "success": True}
                     for pair in qa_pair_objects
@@ -622,6 +633,61 @@ class AgentCoordinator:
                 grading_key=grading_key,
             )
         ]
+
+    @staticmethod
+    def _has_similar_source_variant_anchor(anchor_payload: dict[str, Any] | None) -> bool:
+        payload = dict(anchor_payload or {})
+        anchor_source = str(payload.get("anchor_source") or "").strip().lower()
+        if anchor_source not in {"rag_answer_text", "rag_evidence_text"}:
+            return False
+        knowledge_context = str(payload.get("knowledge_context") or "").strip()
+        return "题库参考资料：" in knowledge_context
+
+    @staticmethod
+    def _mark_similar_source_variant(
+        *,
+        qa_pairs: list[QAPair],
+        anchor_payload: dict[str, Any] | None,
+        counters: dict[str, Any],
+    ) -> None:
+        payload = dict(anchor_payload or {})
+        knowledge_context = str(payload.get("knowledge_context") or "").strip()
+        evidence_refs = list(payload.get("evidence_refs") or [])
+        counters["lightweight_batch_fallback"] = "similar_source_variant"
+        counters["variant_hits"] = len(qa_pairs)
+        for qa_pair in qa_pairs:
+            metadata = dict(qa_pair.metadata or {})
+            metadata.update(
+                {
+                    "source": "similar_question_variant",
+                    "question_review_variant_mode": True,
+                    "variant_from_similar_source": True,
+                    "variant_source": str(payload.get("anchor_source") or "").strip(),
+                    "variant_notice": "基于题库/知识库相似来源生成的变式题，不是原题复刻。",
+                    "lightweight_generation": True,
+                }
+            )
+            if knowledge_context:
+                metadata["knowledge_context"] = knowledge_context
+            if evidence_refs:
+                metadata["evidence_refs"] = evidence_refs
+            qa_pair.metadata = metadata
+
+            validation = dict(qa_pair.validation or {})
+            validation["source"] = "similar_question_variant"
+            validation["variant_from_similar_source"] = True
+            qa_pair.validation = validation
+
+            grading_key = dict(qa_pair.grading_key or {})
+            if qa_pair.correct_answer and not grading_key.get("correct_answer"):
+                grading_key["correct_answer"] = qa_pair.correct_answer
+            grading_key["source"] = "similar_question_variant"
+            if not str(grading_key.get("minimal_rationale") or "").strip():
+                grading_key["minimal_rationale"] = (
+                    qa_pair.explanation
+                    or "基于相似题库/知识库来源生成的变式题；不声明为题库原题。"
+                )
+            qa_pair.grading_key = grading_key
 
     @staticmethod
     def _extract_bank_options_from_payload(payload: dict[str, Any]) -> dict[str, str]:
@@ -931,7 +997,29 @@ class AgentCoordinator:
 
         answer = str(result.get("answer") or "").strip()
         if not answer:
-            return base
+            if not evidence_refs:
+                return base
+            evidence_texts: list[str] = []
+            for ref in evidence_refs[:2]:
+                if not isinstance(ref, dict):
+                    continue
+                content = ref.get("content")
+                if isinstance(content, dict):
+                    content = content.get("content") or content.get("text") or content.get("source_id")
+                text = str(content or "").strip()
+                if text:
+                    evidence_texts.append(text)
+            if not evidence_texts:
+                return base
+            clipped_evidence = "\n".join(evidence_texts)[:280]
+            if len("\n".join(evidence_texts)) > 280:
+                clipped_evidence += "..."
+            return {
+                "knowledge_context": f"{base['knowledge_context']}\n题库参考资料：{clipped_evidence}",
+                "concentration": anchor_label,
+                "anchor_source": "rag_evidence_text",
+                "evidence_refs": evidence_refs,
+            }
 
         parsed_bundle = AgentCoordinator._extract_structured_anchor_from_answer(answer)
         if parsed_bundle:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 import httpx
 
@@ -10,6 +12,7 @@ from deeptutor.services.learner_state.mistake_book import (
     MistakeBookService,
     SupabaseMistakeBookStore,
 )
+from deeptutor.services.path_service import PathService
 
 
 @pytest.fixture(autouse=True)
@@ -96,6 +99,37 @@ def test_mistake_book_rejects_missing_subject_id() -> None:
 
     with pytest.raises(ValueError):
         service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="")
+
+
+def test_local_fallback_store_is_shared_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK", "true")
+    monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    PathService.reset_instance()
+
+    writer = MistakeBookService()
+    reader = MistakeBookService()
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt-local", question_id="q-local")
+
+    saved = writer.save_item(
+        user_id="u1",
+        attempt_ref=attempt_ref,
+        subject_id="construction_exam_1",
+        title="本地错题",
+    )
+
+    listed = reader.list_items(user_id="u1")
+
+    assert saved["event_id"] == "evt-local"
+    assert listed["count"] == 1
+    assert listed["items"][0]["event_id"] == "evt-local"
+    PathService.reset_instance()
 
 
 def test_supabase_mistake_book_store_uses_user_event_authority_filters() -> None:

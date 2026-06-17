@@ -6,6 +6,7 @@ from deeptutor.services.query_intent import (
     build_grounding_decision,
     build_grounding_decision_from_metadata,
     has_grounded_construction_exam_kb,
+    looks_like_construction_exam_knowledge_query,
     query_requires_current_info,
     query_uses_learner_state_authority,
 )
@@ -226,3 +227,19 @@ def test_build_grounding_decision_marks_explicit_web_search_command_current_info
 
     assert decision.current_info_required is True
     assert "current_info_required" in decision.reasons
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "请说明屋面防水构造的作用，并指出答题采分点。",
+        "一建建筑实务里钢筋保护层怎么考？",
+    ],
+)
+def test_construction_exam_knowledge_query_detection(query: str) -> None:
+    assert looks_like_construction_exam_knowledge_query(query) is True
+
+
+@pytest.mark.parametrize("query", ["你好", "谢谢", "我学不动了"])
+def test_social_or_learning_support_query_is_not_construction_exam_knowledge(query: str) -> None:
+    assert looks_like_construction_exam_knowledge_query(query) is False

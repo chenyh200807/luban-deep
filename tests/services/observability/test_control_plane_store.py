@@ -47,6 +47,80 @@ def test_control_plane_store_accepts_change_impact_runs(tmp_path) -> None:
     }
 
 
+def test_readiness_checks_latest_payload_becomes_current_release_matrix(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path)
+    old_release = {
+        "release_id": "rel-old",
+        "git_sha": "oldsha",
+        "deployment_environment": "production",
+        "prompt_version": "p-old",
+        "ff_snapshot_hash": "ff-old",
+        "deploy_manifest_hash": "manifest-old",
+    }
+    current_release = {
+        "release_id": "rel-current",
+        "git_sha": "currentsha",
+        "deployment_environment": "production",
+        "prompt_version": "p-current",
+        "ff_snapshot_hash": "ff-current",
+        "deploy_manifest_hash": "manifest-current",
+    }
+    store.write_run(
+        kind="readiness_checks",
+        run_id="playwright-old",
+        release_id="rel-old",
+        payload={
+            "run_id": "playwright-old",
+            "check_id": "playwright",
+            "status": "PASS",
+            "summary": "old playwright passed",
+            "evidence": ["old"],
+            "blockers": [],
+            "release": old_release,
+        },
+    )
+    store.write_run(
+        kind="readiness_checks",
+        run_id="playwright-current",
+        release_id="rel-current",
+        payload={
+            "run_id": "playwright-current",
+            "check_id": "playwright",
+            "status": "FAIL",
+            "summary": "current playwright failed",
+            "evidence": ["current"],
+            "blockers": ["playwright_failed"],
+            "release": current_release,
+        },
+    )
+    store.write_run(
+        kind="readiness_checks",
+        run_id="contract-current",
+        release_id="rel-current",
+        payload={
+            "run_id": "contract-current",
+            "check_id": "contract_guard",
+            "status": "PASS",
+            "summary": "contract guard passed",
+            "evidence": ["current"],
+            "blockers": [],
+            "release": current_release,
+        },
+    )
+
+    latest = store.latest_payload("readiness_checks")
+
+    assert latest is not None
+    assert latest["view"] == "current_release_latest_matrix"
+    assert latest["release"]["release_id"] == "rel-current"
+    rows = {row["check_id"]: row for row in latest["rows"]}
+    assert set(rows) == {"playwright", "contract_guard"}
+    assert rows["playwright"]["run_id"] == "playwright-current"
+    assert rows["playwright"]["status"] == "FAIL"
+    assert rows["contract_guard"]["run_id"] == "contract-current"
+    assert latest["blockers"] == ["playwright_failed"]
+
+
 def test_control_plane_store_rejects_unknown_kind(tmp_path) -> None:
     store = ObservabilityControlPlaneStore(base_dir=tmp_path)
 

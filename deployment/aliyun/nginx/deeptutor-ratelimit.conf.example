@@ -1,0 +1,32 @@
+# DeepTutor edge rate-limit + connection-limit zones.
+#
+# IMPORTANT: limit_req_zone / limit_conn_zone are only valid in the `http {}`
+# context — NOT inside `server {}`. Install this file where it is loaded at http
+# level, e.g. /etc/nginx/conf.d/deeptutor-ratelimit.conf (conf.d is included from
+# the http block by the default nginx.conf). The server block in
+# deeptutor-api.conf then references these zones via limit_req / limit_conn.
+#
+# Keys use $binary_remote_addr = the real client IP, because nginx is the edge
+# (client -> nginx -> 127.0.0.1:8001). 10m of zone ≈ 160k unique IPs tracked.
+#
+# Rates are per-IP and deliberately generous for real users behind shared NAT
+# (campus/office) while still cutting off scripted abuse. Tune with real traffic.
+
+# General API traffic: 20 req/s sustained, burst absorbs short spikes.
+limit_req_zone $binary_remote_addr zone=dt_api:10m rate=20r/s;
+
+# Auth endpoints (login / register / send-code / verify-code): strict — these are
+# the credential-stuffing / OTP-brute / registration-spam surface. 1 req/s + small
+# burst. The app also enforces its own per-phone OTP lockout and per-route limits;
+# this is the cheap edge layer that never reaches the app.
+limit_req_zone $binary_remote_addr zone=dt_auth:10m rate=1r/s;
+
+# Concurrent connection cap per IP (mainly the long-lived WS /api/v1/ws). The app
+# also caps concurrent WS per *user*; this caps per *IP* so one host cannot open
+# thousands of sockets. 30 allows several tabs/devices behind one NAT.
+limit_conn_zone $binary_remote_addr zone=dt_conn:10m;
+
+# When a limit trips, return 429 (not the default 503) so clients/back-off logic
+# treat it as rate limiting, not an outage.
+limit_req_status 429;
+limit_conn_status 429;

@@ -104,6 +104,19 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
         audit_action="invite_test_application_delete",
     ),
     WriteEndpoint(
+        key="feedback.luban_feedback.update",
+        method="PATCH",
+        path_template="/api/v1/bi/luban-feedback/responses/{response_id}",
+        requires_idempotency=True,
+        description=(
+            "Luban survey follow-up edit: growth ops updates only the "
+            "operator-owned status and operator_note fields. Backend preserves "
+            "the original survey answers and records luban_feedback_response_update "
+            "audit with idempotency dedup."
+        ),
+        audit_action="luban_feedback_response_update",
+    ),
+    WriteEndpoint(
         key="member.ops_action.record",
         method="POST",
         path_template="/api/v1/bi/member/{user_id}/ops-action",
@@ -124,7 +137,10 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
             "BI export request: admin asks for a scrubbed export job. "
             "Backend records bi_export_request audit with dataset, filters, "
             "scrubbing, rate-limit metadata, and idempotency dedup before any "
-            "export job is shown in the UI."
+            "export job is shown in the UI. product_behavior_raw is the only "
+            "P0 raw_mode=true dataset; all other datasets remain scrubbed. "
+            "P0 records the raw export audit trail and returns ready raw CSV/JSON "
+            "content directly from product_behavior_events."
         ),
         audit_action="bi_export_request",
     ),

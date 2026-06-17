@@ -1,16 +1,10 @@
 // API configuration and utility functions
 
 const CURRENT_ORIGIN_SENTINEL = "__CURRENT_ORIGIN__";
-const BI_API_TOKEN_PLACEHOLDER = "__NEXT_PUBLIC_BI_API_TOKEN_" + "PLACEHOLDER__";
-const INJECTED_BI_API_TOKEN = "__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__";
 
 // Keep the injected API base when it exists. Local development can still fall
 // back to the current origin; production must receive an explicit API base.
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE?.trim() || "";
-const resolvedBiApiToken =
-  process.env.NEXT_PUBLIC_BI_API_TOKEN?.trim() || INJECTED_BI_API_TOKEN;
-export const BI_API_TOKEN =
-  resolvedBiApiToken === BI_API_TOKEN_PLACEHOLDER ? "" : resolvedBiApiToken;
 const BI_ADMIN_SESSION_STORAGE_KEY = "deeptutor.bi.admin.session";
 export const BI_ADMIN_SESSION_CHANGED_EVENT = "deeptutor.bi.admin.session.changed";
 
@@ -91,16 +85,6 @@ export function wsUrl(path: string): string {
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
 
   return `${normalizedBase}${normalizedPath}`;
-}
-
-export function withBiApiToken(headers?: HeadersInit): HeadersInit | undefined {
-  if (!BI_API_TOKEN) {
-    return headers;
-  }
-
-  const merged = new Headers(headers ?? {});
-  merged.set("X-Metrics-Token", BI_API_TOKEN);
-  return Object.fromEntries(merged.entries());
 }
 
 export function getStoredBiAdminSession(): BiAdminSession | null {

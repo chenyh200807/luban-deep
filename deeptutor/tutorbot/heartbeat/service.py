@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
@@ -10,6 +11,27 @@ from loguru import logger
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.providers.base import LLMProvider
+
+
+def _heartbeat_redis() -> "object | None":
+    """Reuse the rate-limit Redis (valkey) config for cross-worker coordination.
+    Returns None when Redis isn't configured/available (single-worker mode)."""
+    backend = str(os.getenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")).strip().lower()
+    url = str(os.getenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL") or "").strip()
+    if backend != "redis" or not url:
+        return None
+    try:
+        import redis
+
+        # Sync client on the event-loop thread — bound the stall if valkey is half-dead.
+        return redis.Redis.from_url(
+            url,
+            decode_responses=True,
+            socket_timeout=1.0,
+            socket_connect_timeout=1.0,
+        )
+    except Exception:  # noqa: BLE001 — any failure → no cross-worker lock (fail-open)
+        return None
 
 _HEARTBEAT_TOOL = [
     {
@@ -59,6 +81,7 @@ class HeartbeatService:
         on_notify: Callable[[str], Coroutine[Any, Any, None]] | None = None,
         interval_s: int = 30 * 60,
         enabled: bool = True,
+        single_instance_key: str | None = None,
     ):
         self.workspace = workspace
         self.provider = provider
@@ -67,6 +90,12 @@ class HeartbeatService:
         self.on_notify = on_notify
         self.interval_s = interval_s
         self.enabled = enabled
+        # Cross-worker single-instance guard. With uvicorn --workers N, every worker
+        # starts its own copy of a bot and thus its own heartbeat loop — without this,
+        # the periodic LLM tick (and its memory/notify side effects) fires N times. When
+        # set, each tick first claims a short valkey lock for the window so only ONE
+        # worker actually runs it. Fail-open: no Redis → behaves as single-worker.
+        self._single_instance_key = single_instance_key
         self._running = False
         self._task: asyncio.Task | None = None
 
@@ -137,9 +166,31 @@ class HeartbeatService:
             except Exception as e:
                 logger.error("Heartbeat error: {}", e)
 
+    def _claim_tick_window(self) -> bool:
+        """True if this worker may run this tick. With a single-instance key + valkey,
+        only one worker wins the window (SET NX); others skip. Fail-open (no Redis or
+        error → True) so a single-worker / Redis-down deployment still ticks."""
+        if not self._single_instance_key:
+            return True
+        client = _heartbeat_redis()
+        if client is None:
+            return True
+        try:
+            # Lock lives ~one interval so the holder owns this window and it expires
+            # before the next, letting whichever worker fires first next window re-claim.
+            ttl = max(60, int(self.interval_s) - 30)
+            got = client.set(f"deeptutor:tutorbot-hb:{self._single_instance_key}", "1", nx=True, ex=ttl)
+            return bool(got)
+        except Exception:  # noqa: BLE001 — Redis hiccup → fail-open (run)
+            return True
+
     async def _tick(self) -> None:
         """Execute a single heartbeat tick."""
         from deeptutor.tutorbot.utils.evaluator import evaluate_response
+
+        if not self._claim_tick_window():
+            logger.debug("Heartbeat: another worker owns this window; skipping")
+            return
 
         content = self._read_heartbeat_file()
         if not content:

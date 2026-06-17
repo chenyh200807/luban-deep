@@ -1,0 +1,26 @@
+# Single authority for grading mistake_type codes (G3 register-before-use).
+#
+# mistake_type labels carried into learner evidence (why a scoring point was lost)
+# must be one of these controlled codes. The Python mirror is
+# deeptutor/contracts/mistake_codes.py:MISTAKE_CODE_REGISTRY. The CI emit-site guard
+# (scripts/check_contract_guard.py:evaluate_emitted_mistake_types) cross-checks every
+# hard-coded mistake_type literal in the grading emit modules against this set.
+#
+# NOTE: this guards STATIC hard-coded literals only. LLM-produced mistake_type at
+# runtime must be normalized against this registry at the judge boundary (map-or-review,
+# never silent) — that runtime normalization is a separate follow-up (audit G3 layer 2).
+version: 1
+mistake_codes:
+  - code: omitted
+    meaning: required scoring point not addressed (rubric_grader_v1.MISTAKE_MISS)
+  - code: near_synonym_not_exact
+    meaning: exact_required term not precisely hit (rubric_grader_v1.MISTAKE_NEAR_SYNONYM)
+  - code: list_incomplete
+    meaning: enumeration only partially covered (rubric_grader_v1.MISTAKE_PARTIAL_LIST)
+  - code: wrong_content
+    meaning: point addressed but content incorrect (rubric_grader_v1.MISTAKE_WRONG)
+  - code: shape_stub_no_quality_judgment
+    meaning: m35 shadow shape_stub A/B arm sentinel — probe makes no quality judgment (m35_artifact_shadow.py)
+# Fallback for an LLM value that maps to no registered code: must go to review,
+# never silently written as a real mistake_type.
+fallback: unknown_mistake

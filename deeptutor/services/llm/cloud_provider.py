@@ -8,6 +8,7 @@ Provides both complete() and stream() methods.
 
 from collections.abc import AsyncGenerator, Mapping
 import logging
+import os
 import threading
 from typing import cast
 

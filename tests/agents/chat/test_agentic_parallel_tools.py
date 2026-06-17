@@ -208,6 +208,36 @@ def test_agentic_pipeline_keeps_runtime_extra_headers(monkeypatch: pytest.Monkey
     assert pipeline.extra_headers == {"APP-Code": "abc"}
 
 
+def test_agentic_pipeline_filters_end_user_code_execution_tools(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeRegistry:
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def get(self, name):
+            return SimpleNamespace(name=name)
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key="k",
+            base_url="https://example.com",
+            api_version=None,
+        ),
+    )
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: FakeRegistry())
+
+    pipeline = AgenticChatPipeline(language="en")
+    context = UnifiedContext(
+        user_message="用 Python 帮我算一下",
+        enabled_tools=["rag", "code_execution", "exec"],
+        knowledge_bases=["construction-exam"],
+    )
+
+    assert pipeline.resolve_enabled_tools(context) == ["rag"]
+
+
 def test_fast_mode_tool_resolution_stays_inside_agentic_pipeline(monkeypatch: pytest.MonkeyPatch) -> None:
     class FakeRegistry:
         def get_enabled(self, selected):
@@ -1297,6 +1327,53 @@ async def test_run_uses_compact_response_for_construction_exam_tutor_profile(
     assert result_event.metadata["chat_mode"] == "smart"
 
 
+@pytest.mark.asyncio
+async def test_run_compact_response_streams_chunks_when_citations_enabled_without_repeating_final(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fake_stream_messages(_messages, max_tokens: int):
+        assert max_tokens == 1800
+        yield "第一段。"
+        yield "第二段。"
+
+    async def _unexpected(*_args, **_kwargs):
+        raise AssertionError("compact response should not enter deep chat stages")
+
+    monkeypatch.setattr(pipeline, "resolve_enabled_tools", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(pipeline, "_should_use_compact_response", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected)
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        session_id="session-citation-stream",
+        user_message="什么是流水施工？",
+        enabled_tools=[],
+        knowledge_bases=[],
+        language="zh",
+        metadata={"turn_id": "turn-citation-stream"},
+        config_overrides={"chat_mode": "smart"},
+    )
+
+    await pipeline.run(context, bus)
+
+    content_events = [event for event in bus._history if event.type == StreamEventType.CONTENT]
+    result_event = next(event for event in bus._history if event.type == StreamEventType.RESULT)
+    assert [event.content for event in content_events] == ["第一段。", "第二段。"]
+    assert result_event.metadata["response"] == "第一段。第二段。"
+
+
 def _tutorbot_overlay_context(user_message: str, scene: str | None) -> UnifiedContext:
     metadata: dict[str, Any] = {
         "product_surface": "tutorbot",
@@ -1353,6 +1430,57 @@ def test_build_messages_partitions_stable_prefix_ahead_of_dynamic_memory() -> No
     assert messages[-1] == {"role": "user", "content": "user turn content"}
 
 
+def test_build_messages_includes_compiled_teaching_overlay() -> None:
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="compiled-chat",
+        user_message="高层住宅的建筑高度是怎么界定的？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "luban_general_knowledge_context_grounding": "编译教学上下文\n高层住宅判定标准",
+        },
+        config_overrides={"general_knowledge_context": True},
+    )
+
+    messages = pipeline._build_messages(context, "STABLE_STAGE_PROMPT", "user turn content")
+
+    assert messages[0] == {"role": "system", "content": "STABLE_STAGE_PROMPT"}
+    assert any(
+        message["role"] == "system" and "编译教学上下文" in str(message["content"])
+        for message in messages
+    )
+    assert messages[-1] == {"role": "user", "content": "user turn content"}
+
+
+@pytest.mark.asyncio
+async def test_emit_result_exports_compiled_teaching_context_metadata() -> None:
+    pipeline = AgenticChatPipeline(language="zh")
+    bus = StreamBus()
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "leaf_name_path": "建筑工程技术 > 高层住宅判定标准",
+    }
+    context = UnifiedContext(
+        session_id="compiled-chat",
+        user_message="高层住宅的建筑高度是怎么界定的？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "luban_general_knowledge_context": pack,
+            "luban_general_knowledge_context_status": "attached",
+        },
+        config_overrides={"general_knowledge_context": True},
+    )
+
+    await pipeline._emit_result(bus, {"response": "ok"}, context=context)
+
+    result = next(event for event in bus._history if event.type == StreamEventType.RESULT)
+    assert result.metadata["luban_general_knowledge_context"] == pack
+    assert result.metadata["luban_general_knowledge_context_status"] == "attached"
+
+
 def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     """No attached scene → the shell loads the default construction tutor skill
     (not an independently re-derived scene)."""
@@ -1368,3 +1496,34 @@ def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     assert default_instruction
     # The default (no-scene) skill differs from a scene-specific skill stack.
     assert default_instruction != scene_instruction
+
+
+@pytest.mark.asyncio
+async def test_build_openai_client_reuses_pooled_client_within_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Within one running event loop (the production acting-loop case) and without
+    client-level overrides, the pipeline must reuse one pooled client per
+    (api_key, base_url) — the old per-call make_openai_client() leaked an unclosed
+    httpx pool every turn. Pooling is loop-scoped, so this must be asserted inside
+    a running loop, not synchronously."""
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key="pooled-reuse-test-key",
+            base_url="https://pooled-reuse.example.com",
+            api_version=None,
+            extra_headers=None,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: object()
+    )
+
+    pipeline = AgenticChatPipeline(language="en")
+
+    first = pipeline._build_openai_client()
+    second = pipeline._build_openai_client()
+    assert first is second

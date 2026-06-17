@@ -1,0 +1,71 @@
+{
+  "artifact": "G4_LIMITED_COHORT_OPEN_VERIFICATION",
+  "gate": "G4_canonical_learner_truth_write",
+  "date": "2026-06-12",
+  "scope": "limited_cohort_production_write_verification",
+  "supersedes_state_in": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/AUTHORIZATION_GATES_grading_to_brain.md (G4: dryrun_candidate_only)",
+  "authorization": {
+    "required": "explicit_canonical_learner_truth_write_authorization",
+    "granted_by": "user_explicit_instruction",
+    "granted_on": "2026-06-12",
+    "instruction": "canonical claim 写入开闸走既有授权门流程，不在代码侧绕",
+    "order_note": "推荐顺序为 G1→G6→G3→G4；G4 限定 cohort 先行由用户显式指示，不构成 broad 开闸。"
+  },
+  "observed_state": {
+    "gate_open": true,
+    "opened_scope": "cohort_only",
+    "host_env": {
+      "path": "Aliyun-ECS-2:/root/deeptutor/.env",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED": "true",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT": "qa_,operator_",
+      "DEEPTUTOR_GIT_SHA": "d1784d2dd44a64c998a3f24fd774167d59692ca3"
+    },
+    "container_env": {
+      "container": "deeptutor",
+      "DEEPTUTOR_ENV": "production",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED": "true",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT": "qa_,operator_",
+      "DEEPTUTOR_GIT_SHA": "231b5d9be65d7534bf5c85e9ac4dbdbdaa0a2b25"
+    },
+    "container_code": {
+      "canonical_truth_policy_present": true,
+      "service_consumes_canonical_truth_promotion_decision": true,
+      "evidence_command": "docker exec deeptutor grep -c canonical_truth_promotion_decision /app/deeptutor/services/learner_state/service.py -> 3"
+    },
+    "broad_flags": {
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED": "unset_default_false",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED": "unset_default_false"
+    },
+    "public_endpoints": {
+      "healthz": 200,
+      "readyz": 200
+    }
+  },
+  "effective_policy": {
+    "production_master_flag": "enabled",
+    "canonical_write_population": "user_id prefix in {qa_, operator_} only",
+    "general_learners": "still_blocked (production_cohort_required; broad trusted adjudication flags remain OFF)",
+    "policy_source": "deeptutor/services/learner_state/canonical_truth_policy.py:canonical_truth_promotion_decision"
+  },
+  "drift_note": {
+    "host_env_sha": "d1784d2dd44a64c998a3f24fd774167d59692ca3",
+    "container_sha": "231b5d9be65d7534bf5c85e9ac4dbdbdaa0a2b25",
+    "relationship": "container_sha is parent of host_env_sha",
+    "delta_content": "d1784d2d 仅为契约测试登记 commit（无运行时行为差异）",
+    "disposition": "not_blocking_g4; 下次代码发布时按 runbook 收敛"
+  },
+  "rollback": {
+    "action": "set LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED=false in Aliyun-ECS-2:/root/deeptutor/.env, then recreate container via scripts/redeploy_aliyun_fast.sh",
+    "fail_closed_guarantee": "flag 缺失或非法值时 canonical_truth_promotion_decision 返回 production_write_flag_disabled"
+  },
+  "non_negotiables_intact": {
+    "broad_canonical_write_still_gated": true,
+    "shadow_candidate_simulated_never_promoted": true,
+    "remote_write_boundary": "no remote write performed by this verification (read-only audit; gate was found already open)",
+    "registry_publish_untouched": true
+  },
+  "remaining_blockers_for_broad_open": [
+    "teacher-final / real-retest 闭环的治理级证据（master plan §0.26.17 C 类外部依赖）",
+    "separate explicit broad authorization (LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_* flags)"
+  ]
+}

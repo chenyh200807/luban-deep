@@ -85,7 +85,7 @@ function _isOpaqueDocId(docId) {
 }
 
 function _sourceKindLabel(citation) {
-  var sourceType = String(citation.source_type || "").toLowerCase();
+  var sourceType = String(citation.source_type || citation.sourceType || "").toLowerCase();
   var sourceTable = String(citation.source_table || "").toLowerCase();
   if (sourceType === "exam" || sourceTable === "questions_bank" || sourceTable === "exam") {
     return "真题";
@@ -94,6 +94,21 @@ function _sourceKindLabel(citation) {
   if (sourceType === "textbook") return "教材";
   if (sourceTable === "knowledge_cards") return "知识卡片";
   return "";
+}
+
+function _markerKey(citation) {
+  var explicit = _clean(citation.key);
+  if (explicit) return explicit;
+  var marker = _clean(citation.marker);
+  var match = marker.match(/\d+/);
+  return match ? match[0] : "";
+}
+
+function _bundleRefTitle(citation) {
+  var title = _clean(citation.title);
+  var sourceType = String(citation.source_type || citation.sourceType || "").toLowerCase();
+  if (!title || title.toLowerCase() === sourceType || title === "source") return "";
+  return title;
 }
 
 function _buildSourceMeta(citation) {
@@ -165,9 +180,15 @@ function _buildTitle(citation) {
 
 function formatCitation(citation) {
   var next = citation || {};
+  var quote = _clean(next.public_quote || next.quote || next.snippet).slice(0, 220);
   return {
-    key: next.key || "",
-    title: _buildTitle(next),
+    key: _markerKey(next),
+    title: _bundleRefTitle(next) || _buildTitle(next),
+    locator: _clean(next.locator),
+    quote: quote,
+    quoteExpanded: false,
+    quoteActionText: "查看摘录",
+    sourceType: _sourceKindLabel(next) || _clean(next.source_type || next.sourceType),
   };
 }
 

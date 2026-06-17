@@ -1,7 +1,20 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import path from 'node:path'
 
-import { loadWechatHarnessCases } from '../lib/wechat-harness-data.ts'
+import {
+  loadWechatHarnessCases,
+  resolveWechatHarnessRepoRoot,
+} from '../lib/wechat-harness-data.ts'
+
+test('wechat harness repo root resolver survives both web and standalone cwd shapes', () => {
+  const repoRoot = path.resolve(process.cwd(), '..')
+  assert.equal(resolveWechatHarnessRepoRoot(process.cwd()), repoRoot)
+  assert.equal(
+    resolveWechatHarnessRepoRoot(path.join(process.cwd(), '.next', 'standalone')),
+    repoRoot
+  )
+})
 
 test('wechat harness loads canonical mini-program fixtures through wx render authority', () => {
   const cases = loadWechatHarnessCases()

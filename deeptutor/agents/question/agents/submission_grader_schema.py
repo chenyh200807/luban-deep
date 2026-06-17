@@ -71,6 +71,7 @@ _SECTION_ALIASES: dict[str, str] = {
 }
 
 # Fallback 模板（"仍缺时模板兜底"，plan §Phase 4 Step 4.2）。
+# 默认模板假设本轮存在服务端 grading_result / grading_key authority。
 _FALLBACK_TEMPLATES: dict[str, str] = {
     "verdict": "本题判定见服务端 grading_result。",
     "correct_answer": "正确答案以服务端 grading_key.correct_answer 为准。",
@@ -82,6 +83,23 @@ _FALLBACK_TEMPLATES: dict[str, str] = {
     "option_analysis": "暂无逐项解析，请参考 grading_key.scoring_points。",
     "scoring_points_hit": "暂无采分点命中明细。",
     "scoring_points_missed": "暂无漏点明细，请参考 grading_result.error_events。",
+    "rewritten_answer": "暂无得分表达改写示例。",
+}
+
+# 开放世界判分（无题库标准答案 authority）专用兜底模板。根因修复 2026-06-11：
+# 此路径没有服务端 grading_result / grading_key，措辞必须诚实，不得声称题库官方结论，
+# 否则会把开放裁决洗白成 authority（contracts/capability.md §硬约束 40）。
+_OPEN_WORLD_FALLBACK_TEMPLATES: dict[str, str] = {
+    "verdict": "本题暂无题库标准答案，判定以本轮基于教材/规范的开放裁决为准，非题库官方结论。",
+    "correct_answer": "本题暂无题库标准答案；参考答案以本轮教材/规范推理为准，不是题库官方答案。",
+    "why_wrong": "本题答案与本轮教材/规范判定不一致；具体偏差请见上文解析。",
+    "knowledge_point": "本题所属知识点请见上文解析。",
+    "common_pitfall": "本题暂无系统化易错点说明，建议结合题干与教材/规范自查。",
+    "mnemonic": "本题暂无现成记忆口诀，可按错因关键词自建。",
+    "next_practice": "建议针对当前错因继续做 3 题同类训练。",
+    "option_analysis": "暂无逐项解析，请结合题干与教材/规范自查。",
+    "scoring_points_hit": "暂无采分点命中明细。",
+    "scoring_points_missed": "暂无漏点明细，请结合教材/规范自查。",
     "rewritten_answer": "暂无得分表达改写示例。",
 }
 
@@ -178,16 +196,22 @@ def apply_fallback_templates(
     parsed: ExplanationSections,
     *,
     missing: Iterable[str] | None = None,
+    authority_present: bool = True,
 ) -> ExplanationSections:
     """Self-repair 仍失败时调用：用模板填充缺段，保证用户不会看到空段。
 
+    ``authority_present=False`` 表示本轮是开放世界判分（无题库 grading_result /
+    grading_key），改用诚实模板，避免把开放裁决洗白成题库官方结论
+    （contracts/capability.md §硬约束 40）。
+
     返回新的 ExplanationSections（不修改入参）。
     """
+    templates = _FALLBACK_TEMPLATES if authority_present else _OPEN_WORLD_FALLBACK_TEMPLATES
     keys = list(missing) if missing is not None else parsed.missing_required()
     sections = dict(parsed.sections)
     for key in keys:
-        if key in _FALLBACK_TEMPLATES and not str(sections.get(key, "")).strip():
-            sections[key] = _FALLBACK_TEMPLATES[key]
+        if key in templates and not str(sections.get(key, "")).strip():
+            sections[key] = templates[key]
     return ExplanationSections(
         sections=sections, question_type=parsed.question_type, is_correct=parsed.is_correct
     )

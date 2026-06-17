@@ -124,8 +124,8 @@ var payload = pageDef._buildMcqSubmitPayload([
 
 assert(payload, "selected cards should build a submit payload");
 assert(
-  payload.text === "提交作答，请批改：第1题：B；第2题：B",
-  "batch submit text should explicitly ask for grading instead of looking like a new practice request",
+  payload.text === "第1题：B；第2题：B",
+  "batch submit text should leave grading authority to structured question context",
 );
 assert(
   payload.followupQuestionContext && payload.followupQuestionContext.items.length === 2,
@@ -152,8 +152,30 @@ var single = pageDef._buildMcqSubmitPayload([
 ]);
 
 assert(
-  single.text === "提交作答，请批改：我选B",
-  "single submit text should also carry explicit grading intent",
+  single.text === "我选B",
+  "single submit text should leave grading authority to followup context",
+);
+
+var visibleOnly = pageDef._buildMcqSubmitPayload([
+  {
+    index: 1,
+    stem: "压型金属板屋面最低坡度是多少？",
+    questionType: "single_choice",
+    questionId: "visible_q1",
+    options: [
+      { key: "A", text: "5%", selected: true },
+      { key: "B", text: "1%" },
+    ],
+  },
+]);
+
+assert(
+  visibleOnly.followupQuestionContext &&
+    visibleOnly.followupQuestionContext.question_id === "visible_q1" &&
+    visibleOnly.followupQuestionContext.question === "压型金属板屋面最低坡度是多少？" &&
+    visibleOnly.followupQuestionContext.options.A === "5%" &&
+    visibleOnly.followupQuestionContext.user_answer === "A",
+  "visible MCQ card state should become canonical followup question context",
 );
 
 console.log("PASS test_chat_mcq_submit_prompt.js");

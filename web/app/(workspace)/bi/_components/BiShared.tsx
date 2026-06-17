@@ -1,5 +1,5 @@
 /* eslint-disable i18n/no-literal-ui-text */
-"use client";
+'use client'
 
 import {
   ArrowDownRight,
@@ -13,197 +13,206 @@ import {
   Bot,
   Sparkles,
   type LucideIcon,
-} from "lucide-react";
-import type { ReactNode } from "react";
-import type { BiAlertItem, BiMetricCard, BiRankItem } from "@/lib/bi-api";
+} from 'lucide-react'
+import type { ReactNode } from 'react'
+import type { BiAlertItem, BiMetricCard, BiRankItem } from '@/lib/bi-api'
 
 export const BI_PRIMARY_TABS = [
   {
-    key: "boss-workbench",
-    label: "老板工作台",
-    summary: "先看经营健康、风险队列和重点会员，再决定往哪里下钻。",
+    key: 'boss-workbench',
+    label: '老板工作台',
+    summary: '先看经营健康、风险队列和重点会员，再决定往哪里下钻。',
   },
   {
-    key: "member-ops",
-    label: "会员运营",
-    summary: "聚焦会员筛选、批量动作和学员运营执行。",
+    key: 'member-ops',
+    label: '会员运营',
+    summary: '聚焦会员筛选、批量动作和学员运营执行。',
   },
   {
-    key: "launch-readiness",
-    label: "上线面板",
-    summary: "汇总 release gate、contract guard、benchmark、OA/AAE、Playwright、微信 DevTools 和 Langfuse。",
+    key: 'launch-readiness',
+    label: '上线面板',
+    summary:
+      '汇总 release gate、contract guard、benchmark、OA/AAE、Playwright、微信 DevTools 和 Langfuse。',
   },
   {
-    key: "invite-test",
-    label: "内测申请",
-    summary: "查看内测申请名单、联系方式和首批体验学员筛选统计。",
+    key: 'invite-test',
+    label: '内测申请',
+    summary: '查看内测申请名单、联系方式和首批体验学员筛选统计。',
   },
   {
-    key: "luban-feedback",
-    label: "内测回访",
-    summary: "查看内测回访问卷的 NPS、满意度、分层背景与高价值用户跟进。",
+    key: 'luban-feedback',
+    label: '内测回访',
+    summary: '查看内测回访问卷的 NPS、满意度、分层背景与高价值用户跟进。',
   },
   {
-    key: "learner-360",
-    label: "学员 360",
-    summary: "下钻单个会员的学习画像、Heartbeat、Overlay 和备注。",
+    key: 'learner-360',
+    label: '学员 360',
+    summary: '下钻单个会员的学习画像、Heartbeat、Overlay 和备注。',
   },
   {
-    key: "audit",
-    label: "经营审计",
-    summary: "查看关键后台动作、操作人和留痕记录。",
+    key: 'audit',
+    label: '经营审计',
+    summary: '查看关键后台动作、操作人和留痕记录。',
   },
-] as const;
+  {
+    key: 'permissions',
+    label: '权限管理',
+    summary: '管理后台管理员、角色与权限矩阵；超级管理员可增删改，其余角色只读。',
+  },
+] as const
 
-export type BiPrimaryTab = (typeof BI_PRIMARY_TABS)[number]["key"];
+export type BiPrimaryTab = (typeof BI_PRIMARY_TABS)[number]['key']
 
 export type BiFilterState = {
-  capability: string;
-  entrypoint: string;
-  tier: string;
-};
+  capability: string
+  entrypoint: string
+  tier: string
+}
 
-export type BiFilterField = keyof BiFilterState;
+export type BiFilterField = keyof BiFilterState
 
 const FILTER_OPTIONS = {
   capability: [
-    { label: "全部 capability", value: "" },
-    { label: "chat", value: "chat" },
-    { label: "deep_solve", value: "deep_solve" },
-    { label: "deep_question", value: "deep_question" },
-    { label: "deep_research", value: "deep_research" },
+    { label: '全部 capability', value: '' },
+    { label: 'chat', value: 'chat' },
+    { label: 'deep_solve', value: 'deep_solve' },
+    { label: 'deep_question', value: 'deep_question' },
+    { label: 'deep_research', value: 'deep_research' },
   ],
   entrypoint: [
-    { label: "全部 entrypoint", value: "" },
-    { label: "wx_miniprogram", value: "wx_miniprogram" },
-    { label: "chat", value: "chat" },
-    { label: "app", value: "app" },
-    { label: "web", value: "web" },
-    { label: "local", value: "local" },
-    { label: "tutorbot", value: "tutorbot" },
+    { label: '全部 entrypoint', value: '' },
+    { label: 'wx_miniprogram', value: 'wx_miniprogram' },
+    { label: 'chat', value: 'chat' },
+    { label: 'app', value: 'app' },
+    { label: 'web', value: 'web' },
+    { label: 'local', value: 'local' },
+    { label: 'tutorbot', value: 'tutorbot' },
   ],
   tier: [
-    { label: "全部 tier", value: "" },
-    { label: "trial", value: "trial" },
-    { label: "vip", value: "vip" },
-    { label: "svip", value: "svip" },
+    { label: '全部 tier', value: '' },
+    { label: 'trial', value: 'trial' },
+    { label: 'vip', value: 'vip' },
+    { label: 'svip', value: 'svip' },
   ],
-} as const;
+} as const
 
-const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+})
 
-const numberFormatter = new Intl.NumberFormat("zh-CN", {
+const numberFormatter = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 2,
-});
+})
 
-const currencyFormatter = new Intl.NumberFormat("zh-CN", {
+const currencyFormatter = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 2,
-});
+})
 
 export function normalizeBiPrimaryTab(value: string | null | undefined): BiPrimaryTab {
   if (
-    value === "member-ops" ||
-    value === "launch-readiness" ||
-    value === "invite-test" ||
-    value === "learner-360" ||
-    value === "audit"
+    value === 'member-ops' ||
+    value === 'launch-readiness' ||
+    value === 'invite-test' ||
+    value === 'learner-360' ||
+    value === 'audit' ||
+    value === 'permissions'
   ) {
-    return value;
+    return value
   }
-  return "boss-workbench";
+  return 'boss-workbench'
 }
 
 export function getBiPrimaryTabHref(tab: BiPrimaryTab) {
-  return tab === "boss-workbench" ? "/bi" : `/bi?tab=${tab}`;
+  return tab === 'boss-workbench' ? '/bi' : `/bi?tab=${tab}`
 }
 
 export function formatNumber(value: number | string) {
-  if (typeof value === "string") return value;
-  if (!Number.isFinite(value)) return "--";
-  if (Math.abs(value) >= 1000) return numberFormatter.format(value);
-  return String(Math.round(value * 10) / 10);
+  if (typeof value === 'string') return value
+  if (!Number.isFinite(value)) return '--'
+  if (Math.abs(value) >= 1000) return numberFormatter.format(value)
+  return String(Math.round(value * 10) / 10)
 }
 
 export function formatPercent(value?: number) {
-  if (value === undefined || Number.isNaN(value)) return "--";
-  if (value > 1) return `${numberFormatter.format(value)}%`;
-  return `${numberFormatter.format(value * 100)}%`;
+  if (value === undefined || Number.isNaN(value)) return '--'
+  if (value > 1) return `${numberFormatter.format(value)}%`
+  return `${numberFormatter.format(value * 100)}%`
 }
 
 export function formatCurrency(value?: number) {
-  if (value === undefined || Number.isNaN(value)) return "--";
-  return `¥${currencyFormatter.format(value)}`;
+  if (value === undefined || Number.isNaN(value)) return '--'
+  return `¥${currencyFormatter.format(value)}`
 }
 
 export function formatTime(value?: string) {
-  if (!value) return "--";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return dateFormatter.format(date);
+  if (!value) return '--'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return dateFormatter.format(date)
 }
 
 export function formatDuration(minutes?: number) {
-  if (minutes === undefined || Number.isNaN(minutes)) return "--";
-  if (minutes < 60) return `${Math.round(minutes)} 分钟`;
-  const hours = Math.floor(minutes / 60);
-  const rest = Math.round(minutes % 60);
-  return `${hours} 小时${rest ? ` ${rest} 分钟` : ""}`;
+  if (minutes === undefined || Number.isNaN(minutes)) return '--'
+  if (minutes < 60) return `${Math.round(minutes)} 分钟`
+  const hours = Math.floor(minutes / 60)
+  const rest = Math.round(minutes % 60)
+  return `${hours} 小时${rest ? ` ${rest} 分钟` : ''}`
 }
 
 export function toneClasses(level?: string) {
-  if (level === "critical") return "bg-rose-100 text-rose-700";
-  if (level === "warning") return "bg-amber-100 text-amber-700";
-  return "bg-slate-100 text-slate-700";
+  if (level === 'critical') return 'bg-rose-100 text-rose-700'
+  if (level === 'warning') return 'bg-amber-100 text-amber-700'
+  return 'bg-slate-100 text-slate-700'
 }
 
 export function metricToneClasses(tone?: string) {
-  if (tone === "good") return "text-emerald-600";
-  if (tone === "warning") return "text-amber-600";
-  if (tone === "critical") return "text-rose-600";
-  return "text-[var(--foreground)]";
+  if (tone === 'good') return 'text-emerald-600'
+  if (tone === 'warning') return 'text-amber-600'
+  if (tone === 'critical') return 'text-rose-600'
+  return 'text-[var(--foreground)]'
 }
 
 export function sparkPath(values: number[], width = 240, height = 72) {
-  if (!values.length) return "";
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const span = Math.max(max - min, 1);
+  if (!values.length) return ''
+  const max = Math.max(...values, 1)
+  const min = Math.min(...values, 0)
+  const span = Math.max(max - min, 1)
   return values
     .map((value, index) => {
-      const x = (index / Math.max(values.length - 1, 1)) * width;
-      const y = height - ((value - min) / span) * (height - 8) - 4;
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+      const x = (index / Math.max(values.length - 1, 1)) * width
+      const y = height - ((value - min) / span) * (height - 8) - 4
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`
     })
-    .join(" ");
+    .join(' ')
 }
 
 export function createLoadingCards(): BiMetricCard[] {
   return Array.from({ length: 6 }, (_, index) => ({
     label: `加载中 ${index + 1}`,
-    value: "--",
-    hint: "等待 BI 接口",
-    delta: "",
-    tone: "neutral" as const,
-  }));
+    value: '--',
+    hint: '等待 BI 接口',
+    delta: '',
+    tone: 'neutral' as const,
+  }))
 }
 
 export function metricIconByIndex(index: number) {
-  const icons: LucideIcon[] = [BarChart3, Bot, Sparkles, Target, Wallet, CircleAlert];
-  return icons[index % icons.length];
+  const icons: LucideIcon[] = [BarChart3, Bot, Sparkles, Target, Wallet, CircleAlert]
+  return icons[index % icons.length]
 }
 
 export function SectionHeader({ title, extra }: { title: string; extra?: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 className="text-sm font-semibold tracking-[0.18em] text-[var(--muted-foreground)]">{title}</h2>
+      <h2 className="text-sm font-semibold tracking-[0.18em] text-[var(--muted-foreground)]">
+        {title}
+      </h2>
       {extra ? <span className="text-xs text-[var(--muted-foreground)]">{extra}</span> : null}
     </div>
-  );
+  )
 }
 
 export function MetricCard({
@@ -211,17 +220,17 @@ export function MetricCard({
   value,
   hint,
   delta,
-  tone = "neutral",
+  tone = 'neutral',
   icon,
 }: {
-  title: string;
-  value: number | string;
-  hint?: string;
-  delta?: string;
-  tone?: "neutral" | "good" | "warning" | "critical";
-  icon: LucideIcon;
+  title: string
+  value: number | string
+  hint?: string
+  delta?: string
+  tone?: 'neutral' | 'good' | 'warning' | 'critical'
+  icon: LucideIcon
 }) {
-  const Icon = icon;
+  const Icon = icon
   return (
     <article className="surface-card overflow-hidden border-0 bg-white/90 p-5 shadow-[0_10px_30px_rgba(45,33,25,0.06)]">
       <div className="flex items-center justify-between">
@@ -230,21 +239,33 @@ export function MetricCard({
           <Icon size={16} />
         </div>
       </div>
-      <p className={`mt-5 text-3xl font-semibold tracking-tight ${metricToneClasses(tone)}`}>{formatNumber(value)}</p>
+      <p className={`mt-5 text-3xl font-semibold tracking-tight ${metricToneClasses(tone)}`}>
+        {formatNumber(value)}
+      </p>
       {delta ? <p className="mt-2 text-xs text-[var(--muted-foreground)]">{delta}</p> : null}
       {hint ? <p className="mt-2 text-sm text-[var(--muted-foreground)]">{hint}</p> : null}
     </article>
-  );
+  )
 }
 
-export function MiniStatCard({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
+export function MiniStatCard({
+  label,
+  value,
+  hint,
+}: {
+  label: string
+  value: number | string
+  hint?: string
+}) {
   return (
     <div className="rounded-2xl bg-[var(--secondary)] px-4 py-3">
       <p className="text-xs text-[var(--muted-foreground)]">{label}</p>
-      <p className="mt-1 text-lg font-semibold tracking-tight text-[var(--foreground)]">{formatNumber(value)}</p>
+      <p className="mt-1 text-lg font-semibold tracking-tight text-[var(--foreground)]">
+        {formatNumber(value)}
+      </p>
       {hint ? <p className="mt-1 text-xs text-[var(--muted-foreground)]">{hint}</p> : null}
     </div>
-  );
+  )
 }
 
 export function RankingCard({
@@ -257,46 +278,48 @@ export function RankingCard({
   footerTitle,
   compact = false,
 }: {
-  title: string;
-  items: BiRankItem[];
-  emptyText: string;
-  icon?: ReactNode;
-  headerMeta?: string;
-  footerItems?: BiRankItem[];
-  footerTitle?: string;
-  compact?: boolean;
+  title: string
+  items: BiRankItem[]
+  emptyText: string
+  icon?: ReactNode
+  headerMeta?: string
+  footerItems?: BiRankItem[]
+  footerTitle?: string
+  compact?: boolean
 }) {
   return (
     <div className="surface-card p-5">
       <div className="flex items-start justify-between gap-3">
         <SectionHeader title={title} extra={headerMeta} />
         {icon ? (
-          <div className="rounded-2xl bg-[var(--secondary)] p-2 text-[var(--primary)]">
-            {icon}
-          </div>
+          <div className="rounded-2xl bg-[var(--secondary)] p-2 text-[var(--primary)]">{icon}</div>
         ) : null}
       </div>
       <div className="mt-4 space-y-3">
         {items.length ? (
-          items.slice(0, compact ? 5 : 6).map((item) => (
-            <RankRow key={item.label} item={item} compact={compact} />
-          ))
+          items
+            .slice(0, compact ? 5 : 6)
+            .map(item => <RankRow key={item.label} item={item} compact={compact} />)
         ) : (
-          <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">{emptyText}</p>
+          <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+            {emptyText}
+          </p>
         )}
       </div>
       {footerItems?.length ? (
         <div className="mt-5 border-t border-[var(--border)]/60 pt-4">
-          <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">{footerTitle ?? "补充视图"}</p>
+          <p className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">
+            {footerTitle ?? '补充视图'}
+          </p>
           <div className="mt-3 space-y-2">
-            {footerItems.slice(0, 4).map((item) => (
-              <RankRow key={`${footerTitle ?? "footer"}-${item.label}`} item={item} compact />
+            {footerItems.slice(0, 4).map(item => (
+              <RankRow key={`${footerTitle ?? 'footer'}-${item.label}`} item={item} compact />
             ))}
           </div>
         </div>
       ) : null}
     </div>
-  );
+  )
 }
 
 export function SimpleListCard({
@@ -306,11 +329,11 @@ export function SimpleListCard({
   icon,
   footer,
 }: {
-  title: string;
-  items: Array<Pick<BiRankItem, "label" | "value" | "hint">>;
-  emptyText: string;
-  icon: ReactNode;
-  footer?: string;
+  title: string
+  items: Array<Pick<BiRankItem, 'label' | 'value' | 'hint'>>
+  emptyText: string
+  icon: ReactNode
+  footer?: string
 }) {
   return (
     <div className="surface-card p-5">
@@ -320,36 +343,46 @@ export function SimpleListCard({
       </div>
       <div className="mt-4 space-y-3">
         {items.length ? (
-          items.slice(0, 5).map((item) => <RankRow key={item.label} item={item} compact />)
+          items.slice(0, 5).map(item => <RankRow key={item.label} item={item} compact />)
         ) : (
-          <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">{emptyText}</p>
+          <p className="rounded-2xl bg-[var(--secondary)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+            {emptyText}
+          </p>
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export function AlertCard({ item }: { item: BiAlertItem }) {
   return (
     <div className="rounded-2xl border bg-[var(--background)] px-4 py-3">
       <div className="flex items-start gap-3">
-        <span className={`mt-0.5 inline-flex rounded-full px-2 py-1 text-[11px] ${toneClasses(item.level)}`}>{item.level}</span>
+        <span
+          className={`mt-0.5 inline-flex rounded-full px-2 py-1 text-[11px] ${toneClasses(item.level)}`}
+        >
+          {item.level}
+        </span>
         <div>
           <p className="font-medium text-[var(--foreground)]">{item.title}</p>
-          {item.detail ? <p className="mt-1 text-sm leading-5 text-[var(--muted-foreground)]">{item.detail}</p> : null}
+          {item.detail ? (
+            <p className="mt-1 text-sm leading-5 text-[var(--muted-foreground)]">{item.detail}</p>
+          ) : null}
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export function InfoLine({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4 rounded-2xl bg-[var(--secondary)] px-4 py-3">
       <span className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">{label}</span>
-      <span className="max-w-[70%] text-right text-sm text-[var(--secondary-foreground)]">{value}</span>
+      <span className="max-w-[70%] text-right text-sm text-[var(--secondary-foreground)]">
+        {value}
+      </span>
     </div>
-  );
+  )
 }
 
 export function LegendDot({ color, label }: { color: string; label: string }) {
@@ -358,7 +391,7 @@ export function LegendDot({ color, label }: { color: string; label: string }) {
       <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
       {label}
     </span>
-  );
+  )
 }
 
 export function BiFiltersPanel({
@@ -367,35 +400,35 @@ export function BiFiltersPanel({
   onChange,
   onReset,
 }: {
-  filters: BiFilterState;
-  activeFilters: string[];
-  onChange: (field: BiFilterField, value: string) => void;
-  onReset: () => void;
+  filters: BiFilterState
+  activeFilters: string[]
+  onChange: (field: BiFilterField, value: string) => void
+  onReset: () => void
 }) {
   return (
     <section className="surface-card p-5">
       <SectionHeader
         title="筛选器"
-        extra={activeFilters.length ? `${activeFilters.length} 个已启用` : "当前未启用额外筛选"}
+        extra={activeFilters.length ? `${activeFilters.length} 个已启用` : '当前未启用额外筛选'}
       />
       <div className="mt-4 grid gap-4 xl:grid-cols-[repeat(3,minmax(0,1fr))_auto]">
         <FilterSelect
           label="Capability"
           value={filters.capability}
           options={FILTER_OPTIONS.capability}
-          onChange={(value) => onChange("capability", value)}
+          onChange={value => onChange('capability', value)}
         />
         <FilterSelect
           label="Entrypoint"
           value={filters.entrypoint}
           options={FILTER_OPTIONS.entrypoint}
-          onChange={(value) => onChange("entrypoint", value)}
+          onChange={value => onChange('entrypoint', value)}
         />
         <FilterSelect
           label="Tier"
           value={filters.tier}
           options={FILTER_OPTIONS.tier}
-          onChange={(value) => onChange("tier", value)}
+          onChange={value => onChange('tier', value)}
         />
         <div className="flex items-end">
           <button
@@ -413,12 +446,12 @@ export function BiFiltersPanel({
         筛选会透传到 BI 聚合接口；会员、能力、趋势全量生效，TutorBot 当前按入口和层级筛选。
       </p>
     </section>
-  );
+  )
 }
 
 export function BiIssuesBanner({ issues }: { issues: string[] }) {
-  if (issues.length <= 1) return null;
-  const remainingIssues = issues.slice(1);
+  if (issues.length <= 1) return null
+  const remainingIssues = issues.slice(1)
 
   return (
     <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
@@ -426,7 +459,9 @@ export function BiIssuesBanner({ issues }: { issues: string[] }) {
         <ShieldAlert size={15} className="mt-0.5 shrink-0" />
         <div className="min-w-0">
           <p className="font-medium">部分 BI 接口未完全加载，页面已降级展示。</p>
-          <p className="mt-1 text-xs leading-5 text-amber-700">主问题已置顶在 header，下面保留其余 {remainingIssues.length} 条问题原文：</p>
+          <p className="mt-1 text-xs leading-5 text-amber-700">
+            主问题已置顶在 header，下面保留其余 {remainingIssues.length} 条问题原文：
+          </p>
           <ul className="mt-2 space-y-1.5">
             {remainingIssues.map((issue, index) => (
               <li key={`${index}-${issue}`} className="text-xs leading-5 text-amber-700">
@@ -437,7 +472,7 @@ export function BiIssuesBanner({ issues }: { issues: string[] }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export function BiTabShell({ title, summary }: { title: string; summary: string }) {
@@ -448,42 +483,58 @@ export function BiTabShell({ title, summary }: { title: string; summary: string 
         <h2 className="mt-3 text-2xl font-semibold tracking-tight">{title}</h2>
         <p className="mt-3 text-sm leading-6 text-white/75">{summary}</p>
         <p className="mt-5 text-sm leading-6 text-white/70">
-          本次任务只先完成 BI Command Deck 的统一壳层与主分区骨架；该分区的完整内容拆分会在后续任务继续实现。
+          本次任务只先完成 BI Command Deck
+          的统一壳层与主分区骨架；该分区的完整内容拆分会在后续任务继续实现。
         </p>
       </div>
     </section>
-  );
+  )
 }
 
 function RankRow({
   item,
   compact = false,
 }: {
-  item: Pick<BiRankItem, "label" | "value" | "rate" | "hint" | "secondary">;
-  compact?: boolean;
+  item: Pick<BiRankItem, 'label' | 'value' | 'rate' | 'hint' | 'secondary'>
+  compact?: boolean
 }) {
-  const width = Math.max(6, Math.min(100, item.value));
+  const width = Math.max(6, Math.min(100, item.value))
   return (
     <div className="space-y-2 rounded-2xl border bg-[var(--background)] px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-medium text-[var(--foreground)]">{item.label}</p>
-          {item.hint ? <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{item.hint}</p> : null}
-          {item.secondary ? <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{item.secondary}</p> : null}
+          {item.hint ? (
+            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{item.hint}</p>
+          ) : null}
+          {item.secondary ? (
+            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+              {item.secondary}
+            </p>
+          ) : null}
         </div>
         <div className="text-right">
-          <p className="text-sm font-semibold text-[var(--foreground)]">{formatNumber(item.value)}</p>
-          {item.rate !== undefined ? <p className="text-xs text-[var(--muted-foreground)]">{formatPercent(item.rate)}</p> : null}
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            {formatNumber(item.value)}
+          </p>
+          {item.rate !== undefined ? (
+            <p className="text-xs text-[var(--muted-foreground)]">{formatPercent(item.rate)}</p>
+          ) : null}
         </div>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-[var(--secondary)]">
-        <div className="h-full rounded-full bg-[linear-gradient(90deg,#C35A2C,#8f4625)]" style={{ width: `${width}%` }} />
+        <div
+          className="h-full rounded-full bg-[linear-gradient(90deg,#C35A2C,#8f4625)]"
+          style={{ width: `${width}%` }}
+        />
       </div>
       {compact ? null : item.rate !== undefined ? (
-        <p className="text-xs text-[var(--muted-foreground)]">转化/成功率：{formatPercent(item.rate)}</p>
+        <p className="text-xs text-[var(--muted-foreground)]">
+          转化/成功率：{formatPercent(item.rate)}
+        </p>
       ) : null}
     </div>
-  );
+  )
 }
 
 function FilterSelect({
@@ -492,25 +543,25 @@ function FilterSelect({
   options,
   onChange,
 }: {
-  label: string;
-  value: string;
-  options: ReadonlyArray<{ label: string; value: string }>;
-  onChange: (value: string) => void;
+  label: string
+  value: string
+  options: ReadonlyArray<{ label: string; value: string }>
+  onChange: (value: string) => void
 }) {
   return (
     <label className="space-y-2">
       <span className="text-xs tracking-[0.18em] text-[var(--muted-foreground)]">{label}</span>
       <select
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={event => onChange(event.target.value)}
         className="w-full rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/10"
       >
-        {options.map((option) => (
+        {options.map(option => (
           <option key={option.label} value={option.value}>
             {option.label}
           </option>
         ))}
       </select>
     </label>
-  );
+  )
 }

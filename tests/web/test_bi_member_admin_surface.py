@@ -8,13 +8,17 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def test_bi_page_client_exposes_four_admin_tabs() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
+    shared_source = (
+        REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_components" / "BiShared.tsx"
+    ).read_text(encoding="utf-8")
 
-    assert '"boss-workbench"' in source
-    assert '"member-ops"' in source
-    assert '"launch-readiness"' in source
-    assert '"invite-test"' in source
-    assert '"learner-360"' in source
-    assert '"audit"' in source
+    assert "BI_PRIMARY_TABS" in source
+    assert '"boss-workbench"' in shared_source
+    assert '"member-ops"' in shared_source
+    assert '"launch-readiness"' in shared_source
+    assert '"invite-test"' in shared_source
+    assert '"learner-360"' in shared_source
+    assert '"audit"' in shared_source
 
 
 def test_member_page_reuses_bi_admin_workspace() -> None:
@@ -112,7 +116,7 @@ def test_member_health_panel_marks_c_level_score_as_degraded() -> None:
 def test_bi_api_maps_daily_cost_boss_queue_to_cost_source() -> None:
     source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
 
-    assert 'bucket === "cost" || bucket === "daily_cost"' in source
+    assert "bucket === 'cost' || bucket === 'daily_cost'" in source
 
 
 def test_boss_workbench_exposes_daily_cost_surface() -> None:
@@ -212,24 +216,26 @@ def test_member_api_exposes_conversation_view_audit() -> None:
     assert "recordMemberConversationView" in client_source
 
 
-def test_bi_api_sends_metrics_token_header() -> None:
+def test_bi_api_does_not_expose_metrics_token_to_browser() -> None:
     source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
     api_source = (REPO_ROOT / "web" / "lib" / "api.ts").read_text(encoding="utf-8")
 
-    assert "withBiApiToken" in source
-    assert "BI_API_TOKEN" in source
-    assert "X-Metrics-Token" in api_source
-    assert "__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__" in api_source
-    assert '"__NEXT_PUBLIC_BI_API_TOKEN_" + "PLACEHOLDER__"' in api_source
-    assert 'resolvedBiApiToken === BI_API_TOKEN_PLACEHOLDER ? ""' in api_source
+    assert "withAdminAuthorization()" in source
+    assert "withBiApiToken" not in source
+    assert "BI_API_TOKEN" not in source
+    assert "X-Metrics-Token" not in api_source
+    assert "NEXT_PUBLIC_BI_API_TOKEN" not in api_source
 
 
-def test_bi_page_client_exposes_token_read_only_mode() -> None:
+def test_bi_page_client_requires_admin_session_without_public_token() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
     assert "biReadOnly" in source
     assert "readAccessDenied" in source
-    assert 'const heroIssueTitle = issues[0] ? "当前数据已降级展示" : "经营提醒";' in source
+    assert "BI 数据 API 尚未授权" in source
+    assert "无需手动填写 API Token" in source
+    assert "只读凭证" not in source
+    assert "const heroIssueTitle = issues[0] ? '当前数据已降级展示' : '经营提醒'" in source
 
 
 def test_bi_page_client_only_clears_admin_session_for_auth_failures() -> None:
@@ -260,7 +266,7 @@ def test_bi_page_client_exposes_admin_login_entry() -> None:
 def test_bi_page_client_explains_token_is_server_managed() -> None:
     source = (REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "BiPageClient.tsx").read_text(encoding="utf-8")
 
-    assert "BI 只读凭证已由系统配置" in source
+    assert "BI 数据 API 尚未授权" in source
     assert "无需手动填写" in source
 
 
@@ -280,7 +286,7 @@ def test_bi_invite_test_admin_surface_is_protected_and_mounted() -> None:
     api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
 
     assert '"invite-test"' in shared_source
-    assert "activeTab === \"invite-test\"" in client_source
+    assert "activeTab === 'invite-test'" in client_source
     assert "getBiInviteTestApplications" in client_source
     assert "getBiInviteTestStats" in client_source
     assert "INVITE_TEST_WINDOW_DAYS = 365" in client_source
@@ -325,10 +331,10 @@ def test_bi_admin_restore_sets_session_optimistically_before_profile_verificatio
     )
     optimistic_idx = source.index(optimistic_marker)
     optimistic_block = source[optimistic_idx : optimistic_idx + 1200]
-    assert "setAdminSession(stored);" in optimistic_block
-    assert "setAuthReady(true);" in optimistic_block
+    assert "setAdminSession(stored)" in optimistic_block
+    assert "setAuthReady(true)" in optimistic_block
     assert (
-        optimistic_block.index("setAdminSession(stored);")
+        optimistic_block.index("setAdminSession(stored)")
         < optimistic_block.index("await restoreBiAdminSession(stored)")
     ), (
         "Optimistic adminSession must be set before awaiting "

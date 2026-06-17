@@ -23,6 +23,45 @@ function read(relPath) {
 
 var wxml = read("packageDeeptutor/pages/chat/chat.wxml");
 var wxss = read("packageDeeptutor/pages/chat/chat.wxss");
+var appJson = JSON.parse(read("app.json"));
+
+assert(
+  !(appJson.permission && appJson.permission["scope.writeClipboard"]),
+  "copy button should not introduce a custom clipboard permission gate",
+);
+assert(
+  appJson.__usePrivacyCheck__ === false,
+  "local package copy button should not be blocked by undeclared clipboard privacy agreement scope",
+);
+assert(
+  wxml.indexOf("selectable") < 0,
+  "package chat should use user-select instead of deprecated selectable",
+);
+assert(
+  /<text[^>]*class="md-li-text"[^>]*\buser-select\b/.test(wxml),
+  "markdown list item text should use native text user-select instead of rich-text",
+);
+assert(
+  !/<rich-text[^>]*class="md-richtext md-richtext-inline"[^>]*nodes="{{li\.nodes}}"/.test(wxml),
+  "markdown list item text should not rely on rich-text selection",
+);
+
+var aiStart = wxml.indexOf("<!-- AI 消息 -->");
+var aiEnd = wxml.indexOf("<!-- 反馈弹窗", aiStart);
+var aiAnswerWxml = wxml.slice(aiStart, aiEnd);
+var missingSelectableTags = [];
+var textTagPattern = /<(text|rich-text)\b([^>]*)>/g;
+var tagMatch;
+while ((tagMatch = textTagPattern.exec(aiAnswerWxml))) {
+  var tag = tagMatch[0].replace(/\s+/g, " ").trim();
+  if (!/\b(user-select|selectable)\b/.test(tag)) {
+    missingSelectableTags.push(tag);
+  }
+}
+assert(
+  missingSelectableTags.length === 0,
+  "all AI answer text/rich-text tags should be selectable: " + missingSelectableTags.join(", "),
+);
 
 var richTextTags = wxml.match(/<rich-text\b[^>]*>/g) || [];
 assert(richTextTags.length > 0, "package chat should render markdown with rich-text nodes");
@@ -43,6 +82,17 @@ richTextTags.forEach(function (tag) {
   "md-recap-title",
   "md-chart-title",
   "md-chart-axis",
+  "md-chart-series-name",
+  "md-chart-fallback-title",
+  "md-chart-strategy",
+  "workflow-card-sub",
+  "workflow-meta-text",
+  "workflow-step-title",
+  "workflow-step-detail",
+  "cite-key",
+  "cite-title",
+  "cite-locator",
+  "cite-quote",
   "mcq-stem",
   "mcq-val",
 ].forEach(function (className) {

@@ -16,6 +16,7 @@ var practiceJs = fs.readFileSync(
   path.join(__dirname, "../pages/practice/practice.js"),
   "utf8",
 );
+var learningHomeViewModel = require("../utils/learning-home-view-model.js");
 
 function assert(condition, message) {
   if (condition) {
@@ -26,9 +27,14 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
+var focusPrompt = "请给我来5道高价值选择题，不要提前给答案和解析。";
+var homeModel = learningHomeViewModel.buildLearningHomeViewModel({
+  recommended_prompts: [{ text: focusPrompt }],
+});
 assert(
-  chatJs.indexOf("请给我来5道高价值选择题，不要提前给答案和解析。") >= 0,
-  "focus prompt should request 5 choice questions without upfront answers",
+  chatJs.indexOf("learning-home-view-model") >= 0 &&
+    homeModel.focusQuery === focusPrompt,
+  "focus prompt should be projected from learning-home model without upfront answers",
 );
 assert(
   practiceJs.indexOf("给我来5道高价值选择题，不要提前给答案和解析。") >= 0,

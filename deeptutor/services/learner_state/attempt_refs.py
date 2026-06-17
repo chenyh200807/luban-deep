@@ -14,14 +14,13 @@ _DEV_DEFAULT_SECRET = "dev-attempt-ref-secret"
 _KID_V1 = "v1"
 
 
-def _is_prod_runtime() -> bool:
-    env = (os.getenv("DEEPTUTOR_ENV") or os.getenv("ALIYUN_DEPLOY_ENV") or "").strip().lower()
-    return env in {"prod", "production", "aliyun"}
-
-
 def _secret() -> bytes:
+    # Single authority: reuse the shared fail-closed production detector instead
+    # of maintaining a second, drift-prone definition of "production".
+    from deeptutor.services.runtime_env import is_production_environment
+
     raw = (os.getenv("DEEPTUTOR_ATTEMPT_REF_SECRET") or "").strip()
-    if not raw and _is_prod_runtime():
+    if not raw and is_production_environment():
         raise RuntimeError(
             "DEEPTUTOR_ATTEMPT_REF_SECRET is required in production; refuse to fall back to dev default."
         )
@@ -29,7 +28,19 @@ def _secret() -> bytes:
 
 
 def _log_secret_fingerprint() -> None:
-    digest = hashlib.sha1(_secret()).hexdigest()[:8]
+    # Import-time diagnostic ONLY: never hard-fail module import. The fail-closed
+    # RuntimeError is enforced at first real use in _secret() (signing/verifying an
+    # attempt ref), so a misconfigured production environment still fails — but
+    # merely importing this module (CI import checks, CLI tooling, scripts) must not
+    # crash before the app starts. Prod deployments set the secret, so they still
+    # log the fingerprint normally.
+    try:
+        digest = hashlib.sha1(_secret()).hexdigest()[:8]
+    except RuntimeError:
+        _LOG.warning(
+            "attempt_ref secret not configured at import; enforcement deferred to first use"
+        )
+        return
     _LOG.info("attempt_ref secret fingerprint=%s kid=%s", digest, _KID_V1)
 
 

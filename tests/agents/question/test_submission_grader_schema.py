@@ -96,3 +96,27 @@ def test_apply_fallback_does_not_overwrite_existing_sections() -> None:
     repaired = apply_fallback_templates(parsed)
     assert repaired.sections["verdict"] == "本题答对"
     assert repaired.sections["correct_answer"] == "标准答案是 B。"
+
+
+def test_apply_fallback_templates_open_world_avoids_server_authority_claims() -> None:
+    """开放世界判分（无题库 authority）时，fallback 模板不得声称服务端 grading_result/grading_key。
+
+    根因修复 2026-06-11：MCQ 缺标准答案降级开放世界判分后，若 LLM 漏段触发模板兜底，
+    旧模板的"本题判定见服务端 grading_result"/"正确答案以服务端 grading_key.correct_answer
+    为准"会把无 authority 的开放裁决洗白成题库官方结论（Codex 审查 P1）。
+    """
+    parsed = ExplanationSections(sections={}, question_type="choice", is_correct=None)
+    repaired = apply_fallback_templates(parsed, authority_present=False)
+    blob = "\n".join(repaired.sections.values())
+    assert "grading_result" not in blob
+    assert "grading_key" not in blob
+    # 仍要把缺段填满，保证用户不见空段。
+    for key in REQUIRED_SECTION_KEYS:
+        assert str(repaired.sections.get(key, "")).strip(), f"{key} not filled by open-world template"
+
+
+def test_apply_fallback_templates_default_preserves_authoritative_wording() -> None:
+    """默认（authority_present=True）保持既有服务端 authority 措辞，不回归。"""
+    parsed = ExplanationSections(sections={}, question_type="choice", is_correct=False)
+    repaired = apply_fallback_templates(parsed)
+    assert "grading_result" in "\n".join(repaired.sections.values())

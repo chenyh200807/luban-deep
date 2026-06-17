@@ -35,12 +35,17 @@ def file_lock_shared(file_handle):
     if sys.platform == "win32":
         import msvcrt
 
-        msvcrt.locking(file_handle.fileno(), msvcrt.LK_NBLCK, 1)
+        locked = False
         try:
+            # Windows msvcrt has no true shared lock; use blocking exclusive
+            # semantics rather than fail-fast non-blocking locks under contention.
+            msvcrt.locking(file_handle.fileno(), msvcrt.LK_LOCK, 1)
+            locked = True
             yield
         finally:
-            file_handle.seek(0)
-            msvcrt.locking(file_handle.fileno(), msvcrt.LK_UNLCK, 1)
+            if locked:
+                file_handle.seek(0)
+                msvcrt.locking(file_handle.fileno(), msvcrt.LK_UNLCK, 1)
     else:
         import fcntl
 
@@ -57,12 +62,15 @@ def file_lock_exclusive(file_handle):
     if sys.platform == "win32":
         import msvcrt
 
-        msvcrt.locking(file_handle.fileno(), msvcrt.LK_NBLCK, 1)
+        locked = False
         try:
+            msvcrt.locking(file_handle.fileno(), msvcrt.LK_LOCK, 1)
+            locked = True
             yield
         finally:
-            file_handle.seek(0)
-            msvcrt.locking(file_handle.fileno(), msvcrt.LK_UNLCK, 1)
+            if locked:
+                file_handle.seek(0)
+                msvcrt.locking(file_handle.fileno(), msvcrt.LK_UNLCK, 1)
     else:
         import fcntl
 
@@ -938,7 +946,11 @@ class KnowledgeBaseManager:
             return False
 
         linked = metadata.get("linked_folders", [])
-        new_linked = [f for f in linked if f["id"] != folder_id]
+        new_linked = [
+            folder
+            for folder in linked
+            if not (isinstance(folder, dict) and folder.get("id") == folder_id)
+        ]
 
         if len(new_linked) == len(linked):
             return False  # Not found
@@ -994,12 +1006,22 @@ class KnowledgeBaseManager:
 
         # Get folder info
         folders = self.get_linked_folders(kb_name)
-        folder_info = next((f for f in folders if f["id"] == folder_id), None)
+        folder_info = next(
+            (
+                folder
+                for folder in folders
+                if isinstance(folder, dict) and folder.get("id") == folder_id
+            ),
+            None,
+        )
 
         if not folder_info:
             raise ValueError(f"Linked folder not found: {folder_id}")
 
-        folder_path = Path(folder_info["path"]).expanduser().resolve()
+        folder_path_raw = str(folder_info.get("path") or "").strip()
+        if not folder_path_raw:
+            raise ValueError(f"Linked folder path missing: {folder_id}")
+        folder_path = Path(folder_path_raw).expanduser().resolve()
         last_sync = folder_info.get("last_sync")
         synced_files = folder_info.get("synced_files", {})
 
@@ -1076,8 +1098,9 @@ class KnowledgeBaseManager:
 
         linked = metadata.get("linked_folders", [])
 
+        changed = False
         for folder in linked:
-            if folder["id"] == folder_id:
+            if isinstance(folder, dict) and folder.get("id") == folder_id:
                 # Record sync timestamp
                 folder["last_sync"] = datetime.now().isoformat()
 
@@ -1094,7 +1117,12 @@ class KnowledgeBaseManager:
 
                 folder["synced_files"] = file_states
                 folder["file_count"] = len(file_states)
+                changed = True
                 break
+
+        if changed:
+            with open(metadata_file, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
 
 
 def main():

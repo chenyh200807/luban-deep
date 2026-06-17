@@ -14,6 +14,11 @@
         "grounding.rag.case_set"
       ]
     },
+    "real_exam_quality_spine": {
+      "case_ids": [
+        "quality.real_exam_bank.docs_2026.mcq"
+      ]
+    },
     "incident_replay": {
       "case_ids": [
         "continuity.long_dialog.focus",
@@ -25,9 +30,167 @@
         "surface.wx.renderer.parity",
         "surface.yousenwebview.telemetry.smoke"
       ]
+    },
+    "luban_case_grading_shadow": {
+      "case_ids": [
+        "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5"
+      ]
+    },
+    "answer_citation_shadow": {
+      "case_ids": [
+        "answer.citation.paper_style.v0"
+      ]
+    },
+    "m26_context_safety": {
+      "case_ids": [
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract"
+      ]
     }
   },
-  "cases": {
+    "cases": {
+    "quality.real_exam_bank.docs_2026.mcq": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "quality.real_exam_bank.docs_2026.mcq",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "docs_2026_real_exam_mcq_answer_authority_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/exam_quality_bank.json",
+      "origin_type": "seed_fixture",
+      "origin_ref": "FastAPI20251222/docs/2026/题库",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": ""
+    },
+    "answer.citation.paper_style.v0": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "answer.citation.paper_style.v0",
+      "contract_domain": "citation_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "answer_citation_eval",
+      "surface": "backend",
+      "expected_contract": "paper_style_answer_citation_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_CITATION_MISSING",
+        "FAIL_UNSUPPORTED_CITATION",
+        "FAIL_HIDDEN_AUTHORITY_LEAK"
+      ],
+      "source_fixture": "tests/fixtures/answer_citation_eval_cases.json",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/评分引擎与金标工件/2026-06-01-luban-paper-style-answer-citations-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.luban_case_golden.v0": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.luban_case_golden.v0",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "case_grading_eval",
+      "surface": "backend",
+      "expected_contract": "luban_case_grading_v0_directional_shadow_not_production_gate",
+      "failure_taxonomy_scope": [],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
+      "origin_type": "manual",
+      "origin_ref": "docs/plan/评分引擎与金标工件/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.luban_case_golden_no_human.v1_5": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.luban_case_golden_no_human.v1_5",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "case_grading_eval",
+      "surface": "backend",
+      "expected_contract": "luban_case_grading_no_human_v1_5_shadow_not_production_gate",
+      "failure_taxonomy_scope": [],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
+      "origin_type": "manual",
+      "origin_ref": "docs/plan/鲁班knowql/CASE_RUBRIC_SOURCE_MIGRATION_PLAN.md#stage-4",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.compiled_context.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.compiled_context.safety_contract",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "compiled_context_authority_safety_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_COMPILED_CONTEXT_AUTHORITY_DRIFT",
+        "FAIL_OFFICIAL_SCORE_LAUNDERING",
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANDIDATE_PROMOTED_TO_TRUTH",
+        "FAIL_CANDIDATE_RELEASE_TRUTH",
+        "FAIL_WRAPPER_POLICY_DRIFT",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.open_world_diagnostic.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.open_world_diagnostic.safety_contract",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "open_world_diagnostic_fail_open_safety_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_OPEN_WORLD_REFUSAL",
+        "FAIL_OFFICIAL_SCORE_LAUNDERING",
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "learning_brain.evidence_loop.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "learning_brain.evidence_loop.safety_contract",
+      "contract_domain": "continuity_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "grading_evidence_to_learning_brain_loop_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_LEARNING_EVIDENCE_LOOP_BREAK",
+        "FAIL_CANDIDATE_PROMOTED_TO_TRUTH",
+        "FAIL_LB_UNSAFE_PROMOTION",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
     "routing.semantic_router.case_set": {
       "dataset_id": "benchmark_phase1",
       "dataset_version": "phase1.0",

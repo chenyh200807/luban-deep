@@ -1,0 +1,131 @@
+{
+  "schema": "luban_per_question_grading_ab_fixtures.v1",
+  "review_only": true,
+  "note": "Hand-authored paraphrased student answers (NO verbatim official slices) with authorial semantic coverage labels. Built to fix the Codex-found exact-slice-leakage confound: answers paraphrase / reorder / mix points / use distractor textbook terms, so a judge cannot win by literal substring match. covered/missing/partial/contradiction point_ids are the known ground truth (a review-only candidate label, not official truth). The over-credit traps (fluent answers that omit a material point) are the load-bearing cases.",
+  "answer_types": ["complete", "over_credit_trap", "partial", "distractor", "contradiction"],
+  "fixtures": {
+    "Q2023-1A434000-P0010-02-Q1": [
+      {
+        "label": "complete_paraphrase",
+        "answer_type": "complete",
+        "student_answer": "第一处不对：让试验员去写见证记录不合规，见证记录这件事不该试验员负责，应当由见证人员把取样和现场检测的情况记下来并完成见证记录。第二处不对：每月由总包单位掏钱给检测机构付检测费不合适，这笔费用应当由建设单位在做工程概预算时就合理算进去、单独列支，再按照合同约定按时支付。另外，见证记录要记的内容除了上面提到的，还应包括取样、制样、标识、封志、送检以及现场检测这些环节。",
+        "covered_point_ids": ["sp_57e1e0b98579e817dbc2", "sp_1474800b3401029300bc", "sp_1f9cec4381fc726fc343"],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "over_credit_trap_miss_enumeration",
+        "answer_type": "over_credit_trap",
+        "student_answer": "见证记录不应该由试验员制作，正确做法是由见证人员负责记录取样、现场检测的情况并制作见证记录。还有检测费用不应该由总包项目部按月支付，应当由建设单位在编制概预算阶段合理核算、单独列支，并依照合同约定及时支付。两处不妥都已指出并给出了正确做法。",
+        "covered_point_ids": ["sp_57e1e0b98579e817dbc2", "sp_1474800b3401029300bc"],
+        "missing_point_ids": ["sp_1f9cec4381fc726fc343"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "partial_wrong_correction",
+        "answer_type": "partial",
+        "student_answer": "试验员制作见证记录这点感觉有问题，但具体应该由谁来做我不太确定，可能监理也行。检测费由总包每月支付不妥，应当由建设单位在概预算阶段核算并单独列支、按合同支付。",
+        "covered_point_ids": ["sp_1474800b3401029300bc"],
+        "missing_point_ids": ["sp_1f9cec4381fc726fc343"],
+        "partial_point_ids": ["sp_57e1e0b98579e817dbc2"],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "distractor_general_quality_terms",
+        "answer_type": "distractor",
+        "student_answer": "本工程质量检测应委托具备相应资质的检测机构承担，监理工程师要做好见证取样和送检的旁站工作，确保检测数据真实有效；对检测不合格的部位应及时返工并组织复检，检测台账要齐全、可追溯。",
+        "covered_point_ids": [],
+        "missing_point_ids": ["sp_57e1e0b98579e817dbc2", "sp_1474800b3401029300bc", "sp_1f9cec4381fc726fc343"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "contradiction_says_correct",
+        "answer_type": "contradiction",
+        "student_answer": "试验员如实记录取样、现场检测情况并制作见证记录，这个做法是规范的、没有问题；总包项目部按建设单位要求每月向检测机构支付检测费用也符合通常做法，没有不妥之处。",
+        "covered_point_ids": [],
+        "missing_point_ids": ["sp_1f9cec4381fc726fc343"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": ["sp_57e1e0b98579e817dbc2", "sp_1474800b3401029300bc"]
+      }
+    ],
+    "Q2023-1A433000-P0012-02-Q1": [
+      {
+        "label": "complete_paraphrase",
+        "answer_type": "complete",
+        "student_answer": "关键线路我找的是从①一路走②③④，再到⑥⑦⑧。总工期按关键线路上的节拍加起来，是三加三加六再加六加三，一共二十一个月。各施工过程的流水节拍方面，基础施工是三个月，上部结构是六个月。改成成倍节拍流水之后，流水步距取最大公约数三个月，四个施工过程的专业队对数分别是一、一、二、一，合计五个对，总工期就是二加五减一再乘以三，等于十八个月。",
+        "covered_point_ids": ["sp_71dbda5105893f9a6864", "sp_47fac1b79bf85db93824", "sp_d0a9a53596bad0afeb7c", "sp_ca7c86ba0b1fbd406de0"],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "over_credit_trap_skip_doubling",
+        "answer_type": "over_credit_trap",
+        "student_answer": "关键线路是①②③④⑥⑦⑧这一条。原始总工期把关键线路上的工序时间加起来是二十一个月。流水节拍上基础施工三个月、上部结构六个月。整体计划编制清楚，工序衔接合理。",
+        "covered_point_ids": ["sp_71dbda5105893f9a6864", "sp_47fac1b79bf85db93824", "sp_d0a9a53596bad0afeb7c"],
+        "missing_point_ids": ["sp_ca7c86ba0b1fbd406de0"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "contradiction_wrong_numbers",
+        "answer_type": "contradiction",
+        "student_answer": "关键线路是①②③④⑥⑦⑧。总工期算下来是二十个月。成倍节拍流水组织后，流水步距是六个月，总工期能压缩到十五个月左右。",
+        "covered_point_ids": ["sp_71dbda5105893f9a6864"],
+        "missing_point_ids": ["sp_d0a9a53596bad0afeb7c"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": ["sp_47fac1b79bf85db93824", "sp_ca7c86ba0b1fbd406de0"]
+      },
+      {
+        "label": "distractor_concepts_no_numbers",
+        "answer_type": "distractor",
+        "student_answer": "成倍节拍流水施工是在等节拍流水的基础上，对节拍较大的施工过程增加专业工作队，使各施工过程的流水步距相等，从而缩短工期。组织时要先确定流水步距，再确定各专业队数量，保证施工连续、均衡。",
+        "covered_point_ids": [],
+        "missing_point_ids": ["sp_71dbda5105893f9a6864", "sp_47fac1b79bf85db93824", "sp_d0a9a53596bad0afeb7c", "sp_ca7c86ba0b1fbd406de0"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      }
+    ],
+    "Q2024-1A432000-P0015-01": [
+      {
+        "label": "complete_paraphrase",
+        "answer_type": "complete",
+        "student_answer": "问题一，工程量清单的强制性内容有这些：工程量怎么算的规则、清单是怎么编出来的方法、采用哪种计价方式、风险怎么分担处理、以及费用上的竞争。问题二，投标方要对招标文件作实质性响应的有：工期、招标范围、安全方面的标准、相关法律法规、双方的权利义务、还有报价是怎么编的。问题三，中标后要避免的违法分包有：分包给没有相应资质的单位、把主体结构施工分出去（钢结构除外）、专业工程里非劳务部分再次分包、把承包的劳务再转分包、以及专业承包人除了劳务费还去收主材款和大中型机械、周转材料费。问题四，目标成本等于7222.22乘以一减百分之十，得6500万元；专项成本分析还要包括成本盈亏异常、质量成本、资金成本，以及其他有利和不利因素的分析。问题五，分部分项费6000加100是6100万，措施费6100乘百分之十是610万，其他项目费268加119加90是480万，规费按6100加610加480再乘百分之二是144万，税金按前面合计加144再乘百分之九是660万，最后结算价把这些加起来是7994万元。",
+        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "missing_point_ids": [],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "over_credit_trap_skip_subq5",
+        "answer_type": "over_credit_trap",
+        "student_answer": "问题一，清单强制性内容包括工程量计算规则、清单编制方法、计价方式、风险处理和费用竞争。问题二，实质性响应包括工期、招标范围、安全标准、法律法规、权利义务和报价编制。问题三，违法分包要避免：分包给无资质单位、主体结构施工外包（钢结构除外）、专业工程非劳务部分再分包、劳务再分包、专业承包人多收主材和大中型机械周转材料费。问题四，目标成本是7222.22乘以一减百分之十等于6500万元，专项成本分析还包括成本盈亏异常分析、质量成本分析、资金成本分析和其他有利不利因素分析。整套分析做得比较完整。",
+        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244"],
+        "missing_point_ids": ["sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "partial_enumerations_incomplete",
+        "answer_type": "partial",
+        "student_answer": "问题一，强制性内容我能想到工程量计算规则、清单编制方法和计价方式这几条。问题二，实质性响应大概是工期、招标范围和报价编制。问题三，违法分包包括分包给没资质的单位、把主体结构分包出去（钢结构可以除外）。问题四问题五的结算计算我没来得及做。",
+        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc"],
+        "missing_point_ids": ["sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": []
+      },
+      {
+        "label": "contradiction_wrong_settlement",
+        "answer_type": "contradiction",
+        "student_answer": "问题四，目标成本我算的是7222.22乘以百分之十，等于722万元。问题五结算造价：分部分项费还是6000万不调整，措施费按6000乘百分之八是480万，规费和税金合并按百分之十算，最后结算价大概是7000万元出头。",
+        "covered_point_ids": [],
+        "missing_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_71b8d5fd91b74e56f244"],
+        "partial_point_ids": [],
+        "contradiction_point_ids": ["sp_062e6ea26826c8645a03","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"]
+      }
+    ]
+  }
+}

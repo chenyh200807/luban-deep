@@ -6,6 +6,15 @@ import importlib
 co_writer_module = importlib.import_module("deeptutor.api.routers.co_writer")
 
 
+def test_co_writer_router_requires_authenticated_user() -> None:
+    names = [
+        getattr(dependency.dependency, "__name__", "?")
+        for dependency in co_writer_module.router.dependencies
+    ]
+
+    assert "get_current_user" in names
+
+
 def test_react_edit_tools_drop_web_search_when_unavailable(monkeypatch) -> None:
     monkeypatch.setattr(co_writer_module, "is_web_search_runtime_available", lambda: False)
 

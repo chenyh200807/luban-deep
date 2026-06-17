@@ -1,0 +1,151 @@
+<view
+  class="onboarding-page act-{{actId}} {{ctaExit ? 'exiting' : ''}}"
+  bindtouchstart="onPageTouchStart"
+  bindtouchend="onPageTouchEnd"
+  bindtouchcancel="onPageTouchCancel"
+>
+  <!-- 黎明世界观：天际光随幕推进升温，地平线光弧缓缓上升（light is coming） -->
+  <view class="dawn dawn-hook"></view>
+  <view class="dawn dawn-p1"></view>
+  <view class="dawn dawn-p2"></view>
+  <view class="dawn dawn-p3"></view>
+  <view class="horizon-clip">
+    <view class="horizon horizon-halo"></view>
+    <view class="horizon horizon-disc"></view>
+  </view>
+  <view class="grain"></view>
+  <view class="night-veil {{actId !== 'wave' ? 'lift' : ''}}"></view>
+
+  <view class="page-shell" bindtap="onTapAccelerate" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
+    <view class="topbar">
+      <view class="brand-lockup">
+        <image class="brand-mark" src="../../images/logo-mark-white.png" mode="aspectFit" />
+        <view>
+          <text class="brand-title">鲁班智考</text>
+          <text class="brand-sub">先体验导学</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="progress-row">
+      <view
+        class="progress-pill {{actIndex - 1 >= index ? 'on' : ''}} {{actIndex - 1 === index ? 'current' : ''}}"
+        wx:for="{{pills}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        catchtap="jumpTo"
+      ></view>
+    </view>
+
+    <!-- 幕 1: 词轮播 -->
+    <view
+      class="hook-stage {{fx.hookPlay ? 'play' : ''}}"
+      wx:if="{{actId === 'wave' || actId === 'hook'}}"
+    >
+      <view class="roller-zone">
+        <view class="roller">
+          <view class="roller-track" style="transform: translateY({{(1 - (fx.roll || 0)) * 150}}rpx)">
+            <view
+              wx:for="{{rollWords}}"
+              wx:key="*this"
+              class="roller-word {{(fx.roll || 0) === index ? 'cur' : ''}} {{index === rollWords.length - 1 && (fx.roll || 0) === index ? 'final' : ''}}"
+            >
+              <text>{{item}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="hook-brand fx-pop {{fx.brandIn ? 'on' : ''}}">
+        <view class="hook-brand-mark">
+          <image src="../../images/logo-mark-white.png" mode="aspectFit" />
+        </view>
+        <text class="hook-brand-title">鲁班智考 · AI 实务教练</text>
+        <text class="hook-brand-desc">告诉你为什么丢分，下一步该练什么。</text>
+      </view>
+    </view>
+
+    <!-- 幕 2/3/4: 三页文案（标题逐字升起 + 说明 + 标签，p2/p3 带产品卡） -->
+    <block wx:if="{{actId === 'p1' || actId === 'p2' || actId === 'p3'}}">
+      <view class="act-stage">
+        <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
+          <view class="rise-line title-line" wx:for="{{activeSlide.titleLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
+            <text
+              wx:for="{{line}}"
+              wx:key="index"
+              class="rise-char title-char {{item.accent ? 'is-accent' : ''}}"
+              style="animation-delay: {{item.d}}ms"
+            >{{item.c}}</text>
+          </view>
+        </view>
+
+        <view class="act-desc-wrap fx-pop {{fx.descIn ? 'on' : ''}}">
+          <text class="act-desc" wx:for="{{activeSlide.desc}}" wx:key="*this">{{item}}</text>
+        </view>
+
+        <view class="tag-row {{fx.tags ? 'on' : ''}}">
+          <view class="tag" wx:for="{{activeSlide.tags}}" wx:key="*this" style="animation-delay: {{index * 110}}ms">
+            <text>{{item}}</text>
+          </view>
+        </view>
+
+        <view class="product-stage score-stage {{fx.stageIn ? '' : 'fx-hold'}}" wx:if="{{actId === 'p2'}}">
+          <view class="product-head">
+            <text class="product-title">AI 批改</text>
+            <text class="score-pill {{fx.scoreOn ? 'pop' : ''}}">{{fx.scoreRoll || 0}} / 20</text>
+          </view>
+          <view class="answer-paper fx-pop {{fx.stageIn ? 'on' : ''}} {{fx.scan ? 'scan' : ''}}">
+            <text>命中 </text>
+            <text class="mark" style="animation-delay: 0ms">专项方案</text>
+            <text> 和 </text>
+            <text class="mark" style="animation-delay: 260ms">技术交底</text>
+            <text> 等，漏了 </text>
+            <text class="miss" style="animation-delay: 540ms">验收程序</text>
+            <text>。</text>
+          </view>
+          <view class="point-row hit {{fx.rows >= 1 ? '' : 'fx-hold'}}">
+            <text class="point-tag">得</text>
+            <text class="point-text">命中 4 个采分点</text>
+            <text class="point-score">+12</text>
+          </view>
+          <view class="point-row warn {{fx.rows >= 2 ? '' : 'fx-hold'}}">
+            <text class="point-tag">漏</text>
+            <text class="point-text">漏写验收程序等 2 处</text>
+            <text class="point-score">-8</text>
+          </view>
+        </view>
+
+        <view class="product-stage train-stage {{fx.stageIn ? '' : 'fx-hold'}}" wx:if="{{actId === 'p3'}}">
+          <view class="weak-item">
+            <text class="weak-title">程序性采分点易漏</text>
+            <view class="weak-bar"><view style="width: 82%"></view></view>
+          </view>
+          <view class="task-box fx-pop {{fx.taskBox ? 'on' : ''}}">
+            <text class="task-label">下一题</text>
+            <text class="task-title">同类案例题 · 验收程序 + 责任人</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view class="bottom-actions" wx:if="{{actId === 'p3'}}">
+      <view
+        class="primary-btn fx-pop {{fx.ctaActions ? 'on' : ''}}"
+        catchtap="startExperience"
+        aria-role="button"
+        aria-label="{{destLogin ? '立即开始提分' : '开始体验'}}"
+      >
+        <text class="primary-text">{{destLogin ? '立即开始提分' : '开始体验'}}</text>
+      </view>
+    </view>
+  </view>
+  <view
+    class="skip-float"
+    wx:if="{{actId !== 'p3' && !ctaExit}}"
+    catchtap="skipToCta"
+    style="bottom: {{safeBottom + 44}}px"
+    aria-role="button"
+    aria-label="跳过导学"
+  >
+    <text>跳过 ›</text>
+  </view>
+</view>

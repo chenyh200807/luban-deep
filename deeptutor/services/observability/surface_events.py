@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from collections import Counter
 from collections import deque
 from typing import Any
+
+from deeptutor.services.observability.product_behavior_catalog import (
+    PRODUCT_BEHAVIOR_EVENT_NAMES,
+    validate_product_behavior_event,
+)
+
+logger = logging.getLogger(__name__)
 
 _ALLOWED_SURFACES = {
     "web",
@@ -22,6 +30,7 @@ _ALLOWED_EVENT_NAMES = {
     "resume_attempted",
     "resume_succeeded",
     "surface_render_failed",
+    *PRODUCT_BEHAVIOR_EVENT_NAMES,
 }
 
 
@@ -65,6 +74,16 @@ class SurfaceEventStore:
         collected_at_ms = int(payload.get("collected_at_ms") or payload.get("client_timestamp_ms") or 0)
         sent_at_ms = int(payload.get("sent_at_ms") or 0)
         ingested_at_ms = int(time.time() * 1000)
+        product_event: dict[str, Any] | None = None
+        product_behavior_status = ""
+        if event_name in PRODUCT_BEHAVIOR_EVENT_NAMES:
+            product_event = validate_product_behavior_event(
+                event_name,
+                {
+                    **normalized_metadata,
+                    "surface": surface,
+                },
+            )
 
         with self._lock:
             if event_id in self._seen_event_ids:
@@ -99,13 +118,75 @@ class SurfaceEventStore:
                     "metadata": normalized_metadata,
                 }
             )
-            return {
-                "accepted": True,
-                "status": "accepted",
-                "event_id": event_id,
-                "surface": surface,
-                "event_name": event_name,
-            }
+        if product_event is not None:
+            product_behavior_status = self._record_product_behavior_event(
+                event_id=event_id,
+                event_name=event_name,
+                normalized_metadata=normalized_metadata,
+                collected_at_ms=collected_at_ms,
+                ingested_at_ms=ingested_at_ms,
+                user_id=user_id,
+                session_id=session_id,
+                turn_id=turn_id,
+                surface=surface,
+                product_event=product_event,
+            )
+        response = {
+            "accepted": True,
+            "status": "accepted",
+            "event_id": event_id,
+            "surface": surface,
+            "event_name": event_name,
+        }
+        if product_behavior_status:
+            response["product_behavior_status"] = product_behavior_status
+        return response
+
+    def _record_product_behavior_event(
+        self,
+        *,
+        event_id: str,
+        event_name: str,
+        normalized_metadata: dict[str, Any],
+        collected_at_ms: int,
+        ingested_at_ms: int,
+        user_id: str,
+        session_id: str,
+        turn_id: str,
+        surface: str,
+        product_event: dict[str, Any],
+    ) -> str:
+        from deeptutor.services.observability import get_product_behavior_store
+
+        try:
+            result = get_product_behavior_store().record_event(
+                {
+                    "event_id": event_id,
+                    "event_name": event_name,
+                    "event_version": int(normalized_metadata.get("event_version") or 1),
+                    "occurred_at_ms": collected_at_ms or ingested_at_ms,
+                    "received_at_ms": ingested_at_ms,
+                    "user_id": user_id,
+                    "visit_id": product_event["visit_id"],
+                    "session_id": session_id,
+                    "turn_id": turn_id,
+                    "surface": surface,
+                    "module": product_event["module"],
+                    "section": product_event["section"],
+                    "action": product_event["action"],
+                    "properties_json": normalized_metadata,
+                }
+            )
+        except Exception:
+            logger.warning("Failed to persist product behavior event: event_id=%s", event_id, exc_info=True)
+            with self._lock:
+                self._event_status_counts[(surface, event_name, "product_behavior_persistence_failed")] += 1
+            return "persistence_failed"
+        status = str(result.get("status") or "accepted")
+        if status != "accepted":
+            with self._lock:
+                self._event_status_counts[(surface, event_name, f"product_behavior_{status}")] += 1
+        return status
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:

@@ -73,6 +73,23 @@ class UpdateRecordRequest(BaseModel):
     kb_name: str | None = None
 
 
+class UpdateNotebookCardRequest(BaseModel):
+    """Update an owner-scoped notebook card asset."""
+
+    expected_version: int
+    title: str | None = None
+    raw_user_content: str | None = None
+    ai_enhanced_content: dict | None = None
+    user_control_status: str | None = None
+    use_for_personalization: bool | None = None
+
+
+class DeleteNotebookCardRequest(BaseModel):
+    """Archive an owner-scoped notebook card asset."""
+
+    expected_version: int
+
+
 class CardPatchRequest(BaseModel):
     """学习卡片乐观并发编辑请求（expected_version 来自上次读取的 version / If-Match）。"""
 
@@ -297,6 +314,66 @@ async def delete_notebook(
         raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 
+@router.patch("/card/{note_id}")
+async def update_notebook_card_fields(
+    note_id: str,
+    request: UpdateNotebookCardRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """Update a durable learning-card asset without touching learner truth."""
+    try:
+        patch = {
+            key: value
+            for key, value in {
+                "title": request.title,
+                "raw_user_content": request.raw_user_content,
+                "ai_enhanced_content": request.ai_enhanced_content,
+                "user_control_status": request.user_control_status,
+                "use_for_personalization": request.use_for_personalization,
+            }.items()
+            if value is not None
+        }
+        card = await get_notebook_card_service().update_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=request.expected_version,
+            patch=patch,
+        )
+        return {"success": True, "card": card, "note_id": card["note_id"]}
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Notebook card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
+
+
+@router.delete("/card/{note_id}")
+async def delete_notebook_card_asset(
+    note_id: str,
+    request: DeleteNotebookCardRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """Archive a durable learning-card asset; learning evidence is not deleted."""
+    try:
+        card = await get_notebook_card_service().delete_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=request.expected_version,
+        )
+        return {"success": True, "card": card, "note_id": card["note_id"]}
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Notebook card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
+
+
 @router.post("/add_record")
 async def add_record(
     request: AddRecordRequest,
@@ -444,10 +521,10 @@ async def update_notebook_card(
             patch=dict(request.patch or {}),
         )
         return {"success": True, "card": updated}
-    except OptimisticConcurrencyError:
-        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
     except KeyError:
         raise HTTPException(status_code=404, detail="card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
 
 
 @router.delete("/cards/{note_id}")
@@ -464,10 +541,10 @@ async def delete_notebook_card(
             expected_version=int(expected_version),
         )
         return {"success": True, "card": deleted}
-    except OptimisticConcurrencyError:
-        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
     except KeyError:
         raise HTTPException(status_code=404, detail="card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
 
 
 @router.get("/health")

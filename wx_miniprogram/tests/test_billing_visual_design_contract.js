@@ -22,7 +22,8 @@ function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), "utf8");
 }
 
-function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
+function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath, options) {
+  var opts = options || {};
   var wxml = read(wxmlPath);
   var wxss = read(wxssPath);
   var js = read(wxmlPath.replace(/\.wxml$/, ".js"));
@@ -37,31 +38,51 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
   );
   assert(
     wxml.indexOf('class="nav-brand-copy"') >= 0 &&
-      wxml.indexOf("额度中心") >= 0,
+      wxml.indexOf("权益中心") >= 0,
     label + " billing should pair the mark with explicit brand copy",
   );
-  assert(
-    wxml.indexOf("选择备考强度") < 0 &&
+  if (opts.expectPackages) {
+    assert(
+      wxml.indexOf('class="pkg-grid"') >= 0 &&
+        wxml.indexOf('class="pay-dock"') >= 0 &&
+        wxml.indexOf('class="checkout-sheet"') >= 0 &&
+        js.indexOf("createBillingCheckout") >= 0,
+      label + " billing should expose package selection and compliant checkout",
+    );
+  } else {
+    assert(
       wxml.indexOf('class="pkg-grid"') < 0 &&
-      wxml.indexOf('class="pay-dock"') < 0 &&
-      wxml.indexOf('class="checkout-sheet"') < 0,
-    label + " billing should hide the pricing and package selection surface in test builds",
-  );
+        wxml.indexOf('class="pay-dock"') < 0 &&
+        wxml.indexOf('class="checkout-sheet"') < 0,
+      label + " billing should keep the lightweight entitlement dashboard",
+    );
+  }
   assert(
-    wxml.indexOf("{{item.usageLabel}}") < 0 &&
-      wxml.indexOf("{{item.rhythm}}") < 0 &&
+    wxml.indexOf("{{item.rhythm}}") < 0 &&
       wxml.indexOf("{{item.points}} 智力点") < 0 &&
       wxml.indexOf("当前余额") < 0 &&
       wxml.indexOf("充值额度") < 0,
-    label + " billing should not expose package allowance or raw recharge quota copy",
+    label + " billing should not expose raw internal point or quota copy",
   );
-  assert(
-    js.indexOf('price: "99"') < 0 &&
-      js.indexOf('price: "199"') < 0 &&
-      js.indexOf('selectedPkgPrice') < 0 &&
-      js.indexOf('createBillingCheckout') < 0,
-    label + " billing should not ship default visible package prices while pricing is hidden",
-  );
+  if (opts.expectPackages) {
+    assert(
+      js.indexOf('price: "198"') >= 0 &&
+        js.indexOf('price: "598"') >= 0 &&
+        js.indexOf('price: "998"') >= 0 &&
+        js.indexOf('price: "99"') < 0 &&
+        js.indexOf('price: "199"') < 0 &&
+        js.indexOf('selectedPkgPrice') < 0,
+      label + " billing should pin launch package prices and avoid stale pricing",
+    );
+  } else {
+    assert(
+      js.indexOf('price: "99"') < 0 &&
+        js.indexOf('price: "199"') < 0 &&
+        js.indexOf('selectedPkgPrice') < 0 &&
+        js.indexOf('createBillingCheckout') < 0,
+      label + " billing should not ship package prices on the lightweight surface",
+    );
+  }
   assert(
     wxml.indexOf('class="usage-quota-list"') >= 0 &&
       wxss.indexOf(".usage-meter-fill") >= 0,
@@ -73,25 +94,38 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
     label + " billing should keep the stronger quota dashboard",
   );
   assert(
-    wxml.indexOf("额度记录") < 0 &&
+    wxml.indexOf("使用记录") >= 0 &&
+      wxml.indexOf('class="ledger-card"') >= 0 &&
+      wxml.indexOf("{{item.usageLabel}}") >= 0 &&
+      wxml.indexOf("{{item.balanceLabel}}") >= 0 &&
+      js.indexOf("getLedger") >= 0 &&
+      wxml.indexOf("额度记录") < 0 &&
       wxml.indexOf("最近流水") < 0 &&
-      wxml.indexOf('class="ledger-list"') < 0 &&
       wxml.indexOf('bindtap="onNextPage"') < 0 &&
-      js.indexOf("getLedger") < 0 &&
       js.indexOf("_loadLedger") < 0,
-    label + " billing should not render or fetch the removed ledger records section",
+    label + " billing should render ledger-backed usage records without legacy paging copy",
   );
-  assert(
-    js.indexOf("微信支付") < 0 &&
-      js.indexOf("支付宝") < 0 &&
-      wxml.indexOf("确认支付") < 0 &&
-      wxml.indexOf("确认开通") < 0 &&
-      js.indexOf("暂未开放") < 0 &&
-      js.indexOf("暂未开发") < 0 &&
-      wxml.indexOf("暂未开放") < 0 &&
-      wxml.indexOf("暂未开发") < 0,
-    label + " billing should not expose checkout channels while pricing is hidden",
-  );
+  if (opts.expectPackages) {
+    assert(
+      wxml.indexOf("小程序支付") >= 0 &&
+        wxml.indexOf("确认开通") >= 0 &&
+        js.indexOf("暂未开发") < 0 &&
+        wxml.indexOf("暂未开发") < 0,
+      label + " billing should expose the compliant mini-program checkout path",
+    );
+  } else {
+    assert(
+      js.indexOf("微信支付") < 0 &&
+        js.indexOf("支付宝") < 0 &&
+        wxml.indexOf("确认支付") < 0 &&
+        wxml.indexOf("确认开通") < 0 &&
+        js.indexOf("暂未开放") < 0 &&
+        js.indexOf("暂未开发") < 0 &&
+        wxml.indexOf("暂未开放") < 0 &&
+        wxml.indexOf("暂未开发") < 0,
+      label + " billing should not expose checkout controls on the lightweight surface",
+    );
+  }
   assert(
     wxss.indexOf(".nav-logo-shell") >= 0 &&
       wxss.indexOf("flex-direction: column") >= 0,
@@ -110,12 +144,14 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath) {
       "wx_miniprogram/pages/billing/billing.wxml",
       "wx_miniprogram/pages/billing/billing.wxss",
       "/images/logo-mark-white.png",
+      { expectPackages: false },
     );
     checkSurface(
       "packageDeeptutor",
       "yousenwebview/packageDeeptutor/pages/billing/billing.wxml",
       "yousenwebview/packageDeeptutor/pages/billing/billing.wxss",
       "../../images/logo-mark-white.png",
+      { expectPackages: true },
     );
   } catch (err) {
     fail++;

@@ -9,26 +9,35 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
+import functools
 import re
 import tempfile
 from typing import Any
+
+from loguru import logger
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
 from deeptutor.services.construction_grading.deep_question_adapter import (
     attach_deep_question_grading_result,
 )
 from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.question_followup import (
-    apply_followup_action_to_context,
     answers_match,
+    apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
+    requested_question_item_index,
     resolve_submission_attempt,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
@@ -43,9 +52,10 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.tools.rag_tool import rag_search
+from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
-
 
 _GENERATION_TOPIC_ANCHOR_MARKERS = (
     "刚才",
@@ -232,17 +242,56 @@ def _compiled_training_signal_text_from_context(question_context: dict[str, Any]
     return " | ".join(parts)
 
 
+def _personalization_training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    context = question_context.get("personalization_context")
+    if not isinstance(context, dict):
+        return ""
+    intent = context.get("active_training_intent")
+    if not isinstance(intent, dict) or not intent:
+        return ""
+
+    signal_parts: list[str] = []
+    for source_key, label in (
+        ("training_intent_id", "training_intent_id"),
+        ("concept_id", "concept"),
+        ("concept_label", "concept_label"),
+        ("error_code", "error_codes"),
+        ("error_label", "error_label"),
+    ):
+        value = _compact_text(intent.get(source_key))
+        if value:
+            signal_parts.append(f"{label}={value}")
+
+    evidence_refs = intent.get("evidence_refs")
+    if isinstance(evidence_refs, list):
+        signal_parts.append(f"evidence_ref_count={len(evidence_refs)}")
+
+    authority = context.get("authority") if isinstance(context.get("authority"), dict) else {}
+    prescription = _compact_text(authority.get("prescription"))
+    if prescription:
+        signal_parts.append(f"prescription_authority={prescription}")
+    return "；".join(signal_parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
     raw_context = question_context if isinstance(question_context, dict) else {}
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
-        return ""
-    if (
-        "compiled_learning_truth" not in normalized
-        and isinstance(raw_context.get("compiled_learning_truth"), dict)
-    ):
-        normalized = dict(normalized)
-        normalized["compiled_learning_truth"] = raw_context["compiled_learning_truth"]
+        if any(
+            isinstance(raw_context.get(key), dict)
+            for key in (
+                "compiled_learning_truth",
+                "personalization_context",
+                "construction_grading_result",
+            )
+        ):
+            normalized = dict(raw_context)
+        else:
+            return ""
+    for key in ("compiled_learning_truth", "personalization_context"):
+        if key not in normalized and isinstance(raw_context.get(key), dict):
+            normalized = dict(normalized)
+            normalized[key] = raw_context[key]
 
     items = normalized.get("items") or []
     contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
@@ -266,6 +315,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
             _append_unique(
                 training_parts,
                 f"长期错因训练信号：{compiled_training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
+        personalization_signal = _personalization_training_signal_text_from_context(item)
+        if personalization_signal:
+            _append_unique(
+                training_parts,
+                f"个性化训练意图：{personalization_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []
@@ -777,6 +832,10 @@ def _recover_missing_mcq_authority(
         if changed:
             recovered = dict(normalized)
             recovered["items"] = recovered_items
+            if len(recovered_items) == 1:
+                for key, value in recovered_items[0].items():
+                    if key != "items":
+                        recovered[key] = value
             return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
         return normalized, "missing", False
 
@@ -785,6 +844,16 @@ def _recover_missing_mcq_authority(
         return normalized, "missing", False
     recovered = _fill_missing_mcq_authority(normalized, source_item)
     return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
+
+
+def _question_authority_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(metadata, dict):
+        return {}
+    authority_metadata = dict(metadata)
+    trace_metadata = metadata.get("trace_metadata")
+    if isinstance(trace_metadata, dict):
+        authority_metadata.update(trace_metadata)
+    return authority_metadata
 
 
 def _mcq_trace_fields(
@@ -805,32 +874,39 @@ def _mcq_trace_fields(
     }
 
 
-def _render_missing_mcq_authority_feedback() -> str:
-    return (
-        "当前选择题缺少标准答案，不能稳定判分；我不会让模型猜答案。\n\n"
-        "请重新生成题目，或提交带标准答案的题卡后再批改。"
-    )
+def _apply_open_world_grading_state(graded_context: dict[str, Any]) -> dict[str, Any]:
+    """MCQ authority 缺失时的开放世界判分状态。
 
-
-def _clear_blocked_grading_state(question_context: dict[str, Any]) -> dict[str, Any]:
-    cleared = dict(question_context or {})
-    cleared["is_correct"] = None
-    cleared.pop("construction_grading_result", None)
-    cleared.pop("score", None)
-    cleared["diagnosis"] = "AUTHORITY_MISSING"
-    items = cleared.get("items") if isinstance(cleared.get("items"), list) else []
-    if items:
-        cleared_items: list[dict[str, Any]] = []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-            cleared_item = dict(item)
-            cleared_item["is_correct"] = None
-            cleared_item.pop("construction_grading_result", None)
-            cleared_item.pop("score", None)
-            cleared_items.append(cleared_item)
-        cleared["items"] = cleared_items
-    return cleared
+    ``grade_mcq_submission`` 在无 authority 时返回 ``grading_source="llm_judge"`` 的
+    占位结果（is_correct=False 是占位值不是判定）。这里把缺标准答案条目的确定性
+    is_correct / score / 占位 construction_grading_result 清空为待裁决状态，最终判定
+    交给 RAG-grounded SubmissionGraderAgent 开放世界裁决；已恢复 authority 的条目
+    保留确定性判定不动。
+    """
+    updated = dict(graded_context or {})
+    raw_items = updated.get("items") if isinstance(updated.get("items"), list) else None
+    any_open_world = False
+    if raw_items:
+        cleared_items: list[Any] = []
+        for item in raw_items:
+            if isinstance(item, dict) and not str(item.get("correct_answer") or "").strip():
+                cleared_item = dict(item)
+                cleared_item["is_correct"] = None
+                cleared_item.pop("score", None)
+                cleared_item.pop("construction_grading_result", None)
+                cleared_items.append(cleared_item)
+                any_open_world = True
+            else:
+                cleared_items.append(item)
+        updated["items"] = cleared_items
+    if not str(updated.get("correct_answer") or "").strip():
+        any_open_world = True
+    if any_open_world:
+        updated["is_correct"] = None
+        updated.pop("score", None)
+        updated.pop("construction_grading_result", None)
+        updated["diagnosis"] = "OPEN_WORLD"
+    return updated
 
 
 def _should_use_deterministic_grading_feedback(
@@ -924,6 +1000,117 @@ def _format_grading_grounding_context(rag_result: dict[str, Any] | None) -> tupl
     return "\n\n".join(lines).strip(), sources
 
 
+def _format_general_knowledge_grounding(pack: dict[str, Any] | None) -> str:
+    """Render a compiled TEACHING pack into LLM grounding text for general answers."""
+    if not isinstance(pack, dict):
+        return ""
+    sources = pack.get("sources") if isinstance(pack.get("sources"), dict) else {}
+    if not any(sources.get(key) for key in ("textbook", "standard", "lecture", "question")):
+        return ""
+
+    labels = {
+        "textbook": "教材",
+        "standard": "规范",
+        "lecture": "讲义",
+        "question": "真题",
+    }
+    lines = [
+        "【编译教学上下文 - 仅供讲解，非官方答案，不得作为官方判分依据】",
+        f"知识点路径：{pack.get('leaf_name_path') or pack.get('resolved_anchor') or ''}",
+    ]
+    # rich-leaf compiled context renders FIRST when present (flag-gated upstream in
+    # compiled_knowledge.general_knowledge; absent keys -> byte-identical legacy rendering).
+    # Multi-leaf "rich_leaf_contexts" (primary first, char-capped) or legacy single key —
+    # the rendering policy lives in rich_leaf_runtime (single place).
+    try:
+        from deeptutor.services.construction_grading.rich_leaf_runtime import (
+            format_rich_leaf_pack_grounding_lines,
+        )
+
+        lines.extend(format_rich_leaf_pack_grounding_lines(pack))
+    except Exception:  # noqa: BLE001 — rich-leaf grounding must never break legacy rendering
+        pass
+    for source_key in ("textbook", "standard", "lecture", "question"):
+        raw_items = sources.get(source_key) or []
+        if not isinstance(raw_items, list):
+            continue
+        for raw_item in raw_items[:6]:
+            item = raw_item if isinstance(raw_item, dict) else {}
+            preview = str(
+                item.get("text_preview")
+                or item.get("content_preview")
+                or item.get("public_quote")
+                or item.get("content")
+                or item.get("text")
+                or ""
+            ).strip()
+            if not preview:
+                continue
+            provenance = item.get("provenance")
+            if isinstance(provenance, dict):
+                provenance_label = " / ".join(
+                    str(provenance.get(key) or "").strip()
+                    for key in ("title", "source", "source_id", "stable_source_id", "span")
+                    if str(provenance.get(key) or "").strip()
+                )
+            else:
+                provenance_label = str(provenance or "").strip()
+            if not provenance_label:
+                provenance_label = str(
+                    item.get("title")
+                    or item.get("source")
+                    or item.get("source_id")
+                    or labels[source_key]
+                ).strip()
+            lines.append(f"- [{labels[source_key]}·{provenance_label}] {_clip_text(preview, limit=700)}")
+    return "\n".join(lines) if len(lines) > 2 else ""
+
+
+def _citation_sources_from_question_context(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+    items = _grading_items(question_context)
+    sources: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def append_source(raw: Any) -> None:
+        if not isinstance(raw, dict):
+            return
+        source = dict(raw)
+        content = (
+            source.get("content")
+            or source.get("public_quote")
+            or source.get("rag_content")
+            or source.get("text")
+            or source.get("value")
+        )
+        if content in (None, "", [], {}):
+            return
+        if "public_quote" not in source:
+            source["public_quote"] = content
+        if "source_type" not in source and source.get("source"):
+            source["source_type"] = str(source.get("source") or "").strip()
+        identity = "|".join(
+            str(source.get(key) or "").strip()
+            for key in ("source_id", "stable_source_id", "stable_id", "chunk_id", "title", "public_quote")
+        )
+        if identity in seen:
+            return
+        seen.add(identity)
+        sources.append(source)
+
+    for container in [question_context or {}, *items]:
+        for ref in container.get("evidence_refs") or []:
+            append_source(ref)
+        grading_result = (
+            container.get("construction_grading_result")
+            if isinstance(container.get("construction_grading_result"), dict)
+            else {}
+        )
+        for ref in grading_result.get("evidence_refs") or []:
+            append_source(ref)
+
+    return sources[:8]
+
+
 def _render_deterministic_grading_feedback(question_context: dict[str, Any] | None) -> str:
     items = _grading_items(question_context)
     if not items:
@@ -973,6 +1160,7 @@ def _objective_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     objective_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         question_type = str(item.get("question_type") or "").strip().lower()
         if question_type not in {
             "choice",
@@ -994,6 +1182,7 @@ def _reference_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     reference_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         if not str(item.get("correct_answer") or "").strip():
             return []
         reference_items.append(item)
@@ -1204,10 +1393,281 @@ def _should_render_deterministic_reference_feedback(
     )
 
 
-def _render_deterministic_reference_feedback(question_context: dict[str, Any] | None) -> str:
+def _looks_like_option_mapping_challenge(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "旧题库",
+            "这轮选项",
+            "当前选项",
+            "选项顺序",
+            "没看我这轮",
+            "没看选项",
+            "字母对不上",
+        )
+    )
+
+
+def _looks_like_wrong_cause_request(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "错因",
+            "错在哪",
+            "哪里错",
+            "为什么错",
+            "为什么不对",
+            "为啥不对",
+            "不对",
+            "扣分",
+            "怎么扣",
+            "怎么判",
+        )
+    )
+
+
+def _looks_like_missing_selection_check(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in ("漏没漏", "漏没", "漏了没", "有没有漏", "少没少"))
+
+
+def _brief_option_focus(option_text: str, *, fallback: str) -> str:
+    text = _compact_text(option_text)
+    if not text:
+        return fallback
+    return text[:8] or fallback
+
+
+def _named_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    """Option letters the learner explicitly names, in ABCDE order.
+
+    A letter counts only when it is an existing option and appears standalone
+    (not surrounded by other ASCII letters), so incidental letters inside English
+    prose like "Cause" are never mistaken for an option reference.
+    """
+
+    text = str(user_message or "").upper()
+    named: list[str] = []
+    for letter in "ABCDE":
+        if letter not in options:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            named.append(letter)
+    return named
+
+
+def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    options = dict(_option_entries(item))
+    # When the learner names a specific option ("A错在哪里"), answer about *that*
+    # option using the question's own standard answer as the single authority.
+    # Otherwise a correct-answer learner falls through to "没错，答案正确", which
+    # reads as "A is fine" and misleads them about the named distractor.
+    # Match a letter only when it stands alone (not inside an ASCII word), so
+    # incidental letters in prose ("Cause") never count as an option reference.
+    named_letters = _named_option_letters(user_message, options)
+    named_distractors = [letter for letter in named_letters if letter not in correct_letters]
+    if named_distractors:
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_distractors
+        )
+        correct_text = "".join(sorted(correct_letters)) or "标准答案"
+        tail = "均为" if len(named_distractors) > 1 else "是"
+        return f"{focus}不在标准答案（{correct_text}）内，{tail}干扰项。"
+    named_correct = [letter for letter in named_letters if letter in correct_letters]
+    if named_correct:
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_correct
+        )
+        tail = "都是正确选项" if len(named_correct) > 1 else "是正确选项"
+        return f"{focus}{tail}，应选。"
+    extra_letters = sorted(user_letters - correct_letters)
+    missing_letters = sorted(correct_letters - user_letters)
+    if extra_letters:
+        focus = _brief_option_focus(
+            options.get(extra_letters[0], ""),
+            fallback=f"{extra_letters[0]}项",
+        )
+        return f"误选{focus}。"
+    if missing_letters:
+        focus = _brief_option_focus(
+            options.get(missing_letters[0], ""),
+            fallback=f"{missing_letters[0]}项",
+        )
+        return f"漏选{focus}。"
+    if item.get("is_correct") is True:
+        return "没错，答案正确。"
+    return "错在选项判断。"
+
+
+def _render_brief_missing_selection_check(item: dict[str, Any]) -> str:
+    user_answer = "".join(_answer_letters(item.get("user_answer")))
+    correct_answer = "".join(_answer_letters(item.get("correct_answer")))
+    if item.get("is_correct") is True and user_answer:
+        return f"没漏，{user_answer}都选对。"
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    missing_letters = sorted(correct_letters - user_letters)
+    if missing_letters:
+        return f"漏选{''.join(missing_letters)}。"
+    if correct_answer:
+        return f"以标准答案{correct_answer}为准。"
+    return "需要题目答案才能判断。"
+
+
+def _render_targeted_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    if not looks_like_explicit_brevity_request(user_message):
+        return ""
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    if _looks_like_wrong_cause_request(user_message):
+        return _render_brief_wrong_cause(item, user_message)
+    # brevity + named option letter ("为什么A错？一句话", "那B呢？一句话") → brief option focus
+    if _named_option_letters_from_item(user_message, item):
+        return _render_brief_wrong_cause(item, user_message)
+    if _looks_like_missing_selection_check(user_message):
+        return _render_brief_missing_selection_check(item)
+    return ""
+
+
+def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "为什么",
+            "为啥",
+            "不对",
+            "错",
+            "扣分",
+            "怎么扣",
+            "怎么判",
+            "怎么评分",
+            "得几分",
+            "给几分",
+            "能拿",
+            "如果",
+            "假如",
+            "要是",
+        )
+    )
+
+
+def _named_option_letters_from_item(user_message: str, item: dict[str, Any]) -> list[str]:
+    options = dict(_option_entries(item))
+    if not options:
+        return []
+    return _named_option_letters(user_message, options)
+
+
+def _render_targeted_option_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    if not _looks_like_option_scoring_or_challenge_request(user_message):
+        return ""
+    # brevity requests defer to the brief path (already ran first); the verbose verdict
+    # template does not honour "一句话" and should not override a brief answer.
+    if looks_like_explicit_brevity_request(user_message):
+        return ""
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    options = dict(_option_entries(item))
+    if not options:
+        return ""
+    named_letters = _named_option_letters_from_item(user_message, item)
+    if not named_letters:
+        return ""
+    letter = named_letters[0]
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+    option = _format_answer_with_option_text(item, letter)
+    verdict = (
+        "它属于标准答案，会按正确项处理。"
+        if letter in correct_letters
+        else "它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。"
+    )
+    explanation = _compact_text(str(item.get("explanation") or ""))
+    lines = [
+        f"{option}：{verdict}",
+        f"本题标准答案是 {answer}，我不会因为追问或假设选项改写标准答案。",
+    ]
+    if explanation:
+        lines.append(f"依据：{explanation}")
+    return "\n".join(lines).strip()
+
+
+def _render_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
     items = _reference_items(question_context)
     if not items:
         return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
+    if len(items) == 1:
+        item = items[0]
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        if objective and _looks_like_option_mapping_challenge(user_message):
+            return f"不是，已按你这轮题面判断，正确答案是 {answer}。"
+        explanation = _compact_text(_reference_explanation(item))
+        if explanation:
+            return f"{answer_label}是 {answer}：{explanation}"
+        return f"{answer_label}是 {answer}。"
+
+    parts: list[str] = []
+    for index, item in enumerate(items, 1):
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        parts.append(f"第{index}题{answer_label}是 {answer}")
+    return "；".join(parts) + "。"
+
+
+def _render_deterministic_reference_feedback(
+    question_context: dict[str, Any] | None,
+    *,
+    user_message: str = "",
+) -> str:
+    targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
+    if targeted_brief:
+        return targeted_brief
+    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
+    if targeted_option:
+        return targeted_option
+    if looks_like_explicit_brevity_request(user_message):
+        return _render_brief_reference_feedback(user_message, question_context)
+
+    items = _reference_items(question_context)
+    if not items:
+        return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
     if len(items) == 1:
         item = items[0]
         objective = bool(_objective_items(item))
@@ -1256,6 +1716,26 @@ def _question_review_bank_hit(summary: dict[str, Any] | None) -> bool:
         grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
         metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
         if grading_key.get("source") == "questions_bank" or metadata.get("source") == "questions_bank":
+            return True
+    return False
+
+
+def _question_review_variant_hit(summary: dict[str, Any] | None) -> bool:
+    if not isinstance(summary, dict):
+        return False
+    for item in list(summary.get("results") or []):
+        if not isinstance(item, dict):
+            continue
+        qa_pair = item.get("qa_pair")
+        if not isinstance(qa_pair, dict):
+            continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+        metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+        if (
+            metadata.get("question_review_variant_mode") is True
+            or metadata.get("source") == "similar_question_variant"
+            or grading_key.get("source") == "similar_question_variant"
+        ):
             return True
     return False
 
@@ -1351,19 +1831,22 @@ def _render_missing_question_review_feedback(topic: str) -> str:
 def _learner_user_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+    config_overrides = getattr(context, "config_overrides", {}) or {}
     return str(
         metadata.get("user_id")
+        or metadata.get("learner_user_id")
         or billing_context.get("user_id")
-        or context.config_overrides.get("user_id")
+        or config_overrides.get("user_id")
         or ""
     ).strip()
 
 
 def _source_bot_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    config_overrides = getattr(context, "config_overrides", {}) or {}
     return str(
         metadata.get("bot_id")
-        or context.config_overrides.get("bot_id")
+        or config_overrides.get("bot_id")
         or ""
     ).strip()
 
@@ -1393,12 +1876,1532 @@ def _write_grading_error_events_for_context(
         return 0
 
 
+def _record_v1_grading_to_brain_for_question(
+    *,
+    context: UnifiedContext,
+    v1_event: dict[str, Any] | None,
+    graded_context: dict[str, Any],
+    turn_id: str,
+) -> dict[str, Any]:
+    """Grading-to-Brain（练题路径）：薄委托到唯一 recorder seam
+    （construction_grading.writeback.record_case_grading_to_brain，与 TutorBot
+    loop 共用），返回 meta（writeback 标记 + personalization_context +
+    next_best_action）。Fail-closed：失败返回 {}，绝不影响可见批改。"""
+    if not isinstance(v1_event, dict) or v1_event.get("event_type") != "case_grading_completed":
+        return {}
+    user_id = _learner_user_id_from_context(context)
+    if not user_id:
+        return {}
+    try:
+        from deeptutor.services.construction_grading.writeback import (
+            record_case_grading_to_brain,
+        )
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        meta = record_case_grading_to_brain(
+            learner_state_service=get_learner_state_service(),
+            user_id=user_id,
+            grading_event=v1_event,
+            source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
+            source_bot_id=_source_bot_id_from_context(context) or None,
+            user_answer=str(graded_context.get("user_answer") or ""),
+            question_stem=str(
+                graded_context.get("question_stem")
+                or graded_context.get("stem")
+                or graded_context.get("question")
+                or ""
+            ),
+            node_code=str(graded_context.get("node_code") or ""),
+            session_id=str(getattr(context, "session_id", "") or ""),
+        )
+        return meta if isinstance(meta, dict) else {}
+    except Exception:  # noqa: BLE001 — memory write must not break visible grading
+        logger.warning("LUBAN_V1 deep_question Grading-to-Brain writeback failed", exc_info=True)
+        return {}
+
+
+def _record_pgo_shadow_to_brain_for_question(
+    *,
+    context: UnifiedContext,
+    shadow_payload: dict[str, Any],
+    graded_context: dict[str, Any],
+    turn_id: str,
+) -> dict[str, Any]:
+    """Record PGO shadow point verdicts as preview-only learning evidence.
+
+    The recorder is the single construction-grading writeback authority. This
+    wrapper only passes the same-attempt payload through and never promotes
+    canonical learner truth.
+    """
+    if not turn_id:
+        return {}
+    user_id = _learner_user_id_from_context(context)
+    if not user_id:
+        return {}
+    try:
+        from deeptutor.services.construction_grading.writeback import (
+            record_pgo_shadow_to_brain,
+        )
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        question_id = str(graded_context.get("question_id") or shadow_payload.get("question_id") or "pgo")
+        meta = record_pgo_shadow_to_brain(
+            learner_state_service=get_learner_state_service(),
+            user_id=user_id,
+            shadow_payload=shadow_payload,
+            source_id=f"{turn_id}:{question_id}:pgo",
+            source_bot_id=_source_bot_id_from_context(context) or None,
+            session_id=str(getattr(context, "session_id", "") or ""),
+        )
+        return meta if isinstance(meta, dict) else {}
+    except Exception:  # noqa: BLE001 — PGO preview writeback must not break visible grading
+        logger.warning("PGO shadow Grading-to-Brain readback failed", exc_info=True)
+        return {}
+
+
+def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """QA/test runtime-shadow flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_runtime_shadow")
+        or context.config_overrides.get("grading_engine_runtime_shadow")
+    )
+
+
+def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
+    """case rubric-v1 grading flag. DEFAULT ON (full rollout, not gray) — V1 is the case-grading
+    authority for every case turn that has rubric/reference authority. Only the emergency env kill
+    switch ``LUBAN_CASE_RUBRIC_V1_ENABLED=false/0/off/no`` disables it.
+    """
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() not in (
+        "false", "0", "off", "no")
+
+
+def _record_v1_langfuse(
+    *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
+) -> None:
+    """Mirror the V1 grading observation into Langfuse (gray-rollout). Thin wrapper: all client logic is
+    in the langfuse adapter; best-effort, never raises (must not affect grading)."""
+    try:
+        from deeptutor.services.observability import get_langfuse_observability
+
+        obs = get_langfuse_observability()
+        if event and event.get("event_type") == "case_grading_completed":
+            aw = float(event.get("awarded_score") or 0)
+            mx = float(event.get("max_score") or 0)
+            ratio = round(aw / mx, 4) if mx > 0 else 0.0
+            obs.record_grading_event(
+                name="luban_v1_grading",
+                metadata={
+                    "engine": "luban_case_rubric_v1",
+                    "rubric_provenance": event.get("rubric_provenance"),
+                    "awarded_score": aw, "max_score": mx, "score_ratio": ratio,
+                    "scoring_points": len(event.get("scoring_points") or []),
+                    "high_risk_review": event.get("high_risk_review"),
+                    "official_score_allowed": False,
+                    "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                },
+                score_value=ratio,
+                score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
+            )
+        else:
+            obs.record_grading_event(
+                name="luban_v1_no_grade",
+                metadata={"engine": "luban_case_rubric_v1", "status": status,
+                          "student_id": student_id, "question_id": qid, "cg_type": cg_type},
+            )
+    except Exception:  # noqa: BLE001 — observability must never break grading
+        logger.debug("LUBAN_V1 langfuse record skipped", exc_info=True)
+
+
+async def _grade_case_rubric_v1(
+    *, context: UnifiedContext, graded_context: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Run rubric-v1 LLM-adjudicated case grading ONCE (Grading-to-Brain). Thin wrapper — all scoring
+    logic lives in ``rubric_grader_v1`` (fat skill). NEXUS-LIKE / OPEN WORLD: V1 grades EVERY case
+    question, not only the in-bank ones. The compiled rubric (``load_rubric``) is just higher-quality
+    ammunition; when absent, scoring points are extracted on-the-fly from the question's OWN reference
+    answer and graded the same per-point semantic way — it never drops back to the deterministic-keyword
+    V0 path. Returns the GradingEvent (``event_type == case_grading_completed``), a marker dict
+    (``{"status": "unavailable"/"no_reference", ...}``), or None when the gate is closed (caller leaves
+    the legacy answer byte-identical). One-or-two awaited DeepSeek calls; never writes the DB / learner
+    truth; official_score_allowed stays False."""
+    if not _case_rubric_v1_flag_enabled(context):
+        return None  # emergency kill switch only; default ON for all users (full rollout, not gray)
+    student_id = _learner_user_id_from_context(context)
+    cg = graded_context.get("construction_grading_result")
+    cg_type = str((cg or {}).get("type") or "").lower()
+    if cg_type not in ("case", "batch"):
+        # Gray-rollout observability: V1 is on for this user but the turn is not subjective.
+        logger.info("LUBAN_V1 skip: not subjective (cg_type={!r}) student={} qid={}",
+                    cg_type or "(none)", student_id,
+                    graded_context.get("question_id") or (cg or {}).get("question_id"))
+        return None  # only subjective single / multi-item turns
+    try:
+        import os
+
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+        key = os.environ.get("DEEPSEEK_API_KEY")
+        if not key:
+            logger.info("LUBAN_V1 unavailable: no DEEPSEEK_API_KEY")
+            return {"status": "unavailable", "reason": "no_api_key"}
+        from deeptutor.services.llm.factory import complete
+
+        # LLM_BINDING=dashscope in production; without explicit base_url+binding,
+        # factory.complete() falls back to get_llm_config() and routes DEEPSEEK_API_KEY
+        # through dashscope's endpoint → 401. Bind DeepSeek's direct API so the key
+        # reaches the correct endpoint.
+        _complete_v1 = functools.partial(
+            complete,
+            base_url="https://api.deepseek.com",
+            binding="deepseek",
+        )
+
+        if cg_type == "batch":
+            event = await _grade_case_batch_v1(
+                graded_context,
+                student_id=student_id,
+                complete=_complete_v1,
+                key=key,
+                _G=_G,
+                provider_authority="deepseek:https://api.deepseek.com",
+            )
+        else:
+            event = await _grade_one_case_v1(
+                graded_context,
+                student_id=student_id,
+                complete=_complete_v1,
+                key=key,
+                _G=_G,
+                provider_authority="deepseek:https://api.deepseek.com",
+            )
+        # Gray-rollout observability: did V1 actually grade, with what provenance/score?
+        _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
+        if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
+            _aw, _mx = event.get("awarded_score"), event.get("max_score")
+            logger.info("LUBAN_V1 GRADED: provenance={} score={}/{} points={} high_risk={} "
+                        "student={} qid={} cg_type={}",
+                        event.get("rubric_provenance"), _aw, _mx,
+                        len(event.get("scoring_points") or []), event.get("high_risk_review"),
+                        student_id, _qid, cg_type)
+            _record_v1_langfuse(event=event, student_id=student_id, qid=_qid, cg_type=cg_type)
+        else:
+            logger.info("LUBAN_V1 no-grade: {} student={} qid={}",
+                        (event or {}).get("status") if isinstance(event, dict) else "none",
+                        student_id, _qid)
+            _record_v1_langfuse(event=None, student_id=student_id, qid=_qid, cg_type=cg_type,
+                                status=(event or {}).get("status") if isinstance(event, dict) else "none")
+        return event
+    except Exception:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
+        logger.warning("case_rubric_v1 grading failed; legacy answer unaffected", exc_info=True)
+        return {"status": "unavailable", "reason": "exception"}
+
+
+async def _grade_one_case_v1(
+    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    provider_authority: str = "",
+) -> dict[str, Any] | None:
+    """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
+    both the single-question and per-batch-item paths so there is exactly one grading core (no second
+    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    import os as _os
+    _v1_model = _os.environ.get("LLM_MODEL", "").strip() or "deepseek-chat"
+    cg = ctx.get("construction_grading_result")
+    qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
+    answer = str(ctx.get("user_answer") or "").strip()
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: entered qid={} answer_len={} has_cg={}",
+        qid or "(none)", len(answer), bool(cg),
+    )
+    if not answer:
+        return None
+    # 1) governed compiled rubric (best ammunition) if in the bank
+    points = _G.load_rubric(qid) if qid else []
+    provenance = "compiled_rubric"
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: tier1 qid={} compiled_rubric_points={}",
+        qid or "(none)", len(points),
+    )
+    # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
+    #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
+    if not points:
+        # Only explicit answer-key fields may become scoring authority. ``analysis`` is often RAG/
+        # explanation text and can belong to a similar-but-different retrieved question; using it here
+        # lets RAG become a hidden rubric authority. Without an explicit key, derive from THIS stem.
+        reference = str(
+            ctx.get("correct_answer")
+            or (cg or {}).get("correct_answer")
+            or ctx.get("reference_answer")
+            or ""
+        ).strip()
+        stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
+        logger.warning(
+            "LUBAN_DIAG _grade_one_case_v1: tier2/3 has_reference={} reference_len={} has_stem={} stem_len={}",
+            bool(reference), len(reference), bool(stem), len(stem),
+        )
+        if reference:
+            points = await _G.extract_rubric_from_reference_async(
+                reference,
+                stem,
+                complete,
+                key,
+                model=_v1_model,
+                provider_authority=provider_authority,
+            )
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
+            provenance = "on_the_fly_reference"
+        elif stem:
+            # Tier 3: no official answer-key authority, but this is still a gradable learner need.
+            # Derive a pending-calibration rubric from THIS stem and keep it in the V1 diagnostic
+            # scoring channel. It must never be promoted to official correctness authority.
+            points = await _G.derive_rubric_from_stem_async(
+                stem,
+                complete,
+                key,
+                model=_v1_model,
+                provider_authority=provider_authority,
+            )
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
+            provenance = "derived_from_stem"
+        else:
+            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid={}", qid or "(none)")
+            return {"status": "no_reference", "question_id": qid}
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: post-tier points={} provenance={} qid={}",
+        len(points), provenance, qid or "(none)",
+    )
+    if not points:
+        return {"status": "unavailable", "reason": "no_scoring_points"}
+    # Wire the canonical typed object onto the live scoring path (foundation goes live): stamp the
+    # canonical authority_source on each rubric point and build+validate the canonical
+    # luban_grading_object.v1. This ARMS the G2 gate below (which keys on authority_source) — the
+    # 3 official-derived sources were previously unstamped, so G2 was a no-op. Behaviour-preserving:
+    # runtime grading fields (text/score/policy) are untouched, awarded scores do not move.
+    points = _G.canonicalize_rubric_points(points, qid=qid, provenance=provenance)
+    # G2 single-authority guard (load-bearing on the live scoring path): only official-answer-backed
+    # points enter the correctness channel; any rich-leaf / textbook-cited point is demoted to
+    # supporting and never scores — the 50x-volume rich-leaf points cannot impersonate the official
+    # key. Behaviour-preserving for the current official-derived sources (compiled / reference / stem).
+    is_diagnostic_rubric = provenance == "derived_from_stem"
+    points = _G.enforce_official_scoring_authority(
+        points,
+        provenance=provenance,
+        allow_pending_calibration_diagnostic=is_diagnostic_rubric,
+    )
+    if not points:
+        return {"status": "unavailable", "reason": "no_official_scoring_points"}
+    event = await _G.grade_with_batch_judge_async(
+        qid=qid or "open_world", student_answer=answer, rubric_points=points,
+        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)
+    # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
+    # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
+    # diagnostic path (same as "no rubric"), exactly like an exception would.
+    if event.get("degraded"):
+        logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid={}", qid)
+        return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
+    event["rubric_provenance"] = provenance
+    if is_diagnostic_rubric:
+        event["grading_source"] = "rubric_scored_v1_diagnostic"
+        event["answer_key_authority"] = "derived_from_stem_pending_calibration"
+        event["official_score_allowed"] = False
+        event["high_risk_review"] = True
+        event["diagnostic_score"] = True
+    return event
+
+
+async def _grade_case_batch_v1(
+    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    provider_authority: str = "",
+) -> dict[str, Any] | None:
+    """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
+    into one case_grading_completed event (deterministic sums), so render + same-source outcome work
+    unchanged. Non-case sub-items (e.g. MCQ) are left to legacy. None if no sub-item was gradable.
+
+    FAIL-SAFE: EVERY case sub-item must grade to a completed event. If even one degrades (no trustworthy
+    verdict), the whole batch falls back to legacy — a half-graded case merged from only the survivors
+    would render as a misleadingly "complete" score (e.g. 100% on a case where one sub-question was never
+    judged), which is worse than a low score because it looks whole."""
+    items = graded_context.get("items") or []
+    case_items = [
+        it for it in items
+        if isinstance(it, dict)
+        and str((it.get("construction_grading_result") or {}).get("type") or "").lower() == "case"
+    ]
+    sub_events: list[dict[str, Any]] = []
+    for item in case_items:
+        ev = await _grade_one_case_v1(
+            item,
+            student_id=student_id,
+            complete=complete,
+            key=key,
+            _G=_G,
+            provider_authority=provider_authority,
+        )
+        if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
+            sub_events.append(ev)
+    # No gradable case sub-item, OR a partial batch (some sub-item degraded) -> legacy, never a merged
+    # score built from only the survivors.
+    if not sub_events or len(sub_events) != len(case_items):
+        return None
+    # Preserve real per-sub-question identity (NOT the literal "batch"): the parent case qid if present,
+    # else the distinct sub-question qids joined — so to_learning_evidence's source_refs carry true
+    # provenance instead of a placeholder. Tag each merged point with its origin qid too.
+    parent_qid = str(graded_context.get("question_id") or "").strip()
+    sub_qids = [q for q in (str(e.get("question_id") or "").strip() for e in sub_events) if q]
+    merged_qid = parent_qid or ",".join(dict.fromkeys(sub_qids)) or "batch"
+    merged_points = [
+        dict(sp, source_qid=str(ev.get("question_id") or ""))
+        for ev in sub_events for sp in (ev.get("scoring_points") or [])
+    ]
+    return {
+        "event_type": "case_grading_completed",
+        "student_id": student_id,
+        "question_id": merged_qid,
+        "scoring_points": merged_points,
+        "awarded_score": round(sum(float(e.get("awarded_score") or 0) for e in sub_events), 2),
+        "max_score": round(sum(float(e.get("max_score") or 0) for e in sub_events), 2),
+        "high_risk_review": any(e.get("high_risk_review") for e in sub_events),
+        "grading_source": "rubric_scored_v1",
+        "answer_key_authority": "exam_reference_answer",
+        "llm_adjudicated": True,
+        "official_score_allowed": False,
+        "rubric_provenance": "batch",
+        "items": sub_events,
+    }
+
+
+def _case_rubric_v1_payload_from_event(
+    event: dict[str, Any] | None, *, node_code: str = ""
+) -> dict[str, Any] | None:
+    """Pure: shape the structured ``luban_case_rubric_v1`` payload from a GradingEvent / marker (no LLM,
+    no I/O). Appended alongside (never replacing) ``construction_grading_result``."""
+    if not isinstance(event, dict):
+        return None
+    if event.get("event_type") == "case_grading_completed":
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+        return {
+            "authority": "luban_case_rubric_v1", "status": "ok",
+            "grading_event": event,
+            "learning_evidence": _G.to_learning_evidence(event, node_code=node_code),
+            "official_score_allowed": False,
+        }
+    # marker dict (no_rubric_open_world / unavailable)
+    return {"authority": "luban_case_rubric_v1", **event, "official_score_allowed": False}
+
+
+def _runtime_shadow_engine(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(
+        metadata.get("grading_engine_runtime_shadow_mode")
+        or metadata.get("grading_engine_runtime_shadow_engine")
+        or context.config_overrides.get("grading_engine_runtime_shadow_mode")
+        or context.config_overrides.get("grading_engine_runtime_shadow_engine")
+        or "deepseek_fast"
+    ).strip()
+
+
+def _runtime_shadow_cache_student_id(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(
+        metadata.get("grading_engine_runtime_shadow_cache_student_id")
+        or context.config_overrides.get("grading_engine_runtime_shadow_cache_student_id")
+        or ""
+    ).strip()
+
+
+def _maybe_attach_runtime_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """QA/test-only: append a non-production Luban shadow grading result.
+
+    Thin wrapper — all scoring / artifact-gate / policy logic lives in
+    ``runtime_shadow_adapter`` (fat skill). This only reads the flag + the real
+    submission fields and appends ``luban_grading_engine_shadow``. It NEVER mutates
+    the legacy ``construction_grading_result``, never writes the DB / Learning Brain,
+    never calls the kernel or RAG. Any error fails closed (``engine_unavailable``);
+    legacy always returns. The adapter itself refuses non-``qa_``/``test_`` students.
+    """
+    if not _runtime_shadow_flag_enabled(context):
+        return
+    student_id = _learner_user_id_from_context(context)
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.runtime_shadow_adapter import (
+            build_runtime_shadow_result,
+        )
+
+        result_payload["luban_grading_engine_shadow"] = build_runtime_shadow_result(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+            engine=_runtime_shadow_engine(context),
+            qa_shadow=True,
+            prediction_student_id=_runtime_shadow_cache_student_id(context) or None,
+        )
+    except Exception as exc:  # noqa: BLE001 — shadow must never break legacy
+        result_payload["luban_grading_engine_shadow"] = {
+            "authority": "luban_grading_engine_shadow",
+            "shadow_status": "engine_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _v1_beta_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """v1 beta_shadow request flag. Default OFF -> legacy payload byte-identical, no beta key."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_beta_shadow")
+        or metadata.get("enable_luban_v1_beta_shadow")
+        or context.config_overrides.get("grading_engine_v1_beta_shadow")
+        or context.config_overrides.get("enable_luban_v1_beta_shadow")
+    )
+
+
+def _v1_beta_shadow_kill_switch_active() -> bool:
+    """Env kill switch. ``LUBAN_V1_BETA_SHADOW_ENABLED=false`` (or 0/off/no) force-disables beta
+    even when the request flag is on. Absence does NOT enable (the request flag is still required)."""
+    import os
+
+    return os.environ.get("LUBAN_V1_BETA_SHADOW_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_beta_shadow_cohort_prefixes() -> tuple[str, ...]:
+    """Limited-release cohort allowlist (user-id prefixes). Default = ``qa_`` / ``test_`` only, so
+    production behaviour is unchanged. Ops may EXTEND it for a named internal/operator cohort via env
+    ``LUBAN_V1_BETA_SHADOW_COHORT="qa_,test_,operator_"`` (comma-separated prefixes). The built-in
+    ``qa_``/``test_`` cohort is always included; an empty/blank env value keeps the default."""
+    import os
+
+    base = ["qa_", "test_"]
+    raw = os.environ.get("LUBAN_V1_BETA_SHADOW_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    # de-dupe, preserve order
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _v1_beta_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_v1_beta_shadow_cohort_prefixes())
+
+
+def _maybe_attach_v1_beta_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Cohort-gated QA/test-only: append the non-production v1 beta_shadow result (append-only).
+
+    Thin wrapper — ALL scoring / source / spec / list policy lives in ``beta_shadow_loader``
+    (fat skill). This only reads the flag + kill switch + cohort allowlist + the real submission
+    fields and appends ``luban_grading_engine_v1_beta_shadow``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain truth / formal registry,
+    never touches v0 / the kernel / RAG. Any error fails closed; legacy always returns. Only
+    limited-release cohort members (default ``qa_`` / ``test_``) get a beta result.
+    """
+    if not _v1_beta_shadow_flag_enabled(context):
+        return  # flag off -> legacy only
+    if _v1_beta_shadow_kill_switch_active():
+        result_payload["luban_grading_engine_v1_beta_shadow"] = {
+            "authority": "luban_grading_engine_v1_beta_shadow",
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _v1_beta_shadow_cohort_member(student_id):
+        return  # non-cohort (production / real student) -> never beta, legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.beta_shadow_loader import (
+            build_beta_shadow_payload,
+        )
+
+        result_payload["luban_grading_engine_v1_beta_shadow"] = build_beta_shadow_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+        )
+    except Exception as exc:  # noqa: BLE001 — beta must never break legacy
+        result_payload["luban_grading_engine_v1_beta_shadow"] = {
+            "authority": "luban_grading_engine_v1_beta_shadow",
+            "shadow_status": "beta_supply_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _pgo_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_pgo_shadow")
+        or context.config_overrides.get("grading_engine_pgo_shadow")
+    )
+
+
+def _pgo_shadow_env_enabled() -> bool:
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "").strip().lower() in (
+        "true", "1", "on", "yes",
+    )
+
+
+def _pgo_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(("qa_", "test_", "operator_"))
+
+
+def _summarize_pgo_query_result(result: Any) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "executor": "retrieve_rubric",
+        "runtime_consumed": False,
+        "found": False,
+    }
+    if not isinstance(result, dict):
+        summary["reason"] = "invalid_query_result"
+        return summary
+
+    scoring_points = result.get("scoring_points")
+    if isinstance(scoring_points, list):
+        summary["scoring_point_count"] = len(scoring_points)
+    summary.update(
+        {
+            "runtime_consumed": True,
+            "found": bool(result.get("found")),
+            "question_id": result.get("question_id"),
+            "artifact_version": result.get("artifact_version"),
+            "purpose": result.get("purpose"),
+            "shape": result.get("shape"),
+            "budget": result.get("budget"),
+            "ground": result.get("ground"),
+            "confidence": result.get("confidence"),
+        }
+    )
+    if "fail_open" in result:
+        summary["fail_open"] = bool(result.get("fail_open"))
+    if result.get("reason"):
+        summary["reason"] = result.get("reason")
+    if result.get("blockers"):
+        summary["blockers"] = list(result.get("blockers") or [])
+    return summary
+
+
+_PGO_SHADOW_CLIENT_HIDDEN_KEYS = {
+    "official_slice",
+    "atomic_official_slice",
+    "official_answer",
+    "answer_key",
+    "knowledge_point",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "answer_key_authority",
+}
+
+
+def _redact_pgo_shadow_for_result_payload(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _redact_pgo_shadow_for_result_payload(item)
+            for key, item in value.items()
+            if key not in _PGO_SHADOW_CLIENT_HIDDEN_KEYS
+        }
+    if isinstance(value, list):
+        return [_redact_pgo_shadow_for_result_payload(item) for item in value]
+    return value
+
+
+def _maybe_attach_pgo_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+    turn_id: str = "",
+) -> None:
+    """Append-only PGO coverage shadow path.
+
+    Thin wrapper only: it gates by request/env/cohort and delegates all PGO
+    adapter/scoring semantics to ``per_question_grading_judge``. It never mutates
+    ``construction_grading_result`` and never writes canonical learner truth.
+    """
+    if not _pgo_shadow_flag_enabled(context):
+        return
+    key = "luban_case_rubric_pgo_shadow"
+    if not _pgo_shadow_env_enabled():
+        result_payload[key] = {
+            "authority": key,
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _pgo_shadow_cohort_member(student_id):
+        return
+    try:
+        from deeptutor.services.construction_grading.m35_artifact_query import (
+            M35ArtifactQuery,
+            retrieve_rubric,
+        )
+        from deeptutor.services.construction_grading.per_question_grading_judge import (
+            build_pgo_shadow_payload,
+        )
+
+        question_id = str(graded_context.get("question_id") or "")
+        query_result = retrieve_rubric(
+            M35ArtifactQuery(
+                question_id=question_id,
+                purpose="grading",
+                shape="rubric_table",
+                citation_required=True,
+                budget_tier="low",
+            )
+        )
+        shadow_payload = build_pgo_shadow_payload(
+            contract=graded_context.get("pgo_grading_contract"),
+            point_verdicts=graded_context.get("pgo_point_verdicts"),
+            question_id=question_id,
+            student_id=student_id,
+        )
+        shadow_payload["knowql_query"] = _summarize_pgo_query_result(query_result)
+        if shadow_payload.get("shadow_status") == "ok":
+            from deeptutor.services.construction_grading.writeback import (
+                public_grading_to_brain_meta,
+            )
+
+            result_payload.update(public_grading_to_brain_meta(
+                _record_pgo_shadow_to_brain_for_question(
+                    context=context,
+                    shadow_payload=shadow_payload,
+                    graded_context=graded_context,
+                    turn_id=turn_id,
+                )
+            ))
+        result_payload[key] = _redact_pgo_shadow_for_result_payload(shadow_payload)
+    except Exception as exc:  # noqa: BLE001 — shadow must never break legacy
+        result_payload[key] = {
+            "authority": key,
+            "shadow_status": "engine_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _m35_artifact_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """M35 scoring-artifact shadow flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m35_artifact_shadow")
+        or context.config_overrides.get("grading_engine_m35_artifact_shadow")
+    )
+
+
+def _m35_artifact_shadow_judge_enabled(context: UnifiedContext) -> bool:
+    """Runtime-only M35 judge tier flag. Default OFF -> shape-only shadow."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m35_artifact_shadow_judge")
+        or context.config_overrides.get("grading_engine_m35_artifact_shadow_judge")
+        or str(context.config_overrides.get("grading_engine_m35_artifact_shadow_tier") or "").strip()
+        == "constrained_llm"
+    )
+
+
+def _m35_artifact_shadow_kill_switch_active() -> bool:
+    """``LUBAN_M35_ARTIFACT_SHADOW_ENABLED=false`` force-disables the M35 shadow block."""
+    import os
+
+    return os.environ.get("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _m35_artifact_shadow_cohort_prefixes() -> tuple[str, ...]:
+    """Server-governed QA/operator-only cohort.
+
+    Do not allow request or env-controlled real-student prefix expansion here:
+    M35 shadow visibility is not a production/default authorization path.
+    """
+    return ("qa_", "test_", "operator_")
+
+
+def _m35_artifact_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_m35_artifact_shadow_cohort_prefixes())
+
+
+def _m35_authenticated_user_id_from_context(context: UnifiedContext) -> str:
+    """Server-authenticated user id for M35 visibility gates.
+
+    Deliberately does not read billing_context, config_overrides, or learner
+    display fields. Those are business context and can be request-shaped; they
+    must not authorize shadow metadata for real students.
+    """
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(metadata.get("authenticated_user_id") or "").strip()
+
+
+def _maybe_attach_m35_artifact_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Append M35 scoring-artifact shadow metadata without changing legacy grading.
+
+    Thin wrapper: this reads only flag/env kill switch/cohort and forwards the
+    real case grading fields to ``m35_artifact_shadow``. No DB, RAG, learner truth,
+    or WebSocket route is introduced here.
+    """
+    if not _m35_artifact_shadow_flag_enabled(context):
+        return
+    if _m35_artifact_shadow_kill_switch_active():
+        return
+    student_id = _m35_authenticated_user_id_from_context(context)
+    if not _m35_artifact_shadow_cohort_member(student_id):
+        return
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.m35_artifact_shadow import (
+            build_m35_artifact_shadow_payload,
+            make_default_m35_artifact_shadow_judge,
+        )
+
+        judge_fn = (
+            make_default_m35_artifact_shadow_judge()
+            if _m35_artifact_shadow_judge_enabled(context)
+            else None
+        )
+        result_payload["luban_m35_scoring_artifact_shadow"] = build_m35_artifact_shadow_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+            judge_tier="constrained_llm" if callable(judge_fn) else "shape_stub",
+            judge_fn=judge_fn,
+        )
+    except Exception as exc:  # noqa: BLE001 - shadow must never break legacy grading.
+        result_payload["luban_m35_scoring_artifact_shadow"] = {
+            "authority": "grading_engine_m35_artifact_shadow",
+            "shadow_status": "artifact_shadow_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "evaluation_tier": "shape_stub",
+            "quality_claim_allowed": False,
+            "verdict_ceiling": "NO-GO_OR_SHAPE_ONLY",
+            "official_score_allowed": False,
+            "production_write_count": 0,
+            "canonical_truth_written": False,
+            "writeback_performed": False,
+            "db_write_count": 0,
+            "remote_write_count": 0,
+            "rag_lookup_count": 0,
+            "point_matches": [],
+        }
+
+
+def _v1_controlled_runtime_flag_enabled(context: UnifiedContext) -> bool:
+    """v1 controlled-runtime request flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_controlled_runtime")
+        or context.config_overrides.get("grading_engine_v1_controlled_runtime")
+    )
+
+
+def _v1_controlled_runtime_kill_switch_active() -> bool:
+    """Env kill switch ``LUBAN_V1_CONTROLLED_RUNTIME_ENABLED=false`` force-disables controlled runtime."""
+    import os
+
+    return os.environ.get("LUBAN_V1_CONTROLLED_RUNTIME_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_controlled_runtime_cohort_prefixes() -> tuple[str, ...]:
+    """Controlled-runtime cohort allowlist. Default ``qa_``/``test_``/``operator_`` (production
+    default still OFF — no flag means no controlled runtime). Extendable via env
+    ``LUBAN_V1_CONTROLLED_RUNTIME_COHORT``. Real students are never in the default cohort."""
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_V1_CONTROLLED_RUNTIME_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _v1_controlled_runtime_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_v1_controlled_runtime_cohort_prefixes())
+
+
+def _maybe_attach_v1_controlled_runtime(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Controlled production runtime candidate (append-only). Promotes beta_shadow to
+    ``controlled_runtime_candidate`` mode, gated on a loadable release_candidate registry + the
+    controlled cohort. production default stays OFF; legacy ``construction_grading_result`` is never
+    mutated; no production / canonical-truth write; fail-closed. ALL scoring + registry policy lives
+    in ``beta_shadow_loader`` (fat skill); this wrapper only does flag / kill / cohort / append."""
+    if not _v1_controlled_runtime_flag_enabled(context):
+        return  # flag off -> legacy only (production default OFF)
+    if _v1_controlled_runtime_kill_switch_active():
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = {
+            "authority": "luban_grading_engine_v1_controlled_runtime",
+            "mode": "controlled_runtime_candidate",
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _v1_controlled_runtime_cohort_member(student_id):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.beta_shadow_loader import (
+            build_controlled_runtime_payload,
+        )
+
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = build_controlled_runtime_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+        )
+    except Exception as exc:  # noqa: BLE001 — controlled runtime must never break legacy
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = {
+            "authority": "luban_grading_engine_v1_controlled_runtime",
+            "mode": "controlled_runtime_candidate",
+            "shadow_status": "release_candidate_registry_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _v1_llm_adjudication_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_llm_adjudication")
+        or context.config_overrides.get("grading_engine_v1_llm_adjudication")
+    )
+
+
+def _v1_llm_adjudication_limited_default_enabled(student_id: str) -> bool:
+    import os
+
+    enabled = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED", "").strip().lower()
+    if enabled not in ("1", "true", "on", "yes"):
+        return False
+    raw = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT", "qa_,operator_")
+    prefixes = [p.strip() for p in raw.split(",") if p.strip()]
+    if not prefixes:
+        prefixes = ["qa_", "operator_"]
+    return str(student_id).startswith(tuple(prefixes))
+
+
+def _v1_llm_adjudication_kill_switch_active() -> bool:
+    import os
+
+    return os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_llm_adjudication_cohort_member(student_id: str) -> bool:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
+
+
+def _objective_candidate_flag_enabled(context: UnifiedContext) -> bool:
+    """Objective candidate request flag (M25-B). Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_objective_candidate")
+        or context.config_overrides.get("grading_engine_objective_candidate")
+    )
+
+
+def _objective_candidate_cohort_member(student_id: str) -> bool:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_OBJECTIVE_CANDIDATE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
+
+
+def _maybe_attach_objective_candidate(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Objective answer-key CANDIDATE lane (append-only, M25-B). Cohort-gated QA/test-only.
+
+    Thin wrapper — ALL objective scoring / packet / authority policy lives in
+    ``objective_runtime_adapter`` + ``objective_grader`` + ``objective_answer_key_compiler``
+    (fat skills). This only reads the flag + cohort + real submission fields and appends
+    ``luban_grading_engine_objective_candidate``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never
+    claims official truth. answer_key is the sole authority; the LLM cannot decide correctness.
+    Missing / malformed / tampered candidate bundle -> fail-closed; not-in-bank -> fail-open
+    open-world diagnostic. Default OFF -> legacy byte-identical."""
+    if not _objective_candidate_flag_enabled(context):
+        return  # flag off -> legacy only
+    student_id = _learner_user_id_from_context(context)
+    if not _objective_candidate_cohort_member(student_id):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_objective_candidate_payload,
+        )
+
+        result_payload["luban_grading_engine_objective_candidate"] = build_objective_candidate_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — objective candidate must never break legacy
+        result_payload["luban_grading_engine_objective_candidate"] = {
+            "authority": "luban_grading_engine_objective_candidate",
+            "mode": "objective_candidate",
+            "status": "candidate_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+
+
+def _m31_governed_objective_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m31_governed_objective")
+        or context.config_overrides.get("grading_engine_m31_governed_objective")
+    )
+
+
+def _m31_governed_objective_kill_switch_active() -> bool:
+    """Env kill switch ``LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED=false`` force-disables the governed lane."""
+    import os
+
+    return os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _m31_governed_objective_cohort_prefixes() -> tuple[str, ...]:
+    """Cohort prefixes for the M31 governed objective lane. Base ``qa_/test_/operator_`` plus optional
+    ``LUBAN_M31_GOVERNED_OBJECTIVE_COHORT``. Real students are never in the default cohort."""
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _maybe_attach_m31_governed_objective(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """M31 governed objective release-candidate lane (append-only; flag + env kill switch + cohort).
+
+    Thin wrapper — ALL governed loading / verification / scoring policy lives in
+    ``objective_runtime_adapter`` (fat skill). This only reads the flag + cohort + real submission
+    fields and appends ``luban_grading_engine_m31_governed_objective``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never publishes,
+    never flips production default; the LLM cannot decide correctness. A governed signed hit scores
+    in-bank objective answers as CONTROLLED release-truth (``official_score_allowed=True``); a miss /
+    tamper falls through (in the fat skill) to the candidate / open-world lane. Default OFF -> legacy
+    byte-identical."""
+    if not _m31_governed_objective_flag_enabled(context):
+        return  # flag off -> legacy only
+    # canonical lane key/authority is owned by the fat skill (no duplicated string literal).
+    from deeptutor.services.construction_grading.objective_runtime_adapter import (
+        GOVERNED_AUTHORITY as KEY,
+    )
+    if _m31_governed_objective_kill_switch_active():
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "killed_by_switch",
+            "killed_by_switch": True,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_m31_governed_objective_cohort_prefixes()):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_governed_objective_payload,
+        )
+
+        result_payload[KEY] = build_governed_objective_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — governed lane must never break legacy
+        # classify only — never leak filesystem paths / raw exception text into client metadata.
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "governed_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": type(exc).__name__,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+
+
+def _textbook_knowledge_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_textbook_knowledge")
+        or context.config_overrides.get("grading_engine_textbook_knowledge")
+    )
+
+
+def _textbook_knowledge_cohort_prefixes() -> tuple[str, ...]:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[str, Any]) -> tuple[str, str]:
+    """Resolve (node_code, match_kind) for the turn's verbatim textbook context.
+
+    Priority: an EXPLICIT node_code (graded_context / followup_question_context / metadata) wins with
+    match_kind ``explicit``; otherwise AUTO-MAP the turn's question_id to a textbook node via
+    ``node_code_for_question`` (match_kind ``exact`` / ``section``) so any in-bank turn gets textbook
+    context. Returns ("","") when nothing resolves (caller attaches nothing)."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    fctx = metadata.get("followup_question_context") if isinstance(metadata.get("followup_question_context"), dict) else {}
+    explicit = str(
+        graded_context.get("node_code") or fctx.get("node_code") or metadata.get("textbook_node_code") or ""
+    ).strip()
+    if explicit:
+        return (explicit, "explicit")
+    question_id = str(graded_context.get("question_id") or fctx.get("question_id") or "").strip()
+    if question_id:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            node_code_for_question,
+        )
+
+        resolved = node_code_for_question(question_id)
+        if resolved is not None:
+            return resolved  # (node_code, "exact"|"section")
+    return ("", "")
+
+
+def _learner_weak_canonical_codes(graded_context: dict[str, Any]) -> list[str]:
+    """The learner's active weak concepts mapped to canonical codes (for #3 targeted remediation).
+    learner_state remains the weakness authority; this only READS + normalizes to canonical."""
+    truth = graded_context.get("compiled_learning_truth")
+    if not isinstance(truth, dict):
+        return []
+    concepts = [str(w.get("concept_id") or "") for w in (truth.get("weak_points") or [])
+                if isinstance(w, dict) and str(w.get("decay_state") or "active") == "active"
+                and not w.get("superseded_by_event_ids")]
+    concepts = [c for c in concepts if c]
+    if not concepts:
+        return []
+    try:
+        from deeptutor.services.construction_grading.canonical_resolution import to_canonical_set
+        return sorted(to_canonical_set(concepts))
+    except Exception:  # noqa: BLE001 — resolution is best-effort; never break the teaching lane
+        return []
+
+
+def _maybe_attach_textbook_knowledge(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Attach verbatim-sourced 2026-textbook knowledge for the turn's node_code (append-only; flag +
+    env kill switch + cohort; default OFF -> legacy byte-identical).
+
+    Thin wrapper — ALL loading / verification / resolution lives in ``textbook_knowledge_runtime``
+    (fat skill). This reads flag + cohort + node_code and appends ``luban_textbook_knowledge``. It
+    NEVER mutates the legacy result, never writes DB / canonical truth; the signed knowledge is
+    verbatim teaching/source context (grant_release stays False here — not an official score)."""
+    import os
+
+    KEY = "luban_textbook_knowledge"
+    if not _textbook_knowledge_flag_enabled(context):
+        return
+    if os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
+        result_payload[KEY] = {"authority": KEY, "status": "killed_by_switch", "killed_by_switch": True}
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_textbook_knowledge_cohort_prefixes()):
+        return
+    node, match_kind = _resolve_node_code_for_turn(context, graded_context)
+    if not node:
+        return  # no node to resolve (no explicit code + no confident question->node map) -> nothing
+    try:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            resolve_textbook_knowledge,
+        )
+
+        # the turn's question text focuses the coarse node to its most-relevant cards (finer granularity);
+        # answered_incorrectly drives #6 prerequisite remediation (learner evidence, never written back)
+        learner_context = {
+            "student_id": student_id,
+            "question_stem": str(graded_context.get("question_stem")
+                                 or graded_context.get("stem")
+                                 or graded_context.get("question")
+                                 or graded_context.get("question_text") or ""),
+            "user_answer": str(graded_context.get("user_answer") or ""),
+            "answered_incorrectly": graded_context.get("is_correct") is False,
+            # #3 precision: map the learner's active weak concepts -> canonical so prerequisite
+            # remediation targets real gaps. learner_state stays the mastery/weakness authority.
+            "weak_codes": _learner_weak_canonical_codes(graded_context),
+        }
+        payload = resolve_textbook_knowledge(node, learner_context=learner_context)
+        if payload is not None:
+            payload["node_match"] = match_kind  # explicit | exact | section (transparency for consumers)
+            result_payload[KEY] = payload
+    except Exception as exc:  # noqa: BLE001 — textbook lane must never break legacy
+        result_payload[KEY] = {"authority": KEY, "status": "unavailable",
+                               "unavailable_reason": type(exc).__name__}
+
+    # Four-source teaching context (textbook + standard + lecture + question) for the SAME canonical
+    # node, from the verify-gated unified supply. TEACHING tier only (official scoring stays verbatim).
+    try:
+        from deeptutor.services.construction_grading.canonical_knowledge_runtime import (
+            resolve_canonical_knowledge,
+        )
+
+        four = resolve_canonical_knowledge(node, learner_context=learner_context)
+        if four is not None:
+            four["node_match"] = match_kind
+            result_payload["luban_canonical_knowledge"] = four
+    except Exception as exc:  # noqa: BLE001 — teaching lane must never break legacy
+        result_payload["luban_canonical_knowledge"] = {
+            "authority": "luban_canonical_knowledge", "status": "unavailable",
+            "unavailable_reason": type(exc).__name__}
+
+
+def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
+    import os
+
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
+    return tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+
+
+def _general_knowledge_cohort_member(student_id: str) -> bool:
+    prefixes = _general_knowledge_cohort_prefixes()
+    return bool(prefixes) and str(student_id).startswith(prefixes)
+
+
+def _general_knowledge_flag_value(context: UnifiedContext) -> bool | None:
+    config_overrides = getattr(context, "config_overrides", {}) or {}
+    if "general_knowledge_context" not in config_overrides:
+        return None
+    return bool(config_overrides.get("general_knowledge_context"))
+
+
+def _has_active_question_context(followup_question_context: dict[str, Any] | None) -> bool:
+    normalized = normalize_question_followup_context(
+        followup_question_context if isinstance(followup_question_context, dict) else None
+    )
+    return bool(
+        normalized
+        and (
+            normalized.get("question")
+            or normalized.get("items")
+        )
+    )
+
+
+def _maybe_attach_general_knowledge_context(
+    *,
+    context: UnifiedContext,
+    result_payload: dict[str, Any],
+) -> None:
+    """Attach compiled four-source TEACHING context for a general knowledge turn.
+
+    Thin wrapper: request override / optional cohort / kill only. Resolution policy lives in
+    construction_grading.general_knowledge_context. This is append-only and
+    never writes DB, canonical learner truth, or official grading fields.
+    """
+    import os
+
+    key = "luban_general_knowledge_context"
+    flag_value = _general_knowledge_flag_value(context)
+    if flag_value is False:
+        return
+    if os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "").strip().lower() in (
+        "false",
+        "0",
+        "off",
+        "no",
+    ):
+        result_payload[key] = {"authority": key, "status": "killed_by_switch", "killed_by_switch": True}
+        return
+
+    student_id = _learner_user_id_from_context(context)
+    if flag_value is not True and not _general_knowledge_cohort_member(student_id):
+        return
+
+    try:
+        from deeptutor.services.construction_grading.general_knowledge_context import (
+            resolve_general_knowledge_context,
+        )
+
+        learner_context = {
+            "student_id": student_id,
+            "weak_codes": _learner_weak_canonical_codes({}),
+        }
+        pack = resolve_general_knowledge_context(
+            str(getattr(context, "user_message", "") or ""),
+            learner_context=learner_context,
+        )
+        if pack is not None:
+            result_payload[key] = pack
+    except Exception as exc:  # noqa: BLE001 - this teaching lane must never break legacy turns
+        result_payload[key] = {
+            "authority": key,
+            "status": "unavailable",
+            "unavailable_reason": type(exc).__name__,
+        }
+
+
+def _v1_llm_adjudication_dev_force_on() -> bool:
+    """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
+    ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
+    Default off -> zero production behaviour change. The kill switch still overrides it; legacy
+    is never mutated; no production / canonical-truth write. For manual local testing only."""
+    import os
+
+    if os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON", "").strip().lower() not in (
+        "1", "true", "on", "yes",
+    ):
+        return False
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+
+        if is_production_environment():
+            return False  # never force-on in production, regardless of the flag
+    except Exception:
+        return False
+    return True
+
+
+def _maybe_attach_v1_llm_adjudication(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Runtime LLM adjudication candidate (append-only). DeepSeek-V4-flash primary + Qwen fallback,
+    gated by a deterministic validator (the safety floor) in ``runtime_llm_adjudicator`` (fat skill).
+    production default OFF; legacy ``construction_grading_result`` never mutated; no production /
+    canonical-truth write; fail-closed. This thin wrapper only does flag / kill / cohort / append."""
+    student_id = _learner_user_id_from_context(context)
+    explicit_flag = _v1_llm_adjudication_flag_enabled(context)
+    limited_default = _v1_llm_adjudication_limited_default_enabled(student_id)
+    dev_force = _v1_llm_adjudication_dev_force_on()  # LOCAL TEST MODE: bypass flag + cohort (non-prod only)
+    if not explicit_flag and not limited_default and not dev_force:
+        return  # flag/default off -> legacy only
+    if _v1_llm_adjudication_kill_switch_active():
+        if limited_default and not explicit_flag and not dev_force:
+            return  # default rollback path -> legacy only
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = {
+            "authority": "luban_grading_engine_v1_llm_adjudication",
+            "mode": "llm_adjudication_candidate", "shadow_status": "killed_by_switch",
+            "not_production_grade": True, "writeback_performed": False,
+        }
+        return
+    if not dev_force and not _v1_llm_adjudication_cohort_member(student_id):
+        return  # non-cohort real student -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.runtime_llm_adjudicator import (
+            build_llm_adjudication_payload,
+        )
+
+        payload = build_llm_adjudication_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+            personalization_context_pack=(
+                context.metadata.get("personalization_context")
+                if isinstance(context.metadata.get("personalization_context"), dict)
+                else None
+            ),
+        )
+        if limited_default and not explicit_flag:
+            payload["limited_default_applied"] = True
+            payload["trigger"] = "limited_default"
+            payload["production_default"] = "limited_cohort_on"
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = payload
+    except Exception as exc:  # noqa: BLE001 — adjudication must never break legacy
+        if limited_default and not explicit_flag and not dev_force:
+            return  # default rollback/fail-closed path -> legacy only
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = {
+            "authority": "luban_grading_engine_v1_llm_adjudication",
+            "mode": "llm_adjudication_candidate",
+            "shadow_status": "adjudicator_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True, "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _attach_open_world_diagnostic(
+    payload: dict[str, Any],
+    *,
+    followup_question_context: dict[str, Any] | None,
+    user_message: str,
+    answer: str,
+) -> None:
+    """M27 wrapper-side route/append for open-world diagnostic live integration.
+
+    Pure routing: the compiled-context assembly and open-world labelling live in the fat skills
+    (`compiled_context` + `open_world_diagnostic`). This attaches their output to the followup
+    payload so the live `/api/v1/ws` followup surface reads the SAME unified schema as the other
+    surfaces. It never decides correctness, never fabricates an official score / answer_key /
+    textbook source. Best-effort: any failure leaves legacy followup behaviour untouched."""
+    try:
+        from deeptutor.services.construction_grading.compiled_context import (
+            build_pack_from_question_context,
+        )
+        pack = build_pack_from_question_context(followup_question_context or {})
+    except Exception:  # noqa: BLE001 — never break legacy followup
+        return
+    payload["compiled_context"] = pack.to_dict()
+    # Open-world diagnostic ONLY when the question is not resolvable to canonical grading authority.
+    if pack.official_score_allowed or pack.status == "resolved":
+        return
+    try:
+        from deeptutor.services.construction_grading.open_world_diagnostic import (
+            build_open_world_diagnostic,
+        )
+        diag = build_open_world_diagnostic(
+            pack=pack, student_prompt=user_message, diagnosis_override=answer,
+        )
+    except Exception:  # noqa: BLE001
+        return
+    payload["open_world_diagnostic"] = diag.to_unified_schema()
+
+
+def _learning_evidence_preview_disabled() -> bool:
+    """Emergency kill switch for the gap_1 Learning-Brain preview emission.
+
+    Default ENABLED so the live grading surface actually exercises the unified
+    ``build_learning_evidence_from_context_pack`` consumer (production calls were 0).
+    Set ``LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED=1`` to fall back to legacy
+    byte-identical payloads."""
+    import os
+
+    return str(os.getenv("LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _maybe_attach_learning_evidence_preview(
+    *,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+    turn_id: str = "",
+    session_id: str = "",
+) -> None:
+    """gap_1 / M28: emit a Learning-Brain PREVIEW from the SAME compiled context the
+    grading surface used, so the live ``/api/v1/ws`` grading runtime — not only offline
+    scripts — feeds ``build_learning_evidence_from_context_pack``.
+
+    Thin wrapper: ALL policy lives in the fat skill (``learning_evidence``). This only
+    routes the already-graded result + its compiled context into the consumer and
+    appends the preview. It NEVER raises mastery (``mastery_raised`` is always False),
+    NEVER writes canonical truth (``canonical_truth_written`` is always False), and
+    NEVER mutates the legacy ``construction_grading_result``. The fat skill decides the
+    per-question ``preview_only`` / ``claim_promotion_allowed`` flags from the pack's
+    ``diagnostic_policy`` (governed/official questions may set them so the Learning Brain
+    can promote; candidate/open-world questions stay preview). Best-effort: any failure
+    leaves legacy behaviour untouched (fail-closed)."""
+    if _learning_evidence_preview_disabled():
+        return
+    grading_result = graded_context.get("construction_grading_result")
+    if not isinstance(grading_result, dict) or not grading_result:
+        return
+    try:
+        compiled_context = grading_result.get("compiled_context")
+        if not isinstance(compiled_context, dict) or not compiled_context:
+            from deeptutor.services.construction_grading.compiled_context import (
+                build_pack_from_question_context,
+            )
+
+            compiled_context = build_pack_from_question_context(graded_context).to_dict()
+        from deeptutor.services.construction_grading.learning_evidence import (
+            build_learning_evidence_from_context_pack,
+        )
+
+        preview = build_learning_evidence_from_context_pack(
+            grading_result=grading_result,
+            compiled_context=compiled_context,
+            turn_id=turn_id,
+            session_id=session_id,
+        )
+    except Exception:  # noqa: BLE001 — preview must never break legacy grading
+        return
+    result_payload["learning_evidence_preview"] = preview
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
         description="Fast question generation (Template batches -> Generate).",
         stages=["ideation", "generation"],
-        tools_used=["rag", "web_search", "code_execution"],
+        tools_used=["rag", "web_search"],
         cli_aliases=["quiz"],
         request_schema=get_capability_request_schema("deep_question"),
     )
@@ -1461,6 +3464,62 @@ class DeepQuestionCapability(BaseCapability):
         return intent
 
     @staticmethod
+    def _learning_training_intent_from_personalization_context(
+        personalization_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not isinstance(personalization_context, dict):
+            return {}
+        raw_intent = personalization_context.get("active_training_intent")
+        if not isinstance(raw_intent, dict) or not raw_intent:
+            return {}
+        if raw_intent.get("active") is False:
+            return {}
+        state = str(
+            raw_intent.get("status")
+            or raw_intent.get("state")
+            or raw_intent.get("intent_status")
+            or ""
+        ).strip().lower()
+        if state in {"inactive", "stale", "superseded", "rejected", "closed", "completed"}:
+            return {}
+        intent = dict(raw_intent)
+        intent.setdefault("source", "PersonalizationContextPack")
+        if not intent.get("training_mode"):
+            intent["training_mode"] = intent.get("mode") or intent.get("recommended_mode") or ""
+        return DeepQuestionCapability._normalize_learning_training_intent(intent)
+
+    @staticmethod
+    def _resolve_learning_training_intent(
+        *,
+        overrides: dict[str, Any],
+        metadata: dict[str, Any],
+        followup_question_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        override_intent = DeepQuestionCapability._normalize_learning_training_intent(
+            overrides.get("learning_training_intent")
+            if isinstance(overrides.get("learning_training_intent"), dict)
+            else None
+        )
+        if override_intent:
+            return override_intent
+
+        top_level = metadata.get("personalization_context") if isinstance(metadata, dict) else None
+        intent = DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            top_level if isinstance(top_level, dict) else None
+        )
+        if intent:
+            return intent
+
+        nested = (
+            followup_question_context.get("personalization_context")
+            if isinstance(followup_question_context, dict)
+            else None
+        )
+        return DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            nested if isinstance(nested, dict) else None
+        )
+
+    @staticmethod
     def _apply_learning_training_intent_to_topic(topic: str, intent: dict[str, Any]) -> str:
         if not isinstance(intent, dict) or not intent:
             return str(topic or "").strip()
@@ -1492,6 +3551,28 @@ class DeepQuestionCapability(BaseCapability):
         snapshot["learning_training_intent"] = dict(intent)
         updated["state_snapshot"] = snapshot
         return updated
+
+    @staticmethod
+    def _case_grading_context_from_full_submission(raw_user_message: str) -> dict[str, Any] | None:
+        from deeptutor.services.question_lifecycle_skills import (
+            split_full_case_answer_submission,
+        )
+
+        question_stem, learner_answer = split_full_case_answer_submission(raw_user_message)
+        if not question_stem.strip() or not learner_answer.strip():
+            return None
+        return {
+            "question_id": "",
+            "question": question_stem.strip(),
+            "question_stem": question_stem.strip(),
+            "question_type": "case",
+            "user_answer": learner_answer.strip(),
+            "correct_answer": "",
+            "construction_grading_result": {
+                "type": "case",
+                "max_score": 10,
+            },
+        }
 
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
@@ -1564,6 +3645,40 @@ class DeepQuestionCapability(BaseCapability):
             context.metadata.get("raw_user_message") or context.user_message or ""
         ).strip()
         if (
+            lifecycle_scene == "case_grading"
+            and not force_generate_questions
+            and not (
+                isinstance(followup_question_context, dict)
+                and followup_question_context.get("question")
+            )
+        ):
+            full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
+            if full_case_context is not None:
+                case_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                    next_action="route_to_grading",
+                    active_object=active_object,
+                    question_context=full_case_context,
+                    user_message=raw_user_message,
+                )
+                context.metadata["question_followup_context"] = dict(full_case_context)
+                context.metadata["turn_semantic_decision"] = case_turn_decision
+                await self._emit_grading_result(
+                    stream=stream,
+                    context=context,
+                    llm_config=llm_config,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=case_turn_decision,
+                    graded_context=full_case_context,
+                    raw_user_message=raw_user_message,
+                    selected_mode=selected_mode,
+                    authority_source="case_grading_full_submission",
+                    correct_answer_present=False,
+                    kb_name=kb_name,
+                )
+                return
+        if (
             not force_generate_questions
             and isinstance(followup_question_context, dict)
             and followup_question_context.get(
@@ -1591,19 +3706,15 @@ class DeepQuestionCapability(BaseCapability):
                     followup_action,
                 )
             if action_context is not None:
-                prepared = await self._prepare_grading_context_or_emit_blocked(
-                    stream=stream,
+                (
+                    graded_context,
+                    authority_source,
+                    correct_answer_present,
+                ) = await self._prepare_grading_context(
                     action_context=action_context,
                     metadata=context.metadata,
-                    turn_id=turn_id,
-                    active_object=active_object,
-                    suspended_object_stack=suspended_object_stack,
-                    turn_semantic_decision=turn_semantic_decision,
                     raw_user_message=raw_user_message,
                 )
-                if prepared is None:
-                    return
-                graded_context, authority_source, correct_answer_present = prepared
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
@@ -1622,6 +3733,20 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
             if next_action == "route_to_followup_explainer":
+                if self._is_unresolved_switch_followup(turn_semantic_decision):
+                    # P1-Y: the learner referenced switching/returning to a DIFFERENT
+                    # question ("回到刚才屋面那道") but the runtime could not resolve it,
+                    # so the decision fell back to a followup on the current (stale)
+                    # active object. Do NOT answer the stale question as if it were the
+                    # referenced one — clarify instead (no context-guess authority grab).
+                    await self._emit_unresolved_switch_clarification(
+                        stream=stream,
+                        turn_id=turn_id,
+                        active_object=active_object,
+                        suspended_object_stack=suspended_object_stack,
+                        turn_semantic_decision=turn_semantic_decision,
+                    )
+                    return
                 await self._emit_followup_result(
                     stream=stream,
                     context=context,
@@ -1631,6 +3756,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                 )
                 return
 
@@ -1649,6 +3775,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                     force_default_decision=True,
                 )
                 return
@@ -1663,19 +3790,15 @@ class DeepQuestionCapability(BaseCapability):
                         target_context,
                         self._followup_action_from_submission(submission),
                     )
-                    prepared = await self._prepare_grading_context_or_emit_blocked(
-                        stream=stream,
+                    (
+                        graded_context,
+                        authority_source,
+                        correct_answer_present,
+                    ) = await self._prepare_grading_context(
                         action_context=action_context,
                         metadata=context.metadata,
-                        turn_id=turn_id,
-                        active_object=active_object,
-                        suspended_object_stack=suspended_object_stack,
-                        turn_semantic_decision=turn_semantic_decision,
                         raw_user_message=raw_user_message,
                     )
-                    if prepared is None:
-                        return
-                    graded_context, authority_source, correct_answer_present = prepared
                     await self._emit_grading_result(
                         stream=stream,
                         context=context,
@@ -1702,6 +3825,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                 )
                 return
 
@@ -1723,10 +3847,12 @@ class DeepQuestionCapability(BaseCapability):
                 if part
             ),
         )
-        learning_training_intent = self._normalize_learning_training_intent(
-            overrides.get("learning_training_intent")
-            if isinstance(overrides.get("learning_training_intent"), dict)
-            else None
+        learning_training_intent = self._resolve_learning_training_intent(
+            overrides=overrides,
+            metadata=context.metadata,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
         )
         if learning_training_intent:
             topic = self._apply_learning_training_intent_to_topic(topic, learning_training_intent)
@@ -1795,13 +3921,32 @@ class DeepQuestionCapability(BaseCapability):
                             trace_meta["practice_generation.next_training_signal_concept"] = consumed_concept
 
         require_explanation = reveal_explanations
-        history_context = str(
-            context.metadata.get("conversation_context_text", "") or ""
+        has_active_question_context = _has_active_question_context(
+            followup_question_context if isinstance(followup_question_context, dict) else None
+        )
+        general_knowledge_result_payload: dict[str, Any] = {}
+        if not has_active_question_context:
+            _maybe_attach_general_knowledge_context(
+                context=context,
+                result_payload=general_knowledge_result_payload,
+            )
+        general_knowledge_grounding = _format_general_knowledge_grounding(
+            general_knowledge_result_payload.get("luban_general_knowledge_context")
+        )
+        history_context = "\n\n".join(
+            part
+            for part in [
+                str(context.metadata.get("conversation_context_text", "") or "").strip(),
+                general_knowledge_grounding,
+            ]
+            if part
         ).strip()
         enabled_tools = set(
-            self.manifest.tools_used
-            if context.enabled_tools is None
-            else context.enabled_tools
+            filter_end_user_tools(
+                self.manifest.tools_used
+                if context.enabled_tools is None
+                else context.enabled_tools
+            )
         )
         if lightweight_followup_generation or lightweight_topic_generation:
             tool_flags_override = {
@@ -1914,6 +4059,7 @@ class DeepQuestionCapability(BaseCapability):
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
                     allow_lightweight_fallback=not question_review_mode,
+                    allow_similar_source_variant=question_review_mode,
                 )
 
         if question_review_mode:
@@ -1924,16 +4070,20 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = _question_review_bank_hit(result)
                         trace_meta["question_review.renderable"] = True
+                        trace_meta["question_review.variant_mode"] = _question_review_variant_hit(result)
             else:
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = False
                         trace_meta["question_review.renderable"] = False
+                        trace_meta["question_review.variant_mode"] = False
                         trace_meta["question_review.degraded_reason"] = "missing_question_bank_hit"
                 content = _render_missing_question_review_feedback(topic)
-                await stream.content(content, source=self.name, stage="generation")
-                await stream.result(
+                if not answer_citations_enabled():
+                    await stream.content(content, source=self.name, stage="generation")
+                await self._emit_result_with_citations(
+                    stream,
                     {
                         "response": content,
                         "mode": mode,
@@ -1950,7 +4100,6 @@ class DeepQuestionCapability(BaseCapability):
                             "review_mode": "missing_question",
                         },
                     },
-                    source=self.name,
                 )
                 return
 
@@ -1989,7 +4138,8 @@ class DeepQuestionCapability(BaseCapability):
             reveal_explanations=reveal_explanations,
             review_mode=question_review_mode,
         )
-        if content:
+        generation_citation_enabled = answer_citations_enabled()
+        if content and not generation_citation_enabled:
             await stream.content(content, source=self.name, stage="generation")
 
         presentation = build_canonical_presentation(
@@ -2022,6 +4172,13 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 or {}
             )
+            trace_metadata = _question_authority_metadata(context.metadata)
+            if result_payload["question_followup_context"] and trace_metadata:
+                recovered_context, _, _ = _recover_missing_mcq_authority(
+                    result_payload["question_followup_context"],
+                    trace_metadata,
+                )
+                result_payload["question_followup_context"] = recovered_context
             result_payload["active_object"] = (
                 build_active_object_from_question_context(
                     result_payload["question_followup_context"],
@@ -2049,59 +4206,53 @@ class DeepQuestionCapability(BaseCapability):
             resolved_active_object=result_payload["active_object"],
         )
         result_payload["active_object"] = transitioned_active_object or {}
+        if learning_training_intent and result_payload["active_object"]:
+            result_payload["active_object"] = self._attach_learning_training_intent_to_active_object(
+                result_payload["active_object"],
+                learning_training_intent,
+            )
         result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
+        if general_knowledge_result_payload:
+            result_payload.update(general_knowledge_result_payload)
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
-        await stream.result(result_payload, source=self.name)
+        await self._emit_result_with_citations(
+            stream,
+            result_payload,
+            stage="generation",
+            emit_content_when_enabled=bool(content),
+        )
 
-    async def _emit_missing_mcq_authority_result(
+    async def _emit_result_with_citations(
         self,
-        *,
         stream: StreamBus,
-        blocked_context: dict[str, Any],
-        turn_id: str,
-        active_object: dict[str, Any] | None,
-        suspended_object_stack: list[dict[str, Any]] | None,
-        turn_semantic_decision: dict[str, Any] | None,
-        user_message: str,
+        result_payload: dict[str, Any],
+        *,
+        stage: str = "generation",
+        sources: list[dict[str, Any]] | None = None,
+        emit_content_when_enabled: bool = True,
     ) -> None:
-        answer = _render_missing_mcq_authority_feedback()
-        await stream.content(answer, source=self.name, stage="generation")
-        result_active_object = build_active_object_from_question_context(
-            blocked_context,
-            source_turn_id=turn_id,
-            previous_active_object=active_object,
-        )
-        await stream.result(
-            {
-                "response": answer,
-                "mode": "grading",
-                "grading_blocked": True,
-                "question_id": blocked_context.get("question_id", ""),
-                "user_answer": blocked_context.get("user_answer", ""),
-                "is_correct": None,
-                "question_followup_context": normalize_question_followup_context(blocked_context)
-                or {},
-                "active_object": result_active_object or {},
-                "suspended_object_stack": suspended_object_stack,
-                "turn_semantic_decision": turn_semantic_decision
-                or self._default_turn_semantic_decision(
-                    next_action="route_to_grading",
-                    active_object=result_active_object or active_object,
-                    question_context=blocked_context,
-                    user_message=user_message,
-                ),
-                **_mcq_trace_fields(
-                    blocked_context,
-                    authority_source="missing",
-                    correct_answer_present=False,
-                ),
-            },
-            source=self.name,
-        )
+        if "response" in result_payload:
+            citation_enabled = answer_citations_enabled()
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=str(result_payload.get("response") or ""),
+                sources=sources or [],
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled and emit_content_when_enabled:
+                await stream.content(
+                    str(result_payload["response"] or ""),
+                    source=self.name,
+                    stage=stage,
+                )
+        await stream.result(result_payload, source=self.name)
 
     @staticmethod
     def _followup_action_from_submission(submission: dict[str, Any]) -> dict[str, Any]:
@@ -2120,18 +4271,13 @@ class DeepQuestionCapability(BaseCapability):
             ],
         }
 
-    async def _prepare_grading_context_or_emit_blocked(
+    async def _prepare_grading_context(
         self,
         *,
-        stream: StreamBus,
         action_context: dict[str, Any],
         metadata: dict[str, Any],
-        turn_id: str,
-        active_object: dict[str, Any] | None,
-        suspended_object_stack: list[dict[str, Any]] | None,
-        turn_semantic_decision: dict[str, Any] | None,
         raw_user_message: str,
-    ) -> tuple[dict[str, Any], str, bool] | None:
+    ) -> tuple[dict[str, Any], str, bool]:
         authority_source = ""
         correct_answer_present = True
         working_context = action_context
@@ -2140,19 +4286,15 @@ class DeepQuestionCapability(BaseCapability):
                 working_context,
                 authority_source,
                 correct_answer_present,
-            ) = _recover_missing_mcq_authority(working_context, metadata)
+            ) = _recover_missing_mcq_authority(
+                working_context,
+                _question_authority_metadata(metadata),
+            )
             if not correct_answer_present:
-                blocked_context = _clear_blocked_grading_state(working_context)
-                await self._emit_missing_mcq_authority_result(
-                    stream=stream,
-                    blocked_context=blocked_context,
-                    turn_id=turn_id,
-                    active_object=active_object,
-                    suspended_object_stack=suspended_object_stack,
-                    turn_semantic_decision=turn_semantic_decision,
-                    user_message=raw_user_message,
-                )
-                return None
+                # 开放世界判分：authority 三路兜底（active_object / grading_key /
+                # questions_bank）全部落空时不拒答——判定权交给 RAG-grounded
+                # grader agent，trace 标 open_world，不冒充题库标准答案。
+                authority_source = "open_world"
 
         if (working_context.get("items") or []) and len(working_context.get("items") or []) > 1:
             graded_context = self._build_batch_submission_context(
@@ -2165,6 +4307,8 @@ class DeepQuestionCapability(BaseCapability):
                 str(working_context.get("user_answer") or "").strip(),
                 raw_submission=raw_user_message,
             )
+        if not correct_answer_present:
+            graded_context = _apply_open_world_grading_state(graded_context)
         return graded_context, authority_source, correct_answer_present
 
     async def _emit_grading_result(
@@ -2185,6 +4329,7 @@ class DeepQuestionCapability(BaseCapability):
         kb_name: str | None,
     ) -> None:
         async with stream.stage("generation", source=self.name):
+            citation_enabled = answer_citations_enabled()
             grounding_context = ""
             grounding_sources: list[dict[str, Any]] = []
             grounding_error = ""
@@ -2193,7 +4338,51 @@ class DeepQuestionCapability(BaseCapability):
             # 所有分支可见（确定性反馈分支不进 agent.process，但 Gap 5 仍要
             # 输出 progressive_disclosure）。
             grader_trace: dict[str, Any] = {}
-            if _should_use_deterministic_grading_feedback(
+            # Grading-to-Brain V1 (flag + cohort, default off): adjudicate the compiled rubric ONCE,
+            # up front, so the SAME event both (a) renders the student-facing answer (same-source: the
+            # words read can never disagree with the score) and (b) feeds the structured payload below.
+            # When V1 takes over we skip the legacy SubmissionGraderAgent LLM call entirely.
+            v1_event = await _grade_case_rubric_v1(context=context, graded_context=graded_context)
+            v1_render: str | None = None
+            # Grading-to-Brain：先录制（写证据 + 构建 PCP），再渲染——练题反馈
+            # 与聊天入口同样携带个性化语气（同一 recorder seam）。
+            _g2b_meta = _record_v1_grading_to_brain_for_question(
+                context=context,
+                v1_event=v1_event,
+                graded_context=graded_context,
+                turn_id=turn_id,
+            )
+            if isinstance(v1_event, dict) and v1_event.get("event_type") == "case_grading_completed":
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    render_case_rubric_feedback,
+                )
+
+                _stem = str(graded_context.get("question_stem") or graded_context.get("stem")
+                            or graded_context.get("question") or "")
+                _g2b_pcp = (
+                    _g2b_meta.get("personalization_context")
+                    if isinstance(_g2b_meta.get("personalization_context"), dict)
+                    else None
+                )
+                v1_render = render_case_rubric_feedback(
+                    v1_event,
+                    question_stem=_stem,
+                    personalization_context_pack=_g2b_pcp,
+                )
+            if v1_render is not None:
+                answer = v1_render
+                # SAME-SOURCE: when V1 renders the student answer, is_correct/score/diagnosis must come
+                # from the SAME event (not V0), so recorded state (recent_outcomes / projection /
+                # observability) can never disagree with what the student read.
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    derive_outcome_from_event,
+                )
+
+                _v1_outcome = derive_outcome_from_event(v1_event)
+                graded_context["is_correct"] = _v1_outcome["is_correct"]
+                graded_context["score"] = _v1_outcome["score"]
+                graded_context["diagnosis"] = _v1_outcome["diagnosis"]
+            elif _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,
                 kb_name=kb_name,
@@ -2203,6 +4392,8 @@ class DeepQuestionCapability(BaseCapability):
                 async def _content_sink(chunk: str) -> None:
                     nonlocal content_streamed
                     if not chunk:
+                        return
+                    if citation_enabled:
                         return
                     content_streamed = True
                     await stream.content(chunk, source=self.name, stage="generation")
@@ -2229,30 +4420,61 @@ class DeepQuestionCapability(BaseCapability):
                         grounding_context, grounding_sources = _format_grading_grounding_context(rag_result)
                     except Exception as exc:
                         grounding_error = str(exc)
-                from deeptutor.agents.question.agents.submission_grader_agent import (
-                    SubmissionGraderAgent,
-                )
+                # 硬约束40 backstop（2026-06-17，"做完题没给答案"事故安全网）：
+                # open-world 判分链路（import / 构造 / set_trace_callback / process）任一环
+                # 失败,都绝不让判分轮崩成空输出 / 拒答。整段包进 try,失败降级为非空回复并保留
+                # 本题供重试；不冒充确定性判定，也不在无检索证据时虚称"依据教材/规范"。
+                answer = ""
+                try:
+                    from deeptutor.agents.question.agents.submission_grader_agent import (
+                        SubmissionGraderAgent,
+                    )
 
-                agent = SubmissionGraderAgent(
-                    language=context.language,
-                    api_key=llm_config.api_key,
-                    base_url=llm_config.base_url,
-                    api_version=llm_config.api_version,
-                )
-                agent.set_trace_callback(self._build_trace_bridge(stream))
-                # plan §Phase 4 Step 4.2 / Gap 4 — pass shared trace_collector
-                # (see above) so the agent can write explanation_section_miss &
-                # parsed sections back into single-writer trace.
-                answer = await agent.process(
-                    user_message=raw_user_message,
-                    question_context=graded_context,
-                    history_context=str(
-                        context.metadata.get("conversation_context_text", "") or ""
-                    ).strip(),
-                    grounding_context=grounding_context,
-                    on_content_chunk=_content_sink,
-                    trace_collector=grader_trace,
-                )
+                    agent = SubmissionGraderAgent(
+                        language=context.language,
+                        api_key=llm_config.api_key,
+                        base_url=llm_config.base_url,
+                        api_version=llm_config.api_version,
+                    )
+                    agent.set_trace_callback(self._build_trace_bridge(stream))
+                    # plan §Phase 4 Step 4.2 / Gap 4 — pass shared trace_collector
+                    # (see above) so the agent can write explanation_section_miss &
+                    # parsed sections back into single-writer trace.
+                    answer = await agent.process(
+                        user_message=raw_user_message,
+                        question_context=graded_context,
+                        history_context=str(
+                            context.metadata.get("conversation_context_text", "") or ""
+                        ).strip(),
+                        grounding_context=grounding_context,
+                        on_content_chunk=_content_sink,
+                        trace_collector=grader_trace,
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "LUBAN open_world grader failed; grounded fallback qid={} err={}",
+                        graded_context.get("question_id") or "(none)",
+                        exc,
+                    )
+                    _ua = str(graded_context.get("user_answer") or "").strip()
+                    _ground = str(grounding_context or "").strip()
+                    _head = "## 📊 阅卷结论\n" + (
+                        f"已收到你的作答：{_ua}。" if _ua else "已收到你的作答。"
+                    )
+                    if _ground:
+                        answer = (
+                            _head
+                            + "判分服务暂时不稳定，先依据教材/规范给你要点，本题已为你保留，可稍后再判一次。\n\n"
+                            + "## 🧐 解析\n"
+                            + _ground
+                        )
+                    else:
+                        # 检索证据也缺失：诚实表述，不冒称已"依据教材/规范"给出依据。
+                        answer = (
+                            _head
+                            + "判分服务暂时不稳定，没能完成本题判分，本题已为你保留，可稍后再判一次。\n\n"
+                            + "## 🧐 下一步\n请对照教材该考点的关键规范要求，逐条核对你的作答是否覆盖；稍后重试可获得逐点判定。"
+                        )
             post_grading_next_action = _build_post_grading_generation_ack(raw_user_message)
             if post_grading_next_action:
                 answer = (
@@ -2260,9 +4482,9 @@ class DeepQuestionCapability(BaseCapability):
                     + "\n\n"
                     + post_grading_next_action
                 ).strip()
-            if answer and not content_streamed:
+            if answer and not content_streamed and not citation_enabled:
                 await stream.content(answer, source=self.name, stage="generation")
-            elif post_grading_next_action:
+            elif post_grading_next_action and not citation_enabled:
                 await stream.content(
                     "\n\n" + post_grading_next_action,
                     source=self.name,
@@ -2328,6 +4550,14 @@ class DeepQuestionCapability(BaseCapability):
             }
             if grounding_error:
                 result_payload["grading_grounding_error"] = grounding_error[:240]
+            # Grading-to-Brain：渲染前已录制（同一 recorder seam）。只把公开
+            # 投影并入结果——v1_event 有效即合并，不依赖 legacy grading_result
+            # 守卫（防"写了证据但客户端无回执"的幽灵写）。
+            from deeptutor.services.construction_grading.writeback import (
+                public_grading_to_brain_meta,
+            )
+
+            result_payload.update(public_grading_to_brain_meta(_g2b_meta))
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 result_payload["metadata"] = {"cost_summary": cost_meta}
@@ -2339,6 +4569,92 @@ class DeepQuestionCapability(BaseCapability):
                     source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
                 )
                 result_payload["construction_grading_result"] = grading_result
+                # QA/test-only Luban shadow (default off; legacy untouched above).
+                _maybe_attach_runtime_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # rubric-v1 structured payload (flag+cohort; append-only GradingEvent + learning_evidence;
+                # legacy construction_grading_result intact). Reuses the event already graded up top —
+                # no second LLM call. When V1 is on, the answer above is rendered from this same event.
+                _v1_payload = _case_rubric_v1_payload_from_event(
+                    v1_event,
+                    node_code=str(graded_context.get("node_code")
+                                  or (grading_result or {}).get("node_code") or ""),
+                )
+                if _v1_payload is not None:
+                    result_payload["luban_case_rubric_v1"] = _v1_payload
+
+                # PGO coverage shadow (default off; env kill switch + cohort; append-only;
+                # missing live PGO supply fails closed instead of inferring from legacy score).
+                _maybe_attach_pgo_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                    turn_id=turn_id,
+                )
+                # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
+                # append-only; legacy construction_grading_result untouched above).
+                _maybe_attach_v1_beta_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # M35 scoring-artifact shadow drill (default off; env kill switch + cohort;
+                # append-only; legacy construction_grading_result untouched).
+                _maybe_attach_m35_artifact_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Controlled production runtime candidate (default off; flag + env kill switch +
+                # cohort + release_candidate registry; append-only; legacy untouched).
+                _maybe_attach_v1_controlled_runtime(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Runtime LLM adjudication candidate (default off; flag + env kill switch + cohort;
+                # DeepSeek/Qwen adjudication gated by deterministic validator; append-only).
+                _maybe_attach_v1_llm_adjudication(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Objective answer-key CANDIDATE lane (M25-B; default off; flag + cohort; answer_key
+                # is sole authority, LLM cannot decide correctness; append-only; candidate_unverified;
+                # fail-closed on tamper, fail-open open-world on not-in-bank; legacy untouched).
+                _maybe_attach_objective_candidate(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # M31 governed objective release-candidate lane (default off; flag + env kill switch +
+                # cohort; signed governed answer_key -> CONTROLLED release-truth; append-only; legacy
+                # construction_grading_result untouched; LLM cannot decide correctness; fail-closed on
+                # tamper, fall-through to candidate/open-world on governed miss).
+                _maybe_attach_m31_governed_objective(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Verbatim 2026-textbook knowledge context for the turn's node_code (default off;
+                # flag + env kill switch + cohort; append-only; teaching/source context, not a score).
+                _maybe_attach_textbook_knowledge(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # gap_1 / M28: feed the SAME compiled context into the Learning-Brain
+                # consumer from the LIVE grading runtime (preview only; env kill switch;
+                # append-only; never raises mastery / writes canonical truth / mutates legacy).
+                _maybe_attach_learning_evidence_preview(
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                    turn_id=turn_id,
+                    session_id=str(context.session_id or ""),
+                )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
             # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出
@@ -2407,6 +4723,29 @@ class DeepQuestionCapability(BaseCapability):
                                 signal.get("grading_source") or ""
                             )
 
+            citation_sources: list[dict[str, Any]] = [
+                item for item in grounding_sources[:5] if isinstance(item, dict)
+            ]
+            grading_refs = grading_result.get("evidence_refs") if isinstance(grading_result, dict) else None
+            if isinstance(grading_refs, list):
+                citation_sources.extend(item for item in grading_refs if isinstance(item, dict))
+            original_response = str(result_payload.get("response") or "")
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=original_response,
+                sources=citation_sources,
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled:
+                await stream.content(
+                    str(result_payload["response"] or ""),
+                    source=self.name,
+                    stage="generation",
+                )
+
             await stream.result(result_payload, source=self.name)
 
     async def _emit_followup_result(
@@ -2420,20 +4759,22 @@ class DeepQuestionCapability(BaseCapability):
         suspended_object_stack: list[dict[str, Any]] | None,
         turn_semantic_decision: dict[str, Any] | None,
         followup_question_context: dict[str, Any],
+        raw_user_message: str,
         force_default_decision: bool = False,
     ) -> None:
         async with stream.stage("generation", source=self.name):
             if should_block_unanswered_reference_reveal(
-                context.user_message,
+                raw_user_message,
                 followup_question_context,
             ):
                 answer = "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
             elif _should_render_deterministic_reference_feedback(
-                context.user_message,
+                raw_user_message,
                 followup_question_context,
             ):
                 answer = _render_deterministic_reference_feedback(
-                    followup_question_context
+                    followup_question_context,
+                    user_message=raw_user_message,
                 )
             else:
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent
@@ -2446,13 +4787,13 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 agent.set_trace_callback(self._build_trace_bridge(stream))
                 answer = await agent.process(
-                    user_message=context.user_message,
+                    user_message=raw_user_message,
                     question_context=followup_question_context,
                     history_context=str(
                         context.metadata.get("conversation_context_text", "") or ""
                     ).strip(),
                 )
-            if answer:
+            if answer and not answer_citations_enabled():
                 await stream.content(answer, source=self.name, stage="generation")
             result_active_object = build_active_object_from_question_context(
                 followup_question_context,
@@ -2463,7 +4804,7 @@ class DeepQuestionCapability(BaseCapability):
                 next_action="route_to_followup_explainer",
                 active_object=result_active_object or active_object,
                 question_context=followup_question_context,
-                user_message=context.user_message,
+                user_message=raw_user_message,
             )
             followup_payload: dict[str, Any] = {
                 "response": answer or "",
@@ -2481,10 +4822,95 @@ class DeepQuestionCapability(BaseCapability):
                     else turn_semantic_decision or default_decision
                 ),
             }
+            # M27 open-world diagnostic live integration (§0.26.9). This wrapper only ROUTES + APPENDS;
+            # the compiled-context assembly and open-world labelling live in the fat skills. Followup
+            # is the 4th compiled-context surface. When the question is NOT resolvable to canonical
+            # grading authority, the already-generated LLM answer is STRUCTURED as a labeled
+            # open-world diagnostic (no official score, no answer-key / source fabrication).
+            _attach_open_world_diagnostic(
+                followup_payload,
+                followup_question_context=followup_question_context,
+                user_message=raw_user_message,
+                answer=str(answer or ""),
+            )
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 followup_payload["metadata"] = {"cost_summary": cost_meta}
-            await stream.result(followup_payload, source=self.name)
+            await self._emit_result_with_citations(
+                stream,
+                followup_payload,
+                stage="generation",
+                sources=_citation_sources_from_question_context(followup_question_context),
+                emit_content_when_enabled=bool(answer),
+            )
+
+    @staticmethod
+    def _is_unresolved_switch_followup(turn_semantic_decision: dict[str, Any] | None) -> bool:
+        """True for the failed-switch signature (P1-Y).
+
+        The learner asked to switch/return to a DIFFERENT question, but the runtime
+        could not resolve a concrete target, so the decision degraded to a followup
+        on the current active object. ``switch_to_new_object`` never legitimately
+        co-occurs with ``route_to_followup_explainer`` (a real switch resolves a new
+        active object and routes to generation/grading; a real followup carries
+        ``ask_about_active_object`` / ``answer_active_object``). So this exact combo
+        is the unambiguous "wanted a different question, fell back to the stale one"
+        case — answer it as a clarification, not a stale-object followup.
+        """
+
+        decision = turn_semantic_decision if isinstance(turn_semantic_decision, dict) else {}
+        return (
+            str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
+            and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
+        )
+
+    async def _emit_unresolved_switch_clarification(
+        self,
+        *,
+        stream: StreamBus,
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+    ) -> None:
+        """Fail-closed clarification when a switch/return target cannot be resolved.
+
+        Keeps the current active object untouched (state is not lost) and refuses to
+        present the current question's answer as if it were the referenced one.
+        """
+
+        async with stream.stage("generation", source=self.name):
+            answer = (
+                "你想回到/切换到的那道题，这一轮我没能定位到——当前正在进行的不是它。\n\n"
+                "请把那道题的题干和选项重新发我，或告诉我题号，我再按那道题讲解。"
+                "我不会拿当前这道题的答案，冒充你问的那道题。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(answer, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": answer,
+                "mode": "clarification",
+                "question_authority_source": "unresolved_switch_clarification",
+                "execution_path": "deep_question_unresolved_switch_clarification",
+                "clarification_reason": "unresolved_switch_target",
+                "question_followup_context": {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {
+                    "needs_clarification": True,
+                    "clarification_reason": "unresolved_switch_target",
+                    "turn_id": turn_id,
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
 
     @staticmethod
     def _default_turn_semantic_decision(
@@ -2841,6 +5267,13 @@ class DeepQuestionCapability(BaseCapability):
             if review_mode:
                 grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
                 metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+                if metadata.get("question_review_variant_mode") is True:
+                    notice = str(
+                        metadata.get("variant_notice")
+                        or "基于题库/知识库相似来源生成的变式题，不是原题复刻。"
+                    ).strip()
+                    if notice:
+                        lines.append(f"\n> {notice}")
                 display_answer = str(answer or grading_key.get("correct_answer") or "").strip()
                 if display_answer:
                     lines.append(f"\n**正确答案：** {display_answer}")

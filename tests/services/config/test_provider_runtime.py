@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import re
 
+from deeptutor.services.llm import traffic_control
+from deeptutor.services.llm.config import LLMConfig
 from deeptutor.services.config.env_store import EnvStore
+from deeptutor.services.config.model_catalog import ModelCatalogService
 from deeptutor.services.config.provider_runtime import (
     resolve_llm_runtime_config,
     resolve_search_runtime_config,
@@ -152,6 +157,27 @@ def test_llm_explicit_binding_and_headers(tmp_path: Path) -> None:
     assert resolved.extra_headers == {"APP-Code": "abc"}
 
 
+def test_llm_factory_traffic_controller_uses_runtime_limits(monkeypatch) -> None:
+    cfg = LLMConfig(
+        model="deepseek-v4-flash",
+        api_key="k",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        binding="dashscope",
+        provider_name="dashscope",
+        provider_mode="standard",
+        max_concurrency=7,
+        requests_per_minute=123,
+    )
+    traffic_control._PROVIDER_TRAFFIC_CONTROLLERS.clear()
+    monkeypatch.delenv("DEEPTUTOR_LLM_MAX_CONCURRENCY", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_LLM_REQUESTS_PER_MINUTE", raising=False)
+
+    controller = traffic_control.get_provider_traffic_controller(provider_name="dashscope", config=cfg)
+
+    assert controller.max_concurrency == 7
+    assert controller.rpm == 123
+
+
 def test_llm_resolves_dashscope_fallback_model_from_env(tmp_path: Path) -> None:
     catalog = _build_catalog(
         llm_profile={
@@ -226,6 +252,26 @@ def test_llm_api_base_keyword_gateway(tmp_path: Path) -> None:
     assert resolved.provider_mode == "gateway"
     assert resolved.effective_url == "https://api.aihubmix.com/v1"
     assert resolved.extra_headers == {"APP-Code": "x"}
+
+
+def test_llm_coding_plan_api_base_uses_specific_gateway(tmp_path: Path) -> None:
+    catalog = _build_catalog(
+        llm_profile={
+            "id": "llm-p",
+            "name": "LLM",
+            "binding": "",
+            "base_url": "https://ark.cn-beijing.volces.com/api/coding/v3",
+            "api_key": "k",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m", "name": "m", "model": "volcengine/deepseek-v3"}],
+        }
+    )
+
+    resolved = resolve_llm_runtime_config(catalog=catalog, env_store=_empty_env(tmp_path))
+
+    assert resolved.provider_name == "volcengine_coding_plan"
+    assert resolved.provider_mode == "gateway"
 
 
 def test_llm_local_fallback(tmp_path: Path) -> None:
@@ -361,3 +407,46 @@ def test_search_searxng_without_url_is_missing_config(tmp_path: Path) -> None:
     assert resolved.fallback_reason is None
     assert resolved.missing_credentials is True
     assert resolved.status == "missing_credentials"
+
+
+def test_model_catalog_at_rest_redaction_keeps_runtime_api_key(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_REDACT_MODEL_CATALOG_API_KEYS_AT_REST", "1")
+    catalog_path = tmp_path / "model_catalog.json"
+    service = ModelCatalogService(path=catalog_path)
+
+    saved = service.save(
+        _build_catalog(
+            llm_profile={
+                "id": "llm-p",
+                "name": "LLM",
+                "binding": "openai",
+                "base_url": "https://api.openai.com/v1",
+                "api_key": "sk-runtime-secret-1234567890",
+                "api_version": "",
+                "extra_headers": {},
+                "models": [{"id": "llm-m", "name": "m", "model": "gpt-4o-mini"}],
+            },
+            search_profile={
+                "id": "search-p",
+                "name": "Search",
+                "provider": "tavily",
+                "base_url": "",
+                "api_key": "sk-search-secret-1234567890",
+                "proxy": "",
+                "models": [],
+            },
+        )
+    )
+
+    rendered = catalog_path.read_text(encoding="utf-8")
+    persisted = json.loads(rendered)
+
+    assert saved["services"]["llm"]["profiles"][0]["api_key"] == "sk-runtime-secret-1234567890"
+    assert saved["services"]["search"]["profiles"][0]["api_key"] == "sk-search-secret-1234567890"
+    assert persisted["services"]["llm"]["profiles"][0]["api_key"] == "[REDACTED]"
+    assert persisted["services"]["search"]["profiles"][0]["api_key"] == "[REDACTED]"
+    assert not re.search(r"sk-[A-Za-z0-9_-]{10,}", rendered)
+    assert not re.search(r'api_key"\s*:\s*"(?!\[REDACTED\]|\s*")', rendered)

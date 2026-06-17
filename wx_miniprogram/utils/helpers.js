@@ -223,11 +223,11 @@ function getAnimConfig() {
   var level = getPerformanceLevel();
   if (level === "low") {
     return {
-      enableBreathingOrbs: true, // 3球物理轻量，低端也开启
-      enableMarquee: true, // 保留首页横向跑马灯
+      enableBreathingOrbs: false, // 低端优先保证输入、滚动和流式响应
+      enableMarquee: true, // 保留首页示例跑马灯；低端降级只关重型动效
       enableMsgAnimation: false, // 关闭消息入场动画
       enableFocusPulse: false, // 关闭焦点脉冲
-      orbIntervalMs: 80, // 低端降帧但不关闭
+      orbIntervalMs: 0,
       subtitleIntervalMs: 5000, // 字幕轮播减速
       flushThrottleMs: 200, // 流式刷新降频
       mdParseInterval: 5, // 每 5 次才解析一次 Markdown

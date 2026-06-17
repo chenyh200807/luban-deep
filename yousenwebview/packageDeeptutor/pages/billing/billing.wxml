@@ -1,4 +1,4 @@
-<!-- pages/billing/billing.wxml — 使用情况与额度 -->
+<!-- pages/billing/billing.wxml — 使用情况与权益 -->
 <view class="billing-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -10,7 +10,7 @@
         </view>
         <view class="nav-brand-copy">
           <text class="nav-kicker">鲁班智考</text>
-          <text class="nav-title">额度中心</text>
+          <text class="nav-title">权益中心</text>
         </view>
       </view>
       <view style="flex:1"></view>
@@ -28,8 +28,7 @@
       <view class="balance-card">
         <view class="balance-copy">
           <view class="balance-topline">
-            <text class="balance-label">本周额度</text>
-            <text class="balance-note">按周更新</text>
+            <text class="balance-label">剩余权益</text>
           </view>
           <view class="balance-core">
             <text class="balance-num">{{usagePrimaryLabel}}</text>
@@ -37,8 +36,7 @@
         </view>
         <view class="balance-gauge" aria-hidden="true">
           <view class="balance-gauge-ring">
-            <text class="balance-gauge-num">{{usagePrimaryPercent}}</text>
-            <text class="balance-gauge-unit">%</text>
+            <text class="balance-gauge-num">{{usageGaugeLabel}}</text>
           </view>
         </view>
         <view class="usage-quota-list">
@@ -46,7 +44,6 @@
             <view class="usage-quota-head">
               <view>
                 <text class="usage-quota-title">{{item.label}}</text>
-                <text class="usage-quota-reset" wx:if="{{item.resetLabel}}">重置时间：{{item.resetLabel}}</text>
               </view>
               <text class="usage-quota-percent">{{item.remainingLabel}}</text>
             </view>
@@ -57,8 +54,124 @@
         </view>
       </view>
 
+      <view class="section-head">
+        <text class="section-title">开通学习权益</text>
+        <text class="section-sub">真实 AI 答疑、深度解析、批改和学习记录写回会消耗权益。</text>
+      </view>
+
+      <view class="pkg-grid">
+        <view
+          class="pkg-card {{selectedPackageId === item.id ? 'sel' : ''}}"
+          wx:for="{{packages}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="selectPackage"
+          aria-role="button"
+          aria-label="选择 {{item.name}}"
+        >
+          <view class="pkg-main">
+            <view class="pkg-copy">
+              <view class="pkg-topline">
+                <text class="pkg-name">{{item.name}}</text>
+                <text class="pkg-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
+              </view>
+              <text class="pkg-turns">{{item.turns}} 次</text>
+              <text class="pkg-desc">{{item.desc}}</text>
+            </view>
+            <view class="pkg-price-block">
+              <text class="pkg-original-price" wx:if="{{item.originalPrice}}">原价 ¥{{item.originalPrice}}</text>
+              <view class="pkg-price-row">
+                <text class="pkg-yen">¥</text>
+                <text class="pkg-price">{{item.price}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="pkg-check {{selectedPackageId === item.id ? 'on' : ''}}">
+            <view class="pkg-check-dot"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section-head section-head-records">
+        <text class="section-title">使用记录</text>
+      </view>
+
+      <view class="ledger-card">
+        <view class="ledger-row" wx:for="{{ledgerRows}}" wx:key="id">
+          <view class="ledger-main">
+            <text class="ledger-title">{{item.title}}</text>
+            <text class="ledger-time">{{item.timeLabel}}</text>
+          </view>
+          <view class="ledger-amount">
+            <text class="ledger-usage">{{item.usageLabel}}</text>
+            <text class="ledger-balance">{{item.balanceLabel}}</text>
+          </view>
+        </view>
+        <view class="ledger-empty" wx:if="{{!ledgerRows.length && !ledgerLoading}}">
+          <text class="ledger-empty-text">暂无使用记录</text>
+        </view>
+        <view class="ledger-empty" wx:if="{{ledgerLoading}}">
+          <text class="ledger-empty-text">记录同步中</text>
+        </view>
+      </view>
+
+      <view class="pay-dock" wx:if="{{selectedPackage}}">
+        <view class="pay-dock-copy">
+          <text class="pay-dock-label">当前选择：{{selectedPackage.name}}</text>
+          <text class="pay-dock-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
+          <text class="pay-dock-meta">支付成功后由后端回调写入权益，前端不直接开通。</text>
+        </view>
+        <view class="pay-dock-action" bindtap="openCheckout" aria-role="button" aria-label="开通权益">
+          <view class="pay-dock-price-group">
+            <text class="pay-dock-yen">¥</text>
+            <text class="pay-dock-price">{{selectedPackage.price}}</text>
+          </view>
+          <text class="pay-dock-cta">开通</text>
+        </view>
+      </view>
+
       <view style="height: 60rpx"></view>
     </view>
   </scroll-view>
+
+  <view class="checkout-mask" wx:if="{{checkoutVisible}}" catchtap="closeCheckout">
+    <view class="checkout-sheet" catchtap="noop">
+      <view class="checkout-handle"></view>
+      <view class="checkout-head">
+        <view>
+          <text class="checkout-kicker">权益确认</text>
+          <text class="checkout-title">开通{{selectedPackage.name}}</text>
+        </view>
+        <view class="checkout-close" catchtap="closeCheckout">×</view>
+      </view>
+      <view class="checkout-summary">
+        <view>
+          <text class="checkout-summary-main">{{selectedPackage.turns}} 次学习权益</text>
+          <text class="checkout-summary-sub">用于 AI 答疑、深度解析、批改和复测闭环。</text>
+        </view>
+        <view class="checkout-price">
+          <text class="checkout-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
+          <view class="checkout-current-price">
+            <text class="checkout-yen">¥</text>
+            <text class="checkout-amount">{{selectedPackage.price}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="pay-channel-list">
+        <view class="pay-channel active">
+          <view class="pay-channel-mark wechat"></view>
+          <view class="pay-channel-copy">
+            <text class="pay-channel-title">小程序支付</text>
+            <text class="pay-channel-desc">必须走小程序内合规支付通道，不跳转外部付款。</text>
+          </view>
+          <view class="pay-channel-check"></view>
+        </view>
+      </view>
+      <text class="checkout-message" wx:if="{{checkoutMessage}}">{{checkoutMessage}}</text>
+      <view class="checkout-submit {{checkoutLoading ? 'loading' : ''}}" bindtap="submitCheckout" aria-role="button" aria-label="确认开通">
+        <text class="checkout-submit-text">{{checkoutLoading ? '处理中...' : '确认开通'}}</text>
+      </view>
+    </view>
+  </view>
 
 </view>

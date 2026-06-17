@@ -2,8 +2,8 @@
 
 **Date:** 2026-05-24
 **Mode:** Phase -1 only; read-only audit plus local test gate.
-**Canonical PRD:** `docs/plan/2026-05-24-luban-assessment-testset-module-prd.md`
-**Execution plan:** `docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
+**Canonical PRD:** `docs/plan/测评题库与考试模块/2026-05-24-luban-assessment-testset-module-prd.md`
+**Execution plan:** `docs/plan/测评题库与考试模块/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
 **Decision:** P0A must not enter Phase 1 yet. Phase -1 found real authority blockers that need explicit design resolution.
 
 ## Karpathy Gate

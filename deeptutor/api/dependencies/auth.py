@@ -3,8 +3,10 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from hmac import compare_digest
+import logging
 from typing import Any
 
+import httpx
 from fastapi import Depends, Header, HTTPException, status
 
 from deeptutor.logging.context import bind_log_context, reset_log_context
@@ -14,6 +16,8 @@ from deeptutor.services.wallet.identity import (
     get_wallet_identity_store,
     resolve_wallet_identity,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +76,16 @@ def _resolve_authoritative_user_id_from_claims(
             candidates: list[str] = []
 
             def _append_candidate(alias_type: str, alias_value: str) -> None:
-                row = store.resolve_alias(alias_type=alias_type, alias_value=alias_value)
+                try:
+                    row = store.resolve_alias(alias_type=alias_type, alias_value=alias_value)
+                except httpx.HTTPError as exc:
+                    logger.warning(
+                        "wallet identity alias lookup skipped: alias_type=%s alias_value=%s error=%s",
+                        alias_type,
+                        alias_value,
+                        exc,
+                    )
+                    return
                 if not isinstance(row, dict):
                     return
                 alias_user_id = str(row.get("user_id") or "").strip()

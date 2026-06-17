@@ -1,0 +1,185 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# process registry — "registered-or-you-can't-run-it" for long-running processes.
+#
+# This file is the ONE machine-readable catalog of every LONG-RUNNING process the
+# system runs: GitHub Actions cron schedules, application-internal always-on
+# daemon tasks (heartbeat / cron scheduler / channel sync loops / event-bus
+# processor / team workers), and the supervised compose services. It turns the
+# RESOURCE_GOVERNANCE_FIX_PLAN root-cause business fact —
+#   "每个共享资源在被使用前，必须能被机器确认它登记在唯一 canonical 清单里"
+# — into a deterministic CI gate enforced by scripts/check_process_registry.py,
+# wired into the SAME contract-guard runner (NOT a new governance system).
+#
+# Sibling registries it mirrors EXACTLY (same shape, same runner):
+#   contracts/schema_registry.yaml   + scripts/check_schema_registry.py
+#   contracts/db_registry.yaml       + scripts/check_db_registry.py
+#   contracts/env_registry.yaml      + scripts/check_env_registry.py
+#   contracts/provider_registry.yaml + scripts/check_provider_registry.py
+#
+# THE DANGER THIS GUARDS (root cause of the 201.6 GB incident):
+#   On 2026-06-06 a Claude-Code-owned BI `next dev` process tree was recorded by
+#   macOS Jetsam at ~201.6 GB resident with 3,927 node processes. Only `next dev`
+#   had a guard (agent-owned-next-guard.sh). Any OTHER long-running task —
+#   heartbeat / cron / channel sync loop / team worker that keeps create_task-ing
+#   without recycling — can leak memory/handles the same way with NO registry to
+#   audit "what daemons are running, who owns each, how to stop it". This registry
+#   makes every daemon machine-enumerable so a NEW unowned one cannot slip in.
+#
+# DISCIPLINE:
+#   - Deterministic POLICY FILTER, not a supervisor, not a process manager.
+#     Adding an entry changes NO runtime behavior; it makes an existing
+#     long-running process machine-checkable.
+#   - Single canonical list. No second process inventory may exist.
+#   - Records CURRENT STATE only. Every daemon site + cron workflow that exists
+#     today is grandfathered. The gate's job is 止血 (stop new drift), not a
+#     one-shot cleanup or a forced supervisor-收口 refactor.
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/RESOURCE_GOVERNANCE_FIX_PLAN.md   (Layer 3 · P2)
+#   docs/plan/鲁班knowql/INFRA_REGISTRATION_COVERAGE_AUDIT.md (§4)
+#   docs/plan/鲁班knowql/PROCESS_INVENTORY.md             (the read-only盘点)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+# Only TWO machine signals are governed (deliberately narrow → zero false
+# positives):
+#   1. GHA cron      — a `- cron:` schedule line in a .github/workflows/*.yml.
+#   2. always-on daemon — a create_task(...) whose result is stored in a
+#      PERSISTENT holder: `self._<...>task<...> = asyncio.create_task(...)` OR
+#      `<...>.worker_tasks[...] = ... create_task(...)`. The persistent holder is
+#      the machine signal "this task outlives the call that started it".
+# A fire-and-forget `asyncio.create_task(coro)` whose result is DISCARDED, or a
+# task assigned to a plain local that is awaited/gathered in-scope, is NOT a
+# governed daemon — that is the explicit zero-false-positive boundary.
+scope_rule:
+  governed_signals:
+    gha_cron: "- cron: '<expr>'  in .github/workflows/*.yml"
+    persistent_daemon_task:
+      - "self._<name>task<...> = asyncio.create_task(...)"
+      - "<obj>.worker_tasks[<key>] = ... asyncio.create_task(...)"
+  not_governed:
+    - fire_and_forget_create_task        # result discarded → ephemeral per-request
+    - local_variable_create_task         # awaited/gathered in-scope, not persistent
+    - test_or_fixture_reference          # under tests/ — no production contract
+    - compose_service                    # docker-compose restart:unless-stopped — visible & supervised (listed below for honesty, not scanned)
+
+# ── GHA cron schedules (visible, version-controlled, auditable) ──────────────
+# Each = the workflow file + its cron expr + owner + what it does + how to stop.
+# A NEW workflow that declares a `- cron:` and is not listed here fails CI.
+scheduled_tasks:
+  - name: wallet-consistency-cron
+    file: .github/workflows/wallet-consistency-cron.yml
+    type: cron
+    schedule: "0 4 * * *"
+    owner: commerce
+    lifecycle: GitHub-Actions-hosted; read-only wallet projection consistency audit.
+    supervised_by: GitHub Actions (disable via workflow toggle / branch protection).
+  - name: runtime-drill
+    file: .github/workflows/runtime-drill.yml
+    type: cron
+    schedule: "0 2 * * 1"
+    owner: platform
+    lifecycle: weekly backup/restore drill.
+    supervised_by: GitHub Actions.
+  - name: hermes-upstream-sentinel
+    file: .github/workflows/hermes-upstream.yml
+    type: cron
+    schedule: "23 3 * * 1"
+    owner: platform
+    lifecycle: weekly Hermes upstream drift check.
+    supervised_by: GitHub Actions.
+  - name: runtime-ops-assets
+    file: .github/workflows/runtime-ops.yml
+    type: cron
+    schedule: "0 3 * * 1"
+    owner: platform
+    lifecycle: weekly runtime asset validation (also runs on push/PR).
+    supervised_by: GitHub Actions.
+
+# ── Application-internal always-on daemons (the 201.6 GB blast-radius class) ──
+# Each = the source file that starts a PERSISTENT create_task + owner + lifecycle
+# + how to stop. A NEW persistent-task daemon at an unlisted file fails CI. All
+# entries below are needs_verification on owner/stop until a maintainer confirms;
+# the SITE existence is machine-verified by the full-repo scan (zero false pos).
+daemons:
+  - name: tutorbot-heartbeat
+    file: deeptutor/tutorbot/heartbeat/service.py
+    type: daemon
+    lifecycle: HeartbeatService.start() spawns self._task = create_task(_run_loop()); proactive-message heartbeat loop.
+    owner: tutorbot                      # needs_verification
+    supervised_by: TutorBot runtime (stop() cancels self._task).
+  - name: tutorbot-cron-scheduler
+    file: deeptutor/tutorbot/cron/service.py
+    type: scheduler
+    lifecycle: CronService.start() spawns self._timer_task = create_task(tick()); croniter in-process scheduler.
+    owner: tutorbot                      # needs_verification
+    supervised_by: TutorBot runtime (timer task cancellable).
+  - name: channel-matrix-sync
+    file: deeptutor/tutorbot/channels/matrix.py
+    type: daemon
+    lifecycle: self._sync_task = create_task(_sync_loop()); Matrix sync loop while self._running.
+    owner: tutorbot-channels             # needs_verification
+    supervised_by: channel manager (self._running flag + task cancel).
+  - name: channel-discord-heartbeat
+    file: deeptutor/tutorbot/channels/discord.py
+    type: daemon
+    lifecycle: self._heartbeat_task = create_task(heartbeat_loop()); Discord gateway heartbeat.
+    owner: tutorbot-channels             # needs_verification
+    supervised_by: channel manager.
+  - name: channel-mochat-refresh
+    file: deeptutor/tutorbot/channels/mochat.py
+    type: daemon
+    lifecycle: self._refresh_task = create_task(_refresh_loop()) + self._cursor_save_task; token refresh + cursor save.
+    owner: tutorbot-channels             # needs_verification
+    supervised_by: channel manager.
+  - name: channel-outbound-dispatch
+    file: deeptutor/tutorbot/channels/manager.py
+    type: daemon
+    lifecycle: self._dispatch_task = create_task(_dispatch_outbound()); outbound message dispatch loop.
+    owner: tutorbot-channels             # needs_verification
+    supervised_by: channel manager.
+  - name: event-bus-processor
+    file: deeptutor/events/event_bus.py
+    type: daemon
+    lifecycle: self._processor_task = create_task(_process_events()); in-process event queue processor.
+    owner: platform                      # needs_verification
+    supervised_by: event bus (stop cancels processor task).
+  - name: tutorbot-team-workers
+    file: deeptutor/tutorbot/agent/team/__init__.py
+    type: worker
+    lifecycle: runtime.worker_tasks[name] = create_task(_run_worker(...)); nano-team per-member worker tasks (bounded by worker_max_iterations).
+    owner: tutorbot-team                 # needs_verification
+    supervised_by: team runtime (worker_tasks dict; cancellable per worker).
+
+# ── Supervised compose services (visible & managed — listed for honesty) ─────
+# These are docker-compose restart:unless-stopped services. They are visible,
+# version-controlled, and supervised by the container runtime — NOT scanned by
+# the gate (no source-code signal). Recorded so the inventory is complete.
+compose_services:
+  - name: deeptutor
+    supervised_by: "docker-compose (restart: unless-stopped)"
+  - name: searxng
+    supervised_by: "docker-compose (restart: unless-stopped)"
+  - name: valkey
+    supervised_by: "docker-compose (restart: unless-stopped)"
+
+# ── Known coverage gaps (诚实标注，不假装全覆盖) ─────────────────────────────
+# Honest needs_verification list — the gate covers the two machine signals above;
+# these are out of the machine signal and tracked as known gaps + alternative:
+needs_verification:
+  - signal: "agent/loop.py self-restart create_task(_do_restart())"
+    why_not_scanned: >-
+      It is a fire-and-forget restart trampoline (result discarded), not a
+      persistent holder, so it does not match the daemon signal. It IS
+      long-running-adjacent (os.execv restart). Alternative: governed by the
+      memory guardrail (agent-owned-next-guard.sh class) + this note, not by the
+      static signal.
+  - signal: "AI-agent-owned python/worker process trees (the actual 201.6 GB shape)"
+    why_not_scanned: >-
+      A runtime memory condition, not a source-code signal — a static scanner
+      cannot see a leaked process tree. Alternative (plan §4.2): generalize
+      agent-owned-next-guard.sh to python/worker trees. Out of this minimal
+      收权 scope; this registry makes the daemon SITES enumerable so such a
+      generalized guard knows what is legitimately long-running.

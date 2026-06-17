@@ -133,6 +133,60 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
             ],
         )
 
+    def fake_run_luban_case_grading_case_set(**kwargs):
+        return (
+            {
+                "suite": "luban-case-grading-shadow",
+                "total_cases": 1,
+                "passed": 1,
+                "failed": 0,
+                "skipped": 0,
+                "pass_rate": 1.0,
+                "failure_taxonomy": [],
+                "case_tiers": {"exploratory": 1},
+            },
+            [
+                {
+                    "suite": "luban-case-grading-shadow",
+                    "case_id": "grading.luban_case_golden.v0",
+                    "case_name": "grading.luban_case_golden.v0",
+                    "status": "PASS",
+                    "case_tier": "exploratory",
+                    "failure_type": None,
+                    "evidence": {"directional_go": True},
+                    "latency_ms": None,
+                    "details": {},
+                }
+            ],
+        )
+
+    def fake_run_answer_citation_case_set(**kwargs):
+        return (
+            {
+                "suite": "answer-citation-shadow",
+                "total_cases": 1,
+                "passed": 1,
+                "failed": 0,
+                "skipped": 0,
+                "pass_rate": 1.0,
+                "failure_taxonomy": [],
+                "case_tiers": {"exploratory": 1},
+            },
+            [
+                {
+                    "suite": "answer-citation-shadow",
+                    "case_id": "answer.citation.paper_style.v0",
+                    "case_name": "answer.citation.paper_style.v0",
+                    "status": "PASS",
+                    "case_tier": "exploratory",
+                    "failure_type": None,
+                    "evidence": {"citation_accuracy": 1.0, "footer_coverage": 1.0},
+                    "latency_ms": None,
+                    "details": {},
+                }
+            ],
+        )
+
     monkeypatch.setattr(
         "deeptutor.services.observability.arr_runner.run_semantic_router_suite",
         fake_run_semantic_router_suite,
@@ -148,6 +202,14 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     monkeypatch.setattr(
         "deeptutor.services.observability.arr_runner.run_local_long_dialog_suite",
         fake_run_local_long_dialog_suite,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.benchmark.runner._run_luban_case_grading_case_set",
+        fake_run_luban_case_grading_case_set,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.benchmark.runner._run_answer_citation_case_set",
+        fake_run_answer_citation_case_set,
     )
     monkeypatch.setattr("deeptutor.services.benchmark.runner.shutil.which", lambda _name: "/usr/bin/node")
     monkeypatch.setattr(
@@ -165,20 +227,28 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     assert payload["run_manifest"]["requested_suites"] == [
         "pr_gate_core",
         "regression_watch",
+        "real_exam_quality_spine",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
+        "answer_citation_shadow",
+        "m26_context_safety",
     ]
     assert [item["suite"] for item in payload["suite_summaries"]] == [
         "pr_gate_core",
         "regression_watch",
+        "real_exam_quality_spine",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
+        "answer_citation_shadow",
+        "m26_context_safety",
     ]
     assert payload["run_manifest"]["registry_version"] == "phase1"
     assert payload["release_spine"]
-    assert payload["summary"]["passed"] == 6
+    assert payload["summary"]["passed"] == 9
     assert payload["summary"]["failed"] == 1
-    assert payload["summary"]["skipped"] == 1
+    assert payload["summary"]["skipped"] == 4
     assert payload["failure_taxonomy"] == [{"failure_type": "FAIL_ROUTE_WRONG", "count": 1}]
     assert payload["baseline_diff"] is None
     assert payload["runtime_evidence_links"] == [
@@ -196,7 +266,20 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     assert ysv_case["evidence"]["reason"] == "node_yousenwebview_surface_telemetry_passed"
     assert not any(item["case_id"] == "surface.wx.renderer.parity" for item in payload["blind_spots"])
     assert not any(item["case_id"] == "surface.yousenwebview.telemetry.smoke" for item in payload["blind_spots"])
+    assert not any(item["case_id"] == "answer.citation.paper_style.v0" for item in payload["blind_spots"])
+    real_exam_case = next(
+        item for item in payload["case_results"] if item["case_id"] == "quality.real_exam_bank.docs_2026.mcq"
+    )
+    assert real_exam_case["status"] == "PASS"
+    assert real_exam_case["evidence"]["question_count"] == 337
+    assert "2024" in real_exam_case["evidence"]["years_included"]
     assert any(item["case_id"] == "surface.web.ack.smoke" for item in payload["blind_spots"])
+    m26_case = next(
+        item for item in payload["case_results"] if item["case_id"] == "grading.compiled_context.safety_contract"
+    )
+    assert m26_case["status"] == "SKIP"
+    assert m26_case["evidence"]["reason"] == "benchmark_case_runner_not_implemented"
+    assert "FAIL_OFFICIAL_SCORE_LAUNDERING" in m26_case["evidence"]["failure_taxonomy_scope"]
     assert all("source_suite" in item for item in payload["case_results"])
     assert payload["legacy"]["suite_summaries"][0]["suite"] == "semantic-router"
     assert payload["legacy"]["case_results"][0]["suite"] == "semantic-router"

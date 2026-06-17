@@ -32,7 +32,7 @@ class UpdateBotRequest(BaseModel):
     model: str | None = None
 
 
-class FileUpdateRequest(BaseModel):
+class TutorbotFileUpdateRequest(BaseModel):
     content: str
 
 
@@ -195,7 +195,7 @@ async def read_bot_file(bot_id: str, filename: str):
 
 
 @router.put("/{bot_id}/files/{filename}")
-async def write_bot_file(bot_id: str, filename: str, payload: FileUpdateRequest):
+async def write_bot_file(bot_id: str, filename: str, payload: TutorbotFileUpdateRequest):
     ok = get_tutorbot_manager().write_bot_file(bot_id, filename, payload.content)
     if not ok:
         raise HTTPException(status_code=400, detail=f"Not an editable file: {filename}")

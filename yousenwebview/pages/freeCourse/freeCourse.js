@@ -542,29 +542,69 @@ Page({
         return;
       }
       const entrySource = 'free_course_inline_entry';
-      const returnTo = '/packageDeeptutor/pages/chat/chat?entry_source=' + entrySource;
       analytics.track('deeptutor_entry_click', {
         entry_source: entrySource,
         entry_title: this.data.deeptutorEntryConfig.title,
         entry_variant: this.data.deeptutorEntryConfig.variant,
       });
+      // 防双击：1.5s 内重复点击直接忽略（替代旧 openDeeptutorLogin 的跨首页导航锁）
+      const now = Date.now();
+      if (this._deeptutorNavLockUntil && now < this._deeptutorNavLockUntil) {
+        return;
+      }
+      this._deeptutorNavLockUntil = now + 1500;
+      // 用户选过「不再显示导学」：跳过动效，直接走原登录/已登录直达 chat 桥接。
+      // key 必须与 packageDeeptutor/pages/onboarding/onboarding.js 的 DISMISS_KEY 一致。
+      let onboardingDismissed = false;
+      try {
+        onboardingDismissed = wx.getStorageSync('deeptutor_onboarding_dismissed') === true;
+      } catch (err) {
+        onboardingDismissed = false;
+      }
       const app = getApp();
-      if (!app || typeof app.openDeeptutorLogin !== 'function') {
-        wx.showToast({
-          title: '鲁班AI智考暂时无法打开',
-          icon: 'none',
-          duration: 2500
+      if (onboardingDismissed && app && typeof app.openDeeptutorLogin === 'function') {
+        const returnTo = '/packageDeeptutor/pages/chat/chat?entry_source=' + entrySource;
+        app.openDeeptutorLogin(entrySource, returnTo, {
+          onFail: () => {
+            this._deeptutorNavLockUntil = 0;
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
         });
         return;
       }
-      app.openDeeptutorLogin(entrySource, returnTo, {
-        onFail: () => {
-          wx.showToast({
-            title: '鲁班AI智考暂时无法打开',
-            icon: 'none',
-            duration: 2500
-          });
-        },
-      })
+      // 否则：预加载 packageDeeptutor 分包后再播先体验导学动效（dest=login）
+      const openOnboarding = () => {
+        wx.navigateTo({
+          url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',
+          fail: () => {
+            this._deeptutorNavLockUntil = 0;
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
+        });
+      };
+      if (typeof wx.loadSubpackage === 'function') {
+        wx.loadSubpackage({
+          name: 'packageDeeptutor',
+          success: openOnboarding,
+          fail: () => {
+            this._deeptutorNavLockUntil = 0;
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
+        });
+      } else {
+        openOnboarding();
+      }
     }
 })

@@ -29,7 +29,13 @@ from deeptutor.services.learner_state.attempt_detail_read_model import build_att
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
+from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.member_usage_meter import get_member_usage_meter
 from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -68,6 +74,25 @@ wallet_service = get_wallet_service()
 
 _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
+_MOBILE_CHAT_START_TURN_DEPENDENCIES = [
+    Depends(
+        route_rate_limit(
+            "mobile_chat_start_turn",
+            default_max_requests=10,
+            default_window_seconds=60.0,
+        )
+    ),
+    # Per-user DAILY turn budget (economic-DoS guard), mirroring the /api/v1/ws
+    # ws_start_turn_daily cap. Burst limit above stops spikes; this stops sustained
+    # burn (10/min for 24h ≈ 14k paid LLM calls/day on one account).
+    Depends(
+        route_rate_limit(
+            "mobile_chat_start_turn_daily",
+            default_max_requests=500,
+            default_window_seconds=86400.0,
+        )
+    ),
+]
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
@@ -84,6 +109,7 @@ _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
 _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
+_INTERNAL_BETA_USAGE_LIMIT_TURNS = "DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
@@ -91,22 +117,27 @@ _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJ
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_QUOTA_POINTS = {
-    "advance": {"five_hour": 1600, "weekly": 4400},
-    "sprint": {"five_hour": 3200, "weekly": 9000},
+    "vip": {"five_hour": 3200, "weekly": 9000},
+    "svip": {"five_hour": 10000, "weekly": 28000},
+    "supreme_svip": {"five_hour": 18000, "weekly": 50000},
 }
 _BILLING_PLAN_ALIASES = {
-    "": "advance",
-    "standard": "advance",
-    "starter": "advance",
-    "trial": "advance",
-    "precision": "advance",
-    "jingxue": "advance",
-    "advance": "advance",
-    "pro": "sprint",
-    "pass": "sprint",
-    "tongguan": "sprint",
-    "sprint": "sprint",
-    "ultimate": "sprint",
+    "": "vip",
+    "trial": "vip",
+    "vip": "vip",
+    "standard": "vip",
+    "starter": "vip",
+    "precision": "vip",
+    "jingxue": "vip",
+    "advance": "vip",
+    "svip": "svip",
+    "pro": "svip",
+    "pass": "svip",
+    "tongguan": "svip",
+    "sprint": "svip",
+    "supreme_svip": "supreme_svip",
+    "ultimate": "supreme_svip",
+    "至尊svip": "supreme_svip",
 }
 _BILLING_PAYMENT_CHANNELS = {"wechat", "alipay"}
 _BILLING_PAYMENT_GATEWAY_URL = "DEEPTUTOR_PAYMENT_GATEWAY_URL"
@@ -255,7 +286,43 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
         )
 
 
-def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
+def _internal_qa_wallet_snapshot_or_none(
+    user_id: str,
+    *,
+    identity_candidates: Iterable[Any] = (),
+    fallback_points: int = 0,
+) -> WalletSnapshot | None:
+    candidates = [
+        user_id,
+        *identity_candidates,
+        *_internal_qa_member_identity_candidates(user_id),
+    ]
+    if not internal_qa_billing_bypass_allowed(*candidates):
+        return None
+    points = max(int(fallback_points or 0), 0)
+    return WalletSnapshot(
+        user_id=str(user_id or "").strip(),
+        balance_micros=points * 1_000_000,
+        frozen_micros=0,
+        plan_id="internal_qa",
+        version=0,
+        created_at="",
+    )
+
+
+def _wallet_snapshot_or_zero(
+    user_id: str,
+    *,
+    identity_candidates: Iterable[Any] = (),
+    fallback_points: int = 0,
+) -> WalletSnapshot:
+    internal_qa_snapshot = _internal_qa_wallet_snapshot_or_none(
+        user_id,
+        identity_candidates=identity_candidates,
+        fallback_points=fallback_points,
+    )
+    if internal_qa_snapshot is not None:
+        return internal_qa_snapshot
     if not getattr(wallet_service, "is_configured", False):
         if _env_flag_enabled(_LOCAL_WALLET_FALLBACK):
             return WalletSnapshot(
@@ -359,15 +426,19 @@ def _billing_usage_limit_points(env_name: str, default: int) -> int:
         return default
 
 
+def _internal_beta_usage_limit_turns() -> int:
+    return _billing_usage_limit_points(_INTERNAL_BETA_USAGE_LIMIT_TURNS, 450)
+
+
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
-    return _BILLING_PLAN_ALIASES.get(raw, "advance")
+    return _BILLING_PLAN_ALIASES.get(raw, "vip")
 
 
 def _billing_usage_limit_for_plan(plan_id: str | None, window: str) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
-    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["advance"]
-    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["advance"][window])
+    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["vip"]
+    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["vip"][window])
     env_name = _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS if window == "five_hour" else _BILLING_USAGE_WEEKLY_LIMIT_POINTS
     return _billing_usage_limit_points(env_name, default)
 
@@ -419,6 +490,7 @@ def _build_billing_usage_payload(
     *,
     now: datetime | None = None,
     plan_id: str | None = None,
+    limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
     five_hour_start = current - timedelta(hours=5)
@@ -447,14 +519,20 @@ def _build_billing_usage_payload(
         _usage_window_payload(
             key="five_hour",
             label="5 小时保护额度",
-            limit_points=_billing_usage_limit_for_plan(plan_id, "five_hour"),
+            limit_points=(
+                int((limit_points_by_window or {}).get("five_hour") or 0)
+                or _billing_usage_limit_for_plan(plan_id, "five_hour")
+            ),
             used_micros=five_hour_used,
             reset_at=five_hour_reset,
         ),
         _usage_window_payload(
             key="weekly",
             label="本周额度",
-            limit_points=_billing_usage_limit_for_plan(plan_id, "weekly"),
+            limit_points=(
+                int((limit_points_by_window or {}).get("weekly") or 0)
+                or _billing_usage_limit_for_plan(plan_id, "weekly")
+            ),
             used_micros=weekly_used,
             reset_at=week_reset,
         ),
@@ -497,6 +575,98 @@ def _load_billing_usage_entries(
     return _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
 
 
+def _usage_meter_event_created_at_iso(event: Any) -> str:
+    created_at = getattr(event, "created_at", None)
+    if isinstance(created_at, (int, float)):
+        return datetime.fromtimestamp(float(created_at), tz=_BILLING_USAGE_TZ).isoformat()
+    parsed = _parse_ledger_datetime(str(created_at or ""))
+    return parsed.isoformat() if parsed else datetime.now(_BILLING_USAGE_TZ).isoformat()
+
+
+def _usage_meter_events_as_ledger_entries(
+    events: Iterable[Any],
+    *,
+    amount_points_per_event: int | None = None,
+) -> list[WalletLedgerEntry]:
+    entries: list[WalletLedgerEntry] = []
+    for event in events:
+        amount_points = max(
+            0,
+            int(
+                amount_points_per_event
+                if amount_points_per_event is not None
+                else getattr(event, "amount_points", 0)
+                or 0
+            ),
+        )
+        if amount_points <= 0:
+            continue
+        wallet_user_id = str(getattr(event, "wallet_user_id", "") or "").strip()
+        event_id = str(getattr(event, "event_id", "") or "").strip()
+        turn_id = str(getattr(event, "turn_id", "") or "").strip()
+        metadata = getattr(event, "metadata", {}) or {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+        entries.append(
+            WalletLedgerEntry(
+                id=f"usage_meter:{event_id or turn_id}",
+                user_id=wallet_user_id,
+                event_type="debit",
+                delta_micros=-(amount_points * 1_000_000),
+                balance_after_micros=0,
+                frozen_after_micros=0,
+                reference_type="ai_usage",
+                reference_id=turn_id,
+                idempotency_key=f"usage_meter:{event_id or turn_id}",
+                metadata={
+                    "reason": "capture",
+                    "usage_meter_status": str(getattr(event, "status", "") or ""),
+                    **metadata,
+                },
+                created_at=_usage_meter_event_created_at_iso(event),
+            )
+        )
+    return entries
+
+
+def _load_member_usage_meter_events(
+    *,
+    wallet_user_id: str,
+    limit: int,
+) -> list[Any]:
+    return get_member_usage_meter().list_usage_events(
+        wallet_user_id,
+        limit=limit,
+        offset=0,
+    )
+
+
+def _build_internal_beta_usage_payload(
+    events: list[Any],
+    *,
+    plan_id: str | None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
+    limit_turns = _internal_beta_usage_limit_turns()
+    unit_points = int(_MINI_PROGRAM_CAPTURE_COST)
+    entries = _usage_meter_events_as_ledger_entries(
+        events,
+        amount_points_per_event=unit_points,
+    )
+    payload = _build_billing_usage_payload(
+        entries,
+        now=current,
+        plan_id=plan_id,
+        limit_points_by_window={
+            "five_hour": limit_turns * unit_points,
+            "weekly": limit_turns * unit_points,
+        },
+    )
+    payload["quota"]["unit"] = "turn"
+    return payload
+
+
 def _billing_storage_unavailable(exc: Exception, *, source: str) -> HTTPException:
     status_code = getattr(getattr(exc, "response", None), "status_code", None)
     logger.warning("billing storage unavailable: source=%s status=%s error=%s", source, status_code, exc)
@@ -508,7 +678,7 @@ def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, 
         "status": "degraded",
         "reason": "billing_storage_unavailable",
         "display": {
-            "primary_label": "额度同步中",
+            "primary_label": "额度暂不可用",
             "primary_percent": 100,
             "limited_by": "weekly",
             "plan_id": _normalize_billing_plan_id(plan_id),
@@ -542,6 +712,8 @@ def _build_local_checkout_payload(
             "label": str(package.get("label") or ""),
             "price": price,
             "points": int(package.get("points") or 0),
+            "turns": int(package.get("turns") or 0),
+            "original_price": str(package.get("original_price") or ""),
         },
         "amount_fen": amount_fen,
         "currency": "CNY",
@@ -581,14 +753,15 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     billing_quota_exceeded) when the available balance cannot cover this
     turn's minimum charge. Per contracts/turn.md:69 this runs before
     turn_runtime.start_turn, so no pending turn is created and no answer is
-    delivered. Internal beta keeps enforcement OFF, so this is a no-op then.
+    delivered. Explicit internal-beta OFF override keeps this a no-op.
     """
     if not is_billing_enforcement_enabled():
         return
     snapshot = wallet_service.get_wallet(wallet_user_id)
     if snapshot is None:
-        return
-    available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
+        available_micros = 0
+    else:
+        available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
     minimum_charge_micros = int(_MINI_PROGRAM_CAPTURE_COST) * 1_000_000
     if available_micros >= minimum_charge_micros:
         return
@@ -604,10 +777,59 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     )
 
 
-def _assert_billing_quota_available(authorization: str | None, *, wallet_user_id: str) -> None:
+def _internal_qa_member_identity_candidates(*user_ids: str) -> list[str]:
+    if not internal_qa_billing_bypass_enabled():
+        return []
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for user_id in user_ids:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            continue
+        try:
+            profile = member_service.get_profile(normalized_user_id)
+        except Exception:
+            continue
+        if not isinstance(profile, dict):
+            continue
+        for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+            _append(profile.get(key))
+    return candidates
+
+
+def _assert_billing_quota_available(
+    authorization: str | None,
+    *,
+    wallet_user_id: str,
+    authenticated_user_id: str = "",
+) -> None:
+    if not is_billing_enforcement_enabled():
+        return
+    identity_candidates = [
+        authenticated_user_id,
+        wallet_user_id,
+        *_resolve_legacy_ledger_candidate_user_ids(authorization),
+    ]
+    identity_candidates.extend(_internal_qa_member_identity_candidates(*identity_candidates))
+    if internal_qa_billing_bypass_allowed(
+        *identity_candidates,
+    ):
+        return
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
-        return
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "billing_wallet_unavailable",
+                "message": "Billing wallet service is unavailable.",
+                "limited_by": "wallet_service",
+            },
+        )
     _assert_wallet_balance_available(normalized_user_id)
     try:
         usage_payload = _build_billing_usage_payload(
@@ -766,6 +988,48 @@ async def _assert_mobile_conversation_access(conversation_id: str, user_id: str)
     variants = await _load_mobile_conversation_variants(resolved_conversation_id, user_id)
     if variants:
         return
+    raise HTTPException(status_code=404, detail="Conversation not found")
+
+
+async def _resolve_mobile_runtime_session_id(
+    conversation_id: str,
+    user_id: str,
+) -> tuple[str | None, str | None]:
+    resolved_conversation_id = str(conversation_id or "").strip()
+    if not resolved_conversation_id:
+        return None, None
+
+    variants = await _load_mobile_conversation_variants(resolved_conversation_id, user_id)
+    if not variants:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    def session_id_for(row: dict[str, Any]) -> str:
+        return str(row.get("id") or row.get("session_id") or "").strip()
+
+    def public_id_for(row: dict[str, Any]) -> str:
+        return _normalize_mobile_conversation_id(row) or resolved_conversation_id
+
+    def is_synthetic_direct(row: dict[str, Any]) -> bool:
+        return set(row.keys()) <= {"id"} and session_id_for(row) == resolved_conversation_id
+
+    for row in variants:
+        if not isinstance(row, dict):
+            continue
+        session_id = session_id_for(row)
+        if session_id == resolved_conversation_id:
+            return session_id, public_id_for(row)
+
+    rich_variants = [row for row in variants if isinstance(row, dict) and not is_synthetic_direct(row)]
+    for row in rich_variants:
+        session_id = session_id_for(row)
+        if session_id:
+            return session_id, public_id_for(row)
+    for row in variants:
+        if not isinstance(row, dict):
+            continue
+        session_id = session_id_for(row)
+        if session_id:
+            return session_id, public_id_for(row)
     raise HTTPException(status_code=404, detail="Conversation not found")
 
 
@@ -1385,6 +1649,16 @@ def _event_identity(event: dict[str, Any], key: str) -> str:
 
 
 def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
+    if isinstance(message, dict):
+        for key in ("engine_turn_id", "turn_id"):
+            direct = str(message.get(key) or "").strip()
+            if direct:
+                return direct
+        for metadata in _iter_mobile_message_metadata(message):
+            for key in ("engine_turn_id", "turn_id"):
+                candidate = str(metadata.get(key) or "").strip()
+                if candidate:
+                    return candidate
     for event in reversed(_message_events(message)):
         turn_id = _event_identity(event, "turn_id")
         if turn_id:
@@ -1636,6 +1910,18 @@ def _build_mobile_turn_payload(
         config["bot_id"] = _MOBILE_TUTORBOT_ID
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    if body.grading_engine_runtime_shadow:
+        config["grading_engine_runtime_shadow"] = True
+        config["grading_engine_runtime_shadow_engine"] = (
+            str(body.grading_engine_runtime_shadow_engine or "deepseek_fast").strip()
+            or "deepseek_fast"
+        )
+    request_config = body.config if isinstance(body.config, dict) else {}
+    config_general_knowledge_context = request_config.get("general_knowledge_context")
+    if body.general_knowledge_context is not None:
+        config["general_knowledge_context"] = bool(body.general_knowledge_context)
+    elif isinstance(config_general_knowledge_context, bool):
+        config["general_knowledge_context"] = config_general_knowledge_context
     if body.prompt_intent:
         intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
         config[intent_key] = dict(body.prompt_intent)
@@ -1731,11 +2017,19 @@ class LoginRequest(BaseModel):
 
 class PhoneRequest(BaseModel):
     phone: str
+    username: str = ""
 
 
 class VerifyCodeRequest(BaseModel):
     phone: str
     code: str
+
+
+class PasswordResetRequest(BaseModel):
+    username: str
+    phone: str
+    code: str
+    password: str
 
 
 class RegisterRequest(BaseModel):
@@ -1746,6 +2040,7 @@ class RegisterRequest(BaseModel):
 
 class WechatLoginRequest(BaseModel):
     code: str = ""
+    phone_code: str = ""
 
 
 class WechatBindPhoneRequest(BaseModel):
@@ -1761,12 +2056,16 @@ class MobileStartTurnRequest(BaseModel):
     language: str = "zh"
     interaction_profile: str = "tutorbot"
     interaction_hints: dict[str, Any] | None = None
+    config: dict[str, Any] | None = None
     tools: list[str] = Field(default_factory=list)
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     followup_question_context: dict[str, Any] | None = None
     prompt_intent: dict[str, Any] | None = None
     persist_user_message: bool = True
+    grading_engine_runtime_shadow: bool = False
+    grading_engine_runtime_shadow_engine: str = "deepseek_fast"
+    general_knowledge_context: bool | None = None
 
 
 class ChatFeedbackRequest(BaseModel):
@@ -1809,7 +2108,11 @@ class BatchConversationRequest(BaseModel):
 )
 async def auth_login(body: LoginRequest) -> dict[str, Any]:
     try:
-        return member_service.login_with_password(body.username, body.password)
+        # bcrypt verify + a deliberate >=100ms constant-time floor (timing-attack
+        # guard) — must run in the threadpool, not on the event loop.
+        return await run_in_threadpool(
+            member_service.login_with_password, body.username, body.password
+        )
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
@@ -1822,7 +2125,10 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
 )
 async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
-        result = member_service.register_with_external_auth(body.username, body.password, body.phone)
+        # bcrypt hash — threadpool, same rationale as auth_login.
+        result = await run_in_threadpool(
+            member_service.register_with_external_auth, body.username, body.password, body.phone
+        )
         user = result.get("user") if isinstance(result.get("user"), dict) else {}
         user_id = str(
             result.get("user_id")
@@ -1849,6 +2155,8 @@ async def auth_register(body: RegisterRequest) -> dict[str, Any]:
 )
 async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
     try:
+        if body.username.strip():
+            return member_service.send_password_reset_code(body.username, body.phone)
         return member_service.send_phone_code(body.phone)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -1869,13 +2177,44 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post(
+    "/auth/reset-password",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_reset_password", default_max_requests=5, default_window_seconds=60.0))
+    ],
+)
+async def auth_reset_password(body: PasswordResetRequest) -> dict[str, Any]:
+    try:
+        # bcrypt re-hash — threadpool, same rationale as auth_login.
+        return await run_in_threadpool(
+            member_service.reset_password_with_phone_code,
+            body.username,
+            body.phone,
+            body.code,
+            body.password,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/auth/profile")
 async def auth_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
     current_user = resolve_auth_context(authorization)
     profile = member_service.get_profile(user_id)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
-    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
+    legacy_points = int(profile.get("points") or profile.get("points_balance") or 0)
+    snapshot = _wallet_snapshot_or_zero(
+        wallet_user_id,
+        identity_candidates=(
+            user_id,
+            profile.get("user_id"),
+            profile.get("username"),
+            profile.get("auth_username"),
+            profile.get("external_auth_user_id"),
+        ),
+        fallback_points=legacy_points,
+    )
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
     profile["id"] = user_id
@@ -1950,7 +2289,9 @@ async def auth_profile_settings(
 )
 async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
     try:
-        return await member_service.login_with_wechat_code(body.code)
+        if not str(body.phone_code or "").strip():
+            raise ValueError("phone_code is required")
+        return await member_service.login_with_wechat_phone(body.code, body.phone_code)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -2032,17 +2373,38 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         return _build_billing_usage_payload([])
     try:
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
-        return _build_billing_usage_payload(
-            _load_billing_usage_entries(
-                authorization,
+    except Exception as exc:
+        _billing_storage_unavailable(exc, source="billing_usage_wallet")
+        return _degraded_billing_usage_payload()
+    if not is_billing_enforcement_enabled():
+        try:
+            events = _load_member_usage_meter_events(
                 wallet_user_id=wallet_user_id,
                 limit=_BILLING_USAGE_LEDGER_WINDOW,
-            ),
+            )
+        except Exception as exc:
+            _billing_storage_unavailable(exc, source="billing_usage_member_meter")
+            events = []
+        payload = _build_internal_beta_usage_payload(
+            events,
             plan_id=snapshot.plan_id,
         )
+        payload["usage_source"] = "member_usage_meter"
+        payload["charging_status"] = "metered_not_charged"
+        return payload
+    try:
+        entries = _load_billing_usage_entries(
+            authorization,
+            wallet_user_id=wallet_user_id,
+            limit=_BILLING_USAGE_LEDGER_WINDOW,
+        )
     except Exception as exc:
-        _billing_storage_unavailable(exc, source="billing_usage")
-        return _degraded_billing_usage_payload()
+        _billing_storage_unavailable(exc, source="billing_usage_ledger")
+        entries = []
+    return _build_billing_usage_payload(
+        entries,
+        plan_id=snapshot.plan_id,
+    )
 
 
 @router.get("/billing/ledger")
@@ -2140,7 +2502,19 @@ async def mastery_dashboard(authorization: str | None = Header(default=None)) ->
     return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
 
 
-@router.get("/learning-brain/projection")
+@router.get(
+    "/learning-brain/projection",
+    # Heavy synthesis pass over the learner's memory events — not free to recompute.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_learning_brain_projection",
+                default_max_requests=20,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def learning_brain_projection(
     authorization: str | None = Header(default=None),
     event_limit: int = Query(default=100, ge=1, le=500),
@@ -2171,13 +2545,27 @@ async def mobile_learning_report(
         accept=accept,
     )
     return await run_in_threadpool(
-        build_learning_report_read_model,
+        _build_mobile_learning_report_read_model,
+        user_id=user_id,
+        event_limit=event_limit,
+        schema_version=requested_schema_version,
+    )
+
+
+def _build_mobile_learning_report_read_model(
+    *,
+    user_id: str,
+    event_limit: int,
+    schema_version: int,
+) -> dict[str, Any]:
+    return build_learning_report_read_model(
         user_id=user_id,
         member_service=member_service,
         learner_state_service=learner_state_service,
         mistake_book_service=mistake_book_service,
+        notebook_card_service=get_notebook_card_service(),
         event_limit=event_limit,
-        schema_version=requested_schema_version,
+        schema_version=schema_version,
     )
 
 
@@ -2340,7 +2728,27 @@ async def assessment_topics(authorization: str | None = Header(default=None)) ->
     return member_service.get_assessment_topic_catalog(user_id)
 
 
-@router.post("/assessment/create")
+@router.post(
+    "/assessment/create",
+    # LLM-backed quiz assembly — burst + daily budget (economic-DoS guard), same
+    # pattern as _MOBILE_CHAT_START_TURN_DEPENDENCIES.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_create",
+                default_max_requests=6,
+                default_window_seconds=60.0,
+            )
+        ),
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_create_daily",
+                default_max_requests=60,
+                default_window_seconds=86400.0,
+            )
+        ),
+    ],
+)
 async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
@@ -2393,7 +2801,27 @@ async def assessment_report(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/assessment/{quiz_id}/items/{question_id}/explain")
+@router.post(
+    "/assessment/{quiz_id}/items/{question_id}/explain",
+    # Direct LLM generation per call; the balance gate is a no-op while billing
+    # enforcement is off, so the rate limit is the only sustained-burn guard.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_explain",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        ),
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_explain_daily",
+                default_max_requests=200,
+                default_window_seconds=86400.0,
+            )
+        ),
+    ],
+)
 async def assessment_deep_explanation(
     quiz_id: str,
     question_id: str,
@@ -2430,7 +2858,18 @@ async def assessment_submit(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/conversations")
+@router.post(
+    "/conversations",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_create_conversation",
+                default_max_requests=20,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     session = await session_store.ensure_session(
@@ -2560,7 +2999,18 @@ async def delete_conversation(
     return {"deleted": True}
 
 
-@router.post("/conversations/batch")
+@router.post(
+    "/conversations/batch",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_conversations_batch",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def batch_conversations(
     body: BatchConversationRequest,
     authorization: str | None = Header(default=None),
@@ -2658,16 +3108,18 @@ async def upload_chat_feedback_attachment(
 
 
 @router.post(
+    "/mobile/chat/start",
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
+    include_in_schema=False,
+)
+@router.post(
+    "/mobile/chat/start-turn",
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
+    include_in_schema=False,
+)
+@router.post(
     "/chat/start-turn",
-    dependencies=[
-        Depends(
-            route_rate_limit(
-                "mobile_chat_start_turn",
-                default_max_requests=10,
-                default_window_seconds=60.0,
-            )
-        )
-    ],
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
 )
 async def mobile_chat_start_turn(
     body: MobileStartTurnRequest,
@@ -2679,17 +3131,31 @@ async def mobile_chat_start_turn(
 
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     resolved_wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
-    _assert_billing_quota_available(authorization, wallet_user_id=resolved_wallet_user_id)
-    await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
+    _assert_billing_quota_available(
+        authorization,
+        wallet_user_id=resolved_wallet_user_id,
+        authenticated_user_id=resolved_user_id,
+    )
+    runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
+        body.conversation_id,
+        resolved_user_id,
+    )
     payload = _build_mobile_turn_payload(
         body=body,
         authenticated_user_id=resolved_user_id,
         wallet_user_id=resolved_wallet_user_id,
         query=query,
     )
+    if runtime_session_id:
+        payload["session_id"] = runtime_session_id
     session, turn = await turn_runtime.start_turn(payload)
+    response_conversation_id = (
+        public_conversation_id
+        or _normalize_mobile_conversation_id(session)
+        or str(session.get("id") or "")
+    )
     return _build_tutorbot_start_response(
-        conversation_id=str(session.get("id") or ""),
+        conversation_id=response_conversation_id,
         query=query,
         turn_id=str(turn.get("id") or ""),
         capability=str(turn.get("capability") or "chat") or "chat",

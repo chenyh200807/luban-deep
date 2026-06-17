@@ -28,6 +28,7 @@ def build_revalidation_queue_projection(
     events: Iterable[Any] | None = None,
     scoring_point_map: dict[str, Any] | None = None,
     learning_state: dict[str, Any] | None = None,
+    dispute_candidates: Iterable[dict[str, Any]] | None = None,
     prescription_outcomes: Iterable[dict[str, Any]] | None = None,
     declined_probe_ids: Iterable[str] | None = None,
     now_iso: str = "",
@@ -38,6 +39,7 @@ def build_revalidation_queue_projection(
         events=events,
         scoring_point_map=scoring_point_map,
         learning_state=learning_state,
+        dispute_candidates=dispute_candidates,
     )
     declined = {str(item or "").strip() for item in list(declined_probe_ids or [])}
     verified = {
@@ -102,6 +104,73 @@ def build_revalidation_queue_projection(
 
 
 def _candidate_rows(
+    *,
+    candidates: Iterable[dict[str, Any]] | None,
+    events: Iterable[Any] | None,
+    scoring_point_map: dict[str, Any] | None,
+    learning_state: dict[str, Any] | None,
+    dispute_candidates: Iterable[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    base = _base_candidate_rows(
+        candidates=candidates,
+        events=events,
+        scoring_point_map=scoring_point_map,
+        learning_state=learning_state,
+    )
+    # 学员订正候选【可叠加】到 base（不替换 scoring_point_map / candidates 源）。
+    dispute_rows = [_safe_dict(item) for item in list(dispute_candidates or []) if isinstance(item, dict)]
+    if not dispute_rows:
+        return base
+    seen = {_row_key(row) for row in base}
+    merged = list(base)
+    for row in dispute_rows:
+        key = _row_key(row)
+        if key not in seen:
+            merged.append(row)
+            seen.add(key)
+    return merged
+
+
+def _row_key(row: dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        str(row.get("node_id") or row.get("knowledge_node_id") or "").strip(),
+        str(row.get("ability_dimension") or "code_application").strip(),
+        str(row.get("error_code") or "").strip(),
+    )
+
+
+def dispute_candidates_from_events(events: Iterable[Any] | None) -> list[dict[str, Any]]:
+    """从 events 提取 ``learning_signal_type == "user_dispute"`` 的订正事件，
+    造 ``needs_revalidation`` 立即到期候选行（``last_observed_at=""``）。
+
+    双向：``user_says ∈ {mastered, not_mastered}`` 都触发复测；自我声明只排复测，
+    绝不直接置 mastered。对 dict 与对象事件(payload_json)均鲁棒。
+    """
+    rows: list[dict[str, Any]] = []
+    for ev in list(events or []):
+        payload = ev.get("payload_json") if isinstance(ev, dict) else getattr(ev, "payload_json", None)
+        if not isinstance(payload, dict):
+            payload = ev if isinstance(ev, dict) else {}
+        if str(payload.get("learning_signal_type") or "").strip() != "user_dispute":
+            continue
+        concept_id = str(payload.get("concept_id") or "").strip()
+        if not concept_id:
+            continue
+        event_id = ev.get("event_id") if isinstance(ev, dict) else getattr(ev, "event_id", "")
+        event_id = str(event_id or "").strip()
+        rows.append({
+            "node_id": concept_id,
+            "label": str(payload.get("concept_label") or "").strip(),
+            "state": "needs_revalidation",
+            "ability_dimension": str(payload.get("ability_dimension") or "").strip(),
+            "error_code": str(payload.get("error_code") or "").strip(),
+            "evidence_refs": [event_id] if event_id else [],
+            "last_observed_at": "",
+        })
+    return rows
+
+
+def _base_candidate_rows(
     *,
     candidates: Iterable[dict[str, Any]] | None,
     events: Iterable[Any] | None,
@@ -266,4 +335,4 @@ def _safe_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-__all__ = ["build_revalidation_queue_projection"]
+__all__ = ["build_revalidation_queue_projection", "dispute_candidates_from_events"]

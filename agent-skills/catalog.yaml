@@ -1,0 +1,91 @@
+version: 1
+purpose: repo-local-agent-workflow-validation
+source_root: agent-skills
+authority_boundary: catalog-is-validation-index-not-runtime-loader
+description_authority: SKILL.md-frontmatter
+
+skills:
+  - name: anti-overfit-repair-review
+    path: agent-skills/anti-overfit-repair-review/SKILL.md
+    lane: review
+    expected_use: conditional
+  - name: compiled-knowledge-shadow-eval
+    path: agent-skills/compiled-knowledge-shadow-eval/SKILL.md
+    lane: qa
+    expected_use: conditional
+  - name: deeptutor-api-contract-design
+    path: agent-skills/deeptutor-api-contract-design/SKILL.md
+    lane: contract
+    expected_use: conditional
+  - name: deeptutor-authority-debugging
+    path: agent-skills/deeptutor-authority-debugging/SKILL.md
+    lane: debugging
+    expected_use: conditional
+  - name: deeptutor-code-simplification
+    path: agent-skills/deeptutor-code-simplification/SKILL.md
+    lane: review
+    expected_use: conditional
+  - name: deeptutor-docs-adr-gate
+    path: agent-skills/deeptutor-docs-adr-gate/SKILL.md
+    lane: docs
+    expected_use: conditional
+  - name: deeptutor-engineering-lifecycle-gate
+    path: agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md
+    lane: dispatcher
+    expected_use: near-always
+  - name: deeptutor-git-workflow-gate
+    path: agent-skills/deeptutor-git-workflow-gate/SKILL.md
+    lane: git
+    expected_use: conditional
+  - name: deeptutor-incremental-implementation
+    path: agent-skills/deeptutor-incremental-implementation/SKILL.md
+    lane: implementation
+    expected_use: conditional
+  - name: deeptutor-observability-gate
+    path: agent-skills/deeptutor-observability-gate/SKILL.md
+    lane: observability
+    expected_use: conditional
+  - name: deeptutor-release-launch-gate
+    path: agent-skills/deeptutor-release-launch-gate/SKILL.md
+    lane: release
+    expected_use: conditional
+  - name: deeptutor-resource-registry-gate
+    path: agent-skills/deeptutor-resource-registry-gate/SKILL.md
+    lane: resource-registry
+    expected_use: conditional
+  - name: deeptutor-review-quality-gate
+    path: agent-skills/deeptutor-review-quality-gate/SKILL.md
+    lane: review
+    expected_use: conditional
+  - name: deeptutor-schema-authority-gate
+    path: agent-skills/deeptutor-schema-authority-gate/SKILL.md
+    lane: schema
+    expected_use: conditional
+  - name: deeptutor-security-hardening-gate
+    path: agent-skills/deeptutor-security-hardening-gate/SKILL.md
+    lane: security
+    expected_use: conditional
+  - name: deeptutor-source-grounded-change
+    path: agent-skills/deeptutor-source-grounded-change/SKILL.md
+    lane: source-grounding
+    expected_use: conditional
+  - name: deeptutor-spec-plan-gate
+    path: agent-skills/deeptutor-spec-plan-gate/SKILL.md
+    lane: planning
+    expected_use: conditional
+  - name: deeptutor-test-verification-gate
+    path: agent-skills/deeptutor-test-verification-gate/SKILL.md
+    lane: verification
+    expected_use: conditional
+  - name: deeptutor-web-bi-frontend-gate
+    path: agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md
+    lane: frontend
+    expected_use: conditional
+  - name: luban-rich-leaf-compiler
+    path: agent-skills/luban-rich-leaf-compiler/SKILL.md
+    lane: luban
+    expected_use: conditional
+  - name: wechat-tutorbot-real-entry-qa
+    path: agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md
+    lane: wechat-qa
+    expected_use: conditional

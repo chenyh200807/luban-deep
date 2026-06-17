@@ -16,11 +16,22 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.construction_grading.case_output_policy import (
+    build_case_grading_diagnostic_only_response,
+    case_grading_score_authority_available,
+    should_demote_case_grading_hard_score,
+)
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
+    looks_like_construction_exam_knowledge_query,
     query_requires_current_info,
     query_uses_learner_state_authority,
+)
+from deeptutor.services.question_lifecycle_skills import (
+    looks_like_free_text_mcq_answer_request,
+    looks_like_free_text_mcq_grading_request,
+    split_full_case_answer_submission,
 )
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
@@ -33,6 +44,7 @@ from deeptutor.services.security.tutorbot_guardrails import (
     guard_tutorbot_output,
     sanitize_untrusted_context,
 )
+from deeptutor.services.security.tool_access import filter_end_user_tools, is_end_user_tool_allowed
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -48,6 +60,7 @@ from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
+    build_cross_capability_context_instruction,
     correct_construction_exam_boundary_fact_response,
     get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
@@ -87,6 +100,37 @@ class AgentLoop:
         "不要输出思考过程、后台过程或占位说明。",
         "刚才输出的是过程承诺，不是最终答案。请现在直接给出可展示给学员的中文答案；"
         "不要说“我先查看”“我会检索”“再给你”等过程话术。",
+    )
+    _INTERNAL_CONTEXT_MARKERS = (
+        "## 参考证据",
+        "## Supporting Evidence",
+        "以下内容是辅助证据",
+        "[Question Follow-up Context]",
+        "[Attached Documents]",
+        "[Notebook Context]",
+        "[History Context]",
+    )
+    _CURRENT_USER_QUESTION_MARKERS = (
+        "## 当前用户问题",
+        "## Current User Question",
+        "[User Question]",
+    )
+    _ANSWER_LETTER_CLAIM_RE = re.compile(
+        r"(?:答案|标准答案|正确答案|是不是|是否|我选|我选择|选了|选择了|对吗|对不对|正确吗)"
+        r"[^A-EＡ-Ｅ]{0,18}([A-EＡ-Ｅ](?:[\s,，、/]*[A-EＡ-Ｅ]){0,4})",
+        flags=re.IGNORECASE,
+    )
+    _ANSWER_DENIAL_MARKERS = (
+        "不是",
+        "不对",
+        "不正确",
+        "错误",
+        "错了",
+        "答案不是",
+        "正确答案是",
+        "标准答案是",
+        "应为",
+        "应该是",
     )
     _PROGRESSIVE_SKILL_TRIGGERS: dict[str, tuple[str, ...]] = {
         "deep-research": (
@@ -191,6 +235,7 @@ class AgentLoop:
         channels_config: ChannelsConfig | None = None,
         shared_memory_dir: Path | None = None,
         default_session_key: str | None = None,
+        enable_exec_tool: bool = True,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -206,6 +251,7 @@ class AgentLoop:
         self.exec_config = exec_config or ExecToolConfig()
         self.cron_service = cron_service
         self.restrict_to_workspace = restrict_to_workspace
+        self.enable_exec_tool = enable_exec_tool
         self._shared_memory_dir = shared_memory_dir
         self._default_session_key = default_session_key
 
@@ -221,6 +267,7 @@ class AgentLoop:
             web_proxy=web_proxy,
             exec_config=self.exec_config,
             restrict_to_workspace=restrict_to_workspace,
+            enable_exec=enable_exec_tool,
         )
         self.team = TeamManager(
             provider=provider,
@@ -235,6 +282,7 @@ class AgentLoop:
             web_proxy=web_proxy,
             exec_config=self.exec_config,
             restrict_to_workspace=restrict_to_workspace,
+            enable_exec=enable_exec_tool,
             max_workers=team_max_workers,
             worker_max_iterations=team_worker_max_iterations,
         )
@@ -266,6 +314,7 @@ class AgentLoop:
             web_search_config=self.web_search_config,
             web_proxy=self.web_proxy,
             restrict_to_workspace=self.restrict_to_workspace,
+            enable_exec=self.enable_exec_tool,
         )
         self.tools.register(MessageTool(send_callback=self.bus.publish_outbound))
         self.tools.register(SpawnTool(manager=self.subagents))
@@ -280,9 +329,14 @@ class AgentLoop:
             RAGAdapterTool,
             ReasonAdapterTool,
         )
-        for tool_cls in (BrainstormAdapterTool, RAGAdapterTool,
-                         CodeExecutionAdapterTool, ReasonAdapterTool,
-                         PaperSearchAdapterTool):
+        # CodeExecutionAdapterTool runs arbitrary Python via subprocess (best-effort
+        # ImportGuard only, bypassable). Gate it with the shell tool: never exposed on
+        # untrusted-student paths. See build_base_tools(enable_exec=...).
+        adapter_classes = [BrainstormAdapterTool, RAGAdapterTool,
+                           ReasonAdapterTool, PaperSearchAdapterTool]
+        if self.enable_exec_tool:
+            adapter_classes.insert(2, CodeExecutionAdapterTool)
+        for tool_cls in adapter_classes:
             self.tools.register(tool_cls())
 
     async def _connect_mcp(self) -> None:
@@ -332,6 +386,117 @@ class AgentLoop:
             tool = self.tools.get(tool_name)
             if tool and hasattr(tool, "set_runtime_context"):
                 tool.set_runtime_context(metadata=runtime_metadata)
+
+    @staticmethod
+    def _normalize_llm_stream_telemetry_call(
+        telemetry: Any,
+        *,
+        call_site: str,
+        iteration: int | None = None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(telemetry, dict):
+            return None
+        call: dict[str, Any] = {"call_site": str(call_site or "").strip()}
+        if not call["call_site"]:
+            return None
+        for key in ("provider_name", "model"):
+            value = str(telemetry.get(key) or "").strip()
+            if value:
+                call[key] = value
+        for key in ("stream_chunk_count", "stream_content_chunk_count"):
+            try:
+                count = int(telemetry.get(key) or 0)
+            except (TypeError, ValueError):
+                continue
+            if count >= 0:
+                call[key] = count
+        raw_timings = telemetry.get("stage_timings_ms")
+        timings: dict[str, float] = {}
+        if isinstance(raw_timings, dict):
+            for raw_stage, raw_ms in raw_timings.items():
+                stage = str(raw_stage or "").strip()
+                if not stage or len(stage) > 80:
+                    continue
+                if not all(ch.isalnum() or ch in {"_", "-", ".", ":"} for ch in stage):
+                    continue
+                try:
+                    duration_ms = float(raw_ms)
+                except (TypeError, ValueError):
+                    continue
+                if duration_ms >= 0:
+                    timings[stage] = round(duration_ms, 2)
+        if timings:
+            call["stage_timings_ms"] = dict(sorted(timings.items()))
+        if iteration is not None:
+            try:
+                normalized_iteration = int(iteration)
+            except (TypeError, ValueError):
+                normalized_iteration = 0
+            if normalized_iteration > 0:
+                call["iteration"] = normalized_iteration
+        return call
+
+    @classmethod
+    def _record_llm_stream_telemetry(
+        cls,
+        runtime_metadata: dict[str, Any],
+        response: Any,
+        *,
+        call_site: str,
+        iteration: int | None = None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict):
+            return
+        call = cls._normalize_llm_stream_telemetry_call(
+            getattr(response, "telemetry", None),
+            call_site=call_site,
+            iteration=iteration,
+        )
+        if not call:
+            return
+        existing = runtime_metadata.get("llm_stream_telemetry")
+        bucket = existing if isinstance(existing, dict) else {}
+        calls = bucket.get("calls") if isinstance(bucket.get("calls"), list) else []
+        calls = [item for item in calls if isinstance(item, dict)]
+        calls.append(call)
+        runtime_metadata["llm_stream_telemetry"] = {
+            "call_count": len(calls),
+            "calls": calls,
+        }
+
+    @staticmethod
+    def _export_llm_stream_telemetry(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
+            return
+        telemetry = runtime_metadata.get("llm_stream_telemetry")
+        if isinstance(telemetry, dict):
+            target_metadata["llm_stream_telemetry"] = telemetry
+
+    @staticmethod
+    def _export_case_grading_metadata(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
+            return
+        for key in (
+            "v1_case_graded",
+            "score_authority",
+            "grading_rubric_provenance",
+            "grading_to_brain_loop",
+            "learning_evidence_event_id",
+            "learning_training_intent",
+            "grading_to_brain_projection",
+            "case_grading_stream_mode",
+            "case_grading_adjudication_strategy",
+            "case_grading_adjudication_group_count",
+            "case_grading_adjudication_point_count",
+        ):
+            if key in runtime_metadata:
+                target_metadata[key] = runtime_metadata[key]
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -483,6 +648,183 @@ class AgentLoop:
             return "|".join(parts)
         return json.dumps(source, ensure_ascii=False, sort_keys=True)
 
+    @staticmethod
+    def _normalize_answer_letters(value: str | None) -> str:
+        table = str.maketrans("ＡＢＣＤＥａｂｃｄｅ", "ABCDEabcde")
+        letters = re.findall(r"[A-E]", str(value or "").translate(table).upper())
+        seen: list[str] = []
+        for letter in letters:
+            if letter not in seen:
+                seen.append(letter)
+        return "".join(seen)
+
+    @classmethod
+    def _extract_answer_letter_claim(cls, text: str | None) -> str:
+        source = str(text or "").strip()
+        if not source:
+            return ""
+        for match in cls._ANSWER_LETTER_CLAIM_RE.finditer(source):
+            letters = cls._normalize_answer_letters(match.group(1))
+            if letters:
+                return letters
+        return ""
+
+    @staticmethod
+    def _has_authoritative_exact_question(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if isinstance(exact_question, dict) and exact_question:
+            return True
+        latest_trace = metadata.get("_latest_rag_trace_metadata")
+        exact_question = (
+            latest_trace.get("exact_question")
+            if isinstance(latest_trace, dict) and isinstance(latest_trace.get("exact_question"), dict)
+            else None
+        )
+        return bool(exact_question)
+
+    @staticmethod
+    def _record_rag_trace_status(
+        runtime_metadata: dict[str, Any] | None,
+        tool_trace_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(tool_trace_metadata, dict):
+            return
+        runtime_metadata["_latest_rag_trace_metadata"] = dict(tool_trace_metadata)
+        retrieval_status = str(tool_trace_metadata.get("retrieval_status") or "").strip()
+        retrieval_degraded = bool(tool_trace_metadata.get("retrieval_degraded")) or retrieval_status in {
+            "failed",
+            "degraded",
+        }
+        if not retrieval_degraded:
+            return
+        runtime_metadata["rag_retrieval_degraded"] = True
+        runtime_metadata["rag_retrieval_status"] = retrieval_status or "degraded"
+        error_type = str(tool_trace_metadata.get("error_type") or "").strip()
+        if error_type:
+            runtime_metadata["rag_retrieval_error_type"] = error_type
+
+    @classmethod
+    def _should_guard_degraded_exact_answer_claim(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> tuple[bool, str]:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if not metadata.get("rag_retrieval_degraded"):
+            return False, ""
+        if cls._has_authoritative_exact_question(metadata):
+            return False, ""
+        if looks_like_free_text_mcq_answer_request(user_message):
+            return False, ""
+        claim = cls._extract_answer_letter_claim(user_message)
+        if not claim:
+            return False, ""
+        text = str(user_message or "")
+        if not any(marker in text for marker in ("真题", "题", "答案", "标准答案", "正确答案", "多选", "单选")):
+            return False, ""
+        compact_answer = re.sub(r"\s+", "", str(final_content or ""))
+        if not any(marker in compact_answer for marker in cls._ANSWER_DENIAL_MARKERS):
+            return False, ""
+        return True, claim
+
+    @classmethod
+    def _degraded_exact_answer_claim_response(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        should_guard, claim = cls._should_guard_degraded_exact_answer_claim(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        )
+        if not should_guard:
+            return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["degraded_exact_answer_guard_applied"] = True
+            runtime_metadata["degraded_exact_answer_claim"] = claim
+        formatted_claim = "、".join(claim)
+        return (
+            f"我现在不能确认或否定 {formatted_claim}。\n\n"
+            "当前题库检索不可用，也没有命中可作为标准答案的原题证据；"
+            "如果直接说“不是”或改成另一个答案，就是在编标准答案。"
+            "请把这道题的题干和选项发过来，或让小程序把当前题卡 id 传给我，我再按真题标准批改。"
+        )
+
+    @classmethod
+    def _degraded_mcq_grading_response(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if not metadata.get("rag_retrieval_degraded"):
+            return ""
+        if cls._has_authoritative_exact_question(metadata):
+            return ""
+        if not looks_like_free_text_mcq_grading_request(user_message):
+            return ""
+
+        content = str(final_content or "").strip()
+        compact = re.sub(r"\s+", "", content)
+        has_visible_answer = cls._is_user_visible_final_answer(content) and content != cls._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+        standard_answer_claim = any(
+            marker in compact
+            for marker in ("标准答案是", "正确答案是", "答案是", "应选", "应该选")
+        ) and not any(marker in compact for marker in ("候选", "证据不足", "不能确认", "无法确认"))
+        if has_visible_answer and not standard_answer_claim:
+            return ""
+
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["degraded_mcq_grading_guard_applied"] = True
+            claim = cls._extract_answer_letter_claim(user_message)
+            if claim:
+                runtime_metadata["degraded_mcq_grading_claim"] = claim
+
+        claim = cls._extract_answer_letter_claim(user_message)
+        claim_text = f"你这轮给出的答案是 {cls._format_answer_letters(claim)}。" if claim else "我已经看到这道选择题的题干和选项。"
+        return (
+            f"{claim_text}\n\n"
+            "但当前题库检索不可用，也没有命中可作为标准答案的原题证据。"
+            "所以我不能把这轮批改说成“题库标准答案确认”，也不能在没有证据时强行改成另一组答案。\n\n"
+            "可用结论：这轮需要小程序继续传入题卡 id，或等题库检索恢复后再按标准答案批改；"
+            "如果只做非题库标准确认的思路分析，可以基于题干逐项判断，但结论不能标成真题标准答案。"
+        )
+
+    @staticmethod
+    def _format_answer_letters(letters: str | None) -> str:
+        normalized = AgentLoop._normalize_answer_letters(letters)
+        return "、".join(normalized) if normalized else ""
+
+    @classmethod
+    def _should_suppress_stream_for_degraded_answer(
+        cls,
+        *,
+        user_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if (
+            str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading"
+            and not case_grading_score_authority_available(metadata)
+        ):
+            return True
+        if not metadata.get("rag_retrieval_degraded"):
+            return False
+        if cls._has_authoritative_exact_question(metadata):
+            return False
+        return bool(
+            cls._extract_answer_letter_claim(user_message)
+            or looks_like_free_text_mcq_grading_request(user_message)
+        )
+
     @classmethod
     def _source_overlap(cls, previous: list[dict[str, Any]], current: list[dict[str, Any]]) -> tuple[float | None, int]:
         previous_ids = {cls._source_identity(item) for item in previous if isinstance(item, dict)}
@@ -564,19 +906,24 @@ class AgentLoop:
     def _resolve_tool_definitions(self, runtime_metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
         configured = runtime_metadata.get("default_tools") if isinstance(runtime_metadata, dict) else None
         if not isinstance(configured, list):
-            return self.tools.get_definitions()
+            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
 
         ordered_names: list[str] = []
         seen: set[str] = set()
         for item in configured:
             name = str(item or "").strip()
-            if not name or name in seen or not self.tools.has(name):
+            if (
+                not name
+                or name in seen
+                or not is_end_user_tool_allowed(name)
+                or not self.tools.has(name)
+            ):
                 continue
             ordered_names.append(name)
             seen.add(name)
 
         if not ordered_names:
-            return self.tools.get_definitions()
+            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
         return self.tools.get_definitions(ordered_names)
 
     @classmethod
@@ -675,6 +1022,8 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> str:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading":
+            return ""
         exact_question = metadata.get("_prefetched_exact_question")
         if not isinstance(exact_question, dict):
             return ""
@@ -696,6 +1045,675 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
+    def _split_case_grading_submission(user_message: str) -> tuple[str, str]:
+        return split_full_case_answer_submission(user_message)
+
+    @staticmethod
+    def _case_exact_question_matches_user_stem(exact_question: dict[str, Any], user_stem: str) -> bool:
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or re.search(r"(?:^|\n)\s*\d+\s*[.．、]", text)
+                or "？" in text
+                or "?" in text
+            )
+
+        user = _compact(user_stem)
+        if not user:
+            return True
+        parts: list[str] = [
+            str(exact_question.get("stem") or ""),
+            str(exact_question.get("question") or ""),
+        ]
+        covered = exact_question.get("covered_subquestions")
+        if isinstance(covered, list):
+            for item in covered:
+                if isinstance(item, dict):
+                    parts.append(str(item.get("stem") or item.get("question") or ""))
+        if _has_current_question_anchor(user_stem):
+            anchored_parts = [part for part in parts if _has_current_question_anchor(part)]
+            if anchored_parts:
+                return any(
+                    len(_compact(part)) >= 8 and (_compact(part) in user or user in _compact(part))
+                    for part in anchored_parts
+                )
+            return False
+        exact = _compact("\n".join(part for part in parts if part))
+        if not exact:
+            return False
+        if len(exact) >= 12 and exact in user:
+            return True
+        grams = {exact[i:i + 2] for i in range(max(0, len(exact) - 1))}
+        if len(grams) < 6:
+            return exact in user
+        overlap = sum(1 for gram in grams if gram in user) / len(grams)
+        return overlap >= 0.35
+
+    @staticmethod
+    def _case_reference_context_matches_user_stem(reference_context: dict[str, Any], user_stem: str) -> bool:
+        """Strict same-surface guard for followup/reference context on fresh pasted case submissions."""
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        user = _compact(user_stem)
+        if not user:
+            return False
+
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or "？" in text
+                or "?" in text
+            )
+
+        def _reference_values(context: dict[str, Any]):
+            for key in ("stem", "question", "question_stem"):
+                yield context.get(key)
+            for item in context.get("covered_subquestions") or []:
+                if not isinstance(item, dict):
+                    continue
+                for key in ("stem", "question", "question_stem"):
+                    yield item.get(key)
+            for item in context.get("items") or []:
+                if not isinstance(item, dict):
+                    continue
+                for key in ("stem", "question", "question_stem"):
+                    yield item.get(key)
+
+        for value in _reference_values(reference_context):
+            if not _has_current_question_anchor(value):
+                continue
+            ref = _compact(value)
+            if len(ref) >= 8 and (ref in user or user in ref):
+                return True
+        return False
+
+    @staticmethod
+    def _current_case_reference_from_context(
+        reference_context: dict[str, Any],
+        user_stem: str,
+    ) -> dict[str, str]:
+        """Return only reference answers whose question surface matches the freshly pasted case stem."""
+
+        def _compact(value: Any) -> str:
+            return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
+
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or "？" in text
+                or "?" in text
+            )
+
+        user = _compact(user_stem)
+        if not user:
+            return {
+                "reference": str(reference_context.get("correct_answer") or "").strip(),
+                "question_id": str(reference_context.get("question_id") or "").strip(),
+            }
+
+        def _matches_current(value: Any) -> bool:
+            if not _has_current_question_anchor(value):
+                return False
+            identity = _compact(value)
+            return len(identity) >= 8 and (identity in user or user in identity)
+
+        def _answer_from_item(item: dict[str, Any]) -> str:
+            return str(
+                item.get("authoritative_answer")
+                or item.get("correct_answer")
+                or ((item.get("grading_key") or {}).get("correct_answer") if isinstance(item.get("grading_key"), dict) else "")
+                or ((item.get("construction_grading_result") or {}).get("correct_answer") if isinstance(item.get("construction_grading_result"), dict) else "")
+                or ""
+            ).strip()
+
+        for key in ("question", "question_stem", "stem"):
+            if _matches_current(reference_context.get(key)):
+                return {
+                    "reference": str(reference_context.get("correct_answer") or "").strip(),
+                    "question_id": str(reference_context.get("question_id") or "").strip(),
+                }
+
+        answers: list[str] = []
+        matched_question_ids: list[str] = []
+        candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
+        for item in candidates:
+            if not isinstance(item, dict):
+                continue
+            if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem")):
+                continue
+            answer = _answer_from_item(item)
+            if answer:
+                answers.append(answer)
+                qid = str(item.get("question_id") or "").strip()
+                if qid:
+                    matched_question_ids.append(qid)
+
+        return {
+            "reference": "\n".join(answers).strip(),
+            "question_id": matched_question_ids[0] if len(matched_question_ids) == 1 else "",
+        }
+
+    @staticmethod
+    def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
+        """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
+        Case reference lives in ``_prefetched_exact_question.covered_subquestions[].authoritative_answer``
+        (NOT top-level correct_answer). Followup-flat correct_answer is only a secondary source when the
+        current turn is not a fresh full-case submission, or when that followup context matches the current
+        pasted stem."""
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        eq = md.get("_prefetched_exact_question")
+        eq = eq if isinstance(eq, dict) else {}
+        user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
+            md["exact_question_blocked_reason"] = "case_exact_mismatch"
+            eq = {}
+        fc = AgentLoop._followup_context_from_metadata(md)
+        if user_stem and fc:
+            fc_probe = {
+                "stem": fc.get("question_stem") or fc.get("stem") or fc.get("question") or "",
+                "question": fc.get("question") or fc.get("question_stem") or "",
+                "items": fc.get("items") if isinstance(fc.get("items"), list) else [],
+            }
+            if not AgentLoop._case_reference_context_matches_user_stem(fc_probe, user_stem):
+                md["case_reference_blocked_reason"] = "full_submission_without_verified_reference"
+                fc = {}
+        fc_current = (
+            AgentLoop._current_case_reference_from_context(fc, user_stem)
+            if fc and user_stem
+            else {
+                "reference": str(fc.get("correct_answer") or "").strip(),
+                "question_id": str(fc.get("question_id") or "").strip(),
+            }
+        )
+        if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
+            md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
+        covered = eq.get("covered_subquestions") or []
+        if user_stem and eq:
+            eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
+            ref = str(eq_current.get("reference") or "").strip()
+            if covered and not ref and any(
+                str(s.get("authoritative_answer") or s.get("correct_answer") or "").strip()
+                for s in covered if isinstance(s, dict)
+            ):
+                md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
+        else:
+            ref = "\n".join(
+                str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
+            ).strip()
+        ref = ref or str(fc_current.get("reference") or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis")) or "")
+        try:
+            nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
+        except (TypeError, ValueError):
+            nominal = 0.0
+        # question_stem: bank entry > followup context > safely split full-case stem.
+        # Do NOT fall back to the raw user_message: free-text submissions often mix question + student
+        # answer in one message. Only the stable "题干 ... 回答/作答 ..." shape may feed Tier-3 stem
+        # derivation, and mismatched exact hits are demoted before their reference answer can score.
+        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or user_stem or "")
+        node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
+        return {
+            "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
+            "node_code": node_code,
+            "user_answer": str((user_answer if user_stem else "") or fc.get("user_answer") or user_answer or user_message or ""),
+            "correct_answer": ref,
+            "question_stem": question_stem,
+            "construction_grading_result": {"type": "case", "max_score": nominal},
+        }
+
+    async def _v1_case_stream_plan(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any] | None:
+        """Grade a TutorBot case turn with the V1 rubric engine (single fat-skill core, reused from
+        deep_question) and return a score-first stream plan. Returns None when V1 should not take over
+        (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
+        never raises (must not break the tutorbot turn)."""
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        logger.warning(
+            "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
+            "covered_sub_keys={}",
+            type(runtime_metadata).__name__,
+            md.get("question_lifecycle_scene") or "(none)",
+            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+            md.get("construction_grading_scene") or "(none)",
+            list((md.get("covered_subquestions") or {}).keys())[:4],
+        )
+        scene = str(md.get("question_lifecycle_scene") or "").strip()
+        if scene != "case_grading":
+            logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
+                           str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
+            return None
+        # _grade_one_case_v1 owns scoring authority. TutorBot is only the thin entry wrapper:
+        # compiled/reference rubrics produce normal V1 estimates; stem-only questions produce
+        # non-official diagnostic V1 estimates instead of a second TutorBot fallback policy.
+        try:
+            from deeptutor.capabilities.deep_question import _grade_one_case_v1
+            from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+            student_id = str(md.get("user_id") or md.get("learner_user_id") or "").strip()
+            # gating: DEFAULT ON for all users (full rollout, not gray); only the emergency env kill
+            # switch disables V1.
+            if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in (
+                "false", "0", "off", "no"):
+                md["score_authority"] = "v1_disabled"
+                logger.info("LUBAN_V1 skip: kill-switch LUBAN_CASE_RUBRIC_V1_ENABLED is off")
+                return None
+            # Use the factory's configured key (DASHSCOPE when LLM_BINDING=dashscope).
+            # Pass None so factory.complete() falls back to config.api_key (correct binding key).
+            # DEEPSEEK_API_KEY is only checked for the kill-switch; the actual call uses config.
+            _deepseek_key = os.environ.get("DEEPSEEK_API_KEY") or None
+            _dashscope_key = os.environ.get("DASHSCOPE_API_KEY") or None
+            _binding = os.environ.get("LLM_BINDING", "").strip().lower()
+            if _binding == "dashscope":
+                key = _dashscope_key
+            else:
+                key = _deepseek_key
+            if not key:
+                md["score_authority"] = "v1_provider_unavailable"
+                logger.warning("LUBAN_V1 skip: no LLM key for binding={}", _binding or "openai")
+                return None
+            provider_authority = _binding or "configured"
+            try:
+                from deeptutor.services.llm.config import get_llm_config
+
+                llm_config = get_llm_config()
+                provider_authority = (
+                    f"{getattr(llm_config, 'provider_name', None) or getattr(llm_config, 'binding', None) or provider_authority}:"
+                    f"{getattr(llm_config, 'effective_url', None) or getattr(llm_config, 'base_url', None) or ''}"
+                )
+            except Exception:  # noqa: BLE001 — cache authority label is best-effort; grading must not fail here
+                pass
+            from deeptutor.services.llm.factory import complete
+
+            ctx = self._build_v1_case_ctx(md, user_message)
+            if ctx.get("node_code"):
+                md.setdefault("node_code", ctx.get("node_code"))
+            event = await _grade_one_case_v1(
+                ctx,
+                student_id=student_id,
+                complete=complete,
+                key=key,
+                _G=_G,
+                provider_authority=provider_authority,
+            )
+            if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
+                return None
+            md["_v1_case_graded"] = True  # defensive: downstream demote must not override
+            md["v1_case_graded"] = True
+            md["score_authority"] = str(event.get("grading_source") or "rubric_scored_v1")
+            md["grading_rubric_provenance"] = str(event.get("rubric_provenance") or "").strip()
+            md["grading_official_score_allowed"] = bool(event.get("official_score_allowed"))
+            if event.get("adjudication_strategy"):
+                md["case_grading_adjudication_strategy"] = str(event.get("adjudication_strategy") or "")
+            for _event_key, _metadata_key in (
+                ("adjudication_group_count", "case_grading_adjudication_group_count"),
+                ("adjudication_point_count", "case_grading_adjudication_point_count"),
+            ):
+                if event.get(_event_key) is not None:
+                    md[_metadata_key] = event.get(_event_key)
+            try:
+                from deeptutor.capabilities.deep_question import _record_v1_langfuse
+
+                _record_v1_langfuse(event=event, student_id=student_id,
+                                    qid=ctx.get("question_id"), cg_type="case")
+            except Exception:  # noqa: BLE001 — observability never breaks grading
+                pass
+            logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
+                        event.get("rubric_provenance"), event.get("awarded_score"),
+                        event.get("max_score"), student_id, ctx.get("question_id"))
+            self._record_v1_grading_to_brain(
+                runtime_metadata=md,
+                event=event,
+                ctx=ctx,
+                include_personalization_projection=False,
+            )
+            self._schedule_v1_grading_personalization(runtime_metadata=md)
+            pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
+            rendered = _G.render_case_rubric_feedback(
+                event,
+                question_stem=str(ctx.get("question_stem") or ""),
+                personalization_context_pack=pcp,
+            )
+            stream_plan = _G.build_case_rubric_score_first_stream(event, rendered_text=rendered)
+            if stream_plan:
+                md["case_grading_stream_mode"] = "score_first_sealed_blocks"
+            final_text = str((stream_plan or {}).get("final_text") or rendered)
+            presentation = _G.build_case_rubric_presentation(event, rendered_text=final_text)
+            if presentation:
+                md["presentation"] = presentation
+            if stream_plan:
+                stream_plan["presentation"] = presentation
+                return stream_plan
+            return {
+                "mode": "final_text",
+                "score_first": "",
+                "sealed_blocks": [],
+                "final_text": final_text,
+                "presentation": presentation,
+            }
+        except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
+            md["score_authority"] = "v1_error"
+            logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
+            return None
+
+    async def _v1_case_render(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> str:
+        plan = await self._v1_case_stream_plan(
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        )
+        return str((plan or {}).get("final_text") or "")
+
+    @staticmethod
+    def _schedule_v1_grading_personalization(
+        *,
+        runtime_metadata: dict[str, Any],
+    ) -> None:
+        """Build expensive learner-profile projection off the visible-answer path.
+
+        The durable learning_evidence write happens synchronously before render. This background task
+        only computes personalization projection metadata from that evidence.
+        """
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        intent = runtime_metadata.get("learning_training_intent")
+        event_id = str(runtime_metadata.get("learning_evidence_event_id") or "").strip()
+        if not student_id or not isinstance(intent, dict) or not event_id:
+            return
+        runtime_metadata["grading_to_brain_projection"] = {
+            "status": "scheduled",
+            "authority": "personalization_context_pack",
+            "event_id": event_id,
+        }
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            AgentLoop._record_v1_grading_personalization(runtime_metadata=runtime_metadata)
+            return
+
+        async def _run() -> None:
+            await asyncio.to_thread(
+                AgentLoop._record_v1_grading_personalization,
+                runtime_metadata=runtime_metadata,
+            )
+
+        task = loop.create_task(_run(), name="luban_v1_grading_personalization")
+
+        def _done(done_task: asyncio.Task[None]) -> None:
+            try:
+                done_task.result()
+            except Exception:  # noqa: BLE001 — background memory write must not break grading
+                logger.warning("LUBAN_V1 tutorbot background Grading-to-Brain writeback failed", exc_info=True)
+
+        task.add_done_callback(_done)
+
+    @staticmethod
+    def _record_v1_grading_to_brain(
+        *,
+        runtime_metadata: dict[str, Any],
+        event: dict[str, Any],
+        ctx: dict[str, Any],
+        include_personalization_projection: bool = True,
+    ) -> dict[str, Any]:
+        """薄委托：Grading-to-Brain 的组合逻辑只活在
+        construction_grading.writeback.record_case_grading_to_brain（单一 seam，
+        与练题入口共用）。本方法只负责取身份/来源字段并把 meta 合回
+        runtime_metadata；fail-closed。"""
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        if not student_id:
+            return {}
+        source_id = str(
+            runtime_metadata.get("turn_id")
+            or runtime_metadata.get("message_id")
+            or runtime_metadata.get("session_id")
+            or event.get("question_id")
+            or "tutorbot_case_grading"
+        ).strip()
+        try:
+            from deeptutor.services.construction_grading.writeback import (
+                record_case_grading_to_brain,
+            )
+            from deeptutor.services.learner_state import get_learner_state_service
+
+            meta = record_case_grading_to_brain(
+                learner_state_service=get_learner_state_service(),
+                user_id=student_id,
+                grading_event=event,
+                source_id=source_id,
+                source_bot_id=str(runtime_metadata.get("bot_id") or "").strip() or None,
+                user_answer=str(ctx.get("user_answer") or ""),
+                question_stem=str(ctx.get("question_stem") or ""),
+                node_code=str(ctx.get("node_code") or runtime_metadata.get("node_code") or ""),
+                session_id=str(runtime_metadata.get("session_id") or ""),
+                include_personalization_projection=include_personalization_projection,
+            )
+        except Exception:  # noqa: BLE001 — memory write must not break visible grading
+            logger.warning("LUBAN_V1 tutorbot Grading-to-Brain writeback failed", exc_info=True)
+            return {}
+        if isinstance(meta, dict) and meta:
+            runtime_metadata.update(meta)
+            return meta
+        return {}
+
+    @staticmethod
+    def _record_v1_grading_personalization(*, runtime_metadata: dict[str, Any]) -> dict[str, Any]:
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        intent = runtime_metadata.get("learning_training_intent")
+        event_id = str(runtime_metadata.get("learning_evidence_event_id") or "").strip()
+        if not student_id or not isinstance(intent, dict) or not event_id:
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "skipped",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+            }
+            return {}
+        try:
+            from deeptutor.services.construction_grading.writeback import (
+                build_case_grading_personalization_meta,
+            )
+            from deeptutor.services.learner_state import get_learner_state_service
+
+            meta = build_case_grading_personalization_meta(
+                learner_state_service=get_learner_state_service(),
+                user_id=student_id,
+                learning_training_intent=intent,
+                event_id=event_id,
+            )
+        except Exception:  # noqa: BLE001 — projection must not break visible grading
+            logger.warning("LUBAN_V1 tutorbot Grading-to-Brain personalization failed", exc_info=True)
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "failed",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+            }
+            return {}
+        if isinstance(meta, dict) and meta:
+            runtime_metadata.update(meta)
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "succeeded",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+                "has_personalization_context": isinstance(
+                    runtime_metadata.get("personalization_context"),
+                    dict,
+                ),
+            }
+            return meta
+        runtime_metadata["grading_to_brain_projection"] = {
+            "status": "empty",
+            "authority": "personalization_context_pack",
+            "event_id": event_id,
+        }
+        return {}
+
+    async def _apply_v1_or_case_fallback(
+        self, final_content: str | None, *, runtime_metadata: dict[str, Any] | None, user_message: str
+    ) -> str:
+        """Single seam for all finalize paths: prefer V1 rubric grading (becomes the score authority);
+        otherwise fall back to the existing no-authority demotion. Returns '' to leave final_content as-is."""
+        _md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        logger.warning(
+            "LUBAN_DIAG _apply_v1_or_case_fallback: called scene={} has_pf_eq={} msg_len={}",
+            _md.get("question_lifecycle_scene") or "(none)",
+            bool(_md.get("_prefetched_exact_question")),
+            len(user_message or ""),
+        )
+        v1_render = await self._v1_case_render(runtime_metadata=runtime_metadata, user_message=user_message)
+        if v1_render:
+            return v1_render
+        return self._case_grading_no_authority_score_fallback(
+            final_content, runtime_metadata=runtime_metadata, user_message=user_message)
+
+    @staticmethod
+    def _is_case_grading_scene(runtime_metadata: dict[str, Any] | None) -> bool:
+        return (
+            str((runtime_metadata or {}).get("question_lifecycle_scene") or "").strip()
+            == "case_grading"
+        )
+
+    @staticmethod
+    def _case_grading_live_preview_text(user_message: str) -> str:
+        user_stem, _user_answer = AgentLoop._split_case_grading_submission(user_message)
+        question_titles = re.findall(r"(?:^|\n)\s*(\d+)\s*[.．、]\s*([^\n？?]{2,40}[？?]?)", user_stem)
+        if question_titles:
+            count = min(len(question_titles), 8)
+            return (
+                f"这道案例题我已经进入逐采分点批改，会按 {count} 个小问逐一核对。\n\n"
+                "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
+            )
+        return (
+            "这道案例题我已经进入逐采分点批改。\n\n"
+            "先拆题、再判命中/漏点，最后给得分、易错点、记忆口诀和下一步练习。"
+        )
+
+    async def _run_case_grading_direct(
+        self,
+        *,
+        msg: InboundMessage,
+        session: Session,
+        history: list[dict[str, Any]],
+        current_message: str,
+        runtime_metadata: dict[str, Any],
+        runtime_instruction: str,
+        on_progress: Callable[[str], Awaitable[None]] | None = None,
+        on_content_delta: Callable[[str], Awaitable[None]] | None = None,
+    ) -> OutboundMessage | None:
+        if not self._is_case_grading_scene(runtime_metadata):
+            return None
+        runtime_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
+        runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+        if on_progress:
+            await on_progress("案例题批改已进入 V1 逐采分点链路，正在拆题和核对采分点。")
+        await self._emit_visible_text_deltas(
+            self._case_grading_live_preview_text(current_message),
+            on_content_delta,
+        )
+
+        initial_messages = self.context.build_messages(
+            history=history,
+            current_message=current_message,
+            media=msg.media if msg.media else None,
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            runtime_instruction=runtime_instruction,
+        )
+        stream_plan = await self._v1_case_stream_plan(
+            runtime_metadata=runtime_metadata,
+            user_message=current_message,
+        )
+        final_content = str((stream_plan or {}).get("final_text") or "").strip()
+        if not final_content:
+            final_content = self._case_grading_no_authority_score_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            )
+            stream_plan = None
+        guarded_output = guard_tutorbot_output(final_content)
+        guarded_content = guarded_output.content or final_content
+        if guarded_content != final_content:
+            stream_plan = None
+        final_content = guarded_content
+        all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+        if all_msgs:
+            all_msgs[-1]["content"] = final_content
+        if stream_plan:
+            if on_progress:
+                await on_progress("已完成判分，先返回分数和命中/漏点，详细解释随后补齐。")
+            score_first = str(stream_plan.get("score_first") or "").strip()
+            if score_first:
+                await self._emit_visible_text_deltas("\n\n" + score_first, on_content_delta)
+            for block in list(stream_plan.get("sealed_blocks") or []):
+                if not isinstance(block, dict):
+                    continue
+                block_content = str(block.get("content") or "").strip()
+                if not block_content:
+                    continue
+                if on_progress:
+                    title = str(block.get("title") or "详细解析").strip()
+                    await on_progress(f"正在补充 {title} 的解析。")
+                await self._emit_visible_text_deltas("\n\n" + block_content, on_content_delta)
+        else:
+            await self._emit_visible_text_deltas("\n\n" + final_content, on_content_delta)
+        self._save_turn(session, all_msgs, 1 + len(history))
+        session.metadata["last_exact_fast_path"] = False
+        self.sessions.save(session)
+        await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+
+        response_metadata = dict(msg.metadata or {})
+        self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+        self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        response_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
+        if isinstance(runtime_metadata.get("presentation"), dict):
+            response_metadata["presentation"] = runtime_metadata["presentation"]
+        return OutboundMessage(
+            channel=msg.channel,
+            chat_id=msg.chat_id,
+            content=final_content,
+            metadata=response_metadata,
+        )
+
+    @staticmethod
+    def _case_grading_no_authority_score_fallback(
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+    ) -> str:
+        # Defensive: when V1 already produced the authoritative grade, never demote it.
+        if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
+            return ""
+        scene = (
+            str(runtime_metadata.get("question_lifecycle_scene") or "").strip()
+            if isinstance(runtime_metadata, dict)
+            else ""
+        )
+        if scene == "case_grading":
+            if isinstance(runtime_metadata, dict):
+                runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+                runtime_metadata["v1_case_graded"] = False
+                runtime_metadata.setdefault("score_authority", "missing_v1_authority")
+            return build_case_grading_diagnostic_only_response(user_message)
+        if not should_demote_case_grading_hard_score(
+            final_content,
+            runtime_metadata=runtime_metadata,
+        ):
+            return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+            runtime_metadata["v1_case_graded"] = False
+            runtime_metadata.setdefault("score_authority", "missing_v1_authority")
+        return build_case_grading_diagnostic_only_response(user_message)
+
+    @staticmethod
     def _prefetched_case_exact_question_can_answer(runtime_metadata: dict[str, Any] | None) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         exact_question = metadata.get("_prefetched_exact_question")
@@ -713,9 +1731,39 @@ class AgentLoop:
             coverage_ratio = 0.0
         return not (isinstance(missing, list) and missing and coverage_ratio < 0.999)
 
+    @classmethod
+    def _prefetched_exact_authority_candidate(
+        cls,
+        runtime_metadata: dict[str, Any] | None,
+        *,
+        current_message: str = "",
+    ) -> dict[str, Any] | None:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if not isinstance(exact_question, dict) or not exact_question:
+            return None
+        if str(metadata.get("exact_question_blocked_reason") or "").strip():
+            return None
+        if str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading":
+            return None
+        if cls._is_question_review_scene(metadata):
+            return None
+        tool_query = cls._resolve_tool_query(current_message, metadata)
+        if bool(metadata.get("suppress_answer_reveal_on_generate")) and (
+            looks_like_practice_generation_request(tool_query)
+        ):
+            return None
+        if not cls._should_force_exact_authority(exact_question):
+            return None
+        return exact_question
+
     @staticmethod
-    def _build_exact_authority_response_sync(exact_question: dict[str, Any]) -> str:
-        return build_exact_authority_response(exact_question)
+    def _build_exact_authority_response_sync(
+        exact_question: dict[str, Any],
+        *,
+        user_message: Any = "",
+    ) -> str:
+        return build_exact_authority_response(exact_question, user_message=user_message)
 
     @staticmethod
     def _filter_out_tool_definitions(
@@ -745,6 +1793,7 @@ class AgentLoop:
         allow_exact_authority_override: bool = False,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
+        external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         runtime_metadata = dict(runtime_metadata or {})
         messages = initial_messages
         iteration = 0
@@ -792,12 +1841,23 @@ class AgentLoop:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            advertised_tool_names = {
+                str(item.get("function", {}).get("name") or "").strip()
+                for item in tool_defs
+                if isinstance(item, dict) and isinstance(item.get("function"), dict)
+            }
 
             response = await self.provider.chat_with_retry(
                 messages=messages,
                 tools=tool_defs,
                 model=effective_model,
                 on_content_delta=_stream_delta if on_content_delta else None,
+            )
+            self._record_llm_stream_telemetry(
+                runtime_metadata,
+                response,
+                call_site="agent_loop",
+                iteration=iteration,
             )
 
             if response.has_tool_calls:
@@ -845,6 +1905,15 @@ class AgentLoop:
                 )
 
                 for tool_call in response.tool_calls:
+                    if tool_call.name not in advertised_tool_names:
+                        logger.warning("Ignoring unadvertised tool call: {}", tool_call.name)
+                        messages = self.context.add_tool_result(
+                            messages,
+                            tool_call.id,
+                            tool_call.name,
+                            f"Error: Tool '{tool_call.name}' is not available in this turn.",
+                        )
+                        continue
                     tools_used.append(tool_call.name)
                     preview_args = dict(tool_call.arguments or {})
                     tool = self.tools.get(tool_call.name)
@@ -887,6 +1956,7 @@ class AgentLoop:
                             tool_trace_metadata=tool_trace_metadata,
                             rag_rounds=rag_rounds,
                         )
+                        self._record_rag_trace_status(runtime_metadata, tool_trace_metadata)
                         current_round = (
                             tool_trace_metadata.get("rag_round")
                             if isinstance(tool_trace_metadata, dict)
@@ -948,6 +2018,12 @@ class AgentLoop:
                         model=effective_model,
                         on_content_delta=_capture_retry_delta,
                     )
+                    self._record_llm_stream_telemetry(
+                        runtime_metadata,
+                        response,
+                        call_site="agent_loop_repair",
+                        iteration=iteration,
+                    )
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
                     if response.finish_reason == "error":
                         logger.error("LLM retry returned error: {}", (clean or "")[:200])
@@ -985,6 +2061,7 @@ class AgentLoop:
             exact_response = await self._build_exact_authority_response(
                 exact_authority,
                 runtime_metadata=runtime_metadata,
+                user_message=self._latest_user_message(messages),
             )
             if exact_response:
                 final_content = exact_response
@@ -994,7 +2071,20 @@ class AgentLoop:
         if case_fallback:
             final_content = case_fallback
             self._replace_last_assistant_message(messages, case_fallback)
+        # V1 is applied ONCE on the outer _process_message seam (after _run_agent_loop returns), NOT
+        # here: _run_agent_loop rebinds runtime_metadata to a local copy, so a V1 attempt here would not
+        # propagate _v1_case_graded and would double-invoke V1 (two DeepSeek calls). This inner seam
+        # keeps only the cheap legacy demote.
+        no_score_fallback = self._case_grading_no_authority_score_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=self._latest_user_message(messages),
+        )
+        if no_score_fallback:
+            final_content = no_score_fallback
+            self._replace_last_assistant_message(messages, no_score_fallback)
 
+        self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, tools_used, messages
 
     @staticmethod
@@ -1010,9 +2100,10 @@ class AgentLoop:
         exact_question: dict[str, Any],
         *,
         runtime_metadata: dict[str, Any] | None = None,
+        user_message: Any = "",
     ) -> str:
         _ = runtime_metadata
-        return build_exact_authority_response(exact_question)
+        return build_exact_authority_response(exact_question, user_message=user_message)
 
     @staticmethod
     def _replace_last_assistant_message(messages: list[dict[str, Any]], content: str) -> None:
@@ -1020,6 +2111,13 @@ class AgentLoop:
             if str(item.get("role") or "") == "assistant":
                 item["content"] = content
                 return
+
+    @staticmethod
+    def _latest_user_message(messages: list[dict[str, Any]]) -> str:
+        for item in reversed(messages):
+            if str(item.get("role") or "") == "user":
+                return str(item.get("content") or "").strip()
+        return ""
 
     @staticmethod
     def _has_default_rag_grounding(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -1047,7 +2145,6 @@ class AgentLoop:
             "question_review",
         }
 
-    @staticmethod
     def _construction_scene_uses_learner_state_authority(scene: str | None) -> bool:
         return scene in {
             "learning_evidence_story",
@@ -1058,10 +2155,33 @@ class AgentLoop:
     @staticmethod
     def _has_active_question_flow(runtime_metadata: dict[str, Any] | None) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        active_object = metadata.get("active_object")
         return bool(
             metadata.get("question_followup_context")
             or metadata.get("followup_question_context")
-            or metadata.get("active_object")
+            or AgentLoop._active_object_is_question_flow(active_object)
+        )
+
+    @staticmethod
+    def _active_object_is_question_flow(active_object: Any) -> bool:
+        if not isinstance(active_object, dict):
+            return False
+        object_type = str(active_object.get("object_type") or "").strip()
+        if object_type in {"question_set", "single_question", "question", "question_card"}:
+            return True
+        state_snapshot = active_object.get("state_snapshot")
+        if not isinstance(state_snapshot, dict):
+            return False
+        return any(
+            key in state_snapshot
+            for key in (
+                "question",
+                "questions",
+                "items",
+                "question_id",
+                "correct_answer",
+                "user_answer",
+            )
         )
 
     @classmethod
@@ -1088,6 +2208,64 @@ class AgentLoop:
         return bool(allowed_types & {"single", "multi", "case", "case_study", "case_background", "calculation"})
 
     @classmethod
+    def _looks_like_internal_context_message(cls, value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        if "不得覆盖当前用户问题" in text:
+            return True
+        if any(text.startswith(marker) for marker in cls._INTERNAL_CONTEXT_MARKERS):
+            return True
+        return any(marker in text for marker in cls._CURRENT_USER_QUESTION_MARKERS) and any(
+            marker in text for marker in cls._INTERNAL_CONTEXT_MARKERS
+        )
+
+    @classmethod
+    def _extract_current_user_question_section(cls, value: str) -> str:
+        text = str(value or "")
+        for marker in cls._CURRENT_USER_QUESTION_MARKERS:
+            index = text.find(marker)
+            if index < 0:
+                continue
+            candidate = text[index + len(marker) :]
+            if candidate.startswith("\n"):
+                candidate = candidate[1:]
+            cut_at = len(candidate)
+            for stop_marker in cls._INTERNAL_CONTEXT_MARKERS:
+                stop_index = candidate.find(f"\n{stop_marker}")
+                if stop_index >= 0:
+                    cut_at = min(cut_at, stop_index)
+            candidate = candidate[:cut_at].strip()
+            if candidate and not cls._looks_like_internal_context_message(candidate):
+                return candidate
+        return ""
+
+    @classmethod
+    def _resolve_tool_query(
+        cls,
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        for key in (
+            "raw_user_message",
+            "user_visible_content",
+            "user_visible_query",
+            "surface_content",
+            "surface_query",
+            "original_query",
+            "original_content",
+            "query",
+        ):
+            candidate = str(metadata.get(key) or "").strip()
+            if candidate and not cls._looks_like_internal_context_message(candidate):
+                return candidate
+        section = cls._extract_current_user_question_section(current_message)
+        if section:
+            return section
+        return str(current_message or "").strip()
+
+    @classmethod
     def _should_prefetch_grounded_rag(
         cls,
         *,
@@ -1095,11 +2273,12 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        practice_generation_request = looks_like_practice_generation_request(current_message)
+        tool_query = cls._resolve_tool_query(current_message, metadata)
+        practice_generation_request = looks_like_practice_generation_request(tool_query)
         answer_type = str(metadata.get("answer_type") or metadata.get("intent") or "").strip()
-        exact_probe = prepare_exact_question_probe(current_message)
+        exact_probe = prepare_exact_question_probe(tool_query)
         decision = build_grounding_decision_from_metadata(
-            query=current_message,
+            query=tool_query,
             runtime_metadata=metadata,
             rag_enabled=True,
             tutorbot_context=True,
@@ -1130,11 +2309,13 @@ class AgentLoop:
             return False
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
-            and query_uses_learner_state_authority(current_message)
+            and query_uses_learner_state_authority(tool_query)
             and not decision.textbook_delta_query
             and not decision.exact_question_candidate
         ):
             return False
+        if looks_like_construction_exam_knowledge_query(tool_query):
+            return True
         if decision.should_prefetch_grounded_rag:
             return True
         if decision.should_force_retrieval_first:
@@ -1175,13 +2356,14 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        tool_query = cls._resolve_tool_query(current_message, metadata)
         default_tools = {
             str(item or "").strip()
             for item in (metadata.get("default_tools") if isinstance(metadata.get("default_tools"), list) else [])
         }
         return (
             cls._runtime_current_info_required(metadata)
-            and query_requires_current_info(current_message)
+            and query_requires_current_info(tool_query)
             and "web_search" in default_tools
         )
 
@@ -1191,7 +2373,9 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        preview_args: dict[str, Any] = {"query": current_message}
+        preview_args: dict[str, Any] = {
+            "query": AgentLoop._resolve_tool_query(current_message, metadata)
+        }
         default_kb = str(metadata.get("default_kb") or "").strip()
         if not default_kb:
             knowledge_bases = metadata.get("knowledge_bases")
@@ -1231,13 +2415,21 @@ class AgentLoop:
         if isinstance(compiled_truth, dict) and compiled_truth:
             preview_args["compiled_learning_truth"] = dict(compiled_truth)
             routing_metadata["compiled_learning_truth_available"] = True
+        personalization_context = metadata.get("personalization_context")
+        if isinstance(personalization_context, dict) and personalization_context:
+            preview_args["personalization_context"] = dict(personalization_context)
+            routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             preview_args["routing_metadata"] = routing_metadata
         return preview_args
 
     @staticmethod
-    def _build_web_search_preview_args(current_message: str) -> dict[str, Any]:
-        return {"query": AgentLoop._normalize_web_search_query(current_message), "count": 5}
+    def _build_web_search_preview_args(
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        tool_query = AgentLoop._resolve_tool_query(current_message, runtime_metadata)
+        return {"query": AgentLoop._normalize_web_search_query(tool_query), "count": 5}
 
     @staticmethod
     def _normalize_web_search_query(current_message: str) -> str:
@@ -1306,6 +2498,7 @@ class AgentLoop:
         if guarded_context.signals:
             merged_metadata["guardrail_sanitized"] = True
             merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+        self._record_rag_trace_status(runtime_metadata, merged_metadata)
         exact_candidate = (
             merged_metadata.get("exact_question")
             if isinstance(merged_metadata.get("exact_question"), dict)
@@ -1313,7 +2506,12 @@ class AgentLoop:
         )
         if isinstance(exact_candidate, dict):
             runtime_metadata["_prefetched_exact_question"] = exact_candidate
-            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+            if self._prefetched_exact_authority_candidate(
+                runtime_metadata,
+                current_message=current_message,
+            ):
+                merged_metadata["authority_applied"] = True
+            elif self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 merged_metadata["authority_applied"] = True
 
         if on_tool_call:
@@ -1321,6 +2519,18 @@ class AgentLoop:
         if on_tool_result:
             await on_tool_result("rag", result_text, merged_metadata)
 
+        retrieval_degraded_instruction = (
+            "本轮知识召回失败或降级，且没有命中可作为标准答案的原题证据。"
+            "如果用户是在问真题标准答案、某组选项是否正确、或要求批改字母答案，"
+            "不得输出“不是”“正确答案是某项”“标准答案是某项”等确定性改判；"
+            "只能说明证据不足，要求题干/选项/题卡 id，或在完整题干下标注为非题库标准确认的候选判断。"
+            if bool(merged_metadata.get("retrieval_degraded"))
+            and not (
+                isinstance(merged_metadata.get("exact_question"), dict)
+                and merged_metadata.get("exact_question")
+            )
+            else ""
+        )
         prefetch_messages = list(initial_messages)
         tool_call_id = "prefetch-rag-1"
         prefetch_messages = self.context.add_assistant_message(
@@ -1362,6 +2572,7 @@ class AgentLoop:
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
                     "只有当前证据仍明显不足时，才继续调用其他工具。"
                     + (f"\n{case_exact_instruction}" if case_exact_instruction else "")
+                    + (f"\n{retrieval_degraded_instruction}" if retrieval_degraded_instruction else "")
                 ),
             }
         )
@@ -1387,7 +2598,7 @@ class AgentLoop:
         if web_search_tool is None:
             return initial_messages
 
-        preview_args = self._build_web_search_preview_args(current_message)
+        preview_args = self._build_web_search_preview_args(current_message, runtime_metadata)
         try:
             preview_args = web_search_tool.preview_args(preview_args)
         except Exception:
@@ -1457,6 +2668,7 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> tuple[str | None, list[dict[str, Any]], str]:
+        external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         runtime_metadata = dict(runtime_metadata or {})
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         reasoning_effort = self._fast_policy_reasoning_effort()
@@ -1504,6 +2716,11 @@ class AgentLoop:
                 reasoning_effort=reasoning_effort,
                 on_content_delta=_capture_content_delta,
             )
+            self._record_llm_stream_telemetry(
+                runtime_metadata,
+                response,
+                call_site="fast_policy",
+            )
             clean = self._strip_think(response.content)
             candidate = clean or "".join(streamed_parts).strip()
             if response.finish_reason == "error":
@@ -1528,6 +2745,7 @@ class AgentLoop:
             reasoning_content=response.reasoning_content if response is not None else None,
             thinking_blocks=response.thinking_blocks if response is not None else None,
         )
+        self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, messages, public_streamed_text
 
     def _fast_policy_reasoning_effort(self) -> str | None:
@@ -1996,12 +3214,13 @@ class AgentLoop:
             return None
         if self._is_question_review_scene(runtime_metadata):
             return None
-        exact_probe = prepare_exact_question_probe(current_message)
-        practice_generation_request = looks_like_practice_generation_request(current_message)
+        tool_query = self._resolve_tool_query(current_message, runtime_metadata)
+        exact_probe = prepare_exact_question_probe(tool_query)
+        practice_generation_request = looks_like_practice_generation_request(tool_query)
         if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and practice_generation_request:
             return None
         decision = build_grounding_decision_from_metadata(
-            query=current_message,
+            query=tool_query,
             runtime_metadata=runtime_metadata,
             rag_enabled=True,
             tutorbot_context=True,
@@ -2023,7 +3242,7 @@ class AgentLoop:
         if not (allowed_types & {"single", "multi"}):
             return None
 
-        preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
+        preview_args = self._build_rag_preview_args(tool_query, runtime_metadata)
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -2047,6 +3266,7 @@ class AgentLoop:
         exact_response = await self._build_exact_authority_response(
             exact_candidate,
             runtime_metadata=runtime_metadata,
+            user_message=current_message,
         )
         if not exact_response:
             return None
@@ -2240,6 +3460,7 @@ class AgentLoop:
             session.metadata.pop("nano_team_active", None)
             self.sessions.save(session)
             self.sessions.invalidate(session.key)
+            self.memory_consolidator.release_lock(session.key)
             return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id,
                                   content="New session started.")
         if cmd == "/help":
@@ -2469,6 +3690,9 @@ class AgentLoop:
         track_label = exam_track_label(runtime_metadata.get("exam_track"))
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
+            build_cross_capability_context_instruction(
+                str(runtime_metadata.get("conversation_context_text") or "").strip(),
+            ),
             get_construction_exam_boundary_fact_instruction(
                 current_message,
                 str(runtime_metadata.get("conversation_context_text") or "").strip(),
@@ -2506,6 +3730,18 @@ class AgentLoop:
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
         self._export_skill_trace_metadata(runtime_metadata, msg.metadata)
+        case_grading_direct = await self._run_case_grading_direct(
+            msg=msg,
+            session=session,
+            history=history,
+            current_message=current_message,
+            runtime_metadata=runtime_metadata,
+            runtime_instruction=runtime_instruction,
+            on_progress=on_progress,
+            on_content_delta=on_content_delta,
+        )
+        if case_grading_direct is not None:
+            return case_grading_direct
         fast_path = await self._maybe_run_exact_rag_fast_path(
             current_message=current_message,
             history=history,
@@ -2537,6 +3773,21 @@ class AgentLoop:
             ) or final_content
             final_content = self._case_exact_authority_fallback(
                 final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = await self._apply_v1_or_case_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            ) or final_content
+            final_content = self._degraded_exact_answer_claim_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._degraded_mcq_grading_response(
+                user_message=current_message,
+                final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
@@ -2581,11 +3832,69 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )
+        prefetched_exact_authority = self._prefetched_exact_authority_candidate(
+            runtime_metadata,
+            current_message=current_message,
+        )
+        if prefetched_exact_authority:
+            final_content = await self._build_exact_authority_response(
+                prefetched_exact_authority,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            )
+            if final_content:
+                final_content = normalize_anchor_terms_in_response(
+                    user_message=current_message,
+                    response=final_content,
+                ) or final_content
+                final_content = correct_construction_exam_boundary_fact_response(
+                    user_message=current_message,
+                    response=final_content,
+                ) or final_content
+                final_content = self._degraded_exact_answer_claim_response(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
+                final_content = self._degraded_mcq_grading_response(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
+                guarded_output = guard_tutorbot_output(final_content)
+                final_content = guarded_output.content or final_content
+                all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+                await self._emit_visible_text_deltas(final_content, on_content_delta)
+                self._save_turn(session, all_msgs, 1 + len(history))
+                session.metadata["last_exact_fast_path"] = False
+                self.sessions.save(session)
+                await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+                preview = (
+                    final_content[:120] + "..."
+                    if len(final_content) > 120
+                    else final_content
+                )
+                logger.info(
+                    "Prefetched exact authority response to {}:{}: {}",
+                    msg.channel,
+                    msg.sender_id,
+                    preview,
+                )
+                return OutboundMessage(
+                    channel=msg.channel,
+                    chat_id=msg.chat_id,
+                    content=final_content,
+                    metadata=msg.metadata or {},
+                )
         if response_mode == "fast":
+            suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
+                user_message=current_message,
+                runtime_metadata=runtime_metadata,
+            )
             final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
                 initial_messages,
                 runtime_metadata=runtime_metadata,
-                on_content_delta=on_content_delta,
+                on_content_delta=None if suppress_fast_stream else on_content_delta,
             )
             if final_content is None:
                 final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
@@ -2599,6 +3908,27 @@ class AgentLoop:
             ) or final_content
             final_content = self._case_exact_authority_fallback(
                 final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            logger.warning(
+                "LUBAN_DIAG fast-policy pre-v1: scene={} looks_case={} pf_qid={}",
+                (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
+                "【题目】" in current_message or "case" in current_message[:30].lower(),
+                str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+            )
+            final_content = await self._apply_v1_or_case_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            ) or final_content
+            final_content = self._degraded_exact_answer_claim_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._degraded_mcq_grading_response(
+                user_message=current_message,
+                final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
@@ -2615,12 +3945,20 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            response_metadata = dict(msg.metadata or {})
+            self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+            self._export_case_grading_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
                 content=final_content,
-                metadata=msg.metadata or {},
+                metadata=response_metadata,
             )
+
+        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
+            user_message=current_message,
+            runtime_metadata=runtime_metadata,
+        )
 
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
             meta = dict(msg.metadata or {})
@@ -2634,11 +3972,11 @@ class AgentLoop:
             initial_messages,
             runtime_metadata=runtime_metadata,
             on_progress=on_progress or _bus_progress,
-            on_content_delta=on_content_delta,
+            on_content_delta=None if suppress_agent_stream else on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
             allow_exact_authority_override=(
-                prepare_exact_question_probe(current_message) is not None
+                prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
                 and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
                 and not self._is_question_review_scene(runtime_metadata)
             ),
@@ -2658,10 +3996,33 @@ class AgentLoop:
             final_content,
             runtime_metadata=runtime_metadata,
         ) or final_content
+        logger.warning(
+            "LUBAN_DIAG agent-loop pre-v1: scene={} looks_case={} pf_qid={}",
+            (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
+            "【题目】" in current_message or "case" in current_message[:30].lower(),
+            str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+        )
+        final_content = await self._apply_v1_or_case_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=current_message,
+        ) or final_content
+        final_content = self._degraded_exact_answer_claim_response(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._degraded_mcq_grading_response(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         final_content = guarded_output.content or final_content
         if all_msgs:
             all_msgs[-1]["content"] = final_content
+        if suppress_agent_stream:
+            await self._emit_visible_text_deltas(final_content, on_content_delta)
 
         self._save_turn(session, all_msgs, 1 + len(history))
         session.metadata["last_exact_fast_path"] = False
@@ -2673,9 +4034,12 @@ class AgentLoop:
 
         preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
         logger.info("Response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+        response_metadata = dict(msg.metadata or {})
+        self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+        self._export_case_grading_metadata(runtime_metadata, response_metadata)
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id, content=final_content,
-            metadata=msg.metadata or {},
+            metadata=response_metadata,
         )
 
     def _save_turn(self, session: Session, messages: list[dict], skip: int) -> None:

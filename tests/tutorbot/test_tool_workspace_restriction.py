@@ -54,3 +54,25 @@ async def test_build_base_tools_still_allows_in_workspace_access(tmp_path) -> No
     result = await tools.get("read_file").execute(path=str(note))
 
     assert "lesson notes" in result
+
+
+def test_build_base_tools_omits_exec_when_disabled(tmp_path) -> None:
+    """enable_exec=False removes the shell tool entirely (untrusted-student path)."""
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+
+    tools = build_base_tools(workspace, ExecToolConfig(), enable_exec=False)
+
+    assert "exec" not in tools
+    # filesystem/read tools remain available
+    assert "read_file" in tools
+
+
+def test_build_base_tools_includes_exec_by_default(tmp_path) -> None:
+    """Default (trusted operator) path keeps the shell tool."""
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+
+    tools = build_base_tools(workspace, ExecToolConfig())
+
+    assert "exec" in tools

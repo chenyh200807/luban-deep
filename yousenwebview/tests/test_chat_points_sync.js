@@ -39,11 +39,12 @@ assert(
   "chat should not fetch usage on bootstrap or stream completion",
 );
 assert(
-  profileJs.indexOf(".getUsage()") >= 0 &&
+  profileJs.indexOf(".getWallet()") >= 0 &&
+    profileJs.indexOf(".getLedger(20)") >= 0 &&
     profileJs.indexOf("usagePrimaryLabel") >= 0 &&
     profileJs.indexOf("usageRows") >= 0 &&
-    profileJs.indexOf("quota.rows") >= 0,
-  "profile should own the usage endpoint and state",
+    profileJs.indexOf("_walletPercent(balance, ledgerRaw)") >= 0,
+  "profile should own the wallet ledger usage endpoint and state",
 );
 assert(
   profileWxml.indexOf('class="usage-card glass-card"') >= 0 &&

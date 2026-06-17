@@ -20,7 +20,9 @@ async function run(name, fn) {
     await fn();
   } catch (err) {
     fail++;
-    errors.push("ERROR: " + name + " -> " + (err && err.stack ? err.stack : err));
+    errors.push(
+      "ERROR: " + name + " -> " + (err && err.stack ? err.stack : err),
+    );
   }
 }
 
@@ -82,7 +84,9 @@ function loadChatPage(overrides) {
       },
       getConversationMessages: function (id) {
         apiState.getConversationMessagesCalls.push(id);
-        return Promise.resolve({ messages: [{ id: "u1", role: "user", content: "上一轮" }] });
+        return Promise.resolve({
+          messages: [{ id: "u1", role: "user", content: "上一轮" }],
+        });
       },
     },
     (overrides && overrides.api) || {},
@@ -111,6 +115,10 @@ function loadChatPage(overrides) {
       consumePendingChatIntent: function () {
         return {};
       },
+      // 2026-06-12 契约演进（paywall）：chat.js 新增 _showLoginGate 调用 runtime.setPendingChatIntent
+      // 以便游客保留发送内容到登录后恢复，需在 mock 中注册该函数。
+      setPendingChatIntent: function () {},
+      redirectToLogin: function () {},
       logout: function () {},
     },
     (overrides && overrides.runtime) || {},
@@ -133,7 +141,8 @@ function loadChatPage(overrides) {
         return authMock;
       }
       if (request === "../../utils/api") return apiMock;
-      if (request === "../../utils/ai-message-state") return {};
+      if (request === "../../utils/ai-message-state")
+        return (overrides && overrides.aiMessageState) || {};
       if (request === "../../utils/ws-stream") return {};
       if (request === "../../utils/helpers") {
         return {
@@ -174,7 +183,9 @@ function loadChatPage(overrides) {
       }
       if (request === "../../utils/workflow-status") return {};
       if (request === "../../utils/citation-format") return {};
-      if (request === "../../utils/chat-turn-recovery") return {};
+      if (request === "../../utils/chat-turn-recovery") {
+        return (overrides && overrides.chatTurnRecovery) || {};
+      }
       if (request === "../../utils/devtools-markdown-fixtures") return {};
       if (request === "../../utils/surface-telemetry") {
         return {
@@ -183,7 +194,12 @@ function loadChatPage(overrides) {
         };
       }
       if (request === "../../utils/runtime") return runtimeMock;
-      if (request === "../../utils/route") return { billing: function () { return ""; } };
+      if (request === "../../utils/route")
+        return {
+          billing: function () {
+            return "";
+          },
+        };
       if (request === "../../utils/flags") {
         return {
           shouldShowWorkspaceShell: function () {
@@ -197,8 +213,15 @@ function loadChatPage(overrides) {
       if (request === "../../utils/analytics") {
         return { track: function () {} };
       }
-      if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
-      if (request === "../../utils/learning-home-view-model") return require(path.join(__dirname, "../packageDeeptutor/utils/learning-home-view-model.js"));
+      if (request === "../../utils/history-tombstone")
+        return { rememberDeletedConversationIds: function () {} };
+      if (request === "../../utils/learning-home-view-model")
+        return require(
+          path.join(
+            __dirname,
+            "../packageDeeptutor/utils/learning-home-view-model.js",
+          ),
+        );
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -252,7 +275,10 @@ function loadChatPage(overrides) {
   }
   page._checkDiagnostic = function () {};
   page._applyHydratedConversationMessages = function (messages) {
-    this.setData({ messages: messages || [], hasMessages: !!(messages && messages.length) });
+    this.setData({
+      messages: messages || [],
+      hasMessages: !!(messages && messages.length),
+    });
   };
   page._setupObserver = function () {};
   page._stop = function () {};
@@ -265,244 +291,573 @@ function loadChatPage(overrides) {
   return {
     page: page,
     apiState: apiState,
+    storage: storage,
     toastCalls: toastCalls,
   };
 }
 
 (async function main() {
-  await run("chat page should wait for bootstrap auth validation before creating conversation", async function () {
-    var bootstrapDeferred = createDeferred();
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          loaded.apiState.getUserInfoCalls += 1;
-          return bootstrapDeferred.promise;
+  await run(
+    "chat page should not wait for profile bootstrap before entering send pipeline",
+    async function () {
+      var bootstrapDeferred = createDeferred();
+      var loaded = loadChatPage({
+        api: {
+          getUserInfo: function () {
+            loaded.apiState.getUserInfoCalls += 1;
+            return bootstrapDeferred.promise;
+          },
         },
-      },
-    });
+      });
 
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    loaded.page._send("帮我分析这道题");
-    await flushPromises();
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      loaded.page._send("帮我分析这道题");
+      await flushPromises();
 
-    assert(
-      loaded.apiState.createConversationCalls === 0,
-      "conversation creation must wait until bootstrap auth validation resolves",
-    );
-    assert(
-      loaded.page._doSendCallCount === 0,
-      "send pipeline should not continue before bootstrap auth validation completes",
-    );
+      assert(
+        loaded.apiState.createConversationCalls === 0,
+        "first turn should not pre-create conversation while profile bootstrap is pending",
+      );
+      assert(
+        loaded.page._doSendCallCount === 1,
+        "send pipeline should use token authority and continue without waiting for profile bootstrap",
+      );
 
-    bootstrapDeferred.resolve({ username: "chenyh2008", points: 18 });
-    await flushPromises();
-    await flushPromises();
+      bootstrapDeferred.resolve({ username: "chenyh2008", points: 18 });
+      await flushPromises();
+      await flushPromises();
 
-    assert(
-      loaded.apiState.createConversationCalls === 1,
-      "conversation creation should resume once bootstrap auth validation succeeds",
-    );
-    assert(
-      loaded.page._doSendCallCount === 1,
-      "send pipeline should continue after bootstrap auth validation succeeds",
-    );
-  });
+      assert(
+        loaded.apiState.createConversationCalls === 0,
+        "profile bootstrap completion should not add a separate create-conversation roundtrip",
+      );
+      assert(
+        loaded.page._doSendCallCount === 1,
+        "profile bootstrap completion should not replay the same send",
+      );
+    },
+  );
 
-  await run("chat page should block pending auto-send when bootstrap auth validation fails", async function () {
-    var sendCount = 0;
-    var dashboardCount = 0;
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          loaded.apiState.getUserInfoCalls += 1;
-          return Promise.reject(new Error("profile temporarily unavailable"));
+  await run(
+    "chat page should keep pending auto-send independent from degraded profile bootstrap",
+    async function () {
+      var sendCount = 0;
+      var sentOptions = null;
+      var dashboardCount = 0;
+      var diagnosticCount = 0;
+      var loaded = loadChatPage({
+        api: {
+          getUserInfo: function () {
+            loaded.apiState.getUserInfoCalls += 1;
+            return Promise.reject(new Error("profile temporarily unavailable"));
+          },
         },
-      },
-      runtime: {
-        consumePendingChatIntent: function () {
-          return { query: "继续上一题", mode: "AUTO" };
+        runtime: {
+          consumePendingChatIntent: function () {
+            return {
+              query: "继续上一题",
+              mode: "AUTO",
+              followupQuestionContext: {
+                question_id: "q_wrong_1",
+                question: "地下防水卷材搭接做法正确的是？",
+                question_type: "choice",
+              },
+            };
+          },
         },
-      },
-    });
+      });
 
-    loaded.page._send = function () {
-      sendCount += 1;
-    };
-    loaded.page._loadDashboard = function () {
-      dashboardCount += 1;
-    };
+      loaded.page._send = function (_query, opts) {
+        sendCount += 1;
+        sentOptions = opts || null;
+      };
+      loaded.page._loadDashboard = function () {
+        dashboardCount += 1;
+      };
+      loaded.page._checkDiagnostic = function () {
+        diagnosticCount += 1;
+      };
 
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-    assert(sendCount === 0, "pending auto-send should stay blocked when auth bootstrap is not authoritative");
-    assert(dashboardCount === 1, "dashboard should still load so today focus can render when profile is degraded");
-  });
+      assert(
+        sendCount === 1,
+        "pending auto-send should use token authority even when profile is degraded",
+      );
+      assert(
+        sentOptions &&
+          sentOptions.followupQuestionContext &&
+          sentOptions.followupQuestionContext.question_id === "q_wrong_1",
+        "pending auto-send should preserve followup question context",
+      );
+      assert(
+        dashboardCount === 0,
+        "pending auto-send should not spend a dashboard request before start-turn",
+      );
+      assert(
+        diagnosticCount === 0,
+        "pending auto-send should not spend a diagnostic request before start-turn",
+      );
+    },
+  );
 
-  await run("chat page should keep a default today focus when dashboard request fails", async function () {
-    var loaded = loadChatPage({
-      preserveLoadDashboard: true,
-      api: {
-        getHomeDashboard: function () {
-          return Promise.reject(new Error("NETWORK_ERROR"));
+  await run(
+    "chat page should still hydrate hero dashboard when profile bootstrap is degraded",
+    async function () {
+      var dashboardCount = 0;
+      var diagnosticCount = 0;
+      var loaded = loadChatPage({
+        api: {
+          getUserInfo: function () {
+            loaded.apiState.getUserInfoCalls += 1;
+            return Promise.reject(new Error("profile temporarily unavailable"));
+          },
         },
-      },
-    });
+      });
 
-    loaded.page._loadDashboard();
-    await flushPromises();
+      loaded.page._loadDashboard = function () {
+        dashboardCount += 1;
+      };
+      loaded.page._checkDiagnostic = function () {
+        diagnosticCount += 1;
+      };
 
-    assert(loaded.page.data.focusTitle === "今日推进", "dashboard failure should still set default focus title");
-    assert(loaded.page.data.focusText === "今日推进", "dashboard failure should still make focus bar renderable");
-  });
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-  await run("chat page should hydrate the current session when returning from workspace shell", async function () {
-    var loaded = loadChatPage({
-      storage: {
-        current_session_id: "conv_return",
-        current_session_ts: Date.now(),
-      },
-    });
+      assert(
+        dashboardCount === 1,
+        "hero dashboard should still load without a pending send",
+      );
+      assert(
+        diagnosticCount === 1,
+        "hero diagnostic prompt should still load without a pending send",
+      );
+    },
+  );
 
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+  await run(
+    "hero diagnostic check should wait for dashboard hydration",
+    async function () {
+      var dashboardDeferred = createDeferred();
+      var diagnosticCount = 0;
+      var loaded = loadChatPage({});
 
-    assert(
-      loaded.apiState.getConversationMessagesCalls.length === 1 &&
-        loaded.apiState.getConversationMessagesCalls[0] === "conv_return",
-      "returning to chat with a current session should hydrate that conversation",
-    );
-    assert(
-      loaded.page.data.hasMessages === true,
-      "hydrated current session should restore the visible chat, not an empty hero",
-    );
-  });
+      loaded.page._loadDashboard = function () {
+        return dashboardDeferred.promise;
+      };
+      loaded.page._checkDiagnostic = function () {
+        diagnosticCount += 1;
+      };
 
-  await run("history entry should suppress hero before pending conversation hydration", async function () {
-    var pendingConversationId = "conv_history_direct";
-    var pendingChatIntentConsumed = false;
-    var sendCount = 0;
-    var loaded = loadChatPage({
-      runtime: {
-        peekPendingConversationId: function () {
-          return pendingConversationId;
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      await flushPromises();
+
+      assert(
+        diagnosticCount === 0,
+        "diagnostic request should not compete with the dashboard request",
+      );
+
+      dashboardDeferred.resolve();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        diagnosticCount === 1,
+        "diagnostic request should run after dashboard hydration settles",
+      );
+    },
+  );
+
+  await run(
+    "chat page should keep a default today focus when dashboard request fails",
+    async function () {
+      var loaded = loadChatPage({
+        preserveLoadDashboard: true,
+        api: {
+          getHomeDashboard: function () {
+            return Promise.reject(new Error("NETWORK_ERROR"));
+          },
         },
-        consumePendingConversationId: function () {
-          var id = pendingConversationId;
-          pendingConversationId = "";
-          return id;
+      });
+
+      loaded.page._loadDashboard();
+      await flushPromises();
+
+      assert(
+        loaded.page.data.focusTitle === "今日推进",
+        "dashboard failure should still set default focus title",
+      );
+      assert(
+        loaded.page.data.focusText === "今日推进",
+        "dashboard failure should still make focus bar renderable",
+      );
+    },
+  );
+
+  await run(
+    "chat page should hydrate the current session when returning from workspace shell",
+    async function () {
+      var loaded = loadChatPage({
+        storage: {
+          current_session_id: "conv_return",
+          current_session_ts: Date.now(),
         },
-        consumePendingChatIntent: function () {
-          pendingChatIntentConsumed = true;
-          return { query: "我想练习建筑构造相关的题目", mode: "DEEP" };
+      });
+
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        loaded.apiState.getConversationMessagesCalls.length === 1 &&
+          loaded.apiState.getConversationMessagesCalls[0] === "conv_return",
+        "returning to chat with a current session should hydrate that conversation",
+      );
+      assert(
+        loaded.page.data.hasMessages === true,
+        "hydrated current session should restore the visible chat, not an empty hero",
+      );
+    },
+  );
+
+  await run(
+    "chat page should discard local draft sessions before hydration",
+    async function () {
+      var loaded = loadChatPage({
+        storage: {
+          current_session_id: "s_1780445194569",
+          current_session_ts: Date.now(),
         },
-      },
-    });
-    loaded.page._send = function () {
-      sendCount += 1;
-    };
+      });
 
-    loaded.page.onLoad({});
-    assert(
-      loaded.page.data.hasMessages === true,
-      "pending history entry should enter chat chrome before the first hydration response",
-    );
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      await flushPromises();
 
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+      assert(
+        loaded.apiState.getConversationMessagesCalls.length === 0,
+        "local draft session ids should not be hydrated as backend conversations",
+      );
+      assert(
+        loaded.page._convId === null,
+        "local draft session should not remain as the current conversation id",
+      );
+    },
+  );
 
-    assert(
-      loaded.apiState.getConversationMessagesCalls.length === 1 &&
-        loaded.apiState.getConversationMessagesCalls[0] === "conv_history_direct",
-      "pending history entry should hydrate the selected conversation directly",
-    );
-    assert(
-      loaded.page.data.hasMessages === true,
-      "hydrated history entry should remain on the chat surface",
-    );
-    assert(
-      pendingChatIntentConsumed === true && sendCount === 0,
-      "history restore should consume but not replay stale pending chat intent",
-    );
-  });
-
-  await run("chat page should not race past a failing bootstrap promise on manual send", async function () {
-    var bootstrapDeferred = createDeferred();
-    var loaded = loadChatPage({
-      api: {
-        getUserInfo: function () {
-          loaded.apiState.getUserInfoCalls += 1;
-          return bootstrapDeferred.promise;
+  await run(
+    "history entry should suppress hero before pending conversation hydration",
+    async function () {
+      var pendingConversationId = "conv_history_direct";
+      var pendingChatIntentConsumed = false;
+      var sendCount = 0;
+      var loaded = loadChatPage({
+        runtime: {
+          peekPendingConversationId: function () {
+            return pendingConversationId;
+          },
+          consumePendingConversationId: function () {
+            var id = pendingConversationId;
+            pendingConversationId = "";
+            return id;
+          },
+          consumePendingChatIntent: function () {
+            pendingChatIntentConsumed = true;
+            return { query: "我想练习建筑构造相关的题目", mode: "DEEP" };
+          },
         },
-      },
-    });
+      });
+      loaded.page._send = function () {
+        sendCount += 1;
+      };
 
-    loaded.page.onLoad({});
-    loaded.page.onShow();
-    loaded.page._send("帮我分析这道题");
-    await flushPromises();
-    assert(
-      loaded.apiState.createConversationCalls === 0,
-      "manual send should stay behind the in-flight bootstrap promise",
-    );
+      loaded.page.onLoad({});
+      assert(
+        loaded.page.data.hasMessages === true,
+        "pending history entry should enter chat chrome before the first hydration response",
+      );
 
-    bootstrapDeferred.reject(new Error("profile temporarily unavailable"));
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-    assert(
-      loaded.apiState.createConversationCalls === 0,
-      "manual send should not create a conversation when bootstrap auth validation fails",
-    );
-    assert(
-      loaded.page._doSendCallCount === 0,
-      "manual send should not enter the stream pipeline when bootstrap auth validation fails",
-    );
-    assert(
-      loaded.toastCalls.length >= 1 &&
-        loaded.toastCalls[loaded.toastCalls.length - 1].title === "服务暂时不可用，请稍后重试",
-      "manual send should surface an availability toast instead of a misleading create-conversation failure",
-    );
-  });
+      assert(
+        loaded.apiState.getConversationMessagesCalls.length === 1 &&
+          loaded.apiState.getConversationMessagesCalls[0] ===
+            "conv_history_direct",
+        "pending history entry should hydrate the selected conversation directly",
+      );
+      assert(
+        loaded.page.data.hasMessages === true,
+        "hydrated history entry should remain on the chat surface",
+      );
+      assert(
+        pendingChatIntentConsumed === true && sendCount === 0,
+        "history restore should consume but not replay stale pending chat intent",
+      );
+    },
+  );
 
-  await run("chat page should not call profile bootstrap or create conversation after auth redirect starts", async function () {
-    var loaded = loadChatPage({
-      auth: {
-        getToken: function () {
-          return "";
+  await run(
+    "manual send should not fail just because profile bootstrap later fails",
+    async function () {
+      var bootstrapDeferred = createDeferred();
+      var loaded = loadChatPage({
+        api: {
+          getUserInfo: function () {
+            loaded.apiState.getUserInfoCalls += 1;
+            return bootstrapDeferred.promise;
+          },
         },
-      },
-      runtime: {
-        checkAuth: function () {
-          return true;
+      });
+
+      loaded.page.onLoad({});
+      loaded.page.onShow();
+      loaded.page._send("帮我分析这道题");
+      await flushPromises();
+      assert(
+        loaded.apiState.createConversationCalls === 0,
+        "manual send should avoid the extra create-conversation roundtrip",
+      );
+      assert(
+        loaded.page._doSendCallCount === 1,
+        "manual send should enter stream pipeline before non-authoritative profile bootstrap resolves",
+      );
+
+      bootstrapDeferred.reject(new Error("profile temporarily unavailable"));
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        loaded.apiState.createConversationCalls === 0,
+        "profile bootstrap failure should not trigger create-conversation",
+      );
+      assert(
+        loaded.page._doSendCallCount === 1,
+        "profile bootstrap failure should not roll back an already-started send",
+      );
+      assert(
+        loaded.toastCalls.length === 0,
+        "profile bootstrap failure should not toast over an active send",
+      );
+    },
+  );
+
+  await run(
+    "manual send should release stale pending recovery instead of leaving the chat locked",
+    async function () {
+      var loaded = loadChatPage({});
+      loaded.page._sid = "conv_stale";
+      loaded.page._convId = "conv_stale";
+      loaded.page._pendingTurn = {
+        conversationId: "conv_stale",
+        baselineCount: 1,
+        query: "上一轮卡住的问题",
+        clientTurnId: "client_stale",
+        createdAt: Date.now(),
+      };
+      loaded.page._pendingRecoveryActive = true;
+      loaded.page._abort = null;
+      loaded.page.setData({
+        hasMessages: true,
+        isStreaming: true,
+        messages: [{ id: "u0", role: "user", content: "上一轮卡住的问题" }],
+      });
+
+      loaded.page._send("我现在要问新问题");
+
+      assert(
+        loaded.page._doSendCallCount === 1,
+        "manual send should enter the stream pipeline after releasing stale pending recovery",
+      );
+      assert(
+        loaded.page._pendingTurn === null,
+        "stale pending recovery should be demoted before the new turn becomes authoritative",
+      );
+      assert(
+        loaded.page._sid === "conv_stale" &&
+          loaded.page._convId === "conv_stale",
+        "manual send should keep the current conversation anchor while releasing only the stale recovery state",
+      );
+    },
+  );
+
+  await run(
+    "manual send should still refuse while an active stream is running",
+    async function () {
+      var loaded = loadChatPage({});
+      loaded.page._sid = "conv_active";
+      loaded.page._convId = "conv_active";
+      loaded.page._pendingRecoveryActive = true;
+      loaded.page._abort = function () {};
+      loaded.page.setData({
+        hasMessages: true,
+        isStreaming: true,
+        messages: [{ id: "a0", role: "ai", content: "", streaming: true }],
+      });
+
+      loaded.page._send("不要打断活跃流");
+
+      assert(
+        loaded.page._doSendCallCount === 0,
+        "manual send should not start a second turn while an active stream still owns the surface",
+      );
+    },
+  );
+
+  await run(
+    "chat page should not call profile bootstrap or create conversation after auth redirect starts",
+    async function () {
+      var loaded = loadChatPage({
+        auth: {
+          getToken: function () {
+            return "";
+          },
         },
-      },
-    });
+        runtime: {
+          checkAuth: function () {
+            return true;
+          },
+        },
+      });
 
-    loaded.page.onLoad({});
-    loaded.page._send("帮我分析这道题");
-    await flushPromises();
+      loaded.page.onLoad({});
+      loaded.page._send("帮我分析这道题");
+      await flushPromises();
 
-    assert(
-      loaded.apiState.getUserInfoCalls === 0,
-      "manual send should not bootstrap auth profile when the authoritative token is already missing",
-    );
-    assert(
-      loaded.apiState.createConversationCalls === 0,
-      "manual send should not create conversation after auth redirect starts",
-    );
-  });
+      assert(
+        loaded.apiState.getUserInfoCalls === 0,
+        "manual send should not bootstrap auth profile when the authoritative token is already missing",
+      );
+      assert(
+        loaded.apiState.createConversationCalls === 0,
+        "manual send should not create conversation after auth redirect starts",
+      );
+    },
+  );
+
+  await run(
+    "cold-start pending turn recovery should not lock manual input",
+    async function () {
+      var never = createDeferred();
+      var loaded = loadChatPage({
+        storage: {
+          chat_pending_turn_v1: {
+            conversationId: "conv_pending",
+            baselineCount: 1,
+            query: "上一轮较慢的问题",
+            clientTurnId: "client_pending",
+            createdAt: Date.now(),
+          },
+        },
+        api: {
+          getConversationMessages: function (id) {
+            loaded.apiState.getConversationMessagesCalls.push(id);
+            return never.promise;
+          },
+        },
+        chatTurnRecovery: {
+          hasRecoveredAssistant: function () {
+            return false;
+          },
+        },
+      });
+
+      loaded.page.onLoad({});
+      assert(
+        loaded.page.data.isStreaming === false,
+        "pending turn cold start should show chat chrome without claiming an active stream",
+      );
+
+      loaded.page.onShow();
+      await flushPromises();
+
+      assert(
+        loaded.page.data.isStreaming === false,
+        "background pending recovery must keep the input sendable",
+      );
+      assert(
+        loaded.page._pendingRecoveryActive === true,
+        "background recovery should still try to recover the authoritative pending turn",
+      );
+      assert(
+        loaded.page._pendingTurn &&
+          loaded.page._pendingTurn.conversationId === "conv_pending",
+        "background recovery must not erase the durable pending turn before terminal recovery",
+      );
+    },
+  );
+
+  await run(
+    "stream flush should use lightweight render state until done",
+    async function () {
+      var deriveCalls = 0;
+      var loaded = loadChatPage({
+        aiMessageState: {
+          coerceUserVisibleContent: function (text) {
+            return String(text || "");
+          },
+          deriveAiMessageRenderState: function () {
+            deriveCalls += 1;
+            return {
+              renderableContent: "heavy",
+              blocks: [{ id: "b1" }],
+              mcqCards: null,
+              mcqHint: "",
+              mcqReceipt: "",
+              mcqInteractiveReady: false,
+              mcqReviewMode: false,
+              originalContent: "",
+              originalCollapsed: true,
+              hasStructuredContent: false,
+            };
+          },
+        },
+      });
+      loaded.page.setData({
+        messages: [
+          {
+            id: "a0",
+            role: "ai",
+            content: "",
+            renderableContent: "",
+            blocks: [],
+            streaming: true,
+          },
+        ],
+      });
+      loaded.page._streamId = "a0";
+      loaded.page._messageIndexMap = { a0: 0 };
+      loaded.page._buf = "第一段流式内容";
+
+      loaded.page._flush();
+
+      assert(
+        deriveCalls === 0,
+        "stream flush should not run heavy AI message derivation",
+      );
+      assert(
+        loaded.page.data["messages[0].renderableContent"] === "第一段流式内容",
+        "stream flush should still render visible text immediately",
+      );
+    },
+  );
 
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);
   }
 
-  console.log("PASS test_chat_bootstrap_authority.js (" + pass + " assertions)");
+  console.log(
+    "PASS test_chat_bootstrap_authority.js (" + pass + " assertions)",
+  );
 })();

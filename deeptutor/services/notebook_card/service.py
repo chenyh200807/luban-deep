@@ -4,7 +4,10 @@ from datetime import datetime
 from typing import Any
 import uuid
 
-from deeptutor.services.notebook_card.store import NotebookCardStore
+from deeptutor.services.notebook_card.store import (
+    NotebookCardStore,
+    OptimisticConcurrencyError,
+)
 
 _CARD_TYPES = {"scoring_card", "error_pattern_note", "review_note", "manual_note"}
 
@@ -50,7 +53,17 @@ class NotebookCardService:
         safe_patch = {k: v for k, v in dict(patch or {}).items()
                       if k not in {"user_id", "note_id", "mastery_effect", "version"}}
         safe_patch["updated_at"] = _iso_now()
-        updated = self._store.update_card(user_id, note_id, safe_patch, expected_version=expected_version)
+        try:
+            updated = self._store.update_card(
+                user_id,
+                note_id,
+                safe_patch,
+                expected_version=expected_version,
+            )
+        except OptimisticConcurrencyError:
+            if self._store.get_card(user_id, note_id) is None:
+                raise KeyError(f"card not found: {user_id}/{note_id}") from None
+            raise
         if updated is None:
             raise KeyError(f"card not found: {user_id}/{note_id}")
         return updated
@@ -85,13 +98,27 @@ def get_notebook_card_service() -> NotebookCardService:
         from deeptutor.services.learner_state.service import get_learner_state_service
         from deeptutor.services.notebook_card.store import (
             InMemoryNotebookCardStore,
+            PostgresNotebookCardStore,
             SupabaseNotebookCardStore,
         )
 
+        postgres_store = PostgresNotebookCardStore()
         supabase_store = SupabaseNotebookCardStore()
-        store = supabase_store if supabase_store.is_configured else InMemoryNotebookCardStore()
+        store = (
+            postgres_store
+            if postgres_store.is_configured
+            else supabase_store
+            if supabase_store.is_configured
+            else InMemoryNotebookCardStore()
+        )
         _singleton = NotebookCardService(store=store, learner_state_service=get_learner_state_service())
     return _singleton
 
 
-__all__ = ["NotebookCardService", "get_notebook_card_service"]
+def reset_notebook_card_service_for_tests(service: NotebookCardService | None = None) -> NotebookCardService | None:
+    global _singleton
+    _singleton = service
+    return _singleton
+
+
+__all__ = ["NotebookCardService", "get_notebook_card_service", "reset_notebook_card_service_for_tests"]

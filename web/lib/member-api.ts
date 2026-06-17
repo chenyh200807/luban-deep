@@ -6,12 +6,63 @@ export interface MemberDashboard {
   active_count: number
   expiring_soon_count: number
   new_today_count: number
+  new_7d_count: number
+  new_30d_count: number
   churn_risk_count: number
   health_score: number
   auto_renew_coverage: number
   tier_breakdown: Array<{ tier: string; count: number }>
   expiry_breakdown: Array<{ label: string; count: number }>
   recommendations: string[]
+  behavior_health?: {
+    learning_report_open_count_7d: number
+    history_open_count_7d: number
+    action_start_count_7d: number
+    event_count_7d?: number
+    low_trust_count: number
+  }
+}
+
+export interface MemberBehaviorSummary {
+  learning_report_open_count_7d: number
+  history_open_count_7d: number
+  action_start_count_7d: number
+  event_count_7d?: number
+  last_event_at_ms?: number
+  cohort: string
+  cohort_reasons?: string[]
+  next_action?: string
+  trust_level: 'A' | 'B' | 'C' | string
+}
+
+export interface MemberBehaviorTimelineEvent {
+  event_id: string
+  event_name: string
+  occurred_at_ms: number
+  surface: string
+  module: string
+  section: string
+  action: string
+  visit_id?: string
+  session_id?: string
+  turn_id?: string
+  object_type?: string
+  object_id?: string
+  entry_source?: string
+  referrer_module?: string
+  duration_ms?: number
+  visible_ms?: number
+  result?: string
+  error_code?: string
+  release_id?: string
+  app_version?: string
+  platform?: string
+}
+
+export interface MemberBehaviorPayload {
+  summary: MemberBehaviorSummary
+  learning_report_sections: Array<{ section: string; view_count: number }>
+  timeline: MemberBehaviorTimelineEvent[]
 }
 
 export interface MemberListItem {
@@ -28,6 +79,7 @@ export interface MemberListItem {
   last_active_at: string
   points_balance: number
   review_due: number
+  behavior?: MemberBehaviorSummary
 }
 
 export interface MemberListResponse {
@@ -97,6 +149,56 @@ export interface MemberBatchActionResult {
   failure_count: number
   items: Array<{ user_id: string; member?: MemberDetail }>
   failed: Array<{ user_id: string; detail: string }>
+}
+
+export interface ManualMembershipPurchaseResult {
+  member: MemberDetail
+  package: Record<string, unknown>
+  amount_cny: number
+  points: number
+  purchase_id: string
+  ledger_event_id: string
+  audit_id: string
+  deduped: boolean
+}
+
+export interface ManualMembershipReversalResult {
+  member: MemberDetail
+  amount_cny: number
+  points: number
+  purchase_id: string
+  ledger_event_id: string
+  audit_id: string
+  deduped: boolean
+}
+
+export interface MembershipPackagePayload {
+  label: string
+  tier: string
+  points: number
+  turns: number
+  price: string
+  original_price?: string
+  badge?: string
+  per?: string
+  desc?: string
+  status?: 'active' | 'draft' | 'archived'
+  reason?: string
+}
+
+export interface MembershipPackageResult {
+  id: string
+  label: string
+  tier: string
+  points: number
+  turns: number
+  price: string
+  original_price?: string
+  badge?: string
+  per?: string
+  desc?: string
+  status: 'active' | 'draft' | 'archived' | string
+  reason?: string
 }
 
 export interface MemberAuditLogItem {
@@ -238,6 +340,7 @@ export interface MemberDetail {
     arbitration_history?: HeartbeatEvent[]
   }
   bot_overlays?: BotOverlaySummary[]
+  behavior?: MemberBehaviorPayload
 }
 
 async function expectJson<T>(response: Response): Promise<T> {
@@ -391,6 +494,75 @@ export async function grantMembership(payload: {
     body: JSON.stringify(payload),
   })
   return expectJson<MemberDetail>(response)
+}
+
+export async function manualPurchaseMembership(payload: {
+  user_id: string
+  package_id: string
+  days: number
+  reason?: string
+  phone?: string
+  display_name?: string
+  amount_cny?: number
+}): Promise<ManualMembershipPurchaseResult> {
+  const response = await fetch(apiUrl('/api/v1/member/manual-purchase'), {
+    method: 'POST',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<ManualMembershipPurchaseResult>(response)
+}
+
+export async function reverseManualMembershipPurchase(payload: {
+  user_id: string
+  purchase_id?: string
+  amount_cny?: number
+  reason?: string
+}): Promise<ManualMembershipReversalResult> {
+  const response = await fetch(apiUrl('/api/v1/member/manual-purchase/reverse'), {
+    method: 'POST',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<ManualMembershipReversalResult>(response)
+}
+
+export async function upsertMembershipPackage(
+  packageId: string,
+  payload: MembershipPackagePayload
+): Promise<MembershipPackageResult> {
+  const response = await fetch(apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}`), {
+    method: 'PUT',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<MembershipPackageResult>(response)
+}
+
+export async function deleteMembershipPackage(
+  packageId: string,
+  reason = ''
+): Promise<MembershipPackageResult> {
+  const suffix = reason ? `?reason=${encodeURIComponent(reason)}` : ''
+  const response = await fetch(
+    apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}${suffix}`),
+    {
+      method: 'DELETE',
+      headers: adminHeaders({
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+    }
+  )
+  return expectJson<MembershipPackageResult>(response)
 }
 
 export async function updateMembership(payload: {
