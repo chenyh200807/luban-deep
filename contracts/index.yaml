@@ -140,32 +140,6 @@ mobile_http_auth_controls:
       - The mini-program primary quick-login button must use getPhoneNumber and
         keep audit-safe copy that does not expose WeChat wording in the UI.
 
-mobile_http_auth_controls:
-  password_reset:
-    path: /api/v1/auth/reset-password
-    authority: MemberConsoleService -> external_auth
-    semantics:
-      - Account recovery is a public, rate-limited HTTP auth adapter, not a
-        turn/session/capability entrypoint.
-      - Request must prove username, registered phone, and SMS code before changing
-        the external auth password.
-      - Successful reset invalidates existing external auth sessions, consumes the
-        SMS code, returns no token, and never auto-logs in.
-      - Reset must not write learner summaries, learner memory events, profile,
-        progress, goals, wallet, capability route state, or turn/session state.
-  wechat_phone_login:
-    path: /api/v1/wechat/mp/login
-    authority: MemberConsoleService.login_with_wechat_phone
-    semantics:
-      - Quick login is a public, rate-limited HTTP auth adapter that requires both
-        wx.login code and getPhoneNumber phone_code.
-      - The route must fail closed when phone_code is absent; wx.login code alone
-        must not issue a full learner token.
-      - The returned token is minted only after WeChat phone authorization has
-        been exchanged and bound to the canonical member identity.
-      - The mini-program primary quick-login button must use getPhoneNumber and
-        keep audit-safe copy that does not expose WeChat wording in the UI.
-
 bi_admin_rbac:
   authority: deeptutor/services/member_console/rbac.py + admin_store.py (data/user/bi_admins.json) + service.can_access (端点 enforce)
   semantics:

@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Governance meta-registry — the SINGLE roll-up of every register-before-use gate.
 #
-# The audit (docs/plan/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md) found the
+# The audit (docs/plan/鲁班knowql/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md) found the
 # "foundation of the foundation" ungoverned: there are 20+ governance scanners but
 # no machine-readable catalog of them, and no check that each is actually wired
 # into CI — which is exactly how check_harness_authority / check_model_authority
@@ -26,7 +26,7 @@
 meta:
   governing_script: scripts/check_registries_meta.py
   ci_workflow: .github/workflows/tests.yml
-  doc: docs/plan/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md
+  doc: docs/plan/鲁班knowql/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md
 
 scanners:
   # ── register-before-use resource registries (each has a contracts/*.yaml) ──
