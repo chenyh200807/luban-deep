@@ -7,7 +7,6 @@ Dense vector-based retriever using FAISS or cosine similarity.
 
 import json
 from pathlib import Path
-import pickle
 from typing import Any, Dict, Optional
 
 try:
@@ -138,14 +137,15 @@ class DenseRetriever(BaseComponent):
                     score = 1.0 / (1.0 + dist)  # Convert distance to similarity score
                     results.append((score, metadata[idx]))
         else:
-            # Fallback: Load embeddings and use cosine similarity
-            embeddings_file = kb_dir / "embeddings.pkl"
+            # Fallback: Load embeddings and use cosine similarity.
+            # Loaded with allow_pickle=False — the cache is a plain float32 matrix, never
+            # an object array, so a tampered file cannot trigger code execution on load.
+            embeddings_file = kb_dir / "embeddings.npy"
             if not embeddings_file.exists():
                 self.logger.error(f"Embeddings file not found: {embeddings_file}")
                 return self._empty_response(query)
 
-            with open(embeddings_file, "rb") as f:
-                embeddings = pickle.load(f)
+            embeddings = np.load(embeddings_file, allow_pickle=False)
 
             # Normalize for cosine similarity (avoid division by zero)
             query_norm = np.linalg.norm(query_embedding)

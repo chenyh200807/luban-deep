@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from deeptutor.contracts.error_codes import check_emitted_error_codes
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
+
+logger = logging.getLogger(__name__)
 
 
 class AssessmentWritebackService:
@@ -33,6 +37,7 @@ class AssessmentWritebackService:
         for item in items:
             question_id = str(item.get("question_id") or "").strip()
             knowledge_points = list(item.get("knowledge_points") or [])
+            concept_id = _assessment_concept_id(item=item, knowledge_points=knowledge_points)
             error_codes = list(item.get("error_codes") or [])
             is_correct = bool(item.get("is_correct"))
             payload_json = {
@@ -46,17 +51,29 @@ class AssessmentWritebackService:
                 "correct_answer": item.get("correct_answer"),
                 "is_correct": is_correct,
                 "knowledge_points": knowledge_points,
+                "concept_id": concept_id,
                 "error_codes": error_codes,
                 "error_events": [
                     {
                         "error_code": code,
-                        "concept_tag": (knowledge_points or ["综合能力"])[0],
+                        "concept_tag": concept_id,
                     }
                     for code in error_codes
                 ],
                 "measurement_confidence": item.get("measurement_confidence"),
                 "simple_explanation": item.get("simple_explanation"),
             }
+            taxonomy_code = normalize_taxonomy_code(concept_id)
+            if taxonomy_code:
+                payload_json["node_code"] = taxonomy_code
+                payload_json["taxonomy_code"] = taxonomy_code
+            payload_json["typed_edges"] = _typed_edges_from_assessment_item(
+                question_id=question_id,
+                submission_id=f"{quiz_id}:{question_id}",
+                concept_id=concept_id,
+                error_codes=error_codes,
+                source_feature="assessment_testset",
+            )
             event = self._learner_state_service.append_memory_event(
                 user_id,
                 source_feature="assessment_testset",
@@ -120,6 +137,83 @@ class AssessmentWritebackService:
         }
 
 
+def _assessment_concept_id(*, item: dict[str, Any], knowledge_points: list[Any]) -> str:
+    provenance = dict(item.get("provenance") or {})
+    for value in (
+        item.get("concept_id"),
+        item.get("node_code"),
+        item.get("knowledge_node_id"),
+        item.get("section_id"),
+        provenance.get("node_code"),
+        (knowledge_points or ["综合能力"])[0],
+    ):
+        text = str(value or "").strip()
+        if text:
+            return text
+    return "综合能力"
+
+
+def _typed_edges_from_assessment_item(
+    *,
+    question_id: str,
+    submission_id: str,
+    concept_id: str,
+    error_codes: list[str],
+    source_feature: str,
+) -> list[dict[str, Any]]:
+    question = str(question_id or "").strip()
+    submission = str(submission_id or "").strip() or question
+    concept = str(concept_id or "").strip()
+    edges: list[dict[str, Any]] = []
+    if question and concept:
+        edges.append(_edge("question_tests_concept", "question", question, "concept", concept, source_feature))
+    if submission and question:
+        edges.append(_edge("submission_answered_question", "submission", submission, "question", question, source_feature))
+    for raw_code in list(error_codes or []):
+        code = str(raw_code or "").strip()
+        if not code:
+            continue
+        error_id = f"{concept}:{code}" if concept else code
+        if submission:
+            edges.append(_edge("submission_triggered_error", "submission", submission, "error", error_id, source_feature))
+        training_id = f"{source_feature}:{concept}:{code}:review" if concept else f"{source_feature}:{code}:review"
+        edges.append(_edge("error_points_to_training", "error", error_id, "next_training", training_id, source_feature))
+    return _dedupe_edges(edges)
+
+
+def _edge(
+    edge_type: str,
+    from_type: str,
+    from_id: str,
+    to_type: str,
+    to_id: str,
+    source_feature: str,
+) -> dict[str, Any]:
+    return {
+        "edge_type": edge_type,
+        "from": {"type": from_type, "id": from_id},
+        "to": {"type": to_type, "id": to_id},
+        "source_feature": source_feature,
+        "confidence": 0.8,
+    }
+
+
+def _dedupe_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[tuple[str, str, str]] = set()
+    result: list[dict[str, Any]] = []
+    for edge in edges:
+        key = (
+            str(edge.get("edge_type") or ""),
+            str((edge.get("from") or {}).get("id") or ""),
+            str((edge.get("to") or {}).get("id") or ""),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(edge)
+    return result
+
+
 def _home_projection_payload_from_assessment_item(
     payload_json: dict[str, Any],
     *,
@@ -168,4 +262,7 @@ def _write_home_projection(
             projection=projection,
         )
     except Exception:
+        # Best-effort, but never silent: a swallowed failure here degrades the home
+        # personalization with no operational signal. Log so a systemic failure is visible.
+        logger.warning("home personalization projection write failed: user_id=%s", user_id, exc_info=True)
         return

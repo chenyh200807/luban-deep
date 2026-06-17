@@ -14,7 +14,6 @@ import traceback
 from uuid import uuid4
 
 from fastapi import (
-    APIRouter,
     BackgroundTasks,
     Depends,
     File,
@@ -27,6 +26,7 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from deeptutor.api._secure_router import secure_router, secure_ws_endpoint
 from deeptutor.api.utils.progress_broadcaster import ProgressBroadcaster
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.api.utils.task_log_stream import capture_task_logs, get_task_stream_manager
@@ -51,7 +51,7 @@ except FileNotFoundError:
 log_dir = config.get("paths", {}).get("user_log_dir") or config.get("logging", {}).get("log_dir")
 logger = get_logger("Knowledge", level="INFO", log_dir=log_dir)
 
-router = APIRouter()
+router = secure_router()
 _KNOWLEDGE_ADMIN_DEPENDENCIES = [Depends(require_admin)]
 
 _ALLOWED_LINK_FOLDER_ROOT_ENV_VARS = (
@@ -118,6 +118,17 @@ class LinkedFolderInfo(BaseModel):
     path: str
     added_at: str
     file_count: int
+
+
+def _linked_folder_info_or_none(folder: object) -> LinkedFolderInfo | None:
+    if not isinstance(folder, dict):
+        logger.warning(f"Skipping malformed linked folder metadata: {type(folder).__name__}")
+        return None
+    try:
+        return LinkedFolderInfo(**folder)
+    except Exception:
+        logger.warning(f"Skipping malformed linked folder metadata: {folder}")
+        return None
 
 
 def _build_unique_task_id(task_type: str, task_key_prefix: str) -> str:
@@ -1076,7 +1087,14 @@ async def clear_progress(kb_name: str):
 @router.websocket("/{kb_name}/progress/ws")
 async def websocket_progress(websocket: WebSocket, kb_name: str):
     """WebSocket endpoint for real-time progress updates"""
-    await websocket.accept()
+    auth = await secure_ws_endpoint(
+        websocket,
+        rate_limit_scope="knowledge_progress_ws",
+        rate_limit_max=60,
+        rate_limit_window_seconds=60.0,
+    )
+    if auth is None:
+        return
 
     broadcaster = ProgressBroadcaster.get_instance()
 
@@ -1246,7 +1264,11 @@ async def get_linked_folders(kb_name: str):
     try:
         manager = get_kb_manager()
         folders = manager.get_linked_folders(kb_name)
-        return [LinkedFolderInfo(**f) for f in folders]
+        return [
+            folder_info
+            for folder in folders
+            if (folder_info := _linked_folder_info_or_none(folder)) is not None
+        ]
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
     except Exception:
@@ -1291,12 +1313,22 @@ async def sync_folder(kb_name: str, folder_id: str, background_tasks: Background
 
         # Get linked folders and find the one with matching ID
         folders = manager.get_linked_folders(kb_name)
-        folder_info = next((f for f in folders if f["id"] == folder_id), None)
+        folder_info = next(
+            (
+                folder
+                for folder in folders
+                if isinstance(folder, dict) and folder.get("id") == folder_id
+            ),
+            None,
+        )
 
         if not folder_info:
             raise HTTPException(status_code=404, detail=f"Linked folder '{folder_id}' not found")
 
-        folder_path = _resolve_linked_folder_path(folder_info["path"])
+        folder_path_raw = str(folder_info.get("path") or "").strip()
+        if not folder_path_raw:
+            raise HTTPException(status_code=400, detail=f"Linked folder '{folder_id}' has no path")
+        folder_path = _resolve_linked_folder_path(folder_path_raw)
 
         # Check for changes (new or modified files)
         changes = manager.detect_folder_changes(kb_name, folder_id)

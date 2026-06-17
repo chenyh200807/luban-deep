@@ -414,3 +414,79 @@ async def test_deep_question_primary_mode_skips_legacy_followup_fallback(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "custom"
     assert result_event.metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"
+
+
+@pytest.mark.asyncio
+async def test_generation_active_object_preserves_personalization_training_intent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback) -> None:
+            captured["ws_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_personalized",
+                            "question": "危大工程专项方案程序训练题",
+                            "question_type": "choice",
+                            "options": {"A": "不需要论证", "B": "按规定组织专家论证"},
+                            "correct_answer": "B",
+                            "explanation": "应按规定组织专家论证。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再给我相关题",
+        config_overrides={"mode": "custom", "topic": "再给我相关题", "question_type": "choice"},
+        language="zh",
+        metadata={
+            "personalization_context": {
+                "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+                "active_training_intent": {
+                    "training_intent_id": "lti_pcp",
+                    "concept_id": "1A432000",
+                    "concept_label": "危大工程专项方案",
+                    "error_code": "E02",
+                    "error_label": "专家论证程序漏项",
+                    "question_count": 2,
+                    "mode": "case_repair",
+                    "evidence_refs": ["event:e1"],
+                },
+            }
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["num_questions"] == 2
+    assert "1A432000" in captured["topic_call"]["user_topic"]
+    assert "专家论证程序漏项" in captured["topic_call"]["user_topic"]
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["learning_training_intent"]["source"] == "PersonalizationContextPack"
+    snapshot = result_event.metadata["active_object"]["state_snapshot"]
+    assert snapshot["training_intent_id"] == "lti_pcp"
+    assert snapshot["learning_training_intent"]["concept_id"] == "1A432000"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"

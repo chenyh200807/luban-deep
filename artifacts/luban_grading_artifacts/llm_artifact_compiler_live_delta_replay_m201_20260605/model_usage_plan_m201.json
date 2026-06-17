@@ -1,0 +1,22 @@
+{
+  "live_delta_replay_requested": true,
+  "provider_model": [
+    {
+      "provider": "DeepSeek",
+      "model": "deepseek-chat / DeepSeek-V4-flash",
+      "purpose": "primary point-level adjudication"
+    },
+    {
+      "provider": "DashScope",
+      "model": "qwen-plus / Qwen 3.7 Plus",
+      "purpose": "forced fallback drill"
+    }
+  ],
+  "max_calls": {
+    "deepseek_primary": 200,
+    "qwen_fallback": 10
+  },
+  "purpose": "base vs M20 delta packet live shadow replay over /api/v1/ws",
+  "fallback_if_unavailable": "fail-closed to no-go/weak-go; never fabricate live results",
+  "secrets_printed": false
+}

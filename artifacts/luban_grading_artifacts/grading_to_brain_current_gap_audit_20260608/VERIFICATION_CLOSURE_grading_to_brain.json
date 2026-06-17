@@ -1,0 +1,42 @@
+{
+  "command_count": 4,
+  "commands": [
+    {
+      "command": "python -m pytest tests/scripts/test_luban_grading_to_brain_current_gap_audit.py tests/services/construction_grading/test_m32_grading_event_learning_evidence.py tests/services/learner_state/test_m32_waterproof_learning_synthesis.py tests/services/learner_state/test_m32_waterproof_personalization_context.py tests/services/learner_state/test_m32_waterproof_next_best_action.py tests/services/learner_state/test_m32_waterproof_retest_outcome.py tests/services/member_console/test_home_dashboard_learning_projection.py -q",
+      "exit_code": 0,
+      "observed_result": "58 passed in 4.22s"
+    },
+    {
+      "command": "python scripts/check_contract_guard.py scripts/audit_luban_grading_to_brain_current_gap.py tests/scripts/test_luban_grading_to_brain_current_gap_audit.py artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/coverage_matrix.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINDING_grading_to_brain_current_gap_audit.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/authorization_gate_decision_package.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/AUTHORIZATION_GATES_grading_to_brain.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/completion_audit.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/COMPLETION_AUDIT_grading_to_brain.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G2_BROAD_DEFAULT_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G2_BROAD_DEFAULT_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.md artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.json artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.md",
+      "exit_code": 0,
+      "observed_result": "contract-guard: no protected contract domains changed; error-code-guard passed; node-id-guard passed; question-lifecycle-authority-guard passed; websocket-allowlist-guard passed"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "observed_result": "no whitespace errors"
+    },
+    {
+      "command": "codegraph sync . && codegraph status .",
+      "exit_code": 0,
+      "observed_result": "Index is up to date; files=2104; nodes=39148; edges=65379"
+    }
+  ],
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "no_write": {
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "published_registry_executed": false,
+    "remote_write_count": 0
+  },
+  "schema_version": 1,
+  "scope": "actual_verification_closure",
+  "single_authority": {
+    "does_not_write_grading_truth": true,
+    "does_not_write_learner_truth": true,
+    "verification_truth_source": "fresh local command output summarized in this closure"
+  },
+  "status": "pass",
+  "verified_commit": "b40c3649"
+}

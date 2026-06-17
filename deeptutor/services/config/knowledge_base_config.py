@@ -71,16 +71,21 @@ def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
 
     This keeps a read-only remote KB available even when no local KB directory exists.
     """
-    if not _env_flag("SUPABASE_RAG_ENABLED", default=False):
+    kbv5_db_url_present = bool(str(os.getenv("KBV5_DB_URL", "") or "").strip())
+    kbv5_enabled = _env_flag("KBV5_RAG_ENABLED", default=kbv5_db_url_present)
+    supabase_enabled = _env_flag("SUPABASE_RAG_ENABLED", default=False)
+    if not supabase_enabled and not kbv5_enabled:
         return {}, {}
 
-    supabase_url = str(os.getenv("SUPABASE_URL", "") or "").strip()
-    service_key = (
-        str(os.getenv("SUPABASE_SERVICE_ROLE_KEY", "") or "").strip()
-        or str(os.getenv("SUPABASE_KEY", "") or "").strip()
-    )
-    if not supabase_url or not service_key:
-        return {}, {}
+    provider = "kbv5" if kbv5_enabled and kbv5_db_url_present else "supabase"
+    if provider == "supabase":
+        supabase_url = str(os.getenv("SUPABASE_URL", "") or "").strip()
+        service_key = (
+            str(os.getenv("SUPABASE_SERVICE_ROLE_KEY", "") or "").strip()
+            or str(os.getenv("SUPABASE_KEY", "") or "").strip()
+        )
+        if not supabase_url or not service_key:
+            return {}, {}
 
     kb_name = str(os.getenv("SUPABASE_RAG_DEFAULT_KB_NAME", "") or "").strip() or "supabase-main"
     description = (
@@ -95,9 +100,9 @@ def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
         return {
             "path": name,
             "description": description if name == kb_name else f"{description} (alias: {name})",
-            "rag_provider": "supabase",
+            "rag_provider": provider,
             "status": "ready",
-            "remote_backend": "supabase",
+            "remote_backend": provider,
             "remote_read_only": True,
             "supabase_sources": sources,
             "supabase_include_questions": include_questions,

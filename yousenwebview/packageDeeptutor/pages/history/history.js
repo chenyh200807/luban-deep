@@ -5,6 +5,7 @@ var helpers = require("../../utils/helpers");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
+var auth = require("../../utils/auth");
 var historyTombstone = require("../../utils/history-tombstone");
 
 var CACHE_KEY = "history_cache";
@@ -362,6 +363,17 @@ function _emptyState(tab, query) {
   };
 }
 
+function _guestHistoryState() {
+  return {
+    emoji: "◷",
+    title: "登录后同步你的历史",
+    desc: "这里会保存 AI 答疑、专项训练和批改复盘。现在可以先浏览模块，开始正式学习后再登录。",
+    showClear: false,
+    showStart: true,
+    showLogin: true,
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -378,6 +390,7 @@ Page({
     emptyState: _emptyState("active", ""),
     userPoints: 0,
     isDark: true,
+    isGuestPreview: false,
 
     // ── 管理模式 ──
     editMode: false,
@@ -423,10 +436,12 @@ Page({
     helpers.syncTabBar(this, 1, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
-    var self = this;
-    runtime.checkAuth(function () {
-      self._loadWithCache();
-    });
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
+    this.setData({ isGuestPreview: false });
+    this._loadWithCache();
   },
 
   onUnload: function () {
@@ -438,6 +453,10 @@ Page({
 
   // ── SWR: 先展示缓存，后台刷新 ─────────────────
   _loadWithCache: function () {
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
     var cacheKey =
       this.data.tab === "archived" ? CACHE_KEY_ARCHIVED : CACHE_KEY;
     var cached = wx.getStorageSync(cacheKey);
@@ -459,6 +478,10 @@ Page({
 
   _fetchFromServer: function (silent) {
     var self = this;
+    if (!auth.isLoggedIn()) {
+      self._showGuestPreview();
+      return;
+    }
     if (!silent) self.setData({ error: false });
 
     var isArchived = self.data.tab === "archived";
@@ -512,12 +535,21 @@ Page({
 
   // ── 下拉刷新 ─────────────────────────────────
   onRefresh: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      this.setData({ refreshing: false });
+      return;
+    }
     helpers.vibrate("light");
     this.setData({ refreshing: true });
     this._fetchFromServer(false);
   },
 
   retry: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     this.setData({ loading: true });
     this._fetchFromServer(false);
   },
@@ -547,6 +579,10 @@ Page({
   switchTab: function (e) {
     var tab = e.currentTarget.dataset.tab;
     if (tab === this.data.tab) return;
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     this._exitEditMode();
     this.setData({
@@ -561,6 +597,10 @@ Page({
 
   // ── 打开对话 ─────────────────────────────────
   openConversation: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     if (this.data.editMode) {
       this._toggleSelect(e);
       return;
@@ -829,6 +869,32 @@ Page({
     runtime.setWorkspaceBack(route.history(), "历史");
     runtime.markGoHome();
     wx.reLaunch({ url: route.chat() });
+  },
+
+  goQuickLogin: function () {
+    this._requireLogin();
+  },
+
+  _requireLogin: function () {
+    runtime.redirectToLogin(route.history());
+  },
+
+  _showGuestPreview: function () {
+    this.setData({
+      isGuestPreview: true,
+      loading: false,
+      refreshing: false,
+      error: false,
+      editMode: false,
+      selectedIds: {},
+      selectedCount: 0,
+      allSelected: false,
+      conversations: [],
+      groups: [],
+      totalCount: 0,
+      stats: _buildStats([]),
+      emptyState: _guestHistoryState(),
+    });
   },
 });
 

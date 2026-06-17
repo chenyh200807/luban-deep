@@ -1,0 +1,217 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DB resource registry — "registered-or-you-can't-connect" single authority.
+#
+# This file is the ONE machine-readable catalog of which databases exist, what
+# business fact each is canonical for, who may write to it, and whether RLS is
+# required — plus the per-table fact→canonical→writer mapping for every TABLE a
+# direct (raw psycopg) connection WRITES to.
+#
+# It turns the RESOURCE_GOVERNANCE_FIX_PLAN root-cause business fact —
+#   "每个数据写入/连接，必须能被机器确认它登记在唯一 canonical 清单里：
+#    哪个 fact 落哪个库哪张表、谁能写"
+# — into a deterministic CI gate enforced by scripts/check_db_registry.py,
+# wired into the SAME contract-guard runner (NOT a new governance system).
+#
+# DISCIPLINE (mirrors contracts/schema_registry.yaml):
+#   - This registry is a deterministic POLICY FILTER, not a transport, not a
+#     credential store, not a connection factory. It grants no write authority.
+#   - It records CURRENT STATE only. Adding an entry does not change any
+#     connection behavior; it makes the existing connection machine-checkable.
+#   - Single canonical list. No second DB inventory may exist.
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/RESOURCE_GOVERNANCE_FIX_PLAN.md   (Layer 1 · P0)
+#   docs/plan/鲁班knowql/DB_CONNECTION_INVENTORY.md        (Step 1 topology)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+#
+# A connection point MUST register when it opens a RAW (psycopg/psycopg2) direct
+# Postgres connection to a database, because raw connections:
+#   - select their target database purely from an env STRING (no machine check), AND
+#   - execute as a DB role that structurally BYPASSES Row-Level Security.
+# These two properties are exactly what made cross-project / cross-db silent
+# writes possible. The guard therefore governs the raw-connection surface.
+#
+# A WRITE site additionally MUST have its target TABLE registered (which fact it
+# is canonical for, who may write). Read-only sites register their database +
+# fact but need no per-table writer entry.
+#
+# OUT OF SCOPE (not required to register):
+#   - Supabase REST / PostgREST calls (SUPABASE_URL + key over HTTP): they go
+#     through PostgREST and RLS is the relevant control there, not this guard.
+#   - Ephemeral test connections under tests/.
+scope_rule:
+  must_register_if_any:
+    - raw_postgres_connection   # psycopg/psycopg2 .connect() to a Postgres URL
+    - direct_write              # executes INSERT/UPDATE/DELETE/DDL on a table
+  not_required:
+    - supabase_rest_call        # SUPABASE_URL + key over PostgREST (RLS-governed)
+    - ephemeral_test_connection # under tests/ ; no production data contract
+
+# ── Connection-factory authority (收口目标，Step 4) ──────────────────────────
+# The ONE approved way to open a raw Postgres connection. Until存量 migration is
+# complete, existing call sites carry status: grandfathered (see databases[].
+# raw_connection_sites). New raw psycopg.connect outside the factory and not in
+# the grandfathered list is a hard fail — that is the止血 (stop-the-bleed) rule.
+connection_factory:
+  module: deeptutor/services/db/connection_factory.py
+  function: connect_for_fact
+  status: available                                     # in use; sample migration done
+  migrated_sites:                                       # raw_connection_sites now on the factory
+    - deeptutor/services/benchmark/kb_v5_readonly_adapter.py   # R1 sample migration (read-only)
+  note: >
+    Thin wrapper over psycopg.connect, parameterized by FACT (not raw URL): it
+    resolves fact → database → env → url from THIS registry, so the target db is
+    machine-derived, never an ad-hoc env string at the call site. Modeled on the
+    llm-client-factory precedent (deeptutor/services/llm/factory.py).
+
+# ── Databases (single canonical list) ────────────────────────────────────────
+# Each database: which env(s) resolve its url, what fact it is canonical for,
+# who may write, whether RLS is required, and which raw-connection sites touch it.
+databases:
+  - name: app_primary
+    purpose: 主应用业务库（用户身份/笔记卡/反馈/内测/canonical 知识目录）
+    url_envs: [DATABASE_URL, DB_URL]
+    # NOTE: SUPABASE_DB_URL / INVITE_TEST_DATABASE_URL / FEEDBACK_DATABASE_URL /
+    # NOTEBOOK_CARD_DATABASE_URL are per-store fallbacks that MUST resolve to this
+    # same database. They are registered here so the guard can flag any new url
+    # env that is not declared as pointing at a registered database.
+    fallback_url_envs:
+      - SUPABASE_DB_URL
+      - INVITE_TEST_DATABASE_URL
+      - FEEDBACK_DATABASE_URL
+      - NOTEBOOK_CARD_DATABASE_URL
+    canonical_for_facts:
+      - user_identity_alias
+      - learner_notebook_card
+      - luban_feedback
+      - invite_test_application
+      - canonical_knowledge_catalog
+    rls_required: true            # RLS policies exist on user tables; raw直连 bypasses → high-risk
+    writable_by:
+      - member_console            # user_identity_aliases / users
+      - notebook_card             # learner_notebook_cards (Postgres store)
+      - luban_feedback_store      # luban_feedback follow-up
+      - invite_test_applications  # invite_test_applications
+      - ops_script                # export/backfill maintenance scripts
+    liveness: in_use
+    # Raw-connection sites that touch app_primary today (grandfathered存量).
+    raw_connection_sites:
+      - {path: deeptutor/services/member_console/service.py, mode: write, fact: user_identity_alias, status: grandfathered}
+      - {path: deeptutor/services/notebook_card/store.py, mode: write, fact: learner_notebook_card, status: grandfathered}
+      - {path: deeptutor/services/luban_feedback_store.py, mode: readwrite, fact: luban_feedback, status: grandfathered}
+      - {path: deeptutor/services/invite_test_applications.py, mode: readwrite, fact: invite_test_application, status: grandfathered}
+      - {path: scripts/export_canonical_knowledge_to_supabase.py, mode: write, fact: canonical_knowledge_catalog, status: grandfathered}
+      - {path: scripts/run_luban_m26_live_closure.py, mode: write, fact: luban_feedback, status: grandfathered}
+      - {path: scripts/backfill_phone_identity.py, mode: write, fact: user_identity_alias, status: grandfathered}
+      - {path: scripts/backfill_2026_textbook_chunk_metadata.py, mode: write, fact: canonical_knowledge_catalog, status: grandfathered}
+      - {path: scripts/smoke_construction_grading_supabase.py, mode: read, fact: invite_test_application, status: grandfathered}
+      - {path: scripts/audit_construction_grading_supabase_fields.py, mode: read, fact: invite_test_application, status: grandfathered}
+
+  - name: kb_v5
+    purpose: KB v5 知识库（向量检索 search_chunks_v2）
+    url_envs: [KBV5_DB_URL]
+    canonical_for_facts:
+      - kb_v5_chunk_retrieval
+    rls_required: false           # 只读检索库；无 RLS 写面
+    writable_by: []               # 应用运行时只读；写由独立 ingest 管道（不在本仓运行时）
+    liveness: in_use
+    raw_connection_sites:
+      - {path: deeptutor/services/benchmark/kb_v5_readonly_adapter.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
+      - {path: deeptutor/services/rag/pipelines/kbv5.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
+      - {path: scripts/export_kb_v5_full_to_runtime_supply.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
+
+  - name: questions_bank
+    purpose: 题库（governed 客观题 questions_bank，评分编译输入）
+    url_envs: [QUESTIONS_BANK_DB_URL]
+    canonical_for_facts:
+      - governed_objective_question
+    rls_required: false           # 只读 governed 抽取
+    writable_by: []               # 应用只读；写由题库自有管道
+    liveness: needs_verification  # 线上 status 报 QUESTIONS_BANK_DB_URL absent — 可能仍走 fixture
+    raw_connection_sites:
+      - {path: deeptutor/services/construction_grading/objective_governed_registry_extractor.py, mode: read, fact: governed_objective_question, status: grandfathered}
+      - {path: deeptutor/services/construction_grading/full_knowledge_compiler.py, mode: read, fact: governed_objective_question, status: grandfathered}
+
+# ── Tables (per-write fact→canonical→writer mapping) ─────────────────────────
+# Only TABLES that a raw (RLS-bypassing) connection WRITES to need a row here.
+# Each: which database it lives in, which fact it is the canonical store for,
+# who may write it. The guard fails a write to a table not registered here.
+tables:
+  - name: public.user_identity_aliases
+    database: app_primary
+    canonical_for_fact: user_identity_alias
+    writable_by: [member_console, ops_script]
+    rls_required: true
+  - name: public.users
+    database: app_primary
+    canonical_for_fact: user_identity_alias
+    writable_by: [member_console, ops_script]
+    rls_required: true
+  - name: public.learner_notebook_cards
+    database: app_primary
+    canonical_for_fact: learner_notebook_card
+    writable_by: [notebook_card]
+    rls_required: true
+  - name: public.luban_feedback
+    database: app_primary
+    canonical_for_fact: luban_feedback
+    writable_by: [luban_feedback_store, ops_script]
+    rls_required: true
+  - name: public.invite_test_applications
+    database: app_primary
+    canonical_for_fact: invite_test_application
+    writable_by: [invite_test_applications]
+    rls_required: true
+  # canonical_knowledge_catalog: maintenance-script DDL+full refresh projection.
+  # Registered as ops_script-only; not part of the request hot path.
+  - name: public.luban_canonical_taxonomy
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  - name: public.luban_canonical_knowledge_catalog
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  - name: public.luban_canonical_knowledge_edges
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  - name: concept_taxonomy_registry
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  # textbook chunk metadata backfill (scripts/backfill_2026_textbook_chunk_metadata.py).
+  - name: public.kb_chunks
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+
+# ── Writer identities (the closed set of "who can write") ────────────────────
+# A writable_by token must be one of these. Adding a new writer identity is a
+# deliberate, reviewable act (it appears in this list), not an implicit side
+# effect of someone opening a new raw connection.
+writer_identities:
+  - member_console
+  - notebook_card
+  - luban_feedback_store
+  - invite_test_applications
+  - ops_script
+
+# ── Facts (the closed set of business facts a database can be canonical for) ──
+facts:
+  - user_identity_alias
+  - learner_notebook_card
+  - luban_feedback
+  - invite_test_application
+  - canonical_knowledge_catalog
+  - kb_v5_chunk_retrieval
+  - governed_objective_question

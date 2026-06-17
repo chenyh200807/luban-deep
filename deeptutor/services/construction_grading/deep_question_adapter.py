@@ -3,6 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+from deeptutor.services.construction_grading.certified_grading_adjudication import (
+    policy_public_payload,
+    trusted_adjudication_from_certified_policy,
+)
+from deeptutor.services.construction_grading.compiled_context import (
+    build_pack_from_question_context,
+)
 from deeptutor.services.construction_grading.mcq import grade_mcq_submission
 
 _CHOICE_TYPES = {
@@ -17,7 +24,11 @@ _CHOICE_TYPES = {
     "true_false",
 }
 
-_CASE_TYPES = {
+# Known explicit subjective writings — a FAST PATH only. The authoritative case decision is
+# `_is_subjective_context` (first principles: not a choice question AND has a reference answer), so
+# coverage no longer depends on this set being exhaustive or on question_type being normalized to
+# "written". Kept as a set so a declared case/essay with no reference answer yet still routes to case.
+_KNOWN_CASE_TYPES = {
     "written",
     "case",
     "case_study",
@@ -27,10 +38,63 @@ _CASE_TYPES = {
 }
 
 
+def _stamp_compiled_context_and_authority(
+    result: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    retrieval_sources: list[dict[str, Any]] | None = None,
+    governed_registry_status: str = "",
+    certified_grading_policy: dict[str, Any] | None = None,
+) -> None:
+    """Attach the unified compiled_context AND an honest answer-key authority stamp (M27 closure).
+
+    Authority discipline (master plan §0.26.3): a ``correct_answer`` that is merely PRESENT in the
+    inbound question context (e.g. client-supplied via the WS frame) is NOT a governed release-truth
+    answer key. The deep_question runtime does not yet bind objective answer keys to the governed
+    questions_bank / signed registry, so such a score is FORMATIVE only — it must never be laundered
+    into an official release-truth score. We keep the formative score/is_correct unchanged (no UX or
+    test breakage) but stamp the provenance so no downstream consumer (or red-team oracle) can treat
+    a client-supplied answer key as governed truth.
+
+    When the pack reports ``official_score_allowed`` (a signed release/published registry resolved
+    the answer key server-side), the result is marked governed release-truth instead.
+    """
+    pack = build_pack_from_question_context(
+        row,
+        retrieval_sources=retrieval_sources,
+        governed_registry_status=governed_registry_status,
+    )
+    result["compiled_context"] = pack.to_dict()
+    official = pack.official_score_allowed
+    result["release_truth"] = bool(official)
+    result["answer_key_authority"] = (
+        "governed_signed_registry" if official else "context_supplied_unverified"
+    )
+    if not official:
+        # No governed binding -> governance status is unresolved; score stays formative, not official.
+        result.setdefault("registry_status", "unresolved")
+        result["official_release_score"] = False
+        result["not_production_grade"] = True
+        result["official_score_laundering_guard"] = "client_or_context_answer_key_not_release_truth"
+        return
+
+    result["official_release_score"] = True
+    policy = dict(certified_grading_policy or {})
+    if policy and trusted_adjudication_from_certified_policy(policy):
+        public_policy = policy_public_payload(policy)
+        signal = result.get("next_training_signal") if isinstance(result.get("next_training_signal"), dict) else {}
+        signal = dict(signal)
+        signal["certified_grading_policy"] = public_policy
+        result["next_training_signal"] = signal
+        result["certified_grading_policy"] = public_policy
+
+
 def build_deep_question_grading_result(
     question_context: dict[str, Any],
     *,
     user_answer: str,
+    governed_registry_status: str = "",
+    certified_grading_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Build the single authoritative grading result for deep_question submissions."""
 
@@ -59,8 +123,14 @@ def build_deep_question_grading_result(
                 result[key] = row.get(key)
         result["type"] = "mcq"
         result["authority"] = "construction_grading"
+        _stamp_compiled_context_and_authority(
+            result,
+            row,
+            governed_registry_status=governed_registry_status,
+            certified_grading_policy=certified_grading_policy,
+        )
         return result
-    if question_type in _CASE_TYPES:
+    if _is_subjective_context(row):
         result = CaseGradingSkillKernel().grade(
             question_row=row,
             user_answer=answer,
@@ -70,6 +140,17 @@ def build_deep_question_grading_result(
         result["authority"] = "construction_grading"
         result["question_type"] = question_type or "case"
         result["user_answer"] = answer
+        _stamp_compiled_context_and_authority(
+            result,
+            row,
+            retrieval_sources=_evidence_rows_from_context(row),
+            governed_registry_status=governed_registry_status,
+            certified_grading_policy=certified_grading_policy,
+        )
+        # NOTE: rubric-v1 LLM-adjudicated grading runs in the CAPABILITY layer
+        # (deep_question._grade_case_rubric_v1) where the learner identity is reachable — NOT here
+        # (this adapter only has the question-face row, no student identity). Wrong-layer attachment
+        # removed (root-cause fix, not a patch).
         return result
     return None
 
@@ -185,6 +266,36 @@ def _is_choice_context(row: dict[str, Any]) -> bool:
     options = row.get("options")
     correct = str(row.get("correct_answer") or "").strip()
     return isinstance(options, dict) and bool(options) and bool(correct)
+
+
+def _has_reference_answer(row: dict[str, Any]) -> bool:
+    """First principles: a gradable subjective question must have a reference answer to grade against.
+    `correct_answer` is the only reference that survives followup normalization (analysis is stripped);
+    grading_key.correct_answer is the governed variant."""
+    if str(row.get("correct_answer") or "").strip():
+        return True
+    grading_key = row.get("grading_key")
+    return isinstance(grading_key, dict) and bool(str(grading_key.get("correct_answer") or "").strip())
+
+
+# Types that carry a reference answer but are NOT subjective case questions (own grader / execution-based).
+# Vetoed so the reference-answer heuristic below never mis-routes them to case grading.
+_NON_CASE_TYPES = {"coding", "code", "program", "programming"}
+
+
+def _is_subjective_context(row: dict[str, Any]) -> bool:
+    """A question is subjective (case/rubric) iff it is NOT a choice/coding question AND (it declares a
+    known case type OR it has a reference answer). Purely ADDITIVE over the old enumeration for genuinely
+    subjective writings (un-enumerated / Chinese / empty question_type with a reference); choice and
+    coding are vetoed first so they keep their own grading paths."""
+    if _is_choice_context(row):
+        return False
+    question_type = str(row.get("question_type") or "").strip().lower()
+    if question_type in _NON_CASE_TYPES:
+        return False
+    if question_type in _KNOWN_CASE_TYPES:
+        return True
+    return _has_reference_answer(row)
 
 
 def _result_is_full_score(result: dict[str, Any]) -> bool:

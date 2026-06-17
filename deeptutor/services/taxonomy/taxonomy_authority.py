@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import json
-import re
+from collections import Counter
 from functools import lru_cache
+import json
 from pathlib import Path
+import re
 from typing import Any
 
 _COMPILED_TAXONOMY_PATH = Path(__file__).resolve().parent / "compiled" / "construction_2026_taxonomy.compiled.json"
@@ -12,14 +13,14 @@ _PARENT_CODE_RE = re.compile(r"^1A\d{3}000$", re.IGNORECASE)
 
 
 def normalize_taxonomy_code(value: Any) -> str:
+    # suffix segments keep their case: the 2026 book-derived tree uses uppercase
+    # leaf segments (-B103) while legacy codes used lowercase (-02-a); the
+    # nodes_by_code index resolves casing via casefolded fallback keys.
     text = str(value or "").strip()
     if not text:
         return ""
     parts = text.split("-")
-    normalized = [parts[0].upper()]
-    for part in parts[1:]:
-        normalized.append(part.lower() if part.isalpha() else part)
-    return "-".join(normalized)
+    return "-".join([parts[0].upper(), *parts[1:]])
 
 
 def taxonomy_label(value: Any) -> str:
@@ -28,7 +29,7 @@ def taxonomy_label(value: Any) -> str:
         return ""
     by_code = _nodes_by_code()
     for candidate in _candidate_codes(code):
-        node = by_code.get(candidate)
+        node = by_code.get(candidate) or by_code.get(candidate.casefold())
         if node:
             return str(node.get("name") or "").strip()
     return chapter_prefix_labels().get(code[:5], "") if len(code) >= 5 else ""
@@ -42,6 +43,61 @@ def display_taxonomy_label(value: Any, *, with_code: bool = False, fallback: str
     if with_code and code:
         return f"{label}（{code}）"
     return label
+
+
+def student_taxonomy_label(value: Any) -> str:
+    """SINGLE AUTHORITY for student-facing taxonomy display.
+
+    Returns the canonical Chinese name, or '' when the code cannot be resolved — NEVER the raw code.
+    Codes (``1A432000``, ``E02``, ``EXAM_...::Q1-1``, other-track ``1B...``) are meaningless to learners,
+    so every learner-facing read model must resolve through HERE instead of ``display_taxonomy_label(x,
+    fallback=x)`` (which leaks the code on a miss). The caller decides what to show when this is empty
+    (a question topic, an error label, or to omit the row) — but it must never fall back to the code."""
+    return taxonomy_label(value)
+
+
+# Machine-code shapes that must NEVER reach a learner verbatim. Broad on purpose: construction node codes
+# of any track/length (1A412000 / 1B.. / 2A.. / 12A4120000 / 7-digit), error codes (E02 / M03), rubric
+# refs (Q1-1 / R12 / r3), UUID-ish ids, and compound rubric/exam ids (EXAM_...::E0::Q1-1).
+_CODE_SHAPE_RE = re.compile(
+    r"^(?:\d{0,2}[A-Za-z]\d{6,}|[EM]\d{2}|[A-Za-z]?\d+(?:-\d+)+|[Rr]\d+)$"
+    r"|::|^EXAM_|[0-9a-f]{8}-[0-9a-f]{4}-|_[0-9a-f]{8,}",
+    re.IGNORECASE,
+)
+# Embedded construction code inside free text — NO \b (Python \b fails between a code and an adjacent CJK
+# char, e.g. "项目1A412000管理"); use explicit ASCII-alnum lookarounds so CJK-adjacent codes are caught.
+_EMBEDDED_CODE_RE = re.compile(r"(?<![A-Za-z0-9])\d{0,2}[A-Za-z]\d{6,}(?![A-Za-z0-9])")
+_CJK_RE = re.compile(r"[㐀-鿿]")
+
+
+def looks_like_taxonomy_code(value: Any) -> bool:
+    """True when the string is a machine code (taxonomy / error / rubric / uuid id), not human text."""
+    text = str(value or "").strip()
+    return bool(text) and bool(_CODE_SHAPE_RE.search(text))
+
+
+def student_facing_label(value: Any, *, generic: str = "") -> str:
+    """SINGLE AUTHORITY for any learner-facing label that MIGHT be a code OR already-human text.
+
+    Heuristic that NEVER leaks a code: a string containing ANY Chinese character is human text and passes
+    through; a string with NO Chinese is treated as a machine code/id and is resolved to its canonical
+    Chinese name, or ``generic`` — the raw code is never shown. (A Chinese exam app's learner-facing labels
+    are Chinese; pure-ASCII learner text is almost always a code/id.) Whole-label values only — embedded
+    codes inside free text go through ``scrub_codes_for_student``."""
+    text = str(value or "").strip()
+    if not text:
+        return generic
+    if _CJK_RE.search(text):
+        return text                              # human Chinese text — pass through
+    return taxonomy_label(text) or generic       # no Chinese -> a code/id -> Chinese name or generic, never raw
+
+
+def scrub_codes_for_student(text: Any, *, generic: str = "相关考点") -> str:
+    """Replace any embedded construction code inside free text with its canonical Chinese name (or
+    ``generic`` on a miss) so a learner never sees a code fragment — works even when the code is wedged
+    against Chinese characters (``项目1A412000管理`` -> ``项目主要建筑工程材料……管理``)."""
+    out = str(text or "")
+    return _EMBEDDED_CODE_RE.sub(lambda m: taxonomy_label(m.group(0)) or generic, out)
 
 
 def chapter_prefix_labels() -> dict[str, str]:
@@ -67,6 +123,17 @@ def taxonomy_source_metadata() -> dict[str, str]:
     }
 
 
+def taxonomy_tree_stats() -> dict[str, int]:
+    """Original outline tree statistics, not the deduped lookup index.
+
+    `nodes_by_code` deliberately drops ambiguous duplicate codes for resolver
+    safety. Learning-report totals need the full textbook/taxonomy outline
+    instead, otherwise the UI undercounts total nodes and wildly overcounts
+    leaves.
+    """
+    return dict(_taxonomy_tree_stats())
+
+
 def taxonomy_nodes() -> list[dict[str, Any]]:
     return [dict(node) for node in list(_compiled_taxonomy().get("nodes") or []) if isinstance(node, dict)]
 
@@ -90,6 +157,92 @@ def _compiled_taxonomy() -> dict[str, Any]:
         return json.loads(_COMPILED_TAXONOMY_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {"source": {}, "nodes": [], "nodes_by_code": {}, "nodes_by_id": {}}
+
+
+@lru_cache(maxsize=1)
+def _taxonomy_tree_stats() -> dict[str, int]:
+    source = _safe_dict(_compiled_taxonomy().get("source"))
+    embedded = _coerce_stats(source.get("stats"))
+    if embedded:
+        return embedded
+
+    path = Path(str(source.get("path") or ""))
+    if path.exists():
+        stats = _stats_from_source_path(path)
+        if stats:
+            return stats
+
+    nodes = taxonomy_nodes()
+    code_counts = Counter(normalize_taxonomy_code(node.get("code")) for node in nodes if normalize_taxonomy_code(node.get("code")))
+    parent_refs = {
+        normalize_taxonomy_code(_safe_dict(node).get("parent_code"))
+        for node in nodes
+        if normalize_taxonomy_code(_safe_dict(node).get("parent_code"))
+    }
+    leaf_nodes = [
+        node
+        for node in nodes
+        if normalize_taxonomy_code(_safe_dict(node).get("code")) not in parent_refs
+    ]
+    return {
+        "total_nodes": len(nodes),
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": len(leaf_nodes),
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
+    }
+
+
+def _stats_from_source_path(path: Path) -> dict[str, int]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return _stats_from_outline_payload(payload)
+
+
+def _stats_from_outline_payload(payload: dict[str, Any]) -> dict[str, int]:
+    total_nodes = 0
+    leaf_nodes = 0
+    code_counts: Counter[str] = Counter()
+
+    def walk(items: list[Any]) -> None:
+        nonlocal total_nodes, leaf_nodes
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            total_nodes += 1
+            code = normalize_taxonomy_code(item.get("code") or item.get("node_code"))
+            if code:
+                code_counts[code] += 1
+            children = list(item.get("children") or [])
+            if children:
+                walk(children)
+            else:
+                leaf_nodes += 1
+
+    walk(list(_safe_dict(payload).get("outline_structure") or []))
+    if total_nodes <= 0:
+        return {}
+    return {
+        "total_nodes": total_nodes,
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": leaf_nodes,
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
+    }
+
+
+def _coerce_stats(value: Any) -> dict[str, int]:
+    stats = _safe_dict(value)
+    result = {
+        "total_nodes": int(stats.get("total_nodes") or 0),
+        "coded_nodes": int(stats.get("coded_nodes") or 0),
+        "leaf_nodes": int(stats.get("leaf_nodes") or 0),
+        "unique_codes": int(stats.get("unique_codes") or 0),
+        "duplicate_code_rows": int(stats.get("duplicate_code_rows") or 0),
+    }
+    return result if result["total_nodes"] > 0 and result["leaf_nodes"] > 0 else {}
 
 
 @lru_cache(maxsize=1)
@@ -126,6 +279,12 @@ def _nodes_by_code_from_nodes(nodes: list[dict[str, Any]]) -> dict[str, dict[str
         labels = {str(item.get("name") or "").strip() for item in items if str(item.get("name") or "").strip()}
         if len(labels) <= 1:
             result[code] = items[-1]
+    # casefolded fallback keys so lowercased refs (e.g. "1a412010-b103" from
+    # historical learner payloads) still resolve to the canonical-cased node
+    for code, node in list(result.items()):
+        folded = code.casefold()
+        if folded != code and folded not in result:
+            result[folded] = node
     return result
 
 
@@ -186,6 +345,10 @@ def _compact(value: Any) -> str:
     return re.sub(r"\s+", "", str(value or "").strip())
 
 
+def _safe_dict(value: Any) -> dict[str, Any]:
+    return dict(value) if isinstance(value, dict) else {}
+
+
 __all__ = [
     "chapter_prefix_labels",
     "display_taxonomy_label",
@@ -194,4 +357,5 @@ __all__ = [
     "taxonomy_label",
     "taxonomy_nodes",
     "taxonomy_source_metadata",
+    "taxonomy_tree_stats",
 ]

@@ -93,9 +93,24 @@ def load_ui_settings() -> dict[str, Any]:
 
 
 def save_ui_settings(settings: dict[str, Any]) -> None:
+    # Atomic write: a bare open("w")+dump can leave a torn/partial file if two requests
+    # (or two uvicorn workers sharing this container fs) write concurrently — a reader then
+    # sees corrupt JSON. Write to a temp file in the same dir and os.replace (atomic rename).
+    import os
+    import tempfile
+
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(SETTINGS_FILE, "w", encoding="utf-8") as handle:
-        json.dump(settings, handle, ensure_ascii=False, indent=2)
+    fd, tmp_path = tempfile.mkstemp(dir=str(SETTINGS_FILE.parent), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(settings, handle, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, SETTINGS_FILE)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def _provider_choices() -> dict[str, list[dict[str, str]]]:

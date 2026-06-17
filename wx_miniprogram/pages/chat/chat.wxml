@@ -117,6 +117,10 @@ module.exports = {
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
 	        </view>
+	        <view class="tool-chip" bindtap="onPhotoAnswer" aria-role="button" aria-label="拍照作答">
+	          <text class="tool-chip-icon">⌾</text>
+	          <text class="tool-chip-txt">拍照作答</text>
+	        </view>
 	        <text class="tool-hint">知识库检索默认自动开启</text>
 			      </view>
     </view>
@@ -285,6 +289,20 @@ module.exports = {
               <view class="pd-action pd-action-secondary" wx:for="{{item.progressiveDisclosure.secondaryActions}}" wx:for-item="chip" wx:key="slug" data-msgid="{{item.id}}" data-slug="{{chip.slug}}" bindtap="onProgressiveDisclosureAction" aria-role="button" aria-label="{{chip.label}}">
                 <text class="pd-action-label">{{chip.label}}</text>
               </view>
+            </view>
+          </view>
+
+          <!-- Grading-to-Brain：next_best_action 个性化下一步训练（证据=learner_memory_events，处方权威=training_intent，端上只读展示） -->
+          <view class="nba-card" wx:if="{{item.nextBestAction && item.nextBestAction.title}}">
+            <text class="nba-badge">下一步训练</text>
+            <text class="nba-title" user-select>{{item.nextBestAction.title}}</text>
+            <text class="nba-why" user-select wx:if="{{item.nextBestAction.whyThisNow}}">{{item.nextBestAction.whyThisNow}}</text>
+            <view class="nba-materials" wx:if="{{item.nextBestAction.materials && item.nextBestAction.materials.length}}">
+              <text class="nba-material" wx:for="{{item.nextBestAction.materials}}" wx:for-item="material" wx:for-index="materialIndex" wx:key="materialIndex" user-select>· {{material}}</text>
+            </view>
+            <text class="nba-measure" user-select wx:if="{{item.nextBestAction.successMeasure}}">达成标准：{{item.nextBestAction.successMeasure}}</text>
+            <view class="nba-go" data-msgid="{{item.id}}" bindtap="onNextBestActionTap" aria-role="button" aria-label="按推荐去练习">
+              <text class="nba-go-label">去练这个 ›</text>
             </view>
           </view>
 
@@ -573,16 +591,21 @@ module.exports = {
 	          <!-- 流式光标 -->
 	          <view class="cursor" wx:if="{{item.streaming}}"></view>
 
-          <!-- 引用 -->
-          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
-            <text class="cite-head">参考来源</text>
-            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
-              <text class="cite-key">[{{ct.key}}]</text>
-              <view class="cite-body">
-                <text class="cite-title">{{ct.title}}</text>
-              </view>
-            </view>
-          </view>
+	          <!-- 引用 -->
+	          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
+	            <view class="cite-head">
+	              <text class="cite-head-main">依据</text>
+	              <text class="cite-head-sub">References</text>
+	            </view>
+	            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
+	              <text class="cite-key">〔{{ct.key}}〕</text>
+	              <view class="cite-body">
+	                <text class="cite-title">{{ct.title}}</text>
+	                <text class="cite-locator" wx:if="{{ct.locator}}">{{ct.locator}}</text>
+	                <text class="cite-quote" wx:if="{{ct.quote}}">摘录：{{ct.quote}}</text>
+	              </view>
+	            </view>
+	          </view>
         </view>
         <!-- AI 操作栏 — 气泡外部，左对齐 -->
         <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
@@ -670,6 +693,10 @@ module.exports = {
 	        <view class="tool-chip {{enableReason ? 'on' : ''}}" bindtap="onToggleReason" aria-role="button" aria-label="{{enableReason ? '关闭推理' : '开启推理'}}">
 	          <text class="tool-chip-icon">◎</text>
 	          <text class="tool-chip-txt">推理</text>
+	        </view>
+	        <view class="tool-chip" bindtap="onPhotoAnswer" aria-role="button" aria-label="拍照作答">
+	          <text class="tool-chip-icon">⌾</text>
+	          <text class="tool-chip-txt">拍照作答</text>
 	        </view>
 	        <text class="tool-hint">知识库检索默认自动开启</text>
 	      </view>

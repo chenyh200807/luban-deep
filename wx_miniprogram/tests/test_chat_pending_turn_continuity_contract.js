@@ -49,13 +49,25 @@ assertContains(
   "_finishPendingTurnRecovery: function (serverMessages)",
   "pending turn recovery should have an explicit terminal path for unrecovered cold starts",
 );
-assertContains(
-  "self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);",
+assert(
+  /self\._finishPendingTurnRecovery\(\s*opts\.longPoll\s*\?\s*serverMessages\s*:\s*null\s*,?\s*\);/.test(source),
   "unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
 );
 assertContains(
   "self._finishPendingTurnRecovery();",
   "recovery fetch exhaustion should unlock the chat even when no messages can be loaded",
+);
+assertContains(
+  "err && err.statusCode === 404",
+  "missing conversations should terminate recovery immediately instead of polling or switching base",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === pending.conversationId',
+  "missing pending conversations should clear the stale current session pointer",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === convId',
+  "missing restored conversations should clear the stale current session pointer",
 );
 assertContains(
   "isStreaming: false,",
@@ -68,6 +80,10 @@ assertContains(
 assert(
   source.indexOf("this._clearPendingTurn();\n    this._recoveringTurn = false;") < 0,
   "non-cancelling local stream aborts must not erase the durable pending turn",
+);
+assert(
+  /_onDone:\s*function\s*\(options\)[\s\S]*?var wasRecoveringTurn = !!this\._recoveringTurn;[\s\S]*?var renderedAnswer = false;[\s\S]*?!skipHistoryRecovery && !renderedAnswer[\s\S]*?_recoverTurnFromHistory\(/.test(source),
+  "terminal done without a visible answer should preserve pending identity and recover from canonical history",
 );
 assert(
   /stopStream:\s*function[\s\S]*?_stop\(\{\s*cancelTurn:\s*true\s*\}\)/.test(source),

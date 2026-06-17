@@ -87,6 +87,33 @@ def test_materialize_compiled_truth_documents_adds_graph_context_for_weak_point(
     assert graph_context["training_target_ids"] == ["1A432000:E02:case_repair"]
 
 
+def test_materialize_compiled_truth_documents_accepts_personalization_context_pack_top_claims() -> None:
+    docs = materialize_compiled_truth_documents(
+        {
+            "source": "PersonalizationContextPack",
+            "top_claims": [
+                {
+                    "claim_id": "claim_1",
+                    "object_type": "error",
+                    "claim_status": "repeated",
+                    "concept_id": "1A432000",
+                    "label": "该学员在危大工程专项方案流程上反复漏写专家论证。",
+                    "evidence_refs": ["evt1", "evt2"],
+                }
+            ],
+            "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+        }
+    )
+
+    assert len(docs) == 1
+    doc = docs[0]
+    assert doc["source_type"] == "compiled_learning_truth"
+    assert doc["chunk_id"] == "compiled-truth:personalization:claim_1"
+    assert doc["evidence_level"] == "L1_repeated"
+    assert doc["supporting_event_ids"] == ["evt1", "evt2"]
+    assert doc["metadata"]["projection_subject"] == "PersonalizationContextPack"
+
+
 def test_materialize_compiled_truth_documents_sanitizes_prompt_like_text() -> None:
     docs = materialize_compiled_truth_documents(
         {

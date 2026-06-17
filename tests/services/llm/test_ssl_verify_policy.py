@@ -4,6 +4,7 @@ import importlib
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 import pytest
 
@@ -41,7 +42,6 @@ def test_cloud_provider_rejects_disable_ssl_verify_in_production(
         cloud_provider_module._get_aiohttp_connector()
 
 
-@pytest.mark.requires_external  # spawns ./.venv/bin/python; needs the dev venv layout absent in the hermetic CI gate
 def test_agentic_pipeline_rejects_disable_ssl_verify_in_production() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     env = os.environ.copy()
@@ -69,7 +69,7 @@ else:
     raise SystemExit("expected RuntimeError")
 """
     completed = subprocess.run(
-        ["./.venv/bin/python", "-c", code],
+        [sys.executable, "-c", code],
         cwd=repo_root,
         env=env,
         capture_output=True,

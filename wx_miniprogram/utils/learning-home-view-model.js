@@ -29,17 +29,6 @@ function normalizeFocusMeta(value, title, assessmentAction) {
   return meta;
 }
 
-var LEGACY_PROMPT_TYPES = ["practice_prompt", "mistake_review", "concept_explain"];
-
-function copyObject(value) {
-  var source = asObject(value);
-  var result = {};
-  Object.keys(source).forEach(function (key) {
-    result[key] = source[key];
-  });
-  return result;
-}
-
 function isAssessmentPrompt(source, text) {
   var payload = asObject(source);
   var kind = compactText(payload.prompt_type || payload.type || payload.action_type).toLowerCase();
@@ -112,63 +101,9 @@ function getPromptVisual(promptType, index) {
 }
 
 function getPromptTopic(source, text) {
+  void text;
   var intent = asObject(source.intent || source.prompt_intent);
-  var topic = compactText(
-    intent.concept_label ||
-      intent.error_label ||
-      source.concept_label ||
-      source.topic ||
-      source.focus_topic,
-  );
-  if (topic) return topic;
-  return compactText(text)
-    .replace(/^用\s*\d+\s*道题训练/, "")
-    .replace(/^复盘/, "")
-    .replace(/^讲清楚/, "")
-    .replace(/^用一道真题场景理解/, "")
-    .replace(/^梳理/, "")
-    .replace(/^用\s*1\s*个小问题验证/, "")
-    .replace(/的?(?:关键判断|高频考点|是否真会了)$/, "");
-}
-
-function hasLegacyThreePromptSet(items) {
-  if (!items || items.length !== 3) return false;
-  var seen = {};
-  items.forEach(function (item) {
-    var source = asObject(item);
-    var promptType = compactText(source.prompt_type || source.type).toLowerCase();
-    if (promptType) seen[promptType] = true;
-  });
-  return LEGACY_PROMPT_TYPES.every(function (promptType) {
-    return !!seen[promptType];
-  });
-}
-
-function buildSupplementPrompt(baseItem, promptType, text) {
-  var base = asObject(baseItem);
-  var intent = copyObject(base.intent || base.prompt_intent);
-  intent.prompt_type = promptType;
-  return {
-    key: "legacy-upgrade-" + promptType,
-    prompt_type: promptType,
-    text: text,
-    evidence_refs: asList(base.evidence_refs || base.evidenceRefs),
-    learning_state_ref: compactText(base.learning_state_ref || base.learningStateRef),
-    suggested_mode: compactText(base.suggested_mode || base.suggestedMode),
-    intent: intent,
-  };
-}
-
-function upgradeLegacyThreePrompts(items) {
-  var rawPrompts = asList(items);
-  if (!hasLegacyThreePromptSet(rawPrompts)) return rawPrompts;
-  var base = rawPrompts[0] || {};
-  var topic = getPromptTopic(base, compactText(base.text || base.title || base.query || base.prompt)) || "当前考点";
-  return rawPrompts.concat([
-    buildSupplementPrompt(base, "exam_transfer", "用一道真题场景理解" + topic),
-    buildSupplementPrompt(base, "knowledge_map", "梳理" + topic + "的高频考点"),
-    buildSupplementPrompt(base, "quick_check", "用 1 个小问题验证" + topic + "是否真会了"),
-  ]);
+  return compactText(intent.concept_label || source.concept_label);
 }
 
 function normalizePrompt(item, index) {
@@ -203,7 +138,7 @@ function buildLearningHomeViewModel(dashboard) {
   var review = asObject(body.review);
   var today = asObject(body.today);
   var focus = asObject(body.today_focus || today.focus);
-  var rawPrompts = upgradeLegacyThreePrompts(body.recommended_prompts);
+  var rawPrompts = asList(body.recommended_prompts);
   var prompts = rawPrompts
     .map(normalizePrompt)
     .filter(Boolean)
@@ -211,12 +146,11 @@ function buildLearningHomeViewModel(dashboard) {
   var assessmentAction = rawPrompts.some(function (item) {
     return isAssessmentPrompt(item);
   });
-  var rawFocusTitle = compactText(focus.title || today.hint || "按当前状态推进建筑实务");
+  var rawFocusTitle = compactText(focus.title || today.hint || "今日推进");
   var focusTitle = normalizeFocusTitle(rawFocusTitle, assessmentAction);
-  var primaryPrompt = prompts[0] || {};
   var focusQuery = assessmentAction
     ? ""
-    : compactText(focus.query || focus.prompt || primaryPrompt.text);
+    : compactText(focus.query || focus.prompt);
   return {
     reviewCount: Number(review.overdue || 0) + Number(review.due_today || 0),
     focusLabel: compactText(focus.label || "今日焦点"),
@@ -226,7 +160,7 @@ function buildLearningHomeViewModel(dashboard) {
     focusText: focusTitle,
     focusQuery: focusQuery,
     focusActionType: assessmentAction ? "assessment" : focusQuery ? "prompt" : "",
-    focusPromptIntent: asObject(focus.prompt_intent || focus.intent || primaryPrompt.promptIntent),
+    focusPromptIntent: asObject(focus.prompt_intent || focus.intent),
     recommendedPrompts: prompts,
   };
 }

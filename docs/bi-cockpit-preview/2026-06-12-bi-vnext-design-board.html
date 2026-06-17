@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BI 驾驶舱 vNext · 三方向设计对比板 · 2026-06-12</title>
+<!-- ECharts 6 CDN（pin 6.1.0 + SRI；file:// 直开；离线时图表区显示占位提示） -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+  integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+  crossorigin="anonymous"></script>
+<style>
+/* ===== 设计 token：取自 web/components/bi-cockpit/theme.ts ===== */
+:root{
+  --bg:#150f0b; --panel-a:rgba(38,28,22,.55); --panel-b:rgba(28,19,13,.5); --panel-solid:#211710;
+  --text:#F1E9E1; --muted:#A99B8C; --faint:#6E5F52;
+  --terra:#E8915A; --terra-deep:#C35A2C; --terra-mid:#D4734B;
+  --amber:#F2B85C; --gold:#E6CB86; --clay:#D86C57; --sage:#9DB89C; --rose:#E0A39A; --bronze:#C58E5A; --teal:#7FA8AE;
+  --pos:#86B97A; --warn:#F2B85C; --danger:#D44A3C;
+  --line:rgba(212,140,90,.18); --glow:rgba(232,150,80,.45); --grid:rgba(212,150,100,.09);
+  /* 可信度三档 */
+  --trustA:#86B97A; --trustB:#F2B85C; --trustC:#8B7E72;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Inter",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+.wrap{max-width:1480px;margin:0 auto;padding:24px 28px 80px;position:relative}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:34px 34px;
+  -webkit-mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 30%,transparent 100%);
+          mask-image:radial-gradient(ellipse 90% 55% at 50% 0%,#000 30%,transparent 100%)}
+.bg-glow{position:fixed;top:-200px;left:50%;width:130%;height:360px;transform:translateX(-50%);z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,rgba(232,145,90,.14),transparent 60%)}
+.wrap>*{position:relative;z-index:1}
+
+/* ===== 通用 ===== */
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.22em;color:rgba(232,145,90,.9);text-transform:uppercase}
+h1{margin:6px 0 4px;font-size:28px;font-weight:900}
+h1 .ver{font-size:13px;font-weight:700;color:var(--amber);vertical-align:super;margin-left:6px}
+.subtitle{font-size:13px;color:var(--muted)}
+.panel{position:relative;border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+  background:linear-gradient(160deg,var(--panel-a),var(--panel-b));backdrop-filter:blur(8px)}
+.sec-h{display:flex;align-items:center;gap:9px;margin:26px 2px 12px}
+.sec-h .bar{width:4px;height:15px;border-radius:3px;background:linear-gradient(var(--terra),var(--terra-mid));box-shadow:0 0 8px var(--glow)}
+.sec-h h2{margin:0;font-size:16px;font-weight:800}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;border:1px solid var(--line)}
+.mono{font-variant-numeric:tabular-nums}
+
+/* ===== 设计简报 ===== */
+.brief-grid{display:grid;grid-template-columns:1.1fr 2fr;gap:14px;margin-top:14px}
+.brief-status .big{font-size:15px;font-weight:800;line-height:1.7;margin:8px 0}
+.brief-status .big em{color:var(--danger);font-style:normal}
+.brief-status .src{font-size:11px;color:var(--faint);line-height:1.7}
+.axes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.axis{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:rgba(232,145,90,.04)}
+.axis .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font-size:12px;font-weight:900;
+  background:linear-gradient(150deg,var(--terra),var(--terra-deep));color:#1a0f08;margin-right:8px}
+.axis .t{font-size:13px;font-weight:800}
+.axis .d{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.65}
+.bench{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.bench .b{font-size:11.5px;color:var(--muted);border:1px dashed rgba(212,140,90,.3);border-radius:10px;padding:8px 12px;line-height:1.6}
+.bench .b strong{color:var(--gold)}
+
+/* ===== Tab 切换器 ===== */
+.tabs{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  padding:12px 0;background:linear-gradient(var(--bg) 80%,transparent)}
+.tab{cursor:pointer;border:1px solid var(--line);border-radius:16px;padding:13px 16px;text-align:left;
+  background:linear-gradient(150deg,var(--panel-a),var(--panel-b));transition:.18s}
+.tab:hover{border-color:rgba(232,145,90,.4)}
+.tab.active{border-color:rgba(232,145,90,.6);box-shadow:0 0 0 1px rgba(232,145,90,.25),0 16px 40px -18px rgba(0,0,0,.8)}
+.tab .k{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--terra)}
+.tab .name{font-size:15px;font-weight:900;margin-top:3px}
+.tab .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.tab.active .name{color:var(--amber)}
+.view{display:none}
+.view.active{display:block}
+
+/* ===== 方向区块外壳 + 水印 ===== */
+.dir{position:relative;border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:6px;
+  background:linear-gradient(165deg,rgba(33,23,16,.7),rgba(21,15,11,.5));overflow:hidden}
+.watermark{position:absolute;right:18px;top:14px;z-index:5;pointer-events:none;
+  font-size:12px;font-weight:900;letter-spacing:.14em;color:rgba(241,233,225,.28);
+  border:1px solid rgba(241,233,225,.18);border-radius:8px;padding:4px 10px;transform:rotate(-2deg)}
+.dir-head{margin-bottom:14px;padding-right:200px}
+.dir-head .t{font-size:19px;font-weight:900}
+.dir-head .d{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.7;max-width:880px}
+
+/* ===== 全局控制条（A/C 共用样式） ===== */
+.ctrlbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid rgba(232,145,90,.3);
+  border-radius:14px;padding:10px 14px;margin-bottom:14px;
+  background:linear-gradient(90deg,rgba(232,145,90,.1),rgba(232,145,90,.03))}
+.ctrlbar .lab{font-size:11px;font-weight:800;color:var(--terra);letter-spacing:.06em}
+.seg-group{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg-group span{font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer;color:var(--muted)}
+.seg-group span.on{background:rgba(232,145,90,.22);color:var(--amber)}
+.toggle{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+.toggle .sw{width:32px;height:18px;border-radius:999px;background:rgba(232,145,90,.35);position:relative}
+.toggle .sw::after{content:'';position:absolute;top:2px;left:16px;width:14px;height:14px;border-radius:50%;background:var(--amber)}
+.sel{font-size:12px;font-weight:700;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:5px 12px;background:rgba(21,15,11,.6)}
+.crumb{font-size:12px;color:var(--muted);margin:0 0 12px;display:flex;align-items:center;gap:6px}
+.crumb b{color:var(--amber);font-weight:800}
+.crumb i{font-style:normal;color:var(--faint)}
+
+/* ===== 可信度徽标体系 ===== */
+.trust{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px}
+.trust.tA{background:rgba(134,185,122,.15);color:var(--trustA);border:1px solid rgba(134,185,122,.4)}
+.trust.tB{background:rgba(242,184,92,.13);color:var(--trustB);border:1px solid rgba(242,184,92,.4)}
+.trust.tC{background:rgba(139,126,114,.18);color:#B8A99A;border:1px solid rgba(139,126,114,.5)}
+.srcchip{font-size:10px;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.fresh{font-size:10px;color:var(--faint)}
+.mebar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:7px;background:rgba(110,95,82,.25)}
+.mebar .m{background:linear-gradient(90deg,var(--terra),var(--amber))}
+.mebar .e{background:repeating-linear-gradient(45deg,rgba(169,155,140,.5) 0 4px,rgba(169,155,140,.2) 4px 8px)}
+.melegend{font-size:9.5px;color:var(--faint);margin-top:3px}
+.recon-warn{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--danger);
+  background:rgba(212,74,60,.12);border:1px solid rgba(212,74,60,.45);border-radius:8px;padding:3px 9px;margin-top:8px}
+.recon-ok{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--pos);
+  background:rgba(134,185,122,.1);border:1px solid rgba(134,185,122,.35);border-radius:8px;padding:3px 9px;margin-top:8px}
+
+/* ===== KPI 卡（方向 A） ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{position:relative;border:1px solid var(--line);border-radius:14px;padding:13px 14px;
+  background:linear-gradient(150deg,var(--panel-a),var(--panel-b));overflow:hidden}
+.kpi .top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.kpi .lab{font-size:11px;font-weight:700;color:var(--muted)}
+.kpi .val{font-size:27px;font-weight:900;margin-top:6px}
+.kpi .val .u{font-size:12px;font-weight:700;color:var(--muted);margin-left:3px}
+.kpi .meta{display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap}
+.kpi .delta{font-size:11px;font-weight:800}
+.kpi .delta.up{color:var(--pos)} .kpi .delta.dn{color:var(--danger)}
+.kpi .blob{position:absolute;right:-16px;top:-16px;width:64px;height:64px;border-radius:50%;filter:blur(20px);opacity:.35;background:var(--terra)}
+
+/* ===== 图表面板 ===== */
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.chart{width:100%}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px;flex-wrap:wrap}
+.pt{font-size:13px;font-weight:800}
+.phint{font-size:11px;color:var(--faint)}
+.corner{position:absolute;width:11px;height:11px;border-color:rgba(232,145,90,.5)}
+.corner.tl{left:6px;top:6px;border-left:1px solid;border-top:1px solid;border-top-left-radius:4px}
+.corner.br{right:6px;bottom:6px;border-right:1px solid;border-bottom:1px solid;border-bottom-right-radius:4px}
+
+/* ===== 方向 B：语义层前置 ===== */
+.b-shell{display:grid;grid-template-columns:280px 1fr;gap:14px}
+.b-dict{border:1px solid var(--line);border-radius:14px;background:rgba(21,15,11,.7);padding:14px;align-self:start;position:sticky;top:84px}
+.b-dict .dt{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--terra);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.b-dict .hint{font-size:10.5px;color:var(--faint);font-weight:400}
+.dict-kv{display:grid;grid-template-columns:64px 1fr;gap:5px 10px;font-size:12px;line-height:1.6}
+.dict-kv .k{color:var(--faint)} .dict-kv .v{color:var(--text)}
+.dict-kv code{font-size:11px;color:var(--gold);background:rgba(230,203,134,.08);border-radius:4px;padding:0 4px}
+.b-main table{width:100%;border-collapse:collapse;font-size:12.5px}
+.b-main th,.b-main td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(212,140,90,.13)}
+.b-main th{color:var(--muted);font-weight:700;font-size:11px}
+.b-main td.num{font-weight:800;font-variant-numeric:tabular-nums;cursor:pointer;text-decoration:underline dotted rgba(232,145,90,.5);text-underline-offset:3px}
+.b-main td.num:hover{color:var(--amber)}
+.b-main tr.sel-row td{background:rgba(232,145,90,.08)}
+.b-dense{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+/* 方向 B 冷主题 */
+#view-b.cold{--bg2:#0e1217}
+#view-b.cold .dir{background:linear-gradient(165deg,#141a22,#0e1217);border-color:rgba(127,168,174,.25)}
+#view-b.cold .panel,#view-b.cold .b-dict{background:rgba(20,26,34,.75);border-color:rgba(127,168,174,.22)}
+#view-b.cold .pt,#view-b.cold .dir-head .t{color:#E4EBF0}
+#view-b.cold .b-dict .dt{color:var(--teal)}
+
+/* ===== 方向 C：语义弹卡 + 边框色温 ===== */
+.c-kpi{cursor:pointer;transition:.15s}
+.c-kpi:hover{transform:translateY(-2px)}
+.c-kpi.temp-warm{border-color:rgba(232,145,90,.55);box-shadow:0 0 0 1px rgba(232,145,90,.2),0 0 18px -6px rgba(232,145,90,.5)}
+.c-kpi.temp-mid{border-color:rgba(242,184,92,.4)}
+.c-kpi.temp-cold{border-color:rgba(139,126,114,.55);background:linear-gradient(150deg,rgba(34,31,28,.6),rgba(24,22,20,.55))}
+.c-kpi.temp-cold .val{color:#C9BCAF}
+.sem-pop{position:fixed;z-index:60;width:360px;border-radius:14px;border:1px solid rgba(232,145,90,.45);
+  background:linear-gradient(165deg,#221710,#170f0a);box-shadow:0 24px 64px rgba(0,0,0,.7);padding:14px;display:none}
+.sem-pop.open{display:block}
+.sem-pop .st{font-size:13px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
+.sem-pop .x{cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px}
+.sem-pop .sec{font-size:10.5px;font-weight:800;color:var(--terra);margin:10px 0 5px;letter-spacing:.05em}
+.sem-pop .body{font-size:12px;color:var(--text);line-height:1.65}
+.sem-pop code{font-size:11px;color:var(--gold);background:rgba(230,203,134,.08);border-radius:4px;padding:0 4px}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+.tri .cell{border:1px solid var(--line);border-radius:8px;padding:6px 8px;text-align:center}
+.tri .cell .s{font-size:10px;color:var(--faint)} .tri .cell .n{font-size:14px;font-weight:900;margin-top:2px}
+.temp-legend{display:flex;gap:14px;font-size:11px;color:var(--muted);margin:0 0 12px;flex-wrap:wrap}
+.temp-legend .sw2{display:inline-block;width:22px;height:11px;border-radius:4px;vertical-align:-1px;margin-right:5px}
+
+/* ===== 评分表 ===== */
+.score table{width:100%;border-collapse:collapse;font-size:13px}
+.score th,.score td{border:1px solid rgba(212,140,90,.2);padding:11px 14px;text-align:center}
+.score th{background:rgba(232,145,90,.08);font-weight:800}
+.score td:first-child,.score th:first-child{text-align:left}
+.score td.blank{color:var(--faint);font-style:italic}
+.footnote{font-size:11px;color:var(--faint);line-height:1.8;margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+@media(max-width:1100px){.kpis,.grid3{grid-template-columns:1fr 1fr}.grid2,.b-shell,.b-dense,.axes,.brief-grid{grid-template-columns:1fr}.b-dict{position:static}}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div><div class="bg-glow"></div>
+<div class="wrap">
+
+<!-- ============ 顶部：设计简报 ============ -->
+<div class="eyebrow">◢ BI Cockpit vNext · Design Comparison Board</div>
+<h1>BI 驾驶舱 vNext 三方向设计对比板<span class="ver">2026-06-12</span></h1>
+<div class="subtitle">评审材料 · 全部数据为假数据（量级取自三源对账报告）· 仅讨论 Overview Tab 的形态</div>
+
+<div class="sec-h"><span class="bar"></span><h2>设计简报</h2></div>
+<div class="brief-grid">
+  <div class="panel brief-status">
+    <div class="eyebrow" style="letter-spacing:.1em">现状一句话</div>
+    <div class="big">现有 BI 驾驶舱视觉成立，但<em>数字不可信也看不出不可信</em>——成本缺口 328x（Langfuse $6.49 vs BI $0.02）、行为事实层 0 行、6 个注册表外 KPI 标签，全部对用户不可见。</div>
+    <div class="src">依据：<code style="color:var(--gold)">artifacts/bi_reconciliation_20260612/reconciliation_report.md</code> 人工复核结论 F1–F5。<br/>vNext 的第一设计命题：<b style="color:var(--amber)">把「数据可信度」变成第一等 UI 公民</b>——每个数字自带身份证。</div>
+  </div>
+  <div class="panel">
+    <div class="eyebrow" style="letter-spacing:.1em;margin-bottom:10px">升级四主轴</div>
+    <div class="axes">
+      <div class="axis"><span class="n">①</span><span class="t">全局控制层</span><div class="d">跨 tab 统一时间范围 / 环比开关 / 维度筛选器，状态写入 URL，所有图表订阅同一控制状态。</div></div>
+      <div class="axis"><span class="n">②</span><span class="t">数据可信度即 UI</span><div class="d">每个指标携带 provenance（数据源）、新鲜度、measured / estimated 分量、trust_level（A/B/C）徽标，对账差异直接上屏。</div></div>
+      <div class="axis"><span class="n">③</span><span class="t">下钻一致性</span><div class="d">四级下钻（总览→维度→明细→单条 trace）统一交互范式：面包屑 + 抽屉，所有图表点击行为可预期。</div></div>
+      <div class="axis"><span class="n">④</span><span class="t">性能</span><div class="d">tab 级懒加载、视口内才初始化图表、增量刷新（只 diff 变化序列），避免全量重渲染。</div></div>
+    </div>
+    <div class="bench">
+      <div class="b"><strong>对标 Grafana</strong>：信息密度与全局 time-range picker——一条控制条统治所有面板，密度可调不靠堆卡片。</div>
+      <div class="b"><strong>对标 Lightdash</strong>：语义层暴露——指标的口径 / 公式 / 数据源是可点击的一等对象，不是埋在文档里的注释。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Tab 切换 ============ -->
+<div class="sec-h"><span class="bar"></span><h2>三方向 Overview 高保真静态稿</h2></div>
+<div class="tabs" id="tabs">
+  <div class="tab active" data-v="a"><div class="k">方向 A</div><div class="name">指挥舱进化</div><div class="sub">保留暖陶土橙大屏叙事 + 控制条 + 可信度徽标</div></div>
+  <div class="tab" data-v="b"><div class="k">方向 B</div><div class="name">语义层前置</div><div class="sub">信息密度优先 · 指标字典抽屉 · 冷暖双主题</div></div>
+  <div class="tab" data-v="c"><div class="k">方向 C</div><div class="name">混合分层</div><div class="sub">大屏叙事默认 + 点击弹语义卡 + 边框色温编码</div></div>
+</div>
+
+<!-- ============ 方向 A：指挥舱进化 ============ -->
+<div class="view active" id="view-a">
+<div class="dir">
+  <div class="watermark">DESIGN MOCK · 假数据</div>
+  <div class="dir-head">
+    <div class="t">方向 A「指挥舱进化」</div>
+    <div class="d">现有暖色深色大屏的直系后代：叙事不变，骨架升级。顶部新增全局控制条（轴①）；每张 KPI 卡植入可信度徽标体系（轴②）；下钻统一走面包屑 + 抽屉（轴③）。改造成本最低，品牌连续性最强。</div>
+  </div>
+
+  <!-- 全局控制条 -->
+  <div class="ctrlbar">
+    <span class="lab">全局控制</span>
+    <div class="seg-group"><span>今日</span><span class="on">近 7 天</span><span>近 30 天</span><span>自定义</span></div>
+    <span class="toggle"><span class="sw"></span>环比上一周期</span>
+    <span class="sel">维度：全部会员 ▾</span>
+    <span class="sel">来源：全部渠道 ▾</span>
+    <span class="phint" style="margin-left:auto">控制状态同步 URL · 跨 tab 生效</span>
+  </div>
+  <div class="crumb"><b>总览</b><i>›</i>成本<i>›</i>按模型<i>›</i><span style="color:var(--faint)">（点击任意图表下钻，面包屑可回退）</span></div>
+
+  <!-- KPI 卡 ×4，每张带可信度徽标 -->
+  <div class="kpis">
+    <div class="kpi"><div class="blob"></div>
+      <div class="top"><span class="lab">7 天活跃学习会话</span><span class="trust tA">● A 级</span></div>
+      <div class="val mono">857</div>
+      <div class="meta"><span class="delta up">▲ 6.2% 环比</span><span class="srcchip">src: bi_sessions</span><span class="fresh">5 分钟前</span></div>
+      <div class="mebar"><div class="m" style="width:96%"></div><div class="e" style="width:4%"></div></div>
+      <div class="melegend">measured 96% · estimated 4%</div>
+      <div class="recon-ok">✓ 对账互证 · Langfuse traces 898 (diff 4.6%)</div>
+    </div>
+    <div class="kpi"><div class="blob" style="background:var(--danger)"></div>
+      <div class="top"><span class="lab">7 天总成本</span><span class="trust tC">● C 级</span></div>
+      <div class="val mono">$0.02<span class="u">USD</span></div>
+      <div class="meta"><span class="delta dn">▼ 数据降级</span><span class="srcchip">src: usage_ledger</span><span class="fresh">2 小时前</span></div>
+      <div class="mebar"><div class="m" style="width:8%"></div><div class="e" style="width:92%"></div></div>
+      <div class="melegend">measured 8% · estimated 92%（采集缺口）</div>
+      <div class="recon-warn">⚠ 对账差异 328x · Langfuse $6.49 vs BI $0.02</div>
+    </div>
+    <div class="kpi"><div class="blob" style="background:var(--amber)"></div>
+      <div class="top"><span class="lab">活跃会员（canonical）</span><span class="trust tB">● B 级</span></div>
+      <div class="val mono">93</div>
+      <div class="meta"><span class="delta up">▲ 3 人 环比</span><span class="srcchip">src: member_console</span><span class="fresh">15 分钟前</span></div>
+      <div class="mebar"><div class="m" style="width:100%"></div></div>
+      <div class="melegend">measured 100% · 口径=真实手机号过滤</div>
+      <div class="recon-ok" style="color:var(--warn);background:rgba(242,184,92,.08);border-color:rgba(242,184,92,.35)">ⓘ 口径差已解释 · raw 2,439 vs canonical 93</div>
+    </div>
+    <div class="kpi"><div class="blob" style="background:var(--sage)"></div>
+      <div class="top"><span class="lab">有效学习会员</span><span class="trust tB">● B 级</span></div>
+      <div class="val mono">10</div>
+      <div class="meta"><span class="delta up">▲ 2 人 环比</span><span class="srcchip">src: bi_derived</span><span class="fresh">5 分钟前</span></div>
+      <div class="mebar"><div class="m" style="width:70%"></div><div class="e" style="width:30%"></div></div>
+      <div class="melegend">measured 70% · estimated 30%（派生口径）</div>
+      <div class="recon-ok" style="color:var(--muted);background:rgba(169,155,140,.07);border-color:rgba(169,155,140,.3)">— 无外部真相源 · 声明性缺口</div>
+    </div>
+  </div>
+
+  <!-- 图表区 -->
+  <div class="grid2">
+    <div class="panel"><span class="corner tl"></span><span class="corner br"></span>
+      <div class="ph"><span class="pt">成本三源对账趋势（7 天）</span><span class="trust tC">● C 级 · 差异上屏</span></div>
+      <div class="phint">实线 = Langfuse 真相源 · 虚线 = BI 当前采集 · 阴影 = 缺口带（可信度 UI 的核心演示）</div>
+      <div class="chart" id="ch-a-cost" style="height:280px"></div>
+    </div>
+    <div class="panel"><span class="corner tl"></span><span class="corner br"></span>
+      <div class="ph"><span class="pt">会话构成（按能力）</span><span class="trust tA">● A 级</span></div>
+      <div class="phint">环中心数 857 与 KPI 同源 · 点击扇区下钻</div>
+      <div class="chart" id="ch-a-donut" style="height:280px"></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:14px"><span class="corner tl"></span><span class="corner br"></span>
+    <div class="ph"><span class="pt">活跃会话 × 有效学习 双轴趋势</span><span class="trust tA">● A 级</span><span class="phint" style="margin-left:auto">环比虚影 = 上一周期（控制条开关控制）</span></div>
+    <div class="chart" id="ch-a-trend" style="height:240px"></div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 方向 B：语义层前置 ============ -->
+<div class="view" id="view-b">
+<div class="dir">
+  <div class="watermark">DESIGN MOCK · 假数据</div>
+  <div class="dir-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-right:170px">
+    <div>
+      <div class="t">方向 B「语义层前置」</div>
+      <div class="d">为运营深查而生：弱化大屏叙事，表格即主角。左侧常驻「指标字典抽屉」——点击任意数字，口径 / 公式 / 数据源 / 对账状态立即呈现（Lightdash 式语义层暴露）。冷暖双主题：暖色承接品牌，冷色为长时间盯数减负。</div>
+    </div>
+    <span class="toggle" onclick="toggleBTheme()" style="flex:none;margin-top:4px"><span class="sw" id="b-sw" style="background:rgba(127,168,174,.35)"></span><span id="b-sw-lab">切换冷色主题</span></span>
+  </div>
+
+  <div class="b-shell">
+    <!-- 指标字典抽屉 -->
+    <aside class="b-dict" id="b-dict">
+      <div class="dt">指标字典<span class="hint">点击右侧任意数字联动</span></div>
+      <div id="dict-body">
+        <div style="font-size:14px;font-weight:900;margin-bottom:8px" id="dict-name">total_cost_usd · 7 天总成本</div>
+        <div class="dict-kv">
+          <span class="k">口径</span><span class="v" id="dict-cal">窗口内全部 LLM 调用成本合计（USD）</span>
+          <span class="k">公式</span><span class="v"><code id="dict-formula">Σ usage_ledger.cost_usd</code></span>
+          <span class="k">数据源</span><span class="v" id="dict-src">UsageLedger → /bi/cost</span>
+          <span class="k">trust</span><span class="v" id="dict-trust"><span class="trust tC">● C 级（降级）</span></span>
+          <span class="k">新鲜度</span><span class="v" id="dict-fresh">2 小时前</span>
+          <span class="k">对账</span><span class="v" id="dict-recon" style="color:var(--danger);font-weight:800">⚠ coverage_gap · 差异 328x（Langfuse $6.49 vs BI $0.02）；overview 与 cost 管线互不相认</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 主表 + 密度图表 -->
+    <div class="b-main">
+      <div class="panel" style="padding:8px 10px">
+        <div class="ph" style="padding:6px 8px 2px"><span class="pt">核心指标台账（7 天窗口）</span><span class="phint">每行 = 注册表 BI_METRICS 一条 · 注册表外标签不允许出现</span></div>
+        <table>
+          <thead><tr><th>指标</th><th>BI 值</th><th>真相源</th><th>diff</th><th>trust</th><th>对账 verdict</th><th>新鲜度</th></tr></thead>
+          <tbody id="b-table">
+            <tr data-m="cost" class="sel-row"><td>7 天总成本</td><td class="num" style="color:var(--danger)">$0.0198</td><td class="mono">$6.49 (LF)</td><td style="color:var(--danger);font-weight:800">99.7%</td><td><span class="trust tC">C</span></td><td style="color:var(--danger)">coverage_gap ⚠328x</td><td>2h</td></tr>
+            <tr data-m="sessions"><td>活跃学习会话</td><td class="num">857</td><td class="mono">898 (LF)</td><td>4.6%</td><td><span class="trust tA">A</span></td><td style="color:var(--pos)">consistent ✓</td><td>5m</td></tr>
+            <tr data-m="members"><td>活跃会员</td><td class="num">93</td><td class="mono">2,439 (raw)</td><td>96.2%</td><td><span class="trust tB">B</span></td><td style="color:var(--warn)">definition_mismatch ⓘ</td><td>15m</td></tr>
+            <tr data-m="tokens"><td>7 天总 Token</td><td class="num" style="color:var(--danger)">113,628</td><td class="mono">&gt;1M (LF)</td><td style="color:var(--danger);font-weight:800">~89%</td><td><span class="trust tC">C</span></td><td style="color:var(--danger)">coverage_gap ⚠</td><td>2h</td></tr>
+            <tr data-m="effective"><td>有效学习会员</td><td class="num">10</td><td class="mono">—</td><td>—</td><td><span class="trust tB">B</span></td><td style="color:var(--muted)">missing_source —</td><td>5m</td></tr>
+            <tr data-m="behavior"><td>behavior.* ×4</td><td class="num" style="color:var(--faint)">0 行</td><td class="mono">0 行</td><td>0%</td><td><span class="trust tC">C</span></td><td style="color:var(--warn)">空洞一致 ⚠（事实层空转）</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="b-dense">
+        <div class="panel">
+          <div class="ph"><span class="pt">trust 等级分布（18 指标）</span><span class="phint">注册表健康度一眼可见</span></div>
+          <div class="chart" id="ch-b-trust" style="height:220px"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><span class="pt">成本：BI vs Langfuse 日对比</span><span class="phint">对数轴 · 缺口逐日可见</span></div>
+          <div class="chart" id="ch-b-cost" style="height:220px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 方向 C：混合分层 ============ -->
+<div class="view" id="view-c">
+<div class="dir">
+  <div class="watermark">DESIGN MOCK · 假数据</div>
+  <div class="dir-head">
+    <div class="t">方向 C「混合分层」</div>
+    <div class="d">默认呈现 = 方向 A 的暖色大屏叙事；语义深度 = 按需弹出。点击任意 KPI 卡弹出方向 B 式「语义卡」（口径 + 对账 verdict + 三源数值）。可信度用<b style="color:var(--amber)">卡片边框色温</b>编码：暖橙发光 = A 级可信，琥珀 = B 级，灰冷 = C 级降级——不可信的数字在视觉温度上自动「熄火」。</div>
+  </div>
+
+  <div class="ctrlbar">
+    <span class="lab">全局控制</span>
+    <div class="seg-group"><span>今日</span><span class="on">近 7 天</span><span>近 30 天</span></div>
+    <span class="toggle"><span class="sw"></span>环比</span>
+    <span class="sel">维度：全部会员 ▾</span>
+  </div>
+  <div class="temp-legend">
+    <span><span class="sw2" style="background:rgba(232,145,90,.7);box-shadow:0 0 8px rgba(232,145,90,.6)"></span>暖橙发光 = A 级可信</span>
+    <span><span class="sw2" style="background:rgba(242,184,92,.55)"></span>琥珀 = B 级</span>
+    <span><span class="sw2" style="background:rgba(139,126,114,.6)"></span>灰冷 = C 级降级</span>
+    <span style="color:var(--faint)">点击任意卡片弹出语义卡 ↓</span>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi c-kpi temp-warm" onclick="openSem(event,'sessions')">
+      <div class="top"><span class="lab">7 天活跃学习会话</span><span class="trust tA">● A</span></div>
+      <div class="val mono">857</div>
+      <div class="meta"><span class="delta up">▲ 6.2%</span><span class="fresh">5 分钟前</span></div>
+      <div class="recon-ok">✓ Langfuse 互证 898</div>
+    </div>
+    <div class="kpi c-kpi temp-cold" onclick="openSem(event,'cost')">
+      <div class="top"><span class="lab">7 天总成本</span><span class="trust tC">● C</span></div>
+      <div class="val mono">$0.02</div>
+      <div class="meta"><span class="delta dn">数据降级</span><span class="fresh">2 小时前</span></div>
+      <div class="recon-warn">⚠ 对账差异 328x · LF $6.49 vs BI $0.02</div>
+    </div>
+    <div class="kpi c-kpi temp-mid" onclick="openSem(event,'members')">
+      <div class="top"><span class="lab">活跃会员</span><span class="trust tB">● B</span></div>
+      <div class="val mono">93</div>
+      <div class="meta"><span class="delta up">▲ 3 人</span><span class="fresh">15 分钟前</span></div>
+      <div class="recon-ok" style="color:var(--warn);background:rgba(242,184,92,.08);border-color:rgba(242,184,92,.35)">ⓘ 口径差已解释</div>
+    </div>
+    <div class="kpi c-kpi temp-mid" onclick="openSem(event,'effective')">
+      <div class="top"><span class="lab">有效学习会员</span><span class="trust tB">● B</span></div>
+      <div class="val mono">10</div>
+      <div class="meta"><span class="delta up">▲ 2 人</span><span class="fresh">5 分钟前</span></div>
+      <div class="recon-ok" style="color:var(--muted);background:rgba(169,155,140,.07);border-color:rgba(169,155,140,.3)">— 派生口径 · 无真相源</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel"><span class="corner tl"></span><span class="corner br"></span>
+      <div class="ph"><span class="pt">会员激活漏斗</span><span class="trust tB">● B 级</span><span class="phint" style="margin-left:auto">raw → canonical → 激活 → 有效学习</span></div>
+      <div class="chart" id="ch-c-funnel" style="height:280px"></div>
+    </div>
+    <div class="panel"><span class="corner tl"></span><span class="corner br"></span>
+      <div class="ph"><span class="pt">会话趋势（7 天）</span><span class="trust tA">● A 级</span></div>
+      <div class="phint">点击数据点 = 同样弹语义卡 · 图卡同一交互语言</div>
+      <div class="chart" id="ch-c-trend" style="height:280px"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 方向 C 的语义弹卡 -->
+<div class="sem-pop" id="sem-pop">
+  <div class="st"><span id="sp-name"></span><span class="x" onclick="closeSem()">✕</span></div>
+  <div class="sec">口径 / 公式</div><div class="body" id="sp-cal"></div>
+  <div class="sec">三源数值</div>
+  <div class="tri">
+    <div class="cell"><div class="s">BI</div><div class="n mono" id="sp-bi"></div></div>
+    <div class="cell"><div class="s">Langfuse</div><div class="n mono" id="sp-lf"></div></div>
+    <div class="cell"><div class="s">业务库</div><div class="n mono" id="sp-biz"></div></div>
+  </div>
+  <div class="sec">对账 verdict</div><div class="body" id="sp-verdict"></div>
+</div>
+
+<!-- ============ 评分表骨架 ============ -->
+<div class="sec-h"><span class="bar"></span><h2>四维评分表（评审现场填写）</h2></div>
+<div class="panel score">
+  <table>
+    <thead><tr><th style="width:30%">评分维度（1–5 分）</th><th>方向 A 指挥舱进化</th><th>方向 B 语义层前置</th><th>方向 C 混合分层</th></tr></thead>
+    <tbody>
+      <tr><td>数据可信度表达力<br/><span class="phint">徽标/对账/降级状态是否一眼可读</span></td><td class="blank">待填</td><td class="blank">待填</td><td class="blank">待填</td></tr>
+      <tr><td>与指标契约耦合度<br/><span class="phint">UI 是否强制依赖 BI_METRICS 注册表，杜绝表外标签</span></td><td class="blank">待填</td><td class="blank">待填</td><td class="blank">待填</td></tr>
+      <tr><td>实现成本<br/><span class="phint">在现有 bi-cockpit 组件上的改造工作量（分越高=越省）</span></td><td class="blank">待填</td><td class="blank">待填</td><td class="blank">待填</td></tr>
+      <tr><td>品牌连续性<br/><span class="phint">与暖陶土橙深色大屏既有心智的衔接</span></td><td class="blank">待填</td><td class="blank">待填</td><td class="blank">待填</td></tr>
+      <tr><td style="font-weight:900">合计</td><td class="blank">—</td><td class="blank">—</td><td class="blank">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footnote">
+  数据声明：板上所有数值均为演示假数据，量级取自 <b>artifacts/bi_reconciliation_20260612/reconciliation_report.md</b>（会话 857 / traces 898 / 会员 93 vs raw 2,439 / 成本 BI $0.0198 vs Langfuse $6.49 / Token 113,628 vs &gt;1M / 有效学习会员 10）。
+  色板单一权威：<b>web/components/bi-cockpit/theme.ts</b>。本文件为静态设计稿，无任何后端依赖，file:// 直接打开即可评审。
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ===== theme.ts token 镜像 ===== */
+const T = {
+  text:'#F1E9E1', muted:'#A99B8C', faint:'#6E5F52', grid:'rgba(212,150,100,0.09)',
+  terra:'#E8915A', amber:'#F2B85C', gold:'#E6CB86', clay:'#D86C57',
+  sage:'#9DB89C', rose:'#E0A39A', bronze:'#C58E5A', teal:'#7FA8AE',
+  pos:'#86B97A', danger:'#D44A3C', trustC:'#8B7E72'
+}
+const DAYS = ['6-06','6-07','6-08','6-09','6-10','6-11','6-12']
+const FONT = '"Inter",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif'
+function axis(coldMode){
+  const c = coldMode ? '#8FA6B0' : T.muted
+  return {
+    axisLine:{lineStyle:{color:coldMode?'rgba(127,168,174,.3)':'rgba(212,140,90,.3)'}},
+    axisLabel:{color:c,fontSize:11,fontFamily:FONT},
+    splitLine:{lineStyle:{color:coldMode?'rgba(127,168,174,.1)':T.grid}}
+  }
+}
+const TOOLTIP = {
+  backgroundColor:'rgba(28,19,13,0.92)', borderColor:'rgba(232,150,80,0.45)', borderWidth:1,
+  padding:[8,12], textStyle:{color:T.text,fontSize:12},
+  extraCssText:'backdrop-filter:blur(8px);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);'
+}
+function vGrad(from,to){return {type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:from},{offset:1,color:to}]}}
+
+const charts = {}            // id -> echarts instance
+const initialized = {a:false,b:false,c:false}
+function mk(id, option){
+  const el = document.getElementById(id)
+  if (!window.echarts){ el.innerHTML = '<div style="display:grid;place-items:center;height:100%;color:#6E5F52;font-size:12px">（ECharts CDN 未加载 — 联网后刷新可见图表）</div>'; return }
+  const c = echarts.init(el)
+  c.setOption(option)
+  charts[id] = c
+  return c
+}
+
+/* ===== 方向 A 图表 ===== */
+function initA(){
+  if (initialized.a) return; initialized.a = true
+  // A1: 成本三源对账趋势 — 可信度 UI 核心演示
+  const lf  = [0.71, 0.83, 0.96, 0.88, 1.02, 1.18, 0.91]   // Langfuse 真相源，合计≈$6.49
+  const bi  = [0.002,0.003,0.0028,0.003,0.0032,0.0035,0.0033] // BI 采集，合计≈$0.02
+  mk('ch-a-cost', {
+    tooltip:{...TOOLTIP,trigger:'axis'},
+    legend:{top:0,textStyle:{color:T.muted,fontSize:11},data:['Langfuse 真相源','BI 采集值']},
+    grid:{left:48,right:16,top:34,bottom:28},
+    xAxis:{type:'category',data:DAYS,...axis()},
+    yAxis:{type:'value',name:'USD/日',nameTextStyle:{color:T.faint,fontSize:10},...axis()},
+    series:[
+      {name:'Langfuse 真相源',type:'line',data:lf,smooth:true,symbolSize:6,
+        lineStyle:{width:2.5,color:T.amber},itemStyle:{color:T.amber},
+        areaStyle:{color:vGrad('rgba(242,184,92,.28)','rgba(242,184,92,.02)')},
+        markArea:{silent:true,itemStyle:{color:'rgba(212,74,60,.07)'},
+          label:{show:true,position:'insideTop',color:T.danger,fontSize:11,fontWeight:800,formatter:'⚠ 采集缺口带 ~328x（UsageLedger→BI 链路系统性缺口）'},
+          data:[[{yAxis:0.02},{yAxis:1.25}]]}},
+      {name:'BI 采集值',type:'line',data:bi,smooth:true,symbolSize:5,
+        lineStyle:{width:2,type:'dashed',color:T.trustC},itemStyle:{color:T.trustC}}
+    ]
+  })
+  // A2: 会话构成环形
+  mk('ch-a-donut', {
+    tooltip:{...TOOLTIP,trigger:'item',formatter:'{b}: {c} 会话 ({d}%)'},
+    series:[{type:'pie',radius:['56%','78%'],center:['50%','52%'],
+      label:{color:T.muted,fontSize:11,formatter:'{b}\n{c}'},
+      labelLine:{lineStyle:{color:'rgba(212,140,90,.3)'}},
+      itemStyle:{borderColor:'#150f0b',borderWidth:2},
+      data:[
+        {value:402,name:'答疑辅导',itemStyle:{color:T.terra}},
+        {value:218,name:'批改讲评',itemStyle:{color:T.amber}},
+        {value:131,name:'学习报告',itemStyle:{color:T.gold}},
+        {value:64,name:'专项训练',itemStyle:{color:T.clay}},
+        {value:42,name:'其他',itemStyle:{color:T.sage}}
+      ]}],
+    graphic:[{type:'text',left:'center',top:'44%',style:{text:'857',fontSize:30,fontWeight:900,fill:'#F0A878',fontFamily:FONT}},
+             {type:'text',left:'center',top:'58%',style:{text:'7 天会话',fontSize:11,fill:T.faint,fontFamily:FONT}}]
+  })
+  // A3: 双轴趋势 + 环比虚影
+  const cur=[112,124,131,118,129,127,116], prev=[101,109,122,111,118,124,108], eff=[1,2,1,2,1,2,1]
+  mk('ch-a-trend', {
+    tooltip:{...TOOLTIP,trigger:'axis'},
+    legend:{top:0,textStyle:{color:T.muted,fontSize:11}},
+    grid:{left:44,right:44,top:32,bottom:26},
+    xAxis:{type:'category',data:DAYS,...axis()},
+    yAxis:[{type:'value',name:'会话',nameTextStyle:{color:T.faint,fontSize:10},...axis()},
+           {type:'value',name:'有效学习',nameTextStyle:{color:T.faint,fontSize:10},...axis(),splitLine:{show:false}}],
+    series:[
+      {name:'活跃会话',type:'line',data:cur,smooth:true,lineStyle:{width:2.5,color:T.terra},itemStyle:{color:T.terra},
+       areaStyle:{color:vGrad('rgba(232,145,90,.25)','rgba(232,145,90,.02)')}},
+      {name:'上一周期（环比）',type:'line',data:prev,smooth:true,symbol:'none',
+       lineStyle:{width:1.5,type:'dotted',color:'rgba(169,155,140,.6)'},itemStyle:{color:T.muted}},
+      {name:'有效学习会员',type:'bar',yAxisIndex:1,data:eff,barWidth:10,
+       itemStyle:{color:vGrad('rgba(157,184,156,.8)','rgba(157,184,156,.25)'),borderRadius:[3,3,0,0]}}
+    ]
+  })
+}
+
+/* ===== 方向 B 图表 ===== */
+let bCold = false
+function initB(){
+  if (initialized.b) return; initialized.b = true
+  renderBCharts()
+}
+function renderBCharts(){
+  const main = bCold ? T.teal : T.terra
+  const acc  = bCold ? '#9DB8C9' : T.amber
+  // B1: trust 等级分布（18 指标，来自对账报告）
+  mk('ch-b-trust', {
+    tooltip:{...TOOLTIP,trigger:'axis',axisPointer:{type:'shadow'}},
+    grid:{left:90,right:30,top:14,bottom:26},
+    xAxis:{type:'value',...axis(bCold)},
+    yAxis:{type:'category',data:['C 级（降级/空转）','B 级（口径已释）','A 级（互证可信）'],...axis(bCold),
+      axisLabel:{color:bCold?'#B9C8D2':T.muted,fontSize:11,fontFamily:FONT}},
+    series:[{type:'bar',barWidth:20,
+      data:[{value:9,itemStyle:{color:T.trustC}},{value:7,itemStyle:{color:T.amber}},{value:2,itemStyle:{color:T.pos}}],
+      itemStyle:{borderRadius:[0,5,5,0]},
+      label:{show:true,position:'right',color:bCold?'#B9C8D2':T.muted,fontSize:12,fontWeight:800,formatter:'{c} 个'}}]
+  })
+  // B2: 成本日对比（对数轴）
+  mk('ch-b-cost', {
+    tooltip:{...TOOLTIP,trigger:'axis'},
+    legend:{top:0,textStyle:{color:bCold?'#8FA6B0':T.muted,fontSize:11}},
+    grid:{left:52,right:14,top:30,bottom:26},
+    xAxis:{type:'category',data:DAYS,...axis(bCold)},
+    yAxis:{type:'log',name:'USD（log）',nameTextStyle:{color:T.faint,fontSize:10},...axis(bCold)},
+    series:[
+      {name:'Langfuse',type:'bar',barWidth:9,data:[0.71,0.83,0.96,0.88,1.02,1.18,0.91],
+       itemStyle:{color:acc,borderRadius:[3,3,0,0]}},
+      {name:'BI 采集',type:'bar',barWidth:9,data:[0.002,0.003,0.0028,0.003,0.0032,0.0035,0.0033],
+       itemStyle:{color:T.trustC,borderRadius:[3,3,0,0]}}
+    ]
+  })
+}
+function toggleBTheme(){
+  bCold = !bCold
+  document.getElementById('view-b').classList.toggle('cold', bCold)
+  document.getElementById('b-sw-lab').textContent = bCold ? '切换暖色主题' : '切换冷色主题'
+  if (charts['ch-b-trust']) charts['ch-b-trust'].dispose()
+  if (charts['ch-b-cost'])  charts['ch-b-cost'].dispose()
+  renderBCharts()
+}
+
+/* 指标字典联动（方向 B） */
+const DICT = {
+  cost:{name:'total_cost_usd · 7 天总成本',cal:'窗口内全部 LLM 调用成本合计（USD）',formula:'Σ usage_ledger.cost_usd',
+    src:'UsageLedger → /bi/cost',trust:'<span class="trust tC">● C 级（降级）</span>',fresh:'2 小时前',
+    recon:'⚠ coverage_gap · 差异 328x（Langfuse $6.49 vs BI $0.02）；overview 与 cost 管线互不相认',reconColor:'var(--danger)'},
+  sessions:{name:'active_learning_sessions · 活跃学习会话',cal:'窗口内产生过 turn 的学习会话数',formula:'count(distinct session_id)',
+    src:'bi_sessions → /bi/overview',trust:'<span class="trust tA">● A 级</span>',fresh:'5 分钟前',
+    recon:'✓ consistent · Langfuse traces 898（diff 4.6%）量级互证成立',reconColor:'var(--pos)'},
+  members:{name:'registered_members · 活跃会员',cal:'canonical 过滤口径（真实手机号），非 raw 行数',formula:'count(member_console.canonical)',
+    src:'member_console',trust:'<span class="trust tB">● B 级</span>',fresh:'15 分钟前',
+    recon:'ⓘ definition_mismatch（已解释）· raw 2,439 vs canonical 93；P2 应导出可复算口径',reconColor:'var(--warn)'},
+  tokens:{name:'total_tokens · 7 天总 Token',cal:'窗口内全部 LLM 调用 token 合计',formula:'Σ usage_ledger.total_tokens',
+    src:'UsageLedger',trust:'<span class="trust tC">● C 级（降级）</span>',fresh:'2 小时前',
+    recon:'⚠ coverage_gap · BI 113,628 vs Langfuse >1M——与成本缺口同源',reconColor:'var(--danger)'},
+  effective:{name:'effective_learning_members · 有效学习会员',cal:'窗口内达到有效学习阈值的会员数（派生口径）',formula:'count(members where depth≥阈值)',
+    src:'bi_derived',trust:'<span class="trust tB">● B 级</span>',fresh:'5 分钟前',
+    recon:'— missing_source · 派生口径无外部真相源，声明性缺口如实标注',reconColor:'var(--muted)'},
+  behavior:{name:'behavior.* · 行为事实层指标 ×4',cal:'产品行为埋点事实表聚合',formula:'Σ product_behavior_events.*',
+    src:'product_behavior.db',trust:'<span class="trust tC">● C 级（空转）</span>',fresh:'—',
+    recon:'⚠ 事实层空转 · 生产表 0 行——双侧 0=0 是空洞一致，须先修采集再谈指标',reconColor:'var(--warn)'}
+}
+document.getElementById('b-table').addEventListener('click', (e)=>{
+  const tr = e.target.closest('tr[data-m]'); if (!tr) return
+  document.querySelectorAll('#b-table tr').forEach(r=>r.classList.remove('sel-row'))
+  tr.classList.add('sel-row')
+  const d = DICT[tr.dataset.m]
+  document.getElementById('dict-name').textContent = d.name
+  document.getElementById('dict-cal').textContent = d.cal
+  document.getElementById('dict-formula').textContent = d.formula
+  document.getElementById('dict-src').textContent = d.src
+  document.getElementById('dict-trust').innerHTML = d.trust
+  document.getElementById('dict-fresh').textContent = d.fresh
+  const r = document.getElementById('dict-recon'); r.textContent = d.recon; r.style.color = d.reconColor
+})
+
+/* ===== 方向 C 图表 ===== */
+function initC(){
+  if (initialized.c) return; initialized.c = true
+  // C1: 会员激活漏斗
+  mk('ch-c-funnel', {
+    tooltip:{...TOOLTIP,trigger:'item',formatter:'{b}: {c}'},
+    series:[{type:'funnel',left:'8%',width:'80%',top:14,bottom:10,minSize:'12%',gap:4,
+      label:{color:T.text,fontSize:12,fontWeight:700,formatter:'{b}  {c}'},
+      labelLine:{lineStyle:{color:'rgba(212,140,90,.3)'}},
+      itemStyle:{borderColor:'#150f0b',borderWidth:2},
+      data:[
+        {value:2439,name:'raw 注册身份',itemStyle:{color:T.bronze}},
+        {value:93,name:'canonical 会员',itemStyle:{color:T.terra}},
+        {value:10,name:'激活会员',itemStyle:{color:T.amber}},
+        {value:10,name:'有效学习会员',itemStyle:{color:T.gold}}
+      ]}]
+  })
+  // C2: 会话趋势
+  mk('ch-c-trend', {
+    tooltip:{...TOOLTIP,trigger:'axis'},
+    grid:{left:44,right:16,top:24,bottom:26},
+    xAxis:{type:'category',data:DAYS,...axis()},
+    yAxis:{type:'value',...axis()},
+    series:[{name:'活跃会话',type:'line',data:[112,124,131,118,129,127,116],smooth:true,symbolSize:7,
+      lineStyle:{width:2.5,color:T.terra},itemStyle:{color:T.terra,borderColor:'#150f0b',borderWidth:2},
+      areaStyle:{color:vGrad('rgba(232,145,90,.28)','rgba(232,145,90,.02)')},
+      markPoint:{data:[{type:'max',name:'峰值'}],symbolSize:46,
+        itemStyle:{color:T.amber},label:{color:'#1a0f08',fontWeight:900,fontSize:11}}}]
+  })
+  if (charts['ch-c-trend']) charts['ch-c-trend'].on('click', (p)=>{ openSemAt(window.innerWidth/2-180, 220, 'sessions') })
+}
+
+/* 语义弹卡（方向 C） */
+const SEM = {
+  sessions:{name:'active_learning_sessions',cal:'窗口内产生过 turn 的学习会话数。公式 <code>count(distinct session_id)</code> · 源 bi_sessions。',
+    bi:'857',lf:'898',biz:'·',verdict:'<span style="color:var(--pos);font-weight:800">✓ consistent</span> · diff 4.6%，量级互证成立，可信。'},
+  cost:{name:'total_cost_usd',cal:'窗口内全部 LLM 调用成本合计。公式 <code>Σ usage_ledger.cost_usd</code> · 源 UsageLedger → /bi/cost。',
+    bi:'$0.0198',lf:'$6.49',biz:'·',verdict:'<span style="color:var(--danger);font-weight:800">⚠ coverage_gap · 差异 328x</span> · UsageLedger→BI 采集链路系统性缺口；overview 报 0.0 与 cost 报 $0.0198 互不相认。P2 最高优先修复项。'},
+  members:{name:'registered_members',cal:'canonical 过滤口径（真实手机号）。公式 <code>count(member_console.canonical)</code>。',
+    bi:'93',lf:'·',biz:'2,439',verdict:'<span style="color:var(--warn);font-weight:800">ⓘ definition_mismatch（已解释）</span> · raw 含未过滤身份；canonical 口径外部不可独立复算是已知限制。'},
+  effective:{name:'effective_learning_members',cal:'达到有效学习阈值的会员数（派生口径）。',
+    bi:'10',lf:'·',biz:'·',verdict:'<span style="color:var(--muted);font-weight:700">— missing_source</span> · 派生口径无外部真相源，声明性缺口如实标注。'}
+}
+function openSem(ev, key){ ev.stopPropagation(); openSemAt(ev.clientX, ev.clientY, key) }
+function openSemAt(x, y, key){
+  const d = SEM[key], p = document.getElementById('sem-pop')
+  document.getElementById('sp-name').textContent = d.name
+  document.getElementById('sp-cal').innerHTML = d.cal
+  document.getElementById('sp-bi').textContent = d.bi
+  document.getElementById('sp-lf').textContent = d.lf
+  document.getElementById('sp-biz').textContent = d.biz
+  document.getElementById('sp-verdict').innerHTML = d.verdict
+  p.classList.add('open')
+  const w = 360, h = p.offsetHeight || 280
+  p.style.left = Math.min(Math.max(12, x - w/2), window.innerWidth - w - 12) + 'px'
+  p.style.top  = Math.min(Math.max(12, y + 14), window.innerHeight - h - 12) + 'px'
+}
+function closeSem(){ document.getElementById('sem-pop').classList.remove('open') }
+document.addEventListener('click', (e)=>{ if (!e.target.closest('.sem-pop') && !e.target.closest('.c-kpi')) closeSem() })
+
+/* ===== Tab 切换 + 懒加载（轴④的微缩示范：切到才 init） ===== */
+const INIT = {a:initA, b:initB, c:initC}
+document.getElementById('tabs').addEventListener('click', (e)=>{
+  const tab = e.target.closest('.tab'); if (!tab) return
+  const v = tab.dataset.v
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab))
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'))
+  document.getElementById('view-'+v).classList.add('active')
+  closeSem()
+  INIT[v]()
+  Object.values(charts).forEach(c=>{ try{c.resize()}catch(_){} })
+})
+window.addEventListener('resize', ()=>Object.values(charts).forEach(c=>{ try{c.resize()}catch(_){} }))
+initA()  // 默认 tab
+</script>
+</body>
+</html>

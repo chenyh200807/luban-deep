@@ -139,9 +139,27 @@ class ObservabilityControlPlaneStore:
 
         with self._lock:
             json_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
-            latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
             with history_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+            if normalized_kind == "readiness_checks":
+                from deeptutor.services.observability.readiness_matrix import (
+                    build_current_release_readiness_matrix_payload,
+                )
+
+                readiness_payload = build_current_release_readiness_matrix_payload(
+                    store=self,
+                    release=payload.get("release") if isinstance(payload.get("release"), dict) else None,
+                )
+                latest_record = {
+                    "kind": normalized_kind,
+                    "run_id": str(readiness_payload.get("run_id") or normalized_run_id),
+                    "release_id": str((readiness_payload.get("release") or {}).get("release_id") or metadata["release_id"]),
+                    "recorded_at": int(time.time()),
+                    "payload": readiness_payload,
+                }
+                latest_path.write_text(json.dumps(latest_record, ensure_ascii=False, indent=2), encoding="utf-8")
+            else:
+                latest_path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
 
         return {
             "json_path": str(json_path),
@@ -183,6 +201,16 @@ class ObservabilityControlPlaneStore:
         return candidates
 
     def latest_payload(self, kind: str, *, fallback: bool = True) -> dict[str, Any] | None:
+        if _normalize_kind(kind) == "readiness_checks":
+            from deeptutor.services.observability.readiness_matrix import (
+                build_current_release_readiness_matrix_payload,
+            )
+
+            payload = build_current_release_readiness_matrix_payload(store=self)
+            has_release = bool(str((payload.get("release") or {}).get("release_id") or "").strip())
+            if payload.get("rows") or has_release:
+                return payload
+            return None
         last_error: Exception | None = None
         for candidate in self._latest_candidates(kind, fallback=fallback):
             try:

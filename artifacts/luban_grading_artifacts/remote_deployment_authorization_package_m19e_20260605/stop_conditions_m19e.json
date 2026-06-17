@@ -1,0 +1,32 @@
+{
+  "first_response": "rollback using env kill switch, then collect evidence",
+  "hard_boundaries": {
+    "broad_production_default": "NO-GO",
+    "canonical_learner_truth_write": "NO-GO",
+    "m20_1_delta_current_runtime": "NO-GO",
+    "production_db_write": "NO-GO",
+    "published_registry": "NO-GO",
+    "remote_write_outside_root": "NO-GO"
+  },
+  "observability_stop_conditions": {
+    "missing_canonical_truth_write_counter": true,
+    "missing_failclosed_metric": true,
+    "missing_fallback_metric": true,
+    "missing_latency_metric": true,
+    "missing_production_write_counter": true
+  },
+  "safety_stop_conditions": {
+    "bad_certified": "> 0",
+    "canonical_truth_written": "true",
+    "false_positive": "> 0",
+    "kill_switch_failure": "true",
+    "latency_p95_ms": "materially worse than M19D baseline without async/fallback explanation",
+    "legacy_overwrite": "> 0",
+    "malformed_registry_fail_open": "true",
+    "non_cohort_default_leak": "> 0",
+    "production_write_count": "> 0",
+    "provider_failure_fail_open": "true",
+    "rollback_failure": "true",
+    "source_mismatch": "> 0"
+  }
+}

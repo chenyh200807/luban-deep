@@ -15,7 +15,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage() {
+function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
     "utf8",
@@ -41,7 +41,8 @@ function loadBillingPage() {
       },
       requestPayment: function (payload) {
         paymentCalls.push(payload);
-        if (payload && typeof payload.success === "function") payload.success({});
+        if (payload && typeof payload.success === "function")
+          payload.success({});
       },
       previewImage: function () {},
       navigateBack: function () {},
@@ -50,11 +51,42 @@ function loadBillingPage() {
     require: function (request) {
       if (request === "../../utils/api") {
         return {
+          getUsage: function () {
+            return Promise.resolve(
+              usagePayload || {
+                display: { primary_label: "剩余 75%", primary_percent: 75 },
+                quota: {
+                  rows: [
+                    {
+                      key: "weekly",
+                      label: "每周使用限额",
+                      remaining_percent: 75,
+                    },
+                  ],
+                },
+              },
+            );
+          },
           getWallet: function () {
-            return Promise.resolve({ balance: 0 });
+            return Promise.resolve(walletPayload || { balance: 9000 });
           },
           getLedger: function () {
-            return Promise.resolve({ entries: [], has_more: false });
+            return Promise.resolve(
+              ledgerPayload || {
+                entries: [
+                  {
+                    id: "ledger_1",
+                    event_type: "debit",
+                    reason: "capture",
+                    delta: -20,
+                    balance_after: 8980,
+                    reference_type: "ai_usage",
+                    created_at: "2026-06-01T10:20:00+08:00",
+                  },
+                ],
+                has_more: false,
+              },
+            );
           },
           createBillingCheckout: function (payload) {
             checkoutCalls.push(payload);
@@ -72,7 +104,9 @@ function loadBillingPage() {
               },
             });
           },
-          unwrapResponse: function (raw) { return raw; },
+          unwrapResponse: function (raw) {
+            return raw;
+          },
         };
       }
       if (request === "../../utils/helpers") {
@@ -133,15 +167,185 @@ function loadBillingPage() {
   try {
     var loaded = loadBillingPage();
     var page = loaded.page;
-    assert(!("packages" in page.data), "billing page should not expose package list while pricing is hidden");
-    assert(!("selectedPkg" in page.data), "billing page should not default to a package while pricing is hidden");
-    assert(!("selectedPkgPrice" in page.data), "billing page should not expose a default price while pricing is hidden");
-    assert(typeof page.onSelectPkg === "undefined", "billing page should not expose package selection while pricing is hidden");
-    assert(typeof page.onRecharge === "undefined", "billing page should not expose recharge action while pricing is hidden");
-    assert(typeof page.onConfirmPay === "undefined", "billing page should not expose payment action while pricing is hidden");
-    assert(loaded.checkoutCalls.length === 0, "billing should not create checkout order while pricing is hidden");
-    assert(loaded.paymentCalls.length === 0, "billing should not invoke WeChat payment while pricing is hidden");
-    assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
+    // 2026-06-12 契约演进（paywall）：付费墙功能上线后，billing 页面现在公开展示套餐列表、
+    // 选中套餐和支付入口。旧的"pricing is hidden"断言全部更新为 pin 新行为。
+    assert(
+      "packages" in page.data,
+      "billing page should expose package list for paywall selection",
+    );
+    assert(
+      Array.isArray(page.data.packages),
+      "billing page packages should be an array",
+    );
+    assert(
+      !("selectedPkg" in page.data),
+      "billing page uses selectedPackageId/selectedPackage, not legacy selectedPkg",
+    );
+    assert(
+      !("selectedPkgPrice" in page.data),
+      "billing page uses selectedPackage.price, not legacy selectedPkgPrice",
+    );
+    assert(
+      typeof page.selectPackage === "function",
+      "billing page should expose selectPackage for paywall UI",
+    );
+    assert(
+      typeof page.openCheckout === "function",
+      "billing page should expose openCheckout for initiating payment",
+    );
+    assert(
+      typeof page.submitCheckout === "function",
+      "billing page should expose submitCheckout for confirming payment",
+    );
+    var billingWxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
+      "utf8",
+    );
+    var billingJs = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
+      "utf8",
+    );
+    var profileWxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/profile/profile.wxml"),
+      "utf8",
+    );
+    var profileJs = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/profile/profile.js"),
+      "utf8",
+    );
+    assert(
+      billingWxml.indexOf("item.originalPrice") >= 0,
+      "billing package cards should render original price",
+    );
+    assert(
+      billingWxml.indexOf("selectedPackage.originalPrice") >= 0,
+      "billing checkout summary should render selected package original price",
+    );
+    assert(
+      billingWxml.indexOf("item.turns") >= 0 &&
+        billingWxml.indexOf("{{item.points}}") === -1 &&
+        billingWxml.indexOf("selectedPackage.turns") >= 0 &&
+        billingWxml.indexOf("selectedPackage.points") === -1,
+      "billing package cards and checkout should expose promised usage counts, not internal points",
+    );
+    var staleWeeklyCopy =
+      billingWxml + billingJs + profileWxml + profileJs;
+    assert(
+      staleWeeklyCopy.indexOf("本周额度") === -1 &&
+        staleWeeklyCopy.indexOf("按周更新") === -1 &&
+        staleWeeklyCopy.indexOf("重置时间") === -1 &&
+        staleWeeklyCopy.indexOf("每周使用限额") === -1 &&
+        staleWeeklyCopy.indexOf("一次购买，固定点数") === -1,
+      "billing/profile surfaces should not expose weekly quota or reset wording after fixed-point package launch",
+    );
+    assert(
+      billingWxml.indexOf("使用记录") >= 0 &&
+        billingWxml.indexOf("ledgerRows") >= 0 &&
+        billingWxml.indexOf("ledger-time") >= 0 &&
+        billingWxml.indexOf("ledger-usage") >= 0 &&
+        billingWxml.indexOf("ledger-balance") >= 0,
+      "billing should render timestamp, usage percent, and remaining percent for usage records",
+    );
+    // Before _loadUsage() is called, no checkout or payment should have been triggered
+    assert(
+      loaded.checkoutCalls.length === 0,
+      "billing should not create checkout order on initial render before user action",
+    );
+    assert(
+      loaded.paymentCalls.length === 0,
+      "billing should not invoke WeChat payment on initial render before user action",
+    );
+    assert(
+      loaded.modalCalls.length === 0,
+      "billing should not show modal on initial render before user action",
+    );
+    await page._loadUsage();
+    assert(
+      page.data.usagePrimaryLabel === "剩余 99.8%",
+      "billing should show remaining percent instead of internal wallet points",
+    );
+    assert(
+      page.data.ledgerRows.length === 1,
+      "billing should render one wallet debit ledger row",
+    );
+    assert(
+      page.data.ledgerRows[0].title === "AI 学习消耗",
+      "billing should normalize wallet debit ledger reason",
+    );
+    assert(
+      page.data.ledgerRows[0].usageLabel === "-0.22%",
+      "billing should render wallet debit as percent-only usage",
+    );
+    assert(
+      page.data.ledgerRows[0].balanceLabel === "剩余 99.6%",
+      "billing should render remaining wallet percent after debit",
+    );
+    assert(
+      /^[0-9]{1,2}月[0-9]{1,2}日 [0-9]{2}:[0-9]{2}$/.test(page.data.ledgerRows[0].timeLabel),
+      "billing should render a stable ledger timestamp label",
+    );
+    assert(
+      page.data.selectedPackageId === "vip",
+      "billing fallback should default to VIP after pricing migration",
+    );
+    assert(
+      page.data.packages.length === 3,
+      "billing fallback should expose all three launch packages",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      "billing fallback package ids should match backend launch packages",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "VIP,SVIP,至尊SVIP",
+      "billing fallback package names should use public labels",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      "billing fallback prices should match launch pricing",
+    );
+    await page.submitCheckout();
+    assert(
+      loaded.checkoutCalls[0] && loaded.checkoutCalls[0].package_id === "vip",
+      "billing checkout should submit the selected launch package id",
+    );
+    var staleWallet = loadBillingPage(null, {
+      balance: 0,
+      packages: [
+        {
+          id: "advance",
+          name: "精学版",
+          price: "99",
+          points: 4400,
+        },
+        {
+          id: "sprint",
+          name: "通关版",
+          price: "199",
+          points: 9000,
+        },
+      ],
+    });
+    await staleWallet.page._loadUsage();
+    assert(
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      "billing should ignore stale backend package ids and keep launch packages",
+    );
+    assert(
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      "billing should not show stale backend prices",
+    );
+
+    var degraded = loadBillingPage({
+      status: "degraded",
+      display: { primary_label: "额度暂不可用", primary_percent: 100 },
+      quota: { rows: [] },
+    });
+    await degraded.page._loadUsage();
+    assert(
+      degraded.page.data.usagePrimaryLabel === "权益暂不可用",
+      "billing degraded terminal state should normalize stale quota wording",
+    );
   } catch (err) {
     fail++;
     errors.push("ERROR: " + (err && err.stack ? err.stack : err));

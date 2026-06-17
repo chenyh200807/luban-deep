@@ -196,6 +196,10 @@ def _validate_password(password: str) -> None:
         raise ValueError("密码必须包含至少一个大写字母")
 
 
+def validate_external_auth_password(password: str) -> None:
+    _validate_password(str(password or ""))
+
+
 def _pre_hash(password: str) -> bytes:
     return hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8")
 
@@ -307,6 +311,43 @@ def create_external_auth_user(
     return _merge_user(normalized_username, payload)
 
 
+def ensure_external_auth_user(
+    username: str,
+    password: str,
+    *,
+    phone: str | None = None,
+) -> dict[str, Any]:
+    """Create or refresh a deterministic local QA auth user."""
+
+    normalized_username = _normalize_username(username)
+    _validate_password(password)
+    normalized_phone = normalize_external_phone(phone) if phone else ""
+    users_file = _resolve_users_file_for_write()
+
+    with _STORE_LOCK:
+        users = _load_json_mapping(users_file)
+        for existing_username, existing_user in users.items():
+            if existing_username == normalized_username or not isinstance(existing_user, dict):
+                continue
+            if normalized_phone and _normalize_existing_phone(str(existing_user.get("phone") or "")) == normalized_phone:
+                raise ValueError("该手机号已被注册，请更换手机号或直接登录。")
+
+        now = datetime.now(timezone.utc).isoformat()
+        existing = users.get(normalized_username)
+        payload = dict(existing) if isinstance(existing, dict) else {}
+        payload["id"] = str(payload.get("id") or uuid.uuid4())
+        payload["username"] = normalized_username
+        payload["password_hash"] = _hash_password(password)
+        payload.setdefault("created_at", now)
+        payload["updated_at"] = now
+        if normalized_phone:
+            payload["phone"] = normalized_phone
+        users[normalized_username] = payload
+        _write_json_mapping(users_file, users)
+
+    return _merge_user(normalized_username, payload)
+
+
 def _generate_auto_password() -> str:
     return "Aa" + secrets.token_hex(8) + "9"
 
@@ -373,6 +414,24 @@ def reset_external_auth_password_by_phone(username: str, phone: str, new_passwor
         if not isinstance(user, dict):
             raise ValueError("账号或手机号不匹配")
         if _normalize_existing_phone(str(user.get("phone") or "")) != normalized_phone:
+            raise ValueError("账号或手机号不匹配")
+        user["password_hash"] = _hash_password(new_password)
+        user["updated_at"] = datetime.now(timezone.utc).isoformat()
+        users[normalized_username] = user
+        _write_json_mapping(users_file, users)
+    deleted = delete_external_auth_sessions(str(user.get("id") or ""))
+    return {"success": True, "sessions_invalidated": deleted}
+
+
+def reset_external_auth_password(username: str, new_password: str) -> dict[str, Any]:
+    normalized_username = _normalize_username(username)
+    _validate_password(new_password)
+    users_file = _resolve_users_file_for_write()
+
+    with _STORE_LOCK:
+        users = _load_json_mapping(users_file)
+        user = users.get(normalized_username)
+        if not isinstance(user, dict):
             raise ValueError("账号或手机号不匹配")
         user["password_hash"] = _hash_password(new_password)
         user["updated_at"] = datetime.now(timezone.utc).isoformat()

@@ -12,6 +12,7 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 _PREVIOUS_OBJECT_MARKERS = (
@@ -27,6 +28,9 @@ _PREVIOUS_OBJECT_MARKERS = (
     "不是这题",
     "不是这个题",
     "不是这个",
+)
+_PREVIOUS_OBJECT_REFERENCE_RE = re.compile(
+    r"(?:刚才|之前|前面).{0,24}(?:那道题|那一道|那一题|那道|那题)"
 )
 _GUIDE_CONTINUATION_MARKERS = (
     "继续",
@@ -143,7 +147,7 @@ _ORDINAL_INDEX_MAP = {
 }
 
 
-QuestionActiveObjectType = Literal["question_set", "single_question"]
+QuestionActiveObjectType = Literal["question_set", "single_question", "open_world_question"]
 GuideActiveObjectType = Literal["guide_page", "study_plan"]
 SessionActiveObjectType = Literal["open_chat_topic"]
 SemanticRelation = Literal[
@@ -177,7 +181,10 @@ SemanticAllowedPatch = Literal[
 ]
 
 
-QUESTION_ACTIVE_OBJECT_TYPES = {"question_set", "single_question"}
+# open_world_question：来源 source-backed 变式卡（硬约束27）的可作答题，judging
+# 走 open-world（无 verified correct_answer，硬约束40），区别于题库 verified 题
+# single_question / question_set；它只能驱动 open-world 判分，绝不冒充题库/官方 authority。
+QUESTION_ACTIVE_OBJECT_TYPES = {"question_set", "single_question", "open_world_question"}
 GUIDE_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 SESSION_ACTIVE_OBJECT_TYPES = {"open_chat_topic"}
 SUPPORTED_ACTIVE_OBJECT_TYPES = (
@@ -231,13 +238,6 @@ class SemanticRoutingResult:
     turn_semantic_decision: dict[str, Any]
     question_context: dict[str, Any] | None
     followup_action: dict[str, Any] | None = None
-
-
-@dataclass
-class QuestionObjectTransition:
-    active_object: dict[str, Any] | None
-    suspended_object_stack: list[dict[str, Any]]
-    question_context: dict[str, Any] | None
 
 
 @dataclass
@@ -376,13 +376,21 @@ def build_question_active_object(
     *,
     prior_active_object: dict[str, Any] | None = None,
     source_turn_id: str = "",
+    object_type_override: str | None = None,
 ) -> dict[str, Any] | None:
     normalized = normalize_question_followup_context(question_context)
     if normalized is None:
         return None
 
     prior = normalize_active_object(prior_active_object)
-    object_type = infer_question_active_object_type(normalized)
+    # object_type_override 让出题侧（如 source-backed 变式卡）显式声明 open_world_question
+    # tier；否则按 item 数推断 single_question / question_set。只接受受支持的 question
+    # tier，非法值回落推断，绝不引入未登记类型。
+    override = str(object_type_override or "").strip().lower()
+    object_type = (
+        override if override in QUESTION_ACTIVE_OBJECT_TYPES
+        else infer_question_active_object_type(normalized)
+    )
     object_id = _normalize_object_id(None, normalized, object_type)
     if not object_id:
         return None
@@ -498,96 +506,13 @@ def build_active_object_from_question_context(
     *,
     source_turn_id: str = "",
     previous_active_object: dict[str, Any] | None = None,
+    object_type_override: str | None = None,
 ) -> dict[str, Any] | None:
     return build_question_active_object(
         question_context,
         prior_active_object=previous_active_object,
         source_turn_id=source_turn_id,
-    )
-
-
-def apply_question_object_transition(
-    *,
-    active_object: dict[str, Any] | None,
-    suspended_object_stack: list[dict[str, Any]] | None,
-    turn_semantic_decision: dict[str, Any] | None,
-    candidate_question_context: dict[str, Any] | None = None,
-    candidate_active_object: dict[str, Any] | None = None,
-    source_turn_id: str = "",
-) -> QuestionObjectTransition:
-    current_active = normalize_active_object(active_object)
-    current_stack = normalize_suspended_object_stack(suspended_object_stack)
-    decision = normalize_turn_semantic_decision(turn_semantic_decision, active_object=current_active)
-    normalized_candidate_context = normalize_question_followup_context(candidate_question_context)
-    target_candidate = normalize_active_object(candidate_active_object)
-    if target_candidate is None and normalized_candidate_context is not None:
-        previous_object = _resolve_transition_target(
-            active_object=current_active,
-            suspended_object_stack=current_stack,
-            target_object_ref=(decision or {}).get("target_object_ref"),
-        )
-        target_candidate = build_active_object_from_question_context(
-            normalized_candidate_context,
-            source_turn_id=source_turn_id,
-            previous_active_object=previous_object or current_active,
-        )
-
-    next_active = current_active
-    next_stack = list(current_stack)
-    next_question_context = (
-        normalized_candidate_context
-        or question_context_from_active_object(current_active)
-    )
-
-    target_object = _resolve_transition_target(
-        active_object=current_active,
-        suspended_object_stack=current_stack,
-        target_object_ref=(decision or {}).get("target_object_ref"),
-    )
-    allowed_patch = list((decision or {}).get("allowed_patch") or [])
-
-    if "resume_suspended_object" in allowed_patch and target_object is not None:
-        resumed_active = target_candidate if target_candidate is not None else target_object
-        next_stack = _remove_object_from_stack(current_stack, target_object)
-        if current_active is not None and not _same_active_object(current_active, resumed_active):
-            next_stack = _prepend_stack_object(next_stack, current_active)
-        next_active = resumed_active
-        next_question_context = (
-            normalized_candidate_context
-            or question_context_from_active_object(resumed_active)
-        )
-        return QuestionObjectTransition(
-            active_object=next_active,
-            suspended_object_stack=next_stack,
-            question_context=next_question_context,
-        )
-
-    if target_candidate is not None:
-        next_active = target_candidate
-        next_question_context = (
-            normalized_candidate_context
-            or question_context_from_active_object(target_candidate)
-        )
-        if current_active is not None and not _same_active_object(current_active, target_candidate):
-            if any(
-                patch in allowed_patch
-                for patch in ("set_active_object", "suspend_current_object")
-            ):
-                next_stack = _prepend_stack_object(current_stack, current_active)
-        return QuestionObjectTransition(
-            active_object=next_active,
-            suspended_object_stack=next_stack,
-            question_context=next_question_context,
-        )
-
-    if target_object is not None:
-        next_active = target_object
-        next_question_context = question_context_from_active_object(target_object)
-
-    return QuestionObjectTransition(
-        active_object=next_active,
-        suspended_object_stack=next_stack,
-        question_context=next_question_context,
+        object_type_override=object_type_override,
     )
 
 
@@ -635,6 +560,17 @@ async def resolve_turn_semantic_decision(
             )
             return decision, None
         return None, None
+
+    if looks_like_free_text_mcq_grading_request(user_message):
+        decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入包含完整新选择题题干和作答，不能绑定到旧 active question。",
+            active_object=normalized_active_object,
+        )
+        return decision, None
 
     routing = await resolve_question_semantic_routing(
         user_message=user_message,
@@ -707,6 +643,28 @@ async def resolve_question_semantic_routing(
             turn_semantic_decision=practice_decision,
             question_context=question_context,
             followup_action=accepted_practice_offer,
+        )
+
+    if (
+        active_object is not None
+        and legacy_question_context is None
+        and question_context is not None
+        and looks_like_free_text_mcq_grading_request(user_message)
+    ):
+        detour_decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入包含完整新选择题题干和作答，不能绑定到旧 active question。",
+            active_object=active_object,
+        )
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=detour_decision,
+            question_context=None,
+            followup_action=None,
         )
 
     if (
@@ -783,7 +741,32 @@ async def resolve_question_semantic_routing(
             followup_action=llm_action if isinstance(llm_action, dict) else None,
         )
     llm_route = semantic_route_for_decision(llm_decision)
+    if (
+        llm_route == "practice_generation"
+        and question_context is not None
+        and not (
+            looks_like_practice_generation_request(user_message)
+            and _has_explicit_practice_generation_intent(user_message)
+        )
+    ):
+        llm_decision = None
+        llm_action = None
+        llm_route = None
     if llm_decision is not None and llm_route in {"submission", "followup", "practice_generation"}:
+        if suspended_stack and _message_prefers_previous_object(user_message):
+            stack_routing = await _resolve_from_suspended_stack(
+                user_message=user_message,
+                active_object=active_object,
+                suspended_stack=suspended_stack,
+                history_context=history_context,
+                interpret_followup_action=interpret_followup_action,
+                resolve_submission_attempt=resolve_submission_attempt,
+                looks_like_question_followup=looks_like_question_followup,
+                looks_like_practice_generation_request=looks_like_practice_generation_request,
+                active_decision=llm_decision,
+            )
+            if stack_routing is not None:
+                return stack_routing
         return SemanticRoutingResult(
             active_object=active_object,
             suspended_object_stack=suspended_stack,
@@ -951,6 +934,8 @@ async def _resolve_from_suspended_stack(
     looks_like_practice_generation_request: Callable[[str], bool],
     active_decision: dict[str, Any] | None,
 ) -> SemanticRoutingResult | None:
+    if looks_like_free_text_mcq_grading_request(user_message):
+        return None
     if not suspended_stack:
         return None
 
@@ -1426,7 +1411,9 @@ def _message_prefers_previous_object(message: str) -> bool:
     text = str(message or "").strip()
     if not text:
         return False
-    return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS)
+    return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS) or bool(
+        _PREVIOUS_OBJECT_REFERENCE_RE.search(text)
+    )
 
 
 def _is_guide_active_object(active_object: dict[str, Any] | None) -> bool:

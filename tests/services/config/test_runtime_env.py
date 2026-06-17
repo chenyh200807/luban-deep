@@ -21,6 +21,16 @@ def test_runtime_environment_reads_through_env_store(monkeypatch) -> None:
     assert runtime_env.is_production_environment() is True
 
 
+def test_runtime_environment_reads_deeptutor_runtime_env(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.config.env_store.get_env_store",
+        lambda: _FakeEnvStore({"DEEPTUTOR_RUNTIME_ENV": "production"}),
+    )
+
+    assert runtime_env.runtime_environment() == "production"
+    assert runtime_env.is_production_environment() is True
+
+
 def test_env_flag_reads_through_env_store_and_honors_default(monkeypatch) -> None:
     monkeypatch.setattr(
         "deeptutor.services.config.env_store.get_env_store",

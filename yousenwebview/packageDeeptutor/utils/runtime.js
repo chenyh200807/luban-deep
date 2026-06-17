@@ -7,6 +7,7 @@ var fallbackRuntimeState = {
   pendingChatQuery: "",
   pendingChatMode: "AUTO",
   pendingChatPromptIntent: null,
+  pendingChatFollowupQuestionContext: null,
   _authRedirecting: false,
   networkAvailable: true,
 };
@@ -43,6 +44,7 @@ function resetSessionState() {
   store.pendingChatQuery = "";
   store.pendingChatMode = "AUTO";
   store.pendingChatPromptIntent = null;
+  store.pendingChatFollowupQuestionContext = null;
   store._authRedirecting = false;
 }
 
@@ -158,12 +160,16 @@ function consumePendingConversationId() {
   return id;
 }
 
-function setPendingChatIntent(query, mode, promptIntent) {
+function setPendingChatIntent(query, mode, promptIntent, followupQuestionContext) {
   var store = getRuntimeStore();
   store.pendingChatQuery = query || "";
   store.pendingChatMode = mode || "AUTO";
   store.pendingChatPromptIntent =
     promptIntent && typeof promptIntent === "object" ? promptIntent : null;
+  store.pendingChatFollowupQuestionContext =
+    followupQuestionContext && typeof followupQuestionContext === "object"
+      ? followupQuestionContext
+      : null;
 }
 
 function consumePendingChatIntent() {
@@ -174,10 +180,21 @@ function consumePendingChatIntent() {
     store.pendingChatPromptIntent && typeof store.pendingChatPromptIntent === "object"
       ? store.pendingChatPromptIntent
       : null;
+  var followupQuestionContext =
+    store.pendingChatFollowupQuestionContext &&
+    typeof store.pendingChatFollowupQuestionContext === "object"
+      ? store.pendingChatFollowupQuestionContext
+      : null;
   store.pendingChatQuery = "";
   store.pendingChatMode = "AUTO";
   store.pendingChatPromptIntent = null;
-  return { query: query, mode: mode, promptIntent: promptIntent };
+  store.pendingChatFollowupQuestionContext = null;
+  return {
+    query: query,
+    mode: mode,
+    promptIntent: promptIntent,
+    followupQuestionContext: followupQuestionContext,
+  };
 }
 
 function setWorkspaceBack(url, label) {

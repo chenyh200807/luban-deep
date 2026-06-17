@@ -1,0 +1,962 @@
+{
+ "window_days": 7,
+ "applied_filters": {
+  "capability": "",
+  "entrypoint": "",
+  "tier": ""
+ },
+ "generated_at": 1781231207.48211,
+ "title": "DeepTutor BI 工作台",
+ "subtitle": "最近 7 天的经营、学习、能力、知识库与会员统一视图。",
+ "summary": {
+  "total_sessions": 857,
+  "active_learners": 10,
+  "total_turns": 429,
+  "success_turn_rate": 98.4,
+  "avg_session_depth": 2.0,
+  "notebook_saves": 0,
+  "total_tokens": 0,
+  "total_cost_usd": 0.0,
+  "active_members": 93,
+  "expiring_soon_count": 0
+ },
+ "cards": [
+  {
+   "label": "活跃学习会话",
+   "value": 857,
+   "hint": "7 天窗口内更新过的会话"
+  },
+  {
+   "label": "活跃学习者",
+   "value": 10,
+   "hint": "按用户或匿名会话去重"
+  },
+  {
+   "label": "回合成功率",
+   "value": "98.4%",
+   "hint": "总回合 429"
+  },
+  {
+   "label": "平均会话深度",
+   "value": 2.0,
+   "hint": "每个会话平均消息数"
+  },
+  {
+   "label": "Notebook 保存",
+   "value": 0,
+   "hint": "问题笔记沉淀量"
+  },
+  {
+   "label": "总成本",
+   "value": 0.0,
+   "hint": "总 Token 0"
+  }
+ ],
+ "entrypoints": [
+  {
+   "entrypoint": "wx_miniprogram",
+   "sessions": 851,
+   "label": "wx_miniprogram",
+   "value": 851
+  },
+  {
+   "entrypoint": "authenticated_ws",
+   "sessions": 6,
+   "label": "authenticated_ws",
+   "value": 6
+  }
+ ],
+ "top_capabilities": [
+  {
+   "capability": "chat",
+   "label": "chat",
+   "value": 428,
+   "sessions": 428,
+   "share": 49.9
+  },
+  {
+   "capability": "tutorbot",
+   "label": "tutorbot",
+   "value": 423,
+   "sessions": 423,
+   "share": 49.4
+  },
+  {
+   "capability": "deep_question",
+   "label": "deep_question",
+   "value": 6,
+   "sessions": 6,
+   "share": 0.7
+  }
+ ],
+ "highlights": [
+  "当前会员状态稳定，可继续推进高分用户的 SVIP 升级。",
+  "最近 7 天共有 7 个失败回合，建议排查错误分布。"
+ ],
+ "member_snapshot": {
+  "health_score": 100,
+  "auto_renew_coverage": 0,
+  "churn_risk_count": 0,
+  "recommendations": [
+   "当前会员状态稳定，可继续推进高分用户的 SVIP 升级。"
+  ]
+ },
+ "risk_alerts": [
+  "最近 7 天共有 7 个失败回合，建议排查错误分布。"
+ ],
+ "alerts": [
+  {
+   "level": "warning",
+   "title": "最近 7 天共有 7 个失败回合，建议排查错误分布。",
+   "detail": "来自 BI 总览聚合建议"
+  }
+ ],
+ "boss_workbench": {
+  "kpis": [
+   {
+    "label": "今日成本",
+    "value": 0.0,
+    "hint": "窗口合计 $0.0 · 日均 $0.0",
+    "tone": "neutral",
+    "source": "cost"
+   },
+   {
+    "label": "活跃学习会话",
+    "value": 857,
+    "hint": "7 天窗口内更新过的会话"
+   },
+   {
+    "label": "活跃学习者",
+    "value": 10,
+    "hint": "按用户或匿名会话去重"
+   },
+   {
+    "label": "回合成功率",
+    "value": "98.4%",
+    "hint": "总回合 429"
+   },
+   {
+    "label": "平均会话深度",
+    "value": 2.0,
+    "hint": "每个会话平均消息数"
+   },
+   {
+    "label": "Notebook 保存",
+    "value": 0,
+    "hint": "问题笔记沉淀量"
+   }
+  ],
+  "risk_queue": [
+   {
+    "bucket": "expiring_soon",
+    "label": "即将到期会员",
+    "count": 0,
+    "detail": "建议优先进入会员运营页处理续费窗口。",
+    "handoff_filters": {
+     "expire_within_days": 7
+    }
+   },
+   {
+    "bucket": "high_risk",
+    "label": "高风险会员",
+    "count": 0,
+    "detail": "建议优先查看高风险与沉默用户。",
+    "handoff_filters": {
+     "risk_level": "high"
+    }
+   }
+  ],
+  "watchlist": [
+   {
+    "user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+    "display_name": "qa_compiled_shadow",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T16:54:06.713720+08:00",
+    "detail": "到期时间 2026-07-09T09:55:40.732745+08:00"
+   },
+   {
+    "user_id": "auth_31b902de22ff4bc78a1d7691",
+    "display_name": "qa_compiled_shadow_125347",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T12:54:32.872224+08:00",
+    "detail": "到期时间 2026-07-09T12:53:48.841401+08:00"
+   },
+   {
+    "user_id": "auth_cb0ccebe31914ee18bc05309",
+    "display_name": "qa_compiled_shadow_130014",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:01:01.585177+08:00",
+    "detail": "到期时间 2026-07-09T13:00:15.668114+08:00"
+   },
+   {
+    "user_id": "auth_ed1b7e62b31d4061b11d1de2",
+    "display_name": "qa_compiled_shadow_130249",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:07:47.324313+08:00",
+    "detail": "到期时间 2026-07-09T13:02:50.879866+08:00"
+   },
+   {
+    "user_id": "auth_ad6a31ef4e0f421d8957b48f",
+    "display_name": "qa_compiled_shadow_132841",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:33:28.753287+08:00",
+    "detail": "到期时间 2026-07-09T13:28:42.435778+08:00"
+   }
+  ],
+  "hero_issue": "最近 7 天共有 7 个失败回合，建议排查错误分布。",
+  "daily_cost": {
+   "today_usd": 0.0,
+   "window_total_usd": 0.0,
+   "average_daily_usd": 0.0,
+   "series": [
+    {
+     "date": "2026-06-06",
+     "label": "06-06",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-07",
+     "label": "06-07",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-08",
+     "label": "06-08",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-09",
+     "label": "06-09",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-10",
+     "label": "06-10",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-11",
+     "label": "06-11",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    },
+    {
+     "date": "2026-06-12",
+     "label": "06-12",
+     "cost_usd": 0.0,
+     "tokens": 0,
+     "turns": 0
+    }
+   ],
+   "source": "turn_result_cost_summary"
+  }
+ },
+ "north_star": {
+  "metric_id": "effective_learning_members",
+  "label": "有效学习成功会员数",
+  "group": "north_star",
+  "definition": "窗口内有真实手机号会员身份，并完成至少一次有效学习会话或学习成果的会员数。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "boss",
+  "drilldown": "member_ops",
+  "display_hint": "北极星指标",
+  "refresh_cadence": "近实时 (overview API)",
+  "degraded_note": "session store / member_console 任一降级时数值偏低；overview banner 同步标红。",
+  "label_aliases": [
+   "有效学习成功会员"
+  ],
+  "value": 10,
+  "window_days": 7,
+  "calculation": "真实手机号会员范围内，窗口内至少产生一次有效学习会话的去重会员数。",
+  "inputs": [
+   {
+    "metric_id": "registered_members",
+    "label": "真实注册会员数",
+    "group": "growth",
+    "definition": "通过会员系统 canonical member 口径过滤后的真实手机号会员数，不包含测试、探针和演练账号。",
+    "authority": "member_console",
+    "trust_level": "A",
+    "owner": "ops",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 (Supabase REST)",
+    "degraded_note": "",
+    "label_aliases": [
+     "真实注册会员"
+    ],
+    "value": 93
+   },
+   {
+    "metric_id": "activated_members",
+    "label": "激活会员数",
+    "group": "growth",
+    "definition": "窗口内至少有一次真实学习会话的注册会员数。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 (聚合 session_store)",
+    "degraded_note": "session_store 同步延迟时窗口尾部样本偏少。",
+    "label_aliases": [
+     "活跃学习者"
+    ],
+    "value": 10
+   },
+   {
+    "metric_id": "cost_per_effective_learning",
+    "label": "单有效学习成本",
+    "group": "unit_economics",
+    "definition": "窗口总 AI 成本除以有效学习成功会员数；收入未接入时只展示成本侧。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "boss",
+    "drilldown": "ops",
+    "display_hint": "",
+    "refresh_cadence": "每 5 分钟",
+    "degraded_note": "成本估算 C 级时此指标也降级到 C 级。",
+    "label_aliases": [
+     "单次学习成本"
+    ],
+    "value": null
+   }
+  ]
+ },
+ "growth_funnel": {
+  "title": "增长漏斗",
+  "summary": "第一阶段使用真实会员和有效学习会话做保守漏斗，收入/付费 authority 未确认前不展示利润式转化。",
+  "steps": [
+   {
+    "id": "registered_members",
+    "label": "真实注册会员数",
+    "value": 93,
+    "conversion_rate": 100.0,
+    "trust_level": "A",
+    "authority": "member_console",
+    "drilldown": "member_ops"
+   },
+   {
+    "id": "activated_members",
+    "label": "激活会员数",
+    "value": 10,
+    "conversion_rate": 10.8,
+    "trust_level": "B",
+    "authority": "bi_service",
+    "drilldown": "member_ops"
+   },
+   {
+    "id": "effective_learning_members",
+    "label": "有效学习成功会员数",
+    "value": 10,
+    "conversion_rate": 100.0,
+    "trust_level": "B",
+    "authority": "bi_service",
+    "drilldown": "member_ops"
+   }
+  ],
+  "pending_steps": [
+   {
+    "id": "paid_or_entitled_members",
+    "label": "付费/权益会员",
+    "status": "pending_authority",
+    "detail": "收入、权益和钱包 authority 未确认前不进入正式漏斗。"
+   }
+  ]
+ },
+ "member_health": {
+  "score": {
+   "metric_id": "member_health_score",
+   "label": "会员健康评分",
+   "group": "member_health",
+   "definition": "由学习行为、会员价值、学习效果、AI 体验和运营关系组成的透明风险评分；样本不足时只展示风险标签和原因。",
+   "authority": "bi_service",
+   "trust_level": "C",
+   "owner": "ops",
+   "drilldown": "member_ops",
+   "display_hint": "",
+   "refresh_cadence": "每 15 分钟",
+   "degraded_note": "样本量 < 阈值时仅展示风险标签和原因，不展示分值。",
+   "label_aliases": [
+    "会员健康"
+   ],
+   "value": 100,
+   "note": "第一阶段为透明规则评分；样本不足时按风险标签和原因解释，不作为黑箱预测。"
+  },
+  "distribution": [
+   {
+    "bucket": "healthy",
+    "label": "健康",
+    "count": 93
+   },
+   {
+    "bucket": "risk",
+    "label": "风险",
+    "count": 0
+   },
+   {
+    "bucket": "critical",
+    "label": "即将到期",
+    "count": 0
+   }
+  ],
+  "reasons": [
+   "当前会员状态稳定，可继续推进高分用户的 SVIP 升级。"
+  ],
+  "samples": [
+   {
+    "user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+    "display_name": "qa_compiled_shadow",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T16:54:06.713720+08:00",
+    "detail": "到期时间 2026-07-09T09:55:40.732745+08:00"
+   },
+   {
+    "user_id": "auth_31b902de22ff4bc78a1d7691",
+    "display_name": "qa_compiled_shadow_125347",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T12:54:32.872224+08:00",
+    "detail": "到期时间 2026-07-09T12:53:48.841401+08:00"
+   },
+   {
+    "user_id": "auth_cb0ccebe31914ee18bc05309",
+    "display_name": "qa_compiled_shadow_130014",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:01:01.585177+08:00",
+    "detail": "到期时间 2026-07-09T13:00:15.668114+08:00"
+   },
+   {
+    "user_id": "auth_ed1b7e62b31d4061b11d1de2",
+    "display_name": "qa_compiled_shadow_130249",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:07:47.324313+08:00",
+    "detail": "到期时间 2026-07-09T13:02:50.879866+08:00"
+   },
+   {
+    "user_id": "auth_ad6a31ef4e0f421d8957b48f",
+    "display_name": "qa_compiled_shadow_132841",
+    "tier": "trial",
+    "status": "active",
+    "risk_level": "low",
+    "last_active_at": "2026-06-09T13:33:28.753287+08:00",
+    "detail": "到期时间 2026-07-09T13:28:42.435778+08:00"
+   }
+  ]
+ },
+ "operating_rhythm": {
+  "cadences": [
+   {
+    "id": "daily",
+    "label": "每日晨会",
+    "focus": "新增真实会员、有效学习、成本、失败回合、待办"
+   },
+   {
+    "id": "weekly",
+    "label": "每周复盘",
+    "focus": "漏斗掉点、会员健康、教学效果、AI 质量样本"
+   },
+   {
+    "id": "release",
+    "label": "发布后观察",
+    "focus": "按 release/version 对比成本、失败率、质量、留存"
+   }
+  ],
+  "top_actions": [
+   {
+    "title": "最近 7 天共有 7 个失败回合，建议排查错误分布。",
+    "target": "ai_quality",
+    "status": "open",
+    "reason": "来自 BI 聚合风险队列"
+   }
+  ]
+ },
+ "teaching_effect": {
+  "status": "partial",
+  "summary": "学习成果 authority 尚未完整核验；第一阶段先使用真实会员章节掌握度、有效学习会话和 Notebook/错题沉淀做保守展示。",
+  "metrics": [
+   {
+    "metric_id": "mastery_improvement",
+    "label": "章节掌握度提升",
+    "group": "teaching_effect",
+    "definition": "基于 member learner state 中章节掌握度和弱点闭环信号计算的学习效果指标。",
+    "authority": "learner_state",
+    "trust_level": "C",
+    "owner": "teaching",
+    "drilldown": "teaching_effect",
+    "display_hint": "",
+    "refresh_cadence": "每 15 分钟",
+    "degraded_note": "learner_state read model 同步延迟时窗口尾部掌握度偏低；样本量 < 10 时不展示。",
+    "label_aliases": [],
+    "value": 0,
+    "status": "chapter_progress_available"
+   },
+   {
+    "metric_id": "notebook_saves",
+    "label": "Notebook 保存",
+    "value": 0,
+    "trust_level": "B",
+    "authority": "sqlite_session_store",
+    "drilldown": "student_360"
+   }
+  ],
+  "chapter_progress": [
+   {
+    "chapter_id": "主体结构",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "合同索赔",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "地基基础",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "安全管理",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "建筑材料",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "建筑构造",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "施工测量",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   },
+   {
+    "chapter_id": "施工管理",
+    "name": "<redacted>",
+    "mastery": 0,
+    "member_count": 11,
+    "status": "weak",
+    "evidence": "11 名真实会员样本平均掌握度 0%"
+   }
+  ]
+ },
+ "ai_quality": {
+  "metric_id": "ai_quality_score",
+  "label": "AI 教学质量分",
+  "group": "ai_quality",
+  "definition": "由回合成功率、反馈、追问、工具/RAG 信号和异常样本共同形成的质量摘要。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "quality",
+  "drilldown": "feedback",
+  "display_hint": "",
+  "refresh_cadence": "近实时",
+  "degraded_note": "Langfuse / 用户反馈源任一缺数据时切到 placeholder，不参与排名。",
+  "label_aliases": [
+   "AI 质量"
+  ],
+  "engineering_success_rate": 98.4,
+  "failed_turns": 7,
+  "total_turns": 429,
+  "teaching_success_status": "sample_required",
+  "note": "工程成功率不等于教学质量；需要继续接入反馈、纠错和人工抽检样本。",
+  "samples": [
+   {
+    "turn_id": "turn_1380000000001_c6048b7598",
+    "session_id": "tb_32e538d5b56a448ea4fce1f9",
+    "status": "failed"
+   },
+   {
+    "turn_id": "turn_1380000000075_e08063b559",
+    "session_id": "tb_8b03aaaf0c324a81b356f2e2",
+    "status": "failed"
+   },
+   {
+    "turn_id": "turn_1380000000059_a537f4a92a",
+    "session_id": "tb_a1b12ab2b78e40d099fdd9a4",
+    "status": "failed"
+   },
+   {
+    "turn_id": "turn_1380000000059_b7b737408f",
+    "session_id": "tb_f22d39ef0a2847fd9e3df4a2",
+    "status": "failed"
+   },
+   {
+    "turn_id": "turn_1380000000009_a27ff485db",
+    "session_id": "tb_883479f85c69480fb4b8ccb8",
+    "status": "failed"
+   }
+  ]
+ },
+ "unit_economics": {
+  "metric_id": "cost_per_effective_learning",
+  "label": "单有效学习成本",
+  "group": "unit_economics",
+  "definition": "窗口总 AI 成本除以有效学习成功会员数；收入未接入时只展示成本侧。",
+  "authority": "bi_service",
+  "trust_level": "B",
+  "owner": "boss",
+  "drilldown": "ops",
+  "display_hint": "",
+  "refresh_cadence": "每 5 分钟",
+  "degraded_note": "成本估算 C 级时此指标也降级到 C 级。",
+  "label_aliases": [
+   "单次学习成本"
+  ],
+  "revenue_status": "pending",
+  "summary": "收入事实未接入，当前只展示成本侧单位经济模型。",
+  "window_total_cost_usd": 0.0,
+  "cost_per_effective_learning_usd": 0.0,
+  "source": "turn_result_cost_summary"
+ },
+ "data_trust": {
+  "status": "ready",
+  "trust_model": "A/B 可用于首页决策；C/D 必须降级或待接入展示。",
+  "degraded_modules": [
+   {
+    "id": "revenue",
+    "label": "收入 authority",
+    "status": "pending",
+    "detail": "支付、钱包和手工开通记录尚未确认单一 revenue authority。"
+   },
+   {
+    "id": "learning_outcome",
+    "label": "学习成果 authority",
+    "status": "partial",
+    "detail": "练题、复习、错题和章节掌握度需要继续做样本核验。"
+   }
+  ],
+  "metric_definitions": [
+   {
+    "metric_id": "effective_learning_members",
+    "label": "有效学习成功会员数",
+    "group": "north_star",
+    "definition": "窗口内有真实手机号会员身份，并完成至少一次有效学习会话或学习成果的会员数。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "boss",
+    "drilldown": "member_ops",
+    "display_hint": "北极星指标",
+    "refresh_cadence": "近实时 (overview API)",
+    "degraded_note": "session store / member_console 任一降级时数值偏低；overview banner 同步标红。",
+    "label_aliases": [
+     "有效学习成功会员"
+    ]
+   },
+   {
+    "metric_id": "registered_members",
+    "label": "真实注册会员数",
+    "group": "growth",
+    "definition": "通过会员系统 canonical member 口径过滤后的真实手机号会员数，不包含测试、探针和演练账号。",
+    "authority": "member_console",
+    "trust_level": "A",
+    "owner": "ops",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 (Supabase REST)",
+    "degraded_note": "",
+    "label_aliases": [
+     "真实注册会员"
+    ]
+   },
+   {
+    "metric_id": "activated_members",
+    "label": "激活会员数",
+    "group": "growth",
+    "definition": "窗口内至少有一次真实学习会话的注册会员数。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 (聚合 session_store)",
+    "degraded_note": "session_store 同步延迟时窗口尾部样本偏少。",
+    "label_aliases": [
+     "活跃学习者"
+    ]
+   },
+   {
+    "metric_id": "active_learning_sessions",
+    "label": "活跃学习会话",
+    "group": "overview",
+    "definition": "窗口内更新过的会话数。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "TutorBot 回写降级时仅基于客户端 events，可能漏会话。",
+    "label_aliases": [
+     "活跃学习会话数"
+    ]
+   },
+   {
+    "metric_id": "success_turn_rate",
+    "label": "回合成功率",
+    "group": "ai_quality",
+    "definition": "成功完成的回合数占总回合数的比例。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "quality",
+    "drilldown": "feedback",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "Langfuse 评估延迟时分子滞后，分母先到，比例偏低。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "avg_session_depth",
+    "label": "平均会话深度",
+    "group": "overview",
+    "definition": "每个会话的平均消息数。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "overview",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "notebook_saves",
+    "label": "Notebook 保存",
+    "group": "learning_evidence",
+    "definition": "问题笔记沉淀量。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "overview",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "",
+    "label_aliases": [
+     "笔记沉淀"
+    ]
+   },
+   {
+    "metric_id": "total_cost_usd",
+    "label": "总成本",
+    "group": "unit_economics",
+    "definition": "窗口内估算总 AI 成本 (USD)。Langfuse 估算，未与账单对账。",
+    "authority": "observability.cost_estimator",
+    "trust_level": "C",
+    "owner": "platform",
+    "drilldown": "ops",
+    "display_hint": "",
+    "refresh_cadence": "每 5 分钟批 (Langfuse pull)",
+    "degraded_note": "估算值与真实账单存在 ± 15% 偏差；不可作为财务结算依据。",
+    "label_aliases": [
+     "近 24h LLM 成本",
+     "近 7d 总成本"
+    ]
+   },
+   {
+    "metric_id": "renewal_risk_members",
+    "label": "续费风险会员数",
+    "group": "member_ops",
+    "definition": "即将到期、沉默、高风险或高成本低效果的会员集合。",
+    "authority": "member_console",
+    "trust_level": "B",
+    "owner": "ops",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "每 5 分钟 (member_console 聚合)",
+    "degraded_note": "学习证据未同步时风险评分偏低。",
+    "label_aliases": [
+     "续费风险会员"
+    ]
+   },
+   {
+    "metric_id": "member_health_score",
+    "label": "会员健康评分",
+    "group": "member_health",
+    "definition": "由学习行为、会员价值、学习效果、AI 体验和运营关系组成的透明风险评分；样本不足时只展示风险标签和原因。",
+    "authority": "bi_service",
+    "trust_level": "C",
+    "owner": "ops",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "每 15 分钟",
+    "degraded_note": "样本量 < 阈值时仅展示风险标签和原因，不展示分值。",
+    "label_aliases": [
+     "会员健康"
+    ]
+   },
+   {
+    "metric_id": "mastery_improvement",
+    "label": "章节掌握度提升",
+    "group": "teaching_effect",
+    "definition": "基于 member learner state 中章节掌握度和弱点闭环信号计算的学习效果指标。",
+    "authority": "learner_state",
+    "trust_level": "C",
+    "owner": "teaching",
+    "drilldown": "teaching_effect",
+    "display_hint": "",
+    "refresh_cadence": "每 15 分钟",
+    "degraded_note": "learner_state read model 同步延迟时窗口尾部掌握度偏低；样本量 < 10 时不展示。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "ai_quality_score",
+    "label": "AI 教学质量分",
+    "group": "ai_quality",
+    "definition": "由回合成功率、反馈、追问、工具/RAG 信号和异常样本共同形成的质量摘要。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "quality",
+    "drilldown": "feedback",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "Langfuse / 用户反馈源任一缺数据时切到 placeholder，不参与排名。",
+    "label_aliases": [
+     "AI 质量"
+    ]
+   },
+   {
+    "metric_id": "cost_per_effective_learning",
+    "label": "单有效学习成本",
+    "group": "unit_economics",
+    "definition": "窗口总 AI 成本除以有效学习成功会员数；收入未接入时只展示成本侧。",
+    "authority": "bi_service",
+    "trust_level": "B",
+    "owner": "boss",
+    "drilldown": "ops",
+    "display_hint": "",
+    "refresh_cadence": "每 5 分钟",
+    "degraded_note": "成本估算 C 级时此指标也降级到 C 级。",
+    "label_aliases": [
+     "单次学习成本"
+    ]
+   },
+   {
+    "metric_id": "behavior.module.open_count",
+    "label": "模块打开次数",
+    "group": "product_behavior",
+    "definition": "窗口内用户进入学习产品模块的次数，来自 product_behavior_events indexed raw read model。",
+    "authority": "product_behavior_store",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 indexed raw read",
+    "degraded_note": "visit_id、release_id 或 section visibility 缺失时降级为 B/C。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "behavior.learning_report.section_view_count",
+    "label": "学情 section 浏览次数",
+    "group": "product_behavior",
+    "definition": "窗口内学情页 section 进入视口或 fallback 渲染曝光次数。",
+    "authority": "product_behavior_store",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 indexed raw read",
+    "degraded_note": "小程序/yousen 曝光口径未完成三端一致 smoke 前保持 B 级。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "behavior.funnel.report_to_training",
+    "label": "学情到训练转化",
+    "group": "product_behavior",
+    "definition": "学情浏览后进入训练的用户或 visit 占比。",
+    "authority": "product_behavior_store",
+    "trust_level": "B",
+    "owner": "product",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 indexed raw read",
+    "degraded_note": "缺 visit_id 时不进入 A 级漏斗。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "behavior.member_ops.report_high_no_action",
+    "label": "学情高频无行动",
+    "group": "product_behavior",
+    "definition": "7 天学情打开不少于 3 次且训练/复测开始为 0 的会员队列。",
+    "authority": "product_behavior_store",
+    "trust_level": "B",
+    "owner": "ops",
+    "drilldown": "member_ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时 indexed raw read",
+    "degraded_note": "低可信 cohort 只允许人工参考，不进入自动运营队列。",
+    "label_aliases": []
+   },
+   {
+    "metric_id": "data_trust_score",
+    "label": "数据可信度分",
+    "group": "data_trust",
+    "definition": "基于接口降级、数据源缺口、指标口径完整度和更新时间形成的可信度摘要。",
+    "authority": "bi_service",
+    "trust_level": "A",
+    "owner": "engineering",
+    "drilldown": "ops",
+    "display_hint": "",
+    "refresh_cadence": "近实时",
+    "degraded_note": "",
+    "label_aliases": [
+     "数据可信"
+    ]
+   }
+  ]
+ }
+}

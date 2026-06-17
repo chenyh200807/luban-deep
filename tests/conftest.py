@@ -1,4 +1,11 @@
-"""Root pytest fixtures: per-test isolation for process-level global state.
+"""Root pytest configuration and fixtures.
+
+`is_production_environment()` is fail-closed: an unset / unknown environment is
+treated as production so dev-only safeguards never default to "open". The test
+suite must therefore declare its environment explicitly. We default the whole
+process to ``local`` at import time (before any test module is collected) so
+that dev/QA paths stay exercised. Individual tests that need production
+behaviour still override this via ``monkeypatch``.
 
 Several modules keep deliberately process-wide state (a path singleton, the
 logging context-vars). That is correct for production — one process, one
@@ -14,7 +21,13 @@ semantics. Mirrors the narrower precedent in ``tests/services/conftest.py``.
 
 from __future__ import annotations
 
+import os
+
 import pytest
+
+# setdefault, not a hard set: an outer harness can still force a production-mode
+# test run by exporting DEEPTUTOR_ENV before invoking pytest.
+os.environ.setdefault("DEEPTUTOR_ENV", "local")
 
 
 @pytest.fixture(autouse=True)

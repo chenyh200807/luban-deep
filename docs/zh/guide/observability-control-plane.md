@@ -228,6 +228,12 @@ python3.11 scripts/run_observability_daily.py --changed-file deeptutor/services/
 python3.11 scripts/run_observability_daily.py --output-dir tmp/observability/daily
 ```
 
+如果 daily 输出的 `wechat_devtools` readiness 缺失，补跑主微信包 CLI smoke：
+
+```bash
+python3.11 scripts/run_readiness_check.py --check-id wechat_devtools --report-only
+```
+
 固定链路为：
 
 ```text

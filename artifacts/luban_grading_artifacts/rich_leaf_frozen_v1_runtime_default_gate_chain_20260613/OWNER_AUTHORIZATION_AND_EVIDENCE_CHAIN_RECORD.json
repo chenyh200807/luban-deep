@@ -1,0 +1,74 @@
+{
+  "artifact": "OWNER_AUTHORIZATION_AND_EVIDENCE_CHAIN_RECORD",
+  "record_only": true,
+  "mints_no_authority": true,
+  "date": "2026-06-13",
+  "owner_authorization": {
+    "authorized_by_owner": "2026-06-13",
+    "scope": [
+      "runtime_default_install (gate-conditional)",
+      "G4_broad_canonical_learner_write",
+      "release_governance_signoff_packet_generation"
+    ],
+    "note": "owner 授权走既有 typed gate 流程；gate 未满足项如实列 blocker，不绕、不放宽"
+  },
+  "frozen_axis": "taxonomy-frozen-v1-20260612",
+  "install_candidate": {
+    "pack": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_full_compile_20260613/runtime_token_pack_v301_quarantine_annotated.json",
+    "pack_schema": "luban_rich_leaf_runtime_token_pack.v2.3",
+    "pack_status": "candidate_ready_for_shadow_ab_full_accounted",
+    "quarantine_note": "v3.0.1 quarantine 注记版为安装对象；17 个隔离 unit 不进默认供给",
+    "installed": false
+  },
+  "evidence_chain": {
+    "closure": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_go_evidence_20260613/ (WEAK_GO blocker=0, 1534 全链对齐)",
+    "near_live_ab": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_go_evidence_20260613/near_live_shadow_ab_v30_recomputed.json (PASS_V23_NEAR_LIVE_SHADOW_AB, rich 1.0)",
+    "live_ab": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_full_compile_20260613/frozen_v1_live_ab_sample100.json (PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB, 400 provider calls, live 0.94)",
+    "semantic_quality_audit": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_full_compile_20260613/runtime_pack_semantic_quality_audit_v30.json (AUDIT_COMPLETED_WITH_FINDINGS)",
+    "frozen_full_compile": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_full_compile_20260613/frozen_full_compile_report.json (PASS_FROZEN_FULL_COMPILE)",
+    "legacy_input_reuse": {
+      "runtime_supply_regression": "rich_leaf_full2026_runtime_supply_regression_materialized_20260612 (v1-line artifact; no v3.0-line supply regression exists)",
+      "streaming_ab": "rich_leaf_full2026_runtime_token_pack_streaming_ab_20260612/streaming_ab_sample16.json (v1-line pack streaming evidence; not re-run on v3.0.1)"
+    }
+  },
+  "gate_chain_outputs": {
+    "runtime_default_gate": {
+      "path": "runtime_default_gate_v301.json",
+      "verdict": "BLOCKED",
+      "blockers": [
+        "runtime_token_pack_schema_mismatch:luban_rich_leaf_runtime_token_pack.v2.3",
+        "runtime_token_pack_not_ready:candidate_ready_for_shadow_ab_full_accounted",
+        "semantic_runtime_live_ab_not_pass:PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB"
+      ],
+      "root_cause": "gate runner pinned to v1-line schemas/status/verdict strings; frozen v3.0 line evidence uses v2.3 pack schema + frozen live-AB verdict; runner 未迁移，不在本次范围内单方面改 gate 以放行"
+    },
+    "controlled_default_authorization_package": {
+      "path": "controlled_default_authorization_package_v301.json",
+      "verdict": "BLOCKED"
+    },
+    "signed_authorization_template": {
+      "path": "signed_authorization_template_v301.json",
+      "verdict": "BLOCKED_INPUT_SAFETY_INVARIANT"
+    },
+    "release_governance_review_packet": {
+      "path": "release_governance_review_packet_v301.json",
+      "verdict": "BLOCKED_FOR_RELEASE_TRUTH",
+      "release_blockers": [
+        "controlled_default_authorization_not_ready:BLOCKED",
+        "operator_signature_missing",
+        "controlled_default_authorization_missing",
+        "release_truth_authorization_missing",
+        "learning_brain_signed_authorization_missing"
+      ],
+      "safety_violations": []
+    }
+  },
+  "install_mechanism_finding": {
+    "exists": false,
+    "detail": "rich-leaf runtime token pack 没有任何 app 内消费/安装机制：runtime_supply 无 rich_leaf lane（canonical_knowledge_manifest _LANE_MAP 不含），无 loader 读取该 pack，controlled_default 在 compiler plan 中定义为外部 runtime pointer/release manifest 指向，但该 pointer 机制尚未实现；signed authorization template 的签名捕获也没有 runner。按铁律不发明流程，未执行安装。"
+  },
+  "g4_broad_gate": {
+    "executed": true,
+    "verification": "artifacts/luban_grading_artifacts/g4_canonical_truth_write_gate_broad_open_20260613/G4_BROAD_OPEN_VERIFICATION.json"
+  }
+}

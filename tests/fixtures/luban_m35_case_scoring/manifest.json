@@ -1,0 +1,1689 @@
+{
+  "schema_version": "luban_m35_case_scoring_fixture.v1",
+  "fixture_id": "luban_m35_case_scoring_20260609_task1",
+  "purpose": "M35 offline fixture contract only; answer labels are generated rows for shape and coverage checks until human label authority is confirmed.",
+  "question_authority": "deeptutor.services.construction_grading.question_grading_artifacts",
+  "answer_label_authority": "generated_self_label",
+  "label_scope": "point_and_score",
+  "known_label_gap": true,
+  "quality_claim_allowed": false,
+  "poc_go_allowed": false,
+  "verdict_ceiling": "SHAPE_ONLY",
+  "learner_truth_write_allowed": false,
+  "runtime_score_claim_allowed": false,
+  "questions": [
+    {
+      "question_id": "Q1-NA",
+      "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A433000_059_0089",
+          "quote": "施工总进度计划表（图",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "施工总进度计划的内容包括:编制说明,施工总进度计划表(图),分期(分批)实施工程的开、竣工日期及工期一览表,资源需要量及供应平衡表等。(注:只需写出题目上缺少的即可)。",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "官方注明只需写出题目缺少的内容(题中已有网络图、编制说明)。应得分项为3项:施工总进度计划表(图)、分期(分批)实施工程的开竣工日期及工期一览表、资源需要量及供应平衡表。命中3项满分5分;每少1项扣约1.5-1.7分;写出已有的编制说明不重复给分。",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q1-NA::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "1925c1dd003a0d0f4357a67b50391582606f37828575e54651982d7f1e5ddec9"
+      }
+    },
+    {
+      "question_id": "Q2-1A436000-罚则",
+      "stem": "【背景资料】某新建学校工程，总建筑面积 12.5 万平方米，由 12 栋单体建筑组成。其中主教学楼为钢筋混凝土框架结构，体育馆屋盖为钢结构。合同要求工程达到绿色建筑三星标准。施工单位中标后，与甲方签订合同并组建项目部。\n\n项目部安全检查制度规定了安全检查主要形式包括：日常巡查、专项检查、经常性安全检查、设备设施安全验收检查等。其中经常性安全检查方式主要有：专职安全人员的每天安全巡检；项目经理等专业人员检查生产工作时的安全检查；作业班组按要求时间进行安全检查等。\n\n项目部在塔吊布置时充分考虑了吊装构件重量、运输和堆放、使用后拆除和运输等因素。按照《建筑工程安全检查标准》中“塔式起重机”的载荷限制装置、吊钩、滑轮、卷筒与钢丝绳、验收与使用等保证项目和结构设施等一般项目进行了检查验收。屋盖钢结构施工高处作业安全专项方案规定如下：\n\n1. 钢结构构件宜地面组装，安全设施一并设置。\n2. 坠落高度超过 2m 的安装使用梯子攀登作业。\n3. 施工层搭设的水平通道不设置防护栏杆。\n4. 作为水平通道的钢梁一侧两端头设置安全绳。\n5. 安全防护采用工具化、定型化设施，防护盖板用黄色或红色标示。\n\n施工单位管理部门在装修阶段对现场施工用电进行专项检查情况如下：\n\n1. 项目仅按照项目临时用电施工组织设计进行施工用电管理。\n2. 现场瓷砖切割机与砂浆搅拌机共用一个开关箱。\n3. 主教学楼一开关箱使用插",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_008_0011",
+          "quote": "操作平台",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处①坠落高度超过2m的安装使用梯子攀登作业;正确做法①坠落高度超过2m时,应设置操作平台",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_006_0007",
+          "quote": "防护栏杆",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处②施工层搭设的水平通道不设置防护栏杆;正确做法②水平通道两侧应设置防护(栏杆)",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_122_0196",
+          "quote": "连续的安全绳",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处③作为水平通道的钢梁一侧两端头设置安全绳;正确做法③应在钢梁一侧设置连续的安全绳,安全绳宜采用钢丝绳",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_120_0194",
+          "quote": "黑黄",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "安全防护栏杆的条纹警戒标示为黑黄或红白相间",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q2-1A436000-罚则::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "327b7aa4d078fc6711e7006d9d05e60d3e1c3a2f22c8c2f0e670d7910e22bb6c"
+      }
+    },
+    {
+      "question_id": "Q3-1A433000",
+      "stem": "【背景资料】某新建别墅群项目，总建筑面积 45000m²，各幢别墅均为地下 1 层，地上 3 层，砖混结构。某施工总承包单位项目部按幢编制了单幢工程施工进度计划。某幢计划工期为 180d，施工进度计划见图 1。\n\n现场监理工程师在审核该进度计划后，要求施工单位制定进度计划和包括材料需求计划在内的资源需求计划，以确保该幢工程在计划日历天内竣工。该别墅工程开工后第 46 天进行的进度检查时发现，土方工程和地基基础工程基本完成，已开始主体结构工程施工，工期进度滞后 5 天。项目部依据赶工参数（具体见表一），对相关施工过程进行压缩，确保工期不变。项目部对地下室 M5 水泥砂浆防水层施工提出了技术要求：采用普通硅酸盐水泥、自来水、中砂、防水剂等材料拌和，中砂含泥量不得大于 3%；防水层施工前应采用强度等级 M5 的普通砂浆将基层表面的孔洞、缝隙堵塞抹平；防水层施工要求一遍成型，铺抹时应压实、表面应提浆压光，并及时进行保湿养护 7 天。\n\n**表一 赶工参数表**\n| 施工过程 | 最大可压缩时间(天) | 赶工费用(元/天) |\n|---|---|---|\n| 1 土方工程 | 2 | 800 |\n| 2 地下工程 | 4 | 900 |\n| 3 主体结构 | 2 | 2700 |\n| 4 水电安装 | 3 | 450 |\n| 5 室内装修 | 8 | 3000 |\n| 6 屋面工程 | 5",
+      "total_score": 20.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A433000_059_0089",
+          "quote": "劳动力",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "1. 劳动力、施工机械和设备、预制构件和加工品、计量测量检验仪器、资金需求计划",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "官方列出5类(劳动力/机械设备/预制构件/加工品/计量测量检验仪器/资金,其中预制构件与加工品、计量仪器可合并理解);命中≥5项满分4分,每少1项扣1分,扣完为止",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "2. 先压缩主体结构2天",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "2. 再压缩室内装修3天",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_102_0194",
+          "quote": "材料合格",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. ①用自来水拌和（应使用符合标准的自来水或饮用水）",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_073_0114",
+          "quote": "含泥量",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. ②中砂含泥量>3%（应≤1%）",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_048_0074",
+          "quote": "防水砂浆",
+          "verified": true
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. ③用M5普通砂浆堵孔（应使用M5防水砂浆）",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "textbook",
+          "chunk_id": "1A411011_036_0064",
+          "quote": "宜分层",
+          "verified": true
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. ④一遍成型（宜多层抹压）",
+          "verified": false
+        },
+        {
+          "point_id": "P8",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_078_0123",
+          "quote": "养护时间",
+          "verified": true
+        },
+        {
+          "point_id": "P8",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. ⑤养护7天（应≥14天）",
+          "verified": false
+        },
+        {
+          "point_id": "P9",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_025_0040",
+          "quote": "室内环境污染物浓度检测",
+          "verified": true
+        },
+        {
+          "point_id": "P9",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "4. 检测时间不正确，应在工程完工至少7d后、交付使用前进行",
+          "verified": false
+        },
+        {
+          "point_id": "P10",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_022_0031",
+          "quote": "甲醛",
+          "verified": true
+        },
+        {
+          "point_id": "P10",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "4. 检测项目还包括甲醛、氨、苯、氡",
+          "verified": false
+        },
+        {
+          "point_id": "P10",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "官方列4项(甲醛/氨/苯/氡);命中≥4项满分2分,每少1项扣0.5分",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q3-1A433000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "a0ff09f9e7ab2d275798c26c448fa5eac167074f1ff34e41f1070ec8726437cb"
+      }
+    },
+    {
+      "question_id": "Q4-1A434000-罚则",
+      "stem": "某新建住宅小区，单位工程分别为地下2层，地上9~12层，总建筑面积15.5万平方米。各单位为贯彻落实《建设工程质量检测管理办法》（住房和城乡建设部第57号令）要求，在工程施工质量检测管理中做了以下工作：\n\n1. 建设单位委托具有相应资质的检测机构负责本工程质量检测工作。\n2. 监理工程师对混凝土试件制作与送样进行了见证。试验员如实记录了其取样、现场检测等情况，制作了见证记录。\n3. 混凝土试样送检时，试验员向检测机构填报了检测委托单。\n4. 总包项目部按照建设单位要求，每月向检测机构支付当期检测费用。\n\n地下室混凝土模板拆除后，发现混凝土墙体、楼板面存在蜂窝、麻面、露筋、裂缝、孔洞和层间错台等质量缺陷。质量缺陷图片资料详见图1-1～图1-6。项目部按要求制定了质量缺陷处理专项方案，按照“凿除孔洞松散混凝土——……——剔除多余混凝土”的工艺流程进行孔洞质量缺陷治理。\n\n问题1：指出工程施工质量检测管理工作中的不妥之处，并写出正确做法。（本问题2项不妥，多答不得分）混凝土试件制作与取样见证记录内容还有哪些？",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A431011_019_0021",
+          "quote": "见证人员",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "①不妥之处:试验员如实记录了其取样、现场检测等情况,制作了见证记录。正确做法:应由见证人员记录其取样、现场检测情况,制作见证记录。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_068_0103",
+          "quote": "建设单位",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "②不妥之处:总包项目部按照建设单位要求,每月向检测机构支付当期检测费用。正确做法:建设单位应当在编制工程概预算时合理核算建设工程质量检测费用,单独列支并按照合同约定及时支付。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_066_0098",
+          "quote": "取样",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "记录内容还包括:取样、制样、标识、封志、送检、现场检测。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "共6项规范术语(取样、制样、标识、封志、送检、现场检测):命中全部6项得3分;每少1项扣0.5分,扣完为止;必须为原文术语,近义不计分",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q4-1A434000-罚则::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "e42599392b29e29021ac848dbb1b78381c87319c2730e18946fc50ff39de35aa"
+      }
+    },
+    {
+      "question_id": "Q5-1A432000",
+      "stem": "【背景资料】\n\n某建设单位投资兴建一办公楼，投资概算 25000.00 万元，建筑面积 21000m²；钢筋混凝土框架-剪力墙结构，地下 2 层，层高 4.5m 地上 18 层。层高 3.6m；采取工程总承包交钥匙方式对外公开招标，招标范围为工程至交付使用全过程。经公开招投标，A 工程总承包单位中标。A 单位对工程施工等工程内容进行了招标。\n\nB 施工单位中标了本工程施工标段，中标价为 18060 万元。部分费用如下：安全文明施工费 340 万元，其中按照施工计划 2014 年度安全文明施工费为 226 万元；夜间施工增加费 22 万元；特殊地区施工增加费 36 万元；大型机械进出场及安拆费 86 万元；脚手架费 220 万元；模板费用 105 万元；施工总包管理费 54 万元；暂列金额 300 万元。\n\nB 施工单位中标后第 8 天，双方签订了项目工程施工承包合同，规定了双方的权利、义务和责任。部分条款如下：工程质量为合格；除钢材及混凝土材料价格浮动超出 ±10%（含 10%）、工程设计变更允许调整以外，其他一律不允许调整；工程预付款比例为 10%；合同工期为 485 日历天，于 2014 年 2 月 1 日起至 2015 年 5 月 31 日止。\n\nB 施工单位根据工程特点、工作量和施工方法等影响劳动效率因素，计划主体结构施工工期为 120 天，预计总用工为 5.76 万个工日",
+      "total_score": 25.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A432000_048_0069",
+          "quote": "勘察",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "工程总承包项目管理的基本程序还有:勘察、设备采购、试运行(估计3分)",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中3项(勘察、设备采购、试运行)满分3分;每命中1项得1分,缺项不得该项分",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A432002_032_0042",
+          "quote": "专业分包合同",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "A工程总承包单位与B施工单位签订的施工承包合同属于专业分包合同(估计2分)",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "措施项目费=340+22+36+86+220+105=809万元(估计4分;本题总分25分,各项估计值为答案作者估算非官方,总和必须凑足25分,此计算点为全题最核心计算之一补足1分)",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "预付款:(18060—300)*10%=17760*10%=1776万元(估计1分)",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A432000_047_0067",
+          "quote": "施工场地",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "A工程总承包单位应承担主要义务:(估计满分5分,每项1分)1)提供证件批件及资料 2)提供具备施工条件的施工场地 3)组织图纸会审与设计交底 4)提供约定设备设施并承担费用 5)保证施工期间畅通 6)负责场地管理协调交叉配合 7)支付分包合同款(官方列7项,为凑足总分25分补足1分)",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "官方列7项,每项1分,命中6项即满6分;每命中1项得1分,满分封顶6分",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "主体施工阶段需要劳动力:57600*8/(2*7*120)=274.3,取整275名(估计4分)",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "textbook",
+          "chunk_id": "1A432001_023_0027",
+          "quote": "环境",
+          "verified": true
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "确定劳动效率通常还应考虑因素:(估计满分4分,每项1分)环境、气候、地形、地质、工程特点、实施方案",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中≥4项满分4分;每命中1项得1分,满分封顶4分(可选项:环境、气候、地形、地质、工程特点、实施方案)",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q5-1A432000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "45193536846df9e32b78af72b7107f055373c9191d13924e61321893159b8ba9"
+      }
+    },
+    {
+      "question_id": "Q6-1A413000-罚则",
+      "stem": "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_099_0188",
+          "quote": "搭接长度",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "(1)不妥之处:①\"找平层的分格缝设置不当\"。②\"屋面板因温度变化产生胀缩\"。③\"卷材搭接长度太小\"。",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "本点为列举型,须从②找平层分格缝设置不当、④屋面板因温度变化产生胀缩、⑤卷材搭接长度太小三项中正确指认。命中3项满分3分;每少指1项扣1分;每多指1项(把①胶结料耐热度偏低、③胶结料粘结层过厚误判为不妥)扣1分,扣完为止。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_076_0118",
+          "quote": "300～450mm",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "(2)钉钉子法:①当施工后不久,卷材有下滑趋势时,可在卷材的上部离屋脊300~450mm范围内钉三排50mm长圆钉,钉眼上灌胶结料。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_076_0119",
+          "quote": "清除旧胶结料",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "(2)②卷材流淌后,横向搭接若有错动,应清除边缘翘起处的旧胶结料,重新浇灌胶结料,并压实刮平。",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q6-1A413000-罚则::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "43651bb52a373bb6a6a7a3c21467eede76d554bda112f86db7dea20a41c59ff0"
+      }
+    },
+    {
+      "question_id": "Q7-1A431000",
+      "stem": "一建筑施工场地，东西长 110m，南北宽 70m，拟建建筑物首层平面 80m×40m，地下 2 层，地上 6/20 层，檐口高 26/68m，建筑面积约 48000m²。施工场地部分临时设施平面布置示意图见图 1。图中布置施工临时设施有：现场办公室，木工加工及堆场，钢筋加工及堆场，油漆库房，塔吊，施工电梯，物料提升机，混凝土地泵，大门及围墙，车辆冲洗池（图中未显示的设施均视为符合要求）。\n\n问题：\n1. 【题干】写出图 1 中临时设施编号所处位置最宜布置的临时设施名称（如⑨大门与围墙）\n2. 【题干】简单说明布置理由。\n3. 【题干】施工现场安全文明施工宣传方式有哪些？",
+      "total_score": 5.5,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "1. ①：钢筋加工及堆场；②：木工加工及堆场；③：现场办公室；④：塔吊；⑤：施工电梯；⑥：物料提升机；⑦：混凝土地泵；⑧：油漆库房；⑨：大门与围墙；⑩：车辆冲洗池",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型,共10个编号定位点(每个0.25分)。考生写出的设施名称须与该编号官方对应名称一致(近义不算,如'塔吊'不可写成'起重机'、'钢筋加工及堆场'须含'钢筋'),命中一个得0.25分,满分2.5分。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_016_0022",
+          "quote": "防火",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "2. 布置理由：钢筋和木工加工区靠近主楼，便于材料运输；办公区设于场地边缘，减少干扰；塔吊位于中心区域，覆盖范围广；施工电梯和物料提升机靠近主楼，方便垂直运输；地泵靠近混凝土浇筑点；油漆库房远离火源；大门与围墙设于出入口；冲洗池设于出入口处，便于车辆清洁。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型,共8条理由(每条0.25分)。考生须写出理由对应的关键词原文(如'靠近主楼便于运输'、'塔吊居中覆盖广'、'油漆库房远离火源/防火'、'冲洗池设于出入口'),命中一条得0.25分,满分2.0分。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_126_0200",
+          "quote": "标语",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "3. 宣传方式：设置宣传栏、悬挂标语、张贴海报、播放广播、开展安全培训、发放宣传手册等。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型,官方列6项。命中≥4项得满分1.0分;命中3项得0.75分;命中2项得0.5分;命中1项得0.25分。须写出术语原文(如'宣传栏'、'标语'、'广播'、'宣传手册'),近义表述酌情按命中计。",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q7-1A431000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "7df3e3ca82fce89f78afdc562f189995959298f107dbbdeb006323d5582116d5"
+      }
+    },
+    {
+      "question_id": "Q8-1A413030",
+      "stem": "【背景资料】\n某工程钢筋混凝土基础底板，长度120m，宽度10m，厚度2.0m。混凝土设计强度等级P6C35，设计无后浇带。施工单位选用商品混凝土浇筑，P6C35混凝土设计配合比为1:1.7:2.8:0.46（水泥:中砂:碎石:水），水泥用量400kg/m³。粉煤灰掺量20%（等量替换水泥），实测中砂含水率4%、碎石含水率1.2%。采用跳仓法施工方案，分别按1/3长度与1/3宽度分成9个浇筑区（见图1-1），每区混凝土浇筑时间3d，各区依次连续浇筑，同时按照规范要求设置测温点（见图1-2）。（资料中未说明条件及因素均视为符合要求）\n\n2. 写出正确的填充浇筑区A、B、C、D的先后浇筑顺序（如表示为A-B-C-D）。",
+      "total_score": 2.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_095_0179",
+          "quote": "浇筑顺序",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "正确顺序为C-A-D-B",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q8-1A413030::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "aabf38b76b40bf7d13e49e63a545591e8c1d41fda21696ae105356080416ed99"
+      }
+    },
+    {
+      "question_id": "Q9-1A413040",
+      "stem": "【背景资料】\n\n某高级住宅工程，建筑面积8000m²，由3栋塔楼构成，地下2层（含车库），地上28层，底板厚度800mm，由A施工总承包单位承建。合同约定工程最终达到绿色建筑评价二星级。\n\n工程开始施工正值冬季，A施工单位项目部编制了冬期施工专项方案，根据当地资源和气候情况对底板混凝土的养护采用综合蓄热法，对底板混凝土的测温方案和温差控制、温降梯度，及混凝土养护时间提出了控制指标要求。\n\n项目部置顶了项目风险管理制度和应对负面风险的措施。规范了包括风险识别、风险应对等风险管理程序的管理流程；制定了向保险公司投保的风险转移等措施，达到了应对负面风险管理的目的。\n\n施工中，施工员对气割作业人员进行安全作业交底，主要内容有：气瓶要防止暴晒；气瓶在楼层内滚动时应设置距离不得小于5m，气瓶离明火的距离不得小于8m；作业点离易燃物的距离不小于20m；气瓶内的气体要尽量用完，减少浪费。\n\n外墙挤塑板保温层施工中，项目部对保温板的固定、构造节点的处理等内项进行了隐蔽工程验收，保留了相关的记录和图像资料。\n\n工程竣工投入使用一年后，相关部门对该工程进行绿色建筑评价，按照评价体系各类指标评价结果为：各类指标的控制项均满足要求，评分项得分均在42分以上，工程绿色建筑评价总得分65分，评定为二星级。\n\n【问题】\n\n4. 墙体节能工程隐蔽工程验收的部位或内容还有哪些？",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_046_0072",
+          "quote": "锚固件",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "(1)保温层附着的基层及其表面处理;(2)锚固件;(3)增强网铺设;(4)墙体热桥部位处理;(5)预置保温板或预制保温墙板的板缝;(6)现场喷涂或浇注有机类保温材料的界面;(7)被封闭的保温材料厚度;(8)保温隔热砌块填充墙",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "同质列举共8项,每项必须写出规范术语原文(近义不算): 基层/锚固件/增强网/热桥/板缝/界面/厚度/砌块。命中数评分: 命中≥7项满分5分; 每少答1项扣约0.7分(0.625分/项,8项均分),扣完为止; 命中≤1项不得分。术语写出关键词即认定(如'锚固件''增强网''热桥''板缝''界面''厚度''砌块''基层')。",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q9-1A413040::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "2916802037aafda22bd4de166a2d64146d0e1136aa9637f3393d07eefb658829"
+      }
+    },
+    {
+      "question_id": "Q10-1A422000",
+      "stem": "【背景资料】新建住宅小区，单位工程地下2~3层，地上2~12层，总建筑面积12.5万m²。\n施工总承包单位项目部为落实住房和城乡建设部《房屋建筑和市政基础设施工程危及生产安全施工工艺、设备和材料淘汰目录（第一批）》要求，在施工组织设计中明确了建筑工程禁止和限制使用的施工工艺、设备和材料清单，相关信息见表1-1。\n\n**表1-1 房屋建筑工程危及生产安全的淘汰施工工艺、设备和材料（部分）**\n| 名称 | 淘汰类型 | 限制条件和范围 | 可替代的施工工艺、设备、材料 |\n|------|----------|------------------|-------------------------------|\n| 现场简易制作钢筋保护层垫块工艺 | 禁止 | / | 专业化压制设备和标准模具生产垫块工艺等 |\n| 卷扬机钢筋调直工艺 | 禁止 | / | E |\n| 饰面砖水泥砂浆粘贴工艺 | A | C | 水泥基粘接材料粘贴工艺 |\n| 龙门架、井架物料提升机 | B | D | F |\n| 白炽灯、碘钨灯、卤素灯 | 限制 | 不得用于建设工地的生产、办公、生活等区域的照明 | G |\n\n某配套工程地上1~3层结构柱混凝土设计强度等级C40。于2022年8月1日浇筑1F柱，8月6日浇筑2F柱，8月12日浇筑3F柱，分别留置了一组C40混凝土同条件养护试件。1F、2F、3F柱同",
+      "total_score": 7.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_014_0020",
+          "quote": "水泥砂浆粘贴",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "A: 限制",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_015_0021",
+          "quote": "龙门架",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "B: 禁止",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_004_0005",
+          "quote": "脚手架",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "C: 不得用于25米及以上的建设工程",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_014_0020",
+          "quote": "普通钢筋调直机、数控钢筋调直切断机的钢筋调直工艺",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "D: 普通钢筋调直机、数控钢筋调直切断机的钢筋调直工艺",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_015_0021",
+          "quote": "人货两用施工升降机",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "E: 人货两用施工升降机",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_015_0021",
+          "quote": "龙门架",
+          "verified": true
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "F: LED灯、节能灯等",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_015_0021",
+          "quote": "不得用于建设工地的生产、办公、生活等区域的照明",
+          "verified": true
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "G: 不得用于建设工地的生产、办公、生活等区域的照明",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q10-1A422000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "036bb0994b115b418dac76339ad59eabd7334d2a6ea843ef62303eb418d5d9ed"
+      }
+    },
+    {
+      "question_id": "Q11-1A434020",
+      "stem": "【背景资料】某工程项目部根据当地政府要求进行新冠疫情后复工，按照住建部《房屋市政工程复工复产指南》（建办质〔2020〕8号）规定，制定了《项目疫情防控措施》，其中规定有：\n\n（1）施工现场采取封闭式管理。严格施工区等“四区”分设，并设置隔离区和符合标准的隔离室；\n（2）根据工程规模和务工人员数量等因素，合理配备疫情防护物资；\n（3）现场办公场所、会议室、宿舍应保持通风，每天至少通风3次，并定期对上述重点场所进行消毒。\n\n项目部制定的《模板施工方案》中规定有：\n\n（1）模板选用15mm厚木胶合板，木枋格栅、钢模；\n（2）水平模板支撑采用碗扣式钢管脚手架，顶部设置可调托撑；\n（3）碗扣式脚手架钢管材料为Q235级，高度超过4m；\n（4）模板及其支架的设计中考虑了下列各项荷载：\n\n1）模板及其支架构自重（G1）\n2）新浇筑混凝土自重（G2）\n3）钢筋自重（G3）\n4）新浇筑混凝土对模板侧面的压力（G4）\n5）施工人员及施工设备产生的荷载（Q1）\n6）浇筑和振捣混凝土时产生的荷载（Q2）\n7）泵送混凝土或不均匀堆放等附加水平荷载（Q3）\n8）风荷载（Q4）\n\n进行各项模板设计时，参与模板及支架承载力计算的荷载项见表1。\n\n**表1 参与模板及支架承载力计算的荷载项（部分）**\n| 计算内容 | 参与荷载项 |\n|----------|------------|\n| 底面模板承载力 | G1",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A431011_011_0012",
+          "quote": "生活区",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "①生活区;②办公区;③材料加工和存放区",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中3项满分(每项1分);写出'生活区'得1分、'办公区'得1分、'材料加工和存放区/材料加工区/材料存放区'得1分;近义不算",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "④防疫物资包括体温计、口罩、消毒剂",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中3项满分(每项0.5分);写出'体温计'得0.5分、'口罩'得0.5分、'消毒剂/消毒液'得0.5分;近义不算",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A431011_012_0013",
+          "quote": "食堂",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "⑤重点场所包括食堂、盥洗室、厕所",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中3项满分(每项0.5分);写出'食堂'得0.5分、'盥洗室'得0.5分、'厕所'得0.5分;近义不算",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q11-1A434020::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "daa7e13e470e3ef253f01bd43c3159dcb8e02bff1a4ed7beb7a31e99ad0ecfea"
+      }
+    },
+    {
+      "question_id": "Q12-1A412000-罚则",
+      "stem": "【背景资料】某施工企业中标新建一办公楼工程，地下二层，地上二十八层，钢筋混凝土灌注桩基础，上部为框架剪力墙结构，建筑面积 28600 m²。\n\n项目部在开工后编制了项目质量计划，内容包括质量目标和要求、管理组织体及管理职责、质量控制点等，并根据工程进展实施静态管理。其中，设置质量控制的关键部位和环节包括：影响施工质量的关键部位和环节，影响使用功能的关键部位和环节；采用新材料、新设备的部位和环节等。\n\n桩基施工完成后，项目部采用高应变法按要求进行了工程桩桩身完整性检测抽检数量按照相关标准规定选取。\n\n钢筋施工专项技术方案中规定：采用专用量规等检测工具对钢筋直螺纹加装质量进行检测；纵向受力钢筋采用机械连接或焊接接头时的接头面积百分率如下：\n\n1. 受拉接头不宜大于 50%；\n2. 受压接头不宜大于 75%；\n3. 直接承受动力荷载的结构构件不宜采用焊接；\n4. 直接承受动力荷载的结构构件采用机械连接时，不宜超过 50%\n\n项目部质量员在现场发现屋面卷材有流淌现象，经质量分析讨论，对材流滴现象的原因分析如下：\n\n1. 胶结料耐热度偏低；\n2. 找平层的分格缝设置不当；\n3. 胶结料粘结层过厚；\n4. 屋面板因温度变化产生胀缩；\n5. 卷材搭接长度太小。\n\n针对原因分析，整改方案采用钉钉子法：在卷材上部离屋脊 200mm~300mm 处钉一排 20mm 长圆钉，钉眼涂防锈漆。\n\n监理工程师",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_066_0097",
+          "quote": "受压接头，可不受限制",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "①\"受压接头不宜大于75%\";正确做法:受压接头可不受限制。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A412000_039_0067",
+          "quote": "不应",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "②\"直接承受动力荷载的结构构件采用机械连接时,不宜超过50%\";正确做法:...不应超过50%。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "(2)包括:量尺、通规、止规、管钳扳手、扭力扳手。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "共5项,命中≥4项满分2.0;每少1项扣0.5,扣完为止(命中3项=1.5,2项=1.0,1项=0.5,0项=0)",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q12-1A412000-罚则::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "98a816b8d4710b17e181fff4db43ce6c3d837b41992de6a90c87fc01af5d5b9b"
+      }
+    },
+    {
+      "question_id": "Q13-1A421000",
+      "stem": "【背景资料】\n某新建办公楼工程，地下二层，地上二十层，框架剪力墙结构，建筑高度87m。建设单位通过公开招标选定了施工总承包单位并签订了工程施工合同，基坑深7.6m，基础底板施工计划网络图（见图2）：\n\n基坑施工前，基坑支护专业施工单位编制了基坑支护专项方案，履行相关审批签字手续后，组织包括总承包单位技术负责人在内的5名专家对该专项方案进行专家论证，总监理工程师提出专家论证组织不妥，要求整改。\n\n项目部在施工至第33天时，对施工进度进行了检查，实际施工进度如网络图中实际进度前锋线所示，对进度有延误的工作采取了改进措施。\n\n项目部对装饰装修工程门窗子分部进行过程验收中，检查了塑料门窗安装等各分项工程并验收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。\n\n【问题】\n1. 指出基坑支护专项方案论证的不妥之处，应参加专家论证会的单位还有哪些？",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A431000_006_0006",
+          "quote": "总承包单位技术负责人",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处：组织包括总承包单位技术负责人在内的5名专家进行论证。正确做法：……本项目的参建各方的人员不得以专家的身份参加专家论证。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A437000_010_0013",
+          "quote": "技术负责人",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "正确做法：专家组成人员应当为5人以上",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A421000_001_0001",
+          "quote": "建设单位",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "本项目的参建各方的人员不得以专家的身份参加专家论证（即参建各方应参加论证会而非以专家身份）",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型：命中参建各方单位(建设单位/监理单位/施工总承包单位/设计单位/勘察单位/支护专业施工单位等)≥4项满分1分，每少1项扣0.25分，扣完为止",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q13-1A421000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "77870c3969844a00fa6b8adae84176095dd97df01bb2d0cf413c7f18b32a7f0d"
+      }
+    },
+    {
+      "question_id": "Q14-1A430000",
+      "stem": "【背景资料】\n\n某新建保障房项目，单位工程为地下2层，地上9-12层，总建筑面积155万平方米，施工总承包单位按照合同组建项目进场施工项目部根据工程计划进场的混凝土搅拌运输车、串筒部分混凝土和土方施工机具照片见图1。\n\n#### 图1 施工机械照片\n\n- A: 混凝土搅拌运输车\n- B: 布料机\n- C: 串筒\n- D: 振捣棒\n- E: 反铲挖掘机\n\n项目部编制的绿色施工方案中，采用太阳能热水技术等施工现场绿色能源技术以减少施工阶段的碳排放：对建造阶段的碳排放进行计算，采用施工能耗清单统计法对施工阶段的能源用量进行估算，以确定施工阶段的用电等产生碳排放的传统能源消耗量；工程施工阶段碳排放的计算边界确定为：\n\n1. 碳排放计算时间从垫层施工起至项目竣工验收止；\n2. 施工场地区域内外的机械设备等使用过程中消耗的能源产生的碳排放应计入；\n3. 现场搅拌的混凝土和砂浆产生的碳排放应计入，现场制作的构件和部品产生的碳排放不计入；\n4. 建造阶段使用的办公用房、生活用房和材料库房等临时设施的施工、使用和拆除过程中消耗的能源产生的碳排放不计入。\n\n监理工程师在审查绿色施工方案时，提出以上方案内容存在不妥之处，要求整改。\n\n【问题】\n\n1. 答出图1中B~F处的施工机具名称。（如：A 混凝土搅拌运输车）\n2. 答出图1中用于混凝土浇筑施工的机具使用先后顺序。（表示为：A-B）混凝土浇筑自由倾落",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "B 混凝土固定泵；C 布料机；D 串筒；E 振捣棒；F 反铲挖掘机。",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型：5个机具名称命中5项满分1分，每少1项或答错1项扣0.2分，扣完为止；近义/错位不算",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "（1）A-B-C-D-E。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A437000_137_0220",
+          "quote": "溜槽",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "（2）溜管、溜槽。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型：写出'溜管''溜槽'任一或两项均可得满分；命中0项不得分",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A437000_149_0292",
+          "quote": "太阳能光伏发电照明",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "（1）施工现场太阳能光伏发电照明技术、空气能热水技术。",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型：2项命中2项满分0.5分，每少1项扣0.25分；近义不算",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A438000_154_0248",
+          "quote": "折算",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "（2）汽油、柴油、燃气。",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "列举型：3项命中3项满分0.5分，每少1项扣约0.17分（折算），写出≥2项给0.3，1项给0.15",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_055_0081",
+          "quote": "施工工序能耗估算法",
+          "verified": true
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥当。理由：建造阶段的能源总用量宜采用施工工序能耗估算法计算。",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_055_0081",
+          "quote": "从项目开工起",
+          "verified": true
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "改正一：碳排放计算时间从项目开工起至项目竣工验收止。",
+          "verified": false
+        },
+        {
+          "point_id": "P8",
+          "source_type": "textbook",
+          "chunk_id": "1A437000_013_0019",
+          "quote": "不应计入",
+          "verified": true
+        },
+        {
+          "point_id": "P8",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "改正二：施工场地区域外的机械设备不应计入。",
+          "verified": false
+        },
+        {
+          "point_id": "P9",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_055_0081",
+          "quote": "现场制作的构件和部品",
+          "verified": true
+        },
+        {
+          "point_id": "P9",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "改正三：现场制作的构件和部品产生的碳排放应计入。",
+          "verified": false
+        },
+        {
+          "point_id": "P10",
+          "source_type": "textbook",
+          "chunk_id": "1A437000_013_0019",
+          "quote": "应计入",
+          "verified": true
+        },
+        {
+          "point_id": "P10",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "改正四：建造阶段临时设施使用过程中消耗的能源产生的碳排放应计入。",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q14-1A430000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "628ef14161a142b5b5e64446e6e141aaf389c22bbfa384ff7f0de929f7d9b33b"
+      }
+    },
+    {
+      "question_id": "Q15-NA",
+      "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "调整后的施工进度计划网络图如下所示：(注：只需要将3—4之间增加一个虚工作即可)",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "网络图中关键线路有两条，分别是 A→B→F→H→I 和 A→D→G→H→I",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "两条关键线路均写对得2分；只写对其中1条得1分；写错或漏写得0分",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "总工期为 T=5+7+5+4+4=25 或 T=5+8+4+4+4=25 个月",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q15-NA::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "5846f67e639ae006cce1bc70e2ee24d48c4ee06f4ee646ade4c0ad454d78e127"
+      }
+    },
+    {
+      "question_id": "Q16-1A436000",
+      "stem": "【背景资料】\n\n某新建仓储工程，建筑面积 8000m²，地下 1 层，地上 1 层，采用钢筋混凝土筏板基础，建筑高度 12m；地下室为钢筋混凝土框架结构，地上部分为钢结构；筏板基础混凝土等级为 C30，内配双层钢筋网、主筋为Φ20 螺纹钢，基础筏板下三七灰土夯实，无混凝土垫层。\n\n施工单位安全生产管理部门在安全文明施工巡检时，发现工程告示牌及含施工总平面布置图的五牌一图布置在了现场主入口处围墙外侧。要求项目部将五牌一图布置在主入口内侧。\n\n项目制定的基础筏板钢筋施工技术方案中规定：钢筋保护层厚度控制在 40mm；主筋通过直螺纹连接接长，钢筋交叉点按照相隔交错扎牢，绑扎点的钢筋扣绑扎方向要求一致；上、下层钢筋网之间拉勾要绑扎牢固，以保证上、下层钢筋网相对位置准确。监理工程师审查后认为有些规定不妥，要求整改。\n\n屋面梁安装过程中，发生两名施工人员高处坠落事故，一人死亡，当地人民致府接到事故报告后，按照事故调查规定组织安全生产监督管理部门、公安机关等相关政府部门指派的人员和 2 名专家组成事故调查组。调查组检查了项目部制定的项目施工安全检查制度，其中规定了项目经理至少每旬组织开展一次定期安全检查，专职安全管理人员每天进行巡视检查。调查组认为项目部经常性安全检查制度规定内容不全，要求完善。\n\n【问题】\n\n1. 五牌一图还应包含哪些内容？\n\n2. 写出基础筏板钢筋技术方案中的不妥之处，并分别",
+      "total_score": 10.001,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A431011_013_0014",
+          "quote": "工程概况牌",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "五牌一图还应包含:工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工、环境保护牌。",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "应列举5项标准牌名(工程概况牌/管理人员名单及监督电话牌/消防保卫牌/安全生产牌/文明施工环境保护牌);命中5项满分2分,每少1项扣0.4分,近义不算须写出原文术语",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_027_0046",
+          "quote": "保护层厚度",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处1:钢筋保护层厚度控制在40mm;理由:无混凝土垫层,钢筋保护层厚度至少70mm。",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_101_0191",
+          "quote": "应每点扎牢",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处2:钢筋交叉点按照相隔交错扎牢;理由:应每点扎牢。",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_100_0190",
+          "quote": "八字形",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处3:绑扎点的钢筋扣绑扎方向要求一致;理由:应不同,丝扣呈八字形。",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_120_0194",
+          "quote": "不稳固",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥之处4:上、下层钢筋网之间拉勾要绑扎牢固;理由:不稳固,应采用马凳筋。",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "textbook",
+          "chunk_id": "1A436000_129_0207",
+          "quote": "一般事故",
+          "verified": true
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "事故等级:一般事故",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q16-1A436000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "f3d352e2408198d70337a6adaf3a407874590f033ec01f1b3d90971b6bd8c150"
+      }
+    },
+    {
+      "question_id": "Q17-1A433000",
+      "stem": "某新建别墅群项目，总建筑面积45000m²，各幢别墅均为地下1层，地上3层，砖混结构。某施工总承包单位项目部按幢编制了单幢工程施工作业进度计划。某幢计划工期为180d，施工进度计划见图1。现场监理工程师在审核该进度计划后，要求施工单位制定进度计划和包括材料需求计划在内的资源需求计划，以确保该幢工程在计划日历天内竣工。该别墅工程开工后第46天进行的进度检查时发现，土方工程和地基基础工程基本完成，已开始主体结构工程，工期进度滞后5天。项目部依据赶工参数（具体见表一），对相关施工过程进行压缩，确保工期不变。项目部对地下室M5水泥砂浆防水层施工提出了技术要求：采用普通硅酸盐水泥、自来水、中砂、防水剂等材料拌和，中砂含泥量不得大于3%；防水层施工前应采用强度等级M5的普通砂浆将基层表面的孔洞、缝隙堵塞抹平；防水层施工要求一遍成型，铺抹时应压实、表面应提浆压光，并及时进行保湿养护7天。\n\n表一 赶工参数表\n\n| 施工过程 | 最大可压缩时间(天) | 赶工费用(元/天) |\n|---|---|---|\n| 1 土方工程 | 2 | 800 |\n| 2 地下工程 | 4 | 900 |\n| 3 主体结构 | 2 | 2700 |\n| 4 水电安装 | 3 | 450 |\n| 5 室内装修 | 8 | 3000 |\n| 6 屋面工程 | 5 | 420 |\n| 7 外墙面装修 | 2 | 1000",
+      "total_score": 5.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "关键线路为①→②→③→④→⑦→⑧→⑨",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "总工期为180天",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "应优先压缩室内装修（最大压缩8天）、主体结构（2天）、室外工程（3天）等关键线路上的工序",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A412010_068_0132",
+          "quote": "成本低",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "因其压缩成本较低且不影响后续工作",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中'成本低/赶工费用低'或'不影响后续工作'任一得0.5,两项全中得1分",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A413030_102_0194",
+          "quote": "材料合格",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "应安排专人负责防水层施工，确保材料合格、基层处理到位、一次成型、及时养护",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "命中以下术语≥4项得满分1分,每少1项扣0.25:【专人负责】【材料合格(含泥量≤3%)】【基层处理到位(孔洞缝隙堵塞抹平)】【一次/一遍成型】【提浆压光/压实】【保湿养护7天】",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q17-1A433000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "f2c2573efdc50efabd02cf587ba34dacc4fe2ac341d040e04a8c8bd734982b63"
+      }
+    },
+    {
+      "question_id": "Q18-1A434000",
+      "stem": "【背景资料】某新建住宅工程项目，建筑面积 23000m²，地下 2 层，地上 18 层，现浇钢筋混凝土剪力墙结构，项目实行项目总承包管理。\n\n施工总承包单位项目部技术负责人组织编制了项目质量计划，由项目经理审核后报监理单位审批，该质量计划要求建立的施工过程质量管理记录有：使用机具的检验、测量及试验设备管理记录，质量检查和整改、复查记录，质量管理文件记录及规定的其他记录等。监理工程师对此提出了整改要求。\n\n施工前，项目部根据本工程施工管理和质量控制要求，对分项工程按照工种等条件，检验批按照楼层等条件，制定了分项工程和检验批划分方案，报监理单位审核。\n\n该工程的外墙保温材料和粘结材料等进场后，项目部会同监理工程师核查了其导热系数、燃烧性能等质量证明文件；在监理工程师见证下对保温、粘结和增强材料进行了复验取样。\n\n项目部针对屋面卷材防水层出现的起鼓（直径＞30mm）问题，制定了割补法处理方案。方案规定了修补工序，并要求先铲除保护层、把鼓泡卷材割除、对基层清理干净等修补工序依次进行处理整改。\n\n【问题】1. 项目部编制质量计划的做法是否妥当？质量计划中管理记录还应该包含哪些内容？\n2. 分别指出分项工程和检验批划分的条件还有哪些？\n3. 外墙保温、粘结和增强材料复试项目有哪些？\n4. 卷材鼓泡采用割补法治理的工序依次还有哪些？",
+      "total_score": 14.5,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "textbook",
+          "chunk_id": "1A432001_025_0030",
+          "quote": "错误",
+          "verified": true
+        },
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "不妥当。",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A434020_082_0131",
+          "quote": "项目负责人",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "应由施工总承包单位项目负责人或项目经理组织编制",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "textbook",
+          "chunk_id": "1A431000_003_0003",
+          "quote": "组织管理层",
+          "verified": true
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "经企业组织管理层审核后报监理单位审批",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_081_0130",
+          "quote": "交底记录",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "管理记录还应包括:施工日记和专项施工记录、交底记录、上岗培训记录和岗位资格证明、图纸、变更设计接收和发放的有关记录、工程项目质量管理策划结果中规定的其他记录",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "5项术语:施工日记和专项施工记录/交底记录/上岗培训记录和岗位资格证明/图纸变更设计接收和发放记录/质量管理策划结果中规定的其他记录;命中≥4项满分,每少1项扣0.5,术语原文为准近义不算",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_062_0093",
+          "quote": "材料",
+          "verified": true
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "分项工程划分条件:按主要工种、材料、施工工艺、设备类别等划分",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "需补的术语:材料/施工工艺/设备类别(工种题干已给);命中3项满分,每少1项扣0.7,术语原文为准",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "textbook",
+          "chunk_id": "1A422000_021_0029",
+          "quote": "工程量",
+          "verified": true
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "检验批划分条件:按工程量、楼层、施工段、变形缝等划分",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "需补的术语:工程量/施工段/变形缝(楼层题干已给);命中3项满分,每少1项扣0.7,术语原文为准",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_080_0127",
+          "quote": "导热系数",
+          "verified": true
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "外墙保温材料复试项目:导热系数、燃烧性能、密度、抗压强度或压缩强度",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "4项术语:导热系数/燃烧性能/密度/抗压强度或压缩强度;命中≥3项满分,每少1项扣0.5,术语原文为准",
+          "verified": false
+        },
+        {
+          "point_id": "P8",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_078_0123",
+          "quote": "粘结强度",
+          "verified": true
+        },
+        {
+          "point_id": "P8",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "粘结材料:粘结强度",
+          "verified": false
+        },
+        {
+          "point_id": "P9",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_080_0127",
+          "quote": "力学性能",
+          "verified": true
+        },
+        {
+          "point_id": "P9",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "增强材料:增强网的力学性能、抗腐蚀性能",
+          "verified": false
+        },
+        {
+          "point_id": "P9",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "2项术语:力学性能/抗腐蚀性能;命中2项满分,少1项扣0.5,术语原文为准",
+          "verified": false
+        },
+        {
+          "point_id": "P10",
+          "source_type": "textbook",
+          "chunk_id": "1A434000_076_0119",
+          "quote": "放出鼓泡内气体",
+          "verified": true
+        },
+        {
+          "point_id": "P10",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "1)先用刀将鼓泡卷材割开,放出鼓泡内气体,擦干水分,清除旧胶结料",
+          "verified": false
+        },
+        {
+          "point_id": "P11",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "2)再用喷灯烘烤旧卷材槎口,并分层剥开,除去旧胶结材料后,重新粘贴新卷材",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q18-1A434000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "a718aea12d51b9d7d446edfab86c6a7de3fdf160549efc964e038e400ba70404"
+      }
+    },
+    {
+      "question_id": "Q19-1A432000",
+      "stem": "【背景资料】\n\n2、本工程设计采用了某种新材料，总包单位为此支付给检测单位检验试验费 460 万元，要求开发商承担。\n\n3、工程主体完工 3 个月后总包单位为配合开发商自行发包的燃气等专业工程施工，脚手架留置比计划延长 2 个月拆除。为此要求开发商支付 2 个月脚手架租赁费 68.00 万元。\n\n4、总包单位要求开发商按照银行同期同类贷款利率，支付垫资利息 1142.00 万元。\n\n问题\n\n1. 偿债能力评价还包括哪些指标？\n\n2. 对总包合同实施管理的原则有哪些？\n\n3. 计算本工程签约合同价（单位万元，保留 2 位小数）。双方在工程量清单计价管理中应遵守的强制性规定还有那些？",
+      "total_score": 6.0,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "偿债能力评价还包括:(偿债备付率、利息备付率)借款偿还期、资产负债率、流动比率、速动比率",
+          "verified": false
+        },
+        {
+          "point_id": "P1",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "6项中命中≥5项给满分1.5;每少1项扣0.3,扣完为止;术语须写规范原文,近义/口语不计",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "textbook",
+          "chunk_id": "1A432002_029_0038",
+          "quote": "依法履约",
+          "verified": true
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "对总包合同实施管理的原则有:1)依法履约原则 2)诚实信用原则 3)全面履行原则 4)协调合作原则 5)维护权益原则 6)动态管理原则",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "6项原则中命中≥5项给满分2.0;每少1项扣0.4,扣完为止;术语须写规范原文,近义不计",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "分部分项工程费 82000+措施费 20500+其他项目费 12800+规费 2470+税金 3750=121520.00(万元)",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "textbook",
+          "chunk_id": "1A432001_025_0030",
+          "quote": "项目编码",
+          "verified": true
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "工程量清单计价管理中应遵守的强制性规定:1)分部分项工程量清单必须载明项目编码…工程量 …7)工程量清单应采用综合单价计价 8)…不得采用无限风险、所有风险或类似语句…",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "list_rule",
+          "chunk_id": "",
+          "quote": "该8条规定中命中≥4项给满分0.5;命中2-3项给0.3;命中1项给0.2;关键术语须写规范原文,近义不计",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q19-1A432000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "49126ace36503cb3540cc3d998466c37e3eeea3a29e03fc7501266b9aa9168dd"
+      }
+    },
+    {
+      "question_id": "Q20-1A413000",
+      "stem": "【背景资料】\n某新建办公楼工程，地下二层，地上二十层，框架剪力墙结构，建筑高度87m。建设单位通过公开招标选定了施工总承包单位并签订了工程施工合同，基坑深7.6m，基础底板施工计划网络图（见图2）：\n\n基坑施工前，基坑支护专业施工单位编制了基坑支护专项方案，履行相关审批签字手续后，组织包括总承包单位技术负责人在内的5名专家对该专项方案进行专家论证，总监理工程师提出专家论证组织不妥，要求整改。\n\n项目部在施工至第33天时，对施工进度进行了检查，实际施工进度如网络图中实际进度前锋线所示，对进度有延误的工作采取了改进措施。\n\n项目部对装饰装修工程门窗子分部进行过程验收中，检查了塑料门窗安装等各分项工程并验收合格；检查了外窗气密性能等有关安全和功能检测项目合格报告，观感质量符合要求。\n\n【问题】\n1. 计算每立方米P6C3混凝土设计配合比的水泥、中砂、碎石、水的用量？计算每立方P6C35混凝土施工配合比的水泥，中砂、碎石、水、粉煤灰的用量是多少？（单位：kg，小数点后保留2位）",
+      "total_score": 5.4,
+      "source_refs": [
+        {
+          "point_id": "P1",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "水泥质量为：400kg",
+          "verified": false
+        },
+        {
+          "point_id": "P2",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "中砂质量为：400×1.7=680kg",
+          "verified": false
+        },
+        {
+          "point_id": "P3",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "碎石质量为：400×2.8=1120kg",
+          "verified": false
+        },
+        {
+          "point_id": "P4",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "水的质量为：400×0.46=184kg",
+          "verified": false
+        },
+        {
+          "point_id": "P5",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "水泥用量：400×(1-20%)=320kg",
+          "verified": false
+        },
+        {
+          "point_id": "P6",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "施工配合比:...粉煤灰80kg",
+          "verified": false
+        },
+        {
+          "point_id": "P7",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "施工配合比:...中砂707.2kg；砂质用量：400×1.768=707.2kg",
+          "verified": false
+        },
+        {
+          "point_id": "P8",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "施工配合比:...碎石1142.4kg；碎石用量：400×2.856",
+          "verified": false
+        },
+        {
+          "point_id": "P9",
+          "source_type": "official_basis",
+          "chunk_id": "",
+          "quote": "施工配合比:...水143.36kg",
+          "verified": false
+        }
+      ],
+      "expected_artifact_lane": "m35_eval_fixture_artifact_first_shadow_only",
+      "question_authority_ref": {
+        "module": "deeptutor.services.construction_grading.question_grading_artifacts",
+        "artifact_id": "Q20-1A413000::qga_v0_20260604",
+        "version_id": "qga_v0_20260604",
+        "content_hash": "39ba9f94f8094ce2e44c8562e1ccded6ddd07d338883630a01f7e3b9d845b15a"
+      }
+    }
+  ]
+}

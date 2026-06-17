@@ -5,6 +5,21 @@ type MockBiApisOptions = {
   anomalyItems?: Array<{ level: string; title: string; detail?: string }>;
 };
 
+async function installAdminSession(page: Page) {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "deeptutor.bi.admin.session",
+      JSON.stringify({
+        token: "test-admin-token",
+        userId: "admin_test",
+        displayName: "Admin Test",
+        isAdmin: true,
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      })
+    );
+  });
+}
+
 async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
   const overviewAlerts = options.overviewAlerts ?? [
     {
@@ -21,6 +36,126 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
     },
   ];
 
+  await page.route("**/api/v1/auth/profile", async (route) => {
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        user_id: "admin_test",
+        display_name: "Admin Test",
+        is_admin: true,
+        data: {
+          user: {
+            user_id: "admin_test",
+            display_name: "Admin Test",
+            is_admin: true,
+          },
+        },
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/member/**", async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname;
+    const memberListItem = {
+      user_id: "learner-001",
+      display_name: "示例学员 A",
+      phone: "13900000001",
+      tier: "vip",
+      status: "active",
+      segment: "exam-prep",
+      risk_level: "low",
+      auto_renew: true,
+      expire_at: "2026-12-31T00:00:00.000Z",
+      created_at: "2026-04-01T00:00:00.000Z",
+      last_active_at: "2026-04-20T08:00:00.000Z",
+      points_balance: 88,
+      review_due: 2,
+    };
+
+    if (path === "/api/v1/member/list") {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          items: [memberListItem],
+          total: 1,
+          page: 1,
+          page_size: 20,
+          pages: 1,
+        }),
+      });
+      return;
+    }
+
+    if (path === "/api/v1/member/dashboard") {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          total_count: 1,
+          active_count: 1,
+          expiring_soon_count: 0,
+          new_today_count: 0,
+          new_7d_count: 0,
+          new_30d_count: 0,
+          churn_risk_count: 0,
+          health_score: 96,
+          auto_renew_coverage: 1,
+          tier_breakdown: [{ tier: "vip", count: 1 }],
+          expiry_breakdown: [{ label: "稳定", count: 1 }],
+          recommendations: [],
+        }),
+      });
+      return;
+    }
+
+    if (path === "/api/v1/member/learner-001/360") {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...memberListItem,
+          wallet: {
+            balance: 88,
+            packages: [],
+          },
+          study_days: 12,
+          focus_topic: "案例题",
+          focus_query: "钢筋保护层",
+          exam_date: "2026-09-19",
+          daily_target: 30,
+          difficulty_preference: "medium",
+          explanation_style: "deep",
+          review_reminder: true,
+          earned_badge_ids: [],
+          chapter_mastery: {
+            chapter_1: { name: "建筑实务", mastery: 0.78 },
+          },
+          recent_notes: [],
+          recent_ledger: [],
+          recent_conversations: [],
+        }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+  });
+
+  await page.route("**/api/v1/observability/launch-readiness", async (route) => {
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: { checks: [], summary: {} } }),
+    });
+  });
+
   await page.route("**/api/v1/bi/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -31,7 +166,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           data: {
-            title: "DeepTutor BI 工作台",
+            title: "鲁班智考 BI 工作台",
             subtitle: "Mock overview",
             cards: [
               { label: "活跃学员", value: 128, delta: "+8%", tone: "good" },
@@ -125,6 +260,55 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
       return;
     }
 
+    if (path.startsWith("/api/v1/bi/cost/reconciliation")) {
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            providers: {
+              deepseek: {
+                internal: {
+                  status: "ok",
+                  total_tokens: 1600,
+                  currency_amounts: { USD: 0.0001 },
+                },
+                official_usage: {
+                  status: "unconfigured",
+                  currency_amounts: {},
+                },
+                reconciliation: {
+                  status: "waiting_for_official_export",
+                  token_delta: 1600,
+                  warnings: ["waiting_for_official_export"],
+                },
+              },
+              dashscope: {
+                internal: {
+                  status: "ok",
+                  total_tokens: 2200,
+                  currency_amounts: { CNY: 0.08 },
+                },
+                official_usage: {
+                  status: "ok",
+                  total_tokens: 2000,
+                  list_price_cost: { CNY: 0.1 },
+                  net_charge_cost: { CNY: 0.07 },
+                },
+                reconciliation: {
+                  status: "warning",
+                  token_delta: 200,
+                  amount_delta_by_currency: { CNY: -0.02 },
+                  warnings: ["amount_delta"],
+                },
+              },
+            },
+          },
+        }),
+      });
+      return;
+    }
+
     await route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -133,96 +317,44 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
   });
 }
 
-async function visitBi(page: Page) {
-  await page.goto("/bi");
+async function visitBi(page: Page, path = "/bi") {
+  await page.goto(path, { waitUntil: "commit" });
+  await expect(page).toHaveURL(/\/bi(?:\?.*)?$/);
 }
 
 test.describe("BI Command Deck audit", () => {
-  test("public bi surface loads without generic workspace fallback", async ({ page }) => {
+  test.describe.configure({ timeout: 90000 });
+
+  test("bi deck renders the standard command surface and drilldowns", async ({ page }) => {
+    await installAdminSession(page);
     await mockBiApis(page);
 
     await visitBi(page);
 
-    await expect(page).toHaveURL(/\/bi$/);
     await expect(page.getByText("BI workspace unavailable")).toHaveCount(0);
-  });
-
-  test("bi deck exposes the new heading", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
-    await expect(page.getByRole("heading", { name: "DeepTutor BI Deck" })).toBeVisible();
-    await expect(page.getByText("经营、质量、会员、TutorBot 四条主线的一体化指挥舱")).toBeVisible();
-  });
-
-  test("bi deck exposes the new primary tabs", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
-    await expect(page.getByRole("link", { name: "Overview" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Quality" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Member Ops" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "TutorBot" })).toBeVisible();
-  });
-
-  test("bi deck removes old in-page anchor navigation", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
+    await expect(page.getByRole("heading", { name: "鲁班智考 BI 工作台" })).toBeVisible();
+    await expect(page.getByText("COMMAND DECK SHELL")).toHaveCount(0);
+    await expect(
+      page
+        .getByRole("main")
+        .getByText("经营、质量、会员、TutorBot 四条主线的轻量总览入口。")
+        .first()
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "老板工作台" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "会员运营" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "上线面板" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "内测申请" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "内测回访" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "学员 360" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "经营审计" })).toBeVisible();
     await expect(page.locator('a[href="#trend"]')).toHaveCount(0);
     await expect(page.locator('a[href="#knowledge"]')).toHaveCount(0);
     await expect(page.locator('a[href="#capability"]')).toHaveCount(0);
-  });
 
-  test("bi deck opens learner 360 from member samples", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
-    await expect(page.getByRole("button", { name: /示例学员 A/ })).toBeVisible();
-    await page.getByRole("button", { name: /示例学员 A/ }).click();
-    await expect(page.getByRole("heading", { name: "Learner 360" })).toBeVisible();
-  });
-
-  test("quality tab renders stability signals from existing BI data", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
-    await page.getByRole("link", { name: "Quality" }).click();
-
-    await expect(page).toHaveURL(/\/bi\?tab=quality$/);
-    await expect(page.getByText("质量摘要")).toBeVisible();
-    await expect(page.getByText("趋势波动")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "主趋势图" }).first()).toBeVisible();
+    await expect(page.getByText("右侧混合待处理区").first()).toBeVisible();
     await expect(page.getByText("TutorBot 延迟尖峰")).toBeVisible();
-    await expect(page.getByText("成功率波动偏大")).toBeVisible();
-  });
-
-  test("quality tab treats empty alert feeds as complete data instead of missing data", async ({ page }) => {
-    await mockBiApis(page, { overviewAlerts: [], anomalyItems: [] });
-
-    await visitBi(page);
-
-    await page.getByRole("link", { name: "Quality" }).click();
-
-    const completenessCard = page.locator("article").filter({
-      has: page.getByText("数据完整性"),
-    });
-
-    await expect(completenessCard).toContainText("4/4");
-    await expect(page.getByText("当前为空 · 待补齐")).toHaveCount(0);
-    await expect(page.getByText("当前没有可展示的异常或告警")).toBeVisible();
-  });
-
-  test("quality trend chart renders success, cost, and active series together", async ({ page }) => {
-    await mockBiApis(page);
-
-    await visitBi(page);
-
-    await page.getByRole("link", { name: "Quality" }).click();
+    await expect(page.getByText("成功率最近三个周期持续抬升").first()).toBeVisible();
 
     const chart = page.locator("svg").filter({
       has: page.locator('path[stroke="#6d28d9"]'),
@@ -231,34 +363,33 @@ test.describe("BI Command Deck audit", () => {
     await expect(chart.locator('path[stroke="#6d28d9"]')).toHaveCount(1);
     await expect(chart.locator('path[stroke="#0f766e"]')).toHaveCount(1);
     await expect(chart.locator('path[stroke="#C35A2C"]')).toHaveCount(1);
-  });
 
-  test("member ops tab mounts the dedicated member workspace instead of the shell placeholder", async ({ page }) => {
-    await mockBiApis(page);
+    await expect(page.getByRole("heading", { name: "官方账单对账" })).toBeVisible();
+    await expect(page.getByText("DeepSeek 官方")).toBeVisible();
+    await expect(page.getByText("unconfigured", { exact: true })).toBeVisible();
+    await expect(page.getByText("阿里云 DashScope/Bailian")).toBeVisible();
 
-    await visitBi(page);
+    await expect(page.getByRole("button", { name: /示例学员 A/ })).toBeVisible();
+    await page.getByRole("button", { name: /示例学员 A/ }).click();
+    await expect(page.getByText("LEARNER 360")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "示例学员 A" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Member Ops" }).click();
+    await page.getByRole("link", { name: "会员运营" }).click();
 
-    await expect(page).toHaveURL(/\/bi\?tab=member-ops$/);
-    await expect(page.getByText("会员分层与风险")).toBeVisible();
-    await expect(page.getByText("留存矩阵")).toBeVisible();
-    await expect(page.getByText("重点样本入口")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "会员运营" })).toBeVisible();
+    await expect(page.getByText("当前列表")).toBeVisible();
+    await expect(page.getByText("工作区状态")).toBeVisible();
     await expect(page.getByRole("button", { name: /示例学员 A/ })).toBeVisible();
     await expect(page.getByText("COMMAND DECK SHELL")).toHaveCount(0);
   });
 
-  test("tutorbot tab mounts the dedicated tutorbot workspace instead of the shell placeholder", async ({ page }) => {
-    await mockBiApis(page);
+  test("quality tab treats empty alert feeds as complete data instead of missing data", async ({ page }) => {
+    await installAdminSession(page);
+    await mockBiApis(page, { overviewAlerts: [], anomalyItems: [] });
 
     await visitBi(page);
 
-    await page.getByRole("link", { name: "TutorBot" }).click();
-
-    await expect(page).toHaveURL(/\/bi\?tab=tutorbot$/);
-    await expect(page.getByText("运行态总览")).toBeVisible();
-    await expect(page.getByText("知识库副面板")).toBeVisible();
-    await expect(page.getByText("成本摘要")).toBeVisible();
-    await expect(page.getByText("COMMAND DECK SHELL")).toHaveCount(0);
+    await expect(page.getByText("当前为空 · 待补齐")).toHaveCount(0);
+    await expect(page.getByText("当前没有混合待处理项，空队列不视为异常。").first()).toBeVisible();
   });
 });

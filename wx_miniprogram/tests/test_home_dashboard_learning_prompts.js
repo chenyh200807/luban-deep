@@ -21,11 +21,12 @@ var dashboard = {
     label: "今日焦点",
     title: "主体结构专项",
     meta: "来自最近批改",
+    prompt: "讲清楚主体结构工程施工的关键判断",
     prompt_intent: { source: "home_dashboard", learning_signal_type: "home_prompt_clicked" },
   },
   recommended_prompts: [
     {
-      text: "讲一下主体结构验收",
+      text: "讲清楚主体结构工程施工的关键判断",
       prompt_type: "concept_explain",
       intent: { source: "home_dashboard", learning_signal_type: "concept_explain" },
       evidence_refs: ["evt-home-1"],
@@ -46,7 +47,7 @@ assert.deepStrictEqual(
 );
 var model = wxVm.buildLearningHomeViewModel(dashboard);
 assert.strictEqual(model.reviewCount, 3);
-assert.strictEqual(model.focusQuery, "讲一下主体结构验收");
+assert.strictEqual(model.focusQuery, "讲清楚主体结构工程施工的关键判断");
 assert.strictEqual(model.focusActionType, "prompt");
 assert.strictEqual(model.recommendedPrompts.length, 2);
 assert.strictEqual(model.recommendedPrompts[0].promptIntent.learning_signal_type, "concept_explain");
@@ -81,8 +82,21 @@ var assessmentLessonModel = wxVm.buildLearningHomeViewModel({
     },
   ],
 });
-assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
 assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
+assert.strictEqual(assessmentLessonModel.focusActionType, "");
+
+var promptOnlyModel = wxVm.buildLearningHomeViewModel({
+  recommended_prompts: [
+    {
+      text: "用 3 道题训练施工临时用电",
+      prompt_type: "practice_prompt",
+      intent: { concept_label: "施工临时用电" },
+    },
+  ],
+});
+assert.strictEqual(promptOnlyModel.focusQuery, "");
+assert.strictEqual(promptOnlyModel.focusActionType, "");
+assert.strictEqual(promptOnlyModel.recommendedPrompts.length, 1);
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
@@ -95,8 +109,9 @@ assert(chatWxml.indexOf("showStaticExamples") >= 0);
 assert(wsSource.indexOf("prompt_intent") >= 0);
 assert(fs.readFileSync(wxVmPath, "utf8").indexOf("buildFallbackFocusQuery") < 0);
 
-function loadChatPage(getHomeDashboard) {
+function loadChatPage(getHomeDashboard, storage) {
   var capturedPage = null;
+  var storageState = storage || {};
   var sandbox = {
     Page: function (definition) {
       capturedPage = definition;
@@ -107,10 +122,12 @@ function loadChatPage(getHomeDashboard) {
         return { left: 320 };
       },
       removeStorageSync: function () {},
-      getStorageSync: function () {
-        return null;
+      getStorageSync: function (key) {
+        return storageState[key] || null;
       },
-      setStorageSync: function () {},
+      setStorageSync: function (key, value) {
+        storageState[key] = value;
+      },
       showToast: function () {},
       navigateTo: function (options) {
         sandbox.navigateCalls.push(options);
@@ -203,7 +220,7 @@ function flushPromises() {
   success.page.onFocusTap();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(success.sent)), [
     {
-      query: "讲一下主体结构验收",
+      query: "讲清楚主体结构工程施工的关键判断",
       options: {
         promptIntent: {
           source: "home_dashboard",
@@ -212,6 +229,49 @@ function flushPromises() {
       },
     },
   ]);
+
+  var cachedDashboard = {
+    today_focus: { label: "今日焦点", title: "缓存专题", meta: "来自学情更新" },
+    recommended_prompts: [
+      {
+        text: "先看缓存里的推荐",
+        prompt_type: "concept_explain",
+        intent: { source: "home_dashboard", learning_signal_type: "cached_prompt_clicked" },
+      },
+    ],
+  };
+  var freshDashboard = {
+    today_focus: { label: "今日焦点", title: "新专题", meta: "来自学情更新" },
+    recommended_prompts: [
+      {
+        text: "新回包里的推荐",
+        prompt_type: "practice_prompt",
+        intent: { source: "home_dashboard", learning_signal_type: "fresh_prompt_clicked" },
+      },
+    ],
+  };
+  var resolveFreshDashboard = null;
+  var cachedDefinition = loadChatPage(
+    function () {
+      return new Promise(function (resolve) {
+        resolveFreshDashboard = resolve;
+      });
+    },
+    {
+      "deeptutor.chat.homeDashboard.v2": {
+        cachedAt: Date.now(),
+        dashboard: cachedDashboard,
+      },
+    },
+  );
+  var cached = instantiatePage(cachedDefinition);
+  var cachedLoad = cached.page._loadDashboard();
+  assert.strictEqual(cached.page.data.focusTitle, "缓存专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "先看缓存里的推荐");
+  resolveFreshDashboard({ data: freshDashboard });
+  await cachedLoad;
+  assert.strictEqual(cached.page.data.focusTitle, "新专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "新回包里的推荐");
 
   var assessmentDefinition = loadChatPage(function () {
     return Promise.resolve({

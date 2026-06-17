@@ -1,0 +1,3165 @@
+{
+  "answer_units": [
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 近五年分值分布",
+          "| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |",
+          "| 选择题 | 0 | 0 | 0 | 0 | 0 |",
+          "| 案例题 | 0 | 4 | 0 | 4 | 0 |",
+          "| **总分值** | **0** | **4** | **0** | **4** | **0** |",
+          "#### 2. 章节核心框架"
+        ],
+        "mnemonics": [
+          "依平流，工空时，等异无"
+        ],
+        "must_mentions": [
+          "依次施工",
+          "平行施工",
+          "流水施工",
+          "工艺参数",
+          "空间参数",
+          "时间参数",
+          "等节奏",
+          "异节奏",
+          "无节奏"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'施工组织方式'(3种)与'流水施工组织方式'(3种)的层级关系。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:流水施工考情与框架"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第一章 流水施工",
+        "流水施工",
+        "流水施工考情与框架",
+        "施工进度管理",
+        "依次施工",
+        "平行施工",
+        "工艺参数",
+        "空间参数",
+        "时间参数"
+      ],
+      "source_excerpt": "### 第一章 流水施工\n\n#### 1. 近五年分值分布\n| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |\n| :--- | :---: | :---: | :---: | :---: | :---: |\n| 选择题 | 0 | 0 | 0 | 0 | 0 |\n| 案例题 | 0 | 4 | 0 | 4 | 0 |\n| **总分值** | **0** | **4** | **0** | **4** | **0** |\n\n#### 2. 章节核心框架\n*   **第一节 三类施工组织方式**\n    *   考点一：依次施工\n    *   考点二：平行施工\n    *   考点三：流水施工\n*   **第二节 三类流水施工参数**\n    *   考点一：工艺参数\n    *   考点二：空间参数\n    *   考点三：时间参数\n*   **第三节 三类流水组织方式**\n    *   考点一：等节奏流水施工\n    *   考点二：异节奏流水施工\n    *   考点三：无节奏流水施工",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0002_001",
+        "json_page_num": 2,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0002_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "流水施工考情与框架"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "流水施工考情与框架",
+      "unit_id": "lecture.schedule-network.0003"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按比较维度成组作答，避免只背单侧结论。",
+        "formula_or_thresholds": [
+          "| **依次施工** | $T = m \\times n \\times t$ | $3 \\times 3 \\times 5 = 45$ | 波动大，间歇长 | 16 |",
+          "| **平行施工** | $T = n \\times t$ | $3 \\times 5 = 15$ | 极度集中，需求大 | 48 |",
+          "| **流水施工** | $T = (m + n - 1) \\times t$ | $(3 + 3 - 1) \\times 5 = 25$ | 相对均衡 | 34 |",
+          "- 施工段数 $m=3$",
+          "- 施工过程数 $n=3$ (挖土方、浇基础、回填土)",
+          "- 流水节拍 $t=5$周"
+        ],
+        "mnemonics": [
+          "流水特点：科专连均文"
+        ],
+        "must_mentions": [
+          "依次施工",
+          "平行施工",
+          "流水施工",
+          "分层分段",
+          "连续搭接"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "平行施工虽然工期最短，但资源需求是成倍增加的（如本例中48人 vs 16人），现场管理困难。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "comparison_matrix",
+      "intent": [
+        "compare",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:三类施工组织方式对比"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "三类施工组织方式对比",
+        "施工组织方式",
+        "施工进度管理",
+        "依次施工",
+        "平行施工",
+        "流水施工",
+        "分层分段",
+        "连续搭接"
+      ],
+      "source_excerpt": "### 三类施工组织方式对比\n\n| 方式 | 工期公式 | 计算结果 (周) | 资源需求特征 | 资源峰值 (人) |\n| :--- | :--- | :--- | :--- | :--- |\n| **依次施工** | $T = m \\times n \\times t$ | $3 \\times 3 \\times 5 = 45$ | 波动大，间歇长 | 16 |\n| **平行施工** | $T = n \\times t$ | $3 \\times 5 = 15$ | 极度集中，需求大 | 48 |\n| **流水施工** | $T = (m + n - 1) \\times t$ | $(3 + 3 - 1) \\times 5 = 25$ | 相对均衡 | 34 |\n\n**参数说明**：\n- 施工段数 $m=3$\n- 施工过程数 $n=3$ (挖土方、浇基础、回填土)\n- 流水节拍 $t=5$周\n\n### 流水施工核心概念\n1. **概念**：分层分段、连续搭接\n2. **核心**：分段搭接，连续施工\n3. **五大特点**：\n   - 科学利用工作面，争取时间，合理压缩工期\n   - 专业化施工，利于技术水平和施工效率\n   - 专业队连续作业，相邻专业队最大限度搭接施工\n   - 单位时间内资源投入相对均衡\n   - 为施工现场的文明施工和科学管理创造了有利条件",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0003_001",
+        "json_page_num": 3,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0003_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "三类施工组织方式对比"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "三类施工组织方式对比",
+      "unit_id": "lecture.schedule-network.0004"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. **施工过程 (n)**",
+          "2. **流水强度 (Auxiliary Parameter)**",
+          "1. 产量定额",
+          "2. 资源投入量",
+          "3. 资源投入种类"
+        ],
+        "mnemonics": [
+          "定额投量投种 (定额、投入量、投入种类)"
+        ],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "process_answer"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工艺参数与辅助参数"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工艺参数 (Process Parameters)",
+        "流水施工参数",
+        "工艺参数与辅助参数",
+        "施工进度管理"
+      ],
+      "source_excerpt": "### 工艺参数 (Process Parameters)\n\n1. **施工过程 (n)**\n   - **概念**：若干个带程序性的施工任务\n   - **本质**：工艺流程 (如：基础→主体→装修；支模→绑钢筋→浇混凝土)\n   - **分类与进计划原则**：\n     - **建造类**：形成永久工程，占主导地位，**必须列入**进度计划。\n     - **运输类**：以运输为核心，**除非**占用工作面或影响工期，否则一般**不列入**。\n     - **制备类**：以生产为核心，**除非**占用工作面或影响工期，否则一般**不列入**。\n   - **符号**：$n$ ($n'$ 代表专业队)\n\n2. **流水强度 (Auxiliary Parameter)**\n   - **概念**：专业队在单位时间内的工程量 (产量)\n   - **别称**：生产能力、流水能力\n   - **影响因素**：\n     1. 产量定额\n     2. 资源投入量\n     3. 资源投入种类",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0003_002",
+        "json_page_num": 3,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0003_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "工艺参数与辅助参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工艺参数与辅助参数",
+      "unit_id": "lecture.schedule-network.0005"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1.  **概念**：以完成某项施工任务为目的，划分的若干个空间段落",
+          "2.  **本质**：空间段落（如：1号楼、2号楼...",
+          "路段1、路段2...）",
+          "3.  **符号**：“m”",
+          "4.  **目的**：组织流水施工",
+          "5.  **划分原则**："
+        ],
+        "mnemonics": [
+          "数空工位二"
+        ],
+        "must_mentions": [
+          "m",
+          "足够工作面",
+          "劳动量相等",
+          "结构界限",
+          "既分层又分段"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'施工段'与'施工过程'的区别；多层建筑划分时必须包含'层'的概念。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:流水施工参数"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "空间参数",
+        "流水施工空间参数",
+        "流水施工参数",
+        "施工进度管理",
+        "m",
+        "足够工作面",
+        "劳动量相等",
+        "结构界限",
+        "既分层又分段"
+      ],
+      "source_excerpt": "### 空间参数\n\n1.  **概念**：以完成某项施工任务为目的，划分的若干个空间段落。\n2.  **本质**：空间段落（如：1号楼、2号楼...；路段1、路段2...）。\n3.  **符号**：“m”\n4.  **目的**：组织流水施工\n5.  **划分原则**：\n    *   **数量原则**：施工段的数目要满足合理组织流水施工的要求。\n    *   **空间原则**：每个施工段内要有足够的工作面。\n    *   **工量原则**：同一专业队在各施工段上的劳动量应大致相等。\n    *   **位置原则**：施工段界限宜与结构界限吻合，或设在对结构影响较小的部位。\n    *   **二分原则**：多层建筑或分层施工的建筑，应既分层又分段。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0004_001",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0004_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "流水施工参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "流水施工参数",
+      "unit_id": "lecture.schedule-network.0006"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1.  **流水节拍 (t)**",
+          "2.  **流水节奏**",
+          "3.  **流水步距 (K)**",
+          "*   **公式**：若专业队数量为“n”，流水步距数量则为“n-1”",
+          "4.  **流水工期 (T)**",
+          "*   ① $T = (m + n' - 1)K$ （注：需加“施工间歇”，减“提前插入”）"
+        ],
+        "mnemonics": [
+          "步距n减1；工期加间歇减提前"
+        ],
+        "must_mentions": [
+          "t",
+          "K",
+          "n-1",
+          "最小时间间隔",
+          "加间歇减提前"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算工期时，务必注意是否有'技术间歇'（加）或'提前插入'（减）；步距K的数量是n-1。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:流水施工参数"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "时间参数",
+        "流水施工时间参数",
+        "流水施工参数",
+        "施工进度管理",
+        "t",
+        "K",
+        "n-1",
+        "最小时间间隔",
+        "加间歇减提前"
+      ],
+      "source_excerpt": "### 时间参数\n\n1.  **流水节拍 (t)**\n    *   **概念**：某一专业队在某个施工段上的持续时间。\n    *   **符号**：“t”\n2.  **流水节奏**\n    *   **概念**：流水节拍的组合规律。\n    *   **本质**：施工时间的规律性。\n3.  **流水步距 (K)**\n    *   **概念**：相邻两个施工过程（专业队）相继投入施工的**最小时间间隔**。\n    *   **符号**：“K”\n    *   **内涵**：流水步距的数目，取决于参加流水的专业队数。\n    *   **公式**：若专业队数量为“n”，流水步距数量则为“n-1”。\n4.  **流水工期 (T)**\n    *   **概念**：第一个n'开始，到最后一个n'完成的整个持续时间（不准确，应理解为总持续时间）。\n    *   **符号**：“T”（组织流水施工）\n    *   **公式**：\n        *   ① $T = (m + n' - 1)K$ （注：需加“施工间歇”，减“提前插入”）\n        *   ② $T = \\Sigma K + D_h$ ($D_h$为最后一个施工过程的持续时间)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0004_002",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0004_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "流水施工参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "流水施工参数",
+      "unit_id": "lecture.schedule-network.0007"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1.  **概念**：各个施工过程的流水节拍均相等",
+          "2.  **特性**：",
+          "*   **全等节拍**：所有施工段上的流水节拍均相等 ($t_1 = t_2 = ... = t$)",
+          "3.  **计算**：",
+          "*   $T = (m + n' - 1)K$"
+        ],
+        "mnemonics": [
+          "全等节拍步距同，一心一用无空闲"
+        ],
+        "must_mentions": [
+          "全等节拍",
+          "K=t",
+          "n'=n",
+          "一心一用"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "等节奏流水中，K直接等于t，不需要计算；n'直接等于n。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:等节奏流水施工"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第三节 三类流水施工方式",
+        "等节奏流水施工",
+        "施工进度管理",
+        "全等节拍",
+        "K=t",
+        "n'=n",
+        "一心一用"
+      ],
+      "source_excerpt": "### 第三节 三类流水施工方式\n\n#### 等节奏流水施工 (全等节拍/固定节拍)\n\n1.  **概念**：各个施工过程的流水节拍均相等。\n2.  **特性**：\n    *   **全等节拍**：所有施工段上的流水节拍均相等 ($t_1 = t_2 = ... = t$)。\n    *   **全等步距**：相邻施工过程流水步距相等，且等于流水节拍 ($K = t$)。\n    *   **一心一用**：一个施工过程配一个专业队 ($n' = n$)。\n    *   **没有空闲**：各专业队能够连续作业，施工段之间无空闲时间。\n3.  **计算**：\n    *   流水节拍 ($t$)：题目给定（明项）。\n    *   专业队 ($n'$)：题目给定（明项）。\n    *   施工段 ($M$)：题目给定（隐项）。\n    *   流水步距 ($K$)：看出来的（等于 $t$）。\n    *   流水工期 ($T$)：\n        *   $T = (m + n' - 1)K$\n        *   $T = \\Sigma K + D_h$\n        *   修正：加“间歇”，减“提前”",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0004_003",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0004_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "等节奏流水施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "等节奏流水施工",
+      "unit_id": "lecture.schedule-network.0008"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先判断案例做法是否正确，再给原因和正确做法。",
+        "formula_or_thresholds": [
+          "- 工程包含4个单体建筑（施工段 m=4）",
+          "- 划分为4个施工过程（n=4）",
+          "- 固定节拍流水施工，流水节拍 t=2天",
+          "- **条件**：过程II和过程III之间存在累计间歇时间1天（G=1）",
+          "- **公式**：$T = (m + n' - 1)K + \\Sigma G$",
+          "- **计算**：$T = (4 + 4 - 1) \\times 2 + 1 = 15$ 天"
+        ],
+        "mnemonics": [
+          "工期计算：(段+队-1)步 + 间 - 提"
+        ],
+        "must_mentions": [
+          "流水节拍",
+          "流水步距",
+          "工期",
+          "间歇",
+          "提前插入"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算工期时，务必注意题目中是否有'间歇'（需加）或'提前插入'（需减）的条件。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "example_case",
+      "intent": [
+        "case_application",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:等节奏流水施工工期计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "等节奏流水施工工期计算案例",
+        "等节奏流水施工",
+        "等节奏流水施工工期计算",
+        "施工进度管理",
+        "流水节拍",
+        "流水步距",
+        "工期",
+        "间歇",
+        "提前插入"
+      ],
+      "source_excerpt": "### 等节奏流水施工工期计算案例\n\n**背景参数**：\n- 工程包含4个单体建筑（施工段 m=4）\n- 划分为4个施工过程（n=4）\n- 固定节拍流水施工，流水节拍 t=2天\n\n**场景一：含间歇时间**\n- **条件**：过程II和过程III之间存在累计间歇时间1天（G=1）。\n- **公式**：$T = (m + n' - 1)K + \\Sigma G$\n- **计算**：$T = (4 + 4 - 1) \\times 2 + 1 = 15$ 天\n- **图解逻辑**：横道图中过程II与III之间存在1天的时间空挡（间歇）。\n\n**场景二：含提前插入**\n- **条件**：过程II各施工段提前一天开始施工（C=1）。\n- **公式**：$T = (m + n' - 1)K - \\Sigma C$\n- **计算**：$T = (4 + 4 - 1) \\times 2 - 1 = 13$ 天\n- **图解逻辑**：横道图中过程II的开始时间向左移动，与过程I存在时间重叠（提前插入）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0005_001",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0005_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "等节奏流水施工工期计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "等节奏流水施工工期计算",
+      "unit_id": "lecture.schedule-network.0009"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. **节拍不等**：各施工过程在各施工段的流水节拍不全相等",
+          "2. **步距不等**：相邻专业队流水步距不尽相等",
+          "3. **一心一用**：专业工作队数 = 施工过程数 ($n' = n$)",
+          "4. **可有空闲**：各专业队能够连续作业，但施工段之间可能存在空闲时间"
+        ],
+        "mnemonics": [
+          "无节奏：步拍不等，一心一用；计算：累加错位取大差"
+        ],
+        "must_mentions": [
+          "无节奏",
+          "累加数列",
+          "错位相减",
+          "取大差"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "无节奏流水施工中，专业队能连续作业，但施工段可能有空闲（区别于等节奏的'没有空闲'）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:无节奏流水施工特征与计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "无节奏流水施工",
+        "无节奏流水施工特征与计算",
+        "施工进度管理",
+        "无节奏",
+        "累加数列",
+        "错位相减",
+        "取大差"
+      ],
+      "source_excerpt": "### 无节奏流水施工\n\n**核心概念**：\n各施工过程在各个施工段上的流水节拍不完全相等。既不是等节奏，也不是异节奏。\n\n**主要特性**：\n1. **节拍不等**：各施工过程在各施工段的流水节拍不全相等。\n2. **步距不等**：相邻专业队流水步距不尽相等。\n3. **一心一用**：专业工作队数 = 施工过程数 ($n' = n$)。\n4. **可有空闲**：各专业队能够连续作业，但施工段之间可能存在空闲时间。\n\n**关键计算参数**：\n- **流水节拍 (t)**：题目给定（明项）。\n- **施工段 (M)**：题目给定（常为隐项，需分析）。\n- **专业队 (n')**：题目给定（明项）。\n- **流水步距 (K)**：**核心算法** —— \"累加节拍，错位相减，取大差\"。\n- **流水工期 (T)**：$T = \\Sigma K + Dh + \\Sigma Z + \\Sigma G - \\Sigma C$ \n  *(注：Dh在此处指最后一个专业队的持续时间总和)*",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0005_002",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0005_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "无节奏流水施工特征与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "无节奏流水施工特征与计算",
+      "unit_id": "lecture.schedule-network.0010"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "某工厂修建4台设备（A、B、C、D）的基础工程，包含基础开挖、基础处理、浇筑混凝土三个施工过程",
+          "| 基础开挖 | 2 | 3 | 2 | 2 |",
+          "| 基础处理 | 4 | 4 | 2 | 3 |",
+          "| 浇筑混凝土 | 2 | 3 | 2 | 3 |",
+          "1.  **累加节拍**：对每个施工过程的节拍进行累加",
+          "*   过程I（开挖）：2, 5, 7, 9"
+        ],
+        "mnemonics": [
+          "累加节拍，错位相减，取大差"
+        ],
+        "must_mentions": [
+          "累加数列",
+          "错位相减",
+          "取大差",
+          "流水步距"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算工期T时，注意最后加的是'最后一个施工过程在各段的持续时间之和' (Σtn)，而非最后一个施工段的持续时间。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:无节奏流水施工计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "无节奏流水施工工期计算（累加数列错位相减取大差法）",
+        "无节奏流水施工",
+        "无节奏流水施工计算",
+        "施工进度管理",
+        "累加数列",
+        "错位相减",
+        "取大差",
+        "流水步距"
+      ],
+      "source_excerpt": "### 无节奏流水施工工期计算（累加数列错位相减取大差法）\n\n**背景案例**：\n某工厂修建4台设备（A、B、C、D）的基础工程，包含基础开挖、基础处理、浇筑混凝土三个施工过程。各过程在各施工段上的流水节拍如下表：\n\n| 施工过程 | 设备A | 设备B | 设备C | 设备D |\n| :--- | :---: | :---: | :---: | :---: |\n| 基础开挖 | 2 | 3 | 2 | 2 |\n| 基础处理 | 4 | 4 | 2 | 3 |\n| 浇筑混凝土 | 2 | 3 | 2 | 3 |\n\n**计算步骤（大差法）**：\n1.  **累加节拍**：对每个施工过程的节拍进行累加。\n    *   过程I（开挖）：2, 5, 7, 9\n    *   过程II（处理）：4, 8, 10, 13\n    *   过程III（浇筑）：2, 5, 7, 10\n2.  **错位相减，取大差**：计算相邻过程的流水步距（K）。\n    *   **K1,2** (开挖-处理)：\n        ```\n          2  5  7  9\n        -)   4  8  10 13\n        ----------------\n          2  1 -1 -1 -13  => 最大值为 2\n        ```\n        **K1,2 = 2周**\n    *   **K2,3** (处理-浇筑)：\n        ```\n          4  8  10 13\n        -)   2  5  7  10\n        ----------------\n          4  6  5  6 -10  => 最大值为 6\n        ```\n        **K2,3 = 6周**\n3.  **计算工期**：\n    *   公式：$T = \\Sigma K + \\Sigma t_{last} + \\Sigma Z + \\Sigma G - \\Sigma C$\n    *   计算：$T = (2 + 6) + ",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0006_001",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0006_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "无节奏流水施工计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "无节奏流水施工计算",
+      "unit_id": "lecture.schedule-network.0011"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1.  **同一相同**：同一施工过程在各施工段上的流水节拍相等",
+          "2.  **不尽相同**：不同施工过程之间的流水节拍不尽相同（因此导致流水步距K不尽相同）",
+          "3.  **一心一用**：专业工作队数等于施工过程数 ($n' = n$)，即每个过程只配备一个专业队",
+          "4.  **可有空闲**：各专业队能连续作业，但施工段之间可能存在空闲时间（即没有时间间隔的说法不准确）"
+        ],
+        "mnemonics": [
+          "同一相同，不尽相同，一心一用，可有空闲"
+        ],
+        "must_mentions": [
+          "一般成倍节拍",
+          "异步距",
+          "n'=n"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "区分'异步距'与'等步距'：异步距是n'=n，步距K需计算；等步距是n'>n，步距K=最大公约数。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:异步距异节奏流水施工"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "异步距异节奏流水施工（一般成倍节拍流水施工）",
+        "异步距异节奏流水施工",
+        "施工进度管理",
+        "一般成倍节拍",
+        "异步距",
+        "n'=n"
+      ],
+      "source_excerpt": "### 异步距异节奏流水施工（一般成倍节拍流水施工）\n\n**核心概念**：\n*   **别名**：一般成倍节拍流水施工\n*   **核心**：同等节拍（指同一过程内部节拍相等）\n\n**主要特性（助记口诀）**：\n1.  **同一相同**：同一施工过程在各施工段上的流水节拍相等。\n2.  **不尽相同**：不同施工过程之间的流水节拍不尽相同（因此导致流水步距K不尽相同）。\n3.  **一心一用**：专业工作队数等于施工过程数 ($n' = n$)，即每个过程只配备一个专业队。\n4.  **可有空闲**：各专业队能连续作业，但施工段之间可能存在空闲时间（即没有时间间隔的说法不准确）。\n\n**计算参数**：\n*   流水节拍 ($t$)：题目给定（明项）。\n*   施工段 ($M$)：题目给定（隐项）。\n*   专业队 ($n'$)：题目给定（明项），且 $n' = n$。\n*   流水步距 ($K$)：采用**累加节拍、错位相减、取大差**法计算。\n*   流水工期 ($T$)：$T = \\Sigma K + D_h + \\Sigma Z + \\Sigma G - \\Sigma C$",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0006_002",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0006_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "异步距异节奏流水施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "异步距异节奏流水施工",
+      "unit_id": "lecture.schedule-network.0012"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按比较维度成组作答，避免只背单侧结论。",
+        "formula_or_thresholds": [
+          "| 施工过程 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50 | 55 | 60 |"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "无节奏流水",
+          "异步距"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "异步距异节奏流水施工虽然属于异节奏，但其计算方法与无节奏流水施工完全一致，不可使用成倍节拍公式。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "comparison_matrix",
+      "intent": [
+        "compare",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:异节奏流水施工"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "异步距异节奏流水施工",
+        "异节奏流水施工",
+        "施工进度管理",
+        "无节奏流水",
+        "异步距"
+      ],
+      "source_excerpt": "### 异步距异节奏流水施工\n\n**核心规则**：\n- 计算方法同“无节奏流水施工”。\n- 适用于不同施工过程流水节拍不完全相等的情况。\n\n**进度计划表（示例）**：\n| 施工过程 | 5 | 10 | 15 | 20 | 25 | 30 | 35 | 40 | 45 | 50 | 55 | 60 |\n| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n| 地基基础 | ① | ② | ③ | ④ | | | | | | | | |\n| 结构安装 | | ① | | ② | | ③ | | ④ | | | | |\n| 室内装修 | | | | ① | | ② | | ③ | | ④ | | |\n| 室外装修 | | | | | | | | | ① | ② | ③ | ④ |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0007_001",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0007_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "异节奏流水施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "异节奏流水施工",
+      "unit_id": "lecture.schedule-network.0013"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按比较维度成组作答，避免只背单侧结论。",
+        "formula_or_thresholds": [
+          "1. **同一相同**：同一过程流水节拍全等，不同过程流水节拍不尽相同，其值呈倍数关系",
+          "2. **步距相等**：各专业工作队之间的流水步距相等",
+          "3. **K取GCD**：流水步距(K)取流水节拍的最大公约数",
+          "4. **一心多用**：一个施工过程匹配多个专业队 ($n' > n$)",
+          "5. **可有空闲**：各专业队连续作业，各施工过程之间没有间隔时间",
+          "- **流水步距 (K)**：$K = GCD(t_1, t_2, ..., t_n)$ (最大公约数)"
+        ],
+        "mnemonics": [
+          "同一相同，一心多用，可有空闲"
+        ],
+        "must_mentions": [
+          "最大公约数",
+          "加快成倍节拍",
+          "专业队数"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "工期公式 T=(m+n'-1)K 中的 n' 必须代入所有专业队之和（Σn'），切勿代入施工过程数 n。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "comparison_matrix",
+      "intent": [
+        "compare",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:成倍节拍流水施工"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "等步距异节奏流水施工（成倍节拍流水施工）",
+        "成倍节拍流水施工",
+        "施工进度管理",
+        "最大公约数",
+        "加快成倍节拍",
+        "专业队数"
+      ],
+      "source_excerpt": "### 等步距异节奏流水施工（成倍节拍流水施工）\n\n**概念**：也叫加快的成倍节拍流水施工。\n**核心**：同等节拍，步距相同。\n\n**特性**：\n1. **同一相同**：同一过程流水节拍全等，不同过程流水节拍不尽相同，其值呈倍数关系。\n2. **步距相等**：各专业工作队之间的流水步距相等。\n3. **K取GCD**：流水步距(K)取流水节拍的最大公约数。\n4. **一心多用**：一个施工过程匹配多个专业队 ($n' > n$)。\n5. **可有空闲**：各专业队连续作业，各施工过程之间没有间隔时间。\n\n**计算公式**：\n- **流水步距 (K)**：$K = GCD(t_1, t_2, ..., t_n)$ (最大公约数)\n- **专业队数 (n')**：$n'_j = t_j / K$\n- **总专业队数 (N')**：$N' = \\sum n'_j$\n- **流水工期 (T)**：$T = (m + N' - 1) \\times K$",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0007_002",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0007_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "成倍节拍流水施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成倍节拍流水施工",
+      "unit_id": "lecture.schedule-network.0014"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "### 例题3：加快的成倍节拍流水施工计算",
+          "- **施工段数 (m)**：4",
+          "- 基础工程：5周",
+          "- 结构安装：10周",
+          "- 室内装修：10周",
+          "- 室外工程：5周"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "加快",
+          "成倍节拍"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "题目若未明确“加快的”，可能考查一般异节奏（异步距），需仔细审题。本题明确要求“加快的成倍节拍”。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:成倍节拍计算案例"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "例题3：加快的成倍节拍流水施工计算",
+        "成倍节拍流水施工案例",
+        "成倍节拍计算案例",
+        "施工进度管理",
+        "加快",
+        "成倍节拍"
+      ],
+      "source_excerpt": "### 例题3：加快的成倍节拍流水施工计算\n\n**背景**：\n某建设工程由**四幢**大板结构楼房组成，划分为基础工程、结构安装、室内装修和室外工程。\n\n**参数**：\n- **施工段数 (m)**：4\n- **流水节拍 (t)**：\n  - 基础工程：5周\n  - 结构安装：10周\n  - 室内装修：10周\n  - 室外工程：5周\n\n**要求**：\n监理工程师要求组织**加快的成倍节拍流水施工**。\n\n**计算过程解析**：\n1. **确定流水步距 (K)**：$K = GCD(5, 10, 10, 5) = 5$\n2. **确定专业队数 (n')**：\n   - 基础：$5/5 = 1$ 队\n   - 结构：$10/5 = 2$ 队\n   - 装修：$10/5 = 2$ 队\n   - 室外：$5/5 = 1$ 队\n   - **总队数 (N')**：$1+2+2+1 = 6$ 队\n\n**施工队配置表**：\n| 施工过程 | 专业队 | 施工段1 | 施工段2 | 施工段3 | 施工段4 |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| 基础工程 | 专业队1 | 5 | 5 | 5 | 5 |\n| 结构安装 | 专业队1 | 10 | 10 | 10 | 10 |\n| | 专业队2 | 10 | 10 | 10 | 10 |\n| 室内装修 | 专业队1 | 10 | 10 | 10 | 10 |\n| | 专业队2 | 10 | 10 | 10 | 10 |\n| 室外工程 | 专业队1 | 5 | 5 | 5 | 5 |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0007_003",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0007_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "成倍节拍计算案例"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成倍节拍计算案例",
+      "unit_id": "lecture.schedule-network.0015"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1.  **计算流水步距 (K)**",
+          "*   地基基础(5), 结构安装(10), 室内装修(10), 室外工程(5) -> **K = 5**",
+          "2.  **计算专业工作队数 (n')**",
+          "*   地基基础: $5/5 = 1$ 个",
+          "*   结构安装: $10/5 = 2$ 个",
+          "*   室内装修: $10/5 = 2$ 个"
+        ],
+        "mnemonics": [
+          "成倍节拍：约数定步距，除法算队数，总和代公式"
+        ],
+        "must_mentions": [
+          "最大公约数",
+          "K",
+          "n'",
+          "工期"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "公式 T=(m+n'-1)K 中的 n' 必须是所有专业队之和，而非施工过程数 n。注意本例中 n=4 但 Σn'=6。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:成倍节拍流水施工计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "成倍节拍流水施工计算步骤（例题解析）",
+        "成倍节拍流水施工",
+        "成倍节拍流水施工计算",
+        "施工进度管理",
+        "最大公约数",
+        "K",
+        "n'",
+        "工期"
+      ],
+      "source_excerpt": "### 成倍节拍流水施工计算步骤（例题解析）\n\n1.  **计算流水步距 (K)**\n    *   取各施工过程流水节拍的最大公约数。\n    *   地基基础(5), 结构安装(10), 室内装修(10), 室外工程(5) -> **K = 5**\n2.  **计算专业工作队数 (n')**\n    *   公式：$n'_j = t_j / K$\n    *   地基基础: $5/5 = 1$ 个\n    *   结构安装: $10/5 = 2$ 个\n    *   室内装修: $10/5 = 2$ 个\n    *   室外工程: $5/5 = 1$ 个\n    *   总队数 $\\Sigma n' = 1+2+2+1 = 6$ 个\n3.  **计算流水工期 (T)**\n    *   公式：$T = (m + \\Sigma n' - 1) \\times K$\n    *   计算：$(4 + 6 - 1) \\times 5 = 45$\n    *   注：原文计算结果标注为“45个月”，但结合图表坐标轴“施工进度(周)”，实际单位应为**周**。\n\n### 进度计划横道图逻辑\n*   **连续作业**：同一专业工作队在不同施工段上连续作业。\n*   **搭接施工**：不同专业工作队之间存在时间搭接，步距均为 K=5。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0008_001",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0008_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "成倍节拍流水施工计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "成倍节拍流水施工计算",
+      "unit_id": "lecture.schedule-network.0016"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 2024 | 0 | 4 | 4 |",
+          "| 2023 | 0 | 2 | 2 |",
+          "| 2022 | 0 | 10 | 10 |",
+          "| 2021 | 0 | 4 | 4 |",
+          "| 2020 | 0 | 5 | 5 |",
+          "*   网络计划章节在近五年（2020-2024）中，**选择题分值为0**，全部分值集中在**案例题**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "案例题"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "本章极少考选择题，切勿在纯理论记忆上浪费过多时间，重点攻克计算和绘图。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划分值分布"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划近五年分值排布",
+        "网络计划考情分析",
+        "网络计划分值分布",
+        "施工进度管理",
+        "案例题"
+      ],
+      "source_excerpt": "### 网络计划近五年分值排布\n\n| 年份 | 选择题 | 案例题 | 总分值 |\n| :--- | :---: | :---: | :---: |\n| 2024 | 0 | 4 | 4 |\n| 2023 | 0 | 2 | 2 |\n| 2022 | 0 | 10 | 10 |\n| 2021 | 0 | 4 | 4 |\n| 2020 | 0 | 5 | 5 |\n\n**考情分析**：\n*   网络计划章节在近五年（2020-2024）中，**选择题分值为0**，全部分值集中在**案例题**。\n*   2022年考察力度最大，达到10分。\n*   备考重点应放在案例分析实操上，而非单纯的概念记忆。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0008_002",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0008_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划分值分布"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划分值分布",
+      "unit_id": "lecture.schedule-network.0017"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1.  **第一组**：网络图、单代号、双代号",
+          "2.  **第二组**：实工作、虚工作（虚工作只在双代号中出现，不消耗时间与资源，只起逻辑联系作用）",
+          "3.  **第三组**：先行工作、后续工作、紧前工作、紧后工作、平行工作",
+          "4.  **第四组**：工艺关系、组织关系",
+          "5.  **第五组**：计算工期 ($T_c$)、计划工期 ($T_p$)、要求工期 ($T_r$)",
+          "6.  **第六组**：关键线路、关键工作、关键节点"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "虚工作",
+          "关键线路",
+          "计算工期"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "虚工作虽然持续时间为0，但在计算时间参数时必须参与运算，且可能位于关键线路上。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划七组概念"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划七组核心概念",
+        "网络计划基础概念",
+        "网络计划七组概念",
+        "施工进度管理",
+        "虚工作",
+        "关键线路",
+        "计算工期"
+      ],
+      "source_excerpt": "### 网络计划七组核心概念\n\n1.  **第一组**：网络图、单代号、双代号\n2.  **第二组**：实工作、虚工作（虚工作只在双代号中出现，不消耗时间与资源，只起逻辑联系作用）\n3.  **第三组**：先行工作、后续工作、紧前工作、紧后工作、平行工作\n4.  **第四组**：工艺关系、组织关系\n5.  **第五组**：计算工期 ($T_c$)、计划工期 ($T_p$)、要求工期 ($T_r$)\n6.  **第六组**：关键线路、关键工作、关键节点\n7.  **第七组**：原合同工期、新合同工期、实际工期",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0008_003",
+        "json_page_num": 8,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0008_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划七组概念"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划七组概念",
+      "unit_id": "lecture.schedule-network.0018"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **九秒参数四定法**",
+          "2. **定点定波定房线**",
+          "1. **早参数**：早开始 (ES)、早完成 (EF)、自由时差 (FF)",
+          "2. **晚参数**：晚开始 (ES)、晚完成 (EF)、总时差 (FF)  *(注：原文此处晚参数括号内标注有误，标准应为 LS、LF、TF)*",
+          "1. 节点原则",
+          "2. 箭线原则"
+        ],
+        "mnemonics": [
+          "高铁进站：九秒参数四定法，定点定波定房线；偏差分析：定点连线三分析一预测"
+        ],
+        "must_mentions": [
+          "ES",
+          "EF",
+          "FF",
+          "LS",
+          "LF",
+          "TF",
+          "节点原则",
+          "箭线原则",
+          "整合分析法"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意讲义中'晚参数'部分的英文缩写印刷错误，考试时务必使用标准缩写 LS(Late Start), LF(Late Finish), TF(Total Float)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划时间参数与偏差分析"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第二节 六类时参",
+        "网络计划时间参数",
+        "网络计划时间参数与偏差分析",
+        "施工进度管理",
+        "ES",
+        "EF",
+        "FF",
+        "LS",
+        "LF",
+        "TF"
+      ],
+      "source_excerpt": "### 第二节 六类时参\n\n#### 考点一、高铁进站\n1. **九秒参数四定法**\n2. **定点定波定房线**\n\n#### 考点二、基础概念\n1. **早参数**：早开始 (ES)、早完成 (EF)、自由时差 (FF)\n2. **晚参数**：晚开始 (ES)、晚完成 (EF)、总时差 (FF)  *(注：原文此处晚参数括号内标注有误，标准应为 LS、LF、TF)*\n\n### 第三节 图形绘制\n\n#### 考点一、绘图规则\n1. 节点原则\n2. 箭线原则\n\n#### 考点二、绘图方法\n- 整合分析法\n\n### 第四节 逻辑关系调整\n\n#### 考点一、改变逻辑关系\n#### 考点二、补充逻辑关系\n\n### 第五节 偏差分析\n\n#### 考点一、定点连线三分析一预测\n1. 定点连线\n2. 三分析\n3. 定点连线三分析\n4. 定点连线三分析一预测\n\n### 第六节 网络与流水\n\n#### 考点一、网络转流水",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0009_001",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0009_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划时间参数与偏差分析"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划时间参数与偏差分析",
+      "unit_id": "lecture.schedule-network.0019"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. 工程风险",
+          "2. 合同责任",
+          "3. 工程试车",
+          "1. 网络清单",
+          "2. 工期奖罚",
+          "1. 进度管理应遵循的程序？"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "工程风险",
+          "合同责任",
+          "网络清单",
+          "工期奖罚",
+          "施工总进度计划",
+          "进度监测报告",
+          "工期优化",
+          "费用优化",
+          "资源优化"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'施工总进度计划'与'单位工程进度计划'的内容差异；掌握工期优化的选择原则（压缩关键工作、压缩潜力大、费用增加少）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:进度控制理论与网络索赔"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第七节 网络与索赔",
+        "施工进度管理体系",
+        "进度控制理论与网络索赔",
+        "施工进度管理",
+        "工程风险",
+        "合同责任",
+        "网络清单",
+        "工期奖罚",
+        "施工总进度计划",
+        "进度监测报告"
+      ],
+      "source_excerpt": "### 第七节 网络与索赔\n\n#### 考点一、常规索赔\n1. 工程风险\n2. 合同责任\n3. 工程试车\n\n#### 考点二、非常规索赔\n1. 网络清单\n2. 工期奖罚\n\n### 第八节 进度控制理论\n\n#### 考点一、施工进度管理\n1. 进度管理应遵循的程序？\n2. 正式进度控制前，施工单位还需做好哪些工作？\n\n#### 考点二、施工进度计划编制\n1. 按照编制对象不同，可编制哪些施工进度计划？\n2. 施工总进度计划的主要内容包括哪些？\n3. 施工进度总计划编制说明包含哪些内容？\n4. 单位工程进度计划编制步骤还应包括哪些内容？\n5. 施工进度计划的编制与审查\n\n#### 考点三、施工进度监测\n1. 施工进度监测的方法包括哪些？\n2. 《进度监测报告》主要内容还包括哪些？\n\n#### 考点四、施工进度调整\n1. 施工进度计划的调整步骤。\n2. 简述施工进度计划的调整内容。\n3. 简述在进行工期优化时，应根据哪些因素来考虑优化对象。\n4. 简述费用优化的目的和资源优化的两种模式。\n5. 简述费用优化和资源优化的前提条件。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0010_001",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0010_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "进度控制理论与网络索赔"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "进度控制理论与网络索赔",
+      "unit_id": "lecture.schedule-network.0020"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1.  **图示形式**：网络图、单代号、双代号",
+          "2.  **工作类型**：实工作、虚工作",
+          "3.  **逻辑关系**：先行、后续、紧前、紧后、平行",
+          "4.  **关键要素**：关键线路、关键工作、关键节点",
+          "5.  **工期参数**：计算工期、计划工期、要求工期",
+          "6.  **合同工期**：原合同工期、新合同工期、实际工期"
+        ],
+        "mnemonics": [
+          "七组概念：图、工、关、键、期、合、逻"
+        ],
+        "must_mentions": [
+          "网络图",
+          "单代号",
+          "双代号",
+          "实工作",
+          "虚工作"
+        ],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划七组概念"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划：七组概念",
+        "网络计划技术",
+        "网络计划七组概念",
+        "施工进度管理",
+        "网络图",
+        "单代号",
+        "双代号",
+        "实工作",
+        "虚工作"
+      ],
+      "source_excerpt": "### 网络计划：七组概念\n\n本章节核心围绕七组关键概念展开，是理解网络计划技术的基础：\n\n1.  **图示形式**：网络图、单代号、双代号\n2.  **工作类型**：实工作、虚工作\n3.  **逻辑关系**：先行、后续、紧前、紧后、平行\n4.  **关键要素**：关键线路、关键工作、关键节点\n5.  **工期参数**：计算工期、计划工期、要求工期\n6.  **合同工期**：原合同工期、新合同工期、实际工期\n7.  **相互关系**：工艺关系、组织关系",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0011_001",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0011_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划七组概念"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划七组概念",
+      "unit_id": "lecture.schedule-network.0021"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **概念**：由“节点”和“箭线”组成，表示工作流程的“有向有序”网状图形",
+          "2. **分类**：",
+          "3. **工作内容**：均包含“实工作”和“虚工作”两类",
+          "1. **定义**：以两端节点及箭线表示工作的网络图",
+          "2. **构成**：",
+          "1. **定义**：以节点及编号表示工作，箭线表示工作间逻辑关系"
+        ],
+        "mnemonics": [
+          "双箭单节"
+        ],
+        "must_mentions": [
+          "有向有序",
+          "箭线式",
+          "节点式",
+          "实工作",
+          "虚工作"
+        ],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络图分类与构成"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第一组：网络图、单代号、双代号",
+        "网络图",
+        "网络图分类与构成",
+        "施工进度管理",
+        "有向有序",
+        "箭线式",
+        "节点式",
+        "实工作",
+        "虚工作"
+      ],
+      "source_excerpt": "### 第一组：网络图、单代号、双代号\n\n#### 一、网络图\n1. **概念**：由“节点”和“箭线”组成，表示工作流程的“有向有序”网状图形。\n2. **分类**：\n   - **双代号** (箭线式)\n   - **单代号** (节点式)\n3. **工作内容**：均包含“实工作”和“虚工作”两类。\n\n#### 二、双代号网络图 (箭线式)\n1. **定义**：以两端节点及箭线表示工作的网络图。\n2. **构成**：\n   - **箭线**：表示工作 (Work)，上方标名称，下方标持续时间。\n   - **节点**：表示工作的开始或结束。\n   - **虚箭线**：表示虚工作 (Dummy Work)。\n\n#### 三、单代号网络图 (节点式)\n1. **定义**：以节点及编号表示工作，箭线表示工作间逻辑关系。\n2. **构成**：\n   - **节点**：表示工作 (Work)，内含编号、名称、持续时间。\n   - **箭线**：仅表示逻辑关系 (Logical Relationship)。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0011_002",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0011_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络图分类与构成"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络图分类与构成",
+      "unit_id": "lecture.schedule-network.0022"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "**(1) 双代号网络计划**：",
+          "**(2) 单代号网络计划**：",
+          "1. **后续工作**：与本工作结束有关的后续线路上的所有工作",
+          "2. **先行工作**：与本工作开始有关的先行线路上的所有工作",
+          "3. **紧前工作**：紧排在本工作之前的工作",
+          "4. **紧后工作**：紧排在本工作之后的工作"
+        ],
+        "mnemonics": [
+          "虚工作三作用：区分、联系、断路"
+        ],
+        "must_mentions": [
+          "实工作",
+          "虚工作",
+          "区分",
+          "联系",
+          "断路",
+          "紧前",
+          "紧后"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'紧前'（直接相连）与'先行'（路径上之前所有）；虚工作虽无时长但决定关键线路走向。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划技术"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第二组：实工作、虚工作",
+        "网络计划工作类型",
+        "网络计划技术",
+        "施工进度管理",
+        "实工作",
+        "虚工作",
+        "区分",
+        "联系",
+        "断路",
+        "紧前"
+      ],
+      "source_excerpt": "### 第二组：实工作、虚工作\n\n#### 一、实工作\n占用时间、消耗资源（或只占用时间）且实际存在的某项工作。\n\n#### 二、虚工作\n既不占用时间，也不消耗资源，用来表达紧前紧后工作间的逻辑关系。\n\n**(1) 双代号网络计划**：\n- **表示方法**：用**虚箭线**表示。\n- **作用**：**区分**、**联系**、**断路**。\n\n**(2) 单代号网络计划**：\n- ① 表示虚拟的起始或结束工作；\n- ② 用来处理网络图中由多个起点节点或多个终点节点。\n\n### 第三组：先行、后续、紧前、紧后、平行\n\n1. **后续工作**：与本工作结束有关的后续线路上的所有工作。\n2. **先行工作**：与本工作开始有关的先行线路上的所有工作。\n3. **紧前工作**：紧排在本工作之前的工作。\n4. **紧后工作**：紧排在本工作之后的工作。\n5. **平行工作**：没有先行后续关系的工作。\n\n#### 举个栗子（逻辑关系示例）：\n- **先行工作**：A是C/F/D/G工作的先行工作\n- **后续工作**：C/F/D/G是A的后续工作\n- **紧前工作**：B是D/E的紧前\n- **紧后工作**：D/E是B的紧后\n- **平行工作**：A/B互为平行，CDE互为平行",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0012_001",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0012_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划技术"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划技术",
+      "unit_id": "lecture.schedule-network.0023"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "**1. 定义**",
+          "1.  总持续时间最长的线路",
+          "2.  由关键工作组成，且时间间隔为零的线路",
+          "**2. 判定规则与限制条件**",
+          "| **单代号一般** | 相邻两项工作时间间隔为零 (LAG=0) | 陷阱：由关键工作组成的线路**不一定**是关键线路 |",
+          "| **单代号搭接** | 相邻两项工作时间间隔为零 (LAG=0) | 陷阱：持续时间之和最大的线路**不一定**是关键线路 |"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "table_lookup"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:关键线路判定"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "关键线路 (Critical Path)",
+        "关键线路判定",
+        "施工进度管理"
+      ],
+      "source_excerpt": "### 关键线路 (Critical Path)\n\n**1. 定义**\n*   **线路**：从起点节点开始，顺着箭线通往终点节点的通路。\n*   **万能定义**：\n    1.  总持续时间最长的线路。\n    2.  由关键工作组成，且时间间隔为零的线路。\n\n**2. 判定规则与限制条件**\n\n| 网络计划类型 | 判定规则 | 备注/陷阱 |\n| :--- | :--- | :--- |\n| **单代号一般 + 双代号** | 线路上的各项工作持续时间之和最大 | **排除**：单代号搭接网络 |\n| **单代号一般** | 相邻两项工作时间间隔为零 (LAG=0) | 陷阱：由关键工作组成的线路**不一定**是关键线路 |\n| **单代号搭接** | 相邻两项工作时间间隔为零 (LAG=0) | 陷阱：持续时间之和最大的线路**不一定**是关键线路 |\n| **双代号时标** | 由关键工作组成的线路 | 前提：Tp=Tc |\n| **双代号时标** | 自始至终没有波形线的线路 | 前提：Tp=Tc |\n\n**3. 核心陷阱 (Visual Cues)**\n*   **搭接网络陷阱**：如图所示，关键线路是 D→G (虚拟工作不算)，而持续时间相加最大的 A→C→G→I 属于非关键线路。\n*   **关键工作陷阱**：如图所示，A/B/C/G 为关键工作，但其组成的线路却并非关键线路（特指单代号网络或特定复杂情况）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0013_001",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0013_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "关键线路判定"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "关键线路判定",
+      "unit_id": "lecture.schedule-network.0024"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **单代号网络计划**（含搭接网络）：",
+          "- **陷阱提示**：如图所示，即使某一段线路（如 C→G→J）的相邻工作时间间隔为0，若其未贯通或不是最长线路，仍可能不是关键线路",
+          "2. **双代号时标网络计划**：",
+          "1. **万能定义**：",
+          "2. **工期与时差关系**：",
+          "- 当 **Tp = Tc** 时：总时差为 **0** 的工作为关键工作"
+        ],
+        "mnemonics": [
+          "单代号看间隔零，时标看波形线；Tp大于Tc时，波形线也是关键。"
+        ],
+        "must_mentions": [
+          "时间间隔",
+          "波形线",
+          "总时差最小",
+          "Tp",
+          "Tc"
+        ],
+        "red_lines": [
+          "Tp>Tc时，波形线不等于自由时差"
+        ],
+        "trap_alerts": [
+          "注意题目给定的计划工期Tp与计算工期Tc的关系。若Tp>Tc，关键线路会有波形线，关键工作总时差>0。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:关键线路与关键工作"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "关键线路判定规则",
+        "关键线路",
+        "关键线路与关键工作",
+        "施工进度管理",
+        "时间间隔",
+        "波形线",
+        "总时差最小",
+        "Tp",
+        "Tc"
+      ],
+      "source_excerpt": "### 关键线路判定规则\n\n1. **单代号网络计划**（含搭接网络）：\n   - **判定标准**：从起点到终点，相邻两项工作之间**时间间隔（LAG）均为零**的线路。\n   - **陷阱提示**：如图所示，即使某一段线路（如 C→G→J）的相邻工作时间间隔为0，若其未贯通或不是最长线路，仍可能不是关键线路。\n\n2. **双代号时标网络计划**：\n   - **标准情况 (Tp = Tc)**：自始至终**没有波形线**的线路为关键线路。\n   - **特殊情况 (Tp > Tc)**：关键线路上**也会有波形线**。此时波形线代表的是计划工期与计算工期的差值（即总时差），而非自由时差。\n\n### 关键工作定义\n\n1. **万能定义**：\n   - 关键线路上的工作。\n   - **总时差最小**的工作（最核心定义）。\n   - 迟完成与早完成差值（或迟开始与早开始差值）最小的工作。\n\n2. **工期与时差关系**：\n   - 当 **Tp = Tc** 时：总时差为 **0** 的工作为关键工作。\n   - 当 **Tp > Tc** 时：总时差**最小**（但大于0）的工作为关键工作。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0014_001",
+        "json_page_num": 14,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0014_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "关键线路与关键工作"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "关键线路与关键工作",
+      "unit_id": "lecture.schedule-network.0025"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 关键节点与关键线路",
+          "#### 2. 关键节点与关键工作"
+        ],
+        "mnemonics": [
+          "线必点，点必线；两端关键未必关键"
+        ],
+        "must_mentions": [
+          "关键节点",
+          "总时差等于自由时差"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "特别注意：'开始和完成节点均为关键节点的工作'不一定是关键工作，这是案例题找关键线路的常见干扰项。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:关键节点判定特性"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "三、关键节点",
+        "关键节点",
+        "关键节点判定特性",
+        "施工进度管理",
+        "总时差等于自由时差"
+      ],
+      "source_excerpt": "### 三、关键节点\n\n#### 1. 关键节点与关键线路\n- **包含关系**：关键线路上的节点**必为**关键节点。\n- **位置属性**：关键节点**必然**处在关键线路上。\n- **逆向陷阱**：以关键节点为完成节点的线路**未必**是关键线路。\n\n#### 2. 关键节点与关键工作\n- **端点属性**：关键工作的两端节点**必然**为关键节点。\n- **组成陷阱**：关键节点组成的工作**未必**是关键工作。\n- **判定失效**：以关键节点为完成节点的工作未必是关键工作；开始和完成节点均为关键节点的工作，**未必**是关键工作。\n- **时差特性**：关键节点为完成节点的工作，**总时差 = 自由时差** (TF = FF)。\n\n#### 图示解析\n如图所示网络图中，节点 ①、②、③、④、⑤、⑥ 均为关键节点，但由其组成的线路（如 ①→②→③→⑤→⑥）均为**非关键线路**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0015_001",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0015_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "关键节点判定特性"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "关键节点判定特性",
+      "unit_id": "lecture.schedule-network.0026"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. **概念**：指由工艺过程或工作程序决定的先后顺序关系",
+          "2. **类别**：",
+          "1. **概念**：出于组织安排或资源调配需要而规定的先后顺序关系",
+          "2. **示例**：绑钢筋1 → 绑钢筋2",
+          "绑钢筋2 → 绑钢筋1（取决于施工队流向）"
+        ],
+        "mnemonics": [
+          "工艺不可变，组织可以变"
+        ],
+        "must_mentions": [
+          "工艺关系",
+          "组织关系"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "判断逻辑关系是否可调时，需区分是技术原因（工艺）还是资源原因（组织）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工艺与组织关系"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第五组：工艺关系、组织关系",
+        "逻辑关系",
+        "工艺与组织关系",
+        "施工进度管理",
+        "工艺关系",
+        "组织关系"
+      ],
+      "source_excerpt": "### 第五组：工艺关系、组织关系\n\n#### 一、工艺关系：不可改变\n1. **概念**：指由工艺过程或工作程序决定的先后顺序关系。\n2. **类别**：\n   - **大工艺**：地基基础 → 主体结构 → 装饰装修\n   - **小工艺**：基坑支护 → 土方开挖 → 土方回填\n\n#### 二、组织关系：可以改变\n1. **概念**：出于组织安排或资源调配需要而规定的先后顺序关系。\n2. **示例**：绑钢筋1 → 绑钢筋2；绑钢筋2 → 绑钢筋1（取决于施工队流向）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0015_002",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0015_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "工艺与组织关系"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工艺与组织关系",
+      "unit_id": "lecture.schedule-network.0027"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 计算工期 (Tc)",
+          "#### 2. 计划工期 (Tp)",
+          "#### 3. 要求工期 (Tr)",
+          "#### 4. 三者关系",
+          "- **必须调整**：`Tc > Tp > Tr` 或 `Tc = Tp > Tr` (即计算工期或计划工期超过了合同要求)"
+        ],
+        "mnemonics": [
+          "C算，P计，R要"
+        ],
+        "must_mentions": [
+          "Tc",
+          "Tp",
+          "Tr"
+        ],
+        "red_lines": [
+          "计划工期超过要求工期"
+        ],
+        "trap_alerts": [
+          "注意题目中若未给出要求工期Tr，通常默认 Tp = Tc。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:三类工期关系"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第六组：要求工期、计划工期、计算工期",
+        "工期参数",
+        "三类工期关系",
+        "施工进度管理",
+        "Tc",
+        "Tp",
+        "Tr"
+      ],
+      "source_excerpt": "### 第六组：要求工期、计划工期、计算工期\n\n#### 1. 计算工期 (Tc)\n- **概念**：根据网络计划时间参数计算而得到的工期。\n- **符号**：`Tc`\n\n#### 2. 计划工期 (Tp)\n- **概念**：项目经理目标责任书当中载明的目标工期。\n- **符号**：`Tp`\n\n#### 3. 要求工期 (Tr)\n- **概念**：发包人在合同中所提出的指令性工期（即合同工期）。\n- **符号**：`Tr`\n\n#### 4. 三者关系\n- **理想状态**：`Tc < Tp < Tr` (计算 < 计划 < 合同)\n- **正常状态**：`Tc = Tp = Tr`\n- **必须调整**：`Tc > Tp > Tr` 或 `Tc = Tp > Tr` (即计算工期或计划工期超过了合同要求)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0015_003",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0015_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "三类工期关系"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "三类工期关系",
+      "unit_id": "lecture.schedule-network.0028"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按比较维度成组作答，避免只背单侧结论。",
+        "formula_or_thresholds": [
+          "1. **原合同工期**",
+          "1. 编制进度计划的依据",
+          "2. 控制实际进度的依据",
+          "3. **工期索赔的依据**",
+          "2. **新合同工期**",
+          "1. 调整进度计划的依据"
+        ],
+        "mnemonics": [
+          "首索比原，再索比新，结算比实"
+        ],
+        "must_mentions": [
+          "签约工期",
+          "延期索赔",
+          "实际进度",
+          "工期奖罚"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'工期索赔依据'与'再次索赔依据'的区别：首次索赔基于原合同，再次索赔基于上一次确定的新合同工期。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "comparison_matrix",
+      "intent": [
+        "compare",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工期类型与索赔依据"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "原合同工期、新合同工期、实际工期",
+        "合同工期体系",
+        "工期类型与索赔依据",
+        "工程合同管理",
+        "签约工期",
+        "延期索赔",
+        "实际进度",
+        "工期奖罚"
+      ],
+      "source_excerpt": "### 原合同工期、新合同工期、实际工期\n\n1. **原合同工期**\n   - **概念**: 签约工期（计划工期）。\n   - **作用**: \n     1. 编制进度计划的依据；\n     2. 控制实际进度的依据；\n     3. **工期索赔的依据**。\n\n2. **新合同工期**\n   - **概念**: 签约工期 + 延期索赔。\n   - **作用**: \n     1. 调整进度计划的依据；\n     2. 控制实际进度的依据；\n     3. 进行“再次”索赔的依据。\n\n3. **实际工期**\n   - **概念**: 工程开工到竣工所耗用的时间。\n   - **作用**: 工期提前奖 or 拖期罚款。\n\n#### 索赔与结算逻辑\n- **首次索赔**: 原合同工期 VS 新合同工期\n- **再次索赔**: 新合同工期1 VS 新合同工期2\n- **竣工结算**: 新合同工期2 VS 实际工期",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A432020_P0016_001",
+        "json_page_num": 16,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A432020_P0016_001"
+      },
+      "taxonomy": {
+        "node_code": "1A432020",
+        "node_name": "工程合同管理",
+        "topic": "工期类型与索赔依据"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工期类型与索赔依据",
+      "unit_id": "lecture.schedule-network.0029"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **节点表示**: 用圆圈表示，并在圆圈内编号",
+          "2. **编号顺序**: 应从左至右，从小到大",
+          "3. **拓扑结构**: 网络图中只能有一个起点节点和一个终点节点",
+          "4. **工作定义**: 一项工作配一条箭线和一对节点编号"
+        ],
+        "mnemonics": [
+          "编号左右小到大，头大尾小不重复"
+        ],
+        "must_mentions": [
+          "圆圈编号",
+          "从左至右",
+          "从小到大",
+          "严禁重复",
+          "头大尾小"
+        ],
+        "red_lines": [
+          "节点编号重复",
+          "多起点或多终点"
+        ],
+        "trap_alerts": [
+          "节点编号可以不连续，但绝对不能重复。箭线方向必须是从小号节点指向大号节点。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:双代号网络图绘图规则"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "双代号网络图：节点原则",
+        "双代号网络图",
+        "双代号网络图绘图规则",
+        "施工进度管理",
+        "圆圈编号",
+        "从左至右",
+        "从小到大",
+        "严禁重复",
+        "头大尾小"
+      ],
+      "source_excerpt": "### 双代号网络图：节点原则\n\n1. **节点表示**: 用圆圈表示，并在圆圈内编号。\n2. **编号顺序**: 应从左至右，从小到大。\n   - **规则**: 可不连续，**严禁重复**。\n3. **拓扑结构**: 网络图中只能有一个起点节点和一个终点节点。\n4. **工作定义**: 一项工作配一条箭线和一对节点编号。\n   - **编号逻辑**: 箭尾节点编号 < 箭头节点编号 (**头大尾小**)。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0016_002",
+        "json_page_num": 16,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0016_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "双代号网络图绘图规则"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "双代号网络图绘图规则",
+      "unit_id": "lecture.schedule-network.0030"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1.  **线形与方向**：箭线应为水平直线、垂直直线或折线，且方向应**自左向右**",
+          "2.  **多箭线处理**：当起始节点有多条外向箭线，或终点节点有多条内向箭线时，可使用**母线法**绘图",
+          "3.  **循环回路**：网络计划**不得出现循环回路**",
+          "4.  **交叉处理**：箭线不宜交叉，当交叉不可避免时，可用**过桥法**或**指向法**",
+          "5.  **箭头要求**：不得出现双向箭头或无箭头连线",
+          "6.  **节点要求**：不得出现无箭尾节点或无箭头节点的箭线"
+        ],
+        "mnemonics": [
+          "左向右，无回路，线中不生线"
+        ],
+        "must_mentions": [
+          "循环回路",
+          "过桥法",
+          "母线法",
+          "自左向右"
+        ],
+        "red_lines": [
+          "不得出现循环回路",
+          "严禁在箭线上引入或引出箭线"
+        ],
+        "trap_alerts": [
+          "注意区分'母线法'（用于多条线共用节点）和'过桥法'（用于线交叉）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:双代号网络图绘图规则"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "二、箭线原则",
+        "双代号网络图箭线",
+        "双代号网络图绘图规则",
+        "施工进度管理",
+        "循环回路",
+        "过桥法",
+        "母线法",
+        "自左向右"
+      ],
+      "source_excerpt": "### 二、箭线原则\n\n1.  **线形与方向**：箭线应为水平直线、垂直直线或折线，且方向应**自左向右**。\n2.  **多箭线处理**：当起始节点有多条外向箭线，或终点节点有多条内向箭线时，可使用**母线法**绘图。\n3.  **循环回路**：网络计划**不得出现循环回路**。\n4.  **交叉处理**：箭线不宜交叉，当交叉不可避免时，可用**过桥法**或**指向法**。\n5.  **箭头要求**：不得出现双向箭头或无箭头连线。\n6.  **节点要求**：不得出现无箭尾节点或无箭头节点的箭线。\n7.  **引用规则**：**严禁**在箭线上引入或引出箭线（必须节点对节点）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "双代号网络图绘图规则"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "双代号网络图绘图规则",
+      "unit_id": "lecture.schedule-network.0031"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1.  **逆向转顺向**：",
+          "2.  **二次整合（寻找共性）**："
+        ],
+        "mnemonics": [
+          "逆转顺，找相同"
+        ],
+        "must_mentions": [
+          "逆向逻辑关系",
+          "顺向逻辑关系",
+          "二次整合"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "题目通常只给'紧前工作'，直接画图容易出错，必须先转化为'紧后工作'并合并同类项。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络图逻辑关系整合"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划：绘图方法",
+        "逻辑关系整合",
+        "网络图逻辑关系整合",
+        "施工进度管理",
+        "逆向逻辑关系",
+        "顺向逻辑关系",
+        "二次整合"
+      ],
+      "source_excerpt": "### 网络计划：绘图方法\n\n#### 步骤一：整合逻辑关系表\n网络图绘制通常根据“逆向逻辑关系表”（紧前工作）整理出“顺向逻辑关系表”（紧后工作），并进行**二次整合**。\n\n**核心逻辑**：将有**共同紧后工作**的紧前工作整理在一起，形成一张新的逻辑关系表，以便共用完成节点或后续路径。\n\n#### 逻辑转化示例\n1.  **逆向转顺向**：\n    *   已知 D的紧前是A -> A的紧后是D\n    *   已知 E的紧前是AB -> A的紧后是E, B的紧后是E\n    *   **推导结果**：A的紧后是DE\n\n2.  **二次整合（寻找共性）**：\n    *   **C** 的紧后是 F, H, I\n    *   **E** 的紧后是 F, H, I\n    *   **结论**：C和E拥有完全相同的紧后工作组合，绘图时C和E可以指向同一个后续逻辑节点。\n    *   同理：**I** 和 **L** 的紧后均为 M, N；**J** 和 **K** 的紧后均为 M。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0017_002",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0017_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络图逻辑关系整合"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络图逻辑关系整合",
+      "unit_id": "lecture.schedule-network.0032"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "*   **过桥法示例**：图中节点3与节点7之间的连线，在跨越节点2-5的连线时，使用了半圆形“过桥”符号，表示两线**不相交**",
+          "*   **节点编号**：图中节点编号为1至9，遵循了“从小到大”的原则（1->2, 1->3...）",
+          "*   节点1分出两条箭线（1-2, 1-3）",
+          "*   节点5汇入三条箭线（2-5, 4-5, 8-5）"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络图视觉元素"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "视觉图解分析",
+        "网络图图例解析",
+        "网络图视觉元素",
+        "施工进度管理"
+      ],
+      "source_excerpt": "### 视觉图解分析\n\n*   **过桥法示例**：图中节点3与节点7之间的连线，在跨越节点2-5的连线时，使用了半圆形“过桥”符号，表示两线**不相交**。\n*   **节点编号**：图中节点编号为1至9，遵循了“从小到大”的原则（1->2, 1->3...）。\n*   **逻辑关系**：\n    *   节点1分出两条箭线（1-2, 1-3）。\n    *   节点5汇入三条箭线（2-5, 4-5, 8-5）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0017_003",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0017_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络图视觉元素"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络图视觉元素",
+      "unit_id": "lecture.schedule-network.0033"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "- **图示逻辑**：C -> Node 5, D -> Node 5, Node 5 -> E",
+          "通过共用节点 5，表示 C 和 D 完成后 E 才能开始"
+        ],
+        "mnemonics": [
+          "绘图口诀：唯一直接连，共有中间站；同后共节点，多看防错乱。"
+        ],
+        "must_mentions": [
+          "相对唯一性",
+          "节点共用",
+          "多看一眼"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "在'相对唯一性'情形一中，容易错误地将D画在A后面，导致B需要通过长虚线连接，增加绘图复杂度。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划绘图方法"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "步骤二：遵循三大绘图原则",
+        "网络计划绘图原则",
+        "网络计划绘图方法",
+        "施工进度管理",
+        "相对唯一性",
+        "节点共用",
+        "多看一眼"
+      ],
+      "source_excerpt": "### 步骤二：遵循三大绘图原则\n\n逻辑关系的二次整合，是图形绘制中最重要的一个环节！它可以极大地提高绘图的正确率，使整个绘图过程更加高效、顺畅。\n\n#### 原则一：相对唯一性\n\n**情形一**：A 的紧后工作是 C 和 D，B 的紧后工作只有 D。此时，D 工作画在 B 工作后面。\n- **逻辑解析**：D 是 B 的唯一紧后，但只是 A 的紧后之一。因此 D 与 B 的关系更紧密（直接相连），A 与 D 通过虚箭线或节点联系。\n\n**情形二**：A 的紧后工作是 C 和 D，B 的紧后工作为 D 和 E。此时，“D”有共同的紧前工作 A 和 B，“D”就安置在 A、B 工作之间。\n- **逻辑解析**：D 是 A 和 B 的公共紧后，应设置独立节点汇聚 A 和 B 的逻辑关系（通常通过虚箭线汇聚到 D 的开始节点）。\n\n#### (二) 节点共用原则\n\nC、D 两项（原文为三项，结合图示修正）紧前有共同的紧后“E”工作时：C、D 可共用一个完成节点。\n- **图示逻辑**：C -> Node 5, D -> Node 5, Node 5 -> E。通过共用节点 5，表示 C 和 D 完成后 E 才能开始。\n\n#### (三) 多看一眼原则\n\nC 和 E 有多项紧后工作“FHI”时，如何确定三项紧后工作的位置？要看这三项紧后工作是否会与其他工作发生关联。\n- **应用**：\n  - 如图：D 与 F 有共同紧后工作 G，两者可共用一个完成节点，以此确定了 F 工作的位置。\n  - 又如：“I 与 L”有共同的紧后工作，因此两者能共用一个完成节点。同时也确定了 I 工作在网络图中的位置，以此类推。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0018_001",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0018_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划绘图方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划绘图方法",
+      "unit_id": "lecture.schedule-network.0034"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 六大时间参数定义",
+          "#### 2. 表达方式",
+          "#### 3. 高铁进站四定法 (双代号时标网络计划)",
+          "- **核心逻辑**：通过时间坐标轴（0-14周）绘制实工作（实线）与虚工作/波形线（自由时差）",
+          "- 时间轴：0 ~ 14周"
+        ],
+        "mnemonics": [
+          "高铁进站四定法：标时转时标"
+        ],
+        "must_mentions": [
+          "ES",
+          "EF",
+          "LS",
+          "LF",
+          "TF",
+          "FF",
+          "关键线路",
+          "时标网络"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分单代号与双代号网络图中时间参数的位置表示；时标网络中波形线水平投影长度代表自由时差(FF)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:六类时间参数与关键线路"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "六类时参及关键线路",
+        "网络计划时间参数",
+        "六类时间参数与关键线路",
+        "施工进度管理",
+        "ES",
+        "EF",
+        "LS",
+        "LF",
+        "TF",
+        "FF"
+      ],
+      "source_excerpt": "### 六类时参及关键线路\n\n#### 1. 六大时间参数定义\n- **ES** (Early Start): 早开始\n- **EF** (Early Finish): 早完成\n- **LS** (Late Start): 迟开始\n- **LF** (Late Finish): 迟完成\n- **TF** (Total Float): 总时差\n- **FF** (Free Float): 自由时差\n\n#### 2. 表达方式\n**单代号网络图表示法**：\n- 节点上方：ES (早开) | TF (总时差) | EF (早完)\n- 节点下方：LS (迟开) | FF (自由时差) | LF (迟完)\n- 节点内部：编号、工作名称、持续时间\n\n**双代号网络图表示法**：\n- 箭线上方/下方标注六时参，通常顺序为：\n  - 左侧：ES | EF | TF\n  - 右侧：LS | LF | FF\n\n#### 3. 高铁进站四定法 (双代号时标网络计划)\n- **定义**：将双代号标时网络转化为双代号时标网络的方法。\n- **核心逻辑**：通过时间坐标轴（0-14周）绘制实工作（实线）与虚工作/波形线（自由时差）。\n- **图示案例**：\n  - 时间轴：0 ~ 14周\n  - 关键线路：无波形线的通路（如 A -> E -> I... 需结合具体连线判断）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0020_001",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0020_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "六类时间参数与关键线路"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "六类时间参数与关键线路",
+      "unit_id": "lecture.schedule-network.0035"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **本工作的早开始 (ES)**",
+          "- 边界：起始工作的最早开始时间为0",
+          "`ES(start_node) = 0`",
+          "2. **本工作的早完成 (EF)**",
+          "3. **时间间隔 (LAG)**",
+          "4. **自由时差 (FF)**"
+        ],
+        "mnemonics": [
+          "早参前看取大，晚参后看取小；总差迟减早，自差后早减本完"
+        ],
+        "must_mentions": [
+          "ES",
+          "EF",
+          "LS",
+          "LF",
+          "TF",
+          "FF",
+          "前看取大",
+          "后看取小",
+          "波形线"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'时间间隔'(LAG)和'自由时差'(FF)：LAG是两项工作之间的参数，FF是本工作的参数(取LAG最小值)。讲义中EF处提到的'后看取小'通常用于反向计算LS/LF，正向计算EF=ES+D。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:六大时间参数概念及计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "六类时参：概念及计算",
+        "网络计划时间参数",
+        "六大时间参数概念及计算",
+        "施工进度管理",
+        "ES",
+        "EF",
+        "LS",
+        "LF",
+        "TF",
+        "FF"
+      ],
+      "source_excerpt": "### 六类时参：概念及计算\n\n#### (一) 早参数\n1. **本工作的早开始 (ES)**\n   - 定义：所有紧前工作均完成后，本工作可能开始的最早时刻。\n   - 算法：所有紧前工作早完成的最大值；即 **“前看取大”**。\n   - 关系：本工作的早完成 (EF) - 本工作的持续时间。\n   - 关系：本工作的迟开始 (LS) - 本工作的总时差 (TF)。\n   - 边界：起始工作的最早开始时间为0；`ES(start_node) = 0`。\n\n2. **本工作的早完成 (EF)**\n   - 定义：所有紧前工作均完成后，本工作可能完成的最早时刻。\n   - 算法：等于紧后工作最早开始时间的最小值（注：此处原文标注“后看取小”，通常用于反向计算，标准正向计算为 ES+D）。\n   - 关系：本工作的早开始 (ES) + 本工作的持续时间。\n   - 关系：本工作的迟完成 (LF) - 本工作的总时差 (TF)。\n\n#### (二) 晚参数 (及衍生参数)\n3. **时间间隔 (LAG)**\n   - 定义：不影响（某项或某些）紧后工作ES的前提下，本工作可利用的机动时间。\n   - 公式：`LAG(i,j) = ES(j) - EF(i)` (该紧后工作的ES - 本工作的EF)。\n   - 时标网络：绘制在虚工作上的波形线（有例外）。\n\n4. **自由时差 (FF)**\n   - 定义：不影响**所有**紧后工作ES的前提下，本工作可利用的机动时间。\n   - 公式：`FF(i) = Min(ES_successors) - EF(i)` (紧后工作ES的最小值 - 本工作的EF)。\n   - 关系：本工作与紧后工作时间间隔的最小值。\n   - 时标网络：绘制在实工作上的波形线（有例外）。\n   - 意义：与所有紧后工作之间，存在的一段空闲时间。\n\n5. **总时差 (TF)**\n   - 定义：\n     1. 不影响**总工期**的前提下，本工作可利用的机动时间。\n     2. 不影响紧后工作LS和LF的前提下，本工作可利用的机动时间。\n   -",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0020_001",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0020_001__2-六类时参：概念及计算"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "六大时间参数概念及计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "六大时间参数概念及计算",
+      "unit_id": "lecture.schedule-network.0036"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 5. 本工作的迟开始 (LS)",
+          "1. **定义**：在不影响工期或紧后工作的LS和LF的前提下，本工作必须开始的时刻",
+          "2. **计算公式**：",
+          "#### 6. 本工作的迟完成 (LF)",
+          "1. **定义**：在不影响工期的前提下，本工作必须完成的时刻",
+          "2. **计算公式**："
+        ],
+        "mnemonics": [
+          "高铁进站四定法"
+        ],
+        "must_mentions": [
+          "LS",
+          "LF",
+          "总时差",
+          "持续时间"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算题中常考LS和LF的推导，注意区分'早加差'(EF+TF=LF)和'迟减差'(LF-TF=EF)的变形关系。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:六类时间参数计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "六类时参：概念及计算（续）",
+        "网络计划时间参数",
+        "六类时间参数计算",
+        "施工进度管理",
+        "LS",
+        "LF",
+        "总时差",
+        "持续时间"
+      ],
+      "source_excerpt": "### 六类时参：概念及计算（续）\n\n#### 5. 本工作的迟开始 (LS)\n1. **定义**：在不影响工期或紧后工作的LS和LF的前提下，本工作必须开始的时刻。\n2. **计算公式**：\n   - $LS = LF - D$ (本工作的迟完成 - 本工作的持续时间)\n   - $LS = ES + TF$ (本工作的早开始 + 本工作的总时差)\n\n#### 6. 本工作的迟完成 (LF)\n1. **定义**：在不影响工期的前提下，本工作必须完成的时刻。\n2. **计算公式**：\n   - $LF = LS + D$ (本工作的迟开始 + 本工作的持续时间)\n   - $LF = EF + TF$ (本工作的早完成 + 本工作的总时差)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0021_001",
+        "json_page_num": 21,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0021_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "六类时间参数计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "六类时间参数计算",
+      "unit_id": "lecture.schedule-network.0037"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 双代号网络图示例 (Top Diagram)",
+          "- A: 4天 (①→④)",
+          "- B: 3天 (①→②)",
+          "- C: 4天 (①→③)",
+          "- D: 6天 (②→⑥)",
+          "- E: 3天 (④→⑤)"
+        ],
+        "mnemonics": [
+          "高铁进站四定法"
+        ],
+        "must_mentions": [
+          "双代号网络图",
+          "单代号网络图"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "双代号网络图中箭线代表工作，单代号网络图中节点代表工作。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络图绘制与计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "六类时参：高铁进站四定法",
+        "网络计划图",
+        "网络图绘制与计算",
+        "施工进度管理",
+        "双代号网络图",
+        "单代号网络图"
+      ],
+      "source_excerpt": "### 六类时参：高铁进站四定法\n\n图示展示了双代号网络计划与单代号网络计划的结构示例。\n\n#### 1. 双代号网络图示例 (Top Diagram)\n- **节点**: ①至⑧\n- **工作与持续时间**:\n  - A: 4天 (①→④)\n  - B: 3天 (①→②)\n  - C: 4天 (①→③)\n  - D: 6天 (②→⑥)\n  - E: 3天 (④→⑤)\n  - G: 4天 (③→⑦)\n  - H: 5天 (⑥→?)\n  - I: 7天 (⑤→⑧)\n  - J: 2天 (⑦→?)\n\n#### 2. 单代号网络图示例 (Bottom Diagram)\n- **节点(含持续时间)**:\n  - A: 10\n  - B: 10\n  - C: 10\n  - D: 8\n  - E: 8\n  - F: 10\n  - G: 10\n- **逻辑关系**:\n  - Start -> A, B, D\n  - A -> B, F\n  - B -> C\n  - F -> C, E\n  - D -> F, E\n  - C -> G\n  - E -> G",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0021_002",
+        "json_page_num": 21,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0021_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络图绘制与计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络图绘制与计算",
+      "unit_id": "lecture.schedule-network.0038"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **定点连线**：前锋线比较法的核心步骤",
+          "2. **三分析**：分析进度偏差对后续工作、总工期的影响",
+          "3. **一预测**：根据当前偏差预测未来进度趋势"
+        ],
+        "mnemonics": [
+          "定点连线 · 三分析 · 一预测"
+        ],
+        "must_mentions": [
+          "定点连线",
+          "三分析",
+          "一预测"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "偏差分析不仅要看是否拖后，还要看是否影响关键线路（总工期）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:偏差分析方法"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划：偏差分析",
+        "网络计划偏差分析",
+        "偏差分析方法",
+        "施工进度管理",
+        "定点连线",
+        "三分析",
+        "一预测"
+      ],
+      "source_excerpt": "### 网络计划：偏差分析\n\n**核心考点体系**：\n1. **定点连线**：前锋线比较法的核心步骤。\n2. **三分析**：分析进度偏差对后续工作、总工期的影响。\n3. **一预测**：根据当前偏差预测未来进度趋势。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0021_003",
+        "json_page_num": 21,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0021_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "偏差分析方法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "偏差分析方法",
+      "unit_id": "lecture.schedule-network.0039"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1.  **定义**：利用时标网络计划，从检查时刻的标点出发，用“点划线”依次将各项工作实际进度点连接而成的折线",
+          "2.  **实际进度点标定方法** 【考点】：",
+          "3.  **分析步骤**：定点连线 → 三分析 → 一预测",
+          "1.  **位置判断（口诀：左拖右超重一致）**：",
+          "2.  **影响分析**：",
+          "3.  **不关联原则**："
+        ],
+        "mnemonics": [
+          "左拖右超重一致；定点连线、三分析、一预测"
+        ],
+        "must_mentions": [
+          "前锋线",
+          "点划线",
+          "自由时差",
+          "总时差",
+          "不相互关联"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "分析总工期影响时，必须区分关键工作与非关键工作；非关键工作只有当偏差超过总时差时才影响总工期。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:前锋线比较法"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "前锋线法核心原理",
+        "前锋线法",
+        "前锋线比较法",
+        "施工进度管理",
+        "前锋线",
+        "点划线",
+        "自由时差",
+        "总时差",
+        "不相互关联"
+      ],
+      "source_excerpt": "### 前锋线法核心原理\n\n1.  **定义**：利用时标网络计划，从检查时刻的标点出发，用“点划线”依次将各项工作实际进度点连接而成的折线。\n2.  **实际进度点标定方法** 【考点】：\n    *   按已完工程量的比例标定\n    *   按尚需作业时间进行标定\n3.  **分析步骤**：定点连线 → 三分析 → 一预测\n\n### 前锋线分析法则\n\n1.  **位置判断（口诀：左拖右超重一致）**：\n    *   实际进度点在检查日期左侧 → 进度拖后\n    *   实际进度点在检查日期右侧 → 进度超前\n    *   实际进度点与检查日期重合 → 进度一致\n2.  **影响分析**：\n    *   **对紧后工作影响**：比较进度偏差与自由时差（FF/LAG）。若偏差 > FF，则影响紧后工作最早开始时间（ES）。\n    *   **对总工期影响**：\n        *   关键工作：直接影响总工期。\n        *   非关键工作：比较进度偏差与总时差（TF）。若偏差 > TF，则影响总工期。\n3.  **不关联原则**：\n    *   单独分析各项工作对总工期的影响时，“不相互关联”。\n    *   前一次检查结果与后一次检查结果亦“不相互关联”。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0022_001",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0022_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "前锋线比较法"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "前锋线比较法",
+      "unit_id": "lecture.schedule-network.0040"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先判断案例做法是否正确，再给原因和正确做法。",
+        "formula_or_thresholds": [
+          "*   **时间**：第4周上班时刻（即第3周末）",
+          "*   **A工作**：已完成3周（实际进度）",
+          "*   **B工作**：尚需2周完成",
+          "*   **C工作**：已经开始施工2周",
+          "*   **时间**：第12周末"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "尚需",
+          "提前",
+          "刚刚完成"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意'上班时刻'与'周末'的区别：第4周上班时刻在时间轴上对应刻度3，第12周末对应刻度12。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "example_case",
+      "intent": [
+        "case_application",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:前锋线案例数据"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "案例背景数据",
+        "进度检查案例",
+        "前锋线案例数据",
+        "施工进度管理",
+        "尚需",
+        "提前",
+        "刚刚完成"
+      ],
+      "source_excerpt": "### 案例背景数据\n\n**第一次检查**：\n*   **时间**：第4周上班时刻（即第3周末）\n*   **A工作**：已完成3周（实际进度）\n*   **B工作**：尚需2周完成\n*   **C工作**：已经开始施工2周\n\n**第二次检查**：\n*   **时间**：第12周末\n*   **H工作**：刚刚完成\n*   **I工作**：提前一周完成\n*   **J工作**：刚刚完成",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0022_002",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0022_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "前锋线案例数据"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "前锋线案例数据",
+      "unit_id": "lecture.schedule-network.0041"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "图示为某工程双代号时标网络计划，在第4周末进行进度检查并绘制前锋线（折线）：",
+          "1. **A工作**：实际进度点落在第3周结束处（与计划一致），无偏差",
+          "2. **B工作**：实际进度点落在第2周结束处（计划应完成至第4周），**拖后2周**",
+          "3. **C工作**：实际进度点落在第3周结束处（计划应完成至第4周），**拖后1周**",
+          "**第一次进度检查分析（第4周末）：**",
+          "1. **A工作分析**："
+        ],
+        "mnemonics": [
+          "三分析：实际、紧后、总工期；预测：拖后取最大"
+        ],
+        "must_mentions": [
+          "前锋线",
+          "实际进度拖后",
+          "影响紧后工作ES",
+          "影响总工期",
+          "取最大值"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'影响紧后工作'（看FF）与'影响总工期'（看TF）；注意多项工作共同影响工期时取最大值而非求和。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:前锋线法应用案例"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "一、定点连线",
+        "前锋线法 (Frontline Method)",
+        "前锋线法应用案例",
+        "施工进度管理",
+        "前锋线",
+        "实际进度拖后",
+        "影响紧后工作ES",
+        "影响总工期",
+        "取最大值"
+      ],
+      "source_excerpt": "### 一、定点连线\n\n图示为某工程双代号时标网络计划，在第4周末进行进度检查并绘制前锋线（折线）：\n1. **A工作**：实际进度点落在第3周结束处（与计划一致），无偏差。\n2. **B工作**：实际进度点落在第2周结束处（计划应完成至第4周），**拖后2周**。\n3. **C工作**：实际进度点落在第3周结束处（计划应完成至第4周），**拖后1周**。\n\n### 二、三分析——实际进度、紧后工作、总工期\n\n**第一次进度检查分析（第4周末）：**\n\n1. **A工作分析**：\n   - ① 实际进度与计划进度一致；\n   - ② 不影响紧后工作的最早开始时间（ES）；\n   - ③ 不影响总工期。\n\n2. **B工作分析**：\n   - ① **实际进度拖后2周**；\n   - ② 影响紧后工作D的最早开始时间**2周**（因B的自由时差FF为0）；\n   - ③ 影响紧后工作E的最早开始时间**1周**（因B和E的时间间隔为1周，2周拖后 - 1周间隔 = 1周影响）；\n   - ④ **影响总工期2周**（因B工作为关键工作）。\n\n3. **C工作分析**：\n   - ① **实际进度拖后1周**；\n   - ② 影响紧后工作E和G的最早开始时间**1周**（因C的自由时差FF为0）；\n   - ③ **不影响总工期**（因C的总时差为2周，1周拖后 < 2周总时差）。\n\n### 三、一预测——工期预测（1）\n\n**工期预测过程规则：**\n1. 同一检查时点上的各项工作“相互关联”。\n2. 不同检查时点上的各项工作“不做关联”。\n3. **分析工期拖后**：当几项平行工作均对工期有影响时，对总工期的影响取**“影响程度的最大值”**。\n4. **分析工期提前**：几项平行工作均对工期有影响时，对总工期的影响应“考虑平行工作总时差的最小值”。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0023_001",
+        "json_page_num": 23,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0023_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "前锋线法应用案例"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "前锋线法应用案例",
+      "unit_id": "lecture.schedule-network.0042"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "预测第12周末总工期为多少周（不关联第4周末）",
+          "时间轴从第0周至第14周",
+          "通过检查点（第12周）的实际进度前锋线，推断后续工作及总工期的变化"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "第12周末",
+          "总工期",
+          "预测"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意题目条件'不关联第4周末'，意味着仅根据第12周的进度偏差进行独立预测，不考虑之前的累积效应或假设之前的偏差已解决。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划工期预测"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "一、一预测——工期预测（练习）",
+        "工期预测",
+        "网络计划工期预测",
+        "施工进度管理",
+        "第12周末",
+        "总工期",
+        "预测"
+      ],
+      "source_excerpt": "### 一、一预测——工期预测（练习）\n\n**题目背景**：\n预测第12周末总工期为多少周（不关联第4周末）。\n\n**图示解析**：\n图示为双代号时标网络计划，包含节点①至⑧。时间轴从第0周至第14周。\n\n**关键逻辑**：\n通过检查点（第12周）的实际进度前锋线，推断后续工作及总工期的变化。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0024_001",
+        "json_page_num": 24,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0024_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划工期预测"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划工期预测",
+      "unit_id": "lecture.schedule-network.0043"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 基本概念",
+          "#### 2. 优化要求",
+          "1.  **不得改变**网络计划的逻辑关系",
+          "2.  不能把关键工作压缩成非关键工作",
+          "3.  压缩后，各关键线路上的总持续时间相同",
+          "#### 3. 优化对象（选择压缩工作的原则）"
+        ],
+        "mnemonics": [
+          "质安资源增费少"
+        ],
+        "must_mentions": [
+          "计算工期",
+          "要求工期",
+          "关键工作",
+          "逻辑关系",
+          "质安资源增费少"
+        ],
+        "red_lines": [
+          "不得改变网络计划的逻辑关系"
+        ],
+        "trap_alerts": [
+          "工期优化时，压缩关键工作可能导致关键线路转移，必须注意“不能把关键工作压缩成非关键工作”这一限制，意味着压缩幅度受限于次关键线路的时差。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工期优化"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络优化：工期优化",
+        "工期优化",
+        "施工进度管理",
+        "计算工期",
+        "要求工期",
+        "关键工作",
+        "逻辑关系",
+        "质安资源增费少"
+      ],
+      "source_excerpt": "### 网络优化：工期优化\n\n#### 1. 基本概念\n指网络计划的计算工期 ($T_c$) 不满足要求工期 ($T_r$) 时，通过**压缩关键工作**的持续时间，缩短工期的方法。\n\n#### 2. 优化要求\n1.  **不得改变**网络计划的逻辑关系。\n2.  不能把关键工作压缩成非关键工作。\n3.  压缩后，各关键线路上的总持续时间相同。\n\n#### 3. 优化对象（选择压缩工作的原则）\n口诀：**“质安资源增费少”**\n1.  选择压缩后对**质量、安全影响不大**的工作（首要考虑）。\n2.  选择有**充足备用资源**的工作。\n3.  选择压缩**费用最小**的工作。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0024_002",
+        "json_page_num": 24,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0024_002"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "工期优化"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工期优化",
+      "unit_id": "lecture.schedule-network.0044"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先判断案例做法是否正确，再给原因和正确做法。",
+        "formula_or_thresholds": [
+          "某单项工程（如图所示），原计划工期为 **170天**",
+          "在 **第75天末** 进行进度检查时发现："
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "170天",
+          "第75天末",
+          "A工作完成",
+          "B工作开始"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意“第75天末”这一时间点，结合A完成B刚开始的状态，需计算A工作的实际持续时间或B工作的最早开始时间偏差。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "example_case",
+      "intent": [
+        "case_application",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工期优化案例背景"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "二、例题",
+        "工期检查案例",
+        "工期优化案例背景",
+        "施工进度管理",
+        "170天",
+        "第75天末",
+        "A工作完成",
+        "B工作开始"
+      ],
+      "source_excerpt": "### 二、例题\n\n**案例背景**：\n某单项工程（如图所示），原计划工期为 **170天**。\n\n**检查情况**：\n在 **第75天末** 进行进度检查时发现：\n*   **A工作**：已经全部完成。\n*   **B工作**：刚刚开始。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0024_003",
+        "json_page_num": 24,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0024_003"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "工期优化案例背景"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工期优化案例背景",
+      "unit_id": "lecture.schedule-network.0045"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "#### 1. 基础参数表",
+          "| 1 | A | 10 | 200 |",
+          "| 2 | B | 5 | 200 |",
+          "| 3 | C | 3 | 100 |",
+          "| 4 | D | 10 | 300 |",
+          "| 5 | E | 5 | 200 |"
+        ],
+        "mnemonics": [
+          "压缩增费必标注，高铁进站定参数"
+        ],
+        "must_mentions": [
+          "赶工费率",
+          "关键工作",
+          "工期优化",
+          "最低费用"
+        ],
+        "red_lines": [
+          "压缩非关键工作无效且浪费费用"
+        ],
+        "trap_alerts": [
+          "注意A工作实际耗时已变更为75天（原计划60天），后续计算必须基于75天进行，不可沿用原图数据。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划费用优化案例"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "网络计划优化：费用优化案例解析",
+        "网络计划工期优化（费用优化）",
+        "网络计划费用优化案例",
+        "施工进度管理",
+        "赶工费率",
+        "关键工作",
+        "工期优化",
+        "最低费用"
+      ],
+      "source_excerpt": "### 网络计划优化：费用优化案例解析\n\n#### 1. 基础参数表\n| 序号 | 工作 | 最大可压缩时间 (d) | 赶工费用 (元/d) |\n| :--- | :--- | :--- | :--- |\n| 1 | A | 10 | 200 |\n| 2 | B | 5 | 200 |\n| 3 | C | 3 | 100 |\n| 4 | D | 10 | 300 |\n| 5 | E | 5 | 200 |\n| 6 | F | 10 | 150 |\n| 7 | G | 10 | 120 |\n| 8 | H | 5 | 420 |\n\n#### 2. 案例背景\n某单项工程原计划工期为 **170天**。在第 **75天** 末进度检查时发现，A工作已经全部完成（实际耗时75天，原计划60天），工作B刚刚开始。\n\n#### 3. 问题\n若要确保工程如期完成（即总工期控制在170天内），如何对上述工作进行优化？需投入赶工费最少为多少？\n\n#### 4. 求解步骤（案例一）\n**(1) 压缩增费必标注**\n将赶工费率和可压缩时间标注在网络图上，格式为：`工作名称(赶工费率) 持续时间(可压缩时间)`。\n- 示例：`A(200) 75(10)` 表示A工作赶工费200元/天，当前持续时间75天，尚可压缩10天。\n\n**(2) 高铁进站定参数**\n（此处指代计算网络计划时间参数的方法，用于确定关键线路和总工期）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0025_001",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0025_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划费用优化案例"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划费用优化案例",
+      "unit_id": "lecture.schedule-network.0046"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 优化目标确定",
+          "- **初始工期**：185天（关键线路 A→B→D→H）",
+          "- **目标工期**：170天",
+          "- **需压缩天数**：$185 - 170 = 15$ 天",
+          "#### 2. 优化步骤与费用计算",
+          "- **对象**：关键工作 B（费率 200元/天）"
+        ],
+        "mnemonics": [
+          "优选斜率小，多线需同压"
+        ],
+        "must_mentions": [
+          "压缩B工作",
+          "压缩D工作",
+          "同时压缩C、D",
+          "压缩H工作",
+          "费用增加最少"
+        ],
+        "red_lines": [
+          "忽略多条关键线路的同步压缩"
+        ],
+        "trap_alerts": [
+          "当网络计划中出现多条关键线路时，仅压缩其中一条线路上的非公共工作，无法缩短项目总工期，只会增加费用。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:网络计划工期费用优化"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "案例一：工期费用优化计算过程",
+        "工期费用优化",
+        "网络计划工期费用优化",
+        "施工进度管理",
+        "压缩B工作",
+        "压缩D工作",
+        "同时压缩C、D",
+        "压缩H工作",
+        "费用增加最少"
+      ],
+      "source_excerpt": "### 案例一：工期费用优化计算过程\n\n#### 1. 优化目标确定\n- **初始工期**：185天（关键线路 A→B→D→H）\n- **目标工期**：170天\n- **需压缩天数**：$185 - 170 = 15$ 天\n\n#### 2. 优化步骤与费用计算\n遵循“压缩费用增加最少”的原则进行调整：\n\n**第一步：压缩 B 工作**\n- **对象**：关键工作 B（费率 200元/天）\n- **操作**：压缩 5 天（达到其最大压缩限制）\n- **结果**：工期缩短至 180天\n- **增费**：$5 \\times 200 = 1000$ 元\n\n**第二步：压缩 D 工作**\n- **对象**：关键工作 D（费率 300元/天）\n- **操作**：压缩 5 天\n- **结果**：工期缩短至 175天\n- **增费**：$5 \\times 300 = 1500$ 元\n- **注意**：此时出现两条关键线路（①A→B→D→H 和 ②A→B→C→F→H）\n\n**第三步：同时压缩 C、D 工作**\n- **对象**：关键工作 C（费率 100）和 D（费率 300）\n- **原理**：因存在两条关键线路，需同时压缩以缩短工期。组合费率 $100+300=400$ 元/天。\n- **操作**：各压缩 3 天\n- **结果**：工期缩短至 172天\n- **增费**：$3 \\times (100 + 300) = 1200$ 元\n\n**第四步：压缩 H 工作**\n- **对象**：公共关键工作 H（费率 420元/天）\n- **操作**：压缩 2 天\n- **结果**：工期缩短至 170天（达到目标）\n- **增费**：$2 \\times 420 = 840$ 元",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0027_001",
+        "json_page_num": 27,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0027_001"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "网络计划工期费用优化"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "网络计划工期费用优化",
+      "unit_id": "lecture.schedule-network.0047"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "#### 1. 最终网络计划参数",
+          "- 线路1: ①→②→③→④→⑥→⑦ (A→B→C→F→H)",
+          "- 线路2: ①→②→③→⑥→⑦ (A→B→D→H)",
+          "- **计算工期**: 170天 (满足目标工期)",
+          "#### 2. 赶工费汇总计算",
+          "$$ \\text{总赶工费} = 1000 + 1500 + 1200 + 840 = 4540 \\text{元} $$"
+        ],
+        "mnemonics": [
+          "找关键，算费率，压最低，防变性，累加钱"
+        ],
+        "must_mentions": [
+          "赶工费",
+          "4540",
+          "关键线路",
+          "双代号网络图"
+        ],
+        "red_lines": [
+          "严禁压缩费率高于组合费率的工作"
+        ],
+        "trap_alerts": [
+          "注意：当出现多条关键线路时，必须同时压缩这些线路上的工作，否则工期不会缩短。此时需计算组合费率。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:schedule-network",
+          "topic:工期费用优化计算"
+        ]
+      },
+      "lecture": "流水施工&网络计划",
+      "lecture_slug": "schedule-network",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "工期费用优化最终结果",
+        "工期费用优化",
+        "工期费用优化计算",
+        "施工进度管理",
+        "赶工费",
+        "4540",
+        "关键线路",
+        "双代号网络图"
+      ],
+      "source_excerpt": "### 工期费用优化最终结果\n\n经过前序步骤的压缩调整，最终的网络计划状态如下图所示。此时关键线路上的工作持续时间已达到最优配置。\n\n#### 1. 最终网络计划参数\n- **关键线路**: \n  - 线路1: ①→②→③→④→⑥→⑦ (A→B→C→F→H)\n  - 线路2: ①→②→③→⑥→⑦ (A→B→D→H)\n- **计算工期**: 170天 (满足目标工期)\n\n#### 2. 赶工费汇总计算\n根据各步骤压缩的工作及对应的费用增加额，总赶工费计算如下：\n\n$$ \\text{总赶工费} = 1000 + 1500 + 1200 + 840 = 4540 \\text{元} $$\n\n- **第一步**: 压缩B工作 (1000元)\n- **第二步**: 压缩D工作 (1500元)\n- **第三步**: 同时压缩C、D工作 (1200元)\n- **第四步**: 压缩H工作 (840元)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A433000_P0027_001",
+        "json_page_num": 27,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A433000_P0027_001__2-工期费用优化最终结果"
+      },
+      "taxonomy": {
+        "node_code": "1A433000",
+        "node_name": "施工进度管理",
+        "topic": "工期费用优化计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "工期费用优化计算",
+      "unit_id": "lecture.schedule-network.0048"
+    }
+  ],
+  "manifest": {
+    "answer_unit_count": 46,
+    "content_hash": "577b4f9fc41566d62851428373f262ed2fb9a17385b491efac0781f57a8ecbe4",
+    "coverage_status": "needs_visual_audit",
+    "lecture": "流水施工&网络计划",
+    "lecture_slug": "schedule-network",
+    "missing_internal_pages": [
+      19,
+      26,
+      28
+    ],
+    "namespace": "lecture_answer_method.schedule-network",
+    "non_exam_exclusion_count": 3,
+    "official_score_allowed": false,
+    "published": false,
+    "schema_version": "luban_lecture_answer_method_shard.v1",
+    "signature": "faa6940ef926db54c916251489ef0498d00f147296d01050e9a7465753b1de19",
+    "source_aggregate_sha256": "f7b3e1e23148c1f308967b292eea9a2009b18464c74b190a5ab8fd6dd6c27357",
+    "status": "release_candidate",
+    "tier": "teaching_answer_method_not_answer_key"
+  },
+  "non_exam_exclusions": [
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_1A433000_P0001_001",
+      "json_page_num": 1,
+      "reason": "cover/meta course page; invalid for exam answers",
+      "source_chunk_id": "LEC_1A433000_P0001_001"
+    },
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_1A400000_P0001_001",
+      "json_page_num": 1,
+      "reason": "cover/meta course page; invalid for exam answers",
+      "source_chunk_id": "LEC_1A400000_P0001_001"
+    },
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_METAINFO_P0029_001",
+      "json_page_num": 29,
+      "reason": "advertising/resource QR codes; invalid for exam answers",
+      "source_chunk_id": "LEC_METAINFO_P0029_001"
+    }
+  ]
+}

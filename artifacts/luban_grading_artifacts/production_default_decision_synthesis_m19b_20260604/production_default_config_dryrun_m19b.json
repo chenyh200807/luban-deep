@@ -1,0 +1,33 @@
+{
+  "candidate_modes": {
+    "named_internal_cohort_default": {
+      "cohort_prefixes": [
+        "qa_",
+        "test_",
+        "operator_"
+      ],
+      "named_users_only": true,
+      "request_flag": "grading_engine_v1_llm_adjudication",
+      "writeback": false
+    },
+    "one_percent_qa_operator_default": {
+      "cohort_prefixes": [
+        "qa_",
+        "operator_"
+      ],
+      "percentage": 1,
+      "request_flag": "grading_engine_v1_llm_adjudication",
+      "writeback": false
+    }
+  },
+  "canonical_truth_write_enabled": false,
+  "dryrun_only": true,
+  "execute_flip": false,
+  "production_default_enabled": false,
+  "rollback": {
+    "drop_request_flag": "grading_engine_v1_llm_adjudication",
+    "kill_switch_env": "LUBAN_V1_LLM_ADJUDICATOR_ENABLED",
+    "kill_value": "false",
+    "registry_fail_closed": true
+  }
+}

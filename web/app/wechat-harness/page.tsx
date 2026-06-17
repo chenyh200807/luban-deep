@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 
 import WechatHarnessClient from './WechatHarnessClient'
 
+// This QA surface is gated by runtime env, so production builds must not
+// freeze the notFound() branch during static prerender.
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '微信小程序影子测试 | 鲁班智考',
   description: 'Replay mini-program rendering contracts in a Web test harness.',

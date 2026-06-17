@@ -33,3 +33,34 @@ def test_get_env_defined_kbs_includes_builtin_tutorbot_aliases(monkeypatch) -> N
     assert env_kbs["construction-exam"]["supabase_remote_kb"] == "supabase-main"
     assert env_kbs["construction-exam-coach"]["rag_provider"] == "supabase"
     assert env_kbs["construction-exam-tutor"]["rag_provider"] == "supabase"
+
+
+def test_get_env_defined_kbs_enables_kbv5_when_db_url_is_present(monkeypatch) -> None:
+    monkeypatch.delenv("SUPABASE_RAG_ENABLED", raising=False)
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.setenv("KBV5_DB_URL", "postgresql://readonly@example.invalid/kbv5")
+    monkeypatch.delenv("KBV5_RAG_ENABLED", raising=False)
+    monkeypatch.setenv("SUPABASE_RAG_DEFAULT_KB_NAME", "supabase-main")
+
+    env_kbs, defaults = get_env_defined_kbs()
+
+    assert defaults["default_kb"] == "supabase-main"
+    assert env_kbs["supabase-main"]["rag_provider"] == "kbv5"
+    assert env_kbs["supabase-main"]["remote_backend"] == "kbv5"
+    assert env_kbs["supabase-main"]["remote_read_only"] is True
+
+
+def test_get_env_defined_kbs_allows_kbv5_env_to_be_explicitly_disabled(monkeypatch) -> None:
+    monkeypatch.delenv("SUPABASE_RAG_ENABLED", raising=False)
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.setenv("KBV5_DB_URL", "postgresql://readonly@example.invalid/kbv5")
+    monkeypatch.setenv("KBV5_RAG_ENABLED", "false")
+
+    env_kbs, defaults = get_env_defined_kbs()
+
+    assert env_kbs == {}
+    assert defaults == {}

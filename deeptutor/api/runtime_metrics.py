@@ -8,6 +8,28 @@ from collections import deque
 from typing import Any
 
 
+def normalize_latency_stage_timings(value: Any) -> dict[str, float]:
+    """Return stable non-negative latency stage timings in milliseconds."""
+    if not isinstance(value, dict):
+        return {}
+
+    normalized: dict[str, float] = {}
+    for raw_stage, raw_ms in value.items():
+        stage = str(raw_stage or "").strip()
+        if not stage or len(stage) > 80:
+            continue
+        if not all(ch.isalnum() or ch in {"_", "-", ".", ":"} for ch in stage):
+            continue
+        try:
+            duration_ms = float(raw_ms)
+        except (TypeError, ValueError):
+            continue
+        if duration_ms < 0:
+            continue
+        normalized[stage] = round(duration_ms, 2)
+    return dict(sorted(normalized.items(), key=lambda item: item[0]))
+
+
 class APIRuntimeMetrics:
     """Lightweight in-process HTTP metrics for ops visibility."""
 
@@ -101,6 +123,8 @@ class TurnRuntimeMetrics:
         self._turns_in_flight = 0
         self._turn_latency_total_ms = 0.0
         self._turn_latency_count = 0
+        self._turn_stage_latency_totals_ms: defaultdict[str, float] = defaultdict(float)
+        self._turn_stage_latency_counts: Counter[str] = Counter()
 
     def record_ws_open(self) -> None:
         with self._lock:
@@ -117,12 +141,22 @@ class TurnRuntimeMetrics:
             self._turns_started_total += 1
             self._turns_in_flight += 1
 
-    def record_turn_finished(self, *, status: str, duration_ms: float) -> None:
+    def record_turn_finished(
+        self,
+        *,
+        status: str,
+        duration_ms: float,
+        stage_timings_ms: dict[str, Any] | None = None,
+    ) -> None:
         normalized_status = str(status or "").strip().lower() or "completed"
+        normalized_stage_timings = normalize_latency_stage_timings(stage_timings_ms)
         with self._lock:
             self._turns_in_flight = max(0, self._turns_in_flight - 1)
             self._turn_latency_total_ms += max(float(duration_ms), 0.0)
             self._turn_latency_count += 1
+            for stage, stage_duration_ms in normalized_stage_timings.items():
+                self._turn_stage_latency_totals_ms[stage] += stage_duration_ms
+                self._turn_stage_latency_counts[stage] += 1
             if normalized_status == "completed":
                 self._turns_completed_total += 1
             elif normalized_status == "cancelled":
@@ -135,6 +169,18 @@ class TurnRuntimeMetrics:
             avg_turn_latency_ms = (
                 self._turn_latency_total_ms / self._turn_latency_count if self._turn_latency_count else 0.0
             )
+            stage_avg_latency = [
+                {
+                    "stage": stage,
+                    "avg_latency_ms": round(
+                        float(self._turn_stage_latency_totals_ms.get(stage) or 0.0) / count,
+                        2,
+                    ),
+                    "count": int(count),
+                }
+                for stage, count in sorted(self._turn_stage_latency_counts.items(), key=lambda item: item[0])
+                if count
+            ]
             return {
                 "ws_active_connections": int(self._ws_active_connections),
                 "ws_opened_total": int(self._ws_opened_total),
@@ -145,6 +191,7 @@ class TurnRuntimeMetrics:
                 "turns_cancelled_total": int(self._turns_cancelled_total),
                 "turns_in_flight": int(self._turns_in_flight),
                 "turn_avg_latency_ms": round(avg_turn_latency_ms, 2),
+                "turn_stage_avg_latency_ms": stage_avg_latency,
             }
 
 
@@ -250,6 +297,18 @@ def render_prometheus_metrics(
     lines.append("# HELP deeptutor_turn_avg_latency_ms Average turn runtime latency in milliseconds.")
     lines.append("# TYPE deeptutor_turn_avg_latency_ms gauge")
     emit("deeptutor_turn_avg_latency_ms", turn_snapshot.get("turn_avg_latency_ms", 0))
+
+    lines.append("# HELP deeptutor_turn_stage_avg_latency_ms Average turn runtime latency by internal stage in milliseconds.")
+    lines.append("# TYPE deeptutor_turn_stage_avg_latency_ms gauge")
+    lines.append("# HELP deeptutor_turn_stage_count Number of turns contributing to each internal stage latency.")
+    lines.append("# TYPE deeptutor_turn_stage_count gauge")
+    for stage_entry in turn_snapshot.get("turn_stage_avg_latency_ms") or []:
+        stage = str(stage_entry.get("stage") or "").strip()
+        if not stage:
+            continue
+        labels = {"stage": stage}
+        emit("deeptutor_turn_stage_avg_latency_ms", stage_entry.get("avg_latency_ms", 0), labels)
+        emit("deeptutor_turn_stage_count", stage_entry.get("count", 0), labels)
 
     lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
     lines.append("# TYPE deeptutor_surface_event_total counter")

@@ -24,7 +24,7 @@
 > - **F (mock guard) 标 P1 backlog**：4 个非 overview panel 在生产构建中应展示 skeleton 而非 mock。Stage 1 仅放 OVERVIEW 不阻塞，留待 Stage 2 前处理。
 
 
-- 计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+- 计划：`docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
 - Authority audit：`docs/zh/bi/bi-backoffice-v2-batch0-authority-audit.md`
 
 ## 1. 6 个 Feature Flag
@@ -137,4 +137,4 @@ node scripts/bi_v2_rollback_smoke.mjs
 
 ## 8. 真实交付清单（Batch 0-7）
 
-详见 `docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md` 与对应章节。
+详见 `docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md` 与对应章节。

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
-import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import type {
   HarnessRenderState,
@@ -34,16 +34,93 @@ type RenderSchemaModule = {
   createRenderModel(input: Partial<HarnessRenderState>): HarnessRenderState
 }
 
-const repoRoot = path.resolve(process.cwd(), '..')
-const wxRequire = createRequire(path.join(repoRoot, 'wx_miniprogram/utils/render-schema.js'))
-const aiMessageState = wxRequire(
-  path.join(repoRoot, 'wx_miniprogram/utils/ai-message-state.js')
-) as AiMessageStateModule
-const renderSchema = wxRequire(
-  path.join(repoRoot, 'wx_miniprogram/utils/render-schema.js')
-) as RenderSchemaModule
+const REQUIRED_ROOT_SENTINELS = [
+  'wx_miniprogram/utils/ai-message-state.js',
+  'wx_miniprogram/utils/render-schema.js',
+  'tests/fixtures/wechat_structured_renderer_cases.json',
+  'tests/fixtures/wechat_markdown_golden_cases.json',
+] as const
+
+const moduleDir = path.dirname(fileURLToPath(import.meta.url))
+
+type HarnessAuthorityModules = {
+  repoRoot: string
+  aiMessageState: AiMessageStateModule
+  renderSchema: RenderSchemaModule
+}
+
+let cachedHarnessAuthorities: HarnessAuthorityModules | null = null
+const localCommonJsCache = new Map<string, unknown>()
+
+function isHarnessRepoRoot(candidate: string): boolean {
+  return REQUIRED_ROOT_SENTINELS.every(relativePath =>
+    fs.existsSync(path.join(candidate, relativePath))
+  )
+}
+
+export function resolveWechatHarnessRepoRoot(startDir: string = process.cwd()): string {
+  const starts = [startDir, moduleDir]
+  for (const start of starts) {
+    let current = path.resolve(start)
+    for (;;) {
+      if (isHarnessRepoRoot(current)) return current
+      const parent = path.dirname(current)
+      if (parent === current) break
+      current = parent
+    }
+  }
+
+  throw new Error(
+    `Unable to locate DeepTutor repo root for wechat harness from start=${startDir} moduleDir=${moduleDir}`
+  )
+}
+
+function getHarnessAuthorities(): HarnessAuthorityModules {
+  const repoRoot = resolveWechatHarnessRepoRoot()
+  if (cachedHarnessAuthorities && cachedHarnessAuthorities.repoRoot === repoRoot) {
+    return cachedHarnessAuthorities
+  }
+
+  const authorities = {
+    repoRoot,
+    aiMessageState: loadLocalCommonJsModule(
+      path.join(repoRoot, 'wx_miniprogram/utils/ai-message-state.js')
+    ) as AiMessageStateModule,
+    renderSchema: loadLocalCommonJsModule(
+      path.join(repoRoot, 'wx_miniprogram/utils/render-schema.js')
+    ) as RenderSchemaModule,
+  }
+  cachedHarnessAuthorities = authorities
+  return authorities
+}
+
+// The harness must reuse the mini-program render authority directly from the
+// wx utils directory. In standalone builds, webpack replaces dynamic require()
+// with an unresolved stub, so we load the local CommonJS files ourselves.
+function loadLocalCommonJsModule(modulePath: string): unknown {
+  const resolvedPath = modulePath.endsWith('.js') ? modulePath : `${modulePath}.js`
+  const cached = localCommonJsCache.get(resolvedPath)
+  if (cached !== undefined) return cached
+
+  const source = fs.readFileSync(resolvedPath, 'utf8')
+  const commonJsModule = { exports: {} as unknown }
+  const dirname = path.dirname(resolvedPath)
+
+  const localRequire = (specifier: string): unknown => {
+    if (!specifier.startsWith('.')) {
+      throw new Error(`wechat harness local loader only supports relative requires, got: ${specifier}`)
+    }
+    return loadLocalCommonJsModule(path.resolve(dirname, specifier))
+  }
+
+  const wrapper = new Function('require', 'module', 'exports', '__filename', '__dirname', source)
+  wrapper(localRequire, commonJsModule, commonJsModule.exports, resolvedPath, dirname)
+  localCommonJsCache.set(resolvedPath, commonJsModule.exports)
+  return commonJsModule.exports
+}
 
 function readJson<T>(relativePath: string): T {
+  const { repoRoot } = getHarnessAuthorities()
   const absolutePath = path.join(repoRoot, relativePath)
   return JSON.parse(fs.readFileSync(absolutePath, 'utf8')) as T
 }
@@ -54,6 +131,7 @@ function deriveState(input: {
   parseBlocks?: boolean
   streamPhase?: HarnessRenderState['streamPhase']
 }): HarnessRenderState {
+  const { aiMessageState, renderSchema } = getHarnessAuthorities()
   const state = aiMessageState.deriveAiMessageRenderState({
     content: input.content,
     presentation: input.presentation,

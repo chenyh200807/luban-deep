@@ -11,6 +11,7 @@ from types import SimpleNamespace
 import pytest
 
 from deeptutor.api.routers import notebook as nb_router
+from deeptutor.services.notebook_card.store import OptimisticConcurrencyError
 
 
 def _request(card_type: str | None):
@@ -58,3 +59,43 @@ def test_no_card_type_uses_legacy(monkeypatch):
 
     asyncio.run(nb_router.add_record(_request(None), current_user=SimpleNamespace(user_id="u1")))
     assert calls["legacy"] == 1 and calls["card"] == 0   # 无 card_type：legacy，card 不动
+
+
+@pytest.mark.unit
+def test_update_card_handler_maps_stale_version_to_409(monkeypatch):
+    class _CardSvc:
+        async def update_card(self, **_k):
+            raise OptimisticConcurrencyError("stale")
+
+    monkeypatch.setattr(nb_router, "get_notebook_card_service", lambda: _CardSvc())
+
+    with pytest.raises(nb_router.HTTPException) as exc:
+        asyncio.run(nb_router.update_notebook_card(
+            "note_abc",
+            nb_router.UpdateNotebookCardRequest(expected_version=1, title="新标题"),
+            current_user=SimpleNamespace(user_id="u1"),
+        ))
+
+    assert exc.value.status_code == 409
+    assert exc.value.detail == "notebook_card_version_conflict"
+
+
+@pytest.mark.unit
+def test_delete_card_handler_archives_via_card_service(monkeypatch):
+    calls = []
+
+    class _CardSvc:
+        async def delete_card(self, **kwargs):
+            calls.append(kwargs)
+            return {"note_id": kwargs["note_id"], "archived_at": "2026-06-09T00:00:00+08:00"}
+
+    monkeypatch.setattr(nb_router, "get_notebook_card_service", lambda: _CardSvc())
+
+    out = asyncio.run(nb_router.delete_notebook_card(
+        "note_abc",
+        nb_router.DeleteNotebookCardRequest(expected_version=3),
+        current_user=SimpleNamespace(user_id="u1"),
+    ))
+
+    assert out["success"] is True
+    assert calls == [{"user_id": "u1", "note_id": "note_abc", "expected_version": 3}]

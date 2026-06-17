@@ -80,6 +80,16 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "acceptInterview": True,
                 "consent": True,
                 "status": "submitted",
+                "rawPayload": {
+                    "province": "浙江",
+                    "ageRange": "25-34",
+                    "education": "本科",
+                    "occupation": "施工员",
+                    "preparationYears": "1 年",
+                    "knowledgeFoundation": "基础薄弱",
+                    "dailyStudyTime": "1 小时",
+                    "studyDifficulties": "不会复盘错题",
+                },
             },
             {
                 "id": "app-2",
@@ -95,6 +105,30 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "acceptInterview": False,
                 "consent": True,
                 "status": "submitted",
+                "rawPayload": {
+                    "province": "江苏",
+                    "ageRange": "35-44",
+                    "education": "大专",
+                    "occupation": "项目经理",
+                    "preparationYears": "第 2 次备考",
+                    "knowledgeFoundation": "有施工经验",
+                    "dailyStudyTime": "30 分钟",
+                },
+            },
+            {
+                "id": "app-archived",
+                "createdAt": "2026-05-15T09:00:00.000Z",
+                "sourcePage": "invite-test",
+                "name": "已归档",
+                "phone": "13700137000",
+                "email": "archived@example.com",
+                "examType": "一建建筑实务",
+                "examStage": "已归档",
+                "painPoint": "已归档",
+                "weeklyTime": "10-30 分钟",
+                "acceptInterview": True,
+                "consent": True,
+                "status": "archived",
             },
         ],
     )
@@ -111,6 +145,13 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
     assert stats["summary"]["accept_interview_count"] == 1
     assert stats["summary"]["with_wrong_question_count"] == 1
     assert {"exam_type": "二建建筑实务", "count": 1} in stats["exam_type_breakdown"]
+    assert {"age_range": "25-34", "count": 1} in stats["age_range_breakdown"]
+    assert {"province": "浙江", "count": 1} in stats["province_breakdown"]
+    assert {"education": "本科", "count": 1} in stats["education_breakdown"]
+    assert {"occupation": "施工员", "count": 1} in stats["occupation_breakdown"]
+    assert {"preparation_years": "1 年", "count": 1} in stats["preparation_years_breakdown"]
+    assert {"knowledge_foundation": "基础薄弱", "count": 1} in stats["knowledge_foundation_breakdown"]
+    assert {"daily_study_time": "1 小时", "count": 1} in stats["daily_study_time_breakdown"]
 
 
 @pytest.mark.asyncio

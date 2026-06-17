@@ -1,0 +1,31 @@
+{
+  "replay_mode": "logged_real_api_v1_ws_shadow_replay_no_new_live_calls",
+  "real_ws_input_logs": "artifacts/luban_grading_artifacts/runtime_llm_ai_council_scaleout_m17b_m18_20260604/runtime_llm_adjudication_scaleout.jsonl",
+  "live_ws_calls_executed": 0,
+  "runtime_default_changed": false,
+  "baseline": {
+    "runtime_submissions": 130,
+    "point_decisions": 347,
+    "token_budget_per_packet": 1200,
+    "validator_downgrade_rate": 0.0893,
+    "needs_review_count": 42,
+    "learning_brain_card_specificity_source": "M18C/M18D proof-backed cards"
+  },
+  "delta_projection": {
+    "packet_token_budget": 1064,
+    "packet_token_efficiency_improvement_pct": 0.1133,
+    "point_level_coverage_delta_candidates": 35,
+    "llm_partial_reject_granularity": "improve: packet deltas add point-local downgrade reasons and source-gap work orders",
+    "validator_downgrade_rate_projected": 0.0461,
+    "needs_review_quality": "improve: review queue gaps are grouped into source/spec/list/override work orders",
+    "learning_brain_card_specificity": "improve: 16 accepted real-retest claim mapping deltas remain dry-run"
+  },
+  "safety": {
+    "false_positive": 0,
+    "source_mismatch": 0,
+    "legacy_overwrite": 0,
+    "production_write_count": 0,
+    "canonical_learner_truth_written": false
+  },
+  "limitation": "delta was validated against logged real WS evidence, not replayed through a changed runtime packet builder; release-candidate delta is therefore WEAK-GO until live shadow replay with the candidate packet builder runs"
+}

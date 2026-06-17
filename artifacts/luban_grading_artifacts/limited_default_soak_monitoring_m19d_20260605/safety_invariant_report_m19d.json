@@ -1,0 +1,15 @@
+{
+  "all_pass": true,
+  "bad_certified": 0,
+  "canonical_truth_written": false,
+  "false_positive": 0,
+  "kill_switch_works": true,
+  "latency_budget_pass": true,
+  "legacy_overwrite": 0,
+  "non_cohort_default_leak": 0,
+  "production_write_count": 0,
+  "provider_failure_fail_open": 0,
+  "rollback_works": true,
+  "source_mismatch": 0,
+  "unsupported_positive": 0
+}

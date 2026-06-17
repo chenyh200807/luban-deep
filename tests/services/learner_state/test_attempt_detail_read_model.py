@@ -431,3 +431,13 @@ def test_attempt_detail_falls_back_to_payload_when_history_missing() -> None:
     assert detail["explanation"]["why_user_wrong"] == "A 忽略了关键条件。"
     # The unrelated turn's content must not leak into this attempt's view.
     assert "这是另一道题的解析" not in str(detail)
+
+
+def test_attempt_detail_concept_label_never_leaks_code():
+    # Attempt-detail summary the learner reads must never show a machine code (canonical single authority).
+    from deeptutor.services.learner_state.attempt_detail_read_model import _concept_label
+
+    assert _concept_label("1A432000") == "工程招标投标与合同管理"
+    assert _concept_label("地基基础承载力") == "地基基础承载力"
+    for code in ["1A420000", "E02", "EXAM_1A432000_P0016_02::E0::Q1-1"]:
+        assert code not in _concept_label(code)

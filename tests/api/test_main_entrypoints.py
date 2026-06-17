@@ -3,7 +3,10 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -15,6 +18,22 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 CORSMiddleware = pytest.importorskip("fastapi.middleware.cors").CORSMiddleware
+
+_MAIN_ENTRYPOINT_ENV_KEYS = (
+    "DEEPTUTOR_ENV",
+    "DEEPTUTOR_RUNTIME_ENV",
+    "APP_ENV",
+    "ENV",
+    "ENVIRONMENT",
+    "SERVICE_ENV",
+    "DEEPTUTOR_ENV_FILE",
+    "DEEPTUTOR_ENV_PATH",
+    "DEEPTUTOR_ENABLE_API_DOCS",
+    "DEEPTUTOR_ENABLE_LEGACY_ROUTERS",
+    "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS",
+    "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA",
+    "DEEPTUTOR_USER_DATA_DIR",
+)
 
 
 class _FakePathService:
@@ -178,20 +197,30 @@ def _reload_main(
     settings_dir = tmp_path / "settings"
     settings_dir.mkdir(parents=True, exist_ok=True)
     (settings_dir / "main.yaml").write_text("{}\n", encoding="utf-8")
+    env_file = settings_dir / ".env"
+    env_file.write_text("", encoding="utf-8")
     path_service_module = importlib.import_module("deeptutor.services.path_service")
+    env_store_module = importlib.import_module("deeptutor.services.config.env_store")
     setup_module = importlib.import_module("deeptutor.services.setup")
     sqlite_store_module = importlib.import_module("deeptutor.services.session.sqlite_store")
     monkeypatch.setattr(path_service_module, "get_path_service", lambda: fake_path_service)
+    monkeypatch.setattr(
+        env_store_module,
+        "_env_store",
+        env_store_module.EnvStore(path=env_file, fallback_paths=()),
+    )
     monkeypatch.setattr(setup_module, "init_user_directories", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(sqlite_store_module, "get_path_service", lambda: fake_path_service)
+    for key in _MAIN_ENTRYPOINT_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
     for key, value in env.items():
         if value is None:
             monkeypatch.delenv(key, raising=False)
         else:
             monkeypatch.setenv(key, value)
     monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path))
-    module = importlib.import_module("deeptutor.api.main")
-    return importlib.reload(module)
+    sys.modules.pop("deeptutor.api.main", None)
+    return importlib.import_module("deeptutor.api.main")
 
 
 def _install_fake_startup_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -301,7 +330,159 @@ def test_assessment_form_prewarm_logging_does_not_fail_startup_task(
 
 
 def _route_paths(app: FastAPI) -> set[str]:
-    return {str(getattr(route, "path", "") or "") for route in app.routes}
+    return _collect_route_paths(app.routes)
+
+
+def _join_route_path(prefix: str, path: str) -> str:
+    if not prefix:
+        return path
+    if not path or path == "/":
+        return prefix
+    return f"{prefix.rstrip('/')}/{path.lstrip('/')}"
+
+
+def _collect_route_paths(routes: object, *, prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    for route in routes or []:
+        route_path = getattr(route, "path", None)
+        if route_path is not None:
+            paths.add(_join_route_path(prefix, str(route_path)))
+        original_router = getattr(route, "original_router", None)
+        include_context = getattr(route, "include_context", None)
+        if original_router is not None:
+            include_prefix = str(getattr(include_context, "prefix", "") or "")
+            paths.update(
+                _collect_route_paths(
+                    getattr(original_router, "routes", ()),
+                    prefix=_join_route_path(prefix, include_prefix),
+                )
+            )
+    return paths
+
+
+def _fresh_main_probe(
+    *,
+    env: dict[str, str | None],
+    tmp_path: Path,
+    get_path: str | None = None,
+) -> dict[str, object]:
+    user_root = tmp_path / "fresh-main"
+    settings_dir = user_root / "settings"
+    settings_dir.mkdir(parents=True, exist_ok=True)
+    (settings_dir / "main.yaml").write_text("{}\n", encoding="utf-8")
+    env_file = settings_dir / ".env"
+    env_file.write_text("", encoding="utf-8")
+
+    child_env = os.environ.copy()
+    for key in _MAIN_ENTRYPOINT_ENV_KEYS:
+        child_env.pop(key, None)
+    for key, value in env.items():
+        if value is None:
+            child_env.pop(key, None)
+        else:
+            child_env[key] = value
+    child_env["DEEPTUTOR_USER_DATA_DIR"] = str(user_root)
+    child_env["DEEPTUTOR_ENV_FILE"] = str(env_file)
+    child_env["DEEPTUTOR_ENV_PATH"] = str(env_file)
+    child_env["PYTHONPATH"] = os.getcwd()
+
+    script = r"""
+import json
+import os
+
+import deeptutor.services.setup as setup
+
+setup.init_user_directories = lambda *_args, **_kwargs: None
+
+import deeptutor.api.main as main
+
+def _join_route_path(prefix, path):
+    if not prefix:
+        return path
+    if not path or path == "/":
+        return prefix
+    return f"{prefix.rstrip('/')}/{path.lstrip('/')}"
+
+def _collect_route_paths(routes, prefix=""):
+    paths = set()
+    for route in routes or []:
+        route_path = getattr(route, "path", None)
+        if route_path is not None:
+            paths.add(_join_route_path(prefix, str(route_path)))
+        original_router = getattr(route, "original_router", None)
+        include_context = getattr(route, "include_context", None)
+        if original_router is not None:
+            include_prefix = str(getattr(include_context, "prefix", "") or "")
+            paths.update(
+                _collect_route_paths(
+                    getattr(original_router, "routes", ()),
+                    _join_route_path(prefix, include_prefix),
+                )
+            )
+    return paths
+
+payload = {
+    "paths": sorted(_collect_route_paths(main.app.routes)),
+}
+get_path = os.environ.get("_DEEPTUTOR_TEST_GET_PATH", "")
+if get_path:
+    from fastapi.testclient import TestClient
+
+    with TestClient(main.app) as client:
+        response = client.get(get_path)
+    payload["response_status"] = response.status_code
+    payload["response_text"] = response.text
+print(json.dumps(payload, ensure_ascii=False))
+"""
+    if get_path:
+        child_env["_DEEPTUTOR_TEST_GET_PATH"] = get_path
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        check=True,
+        env=child_env,
+        text=True,
+        capture_output=True,
+        cwd=os.getcwd(),
+    )
+    return json.loads(result.stdout.strip().splitlines()[-1])
+
+
+def test_api_docs_disabled_by_default_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_API_DOCS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/openapi.json" not in paths
+    assert "/docs" not in paths
+    assert "/redoc" not in paths
+
+
+def test_api_docs_can_be_explicitly_enabled_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_API_DOCS": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/openapi.json" in paths
+    assert "/docs" in paths
+    assert "/redoc" in paths
 
 
 def test_cors_defaults_to_safe_origins_in_non_production(
@@ -398,8 +579,8 @@ def test_production_disables_legacy_router_mounts_by_default(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "production",
             "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
@@ -407,7 +588,7 @@ def test_production_disables_legacy_router_mounts_by_default(
         tmp_path=tmp_path,
     )
 
-    paths = _route_paths(module.app)
+    paths = set(probe["paths"])
     assert "/api/v1/ws" in paths
     assert "/api/v1/sessions" in paths
     assert "/api/v1/invite-test/applications" in paths
@@ -426,6 +607,29 @@ def test_production_disables_legacy_router_mounts_by_default(
     # contract violation; the REST analyze endpoint shared the same retired router).
     assert "/api/v1/vision/solve" not in paths
     assert "/api/v1/vision/analyze" not in paths
+
+
+def test_main_reload_clears_previous_entrypoint_env_before_mounting_routes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("SERVICE_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS", "1")
+
+    probe = _fresh_main_probe(
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
+            "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = set(probe["paths"])
+    assert "/api/v1/ws" in paths
+    assert "/api/v1/sessions" in paths
+    assert "/api/outputs" not in paths
+    assert "/api/v1/solve" not in paths
 
 
 def test_learning_brain_qa_router_is_not_mounted_by_default(
@@ -448,24 +652,22 @@ def test_learning_brain_qa_router_requires_local_explicit_flag(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "local",
             "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": "1",
         },
         tmp_path=tmp_path,
+        get_path="/wechat-harness",
     )
 
-    assert "/api/v1/learning-brain/harness-case-grading" in _route_paths(module.app)
-    assert "/wechat-harness" in _route_paths(module.app)
-
-    with TestClient(module.app) as client:
-        response = client.get("/wechat-harness")
-
-    assert response.status_code == 200
-    assert "学习大脑" in response.text
-    assert "当前可信结论" in response.text
+    paths = set(probe["paths"])
+    assert "/api/v1/learning-brain/harness-case-grading" in paths
+    assert "/wechat-harness" in paths
+    assert probe["response_status"] == 200
+    assert "学习大脑" in str(probe["response_text"])
+    assert "当前可信结论" in str(probe["response_text"])
 
 
 def test_learning_brain_qa_router_not_mounted_in_production_even_with_flag(
@@ -506,8 +708,8 @@ def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "production",
             "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": "1",
@@ -515,7 +717,7 @@ def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
         tmp_path=tmp_path,
     )
 
-    paths = _route_paths(module.app)
+    paths = set(probe["paths"])
     assert "/api/v1/solve" in paths
     assert "/api/v1/chat" not in paths
     assert "/api/v1/question/mimic" in paths
@@ -768,8 +970,9 @@ def test_startup_persists_launch_readiness_to_runtime_observability_store(
     assert store.base_dir == (tmp_path / "data" / "runtime" / "observability" / "control_plane").resolve()
     latest = store.latest_payload("readiness_checks")
     assert latest is not None
-    assert latest["check_id"] == "launch_readiness"
-    assert latest["status"] == "PASS"
+    assert latest["view"] == "current_release_latest_matrix"
+    rows = {row["check_id"]: row for row in latest["rows"]}
+    assert rows["launch_readiness"]["status"] == "PASS"
 
 
 def test_http_request_id_is_echoed_and_bound_to_request_state(

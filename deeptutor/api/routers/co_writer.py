@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import AsyncGenerator, Literal
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
@@ -23,11 +23,13 @@ from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.logging import get_logger
+from deeptutor.api._secure_router import secure_router
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.search import is_web_search_runtime_available
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.settings.interface_settings import get_ui_language
 
-router = APIRouter()
+router = secure_router()
 
 # Initialize logger with config
 config = load_config_with_main("main.yaml", PROJECT_ROOT)
@@ -97,13 +99,12 @@ class AutoMarkResponse(BaseModel):
 
 
 def _normalize_react_edit_tools(tools: list[str] | None) -> list[str]:
-    allowed = {
+    allowed = set(filter_end_user_tools({
         "brainstorm",
         "rag",
-        "code_execution",
         "reason",
         "paper_search",
-    }
+    }))
     if is_web_search_runtime_available():
         allowed.add("web_search")
     normalized: list[str] = []
@@ -364,8 +365,11 @@ async def _stream_react_edit(request: ReactEditRequest) -> AsyncGenerator[str, N
             result_holder = await _run_react_edit(request, language=language, stream=bus)
         except HTTPException as exc:
             error_holder["detail"] = str(exc.detail)
-        except Exception as exc:
-            error_holder["detail"] = str(exc)
+        except Exception:
+            # Don't leak raw exception text (paths/SQL/internal state) to the SSE client;
+            # log server-side and return a generic message. Mirrors the HTTP-error fix.
+            logger.exception("co_writer stream edit failed")
+            error_holder["detail"] = "服务暂时不可用，请稍后再试"
         finally:
             await bus.close()
 
@@ -403,9 +407,10 @@ async def edit_text(request: EditRequest):
 
         return result
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/edit_react", response_model=ReactEditResponse)
@@ -414,9 +419,10 @@ async def edit_text_react(request: ReactEditRequest):
         return await _run_react_edit(request, language=_current_language())
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/edit_react/stream")
@@ -445,9 +451,10 @@ async def auto_mark_text(request: AutoMarkRequest):
         print_stats()
 
         return result
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/history")
@@ -456,8 +463,9 @@ async def get_history():
     try:
         history = load_history()
         return {"history": history, "total": len(history)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/history/{operation_id}")
@@ -471,8 +479,9 @@ async def get_operation(operation_id: str):
         raise HTTPException(status_code=404, detail="Operation not found")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/tool_calls/{operation_id}")
@@ -486,8 +495,9 @@ async def get_tool_call(operation_id: str):
         raise HTTPException(status_code=404, detail="Tool call not found")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/export/markdown")
@@ -502,5 +512,6 @@ async def export_markdown(content: dict):
             media_type="text/markdown",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")

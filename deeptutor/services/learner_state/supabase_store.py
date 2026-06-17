@@ -6,7 +6,10 @@ from typing import Any
 
 import httpx
 
-from deeptutor.services.learner_state.learning_brain_read_model import extract_learning_brain_projection
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    extract_learning_brain_projection,
+    wrap_learning_brain_projection,
+)
 
 
 def _service_key_from_env(explicit: str | None = None) -> str:
@@ -292,6 +295,29 @@ class LearnerStateSupabaseCoreStore:
         projection = rows[0].get("summary_structured_json")
         return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
 
+    async def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        rows = await self._client.select_rows(
+            "learner_summaries",
+            filters={"user_id": f"eq.{normalized_user_id}"},
+            limit=1,
+        )
+        existing = rows[0] if rows else {}
+        existing_structured = existing.get("summary_structured_json")
+        structured = {
+            **(dict(existing_structured) if isinstance(existing_structured, dict) else {}),
+            **wrap_learning_brain_projection(dict(projection or {})),
+        }
+        row = {
+            "user_id": normalized_user_id,
+            "summary_md": str(existing.get("summary_md") or "").strip(),
+            "summary_structured_json": structured,
+            "updated_at": _iso_now(),
+        }
+        saved = await self._client.upsert_row("learner_summaries", row=row, on_conflict="user_id")
+        saved_structured = saved.get("summary_structured_json")
+        return extract_learning_brain_projection(saved_structured if isinstance(saved_structured, dict) else structured)
+
     async def read_learning_evidence_event(self, user_id: str, event_id: str) -> dict[str, Any] | None:
         rows = await self._client.select_rows(
             "learner_memory_events",
@@ -399,6 +425,25 @@ class LearnerStateSupabaseSyncCoreStore:
             return {}
         projection = row.get("summary_structured_json")
         return extract_learning_brain_projection(projection if isinstance(projection, dict) else {})
+
+    def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        existing = self._select_one("learner_summaries", {"user_id": normalized_user_id}) or {}
+        existing_structured = existing.get("summary_structured_json")
+        structured = {
+            **(dict(existing_structured) if isinstance(existing_structured, dict) else {}),
+            **wrap_learning_brain_projection(dict(projection or {})),
+        }
+        row = {
+            "user_id": normalized_user_id,
+            "summary_md": str(existing.get("summary_md") or "").strip(),
+            "summary_structured_json": structured,
+            "updated_at": _iso_now(),
+        }
+        rows = self._upsert("learner_summaries", [row], on_conflict="user_id")
+        saved = rows[0] if rows else row
+        saved_structured = saved.get("summary_structured_json")
+        return extract_learning_brain_projection(saved_structured if isinstance(saved_structured, dict) else structured)
 
     def read_memory_events(self, user_id: str, limit: int | None = 20) -> list[dict[str, Any]]:
         if limit is None or limit < 0:

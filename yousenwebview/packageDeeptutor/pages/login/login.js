@@ -16,6 +16,29 @@ function canShowDebugCode() {
   return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
 }
 
+function describePhoneCodeAuthError(info) {
+  var detail = String((info && info.detailText) || "").trim();
+  if (info && info.status === 429) {
+    return "操作过于频繁";
+  }
+  if (detail.indexOf("手机号身份冲突") >= 0) {
+    return "手机号身份存在冲突，请联系客服";
+  }
+  if (detail.indexOf("验证码不存在") >= 0) {
+    return "请先获取验证码";
+  }
+  if (detail.indexOf("验证码已过期") >= 0) {
+    return "验证码已过期，请重新获取";
+  }
+  if (detail.indexOf("验证码错误次数过多") >= 0) {
+    return "验证码错误次数过多，请重新获取验证码";
+  }
+  if ((info && info.status === 400) || detail.indexOf("验证码") >= 0) {
+    return "验证码错误，请重新输入";
+  }
+  return "";
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -39,6 +62,7 @@ Page({
     pageShellStyle: "",
     entrySource: "",
     returnTo: "",
+    guestWaveActive: false,
     heroMessages: [
       {
         line1: "抓不住重点、越学越乱？",
@@ -123,7 +147,7 @@ Page({
     }
     return api.describeRequestError(err, fallbackMsg, options || {});
   },
-  _requestWechatSession: function (attempt) {
+  _requestWechatPhoneSession: function (phoneCode, attempt) {
     var self = this;
     var currentAttempt = Number(attempt) || 0;
     return new Promise(function (resolve, reject) {
@@ -134,7 +158,7 @@ Page({
             return;
           }
           api
-            .wxLogin(loginRes.code)
+            .wxLoginWithPhone(loginRes.code, phoneCode)
             .then(resolve)
             .catch(function (err) {
               if (
@@ -142,7 +166,10 @@ Page({
                 typeof api.shouldRetryWechatLogin === "function" &&
                 api.shouldRetryWechatLogin(err)
               ) {
-                self._requestWechatSession(currentAttempt + 1).then(resolve).catch(reject);
+                self
+                  ._requestWechatPhoneSession(phoneCode, currentAttempt + 1)
+                  .then(resolve)
+                  .catch(reject);
                 return;
               }
               reject(err);
@@ -327,15 +354,7 @@ Page({
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "验证失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 400 || info.detailText.indexOf("验证码") >= 0) {
-              return "验证码错误或已过期";
-            }
-            if (info.status === 429) {
-              return "操作过于频繁";
-            }
-            return "";
-          },
+          customMap: describePhoneCodeAuthError,
         });
         self.setData({ errorMsg: msg });
       })
@@ -364,6 +383,35 @@ Page({
       }),
     });
   },
+  goPasswordReset: function () {
+    wx.navigateTo({
+      url: route.passwordReset({
+        entrySource: this.data.entrySource,
+        returnTo: this.data.returnTo,
+      }),
+    });
+  },
+  handleGuestPreview: function () {
+    if (this._guestNavigating) return;
+    this._guestNavigating = true;
+    var that = this;
+    var source = this.data.entrySource || "guest_preview";
+    // 登录页通常由导学动效落地而来，「先体验导学」直达游客体验页，避免动效重复
+    this.setData({ guestWaveActive: true });
+    // 430ms = login.wxss guestWaveUp 460ms 动画的覆盖临界点；改任一处必须同步另一处。
+    setTimeout(function () {
+      wx.reLaunch({
+        url: route.chat({ entry_source: source, preview: "1" }),
+        fail: function () {
+          // 导航失败时撤掉色浪，避免 fill:forwards 把页面永久罩住
+          that.setData({ guestWaveActive: false });
+        },
+        complete: function () {
+          that._guestNavigating = false;
+        },
+      });
+    }, 430);
+  },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
     var token = inner && inner.token;
@@ -372,47 +420,8 @@ Page({
     return { token: token };
   },
   handleWechatLogin: function () {
-    var self = this;
-    if (self.data.wechatLoading || self.data.loading) return;
-    self.setData({ wechatLoading: true, errorMsg: "" });
-    self
-      ._requestWechatSession(0)
-      .then(function (resp) {
-        self._completeWechatAuth(resp);
-      })
-      .then(function () {
-        self._trackLoginSuccess("wechat");
-        self._reLaunchAfterAuth();
-      })
-      .catch(function (err) {
-        var msg = self._describeAuthError(err, "微信登录失败，请重试", {
-          context: "wechat_login",
-          customMap: function (info) {
-            if (
-              info.rawMessage.indexOf("credentials") >= 0 ||
-              info.detailText.indexOf("credentials") >= 0
-            ) {
-              return "后端未配置微信小程序密钥";
-            }
-            if (
-              info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
-              info.detailText.indexOf("WX_LOGIN_") >= 0
-            ) {
-              return "无法获取微信登录凭证";
-            }
-            return "";
-          },
-        });
-        self.setData({ errorMsg: msg });
-      })
-      .then(
-        function () {
-          self.setData({ wechatLoading: false });
-        },
-        function () {
-          self.setData({ wechatLoading: false });
-        },
-      );
+    if (this.data.wechatLoading || this.data.loading) return;
+    this.setData({ errorMsg: "请先完成手机号验证，也可使用手机号验证码登录" });
   },
   handleWechatPhoneNumber: function (e) {
     var self = this;
@@ -422,42 +431,35 @@ Page({
       e.detail &&
       (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
-      self.setData({ errorMsg: "未获取到微信手机号授权" });
+      self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
     self
-      ._requestWechatSession(0)
+      ._requestWechatPhoneSession(phoneCode, 0)
       .then(function (resp) {
         self._completeWechatAuth(resp);
-        return api.bindPhone(phoneCode);
-      })
-      .then(function (resp) {
-        var inner = resp.data || resp;
-        if (inner && inner.token) {
-          auth.setToken(inner.token, inner.expires_at, inner);
-        }
         self._trackLoginSuccess("wechat_phone");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var msg = self._describeAuthError(err, "微信手机号登录失败，请重试", {
+        var msg = self._describeAuthError(err, "快速登录失败，请重试", {
           context: "wechat_login",
           customMap: function (info) {
             if (
               info.rawMessage.indexOf("credentials") >= 0 ||
               info.detailText.indexOf("credentials") >= 0
             ) {
-              return "后端未配置微信小程序密钥";
+              return "后端未配置小程序密钥";
             }
             if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
-              return "微信手机号授权失败";
+              return "手机号验证失败";
             }
             if (
               info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
               info.detailText.indexOf("WX_LOGIN_") >= 0
             ) {
-              return "无法获取微信登录凭证";
+              return "无法获取登录凭证";
             }
             return "";
           },

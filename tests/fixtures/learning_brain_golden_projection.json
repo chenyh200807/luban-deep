@@ -1,0 +1,73 @@
+{
+  "ok": true,
+  "user_id": "golden_student_001",
+  "projection_subject": "construction_exam_learning_truth",
+  "schema_version": 1,
+  "compiled_objects": {
+    "concept:1A432000": {
+      "object_type": "concept",
+      "object_id": "1A432000",
+      "current_truth": "工程招标投标与合同管理 上出现 多选漏选 等错因",
+      "evidence_level": "L1_repeated",
+      "confidence": 0.72,
+      "supporting_event_ids": ["evt_golden_1", "evt_golden_2"],
+      "evidence_refs": ["evt_golden_1", "evt_golden_2"],
+      "conflicting_event_ids": [],
+      "superseded_by_event_ids": [],
+      "decay_state": "active",
+      "claim_status": "repeated",
+      "lifecycle": {
+        "status": "repeated",
+        "evidence_level": "L1_repeated",
+        "decay_state": "active",
+        "supporting_event_count": 2
+      }
+    },
+    "error:1A432000:M06": {
+      "object_type": "error",
+      "object_id": "1A432000:M06",
+      "current_truth": "工程招标投标与合同管理 上出现 多选漏选 错因",
+      "evidence_level": "L1_repeated",
+      "confidence": 0.72,
+      "supporting_event_ids": ["evt_golden_1", "evt_golden_2"],
+      "evidence_refs": ["evt_golden_1", "evt_golden_2"],
+      "conflicting_event_ids": [],
+      "superseded_by_event_ids": [],
+      "decay_state": "active",
+      "claim_status": "repeated",
+      "lifecycle": {
+        "status": "repeated",
+        "evidence_level": "L1_repeated",
+        "decay_state": "active",
+        "supporting_event_count": 2
+      }
+    }
+  },
+  "weak_points": [
+    {
+      "concept_id": "1A432000",
+      "error_code": "M06",
+      "claim": "工程招标投标与合同管理 上出现 多选漏选 错因",
+      "supporting_event_ids": ["evt_golden_1", "evt_golden_2"],
+      "evidence_refs": ["evt_golden_1", "evt_golden_2"],
+      "evidence_level": "L1_repeated",
+      "claim_status": "repeated",
+      "lifecycle": {
+        "status": "repeated",
+        "evidence_level": "L1_repeated",
+        "decay_state": "active",
+        "supporting_event_count": 2
+      }
+    }
+  ],
+  "typed_graph": {
+    "edges": [
+      {
+        "edge_type": "error_points_to_training",
+        "from": {"type": "error", "id": "1A432000:M06"},
+        "to": {"type": "next_training", "id": "1A432000:M06:case_repair"},
+        "evidence_event_id": "evt_golden_1"
+      }
+    ]
+  }
+}

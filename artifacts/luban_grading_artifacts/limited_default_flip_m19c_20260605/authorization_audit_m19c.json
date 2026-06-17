@@ -1,0 +1,13 @@
+{
+  "authorization_detected": true,
+  "authorization_scope": "M19C limited qa_/operator_ default only",
+  "broad_default_authorized": false,
+  "can_execute_limited_m19c": true,
+  "canonical_truth_write_authorized": false,
+  "m19b_canonical_learner_truth_write": "NO-GO",
+  "m19b_limited_candidate": "GO",
+  "m19b_one_percent_qa_operator_default": "GO",
+  "m19b_production_v1_default_flip": "NO-GO",
+  "m20_delta_included": false,
+  "production_db_write_authorized": false
+}

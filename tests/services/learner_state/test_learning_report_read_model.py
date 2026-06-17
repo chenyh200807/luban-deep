@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import json
 
 import pytest
 
@@ -9,7 +10,15 @@ from deeptutor.services.learner_state.learning_report_read_model import (
 )
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateService
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.construction_grading.writeback import (
+    write_case_grading_event_learning_evidence,
+    write_grading_error_events,
+)
+from deeptutor.services.taxonomy.construction_taxonomy import (
+    taxonomy_source_metadata,
+    taxonomy_tree_stats,
+)
+from deeptutor.services.taxonomy.textbook_directory import textbook_directory
 
 _TZ = timezone(timedelta(hours=8))
 
@@ -21,6 +30,20 @@ def _iso(days_ago: int = 0) -> str:
 def _iso_minutes_ago(minutes: int) -> str:
     """Recent timestamp inside the report's recency window, ordered by minutes-ago."""
     return (datetime.now(_TZ) - timedelta(minutes=minutes)).isoformat()
+
+
+def _assert_knowledge_summary_matches_taxonomy_authority(knowledge_summary: dict) -> None:
+    source = taxonomy_source_metadata()
+    assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
+    assert source["sha256"], "taxonomy authority source should stay pinned"
+
+    taxonomy_stats = taxonomy_tree_stats()
+    for key in ("total_nodes", "leaf_nodes", "coded_nodes", "unique_codes", "duplicate_code_rows"):
+        assert knowledge_summary[key] == taxonomy_stats[key]
+
+    assert knowledge_summary["total_nodes"] >= knowledge_summary["leaf_nodes"] > 0
+    assert knowledge_summary["coded_nodes"] >= knowledge_summary["unique_codes"] > 0
+    assert knowledge_summary["coded_nodes"] == knowledge_summary["unique_codes"] + knowledge_summary["duplicate_code_rows"]
 
 
 def _learning_event(
@@ -110,7 +133,7 @@ class FakeMemberService:
                 "coach_note": "当前优先补强建筑构造",
                 "source": "training_intent",
             },
-            "progress_feedback": {"cards": [{"label": "近 3 天完成", "value": "0题"}]},
+            "progress_feedback": {"cards": [{"label": "近 3 天完成", "value": "0次"}]},
         }
 
     def get_assessment_profile(self, user_id: str) -> dict:
@@ -133,6 +156,21 @@ class NoStudyPlanMemberService(FakeMemberService):
     def get_home_dashboard(self, user_id: str) -> dict:
         data = dict(super().get_home_dashboard(user_id))
         data.pop("study_plan", None)
+        return data
+
+
+class RawStudyPlanMemberService(FakeMemberService):
+    def get_home_dashboard(self, user_id: str) -> dict:
+        data = dict(super().get_home_dashboard(user_id))
+        data["today"] = {"hint": "优先补强 专家论证程序"}
+        data["today_focus"] = {"title": "推进专家论证程序下一步学习"}
+        data["study_plan"] = {
+            "focus_topic": "专家论证程序",
+            "priority_task": "先围绕专家论证程序速练 5 题",
+            "study_method": "先看专家论证程序，再做题",
+            "coach_note": "当前优先补强专家论证程序",
+            "source": "legacy_home_dashboard",
+        }
         return data
 
 
@@ -181,6 +219,36 @@ class FakeLearnerStateService:
         return {"projection": synthesize_learning_truth(self.list_memory_events(user_id, limit=event_limit))}
 
 
+class AppendableFakeLearnerStateService(FakeLearnerStateService):
+    def __init__(self) -> None:
+        super().__init__([])
+
+    def append_memory_event(
+        self,
+        user_id: str,
+        *,
+        source_feature: str,
+        source_id: str,
+        source_bot_id: str | None = None,
+        memory_kind: str,
+        payload_json: dict,
+        dedupe_key: str,
+    ) -> LearnerStateEvent:
+        event = LearnerStateEvent(
+            event_id=f"evt_writeback_{len(self.events) + 1}",
+            user_id=user_id,
+            source_feature=source_feature,
+            source_id=source_id,
+            source_bot_id=source_bot_id,
+            memory_kind=memory_kind,
+            payload_json=payload_json,
+            dedupe_key=dedupe_key,
+            created_at=_iso(),
+        )
+        self.events.append(event)
+        return event
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # G1: 完成数 attempt 口径（硬约束）
 # ─────────────────────────────────────────────────────────────────────────────
@@ -207,9 +275,26 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert overview["today_unique_questions"] == 1
     assert overview["recent_three_unique_questions"] == 1
     assert overview["unique_question_count"] == 1
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["study_plan"]["source"] == "training_intent"
+
+
+def test_report_read_model_dedupes_same_learning_evidence_dedupe_key() -> None:
+    first = _learning_event("evt_today_1", days_ago=0, question_id="case_001")
+    duplicate = _learning_event("evt_today_2", days_ago=0, question_id="case_001")
+    duplicate.dedupe_key = first.dedupe_key
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([first, duplicate]),
+        event_limit=50,
+    )
+
+    assert model["overview"]["today_done"] == 1
+    assert model["overview"]["attempt_count"] == 1
+    assert len(model["learner_facing"]["recent_attempts"]) == 1
 
 
 def test_learning_report_derives_study_plan_from_next_training_when_home_plan_missing() -> None:
@@ -241,11 +326,26 @@ def test_learning_report_derives_study_plan_from_next_training_when_home_plan_mi
         event_limit=50,
     )
 
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"].startswith("先做 3 道")
     assert model["study_plan"]["study_method"]
     assert model["study_plan"]["time_budget"] == "约 8 分钟"
     assert model["study_plan"]["source"] == "training_prescription"
+
+
+def test_learning_report_does_not_project_raw_home_study_plan_topic() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=RawStudyPlanMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_raw_plan", days_ago=0, concept_id="1A432000"),
+        ]),
+        event_limit=50,
+    )
+
+    rendered = json.dumps(model["study_plan"], ensure_ascii=False)
+    assert model["study_plan"]["focus_topic"] == "工程招标投标与合同管理"
+    assert "专家论证程序" not in rendered
 
 
 def test_training_prescription_uses_specific_evidence_topic_not_prompt_text() -> None:
@@ -721,10 +821,17 @@ def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> Non
     assert model["overview"]["attempt_count"] == 3
     assert model["overview"]["recent_three_done"] == 3
     assert model["overview"]["unique_question_count"] == 3
-    # progress_feedback 的"主攻推进"卡片应能选出一个 chapter（不为空标签）
+    # progress_feedback 的"主攻主题"卡片应能选出一个 chapter（不为空标签）
     cards_by_label = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert "主攻推进" in cards_by_label
-    assert cards_by_label["主攻推进"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
+    assert "主攻主题" in cards_by_label
+    assert cards_by_label["主攻主题"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
+    knowledge_summary = model["mastery"]["knowledge_summary"]
+    assert knowledge_summary["total_textbook_chapters"] == len(textbook_directory())
+    _assert_knowledge_summary_matches_taxonomy_authority(knowledge_summary)
+    assert knowledge_summary["evaluated_topics"] >= 2
+    chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
+    assert chapters_by_no[1]["evaluated_topics"] >= 1
+    assert chapters_by_no[7]["evaluated_topics"] >= 1
 
 
 def test_no_evidence_does_not_inflate_progress() -> None:
@@ -746,7 +853,7 @@ def test_no_evidence_does_not_inflate_progress() -> None:
     assert model["authority"]["progress_source"] == "learner_memory_events.learning_evidence"
     # 近 3 天卡片应展示 0 题（非冒充非负值）
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "0题"
+    assert cards["近 3 天完成"]["value"] == "0次"
 
 
 def test_single_correct_attempt_does_not_mark_chapter_as_fully_mastered() -> None:
@@ -890,7 +997,7 @@ def test_learning_report_counts_recent_three_days_from_learning_evidence_not_leg
     )
 
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "2题"
+    assert cards["近 3 天完成"]["value"] == "2次"
     assert model["overview"]["today_done"] == 1
     assert model["authority"]["progress_source"] == "learner_memory_events.learning_evidence"
     assert model["legacy_compat"]["today_progress"]["today_done"] == 0
@@ -1069,7 +1176,7 @@ def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
     )
     assert model["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
     assert model["authority"]["mistake_book_source"] == "learner_mistake_book_items"
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["attempts"][0]["attempt_ref"]
     assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
@@ -1222,6 +1329,43 @@ def test_compiled_truth_present_skips_dry_run() -> None:
     assert model["source_status"]["dry_run_synthesis"]["ok"] is None
 
 
+def test_compiled_truth_hash_is_preserved_in_v2_learning_brain_payload() -> None:
+    class HotProjectionService(FakeLearnerStateService):
+        def read_compiled_learning_truth(self, user_id: str) -> dict:
+            return {
+                "subject": "construction_exam_learning_truth",
+                "schema_version": 2,
+                "compiled_objects": {},
+                "weak_points": [],
+                "improvement_signals": [],
+                "stale_claims": [],
+                "typed_graph": {"edges": [], "readiness_gaps": []},
+                "synthesis_run": {
+                    "input_event_count": 2,
+                    "created_claim_count": 0,
+                    "status": "persisted_enqueued",
+                    "output_projection_hash": "sha256:compiled-truth-hash",
+                },
+            }
+
+        def synthesize_learning_truth(self, user_id: str, *, dry_run: bool, event_limit: int | None = None) -> dict:
+            raise AssertionError("dry_run should not fire when compiled truth is present")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=HotProjectionService(
+            [_learning_event("evt_today", days_ago=0, question_id="case_001")]
+        ),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["authority"]["learning_brain_source"] == "compiled_learning_truth"
+    assert model["learning_brain"]["output_projection_hash"] == "sha256:compiled-truth-hash"
+    assert model["learning_brain"]["synthesis_run"]["output_projection_hash"] == "sha256:compiled-truth-hash"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 端到端：通过 grading writeback 写入真实 evidence
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1242,7 +1386,10 @@ def test_learning_report_exposes_weak_points_learning_brain_evidence_and_next_tr
 
     learning_brain = model["learning_brain"]
     assert learning_brain["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert learning_brain["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert learning_brain["weak_points"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert learning_brain["visible_sections"]["current_truth"]
+    assert learning_brain["visible_sections"]["current_truth"][0]["memory_lifecycle_label"]
     assert learning_brain["visible_sections"]["evidence_flow"]
     assert learning_brain["visible_sections"]["next_training"]
     assert model["next_training"]
@@ -1302,11 +1449,13 @@ def test_realistic_chinese_grading_event_updates_report_progress_learning_brain_
     )
 
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "2题"
+    assert cards["近 3 天完成"]["value"] == "2次"
     assert model["overview"]["today_done"] == 2
     assert model["overview"]["attempt_count"] == 2
     assert model["overview"]["unique_question_count"] == 2
     assert model["learning_brain"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert model["learning_brain"]["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert model["learning_brain"]["weak_points"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert model["learning_brain"]["visible_sections"]["evidence_flow"]
     assert model["learning_brain"]["visible_sections"]["next_training"][0]["display_meta"]
     assert model["learning_brain"]["graph_chain"]["has_training_uses_question"] is True
@@ -1444,6 +1593,100 @@ def test_learning_report_exposes_arrs_revalidation_queue(monkeypatch) -> None:
     assert probe["kind"] == "revalidation_probe"
     assert probe["status"] == "active"
     assert probe["intent"]["source"] == "revalidation_queue"
+
+
+def test_learning_report_exposes_grading_to_brain_product_loop(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STATE_PROJECTION_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+
+    events = [
+        _prescription_event(
+            "evt_loop_miss_1",
+            training_intent_id="intent_loop",
+            phase="assigned",
+            status="assigned",
+            score_ratio=0.0,
+            days_ago=2,
+        ),
+        _prescription_event(
+            "evt_loop_miss_2",
+            training_intent_id="intent_loop",
+            phase="repair_root",
+            status="in_progress",
+            score_ratio=0.0,
+            days_ago=1,
+        ),
+        _prescription_event(
+            "evt_loop_retest",
+            training_intent_id="intent_loop",
+            phase="verification_probe",
+            status="verified",
+            score_ratio=1.0,
+            days_ago=0,
+        ),
+    ]
+    for event in events:
+        event.payload_json["evidence_source"] = "construction_grading"
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(events),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    loop = model["grading_to_brain_loop"]
+    assert loop["authority"]["grading_evidence"] == "learner_memory_events.learning_evidence"
+    assert loop["authority"]["learner_model"] == "LearningBrainReadModel"
+    assert loop["authority"]["personalization"] == "PersonalizationContextPack"
+    assert loop["authority"]["action"] == "training_intent"
+    assert loop["status"] == "improved"
+    assert loop["next_required_action"] == "maintain"
+    assert loop["evidence_refs"] == ["evt_loop_miss_1", "evt_loop_miss_2", "evt_loop_retest"]
+    stage_by_key = {stage["key"]: stage for stage in loop["stages"]}
+    assert stage_by_key["grading_result"]["status"] == "ready"
+    assert stage_by_key["learner_claim"]["status"] == "ready"
+    assert stage_by_key["personalization_context"]["status"] == "ready"
+    assert stage_by_key["next_action"]["status"] == "ready"
+    assert stage_by_key["retest"]["status"] == "verified"
+    assert "canonical_truth_written" not in loop
+
+
+def test_grading_to_brain_loop_does_not_treat_simulated_retest_as_improved(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STATE_PROJECTION_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+
+    simulated = _prescription_event(
+        "evt_loop_simulated_retest",
+        training_intent_id="intent_loop",
+        phase="verification_probe",
+        status="verified",
+        score_ratio=1.0,
+        days_ago=0,
+    )
+    simulated.payload_json["evidence_source"] = "construction_grading"
+    simulated.payload_json["qa_simulated"] = True
+    simulated.payload_json["preview_only"] = True
+    simulated.payload_json["claim_promotion_allowed"] = False
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([simulated]),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    loop = model["grading_to_brain_loop"]
+    assert loop["status"] != "improved"
+    assert loop["latest_outcome"]["status"] != "verified"
+    assert loop["stages"][-1]["status"] != "verified"
+    assert "canonical_truth_written" not in loop
 
 
 def test_learning_state_inference_kill_switch_hides_action_loop(monkeypatch) -> None:
@@ -1668,6 +1911,75 @@ def test_mastery_map_uses_learning_evidence_when_dashboard_has_only_total_score(
     assert model["mastery"]["hotspots"]
 
 
+def test_v1_case_grading_writeback_drives_report_radar_and_textbook_directory() -> None:
+    class SparseMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 0,
+                "groups": [],
+                "hotspots": [],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    learner_service = AppendableFakeLearnerStateService()
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=learner_service,
+        user_id="student_demo",
+        source_id="turn-case-v1-waterproof",
+        source_bot_id="construction-exam-coach",
+        user_answer="普通防水砂浆即可。",
+        question_stem="指出地下防水施工材料的不妥之处。",
+        node_code="1A413050",
+        grading_event={
+            "event_type": "case_grading_completed",
+            "student_id": "student_demo",
+            "question_id": "case-waterproof-1",
+            "awarded_score": 0.0,
+            "max_score": 1.0,
+            "high_risk_review": True,
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "knowledge_point": "地下防水工程材料术语",
+                    "policy_type": "exact_required",
+                    "hit": "miss",
+                    "score": 0.0,
+                    "max_score": 1.0,
+                    "mistake_type": "near_synonym_not_exact",
+                    "evidence_span": "普通防水砂浆",
+                    "required_terms": ["防水混凝土"],
+                }
+            ],
+        },
+    )
+
+    assert result["writeback_count"] == 1
+    payload = result["learning_evidence_payload"]
+    assert payload["weak_points"][0]["concept_id"] is None
+    assert payload["error_events"][0]["concept_tag"] == "1A413050"
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=SparseMasteryMemberService(),
+        learner_state_service=learner_service,
+        event_limit=50,
+    )
+
+    assert model["overview"]["attempt_count"] == 1
+    assert model["learner_facing"]["recent_attempts"][0]["answer_line"] == "你选：普通防水砂浆即可。"
+    assert any("防水" in item["name"] for item in model["radar_dimensions"])
+    knowledge_summary = model["mastery"]["knowledge_summary"]
+    assert knowledge_summary["evaluated_topics"] >= 1
+    assert knowledge_summary["weak_topics"] >= 1
+    chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
+    assert chapters_by_no[3]["evaluated_topics"] >= 1
+    assert chapters_by_no[3]["weak_topics"] >= 1
+    assert "防水" in "".join(chapters_by_no[3]["top_topics"])
+
+
 # ─── Batch D Task 9: prescription outcome verification ───────────────────
 
 
@@ -1842,3 +2154,129 @@ def test_conversation_only_explanation_does_not_verify_prescription() -> None:
     loop = model["prescription_outcomes"][0]
     assert loop["status"] != "verified"
     assert loop["next_required_action"] == "complete_verification_probe"
+
+
+def test_concept_label_never_leaks_code_to_learner():
+    # SINGLE AUTHORITY (canonical taxonomy): a learner must never see a machine code. A resolvable code
+    # becomes Chinese; an unresolvable / non-concept code becomes '' (caller hides it), NEVER the code.
+    from deeptutor.services.learner_state.learning_report_read_model import _concept_label
+
+    assert _concept_label("1A432000") == "工程招标投标与合同管理"     # resolvable -> Chinese
+    assert _concept_label("地基基础承载力") == "地基基础承载力"        # already-Chinese passes through
+    for code in ["1A420000", "E02", "1B411000", "EXAM_1A432000_P0016_02::E0::Q1-1"]:
+        out = _concept_label(code)
+        assert code not in out                                       # the raw code is NEVER shown
+
+
+def test_learning_brain_object_display_never_leaks_code_or_dangling_colon():
+    # learner-facing learning-brain object titles must be Chinese-or-category, never a raw code/id and
+    # never a dangling '类别：' colon (canonical single authority).
+    from deeptutor.services.learner_state.learning_brain_read_model import _object_display
+
+    assert _object_display("1A432000", "concept")["display_title"] == "知识点：工程招标投标与合同管理"
+    for oid, ot in [("1A420000", "concept"), ("1B412000", "concept"),
+                    ("EXAM_x::abcdef", "rubric_item"), ("weird_obj_id", "")]:
+        title = _object_display(oid, ot)["display_title"]
+        assert not title.endswith("：")
+        assert oid not in title
+
+
+def test_learning_report_projects_notebook_card_assets_without_promoting_truth() -> None:
+    class FakeNotebookCardService:
+        def list_cards(self, user_id: str, *, subject_id: str = "", card_type: str = "") -> list[dict]:
+            assert user_id == "student_demo"
+            return [
+                {
+                    "note_id": "note_scoring",
+                    "user_id": "student_demo",
+                    "subject_id": "construction_exam_1",
+                    "card_type": "scoring_card",
+                    "source_type": "grading",
+                    "source_ref": {"attempt_ref": "signed-ref"},
+                    "title": "主体结构采分点",
+                    "ai_enhanced_content": {"summary": "漏写验收前置条件。"},
+                    "version": 2,
+                    "updated_at": _iso(),
+                },
+                {
+                    "note_id": "note_manual",
+                    "user_id": "student_demo",
+                    "subject_id": "construction_exam_1",
+                    "card_type": "manual_note",
+                    "source_type": "manual",
+                    "source_ref": {},
+                    "title": "自记口诀",
+                    "ai_enhanced_content": {"summary": "这只是学员自记。"},
+                    "version": 1,
+                    "updated_at": _iso(),
+                },
+            ]
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        notebook_card_service=FakeNotebookCardService(),
+        schema_version=2,
+    )
+
+    assets = model["note_assets"]["items"]
+    assert [item["note_id"] for item in assets] == ["note_scoring", "note_manual"]
+    assert assets[0]["source_linked"] is True
+    assert assets[0]["evidence_label"] == "可追溯到原始学习证据"
+    assert assets[1]["source_linked"] is False
+    assert assets[1]["evidence_label"] == ""
+    assert model["authority"]["note_assets_source"] == "learner_notebook_cards"
+    assert model["authority"]["today_tasks_source"] == "learning-report-read-model.note_assets"
+
+
+def test_learning_report_today_tasks_are_read_only_from_note_assets_and_capped() -> None:
+    class FakeNotebookCardService:
+        def list_cards(self, user_id: str, *, subject_id: str = "", card_type: str = "") -> list[dict]:
+            return [
+                {
+                    "note_id": f"note_{idx}",
+                    "user_id": user_id,
+                    "card_type": "review_note",
+                    "source_type": "chat",
+                    "source_ref": {"turn_id": f"turn_{idx}"},
+                    "title": f"学习卡 {idx}",
+                    "ai_enhanced_content": {"summary": f"复习点 {idx}"},
+                    "version": 1,
+                    "updated_at": _iso(),
+                }
+                for idx in range(5)
+            ]
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        notebook_card_service=FakeNotebookCardService(),
+        schema_version=2,
+    )
+
+    assert len(model["today_tasks"]) == 3
+    assert all(item["source"] == "note_assets" for item in model["today_tasks"])
+    assert [item["note_id"] for item in model["today_tasks"]] == ["note_0", "note_1", "note_2"]
+
+
+# ── schema-governance P2: learning-report read model is registered (register-before-use) ──
+
+
+def test_learning_report_schema_id_is_registered_as_t2() -> None:
+    """The single producer's canonical SCHEMA_ID must be registered T2 in the schema
+    registry (no unregistered/competing learning-report schema can appear). This is the
+    register-before-use promotion of a previously doc-only, integer-versioned read model."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.learner_state.learning_report_read_model import SCHEMA_ID
+
+    assert SCHEMA_ID == "learning_report_read_model.v2"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert SCHEMA_ID in t2_names, f"{SCHEMA_ID} must be a registered T2 runtime-canonical contract"

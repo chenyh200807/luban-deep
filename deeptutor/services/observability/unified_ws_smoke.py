@@ -66,11 +66,14 @@ async def run_unified_ws_smoke(
     message: str,
     language: str = "zh",
     capability: str | None = None,
+    auth_token: str | None = None,
     timeout_seconds: float = 60.0,
     connector_factory: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
     ws_url = _build_ws_url(api_base_url)
-    connect = connector_factory or (lambda url: websockets.connect(url))
+    token = str(auth_token or "").strip()
+    headers = {"Authorization": token if token.lower().startswith("bearer ") else f"Bearer {token}"} if token else None
+    connect = connector_factory or (lambda url: websockets.connect(url, additional_headers=headers))
     sent_payload = {
         "type": "start_turn",
         "content": message,
@@ -112,5 +115,6 @@ async def run_unified_ws_smoke(
         "duration_ms": round(duration_ms, 1),
         "metrics_after": metrics_after,
         "metrics_capture": metrics_capture,
+        "auth_configured": bool(token),
         "passed": passed,
     }

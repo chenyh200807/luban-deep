@@ -1,0 +1,29 @@
+{
+  "broad_production_default": {
+    "execute_now": false,
+    "reason": "broad default lacks explicit authorization, production async/rate-limit hardening, and canonical truth-write remains closed.",
+    "verdict": "NO-GO"
+  },
+  "controlled_cohort_only": {
+    "execute_now": false,
+    "reason": "M16/M17A/M17C/M19B prove qa_/test_/operator_ append-only guard with rollback.",
+    "verdict": "GO"
+  },
+  "named_internal_cohort_default": {
+    "execute_now": false,
+    "reason": "bounded named internal cohort can be configured with same kill/fail-closed controls.",
+    "requires_explicit_user_authorization": true,
+    "verdict": "GO"
+  },
+  "one_percent_qa_operator_default": {
+    "execute_now": false,
+    "reason": "limited production default candidate only; M19B dry-run config is reversible and no truth-write.",
+    "requires_explicit_user_authorization": true,
+    "verdict": "GO"
+  },
+  "shadow_only": {
+    "execute_now": false,
+    "reason": "current safe state; no production default or truth write.",
+    "verdict": "GO"
+  }
+}

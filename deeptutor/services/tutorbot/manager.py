@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import ExitStack
 import logging
+import os
 import shutil
 import sys
 from collections.abc import Awaitable, Callable
@@ -22,10 +23,20 @@ from typing import Any
 
 import yaml
 
+from deeptutor.services.compiled_knowledge.general_knowledge import (
+    format_general_knowledge_grounding,
+    resolve_general_knowledge_context,
+)
+from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
+    format_lecture_answer_method_grounding,
+    resolve_lecture_answer_method_context,
+)
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
+from deeptutor.services.session.sqlite_store import extract_question_context_from_active_object
 from deeptutor.tutorbot.utils.helpers import safe_filename
 
 logger = logging.getLogger(__name__)
@@ -62,6 +73,159 @@ def _append_web_search_sources_if_missing(response: str, sources: Any) -> str:
     if not lines:
         return content
     return content + "\n\n### 联网来源\n" + "\n".join(lines)
+
+
+def _has_active_question_context(metadata: dict[str, Any]) -> bool:
+    active_object = metadata.get("active_object")
+    if (
+        isinstance(active_object, dict)
+        and extract_question_context_from_active_object(active_object) is not None
+    ):
+        return True
+    if any(
+        isinstance(metadata.get(key), dict) and metadata.get(key)
+        for key in (
+            "question_followup_context",
+            "followup_question_context",
+            "_prefetched_exact_question",
+        )
+    ):
+        return True
+    scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+    return scene in {"case_grading", "question_review", "question_followup"}
+
+
+def _append_conversation_context(existing: Any, addition: str) -> str:
+    current = str(existing or "").strip()
+    new_text = str(addition or "").strip()
+    if not current:
+        return new_text
+    if not new_text:
+        return current
+    return current + "\n\n" + new_text
+
+
+def _general_knowledge_env_disabled() -> bool:
+    return os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "").strip().lower() in {
+        "false",
+        "0",
+        "off",
+        "no",
+    }
+
+
+def _general_knowledge_cohort_member(student_id: str) -> bool:
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
+    prefixes = tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+    return bool(prefixes) and str(student_id or "").startswith(prefixes)
+
+
+def _general_knowledge_cohort_configured() -> bool:
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
+    return any(prefix.strip() for prefix in raw.split(","))
+
+
+def _lecture_answer_method_env_disabled() -> bool:
+    return os.environ.get("LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED", "").strip().lower() in {
+        "false",
+        "0",
+        "off",
+        "no",
+    }
+
+
+def _attach_lecture_answer_method_context(
+    *,
+    content: str,
+    runtime_metadata: dict[str, Any],
+) -> None:
+    if _has_active_question_context(runtime_metadata):
+        return
+    if (
+        runtime_metadata.get("disable_luban_lecture_answer_method_context") is True
+        or runtime_metadata.get("lecture_answer_method_context") is False
+    ):
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "disabled_by_request"
+        return
+    if _lecture_answer_method_env_disabled():
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "killed_by_switch"
+        return
+
+    learner_context = {
+        "question_text": content,
+        "student_id": str(
+            runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or ""
+        ).strip(),
+        "source": str(runtime_metadata.get("source") or "tutorbot").strip(),
+        "bot_id": str(runtime_metadata.get("bot_id") or "").strip(),
+        "conversation_id": str(runtime_metadata.get("conversation_id") or "").strip(),
+    }
+    pack = resolve_lecture_answer_method_context(
+        content,
+        learner_context=learner_context,
+    )
+    if not pack:
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "not_applicable"
+        return
+    grounding = format_lecture_answer_method_grounding(pack)
+    if not grounding:
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "empty_grounding"
+        return
+    runtime_metadata["luban_lecture_answer_method_context"] = pack
+    runtime_metadata["luban_lecture_answer_method_context_status"] = "attached"
+    runtime_metadata["conversation_context_text"] = _append_conversation_context(
+        runtime_metadata.get("conversation_context_text"),
+        grounding,
+    )
+
+
+def _attach_general_knowledge_context(
+    *,
+    content: str,
+    runtime_metadata: dict[str, Any],
+) -> None:
+    if _has_active_question_context(runtime_metadata):
+        return
+    if (
+        runtime_metadata.get("disable_luban_general_knowledge_context") is True
+        or runtime_metadata.get("general_knowledge_context") is False
+    ):
+        return
+    if _general_knowledge_env_disabled():
+        runtime_metadata["luban_general_knowledge_context_status"] = "killed_by_switch"
+        return
+
+    explicit_shadow_opt_in = runtime_metadata.get("general_knowledge_context") is True
+    student_id = str(
+        runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or ""
+    ).strip()
+    if not explicit_shadow_opt_in and not _general_knowledge_cohort_member(student_id):
+        runtime_metadata["luban_general_knowledge_context_status"] = (
+            "cohort_miss" if _general_knowledge_cohort_configured() else "shadow_not_enabled"
+        )
+        return
+
+    learner_context = {
+        "question_text": content,
+        "student_id": student_id,
+        "source": str(runtime_metadata.get("source") or "tutorbot").strip(),
+        "bot_id": str(runtime_metadata.get("bot_id") or "").strip(),
+        "conversation_id": str(runtime_metadata.get("conversation_id") or "").strip(),
+    }
+    pack = resolve_general_knowledge_context(
+        content,
+        learner_context=learner_context,
+    )
+    if not pack:
+        return
+    grounding = format_general_knowledge_grounding(pack)
+    if not grounding:
+        return
+    runtime_metadata["luban_general_knowledge_context"] = pack
+    runtime_metadata["conversation_context_text"] = _append_conversation_context(
+        runtime_metadata.get("conversation_context_text"),
+        grounding,
+    )
 
 
 @dataclass
@@ -519,6 +683,10 @@ class TutorBotManager:
             session_manager=session_adapter,
             shared_memory_dir=None,
             restrict_to_workspace=True,
+            # Student-facing bots run untrusted end-user prompts over /api/v1/ws.
+            # Never expose the shell / arbitrary-code-execution tools on this path —
+            # prompt injection would otherwise reach an RCE surface. (security review C2/H2/H3)
+            enable_exec_tool=False,
             default_session_key=canonical_key,
         )
 
@@ -587,6 +755,10 @@ class TutorBotManager:
             on_execute=_hb_execute,
             on_notify=_hb_notify,
             interval_s=30 * 60,
+            # Cross-worker single-instance: with uvicorn --workers N each worker starts
+            # its own copy of this bot; key the heartbeat window by bot_id so only one
+            # worker's tick runs (no duplicate LLM call / duplicate workspace writes).
+            single_instance_key=bot_id,
         )
         instance.heartbeat = heartbeat
         await heartbeat.start()
@@ -822,6 +994,9 @@ class TutorBotManager:
             "exact_question": {},
             "rag_rounds": [],
             "rag_saturation": {},
+            "rag_retrieval_degraded": False,
+            "rag_retrieval_status": "",
+            "rag_retrieval_error_type": "",
         }
         mode_execution_policy = (
             dict(merged_metadata.get("mode_execution_policy"))
@@ -866,6 +1041,7 @@ class TutorBotManager:
             "knowledge_bases": list(merged_metadata.get("knowledge_bases") or []),
             "default_kb": str(merged_metadata.get("default_kb") or "").strip(),
         }
+        enrich_trace_metadata_with_bi_identity(trace_metadata)
 
         async def _progress(text: str, *, tool_hint: bool = False) -> None:
             if on_progress:
@@ -901,6 +1077,17 @@ class TutorBotManager:
             rag_saturation = metadata.get("rag_saturation")
             if isinstance(rag_saturation, dict) and rag_saturation:
                 tool_trace_summary["rag_saturation"] = dict(rag_saturation)
+            retrieval_status = str(metadata.get("retrieval_status") or "").strip()
+            retrieval_degraded = bool(metadata.get("retrieval_degraded")) or retrieval_status in {
+                "failed",
+                "degraded",
+            }
+            if retrieval_degraded:
+                tool_trace_summary["rag_retrieval_degraded"] = True
+                tool_trace_summary["rag_retrieval_status"] = retrieval_status or "degraded"
+                tool_trace_summary["rag_retrieval_error_type"] = str(
+                    metadata.get("error_type") or ""
+                ).strip()
             exact_question = metadata.get("exact_question")
             if isinstance(exact_question, dict) and exact_question:
                 tool_trace_summary["exact_question"] = exact_question
@@ -909,12 +1096,22 @@ class TutorBotManager:
                 await on_tool_result(tool_name, result, metadata)
 
         runtime_metadata = dict(merged_metadata)
+        runtime_metadata.setdefault("bot_id", bot_id)
+        runtime_metadata.setdefault("conversation_id", effective_chat_id)
         runtime_metadata["selected_mode"] = (
             str(merged_metadata.get("selected_mode") or merged_metadata.get("effective_response_mode") or mode).strip()
             or mode
         )
         runtime_metadata["effective_response_mode"] = (
             str(merged_metadata.get("effective_response_mode") or mode).strip() or mode
+        )
+        _attach_lecture_answer_method_context(
+            content=content,
+            runtime_metadata=runtime_metadata,
+        )
+        _attach_general_knowledge_context(
+            content=content,
+            runtime_metadata=runtime_metadata,
         )
 
         def _observation_metadata(usage_summary: Any) -> dict[str, Any]:
@@ -951,6 +1148,9 @@ class TutorBotManager:
                 "rag_rounds": tool_trace_summary["rag_rounds"],
                 "rag_round_count": len(tool_trace_summary["rag_rounds"]),
                 "rag_saturation": tool_trace_summary["rag_saturation"],
+                "rag_retrieval_degraded": tool_trace_summary["rag_retrieval_degraded"],
+                "rag_retrieval_status": tool_trace_summary["rag_retrieval_status"],
+                "rag_retrieval_error_type": tool_trace_summary["rag_retrieval_error_type"],
                 "authority_applied": tool_trace_summary["authority_applied"],
                 "exact_question": tool_trace_summary["exact_question"],
             }
@@ -993,6 +1193,20 @@ class TutorBotManager:
                         "skill_trace",
                         "loader_source",
                         "skill_source_status",
+                        "grading_to_brain_loop",
+                        "learning_evidence_event_id",
+                        "learning_training_intent",
+                        "personalization_context",
+                        "next_best_action",
+                        "grading_engine_version",
+                        "v1_case_graded",
+                        "score_authority",
+                        "grading_rubric_provenance",
+                        "case_grading_stream_mode",
+                        "case_grading_adjudication_strategy",
+                        "case_grading_adjudication_group_count",
+                        "case_grading_adjudication_point_count",
+                        "llm_stream_telemetry",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1017,8 +1231,8 @@ class TutorBotManager:
                         or mode
                     ).strip() or mode
                     policy_execution_path = str(
-                        mode_execution_policy.get("execution_path")
-                        or runtime_metadata.get("execution_path")
+                        runtime_metadata.get("execution_path")
+                        or mode_execution_policy.get("execution_path")
                         or ""
                     ).strip()
                     if not policy_execution_path:
@@ -1037,11 +1251,34 @@ class TutorBotManager:
                     trace_metadata["execution_path"] = execution_path
                     trace_metadata["exact_fast_path_hit"] = exact_fast_path_hit
                     trace_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    trace_metadata["rag_retrieval_degraded"] = tool_trace_summary["rag_retrieval_degraded"]
+                    trace_metadata["rag_retrieval_status"] = tool_trace_summary["rag_retrieval_status"]
+                    trace_metadata["rag_retrieval_error_type"] = tool_trace_summary[
+                        "rag_retrieval_error_type"
+                    ]
+                    degraded_guard_applied = bool(
+                        tool_trace_summary["rag_retrieval_degraded"]
+                        and "我现在不能确认或否定" in response
+                        and "没有命中可作为标准答案的原题证据" in response
+                    )
+                    degraded_mcq_guard_applied = bool(
+                        tool_trace_summary["rag_retrieval_degraded"]
+                        and "不能把这轮批改说成“题库标准答案确认”" in response
+                    )
+                    trace_metadata["degraded_exact_answer_guard_applied"] = degraded_guard_applied
+                    trace_metadata["degraded_mcq_grading_guard_applied"] = degraded_mcq_guard_applied
                     merged_metadata["selected_mode"] = selected_mode
                     merged_metadata["effective_response_mode"] = selected_mode
                     merged_metadata["execution_path"] = execution_path
                     merged_metadata["exact_fast_path_hit"] = exact_fast_path_hit
                     merged_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    merged_metadata["rag_retrieval_degraded"] = tool_trace_summary["rag_retrieval_degraded"]
+                    merged_metadata["rag_retrieval_status"] = tool_trace_summary["rag_retrieval_status"]
+                    merged_metadata["rag_retrieval_error_type"] = tool_trace_summary[
+                        "rag_retrieval_error_type"
+                    ]
+                    merged_metadata["degraded_exact_answer_guard_applied"] = degraded_guard_applied
+                    merged_metadata["degraded_mcq_grading_guard_applied"] = degraded_mcq_guard_applied
                     if session_metadata is not None:
                         update_metadata = {
                             "selected_mode": selected_mode,
@@ -1049,6 +1286,13 @@ class TutorBotManager:
                             "execution_path": execution_path,
                             "exact_fast_path_hit": exact_fast_path_hit,
                             "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
+                            "rag_retrieval_degraded": tool_trace_summary["rag_retrieval_degraded"],
+                            "rag_retrieval_status": tool_trace_summary["rag_retrieval_status"],
+                            "rag_retrieval_error_type": tool_trace_summary[
+                                "rag_retrieval_error_type"
+                            ],
+                            "degraded_exact_answer_guard_applied": degraded_guard_applied,
+                            "degraded_mcq_grading_guard_applied": degraded_mcq_guard_applied,
                         }
                         for metadata_key in (
                             "question_lifecycle_decision",
@@ -1068,6 +1312,25 @@ class TutorBotManager:
                             "skill_trace",
                             "loader_source",
                             "skill_source_status",
+                            "grading_to_brain_loop",
+                            "learning_evidence_event_id",
+                            "learning_training_intent",
+                            "personalization_context",
+                            "next_best_action",
+                            "grading_engine_version",
+                            "v1_case_graded",
+                            "score_authority",
+                            "grading_rubric_provenance",
+                            "case_grading_stream_mode",
+                            "case_grading_adjudication_strategy",
+                            "case_grading_adjudication_group_count",
+                            "case_grading_adjudication_point_count",
+                            "luban_lecture_answer_method_context",
+                            "luban_lecture_answer_method_context_status",
+                            "luban_general_knowledge_context",
+                            "luban_general_knowledge_context_status",
+                            "llm_stream_telemetry",
+                            "presentation",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

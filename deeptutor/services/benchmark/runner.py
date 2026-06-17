@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import sys
 import time
 from collections import Counter
 from pathlib import Path
 from typing import Any, Sequence
 
 from deeptutor.services.benchmark import BenchmarkRegistry, load_benchmark_registry
+from deeptutor.services.benchmark.answer_citation_audit import audit_answer_citation_cases
+from deeptutor.services.benchmark.exam_quality_bank import load_exam_quality_bank
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -409,6 +412,293 @@ def _run_yousenwebview_surface_case_set(case_metadata: dict[str, Any]) -> tuple[
     )
 
 
+def _run_luban_case_grading_case_set(
+    *,
+    case_metadata: dict[str, Any],
+    output_dir: Path | None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    fixture = PROJECT_ROOT / str(case_metadata.get("source_fixture") or "")
+    target_dir = (output_dir or DEFAULT_OUTPUT_DIR) / "luban_case_grading_shadow"
+    command = [
+        sys.executable,
+        str(PROJECT_ROOT / "scripts" / "poc_luban_case_grading_three_arms.py"),
+        "--all",
+        "--fixture",
+        str(fixture),
+        "--output-dir",
+        str(target_dir),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired as exc:
+        result = _make_case_result(
+            suite="luban-case-grading-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_TIMEOUT",
+            evidence={"reason": "case_grading_eval_timeout", "stdout_tail": str(exc.stdout or "")[-1000:]},
+            details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+    if completed.returncode != 0:
+        result = _make_case_result(
+            suite="luban-case-grading-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_GRADING_EVAL",
+            evidence={
+                "reason": "case_grading_eval_failed",
+                "stdout_tail": completed.stdout[-1000:],
+                "stderr_tail": completed.stderr[-1000:],
+            },
+            details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+    try:
+        script_payload = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        script_payload = {"stdout_tail": completed.stdout[-1000:]}
+    summary = script_payload.get("summary") if isinstance(script_payload.get("summary"), dict) else {}
+    artifact_summary = summary.get("artifact_first") if isinstance(summary.get("artifact_first"), dict) else {}
+    baseline_summary = summary.get("baseline") if isinstance(summary.get("baseline"), dict) else {}
+    artifact_delta = artifact_summary.get("mean_abs_score_delta")
+    baseline_delta = baseline_summary.get("mean_abs_score_delta")
+    directional_go = (
+        isinstance(artifact_delta, (int, float))
+        and isinstance(baseline_delta, (int, float))
+        and artifact_delta < baseline_delta
+    )
+    result = _make_case_result(
+        suite="luban-case-grading-shadow",
+        case_id=case_id,
+        case_name=case_id,
+        status="PASS",
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        evidence={
+            "reason": "case_grading_eval_completed",
+            "directional_go": directional_go,
+            "artifact_first": artifact_summary,
+            "baseline": baseline_summary,
+            "rag": summary.get("rag") if isinstance(summary.get("rag"), dict) else {},
+            "json_path": script_payload.get("json_path"),
+            "md_path": script_payload.get("md_path"),
+        },
+        details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+    )
+    return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+
+
+def _run_answer_citation_case_set(
+    *,
+    case_metadata: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    fixture = PROJECT_ROOT / str(case_metadata.get("source_fixture") or "")
+    try:
+        audit = audit_answer_citation_cases(fixture)
+    except Exception as exc:
+        result = _make_case_result(
+            suite="answer-citation-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_UNSUPPORTED_CITATION",
+            evidence={
+                "reason": "answer_citation_audit_exception",
+                "exception_type": type(exc).__name__,
+                "exception": str(exc),
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={"source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("answer-citation-shadow", [result]), [result]
+
+    citation_accuracy = float(audit.get("citation_accuracy") or 0.0)
+    footer_coverage = float(audit.get("footer_coverage") or 0.0)
+    hidden_leak_count = int(audit.get("hidden_leak_count") or 0)
+    status = "PASS"
+    failure_type: str | None = None
+    if hidden_leak_count:
+        status = "FAIL"
+        failure_type = "FAIL_HIDDEN_AUTHORITY_LEAK"
+    elif footer_coverage < 1.0:
+        status = "FAIL"
+        failure_type = "FAIL_CITATION_MISSING"
+    elif citation_accuracy < 0.9:
+        status = "FAIL"
+        failure_type = "FAIL_UNSUPPORTED_CITATION"
+    result = _make_case_result(
+        suite="answer-citation-shadow",
+        case_id=case_id,
+        case_name=case_id,
+        status=status,
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        failure_type=failure_type,
+        evidence={
+            "reason": "answer_citation_audit_completed",
+            "citation_accuracy": citation_accuracy,
+            "footer_coverage": footer_coverage,
+            "hidden_leak_count": hidden_leak_count,
+            "suite": audit.get("suite"),
+            "source_fixture": case_metadata.get("source_fixture"),
+        },
+        details={"results": audit.get("results") or []},
+    )
+    return _summarize_case_results("answer-citation-shadow", [result]), [result]
+
+
+def _run_real_exam_quality_bank_case_set(
+    *,
+    case_metadata: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    suite_name = "real_exam_quality_spine"
+    case_id = str(case_metadata["case_id"])
+    fixture = PROJECT_ROOT / str(case_metadata.get("source_fixture") or "")
+    started_at = time.perf_counter()
+    try:
+        bank_payload = json.loads(fixture.read_text(encoding="utf-8"))
+        questions = load_exam_quality_bank(fixture)
+    except FileNotFoundError:
+        result = _make_case_result(
+            suite=suite_name,
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "regression_tier"),
+            failure_type="FAIL_SOURCE_LAUNDERING",
+            evidence={"reason": "exam_quality_bank_missing", "source_fixture": case_metadata.get("source_fixture")},
+            details={"source_fixture": str(fixture)},
+        )
+        return _summarize_case_results(suite_name, [result]), [result]
+    except Exception as exc:
+        result = _make_case_result(
+            suite=suite_name,
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "regression_tier"),
+            failure_type="FAIL_SOURCE_LAUNDERING",
+            evidence={
+                "reason": "exam_quality_bank_load_failed",
+                "exception_type": type(exc).__name__,
+                "exception": str(exc),
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={"source_fixture": str(fixture)},
+        )
+        return _summarize_case_results(suite_name, [result]), [result]
+
+    raw_questions = bank_payload.get("questions") if isinstance(bank_payload, dict) else None
+    invalid: list[dict[str, Any]] = []
+    source_missing = 0
+    by_year: dict[str, dict[str, int]] = {}
+    for question in questions:
+        exact = question.exact_question
+        correct = str(exact.get("correct_answer") or "").strip()
+        options = exact.get("options") if isinstance(exact.get("options"), dict) else {}
+        year_key = str(question.year)
+        year_bucket = by_year.setdefault(year_key, {"single_choice": 0, "multiple_choice": 0})
+        if question.type in year_bucket:
+            year_bucket[question.type] += 1
+        if not str(exact.get("stem") or "").strip():
+            invalid.append({"question_id": question.question_id, "reason": "missing_stem"})
+        if not correct or any(letter not in options for letter in correct):
+            invalid.append({"question_id": question.question_id, "reason": "answer_not_in_options"})
+        if question.type == "single_choice" and len(correct) != 1:
+            invalid.append({"question_id": question.question_id, "reason": "single_choice_answer_not_single"})
+        if question.type == "multiple_choice" and len(correct) < 2:
+            invalid.append({"question_id": question.question_id, "reason": "multiple_choice_answer_not_multiple"})
+        source = next(
+            (
+                raw.get("source")
+                for raw in raw_questions or []
+                if isinstance(raw, dict) and raw.get("question_id") == question.question_id
+            ),
+            {},
+        )
+        if not isinstance(source, dict) or not source.get("docs_2026_path"):
+            source_missing += 1
+
+    declared_count = int(bank_payload.get("question_count") or 0) if isinstance(bank_payload, dict) else 0
+    raw_count = len(raw_questions) if isinstance(raw_questions, list) else -1
+    count_mismatch = declared_count != len(questions) or raw_count != len(questions)
+    no_questions = not questions
+    status = "FAIL" if (invalid or source_missing or count_mismatch or no_questions) else "PASS"
+    failure_type = None
+    reason = "docs_2026_real_exam_bank_ready"
+    if status == "FAIL":
+        failure_type = "FAIL_ANSWER_KEY_OVERRIDE" if invalid else "FAIL_SOURCE_LAUNDERING"
+        reason = "docs_2026_real_exam_bank_invalid"
+    latency_ms = (time.perf_counter() - started_at) * 1000.0
+    evidence = {
+        "reason": reason,
+        "question_count": len(questions),
+        "declared_question_count": declared_count,
+        "raw_question_count": raw_count,
+        "years_included": bank_payload.get("years_included") if isinstance(bank_payload, dict) else [],
+        "by_year": by_year,
+        "source_docs_2026_root": bank_payload.get("source_docs_2026_root") if isinstance(bank_payload, dict) else None,
+        "excluded_types": bank_payload.get("excluded_types") if isinstance(bank_payload, dict) else {},
+        "invalid_preview": invalid[:5],
+        "source_missing_count": source_missing,
+        "source_fixture": case_metadata.get("source_fixture"),
+    }
+    result = _make_case_result(
+        suite=suite_name,
+        case_id=case_id,
+        case_name=case_id,
+        status=status,
+        case_tier=str(case_metadata.get("case_tier") or "regression_tier"),
+        failure_type=failure_type,
+        evidence=evidence,
+        latency_ms=latency_ms,
+        details={"source_fixture": str(fixture)},
+    )
+    return _summarize_case_results(suite_name, [result]), [result]
+
+
+def _run_metadata_gap_case_set(
+    *,
+    suite_name: str,
+    case_metadata: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    result = _make_case_result(
+        suite=suite_name,
+        case_id=case_id,
+        case_name=case_id,
+        status="SKIP",
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        evidence={
+            "reason": "benchmark_case_runner_not_implemented",
+            "expected_contract": case_metadata.get("expected_contract"),
+            "failure_taxonomy_scope": list(case_metadata.get("failure_taxonomy_scope") or []),
+            "source_fixture": case_metadata.get("source_fixture"),
+        },
+        details={
+            "contract_domain": case_metadata.get("contract_domain"),
+            "execution_kind": case_metadata.get("execution_kind"),
+            "surface": case_metadata.get("surface"),
+            "origin_ref": case_metadata.get("origin_ref"),
+            "promotion_status": case_metadata.get("promotion_status"),
+        },
+    )
+    return _summarize_case_results(suite_name, [result]), [result]
+
+
 async def _run_surface_web_case_set(
     *,
     case_metadata: dict[str, Any],
@@ -504,6 +794,10 @@ async def _collect_suite_execution(
             legacy_summary, legacy_results = _run_context_case_set()
         elif case_id == "grounding.rag.case_set":
             legacy_summary, legacy_results = _run_rag_case_set()
+        elif case_id == "quality.real_exam_bank.docs_2026.mcq":
+            legacy_summary, legacy_results = _run_real_exam_quality_bank_case_set(
+                case_metadata=case_metadata,
+            )
         elif case_id == "continuity.long_dialog.focus":
             legacy_summary, legacy_results = await _run_long_dialog_case_set(
                 api_base_url=api_base_url,
@@ -519,6 +813,17 @@ async def _collect_suite_execution(
         elif case_id == "surface.yousenwebview.telemetry.smoke":
             legacy_summary, legacy_results = _run_yousenwebview_surface_case_set(case_metadata)
             include_in_legacy = False
+        elif case_id == "grading.luban_case_golden.v0":
+            legacy_summary, legacy_results = _run_luban_case_grading_case_set(
+                case_metadata=case_metadata,
+                output_dir=output_dir,
+            )
+            include_in_legacy = False
+        elif case_id == "answer.citation.paper_style.v0":
+            legacy_summary, legacy_results = _run_answer_citation_case_set(
+                case_metadata=case_metadata,
+            )
+            include_in_legacy = False
         elif case_id == "surface.web.ack.smoke":
             legacy_summary, legacy_results = await _run_surface_web_case_set(
                 case_metadata=case_metadata,
@@ -526,9 +831,11 @@ async def _collect_suite_execution(
             )
             include_in_legacy = False
         else:
-            legacy_summary = _summarize_case_results(suite_name, [])
-            legacy_results = []
-            blind_spots.append({"suite": suite_name, "case_id": case_id, "reason": "unsupported_case_id", "source_fixture": case.source_fixture})
+            legacy_summary, legacy_results = _run_metadata_gap_case_set(
+                suite_name=suite_name,
+                case_metadata=case_metadata,
+            )
+            include_in_legacy = False
 
         canonical_results = [
             _canonicalize_case_result(
@@ -599,6 +906,19 @@ async def run_benchmark(
         blind_spots.extend(suite_execution["blind_spots"])
     summary = _build_summary(case_results)
     legacy_summary = _build_summary(legacy_case_results)
+    legacy_suite_names = {
+        str(item.get("suite") or "").strip()
+        for item in legacy_suite_summaries
+        if str(item.get("suite") or "").strip()
+    }
+    legacy_execution_modes = {
+        suite: "static_analysis"
+        for suite in sorted(legacy_suite_names)
+        if not suite.startswith("long-dialog")
+    }
+    long_dialog_suite = "long-dialog-focus" if long_dialog_mode == "lite" else "long-dialog-full"
+    if long_dialog_suite in legacy_suite_names:
+        legacy_execution_modes[long_dialog_suite] = "live_ws" if api_base_url else "in_process_runtime"
     payload: dict[str, Any] = {
         "run_manifest": {
             "run_id": f"benchmark-{timestamp}",
@@ -631,14 +951,7 @@ async def run_benchmark(
             "execution_context": {
                 "api_base_url": api_base_url.rstrip("/") if api_base_url else None,
                 "response_mode": str(response_mode or "smart"),
-                "suite_execution_modes": {
-                    "semantic-router": "static_analysis",
-                    "context-orchestration": "static_analysis",
-                    "rag-grounding": "static_analysis",
-                    "long-dialog-focus" if long_dialog_mode == "lite" else "long-dialog-full": (
-                        "live_ws" if api_base_url else "in_process_runtime"
-                    ),
-                },
+                "suite_execution_modes": legacy_execution_modes,
             },
             "baseline_diff": None,
             "gate_summary": {

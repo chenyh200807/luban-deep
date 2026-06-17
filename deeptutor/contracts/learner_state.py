@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+# Multi-worker runtime invariants (uvicorn --workers N, shared container fs):
+# - The learner-state background loops (heartbeat scheduler, outbox flusher, dream
+#   cycle) MUST execute single-instance across workers. Each worker starts its own
+#   loop, but each tick is gated by an exclusive file lock (.heartbeat.lock /
+#   .outbox_flush.lock / dream-cycle watermark lock) so due jobs fire exactly once,
+#   not once per worker — no duplicate LLM calls or duplicate outbound messages.
+# - Outbox items dead-letter (status='dead') after _MAX_OUTBOX_RETRY_ATTEMPTS so a
+#   permanently-failing event stops being re-claimed forever (bounded growth).
+
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field

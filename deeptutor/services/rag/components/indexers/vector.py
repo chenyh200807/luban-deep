@@ -8,7 +8,6 @@ Provides fast similarity search for RAG retrieval.
 
 import json
 from pathlib import Path
-import pickle
 from typing import List, Optional
 
 try:
@@ -138,9 +137,10 @@ class VectorIndexer(BaseComponent):
             self.faiss.write_index(index, str(kb_dir / "index.faiss"))
             self.logger.info(f"FAISS index saved with {index.ntotal} vectors")
         else:
-            # Simple storage: save embeddings as pickle
-            with open(kb_dir / "embeddings.pkl", "wb") as f:
-                pickle.dump(embeddings, f)
+            # Simple storage: save the numeric embedding matrix as .npy (not pickle).
+            # pickle is an arbitrary-code-execution surface on load; the embeddings are
+            # a plain float32 array, so np.save is both safer and faster.
+            np.save(kb_dir / "embeddings.npy", embeddings)
             self.logger.info(f"Embeddings saved for {len(all_chunks)} chunks")
 
         # Save index info

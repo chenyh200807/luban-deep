@@ -1,0 +1,76 @@
+{
+  "artifact": "G4_BROAD_OPEN_VERIFICATION",
+  "gate": "G4_canonical_learner_truth_write",
+  "date": "2026-06-13",
+  "scope": "broad_trusted_adjudication_production_open_verification",
+  "supersedes_state_in": "artifacts/luban_grading_artifacts/g4_canonical_truth_write_gate_verification_20260612/G4_LIMITED_COHORT_OPEN_VERIFICATION.json (broad_flags: unset_default_false)",
+  "authorization": {
+    "required": "explicit_broad_canonical_learner_truth_write_authorization",
+    "granted_by": "user_explicit_instruction",
+    "granted_on": "2026-06-12/13",
+    "instruction": "owner 显式授权开 G4 broad；按既有 env flag 机制开闸，不在代码侧绕；policy 层 fail-closed 行为不得被破坏",
+    "evidence_basis": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_go_evidence_20260613/ (closure WEAK_GO blocker=0, 1534 全链对齐)"
+  },
+  "change_executed": {
+    "host": "Aliyun-ECS-2:/root/deeptutor/.env",
+    "backup": "/root/deeptutor/.env.bak.g4broad.<timestamp> (created before edit)",
+    "added": {
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED": "true"
+    },
+    "not_added": {
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED": "left unset (alias; trusted flag alone opens broad mode, AI sources remain confidence-gated by policy)"
+    },
+    "apply_method": "docker compose up -d --force-recreate deeptutor (env_file reload)"
+  },
+  "observed_state": {
+    "host_env": {
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED": "true",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT": "qa_,operator_",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED": "true"
+    },
+    "container_env": {
+      "container": "deeptutor",
+      "DEEPTUTOR_ENV": "production",
+      "DEEPTUTOR_GIT_SHA": "10959789980e62f1dbc65486b49d5ffa20651a24",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED": "true",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT": "qa_,operator_",
+      "LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED": "true"
+    },
+    "public_endpoints": {
+      "healthz": 200,
+      "readyz": 200
+    }
+  },
+  "in_container_policy_probe": {
+    "command": "docker exec deeptutor python -c 'canonical_truth_promotion_decision(...)' (production env, no learner write executed)",
+    "broad_trusted_stable_claim": {
+      "allowed": true,
+      "reason": "trusted_adjudication_authorized",
+      "adjudication_source": "teacher_final"
+    },
+    "broad_trusted_unstable_evidence": {
+      "allowed": false,
+      "reason": "stable_learner_claim_required",
+      "note": "closure 的 candidate 证据等级 preview_needs_retest 落在此分支：broad 开闸后 policy 层仍拒写，符合 fail-closed 设计；owner 未授权放宽证据等级，未代做"
+    },
+    "broad_no_adjudication": {
+      "allowed": false,
+      "reason": "trusted_adjudication_required"
+    }
+  },
+  "local_tests": {
+    "tests/services/learner_state/test_canonical_truth_policy.py": "6 passed",
+    "tests/services/learner_state/test_service.py + tests/integration/test_learner_memory_lifecycle_certified_policy.py": "54 passed"
+  },
+  "effective_policy": {
+    "production_master_flag": "enabled",
+    "cohort_path": "qa_/operator_ prefix unchanged (production_cohort_authorized)",
+    "broad_path": "open for trusted adjudication sources with resolved conflicts, min confidence (AI/certified >= 0.85) and stable learner claim (L1_repeated/L2_confirmed/L2_real_retest/L3_mastery_signal)",
+    "preview_needs_retest_candidates": "still_blocked (stable_learner_claim_required)",
+    "policy_source": "deeptutor/services/learner_state/canonical_truth_policy.py:canonical_truth_promotion_decision"
+  },
+  "rollback": {
+    "action": "remove LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED from Aliyun-ECS-2:/root/deeptutor/.env (or set false), then docker compose up -d --force-recreate deeptutor",
+    "fail_closed_guarantee": "flag unset/false -> production_cohort_required for non-cohort users"
+  }
+}

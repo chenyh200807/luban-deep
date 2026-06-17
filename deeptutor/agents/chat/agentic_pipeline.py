@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 from deeptutor.services.llm.openai_http_client import (
+    get_pooled_openai_client,
     make_azure_openai_client,
     make_openai_client,
 )
@@ -41,6 +42,7 @@ from deeptutor.services.llm import (
 )
 from deeptutor.services.llm.exceptions import LLMConfigError
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.security.tool_access import END_USER_BLOCKED_TOOLS
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -50,6 +52,15 @@ from deeptutor.services.query_intent import (
 from deeptutor.services.rag.exact_authority import (
     extract_exact_question_authority_from_metadata,
     normalize_exact_authority_display_text,
+)
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
+from deeptutor.services.compiled_knowledge.general_knowledge import (
+    format_general_knowledge_grounding,
+    resolve_general_knowledge_context,
 )
 from deeptutor.services.session.prompt_partition import (
     partition_system_prompt,
@@ -68,7 +79,7 @@ logger = logging.getLogger(__name__)
 BRAND_NAME = get_brand_name()
 observability = get_langfuse_observability()
 
-CHAT_EXCLUDED_TOOLS = {"geogebra_analysis"}
+CHAT_EXCLUDED_TOOLS = {"geogebra_analysis", *END_USER_BLOCKED_TOOLS}
 # Fast mode is intentionally KB-first and should not fan out to live web retrieval.
 CHAT_FAST_TOOLS = {"rag"}
 CHAT_OPTIONAL_TOOLS = [
@@ -99,6 +110,7 @@ TEACHING_DEEP_ELEMENTS = [
 _FINAL_ANSWER_SPAN_RE = re.compile(
     r"(?:【最终答案】|【正确答案】|最终答案[：: ]*|正确答案[：: ]*|答案[：: ]*)([A-Ea-e](?:[ \t、,，/]*[A-Ea-e])*)"
 )
+_STREAMED_PUBLIC_TEXT_TRACE_KEY = "_streamed_public_text"
 
 
 @dataclass
@@ -207,6 +219,33 @@ class AgenticChatPipeline:
             "total_calls": self._usage["calls"],
         }
 
+    @staticmethod
+    def _record_streamed_public_text(trace_meta: dict[str, Any], text: str) -> None:
+        if text:
+            trace_meta[_STREAMED_PUBLIC_TEXT_TRACE_KEY] = text
+
+    @staticmethod
+    def _streamed_public_text(trace_meta: dict[str, Any]) -> str:
+        return str(trace_meta.get(_STREAMED_PUBLIC_TEXT_TRACE_KEY) or "")
+
+    @staticmethod
+    def _public_trace_metadata(trace_meta: dict[str, Any]) -> dict[str, Any]:
+        if _STREAMED_PUBLIC_TEXT_TRACE_KEY not in trace_meta:
+            return trace_meta
+        public_trace = dict(trace_meta)
+        public_trace.pop(_STREAMED_PUBLIC_TEXT_TRACE_KEY, None)
+        return public_trace
+
+    @staticmethod
+    def _unseen_final_response_delta(final_response: str, already_streamed_text: str) -> str:
+        response = str(final_response or "")
+        streamed = str(already_streamed_text or "")
+        if not streamed:
+            return response
+        if response.startswith(streamed):
+            return response[len(streamed):]
+        return ""
+
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         answer_now_context = self._extract_answer_now_context(context)
         if answer_now_context is not None:
@@ -224,10 +263,16 @@ class AgenticChatPipeline:
                 "answer_now": True,
                 "source_trace": trace_meta.get("label", "Answer now"),
             }
-            await self._emit_result(stream, result_payload)
+            await self._emit_result(
+                stream,
+                result_payload,
+                context=context,
+                already_streamed_text=self._streamed_public_text(trace_meta),
+            )
             return
 
         answer_type = self._infer_answer_type(context.user_message)
+        self._attach_general_knowledge_context(context, answer_type)
         if self._should_use_social_greeting_shortcut(context, answer_type):
             final_response, trace_meta = await self._stage_social_greeting_response(
                 context=context,
@@ -240,7 +285,12 @@ class AgenticChatPipeline:
                 "chat_mode": self._configured_teaching_mode(context) or "smart",
                 "source_trace": trace_meta.get("label", "Greeting response"),
             }
-            await self._emit_result(stream, result_payload)
+            await self._emit_result(
+                stream,
+                result_payload,
+                context=context,
+                already_streamed_text=self._streamed_public_text(trace_meta),
+            )
             return
         enabled_tools = self.resolve_enabled_tools(
             context,
@@ -260,7 +310,12 @@ class AgenticChatPipeline:
                 "chat_mode": "smart",
                 "source_trace": trace_meta.get("label", "Smart response"),
             }
-            await self._emit_result(stream, result_payload)
+            await self._emit_result(
+                stream,
+                result_payload,
+                context=context,
+                already_streamed_text=self._streamed_public_text(trace_meta),
+            )
             return
 
         retrieval_first_traces: list[ToolTrace] = []
@@ -291,11 +346,13 @@ class AgenticChatPipeline:
                 )
                 await self._emit_sources_and_result(
                     stream=stream,
+                    context=context,
                     responding_trace=responding_trace,
                     tool_traces=retrieval_first_traces,
                     final_response=final_response,
                     observation=observation,
                     source_trace_label=responding_trace.get("label", "Final response"),
+                    already_streamed_text=self._streamed_public_text(responding_trace),
                 )
                 return
 
@@ -327,10 +384,12 @@ class AgenticChatPipeline:
         )
         await self._emit_sources_and_result(
             stream=stream,
+            context=context,
             responding_trace=responding_trace,
             tool_traces=tool_traces,
             final_response=final_response,
             observation=observation,
+            already_streamed_text=self._streamed_public_text(responding_trace),
         )
 
     async def _stage_thinking(
@@ -603,6 +662,7 @@ class AgenticChatPipeline:
                         exact_question_authority
                     )
                 required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+                citation_enabled = answer_citations_enabled()
                 force_buffer = self._should_buffer_authoritative_response(
                     answer_type=answer_type,
                     tool_traces=tool_traces,
@@ -624,7 +684,7 @@ class AgenticChatPipeline:
                         tool_traces=tool_traces,
                         max_tokens=1200,
                     )
-                    if content:
+                    if content and not citation_enabled:
                         await stream.content(
                             content,
                             source="chat",
@@ -633,10 +693,12 @@ class AgenticChatPipeline:
                         )
                 else:
                     chunks: list[str] = []
+                    streamed_public_text = ""
                     async for chunk in self._stream_messages(messages, max_tokens=1800):
                         if not chunk:
                             continue
                         chunks.append(chunk)
+                        streamed_public_text += chunk
                         await stream.content(
                             chunk,
                             source="chat",
@@ -644,6 +706,7 @@ class AgenticChatPipeline:
                             metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                         )
                     content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                    self._record_streamed_public_text(trace_meta, streamed_public_text)
                     content = await self._apply_exact_question_authority(
                         context=context,
                         answer_type=answer_type,
@@ -741,10 +804,12 @@ class AgenticChatPipeline:
                 )
 
                 chunks: list[str] = []
+                streamed_public_text = ""
                 async for chunk in self._stream_messages(messages, max_tokens=1800):
                     if not chunk:
                         continue
                     chunks.append(chunk)
+                    streamed_public_text += chunk
                     await stream.content(
                         chunk,
                         source="chat",
@@ -752,6 +817,7 @@ class AgenticChatPipeline:
                         metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                     )
                 content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                self._record_streamed_public_text(trace_meta, streamed_public_text)
                 await stream.progress(
                     "",
                     source="chat",
@@ -799,6 +865,7 @@ class AgenticChatPipeline:
                 stage="responding",
                 metadata=merge_trace_metadata(trace_meta, {"trace_kind": "shortcut_output"}),
             )
+            self._record_streamed_public_text(trace_meta, content)
             await stream.progress(
                 "",
                 source="chat",
@@ -876,10 +943,12 @@ class AgenticChatPipeline:
                 )
 
                 chunks: list[str] = []
+                streamed_public_text = ""
                 async for chunk in self._stream_messages(messages, max_tokens=1800):
                     if not chunk:
                         continue
                     chunks.append(chunk)
+                    streamed_public_text += chunk
                     await stream.content(
                         chunk,
                         source="chat",
@@ -887,6 +956,7 @@ class AgenticChatPipeline:
                         metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
                     )
                 content = clean_thinking_tags("".join(chunks), self.binding, self.model)
+                self._record_streamed_public_text(trace_meta, streamed_public_text)
                 await stream.progress(
                     "",
                     source="chat",
@@ -1370,7 +1440,11 @@ class AgenticChatPipeline:
         # message boundaries change so the provider can reuse the cached prefix.
         partition = partition_system_prompt(
             stable=[system_prompt],
-            dynamic=[context.memory_context, self._teaching_mode_overlay(context)],
+            dynamic=[
+                context.memory_context,
+                self._teaching_mode_overlay(context),
+                self._compiled_teaching_overlay(context),
+            ],
         )
         messages: list[dict[str, Any]] = to_system_messages(partition)
         for item in context.conversation_history:
@@ -1497,6 +1571,14 @@ class AgenticChatPipeline:
                 azure_endpoint=self.base_url,
                 api_version=self.api_version,
                 **client_kwargs,
+            )
+        if not client_kwargs:
+            # Common production path (no client-level header/ssl overrides):
+            # reuse the process-wide pooled client instead of leaking one
+            # unclosed httpx pool per acting turn.
+            return get_pooled_openai_client(
+                self.api_key or "sk-no-key-required",
+                base_url=self.base_url or None,
             )
         return make_openai_client(
             self.api_key or "sk-no-key-required",
@@ -2188,12 +2270,15 @@ class AgenticChatPipeline:
         self,
         *,
         stream: StreamBus,
+        context: UnifiedContext | None = None,
         responding_trace: dict[str, Any],
         tool_traces: list[ToolTrace],
         final_response: str,
         observation: str,
         source_trace_label: str | None = None,
+        already_streamed_text: str = "",
     ) -> None:
+        public_trace = self._public_trace_metadata(responding_trace)
         all_sources: list[dict[str, Any]] = []
         for trace in tool_traces:
             all_sources.extend(trace.sources)
@@ -2203,27 +2288,169 @@ class AgenticChatPipeline:
                 source="chat",
                 stage="responding",
                 metadata=merge_trace_metadata(
-                    responding_trace,
+                    public_trace,
                     {"trace_kind": "sources"},
                 ),
             )
+
+        citation_enabled = answer_citations_enabled()
+        result_metadata: dict[str, Any] = {}
+        final_response = apply_answer_citation_metadata(
+            result_metadata,
+            response=final_response,
+            sources=all_sources,
+            policy=CitationPolicy(surface="student"),
+            enabled=citation_enabled,
+        )
+        if citation_enabled:
+            final_response_delta = self._unseen_final_response_delta(
+                final_response,
+                already_streamed_text,
+            )
+            if final_response_delta:
+                await stream.content(
+                    final_response_delta,
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(
+                        public_trace,
+                        {"trace_kind": "citation_final_response"},
+                    ),
+                )
 
         result_payload: dict[str, Any] = {
             "response": final_response,
             "observation": observation,
             "tool_traces": [asdict(trace) for trace in tool_traces],
         }
+        result_payload.update(result_metadata)
         if source_trace_label:
             result_payload["source_trace"] = source_trace_label
-        await self._emit_result(stream, result_payload)
+        await self._emit_result(stream, result_payload, context=context)
 
-    async def _emit_result(self, stream: StreamBus, result_payload: dict[str, Any]) -> None:
+    async def _emit_result(
+        self,
+        stream: StreamBus,
+        result_payload: dict[str, Any],
+        *,
+        context: UnifiedContext | None = None,
+        already_streamed_text: str = "",
+    ) -> None:
+        result_payload.update(self._compiled_result_metadata(context))
+        if (
+            "response" in result_payload
+            and "citation_bundle" not in result_payload
+            and "citation_bundle_candidate" not in result_payload
+        ):
+            citation_enabled = answer_citations_enabled()
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=str(result_payload.get("response") or ""),
+                sources=[],
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled:
+                final_response_delta = self._unseen_final_response_delta(
+                    str(result_payload["response"] or ""),
+                    already_streamed_text,
+                )
+                if final_response_delta:
+                    await stream.content(
+                        final_response_delta,
+                        source="chat",
+                        stage="responding",
+                        metadata={"trace_kind": "citation_final_response"},
+                    )
         cs = self._get_cost_summary()
         if cs:
             nested = dict(result_payload.get("metadata") or {})
             nested["cost_summary"] = cs
             result_payload["metadata"] = nested
         await stream.result(result_payload, source="chat")
+
+    def _attach_general_knowledge_context(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+    ) -> None:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        if metadata.get("luban_general_knowledge_context"):
+            return
+        if context.config_overrides.get("general_knowledge_context") is not True:
+            return
+        if answer_type not in {ANSWER_TYPE_KNOWLEDGE, ANSWER_TYPE_PROBLEM}:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_non_knowledge"
+            context.metadata = metadata
+            return
+        if self._has_active_question_context(metadata):
+            metadata["luban_general_knowledge_context_status"] = "skipped_active_question_context"
+            context.metadata = metadata
+            return
+
+        raw_query = str(metadata.get("raw_user_message") or context.user_message or "").strip()
+        billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+        learner_context = {
+            "question_text": raw_query,
+            "student_id": str(
+                billing_context.get("learning_user_id")
+                or billing_context.get("user_id")
+                or billing_context.get("wallet_user_id")
+                or ""
+            ).strip(),
+            "source": str(metadata.get("source") or "tutorbot").strip(),
+            "bot_id": self._bot_id(context),
+            "conversation_id": str(context.session_id or "").strip(),
+        }
+        pack = resolve_general_knowledge_context(raw_query, learner_context=learner_context)
+        if not pack:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_low_confidence"
+            context.metadata = metadata
+            return
+        grounding = format_general_knowledge_grounding(pack)
+        if not grounding:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_empty_grounding"
+            context.metadata = metadata
+            return
+        metadata["luban_general_knowledge_context"] = pack
+        metadata["luban_general_knowledge_context_status"] = "attached"
+        metadata["luban_general_knowledge_context_grounding"] = grounding
+        context.metadata = metadata
+
+    @staticmethod
+    def _has_active_question_context(metadata: dict[str, Any]) -> bool:
+        if any(
+            isinstance(metadata.get(key), dict) and metadata.get(key)
+            for key in (
+                "active_object",
+                "question_followup_context",
+                "followup_question_context",
+                "_prefetched_exact_question",
+            )
+        ):
+            return True
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+        return scene in {"case_grading", "question_review", "question_followup"}
+
+    @staticmethod
+    def _compiled_teaching_overlay(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        return str(metadata.get("luban_general_knowledge_context_grounding") or "").strip()
+
+    @staticmethod
+    def _compiled_result_metadata(context: UnifiedContext | None) -> dict[str, Any]:
+        if context is None or not isinstance(context.metadata, dict):
+            return {}
+        out: dict[str, Any] = {}
+        for key in (
+            "luban_general_knowledge_context",
+            "luban_general_knowledge_context_status",
+        ):
+            if key in context.metadata:
+                out[key] = context.metadata[key]
+        return out
 
     async def _apply_exact_question_authority(
         self,

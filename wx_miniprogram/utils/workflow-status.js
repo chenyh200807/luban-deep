@@ -133,8 +133,8 @@ var TOOL_COPY = {
   },
   retrieve_case_study: {
     badge: "拆解案例",
-    headline: "正在调取相关案例和规则线索",
-    subline: "会先梳理题干时间线，再抓责任边界和得分点。",
+    headline: "正在拆解案例资料和规则线索",
+    subline: "系统会先读题干材料、时间线和责任主体，再定位可用得分点。",
     tone: "plan",
   },
   open_ref: {
@@ -145,8 +145,8 @@ var TOOL_COPY = {
   },
   case_chain: {
     badge: "拆解案例",
-    headline: "正在梳理案例时间线和责任关系",
-    subline: "先把事件顺序理清，再判断责任主体和作答结构。",
+    headline: "正在搭建案例分析链",
+    subline: "会把背景资料、事件顺序、责任边界和作答结构串起来。",
     tone: "plan",
   },
   basic_calculator: {
@@ -180,9 +180,9 @@ var TOOL_COPY = {
     tone: "calc",
   },
   grade_answer: {
-    badge: "批改答案",
-    headline: "正在对照评分标准批改",
-    subline: "会先核对结论，再标出关键得分点和失分原因。",
+    badge: "案例批改",
+    headline: "正在逐项匹配采分点",
+    subline: "案例题资料较多，会核对题干、评分标准和你的作答，请稍等。",
     tone: "review",
   },
   generate_practice_question: {
@@ -304,15 +304,15 @@ var STAGE_COPY = {
     tone: "compose",
   },
   grade: {
-    badge: "批改中",
-    headline: "正在对照标准答案逐条批改",
-    subline: "会标出得分点和失分原因，给出针对性建议。",
+    badge: "案例批改",
+    headline: "正在逐项匹配采分点",
+    subline: "会对照题干、评分标准和你的作答，标出得分点与失分原因。",
     tone: "review",
   },
   synthesize: {
     badge: "收束表达",
-    headline: "正在整合已有分析内容",
-    subline: "把已完成的部分组织好，确保结论完整、表达清楚。",
+    headline: "正在整理诊断和改写建议",
+    subline: "把采分点命中、漏点原因和可提分表达整理成最终反馈。",
     tone: "compose",
   },
   retry: {
@@ -443,8 +443,8 @@ function _normalizeUnknownHeader(raw) {
   if (_matchAny(text, [/案例题/, /时间线/, /逐步拆解/, /责任/])) {
     return {
       badge: "拆解案例",
-      headline: "正在梳理案例线索和作答结构",
-      subline: "先拆清时间线、责任关系和关键得分点。",
+      headline: "正在拆解案例资料和作答结构",
+      subline: "案例题信息量较大，会先拆清时间线、责任关系和关键得分点。",
       tone: "plan",
     };
   }
@@ -458,9 +458,9 @@ function _normalizeUnknownHeader(raw) {
   }
   if (_matchAny(text, [/批改/, /评分标准/, /对照答案/])) {
     return {
-      badge: "批改答案",
-      headline: "正在对照评分标准批改",
-      subline: "会先核对结论，再标出关键得分点和失分原因。",
+      badge: "案例批改",
+      headline: "正在逐项匹配采分点",
+      subline: "会核对题干、评分标准和你的作答，再给出失分原因。",
       tone: "review",
     };
   }
@@ -491,8 +491,8 @@ function normalizeWorkflowStatus(payload) {
   if (source.data === "slow_response") {
     return {
       badge: "稍等片刻",
-      headline: "内容较多，正在深度处理",
-      subline: "复杂问题需要更多推理时间，马上就好。",
+      headline: "资料较多，正在继续深度核对",
+      subline: "系统还在拆题干、查依据、对采分点，不会只给粗略结论。请稍等。",
       tone: "retry",
     };
   }
@@ -545,12 +545,17 @@ function buildWorkflowEntry(payload) {
   var detail = normalized.subline;
 
   if (source.data === "slow_response") {
-    detail = "复杂问题需要更多推理时间，马上就好。";
+    detail = "系统还在拆题干、查依据、对采分点，不会只给粗略结论。请稍等。";
   } else if (eventType === "tool_call") {
-    title = "正在进行" + (displayToolLabel || "资料整理");
-    detail = preview
-      ? "本轮关注点：" + preview
-      : "正在补这一环所需的证据、推导或外部信息。";
+    if (/^(retrieve_case_study|case_chain|grade_answer)$/.test(String(toolName || ""))) {
+      title = normalized.headline;
+      detail = normalized.subline;
+    } else {
+      title = "正在进行" + (displayToolLabel || "资料整理");
+      detail = preview
+        ? "本轮关注点：" + preview
+        : "正在补这一环所需的证据、推导或外部信息。";
+    }
   } else if (eventType === "tool_result") {
     title = (displayToolLabel || "资料整理") + " 已完成";
     detail = "这一环的结果已经进入答案整理阶段。";

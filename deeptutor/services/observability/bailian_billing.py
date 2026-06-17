@@ -73,6 +73,28 @@ class BailianBillingTotals:
             },
         }
 
+    def to_official_usage_dict(self) -> dict[str, Any]:
+        currency = str(self.currency or "CNY").strip().upper() or "CNY"
+        pretax_amount = round(float(self.pretax_amount or 0.0), 8)
+        net_amount = round(float(self.after_discount_amount or 0.0), 8)
+        return {
+            "status": "ok" if self.items_count else "empty",
+            "provider_name": "dashscope",
+            "cost_basis": "list_price_cost",
+            "currency_amounts": {currency: pretax_amount},
+            "list_price_cost": {currency: pretax_amount},
+            "net_charge_cost": {currency: net_amount},
+            "model_amounts": {
+                key: round(float(value or 0.0), 8)
+                for key, value in sorted(self.model_amounts.items(), key=lambda item: item[0])
+            },
+            "usage_kind_amounts": {
+                key: round(float(value or 0.0), 8)
+                for key, value in sorted(self.usage_kind_amounts.items(), key=lambda item: item[0])
+            },
+            "items_count": int(self.items_count),
+        }
+
 
 class BailianBillingClient:
     def __init__(self, config: BailianBillingConfig | None = None) -> None:

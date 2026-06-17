@@ -14,10 +14,12 @@ def build_incident_replay_report(
     *,
     benchmark_payload: dict[str, Any],
     incident_id: str,
+    observer_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     manifest = benchmark_payload.get("run_manifest") or {}
     baseline_diff = benchmark_payload.get("baseline_diff") or {}
     blind_spots = benchmark_payload.get("blind_spots") or []
+    runtime_incidents = (observer_payload or {}).get("runtime_incidents") or []
     failures = [
         item
         for item in benchmark_payload.get("case_results") or []
@@ -41,11 +43,16 @@ def build_incident_replay_report(
             "new_failure_count": len(baseline_diff.get("new_failures") or []),
             "current_failure_count": len(failures),
             "blind_spot_count": len(blind_spots),
+            "runtime_incident_count": len(runtime_incidents),
+            "blocking_runtime_incident_count": len(
+                [item for item in runtime_incidents if bool(item.get("release_blocking"))]
+            ),
         },
         "failure_taxonomy": benchmark_payload.get("failure_taxonomy") or [],
         "failures": failures,
         "baseline_diff": benchmark_payload.get("baseline_diff"),
         "blind_spots": blind_spots,
+        "runtime_incidents": runtime_incidents,
         "replay_candidates": [
             {
                 "incident_id": normalized_incident_id,
@@ -55,6 +62,16 @@ def build_incident_replay_report(
                 "recommended_tier": "incident_replay",
             }
             for item in blind_spots
+        ]
+        + [
+            {
+                "incident_id": normalized_incident_id,
+                "case_id": ((item.get("benchmark_projection") or {}).get("case_id") or item.get("incident_type")),
+                "suite": "incident_replay",
+                "reason": item.get("summary"),
+                "recommended_tier": ((item.get("benchmark_projection") or {}).get("recommended_tier") or "incident_replay"),
+            }
+            for item in runtime_incidents
         ],
     }
 
@@ -77,6 +94,8 @@ def render_incident_replay_markdown(payload: dict[str, Any]) -> str:
         "new_failure_count",
         "current_failure_count",
         "blind_spot_count",
+        "runtime_incident_count",
+        "blocking_runtime_incident_count",
     ):
         lines.append(f"- {key}: {classification.get(key)}")
     lines.extend(["", "## Replay Candidates", ""])
@@ -85,6 +104,13 @@ def render_incident_replay_markdown(payload: dict[str, Any]) -> str:
         lines.append("- none")
     else:
         for item in candidates:
+            lines.append(f"- {json.dumps(item, ensure_ascii=False)}")
+    lines.extend(["", "## Runtime Incidents", ""])
+    runtime_incidents = payload.get("runtime_incidents") or []
+    if not runtime_incidents:
+        lines.append("- none")
+    else:
+        for item in runtime_incidents:
             lines.append(f"- {json.dumps(item, ensure_ascii=False)}")
     return "\n".join(lines)
 

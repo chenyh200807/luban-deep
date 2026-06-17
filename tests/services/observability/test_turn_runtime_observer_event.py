@@ -59,6 +59,199 @@ def test_terminal_turn_observation_event_keeps_turn_identity_and_usage() -> None
     assert event["metadata"]["total_calls"] == 2
 
 
+def test_terminal_turn_observation_event_keeps_latency_stage_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "latency_stages_ms": {
+                "context_build": 120.125,
+                "capability_stream": 900,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["latency_stages_ms"] == {
+        "capability_stream": 900.0,
+        "context_build": 120.12,
+    }
+
+
+def test_terminal_turn_observation_event_keeps_context_build_stage_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "context_build_stage_timings_ms": {
+                "session_history": 12.345,
+                "learner_state": 90,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["context_build_stage_timings_ms"] == {
+        "learner_state": 90.0,
+        "session_history": 12.35,
+    }
+
+
+def test_terminal_turn_observation_event_keeps_start_turn_setup_stage_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "start_turn_setup_stage_timings_ms": {
+                "ensure_session": 45.678,
+                "create_turn": 20,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["start_turn_setup_stage_timings_ms"] == {
+        "create_turn": 20.0,
+        "ensure_session": 45.68,
+    }
+
+
+def test_terminal_turn_observation_event_keeps_capability_stream_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "capability_stream_stage_timings_ms": {
+                "first_event": 100.123,
+                "first_content": 300,
+                "event_persist_total": 25.555,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+            "capability_stream_event_counts": {
+                "content": 2,
+                "result": 1,
+                "bad_noise": -1,
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["capability_stream_stage_timings_ms"] == {
+        "event_persist_total": 25.55,
+        "first_content": 300.0,
+        "first_event": 100.12,
+    }
+    assert event["metadata"]["capability_stream_event_counts"] == {
+        "content": 2,
+        "result": 1,
+    }
+
+
+def test_terminal_turn_observation_event_keeps_llm_stream_telemetry() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "llm_stream_telemetry": {
+                "call_count": 1,
+                "calls": [
+                    {
+                        "call_site": "fast_policy",
+                        "provider_name": "openai",
+                        "model": "gpt-test",
+                        "stream_chunk_count": 3,
+                        "stream_content_chunk_count": 2,
+                        "stage_timings_ms": {
+                            "provider_stream_create": 10.0,
+                            "provider_first_chunk": 20.0,
+                            "provider_first_content_delta": 21.0,
+                            "provider_stream_read": 40.0,
+                            "bad_noise": "n/a",
+                            "negative_noise": -1,
+                        },
+                    }
+                ],
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["llm_stream_telemetry"] == {
+        "call_count": 1,
+        "calls": [
+            {
+                "call_site": "fast_policy",
+                "provider_name": "openai",
+                "model": "gpt-test",
+                "stream_chunk_count": 3,
+                "stream_content_chunk_count": 2,
+                "stage_timings_ms": {
+                    "provider_first_chunk": 20.0,
+                    "provider_first_content_delta": 21.0,
+                    "provider_stream_create": 10.0,
+                    "provider_stream_read": 40.0,
+                },
+            }
+        ],
+    }
+
+
+def test_terminal_turn_observation_event_keeps_bi_identity_resolution_metadata() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "source": "authenticated_ws",
+            "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            "raw_user_id": "legacy_chat_user_1",
+            "member_user_id": "wx_live_alias",
+            "identity_resolution_status": "resolved",
+            "identity_resolution_source": "member_console",
+            "identity_matched": "legacy_chat_user_1",
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert event["metadata"]["raw_user_id"] == "legacy_chat_user_1"
+    assert event["metadata"]["member_user_id"] == "wx_live_alias"
+    assert event["metadata"]["identity_resolution_status"] == "resolved"
+    assert event["metadata"]["identity_resolution_source"] == "member_console"
+    assert event["metadata"]["identity_matched"] == "legacy_chat_user_1"
+    assert "phone" not in event["metadata"]
+
+
 def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
     events: list[dict] = []
 
@@ -172,6 +365,89 @@ def test_assistant_event_summary_keeps_lifecycle_decision_metadata() -> None:
     ]
     assert summary["llm_scene_candidate"] == {"intended_action": "question_review"}
     assert summary["business_gate_result"] == {"accepted": True}
+
+
+def test_assistant_event_summary_keeps_exact_authority_and_retrieval_metadata() -> None:
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "authority_applied": True,
+                    "execution_path": "tutorbot_exact_fast_path",
+                    "exact_fast_path_hit": True,
+                    "exact_question": {
+                        "id": "historical:abc123",
+                        "answer_kind": "mcq",
+                        "question_type": "multi_choice",
+                        "source_group": "historical_question_bank",
+                        "correct_answer": "CDE",
+                        "metadata": {
+                            "source_file": "questions.json",
+                            "source_path": "/Users/local/private/questions.json",
+                            "content_hash": "hash-1",
+                        },
+                    },
+                    "rag_retrieval_degraded": True,
+                    "rag_retrieval_status": "provider_failed_exact_question_resolved",
+                    "degraded_mcq_grading_guard_applied": False,
+                    "degraded_exact_answer_guard_applied": False,
+                },
+            }
+        ]
+    )
+
+    assert summary["authority_applied"] is True
+    assert summary["execution_path"] == "tutorbot_exact_fast_path"
+    assert summary["exact_fast_path_hit"] is True
+    assert summary["exact_question"] == {
+        "id": "historical:abc123",
+        "answer_kind": "mcq",
+        "question_type": "multi_choice",
+        "source_group": "historical_question_bank",
+        "correct_answer": "CDE",
+        "source_file": "questions.json",
+        "content_hash": "hash-1",
+    }
+    assert summary["rag_retrieval_degraded"] is True
+    assert summary["rag_retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert summary["degraded_mcq_grading_guard_applied"] is False
+    assert summary["degraded_exact_answer_guard_applied"] is False
+    assert "source_path" not in summary["exact_question"]
+
+
+def test_terminal_turn_observation_event_keeps_authority_retrieval_summary() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=900.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "context_route": "mcq_grading",
+            "authority_applied": True,
+            "exact_fast_path_hit": True,
+            "execution_path": "tutorbot_exact_fast_path",
+            "exact_question": {
+                "id": "historical:abc123",
+                "source_group": "historical_question_bank",
+                "correct_answer": "CDE",
+            },
+            "rag_retrieval_degraded": True,
+            "rag_retrieval_status": "provider_failed_exact_question_resolved",
+            "degraded_mcq_grading_guard_applied": False,
+        },
+        usage_summary={"total_tokens": 12, "total_calls": 1},
+    )
+
+    assert event["metadata"]["authority_applied"] is True
+    assert event["metadata"]["exact_fast_path_hit"] is True
+    assert event["metadata"]["execution_path"] == "tutorbot_exact_fast_path"
+    assert event["metadata"]["exact_question"]["correct_answer"] == "CDE"
+    assert event["metadata"]["rag_retrieval_degraded"] is True
+    assert event["metadata"]["rag_retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert event["metadata"]["degraded_mcq_grading_guard_applied"] is False
 
 
 def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_path) -> None:

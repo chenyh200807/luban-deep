@@ -3,8 +3,8 @@
 | 字段 | 值 |
 |---|---|
 | **Date** | 2026-05-21 |
-| **Plan** | [docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) |
-| **回归矩阵** | [docs/plan/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
+| **Plan** | [docs/plan/题目生命周期与助教运行时/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) |
+| **回归矩阵** | [docs/plan/题目生命周期与助教运行时/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
 | **承接 HEAD（origin/main）** | `862f80fa fix: redact public ws grading authority` |
 | **本次会话新增 surgical 改动** | 已随 `origin/main` 合入；当前 feature 分支 merge 后需重新确认 |
 | **判定** | ✅ **LOCAL GO（origin/main `862f80fa` 证据）— 当前 feature 分支进入灰度前必须 post-merge rerun** |
@@ -101,7 +101,7 @@ docs/qa/2026-05-21-luban-p0-wechat-devtools-acceptance-checklist.md  +新增  # 
 docs/qa/2026-05-21-luban-p0-lightweight-practice-deep-grading-go-no-go.md  +新增  # 本文件
 ```
 
-非我改动（外部进程）：`docs/plan/2026-05-21-luban-learning-report-world-class-optimization-plan.md`, `docs/plan/INDEX.md` — 不动。
+非我改动（外部进程）：`docs/plan/学习脑与学员记忆/2026-05-21-luban-learning-report-world-class-optimization-plan.md`, `docs/plan/INDEX.md` — 不动。
 
 ---
 

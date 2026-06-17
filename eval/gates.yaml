@@ -94,14 +94,15 @@ gates:
     command: ["npm", "run", "test:wechat-harness:data"]
 
   web_wechat_harness_e2e:
-    description: "Full Playwright /wechat-harness e2e with deterministic install check."
-    category: quick
+    description: "Full Playwright /wechat-harness e2e against an externally hosted web server; do not self-host Next dev in agent automation."
+    category: deep
     workdir: "web"
     timeout_seconds: 420
     slow_seconds: 180
+    deferred_reason: "requires externally hosted web server via WEB_BASE_URL; Codex/automation must not self-host Next dev"
     required_paths:
       - "web/package-lock.json"
-    command: ["npm", "run", "test:wechat-harness:e2e:ci"]
+    command: ["npm", "run", "test:wechat-harness:e2e"]
 
   semantic_router_deep:
     description: "Standalone semantic-router eval for active object and route continuity."
@@ -123,6 +124,26 @@ gates:
       - "pr_gate_core"
       - "--output-dir"
       - "{artifact_dir}/benchmark-pr-gate-core"
+
+  arr_lite_quality_spine:
+    description: "ARR lite producer for current-release quality spine."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_arr_lite.py"
+      - "--mode"
+      - "lite"
+      - "--report-only"
+      - "--output-dir"
+      - "{artifact_dir}/arr-lite"
+
+  aae_snapshot_quality_spine:
+    description: "AAE producer consuming current ARR/OM quality evidence before release gate."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_aae_snapshot.py"
+      - "--no-live-feedback"
 
   learning_fact_retrieval_maintenance:
     description: "Learning fact retrieval maintenance dry-run."

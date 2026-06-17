@@ -87,17 +87,36 @@ function loadAppModule(options) {
   assert(!!defaultDevtools, "App config should be registered");
   assert(
     defaultDevtools.globalData.apiUrl === "https://test2.yousenjiaoyu.com",
-    "develop devtools should keep the configured remote API by default",
+    "develop devtools should default to configured remote API",
   );
   assert(
     defaultDevtools.globalData.gatewayUrl === "https://test2.yousenjiaoyu.com",
-    "develop devtools should keep the configured remote gateway by default",
+    "develop devtools should default to configured remote gateway",
   );
   assert(
     Array.isArray(defaultDevtools.globalData.apiCandidates) &&
       defaultDevtools.globalData.apiCandidates.length === 1 &&
       defaultDevtools.globalData.apiCandidates[0] === "https://test2.yousenjiaoyu.com",
-    "develop devtools should not append localhost candidates by default",
+    "develop devtools runtime candidates should default to remote only",
+  );
+
+  var explicitRemote = loadAppModule({
+    wxConfig: { envVersion: "develop", platform: "devtools" },
+    useLocalDevtools: false,
+  });
+  assert(
+    explicitRemote.globalData.apiUrl === "https://test2.yousenjiaoyu.com",
+    "explicit local-devtools false should use configured remote API",
+  );
+  assert(
+    explicitRemote.globalData.gatewayUrl === "https://test2.yousenjiaoyu.com",
+    "explicit local-devtools false should use configured remote gateway",
+  );
+  assert(
+    Array.isArray(explicitRemote.globalData.apiCandidates) &&
+      explicitRemote.globalData.apiCandidates.length === 1 &&
+      explicitRemote.globalData.apiCandidates[0] === "https://test2.yousenjiaoyu.com",
+    "explicit remote mode should not append localhost candidates",
   );
 
   var explicitLocal = loadAppModule({
@@ -110,8 +129,8 @@ function loadAppModule(options) {
   );
   assert(
     explicitLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "explicit local mode should keep localhost first and retain remote fallback",
+      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "explicit local mode should keep localhost first without remote fallback",
   );
 
   var explicitAltLocal = loadAppModule({
@@ -125,8 +144,9 @@ function loadAppModule(options) {
   );
   assert(
     explicitAltLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8012" &&
-      explicitAltLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "alternate localhost candidate list should still retain remote fallback",
+      explicitAltLocal.globalData.apiCandidates[1] === "http://127.0.0.1:8001" &&
+      explicitAltLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "alternate localhost candidate list should fall back to canonical local backend only",
   );
 
   if (fail) {

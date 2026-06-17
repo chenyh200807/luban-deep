@@ -1,4 +1,4 @@
-// test_login_primary_wechat_authority.js — primary login must not invoke getPhoneNumber
+// test_login_primary_wechat_authority.js — primary login must use phone authorization
 // Run: node yousenwebview/tests/test_login_primary_wechat_authority.js
 
 var fs = require("fs");
@@ -27,16 +27,16 @@ function read(relativePath) {
 ].forEach(function (relativePath) {
   var content = read(relativePath);
   assert(
-    content.indexOf('bindtap="handleWechatLogin"') >= 0,
-    relativePath + " primary WeChat login should call plain wx.login handler",
+    content.indexOf('bindtap="handleWechatLogin"') === -1,
+    relativePath + " primary quick login must not call plain wx.login handler",
   );
   assert(
-    content.indexOf('open-type="getPhoneNumber"') === -1,
-    relativePath + " primary WeChat login should not trigger getPhoneNumber quota",
+    content.indexOf('open-type="getPhoneNumber"') >= 0,
+    relativePath + " primary quick login should trigger getPhoneNumber",
   );
   assert(
-    content.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') === -1,
-    relativePath + " primary WeChat login should keep phone binding off the entry button",
+    content.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') >= 0,
+    relativePath + " primary quick login should bind phone authorization handler",
   );
 });
 

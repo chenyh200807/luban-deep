@@ -47,6 +47,15 @@ def _evidence_level_rank(level: str) -> int:
     return order.get(_text(level), -1)
 
 
+def _evidence_level_from_claim_status(status: Any) -> str:
+    normalized = _text(status)
+    return {
+        "observed": "L0_observed",
+        "repeated": "L1_repeated",
+        "confirmed": "L2_confirmed",
+    }.get(normalized, "")
+
+
 def _sanitize_compiled_truth_text(value: Any, *, max_chars: int) -> tuple[str, int, bool]:
     raw = _text(value)
     if not raw:
@@ -157,6 +166,34 @@ def _append_unique(items: list[str], value: Any) -> None:
 def _graph_edges(projection: dict[str, Any]) -> list[dict[str, Any]]:
     graph = projection.get("typed_graph") if isinstance(projection.get("typed_graph"), dict) else {}
     return [edge for edge in _as_list(graph.get("edges")) if isinstance(edge, dict)]
+
+
+def _projection_with_personalization_claims(projection: dict[str, Any]) -> dict[str, Any]:
+    top_claims = _as_list(projection.get("top_claims"))
+    if not top_claims:
+        return projection
+    compiled_objects = dict(_as_dict(projection.get("compiled_objects") or projection.get("objects")))
+    for raw_claim in top_claims:
+        claim = _as_dict(raw_claim)
+        claim_id = _text(claim.get("claim_id") or claim.get("object_id"))
+        if not claim_id:
+            continue
+        evidence_refs = _as_list(claim.get("evidence_refs") or claim.get("supporting_event_ids"))
+        if not evidence_refs:
+            continue
+        evidence_level = _text(claim.get("evidence_level")) or _evidence_level_from_claim_status(claim.get("claim_status"))
+        compiled_objects[f"personalization:{claim_id}"] = {
+            "object_type": _text(claim.get("object_type")) or "personalization_claim",
+            "current_truth": claim.get("label") or claim.get("current_truth") or claim.get("claim"),
+            "evidence_level": evidence_level,
+            "supporting_event_ids": evidence_refs,
+            "evidence_refs": evidence_refs,
+            "claim_status": claim.get("claim_status"),
+        }
+    normalized = dict(projection)
+    normalized["compiled_objects"] = compiled_objects
+    normalized.setdefault("subject", _text(projection.get("source")) or "PersonalizationContextPack")
+    return normalized
 
 
 def _graph_context_for_weak_point(
@@ -311,7 +348,7 @@ def materialize_compiled_truth_documents(
     max_chars_per_doc: int = _DEFAULT_MAX_CHARS_PER_DOC,
     max_total_chars: int = _DEFAULT_MAX_TOTAL_CHARS,
 ) -> list[dict[str, Any]]:
-    projection = _as_dict(compiled_projection)
+    projection = _projection_with_personalization_claims(_as_dict(compiled_projection))
     compiled_objects = _as_dict(projection.get("compiled_objects") or projection.get("objects"))
     weak_points = _as_list(projection.get("weak_points"))
     if not compiled_objects and not weak_points:

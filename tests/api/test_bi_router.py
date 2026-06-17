@@ -20,6 +20,8 @@ bi_router = bi_router_module.router
 
 from deeptutor.services.bi_service import BIService
 from deeptutor.services.feedback_service import build_mobile_feedback_row
+from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 
 
@@ -34,6 +36,8 @@ class _FakeMemberService:
             "active_count": 1,
             "expiring_soon_count": 1,
             "new_today_count": 0,
+            "new_7d_count": 0,
+            "new_30d_count": 0,
             "churn_risk_count": 1,
             "health_score": 50,
             "auto_renew_coverage": 50,
@@ -356,6 +360,72 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                 return {"storage_status": "fake", "before": before, "after": after}
             raise KeyError(application_id)
 
+    class _FakeLubanFeedbackStore:
+        def __init__(self) -> None:
+            self._rows = [
+                {
+                    "id": "luban-feedback-1",
+                    "created_at": "2026-05-17T12:00:00.000Z",
+                    "source_page": "luban-survey",
+                    "survey_version": "v1",
+                    "nps": 9,
+                    "overall_satisfaction": 5,
+                    "most_valuable": "错因定位",
+                    "will_continue": "probably",
+                    "pay_willingness": "maybe",
+                    "would_recommend": "yes",
+                    "revisit_willingness": "very_willing",
+                    "attempt_count": "first",
+                    "exam_timeframe": "within_1m",
+                    "one_word": "清晰",
+                    "top_suggestion": "希望增加回访提醒",
+                    "unsolved_pain": "案例题不会组织答案",
+                    "phone": "13800138000",
+                    "wechat_id": "wx_luban",
+                    "status": "submitted",
+                    "operator_note": "",
+                    "contact_revealed": True,
+                }
+            ]
+
+        async def list_responses(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "total": len(self._rows),
+                "contact_revealed": True,
+                "items": list(self._rows),
+            }
+
+        async def get_stats(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "summary": {
+                    "total_responses": len(self._rows),
+                    "nps_score": 100,
+                    "nps_base": len(self._rows),
+                    "promoters": len(self._rows),
+                    "passives": 0,
+                    "detractors": 0,
+                    "avg_satisfaction": 5,
+                    "satisfaction_base": len(self._rows),
+                    "revisit_willing_count": len(self._rows),
+                    "revisit_willing_rate": 1,
+                    "with_contact_count": len(self._rows),
+                    "with_contact_rate": 1,
+                },
+            }
+
+        async def update_response(self, response_id: str, patch: dict[str, object]) -> dict[str, object]:
+            for index, row in enumerate(self._rows):
+                if str(row.get("id")) != response_id:
+                    continue
+                after = {**row, **patch}
+                self._rows[index] = after
+                return {"storage_status": "fake", "after": after}
+            raise KeyError(response_id)
+
     class _FakeBailianTelemetryClient:
         def is_configured(self) -> bool:
             return True
@@ -429,9 +499,133 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                 },
             )()
 
+    class _FakeDeepSeekBillingClient:
+        async def get_balance(self):
+            return type(
+                "BalanceTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "status": "unconfigured",
+                        "provider_name": "deepseek",
+                        "is_available": False,
+                        "currency_balances": {},
+                    },
+                },
+            )()
+
+        async def get_usage_export_totals(self, **_kwargs):
+            return type(
+                "UsageTotals",
+                (),
+                {
+                    "to_official_usage_dict": lambda self: {
+                        "status": "unconfigured",
+                        "provider_name": "deepseek",
+                        "cost_basis": "net_charge_cost",
+                        "currency_amounts": {},
+                        "models": {},
+                    },
+                },
+            )()
+
     class _FakeUsageLedger:
+        def get_window_summary(self, *, start_ts, end_ts):
+            return {
+                "totals": {
+                    "input_tokens": 90000,
+                    "output_tokens": 24000,
+                    "total_tokens": 114000,
+                    "total_cost_usd": 5.46,
+                    "measured_total_cost_usd": 2.44,
+                    "estimated_total_cost_usd": 3.02,
+                    "measured_total_tokens": 100000,
+                    "estimated_total_tokens": 14000,
+                },
+                "by_model": [
+                    {
+                        "model": "deepseek-v4-flash",
+                        "events": 100,
+                        "total_tokens": 90000,
+                        "measured_total_cost_usd": 2.0,
+                        "estimated_total_cost_usd": 3.0,
+                        "total_cost_usd": 5.0,
+                    },
+                    {
+                        "model": "gte-rerank",
+                        "events": 20,
+                        "total_tokens": 24000,
+                        "measured_total_cost_usd": 0.44,
+                        "estimated_total_cost_usd": 0.02,
+                        "total_cost_usd": 0.46,
+                    },
+                ],
+                "by_usage_source": [
+                    {
+                        "usage_source": "provider",
+                        "events": 100,
+                        "total_tokens": 100000,
+                        "measured_total_cost_usd": 2.44,
+                        "estimated_total_cost_usd": 0.0,
+                        "total_cost_usd": 2.44,
+                    },
+                    {
+                        "usage_source": "tiktoken",
+                        "events": 20,
+                        "total_tokens": 14000,
+                        "measured_total_cost_usd": 0.0,
+                        "estimated_total_cost_usd": 3.02,
+                        "total_cost_usd": 3.02,
+                    },
+                ],
+                "by_day": [
+                    {
+                        "date": datetime.now().date().isoformat(),
+                        "events": 120,
+                        "total_tokens": 114000,
+                        "measured_total_cost_usd": 2.44,
+                        "estimated_total_cost_usd": 3.02,
+                        "total_cost_usd": 5.46,
+                    }
+                ],
+            }
+
         def get_totals(self, **kwargs):
-            assert kwargs["provider_name"] == "dashscope"
+            assert kwargs["provider_name"] in {"dashscope", "deepseek"}
+            provider_name = kwargs["provider_name"]
+            if provider_name == "deepseek":
+                return type(
+                    "LedgerTotals",
+                    (),
+                    {
+                        "to_dict": lambda self: {
+                            "input_tokens": 1000,
+                            "output_tokens": 200,
+                            "total_tokens": 1200,
+                            "total_cost_usd": 0.0001,
+                            "measured_input_tokens": 1000,
+                            "measured_output_tokens": 200,
+                            "measured_total_tokens": 1200,
+                            "measured_total_cost_usd": 0.0001,
+                            "estimated_input_tokens": 0,
+                            "estimated_output_tokens": 0,
+                            "estimated_total_tokens": 0,
+                            "estimated_total_cost_usd": 0.0,
+                            "events": 1,
+                            "provider_calls": 1,
+                            "billable_turns": 1,
+                            "calls_per_billable_turn": 1.0,
+                            "unattributed_provider_calls": 0,
+                            "currency_amounts": {"USD": 0.0001},
+                            "metadata_breakdown": {
+                                "input_cache_hit_tokens": 700,
+                                "input_cache_miss_tokens": 300,
+                            },
+                            "coverage_start_ts": kwargs["start_ts"] + 10,
+                            "coverage_end_ts": kwargs["end_ts"] - 10,
+                        },
+                    },
+                )()
             return type(
                 "LedgerTotals",
                 (),
@@ -461,8 +655,10 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         member_service=_FakeMemberService(),
         feedback_store=_FakeFeedbackStore(feedback_rows),
         invite_test_store=_FakeInviteTestStore(),
+        luban_feedback_store=_FakeLubanFeedbackStore(),
         bailian_telemetry_client=_FakeBailianTelemetryClient(),
         bailian_billing_client=_FakeBailianBillingClient(),
+        deepseek_billing_client=_FakeDeepSeekBillingClient(),
         usage_ledger=_FakeUsageLedger(),
         wallet_service=_FakeWalletService(),
     )
@@ -573,6 +769,25 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             return [{"role": "assistant", "content": "hello"} for _ in range(min(limit, 3))]
 
     monkeypatch.setattr("deeptutor.services.tutorbot.get_tutorbot_manager", lambda: _FakeTutorBotManager())
+
+    # 端点级 RBAC 接线后，require_bi_permission 用 can_access 裁决。这些功能/审计测试
+    # 注入 is_admin=True 的假 auth，因此 member_console 在此 fixture 中给全权（等价
+    # super_admin），让现有断言聚焦端点行为而非权限矩阵；RBAC enforcement 本身由
+    # tests/api/test_bi_rbac_enforcement.py 用真实角色矩阵专门覆盖。
+    class _FullAccessMemberService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def get_admin_role(self, *_args, **_kwargs) -> str:
+            return "super_admin"
+
+        def can_manage_permissions(self, *_args, **_kwargs) -> bool:
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.bi.get_member_console_service",
+        lambda: _FullAccessMemberService(),
+    )
     return service
 
 
@@ -606,6 +821,187 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
         response = client.get("/api/v1/bi/overview?days=30")
         assert response.status_code == 403
         assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_rbac_permission_management_endpoints_allow_admin(
+    bi_service: BIService, tmp_path: Path, monkeypatch
+) -> None:
+    member_service = get_member_console_service()
+    monkeypatch.setattr(member_service, "_bi_admins_path", lambda: tmp_path / "bi_admins.json")
+    monkeypatch.setattr(member_service, "_env_admin_user_ids", lambda: {"env-super"})
+    monkeypatch.setattr(member_service, "_safe_member_display_name", lambda uid: f"name-{uid}")
+    monkeypatch.setattr(
+        bi_router_module,
+        "get_member_console_service",
+        lambda: member_service,
+    )
+    member_service.set_admin_role(
+        actor="env-super", user_id="u-admin", role=rbac.ROLE_ADMIN, at="t1"
+    )
+    member_service.set_admin_role(
+        actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1"
+    )
+
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    matrix = {tab: [] for tab in rbac.TABS}
+    matrix["member_ops"] = list(rbac.ACTIONS)
+    matrix["feedback"] = ["view"]
+    matrix["commerce"] = ["view"]
+
+    with TestClient(app) as client:
+        me = client.get("/api/v1/bi/rbac/me")
+        assert me.status_code == 200
+        assert me.json()["can_manage_permissions"] is True
+
+        roles = client.get("/api/v1/bi/rbac/roles")
+        assert roles.status_code == 200
+        operator = next(r for r in roles.json()["roles"] if r["key"] == "operator")
+        assert operator["matrix"]["member_ops"] == list(rbac.ACTIONS)
+
+        updated_roles = client.put(
+            "/api/v1/bi/rbac/roles/operator/permissions",
+            json={"matrix": matrix},
+        )
+        assert updated_roles.status_code == 200
+        updated_operator = next(r for r in updated_roles.json()["roles"] if r["key"] == "operator")
+        assert updated_operator["matrix"]["commerce"] == ["view"]
+
+        admins = client.put(
+            "/api/v1/bi/admins/u-op/permissions",
+            json={"overrides": {"ops": ["view"]}},
+        )
+        assert admins.status_code == 200
+        operator_row = next(a for a in admins.json()["admins"] if a["user_id"] == "u-op")
+        assert operator_row["effective_matrix"]["ops"] == ["view"]
+
+        effective = client.get("/api/v1/bi/admins/u-op/effective-permissions")
+        assert effective.status_code == 200
+        assert effective.json()["effective_matrix"]["member_ops"] == list(rbac.ACTIONS)
+
+
+def test_bi_cost_reconciliation_supports_deepseek_provider(
+    bi_service: BIService,
+) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation"
+            "?days=30&provider=deepseek&billing_cycle=2026-06"
+            "&environment=production&cost_center=prod_user_chat&billable_only=true"
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["filters"]["provider"] == "deepseek"
+    assert "providers" in payload
+    assert "deepseek" in payload["providers"]
+    deepseek = payload["providers"]["deepseek"]
+    assert deepseek["internal"]["total_tokens"] == 1200
+    assert deepseek["internal"]["currency_amounts"] == {"USD": 0.0001}
+    assert deepseek["official_usage"]["status"] in {
+        "unconfigured",
+        "unsupported_export_schema",
+    }
+    assert deepseek["reconciliation"]["cost_basis"] == "list_price_cost"
+
+
+def test_bi_cost_reconciliation_deepseek_does_not_query_bailian(
+    bi_service: BIService,
+) -> None:
+    class FailingBailianClient:
+        config = SimpleNamespace(workspace_id="", apikey_id="")
+
+        def is_configured(self) -> bool:
+            raise AssertionError("provider=deepseek must not query Bailian clients")
+
+    bi_service._bailian_telemetry_client = FailingBailianClient()
+    bi_service._bailian_billing_client = FailingBailianClient()
+
+    class ProviderAwareLedger:
+        def get_totals(self, **kwargs):
+            if kwargs["provider_name"] != "deepseek":
+                raise AssertionError("provider=deepseek must not query DashScope ledger totals")
+            return type(
+                "LedgerTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "total_tokens": 1200,
+                        "currency_amounts": {"USD": 0.0001},
+                        "provider_calls": 1,
+                        "billable_turns": 1,
+                        "unattributed_provider_calls": 0,
+                    }
+                },
+            )()
+
+    bi_service._usage_ledger = ProviderAwareLedger()
+
+    payload = asyncio.run(
+        bi_service.get_cost_reconciliation(
+            provider="deepseek",
+            days=30,
+            billing_cycle="2026-06",
+            environment="production",
+            cost_center="prod_user_chat",
+            billable_only=True,
+        )
+    )
+
+    assert payload["filters"]["provider"] == "deepseek"
+    assert set(payload["providers"]) == {"deepseek"}
+    assert payload["system_global_bailian"]["status"] != "error"
+    assert not any("system_global_bailian" in warning for warning in payload["warnings"])
+
+
+def test_bi_cost_reconciliation_all_returns_provider_neutral_official_usage(
+    bi_service: BIService,
+) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation?provider=all&billing_cycle=2026-06"
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["filters"]["provider"] == "all"
+    assert set(payload["providers"]) == {"dashscope", "deepseek"}
+    dashscope = payload["providers"]["dashscope"]
+    assert dashscope["official_usage"]["provider_name"] == "dashscope"
+    assert dashscope["official_usage"]["cost_basis"] == "list_price_cost"
+    assert dashscope["official_usage"]["list_price_cost"] == {"CNY": 0.0124}
+    assert dashscope["official_usage"]["net_charge_cost"] == {"CNY": 0.0124}
+
+
+def test_bi_cost_reconciliation_rejects_metrics_token_only(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    app = _build_app(bi_service)
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "metrics-secret")
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation?provider=all&billing_cycle=2026-06",
+            headers={"X-Metrics-Token": "metrics-secret"},
+        )
+
+    assert response.status_code == 403
 
 
 def test_bi_router_allows_public_access_when_flag_enabled(
@@ -934,6 +1330,52 @@ def test_bi_invite_test_application_delete_requires_idempotency_and_dedupes_audi
         assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
 
 
+def test_bi_luban_feedback_update_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """luban_feedback_response_update edits ops-owned fields and dedupes audit."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            headers={"X-Idempotency-Key": "luban-feedback-key-1"},
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["response"]["status"] == "contacted"
+        assert first_body["response"]["operator_note"] == "已约回访"
+
+        retry = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            headers={"X-Idempotency-Key": "luban-feedback-key-1"},
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert retry.status_code == 200
+        assert retry.json()["audit_id"] == first_body["audit_id"]
+        assert retry.json()["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+        audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+        assert audit_entry["action"] == "luban_feedback_response_update"
+        assert audit_entry["target_user"] == "luban-feedback:luban-feedback-1"
+
+
 def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(
     bi_service: BIService,
 ) -> None:
@@ -1035,6 +1477,91 @@ def test_bi_export_request_requires_idempotency_and_dedupes_audit(
         assert audit_entry["after"]["filters"] == {"operator": "admin_test", "category": "feedback"}
 
 
+def test_invite_test_applications_export_request_is_audited(bi_service: BIService) -> None:
+    """Invite-test exports must go through the same audited export boundary."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/bi/export-jobs",
+            headers={"X-Idempotency-Key": "invite-export-key-1"},
+            json={
+                "dataset": "invite_test_applications",
+                "format": "csv",
+                "filters": {"days": 365, "status": "submitted", "visible_rows": 23},
+            },
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["export_job"]["dataset"] == "invite_test_applications"
+        assert body["export_job"]["name"] == "内测申请导出"
+        assert body["export_job"]["scrubbed"] is True
+        audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+        assert audit_entry["action"] == "bi_export_request"
+        assert audit_entry["target_user"] == "export:invite_test_applications"
+        assert audit_entry["after"]["filters"] == {
+            "days": 365,
+            "status": "submitted",
+            "visible_rows": 23,
+        }
+
+
+def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService, tmp_path: Path) -> None:
+    from deeptutor.services.observability import reset_product_behavior_store
+
+    behavior_store = reset_product_behavior_store(tmp_path / "behavior-test.db")
+    now_ms = int(datetime.now().timestamp() * 1000)
+    behavior_store.record_event(
+        {
+            "event_id": "evt-export-u1-1",
+            "event_name": "section_viewed",
+            "event_version": 1,
+            "occurred_at_ms": now_ms,
+            "received_at_ms": now_ms + 100,
+            "user_id": "u1",
+            "visit_id": "visit-export-1",
+            "session_id": "session-export-1",
+            "turn_id": "turn-export-1",
+            "surface": "web",
+            "module": "learning_report",
+            "section": "next_action",
+            "action": "view",
+            "properties_json": {"entry_source": "member_ops"},
+        }
+    )
+
+    result = asyncio.run(
+        bi_service.request_export_job(
+            dataset="product_behavior_raw",
+            export_format="csv",
+            filters={"user_id": "u1", "module": "learning_report", "days": 7},
+            operator="admin_demo",
+            idempotency_key="behavior-export-1",
+        )
+    )
+
+    job = result["export_job"]
+    assert job["dataset"] == "product_behavior_raw"
+    assert job["scrubbed"] is False
+    assert job["raw_mode"] is True
+    assert job["status"] == "ready"
+    assert job["rows"] == 1
+    assert result["export"]["content_type"] == "text/csv"
+    assert "evt-export-u1-1" in result["export"]["content"]
+    assert "next_action" in result["export"]["content"]
+    assert result["audit_id"]
+    audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+    assert audit_entry["after"]["scrubbed"] is False
+    assert audit_entry["after"]["raw_mode"] is True
+
+
 def test_bi_router_rejects_invalid_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,
@@ -1053,8 +1580,8 @@ def test_bi_router_rejects_invalid_metrics_token_in_production(
 
 def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
     app = _build_app(bi_service)
-    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
-    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
 
     with TestClient(app) as client:
         overview = client.get("/api/v1/bi/overview?days=30")
@@ -1121,6 +1648,7 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert commerce.status_code == 200
         commerce_body = commerce.json()
         assert commerce_body["authority"]["wallet_ledger"] == "wallet_ledger"
+        assert commerce_body["summary"]["member_count"] == 1
         assert commerce_body["summary"]["recharge_count"] == 1
         assert commerce_body["summary"]["ledger_count"] >= 2
         recharge_records = _assert_non_empty_list(commerce_body["recharge_records"], "commerce.recharge_records")
@@ -1148,9 +1676,9 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert reconciliation_body["system_global_bailian"]["total_tokens"] == 1720
         assert reconciliation_body["system_global_bailian"]["estimated_total_cost_usd"] == 0.0058
         assert reconciliation_body["reconciliation"]["billing_cycle"] == billing_cycle
-        assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0153
-        assert reconciliation_body["reconciliation"]["token_delta"] == 320
-        assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01278
+        assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0181
+        assert reconciliation_body["reconciliation"]["token_delta"] == 540
+        assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01558
         assert reconciliation_body["reconciliation"]["status"] == "ok"
         assert any("usage ledger" in warning for warning in reconciliation_body["warnings"])
 
@@ -1250,3 +1778,78 @@ def test_bi_overview_keeps_member_snapshot_consistent_under_tier_filter(bi_servi
     assert body["boss_workbench"]["risk_queue"][0]["count"] == 0
     assert body["boss_workbench"]["risk_queue"][1]["count"] == 0
     assert [item["tier"] for item in body["boss_workbench"]["watchlist"]] == ["vip"]
+
+
+def test_bi_cost_stats_reads_usage_ledger_authority(bi_service: BIService) -> None:
+    """P2-F1: 成本唯一 authority = UsageLedger，cards 带血统分量与 metric_id。"""
+    payload = asyncio.run(bi_service.get_cost_stats(days=7))
+    assert payload["provenance"] == "usage_ledger"
+    cards = {card["label"]: card for card in payload["cards"]}
+    total = cards["总成本"]
+    assert total["value"] == 5.46
+    assert total["measured_value"] == 2.44
+    assert total["estimated_value"] == 3.02
+    assert total["metric_id"] == "total_cost_usd"
+    assert cards["总 Token"]["value"] == 114000
+    assert cards["总 Token"]["metric_id"] == "total_tokens"
+    models = {row["label"]: row["value"] for row in payload["models"]}
+    assert models["deepseek-v4-flash"] == 5.0
+    providers = {row["label"]: row["value"] for row in payload["providers"]}
+    assert providers["provider"] == 2.44
+
+
+def test_bi_overview_cost_matches_cost_endpoint_single_authority(bi_service: BIService) -> None:
+    """P2-F1: overview 与 cost 同源——自相矛盾消除。"""
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    cost = asyncio.run(bi_service.get_cost_stats(days=7))
+    cost_total = next(c for c in cost["cards"] if c["label"] == "总成本")["value"]
+    assert overview["summary"]["total_cost_usd"] == cost_total == 5.46
+    assert overview["summary"]["measured_total_cost_usd"] == 2.44
+    assert overview["summary"]["estimated_total_cost_usd"] == 3.02
+    assert overview["summary"]["cost_provenance"] == "usage_ledger"
+    assert overview["summary"]["total_tokens"] == 114000
+    # boss_workbench 今日成本与 ledger by_day 同源
+    kpis = {k["label"]: k for k in overview["boss_workbench"]["kpis"]}
+    assert kpis["今日成本"]["value"] == 5.46
+
+
+def test_bi_overview_wires_unit_economics_and_ai_quality_values(bi_service: BIService) -> None:
+    """P2-F3/F4: 已注册指标必须有 value 承载（可为 null 但键必须在）。"""
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    ue = overview["unit_economics"]
+    assert "value" in ue
+    assert ue["value"] == ue["cost_per_effective_learning_usd"]
+    assert ue["value"] is not None and ue["value"] > 0
+    aiq = overview["ai_quality"]
+    assert aiq["value"] == aiq["engineering_success_rate"]
+    dt = overview["data_trust"]
+    assert "value" in dt  # v1 显式 null + 状态，禁止缺键
+    behavior_modules = [m for m in dt["degraded_modules"] if m["id"] == "product_behavior"]
+    assert behavior_modules and behavior_modules[0]["status"] == "pending"
+
+
+def test_bi_all_emitted_card_labels_resolve_to_registry(bi_service: BIService) -> None:
+    """P2-F5 contract: 任何 payload 卡片标签必须可经注册表 label/alias 解析。"""
+    from deeptutor.services.bi_metrics import BI_METRICS
+
+    known: set[str] = set()
+    for metric in BI_METRICS:
+        known.add(metric.label)
+        known.update(metric.label_aliases)
+
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    cost = asyncio.run(bi_service.get_cost_stats(days=7))
+    members = asyncio.run(bi_service.get_member_stats(days=7))
+    labels: list[str] = []
+    for payload in (overview, cost, members):
+        labels.extend(card.get("label") for card in payload.get("cards") or [])
+    labels.extend(k.get("label") for k in overview["boss_workbench"]["kpis"])
+    unregistered = sorted({label for label in labels if label and label not in known})
+    assert unregistered == [], f"注册表外标签: {unregistered}"
+    # 所有卡片必须携带可解析的 metric_id
+    from deeptutor.services.bi_metrics import metric_by_id
+
+    for payload in (overview, cost, members):
+        for card in payload.get("cards") or []:
+            assert card.get("metric_id"), card
+            metric_by_id(card["metric_id"])

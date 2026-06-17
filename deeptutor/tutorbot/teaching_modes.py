@@ -239,6 +239,33 @@ def correct_construction_exam_boundary_fact_response(
     )
 
 
+_CROSS_CAPABILITY_CONTEXT_MAX_CHARS = 4000
+
+
+def build_cross_capability_context_instruction(
+    conversation_context_text: str | None,
+) -> str:
+    """无条件注入统一会话的跨能力对话上下文。
+
+    TutorBot loop 的 LLM 历史只来自 bot-side session；deep_question 等其它
+    capability 的轮次只写统一 session store。conversation_context_text 是统一
+    runtime 按 token 预算编排好的跨能力上下文，这里只要非空就注入——不得依赖
+    "继续/接着讲"等字面匹配（那是 build_continuity_anchor_instruction 的锚点
+    强化职责），否则路由切换后 TutorBot 会丢失前文。
+    """
+    text = str(conversation_context_text or "").strip()
+    if not text:
+        return ""
+    if len(text) > _CROSS_CAPABILITY_CONTEXT_MAX_CHARS:
+        text = text[:_CROSS_CAPABILITY_CONTEXT_MAX_CHARS] + "…（已截断）"
+    return (
+        "以下是本会话此前各轮的对话上下文（可能来自练题、批改、讲评等其它模式）。"
+        "把它当作你已经亲历的连续对话记忆：用户提到“刚才那道题 / 前面说的”时，"
+        "直接依据该上下文延续回答，不得声称不知道、看不到或没有前文。\n"
+        f"{text}"
+    )
+
+
 def build_continuity_anchor_instruction(
     user_message: str | None,
     *,
@@ -268,7 +295,7 @@ def build_continuity_anchor_instruction(
         )
     if summary:
         parts.append(f"当前连续性上下文：{summary}")
-    return "".join(parts)
+    return "\n".join(parts)
 
 
 def normalize_anchor_terms_in_response(
@@ -358,7 +385,7 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
 # plan §Phase 1 Step 1.1 (A2) — 单一规约函数：判断本轮练题生成走 lightweight 还是 heavy。
 # 调用方契约：orchestrator._prepare_practice_request_context 唯一消费点，
 # coordinator 仅读 config_overrides["lightweight_generation"]，不自行判断。
-# 详见 docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md §1.1。
+# 详见 docs/plan/题目生命周期与助教运行时/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md §1.1。
 _HEAVY_KEYWORDS: tuple[str, ...] = (
     r"详细解析|逐题解析|每题解析|完整解析",
     r"命题依据|押题分析|押题预测|考点预测",

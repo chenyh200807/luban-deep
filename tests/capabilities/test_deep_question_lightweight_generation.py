@@ -314,6 +314,7 @@ def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
             lightweight_generation=True,
             require_explanation=False,
             allow_lightweight_fallback=False,
+            allow_similar_source_variant=True,
         )
     )
 
@@ -324,6 +325,121 @@ def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
     assert counters.get("lightweight_batch_fallback") == "disabled"
     assert fake_gen.call_count == 0
     assert fake_gen.batch_call_count == 0
+
+
+def test_question_review_uses_similar_rag_source_for_variant_when_bank_misses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _similar_source_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "相似来源：直接接触土体浇筑的普通钢筋混凝土构件，其混凝土保护层厚度不应小于70mm。",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "evidence_bundle": {
+                "retrieval_status": "ok",
+                "sources": [
+                    {
+                        "_source_group": "TEXTBOOK",
+                        "chunk_id": "CET_1A411011_P0027_001",
+                        "content": "混凝土保护层厚度：直接接触土体浇筑的构件不应小于70mm。",
+                    }
+                ],
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _similar_source_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+            allow_similar_source_variant=True,
+        )
+    )
+
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("llm_calls") == 1
+    assert counters.get("lightweight_batch_fallback") == "similar_source_variant"
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 1
+    items = result.get("results") or []
+    assert len(items) == 1
+    qa_pair = items[0].get("qa_pair") or {}
+    metadata = qa_pair.get("metadata") or {}
+    grading_key = qa_pair.get("grading_key") or {}
+    validation = qa_pair.get("validation") or {}
+    assert metadata.get("source") == "similar_question_variant"
+    assert metadata.get("question_review_variant_mode") is True
+    assert metadata.get("variant_source") == "rag_answer_text"
+    assert metadata.get("evidence_refs")
+    assert grading_key.get("source") == "similar_question_variant"
+    assert validation.get("source") == "similar_question_variant"
+
+
+def test_question_review_uses_evidence_only_source_for_variant_when_bank_misses(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _evidence_only_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "evidence_bundle": {
+                "retrieval_status": "ok",
+                "sources": [
+                    {
+                        "_source_group": "EXAM",
+                        "chunk_id": "EXAM_1A412010_P0002_02",
+                        "content": "直接接触土体浇筑的普通钢筋混凝土构件，其混凝土保护层厚度不应小于70mm。",
+                    }
+                ],
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _evidence_only_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+            allow_similar_source_variant=True,
+        )
+    )
+
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("lightweight_batch_fallback") == "similar_source_variant"
+    assert fake_gen.batch_call_count == 1
+    qa_pair = (result.get("results") or [])[0].get("qa_pair") or {}
+    metadata = qa_pair.get("metadata") or {}
+    assert metadata.get("variant_source") == "rag_evidence_text"
+    assert metadata.get("evidence_refs")
 
 
 def test_lightweight_topic_rag_error_degrades_without_crashing(

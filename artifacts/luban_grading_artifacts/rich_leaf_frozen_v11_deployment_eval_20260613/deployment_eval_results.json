@@ -1,0 +1,3691 @@
+{
+  "arms": [
+    {
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "by_question_group": {
+        "objective": {
+          "citation_grounded_rate": 0.9375,
+          "citation_source_counts": {
+            "both": 17,
+            "none": 2,
+            "retrieval_chunk": 13
+          },
+          "completed_count": 32,
+          "correct_rate": 0.8438,
+          "explanation_quality_mean": 4.47,
+          "fail_rate": 0.0,
+          "judged_count": 32,
+          "mean_completion_tokens": 97.75,
+          "mean_latency_ms": 1963.47,
+          "mean_prompt_tokens": 2272.34,
+          "mean_rich_leaf_count": 2.66,
+          "mean_total_tokens": 2370.09,
+          "multi_leaf_rate": 0.8438,
+          "objective_exact_match_rate": 0.8438,
+          "partial_rate": 0.125,
+          "sample_count": 32,
+          "semantic_score": 0.9062
+        },
+        "subjective_case": {
+          "citation_grounded_rate": 0.625,
+          "citation_source_counts": {
+            "both": 1,
+            "none": 3,
+            "retrieval_chunk": 4
+          },
+          "completed_count": 8,
+          "correct_rate": 0.125,
+          "explanation_quality_mean": 3.25,
+          "fail_rate": 0.0,
+          "judged_count": 8,
+          "mean_completion_tokens": 268.75,
+          "mean_latency_ms": 3713.44,
+          "mean_prompt_tokens": 2751,
+          "mean_rich_leaf_count": 2.5,
+          "mean_total_tokens": 3019.75,
+          "multi_leaf_rate": 0.75,
+          "objective_exact_match_rate": 0.0,
+          "partial_rate": 0.625,
+          "sample_count": 8,
+          "semantic_score": 0.4375
+        }
+      },
+      "citation_grounded_rate": 0.875,
+      "citation_source_counts": {
+        "both": 18,
+        "none": 5,
+        "retrieval_chunk": 17
+      },
+      "completed_count": 40,
+      "correct_rate": 0.7,
+      "explanation_quality_mean": 4.22,
+      "fail_rate": 0.0,
+      "judged_count": 40,
+      "mean_completion_tokens": 131.95,
+      "mean_latency_ms": 2313.46,
+      "mean_prompt_tokens": 2368.07,
+      "mean_rich_leaf_count": 2.62,
+      "mean_total_tokens": 2500.03,
+      "multi_leaf_rate": 0.825,
+      "objective_exact_match_rate": 0.8438,
+      "partial_rate": 0.225,
+      "sample_count": 40,
+      "semantic_score": 0.8125
+    },
+    {
+      "arm": "kbv5_only_baseline",
+      "by_question_group": {
+        "objective": {
+          "citation_grounded_rate": 0.9375,
+          "citation_source_counts": {
+            "none": 2,
+            "retrieval_chunk": 30
+          },
+          "completed_count": 32,
+          "correct_rate": 0.8438,
+          "explanation_quality_mean": 4.31,
+          "fail_rate": 0.0,
+          "judged_count": 32,
+          "mean_completion_tokens": 92.38,
+          "mean_latency_ms": 1934.45,
+          "mean_prompt_tokens": 1638.59,
+          "mean_rich_leaf_count": 0,
+          "mean_total_tokens": 1730.97,
+          "multi_leaf_rate": 0.0,
+          "objective_exact_match_rate": 0.8438,
+          "partial_rate": 0.125,
+          "sample_count": 32,
+          "semantic_score": 0.9062
+        },
+        "subjective_case": {
+          "citation_grounded_rate": 0.5,
+          "citation_source_counts": {
+            "none": 4,
+            "retrieval_chunk": 4
+          },
+          "completed_count": 8,
+          "correct_rate": 0.125,
+          "explanation_quality_mean": 2.62,
+          "fail_rate": 0.0,
+          "judged_count": 8,
+          "mean_completion_tokens": 321.25,
+          "mean_latency_ms": 3998.09,
+          "mean_prompt_tokens": 2050.12,
+          "mean_rich_leaf_count": 0,
+          "mean_total_tokens": 2371.38,
+          "multi_leaf_rate": 0.0,
+          "objective_exact_match_rate": 0.0,
+          "partial_rate": 0.375,
+          "sample_count": 8,
+          "semantic_score": 0.3125
+        }
+      },
+      "citation_grounded_rate": 0.85,
+      "citation_source_counts": {
+        "none": 6,
+        "retrieval_chunk": 34
+      },
+      "completed_count": 40,
+      "correct_rate": 0.7,
+      "explanation_quality_mean": 3.98,
+      "fail_rate": 0.0,
+      "judged_count": 40,
+      "mean_completion_tokens": 138.15,
+      "mean_latency_ms": 2347.18,
+      "mean_prompt_tokens": 1720.9,
+      "mean_rich_leaf_count": 0,
+      "mean_total_tokens": 1859.05,
+      "multi_leaf_rate": 0.0,
+      "objective_exact_match_rate": 0.8438,
+      "partial_rate": 0.175,
+      "sample_count": 40,
+      "semantic_score": 0.7875
+    }
+  ],
+  "blockers": [],
+  "classification": {
+    "candidate_only": true,
+    "deployment_shape_two_arm_eval": true,
+    "production_default": false,
+    "release_truth_claimed": false,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "comparison": {
+    "deltas_deploy_minus_baseline": {
+      "objective": {
+        "citation_grounded_rate": 0.0,
+        "correct_rate": 0.0,
+        "explanation_quality_mean": 0.16,
+        "mean_latency_ms": 29.02,
+        "mean_total_tokens": 639.12,
+        "objective_exact_match_rate": 0.0,
+        "semantic_score": 0.0
+      },
+      "overall": {
+        "citation_grounded_rate": 0.025,
+        "correct_rate": 0.0,
+        "explanation_quality_mean": 0.24,
+        "mean_latency_ms": -33.72,
+        "mean_total_tokens": 640.98,
+        "objective_exact_match_rate": 0.0,
+        "semantic_score": 0.025
+      },
+      "subjective_case": {
+        "citation_grounded_rate": 0.125,
+        "correct_rate": 0.0,
+        "explanation_quality_mean": 0.63,
+        "mean_latency_ms": -284.65,
+        "mean_total_tokens": 648.37,
+        "objective_exact_match_rate": 0.0,
+        "semantic_score": 0.125
+      }
+    },
+    "deploy_subjective_multi_leaf": {
+      "citation_source_counts": {
+        "both": 1,
+        "none": 3,
+        "retrieval_chunk": 4
+      },
+      "mean_rich_leaf_count": 2.5,
+      "multi_leaf_rate": 0.75
+    }
+  },
+  "execution_authority": "authorized_live_deployment_shape_eval",
+  "judge_rows": [
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1424.82,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2729,
+      "question_id": "2021:EXAM_1A412031_P0003_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1622.98,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2593,
+      "question_id": "2021:EXAM_1A414020_P0012_04:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1746.99,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3723,
+      "question_id": "2021:EXAM_1A415022_P0008_06:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1997.58,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3353,
+      "question_id": "2021:EXAM_1A415032_P0009_05:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1826.31,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3077,
+      "question_id": "2021:EXAM_1A415033_P0008_04:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1755.55,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3454,
+      "question_id": "2021:EXAM_1A415044_P0004_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1527.63,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3791,
+      "question_id": "2021:EXAM_1A431000_P0016_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1899.3,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3585,
+      "question_id": "2021:EXAM_1A433000_P0017_01:3",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1897.8,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3240,
+      "question_id": "2021:EXAM_1A434000_P0022_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1833.82,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2449,
+      "question_id": "2022:EXAM_1A411001_P0001_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1797.61,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3156,
+      "question_id": "2022:EXAM_1A411003_P0003_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1707.56,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3233,
+      "question_id": "2022:EXAM_1A413010_P0005_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1774.17,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3085,
+      "question_id": "2022:EXAM_1A414010_P0008_06:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1975.02,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 4242,
+      "question_id": "2022:EXAM_1A432000_P0016_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1539.41,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3871,
+      "question_id": "2022:EXAM_1A433000_P0013_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1952.9,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3111,
+      "question_id": "2022:EXAM_PATCH_2022_Q22:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1800.62,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3121,
+      "question_id": "2022:EXAM_PATCH_2022_Q25:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1856.74,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2478,
+      "question_id": "2023:EXAM_1A411001_P0001_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1722.23,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3132,
+      "question_id": "2023:EXAM_1A411020_P0010_06:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1508.31,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3112,
+      "question_id": "2023:EXAM_1A412001_P0005_05:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1377.77,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3217,
+      "question_id": "2023:EXAM_1A414020_P0011_07:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1376.99,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2795,
+      "question_id": "2023:EXAM_1A421010_P0010_04:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1843.1,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3419,
+      "question_id": "2023:EXAM_1A431020_P0008_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 2009.83,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3767,
+      "question_id": "2023:EXAM_1A433000_P0011_01:2",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1835.02,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3412,
+      "question_id": "2023:EXAM_1A434000_P0010_02:2",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1387.56,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3376,
+      "question_id": "2023:EXAM_1A434000_P0010_02:3",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1448.0,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3271,
+      "question_id": "2024:EXAM_1A410000_P0012_04:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1503.88,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2724,
+      "question_id": "2024:EXAM_1A411002_P0002_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1379.49,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2729,
+      "question_id": "2024:EXAM_1A411023_P0007_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1491.14,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3077,
+      "question_id": "2024:EXAM_1A412000_P0005_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 2536.23,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3385,
+      "question_id": "2024:EXAM_1A413012_P0009_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1388.59,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3798,
+      "question_id": "2024:EXAM_1A414000_P0011_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1730.06,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3063,
+      "question_id": "2024:EXAM_1A431000_P0009_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1402.7,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 4875,
+      "question_id": "2024:EXAM_1A432000_P0015_01:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1560.41,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2457,
+      "question_id": "2024:EXAM_1A434001_P0007_07:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1768.01,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3728,
+      "question_id": "2024:EXAM_1A436000_P0018_02:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1834.54,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2584,
+      "question_id": "2025:EXAM_1A411020_P0009_05:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 86,
+      "latency_ms": 1580.84,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 2653,
+      "question_id": "2025:EXAM_1A413000_P0005_03:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 90,
+      "latency_ms": 1580.28,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3234,
+      "question_id": "2025:EXAM_1A414010_P0010_06:0",
+      "status": "completed"
+    },
+    {
+      "completion_tokens": 94,
+      "latency_ms": 1338.81,
+      "mapping": {
+        "1": "kbv5_plus_rich_leaf_deployment",
+        "2": "kbv5_only_baseline"
+      },
+      "prompt_tokens": 3170,
+      "question_id": "2025:EXAM_PATCH_2025_Q11:0",
+      "status": "completed"
+    }
+  ],
+  "kbv5_retrieval": {
+    "channel": "kb_v5.search_chunks_v2",
+    "degraded": true,
+    "unavailable_count": 1
+  },
+  "models": [
+    "deepseek-chat"
+  ],
+  "previous_run_reference": {
+    "available": true,
+    "note": "reference only — baseline arm E was re-run with retrieval shared per-question with arm D",
+    "previous_question_count": 40,
+    "previous_real_kbv5_rag_summary": {
+      "arm": "real_kbv5_rag",
+      "citation_grounded_rate": 0.85,
+      "completed_count": 40,
+      "correct_rate": 0.75,
+      "explanation_quality_mean": 4.25,
+      "fail_rate": 0.0,
+      "judged_count": 40,
+      "mean_completion_tokens": 125.78,
+      "mean_latency_ms": 2504.44,
+      "mean_prompt_tokens": 1698.9,
+      "mean_total_tokens": 1824.67,
+      "objective_exact_match_rate": 0.8438,
+      "partial_rate": 0.15,
+      "sample_count": 40,
+      "semantic_score": 0.825
+    },
+    "question_set_identical": true,
+    "reused_from": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_real_world_eval_20260613/real_world_three_arm_eval_results.json",
+    "seed": 20260613
+  },
+  "provider_usage": {
+    "answer_call_count": 80,
+    "completion_tokens": 14448,
+    "judge_call_count": 40,
+    "prompt_tokens": 292828,
+    "total_tokens": 307276
+  },
+  "question_sample": {
+    "objective": 32,
+    "subjective": 8,
+    "total": 40,
+    "years": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "rich_leaf_supply": {
+    "bundle_schema": "luban_rich_leaf_context_bundle.v1",
+    "content_hash": "b61b65da77f24db5c1946bb6fda9dda8732a54b0c4be7f35db97e3dd1a3cd86b",
+    "record_count": 1595,
+    "source_pack_version": "v3.1.1_frozen_v11_quarantine_annotated"
+  },
+  "rows": [
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0012_001",
+        "CET_1A411011_P0032_004",
+        "EXAM_1A412031_P0003_03"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A412031_P0003_03"
+      ],
+      "completion_tokens": 60,
+      "exact_match": true,
+      "explanation": "根据上下文，砌体结构的构造措施包括伸缩缝、沉降缝和圈梁，而过梁不属于主要构造措施。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1196.71,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412031",
+      "primary_leaf": "1A412031-E01",
+      "prompt_tokens": 1821,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A412031_P0003_03:0",
+      "retrieval_latency_ms": 5357.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A412031-E01",
+        "1A411010-R36",
+        "1A411040-R08"
+      ],
+      "rich_rendered_chars": 1031,
+      "status": "completed",
+      "total_tokens": 1881,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0012_001",
+        "CET_1A411011_P0032_004",
+        "EXAM_1A412031_P0003_03"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A412031_P0003_03"
+      ],
+      "completion_tokens": 60,
+      "exact_match": true,
+      "explanation": "根据上下文，砌体结构的构造措施包括伸缩缝、沉降缝和圈梁，而过梁不属于主要构造措施。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1757.4,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412031",
+      "primary_leaf": "1A412031-E01",
+      "prompt_tokens": 1080,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A412031_P0003_03:0",
+      "retrieval_latency_ms": 5357.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1140,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "ADE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A414020_P0012_04",
+        "CET_1A412010_P0043_003",
+        "CET_1A411011_P0027_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A414020_P0012_04"
+      ],
+      "completion_tokens": 67,
+      "exact_match": false,
+      "explanation": "根据上下文，软木材包括松树、杉树和柏树，榆树和桦树属于硬木（阔叶树），不属于软木材。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1615.61,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414020",
+      "primary_leaf": "1A414020-E04",
+      "prompt_tokens": 1638,
+      "qtype": "multiple_choice",
+      "question_id": "2021:EXAM_1A414020_P0012_04:0",
+      "retrieval_latency_ms": 4246.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A414020-E04",
+        "1A410000-E01",
+        "1A411000-E01"
+      ],
+      "rich_rendered_chars": 865,
+      "status": "completed",
+      "total_tokens": 1705,
+      "verdict": "wrong",
+      "year": 2021
+    },
+    {
+      "answer": "ADE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A414020_P0012_04",
+        "CET_1A412010_P0043_003",
+        "CET_1A411011_P0027_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A414020_P0012_04"
+      ],
+      "completion_tokens": 72,
+      "exact_match": false,
+      "explanation": "根据检索到的内容，建筑工程中常用的软木材包括松树、杉树和柏树，榆树和桦树属于阔叶树（硬木材），不属于软木材。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1672.16,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414020",
+      "primary_leaf": "1A414020-E04",
+      "prompt_tokens": 1015,
+      "qtype": "multiple_choice",
+      "question_id": "2021:EXAM_1A414020_P0012_04:0",
+      "retrieval_latency_ms": 4246.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1087,
+      "verdict": "wrong",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413000_P0078_001",
+        "CET_1A413000_P0079_001",
+        "EXAM_1A415022_P0006_02"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A413000_P0079_001",
+        "EXAM_1A415022_P0006_02",
+        "1A415022-E01"
+      ],
+      "completion_tokens": 130,
+      "exact_match": true,
+      "explanation": "根据土钉墙施工原则，必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”，故A正确。B错误，应为每层土钉施工后抽查抗拔力；C错误，喷射混凝土应自下而上；D错误，应采用两次注浆工艺。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2315.44,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415022",
+      "primary_leaf": "1A415022-E01",
+      "prompt_tokens": 2519,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415022_P0008_06:0",
+      "retrieval_latency_ms": 3867.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A415022-E01",
+        "1A413000-B024",
+        "1A422000-B027"
+      ],
+      "rich_rendered_chars": 765,
+      "status": "completed",
+      "total_tokens": 2649,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413000_P0078_001",
+        "CET_1A413000_P0079_001",
+        "EXAM_1A415022_P0006_02"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413000_P0079_001",
+        "EXAM_1A415022_P0006_02"
+      ],
+      "completion_tokens": 137,
+      "exact_match": true,
+      "explanation": "根据土钉墙施工要求，必须遵循“超前支护，分层分段，逐层施作，限时封闭，严禁超挖”的原则，故A正确。每层土钉施工后应按要求抽查抗拔力，而非全部完成后，B错误。喷射混凝土应自下而上进行，C错误。成孔注浆型钢筋土钉应采用两次注浆工艺，D错误。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2369.67,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415022",
+      "primary_leaf": "1A415022-E01",
+      "prompt_tokens": 1930,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415022_P0008_06:0",
+      "retrieval_latency_ms": 3867.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2067,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A415032_P0009_05",
+        "CET_1A413030_P0093_001",
+        "CET_1A413030_P0092_004"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A415032_P0009_05",
+        "CET_1A413030_P0092_004"
+      ],
+      "completion_tokens": 73,
+      "exact_match": true,
+      "explanation": "根据上下文，钻芯法可用于判定或鉴别桩端持力层岩土性状。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2045.39,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415032",
+      "primary_leaf": "1A415032-E01",
+      "prompt_tokens": 2186,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415032_P0009_05:0",
+      "retrieval_latency_ms": 4368.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A415032-E01"
+      ],
+      "rich_rendered_chars": 563,
+      "status": "completed",
+      "total_tokens": 2259,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A415032_P0009_05",
+        "CET_1A413030_P0093_001",
+        "CET_1A413030_P0092_004"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A415032_P0009_05",
+        "CET_1A413030_P0092_004"
+      ],
+      "completion_tokens": 73,
+      "exact_match": true,
+      "explanation": "根据上下文，钻芯法可用于判定或鉴别桩端持力层岩土性状。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1781.98,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415032",
+      "primary_leaf": "1A415032-E01",
+      "prompt_tokens": 1753,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415032_P0009_05:0",
+      "retrieval_latency_ms": 4368.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1826,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413030_P0096_001",
+        "CET_1A413030_P0097_001",
+        "CET_1A411011_P0027_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A413030_P0096_001",
+        "1A415033-E01"
+      ],
+      "completion_tokens": 74,
+      "exact_match": true,
+      "explanation": "根据大体积混凝土施工温控指标规定，拆除保温覆盖时混凝土浇筑体表面与大气温差不应大于20℃。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1878.51,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415033",
+      "primary_leaf": "1A415033-E01",
+      "prompt_tokens": 3279,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415033_P0008_04:0",
+      "retrieval_latency_ms": 3216.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A415033-E01",
+        "1A412010-B072",
+        "1A412010-B118"
+      ],
+      "rich_rendered_chars": 1120,
+      "status": "completed",
+      "total_tokens": 3353,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413030_P0096_001",
+        "CET_1A413030_P0097_001",
+        "CET_1A411011_P0027_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413030_P0096_001"
+      ],
+      "completion_tokens": 80,
+      "exact_match": true,
+      "explanation": "根据《大体积混凝土施工要求》第(6)条第③款，保温覆盖层拆除应分层逐步进行，当混凝土表面温度与环境最大温差小于20℃时，可全部拆除。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1855.61,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415033",
+      "primary_leaf": "1A415033-E01",
+      "prompt_tokens": 2483,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415033_P0008_04:0",
+      "retrieval_latency_ms": 3216.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2563,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A415044_P0004_02",
+        "CET_1A413030_P0116_001",
+        "CET_1A437000_P0137_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A415044_P0004_02",
+        "CET_1A413030_P0116_001",
+        "1A415044-E01"
+      ],
+      "completion_tokens": 90,
+      "exact_match": true,
+      "explanation": "根据上下文，预制柱安装应遵循角柱→边柱→中柱的顺序，优先安装与现浇部分连接的柱。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1693.31,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415044",
+      "primary_leaf": "1A415044-E01",
+      "prompt_tokens": 2684,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415044_P0004_02:0",
+      "retrieval_latency_ms": 3900.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A415044-E01",
+        "1A413032-R10",
+        "1A422000-B112"
+      ],
+      "rich_rendered_chars": 1225,
+      "status": "completed",
+      "total_tokens": 2774,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A415044_P0004_02",
+        "CET_1A413030_P0116_001",
+        "CET_1A437000_P0137_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A415044_P0004_02",
+        "CET_1A413030_P0116_001"
+      ],
+      "completion_tokens": 83,
+      "exact_match": true,
+      "explanation": "根据检索到的资料，预制柱安装应遵循角柱→边柱→中柱的顺序，优先安装与现浇部分连接的柱。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1561.51,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A415044",
+      "primary_leaf": "1A415044-E01",
+      "prompt_tokens": 1789,
+      "qtype": "single_choice",
+      "question_id": "2021:EXAM_1A415044_P0004_02:0",
+      "retrieval_latency_ms": 3900.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1872,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "1. 不妥之处：要求分包单位与招用的建筑工人签订劳务合同。正确做法：总包单位（或施工总承包企业）应与建筑工人签订劳动合同，或监督分包单位与工人签订劳动合同，但根据《指导意见》，总包对农民工工资支付负总责，且应直接或监督签订劳动合同。\n2. 不妥之处：总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作。正确做法：总包对农民工工资支付负总责，应通过专用账户直接发放工资，而非仅要求分包单位做好发放工作。\n3. 不妥之处：改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。正确做法：此项做法正确，无不当。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01",
+        "CET_1A438000_P0157_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01"
+      ],
+      "completion_tokens": 269,
+      "exact_match": null,
+      "explanation": "根据案例背景，劳动用工管理中的不妥之处在于分包单位签订劳务合同和总包仅要求分包单位发放工资，正确做法应为总包直接与工人签订劳动合同或监督签订，并直接通过专用账户发放工资。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 3456.66,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431000",
+      "primary_leaf": "1A431000-B044",
+      "prompt_tokens": 2454,
+      "qtype": "case_study",
+      "question_id": "2021:EXAM_1A431000_P0016_02:0",
+      "retrieval_latency_ms": 5674.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A431000-B044",
+        "1A431000-B017",
+        "1A434000-B071"
+      ],
+      "rich_rendered_chars": 1197,
+      "status": "completed",
+      "total_tokens": 2723,
+      "verdict": "partial",
+      "year": 2021
+    },
+    {
+      "answer": "1. 不妥之处：要求分包单位与招用的建筑工人签订劳务合同。正确做法：总包单位应与建筑工人签订劳动合同，或监督分包单位与工人签订劳动合同。\n2. 不妥之处：总包对农民工工资支付工作负总责，要求分包单位做好农民工工资发放工作。正确做法：总包单位应直接发放农民工工资，或设立工资专用账户，确保工资按时足额支付。\n3. 不妥之处：改善工人生活区居住环境，在集中生活区配套了食堂等必要生活设施，并开展物业管理。正确做法：应配套食堂、淋浴、洗衣、医疗、文化娱乐等设施，并加强物业管理。",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01",
+        "CET_1A438000_P0157_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01"
+      ],
+      "completion_tokens": 261,
+      "exact_match": null,
+      "explanation": "根据案例背景，劳动用工管理中存在三处不妥：一是分包单位与工人签订劳务合同，应改为总包或监督分包签订劳动合同；二是总包负总责但要求分包发放工资，应改为总包直接发放或通过专用账户；三是生活设施仅配套食堂，应增加其他必要设施。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 3168.43,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431000",
+      "primary_leaf": "1A431000-B044",
+      "prompt_tokens": 1681,
+      "qtype": "case_study",
+      "question_id": "2021:EXAM_1A431000_P0016_02:0",
+      "retrieval_latency_ms": 5674.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1942,
+      "verdict": "wrong",
+      "year": 2021
+    },
+    {
+      "answer": "常用屋面隔离层材料有：干铺塑料膜、土工布、卷材或铺抹低强度等级砂浆。屋面防水层淋水试验持续时间不应少于2小时，蓄水试验持续时间不应少于24小时。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01",
+        "CET_1A422000_P0040_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A422000_P0040_001",
+        "EXAM_1A433000_P0017_01"
+      ],
+      "completion_tokens": 152,
+      "exact_match": null,
+      "explanation": "根据《屋面工程质量验收规范》GB 50207—2012，隔离层可采用干铺塑料膜、土工布、卷材或铺抹低强度等级砂浆；淋水试验持续时间不少于2小时，蓄水试验不少于24小时。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1731.22,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B025",
+      "prompt_tokens": 3033,
+      "qtype": "case_study",
+      "question_id": "2021:EXAM_1A433000_P0017_01:3",
+      "retrieval_latency_ms": 4887.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A433000-B025",
+        "1A413050-R20",
+        "1A413050-R21"
+      ],
+      "rich_rendered_chars": 999,
+      "status": "completed",
+      "total_tokens": 3185,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "常用屋面隔离层材料有：干铺塑料膜、土工布、卷材或铺抹低强度等级砂浆。屋面防水层淋水试验持续时间不少于2小时，蓄水试验持续时间不少于24小时。",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A431000_P0016_02",
+        "EXAM_1A433000_P0017_01",
+        "CET_1A422000_P0040_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A422000_P0040_001",
+        "EXAM_1A433000_P0017_01"
+      ],
+      "completion_tokens": 151,
+      "exact_match": null,
+      "explanation": "根据《屋面工程质量验收规范》GB 50207—2012，隔离层可采用干铺塑料膜、土工布、卷材或铺抹低强度等级砂浆；防水层淋水试验不少于2小时，蓄水试验不少于24小时。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1722.36,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B025",
+      "prompt_tokens": 2397,
+      "qtype": "case_study",
+      "question_id": "2021:EXAM_1A433000_P0017_01:3",
+      "retrieval_latency_ms": 4887.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2548,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413000_P0073_001",
+        "CET_1A413000_P0072_002",
+        "1A413000_073_0140"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413000_P0073_001",
+        "1A413000_073_0140"
+      ],
+      "completion_tokens": 103,
+      "exact_match": true,
+      "explanation": "根据规范，特等和一等沉降观测基准点不应少于4个，其他等级不少于3个，故A错误、B正确；基准点之间应形成闭合环，故C错误；位移基准点有数量要求，故D错误。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1777.78,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B063",
+      "prompt_tokens": 2962,
+      "qtype": "multiple_choice",
+      "question_id": "2021:EXAM_1A434000_P0022_02:0",
+      "retrieval_latency_ms": 3765.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 2,
+      "rich_leaf_ids": [
+        "1A434000-B063",
+        "1A413000-B050"
+      ],
+      "rich_rendered_chars": 698,
+      "status": "completed",
+      "total_tokens": 3065,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413000_P0073_001",
+        "CET_1A413000_P0072_002",
+        "1A413000_073_0140"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413000_P0073_001",
+        "1A413000_073_0140"
+      ],
+      "completion_tokens": 100,
+      "exact_match": true,
+      "explanation": "根据规范，沉降观测基准点在特等、一等时不应少于4个，其他等级不应少于3个，故A错误、B正确；基准点之间应形成闭合环，故C错误；位移基准点有数量要求，故D错误。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2419.72,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B063",
+      "prompt_tokens": 2494,
+      "qtype": "multiple_choice",
+      "question_id": "2021:EXAM_1A434000_P0022_02:0",
+      "retrieval_latency_ms": 3765.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2594,
+      "verdict": "correct",
+      "year": 2021
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0002_003",
+        "CET_1A411011_P0002_001",
+        "1A411011_002_0004"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0002_003",
+        "1A411011_002_0004"
+      ],
+      "completion_tokens": 107,
+      "exact_match": true,
+      "explanation": "根据教材，大型性建筑是指规模宏大的建筑，如大型体育馆、大型剧院、大型火车站和航空港、大型展览馆等。航空港属于大型性建筑，而学校、医院属于大量性建筑，高层是按高度分类，不属于按规模分类。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2075.01,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411001",
+      "primary_leaf": "1A411001-E02",
+      "prompt_tokens": 1496,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A411001_P0001_01:0",
+      "retrieval_latency_ms": 4723.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A411001-E02"
+      ],
+      "rich_rendered_chars": 910,
+      "status": "completed",
+      "total_tokens": 1603,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0002_003",
+        "CET_1A411011_P0002_001",
+        "1A411011_002_0004"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0002_003",
+        "1A411011_002_0004"
+      ],
+      "completion_tokens": 82,
+      "exact_match": true,
+      "explanation": "根据教材，大型性建筑包括大型体育馆、大型剧院、大型火车站和航空港、大型展览馆等，航空港属于大型性建筑。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2221.36,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411001",
+      "primary_leaf": "1A411001-E02",
+      "prompt_tokens": 912,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A411001_P0001_01:0",
+      "retrieval_latency_ms": 4723.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 994,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413030_P0122_001",
+        "CET_1A413030_P0124_001",
+        "CET_1A422000_P0040_001"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 49,
+      "exact_match": true,
+      "explanation": "刚性防水屋面通常需要采取抗裂措施，如设置分格缝、配置钢筋等，以防止混凝土开裂导致渗漏。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2149.98,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411003",
+      "primary_leaf": "1A411003-E01",
+      "prompt_tokens": 2806,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A411003_P0003_03:0",
+      "retrieval_latency_ms": 3317.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A411003-E01"
+      ],
+      "rich_rendered_chars": 698,
+      "status": "completed",
+      "total_tokens": 2855,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413030_P0122_001",
+        "CET_1A413030_P0124_001",
+        "CET_1A422000_P0040_001"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 52,
+      "exact_match": true,
+      "explanation": "刚性防水屋面通常需要采取抗裂措施，如设置分格缝、配置钢筋等，以防止因温度变化或结构变形导致开裂。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 1841.38,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411003",
+      "primary_leaf": "1A411003-E01",
+      "prompt_tokens": 2324,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A411003_P0003_03:0",
+      "retrieval_latency_ms": 3317.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2376,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "D",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413000_P0069_001",
+        "1A413000_069_0135",
+        "CET_1A413000_P0070_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413000_P0069_001",
+        "1A413000_069_0135"
+      ],
+      "completion_tokens": 85,
+      "exact_match": true,
+      "explanation": "根据上下文，激光经纬仪特别适用于高层建筑及烟囱、塔架等高耸构筑物施工中的垂度观测和准直定位，因此选D。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1839.61,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413010",
+      "primary_leaf": "1A413010-E01",
+      "prompt_tokens": 3217,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A413010_P0005_03:0",
+      "retrieval_latency_ms": 3462.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A413010-E01"
+      ],
+      "rich_rendered_chars": 932,
+      "status": "completed",
+      "total_tokens": 3302,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "D",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413000_P0069_001",
+        "1A413000_069_0135",
+        "CET_1A413000_P0070_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413000_P0069_001",
+        "1A413000_069_0135"
+      ],
+      "completion_tokens": 81,
+      "exact_match": true,
+      "explanation": "根据上下文，激光经纬仪特别适合高层建筑及烟囱、塔架等高耸构筑物施工中的垂度观测和准直定位。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 1621.42,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413010",
+      "primary_leaf": "1A413010-E01",
+      "prompt_tokens": 2598,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A413010_P0005_03:0",
+      "retrieval_latency_ms": 3462.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2679,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A414010_P0008_06",
+        "CET_1A434000_P0066_001",
+        "CET_1A413030_P0101_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A414010_P0008_06"
+      ],
+      "completion_tokens": 92,
+      "exact_match": true,
+      "explanation": "根据上下文，直径25mm受压钢筋宜采用绑扎搭接，而直径28mm受拉钢筋不宜绑扎，应采用机械连接或焊接。桁架拉杆和行车梁纵向受力钢筋属于直接承受动力荷载的构件，不宜采用绑扎搭接。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2099.39,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414010",
+      "primary_leaf": "1A414010-E06",
+      "prompt_tokens": 1956,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A414010_P0008_06:0",
+      "retrieval_latency_ms": 3406.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A414010-E06",
+        "1A410000-E01",
+        "1A411020-R06"
+      ],
+      "rich_rendered_chars": 812,
+      "status": "completed",
+      "total_tokens": 2048,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A414010_P0008_06",
+        "CET_1A434000_P0066_001",
+        "CET_1A413030_P0101_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A414010_P0008_06"
+      ],
+      "completion_tokens": 94,
+      "exact_match": true,
+      "explanation": "根据检索到的内容，直径25mm受压钢筋宜采用绑扎搭接，而直径28mm受拉钢筋不宜绑扎，应采用机械连接或焊接。桁架拉杆和行车梁纵向受力钢筋属于受拉或动力荷载构件，不宜采用绑扎搭接。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1894.21,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414010",
+      "primary_leaf": "1A414010-E06",
+      "prompt_tokens": 1365,
+      "qtype": "single_choice",
+      "question_id": "2022:EXAM_1A414010_P0008_06:0",
+      "retrieval_latency_ms": 3406.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1459,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "1. 不妥之处及理由：\n（1）质量保修金为5%不妥；理由：质量保证金不得超过工程价款结算总额的3%。\n（2）履约保证金为15%不妥；理由：履约保证金不得超过中标合同金额的10%。\n（3）钢材指定采购本市钢厂的产品不妥；理由：招标人不得指定生产厂家或供应商。\n（4）消防及通风空调专项工程由建设单位指定发包不妥；理由：建设单位不得指定分包单位。\n\n2. 还可能签订的合同：物资采购合同、劳务分包合同、专业分包合同、租赁合同、借款合同、担保合同、保险合同等。\n\n3. 各项费用及合同价：\n（1）分部分项工程费：48000.00万元\n（2）措施项目费：48000×15%=7200.00万元\n（3）规费：（48000+7200）×2.20%=1214.40万元\n（4）增值税：（48000+7200+1214.40）×9%=5077.30万元\n（5）暂列金额：1500.00万元\n合同价：48000+7200+1214.40+5077.30+1500=62991.70万元\n\n4. 地砖计算：\n（1）每平方米用量：800×800mm地砖每块面积0.64m²，每平方米用量1/0.64=1.5625块。\n（2）各地采购比重：A:936/3900=24%；B:1014/3900=26%；C:1950/3900=50%。\n（3）材料原价（加权平均）：(936×36+1014×33+1950×35)/3900=34.80元/块，折合每平方米34.80/0.64=54.38元/m²。\n（4）物资采购合同标的还包括：品种、型号、规格、花色、数量、质量、包装、运输方式、交货期限、验收方法、结算方式等。\n\n5. 建筑工人进入施工现场条件：必须签订劳动合同，进行实名制登记，接受安全教育培训，经考核合格后方可上岗。\n除建筑工人外，还应纳入实名制管理的人员：建设单位、监理单位、分包单位、劳务分包单位等现场管理人员。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 589,
+      "exact_match": null,
+      "explanation": "根据一级建造师建筑实务教材及相关法规，对招标文件中的不妥之处进行判断；合同类型根据工程实践列举；造价计算依据建安工程费用组成；地砖计算根据供应数据加权平均；实名制管理依据《建筑工人实名制管理办法》。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 6609.41,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A432000",
+      "primary_leaf": "1A432000-C35",
+      "prompt_tokens": 1666,
+      "qtype": "case_study",
+      "question_id": "2022:EXAM_1A432000_P0016_02:0",
+      "retrieval_latency_ms": 0.0,
+      "retrieval_status": "unavailable",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A432000-C35",
+        "1A421010-B005",
+        "1A421010-B013"
+      ],
+      "rich_rendered_chars": 1250,
+      "status": "completed",
+      "total_tokens": 2255,
+      "verdict": "partial",
+      "year": 2022
+    },
+    {
+      "answer": "",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 700,
+      "exact_match": null,
+      "explanation": "",
+      "explanation_quality": 1,
+      "judge_status": "completed",
+      "latency_ms": 7052.72,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A432000",
+      "primary_leaf": "1A432000-C35",
+      "prompt_tokens": 846,
+      "qtype": "case_study",
+      "question_id": "2022:EXAM_1A432000_P0016_02:0",
+      "retrieval_latency_ms": 0.0,
+      "retrieval_status": "unavailable",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1546,
+      "verdict": "wrong",
+      "year": 2022
+    },
+    {
+      "answer": "1. 调整后的网络计划图需将工作A与工作E改为先后顺序（如A→E或E→A），关键线路为A→E→H→I→J（或其他包含A、E的路径），总工期需根据具体时间参数计算（原计划总工期减去重叠时间）。\n2. 逻辑关系包括：工艺关系和组织关系。虚工作的作用是表达工作之间的逻辑关系，不消耗资源和时间。\n3. 需要进行焊接工艺评定的情况：首次采用的钢材、焊接材料、焊接方法、焊接接头形式、焊接位置、焊后热处理等。焊缝缺陷还有：裂纹、气孔、夹渣、咬边、焊瘤、弧坑等。\n4. 单位工程质量验收合格标准：所含分部工程质量均合格；质量控制资料完整；主要功能项目的抽查结果符合规定；观感质量符合要求。质量控制资料部分缺失时，应委托有资质的检测机构进行实体检测或抽样检测。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A434000_P0068_002",
+        "EXAM_1A433000_P0018_02",
+        "EXAM_1A433000_P0013_01"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0068_002",
+        "EXAM_1A433000_P0013_01"
+      ],
+      "completion_tokens": 294,
+      "exact_match": null,
+      "explanation": "根据背景资料和教材内容，焊接工艺评定要求来自钢构件焊接主控项目，焊缝缺陷类型为常见知识；单位工程验收标准结合教材和案例背景。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 4981.83,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B004",
+      "prompt_tokens": 2660,
+      "qtype": "case_study",
+      "question_id": "2022:EXAM_1A433000_P0013_01:0",
+      "retrieval_latency_ms": 5286.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A433000-B004",
+        "1A434020-B008",
+        "1A434020-B021"
+      ],
+      "rich_rendered_chars": 1002,
+      "status": "completed",
+      "total_tokens": 2954,
+      "verdict": "partial",
+      "year": 2022
+    },
+    {
+      "answer": "1. 调整后的网络计划图：将工作A与工作E按先后顺序连接，即A完成后进行E。关键线路：A→E→H→K→L（或根据具体图2确定）。调整后的总工期为原工期加上A与E之间的逻辑关系导致的工期增加，具体需计算，假设原工期为T，则调整后工期为T+（E的持续时间）或不变，需根据图2实际数据。\n2. 网络图的逻辑关系包括：工艺关系和组织关系。虚工作的作用是：正确表达工作之间的逻辑关系，不占用时间和资源。\n3. 需要进行焊接工艺评定的情况：首次采用的钢材、焊接材料、焊接方法、焊接接头形式、焊接位置、焊后热处理等。焊缝缺陷还有：裂纹、气孔、夹渣、咬边、焊瘤、弧坑等。\n4. 单位工程质量验收合格标准：所含分部工程的质量均应验收合格；质量控制资料应完整；所含分部工程中有关安全、节能、环境保护和主要使用功能的检验资料应完整；主要使用功能的抽查结果应符合相关专业验收规范的规定；观感质量应符合要求。工程质量控制资料部分缺失时，应委托有资质的检测机构按有关标准进行相应的实体检验或抽样试验。",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A434000_P0068_002",
+        "EXAM_1A433000_P0018_02",
+        "EXAM_1A433000_P0013_01"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0068_002",
+        "EXAM_1A433000_P0018_02",
+        "EXAM_1A433000_P0013_01"
+      ],
+      "completion_tokens": 398,
+      "exact_match": null,
+      "explanation": "根据背景资料和教材内容，焊接工艺评定试验要求来自CET_1A434000_P0068_002，单位工程质量验收标准参考EXAM_1A433000_P0018_02和EXAM_1A433000_P0013_01中的相关描述。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 5256.7,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B004",
+      "prompt_tokens": 2023,
+      "qtype": "case_study",
+      "question_id": "2022:EXAM_1A433000_P0013_01:0",
+      "retrieval_latency_ms": 5286.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2421,
+      "verdict": "partial",
+      "year": 2022
+    },
+    {
+      "answer": "ACE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A438000_P0152_001",
+        "CET_1A434000_P0067_001",
+        "CET_1A434000_P0080_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0080_002"
+      ],
+      "completion_tokens": 104,
+      "exact_match": false,
+      "explanation": "根据墙体保温材料的控制要点，保温隔热材料进场复验内容包括导热系数、密度、抗压强度或压缩强度、燃烧性能，以及粘结材料的粘结强度等。选项A导热系数、C抗压强度、E拉伸粘结强度符合要求；B单位面积质量和D吸水率不属于复验内容。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2198.2,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413000",
+      "primary_leaf": "1A413000-B021",
+      "prompt_tokens": 2139,
+      "qtype": "multiple_choice",
+      "question_id": "2022:EXAM_PATCH_2022_Q22:0",
+      "retrieval_latency_ms": 3661.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A413000-B021",
+        "1A434020-G01",
+        "1A413050-R09"
+      ],
+      "rich_rendered_chars": 1086,
+      "status": "completed",
+      "total_tokens": 2243,
+      "verdict": "partial",
+      "year": 2022
+    },
+    {
+      "answer": "AC",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A438000_P0152_001",
+        "CET_1A434000_P0067_001",
+        "CET_1A434000_P0080_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0080_002"
+      ],
+      "completion_tokens": 112,
+      "exact_match": false,
+      "explanation": "根据上下文，墙体节能工程使用的保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求，并对保温材料的导热系数、密度、抗压强度或压缩强度等进行复验。选项A和C符合，而单位面积质量、吸水率、拉伸粘结强度未在复验内容中明确提及。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1837.33,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413000",
+      "primary_leaf": "1A413000-B021",
+      "prompt_tokens": 1394,
+      "qtype": "multiple_choice",
+      "question_id": "2022:EXAM_PATCH_2022_Q22:0",
+      "retrieval_latency_ms": 3661.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1506,
+      "verdict": "partial",
+      "year": 2022
+    },
+    {
+      "answer": "ABCD",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A431000_P0006_001",
+        "EXAM_1A433010_P0012_04",
+        "1A431000_006_0006"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A431000_P0006_001",
+        "EXAM_1A433010_P0012_04",
+        "1A431000_006_0006"
+      ],
+      "completion_tokens": 110,
+      "exact_match": true,
+      "explanation": "根据施工组织设计动态管理要求，当工程设计重大修改、主要施工方法重大调整、主要施工资源配置重大调整、施工环境重大改变时，应及时修改或补充。项目技术负责人变更不属于规定情形。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1896.33,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A420000",
+      "primary_leaf": "1A420000-E01",
+      "prompt_tokens": 2566,
+      "qtype": "multiple_choice",
+      "question_id": "2022:EXAM_PATCH_2022_Q25:0",
+      "retrieval_latency_ms": 3617.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A420000-E01",
+        "1A431000-B023",
+        "1A431000-B024"
+      ],
+      "rich_rendered_chars": 1182,
+      "status": "completed",
+      "total_tokens": 2676,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "ABCD",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A431000_P0006_001",
+        "EXAM_1A433010_P0012_04",
+        "1A431000_006_0006"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A431000_P0006_001",
+        "EXAM_1A433010_P0012_04"
+      ],
+      "completion_tokens": 103,
+      "exact_match": true,
+      "explanation": "根据教材和考试资料，施工组织设计应及时修改或补充的情况包括：工程设计有重大修改、主要施工方法有重大调整、主要施工资源配置有重大调整、施工环境有重大改变。项目技术负责人变更不属于规定情形。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1867.29,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A420000",
+      "primary_leaf": "1A420000-E01",
+      "prompt_tokens": 1851,
+      "qtype": "multiple_choice",
+      "question_id": "2022:EXAM_PATCH_2022_Q25:0",
+      "retrieval_latency_ms": 3617.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1954,
+      "verdict": "correct",
+      "year": 2022
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0002_001",
+        "CET_1A411011_P0002_003",
+        "CET_1A422000_P0023_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A411011_P0002_001",
+        "1A411001-E02"
+      ],
+      "completion_tokens": 86,
+      "exact_match": true,
+      "explanation": "根据《民用建筑设计统一标准》，民用建筑分为居住建筑和公共建筑。医疗建筑属于公共建筑，而仓储建筑和修理站属于工业建筑，宿舍建筑属于居住建筑。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2253.84,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411001",
+      "primary_leaf": "1A411001-E02",
+      "prompt_tokens": 1565,
+      "qtype": "single_choice",
+      "question_id": "2023:EXAM_1A411001_P0001_01:0",
+      "retrieval_latency_ms": 3328.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A411001-E02",
+        "1A411040-R05",
+        "1A436000-B040"
+      ],
+      "rich_rendered_chars": 910,
+      "status": "completed",
+      "total_tokens": 1651,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0002_001",
+        "CET_1A411011_P0002_003",
+        "CET_1A422000_P0023_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0002_001"
+      ],
+      "completion_tokens": 65,
+      "exact_match": true,
+      "explanation": "根据《民用建筑设计统一标准》，公共建筑包括医疗建筑等，而仓储建筑、修理站属于工业建筑，宿舍建筑属于居住建筑。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2112.97,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411001",
+      "primary_leaf": "1A411001-E02",
+      "prompt_tokens": 965,
+      "qtype": "single_choice",
+      "question_id": "2023:EXAM_1A411001_P0001_01:0",
+      "retrieval_latency_ms": 3328.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1030,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "BCDE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0016_002",
+        "EXAM_1A411020_P0010_06",
+        "1A411011_016_0029"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A411011_P0016_002",
+        "EXAM_1A411020_P0010_06",
+        "1A411011_016_0029",
+        "1A411020-R05"
+      ],
+      "completion_tokens": 153,
+      "exact_match": false,
+      "explanation": "根据规范，砌筑墙体应在室外地面以上、室内地面垫层处设置连续的水平防潮层（非防水层），故A错误，B正确；有防潮要求的室内墙面迎水面应设防潮层，C正确；有防水要求的室内墙面迎水面应采取防水措施，D正确；有配水点的墙面应采取防水措施，E正确。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2457.68,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411020",
+      "primary_leaf": "1A411020-R05",
+      "prompt_tokens": 2027,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A411020_P0010_06:0",
+      "retrieval_latency_ms": 2864.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A411020-R05",
+        "1A411020-R04",
+        "1A411020-R27"
+      ],
+      "rich_rendered_chars": 873,
+      "status": "completed",
+      "total_tokens": 2180,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "BCDE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0016_002",
+        "EXAM_1A411020_P0010_06",
+        "1A411011_016_0029"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0016_002",
+        "EXAM_1A411020_P0010_06",
+        "1A411011_016_0029"
+      ],
+      "completion_tokens": 109,
+      "exact_match": false,
+      "explanation": "根据规范，砌筑墙体应在室外地面以上、室内地面垫层处设置连续的水平防潮层，而非防水层，故A错误；B、C、D、E均符合规定。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2063.04,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411020",
+      "primary_leaf": "1A411020-R05",
+      "prompt_tokens": 1395,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A411020_P0010_06:0",
+      "retrieval_latency_ms": 2864.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1504,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0024_001",
+        "CET_1A422000_P0037_001",
+        "CET_1A411011_P0029_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A411011_P0024_001",
+        "1A412001-E02"
+      ],
+      "completion_tokens": 79,
+      "exact_match": true,
+      "explanation": "根据上下文，结构的安全性要求包括：当发生火灾时，结构应在规定的时间内保持承载力和整体稳固性。因此，该功能属于安全性。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1506.08,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412001",
+      "primary_leaf": "1A412001-E02",
+      "prompt_tokens": 2209,
+      "qtype": "single_choice",
+      "question_id": "2023:EXAM_1A412001_P0005_05:0",
+      "retrieval_latency_ms": 3401.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A412001-E02",
+        "1A422000-B010",
+        "1A436000-B039"
+      ],
+      "rich_rendered_chars": 718,
+      "status": "completed",
+      "total_tokens": 2288,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0024_001",
+        "CET_1A422000_P0037_001",
+        "CET_1A411011_P0029_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0024_001"
+      ],
+      "completion_tokens": 59,
+      "exact_match": true,
+      "explanation": "根据上下文，结构的安全性要求包括：当发生火灾时，结构应在规定的时间内保持承载力和整体稳固性。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2108.34,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412001",
+      "primary_leaf": "1A412001-E02",
+      "prompt_tokens": 1740,
+      "qtype": "single_choice",
+      "question_id": "2023:EXAM_1A412001_P0005_05:0",
+      "retrieval_latency_ms": 3401.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1799,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "ABE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0031_001",
+        "CET_1A411011_P0032_002",
+        "CET_1A411011_P0032_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A411011_P0031_001",
+        "1A414020-E03"
+      ],
+      "completion_tokens": 118,
+      "exact_match": true,
+      "explanation": "根据规范，矩形截面框架梁宽度≥200mm（A正确）；矩形截面框架柱边长≥300mm（B正确）；圆形截面柱直径≥350mm，C选项300mm错误；高层剪力墙厚度≥160mm，D选项140mm错误；现浇实心楼板厚度≥80mm（E正确）。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2063.14,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414020",
+      "primary_leaf": "1A414020-E03",
+      "prompt_tokens": 2433,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A414020_P0011_07:0",
+      "retrieval_latency_ms": 4544.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A414020-E03",
+        "1A410000-E01",
+        "1A411020-R06"
+      ],
+      "rich_rendered_chars": 929,
+      "status": "completed",
+      "total_tokens": 2551,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "ABE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0031_001",
+        "CET_1A411011_P0032_002",
+        "CET_1A411011_P0032_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0031_001"
+      ],
+      "completion_tokens": 108,
+      "exact_match": true,
+      "explanation": "根据规范，矩形截面框架梁宽度不应小于200mm（A正确）；矩形截面框架柱边长不应小于300mm（B正确）；圆形截面柱直径不应小于350mm，C错误；高层剪力墙厚度不应小于160mm，D错误；现浇实心楼板厚度不应小于80mm（E正确）。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1744.94,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414020",
+      "primary_leaf": "1A414020-E03",
+      "prompt_tokens": 1821,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A414020_P0011_07:0",
+      "retrieval_latency_ms": 4544.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1929,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "ABC",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A421010_P0010_04",
+        "CET_1A434000_P0080_001",
+        "CET_1A434000_P0080_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A421010_P0010_04",
+        "CET_1A434000_P0080_001",
+        "CET_1A434000_P0080_003"
+      ],
+      "completion_tokens": 138,
+      "exact_match": true,
+      "explanation": "根据《民用建筑节能条例》及《房屋建筑和市政基础设施工程危及生产安全施工工艺、设备和材料淘汰目录》，施工单位未对保温材料查验、使用不符合设计要求的墙体材料、使用列入禁止目录的施工工艺均属违反民用建筑节能规定的行为。D选项属于建设单位行为，E选项不属于节能规定范畴。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2840.62,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A421010",
+      "primary_leaf": "1A421010-B021",
+      "prompt_tokens": 1848,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A421010_P0010_04:0",
+      "retrieval_latency_ms": 3525.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A421010-B021",
+        "1A411040-R05",
+        "1A436000-B040"
+      ],
+      "rich_rendered_chars": 1399,
+      "status": "completed",
+      "total_tokens": 1986,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "ABC",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A421010_P0010_04",
+        "CET_1A434000_P0080_001",
+        "CET_1A434000_P0080_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A421010_P0010_04",
+        "CET_1A434000_P0080_001",
+        "CET_1A434000_P0080_003"
+      ],
+      "completion_tokens": 133,
+      "exact_match": true,
+      "explanation": "根据《民用建筑节能条例》及教材内容，施工单位违反民用建筑节能规定的行为包括：未对保温材料查验（A）、使用不符合设计要求的墙体材料（B）、使用列入禁止目录的施工工艺（C）。D选项属于建设单位或设计单位的责任，E选项不属于明确规定的违规行为。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2290.68,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A421010",
+      "primary_leaf": "1A421010-B021",
+      "prompt_tokens": 1178,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A421010_P0010_04:0",
+      "retrieval_latency_ms": 3525.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1311,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "CDE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A431020_P0008_02",
+        "CET_1A422000_P0032_003",
+        "CET_1A413000_P0077_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A431020_P0008_02",
+        "CET_1A413000_P0077_001"
+      ],
+      "completion_tokens": 101,
+      "exact_match": true,
+      "explanation": "根据地下连续墙施工要求，单元槽段长度宜为4～6m，故A错误；导墙高度不应小于1.2m，故B错误；C、D、E均符合规范要求。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1498.41,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431020",
+      "primary_leaf": "1A431020-E01",
+      "prompt_tokens": 2604,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A431020_P0008_02:0",
+      "retrieval_latency_ms": 4498.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A431020-E01",
+        "1A413000-G02",
+        "1A413000-B029"
+      ],
+      "rich_rendered_chars": 890,
+      "status": "completed",
+      "total_tokens": 2705,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "CDE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A431020_P0008_02",
+        "CET_1A422000_P0032_003",
+        "CET_1A413000_P0077_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A431020_P0008_02",
+        "CET_1A413000_P0077_001"
+      ],
+      "completion_tokens": 101,
+      "exact_match": true,
+      "explanation": "根据地下连续墙施工要求，单元槽段长度宜为4～6m，故A错误；导墙高度不应小于1.2m，故B错误；C、D、E均符合规范要求。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1735.01,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431020",
+      "primary_leaf": "1A431020-E01",
+      "prompt_tokens": 1982,
+      "qtype": "multiple_choice",
+      "question_id": "2023:EXAM_1A431020_P0008_02:0",
+      "retrieval_latency_ms": 4498.2,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2083,
+      "verdict": "correct",
+      "year": 2023
+    },
+    {
+      "answer": "1-基础垫层；2-防水找平层；3-卷材防水层；4-防水加强层；5-防水保护层；6-止水钢板；7-外贴止水带。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A434000_P0081_001",
+        "CET_1A422000_P0029_001",
+        "EXAM_1A413000_P0012_02"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0081_001",
+        "CET_1A422000_P0029_001"
+      ],
+      "completion_tokens": 139,
+      "exact_match": null,
+      "explanation": "根据背景资料中提到的防水构造要求，结合地基与基础工程中地下防水构造的常见做法，以及防水混凝土和卷材施工的相关规定，推断出各编号对应的构造名称。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2351.28,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B025",
+      "prompt_tokens": 3146,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A433000_P0011_01:2",
+      "retrieval_latency_ms": 4146.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A433000-B025",
+        "1A413000-B083",
+        "1A421064-E01"
+      ],
+      "rich_rendered_chars": 999,
+      "status": "completed",
+      "total_tokens": 3285,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "1-基础垫层；2-防水找平层；3-卷材防水层；4-防水加强层；5-防水保护层；6-止水钢板；7-外贴止水带",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A434000_P0081_001",
+        "CET_1A422000_P0029_001",
+        "EXAM_1A413000_P0012_02"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A434000_P0081_001",
+        "CET_1A422000_P0029_001"
+      ],
+      "completion_tokens": 122,
+      "exact_match": null,
+      "explanation": "根据背景资料中提到的防水构造要求，结合教材中关于地下防水工程的内容，确定各层构造名称。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2157.03,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A433000",
+      "primary_leaf": "1A433000-B025",
+      "prompt_tokens": 2510,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A433000_P0011_01:2",
+      "retrieval_latency_ms": 4146.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2632,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "1—基础垫层；2—防水层；3—保护层；4—结构层（或底板）；5—细石混凝土保护层；6—隔离层；7—防水层；8—找平层；9—保温层；10—找坡层",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A422000_P0021_001",
+        "EXAM_1A434000_P0011_01",
+        "EXAM_1A413000_P0012_02"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 96,
+      "exact_match": null,
+      "explanation": "根据常见屋面及地下防水构造层次，结合工程经验给出典型构造名称。",
+      "explanation_quality": 2,
+      "judge_status": "completed",
+      "latency_ms": 2467.13,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B050",
+      "prompt_tokens": 2928,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A434000_P0010_02:2",
+      "retrieval_latency_ms": 3472.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A434000-B050"
+      ],
+      "rich_rendered_chars": 1376,
+      "status": "completed",
+      "total_tokens": 3024,
+      "verdict": "wrong",
+      "year": 2023
+    },
+    {
+      "answer": "1—基础垫层；2—防水层；3—保护层；4—结构层（底板）；5—细石混凝土保护层；6—隔离层；7—防水层；8—找平层；9—保温层；10—找坡层",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A422000_P0021_001",
+        "EXAM_1A434000_P0011_01",
+        "EXAM_1A413000_P0012_02"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 146,
+      "exact_match": null,
+      "explanation": "根据常见的地下室防水构造做法，结合图1-7（未提供具体图示，但依据标准构造层次推断），从下至上依次为基础垫层、防水层、保护层、结构层（底板）、细石混凝土保护层、隔离层、防水层、找平层、保温层、找坡层。",
+      "explanation_quality": 2,
+      "judge_status": "completed",
+      "latency_ms": 2715.59,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B050",
+      "prompt_tokens": 2012,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A434000_P0010_02:2",
+      "retrieval_latency_ms": 3472.3,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2158,
+      "verdict": "wrong",
+      "year": 2023
+    },
+    {
+      "answer": "凿除孔洞松散混凝土→用清水冲洗干净→涂刷界面剂→用高一强度等级的细石混凝土或微膨胀混凝土分层填补并振捣密实→养护→剔除多余混凝土",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A434000_P0011_01",
+        "EXAM_1A413000_P0012_02",
+        "EXAM_1A434000_P0015_01"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 89,
+      "exact_match": null,
+      "explanation": "根据混凝土孔洞治理的常规施工工艺，补充了冲洗、涂刷界面剂、填补混凝土及养护等关键步骤。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2255.79,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B027",
+      "prompt_tokens": 2120,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A434000_P0010_02:3",
+      "retrieval_latency_ms": 4272.9,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A434000-B027"
+      ],
+      "rich_rendered_chars": 568,
+      "status": "completed",
+      "total_tokens": 2209,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "凿除孔洞松散混凝土→冲洗干净→涂刷界面剂→支模→浇筑高一强度等级微膨胀混凝土→养护→拆模→剔除多余混凝土",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A434000_P0011_01",
+        "EXAM_1A413000_P0012_02",
+        "EXAM_1A434000_P0015_01"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 92,
+      "exact_match": null,
+      "explanation": "根据混凝土孔洞治理的常规施工工艺，补充了冲洗、涂刷界面剂、支模、浇筑高一强度等级微膨胀混凝土、养护、拆模等步骤。",
+      "explanation_quality": 3,
+      "judge_status": "completed",
+      "latency_ms": 2267.52,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434000",
+      "primary_leaf": "1A434000-B027",
+      "prompt_tokens": 1752,
+      "qtype": "case_study",
+      "question_id": "2023:EXAM_1A434000_P0010_02:3",
+      "retrieval_latency_ms": 4272.9,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1844,
+      "verdict": "partial",
+      "year": 2023
+    },
+    {
+      "answer": "ABE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A410000_P0012_04",
+        "CET_1A411011_P0033_001",
+        "CET_1A422000_P0036_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A410000_P0012_04",
+        "CET_1A411011_P0033_001"
+      ],
+      "completion_tokens": 128,
+      "exact_match": true,
+      "explanation": "根据圈梁构造要求，圈梁宜连续设在同一水平面并形成封闭状（A正确）；圈梁宽度不应小于190mm（B正确）；纵、横墙交接处的圈梁应可靠连接，不应断开（C错误）；配筋不应少于4φ12（D错误）；箍筋间距不应大于200mm（E正确）。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1906.09,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A410000",
+      "primary_leaf": "1A410000-E01",
+      "prompt_tokens": 2267,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A410000_P0012_04:0",
+      "retrieval_latency_ms": 4636.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A410000-E01",
+        "1A411020-R06",
+        "1A411020-R07"
+      ],
+      "rich_rendered_chars": 1031,
+      "status": "completed",
+      "total_tokens": 2395,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "ABE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A410000_P0012_04",
+        "CET_1A411011_P0033_001",
+        "CET_1A422000_P0036_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A410000_P0012_04",
+        "CET_1A411011_P0033_001"
+      ],
+      "completion_tokens": 106,
+      "exact_match": true,
+      "explanation": "A选项正确，根据圈梁构造要求第一条；B选项正确，根据圈梁构造要求第三条；C选项错误，应为可靠连接；D选项错误，应为不少于4φ12；E选项正确，根据圈梁构造要求第三条。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2292.53,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A410000",
+      "primary_leaf": "1A410000-E01",
+      "prompt_tokens": 1524,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A410000_P0012_04:0",
+      "retrieval_latency_ms": 4636.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1630,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0003_003",
+        "CET_1A411011_P0003_002",
+        "CET_1A431011_P0022_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A411011_P0003_002",
+        "1A411002-E03"
+      ],
+      "completion_tokens": 84,
+      "exact_match": true,
+      "explanation": "根据上下文，初步设计内容包括设计说明书、专业图纸、设备材料表、工程概算书、计算书等，因此工程概算书属于初步设计文件内容。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1610.57,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411002",
+      "primary_leaf": "1A411002-E03",
+      "prompt_tokens": 1519,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A411002_P0002_02:0",
+      "retrieval_latency_ms": 5379.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A411002-E03",
+        "1A431000-B005",
+        "1A431000-B006"
+      ],
+      "rich_rendered_chars": 571,
+      "status": "completed",
+      "total_tokens": 1603,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0003_003",
+        "CET_1A411011_P0003_002",
+        "CET_1A431011_P0022_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0003_002"
+      ],
+      "completion_tokens": 70,
+      "exact_match": true,
+      "explanation": "根据上下文，初步设计内容包括设计说明书、专业图纸、设备材料表、工程概算书、计算书等，因此工程概算书属于初步设计文件。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1966.09,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411002",
+      "primary_leaf": "1A411002-E03",
+      "prompt_tokens": 1132,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A411002_P0002_02:0",
+      "retrieval_latency_ms": 5379.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1202,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "BD",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A411023_P0007_01",
+        "CET_1A413030_P0106_003",
+        "CET_1A411011_P0016_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A411023_P0007_01",
+        "1A411023-E01"
+      ],
+      "completion_tokens": 119,
+      "exact_match": false,
+      "explanation": "根据上下文，水平防潮层应高于室外地坪（B正确），位于室内地层密实材料垫层中部（D正确）。A错误，应为高于室外地坪；C错误，防潮层做在墙体内；E错误，应为室内地坪±0.000以下60mm处，而非室外地坪下。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2027.81,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411023",
+      "primary_leaf": "1A411023-E01",
+      "prompt_tokens": 1579,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A411023_P0007_01:0",
+      "retrieval_latency_ms": 3558.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A411023-E01",
+        "1A411002-E01",
+        "1A411020-R04"
+      ],
+      "rich_rendered_chars": 737,
+      "status": "completed",
+      "total_tokens": 1698,
+      "verdict": "partial",
+      "year": 2024
+    },
+    {
+      "answer": "BD",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A411023_P0007_01",
+        "CET_1A413030_P0106_003",
+        "CET_1A411011_P0016_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A411023_P0007_01",
+        "CET_1A411011_P0016_002"
+      ],
+      "completion_tokens": 91,
+      "exact_match": false,
+      "explanation": "根据规范，水平防潮层应高于室外地坪（B正确），位于室内地层密实材料垫层中部（D正确）。A、C、E均错误。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1814.82,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411023",
+      "primary_leaf": "1A411023-E01",
+      "prompt_tokens": 1054,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A411023_P0007_01:0",
+      "retrieval_latency_ms": 3558.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1145,
+      "verdict": "partial",
+      "year": 2024
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A412010_P0053_003",
+        "CET_1A412010_P0053_001",
+        "CET_1A412010_P0052_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A412010_P0052_003",
+        "CET_1A412010_P0053_001"
+      ],
+      "completion_tokens": 101,
+      "exact_match": true,
+      "explanation": "根据上下文，天然花岗石构造致密、强度高、密度大、吸水率极低、质地坚硬、耐磨，属酸性硬石材，且不耐火。因此选项A正确，B、C、D错误。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 3074.94,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412000",
+      "primary_leaf": "1A412000-B011",
+      "prompt_tokens": 1913,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A412000_P0005_01:0",
+      "retrieval_latency_ms": 4268.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A412000-B011",
+        "1A412010-B033",
+        "1A412010-B034"
+      ],
+      "rich_rendered_chars": 757,
+      "status": "completed",
+      "total_tokens": 2014,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "A",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A412010_P0053_003",
+        "CET_1A412010_P0053_001",
+        "CET_1A412010_P0052_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A412010_P0052_003",
+        "CET_1A412010_P0053_001"
+      ],
+      "completion_tokens": 101,
+      "exact_match": true,
+      "explanation": "根据上下文，天然花岗石构造致密、强度高、密度大、吸水率极低、质地坚硬、耐磨，属酸性硬石材，且不耐火。因此选项A正确，B、C、D错误。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1727.6,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412000",
+      "primary_leaf": "1A412000-B011",
+      "prompt_tokens": 1391,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A412000_P0005_01:0",
+      "retrieval_latency_ms": 4268.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1492,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "ADE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A413012_P0009_03",
+        "CET_1A411011_P0023_001",
+        "1A411011_023_0044"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "EXAM_1A413012_P0009_03",
+        "CET_1A411011_P0023_001",
+        "1A411011_023_0044",
+        "1A413012-E01"
+      ],
+      "completion_tokens": 113,
+      "exact_match": true,
+      "explanation": "根据规范，变形缝不应穿过卫生间、盥洗室、浴室等用水房间，也不应穿过配电间等严禁漏水的房间。走道和车库无此限制。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1625.78,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413012",
+      "primary_leaf": "1A413012-E01",
+      "prompt_tokens": 2336,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A413012_P0009_03:0",
+      "retrieval_latency_ms": 4522.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 1,
+      "rich_leaf_ids": [
+        "1A413012-E01"
+      ],
+      "rich_rendered_chars": 865,
+      "status": "completed",
+      "total_tokens": 2449,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "ADE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A413012_P0009_03",
+        "CET_1A411011_P0023_001",
+        "1A411011_023_0044"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A413012_P0009_03",
+        "CET_1A411011_P0023_001",
+        "1A411011_023_0044"
+      ],
+      "completion_tokens": 106,
+      "exact_match": true,
+      "explanation": "根据规范，变形缝不应穿过卫生间、盥洗室、浴室等用水房间，也不应穿过配电间等严禁漏水的房间。走道和车库不属于禁止穿过的部位。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2683.01,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413012",
+      "primary_leaf": "1A413012-E01",
+      "prompt_tokens": 1748,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A413012_P0009_03:0",
+      "retrieval_latency_ms": 4522.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1854,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "ABDE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413030_P0146_001",
+        "1A413030_146_0283",
+        "CET_1A413030_P0147_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A413030_P0146_001",
+        "1A413030_146_0283",
+        "1A414000-E01"
+      ],
+      "completion_tokens": 164,
+      "exact_match": false,
+      "explanation": "A正确：根据上下文，铝合金立柱上下之间通过活动接头连接；B正确：上支点设圆孔，下支点采用长圆孔或椭圆孔形成吊挂受力；C错误：横梁与立柱连接处应设置柔性垫片或预留间隙，而非刚性垫片；D正确：开启窗角度不宜大于30°，开启距离不宜大于300mm，25°和250mm符合要求；E正确：密封胶应两对面粘结，不应三面粘结。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2714.7,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414000",
+      "primary_leaf": "1A414000-E01",
+      "prompt_tokens": 3274,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A414000_P0011_03:0",
+      "retrieval_latency_ms": 6980.0,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A414000-E01",
+        "1A413065-R13",
+        "1A413065-R03"
+      ],
+      "rich_rendered_chars": 893,
+      "status": "completed",
+      "total_tokens": 3438,
+      "verdict": "partial",
+      "year": 2024
+    },
+    {
+      "answer": "ABDE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413030_P0146_001",
+        "1A413030_146_0283",
+        "CET_1A413030_P0147_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A413030_P0146_001",
+        "1A413030_146_0283"
+      ],
+      "completion_tokens": 158,
+      "exact_match": false,
+      "explanation": "A正确：根据上下文，铝合金立柱上、下立柱之间通过活动接头连接。B正确：上支点宜设圆孔，采用长圆孔或椭圆孔与下端连接。C错误：横梁与立柱连接处应设置柔性垫片或预留间隙，而非刚性垫片。D正确：开启角度不宜大于30°，开启距离不宜大于300mm，25°和250mm符合要求。E正确：密封胶在接缝内应两对面粘结，不应三面粘结。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2500.04,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414000",
+      "primary_leaf": "1A414000-E01",
+      "prompt_tokens": 2626,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A414000_P0011_03:0",
+      "retrieval_latency_ms": 6980.0,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2784,
+      "verdict": "partial",
+      "year": 2024
+    },
+    {
+      "answer": "ABC",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A431000_P0009_01",
+        "CET_1A421000_P0015_001",
+        "CET_1A437000_P0141_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A431000_P0009_01",
+        "CET_1A437000_P0141_002"
+      ],
+      "completion_tokens": 111,
+      "exact_match": true,
+      "explanation": "根据《建筑工人施工现场生活环境基本配置指南》和《建筑与市政施工现场安全卫生与职业健康通用规范》GB 55034—2022，生活区围挡应采用可循环、可拆卸、标准化的定型材料，且高度不得低于1.8m。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1618.01,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431000",
+      "primary_leaf": "1A431000-B019",
+      "prompt_tokens": 1893,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A431000_P0009_01:0",
+      "retrieval_latency_ms": 2921.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A431000-B019",
+        "1A413070-R01",
+        "1A421010-B003"
+      ],
+      "rich_rendered_chars": 838,
+      "status": "completed",
+      "total_tokens": 2004,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "ABC",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A431000_P0009_01",
+        "CET_1A421000_P0015_001",
+        "CET_1A437000_P0141_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A431000_P0009_01",
+        "CET_1A437000_P0141_002"
+      ],
+      "completion_tokens": 103,
+      "exact_match": true,
+      "explanation": "根据《建筑工人施工现场生活环境基本配置指南》和《建筑与市政施工现场安全卫生与职业健康通用规范》，生活区围挡应采用可循环、可拆卸、标准化的专用金属定型材料，高度不低于1.8m。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2225.8,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A431000",
+      "primary_leaf": "1A431000-B019",
+      "prompt_tokens": 1369,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A431000_P0009_01:0",
+      "retrieval_latency_ms": 2921.5,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1472,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "1. 工程量清单的强制性内容还包括：工程量清单应按分部分项工程项目清单、措施项目清单、其他项目清单和增值税分别编制及计价；工程量清单的清单项目价款确定可采用单价计价、总价计价方式；工程量清单的清单项目综合单价及合价应为不含增值税的税前全费用价格。\n2. 投标单位对招标文件要求作出实质性响应的内容还有：技术标准、质量、投标有效期、工期、合同主要条款等。\n3. 中标单位还应避免的违法分包行为包括：将工程分包给不具备相应资质条件的单位；将主体结构工程分包；分包单位再分包；将工程分包给个人等。\n4. 施工单位自行施工工程的目标成本为：7222.22万元（或7222万元）。专项施工成本分析内容还有：成本盈亏异常分析、成本支出与收入对比分析、资源消耗分析等。\n5. 施工单位结算造价计算步骤：\n   (1) 分部分项工程费：6000.00 + 2000×500/10000 = 6000 + 100 = 6100.00万元\n   (2) 措施项目费：6100×10% = 610.00万元\n   (3) 其他项目费：400.00 + (268 - 100) + 119 + (90 - 100) = 400 + 168 + 119 - 10 = 677.00万元\n   (4) 规费：140.00万元（费率2%，基数7000，但按给定值）\n   (5) 税金：(6100 + 610 + 677 + 140)×9% = 7527×9% = 677.43万元\n   (6) 结算造价：6100 + 610 + 677 + 140 + 677.43 = 8204.43万元，四舍五入取整为8204万元。",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A432002_P0035_001",
+        "CET_1A432002_P0036_001",
+        "CET_1A435000_P0046_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A432002_P0035_001",
+        "CET_1A432002_P0036_001",
+        "CET_1A435000_P0046_001",
+        "1A432000-C35"
+      ],
+      "completion_tokens": 522,
+      "exact_match": null,
+      "explanation": "根据提供的教材内容和富叶知识点，结合工程量清单计价规范、合同价款调整事项及案例数据，计算得出结算造价。",
+      "explanation_quality": 2,
+      "judge_status": "completed",
+      "latency_ms": 5854.2,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A432000",
+      "primary_leaf": "1A432000-C35",
+      "prompt_tokens": 4001,
+      "qtype": "case_study",
+      "question_id": "2024:EXAM_1A432000_P0015_01:0",
+      "retrieval_latency_ms": 3157.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A432000-C35",
+        "1A432000-C01",
+        "1A432000-C02"
+      ],
+      "rich_rendered_chars": 1250,
+      "status": "completed",
+      "total_tokens": 4523,
+      "verdict": "wrong",
+      "year": 2024
+    },
+    {
+      "answer": "",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A432002_P0035_001",
+        "CET_1A432002_P0036_001",
+        "CET_1A435000_P0046_001"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 700,
+      "exact_match": null,
+      "explanation": "",
+      "explanation_quality": 1,
+      "judge_status": "completed",
+      "latency_ms": 7644.34,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A432000",
+      "primary_leaf": "1A432000-C35",
+      "prompt_tokens": 3180,
+      "qtype": "case_study",
+      "question_id": "2024:EXAM_1A432000_P0015_01:0",
+      "retrieval_latency_ms": 3157.8,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 3880,
+      "verdict": "wrong",
+      "year": 2024
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "EXAM_1A434001_P0007_07",
+        "CET_1A412010_P0060_003",
+        "CET_1A422000_P0024_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A434001_P0007_07"
+      ],
+      "completion_tokens": 60,
+      "exact_match": true,
+      "explanation": "根据检索到的内容，II类水溶性内墙涂料适用于一般墙面，不适用于浴室、厨房等潮湿环境。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 2437.11,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434001",
+      "primary_leaf": "1A434001-E01",
+      "prompt_tokens": 1657,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A434001_P0007_07:0",
+      "retrieval_latency_ms": 4236.0,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A434001-E01",
+        "1A412010-B083",
+        "1A412010-B127"
+      ],
+      "rich_rendered_chars": 1106,
+      "status": "completed",
+      "total_tokens": 1717,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "EXAM_1A434001_P0007_07",
+        "CET_1A412010_P0060_003",
+        "CET_1A422000_P0024_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A434001_P0007_07"
+      ],
+      "completion_tokens": 60,
+      "exact_match": true,
+      "explanation": "根据检索到的内容，II类水溶性内墙涂料适用于一般墙面，不适用于浴室、厨房等潮湿环境。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1393.8,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A434001",
+      "primary_leaf": "1A434001-E01",
+      "prompt_tokens": 840,
+      "qtype": "single_choice",
+      "question_id": "2024:EXAM_1A434001_P0007_07:0",
+      "retrieval_latency_ms": 4236.0,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 900,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "D",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A436000_P0106_001",
+        "CET_1A436000_P0109_001",
+        "CET_1A436000_P0107_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A436000_P0109_001"
+      ],
+      "completion_tokens": 83,
+      "exact_match": true,
+      "explanation": "根据背景资料，基础工程施工安全控制主要内容包括边坡与基坑支护安全、防水施工防火防毒安全等，而选项中A、B、C均为基础工程安全控制的主要内容，因此选择D以上都是。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1683.72,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A436000",
+      "primary_leaf": "1A436000-B179",
+      "prompt_tokens": 3934,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A436000_P0018_02:0",
+      "retrieval_latency_ms": 3242.9,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A436000-B179",
+        "1A436000-B140",
+        "1A436000-B168"
+      ],
+      "rich_rendered_chars": 1470,
+      "status": "completed",
+      "total_tokens": 4017,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "D",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A436000_P0106_001",
+        "CET_1A436000_P0109_001",
+        "CET_1A436000_P0107_001"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A436000_P0109_001"
+      ],
+      "completion_tokens": 99,
+      "exact_match": true,
+      "explanation": "根据背景资料中基础施工安全控制主要内容包括边坡与基坑支护安全、防水施工防火防毒安全等，结合上下文，基础工程安全控制的主要内容还包括施工机械作业安全、降水设施与临时用电安全、桩基施工的安全防范，因此选项D“以上都是”正确。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1937.54,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A436000",
+      "primary_leaf": "1A436000-B179",
+      "prompt_tokens": 3000,
+      "qtype": "multiple_choice",
+      "question_id": "2024:EXAM_1A436000_P0018_02:0",
+      "retrieval_latency_ms": 3242.9,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 3099,
+      "verdict": "correct",
+      "year": 2024
+    },
+    {
+      "answer": "BCE",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A411011_P0024_001",
+        "EXAM_1A413000_P0008_04",
+        "EXAM_1A411020_P0009_05"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "EXAM_1A411020_P0009_05",
+        "EXAM_1A413000_P0008_04",
+        "CET_1A411011_P0024_001"
+      ],
+      "completion_tokens": 97,
+      "exact_match": true,
+      "explanation": "根据教材和考题资料，建筑结构的可靠性包括安全性、适用性和耐久性三个基本方面，经济性和合理性不属于可靠性范畴。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1802.78,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411020",
+      "primary_leaf": "1A411020-R43",
+      "prompt_tokens": 1615,
+      "qtype": "multiple_choice",
+      "question_id": "2025:EXAM_1A411020_P0009_05:0",
+      "retrieval_latency_ms": 4655.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A411020-R43",
+        "1A411010-R08",
+        "1A411030-R04"
+      ],
+      "rich_rendered_chars": 866,
+      "status": "completed",
+      "total_tokens": 1712,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "BCE",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A411011_P0024_001",
+        "EXAM_1A413000_P0008_04",
+        "EXAM_1A411020_P0009_05"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A411011_P0024_001",
+        "EXAM_1A413000_P0008_04",
+        "EXAM_1A411020_P0009_05"
+      ],
+      "completion_tokens": 92,
+      "exact_match": true,
+      "explanation": "根据教材和考题，结构的可靠性包括安全性、适用性和耐久性，经济性和稳定性不属于可靠性范畴。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1818.87,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A411020",
+      "primary_leaf": "1A411020-R43",
+      "prompt_tokens": 1012,
+      "qtype": "multiple_choice",
+      "question_id": "2025:EXAM_1A411020_P0009_05:0",
+      "retrieval_latency_ms": 4655.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1104,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A413030_P0133_003",
+        "CET_1A438000_P0158_003",
+        "CET_1A413030_P0134_001"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 51,
+      "exact_match": true,
+      "explanation": "根据《建筑与市政工程防水通用规范》GB 55030-2022，室内工程防水设计工作年限不应低于25年。",
+      "explanation_quality": 1,
+      "judge_status": "completed",
+      "latency_ms": 1250.97,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413000",
+      "primary_leaf": "1A413000-C27",
+      "prompt_tokens": 1781,
+      "qtype": "single_choice",
+      "question_id": "2025:EXAM_1A413000_P0005_03:0",
+      "retrieval_latency_ms": 5088.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A413000-C27",
+        "1A411010-R41",
+        "1A411030-R01"
+      ],
+      "rich_rendered_chars": 1016,
+      "status": "completed",
+      "total_tokens": 1832,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "C",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A413030_P0133_003",
+        "CET_1A438000_P0158_003",
+        "CET_1A413030_P0134_001"
+      ],
+      "citation_grounded": false,
+      "citation_source": "none",
+      "citations": [],
+      "completion_tokens": 51,
+      "exact_match": true,
+      "explanation": "根据《建筑与市政工程防水通用规范》GB 55030-2022，室内工程防水设计工作年限不应低于25年。",
+      "explanation_quality": 1,
+      "judge_status": "completed",
+      "latency_ms": 1302.23,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A413000",
+      "primary_leaf": "1A413000-C27",
+      "prompt_tokens": 1068,
+      "qtype": "single_choice",
+      "question_id": "2025:EXAM_1A413000_P0005_03:0",
+      "retrieval_latency_ms": 5088.6,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1119,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "BD",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A412010_P0064_001",
+        "EXAM_1A414010_P0010_06",
+        "CET_1A413030_P0131_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "both",
+      "citations": [
+        "CET_1A412010_P0064_001",
+        "EXAM_1A414010_P0010_06"
+      ],
+      "completion_tokens": 103,
+      "exact_match": true,
+      "explanation": "根据教材，防水卷材的防水性能常用不透水性和抗渗透性指标表示，因此选项B和D正确。拉力属于机械力学性能，耐老化性属于大气稳定性，柔性属于柔韧性，均不属于防水性能。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1562.87,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414010",
+      "primary_leaf": "1A414010-E01",
+      "prompt_tokens": 2686,
+      "qtype": "multiple_choice",
+      "question_id": "2025:EXAM_1A414010_P0010_06:0",
+      "retrieval_latency_ms": 3832.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A414010-E01",
+        "1A412010-B149",
+        "1A412010-B150"
+      ],
+      "rich_rendered_chars": 961,
+      "status": "completed",
+      "total_tokens": 2789,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "BD",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A412010_P0064_001",
+        "EXAM_1A414010_P0010_06",
+        "CET_1A413030_P0131_003"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A412010_P0064_001",
+        "EXAM_1A414010_P0010_06"
+      ],
+      "completion_tokens": 103,
+      "exact_match": true,
+      "explanation": "根据教材，防水卷材的防水性能常用不透水性和抗渗透性指标表示，因此选项B和D正确。拉力属于机械力学性能，耐老化性属于大气稳定性，柔性属于柔韧性，均不属于防水性能。",
+      "explanation_quality": 5,
+      "judge_status": "completed",
+      "latency_ms": 1567.47,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A414010",
+      "primary_leaf": "1A414010-E01",
+      "prompt_tokens": 2044,
+      "qtype": "multiple_choice",
+      "question_id": "2025:EXAM_1A414010_P0010_06:0",
+      "retrieval_latency_ms": 3832.7,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 2147,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_plus_rich_leaf_deployment",
+      "chunk_ids": [
+        "CET_1A412010_P0043_003",
+        "1A412010_043_0075",
+        "CET_1A412000_P0041_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A412010_P0043_003",
+        "1A412010_043_0075"
+      ],
+      "completion_tokens": 95,
+      "exact_match": true,
+      "explanation": "泵送混凝土要求良好的流动性和保水性，普通硅酸盐水泥（普通水泥）保水性较好，且适用于普通气候环境，而矿渣水泥保水性差、火山灰水泥需水量大，均不宜用于泵送。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 2114.61,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412000",
+      "primary_leaf": "1A412000-B012",
+      "prompt_tokens": 2306,
+      "qtype": "single_choice",
+      "question_id": "2025:EXAM_PATCH_2025_Q11:0",
+      "retrieval_latency_ms": 4490.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 3,
+      "rich_leaf_ids": [
+        "1A412000-B012",
+        "1A413000-B050",
+        "1A421010-B006"
+      ],
+      "rich_rendered_chars": 1283,
+      "status": "completed",
+      "total_tokens": 2401,
+      "verdict": "correct",
+      "year": 2025
+    },
+    {
+      "answer": "B",
+      "arm": "kbv5_only_baseline",
+      "chunk_ids": [
+        "CET_1A412010_P0043_003",
+        "1A412010_043_0075",
+        "CET_1A412000_P0041_002"
+      ],
+      "citation_grounded": true,
+      "citation_source": "retrieval_chunk",
+      "citations": [
+        "CET_1A412010_P0043_003",
+        "1A412010_043_0075"
+      ],
+      "completion_tokens": 112,
+      "exact_match": true,
+      "explanation": "泵送混凝土要求良好的流动性和保水性，普通硅酸盐水泥（普通水泥）在普通气候和干燥环境中优先选用，且其保水性较好，适合泵送施工。矿渣水泥保水性差，火山灰水泥需水量大，硅酸盐水泥水化热高，均不如普通水泥适宜。",
+      "explanation_quality": 4,
+      "judge_status": "completed",
+      "latency_ms": 1916.58,
+      "leaf_resolution": "node_code_exact",
+      "node_code": "1A412000",
+      "primary_leaf": "1A412000-B012",
+      "prompt_tokens": 1558,
+      "qtype": "single_choice",
+      "question_id": "2025:EXAM_PATCH_2025_Q11:0",
+      "retrieval_latency_ms": 4490.1,
+      "retrieval_status": "completed",
+      "rich_leaf_count": 0,
+      "rich_leaf_ids": [],
+      "rich_rendered_chars": 0,
+      "status": "completed",
+      "total_tokens": 1670,
+      "verdict": "correct",
+      "year": 2025
+    }
+  ],
+  "runtime_exercised": true,
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_frozen_v11_deployment_eval.v1",
+  "seed": 20260613
+}

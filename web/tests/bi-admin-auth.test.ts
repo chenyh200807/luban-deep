@@ -216,6 +216,8 @@ test("member api attaches Authorization header from stored admin session", async
         active_count: 1,
         expiring_soon_count: 0,
         new_today_count: 0,
+        new_7d_count: 0,
+        new_30d_count: 0,
         churn_risk_count: 0,
         health_score: 100,
         auto_renew_coverage: 1,

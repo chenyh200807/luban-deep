@@ -561,6 +561,32 @@ function normalizeWrongItems(items, attemptRefs, questions) {
   });
 }
 
+function buildWrongItemFollowupQuestionContext(item, quizId) {
+  var source = item || {};
+  var optionMap = {};
+  var options = Array.isArray(source.options) ? source.options : [];
+  for (var i = 0; i < options.length; i++) {
+    var option = options[i] || {};
+    var key = String(option.key || "").trim().toUpperCase();
+    var text = String(option.text || option.value || "").trim();
+    if (key && text) optionMap[key] = text;
+  }
+  var context = {
+    parent_quiz_session_id: String(quizId || "").trim(),
+    question_id: String(source.questionId || "").trim(),
+    question: String(source.stem || "").trim(),
+    question_type: "choice",
+    options: optionMap,
+    user_answer: String(source.learnerAnswer || "").trim(),
+    correct_answer: String(source.correctAnswer || "").trim(),
+    explanation: String(source.explanation || "").trim(),
+    reveal_answers: true,
+    reveal_explanations: true,
+  };
+  if (!context.question && !context.question_id) return null;
+  return context;
+}
+
 function buildIssueSummary(wrongItems) {
   if (!(wrongItems || []).length) return [];
   var presets = [
@@ -986,51 +1012,47 @@ Page({
     var qId = q.id;
     var isMulti = q.question_type === "multi_choice";
     var mapKey = qId + "_" + key;
-
-    // 构建新的 selMap（WXML 渲染用）
-    var newMap = {};
-    var oldMap = this.data.selMap;
-    var k;
-    for (k in oldMap) {
-      if (oldMap.hasOwnProperty(k)) newMap[k] = oldMap[k];
-    }
-
+    var oldMap = this.data.selMap || {};
+    var oldKeys = this.data.selectedKeys || {};
+    var wasAnswered = !!oldKeys[qId];
+    var opts = q.options || [];
+    var nextMap = Object.assign({}, oldMap);
     if (isMulti) {
-      // 多选：toggle 当前 key
-      newMap[mapKey] = !newMap[mapKey];
+      nextMap[mapKey] = !oldMap[mapKey];
     } else {
-      // 单选：先清除该题所有选项，再选中当前
-      var opts = q.options || [];
       for (var i = 0; i < opts.length; i++) {
-        newMap[qId + "_" + opts[i].key] = false;
+        nextMap[qId + "_" + opts[i].key] = false;
       }
-      newMap[mapKey] = true;
+      nextMap[mapKey] = true;
     }
-
-    // 同步生成 selectedKeys（提交用）
-    var opts2 = q.options || [];
     var answerStr = "";
-    for (var j = 0; j < opts2.length; j++) {
-      if (newMap[qId + "_" + opts2[j].key]) answerStr += opts2[j].key;
+    for (var j = 0; j < opts.length; j++) {
+      if (nextMap[qId + "_" + opts[j].key]) answerStr += opts[j].key;
     }
     var newKeys = {};
-    var oldKeys = this.data.selectedKeys;
+    var k;
     for (k in oldKeys) {
       if (oldKeys.hasOwnProperty(k)) newKeys[k] = oldKeys[k];
     }
     newKeys[qId] = answerStr;
-
-    var answerState = buildAnswerState(
-      this.data.questions,
-      newKeys,
-      this.data.currentIndex,
-    );
+    var isAnswered = !!answerStr;
+    var answeredCount = this.data.answeredCount || 0;
+    if (!wasAnswered && isAnswered) answeredCount += 1;
+    if (wasAnswered && !isAnswered) answeredCount -= 1;
+    var answerSheet = (this.data.answerSheet || []).slice();
+    if (answerSheet[this.data.currentIndex]) {
+      answerSheet[this.data.currentIndex] = Object.assign(
+        {},
+        answerSheet[this.data.currentIndex],
+        { answered: isAnswered },
+      );
+    }
     this.setData({
-      selMap: newMap,
+      selMap: nextMap,
       selectedKeys: newKeys,
-      answerSheet: answerState.answerSheet,
-      answeredCount: answerState.answeredCount,
-      unansweredCount: answerState.unansweredCount,
+      answerSheet: answerSheet,
+      answeredCount: answeredCount,
+      unansweredCount: Math.max(0, this.data.questions.length - answeredCount),
     });
 
     // 单选自动跳下一题 (300ms 延迟)
@@ -1239,7 +1261,10 @@ Page({
           };
 
           // 优先攻克：掌握度最低的 5 个章节
-          var priority = (ap.priority_chapters || []).map(function (c) {
+          var priorityChapters = Array.isArray(ap.priority_chapters)
+            ? ap.priority_chapters
+            : [];
+          var priority = priorityChapters.map(function (c) {
             return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
           });
           if (!priority.length && chapterList.length) {
@@ -1349,6 +1374,7 @@ Page({
       "请围绕我刚才错的“" +
       knowledgePoint +
       "”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。";
+    var followupQuestionContext = buildWrongItemFollowupQuestionContext(item, this._quizId);
     var intent = {
       source: "assessment_result_wrong_item",
       learning_signal_type: "assessment_wrong_item_practice",
@@ -1361,6 +1387,9 @@ Page({
       training_mode: "same_type_repair",
       prompt: prompt,
     };
+    if (followupQuestionContext) {
+      intent.followupQuestionContext = followupQuestionContext;
+    }
     if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       wx.setStorageSync("deeptutor.report.pendingTrainingAction", intent);
     }

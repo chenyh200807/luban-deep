@@ -33,16 +33,46 @@ def _build_app() -> FastAPI:
     return app
 
 
+def test_serialize_mobile_message_projects_engine_turn_id_from_message_metadata() -> None:
+    serialized = mobile_module._serialize_mobile_message(
+        {
+            "id": "message_1",
+            "role": "assistant",
+            "content": "已完成批改。",
+            "created_at": 1_700_000_000.0,
+            "metadata": {
+                "engine_turn_id": "turn_resume_1",
+                "turn_id": "turn_resume_1",
+            },
+            "events": [],
+        }
+    )
+
+    assert serialized["engine_turn_id"] == "turn_resume_1"
+
+
 @pytest.fixture(autouse=True)
-def _clear_rate_limit_state() -> None:
+def _clear_rate_limit_state(monkeypatch: pytest.MonkeyPatch) -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     rate_limit_module.clear_rate_limit_state()
     yield
     rate_limit_module.clear_rate_limit_state()
     PathService.get_instance()._user_data_dir = _ORIGINAL_USER_DATA_DIR
 
 
-def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/chat/start-turn",
+        "/api/v1/mobile/chat/start-turn",
+        "/api/v1/mobile/chat/start",
+    ],
+)
+def test_mobile_chat_start_turn_returns_ws_bootstrap(
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+) -> None:
     captured: dict[str, object] = {}
 
     class FakeTurnRuntime:
@@ -82,7 +112,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
 
     with TestClient(_build_app()) as client:
         response = client.post(
-            "/api/v1/chat/start-turn",
+            path,
             json={
                 "query": "考我一道流水施工的题",
                 "mode": "AUTO",
@@ -202,6 +232,173 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     assert config["learning_prompt_intent"]["training_intent_id"] == "lti_chat"
     assert "learning_training_intent" not in config
     assert config["interaction_hints"]["profile"] == "tutorbot"
+
+
+def test_mobile_chat_start_turn_uses_canonical_runtime_session_for_mirror_conversation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    mirror_session_id = "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123"
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": payload["session_id"],
+                    "title": "真题追问",
+                    "created_at": 1_700_000_012.0,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                },
+                {
+                    "id": "turn_alias_1",
+                    "status": "running",
+                    "capability": "deep_question",
+                },
+            )
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "tb_123"
+            return ""
+
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            *,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "tb_123"
+            assert source == "wx_miniprogram"
+            assert archived is None
+            assert limit == 50
+            return [
+                {
+                    "id": mirror_session_id,
+                    "session_id": mirror_session_id,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "那C呢？一句话",
+                "conversation_id": "tb_123",
+                "mode": "AUTO",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["payload"]["session_id"] == mirror_session_id
+    body = response.json()
+    assert body["conversation"]["id"] == "tb_123"
+    assert body["stream"]["url"] == "/api/v1/ws"
+
+
+def test_mobile_chat_start_turn_keeps_direct_runtime_session_when_direct_and_mirror_exist(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    mirror_session_id = "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123"
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": payload["session_id"],
+                    "title": "真题追问",
+                    "created_at": 1_700_000_013.0,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                    },
+                },
+                {
+                    "id": "turn_alias_direct_1",
+                    "status": "running",
+                    "capability": "deep_question",
+                },
+            )
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "tb_123"
+            return "user:student_demo"
+
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            *,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "tb_123"
+            return [
+                {
+                    "id": mirror_session_id,
+                    "session_id": mirror_session_id,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "那C呢？一句话",
+                "conversation_id": "tb_123",
+                "mode": "AUTO",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["payload"]["session_id"] == "tb_123"
+    body = response.json()
+    assert body["conversation"]["id"] == "tb_123"
 
 
 def test_mobile_chat_start_turn_can_regenerate_without_repersisting_user_message(
@@ -554,6 +751,92 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
 
+def test_mobile_chat_start_turn_carries_general_knowledge_shadow_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_compiled_shadow",
+                    "title": "学习会话",
+                    "created_at": 1_700_000_021.0,
+                },
+                {
+                    "id": "turn_compiled_shadow",
+                    "status": "running",
+                    "capability": "",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "高层住宅的建筑高度是怎么界定的？",
+                "interaction_profile": "tutorbot",
+                "general_knowledge_context": True,
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert config["general_knowledge_context"] is True
+
+
+def test_mobile_chat_start_turn_accepts_config_general_knowledge_shadow_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_compiled_shadow",
+                    "title": "学习会话",
+                    "created_at": 1_700_000_021.0,
+                },
+                {
+                    "id": "turn_compiled_shadow",
+                    "status": "running",
+                    "capability": "",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "高层住宅的建筑高度是怎么界定的？",
+                "interaction_profile": "tutorbot",
+                "config": {"general_knowledge_context": True},
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert config["general_knowledge_context"] is True
+
+
 def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -840,6 +1123,7 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
                 )
             ]
 
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "20")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "20")
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
@@ -874,23 +1158,32 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
     assert "started" not in captured
 
 
-def test_billing_usage_defaults_follow_two_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_billing_usage_defaults_follow_launch_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", raising=False)
     monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", raising=False)
 
-    advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
-    sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
+    vip = mobile_module._build_billing_usage_payload([], plan_id="vip")
+    svip = mobile_module._build_billing_usage_payload([], plan_id="svip")
+    supreme = mobile_module._build_billing_usage_payload([], plan_id="supreme_svip")
+    legacy_advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
+    legacy_sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
 
-    assert advance["display"]["plan_id"] == "advance"
-    assert sprint["display"]["plan_id"] == "sprint"
-    assert [row["label"] for row in advance["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
+    assert vip["display"]["plan_id"] == "vip"
+    assert svip["display"]["plan_id"] == "svip"
+    assert supreme["display"]["plan_id"] == "supreme_svip"
+    assert legacy_advance["display"]["plan_id"] == "vip"
+    assert legacy_sprint["display"]["plan_id"] == "svip"
+    assert [row["label"] for row in vip["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
 
-    advance_rows = {row["key"]: row for row in advance["quota"]["rows"]}
-    sprint_rows = {row["key"]: row for row in sprint["quota"]["rows"]}
-    assert advance_rows["five_hour"]["remaining_percent"] == 100
-    assert sprint_rows["five_hour"]["remaining_percent"] == 100
-    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 4400
-    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 9000
+    vip_rows = {row["key"]: row for row in vip["quota"]["rows"]}
+    svip_rows = {row["key"]: row for row in svip["quota"]["rows"]}
+    assert vip_rows["five_hour"]["remaining_percent"] == 100
+    assert svip_rows["five_hour"]["remaining_percent"] == 100
+    assert mobile_module._billing_usage_limit_for_plan("vip", "weekly") == 9000
+    assert mobile_module._billing_usage_limit_for_plan("svip", "weekly") == 28000
+    assert mobile_module._billing_usage_limit_for_plan("supreme_svip", "weekly") == 50000
+    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 9000
+    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 28000
 
 
 def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailable(
@@ -908,6 +1201,17 @@ def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailabl
 
     class FailingWalletService:
         is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="vip",
+                version=1,
+                created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+            )
 
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
@@ -938,7 +1242,7 @@ def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailabl
     assert captured["payload"]["config"]["billing_context"]["wallet_user_id"] == "wallet_demo"
 
 
-def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable(
+def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FailingWalletService:
@@ -959,6 +1263,111 @@ def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             raise RuntimeError("supabase payment required")
 
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["display"]["primary_label"] == "剩余 100%"
+    assert body["display"]["plan_id"] == "vip"
+    assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
+
+
+def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ)
+    events = [
+        SimpleNamespace(
+            event_id=index,
+            wallet_user_id="wallet_demo",
+            amount_points=99,
+            status="metered_not_charged",
+            metadata={"billing_amount_source": "measured_cost"},
+            created_at=now.timestamp(),
+        )
+        for index in range(45)
+    ]
+
+    class WalletServiceWithoutUsageLedger:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="sprint",
+                version=1,
+                created_at=now.isoformat(),
+            )
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            raise AssertionError("wallet ledger must not be the internal-beta usage authority")
+
+    class FakeUsageMeter:
+        def list_usage_events(self, wallet_user_id: str, *, limit: int, offset: int = 0):
+            assert wallet_user_id == "wallet_demo"
+            assert limit == mobile_module._BILLING_USAGE_LEDGER_WINDOW
+            assert offset == 0
+            return events
+
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: False)
+    monkeypatch.setattr(mobile_module, "wallet_service", WalletServiceWithoutUsageLedger())
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: FakeUsageMeter())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["usage_source"] == "member_usage_meter"
+    assert body["charging_status"] == "metered_not_charged"
+    assert body["display"]["primary_label"] == "剩余 90%"
+    assert body["display"]["primary_percent"] == 90
+    assert "primary_used_uses" not in body["display"]
+    assert "primary_limit_uses" not in body["display"]
+    assert "primary_remaining_uses" not in body["display"]
+    assert body["display"]["plan_id"] == "svip"
+
+
+def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            raise RuntimeError("supabase payment required")
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            return []
+
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
         mobile_module,
@@ -975,7 +1384,7 @@ def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "degraded"
-    assert body["display"]["primary_label"] == "额度同步中"
+    assert body["display"]["primary_label"] == "额度暂不可用"
     assert body["quota"]["rows"] == []
 
 
@@ -1026,7 +1435,7 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     with TestClient(_build_app()) as client:
         response = client.post(
             "/api/v1/billing/checkout",
-            json={"package_id": "sprint", "channel": "wechat"},
+            json={"package_id": "vip", "channel": "wechat"},
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -1035,8 +1444,9 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     assert body["status"] == "payment_config_missing"
     assert body["channel"] == "wechat"
     assert body["wallet_user_id"] == "wallet_demo"
-    assert body["package"]["id"] == "sprint"
-    assert body["amount_fen"] == 19900
+    assert body["package"]["id"] == "vip"
+    assert body["package"]["points"] == 9000
+    assert body["amount_fen"] == 19800
     assert body["payment"]["type"] == "wechat_mp"
 
 
@@ -2404,16 +2814,32 @@ def test_get_conversation_messages_rejects_existing_non_mobile_session(
 
 
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def _failing_login(_code: str):
+    async def _failing_login(_code: str, _phone_code: str):
         raise RuntimeError("WeChat code2Session failed")
 
-    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _failing_login)
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _failing_login)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
+
+    assert response.status_code == 502
+    assert "code2Session" in response.json()["detail"]
+
+
+def test_wechat_login_route_requires_phone_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _unexpected_login(_code: str, _phone_code: str) -> dict[str, str]:
+        raise AssertionError("login_with_wechat_phone must not be called without phone_code")
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _unexpected_login)
 
     with TestClient(_build_app()) as client:
         response = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
 
-    assert response.status_code == 502
-    assert "code2Session" in response.json()["detail"]
+    assert response.status_code == 400
+    assert response.json()["detail"] == "phone_code is required"
 
 
 def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2609,6 +3035,96 @@ def test_auth_register_seeds_learner_state_when_user_id_is_nested_under_user(
     assert calls == ["student_demo"]
 
 
+def test_auth_reset_password_calls_member_service_without_issuing_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _reset_password(username: str, phone: str, code: str, password: str) -> dict[str, object]:
+        captured.update(
+            {
+                "username": username,
+                "phone": phone,
+                "code": code,
+                "password": password,
+            }
+        )
+        return {"success": True, "message": "密码已重置，请使用新密码登录"}
+
+    monkeypatch.setattr(mobile_module.member_service, "reset_password_with_phone_code", _reset_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "username": "reset_student",
+                "phone": "13955556666",
+                "code": "123456",
+                "password": "NewPass123",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "message": "密码已重置，请使用新密码登录"}
+    assert "token" not in response.json()
+    assert captured == {
+        "username": "reset_student",
+        "phone": "13955556666",
+        "code": "123456",
+        "password": "NewPass123",
+    }
+
+
+def test_auth_reset_password_maps_validation_error_to_400(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _reset_password(_username: str, _phone: str, _code: str, _password: str) -> dict[str, object]:
+        raise ValueError("账号或手机号不匹配")
+
+    monkeypatch.setattr(mobile_module.member_service, "reset_password_with_phone_code", _reset_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "username": "reset_student",
+                "phone": "13955556666",
+                "code": "123456",
+                "password": "NewPass123",
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "账号或手机号不匹配"
+
+
+def test_auth_send_code_uses_password_reset_authority_when_username_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _send_password_reset_code(username: str, phone: str) -> dict[str, object]:
+        captured.update({"username": username, "phone": phone})
+        return {"sent": True, "retry_after": 60, "phone": phone, "delivery": "sms"}
+
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "send_password_reset_code",
+        _send_password_reset_code,
+        raising=False,
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/send-code",
+            json={"username": "reset_student", "phone": "13955556666"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["sent"] is True
+    assert captured == {"username": "reset_student", "phone": "13955556666"}
+
+
 def test_auth_profile_settings_syncs_learner_profile_and_goals(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2778,6 +3294,55 @@ def test_auth_profile_allows_explicit_local_wallet_fallback(
     body = response.json()
     assert body["points"] == 0
     assert body["wallet"]["plan_id"] == "local"
+
+
+def test_auth_profile_internal_qa_billing_bypass_skips_wallet_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "7465c84a-d1d6-4ff8-82d8-22945addbf86"
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: canonical_uid,
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda *_args, **_kwargs: SimpleNamespace(user_id=canonical_uid, is_admin=False),
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "username": "qa_tutorbot_mcq",
+            "display_name": "qa_tutorbot_mcq",
+            "points": 120,
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_wallet_user_id",
+        lambda *_args, **_kwargs: canonical_uid,
+    )
+
+    class UnavailableWalletService:
+        is_configured = False
+
+        def get_wallet(self, _user_id: str):
+            raise AssertionError("internal QA profile must not read wallet")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", UnavailableWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/auth/profile")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["points"] == 120
+    assert body["wallet"]["plan_id"] == "internal_qa"
 
 
 def test_learning_brain_projection_reads_authenticated_learner_truth(
@@ -3036,6 +3601,10 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
                 }
             }
 
+    class FakeNotebookCardService:
+        def list_cards(self, user_id, *, subject_id: str = "", card_type: str = ""):
+            return []
+
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -3043,6 +3612,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     )
     monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
     monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+    monkeypatch.setattr(mobile_module, "get_notebook_card_service", lambda: FakeNotebookCardService())
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/mobile/learning-report?event_limit=25")
@@ -3061,7 +3631,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     assert body["overview"]["unique_question_count"] == 1
     assert body["overview"]["today_unique_questions"] == 1
     assert body["progress_feedback"]["cards"][0]["label"] == "近 3 天完成"
-    assert body["progress_feedback"]["cards"][0]["value"] == "1题"
+    assert body["progress_feedback"]["cards"][0]["value"] == "1次"
     assert body["legacy_compat"]["today_progress"]["today_done"] == 0
     # degraded 契约：所有源 ok → degraded=false / degraded_sources=[]
     assert body["degraded"] is False
@@ -3070,6 +3640,64 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
         assert status["ok"] in (True, None)
     assert body["freshness"]["window_truncated"] is False
     assert body["freshness"]["unknown_date_count"] == 0
+
+
+def test_mobile_learning_report_projects_notebook_card_assets_from_single_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    class FakeNotebookCardService:
+        def list_cards(self, user_id, *, subject_id: str = "", card_type: str = ""):
+            assert user_id == "student_demo"
+            return [
+                {
+                    "note_id": "note_mobile_1",
+                    "user_id": user_id,
+                    "card_type": "review_note",
+                    "source_type": "chat",
+                    "source_ref": {"turn_id": "turn_mobile_1"},
+                    "title": "移动端学习卡",
+                    "ai_enhanced_content": {"summary": "来自答疑收藏。"},
+                    "version": 1,
+                    "updated_at": datetime.now(_SH_TZ).replace(microsecond=0).isoformat(),
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+    monkeypatch.setattr(mobile_module, "get_notebook_card_service", lambda: FakeNotebookCardService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?schema_version=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["authority"]["note_assets_source"] == "learner_notebook_cards"
+    assert body["note_assets"]["items"][0]["note_id"] == "note_mobile_1"
+    assert body["today_tasks"][0]["source"] == "note_assets"
 
 
 def test_mobile_assessment_topics_returns_catalog_without_chat_side_effects(
@@ -4177,14 +4805,20 @@ def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Mon
         },
     )
 
-    async def _fake_login(_code: str) -> dict[str, str]:
+    async def _fake_login(_code: str, _phone_code: str) -> dict[str, str]:
         return {"token": "ok"}
 
-    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _fake_login)
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _fake_login)
 
     with TestClient(_build_app()) as client:
-        first = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
-        second = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
+        first = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
+        second = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
 
     assert first.status_code == 200
     assert second.status_code == 429
@@ -4661,7 +5295,13 @@ class _FakeBalanceWalletService:
         return []
 
 
-def _install_start_turn_stubs(monkeypatch: pytest.MonkeyPatch, started: list[object]) -> None:
+def _install_start_turn_stubs(
+    monkeypatch: pytest.MonkeyPatch,
+    started: list[object],
+    *,
+    user_id: str = "student_demo",
+    wallet_user_id: str = "wallet_demo",
+) -> None:
     class FakeTurnRuntime:
         async def start_turn(self, payload):
             started.append(payload)
@@ -4672,15 +5312,15 @@ def _install_start_turn_stubs(monkeypatch: pytest.MonkeyPatch, started: list[obj
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
     monkeypatch.setattr(
-        mobile_module, "_resolve_authenticated_user_id", lambda *_a, **_k: "student_demo"
+        mobile_module, "_resolve_authenticated_user_id", lambda *_a, **_k: user_id
     )
     monkeypatch.setattr(
-        mobile_module, "_resolve_wallet_lookup_user_id", lambda *_a, **_k: "wallet_demo"
+        mobile_module, "_resolve_wallet_lookup_user_id", lambda *_a, **_k: wallet_user_id
     )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
-        SimpleNamespace(get_session_owner_key=AsyncMock(return_value="user:student_demo")),
+        SimpleNamespace(get_session_owner_key=AsyncMock(return_value=f"user:{user_id}")),
     )
 
 
@@ -4732,11 +5372,67 @@ def test_mobile_chat_start_turn_hard_balance_gate_allows_when_enforced_and_suffi
     assert len(started) == 1
 
 
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_missing_wallet_when_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+
+    class MissingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(_user_id: str):
+            return None
+
+    monkeypatch.setattr(mobile_module, "wallet_service", MissingWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "billing_quota_exceeded"
+    assert started == []
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_unconfigured_wallet_service_when_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+
+    class UnconfiguredWalletService:
+        is_configured = False
+
+        @staticmethod
+        def get_wallet(_user_id: str):
+            raise AssertionError("unconfigured wallet service should fail before wallet reads")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", UnconfiguredWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 503
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_wallet_unavailable"
+    assert detail["limited_by"] == "wallet_service"
+    assert started == []
+
+
 def test_mobile_chat_start_turn_hard_balance_gate_is_off_during_internal_beta(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Enforcement OFF (default): even an empty wallet must not block start-turn.
-    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    # Explicit internal-beta override: even an empty wallet must not block start-turn.
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     started: list[object] = []
     _install_start_turn_stubs(monkeypatch, started)
     monkeypatch.setattr(
@@ -4752,6 +5448,79 @@ def test_mobile_chat_start_turn_hard_balance_gate_is_off_during_internal_beta(
     assert response.status_code == 200
     assert response.json()["turn"]["id"] == "turn_1"
     assert len(started) == 1
+
+
+def test_mobile_chat_start_turn_internal_qa_billing_bypass_skips_wallet_quota(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    started: list[object] = []
+    wallet_calls: list[str] = []
+    _install_start_turn_stubs(
+        monkeypatch,
+        started,
+        user_id=canonical_uid,
+        wallet_user_id=canonical_uid,
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "member_service",
+        SimpleNamespace(
+            get_profile=lambda _user_id: {
+                "user_id": "auth_2d9eac155d264e93941b9ec6",
+                "username": "qa_student_demo",
+            }
+        ),
+    )
+
+    class FailingWalletService:
+        is_configured = True
+
+        def get_wallet(self, _user_id: str):
+            wallet_calls.append("get_wallet")
+            return None
+
+        def list_wallet_ledger(self, _user_id: str, *, limit: int = 20, offset: int = 0):
+            wallet_calls.append("list_wallet_ledger")
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["turn"]["id"] == "turn_1"
+    assert len(started) == 1
+    assert wallet_calls == []
+
+
+def test_mobile_chat_start_turn_internal_qa_billing_bypass_keeps_non_qa_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    monkeypatch.setattr(
+        mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=1_000_000)
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "billing_quota_exceeded"
+    assert started == []
 
 
 def test_mobile_chat_start_turn_rejects_oversized_query() -> None:

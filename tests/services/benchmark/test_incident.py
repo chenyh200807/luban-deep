@@ -48,6 +48,19 @@ def test_build_incident_replay_report_classifies_regression_and_blind_spot() -> 
     payload = build_incident_replay_report(
         benchmark_payload=_sample_benchmark_payload(),
         incident_id="INC-001",
+        observer_payload={
+            "runtime_incidents": [
+                {
+                    "incident_type": "supabase_primary_plan_exploded",
+                    "summary": "Supabase primary plan exploded",
+                    "release_blocking": True,
+                    "benchmark_projection": {
+                        "case_id": "runtime.supabase.primary_plan_exploded",
+                        "recommended_tier": "incident_replay",
+                    },
+                }
+            ]
+        },
     )
 
     assert payload["run_manifest"]["incident_id"] == "INC-001"
@@ -57,13 +70,33 @@ def test_build_incident_replay_report_classifies_regression_and_blind_spot() -> 
         "new_failure_count": 0,
         "current_failure_count": 1,
         "blind_spot_count": 1,
+        "runtime_incident_count": 1,
+        "blocking_runtime_incident_count": 1,
     }
+    assert payload["runtime_incidents"] == [
+        {
+            "incident_type": "supabase_primary_plan_exploded",
+            "summary": "Supabase primary plan exploded",
+            "release_blocking": True,
+            "benchmark_projection": {
+                "case_id": "runtime.supabase.primary_plan_exploded",
+                "recommended_tier": "incident_replay",
+            },
+        }
+    ]
     assert payload["replay_candidates"] == [
         {
             "incident_id": "INC-001",
             "case_id": "surface.web.ack.smoke",
             "suite": "incident_replay",
             "reason": "missing_api_base_url",
+            "recommended_tier": "incident_replay",
+        },
+        {
+            "incident_id": "INC-001",
+            "case_id": "runtime.supabase.primary_plan_exploded",
+            "suite": "incident_replay",
+            "reason": "Supabase primary plan exploded",
             "recommended_tier": "incident_replay",
         }
     ]

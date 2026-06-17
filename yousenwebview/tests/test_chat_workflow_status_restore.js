@@ -38,7 +38,28 @@ function loadChatPage() {
     require: function (request) {
       if (request === "../../utils/auth") return { getToken: function () { return "token"; } };
       if (request === "../../utils/api") return { unwrapResponse: function (raw) { return raw; } };
-      if (request === "../../utils/ai-message-state") return {};
+      if (request === "../../utils/ai-message-state") {
+        return {
+          coerceUserVisibleContent: function (value) { return String(value || ""); },
+          sanitizePresentationForState: function (presentation) { return presentation || null; },
+          deriveAiMessageRenderState: function (payload) {
+            var content = String((payload && payload.content) || "");
+            var presentation = payload && payload.presentation;
+            return {
+              renderableContent: content,
+              blocks: content ? [{ type: "markdown", content: content }] : [],
+              mcqCards: null,
+              mcqHint: "",
+              mcqReceipt: "",
+              mcqInteractiveReady: false,
+              mcqReviewMode: false,
+              originalContent: "",
+              originalCollapsed: true,
+              hasStructuredContent: !!presentation,
+            };
+          },
+        };
+      }
       if (request === "../../utils/ws-stream") return {};
       if (request === "../../utils/helpers") {
         return {
@@ -67,9 +88,20 @@ function loadChatPage() {
         };
       }
       if (request === "../../utils/logger") return { warn: function () {}, error: function () {} };
+      if (request === "../../utils/workflow-status") {
+        return require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+      }
       if (request === "../../utils/citation-format") return {};
-      if (request === "../../utils/chat-turn-recovery") return {};
+      if (request === "../../utils/chat-turn-recovery") {
+        return {
+          getAssistantDisplayText: function (message) {
+            return message && message.content ? String(message.content) : "";
+          },
+        };
+      }
       if (request === "../../utils/devtools-markdown-fixtures") return {};
+      if (request === "../../utils/surface-telemetry") return { trackOnce: function () {} };
+      if (request === "../../utils/history-tombstone") return {};
       if (request === "../../utils/runtime") return {};
       if (request === "../../utils/route") return {};
       if (request === "../../utils/flags") {
@@ -95,6 +127,19 @@ function loadChatPage() {
   });
 
   return pageDef;
+}
+
+function applySetData(page, patch) {
+  Object.keys(patch || {}).forEach(function (key) {
+    var match = /^messages\[(\d+)\]\.(.+)$/.exec(key);
+    if (match) {
+      var idx = Number(match[1]);
+      var field = match[2];
+      page.data.messages[idx][field] = patch[key];
+      return;
+    }
+    page.data[key] = patch[key];
+  });
 }
 
 function loadChatSource() {
@@ -242,6 +287,55 @@ run("workflow trace should accept stage and tool events from ws stream", functio
   assert(internalStatusSurface.indexOf("HEARTBEAT") === -1, "workflow should hide internal file paths in status");
 });
 
+run("result final answer should settle visible workflow before done", function () {
+  var page = loadChatPage();
+  page.data = {
+    messages: [
+      {
+        id: "a1",
+        role: "ai",
+        content: "",
+        renderableContent: "",
+        streaming: true,
+        blocks: [],
+        hasStructuredContent: false,
+        presentation: null,
+        mcqCards: null,
+        workflowEntries: [{ id: "wf1", title: "资料较多，正在继续深度核对" }],
+        workflowActive: true,
+        workflowBadge: "稍等片刻",
+        workflowTitle: "资料较多，正在继续深度核对",
+        workflowSub: "系统还在拆题干、查依据、对采分点",
+        workflowMeta: "",
+        workflowCountText: "",
+        workflowToggleText: "查看处理摘要",
+        workflowTone: "analyze",
+        thinkingStatus: "资料较多，正在继续深度核对",
+        thinkingBadge: "稍等片刻",
+        thinkingSub: "系统还在拆题干、查依据、对采分点",
+        thinkingTone: "analyze",
+      },
+    ],
+    isStreaming: true,
+    canStopStream: true,
+  };
+  page._streamId = "a1";
+  page._messageIndexMap = { a1: 0 };
+  page._buf = "";
+  page.setData = function (patch) {
+    applySetData(page, patch);
+  };
+
+  page._onFinal({ response: "## 批改结论\n最终批改答案", engine_turn_id: "turn_1" });
+
+  assert(page.data.messages[0].content.indexOf("最终批改答案") >= 0, "final response should render");
+  assert(page.data.messages[0].workflowActive === false, "visible answer should stop active workflow");
+  assert(page.data.messages[0].streaming === false, "visible answer should stop message streaming");
+  assert(page.data.messages[0].thinkingStatus === "", "visible answer should clear active thinking copy");
+  assert(page.data.isStreaming === false, "visible answer should unlock the input before done replay");
+  assert(page.data.canStopStream === false, "visible answer should hide stop control before done replay");
+});
+
 run("workflow trace should stay compact and show reliability summary", function () {
   var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
   var entries = [];
@@ -258,6 +352,44 @@ run("workflow trace should stay compact and show reliability summary", function 
   assert(entries.length <= 5, "workflow trace should compact to at most five visible learning steps");
   assert(summary.subline.indexOf("题型识别") >= 0, "completed summary should explain learning progress");
   assert(summary.countText.indexOf("已核对：") === 0, "completed summary should include a reliability cue");
+});
+
+run("case grading workflow should make long analysis visible", function () {
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
+
+  var caseEntry = workflowStatus.buildWorkflowEntry({
+    eventType: "tool_call",
+    toolName: "grade_answer",
+    seq: 31,
+    metadata: { args: { question: "建筑实务案例题背景资料很长" } },
+  });
+  var slowStatus = workflowStatus.normalizeWorkflowStatus({ data: "slow_response" });
+  var continuingStatus = workflowStatus.normalizeWorkflowStatus({
+    data: "analysis_continuing",
+    eventType: "analysis_continuing",
+    content: "案例题还在逐项核对题干、采分点和你的作答，请继续等待结果。",
+  });
+  var unknownCaseStatus = workflowStatus.normalizeWorkflowStatus(
+    "请批改这道案例题，材料比较长",
+  );
+
+  assert(caseEntry.badge === "案例批改", "case grading should use visible grading progress");
+  assert(caseEntry.title === "正在逐项匹配采分点", "case grading should name the scoring-point step");
+  assert(caseEntry.detail.indexOf("资料较多") >= 0, "case grading should explain why it may take longer");
+  assert(slowStatus.headline === "资料较多，正在继续深度核对", "slow status should avoid generic waiting copy");
+  assert(slowStatus.subline.indexOf("查依据") >= 0, "slow status should show real analysis work");
+  assert(
+    continuingStatus.headline === "案例题仍在深度核对",
+    "quiet-after-first-token status should not expose internal event keys",
+  );
+  assert(
+    continuingStatus.subline.indexOf("采分点") >= 0,
+    "quiet-after-first-token status should explain the scoring-point work",
+  );
+  assert(
+    unknownCaseStatus.headline === "正在拆解案例资料和作答结构",
+    "free text case status should still map to case analysis wording",
+  );
 });
 
 run("workflow summary should use active analysis wording by default", function () {
