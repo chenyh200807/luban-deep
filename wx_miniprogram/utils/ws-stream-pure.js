@@ -59,8 +59,6 @@ function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
     "release_id",
     "grading_engine_version",
     "v1_case_graded",
-    "score_authority",
-    "grading_rubric_provenance",
   ];
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];

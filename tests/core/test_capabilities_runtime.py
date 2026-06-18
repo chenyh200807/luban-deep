@@ -6176,12 +6176,39 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
         ),
     )
     loop.tools = TutorBotToolRegistry()
-    for tool_name in ("rag", "web_search", "code_execution"):
+    for tool_name in ("rag", "web_search", "code_execution", "read_file", "write_file", "list_dir", "web_fetch"):
         loop.tools.register(NamedTool(tool_name))
 
     content = await loop.process_direct(
         "建筑构造是什么？",
         metadata={"default_tools": ["rag"]},
+    )
+
+    assert content == "已完成"
+    assert captured["tool_names"] == ["rag"]
+
+    captured.clear()
+    content = await loop.process_direct(
+        "显式空 default_tools 不能被 wrapper 改回 rag",
+        metadata={"default_tools": []},
+    )
+
+    assert content == "已完成"
+    assert captured["tool_names"] == []
+
+    captured.clear()
+    content = await loop.process_direct(
+        "显式非法 default_tools 不能被 wrapper 改回 rag",
+        metadata={"default_tools": ["code_execution"]},
+    )
+
+    assert content == "已完成"
+    assert captured["tool_names"] == []
+
+    captured.clear()
+    content = await loop.process_direct(
+        "没有 default_tools metadata 时也只能用安全默认工具",
+        metadata={},
     )
 
     assert content == "已完成"

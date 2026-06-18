@@ -54,6 +54,12 @@ async def test_kbv5_pipeline_projects_readonly_chunks(monkeypatch: pytest.Monkey
     monkeypatch.setattr(kbv5, "observability", _FakeObservability())
     monkeypatch.setattr(kbv5, "_retrieve_chunks", _fake_retrieve_chunks)
 
+    async def _fake_embed_query(query: str) -> list[float]:
+        captured["embedded_query"] = query
+        return [0.0] * kbv5.EMBED_DIM
+
+    monkeypatch.setattr(kbv5, "_embed_query", _fake_embed_query)
+
     pipeline = kbv5.KbV5Pipeline()
     result = await pipeline.search(
         "建筑构造是什么？",
@@ -64,8 +70,10 @@ async def test_kbv5_pipeline_projects_readonly_chunks(monkeypatch: pytest.Monkey
     )
 
     assert captured["query"] == "建筑构造是什么？"
+    assert captured["embedded_query"] == "建筑构造是什么？"
     assert captured["top_k"] == 1
     assert captured["doc_types"] == ("textbook",)
+    assert len(captured["embedding"]) == kbv5.EMBED_DIM
     assert result["provider"] == "kbv5"
     assert result["retrieval_status"] == "ok"
     assert result["sources"][0]["source_table"] == "kb_v5.chunks"
@@ -109,7 +117,7 @@ class _FakeConnection:
         return _FakeCursor(self._captured)
 
     def close(self) -> None:
-        return None
+        self._captured["closed"] = True
 
 
 # A query shaped like the production failure: case background containing a
@@ -158,21 +166,23 @@ def test_lexical_query_text_dedupes_and_caps_terms() -> None:
 def test_retrieve_chunks_sends_bounded_lexical_query_but_embeds_full_query(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import sys
-    import types
-
     from deeptutor.services.rag.pipelines import kbv5
 
     captured: dict[str, Any] = {}
-    fake_psycopg2 = types.ModuleType("psycopg2")
-    fake_psycopg2.connect = lambda url, connect_timeout=20: _FakeConnection(captured)
-    monkeypatch.setitem(sys.modules, "psycopg2", fake_psycopg2)
+    monkeypatch.setattr(
+        kbv5,
+        "connect_for_fact",
+        lambda fact, **kwargs: (
+            captured.update({"fact": fact, "connect_kwargs": kwargs})
+            or _FakeConnection(captured)
+        ),
+    )
 
     embedded: dict[str, str] = {}
 
     def _embedder(text: str) -> list[float]:
         embedded["text"] = text
-        return [0.0] * 4
+        return [0.0] * kbv5.EMBED_DIM
 
     kbv5._retrieve_chunks(
         _MARKDOWN_TABLE_QUERY,
@@ -189,7 +199,55 @@ def test_retrieve_chunks_sends_bounded_lexical_query_but_embeds_full_query(
     sent_query_text = captured["params"][0]
     assert sent_query_text == kbv5.lexical_query_text(_MARKDOWN_TABLE_QUERY)
     assert "-" not in sent_query_text
-    assert captured["session"] == {"readonly": True, "autocommit": True}
+    assert captured["fact"] == "kb_v5_chunk_retrieval"
+    assert captured["connect_kwargs"]["db_url"] == "postgresql://user:pass@example/db"
+    assert captured["connect_kwargs"]["readonly"] is True
+    assert captured["connect_kwargs"]["timeout_s"] == 20
+    assert captured["closed"] is True
+
+
+@pytest.mark.asyncio
+async def test_kbv5_embedding_uses_embedding_client_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import kbv5
+
+    captured: dict[str, Any] = {}
+
+    class FakeEmbeddingClient:
+        def __init__(self, config: Any) -> None:
+            captured["config"] = config
+
+        async def embed(self, texts: list[str]) -> list[list[float]]:
+            captured["texts"] = texts
+            return [[0.0] * kbv5.EMBED_DIM]
+
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "sk-test")
+    monkeypatch.setattr(kbv5, "EmbeddingClient", FakeEmbeddingClient)
+
+    embedding = await kbv5._embed_query("建筑构造是什么？")
+
+    config = captured["config"]
+    assert captured["texts"] == ["建筑构造是什么？"]
+    assert config.binding == "dashscope"
+    assert config.model == kbv5.EMBED_MODEL_DEFAULT
+    assert config.dim == kbv5.EMBED_DIM
+    assert config.effective_url == kbv5.DASHSCOPE_EMBEDDING_BASE_URL
+    assert len(embedding) == kbv5.EMBED_DIM
+
+
+@pytest.mark.asyncio
+async def test_kbv5_embedding_fails_closed_on_wrong_dimension(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import kbv5
+
+    class WrongDimensionClient:
+        async def embed(self, texts: list[str]) -> list[list[float]]:
+            return [[0.0] * 4]
+
+    with pytest.raises(kbv5._KbV5Unavailable, match="unexpected embedding dim"):
+        await kbv5._embed_query("建筑构造是什么？", client=WrongDimensionClient())
 
 
 def test_benchmark_adapter_shares_the_same_lexical_query_authority(

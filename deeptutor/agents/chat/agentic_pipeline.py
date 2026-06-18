@@ -1025,6 +1025,7 @@ class AgenticChatPipeline:
                     messages=messages,
                     tools=tool_schemas,
                     tool_choice="auto",
+                    extra_headers=self.extra_headers or None,
                     **completion_kwargs,
                 )
             except Exception as exc:
@@ -1570,8 +1571,6 @@ class AgenticChatPipeline:
             client_kwargs = openai_client_kwargs()
         except LLMConfigError as exc:
             raise RuntimeError(str(exc)) from exc
-        if self.extra_headers:
-            client_kwargs["default_headers"] = self.extra_headers
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):
             return make_azure_openai_client(
                 self.api_key or "sk-no-key-required",

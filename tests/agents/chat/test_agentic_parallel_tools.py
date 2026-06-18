@@ -1700,3 +1700,113 @@ async def test_build_openai_client_reuses_pooled_client_within_loop(
     first = pipeline._build_openai_client()
     second = pipeline._build_openai_client()
     assert first is second
+
+
+@pytest.mark.asyncio
+async def test_build_openai_client_keeps_extra_headers_request_scoped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pooled_client = object()
+    captured: dict[str, Any] = {}
+    test_key = "pooled-extra-header-test-value"
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key=test_key,
+            base_url="https://pooled-extra-header.example.com",
+            api_version=None,
+            extra_headers={"APP-Code": "abc"},
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: object()
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_pooled_openai_client",
+        lambda api_key, base_url=None: (
+            captured.update({"api_key": api_key, "base_url": base_url}) or pooled_client
+        ),
+    )
+
+    def _unexpected_make_openai_client(*_args: Any, **_kwargs: Any) -> object:
+        raise AssertionError("extra_headers must not force per-call OpenAI client construction")
+
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.make_openai_client",
+        _unexpected_make_openai_client,
+    )
+
+    pipeline = AgenticChatPipeline(language="en")
+
+    assert pipeline._build_openai_client() is pooled_client
+    assert captured == {
+        "api_key": test_key,
+        "base_url": "https://pooled-extra-header.example.com",
+    }
+
+
+@pytest.mark.asyncio
+async def test_native_tool_loop_passes_extra_headers_on_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+    test_key = "request-scoped-header-test-value"
+
+    class FakeCompletions:
+        async def create(self, **kwargs: Any) -> Any:
+            captured["kwargs"] = kwargs
+            return SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(content="", tool_calls=[]),
+                    )
+                ],
+                usage=None,
+            )
+
+    class FakeRegistry:
+        def build_openai_schemas(self, enabled_tools: list[str]) -> list[dict[str, Any]]:
+            return []
+
+        def build_prompt_text(self, *_args: Any, **_kwargs: Any) -> str:
+            return ""
+
+    fake_client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key=test_key,
+            base_url="https://pooled-extra-header.example.com",
+            api_version=None,
+            extra_headers={"APP-Code": "abc"},
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: FakeRegistry()
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_pooled_openai_client",
+        lambda api_key, base_url=None: fake_client,
+    )
+
+    pipeline = AgenticChatPipeline(language="en")
+    bus = StreamBus()
+    _events, consumer = await _collect_bus_events(bus)
+    try:
+        traces = await pipeline._run_native_tool_loop(
+            UnifiedContext(session_id="s", user_message="hello", metadata={}),
+            [],
+            "thinking",
+            bus,
+        )
+    finally:
+        await bus.close()
+        await consumer
+
+    assert traces == []
+    assert captured["kwargs"]["extra_headers"] == {"APP-Code": "abc"}

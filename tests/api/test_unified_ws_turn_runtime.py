@@ -3081,6 +3081,106 @@ async def test_turn_runtime_routes_recent_practice_offer_acceptance_to_deep_ques
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FailingCapability:
+        async def run(self, context, bus) -> None:
+            raise RuntimeError("raw provider secret boom")
+
+    class FakeRegistry:
+        def get(self, name: str):
+            return FailingCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "capability": "chat",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events: list[dict[str, Any]] = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["status"] == "failed"
+    assert "raw provider secret boom" in str(persisted_turn["error"])
+
+    public_blob = json.dumps(
+        [
+            {"type": event.get("type"), "content": event.get("content"), "metadata": event.get("metadata")}
+            for event in events
+        ],
+        ensure_ascii=False,
+    )
+    assert "raw provider secret boom" not in public_blob
+    assert any(
+        event.get("type") == StreamEventType.ERROR.value
+        and (event.get("metadata") or {}).get("turn_terminal") is True
+        and (event.get("metadata") or {}).get("status") == "failed"
+        for event in events
+    )
+    assert events[-1].get("type") == StreamEventType.DONE.value
+    assert (events[-1].get("metadata") or {}).get("status") == "failed"
+
+    detail = await store.get_session_with_messages(turn["session_id"])
+    assert detail is not None
+    assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
+    assert assistant_messages
+    assert assistant_messages[-1]["metadata"]["terminal_status"] == "failed"
+    assert "raw provider secret boom" not in assistant_messages[-1]["content"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_keeps_open_chat_tutorbot_followup_on_tutorbot_authority(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

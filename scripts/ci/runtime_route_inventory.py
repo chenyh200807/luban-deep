@@ -50,6 +50,18 @@ def _collect_dep_names(dependant: Any) -> list[str]:
     return names
 
 
+def _collect_rate_limit_markers(dependant: Any) -> list[str]:
+    """Collect dependencies created by the rate-limit authority factories."""
+    scopes: list[str] = []
+    for sub in getattr(dependant, "dependencies", []) or []:
+        call = getattr(sub, "call", None)
+        if bool(getattr(call, "__deeptutor_rate_limit__", False)):
+            scope = str(getattr(call, "__deeptutor_rate_limit_scope__", "") or "route_rate_limit")
+            scopes.append(scope)
+        scopes.extend(_collect_rate_limit_markers(sub))
+    return scopes
+
+
 def _classify(has_auth: bool, has_rate: bool, is_public_marker: bool) -> str:
     if has_auth:
         return "secure_authed"
@@ -102,11 +114,12 @@ def build_inventory() -> dict[str, Any]:
             continue  # Mount, Route, etc. — not API surface
 
         dep_names = set(_collect_dep_names(dependant))
+        rate_limit_scopes = sorted(set(_collect_rate_limit_markers(dependant)))
         has_auth = bool(
             dep_names
             & (_AUTH_USER_DEPS | _AUTH_ADMIN_DEPS | _AUTH_SELF_DEPS | _AUTH_BI_DEPS)
         )
-        has_rate = bool(dep_names & _RATE_LIMIT_DEPS)
+        has_rate = bool(dep_names & _RATE_LIMIT_DEPS) or bool(rate_limit_scopes)
 
         for method in methods:
             public_reason = _is_public_path(method, path)
@@ -118,6 +131,7 @@ def build_inventory() -> dict[str, Any]:
                     "kind": kind,
                     "endpoint": endpoint_name,
                     "all_dependency_names": sorted(dep_names),
+                    "rate_limit_scopes": rate_limit_scopes,
                     "has_auth_dep": has_auth,
                     "auth_dep_kind": _auth_kind(dep_names),
                     "has_rate_limit_dep": has_rate,

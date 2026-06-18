@@ -119,16 +119,8 @@ class ChatOrchestrator:
         capability = self._cap_registry.get(cap_name)
 
         if capability is None:
-            bus = StreamBus()
-            await bus.error(
-                f"Unknown capability: {cap_name}. "
-                f"Available: {self._cap_registry.list_capabilities()}",
-                source="orchestrator",
-            )
-            await bus.close()
-            async for event in bus.subscribe():
-                yield event
-            return
+            available = self._cap_registry.list_capabilities()
+            raise RuntimeError(f"Unknown capability: {cap_name}. Available: {available}")
 
         yield StreamEvent(
             type=StreamEventType.SESSION,
@@ -142,14 +134,17 @@ class ChatOrchestrator:
         bus = StreamBus()
 
         async def _run() -> None:
+            completed = False
             try:
                 await capability.run(context, bus)
+                completed = True
             except Exception as exc:
                 logger.error("Capability %s failed: %s", cap_name, exc, exc_info=True)
-                await bus.error(str(exc), source=cap_name)
+                raise
             finally:
-                with contextlib.suppress(BaseException):
-                    await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
+                if completed:
+                    with contextlib.suppress(BaseException):
+                        await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
                 with contextlib.suppress(BaseException):
                     await bus.close()
 

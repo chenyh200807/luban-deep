@@ -905,8 +905,9 @@ class AgentLoop:
 
     def _resolve_tool_definitions(self, runtime_metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
         configured = runtime_metadata.get("default_tools") if isinstance(runtime_metadata, dict) else None
+        safe_default_names = [name for name in ("rag",) if self.tools.has(name)]
         if not isinstance(configured, list):
-            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
+            return self.tools.get_definitions(safe_default_names)
 
         ordered_names: list[str] = []
         seen: set[str] = set()
@@ -922,8 +923,6 @@ class AgentLoop:
             ordered_names.append(name)
             seen.add(name)
 
-        if not ordered_names:
-            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
         return self.tools.get_definitions(ordered_names)
 
     @classmethod
