@@ -23,7 +23,7 @@
 
   "R3_scenario_templates": [
     {"id": "pit", "engineering": "基坑支护/开挖", "danger_threshold": "开挖深度≥3m(或<3m但地质/周边复杂)", "over_scale_threshold": "开挖深度≥5m"},
-    {"id": "formwork", "engineering": "混凝土模板支撑", "danger_threshold": "搭设高度≥5m / 跨度≥10m / 总荷载≥15kN·m⁻²", "over_scale_threshold": "搭设高度≥8m / 跨度≥18m"},
+    {"id": "formwork", "engineering": "混凝土模板支撑", "danger_threshold": "搭设高度≥5m / 跨度≥10m / 施工总荷载≥15kN·m⁻² / 集中线荷载≥20kN·m⁻¹", "over_scale_threshold": "搭设高度≥8m / 跨度≥18m / 施工总荷载≥20kN·m⁻² / 集中线荷载≥40kN·m⁻¹"},
     {"id": "scaffold", "engineering": "落地式钢管脚手架", "danger_threshold": "搭设高度≥24m", "over_scale_threshold": "搭设高度≥50m"},
     {"id": "hoisting", "engineering": "起重吊装/安装拆卸", "danger_threshold": "现场组装/单件起吊重量较大等", "over_scale_threshold": "单件起吊≥100kN 等"},
     {"id": "demolition", "engineering": "人工挖孔桩/暗挖/拆除", "danger_threshold": "属危大范围", "over_scale_threshold": "对应超规模标准"}

@@ -170,6 +170,26 @@ def validate(schema: dict[str, Any]) -> None:
             raise ValueError(f"{p.get('id')}.verdict 非法: {p.get('verdict')!r}")
     if d.get("reached_outcome") not in oids:
         raise ValueError(f"reached_outcome 不在 outcomes: {d.get('reached_outcome')!r}")
+    # 沿 verdict 路径求【实际】到达 outcome, 对比 reached_outcome(防声明与走向不一致)
+    pts_by_id = {p.get("id"): p for p in points}
+    cur = points[0].get("id")
+    seen: set[Any] = set()
+    reached_actual = None
+    for _ in range(len(points) + 1):
+        if cur in seen or cur not in pts_by_id:
+            break
+        seen.add(cur)
+        pp = pts_by_id[cur]
+        nxt = pp.get("next_on_met") if pp.get("verdict") == "met" else pp.get("next_on_unmet")
+        if str(nxt).startswith("outcome:"):
+            reached_actual = str(nxt).split(":", 1)[1]
+            break
+        cur = nxt
+    if reached_actual != d.get("reached_outcome"):
+        raise ValueError(f"reached_outcome 声明 {d.get('reached_outcome')!r} 但沿 verdict 实走到 {reached_actual!r}")
+    practice = schema.get("practice") or {}
+    if practice.get("answer") is not None and practice["answer"] not in {o.get("id") for o in practice.get("options") or []}:
+        raise ValueError(f"practice.answer {practice['answer']!r} 不在 options")
     # candidate 不冒充签发
     if base.authority_status(schema) not in CANDIDATE_STATUSES:
         raise ValueError(f"decision draft must be candidate/draft authority, got {base.authority_status(schema)!r}")

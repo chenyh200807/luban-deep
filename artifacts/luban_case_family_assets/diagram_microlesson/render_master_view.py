@@ -100,7 +100,7 @@ function answer(o, btn, v){
   const correct = (o.id === v.answer);
   btn.dataset.state = correct ? "correct" : "wrong";
   if(!correct){
-    [...optsEl.children].forEach((x,i)=>{ if(v.options[i].is_correct) x.dataset.state="correct"; });
+    [...optsEl.children].forEach((x,i)=>{ if(v.options[i].id === v.answer) x.dataset.state="correct"; });
   }
   fbEl.className = "q-fb show " + (correct?"correct":"wrong");
   fbEl.innerHTML = (correct?"✅ ":"❌ ") + (v.feedback||"") + '<span class="tier">判据:'+(v.basis||"")+' · 档位:'+(v.tier_tag||"")+'</span>';
@@ -138,7 +138,8 @@ document.getElementById("retry").addEventListener("click",()=>{
   quiz.classList.add("active"); renderQ();
   quiz.scrollIntoView({behavior:"smooth",block:"start"});
 });
-window.__demo=function(mode){results.length=0;if(mode==='rote'){results[0]=true;for(let i=1;i<V.length;i++)results[i]=false;}else{V.forEach((_,i)=>results[i]=true);}cur=V.length-1;showVerdict();};
+// 调试重放钩子(仅截图/QA 用): 只在 URL 带 ?demo 时挂载,生产默认不挂,防造假 verdict。
+if(new URLSearchParams(location.search).has("demo")){window.__demo=function(mode){results.length=0;if(mode==='rote'){results[0]=true;for(let i=1;i<V.length;i++)results[i]=false;}else{V.forEach((_,i)=>results[i]=true);}cur=V.length-1;showVerdict();};}
 renderQ();
 """
 
