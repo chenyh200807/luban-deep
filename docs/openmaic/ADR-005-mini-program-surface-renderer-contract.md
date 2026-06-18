@@ -149,6 +149,16 @@ P0 禁止 `lesson_ir` 包含：
 - browser-only event handlers
 - 任意动态 JS simulation
 
+### 6.1 Imported interactive content sandbox gate
+
+OpenMAIC 612a147 的 iframe sandbox 修复只作为 clean-room 安全启发：DeepTutor 不复制其实现，也不把 iframe host 引入 P0 小程序播放器。结论收敛为本 ADR 的 gate：
+
+- P0 `lesson_ir` validator 必须继续拒绝 raw HTML、inline script、iframe、external CSS、browser-only event handlers 和任意动态 JS simulation。
+- imported interactive content 只能先进入 source / review / export 候选层；未被 Scene Runtime Core 规范化为平台无关 render model 前，不能进入小程序主播放器。
+- HTML export 如未来必须承载 iframe/sandbox，必须独立于 P0 小程序主表面，并禁止 iframe 访问 host origin state、cookies、localStorage 或 parent DOM。
+- 小程序端不得用 WebView/iframe 作为 P0 课堂播放器或互动题主路径；所有互动必须通过 Scene Runtime Core 输出的 render model 与小程序原生 adapter 落地。
+- 任一 imported interactive block 失败时，只允许降级当前 block/scene，不能拖垮整条课堂、消息或 turn。
+
 ---
 
 ## 7. Mini-program job progress
@@ -345,6 +355,7 @@ P0 必须新增小程序 release gate：
 - 首屏进入课堂不白屏
 - 单 scene 渲染失败只降级当前 scene
 - 音频失败自动字幕回退
+- imported interactive content 不执行 raw HTML/JS，不访问 host state，失败时只降级当前 scene
 - case 长文本输入不丢失
 - quiz/case 提交后不会重复扣点
 - `packageDeeptutor` selective sync smoke 通过
@@ -383,6 +394,10 @@ P0 One-click Generation Gate 增加小程序指标：
 
 - `test_scene_runtime_core_has_no_dom_or_wx_dependency`
 - `test_lesson_ir_rejects_raw_html_inline_script_iframe`
+- `test_imported_interactive_content_requires_scene_runtime_normalization`
+- `test_html_export_iframe_sandbox_has_no_same_origin_host_access`
+- `test_wx_renderer_never_executes_imported_html_or_js`
+- `test_imported_interactive_block_failure_degrades_current_scene_only`
 - `test_wx_renderer_consumes_scene_runtime_render_model`
 - `test_html_export_consumes_scene_runtime_render_model`
 - `test_pptx_export_consumes_scene_runtime_render_model`

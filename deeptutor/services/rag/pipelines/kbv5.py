@@ -4,16 +4,17 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import os
 import re
 import time
-import urllib.request
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Callable
 
 from deeptutor.logging import get_logger
+from deeptutor.services.db.connection_factory import DbResolutionError, connect_for_fact
+from deeptutor.services.embedding.client import EmbeddingClient
+from deeptutor.services.embedding.config import EmbeddingConfig
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGSearchError, wrap_rag_error
@@ -22,6 +23,7 @@ from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
 
 EMBED_DIM = 1024
 EMBED_MODEL_DEFAULT = "text-embedding-v3"
+DASHSCOPE_EMBEDDING_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 DEFAULT_DOC_TYPES = ("standard", "textbook", "exam")
 
 observability = get_langfuse_observability()
@@ -59,26 +61,45 @@ def _env_csv(name: str, default: str) -> tuple[str, ...]:
     return values or tuple(item.strip() for item in default.split(",") if item.strip())
 
 
-def _dashscope_embed(
-    text: str,
-    *,
-    dim: int = EMBED_DIM,
-    model: str = EMBED_MODEL_DEFAULT,
-    api_key: str | None = None,
-) -> list[float]:
+def _build_kbv5_embedding_client(*, api_key: str | None = None) -> EmbeddingClient:
     key = api_key or os.environ.get("DASHSCOPE_API_KEY")
     if not key:
         raise _KbV5Unavailable("DASHSCOPE_API_KEY absent for query embedding")
-    body = json.dumps({"model": model, "input": text, "dimensions": dim}).encode("utf-8")
-    req = urllib.request.Request(
-        "https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings",
-        data=body,
-        method="POST",
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+    return EmbeddingClient(
+        EmbeddingConfig(
+            model=EMBED_MODEL_DEFAULT,
+            api_key=key,
+            base_url=DASHSCOPE_EMBEDDING_BASE_URL,
+            effective_url=DASHSCOPE_EMBEDDING_BASE_URL,
+            binding="dashscope",
+            provider_name="dashscope",
+            provider_mode="standard",
+            dim=EMBED_DIM,
+            request_timeout=40,
+            batch_size=1,
+            batch_delay=0.0,
+        )
     )
-    with urllib.request.urlopen(req, timeout=40) as response:
-        payload = json.loads(response.read())
-    return list(payload["data"][0]["embedding"])
+
+
+def _validate_embedding(embedding: list[float]) -> list[float]:
+    if len(embedding) != EMBED_DIM:
+        raise _KbV5Unavailable(f"unexpected embedding dim {len(embedding)} (expected {EMBED_DIM})")
+    return embedding
+
+
+async def _embed_query(text: str, *, client: EmbeddingClient | None = None) -> list[float]:
+    vectors = await (client or _build_kbv5_embedding_client()).embed([text])
+    if not vectors:
+        raise _KbV5Unavailable("embedding provider returned no vectors")
+    return _validate_embedding(list(vectors[0]))
+
+
+def _embed_query_sync(text: str) -> list[float]:
+    vectors = _build_kbv5_embedding_client().embed_sync([text])
+    if not vectors:
+        raise _KbV5Unavailable("embedding provider returned no vectors")
+    return _validate_embedding(list(vectors[0]))
 
 
 def _vector_literal(embedding: list[float]) -> str:
@@ -146,28 +167,25 @@ def _retrieve_chunks(
     top_k: int,
     doc_types: tuple[str, ...],
     data_version: int,
+    embedding: list[float] | None = None,
     embedder: Callable[[str], list[float]] | None = None,
     db_url: str | None = None,
 ) -> _RetrievalResult:
-    url = db_url or os.environ.get("KBV5_DB_URL")
-    if not url:
-        raise _KbV5Unavailable("KBV5_DB_URL absent")
-    try:
-        import psycopg2
-    except Exception as exc:  # noqa: BLE001
-        raise _KbV5Unavailable(f"psycopg2 unavailable: {exc}") from exc
-
-    embedding = (embedder or _dashscope_embed)(query)
-    if len(embedding) != EMBED_DIM and embedder is None:
-        raise _KbV5Unavailable(f"unexpected embedding dim {len(embedding)} (expected {EMBED_DIM})")
-    vector = _vector_literal(embedding)
+    embedding_values = _validate_embedding(
+        list(embedding if embedding is not None else (embedder or _embed_query_sync)(query))
+    )
+    vector = _vector_literal(embedding_values)
     lexical_query = lexical_query_text(query)
 
     started = time.monotonic()
     conn = None
     try:
-        conn = psycopg2.connect(url, connect_timeout=20)
-        conn.set_session(readonly=True, autocommit=True)
+        conn = connect_for_fact(
+            "kb_v5_chunk_retrieval",
+            db_url=db_url,
+            readonly=True,
+            timeout_s=20,
+        )
         cur = conn.cursor()
         cur.execute(
             "select chunk_id, doc_id, doc_type, authority, loc, content, "
@@ -180,6 +198,8 @@ def _retrieve_chunks(
         columns = [item[0] for item in cur.description]
         rows = cur.fetchall()
         cur.close()
+    except DbResolutionError as exc:
+        raise _KbV5Unavailable(str(exc)) from exc
     except _KbV5Unavailable:
         raise
     except Exception as exc:  # noqa: BLE001
@@ -208,7 +228,7 @@ def _retrieve_chunks(
         query=query,
         chunks=chunks,
         latency_ms=round((time.monotonic() - started) * 1000.0, 1),
-        embed_dim=len(embedding),
+        embed_dim=len(embedding_values),
         doc_types=doc_types,
     )
 
@@ -325,12 +345,14 @@ class KbV5Pipeline:
             },
         ) as observation:
             try:
+                embedding = await _embed_query(query)
                 result = await asyncio.to_thread(
                     _retrieve_chunks,
                     query,
                     top_k=top_k,
                     doc_types=doc_types,
                     data_version=data_version,
+                    embedding=embedding,
                 )
             except Exception as exc:  # noqa: BLE001
                 rag_error = wrap_rag_error(

@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from deeptutor.core.context import UnifiedContext
+from deeptutor.core.stream import StreamEventType
 from deeptutor.runtime.orchestrator import ChatOrchestrator
 
 
@@ -37,6 +38,33 @@ class _FakeRegistry:
         return []
 
 
+class _FailingCapability:
+    async def run(self, context: UnifiedContext, bus) -> None:
+        raise RuntimeError("raw provider secret boom")
+
+
+class _FailingRegistry:
+    def get(self, name: str) -> Any:
+        return _FailingCapability()
+
+    def list_capabilities(self) -> list[str]:
+        return ["chat"]
+
+    def get_manifests(self) -> list[dict[str, Any]]:
+        return []
+
+
+class _MissingCapabilityRegistry:
+    def get(self, name: str) -> Any:
+        return None
+
+    def list_capabilities(self) -> list[str]:
+        return ["chat"]
+
+    def get_manifests(self) -> list[dict[str, Any]]:
+        return []
+
+
 @pytest.mark.asyncio
 async def test_orchestrator_autoroutes_practice_request_to_deep_question() -> None:
     orchestrator = ChatOrchestrator()
@@ -57,6 +85,49 @@ async def test_orchestrator_autoroutes_practice_request_to_deep_question() -> No
     assert context.config_overrides["question_type"] == "choice"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_propagates_capability_failure_without_done_or_raw_public_error() -> None:
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _FailingRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-fails",
+        user_message="hello",
+        config_overrides={"capability": "chat"},
+        metadata={},
+        language="zh",
+    )
+
+    events = []
+    with pytest.raises(RuntimeError, match="raw provider secret boom"):
+        async for event in orchestrator.handle(context):
+            events.append(event)
+
+    assert all(event.type != StreamEventType.DONE for event in events)
+    assert all("raw provider secret boom" not in str(event.content or "") for event in events)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_unknown_capability_fails_terminal_truth() -> None:
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _MissingCapabilityRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-missing",
+        user_message="hello",
+        config_overrides={"capability": "chat"},
+        metadata={},
+        language="zh",
+    )
+
+    events = []
+    with pytest.raises(RuntimeError, match="Unknown capability: chat"):
+        async for event in orchestrator.handle(context):
+            events.append(event)
+
+    assert events == []
 
 
 @pytest.mark.asyncio

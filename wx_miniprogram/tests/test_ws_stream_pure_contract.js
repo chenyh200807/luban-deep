@@ -448,6 +448,8 @@ var gradingMetaFinalEv = pure.buildFinalResponseEvent({
   release_id: "1.0.0+aaac931f+production",
   grading_engine_version: "luban_case_rubric_v1",
   v1_case_graded: false,
+  score_authority: "hidden-score-authority",
+  grading_rubric_provenance: "hidden-rubric-provenance",
 });
 assertEqual(
   gradingMetaFinalEv && gradingMetaFinalEv.api_base,
@@ -468,6 +470,16 @@ assertEqual(
   gradingMetaFinalEv && gradingMetaFinalEv.v1_case_graded,
   false,
   "[buildFinalResponseEvent] exposes v1_case_graded false without dropping it",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(gradingMetaFinalEv, "score_authority"),
+  false,
+  "[buildFinalResponseEvent] does not expose hidden score authority",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(gradingMetaFinalEv, "grading_rubric_provenance"),
+  false,
+  "[buildFinalResponseEvent] does not expose hidden grading provenance",
 );
 
 // ─────────────────────────────────────────────────────────────

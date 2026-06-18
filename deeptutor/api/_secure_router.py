@@ -52,6 +52,7 @@ from deeptutor.api.dependencies.rate_limit import enforce_websocket_rate_limit
 __all__ = [
     "AuthContext",
     "secure_router",
+    "secure_ws_router",
     "public_router",
     "secure_ws_endpoint",
 ]
@@ -99,6 +100,23 @@ def public_router(
     router = APIRouter(prefix=prefix, tags=tags, **kwargs)
     # Marker for runtime introspection (read by runtime_route_inventory.py).
     router.__public_reason__ = reason.strip()  # type: ignore[attr-defined]
+    return router
+
+
+def secure_ws_router(
+    prefix: str = "",
+    *,
+    tags: list[str] | None = None,
+    **kwargs: Any,
+) -> APIRouter:
+    """WS-only router factory.
+
+    WebSocket auth must happen inside the endpoint via ``secure_ws_endpoint`` so
+    the handler can close with the contract-specific 4401 / 1013 codes. This
+    factory intentionally does not add FastAPI router dependencies.
+    """
+    router = APIRouter(prefix=prefix, tags=tags, **kwargs)
+    router.__secure_ws_router__ = True  # type: ignore[attr-defined]
     return router
 
 

@@ -25,12 +25,15 @@ export type StreamEventType =
   | "session"
   | "done";
 
+export type StreamEventVisibility = "public" | "internal";
+
 export interface StreamEvent {
   type: StreamEventType;
   source: string;
   stage: string;
   content: string;
   metadata: Record<string, unknown>;
+  visibility?: StreamEventVisibility;
   session_id?: string;
   turn_id?: string;
   seq?: number;

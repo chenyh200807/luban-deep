@@ -256,6 +256,16 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "200")
     monkeypatch.setattr(mobile_module, "datetime", _FixedDateTime)
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda _authorization: mobile_module.AuthContext(
+            user_id=canonical_uid,
+            provider="local",
+            token="test-token",
+            claims={"uid": canonical_uid, "canonical_uid": canonical_uid},
+        ),
+    )
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
     monkeypatch.setattr(mobile_module, "_load_legacy_wallet_ledger_entries", lambda *args, **kwargs: [])
 

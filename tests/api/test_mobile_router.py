@@ -1267,6 +1267,11 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "_resolve_wallet_lookup_user_id",
         lambda *_args, **_kwargs: "wallet_demo",
     )
@@ -1283,6 +1288,21 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     assert body["display"]["primary_label"] == "剩余 100%"
     assert body["display"]["plan_id"] == "vip"
     assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
+
+
+def test_billing_usage_requires_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class ConfiguredWalletService:
+        is_configured = True
+
+    monkeypatch.setattr(mobile_module, "wallet_service", ConfiguredWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/usage")
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
 
 
 def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
@@ -1331,6 +1351,11 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: FakeUsageMeter())
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "_resolve_wallet_lookup_user_id",
         lambda *_args, **_kwargs: "wallet_demo",
     )
@@ -1371,6 +1396,11 @@ def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "_resolve_wallet_lookup_user_id",
         lambda *_args, **_kwargs: "wallet_demo",
     )
@@ -1401,6 +1431,11 @@ def test_billing_ledger_returns_degraded_empty_page_when_billing_storage_unavail
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
         mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
         "_resolve_wallet_lookup_user_id",
         lambda *_args, **_kwargs: "wallet_demo",
     )
@@ -1415,6 +1450,21 @@ def test_billing_ledger_returns_degraded_empty_page_when_billing_storage_unavail
     body = response.json()
     assert body["entries"] == []
     assert body["degraded"] is True
+
+
+def test_billing_ledger_requires_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class ConfiguredWalletService:
+        is_configured = True
+
+    monkeypatch.setattr(mobile_module, "wallet_service", ConfiguredWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/billing/ledger")
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
 
 
 def test_billing_checkout_creates_wechat_order_shell_without_gateway(

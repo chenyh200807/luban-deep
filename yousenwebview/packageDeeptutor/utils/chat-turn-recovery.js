@@ -33,27 +33,7 @@ function _messageMetadata(message) {
 
 function getAssistantDisplayText(message) {
   if (!message || typeof message !== "object") return "";
-  var metadata = _messageMetadata(message);
-  var nested =
-    metadata.metadata && typeof metadata.metadata === "object"
-      ? metadata.metadata
-      : {};
-  var candidates = [
-    message.content,
-    message.response,
-    message.assistant_content,
-    metadata.response,
-    metadata.assistant_content,
-    metadata.content,
-    nested.response,
-    nested.assistant_content,
-    nested.content,
-  ];
-  for (var i = 0; i < candidates.length; i++) {
-    var text = normalizeMessageText(candidates[i]);
-    if (text) return String(candidates[i] || "");
-  }
-  return "";
+  return normalizeMessageText(message.content) ? String(message.content || "") : "";
 }
 
 function _messageTurnId(message) {

@@ -18,6 +18,11 @@
 - KB v5 只读直连 provider 只能作为 `RAGService` 后面的 provider 实现，
   通过只读事务调用 `public.search_chunks_v2`；不得成为第二套 RAG 入口、
   不得写 Supabase/PG，也不得承担评分 authority。
+  其 embedding 必须复用统一 `EmbeddingClient` / provider runtime config /
+  usage-cost observation authority；其 Postgres 连接必须复用
+  `connect_for_fact("kb_v5_chunk_retrieval", readonly=True)` 与
+  `contracts/db_registry.yaml`，不得在 pipeline 内再次直读 `KBV5_DB_URL`、
+  私建 DashScope HTTP client 或私建 DB 连接 authority。
 - exact-question 与 authority metadata 必须以统一字段进入上层 agent
 - TutorBot 默认知识链只能由统一 runtime defaults 注入到 `tools/knowledge_bases`
 - 本地知识库重建只能通过 `POST /api/v1/knowledge/{kb_name}/reindex`
@@ -46,13 +51,14 @@
 17. LLM SDK 客户端生命周期：高频调用路径（`services/llm/executors.py` 的 `sdk_complete/sdk_stream`、agentic acting loop）必须复用 `get_pooled_openai_client()` 的进程级共享连接池，按 (api_key, base_url) 键控；每调用专属的头（如 `x-session-affinity`）必须走请求级 `extra_headers=`，不得为传 header 退回每调用新建 client（那会泄漏一个永不关闭的 httpx 池）。需要 client 级 header / 自定义 timeout / azure 形态时仍走 `make_openai_client()`，调用方自行管理生命周期。
 17. `needs_reindex` 表示当前 canonical 本地 index 不可信；清除该标记的唯一工程路径是从 `raw/` 源文档重新构建成功。不得只靠修改配置或进度状态把它改成 ready。
 18. `retrieval_plan` 是可回放的检索计划 trace，只能描述本轮 source group、intent、query expansion 和 authority order；不得成为第二套 RAG 入口、聊天路由或 TutorBot mode。
+18a. KB v5 provider 是只读检索 implementation，不是 provider/runtime config authority：查询 embedding 必须先在 async 主链路通过 `EmbeddingClient` 生成并记录 usage/cost，再把 1024 维向量交给只读 DB 检索线程；缺少 `DASHSCOPE_API_KEY`、embedding 维度不为 1024、或 DB fact 无法经 registry 解析时，必须以 typed `RAGSearchError(stage="pipeline.kbv5.search")` fail closed，不得 fallback 到 Supabase、空成功或未计费 raw HTTP。
 19. `compiled_learning_truth` 只能由 learner-state / synthesis 层作为只读 projection 传入 `RAGService.search(...)` / provider context；`SupabasePipeline` 只允许 materialize retrieval documents，不允许写 learner-state、更新长期画像或从数据库自行拉取 learner truth。
 20. compiled truth 默认只能进入 `ranking_trace.shadow_sources`，不得影响 `answer/content/sources` 或排序。只有显式 enable 且 intent 属于 `weak_point_review` / `next_training` 时，才允许进入最终候选；即便进入候选，也不能压过 exact-question、标准条文、题库标准答案。
 21. `ranking_trace.provenance_features` 默认只暴露来源、authority、证据等级、人工确认、支持事件数量等 compact metadata；不得记录完整 compiled projection、原始私密画像、手机号、钱包、会员账户等敏感字段。
 22. provenance boost 默认关闭；开启时也只能做 bounded adjustment，且 exact-question pinning 是独立 authority contract，不得依赖 provenance boost 才成立。
 23. TutorBot / Chat agent runtime 如果已经持有 caller-passed `compiled_learning_truth`，必须通过现有 `rag` tool top-level kwargs 传入 `RAGService`；`routing_metadata` 只能记录 `compiled_learning_truth_available` 这类 compact marker，不得承载完整 projection，不得在 wrapper 内合成、拉取或改写 learner truth。
 24. ChatCapability 只能归一化 mode / config 并委托 `AgenticChatPipeline`；fast mode 的工具裁剪也必须留在 agentic pipeline 内执行。不得在 capability wrapper 内另起一条直接 LLM / 直接 tool 终端路径，否则会绕开统一 RAG fallback、sources/result 组装和 trace authority。
-24a. `AgenticChatPipeline` 在解析 end-user enabled tools 时必须复用统一 end-user tool exposure policy，普通聊天 / RAG 链路不得暴露 `code_execution`、`exec` 或其兼容 alias。该过滤只收紧用户侧工具面，不新增 RAG provider、执行身份或第二套 route authority；内部受信评测/开发代码执行必须走独立控制面。
+24a. `AgenticChatPipeline` 在解析 end-user enabled tools 时必须复用统一 end-user tool exposure policy，普通聊天 / RAG 链路不得暴露 `code_execution`、`exec` 或其兼容 alias。Native tool-calling 与 ReAct fallback 的执行边界还必须按同一 enabled set 拒绝 provider 未广告工具调用；未广告调用不得进入 registry execution，也不得把拒绝补丁下沉到 RAG provider 或 prompt。该过滤只收紧用户侧工具面，不新增 RAG provider、执行身份或第二套 route authority；内部受信评测/开发代码执行必须走独立控制面。
 25. graph-aware retrieval 只能作为 compiled truth materialization 的只读上下文，允许表达 `question -> concept -> rubric_item -> error_code -> training_signal -> next_question` 这类 typed edges；它不是第二套 graph DB、第二套 RAG provider，也不得绕过 source-aware ranking。
 26. retrieval maintenance workflow 必须是离线 dry-run / job 形态，输出 retrieval miss、citation、stale weak point、rubric coverage、eval case 报告；不得写 Supabase learner-state，也不得进入在线 `/api/v1/ws` 低延迟链路。
 27. 当 `compiled_learning_truth` final-source enablement 被显式开启且 intent 属于弱点复习 / 下一题训练时，最终 sources 必须至少保留一条已 materialize 的 compiled truth 证据；该证据只能追加在 exact-question、标准、教材等 authority 后面，不得抢占更高权威来源。
@@ -120,6 +126,9 @@
 ## 必测项
 
 - `tests/services/rag/test_rag_pipelines.py`
+- `tests/services/rag/test_kbv5_pipeline.py`
+- `tests/services/db/test_connection_factory.py`
+- `tests/scripts/test_db_registry.py`
 - `tests/services/rag/test_supabase_strategy.py`
 - `tests/agents/chat/test_agentic_parallel_tools.py`
 - `tests/services/citations/test_normalizer.py`

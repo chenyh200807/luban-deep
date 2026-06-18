@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import json
 import logging
 import sys
@@ -401,6 +402,31 @@ def test_resolve_user_id_accepts_lowercase_bearer_prefix(tmp_path: Path) -> None
     token = service._issue_access_token(user_id="student_demo")
 
     assert service.resolve_user_id(f"bearer {token}") == "student_demo"
+
+
+def test_verify_access_token_rejects_signed_token_without_exp(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    payload = {
+        "v": 1,
+        "sub": "student_demo",
+        "uid": "student_demo",
+        "canonical_uid": "student_demo",
+        "provider": "local",
+        "iat": int(time.time()),
+    }
+    payload_part = service._b64url_encode(
+        json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    )
+    signature = hmac.new(
+        service._auth_secret().encode("utf-8"),
+        payload_part.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    token = f"dtm.{payload_part}.{service._b64url_encode(signature)}"
+
+    assert service.verify_access_token(token) is None
+    assert service.resolve_user_id(f"Bearer {token}") == ""
 
 
 def test_issue_access_token_uses_configured_ttl(

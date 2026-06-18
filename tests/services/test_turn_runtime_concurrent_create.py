@@ -45,3 +45,47 @@ async def test_start_turn_raises_clean_error_when_create_turn_always_conflicts(
                 "language": "zh",
             }
         )
+
+
+@pytest.mark.asyncio
+async def test_server_busy_rejected_turn_is_terminal_in_store(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    async def _deny_turn_slot() -> bool:
+        return False
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime._acquire_turn_slot",
+        _deny_turn_slot,
+    )
+
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "session_id": "session-h5-server-busy",
+            "content": "test server busy",
+            "capability": "tutorbot",
+            "language": "zh",
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    persisted = await store.get_turn(turn["id"])
+    assert [
+        (event["type"], (event.get("metadata") or {}).get("status"))
+        for event in events
+        if event.get("type") in {"error", "done"}
+    ] == [
+        ("error", "rejected"),
+        ("done", "rejected"),
+    ]
+    assert persisted is not None
+    assert persisted["status"] == "failed"
+    assert persisted["finished_at"]
+    assert persisted["error"] == "server_busy"

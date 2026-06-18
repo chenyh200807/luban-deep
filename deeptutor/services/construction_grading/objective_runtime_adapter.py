@@ -244,13 +244,22 @@ def build_objective_candidate_payload(
     question_id: str,
     selected_option: Any,
     learner_context: dict[str, Any] | None = None,
+    index: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Append-only objective candidate payload. Fail-closed on tamper; fail-open on not-in-bank."""
+    """Append-only objective candidate payload. Fail-closed on tamper; fail-open on not-in-bank.
+
+    ``index`` optionally injects a pre-verified {question_id: record} map (e.g. the M25-C
+    real-source candidate bundle). When omitted, the tracked synthetic candidate bundle is
+    loaded + verified. Either way answer_key is the sole authority; the LLM cannot decide
+    correctness; status stays candidate_unverified (never release)."""
     qid = str(question_id or "").strip()
-    try:
-        verified, index = _candidate_index()
-    except Exception as exc:  # noqa: BLE001 — must never break legacy
-        return _fail_closed(f"index_error:{exc}")
+    if index is not None:
+        verified = bool(index)
+    else:
+        try:
+            verified, index = _candidate_index()
+        except Exception as exc:  # noqa: BLE001 — must never break legacy
+            return _fail_closed(f"index_error:{exc}")
     if not verified:
         return _fail_closed("candidate_bundle_failed_verification")  # tamper / malformed -> fail-closed
     if not qid or qid not in index:
