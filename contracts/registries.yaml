@@ -111,6 +111,9 @@ scanners:
   - script: scripts/check_local_env.py
     governs: local env sanity (dev tool)
     enforcement: operational
+  - script: scripts/check_luban_animation_taxonomy_alignment.py
+    governs: Luban animation pack taxonomy alignment registry / production manifest consistency (content-production gate)
+    enforcement: operational
   - script: scripts/check_secret_envs.py
     governs: secret-in-env scan (pre-commit / on-demand)
     enforcement: operational
