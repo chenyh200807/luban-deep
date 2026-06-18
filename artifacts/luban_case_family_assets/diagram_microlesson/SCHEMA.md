@@ -44,6 +44,8 @@
 | `layer_section_reveal` | （F16 剖面雏形） | 候选 | `render_card.py` | 剖面/构造节点分层（暂与 process 同 renderer） |
 | `network_plan_keypath` | N01 网络计划关键线路 | rendered proof | `render_network_card.py` | 数据驱动自动成图：activities/dependencies → SVG 网络图，关键线路高亮（硬能力样板） |
 | `answer_point_diagnosis_draft` | D01 采分点诊断 | **schema draft（无 renderer）** | — | 判分解释草案：命中/部分/漏点逐点判读（仅验证字段通用性，不是 production 模板） |
+| `contrast_pair_reveal_draft` | C01 施工缝对照 | schema draft（原型 renderer） | `render_contrast_card.py` | 错/对对照揭示；可选预录音频旁白（`<audio>`+timing，非 TTS、非外链合成） |
+| `decision_branch_reveal_draft` | J01 危大论证判断 | schema draft（原型 renderer） | `render_decision_card.py` | 判断点分支沿 next_on_met/unmet 走到 reached_outcome 再揭示 |
 
 **F16 兼容规则**：F16 当前 JSON **未显式写 `template_type`**（不强行大改）。校验器与 renderer 从 `scenario.diagram_type` 推断：`roof_section_step_reveal → process_step_reveal`（含剖面表达，可视为 `layer_section_reveal` 的超集）。新卡一律显式写 `template_type`。
 
@@ -92,8 +94,10 @@
 | `process_step_reveal` / `layer_section_reveal` | `steps[]` |
 | `network_plan_keypath` | `question_data.{activities, dependencies, expected}` |
 | `answer_point_diagnosis_draft` | `question` + `model_answer_skeleton` + `student_sample` + `diagnosis[]` |
+| `contrast_pair_reveal_draft` | `contrast_items[]`（每项 `wrong.text` + `right.text`/`right.scoring_expression` + `scoring_point_binding`） |
+| `decision_branch_reveal_draft` | `decision.{judgment_points[](verdict met/unmet/na · next_on_met/next_on_unmet → 判断点 id 或 `outcome:<id>` · scoring_point_binding), outcomes[], reached_outcome}` |
 
-- `steps[]`、`question_data.activities`、`diagnosis[]` **三者只能其一**作为主 body，不得混用。
+- `steps[]` / `question_data.activities` / `diagnosis[]` / `contrast_items[]` / `decision.judgment_points` **五者只能其一**作为主 body，不得混用（由 `validate_schema_drafts.py` 的 `detect_body()` 守门）。
 - `scoring_points` / `common_errors` / `practice` 是 spine，可被多种 body 共用（`diagnosis[].scoring_point_id` 引用 `scoring_points[].id`，是引用不是再判分）。
 
 ## 学生端安全规则（`rendering_contract.student_safe_fields`）
