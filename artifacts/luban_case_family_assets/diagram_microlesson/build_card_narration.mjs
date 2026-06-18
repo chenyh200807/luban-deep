@@ -40,6 +40,21 @@ function deriveNarration(s) {
     segs.push({ id: `axis_${it.id}`, anchor: `item:${it.id}`, text: t });
   });
 
+  // ④判断: decision.judgment_points 逐条 + 结论(anchor 对齐渲染器 data-anchor)
+  const dec = s.decision;
+  if (dec && Array.isArray(dec.judgment_points)) {
+    dec.judgment_points.forEach((p, i) => {
+      const lead = i === 0 ? "先判" : "再判";
+      const crit = trimTail(p.criterion || "");
+      const reason = trimTail(p.verdict_reason || "");
+      let t = `${lead}:${trimTail(p.question || "")}。判据是${crit}。${reason}。`;
+      segs.push({ id: `jp_${p.id}`, anchor: `point:${p.id}`, text: t });
+    });
+    const outcomes = (dec.outcomes || []).reduce((m, o) => ((m[o.id] = o), m), {});
+    const reached = outcomes[dec.reached_outcome];
+    if (reached) segs.push({ id: "conclusion", anchor: "outcome", text: `所以结论:${trimTail(reached.label)}。` });
+  }
+
   // 采分关键: scoring_points keywords 去重
   const kws = [...new Set((s.scoring_points || []).flatMap((sp) => sp.keywords || []))];
   if (kws.length) segs.push({ id: "scoring", anchor: "scoring", text: `这道题的采分关键就这几组词:${kws.join("、")}。写到了就稳。` });

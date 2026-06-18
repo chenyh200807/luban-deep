@@ -1,0 +1,87 @@
+{
+  "schema_version": "luban_deep_archetype_master.sample.v0",
+  "master_id": "M_danger_work_expert_argumentation",
+  "_status_note": "深母题【完整闭环样板】(围绕一个考点:危大工程要不要专家论证)。对齐《鲁班深母题数据标准 v1.0》R1-R8 + 运行时铁律(只读/只发候选/不写结论)。这是样板:非生产 case_family,schema_version 标 sample,不冒充未登记的 case_family_structure.v1;将来映射:teaching_card_ref→讲懂、variants→受控变题、misconception→映射 ERROR_CODE_REGISTRY、scoring_point_refs→引用 grading artifact、mastery_discrimination→复测鉴别候选。首样板由 F16(防水)改为本考点,依据真题案例频次(危大 80/11年=第一,防水 46 中游)。",
+  "exam_point": "危大工程要不要专家论证",
+  "taxonomy_ref": "1A431030-E01",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "runtime_rule": "只读/只发候选/不写结论:misconception 是候选(终判归 ERROR_CODE_REGISTRY)、scoring_point 只引用(终判归 grading artifact)、mastery 是鉴别候选(终判归 LearnerStateService)。",
+    "student_boundary": "这是教研讲解,不是官方阅卷;危大范围与论证标准以现行规范、教材和你的考试大纲为准。"
+  },
+
+  "R1_source_refs": [
+    {"ref": "《危险性较大的分部分项工程安全管理规定》(住建部令37号)及配套《危大工程范围》", "content_sha256": "(待补:编译时对教材/规范原文锚定)", "kind": "candidate"}
+  ],
+
+  "R2_invariant": "判断结构恒定:① 先用【危大范围阈值】判是否危大 → ② 再用【超过一定规模阈值】判是否需专家论证 → ③ 据档定结论(非危大/编方案/编方案+论证)。换皮只换工程类型与数值,这条两级判据链不变。",
+
+  "examiner_intent": "考的不是背'要论证',是会不会用两级判据给【具体工程+具体数值】分档;尤其会不会处理'危大但未超规模'的中间档和'未达危大'的下限档。",
+
+  "teaching_card_ref": "J01_danger_work_expert_argumentation",
+
+  "R3_scenario_templates": [
+    {"id": "pit", "engineering": "基坑支护/开挖", "danger_threshold": "开挖深度≥3m(或<3m但地质/周边复杂)", "over_scale_threshold": "开挖深度≥5m"},
+    {"id": "formwork", "engineering": "混凝土模板支撑", "danger_threshold": "搭设高度≥5m / 跨度≥10m / 总荷载≥15kN·m⁻²", "over_scale_threshold": "搭设高度≥8m / 跨度≥18m"},
+    {"id": "scaffold", "engineering": "落地式钢管脚手架", "danger_threshold": "搭设高度≥24m", "over_scale_threshold": "搭设高度≥50m"},
+    {"id": "hoisting", "engineering": "起重吊装/安装拆卸", "danger_threshold": "现场组装/单件起吊重量较大等", "over_scale_threshold": "单件起吊≥100kN 等"},
+    {"id": "demolition", "engineering": "人工挖孔桩/暗挖/拆除", "danger_threshold": "属危大范围", "over_scale_threshold": "对应超规模标准"}
+  ],
+  "_scenario_note": "阈值为教研整理·候选·未签发,编译时须对规范原文逐条核;此处用于变题分档,不作官方判分。",
+
+  "R4_variable_rules": {
+    "can_vary": ["工程类型(scenario_templates 之一)", "具体数值(深度/高度/荷载)", "干扰条件(地质/周边/季节)"],
+    "must_not_vary": ["两级判据链结构(范围阈值→超规模阈值→据档定论)", "结论档集合(非危大/编方案/编方案+论证)"],
+    "boundary": "LLM 只能在 scenario_templates 的阈值表内换数值生成变题,不得自创工程或改判据结构(红线9:变题不越变量边界)。"
+  },
+
+  "R5_scoring_point_refs": [
+    {"ref_id": "SP_danger", "binds": "J01.scoring_points[SP_danger]", "note": "只引用,不复制评分规则;终判归 grading artifact"},
+    {"ref_id": "SP_scale", "binds": "J01.scoring_points[SP_scale]"},
+    {"ref_id": "SP_conclusion", "binds": "J01.scoring_points[SP_conclusion]"}
+  ],
+
+  "R6_answer_skeleton": "①判危大:指出该工程属危大(写出范围判据,如 开挖深度≥3m);②判规模:指出是否超过一定规模(写出超规模判据,如 ≥5m);③下结论:据档说清要不要专家论证 + 一句理由。",
+
+  "R7_boundary_answers": [
+    {"sample": "答'需要专家论证',但没写'≥5m 超过一定规模'判据。", "verdict": "judged_partial(漏判据,得结论分不得判据分)", "review": "待人工/专家裁决(标准要求边界集≥30-50,本样板示意 2 条)"},
+    {"sample": "答'编了专项方案就行'。", "verdict": "judged_miss(漏专家论证环节)", "review": "待人工裁决"}
+  ],
+  "_boundary_note": "红线14:无人工/专家裁决的边界样本不得声称 scoring moat;本样板仅示意,量产前须补 30-50 条真实/专家裁决边界集。",
+
+  "R8_misconception": [
+    {"id": "MC_only_conclusion", "name": "只背结论不写判据", "signal": "直接写'要/不要论证',不提阈值", "maps_error_code_candidate": "(待映射 ERROR_CODE_REGISTRY E 系列)", "fix": "回判断流,先写范围判据再写超规模判据"},
+    {"id": "MC_confuse_two_tiers", "name": "混淆危大与超规模两档", "signal": "把'危大'当成'要论证',漏第二级判据", "maps_error_code_candidate": "(待映射)", "fix": "记住两道闸:第一道判危大(编方案)、第二道判超规模(才论证)"},
+    {"id": "MC_wrong_threshold", "name": "用错工程的阈值", "signal": "把基坑 3/5m 套到模板支撑/脚手架", "maps_error_code_candidate": "(待映射)", "fix": "按工程查对应阈值表(基坑3/5、模板5/8、脚手架24/50)"}
+  ],
+
+  "variants": [
+    {"id": "V1_pit", "scenario_id": "pit", "stem": "某工程基坑开挖深度 5.5m,已编制专项施工方案。是否需组织专家论证?",
+     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],
+     "judged_outcome": "need_argumentation", "basis": "5.5m≥3m 危大、≥5m 超规模", "tier_tag": "上限档(需论证)", "feedback": "对:5.5≥5,超过一定规模,要论证。"},
+    {"id": "V2_formwork", "scenario_id": "formwork", "stem": "某模板支撑工程搭设高度 6m(模板支撑≥5m 危大、≥8m 超规模)。判断?",
+     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但 6m<8m 未超规模,无需论证","is_correct":true},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],
+     "judged_outcome": "scheme_only", "basis": "6≥5 危大、6<8 未超规模", "tier_tag": "中间档(编方案不论证)·边界陷阱", "feedback": "对:6m 到了危大但没到超规模,编方案即可,不用论证。"},
+    {"id": "V3_scaffold", "scenario_id": "scaffold", "stem": "某落地式钢管脚手架搭设高度 55m(脚手架≥24m 危大、≥50m 超规模)。判断?",
+     "options": [{"id":"A","text":"非危大","is_correct":false},{"id":"B","text":"危大但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],
+     "judged_outcome": "need_argumentation", "basis": "55≥24 危大、≥50 超规模", "tier_tag": "上限档(换工程仍需论证)", "feedback": "对:换成脚手架,55≥50 照样超规模,要论证。"},
+    {"id": "V4_pit_low", "scenario_id": "pit", "stem": "某基坑开挖深度 2.5m,地质简单、周边空旷。判断?",
+     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":true},{"id":"B","text":"危大须编方案","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],
+     "judged_outcome": "not_dangerous", "basis": "2.5m<3m 且地质/周边不复杂,未达危大", "tier_tag": "下限档(非危大)", "feedback": "对:没到 3m 又不复杂,不构成危大,连专项方案都不需要。"}
+  ],
+
+  "mastery_discrimination": {
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。",
+    "real_understanding_signal": "V1-V4 判档全对,尤其 V2(边界:危大未超规模)与 V4(下限:非危大)对 = 会用两级判据分档,不是背原题。",
+    "rote_signal": "只 V1 对(原题数值),V2/V4 错 = 背了'危大要论证'的结论,不会分档。",
+    "discriminator_strength": "V2(边界陷阱)+ V4(非危大)是关键鉴别题:背过的人在这两题最易翻车。",
+    "warm_feedback": {
+      "all_correct": "你是真的会分档了——危大、超规模两道判据分得清,这类题稳。",
+      "partial": "就差边界那一步:再看 V2,'到了危大但没到超规模'只编方案、不论证。你离真懂只差这一档。",
+      "rote_leaning": "先别急着记'要论证'。回判断流把两道判据走一遍:第一道判危大(编方案)、第二道判超规模(才论证)。走顺了,换什么工程你都不慌。"
+    }
+  },
+
+  "_maps_to_production": "讲懂→teaching_card_ref(J01);R2/R3/R4/examiner_intent→case_family_structure;R5→grading artifact 引用;R8→ERROR_CODE_REGISTRY 映射;mastery_discrimination→retest_discriminator_candidate;落盘将来→artifacts/luban_case_family_assets/<case_family_id>/case_family.yaml(待 schema 登记 §7)。"
+}

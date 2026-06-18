@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>危大工程要不要专家论证 · 深母题</title>
+<style>
+:root{
+  --bg:#eef1f5;
+  --surface:#ffffff;
+  --paper:#fffdf8;
+  --ink:#1d2530;
+  --sub:#6b7686;
+  --line:#e7ebf0;
+  --correct:#1aa06d; --correct-bg:#e8f7f0; --correct-line:#bfe6d4;
+  --wrong:#d9534f;   --wrong-bg:#fdecea;   --wrong-line:#f3c4c0;
+  --partial:#e08a1e; --partial-bg:#fdf2e3; --partial-line:#f1d6a6;
+  --progress:#2f6df0;--progress-bg:#eaf1ff;
+  --shadow:0 16px 38px rgba(29,37,48,.12);
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  margin:0;background:linear-gradient(180deg,#eef4f8 0%,#f7f8f4 52%,#f2f5f7 100%);
+  color:var(--ink);line-height:1.55;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+}
+button{font:inherit}
+.page{max-width:1040px;margin:0 auto;padding:24px 16px 48px}
+.topline{display:flex;gap:10px;align-items:center;color:var(--sub);font-size:13px;margin-bottom:10px}
+.mark{width:34px;height:34px;border-radius:11px;background:var(--progress);display:grid;place-items:center;box-shadow:0 8px 18px rgba(47,109,240,.25)}
+.mark svg{width:19px;height:19px;stroke:#fff}
+h1{margin:0;font-size:clamp(22px,3.4vw,34px);line-height:1.2}
+.subtitle{max-width:760px;margin:10px 0 14px;color:#52617a;font-size:15px}
+.quicknav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.qn{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#33425a;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 6px 14px rgba(29,37,48,.06)}
+.qn:hover{border-color:#a9c6f7;color:var(--progress)}
+.teacher-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--progress);background:#dce8ff;border-radius:999px;padding:3px 10px;margin-bottom:10px;letter-spacing:.02em}
+.whycard{background:var(--progress-bg);border:1px solid #c3d8fb;border-radius:18px;padding:15px 17px;margin:0 0 18px;box-shadow:var(--shadow)}
+.whycard h2{margin:0 0 7px;font-size:16px;color:#1d4ed8}
+.whycard p{margin:0;color:#33425a;font-size:14px}
+.whycard b{color:var(--ink)}
+.narrator{background:#0f1f3a;border-radius:18px;padding:16px 18px;margin:0 0 18px;color:#eaf1ff;box-shadow:var(--shadow)}
+.narrator .npar{display:flex;align-items:center;gap:14px}
+.narr-play{flex:0 0 auto;min-height:48px;padding:12px 18px;border-radius:13px;border:0;background:var(--progress);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.narr-play.playing{background:#fff;color:var(--progress)}
+.narr-meta{font-size:13px;color:#a9c2ef;line-height:1.5}
+.narr-sub{margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;min-height:48px}
+.narr-track{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.narr-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--progress),var(--correct));border-radius:inherit;transition:width .25s linear}
+.narr-focus{outline:4px solid var(--progress);outline-offset:5px;border-radius:20px}
+.rows{display:grid;gap:18px}
+.crow{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.crow-head{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.7)}
+.crow-no{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--progress);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.crow-head h3{margin:0;font-size:16px}
+.crow-icon{margin:12px 16px 4px;padding:12px 12px 8px;background:linear-gradient(180deg,#f7fafc,#fffdf8);border:1px solid var(--line);border-radius:14px}
+.crow-icon svg{width:100%;max-width:460px;height:auto;display:block;margin:0 auto}
+.icon-cap{margin:8px auto 0;max-width:460px;color:var(--sub);font-size:12px;line-height:1.5;text-align:center}
+.pair{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;padding:14px 16px 16px}
+.card{border-radius:15px;padding:13px 14px;border:1px solid var(--line)}
+.card .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-bottom:7px}
+.card .badge{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900}
+.card p{margin:0;font-size:14px;line-height:1.6}
+.wrong-card{background:var(--wrong-bg);border-color:var(--wrong-line)}
+.wrong-card .tag{color:var(--wrong)} .wrong-card .badge{background:var(--wrong)}
+.loss-chip{display:inline-block;margin-top:9px;padding:3px 10px;border-radius:999px;background:#fff;border:1px solid var(--partial-line);color:var(--partial);font-size:12px;font-weight:700}
+.arrow{display:grid;place-items:center;color:var(--sub);font-size:20px;font-weight:800}
+.right-card{background:var(--correct-bg);border-color:var(--correct-line);position:relative}
+.right-card .tag{color:var(--correct)} .right-card .badge{background:var(--correct)}
+.scoring-expr{margin-top:11px;border-radius:12px;background:#f3fbf7;border:1px solid var(--correct-line);border-left:4px solid var(--correct);padding:10px 12px}
+.scoring-expr small{display:block;color:var(--correct);font-weight:800;font-size:11.5px;margin-bottom:4px;letter-spacing:.02em}
+.scoring-expr span{font-size:14px;color:#15402f;font-weight:600;line-height:1.6}
+.veil{position:absolute;inset:0;border-radius:15px;background:rgba(232,247,240,.92);backdrop-filter:blur(2px);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--correct-line)}
+.veil b{color:var(--correct);font-weight:800;font-size:14px}
+.right-card.revealed .veil{display:none}
+.section{margin-top:20px}
+.section h2{font-size:18px;margin:0 0 4px}
+.section .hint{margin:0 0 12px;color:var(--sub);font-size:13px}
+.bar{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+.score-grid,.error-grid{display:grid;gap:10px}
+.score-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;border-left:4px solid var(--correct)}
+.score-card b{display:block;font-size:13px;margin-bottom:5px}
+.score-card span{color:var(--sub);font-size:12.5px}
+.error-card{cursor:pointer;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;border-left:4px solid var(--partial)}
+.error-card:hover{border-color:#a9c6f7;background:#f8fbff}
+.error-card b{display:block;font-size:13px;margin-bottom:5px}
+.error-card .loss{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:7px;background:var(--partial-bg);color:var(--partial);font-size:11px;font-weight:700}
+.error-card span.why{display:block;color:var(--sub);font-size:12.5px}
+.crow.flash{animation:flash 1.1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(47,109,240,.5)}100%{box-shadow:var(--shadow)}}
+.practice{margin-top:20px;border-radius:20px;padding:18px;background:#fff;border:1px solid rgba(203,213,225,.9);box-shadow:var(--shadow)}
+.practice .teacher-tag{margin-bottom:6px}
+.practice h2{font-size:18px;margin:0 0 8px}
+.practice p.stem{font-size:14.5px;color:#36465a;margin:0 0 13px}
+.option-grid{display:grid;gap:10px}
+.option{min-height:54px;text-align:left;border-radius:13px;border:1px solid var(--line);background:#fff;padding:11px 13px;cursor:pointer;color:#263241;font-size:14px}
+.option:hover{border-color:#a9c6f7}
+.option[aria-pressed="true"].correct{border-color:var(--correct-line);background:var(--correct-bg)}
+.option[aria-pressed="true"].wrong{border-color:var(--wrong-line);background:var(--wrong-bg)}
+.option b{margin-right:6px}
+.feedback{margin-top:12px;border-radius:12px;padding:11px 12px;background:#f8fafc;border:1px solid var(--line);color:#405066;font-size:13.5px;line-height:1.55;display:none}
+.feedback.show{display:block}
+.feedback.correct{background:var(--correct-bg);border-color:var(--correct-line);color:#0f6b4f;font-weight:600}
+.feedback.wrong{background:var(--wrong-bg);border-color:var(--wrong-line);color:#9a3412}
+.next-action{margin-top:12px;color:var(--sub);font-size:13px}
+.wrap-card{margin-top:20px;border-radius:18px;padding:16px 18px;background:var(--correct-bg);border:1px solid var(--correct-line)}
+.wrap-card b{color:#0f6b4f}
+.memhook{margin-top:11px;border-radius:12px;background:#fff;border:1px dashed var(--correct-line);padding:11px 13px;font-size:14px;color:#15402f}
+.memhook strong{color:var(--correct)}
+.auth{margin-top:20px;border:1px solid var(--line);border-radius:15px;background:#fff;padding:13px;color:var(--sub);font-size:12px}
+.auth .nonofficial{margin-top:8px;font-weight:700;color:#9a3412}
+.sf{fill:none}
+.label{fill:#33425a;font-weight:700}
+.label-sub{fill:#6b7686;font-weight:600}
+.label-correct{fill:#0f6b4f} .label-wrong{fill:#b5392f}
+@media (max-width:560px){
+  .page{padding:16px 11px 32px}
+  h1{font-size:20px;line-height:1.26}
+  .subtitle{font-size:13px}
+  .qn{flex:1 1 28%;justify-content:center;min-height:44px;padding:8px 6px;font-size:12px}
+  .pair{grid-template-columns:1fr;gap:10px}
+  .arrow{transform:rotate(90deg)}
+  .crow-icon svg,.icon-cap{max-width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.mhead{background:#0f1f3a;border-radius:20px;padding:18px 20px;margin:0 0 16px;color:#eaf1ff;box-shadow:var(--shadow)}
+.mhead .tag{display:inline-block;font-size:12px;font-weight:800;color:#cfe0ff;background:rgba(255,255,255,.12);border-radius:999px;padding:3px 11px;margin-bottom:9px}
+.mhead h1{margin:0 0 12px;font-size:23px;line-height:1.25}
+.mhead .row{margin-top:9px;font-size:13.5px;line-height:1.6;color:#cdddf6}
+.mhead .row b{color:#fff}
+.step{background:rgba(255,255,255,.92);border:1px solid rgba(203,213,225,.9);border-radius:18px;box-shadow:var(--shadow);padding:16px 18px;margin:0 0 16px}
+.step .stepno{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--progress);margin-bottom:9px}
+.step .stepno i{width:24px;height:24px;border-radius:50%;background:var(--progress);color:#fff;display:grid;place-items:center;font-size:13px;font-style:normal}
+.teach-link{display:inline-flex;align-items:center;min-height:46px;padding:11px 16px;border-radius:13px;background:var(--progress);color:#fff;font-weight:800;text-decoration:none;font-size:14px}
+.teach-note{margin:10px 0 0;color:var(--sub);font-size:13px}
+.quiz{display:none} .quiz.active{display:block}
+.q-prog{display:flex;gap:6px;margin-bottom:12px}
+.q-prog i{flex:1;height:6px;border-radius:999px;background:#e2e8f0}
+.q-prog i.done{background:var(--correct)} .q-prog i.cur{background:var(--progress)} .q-prog i.wrong{background:var(--wrong)}
+.q-stem{font-size:15px;font-weight:600;color:var(--ink);line-height:1.6;margin:0 0 13px}
+.q-opts{display:grid;gap:10px}
+.q-opt{min-height:52px;text-align:left;border-radius:13px;border:1px solid var(--line);background:#fff;padding:11px 13px;cursor:pointer;color:#263241;font-size:14px;line-height:1.5}
+.q-opt:hover{border-color:#a9c6f7}
+.q-opt[data-state="correct"]{border-color:var(--correct-line);background:var(--correct-bg);color:#0f6b4f;font-weight:600}
+.q-opt[data-state="wrong"]{border-color:var(--wrong-line);background:var(--wrong-bg);color:#9a3412}
+.q-fb{margin-top:12px;border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.6;display:none}
+.q-fb.show{display:block}
+.q-fb.correct{background:var(--correct-bg);border:1px solid var(--correct-line);color:#0f6b4f}
+.q-fb.wrong{background:var(--wrong-bg);border:1px solid var(--wrong-line);color:#9a3412}
+.q-fb .tier{display:block;margin-top:5px;font-size:12px;color:var(--sub)}
+.q-next{margin-top:13px;min-height:46px;width:100%;border-radius:13px;border:0;background:var(--ink);color:#fff;font-weight:800;font-size:15px;cursor:pointer;display:none}
+.q-next.show{display:block}
+.verdict{display:none}
+.verdict.active{display:block}
+.verdict-card{border-radius:18px;padding:18px 20px;box-shadow:var(--shadow)}
+.verdict-card.real{background:var(--correct-bg);border:1px solid var(--correct-line)}
+.verdict-card.partial{background:var(--partial-bg);border:1px solid var(--partial-line)}
+.verdict-card.rote{background:#eef2f7;border:1px solid var(--line)}
+.verdict-card h2{margin:0 0 10px;font-size:19px}
+.verdict-card.real h2{color:#0f6b4f} .verdict-card.partial h2{color:#8a5212} .verdict-card.rote h2{color:#33425a}
+.verdict-card p{margin:0;font-size:15px;line-height:1.65;color:var(--ink)}
+.verdict-score{margin:12px 0;font-size:14px;color:var(--sub)}
+.verdict-score b{color:var(--ink);font-size:16px}
+.retry{margin-top:14px;min-height:44px;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:#fff;color:#334155;font-weight:700;cursor:pointer}
+.auth{margin-top:18px;border:1px solid var(--line);border-radius:15px;background:#fff;padding:13px;color:var(--sub);font-size:12px}
+.auth .nonofficial{margin-top:8px;font-weight:700;color:#9a3412}
+</style>
+</head>
+<body>
+<!--
+created_by: render_master_view.py (luban deep-archetype master · front-stage learning loop, sample)
+notes: 讲懂→变题闯关→看穿鉴别;不判分、不写掌握结论(候选);判据为教研候选,非官方阅卷。
+-->
+<main class="page">
+  <div class="mhead">
+    <span class="tag">鲁班深母题 · 围绕一个考点的完整闭环</span>
+    <h1>危大工程要不要专家论证</h1>
+    <div class="row"><b>出题人真正考:</b>考的不是背&#x27;要论证&#x27;,是会不会用两级判据给【具体工程+具体数值】分档;尤其会不会处理&#x27;危大但未超规模&#x27;的中间档和&#x27;未达危大&#x27;的下限档。</div>
+    <div class="row"><b>不变量(换皮不变):</b>判断结构恒定:① 先用【危大范围阈值】判是否危大 → ② 再用【超过一定规模阈值】判是否需专家论证 → ③ 据档定结论(非危大/编方案/编方案+论证)。换皮只换工程类型与数值,这条两级判据链不变。</div>
+  </div>
+
+  <div class="step">
+    <span class="stepno"><i>1</i>看懂</span>
+    <a class="teach-link" href="J01_danger_work_expert_argumentation.selfcontained.html">▶ 先听老师讲这道判断逻辑</a>
+    <p class="teach-note">先把"危大→编方案、超规模→还要论证"两道判据看懂,再来闯关。</p>
+  </div>
+
+  <div class="step quiz active" id="quiz">
+    <span class="stepno"><i>2</i>闯关变题(同考点换工程/换数值)</span>
+    <div class="q-prog" id="qProg"></div>
+    <p class="q-stem" id="qStem"></p>
+    <div class="q-opts" id="qOpts"></div>
+    <div class="q-fb" id="qFb"></div>
+    <button class="q-next" id="qNext" type="button"></button>
+  </div>
+
+  <div class="verdict" id="verdict">
+    <span class="stepno" style="margin-bottom:9px"><i>3</i>看穿:真懂还是背过</span>
+    <div class="verdict-card">
+      <h2></h2>
+      <div class="verdict-score"></div>
+      <p class="verdict-msg"></p>
+      <button class="retry" id="retry" type="button">换一组数值再练一遍</button>
+    </div>
+  </div>
+
+  <div class="auth">
+    <b>考试依据</b>:这是教研讲解,不是官方阅卷;危大范围与论证标准以现行规范、教材和你的考试大纲为准。
+    <div class="nonofficial">非官方阅卷 · 判据为教研候选 · 闯关不写掌握结论(鉴别候选)· 具体以现行规范 / 教材为准</div>
+  </div>
+</main>
+<script type="application/json" id="masterData">{"variants":[{"id":"V1_pit","stem":"某工程基坑开挖深度 5.5m,已编制专项施工方案。是否需组织专家论证?","options":[{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],"feedback":"对:5.5≥5,超过一定规模,要论证。","basis":"5.5m≥3m 危大、≥5m 超规模","tier_tag":"上限档(需论证)"},{"id":"V2_formwork","stem":"某模板支撑工程搭设高度 6m(模板支撑≥5m 危大、≥8m 超规模)。判断?","options":[{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但 6m<8m 未超规模,无需论证","is_correct":true},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],"feedback":"对:6m 到了危大但没到超规模,编方案即可,不用论证。","basis":"6≥5 危大、6<8 未超规模","tier_tag":"中间档(编方案不论证)·边界陷阱"},{"id":"V3_scaffold","stem":"某落地式钢管脚手架搭设高度 55m(脚手架≥24m 危大、≥50m 超规模)。判断?","options":[{"id":"A","text":"非危大","is_correct":false},{"id":"B","text":"危大但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],"feedback":"对:换成脚手架,55≥50 照样超规模,要论证。","basis":"55≥24 危大、≥50 超规模","tier_tag":"上限档(换工程仍需论证)"},{"id":"V4_pit_low","stem":"某基坑开挖深度 2.5m,地质简单、周边空旷。判断?","options":[{"id":"A","text":"非危大,无需专项方案","is_correct":true},{"id":"B","text":"危大须编方案","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],"feedback":"对:没到 3m 又不复杂,不构成危大,连专项方案都不需要。","basis":"2.5m<3m 且地质/周边不复杂,未达危大","tier_tag":"下限档(非危大)"}],"mastery_discrimination":{"warm_feedback":{"all_correct":"你是真的会分档了——危大、超规模两道判据分得清,这类题稳。","partial":"就差边界那一步:再看 V2,'到了危大但没到超规模'只编方案、不论证。你离真懂只差这一档。","rote_leaning":"先别急着记'要论证'。回判断流把两道判据走一遍:第一道判危大(编方案)、第二道判超规模(才论证)。走顺了,换什么工程你都不慌。"}}}</script>
+<script>
+const M = JSON.parse(document.getElementById("masterData").textContent);
+const V = M.variants;
+let cur = 0; const results = [];
+const quiz = document.getElementById("quiz");
+const stemEl = document.getElementById("qStem");
+const optsEl = document.getElementById("qOpts");
+const fbEl = document.getElementById("qFb");
+const nextEl = document.getElementById("qNext");
+const progEl = document.getElementById("qProg");
+
+function renderProg(){
+  progEl.innerHTML = V.map((_,i)=>{
+    let c = i<results.length ? (results[i]?"done":"wrong") : (i===cur?"cur":"");
+    return '<i class="'+c+'"></i>';
+  }).join("");
+}
+function renderQ(){
+  const v = V[cur];
+  stemEl.textContent = `第 ${cur+1}/${V.length} 题 · ${v.stem}`;
+  fbEl.className = "q-fb"; fbEl.textContent = ""; nextEl.className = "q-next";
+  optsEl.innerHTML = "";
+  v.options.forEach(o=>{
+    const b = document.createElement("button");
+    b.className = "q-opt"; b.type = "button"; b.textContent = o.id + ". " + o.text;
+    b.addEventListener("click",()=>answer(o, b, v));
+    optsEl.appendChild(b);
+  });
+  renderProg();
+}
+function answer(o, btn, v){
+  if(results.length > cur) return; // 已答
+  [...optsEl.children].forEach(x=>x.style.pointerEvents="none");
+  const correct = !!o.is_correct;
+  btn.dataset.state = correct ? "correct" : "wrong";
+  if(!correct){
+    [...optsEl.children].forEach((x,i)=>{ if(v.options[i].is_correct) x.dataset.state="correct"; });
+  }
+  fbEl.className = "q-fb show " + (correct?"correct":"wrong");
+  fbEl.innerHTML = (correct?"✅ ":"❌ ") + (v.feedback||"") + '<span class="tier">判据:'+(v.basis||"")+' · 档位:'+(v.tier_tag||"")+'</span>';
+  results[cur] = correct;
+  renderProg();
+  nextEl.className = "q-next show";
+  nextEl.textContent = (cur < V.length-1) ? "下一题 →" : "看穿:我到底懂没懂 →";
+}
+nextEl.addEventListener("click",()=>{
+  if(cur < V.length-1){ cur++; renderQ(); }
+  else showVerdict();
+});
+function showVerdict(){
+  quiz.classList.remove("active");
+  const right = results.filter(Boolean).length;
+  // 鉴别:V2(边界)+V4(非危大)是关键鉴别题
+  const keyIdx = V.map((v,i)=>/边界|非危大|中间档|下限/.test(v.tier_tag||"")?i:-1).filter(i=>i>=0);
+  const keyAllRight = keyIdx.every(i=>results[i]);
+  const wf = M.mastery_discrimination.warm_feedback;
+  let kind, title, msg;
+  if(right===V.length){ kind="real"; title="真懂 · 看穿了"; msg=wf.all_correct; }
+  else if(results[0] && !keyAllRight){ kind="rote"; title="像在背结论"; msg=wf.rote_leaning; }
+  else { kind="partial"; title="就差一步"; msg=wf.partial; }
+  const v = document.getElementById("verdict");
+  v.querySelector(".verdict-card").className = "verdict-card "+kind;
+  v.querySelector("h2").textContent = title;
+  v.querySelector(".verdict-msg").textContent = msg;
+  v.querySelector(".verdict-score").innerHTML = "答对 <b>"+right+"/"+V.length+"</b> · 关键鉴别题(边界档+非危大档)"+(keyAllRight?"全过":"有失手");
+  v.classList.add("active");
+  v.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.getElementById("retry").addEventListener("click",()=>{
+  cur=0; results.length=0;
+  document.getElementById("verdict").classList.remove("active");
+  quiz.classList.add("active"); renderQ();
+  quiz.scrollIntoView({behavior:"smooth",block:"start"});
+});
+window.__demo=function(mode){results.length=0;if(mode==='rote'){results[0]=true;for(let i=1;i<V.length;i++)results[i]=false;}else{V.forEach((_,i)=>results[i]=true);}cur=V.length-1;showVerdict();};
+renderQ();
+</script>
+</body>
+</html>

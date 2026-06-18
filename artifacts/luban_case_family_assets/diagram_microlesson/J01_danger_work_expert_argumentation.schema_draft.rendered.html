@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>危大工程 · 要不要专家论证(判断) · 图解微课</title>
+<style>
+:root{
+  --bg:#eef1f5;
+  --surface:#ffffff;
+  --paper:#fffdf8;
+  --ink:#1d2530;
+  --sub:#6b7686;
+  --line:#e7ebf0;
+  --correct:#1aa06d; --correct-bg:#e8f7f0; --correct-line:#bfe6d4;
+  --wrong:#d9534f;   --wrong-bg:#fdecea;   --wrong-line:#f3c4c0;
+  --partial:#e08a1e; --partial-bg:#fdf2e3; --partial-line:#f1d6a6;
+  --progress:#2f6df0;--progress-bg:#eaf1ff;
+  --shadow:0 16px 38px rgba(29,37,48,.12);
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{
+  margin:0;background:linear-gradient(180deg,#eef4f8 0%,#f7f8f4 52%,#f2f5f7 100%);
+  color:var(--ink);line-height:1.55;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+}
+button{font:inherit}
+.page{max-width:1040px;margin:0 auto;padding:24px 16px 48px}
+.topline{display:flex;gap:10px;align-items:center;color:var(--sub);font-size:13px;margin-bottom:10px}
+.mark{width:34px;height:34px;border-radius:11px;background:var(--progress);display:grid;place-items:center;box-shadow:0 8px 18px rgba(47,109,240,.25)}
+.mark svg{width:19px;height:19px;stroke:#fff}
+h1{margin:0;font-size:clamp(22px,3.4vw,34px);line-height:1.2}
+.subtitle{max-width:760px;margin:10px 0 14px;color:#52617a;font-size:15px}
+.quicknav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.qn{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);color:#33425a;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 6px 14px rgba(29,37,48,.06)}
+.qn:hover{border-color:#a9c6f7;color:var(--progress)}
+.teacher-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--progress);background:#dce8ff;border-radius:999px;padding:3px 10px;margin-bottom:10px;letter-spacing:.02em}
+.whycard{background:var(--progress-bg);border:1px solid #c3d8fb;border-radius:18px;padding:15px 17px;margin:0 0 18px;box-shadow:var(--shadow)}
+.whycard h2{margin:0 0 7px;font-size:16px;color:#1d4ed8}
+.whycard p{margin:0;color:#33425a;font-size:14px}
+.whycard b{color:var(--ink)}
+.narrator{background:#0f1f3a;border-radius:18px;padding:16px 18px;margin:0 0 18px;color:#eaf1ff;box-shadow:var(--shadow)}
+.narrator .npar{display:flex;align-items:center;gap:14px}
+.narr-play{flex:0 0 auto;min-height:48px;padding:12px 18px;border-radius:13px;border:0;background:var(--progress);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.narr-play.playing{background:#fff;color:var(--progress)}
+.narr-meta{font-size:13px;color:#a9c2ef;line-height:1.5}
+.narr-sub{margin-top:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.6;min-height:48px}
+.narr-track{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.16);overflow:hidden}
+.narr-track i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--progress),var(--correct));border-radius:inherit;transition:width .25s linear}
+.narr-focus{outline:4px solid var(--progress);outline-offset:5px;border-radius:20px}
+.rows{display:grid;gap:18px}
+.crow{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.crow-head{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.7)}
+.crow-no{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--progress);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.crow-head h3{margin:0;font-size:16px}
+.crow-icon{margin:12px 16px 4px;padding:12px 12px 8px;background:linear-gradient(180deg,#f7fafc,#fffdf8);border:1px solid var(--line);border-radius:14px}
+.crow-icon svg{width:100%;max-width:460px;height:auto;display:block;margin:0 auto}
+.icon-cap{margin:8px auto 0;max-width:460px;color:var(--sub);font-size:12px;line-height:1.5;text-align:center}
+.pair{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;padding:14px 16px 16px}
+.card{border-radius:15px;padding:13px 14px;border:1px solid var(--line)}
+.card .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;margin-bottom:7px}
+.card .badge{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900}
+.card p{margin:0;font-size:14px;line-height:1.6}
+.wrong-card{background:var(--wrong-bg);border-color:var(--wrong-line)}
+.wrong-card .tag{color:var(--wrong)} .wrong-card .badge{background:var(--wrong)}
+.loss-chip{display:inline-block;margin-top:9px;padding:3px 10px;border-radius:999px;background:#fff;border:1px solid var(--partial-line);color:var(--partial);font-size:12px;font-weight:700}
+.arrow{display:grid;place-items:center;color:var(--sub);font-size:20px;font-weight:800}
+.right-card{background:var(--correct-bg);border-color:var(--correct-line);position:relative}
+.right-card .tag{color:var(--correct)} .right-card .badge{background:var(--correct)}
+.scoring-expr{margin-top:11px;border-radius:12px;background:#f3fbf7;border:1px solid var(--correct-line);border-left:4px solid var(--correct);padding:10px 12px}
+.scoring-expr small{display:block;color:var(--correct);font-weight:800;font-size:11.5px;margin-bottom:4px;letter-spacing:.02em}
+.scoring-expr span{font-size:14px;color:#15402f;font-weight:600;line-height:1.6}
+.veil{position:absolute;inset:0;border-radius:15px;background:rgba(232,247,240,.92);backdrop-filter:blur(2px);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--correct-line)}
+.veil b{color:var(--correct);font-weight:800;font-size:14px}
+.right-card.revealed .veil{display:none}
+.section{margin-top:20px}
+.section h2{font-size:18px;margin:0 0 4px}
+.section .hint{margin:0 0 12px;color:var(--sub);font-size:13px}
+.bar{background:rgba(255,255,255,.9);border:1px solid rgba(203,213,225,.9);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+.score-grid,.error-grid{display:grid;gap:10px}
+.score-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;border-left:4px solid var(--correct)}
+.score-card b{display:block;font-size:13px;margin-bottom:5px}
+.score-card span{color:var(--sub);font-size:12.5px}
+.error-card{cursor:pointer;text-align:left;background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;border-left:4px solid var(--partial)}
+.error-card:hover{border-color:#a9c6f7;background:#f8fbff}
+.error-card b{display:block;font-size:13px;margin-bottom:5px}
+.error-card .loss{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:7px;background:var(--partial-bg);color:var(--partial);font-size:11px;font-weight:700}
+.error-card span.why{display:block;color:var(--sub);font-size:12.5px}
+.crow.flash{animation:flash 1.1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(47,109,240,.5)}100%{box-shadow:var(--shadow)}}
+.practice{margin-top:20px;border-radius:20px;padding:18px;background:#fff;border:1px solid rgba(203,213,225,.9);box-shadow:var(--shadow)}
+.practice .teacher-tag{margin-bottom:6px}
+.practice h2{font-size:18px;margin:0 0 8px}
+.practice p.stem{font-size:14.5px;color:#36465a;margin:0 0 13px}
+.option-grid{display:grid;gap:10px}
+.option{min-height:54px;text-align:left;border-radius:13px;border:1px solid var(--line);background:#fff;padding:11px 13px;cursor:pointer;color:#263241;font-size:14px}
+.option:hover{border-color:#a9c6f7}
+.option[aria-pressed="true"].correct{border-color:var(--correct-line);background:var(--correct-bg)}
+.option[aria-pressed="true"].wrong{border-color:var(--wrong-line);background:var(--wrong-bg)}
+.option b{margin-right:6px}
+.feedback{margin-top:12px;border-radius:12px;padding:11px 12px;background:#f8fafc;border:1px solid var(--line);color:#405066;font-size:13.5px;line-height:1.55;display:none}
+.feedback.show{display:block}
+.feedback.correct{background:var(--correct-bg);border-color:var(--correct-line);color:#0f6b4f;font-weight:600}
+.feedback.wrong{background:var(--wrong-bg);border-color:var(--wrong-line);color:#9a3412}
+.next-action{margin-top:12px;color:var(--sub);font-size:13px}
+.wrap-card{margin-top:20px;border-radius:18px;padding:16px 18px;background:var(--correct-bg);border:1px solid var(--correct-line)}
+.wrap-card b{color:#0f6b4f}
+.memhook{margin-top:11px;border-radius:12px;background:#fff;border:1px dashed var(--correct-line);padding:11px 13px;font-size:14px;color:#15402f}
+.memhook strong{color:var(--correct)}
+.auth{margin-top:20px;border:1px solid var(--line);border-radius:15px;background:#fff;padding:13px;color:var(--sub);font-size:12px}
+.auth .nonofficial{margin-top:8px;font-weight:700;color:#9a3412}
+.sf{fill:none}
+.label{fill:#33425a;font-weight:700}
+.label-sub{fill:#6b7686;font-weight:600}
+.label-correct{fill:#0f6b4f} .label-wrong{fill:#b5392f}
+@media (max-width:560px){
+  .page{padding:16px 11px 32px}
+  h1{font-size:20px;line-height:1.26}
+  .subtitle{font-size:13px}
+  .qn{flex:1 1 28%;justify-content:center;min-height:44px;padding:8px 6px;font-size:12px}
+  .pair{grid-template-columns:1fr;gap:10px}
+  .arrow{transform:rotate(90deg)}
+  .crow-icon svg,.icon-cap{max-width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.scenario-given{background:#fff;border:1px solid var(--line);border-left:4px solid var(--progress);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+.scenario-given .sg-tag{display:inline-block;font-size:12px;font-weight:800;color:var(--progress);background:var(--progress-bg);border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.scenario-given p{margin:0;font-size:15px;line-height:1.6;color:var(--ink)}
+.mode-hint{margin:0 0 14px;color:var(--sub);font-size:13px;text-align:center}
+.judge-flow{display:grid;gap:0}
+.jp{background:rgba(255,255,255,.92);border:1px solid rgba(203,213,225,.9);border-radius:16px;box-shadow:var(--shadow);padding:14px 16px}
+.jp.met{border-left:5px solid var(--correct)}
+.jp.unmet{border-left:5px solid #9aa6b6;opacity:.78}
+.jp-head{display:flex;gap:12px;align-items:center;margin-bottom:9px}
+.jp-no{flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--progress);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.jp-head h3{margin:0;font-size:16px}
+.jp-criterion{background:#f7fafc;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13.5px;color:#33425a}
+.jp-criterion b{color:var(--ink)}
+.jp-verdict{margin-top:9px;display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:600;line-height:1.55}
+.jp-verdict .vmark{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900}
+.jp.met .jp-verdict{color:#15402f} .jp.met .vmark{background:var(--correct)}
+.jp.unmet .jp-verdict{color:#5b6573} .jp.unmet .vmark{background:#9aa6b6}
+.jp-basis{margin-top:9px;font-size:12.5px;color:var(--sub)}
+.jp-basis::before{content:"依据 · ";font-weight:700;color:#7a8699}
+.flow-arrow{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--correct);font-size:13px;font-weight:700;padding:8px 0}
+.flow-arrow .ln{font-size:18px}
+.outcome-card{position:relative;margin-top:6px;border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+.outcome-card.target{background:var(--correct-bg);border:1px solid var(--correct-line);border-left:6px solid var(--correct)}
+.outcome-label{font-size:18px;font-weight:800;color:#0f6b4f;display:flex;gap:9px;align-items:center}
+.outcome-label .ok{width:26px;height:26px;border-radius:50%;background:var(--correct);color:#fff;display:grid;place-items:center;font-weight:900}
+.outcome-score{margin-top:10px;border-radius:11px;background:#fff;border:1px solid var(--correct-line);border-left:4px solid var(--correct);padding:10px 12px}
+.outcome-score small{display:block;color:var(--correct);font-weight:800;font-size:11.5px;margin-bottom:4px}
+.outcome-score span{font-size:14px;color:#15402f;font-weight:600;line-height:1.6}
+.outcome-veil{position:absolute;inset:0;border-radius:18px;background:rgba(232,247,240,.94);backdrop-filter:blur(2px);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--correct-line);text-align:center;padding:12px}
+.outcome-veil b{color:var(--correct);font-weight:800;font-size:15px}
+.outcome-card.revealed .outcome-veil{display:none}
+.alt-outcomes{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.alt-outcomes h4{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:800}
+.alt-outcomes li{font-size:13px;color:#52617a;line-height:1.7;list-style:none;padding-left:16px;position:relative}
+.alt-outcomes li::before{content:"·";position:absolute;left:4px;color:var(--partial);font-weight:900}
+.jp.narr-focus,.outcome-card.narr-focus{outline:4px solid var(--progress);outline-offset:4px}
+@media (max-width:560px){
+  .outcome-label{font-size:16px}
+}
+</style>
+</head>
+<body>
+<!--
+created_by: deterministic render_decision_card.py (luban diagram micro-lesson · decision prototype)
+schema_version: luban_diagram_microlesson.v1
+template_type: decision_branch_reveal_draft
+judging_authority: 培训机构教研整理,非官方阅卷;判据为候选,未签发
+source_boundary: 危大范围与论证标准来自《危险性较大的分部分项工程安全管理规定》及配套清单的教研整理,标 candidate;正式分值/口径须经母题包签发后才升 signed。
+notes: 逐条点亮判断流;只渲染教研预编译例题示范,不判分(判分走 LLM 开放世界);判据 candidate,非官方阅卷。
+-->
+<main class="page">
+  <div class="topline">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 18h16"></path><path d="M7 18V8l5-3 5 3v10"></path><path d="M9 18v-6h6v6"></path>
+      </svg>
+    </div>
+    <span>鲁班图解微课 · 看判断流 + 听老师讲 + 练一题</span>
+  </div>
+  <h1>危大工程 · 要不要专家论证(判断)</h1>
+  <p class="subtitle">把&#x27;危大工程要不要专家论证&#x27;从凭感觉答,纠正成走两道判据:开挖深度≥3m 属危大(要编专项方案),≥5m 属超过一定规模(还要专家论证)。</p>
+  <nav class="quicknav" aria-label="快速跳转">
+    <a class="qn" href="#rows">① 看判断</a>
+    <a class="qn" href="#errors">② 错因自查</a>
+    <a class="qn" href="#practice">③ 复测一题</a>
+  </nav>
+  <div class="narrator"><div class="npar"><button class="narr-play" id="narrPlay" type="button" aria-pressed="false">▶ 听老师讲(79 秒)</button><div class="narr-meta">老师拿着这张卡给你讲<br>讲到哪里,卡上就高亮哪里</div></div><div class="narr-sub" id="narrSub">点上面,老师带你把这道题讲一遍;你随时能暂停,也能自己点开下面的对照和复测。</div><div class="narr-track" aria-hidden="true"><i id="narrBar"></i></div></div>
+  <div class="whycard" data-anchor="why">
+    <h2>为什么这个点容易丢分</h2>
+    <p>很多答案直接写'需要专家论证'或'编了专项方案就行',<b>没写判据</b>也<b>分不清两档</b>,阅卷给不到判断分。拉开分差的是两个数:<b>≥3m 属危大</b>、<b>≥5m 属超过一定规模</b>。</p>
+  </div>
+
+  <section class="rows" id="rows" aria-label="判断流">
+    <div class="scenario-given" data-anchor="scenario"><span class="sg-tag">题目情形</span><p>某工程基坑开挖深度 5.5m,已按要求编制专项施工方案。问:该专项方案是否需要组织专家论证?</p></div><p class="mode-hint">怎么判:沿判据一条条走,看走到哪个结论</p><div class="judge-flow"><article class="jp met" data-point="is_dangerous" data-anchor="point:is_dangerous"><div class="jp-head"><span class="jp-no">1</span><h3>它是危大工程吗?</h3></div><div class="jp-criterion"><b>判据:</b>基坑支护、降水、开挖,开挖深度 ≥ 3m(或虽 &lt;3m 但地质、周边环境复杂)</div><div class="jp-verdict"><span class="vmark">✓</span><span>本工程开挖深度 5.5m ≥ 3m,属危险性较大的分部分项工程。</span></div><div class="jp-basis">依据《危险性较大的分部分项工程安全管理规定》危大工程范围</div></article><div class="flow-arrow"><span class="ln">↓</span>满足,继续判</div><article class="jp met" data-point="is_over_scale" data-anchor="point:is_over_scale"><div class="jp-head"><span class="jp-no">2</span><h3>是&#x27;超过一定规模&#x27;的危大工程吗?</h3></div><div class="jp-criterion"><b>判据:</b>开挖深度 ≥ 5m 的基坑工程(超过一定规模的危大范围)</div><div class="jp-verdict"><span class="vmark">✓</span><span>本工程 5.5m ≥ 5m,属超过一定规模的危大工程。</span></div><div class="jp-basis">依据超过一定规模的危大工程范围</div></article></div><div class="flow-arrow"><span class="ln">↓</span>得出结论</div><div class="outcome-card target" data-anchor="outcome"><div class="outcome-veil" role="button" tabindex="0"><b>先自己判一下 → 点开看结论 ›</b></div><div class="outcome-label"><span class="ok">✓</span>专项施工方案应组织专家论证</div><div class="outcome-score"><small>答题这么写才得分</small><span>专项施工方案应组织专家论证</span></div></div><div class="alt-outcomes"><h4>其它情况会落到这些档(对照记)</h4><ul style="margin:0;padding:0"><li>属危大须编专项方案,但未超过一定规模,无需专家论证</li><li>非危大工程,无需专项方案/论证</li></ul></div>
+  </section>
+
+  <section class="section" aria-label="候选采分点">
+    <div class="bar" data-anchor="scoring">
+      <h2>候选采分点 · 写到才稳</h2>
+      <p class="hint">教研整理的关键判据与得分表达,非官方阅卷。</p>
+      <div class="score-grid"><div class="score-card"><b>须写到关键词</b><span>写到这些词更稳:基坑开挖深度 / ≥3m / 危大工程</span></div><div class="score-card"><b>须写到关键词</b><span>写到这些词更稳:开挖深度≥5m / 超过一定规模</span></div><div class="score-card"><b>须写到关键词</b><span>写到这些词更稳:专项施工方案 / 专家论证</span></div></div>
+    </div>
+  </section>
+
+  <section class="section" id="errors" aria-label="错因自查">
+    <div class="bar">
+      <h2>常见失分写法 · 点一个看怎么补</h2>
+      <p class="hint">点你常犯的错,我带你跳到漏掉的那一步判断。</p>
+      <div class="error-grid"><button class="error-card" type="button" data-jump="is_over_scale"><b>直接答&#x27;需要专家论证&#x27;,不写判据。<span class="loss">论证判据缺失</span></b><span class="why">没写&#x27;开挖深度≥5m 属超过一定规模危大&#x27;的判据,阅卷无法判断你是不是真会分档。</span></button><button class="error-card" type="button" data-jump="is_over_scale"><b>以为编了专项方案就行,漏了专家论证。<span class="loss">漏专家论证环节</span></b><span class="why">超过一定规模的危大,专项方案必须再经专家论证,不能只编方案。</span></button></div>
+    </div>
+  </section>
+
+  <section class="practice" id="practice" aria-label="复测题">
+    <span class="teacher-tag">先自己判,再练一题</span>
+    <h2>复测题:换个工程判一判</h2>
+    <p class="stem">某模板支撑工程搭设高度 6m(注:模板支撑搭设高度≥5m 属危大;≥8m 属超过一定规模)。下列判断最准确?</p>
+    <div class="option-grid"><button class="option" type="button" data-correct="false" data-feedback="6m≥5m,已属危大,要编专项方案。" aria-pressed="false"><b>A.</b>非危大,无需专项方案。</button><button class="option" type="button" data-correct="true" data-feedback="对——会用判据分档:≥5m 危大、&lt;8m 不超规模。" aria-pressed="false"><b>B.</b>属危大须编专项方案;但 6m&lt;8m,未超过一定规模,无需专家论证。</button><button class="option" type="button" data-correct="false" data-feedback="6m&lt;8m,没到超过一定规模那一档,无需专家论证。" aria-pressed="false"><b>C.</b>属超过一定规模危大,须专家论证。</button></div>
+    <div class="feedback" id="practiceFeedback" role="status"></div>
+    <p class="next-action">再练 1 道带数值的&#x27;要不要专家论证&#x27;判断小问,练分档。</p>
+  </section>
+
+  <div class="wrap-card" data-anchor="wrap">
+    <b>暖纠正</b>
+    <p style="margin:7px 0 0"><b>你能想到'危大工程要专项方案',方向已经对了一半。</b>真正得分的是两道判据:开挖深度<b>≥3m</b> 属危大(要编方案)、<b>≥5m</b> 属超过一定规模(还要专家论证)。记住这两个数,这类判断题就稳。</p>
+    <div class="memhook">记忆钩子 · <strong>三米危大编方案,五米超规模要论证。</strong></div>
+  </div>
+
+  <div class="auth">
+    <b>考试依据</b>:这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。
+    <div class="nonofficial">非官方阅卷 · 判断流为教学示意 · 判据为教研候选 · 具体以现行规范 / 教材为准</div>
+  </div>
+</main>
+<script type="application/json" id="cardData">{"practice":{"review_point_id":"is_over_scale"}}</script>
+<script>
+const cardData = JSON.parse(document.getElementById("cardData").textContent);
+// 结论卡: 先自己判 → 点开看结论(reveal)
+document.querySelectorAll(".outcome-veil").forEach((v)=>{
+  v.addEventListener("click",()=>v.closest(".outcome-card").classList.add("revealed"));
+});
+// 错因卡 → 滚到对应判断点并闪
+document.querySelectorAll(".error-card").forEach((btn)=>{
+  btn.addEventListener("click",()=>{
+    const el=document.querySelector('[data-point="'+btn.dataset.jump+'"]');
+    if(!el) return;
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+    el.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+});
+// 复测题: 答错滚回 review_point_id
+document.querySelectorAll(".option").forEach((btn)=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".option").forEach(o=>{o.setAttribute("aria-pressed","false");o.classList.remove("correct","wrong");});
+    btn.setAttribute("aria-pressed","true");
+    const correct=btn.dataset.correct==="true";
+    btn.classList.add(correct?"correct":"wrong");
+    const fb=document.getElementById("practiceFeedback");
+    fb.classList.remove("correct","wrong"); fb.classList.add("show",correct?"correct":"wrong");
+    fb.textContent=(correct?"✅ ":"❌ ")+(btn.dataset.feedback||"");
+    if(!correct){
+      const el=document.querySelector('[data-point="'+((cardData.practice&&cardData.practice.review_point_id)||"")+'"]');
+      if(el){ el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); el.scrollIntoView({behavior:"smooth",block:"center"}); }
+    }
+  });
+});
+</script>
+<audio id="narrAudio" src="J01_danger_work_expert_argumentation.schema_draft.narration.mp3" preload="auto"></audio><script type="application/json" id="narrTiming">{"audio":"J01_danger_work_expert_argumentation.schema_draft.narration.mp3","totalSec":78.937,"derived_from":"fields","segments":[{"id":"opening","anchor":"why","text":"案例题常考'某工程要不要专家论证'。丢分不是不知道有专项方案,是说不清'危大'和'超过一定规模'两道判据、把'编方案'和'专家论证'混为一谈。我们一个一个看。","startSec":0,"durSec":15.403},{"id":"jp_is_dangerous","anchor":"point:is_dangerous","text":"先判:它是危大工程吗?。判据是基坑支护、降水、开挖,开挖深度 ≥ 3m(或虽 <3m 但地质、周边环境复杂)。本工程开挖深度 5.5m ≥ 3m,属危险性较大的分部分项工程。","startSec":15.903,"durSec":18.312},{"id":"jp_is_over_scale","anchor":"point:is_over_scale","text":"再判:是'超过一定规模'的危大工程吗?。判据是开挖深度 ≥ 5m 的基坑工程(超过一定规模的危大范围)。本工程 5.5m ≥ 5m,属超过一定规模的危大工程。","startSec":34.714,"durSec":14.847},{"id":"conclusion","anchor":"outcome","text":"所以结论:专项施工方案应组织专家论证。","startSec":50.061,"durSec":4.321},{"id":"scoring","anchor":"scoring","text":"这道题的采分关键就这几组词:基坑开挖深度、≥3m、危大工程、开挖深度≥5m、超过一定规模、专项施工方案、专家论证。写到了就稳。","startSec":54.883,"durSec":14.36},{"id":"closing","anchor":"wrap","text":"把这两组采分词记牢,这类题就稳了。记住:三米危大编方案,五米超规模要论证。","startSec":69.743,"durSec":8.394}]}</script><script>
+(function(){
+  const tEl=document.getElementById("narrTiming"), audio=document.getElementById("narrAudio"), btn=document.getElementById("narrPlay");
+  if(!tEl||!audio||!btn) return;
+  const timing=JSON.parse(tEl.textContent), sub=document.getElementById("narrSub"), bar=document.getElementById("narrBar");
+  const elFor=(a)=>document.querySelector('[data-anchor="'+(a||"").replace(/"/g,'')+'"]');
+  let cur=null;
+  function focus(seg){
+    document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus"));
+    const el=elFor(seg.anchor); if(!el) return;
+    el.classList.add("narr-focus");
+    if(el.classList.contains("outcome-card")) el.classList.add("revealed");
+    el.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+  audio.addEventListener("timeupdate",()=>{
+    const t=audio.currentTime; let seg=timing.segments[0];
+    for(const s of timing.segments){ if(t>=s.startSec) seg=s; }
+    if(seg&&seg.id!==cur){ cur=seg.id; if(sub) sub.textContent=seg.text; focus(seg); }
+    if(bar) bar.style.width=(timing.totalSec?Math.min(100,(t/timing.totalSec)*100):0)+"%";
+  });
+  function setBtn(){ const p=!audio.paused; btn.classList.toggle("playing",p); btn.setAttribute("aria-pressed",p?"true":"false");
+    btn.textContent=p?"⏸ 暂停讲解":(audio.currentTime>0?"▶ 继续讲解":("▶ 听老师讲("+Math.round(timing.totalSec)+" 秒)")); }
+  btn.addEventListener("click",()=>{ if(audio.paused) audio.play(); else audio.pause(); });
+  audio.addEventListener("play",setBtn); audio.addEventListener("pause",setBtn);
+  audio.addEventListener("ended",()=>{ document.querySelectorAll(".narr-focus").forEach(e=>e.classList.remove("narr-focus")); cur=null; setBtn(); if(sub) sub.textContent="讲完啦——自己判一遍,做下面的复测题。"; });
+})();
+</script>
+</body>
+</html>

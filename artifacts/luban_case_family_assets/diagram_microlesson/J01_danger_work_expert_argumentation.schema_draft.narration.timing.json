@@ -1,0 +1,49 @@
+{
+  "audio": "J01_danger_work_expert_argumentation.schema_draft.narration.mp3",
+  "totalSec": 78.937,
+  "derived_from": "fields",
+  "segments": [
+    {
+      "id": "opening",
+      "anchor": "why",
+      "text": "案例题常考'某工程要不要专家论证'。丢分不是不知道有专项方案,是说不清'危大'和'超过一定规模'两道判据、把'编方案'和'专家论证'混为一谈。我们一个一个看。",
+      "startSec": 0,
+      "durSec": 15.403
+    },
+    {
+      "id": "jp_is_dangerous",
+      "anchor": "point:is_dangerous",
+      "text": "先判:它是危大工程吗?。判据是基坑支护、降水、开挖,开挖深度 ≥ 3m(或虽 <3m 但地质、周边环境复杂)。本工程开挖深度 5.5m ≥ 3m,属危险性较大的分部分项工程。",
+      "startSec": 15.903,
+      "durSec": 18.312
+    },
+    {
+      "id": "jp_is_over_scale",
+      "anchor": "point:is_over_scale",
+      "text": "再判:是'超过一定规模'的危大工程吗?。判据是开挖深度 ≥ 5m 的基坑工程(超过一定规模的危大范围)。本工程 5.5m ≥ 5m,属超过一定规模的危大工程。",
+      "startSec": 34.714,
+      "durSec": 14.847
+    },
+    {
+      "id": "conclusion",
+      "anchor": "outcome",
+      "text": "所以结论:专项施工方案应组织专家论证。",
+      "startSec": 50.061,
+      "durSec": 4.321
+    },
+    {
+      "id": "scoring",
+      "anchor": "scoring",
+      "text": "这道题的采分关键就这几组词:基坑开挖深度、≥3m、危大工程、开挖深度≥5m、超过一定规模、专项施工方案、专家论证。写到了就稳。",
+      "startSec": 54.883,
+      "durSec": 14.36
+    },
+    {
+      "id": "closing",
+      "anchor": "wrap",
+      "text": "把这两组采分词记牢,这类题就稳了。记住:三米危大编方案,五米超规模要论证。",
+      "startSec": 69.743,
+      "durSec": 8.394
+    }
+  ]
+}
