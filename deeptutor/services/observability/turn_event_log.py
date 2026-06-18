@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
@@ -131,6 +132,36 @@ class TurnEventLog:
             events.extend(self.load_events(date_str))
         return events
 
+    def load_events_window(
+        self,
+        *,
+        start_ts: float,
+        end_ts: float,
+        timezone: str = "Asia/Shanghai",
+    ) -> list[dict[str, Any]]:
+        tz = ZoneInfo(timezone)
+        start_dt = datetime.fromtimestamp(float(start_ts), tz)
+        end_dt = datetime.fromtimestamp(float(end_ts), tz)
+        if end_dt < start_dt:
+            return []
+
+        events: list[dict[str, Any]] = []
+        current = start_dt.date()
+        final = end_dt.date()
+        while current <= final:
+            events.extend(self.load_events(current.isoformat()))
+            current += timedelta(days=1)
+
+        filtered: list[dict[str, Any]] = []
+        for event in events:
+            try:
+                timestamp = float(event.get("timestamp") or 0.0)
+            except (TypeError, ValueError):
+                continue
+            if float(start_ts) <= timestamp <= float(end_ts):
+                filtered.append(event)
+        return filtered
+
     def stats(self) -> dict[str, Any]:
         today_events = self.load_events()
         with self._lock:
@@ -141,6 +172,42 @@ class TurnEventLog:
             "today_events": len(today_events),
             "file_exists": self._today_path().exists(),
             "file_path": str(self._today_path()),
+            "last_write_error": last_write_error,
+            "append_success_total": append_success_total,
+            "append_failure_total": append_failure_total,
+        }
+
+    def stats_window(
+        self,
+        *,
+        start_ts: float,
+        end_ts: float,
+        timezone: str = "Asia/Shanghai",
+    ) -> dict[str, Any]:
+        tz = ZoneInfo(timezone)
+        start_dt = datetime.fromtimestamp(float(start_ts), tz)
+        end_dt = datetime.fromtimestamp(float(end_ts), tz)
+        date_strings: list[str] = []
+        current = start_dt.date()
+        final = end_dt.date()
+        while current <= final:
+            date_strings.append(current.isoformat())
+            current += timedelta(days=1)
+
+        file_paths = [self._path_for_date(date_str) for date_str in date_strings]
+        events = self.load_events_window(start_ts=start_ts, end_ts=end_ts, timezone=timezone)
+        with self._lock:
+            last_write_error = self._last_write_error
+            append_success_total = self._append_success_total
+            append_failure_total = self._append_failure_total
+        return {
+            "window_date_strings": date_strings,
+            "window_start_ts": float(start_ts),
+            "window_end_ts": float(end_ts),
+            "file_exists": any(path.exists() for path in file_paths),
+            "file_path": str(file_paths[0]) if len(file_paths) == 1 else "",
+            "file_paths": [str(path) for path in file_paths],
+            "window_events": len(events),
             "last_write_error": last_write_error,
             "append_success_total": append_success_total,
             "append_failure_total": append_failure_total,

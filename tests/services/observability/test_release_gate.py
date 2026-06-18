@@ -240,6 +240,57 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     assert "ws_main_path_unhealthy" in payload["blockers"]
 
 
+def test_release_gate_deferred_ws_smoke_does_not_claim_ws_unhealthy() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": dict(release),
+            "health_summary": {
+                "ready": True,
+                "unified_ws_smoke_ok": None,
+                "unified_ws_smoke_summary": "target API service unavailable",
+                "orphaned_turns": 0,
+            },
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+            "smoke_checks": [{"name": "unified_ws_smoke", "ok": None, "status": "DEFERRED"}],
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(release=release),
+        aae_payload=None,
+        oa_payload={"run_id": "oa-1", "blind_spots": [], "root_causes": []},
+        readiness_payload={
+            "run_id": "readiness-matrix-1",
+            "release": dict(release),
+            "rows": [
+                {"check_id": "contract_guard", "status": "PASS", "required": True, "blockers": []},
+                {"check_id": "playwright", "status": "FAIL", "required": True, "blockers": ["playwright_failed"]},
+                {
+                    "check_id": "wechat_devtools",
+                    "status": "FAIL",
+                    "required": True,
+                    "blockers": ["wechat_devtools_failed"],
+                },
+            ],
+        },
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "ws_main_path_unhealthy" not in payload["blockers"]
+    assert "ws 主链路异常" not in p0["summary"]
+    assert "playwright_failed" in payload["blockers"]
+    assert "wechat_devtools_failed" in payload["blockers"]
+
+
 def test_release_gate_rejects_placeholder_release_lineage(monkeypatch) -> None:
     monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", _incomplete_fallback_release)
     payload = build_release_gate_report(

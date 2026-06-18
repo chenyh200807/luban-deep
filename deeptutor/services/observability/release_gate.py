@@ -261,21 +261,25 @@ def build_release_gate_report(
             *[f"{check_id}_missing" for check_id in readiness_missing_checks],
         ]
     )
-    p0_ready = (
-        om_health.get("ready") is True
-        and release_complete
-        and not release_dirty
-        and ws_main_path_healthy
-        and orphaned_turns == 0
-        and not readiness_blockers
-    )
+    p0_blockers = [
+        *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
+        *(["runtime_release_dirty"] if release_dirty else []),
+        *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
+        *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
+        *readiness_blockers,
+    ]
+    p0_ready = not p0_blockers
+    if p0_ready:
+        p0_summary = "readyz、release lineage 与 ws 主链路可用"
+    elif "ws_main_path_unhealthy" in p0_blockers:
+        p0_summary = "runtime readiness、release lineage、release readiness 或 ws 主链路异常"
+    else:
+        p0_summary = "runtime readiness、release lineage、dirty state 或 release readiness 不完整"
     gate_results.append(
         _gate_entry(
             gate="P0 Runtime",
             status=_PASS if p0_ready else _FAIL,
-            summary="readyz、release lineage 与 ws 主链路可用"
-            if p0_ready
-            else "runtime readiness、release lineage、release readiness 或 ws 主链路异常",
+            summary=p0_summary,
             evidence=[
                 f"ready={om_health.get('ready')}",
                 f"release_complete={release_complete}",
@@ -286,13 +290,7 @@ def build_release_gate_report(
                 f"readiness_missing_checks={','.join(readiness_missing_checks) if readiness_missing_checks else 'none'}",
                 f"readiness_blockers={','.join(readiness_blockers) if readiness_blockers else 'none'}",
             ],
-            blockers=[] if p0_ready else [
-                *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
-                *(["runtime_release_dirty"] if release_dirty else []),
-                *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
-                *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
-                *readiness_blockers,
-            ],
+            blockers=[] if p0_ready else p0_blockers,
         )
     )
 

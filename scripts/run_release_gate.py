@@ -235,7 +235,11 @@ def main() -> None:
         om_payload = explicit_om_payload or _load_store_payload("om_runs")
         arr_payload = explicit_arr_payload or _load_store_payload("arr_runs")
         benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
-        incident_payload = explicit_incident_payload or _load_store_payload("incident_ledger", fallback=False)
+        incident_payload = explicit_incident_payload or (
+            _load_store_payload_for_release("incident_ledger", release=current_release, fallback=False)
+            if args.report_only
+            else _load_store_payload("incident_ledger", fallback=False)
+        )
         aae_payload = explicit_aae_payload or _load_store_payload("aae_composite_runs")
         oa_payload = explicit_oa_payload or _load_store_payload("oa_runs")
         change_impact_payload = explicit_change_impact_payload or _load_store_payload("change_impact_runs")

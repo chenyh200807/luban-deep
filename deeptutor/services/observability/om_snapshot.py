@@ -53,7 +53,8 @@ def build_om_run(
         (item for item in smoke_entries if str(item.get("name") or "").strip() == "unified_ws_smoke"),
         None,
     )
-    unified_ws_smoke_ok = bool(unified_ws_smoke.get("ok")) if isinstance(unified_ws_smoke, dict) else None
+    unified_ws_smoke_value = unified_ws_smoke.get("ok") if isinstance(unified_ws_smoke, dict) else None
+    unified_ws_smoke_ok = unified_ws_smoke_value if isinstance(unified_ws_smoke_value, bool) else None
     unified_ws_smoke_summary = str(unified_ws_smoke.get("summary") or "").strip() if isinstance(unified_ws_smoke, dict) else ""
 
     slo_checks = [

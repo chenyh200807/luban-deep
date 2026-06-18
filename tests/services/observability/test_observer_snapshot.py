@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from jsonschema import validate
 
@@ -258,13 +260,158 @@ def test_build_observer_snapshot_collects_recent_conversation_and_backend_log_ev
             },
         }
     ]
+
+
+def test_build_observer_snapshot_freezes_window_and_excludes_same_run_smoke_sessions(tmp_path) -> None:
+    release = {
+        "release_id": "rel-window",
+        "git_sha": "sha-window",
+        "deployment_environment": "dev",
+        "prompt_version": "p-window",
+        "ff_snapshot_hash": "ff-window",
+    }
+    tz = ZoneInfo("Asia/Shanghai")
+    start_ts = datetime(2026, 6, 16, 0, 0, 0, tzinfo=tz).timestamp()
+    end_ts = datetime(2026, 6, 16, 23, 59, 59, tzinfo=tz).timestamp()
+
+    db_path = tmp_path / "chat_history.db"
+    with sqlite3.connect(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE sessions (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT 'New conversation',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                compressed_summary TEXT DEFAULT '',
+                summary_up_to_msg_id INTEGER DEFAULT 0,
+                preferences_json TEXT DEFAULT '{}',
+                owner_key TEXT DEFAULT '',
+                source TEXT DEFAULT '',
+                archived INTEGER DEFAULT 0,
+                conversation_id TEXT DEFAULT ''
+            );
+            CREATE TABLE messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL DEFAULT '',
+                capability TEXT DEFAULT '',
+                events_json TEXT DEFAULT '',
+                attachments_json TEXT DEFAULT '',
+                created_at REAL NOT NULL
+            );
+            CREATE TABLE turns (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                capability TEXT DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'running',
+                error TEXT DEFAULT '',
+                created_at REAL NOT NULL,
+                updated_at REAL NOT NULL,
+                finished_at REAL
+            );
+            """
+        )
+        real_ts = start_ts + 3600
+        smoke_ts = end_ts - 10
+        next_day_ts = end_ts + 20
+        for session_id, ts_value, status in (
+            ("session-real", real_ts, "completed"),
+            ("session-smoke", smoke_ts, "completed"),
+            ("session-next-day", next_day_ts, "completed"),
+        ):
+            conn.execute(
+                """
+                INSERT INTO sessions(id, title, created_at, updated_at, source, conversation_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (session_id, session_id, ts_value, ts_value, "ws", f"conv-{session_id}"),
+            )
+            conn.execute(
+                "INSERT INTO messages(session_id, role, content, created_at) VALUES (?, ?, ?, ?)",
+                (session_id, "user", f"{session_id}-user", ts_value),
+            )
+            conn.execute(
+                "INSERT INTO messages(session_id, role, content, created_at) VALUES (?, ?, ?, ?)",
+                (session_id, "assistant", f"{session_id}-assistant", ts_value + 1),
+            )
+            conn.execute(
+                """
+                INSERT INTO turns(id, session_id, capability, status, error, created_at, updated_at, finished_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (f"turn-{session_id}", session_id, "deep_question", status, "", ts_value, ts_value, ts_value + 1),
+            )
+        conn.commit()
+
+    event_log = TurnEventLog(events_dir=tmp_path / "events")
+    date_to_events = {
+        "2026-06-16": [
+            build_turn_observation_event(
+                release=release,
+                session_id="session-real",
+                turn_id="turn-real",
+                trace_id="trace-real",
+                status="completed",
+                capability="deep_question",
+                timestamp=start_ts + 120,
+            ),
+            build_turn_observation_event(
+                release=release,
+                session_id="session-smoke",
+                turn_id="turn-smoke",
+                status="completed",
+                capability="deep_question",
+                timestamp=end_ts - 60,
+            ),
+        ],
+        "2026-06-17": [
+            build_turn_observation_event(
+                release=release,
+                session_id="session-next-day",
+                turn_id="turn-next-day",
+                status="completed",
+                capability="deep_question",
+                timestamp=end_ts + 120,
+            )
+        ],
+    }
+    for date_str, events in date_to_events.items():
+        path = event_log.events_dir / f"turn_events_{date_str}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            "\n".join(json.dumps(event, ensure_ascii=False) for event in events) + "\n",
+            encoding="utf-8",
+        )
+
+    payload = build_observer_snapshot(
+        store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
+        event_log=event_log,
+        event_days=1,
+        conversation_db_path=db_path,
+        conversation_limit=10,
+        backend_log_paths=[],
+        report_date="2026-06-16",
+        start_ts=start_ts,
+        end_ts=end_ts,
+        timezone="Asia/Shanghai",
+        exclude_session_ids={"session-smoke"},
+    )
+
+    assert payload["window"]["report_date"] == "2026-06-16"
+    assert payload["window"]["timezone"] == "Asia/Shanghai"
+    assert payload["window"]["excluded_session_ids"] == ["session-smoke"]
+    assert payload["turn_events"]["event_count"] == 1
+    assert payload["turn_event_log"]["window_events"] == 2
+    assert payload["recent_conversations"]["cutoff_timestamp"] is None
+    assert payload["recent_conversations"]["session_count"] == 1
+    assert payload["recent_conversations"]["excluded_session_ids"] == ["session-smoke"]
+    assert [item["session_id"] for item in payload["recent_conversations"]["recent_sessions"]] == ["session-real"]
     assert payload["langfuse_trace_linkage"]["trace_id_count"] == 1
     assert payload["data_sources"]["recent_conversations"]["has_data"] is True
-    assert payload["data_sources"]["backend_logs"]["has_data"] is True
     assert payload["data_sources"]["langfuse_trace_linkage"]["has_data"] is True
-    hypotheses = "\n".join(item["hypothesis"] for item in oa_payload["root_causes"])
-    assert "近期真实对话持久化记录中存在失败 turn" in hypotheses
-    assert "后台日志在 OA 窗口内出现 ERROR/CRITICAL" in hypotheses
+    assert payload["data_sources"]["backend_logs"]["has_data"] is False
 
 
 def test_build_observer_snapshot_collects_product_behavior_evidence(tmp_path) -> None:

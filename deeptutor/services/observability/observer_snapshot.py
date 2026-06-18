@@ -11,6 +11,7 @@ from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from deeptutor.api.runtime_metrics import normalize_latency_stage_timings
 
@@ -116,6 +117,26 @@ def _default_backend_log_paths(*, days: int) -> list[Path]:
     return paths
 
 
+def _default_backend_log_paths_for_window(
+    *,
+    start_ts: float,
+    end_ts: float,
+    timezone: str,
+) -> list[Path]:
+    path_service = get_path_service()
+    tz = ZoneInfo(timezone)
+    start_dt = datetime.fromtimestamp(float(start_ts), tz)
+    end_dt = datetime.fromtimestamp(float(end_ts), tz)
+    paths: list[Path] = []
+    current = start_dt.date()
+    final = end_dt.date()
+    while current <= final:
+        paths.append(path_service.get_logs_dir() / f"deeptutor_{current.strftime('%Y%m%d')}.log")
+        current += timedelta(days=1)
+    paths.append(PROJECT_ROOT / "tmp" / "backend.log")
+    return paths
+
+
 def _default_product_behavior_db_path() -> Path:
     return get_path_service().get_chat_history_db().with_name("product_behavior.db")
 
@@ -133,12 +154,20 @@ def _build_product_behavior_snapshot(
     db_path: Path | None,
     days: int,
     limit: int,
+    report_date: str | None = None,
+    timezone: str = "Asia/Shanghai",
+    start_ts: float | None = None,
+    end_ts: float | None = None,
 ) -> dict[str, Any]:
     target = (db_path or _default_product_behavior_db_path()).expanduser().resolve()
     window_days = max(int(days or 1), 1)
     base: dict[str, Any] = {
         "db_path": str(target),
         "window_days": window_days,
+        "report_date": str(report_date or ""),
+        "timezone": str(timezone or "Asia/Shanghai"),
+        "start_ts": float(start_ts) if start_ts is not None else None,
+        "end_ts": float(end_ts) if end_ts is not None else None,
         "event_count": 0,
         "sample_limit": max(int(limit or 1), 1),
         "module_distribution": {},
@@ -160,10 +189,12 @@ def _build_product_behavior_snapshot(
         return base
 
     try:
-        rows = SQLiteProductBehaviorStore(target).query_raw_events(
-            {"days": window_days},
-            limit=max(int(limit or 1), 1),
-        )
+        filters: dict[str, Any] = {"days": window_days}
+        if start_ts is not None:
+            filters["start_ts_ms"] = int(float(start_ts) * 1000)
+        if end_ts is not None:
+            filters["end_ts_ms"] = int(float(end_ts) * 1000)
+        rows = SQLiteProductBehaviorStore(target).query_raw_events(filters, limit=max(int(limit or 1), 1))
     except Exception as exc:
         base["read_error"] = str(exc)
         return base
@@ -213,14 +244,25 @@ def _build_recent_conversations_snapshot(
     db_path: Path | None,
     days: int,
     limit: int,
+    report_date: str | None = None,
+    timezone: str = "Asia/Shanghai",
+    start_ts: float | None = None,
+    end_ts: float | None = None,
+    exclude_session_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     target = (db_path or _default_conversation_db_path()).expanduser().resolve()
     window_days = max(int(days or 1), 1)
-    cutoff = time.time() - (window_days * 24 * 60 * 60)
+    cutoff = None if start_ts is not None else time.time() - (window_days * 24 * 60 * 60)
+    excluded = sorted({str(item or "").strip() for item in (exclude_session_ids or set()) if str(item or "").strip()})
     base: dict[str, Any] = {
         "db_path": str(target),
         "window_days": window_days,
         "cutoff_timestamp": cutoff,
+        "report_date": str(report_date or ""),
+        "timezone": str(timezone or "Asia/Shanghai"),
+        "start_ts": float(start_ts) if start_ts is not None else None,
+        "end_ts": float(end_ts) if end_ts is not None else None,
+        "excluded_session_ids": excluded,
         "session_count": 0,
         "conversation_count": 0,
         "message_count": 0,
@@ -241,8 +283,44 @@ def _build_recent_conversations_snapshot(
     try:
         with sqlite3.connect(target) as conn:
             conn.row_factory = sqlite3.Row
+            session_filters = []
+            session_params: list[Any] = []
+            message_filters = []
+            message_params: list[Any] = []
+            turn_filters = []
+            turn_params: list[Any] = []
+            if start_ts is not None:
+                session_filters.append("s.updated_at >= ?")
+                session_params.append(float(start_ts))
+                message_filters.append("created_at >= ?")
+                message_params.append(float(start_ts))
+                turn_filters.append("updated_at >= ?")
+                turn_params.append(float(start_ts))
+            elif cutoff is not None:
+                session_filters.append("s.updated_at >= ?")
+                session_params.append(cutoff)
+                message_filters.append("created_at >= ?")
+                message_params.append(cutoff)
+                turn_filters.append("updated_at >= ?")
+                turn_params.append(cutoff)
+            if end_ts is not None:
+                session_filters.append("s.updated_at <= ?")
+                session_params.append(float(end_ts))
+                message_filters.append("created_at <= ?")
+                message_params.append(float(end_ts))
+                turn_filters.append("updated_at <= ?")
+                turn_params.append(float(end_ts))
+            session_filter_sql = " AND ".join(session_filters) if session_filters else "1=1"
+            message_filter_sql = " AND ".join(message_filters) if message_filters else "1=1"
+            turn_filter_sql = " AND ".join(turn_filters) if turn_filters else "1=1"
+            session_exclusion_sql = ""
+            session_exclusion_params: list[Any] = []
+            if excluded:
+                placeholders = ",".join("?" for _ in excluded)
+                session_exclusion_sql = f" AND s.id NOT IN ({placeholders})"
+                session_exclusion_params.extend(excluded)
             session_rows = conn.execute(
-                """
+                f"""
                 SELECT
                     s.id,
                     s.title,
@@ -276,57 +354,103 @@ def _build_recent_conversations_snapshot(
                     ) AS latest_turn_error
                 FROM sessions s
                 LEFT JOIN messages m ON m.session_id = s.id
-                WHERE s.updated_at >= ?
+                WHERE {session_filter_sql}{session_exclusion_sql}
                 GROUP BY s.id
                 ORDER BY s.updated_at DESC, s.id DESC
                 LIMIT ?
                 """,
-                (cutoff, max(int(limit or 1), 1)),
+                (*session_params, *session_exclusion_params, max(int(limit or 1), 1)),
             ).fetchall()
             base["session_count"] = _sqlite_count(
                 conn,
-                "SELECT COUNT(*) FROM sessions WHERE updated_at >= ?",
-                (cutoff,),
+                f"SELECT COUNT(*) FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}",
+                (*session_params, *session_exclusion_params),
             )
             base["conversation_count"] = _sqlite_count(
                 conn,
-                "SELECT COUNT(DISTINCT COALESCE(NULLIF(conversation_id, ''), id)) FROM sessions WHERE updated_at >= ?",
-                (cutoff,),
+                f"SELECT COUNT(DISTINCT COALESCE(NULLIF(conversation_id, ''), id)) FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}",
+                (*session_params, *session_exclusion_params),
             )
             base["message_count"] = _sqlite_count(
                 conn,
-                "SELECT COUNT(*) FROM messages WHERE created_at >= ?",
-                (cutoff,),
+                f"""
+                SELECT COUNT(*)
+                FROM messages
+                WHERE {message_filter_sql}
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                """,
+                (*message_params, *session_params, *session_exclusion_params),
             )
             base["turn_count"] = _sqlite_count(
                 conn,
-                "SELECT COUNT(*) FROM turns WHERE updated_at >= ?",
-                (cutoff,),
+                f"""
+                SELECT COUNT(*)
+                FROM turns
+                WHERE {turn_filter_sql}
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                """,
+                (*turn_params, *session_params, *session_exclusion_params),
             )
             base["failed_turn_count"] = _sqlite_count(
                 conn,
-                "SELECT COUNT(*) FROM turns WHERE updated_at >= ? AND status IN ('failed', 'error', 'timeout', 'cancelled')",
-                (cutoff,),
+                f"""
+                SELECT COUNT(*)
+                FROM turns
+                WHERE {turn_filter_sql}
+                AND status IN ('failed', 'error', 'timeout', 'cancelled')
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                """,
+                (*turn_params, *session_params, *session_exclusion_params),
             )
             base["role_distribution"] = _sqlite_counter(
                 conn,
-                "SELECT role, COUNT(*) FROM messages WHERE created_at >= ? GROUP BY role",
-                (cutoff,),
+                f"""
+                SELECT role, COUNT(*)
+                FROM messages
+                WHERE {message_filter_sql}
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                GROUP BY role
+                """,
+                (*message_params, *session_params, *session_exclusion_params),
             )
             base["turn_status_distribution"] = _sqlite_counter(
                 conn,
-                "SELECT status, COUNT(*) FROM turns WHERE updated_at >= ? GROUP BY status",
-                (cutoff,),
+                f"""
+                SELECT status, COUNT(*)
+                FROM turns
+                WHERE {turn_filter_sql}
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                GROUP BY status
+                """,
+                (*turn_params, *session_params, *session_exclusion_params),
             )
             base["capability_distribution"] = _sqlite_counter(
                 conn,
-                "SELECT capability, COUNT(*) FROM turns WHERE updated_at >= ? GROUP BY capability",
-                (cutoff,),
+                f"""
+                SELECT capability, COUNT(*)
+                FROM turns
+                WHERE {turn_filter_sql}
+                AND session_id IN (
+                    SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
+                )
+                GROUP BY capability
+                """,
+                (*turn_params, *session_params, *session_exclusion_params),
             )
             base["source_distribution"] = _sqlite_counter(
                 conn,
-                "SELECT source, COUNT(*) FROM sessions WHERE updated_at >= ? GROUP BY source",
-                (cutoff,),
+                f"SELECT source, COUNT(*) FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql} GROUP BY source",
+                (*session_params, *session_exclusion_params),
             )
             base["recent_sessions"] = [
                 {
@@ -357,8 +481,21 @@ def _build_backend_log_snapshot(
     paths: list[Path] | None,
     days: int,
     tail_lines: int,
+    report_date: str | None = None,
+    timezone: str = "Asia/Shanghai",
+    start_ts: float | None = None,
+    end_ts: float | None = None,
 ) -> dict[str, Any]:
-    candidates = paths if paths is not None else _default_backend_log_paths(days=days)
+    if paths is not None:
+        candidates = paths
+    elif start_ts is not None and end_ts is not None:
+        candidates = _default_backend_log_paths_for_window(
+            start_ts=float(start_ts),
+            end_ts=float(end_ts),
+            timezone=timezone,
+        )
+    else:
+        candidates = _default_backend_log_paths(days=days)
     line_limit = max(int(tail_lines or 1000), 1)
     files: list[dict[str, Any]] = []
     error_samples: list[str] = []
@@ -406,6 +543,10 @@ def _build_backend_log_snapshot(
 
     return {
         "window_days": max(int(days or 1), 1),
+        "report_date": str(report_date or ""),
+        "timezone": str(timezone or "Asia/Shanghai"),
+        "start_ts": float(start_ts) if start_ts is not None else None,
+        "end_ts": float(end_ts) if end_ts is not None else None,
         "tail_lines_per_file": line_limit,
         "files": files,
         "scanned_lines": scanned_lines,
@@ -553,6 +694,11 @@ def build_observer_snapshot(
     backend_log_tail_lines: int = 1000,
     product_behavior_db_path: Path | None = None,
     product_behavior_limit: int = 5000,
+    report_date: str | None = None,
+    start_ts: float | None = None,
+    end_ts: float | None = None,
+    timezone: str = "Asia/Shanghai",
+    exclude_session_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
@@ -567,23 +713,57 @@ def build_observer_snapshot(
     aae_payload = _payload_from_record(aae_record)
     benchmark_payload = benchmark_payload or _payload_from_record(benchmark_record)
     daily_trend_payload = _payload_from_record(daily_trend_record)
-    turn_events = turn_log.load_events_range(days=event_days)
-    turn_log_stats = turn_log.stats()
+    if start_ts is not None and end_ts is not None:
+        turn_events = turn_log.load_events_window(
+            start_ts=float(start_ts),
+            end_ts=float(end_ts),
+            timezone=timezone,
+        )
+        turn_log_stats = turn_log.stats_window(
+            start_ts=float(start_ts),
+            end_ts=float(end_ts),
+            timezone=timezone,
+        )
+    else:
+        turn_events = turn_log.load_events_range(days=event_days)
+        turn_log_stats = turn_log.stats()
+    excluded_session_ids = {
+        str(item or "").strip()
+        for item in (exclude_session_ids or set())
+        if str(item or "").strip()
+    }
+    if excluded_session_ids:
+        turn_events = [
+            item for item in turn_events if str(item.get("session_id") or "").strip() not in excluded_session_ids
+        ]
     turn_summary = _summarize_turn_events(turn_events)
     recent_conversations = _build_recent_conversations_snapshot(
         db_path=conversation_db_path,
         days=event_days,
         limit=conversation_limit,
+        report_date=report_date,
+        timezone=timezone,
+        start_ts=start_ts,
+        end_ts=end_ts,
+        exclude_session_ids=excluded_session_ids,
     )
     backend_logs = _build_backend_log_snapshot(
         paths=backend_log_paths,
         days=event_days,
         tail_lines=backend_log_tail_lines,
+        report_date=report_date,
+        timezone=timezone,
+        start_ts=start_ts,
+        end_ts=end_ts,
     )
     product_behavior = _build_product_behavior_snapshot(
         db_path=product_behavior_db_path,
         days=event_days,
         limit=product_behavior_limit,
+        report_date=report_date,
+        timezone=timezone,
+        start_ts=start_ts,
+        end_ts=end_ts,
     )
     runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
     trace_linkage = _build_trace_linkage_snapshot(turn_events)
@@ -778,7 +958,14 @@ def build_observer_snapshot(
         "run_id": run_id,
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "release": resolved_release,
-        "window": {"event_days": max(int(event_days or 1), 1)},
+        "window": {
+            "event_days": max(int(event_days or 1), 1),
+            "report_date": str(report_date or ""),
+            "timezone": str(timezone or "Asia/Shanghai"),
+            "start_ts": float(start_ts) if start_ts is not None else None,
+            "end_ts": float(end_ts) if end_ts is not None else None,
+            "excluded_session_ids": sorted(excluded_session_ids),
+        },
         "data_coverage": _build_data_coverage(layers),
         "data_sources": data_sources,
         "blind_spots": blind_spots,

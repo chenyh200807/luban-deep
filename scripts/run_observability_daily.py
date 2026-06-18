@@ -10,9 +10,12 @@ import os
 import subprocess
 import sys
 import time
+from datetime import datetime
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -57,6 +60,7 @@ SURFACE_READINESS_CHECKS = (
 )
 WECHAT_DEVTOOLS_PROJECT_ROOT = "yousenwebview"
 WECHAT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"
+DEFAULT_REPORT_TIMEZONE = "Asia/Shanghai"
 
 
 def _surface_readiness_missing_summary(check_id: str, label: str) -> str:
@@ -95,6 +99,14 @@ def _surface_readiness_missing_evidence(
     return evidence
 
 
+def _surface_readiness_missing_blockers(check_id: str) -> list[str]:
+    if check_id == "wechat_devtools":
+        return ["wechat_devtools_true_entry_pending"]
+    if check_id == "playwright":
+        return ["playwright_evidence_missing"]
+    return [f"{check_id}_evidence_missing"]
+
+
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[str, Any] | None:
     return load_payload_json(path, expected_kind=expected_kind)
 
@@ -112,6 +124,27 @@ def _payload_release(payload: dict[str, Any] | None) -> dict[str, Any]:
         return release
     release_spine = payload.get("release_spine")
     return release_spine if isinstance(release_spine, dict) else {}
+
+
+def _resolve_report_window(
+    *,
+    report_date: str | None,
+    timezone: str,
+) -> dict[str, Any]:
+    tz_name = str(timezone or DEFAULT_REPORT_TIMEZONE).strip() or DEFAULT_REPORT_TIMEZONE
+    tz = ZoneInfo(tz_name)
+    if report_date:
+        target_date = datetime.strptime(str(report_date), "%Y-%m-%d").date()
+    else:
+        target_date = (datetime.now(tz) - timedelta(days=1)).date()
+    start_dt = datetime(target_date.year, target_date.month, target_date.day, tzinfo=tz)
+    end_dt = start_dt + timedelta(days=1) - timedelta(seconds=1)
+    return {
+        "report_date": target_date.isoformat(),
+        "timezone": tz_name,
+        "start_ts": float(start_dt.timestamp()),
+        "end_ts": float(end_dt.timestamp()),
+    }
 
 
 def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
@@ -141,11 +174,44 @@ def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> di
     return None
 
 
+def _build_testclient_metrics_snapshot() -> dict[str, Any]:
+    from fastapi.testclient import TestClient
+
+    from deeptutor.api.main import app
+    from deeptutor.api.main import get_circuit_breaker_snapshot
+    from deeptutor.api.main import get_readyz_payload
+    from deeptutor.api.main import get_release_lineage_snapshot as get_app_release_snapshot
+    from deeptutor.api.main import get_surface_event_store
+    from deeptutor.api.main import get_tracker_snapshot
+    from deeptutor.api.main import get_turn_runtime_metrics
+
+    with TestClient(app) as client:
+        client.get("/healthz").raise_for_status()
+        return {
+            "release": get_app_release_snapshot(),
+            "http": app.state.runtime_metrics.snapshot(),
+            "turn_runtime": get_turn_runtime_metrics().snapshot(),
+            "surface_events": get_surface_event_store().snapshot(),
+            "readiness": get_readyz_payload(app)[1],
+            "providers": {
+                "error_rates": get_tracker_snapshot(),
+                "circuit_breakers": get_circuit_breaker_snapshot(),
+            },
+        }
+
+
 def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> dict[str, Any]:
     if metrics_json:
         payload = _load_json(metrics_json)
         if not isinstance(payload, dict):
             raise TypeError("metrics snapshot must be a JSON object")
+        payload["observability_metrics_provenance"] = {
+            "source": "metrics_json",
+            "url": "",
+            "fallback_used": False,
+            "status_code": None,
+            "error": "",
+        }
         return payload
 
     try:
@@ -155,31 +221,26 @@ def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> di
             payload = response.json()
         if not isinstance(payload, dict):
             raise TypeError("metrics endpoint must return JSON object")
+        payload["observability_metrics_provenance"] = {
+            "source": "live_metrics_endpoint",
+            "url": f"{api_base_url.rstrip('/')}/metrics",
+            "fallback_used": False,
+            "status_code": int(response.status_code),
+            "error": "",
+        }
         return payload
-    except Exception:
-        from fastapi.testclient import TestClient
-
-        from deeptutor.api.main import app
-        from deeptutor.api.main import get_circuit_breaker_snapshot
-        from deeptutor.api.main import get_readyz_payload
-        from deeptutor.api.main import get_release_lineage_snapshot as get_app_release_snapshot
-        from deeptutor.api.main import get_surface_event_store
-        from deeptutor.api.main import get_tracker_snapshot
-        from deeptutor.api.main import get_turn_runtime_metrics
-
-        with TestClient(app) as client:
-            client.get("/healthz").raise_for_status()
-            payload = {
-                "release": get_app_release_snapshot(),
-                "http": app.state.runtime_metrics.snapshot(),
-                "turn_runtime": get_turn_runtime_metrics().snapshot(),
-                "surface_events": get_surface_event_store().snapshot(),
-                "readiness": get_readyz_payload(app)[1],
-                "providers": {
-                    "error_rates": get_tracker_snapshot(),
-                    "circuit_breakers": get_circuit_breaker_snapshot(),
-                },
-            }
+    except Exception as exc:
+        status_code = None
+        if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
+            status_code = int(exc.response.status_code)
+        payload = _build_testclient_metrics_snapshot()
+        payload["observability_metrics_provenance"] = {
+            "source": "testclient_fallback",
+            "url": f"{api_base_url.rstrip('/')}/metrics",
+            "fallback_used": True,
+            "status_code": status_code,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
         return payload
 
 
@@ -224,19 +285,51 @@ def _run_unified_ws_smoke_check(*, api_base_url: str, timeout_seconds: float) ->
                 timeout_seconds=timeout_seconds,
             )
         )
+    except (ConnectionRefusedError, TimeoutError, OSError) as exc:
+        return {
+            "name": "unified_ws_smoke",
+            "ok": None,
+            "status": "DEFERRED",
+            "summary": "unified /api/v1/ws smoke deferred: target API service unavailable",
+            "evidence": [
+                f"api_base_url={api_base_url.rstrip('/')}",
+                f"error_type={type(exc).__name__}",
+                str(exc)[:500],
+            ],
+            "session_ids": [],
+            "turn_ids": [],
+        }
     except Exception as exc:
         return {
             "name": "unified_ws_smoke",
             "ok": False,
+            "status": "FAIL",
             "summary": f"unified /api/v1/ws smoke failed before terminal event: {type(exc).__name__}",
             "evidence": [str(exc)[:500]],
+            "session_ids": [],
+            "turn_ids": [],
         }
 
     terminal = payload.get("terminal_event") or {}
     messages = payload.get("messages") or []
+    session_ids = sorted(
+        {
+            str(item.get("session_id") or "").strip()
+            for item in [*messages, terminal]
+            if isinstance(item, dict) and str(item.get("session_id") or "").strip()
+        }
+    )
+    turn_ids = sorted(
+        {
+            str(item.get("turn_id") or "").strip()
+            for item in [*messages, terminal]
+            if isinstance(item, dict) and str(item.get("turn_id") or "").strip()
+        }
+    )
     return {
         "name": "unified_ws_smoke",
         "ok": bool(payload.get("passed")),
+        "status": "PASS" if payload.get("passed") else "FAIL",
         "summary": "unified /api/v1/ws reached terminal done"
         if payload.get("passed")
         else f"unified /api/v1/ws terminal={terminal.get('type')}",
@@ -249,7 +342,23 @@ def _run_unified_ws_smoke_check(*, api_base_url: str, timeout_seconds: float) ->
             f"message_count={len(messages)}",
             f"duration_ms={payload.get('duration_ms')}",
         ],
+        "session_ids": session_ids,
+        "turn_ids": turn_ids,
     }
+
+
+def _excluded_smoke_session_ids(om_payload: dict[str, Any] | None) -> set[str]:
+    excluded: set[str] = set()
+    for item in ((om_payload or {}).get("smoke_checks") or []):
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("name") or "").strip() != "unified_ws_smoke":
+            continue
+        for session_id in item.get("session_ids") or []:
+            normalized = str(session_id or "").strip()
+            if normalized:
+                excluded.add(normalized)
+    return excluded
 
 
 def _resolve_unified_ws_smoke_token(*, api_base_url: str) -> str:
@@ -439,7 +548,7 @@ def _ensure_surface_readiness_rows(
                     check_id=check_id,
                     changed_preview=changed_preview,
                 ),
-                "blockers": [f"{check_id}_failed"],
+                "blockers": _surface_readiness_missing_blockers(check_id),
                 "release": dict(release or {}),
             }
             store.write_run(
@@ -588,6 +697,8 @@ def main() -> None:
     parser.add_argument("--api-base-url", default=DEFAULT_API_BASE_URL)
     parser.add_argument("--unified-ws-smoke-timeout", type=float, default=20.0)
     parser.add_argument("--event-days", type=int, default=1)
+    parser.add_argument("--report-date")
+    parser.add_argument("--timezone", default=DEFAULT_REPORT_TIMEZONE)
     parser.add_argument("--output-dir")
     args = parser.parse_args()
 
@@ -596,6 +707,10 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     current_release = get_release_lineage_snapshot()
     changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
+    report_window = _resolve_report_window(
+        report_date=getattr(args, "report_date", None),
+        timezone=str(getattr(args, "timezone", DEFAULT_REPORT_TIMEZONE) or DEFAULT_REPORT_TIMEZONE),
+    )
 
     om_payload = _ensure_om_payload(
         store=store,
@@ -635,6 +750,11 @@ def main() -> None:
         metrics_snapshot=metrics_snapshot,
         benchmark_payload=benchmark_payload,
         release=current_release,
+        report_date=str(report_window["report_date"]),
+        start_ts=float(report_window["start_ts"]),
+        end_ts=float(report_window["end_ts"]),
+        timezone=str(report_window["timezone"]),
+        exclude_session_ids=_excluded_smoke_session_ids(om_payload),
     )
     observer_artifacts = write_observer_snapshot_artifacts(
         observer_payload,
@@ -735,6 +855,7 @@ def main() -> None:
         "verdict": "STALE"
         if gate_payload.get("verdict") == "STALE" or oa_payload.get("verdict") == "STALE"
         else "TRUSTED",
+        "window": dict(report_window),
         "source_runs": {
             "observer_snapshot_run_id": observer_payload.get("run_id"),
             "change_impact_run_id": change_impact_payload.get("run_id"),
