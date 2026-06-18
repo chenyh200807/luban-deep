@@ -9,6 +9,8 @@ description: Use this whenever adopting, upgrading, installing, or enabling an e
 **吸收它的严谨流程，中和它的 opinionated 默认行为。** 外部工具的默认是为通用场景设计的，
 会悄悄越过本项目的单一权威、分支纪律、register-before-use。工具越"帮你自动做"，越容易绕过 gate。
 
+**与既有 gate 的分工**（不重复造）：本 skill 只管"**采纳/升级外部工具这一刻**的审计与中和"。提交细则归 `deeptutor-git-workflow-gate`，schema 登记归 `deeptutor-schema-authority-gate`，gstack 各命令的专项越权清单归 `CLAUDE.md`。本 skill 是触发面更广的"入口闸"，命中后该跳哪条专项 gate 就跳。下面的 gstack / 插件只是**例子**，不是只针对这两个。
+
 ## 为什么（已踩两次，会再踩）
 
 - **gstack**：`ship`/`land`/`document` 默认 auto-commit、bump 版本、改 CLAUDE.md/README、push、开 PR —— 越过 AGENTS §3.5 Main Merge / §3.6 Branch discipline。
