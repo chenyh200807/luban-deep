@@ -474,9 +474,14 @@ def error_cards(schema: dict[str, Any]) -> str:
 
 
 def practice_options(schema: dict[str, Any]) -> str:
+    practice = schema.get("practice") or {}
+    # 新卡标准:单一正确 id practice.answer(泄漏面更小);无 answer 时回退 options[].is_correct
+    # (F16/C01 兼容)。对齐并行 commit 289881c83 的 drift 收敛方向。
+    answer = practice.get("answer")
     options = []
-    for o in (schema.get("practice") or {}).get("options") or []:
-        correct = "true" if o.get("is_correct") else "false"
+    for o in practice.get("options") or []:
+        is_correct = (o.get("id") == answer) if answer is not None else bool(o.get("is_correct"))
+        correct = "true" if is_correct else "false"
         options.append(
             f'<button class="option" type="button" data-correct="{correct}" '
             f'data-feedback="{esc(o.get("feedback"))}" aria-pressed="false">'

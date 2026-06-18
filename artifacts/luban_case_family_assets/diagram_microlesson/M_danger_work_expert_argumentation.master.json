@@ -58,16 +58,16 @@
 
   "variants": [
     {"id": "V1_pit", "scenario_id": "pit", "stem": "某工程基坑开挖深度 5.5m,已编制专项施工方案。是否需组织专家论证?",
-     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],
+     "answer": "C", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案,但未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
      "judged_outcome": "need_argumentation", "basis": "5.5m≥3m 危大、≥5m 超规模", "tier_tag": "上限档(需论证)", "feedback": "对:5.5≥5,超过一定规模,要论证。"},
     {"id": "V2_formwork", "scenario_id": "formwork", "stem": "某模板支撑工程搭设高度 6m(模板支撑≥5m 危大、≥8m 超规模)。判断?",
-     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":false},{"id":"B","text":"危大须编方案,但 6m<8m 未超规模,无需论证","is_correct":true},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],
+     "answer": "B", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案,但 6m<8m 未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
      "judged_outcome": "scheme_only", "basis": "6≥5 危大、6<8 未超规模", "tier_tag": "中间档(编方案不论证)·边界陷阱", "feedback": "对:6m 到了危大但没到超规模,编方案即可,不用论证。"},
     {"id": "V3_scaffold", "scenario_id": "scaffold", "stem": "某落地式钢管脚手架搭设高度 55m(脚手架≥24m 危大、≥50m 超规模)。判断?",
-     "options": [{"id":"A","text":"非危大","is_correct":false},{"id":"B","text":"危大但未超规模,无需论证","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":true}],
+     "answer": "C", "options": [{"id":"A","text":"非危大"},{"id":"B","text":"危大但未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
      "judged_outcome": "need_argumentation", "basis": "55≥24 危大、≥50 超规模", "tier_tag": "上限档(换工程仍需论证)", "feedback": "对:换成脚手架,55≥50 照样超规模,要论证。"},
     {"id": "V4_pit_low", "scenario_id": "pit", "stem": "某基坑开挖深度 2.5m,地质简单、周边空旷。判断?",
-     "options": [{"id":"A","text":"非危大,无需专项方案","is_correct":true},{"id":"B","text":"危大须编方案","is_correct":false},{"id":"C","text":"超过一定规模危大,需专家论证","is_correct":false}],
+     "answer": "A", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
      "judged_outcome": "not_dangerous", "basis": "2.5m<3m 且地质/周边不复杂,未达危大", "tier_tag": "下限档(非危大)", "feedback": "对:没到 3m 又不复杂,不构成危大,连专项方案都不需要。"}
   ],
 

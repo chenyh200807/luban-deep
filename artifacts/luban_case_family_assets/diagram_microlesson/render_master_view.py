@@ -97,7 +97,7 @@ function renderQ(){
 function answer(o, btn, v){
   if(results.length > cur) return; // 已答
   [...optsEl.children].forEach(x=>x.style.pointerEvents="none");
-  const correct = !!o.is_correct;
+  const correct = (o.id === v.answer);
   btn.dataset.state = correct ? "correct" : "wrong";
   if(!correct){
     [...optsEl.children].forEach((x,i)=>{ if(v.options[i].is_correct) x.dataset.state="correct"; });
@@ -153,8 +153,8 @@ def render(master: dict[str, Any]) -> str:
     client = {
         "variants": [
             {
-                "id": v.get("id"), "stem": v.get("stem"),
-                "options": [{"id": o.get("id"), "text": o.get("text"), "is_correct": bool(o.get("is_correct"))} for o in v.get("options") or []],
+                "id": v.get("id"), "stem": v.get("stem"), "answer": v.get("answer"),
+                "options": [{"id": o.get("id"), "text": o.get("text")} for o in v.get("options") or []],
                 "feedback": v.get("feedback"), "basis": v.get("basis"), "tier_tag": v.get("tier_tag"),
             }
             for v in master.get("variants") or []
