@@ -53,6 +53,7 @@ def detect_body(card: dict[str, Any]) -> str:
     has_network = bool(get(card, "question_data.activities"))
     has_diag = bool(card.get("diagnosis"))
     has_contrast = bool(card.get("contrast_items"))
+    has_decision = bool(get(card, "decision.judgment_points"))
     bodies = [
         b
         for b, present in (
@@ -60,6 +61,7 @@ def detect_body(card: dict[str, Any]) -> str:
             ("network", has_network),
             ("diagnosis", has_diag),
             ("contrast", has_contrast),
+            ("decision", has_decision),
         )
         if present
     ]
@@ -154,6 +156,60 @@ def check_contrast(card: dict[str, Any], errs: list[str]) -> None:
         errs.append("draft 不得 official_score_allowed=true / production_ready")
 
 
+def check_decision(card: dict[str, Any], errs: list[str]) -> None:
+    d = card.get("decision") or {}
+    points = d.get("judgment_points") or []
+    if not points:
+        errs.append("decision 缺字段: judgment_points")
+    sp_ids = {sp.get("id") for sp in card.get("scoring_points") or []}
+    pids = {p.get("id") for p in points}
+    oids = {o.get("id") for o in (d.get("outcomes") or [])}
+    for p in points:
+        if p.get("verdict") not in ("met", "unmet", "na"):
+            errs.append(f"judgment_points[{p.get('id')!r}].verdict 非法: {p.get('verdict')!r}")
+        for nxt in (p.get("next_on_met"), p.get("next_on_unmet")):
+            if nxt is None:
+                continue
+            if str(nxt).startswith("outcome:"):
+                if str(nxt).split(":", 1)[1] not in oids:
+                    errs.append(f"{p.get('id')!r} 走向指向未知 outcome: {nxt!r}")
+            elif nxt not in pids:
+                errs.append(f"{p.get('id')!r} 走向指向未知判断点: {nxt!r}")
+        b = p.get("scoring_point_binding")
+        if b is not None and b not in sp_ids:
+            errs.append(f"{p.get('id')!r}.scoring_point_binding {b!r} 不在 scoring_points (reference 未闭合)")
+    if d.get("reached_outcome") not in oids:
+        errs.append(f"reached_outcome {d.get('reached_outcome')!r} 不在 outcomes")
+    # 沿 verdict 路径求【实际】到达 outcome, 对比 reached_outcome(防声明与走向不一致)
+    if points:
+        pts_by_id = {p.get("id"): p for p in points}
+        cur = points[0].get("id")
+        seen: set[Any] = set()
+        reached_actual = None
+        for _ in range(len(points) + 1):
+            if cur in seen or cur not in pts_by_id:
+                break
+            seen.add(cur)
+            p = pts_by_id[cur]
+            nxt = p.get("next_on_met") if p.get("verdict") == "met" else p.get("next_on_unmet")
+            if str(nxt).startswith("outcome:"):
+                reached_actual = str(nxt).split(":", 1)[1]
+                break
+            cur = nxt
+        if reached_actual != d.get("reached_outcome"):
+            errs.append(
+                f"reached_outcome 声明 {d.get('reached_outcome')!r} 但沿 verdict 路径实走到 {reached_actual!r}"
+            )
+    for sp in card.get("scoring_points") or []:
+        if not sp.get("kind"):
+            errs.append(f"scoring_points[{sp.get('id')!r}] 缺 kind (candidate 不冒充签发)")
+    status = authority_status(card)
+    if status not in CANDIDATE_STATUSES:
+        errs.append(f"decision 草案必须标 candidate/draft authority, 实际: {status!r}")
+    if official_score_claimed(card):
+        errs.append("draft 不得 official_score_allowed=true / production_ready")
+
+
 def check_student_safety(card: dict[str, Any], errs: list[str]) -> str:
     if not has_student_boundary(card):
         errs.append("缺 authority.student_boundary")
@@ -190,7 +246,7 @@ def validate_one(path: Path) -> bool:
 
     body = detect_body(card)
     if body.startswith("AMBIGUOUS"):
-        errs.append(f"body 不互斥: {body} (steps/network/diagnosis 只能其一为主 body)")
+        errs.append(f"body 不互斥: {body} (steps/network/diagnosis/contrast/decision 只能其一为主 body)")
 
     status = authority_status(card)
     safe = check_student_safety(card, errs)
@@ -208,11 +264,24 @@ def validate_one(path: Path) -> bool:
             errs.append(f"{tt} 的 body 应为 contrast, 实际 {body}")
         if tt == "contrast_pair_reveal":
             tt_label += "  [建议标 contrast_pair_reveal_draft]"
+    elif tt in ("decision_branch_reveal", "decision_branch_reveal_draft"):
+        check_decision(card, errs)
+        if body != "decision":
+            errs.append(f"{tt} 的 body 应为 decision, 实际 {body}")
+        if tt == "decision_branch_reveal":
+            tt_label += "  [建议标 decision_branch_reveal_draft]"
     elif tt in ("process_step_reveal", "layer_section_reveal"):
         if body != "steps":
             errs.append(f"{tt} 的 body 应为 steps, 实际 {body}")
     elif tt is None:
         errs.append("无法确定 template_type (缺 template_type 且 scenario.diagram_type 不可推断)")
+
+    # 通用: practice.answer(单一正确 id, 新卡标准)必须属于 options(防答案指向不存在选项)
+    practice = card.get("practice") or {}
+    if practice.get("answer") is not None:
+        opt_ids = {o.get("id") for o in practice.get("options") or []}
+        if practice["answer"] not in opt_ids:
+            errs.append(f"practice.answer {practice['answer']!r} 不在 options ids")
 
     ok = not errs
     print(

@@ -19,7 +19,7 @@ import type { StreamEvent, ChatMessage, LLMSelection } from "@/lib/unified-ws";
 import { primeUnifiedTurnContractCheck, UnifiedWSClient } from "@/lib/unified-ws";
 import { getSession, type SessionMessage } from "@/lib/session-api";
 import { normalizeMarkdownForDisplay } from "@/lib/markdown-display";
-import { shouldAppendEventContent } from "@/lib/stream";
+import { isUserVisibleStreamEvent, shouldAppendEventContent } from "@/lib/stream";
 
 type SessionRuntimeStatus =
   | "idle"
@@ -275,6 +275,20 @@ function reducer(state: ProviderState, action: Action): ProviderState {
       };
     case "STREAM_EVENT": {
       const session = state.sessions[action.key] ?? createSessionEntry(action.key);
+      if (!isUserVisibleStreamEvent(action.event)) {
+        return {
+          ...state,
+          sessions: {
+            ...state.sessions,
+            [action.key]: {
+              ...session,
+              activeTurnId: action.event.turn_id || session.activeTurnId,
+              lastSeq: Math.max(session.lastSeq, action.event.seq || 0),
+              updatedAt: Date.now(),
+            },
+          },
+        };
+      }
       const msgs = [...session.messages];
       let last = msgs[msgs.length - 1];
       if (last?.role !== "assistant") {

@@ -26,6 +26,7 @@
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
 6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
+7. 会员控制台 / 学员 read-model 访问 token 是身份边界，不是 learner-state truth。签名 token 必须同时满足 HMAC-SHA256 校验、`hmac.compare_digest`、未来 `exp`；缺失、非法或过期 `exp` 必须 fail-closed，不得被解释为“无过期时间”继续访问 learner read model。
 
 ### Compact Context 读取边界
 

@@ -4561,7 +4561,7 @@ class TurnRuntimeManager:
             # "system busy" event instead of firing another LLM call into an overload.
             turn_slot_acquired = await _acquire_turn_slot()
             if not turn_slot_acquired:
-                terminal_status = "rejected"
+                terminal_status = "failed"
                 # Same public phrasing as unified_ws._public_ws_failure_message —
                 # inlined because the runtime must not import from the transport
                 # layer, and the previous bare reference raised NameError here,
@@ -4583,6 +4583,15 @@ class TurnRuntimeManager:
                         source=capability_name,
                         metadata={"status": "rejected", "reason": "server_busy"},
                     ),
+                )
+                await self._safe_store_call(
+                    execution,
+                    "mark_turn_rejected_server_busy",
+                    self.store.update_turn_status,
+                    turn_id,
+                    "failed",
+                    "server_busy",
+                    default=False,
                 )
                 logger.warning(
                     "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",

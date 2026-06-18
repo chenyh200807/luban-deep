@@ -367,12 +367,21 @@ class SQLiteProductBehaviorStore:
         filters = filters or {}
         clauses = []
         params: list[Any] = []
-        try:
-            days = int(filters.get("days") or 7)
-        except (TypeError, ValueError):
-            days = 7
-        clauses.append("occurred_at_ms >= ?")
-        params.append(self._since_ms(days))
+        start_ts_ms = filters.get("start_ts_ms")
+        end_ts_ms = filters.get("end_ts_ms")
+        if start_ts_ms is not None:
+            clauses.append("occurred_at_ms >= ?")
+            params.append(int(start_ts_ms))
+        else:
+            try:
+                days = int(filters.get("days") or 7)
+            except (TypeError, ValueError):
+                days = 7
+            clauses.append("occurred_at_ms >= ?")
+            params.append(self._since_ms(days))
+        if end_ts_ms is not None:
+            clauses.append("occurred_at_ms <= ?")
+            params.append(int(end_ts_ms))
         for key in ("user_id", "event_name", "surface", "module", "section", "action"):
             value = str(filters.get(key) or "").strip()
             if value:

@@ -9,6 +9,7 @@ import sys
 
 import pytest
 
+from deeptutor.services.observability.control_plane_store import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import reset_control_plane_store
 
 
@@ -87,6 +88,240 @@ def test_daily_observability_issues_local_canonical_ws_smoke_token(monkeypatch: 
         DAILY_OBSERVABILITY_MODULE._resolve_unified_ws_smoke_token(api_base_url="http://127.0.0.1:8001")
         == "signed-token"
     )
+
+
+def test_daily_observability_defers_ws_smoke_when_target_service_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _raise_connection_refused(**_kwargs):
+        raise ConnectionRefusedError("connect call failed")
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "run_unified_ws_smoke", _raise_connection_refused)
+
+    payload = DAILY_OBSERVABILITY_MODULE._run_unified_ws_smoke_check(
+        api_base_url="http://127.0.0.1:18002",
+        timeout_seconds=1.0,
+    )
+
+    assert payload["ok"] is None
+    assert payload["status"] == "DEFERRED"
+    assert "target API service unavailable" in payload["summary"]
+    assert "api_base_url=http://127.0.0.1:18002" in payload["evidence"]
+
+
+def test_daily_observability_keeps_terminal_ws_errors_blocking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _raise_runtime_error(**_kwargs):
+        raise RuntimeError("invalid api key")
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "run_unified_ws_smoke", _raise_runtime_error)
+
+    payload = DAILY_OBSERVABILITY_MODULE._run_unified_ws_smoke_check(
+        api_base_url="http://127.0.0.1:8001",
+        timeout_seconds=1.0,
+    )
+
+    assert payload["ok"] is False
+    assert payload["status"] == "FAIL"
+    assert "RuntimeError" in payload["summary"]
+
+
+def test_daily_observability_metrics_fallback_records_401_provenance(monkeypatch: pytest.MonkeyPatch) -> None:
+    request = DAILY_OBSERVABILITY_MODULE.httpx.Request("GET", "http://127.0.0.1:8001/metrics")
+    response = DAILY_OBSERVABILITY_MODULE.httpx.Response(401, request=request)
+
+    class _FakeClient:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def get(self, _url: str):
+            raise DAILY_OBSERVABILITY_MODULE.httpx.HTTPStatusError(
+                "401 Unauthorized",
+                request=request,
+                response=response,
+            )
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE.httpx, "Client", lambda **_kwargs: _FakeClient())
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_build_testclient_metrics_snapshot",
+        lambda: {"release": {"release_id": "rel-1"}},
+    )
+
+    payload = DAILY_OBSERVABILITY_MODULE._load_metrics_snapshot(
+        api_base_url="http://127.0.0.1:8001",
+        metrics_json=None,
+    )
+
+    provenance = payload["observability_metrics_provenance"]
+    assert provenance["source"] == "testclient_fallback"
+    assert provenance["fallback_used"] is True
+    assert provenance["status_code"] == 401
+    assert provenance["url"] == "http://127.0.0.1:8001/metrics"
+    assert "401 Unauthorized" in provenance["error"]
+
+
+def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monkeypatch, tmp_path) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    current_release = {
+        "release_id": "rel-current",
+        "git_sha": "sha-current",
+        "deployment_environment": "dev",
+        "prompt_version": "p-current",
+        "ff_snapshot_hash": "ff-current",
+    }
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="origin/main",
+            changed_file=[],
+            metrics_json=None,
+            api_base_url="http://127.0.0.1:8001",
+            unified_ws_smoke_timeout=20.0,
+            event_days=1,
+            report_date="2026-06-16",
+            timezone="Asia/Shanghai",
+            output_dir=str(tmp_path / "out"),
+        ),
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "collect_git_changed_files", lambda **_kwargs: ["scripts/run_observability_daily.py"])
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_om_payload",
+        lambda **_kwargs: {
+            "run_id": "om-1",
+            "release": current_release,
+            "metrics_snapshot": {"release": current_release},
+            "health_summary": {"ready": True},
+            "smoke_checks": [{"name": "unified_ws_smoke", "session_ids": ["session-smoke"]}],
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_arr_payload",
+        lambda **_kwargs: {"run_id": "arr-1", "release": current_release, "summary": {"pass_rate": 1.0}},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_benchmark_payload",
+        lambda **_kwargs: {"run_manifest": {"run_id": "bench-1"}, "summary": {"pass_rate": 1.0}},
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_surface_readiness_rows", lambda **_kwargs: None)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_aae_payload",
+        lambda **_kwargs: {"run_id": "aae-1", "release": current_release, "scorecard": {}},
+    )
+
+    def _fake_build_observer_snapshot(**kwargs):
+        captured["observer_kwargs"] = kwargs
+        return {
+            "run_id": "observer-1",
+            "release": current_release,
+            "window": {
+                "report_date": kwargs["report_date"],
+                "timezone": kwargs["timezone"],
+                "start_ts": kwargs["start_ts"],
+                "end_ts": kwargs["end_ts"],
+                "excluded_session_ids": sorted(kwargs["exclude_session_ids"]),
+            },
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_observer_snapshot", _fake_build_observer_snapshot)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "write_observer_snapshot_artifacts",
+        lambda *_args, **_kwargs: {"json_path": str(tmp_path / "observer.json")},
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_write_contract_guard_readiness", lambda **_kwargs: None)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_change_impact_run",
+        lambda **_kwargs: {"run_id": "change-1", "release": current_release, "risk_level": "medium"},
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "render_change_impact_markdown", lambda _payload: "# change")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_oa_run",
+        lambda **_kwargs: {
+            "run_id": "oa-1",
+            "release": current_release,
+            "verdict": "TRUSTED",
+            "root_causes": [],
+            "causal_candidates": [],
+            "blind_spots": [],
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_plan_completion_payload",
+        lambda **_kwargs: {"run_id": "plan-1", "release": current_release},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_current_release_readiness_matrix_payload",
+        lambda **_kwargs: {"checks": []},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_release_gate_report",
+        lambda **_kwargs: {
+            "run_id": "gate-1",
+            "release": current_release,
+            "verdict": "TRUSTED",
+            "final_status": "PASS",
+            "recommendation": "go",
+            "gate_results": [],
+            "blockers": [],
+        },
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_daily_run_history", lambda **_kwargs: {"items": []})
+
+    DAILY_OBSERVABILITY_MODULE.main()
+
+    observer_kwargs = captured["observer_kwargs"]
+    assert observer_kwargs["report_date"] == "2026-06-16"
+    assert observer_kwargs["timezone"] == "Asia/Shanghai"
+    assert observer_kwargs["exclude_session_ids"] == {"session-smoke"}
+    assert observer_kwargs["start_ts"] < observer_kwargs["end_ts"]
+
+
+def test_daily_observability_missing_surface_readiness_rows_are_evidence_gaps(tmp_path) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    store = get_control_plane_store()
+    release = {
+        "release_id": "rel-current",
+        "git_sha": "sha-current",
+        "deployment_environment": "local",
+        "prompt_version": "p-current",
+        "ff_snapshot_hash": "ff-current",
+    }
+
+    DAILY_OBSERVABILITY_MODULE._ensure_surface_readiness_rows(
+        store=store,
+        release=release,
+        changed_files=["web/app/page.tsx", "yousenwebview/project.config.json"],
+    )
+
+    records = store.list_runs("readiness_checks", limit=10)
+    rows = {
+        str((record.get("payload") or {}).get("check_id")): record.get("payload")
+        for record in records
+    }
+    assert rows["playwright"]["status"] == "FAIL"
+    assert rows["playwright"]["blockers"] == ["playwright_evidence_missing"]
+    assert "reason=no current-release readiness row existed" in rows["playwright"]["evidence"]
+    assert rows["wechat_devtools"]["status"] == "FAIL"
+    assert rows["wechat_devtools"]["blockers"] == ["wechat_devtools_true_entry_pending"]
+    assert "boundary=islogin/open are preflight until page scenario or automator evidence exists" in rows["wechat_devtools"]["evidence"]
 
 
 def test_run_oa_load_json_accepts_observer_snapshot_wrapper(tmp_path) -> None:
@@ -205,6 +440,67 @@ def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tm
     RELEASE_GATE_MODULE.main()
 
     assert captured["plan_completion_payload"] == explicit_payload
+
+
+def test_run_release_gate_report_only_ignores_stale_incident_latest(tmp_path, monkeypatch) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    current_release = {
+        "release_id": "rel-current",
+        "git_sha": "abc123",
+        "deployment_environment": "local",
+        "prompt_version": "prompt-current",
+        "ff_snapshot_hash": "ff-current",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest-current",
+    }
+    old_release = {
+        "release_id": "rel-old",
+        "git_sha": "oldsha",
+        "deployment_environment": "local",
+        "prompt_version": "prompt-old",
+        "ff_snapshot_hash": "ff-old",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest-old",
+    }
+    incident_dir = tmp_path / "control_plane" / "incident_ledger"
+    incident_dir.mkdir(parents=True, exist_ok=True)
+    (incident_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "incident_ledger",
+                "run_id": "incident-old",
+                "release_id": "rel-old",
+                "recorded_at": 1,
+                "payload": {
+                    "run_manifest": {"run_id": "incident-old"},
+                    "release_spine": old_release,
+                    "runtime_incidents": [{"release_blocking": True}],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    captured = {}
+
+    def _fake_build_release_gate_report(**kwargs):
+        captured["incident_payload"] = kwargs["incident_payload"]
+        return {
+            "run_id": "release-gate-test",
+            "release": current_release,
+            "final_status": "WARN",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": [],
+            "stale_inputs": [],
+        }
+
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "build_release_gate_report", _fake_build_release_gate_report)
+    monkeypatch.setattr(sys, "argv", ["run_release_gate.py", "--report-only"])
+
+    RELEASE_GATE_MODULE.main()
+
+    assert captured["incident_payload"] is None
 
 
 def test_run_release_gate_store_fallback_rejects_malformed_latest_wrapper(tmp_path) -> None:

@@ -2726,9 +2726,12 @@ class MemberConsoleService:
             payload = json.loads(self._b64url_decode(payload_part).decode("utf-8"))
         except Exception:
             return None
-        exp = int(payload.get("exp") or 0)
+        try:
+            exp = int(payload.get("exp"))
+        except (TypeError, ValueError):
+            return None
         now = int(_now().timestamp())
-        if exp and exp < now:
+        if exp <= now:
             return None
         return payload
 

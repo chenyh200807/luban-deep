@@ -2366,11 +2366,10 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
 
 @router.get("/billing/usage")
 async def billing_usage(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    _resolve_authenticated_user_id(authorization)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    if not str(wallet_user_id or "").strip():
-        return _build_billing_usage_payload([])
     try:
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     except Exception as exc:
@@ -2413,15 +2412,10 @@ async def billing_ledger(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
+    _resolve_authenticated_user_id(authorization)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    if not str(wallet_user_id or "").strip():
-        return {
-            "entries": [],
-            "has_more": False,
-            "total": 0,
-        }
     merge_window = offset + limit + 1
     try:
         wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)

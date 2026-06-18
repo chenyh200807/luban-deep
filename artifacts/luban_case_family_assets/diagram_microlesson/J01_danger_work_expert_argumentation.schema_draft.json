@@ -1,0 +1,148 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "J01_danger_work_expert_argumentation",
+  "template_type": "decision_branch_reveal_draft",
+  "title": "危大工程 · 要不要专家论证(判断)",
+  "taxonomy_ref": "1A431030-E01",
+  "_status_note": "④判断原型第一张;criteria_chain 模式(2 判据点→3 结论分叉)。template_type 用 *_draft 收口,body=decision 与 steps/contrast_items/diagnosis 互斥,沿用 luban_diagram_microlesson.v1。渲染器只渲染教研预编译的例题判断示范,不 runtime 判断、不判分(判分走 LLM 开放世界·硬约束40)。",
+  "authority": {
+    "judging_artifact_id": null,
+    "status": "candidate_teaching_prototype",
+    "judging_authority_label": "培训机构教研整理,非官方阅卷;判据为候选,未签发",
+    "source_boundary": "危大范围与论证标准来自《危险性较大的分部分项工程安全管理规定》及配套清单的教研整理,标 candidate;正式分值/口径须经母题包签发后才升 signed。",
+    "student_boundary": "这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。"
+  },
+  "student_goal": "把'危大工程要不要专家论证'从凭感觉答,纠正成走两道判据:开挖深度≥3m 属危大(要编专项方案),≥5m 属超过一定规模(还要专家论证)。",
+  "scenario": {
+    "caption": "案例题常考'某工程要不要专家论证'。丢分不是不知道有专项方案,是说不清'危大'和'超过一定规模'两道判据、把'编方案'和'专家论证'混为一谈。",
+    "diagram_type": "decision_branch",
+    "diagram_disclaimer": "判断流程示意(确定性渲染);用于答题判断表达,非规范条文原文。"
+  },
+  "why_lose_points_html": "很多答案直接写'需要专家论证'或'编了专项方案就行',<b>没写判据</b>也<b>分不清两档</b>,阅卷给不到判断分。拉开分差的是两个数:<b>≥3m 属危大</b>、<b>≥5m 属超过一定规模</b>。",
+  "decision": {
+    "mode": "criteria_chain",
+    "scenario_given": "某工程基坑开挖深度 5.5m,已按要求编制专项施工方案。问:该专项方案是否需要组织专家论证?",
+    "judgment_points": [
+      {
+        "id": "is_dangerous",
+        "question": "它是危大工程吗?",
+        "criterion": "基坑支护、降水、开挖,开挖深度 ≥ 3m(或虽 <3m 但地质、周边环境复杂)",
+        "verdict": "met",
+        "verdict_reason": "本工程开挖深度 5.5m ≥ 3m,属危险性较大的分部分项工程。",
+        "basis": "依据《危险性较大的分部分项工程安全管理规定》危大工程范围",
+        "source_ref": "danger_work_compile::scope#foundation_pit (教研整理·候选·未签发)",
+        "scoring_point_binding": "SP_danger",
+        "next_on_met": "is_over_scale",
+        "next_on_unmet": "outcome:not_dangerous"
+      },
+      {
+        "id": "is_over_scale",
+        "question": "是'超过一定规模'的危大工程吗?",
+        "criterion": "开挖深度 ≥ 5m 的基坑工程(超过一定规模的危大范围)",
+        "verdict": "met",
+        "verdict_reason": "本工程 5.5m ≥ 5m,属超过一定规模的危大工程。",
+        "basis": "依据超过一定规模的危大工程范围",
+        "source_ref": "danger_work_compile::over_scale#foundation_pit_5m (教研整理·候选·未签发)",
+        "scoring_point_binding": "SP_scale",
+        "next_on_met": "outcome:need_argumentation",
+        "next_on_unmet": "outcome:scheme_only"
+      }
+    ],
+    "outcomes": [
+      {"id": "need_argumentation", "label": "专项施工方案应组织专家论证", "kind": "target", "scoring_point_binding": "SP_conclusion"},
+      {"id": "scheme_only", "label": "属危大须编专项方案,但未超过一定规模,无需专家论证", "kind": "alt"},
+      {"id": "not_dangerous", "label": "非危大工程,无需专项方案/论证", "kind": "alt"}
+    ],
+    "reached_outcome": "need_argumentation"
+  },
+  "scoring_points": [
+    {
+      "id": "SP_danger",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "max_score": null,
+      "keywords": ["基坑开挖深度", "≥3m", "危大工程"],
+      "source_ref": "danger_work_compile::scope (教研草拟·候选·未签发)",
+      "used_by": ["is_dangerous"]
+    },
+    {
+      "id": "SP_scale",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "max_score": null,
+      "keywords": ["开挖深度≥5m", "超过一定规模"],
+      "source_ref": "danger_work_compile::over_scale (教研草拟·候选·未签发)",
+      "used_by": ["is_over_scale"]
+    },
+    {
+      "id": "SP_conclusion",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "max_score": null,
+      "keywords": ["专项施工方案", "专家论证"],
+      "source_ref": "danger_work_compile::conclusion (教研草拟·候选·未签发)",
+      "used_by": ["need_argumentation"]
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "skip_criterion",
+      "text": "直接答'需要专家论证',不写判据。",
+      "error_code": "EJ-01(候选·未登记)",
+      "loss_display": "论证判据缺失",
+      "why": "没写'开挖深度≥5m 属超过一定规模危大'的判据,阅卷无法判断你是不是真会分档。",
+      "jump_point_id": "is_over_scale"
+    },
+    {
+      "id": "confuse_scheme_argue",
+      "text": "以为编了专项方案就行,漏了专家论证。",
+      "error_code": "EJ-02(候选·未登记)",
+      "loss_display": "漏专家论证环节",
+      "why": "超过一定规模的危大,专项方案必须再经专家论证,不能只编方案。",
+      "jump_point_id": "is_over_scale"
+    }
+  ],
+  "warm_correction_html": "<b>你能想到'危大工程要专项方案',方向已经对了一半。</b>真正得分的是两道判据:开挖深度<b>≥3m</b> 属危大(要编方案)、<b>≥5m</b> 属超过一定规模(还要专家论证)。记住这两个数,这类判断题就稳。",
+  "memory_hook": "三米危大编方案,五米超规模要论证。",
+  "practice": {
+    "kind": "retest_mcq",
+    "title": "复测题:换个工程判一判",
+    "review_point_id": "is_over_scale",
+    "answer": "B",
+    "stem": "某模板支撑工程搭设高度 6m(注:模板支撑搭设高度≥5m 属危大;≥8m 属超过一定规模)。下列判断最准确?",
+    "options": [
+      {"id": "A", "text": "非危大,无需专项方案。", "feedback": "6m≥5m,已属危大,要编专项方案。"},
+      {"id": "B", "text": "属危大须编专项方案;但 6m<8m,未超过一定规模,无需专家论证。", "feedback": "对——会用判据分档:≥5m 危大、<8m 不超规模。"},
+      {"id": "C", "text": "属超过一定规模危大,须专家论证。", "feedback": "6m<8m,没到超过一定规模那一档,无需专家论证。"}
+    ],
+    "next_action": "再练 1 道带数值的'要不要专家论证'判断小问,练分档。"
+  },
+  "narration": {
+    "voice_hint": "Tingting",
+    "mode": "prerendered_audio",
+    "_note": "旁白按 narration-spec 总纲从卡字段派生(不手写),离线预生成音频存档;运行时拉取播放,非实时 TTS。"
+  },
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title", "scenario.caption", "why_lose_points_html",
+      "decision.scenario_given",
+      "decision.judgment_points[].question", "decision.judgment_points[].criterion",
+      "decision.judgment_points[].verdict_reason", "decision.judgment_points[].basis",
+      "decision.outcomes[].label",
+      "common_errors[].text", "common_errors[].loss_display", "common_errors[].why",
+      "warm_correction_html", "memory_hook", "practice", "authority.student_boundary"
+    ],
+    "_narration_note": "旁白文本由 narration-spec 总纲从上列白名单字段(scenario.caption/judgment_points/outcomes/scoring keywords/warm/hook)派生,天然 student-safe。",
+    "internal_only_fields": [
+      "decision.mode", "decision.reached_outcome",
+      "decision.judgment_points[].verdict", "decision.judgment_points[].source_ref",
+      "decision.judgment_points[].scoring_point_binding",
+      "decision.judgment_points[].next_on_met", "decision.judgment_points[].next_on_unmet",
+      "decision.outcomes[].kind", "decision.outcomes[].scoring_point_binding",
+      "scoring_points[].id", "scoring_points[].source_ref", "scoring_points[].kind",
+      "common_errors[].error_code",
+      "authority.judging_artifact_id", "authority.source_boundary", "_status_note"
+    ],
+    "student_safe_note": "学生端只渲染 student_safe_fields;错因用 loss_display 汉语名(如'论证判据缺失'),绝不渲染 error_code、scoring_point id、source_ref、verdict 字面、mode、next_* 等内部词;internal_only 只进 HTML 注释或后台。"
+  }
+}
