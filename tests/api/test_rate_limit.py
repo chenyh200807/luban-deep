@@ -79,6 +79,17 @@ def test_rate_limit_falls_back_to_sqlite_when_redis_is_unavailable(
     assert second.json()["detail"] == "Too many requests"
 
 
+def test_route_rate_limit_dependency_carries_inventory_marker() -> None:
+    dependency = rate_limit_module.route_rate_limit(
+        "inventory_scope",
+        default_max_requests=1,
+        default_window_seconds=60.0,
+    )
+
+    assert getattr(dependency, "__deeptutor_rate_limit__") is True
+    assert getattr(dependency, "__deeptutor_rate_limit_scope__") == "inventory_scope"
+
+
 def test_websocket_rate_limit_blocks_repeated_connections(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

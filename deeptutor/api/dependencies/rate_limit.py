@@ -461,6 +461,8 @@ def route_rate_limit(
                 headers={"Retry-After": str(retry_after)},
             )
 
+    setattr(_rate_limit_dependency, "__deeptutor_rate_limit__", True)
+    setattr(_rate_limit_dependency, "__deeptutor_rate_limit_scope__", scope_name)
     return _rate_limit_dependency
 
 

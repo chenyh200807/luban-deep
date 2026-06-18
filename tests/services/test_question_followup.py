@@ -1918,6 +1918,8 @@ def test_redact_question_followup_context_for_public_strips_hidden_authority() -
                 "question_type": "choice",
                 "options": {"A": "a", "B": "b"},
                 "correct_answer": "A",
+                "minimal_rationale": "hidden minimal rationale",
+                "official_answer": "hidden official answer",
                 "explanation": "leak",
                 "grading_key": {"correct_answer": "A", "scoring_points": ["sp1"]},
                 "scoring_points": ["should be redacted"],
@@ -1927,7 +1929,17 @@ def test_redact_question_followup_context_for_public_strips_hidden_authority() -
     public = redact_question_followup_context_for_public(ctx)
     assert public is not None
     payload_blob = json.dumps(public, ensure_ascii=False)
-    for forbidden in ("grading_key", "scoring_points", "correct_answer", "leak-should-be-removed", "leak"):
+    for forbidden in (
+        "grading_key",
+        "scoring_points",
+        "correct_answer",
+        "minimal_rationale",
+        "official_answer",
+        "hidden minimal rationale",
+        "hidden official answer",
+        "leak-should-be-removed",
+        "leak",
+    ):
         assert forbidden not in payload_blob, f"public payload must not leak {forbidden}"
     # 非禁字段保留
     assert public["question_id"] == "qs_1"

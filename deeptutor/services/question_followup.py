@@ -370,9 +370,11 @@ def _normalize_unmatched_answer_refs(raw: Any) -> list[dict[str, Any]]:
     return refs
 
 
-_PUBLIC_REDACTED_KEYS = (
+PUBLIC_HIDDEN_PAYLOAD_KEYS = (
     "grading_key",
     "correct_answer",
+    "minimal_rationale",
+    "official_answer",
     "explanation",
     "scoring_points",
     "official_slice",
@@ -389,6 +391,7 @@ _PUBLIC_REDACTED_KEYS = (
     "per_point_score_authority",
     "answer_key_authority",
 )
+_PUBLIC_REDACTED_KEYS = PUBLIC_HIDDEN_PAYLOAD_KEYS
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
 # produced the evidence value. If the named field is a hidden authority

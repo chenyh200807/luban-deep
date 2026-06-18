@@ -30,8 +30,8 @@ assert(
   "copy button should not introduce a custom clipboard permission gate",
 );
 assert(
-  appJson.__usePrivacyCheck__ === false,
-  "local package copy button should not be blocked by undeclared clipboard privacy agreement scope",
+  appJson.__usePrivacyCheck__ === true,
+  "real yousenwebview project root must keep WeChat privacy checks enabled",
 );
 assert(
   wxml.indexOf("selectable") < 0,

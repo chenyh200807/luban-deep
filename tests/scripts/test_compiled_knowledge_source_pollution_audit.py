@@ -29,7 +29,8 @@ def test_audit_writes_compiler_feedback_for_network_plan_pollution(tmp_path: Pat
     assert summary["release_truth_written"] is False
     ledger = (tmp_path / "compiler_feedback_ledger.jsonl").read_text(encoding="utf-8")
     assert "repair_compiled_source_path_alignment" in ledger
-    assert "水泥" in ledger
+    assert "网络计划" in ledger
+    assert "水泥" not in ledger
     report = (tmp_path / "FINDING_compiled_source_pollution.md").read_text(encoding="utf-8")
     assert "双代号网络计划总时差怎么算？" in report
     assert "source_path_conflict" in report

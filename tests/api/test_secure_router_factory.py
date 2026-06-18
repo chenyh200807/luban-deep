@@ -2,6 +2,7 @@
 
 Verifies the contract documented in `deeptutor/api/_secure_router.py`:
 - `secure_router(...)` returns an APIRouter with `Depends(get_current_user)` at router level
+- `secure_ws_router(...)` returns a WS-only APIRouter without router-level dependencies
 - `public_router(reason=...)` requires non-trivial reason; stores it on router
 - `secure_ws_endpoint(ws, ...)` rate-limits THEN auths; returns None on either failure
 - `_public_manifest.is_public()` correctly maps paths to reasons
@@ -19,6 +20,7 @@ from deeptutor.api._secure_router import (
     AuthContext,
     public_router,
     secure_router,
+    secure_ws_router,
 )
 
 
@@ -41,6 +43,12 @@ class TestSecureRouter:
         # get_current_user must come FIRST (so admin/self_or_admin can layer on it)
         assert names[0] == "get_current_user"
         assert "custom_dep" in names
+
+    def test_secure_ws_router_has_no_router_level_auth_dependency(self):
+        r = secure_ws_router(prefix="/x")
+        assert isinstance(r, APIRouter)
+        assert r.dependencies == []
+        assert getattr(r, "__secure_ws_router__", None) is True
 
 
 class TestPublicRouter:

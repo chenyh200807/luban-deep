@@ -403,6 +403,46 @@ def test_redact_metadata_drops_evidence_inside_question_followup_context() -> No
     assert refs[0]["field"] == "knowledge_point"
 
 
+def test_redact_metadata_drops_question_followup_answer_authority_fields() -> None:
+    """Question follow-up context uses the shared hidden-key authority.
+
+    Regression for a production audit finding where the WS redactor dropped
+    ``correct_answer`` but delegated qctx redaction to a drifted key list that
+    still leaked ``minimal_rationale`` and ``official_answer``.
+    """
+
+    event = {
+        "type": "result",
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "qs",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "user_answer": "A",
+                        "minimal_rationale": "hidden rationale",
+                        "official_answer": "hidden official answer",
+                        "correct_answer": "B",
+                    }
+                ],
+            }
+        },
+    }
+
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    for forbidden in (
+        "minimal_rationale",
+        "official_answer",
+        "correct_answer",
+        "hidden rationale",
+        "hidden official answer",
+    ):
+        assert forbidden not in blob
+    item = redacted["metadata"]["question_followup_context"]["items"][0]
+    assert item == {"question_id": "q1", "user_answer": "A"}
+
+
 def test_redact_metadata_preserves_string_bodies_and_non_hidden_keys() -> None:
     # 用户可见 markdown 正文（例如 ``content`` / ``response``）含 "正确答案" 之类的
     # 解释文本，不应被字符串替换；只 drop hidden dict key。
