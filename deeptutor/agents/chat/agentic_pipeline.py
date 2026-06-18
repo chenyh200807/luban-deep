@@ -1067,6 +1067,7 @@ class AgenticChatPipeline:
         message = choice.message
         assistant_content = self._message_text(message.content)
         raw_tool_calls = list(message.tool_calls or [])
+        enabled_tool_names = frozenset(enabled_tools)
 
         if assistant_content:
             await stream.thinking(
@@ -1161,6 +1162,7 @@ class AgenticChatPipeline:
                     tool_name,
                     tool_args,
                     stream=stream,
+                    enabled_tools=enabled_tool_names,
                     retrieve_meta=self._retrieve_trace_metadata(
                         trace_meta,
                         context=context,
@@ -1181,12 +1183,8 @@ class AgenticChatPipeline:
             success = bool(tool_result["success"])
             sources = tool_result["sources"]
             metadata = tool_result["metadata"]
-            await stream.tool_result(
-                tool_name=tool_name,
-                result=result_text,
-                source="chat",
-                stage="acting",
-                metadata=self._tool_trace_metadata(
+            result_metadata = merge_trace_metadata(
+                self._tool_trace_metadata(
                     trace_meta,
                     context=context,
                     tool_call_id=tool_call_id,
@@ -1194,6 +1192,14 @@ class AgenticChatPipeline:
                     tool_index=tool_index,
                     trace_kind="tool_result",
                 ),
+                metadata if isinstance(metadata, dict) else {},
+            )
+            await stream.tool_result(
+                tool_name=tool_name,
+                result=result_text,
+                source="chat",
+                stage="acting",
+                metadata=result_metadata,
             )
 
             tool_traces.append(
@@ -1372,6 +1378,7 @@ class AgenticChatPipeline:
                 action,
                 tool_args,
                 stream=stream,
+                enabled_tools=frozenset(enabled_tools),
                 retrieve_meta=self._retrieve_trace_metadata(
                     trace_meta,
                     context=context,
@@ -1666,8 +1673,21 @@ class AgenticChatPipeline:
         tool_args: dict[str, Any],
         *,
         stream: StreamBus | None = None,
+        enabled_tools: frozenset[str] | None = None,
         retrieve_meta: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        if enabled_tools is not None and tool_name not in enabled_tools:
+            logger.warning("Rejecting unadvertised chat tool call: %s", tool_name)
+            return {
+                "result_text": self._text(
+                    zh=f"工具 {tool_name} 未在本轮启用，已拒绝执行。",
+                    en=f"Tool {tool_name} is not enabled for this turn and was not executed.",
+                ),
+                "success": False,
+                "sources": [],
+                "metadata": {"error": "tool_not_enabled", "tool_name": tool_name},
+            }
+
         async def _event_sink(
             event_type: str,
             message: str = "",

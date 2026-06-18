@@ -6,3 +6,5 @@
 # baseline allowlist in the same PR — turning the fail-on-new gate ceremonial.
 /scripts/ci/ @chenyh200807
 /scripts/ci/baselines/** @chenyh200807
+/.secrets.baseline @chenyh200807
+/.bandit-baseline.json @chenyh200807

@@ -29,7 +29,7 @@ import {
   type NotebookCategory,
 } from "@/lib/notebook-api";
 import { recordQuizResults } from "@/lib/session-api";
-import { shouldAppendEventContent } from "@/lib/stream";
+import { isUserVisibleStreamEvent, shouldAppendEventContent } from "@/lib/stream";
 import { type StartTurnMessage, type StreamEvent, UnifiedWSClient } from "@/lib/unified-ws";
 
 interface QuizViewerProps {
@@ -298,15 +298,15 @@ export default function QuizViewer({
 
       updateThread(key, (prev) => {
         const next = { ...prev, activeTurnId: event.turn_id || prev.activeTurnId };
-        if (event.type === "stage_start") {
+        if (isUserVisibleStreamEvent(event) && event.type === "stage_start") {
           next.currentStage = event.stage;
           return next;
         }
-        if (event.type === "stage_end") {
+        if (isUserVisibleStreamEvent(event) && event.type === "stage_end") {
           next.currentStage = "";
           return next;
         }
-        if (event.type === "error") {
+        if (isUserVisibleStreamEvent(event) && event.type === "error") {
           next.error = event.content || prev.error;
           const terminal = Boolean(
             ((event.metadata ?? {}) as { turn_terminal?: boolean }).turn_terminal,

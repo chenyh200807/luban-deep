@@ -38,7 +38,14 @@ if not is_production:
 
 missing = [
     key
-    for key in ('DEEPTUTOR_AUTH_SECRET', 'DEEPTUTOR_ADMIN_USER_IDS')
+    for key in (
+        'DEEPTUTOR_AUTH_SECRET',
+        'DEEPTUTOR_ATTEMPT_REF_SECRET',
+        'DEEPTUTOR_ADMIN_USER_IDS',
+        'DEEPTUTOR_METRICS_TOKEN',
+        'SUPABASE_RAG_COMPILED_TRUTH_ENABLED',
+        'SUPABASE_RAG_PROVENANCE_BOOST_ENABLED',
+    )
     if not str(values.get(key) or '').strip()
 ]
 missing.extend(
@@ -55,6 +62,17 @@ if missing:
     raise SystemExit(
         'production 环境缺少必填项: ' + ', '.join(missing)
     )
+
+for key in ('SUPABASE_RAG_COMPILED_TRUTH_ENABLED', 'SUPABASE_RAG_PROVENANCE_BOOST_ENABLED'):
+    current = str(values.get(key) or '').strip().lower()
+    if current not in {'false', '0', 'no', 'off'}:
+        raise SystemExit(f'{key} 必须显式为 false，当前值: {values.get(key)}')
+
+attempt_ref_secret = str(values.get('DEEPTUTOR_ATTEMPT_REF_SECRET') or '').strip()
+if len(attempt_ref_secret) < 32:
+    raise SystemExit('DEEPTUTOR_ATTEMPT_REF_SECRET 太短，production 至少需要 32 字符随机值')
+if attempt_ref_secret in {'dev-attempt-ref-secret', 'dev-secret', 'secret', 'change-me', 'changeme'}:
+    raise SystemExit('DEEPTUTOR_ATTEMPT_REF_SECRET 不能使用开发默认值或示例值')
 
 for key in (
     'DEEPTUTOR_RELEASE_ID',
