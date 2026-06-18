@@ -56,4 +56,4 @@
 **临床决策路径**(MedDM 临床指引树、yWorks 交互决策树)——条件→分支→结论的成熟可视化;但**移动端 + 决策空间小,优先静态逐条点亮而非交互树**。
 
 ## 现状
-✅ 样板 `../J01_danger_work_expert_argumentation.schema_draft.json`(危大是否需专家论证,`criteria_chain`)+ `../render_decision_card.py`(逐条点亮 + 依据/采分 + 旁白同步,复用 C01 脊柱)。其它 mode(classify/all_conditions/select_one/role_path)schema 已就绪、渲染器统一处理,逐个考点扩。
+✅ 样板 `artifacts/luban_case_family_assets/diagram_microlesson/J01_danger_work_expert_argumentation.schema_draft.json`(危大是否需专家论证,`criteria_chain`)+ `artifacts/luban_case_family_assets/diagram_microlesson/render_decision_card.py`(逐条点亮 + 依据/采分 + 旁白同步,复用 C01 脊柱)。其它 mode(classify/all_conditions/select_one/role_path)schema 已就绪、渲染器统一处理,逐个考点扩。

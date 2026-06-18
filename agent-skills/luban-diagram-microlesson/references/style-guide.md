@@ -1,7 +1,7 @@
 # style-guide.md · 图解微课卡视觉/认知单一源
 
 > **所有卡的颜色、字体、SVG 纪律、认知负荷规则的唯一来源。** 每张卡、每个原型都引用本文,不各调各的。
-> 现状:`../render_card.py` 的 `:root` 变量是雏形;本文是它该收敛到的规范。
+> 现状:`artifacts/luban_case_family_assets/diagram_microlesson/render_card.py` 的 `:root` 变量是雏形;本文是它该收敛到的规范。
 
 ## 一、语义配色板(color = 意义,不是装饰)
 

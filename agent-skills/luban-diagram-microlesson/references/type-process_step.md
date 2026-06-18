@@ -8,4 +8,4 @@
 - **祖师爷参照**:**移动端步骤式向导**——IKEA 装配图(一步一图、前置清晰)、Khan Academy 分步讲解、Duolingo 单屏一题逐步推进。**桌面端 scrollytelling(NYT《Snow Fall》sticky 图区 + 滚动揭示)只借"一屏一步 + before/after 过渡"的叙事拆分,不照搬长滚交互**——手机用点击翻步 + 步骤指示器替代滚动驱动。
 - **schema body**:`steps[]`(每步 `id/no/action/brief/why/scoring_expression/common_loss/svg/scoring_point/source_refs`)。
 - **验收点(原型专属)**:工序顺序不可颠倒;每步对应一个 why + 采分表达;关键控制点有停顿;漏前置=high_risk 提示。
-- **现状**:✅ 已有 `../F16_qigu.json`(起鼓割补)。可增"滚动驱动 + sticky"。
+- **现状**:✅ 已有 `artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.json`(起鼓割补)。可增"滚动驱动 + sticky"。

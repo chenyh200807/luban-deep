@@ -8,4 +8,4 @@
 - **祖师爷参照**:**算法可视化线**——VisuAlgo(**演示"算法过程"而非只给答案**:逐步算最早/最迟/时差→高亮关键线)、3Blue1Brown/Manim(图)、D3 DAG、CPM/PERT 工具。核心招:**步进展示计算过程**,不是直接甩结果。
 - **schema body**:`question_data{activities, dependencies, expected{critical_path, project_duration, float}}`;`compute_cpm` 只是 **build 期自洽校验器**,非 scoring authority。
 - **验收点(原型专属)**:计算规则不可误植;`expected` 前端只读(不前端重算);关键线路/时差可复算校验通过。
-- **现状**:✅ 已有 `../N01_network_keypath.json` + `../render_network_card.py`(用独立窄渲染器,暂不与 process 型合并)。authority 待绑真题 source_ref(现为 candidate)。
+- **现状**:✅ 已有 `artifacts/luban_case_family_assets/diagram_microlesson/N01_network_keypath.json` + `artifacts/luban_case_family_assets/diagram_microlesson/render_network_card.py`(用独立窄渲染器,暂不与 process 型合并)。authority 待绑真题 source_ref(现为 candidate)。
