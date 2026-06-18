@@ -6,7 +6,7 @@ description: 把一建建筑实务考点造成"图解微课卡"的量产线。�
 # 鲁班图解微课 · 量产 skill(v0 骨架)
 
 > 本目录是 **skill 设计骨架**(暂放 artifacts;ready 后提升到 `agent-skills/luban-diagram-microlesson-production/`)。
-> 配套实现:同级 `../SCHEMA.md`(schema 脊柱)、`../render_card.py` / `../render_network_card.py` / `../render_contrast_card.py`(渲染器)、`../validate_schema_drafts.py`(校验门)、`../build_card_narration.mjs`(旁白派生+离线配音)、`references/narration-spec.md`(旁白总纲)、`../cdp_shot.mjs`(零依赖手机截图)、`../F16_qigu.json` / `../N01_network_keypath.json` / `../C01_construction_joint_contrast.schema_draft.json`(脚手架)。
+> 配套实现:同级 `../SCHEMA.md`(schema 脊柱)、`../render_card.py` / `../render_network_card.py` / `../render_contrast_card.py` / `../render_decision_card.py`(原型渲染器)、`../render_master_view.py`(深母题前台闭环)、`../validate_schema_drafts.py`(校验门)、`../build_card_narration.mjs`(旁白派生+离线配音)、`references/narration-spec.md`(旁白总纲)、`../cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `../F16_qigu.json`(①)/ `../N01_network_keypath.json`(③)/ `../C01_...contrast...json`(⑤)/ `../J01_...argumentation...json`(④)、母题样板 `../M_danger_work_expert_argumentation.master.json`。
 
 ## 这套 skill 解决什么
 
@@ -39,7 +39,7 @@ Phase 6  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同�
 | ① 时序/工序 | 有先后顺序的流程/工序/验收 | `references/type-process_step.md` | `steps[]` |
 | ② 构造/空间 | 节点/剖面/层次/空间关系 | `references/type-section.md` | `layers[]`(待定) |
 | ③ 计算/图结构 | 可计算的图/网络/时间约束 | `references/type-graph.md` | `question_data{activities,dependencies,expected}` |
-| ④ 判断/分支 | 条件→分支→结论的判断 | `references/type-decision.md` | `decision[]`(待定) |
+| ④ 判断/分支 | 条件→判断→结论(5 mode:链/分类/全要件/择一/角色链) | `references/type-decision.md` | `decision`(✅ J01,render_decision_card) |
 | ⑤ 对比/正误 | 对错做法/规范vs非规范/通病 | `references/type-contrast.md` | `contrast_items[]`(草稿,见 ../C01) |
 | ⑥ 采分点/诊断 | 答案×采分点逐点判读 | `references/type-diagnosis.md` | `diagnosis[]` |
 | (七) 数值/记忆 | 定义/规范数值/参数辨析 | `references/type-value_memory.md` | **不动画化**:静态卡/表格 |
@@ -57,10 +57,23 @@ Phase 6  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同�
 7. **旁白不手写,从卡字段派生**(卡是唯一源,见总纲):手写旁白=双份 truth,改卡会漂移、不可量产。schema 只配 `narration.voice_hint`。
 8. **每条动效通向一次练习/反馈**,否则只是"看爽了"非"学会了"。
 9. **不分裂 schema_version**:body 待定的原型先用 `<原型>_draft` 的 `template_type` 收口,沿用 `luban_diagram_microlesson.v1`,绝不为草稿另起版本号(同 D01/C01 模式)。
+10. **复测/变题答案用单一 `answer` id**(正确选项 id),不用 `options[].is_correct`——泄漏面更小;`practice_options` 兼容(无 answer 回退 is_correct)。`answer` 必须属于 options(校验门拦)。静态卡答案在前端=训练自检、**非防作弊**(诚实标注)。
+11. **判断走向校验要"沿 verdict 路径求实际 outcome 对比声明"**,不只查"指向存在";**改 schema 字段必须同步改 renderer 所有读点**(Codex 抓到过:改 answer 后 master 错题高亮仍读已删的 is_correct)。
+12. **关键样板上线前过 Codex 对抗**:`codex exec --sandbox read-only` 同步(别放后台——会话恢复会丢 task);自审有盲点。调试钩子(`window.__demo` 类)收到 URL 门控,不留生产。
 
 ## 元规律(为什么这套成立)
 
 所有成熟范例底层同一模式:**结构化 spec → 标注揭示参数 → 交互式逐步揭示**(爆炸图层参数 / 算法步进 / Grammarly span 标注 / scrollytelling step)。我们的 `schema → 确定性渲染 → reveal` 就是这个模式套到建筑实务。**别重新发明展现,重金投内容层。**
+
+## 深母题层(卡 → 母题)
+
+图解微课卡是**讲懂一个考点**的入口,**不是完整母题**。完整深母题 = 围绕一个考点的闭环,按《深母题数据标准 v1.0》(`docs/plan/鲁班移动端提分闭环/`)R1-R8 组织:
+
+- **讲懂** `teaching_card_ref` 指向本卡(J01/F16…);**变题库** `variants`(同考点换工程/数值/判档,在 `variable_rules` 边界内);**误解模型** `misconception`(只发候选,终判归 `ERROR_CODE_REGISTRY`);**掌握鉴别** `mastery_discrimination`(看穿真懂 vs 背过,关键鉴别题=边界档+下限档;只发鉴别候选,不写 learner_state)。
+- **运行时铁律**:只读 / 只发候选 / 不写结论——不抢评分(grading artifact)、学情(LearnerState)、错因(ERROR_CODE_REGISTRY)权威。
+- **前台闭环视图** `../render_master_view.py`:讲懂 → 变题闯关 → 看穿鉴别(暖反馈)。
+- **样板** `../M_danger_work_expert_argumentation.master.json`(危大论证,首个完整深母题)。母题 `schema_version` 用 `*.sample.v0` **不冒充**生产 `case_family_structure.v1`(register-before-use:生产母题落 `artifacts/luban_case_family_assets/<id>/case_family.yaml`,待 schema 登记)。
+- **量产扩包 gated on retention**(标准 §9):首样板未过留存证明前,不扩第 2 个母题包。首样板由 F16(防水)改为 **J01(危大论证)**,依据真题案例频次(危大第一高频)。
 
 ## 混合考点兜底(Phase 0 引用)
 
@@ -91,3 +104,18 @@ Phase 6  学员验证门:复用 ../F16_qigu_product_validation_plan.md,KPI=同�
 - ✅ **contrast 路径已 fail-closed**(对抗测试验证会咬):`detect_body` 认 `contrast_items` + body 四选一互斥;`check_contrast` 强制 `scoring_points[].kind` 必填 + `scoring_point_binding` 引用闭合(指向不存在的 id 即 FAIL)+ candidate 不得 `official_score_allowed`。
 - ⏳ **render_card.py 学生端白名单**(接 renderer/接生产前必须清):学生端按 `rendering_contract.student_safe_fields` 渲染,错因输出 `loss_display` 汉语名而非裸 `error_code`(当前 F16 渲染路径会把 E-code 直渲到学生 HTML)。**无 contrast renderer 前不阻塞造卡**;在它落地前 student-safe 靠**人工对照 C01 的 `rendering_contract` 双名单**保障。
 - ⏳ **kind/binding 校验推广到其它原型**(当前只在 contrast 路径强制;steps/network 仍按旧规则,避免误伤已绿的 F16/N01)。
+- ✅ **decision 路径校验 fail-closed**(对抗验证):check_decision + render_decision_card.validate 沿 verdict 路径求实际 outcome 对比 reached_outcome + 通用 `practice.answer` 属于 options(篡改 reached_outcome/answer 均被拦)。
+- ⏳ **master sample 独立校验**:validate_schema_drafts 只校验 `luban_diagram_microlesson.v1`,不校验 `*.master.sample.v0`(接生产前补 R1-R8 校验)。
+- ⏳ **R1 原文 hash 锚定**:母题 `source_refs.content_sha256` 待补;阈值表量产前对规范原文逐条核(已标 candidate)。
+
+## Codex 对抗加固(2026-06-18)
+
+`codex exec --sandbox read-only` 同步对抗审查 ④判断渲染器 + 危大母题样板,找到 3 个**自审盲点**(均已修 + 对抗验证):
+
+| Codex 发现 | 根因 | 修法 |
+|---|---|---|
+| 走向校验门有洞(篡改 reached_outcome / answer 仍过) | 只查"指向存在",没沿路径求实际 | 沿 verdict 路径求实际 outcome 对比 + answer 属于 options(红线 11) |
+| master 错题高亮读已删的 is_correct | 改 answer 时漏改 renderer 读点 | 改读 `v.answer`(红线 11) |
+| window.__demo 调试钩子留生产 | 截图钩子没清 | URL `?demo` 门控(红线 12) |
+
+**教训**:自审会有盲点(走向校验我自己判 PASS,但没测"篡改 reached_outcome 是否被拦")→ 关键样板上线前**必过 Codex 对抗**,且用 `codex exec` 同步(codex-rescue 封装两次被截断/会话恢复会丢后台 task)。
