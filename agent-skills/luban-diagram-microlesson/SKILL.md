@@ -31,7 +31,7 @@ renderer 是 thin wrapper，知识/判分是 fat skill 的上游 authority。逐
 ## 2. 制作流程(schema-first)
 
 1. **先填 schema JSON**，不直接手写成品 HTML。新 template_type 先在 `SCHEMA.md` 登记字段。
-2. **body 三选一互斥**：`steps[]`(流程/剖面) | `question_data.{activities,dependencies,expected}`(network) | `diagnosis[]`(判分诊断) | `contrast_items[]`(对照)。`scoring_points/common_errors/practice` 是可共用 spine。
+2. **body 互斥（只能其一，共 5 类）**：`steps[]`(流程/剖面) | `question_data.{activities,dependencies,expected}`(network) | `diagnosis[]`(判分诊断) | `contrast_items[]`(对照) | `decision.judgment_points`(判断分支)。`scoring_points/common_errors/practice` 是可共用 spine。新增 body 类型必须先在 SCHEMA.md 的 template_type 注册表 + 互斥 body 表登记，再写校验器/renderer（register-before-use）——以 `validate_schema_drafts.py` 的 `detect_body()` / template 分派为实现真相，二者必须与 SCHEMA.md 对齐。
 3. **写窄确定性 renderer**：一个 template_type 一个窄 renderer(`render_card.py` / `render_network_card.py` / …)，**并列不互相重构，不抽通用大框架**——等第 3 个 rendered proof 或学员验证通过再考虑抽公共层。
 4. **跑校验器 + 渲染 + 验收**(§5)。
 5. 文案像老师讲(§4)。
@@ -42,7 +42,8 @@ renderer 是 thin wrapper，知识/判分是 fat skill 的上游 authority。逐
 
 - **翻页 deck**：每步独占一屏(聚焦图 + 步骤标题 + 老师讲一句 + ✍这样写才得分)，"为什么/你常漏"折在"＋"里；错因 / 复测 / 收束各自成屏。整页高度应≈一屏(实测 F16 由 2958px → 930px)。
 - **底部操作条 `position:fixed` 常驻**(上一步 ｜ 进度 ｜ 下一步)，永远在拇指边——解决"下一步藏太深"。body 留底部 padding 防遮挡。
-- **硬约束**：无外链 / 无 CDN / 无 web 字体(用系统字体栈 `-apple-system,...,"PingFang SC"`) / 无图片 / 无音频 / 无 TTS / 无前端 LLM / 无 RAG；CSS·JS·SVG 全内联；390px 宽 `document.documentElement.scrollWidth===390`(无横向滚动)；触摸区 ≥44px。
+- **硬约束（全模板）**：无外链 / 无 CDN / 无 web 字体(用系统字体栈 `-apple-system,...,"PingFang SC"`) / 无运行时 TTS 合成 / 无前端 LLM / 无 RAG / renderer 不判分；CSS·JS·SVG 全内联；390px 宽 `document.documentElement.scrollWidth===390`(无横向滚动)；触摸区 ≥44px。
+- **音频不是全局禁**：F16/N01 这类是全内联无音频；但 `contrast` 模板(`render_contrast_card.py`)引入了**预录音频 `<audio>`+timing**(读预存文件、非 TTS、非现场合成)——这是该模板的取舍。别把"无音频"当全局铁律；新模板若要音频，须在 SCHEMA 显式登记 + 说明音频随产物的承载方式(预录文件 vs data-URI 内联)，并复核它对"无外链"的影响。
 - 为避免大段 JS 在 Python f-string 里花括号转义出错，把交互逻辑抽成独立 `_JS = r"""..."""` 原始字符串(单括号普通 JS)，f-string 里只 `<script>{_JS}</script>`。
 - 暴露断言钩子供 DOM 验收：`document.documentElement.dataset.activeLayer / narrMode / activeError / practiceResult / screen`；稳定 id `#prevBtn #nextBtn #progressBar #practiceFeedback`；类 `.step-layer[data-layer] .error-card[data-jump] .option`。
 
@@ -61,7 +62,7 @@ rg -n "https?://|cdn|@import|<img|script src|link rel|\.mp3|\.wav|<audio" $DIR/<
 python3 $DIR/validate_schema_drafts.py                       # spine/body/authority/学生安全 全绿
 ```
 
-DOM / 视觉断言用 **零依赖 CDP**(见 `references/zero-dep-cdp-harness.md`)：`scrollWidth===390`、默认 activeLayer 正确、翻页/错因跳转/复测对错、触摸区 ≥44px、底部条 `position:fixed`。
+DOM / 视觉断言用 **零依赖 CDP**(见 `references/zero-dep-cdp-harness.md`)：通用项每模板都查——`scrollWidth===390`(无横滚)、触摸区 ≥44px、底部条 `position:fixed`、学生端无内部词。**模板专属钩子各不相同，别拿 F16 的套全部**：F16 deck 有 `dataset.activeLayer/narrMode/screen` + 翻页/错因跳转/复测；N01 是网络图节点/边 + 关键线路高亮；contrast 是揭示 + `<audio>` timing；decision 是判断点分支走到 `reached_outcome`。先读对应 `render_<x>_card.py` 暴露了哪些钩子，再写断言；`render_*_card.py` 命名也按模板而非只有一个。
 
 学生端泄漏扫描(排除 HTML 注释/JS 注释)：
 ```bash
