@@ -364,6 +364,11 @@ domains:
         fail open on low confidence/off-syllabus/active-question contexts, and
         must not create an answer-key, official-score, second RAG/KB/taxonomy,
         learner-memory authority, or canonical learner-truth write.
+      - Evidence bundles are the canonical normalization boundary for provider
+        source metadata. Provider pipelines may pass source-native fields, but
+        user-facing consumers must read normalized document_id, source,
+        authority, and subject from evidence_bundle/result sources instead of
+        reinterpreting provider-specific aliases.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -401,11 +406,19 @@ domains:
       - tests/services/rag/test_evidence_bundle.py
       - tests/services/citations/test_normalizer.py
       - tests/services/citations/test_quality.py
+      - tests/scripts/test_migrate_kb.py
+      - tests/scripts/test_audit_2026_compiler_supabase_coverage.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
   config_runtime:
     summary: Runtime config loading, env/catalog precedence, provider resolution.
+    runtime_metadata_contracts:
+      - Environment-defined KB registration is explicit and fail-closed. KBV5 is
+        registered only when KBV5_RAG_ENABLED=true and KBV5_DB_URL is present;
+        a bare KBV5_DB_URL must not silently enable the provider, and an enabled
+        provider with missing connection config is skipped instead of producing
+        a half-registered runtime KB.
     contract_files:
       - CONTRACT.md
       - contracts/config-runtime.md

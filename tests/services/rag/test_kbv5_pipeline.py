@@ -79,10 +79,16 @@ async def test_kbv5_pipeline_projects_readonly_chunks(monkeypatch: pytest.Monkey
     assert result["sources"][0]["source_table"] == "kb_v5.chunks"
     assert result["sources"][0]["source_span"] == "p.2 建筑物构成"
     assert result["sources"][0]["score"] == 0.9
+    assert result["sources"][0]["document_id"] == "doc-1"
+    assert result["sources"][0]["subject"] == "建筑物分类与构成"
     assert "结构体系、围护体系和设备体系" in result["content"]
     assert result["evidence_bundle"]["provider"] == "kbv5"
     # kbv5 lane diagnostics moved into the canonical bundle's ``trace`` bucket (consolidation)
     assert result["evidence_bundle"]["trace"]["transport"] == "direct_postgres_readonly"
+    assert result["evidence_bundle"]["trace"]["retrieval_runtime"] == {
+        "data_version": 2026,
+        "embedding_dim": 1024,
+    }
     json.dumps(result, ensure_ascii=False)
 
 
@@ -274,20 +280,20 @@ def test_benchmark_adapter_shares_the_same_lexical_query_authority(
     assert captured["params"][0] == lexical_query_text(_MARKDOWN_TABLE_QUERY)
 
 
-def test_env_supabase_aliases_prefer_kbv5_when_direct_url_is_available(
+def test_env_supabase_aliases_require_explicit_kbv5_flag_for_kbv5_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from deeptutor.services.config.knowledge_base_config import get_env_defined_kbs
 
-    monkeypatch.setenv("SUPABASE_RAG_ENABLED", "false")
-    monkeypatch.delenv("SUPABASE_URL", raising=False)
-    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
-    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.setenv("SUPABASE_RAG_ENABLED", "true")
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "service-key")
     monkeypatch.setenv("SUPABASE_RAG_DEFAULT_KB_NAME", "supabase-main")
     monkeypatch.setenv("KBV5_DB_URL", "postgresql://user:pass@example/db")
+    monkeypatch.delenv("KBV5_RAG_ENABLED", raising=False)
 
     entries, _defaults = get_env_defined_kbs()
 
-    assert entries["supabase-main"]["rag_provider"] == "kbv5"
-    assert entries["construction-exam"]["rag_provider"] == "kbv5"
+    assert entries["supabase-main"]["rag_provider"] == "supabase"
+    assert entries["construction-exam"]["rag_provider"] == "supabase"
     assert entries["construction-exam"]["remote_read_only"] is True

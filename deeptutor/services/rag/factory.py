@@ -7,15 +7,14 @@ providers via `register_pipeline`.
 
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional
 import warnings
+from typing import Callable, Dict, List, Optional
 
-DEFAULT_PROVIDER = "llamaindex"
-LEGACY_PROVIDER_ALIASES = {
-    "lightrag": DEFAULT_PROVIDER,
-    "raganything": DEFAULT_PROVIDER,
-    "raganything_docling": DEFAULT_PROVIDER,
-}
+from deeptutor.services.rag_provider_names import (
+    DEFAULT_PROVIDER,
+    LEGACY_PROVIDER_ALIASES,
+    normalize_provider_name,
+)
 
 # Pipeline registry - populated lazily
 _PIPELINES: Dict[str, Callable] = {}
@@ -23,14 +22,6 @@ _PIPELINES_INITIALIZED = False
 
 # Cached pipeline instances keyed by (name, kb_base_dir)
 _PIPELINE_CACHE: Dict[tuple[str, Optional[str]], object] = {}
-
-
-def normalize_provider_name(name: Optional[str]) -> str:
-    """Normalize provider names, folding legacy providers to llamaindex."""
-    candidate = (name or DEFAULT_PROVIDER).strip().lower() or DEFAULT_PROVIDER
-    return LEGACY_PROVIDER_ALIASES.get(candidate, candidate)
-
-
 def _init_pipelines() -> None:
     """Lazily initialize the built-in pipeline registry."""
     global _PIPELINES_INITIALIZED

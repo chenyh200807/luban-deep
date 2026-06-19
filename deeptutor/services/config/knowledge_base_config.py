@@ -7,7 +7,7 @@ from typing import Any
 
 from deeptutor.contracts.bot_runtime_defaults import iter_bot_runtime_defaults
 from deeptutor.logging import get_logger
-from deeptutor.services.rag.factory import (
+from deeptutor.services.rag_provider_names import (
     DEFAULT_PROVIDER,
     LEGACY_PROVIDER_ALIASES,
     normalize_provider_name,
@@ -72,12 +72,15 @@ def get_env_defined_kbs() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     This keeps a read-only remote KB available even when no local KB directory exists.
     """
     kbv5_db_url_present = bool(str(os.getenv("KBV5_DB_URL", "") or "").strip())
-    kbv5_enabled = _env_flag("KBV5_RAG_ENABLED", default=kbv5_db_url_present)
+    kbv5_enabled = _env_flag("KBV5_RAG_ENABLED", default=False)
     supabase_enabled = _env_flag("SUPABASE_RAG_ENABLED", default=False)
+    if kbv5_enabled and not kbv5_db_url_present:
+        logger.warning("KBV5_RAG_ENABLED=true but KBV5_DB_URL is missing; skipping kbv5 env KB registration.")
+        kbv5_enabled = False
     if not supabase_enabled and not kbv5_enabled:
         return {}, {}
 
-    provider = "kbv5" if kbv5_enabled and kbv5_db_url_present else "supabase"
+    provider = "kbv5" if kbv5_enabled else "supabase"
     if provider == "supabase":
         supabase_url = str(os.getenv("SUPABASE_URL", "") or "").strip()
         service_key = (
