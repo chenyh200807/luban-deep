@@ -17,10 +17,21 @@ INVENTORY_ROOT = Path(__file__).resolve().parents[1]
 EXTRACTIONS_ROOT = INVENTORY_ROOT / "extractions"
 DEFAULT_BRIEF_MANIFEST = EXTRACTIONS_ROOT / "data_asset_brief_v1" / "manifest.json"
 DEFAULT_ASSET_BUCKETS = EXTRACTIONS_ROOT / "data_asset_brief_v1" / "asset_buckets.json"
+DEFAULT_RAW_PROFILE = EXTRACTIONS_ROOT / "2026-06-18-raw-data-current-profile.json"
+DEFAULT_JSON_SOURCES = EXTRACTIONS_ROOT / "json_source_ledger_v0" / "sources.jsonl"
 DEFAULT_OKF_SCOPE = EXTRACTIONS_ROOT / "okf_candidate_scope_v0" / "manifest.json"
+DEFAULT_OKF_CASES = EXTRACTIONS_ROOT / "okf_candidate_scope_v0" / "cases.jsonl"
+DEFAULT_OKF_RUBRICS = EXTRACTIONS_ROOT / "okf_candidate_scope_v0" / "rubrics.jsonl"
+DEFAULT_OKF_POINTS = EXTRACTIONS_ROOT / "okf_candidate_scope_v0" / "scoring_points.jsonl"
 DEFAULT_OKF_ALIGNMENT = EXTRACTIONS_ROOT / "okf_source_alignment_v0" / "report.json"
 DEFAULT_GAP_MANIFEST = EXTRACTIONS_ROOT / "asset_gap_map_v1" / "manifest.json"
 DEFAULT_NEXT_ACTIONS = EXTRACTIONS_ROOT / "asset_gap_map_v1" / "next_actions.json"
+DEFAULT_KNOWLEDGE_COMPILER_MANIFEST = EXTRACTIONS_ROOT / "knowledge_compiler_okf_v1" / "manifest.json"
+DEFAULT_KNOWLEDGE_COMPILER_RUNS = EXTRACTIONS_ROOT / "knowledge_compiler_okf_v1" / "compiler_runs.jsonl"
+DEFAULT_GRADING_ARTIFACTS_MANIFEST = EXTRACTIONS_ROOT / "luban_grading_artifacts_okf_v1" / "manifest.json"
+DEFAULT_GRADING_ARTIFACTS_RUNS = EXTRACTIONS_ROOT / "luban_grading_artifacts_okf_v1" / "artifact_runs.jsonl"
+DEFAULT_GOVERNANCE_MANIFEST = EXTRACTIONS_ROOT / "governance_okf_v1" / "manifest.json"
+DEFAULT_GOVERNANCE_FILES = EXTRACTIONS_ROOT / "governance_okf_v1" / "governance_files.jsonl"
 DEFAULT_OUTPUT_ROOT = INVENTORY_ROOT / "okf_bundle_v0"
 OUTPUT_ROOT_SUFFIX = ("数据盘点", "okf_bundle_v0")
 GENERATOR = "build_okf_bundle.py"
@@ -44,6 +55,23 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"required input is not a JSON object: {display_path(path)}")
     return data
+
+
+def load_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        raise ValueError(f"required input not found: {display_path(path)}")
+    rows = []
+    with path.open(encoding="utf-8") as handle:
+        for line_no, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            data = json.loads(line)
+            if not isinstance(data, dict):
+                raise ValueError(f"JSONL row is not an object: {display_path(path)}:{line_no}")
+            rows.append(data)
+    if not rows:
+        raise ValueError(f"required JSONL input is empty: {display_path(path)}")
+    return rows
 
 
 def resolve_soft(path: Path) -> Path:
@@ -165,11 +193,37 @@ def row_count(value: Any) -> str:
     return str(value)
 
 
+def short_text(value: Any, limit: int = 160) -> str:
+    text = " ".join(str(value or "").split())
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "..."
+
+
+def jsonl_by_key(rows: list[dict[str, Any]], key: str) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(str(row.get(key, "")), []).append(row)
+    return grouped
+
+
+def source_hashes(json_sources: list[dict[str, Any]]) -> dict[str, str]:
+    hashes = {}
+    for row in json_sources:
+        file_info = row.get("file") or {}
+        if row.get("source_path") and file_info.get("sha256"):
+            hashes[str(row["source_path"])] = str(file_info["sha256"])
+    return hashes
+
+
 def validate_inputs(
     brief_manifest: dict[str, Any],
     okf_scope: dict[str, Any],
     okf_alignment: dict[str, Any],
     gap_manifest: dict[str, Any],
+    knowledge_compiler_manifest: dict[str, Any],
+    grading_artifacts_manifest: dict[str, Any],
+    governance_manifest: dict[str, Any],
 ) -> None:
     if brief_manifest.get("authority_status") != "asset_inventory_only":
         raise ValueError("data asset brief must remain asset_inventory_only")
@@ -181,15 +235,38 @@ def validate_inputs(
         raise ValueError("OKF source alignment is not ready")
     if gap_manifest.get("authority_status") != "asset_gap_map_only":
         raise ValueError("asset gap map must remain gap-map-only")
+    if knowledge_compiler_manifest.get("authority_status") != "knowledge_compiler_workbench_inventory_only":
+        raise ValueError("knowledge compiler OKF must remain workbench-inventory-only")
+    if (knowledge_compiler_manifest.get("runtime_guard") or {}).get("runtime_consumable") is not False:
+        raise ValueError("knowledge compiler OKF cannot be runtime consumable")
+    if grading_artifacts_manifest.get("authority_status") != "ai_project_context_only":
+        raise ValueError("grading artifacts OKF must remain AI-context-only")
+    if (grading_artifacts_manifest.get("runtime_guard") or {}).get("runtime_consumable") is not False:
+        raise ValueError("grading artifacts OKF cannot be runtime consumable")
+    if governance_manifest.get("authority_status") != "ai_project_context_only":
+        raise ValueError("governance OKF must remain AI-context-only")
+    if (governance_manifest.get("runtime_guard") or {}).get("runtime_consumable") is not False:
+        raise ValueError("governance OKF cannot be runtime consumable")
 
 
 def build_okf_bundle(
     brief_manifest_path: Path = DEFAULT_BRIEF_MANIFEST,
     asset_buckets_path: Path = DEFAULT_ASSET_BUCKETS,
+    raw_profile_path: Path = DEFAULT_RAW_PROFILE,
+    json_sources_path: Path = DEFAULT_JSON_SOURCES,
     okf_scope_path: Path = DEFAULT_OKF_SCOPE,
+    okf_cases_path: Path = DEFAULT_OKF_CASES,
+    okf_rubrics_path: Path = DEFAULT_OKF_RUBRICS,
+    okf_points_path: Path = DEFAULT_OKF_POINTS,
     okf_alignment_path: Path = DEFAULT_OKF_ALIGNMENT,
     gap_manifest_path: Path = DEFAULT_GAP_MANIFEST,
     next_actions_path: Path = DEFAULT_NEXT_ACTIONS,
+    knowledge_compiler_manifest_path: Path = DEFAULT_KNOWLEDGE_COMPILER_MANIFEST,
+    knowledge_compiler_runs_path: Path = DEFAULT_KNOWLEDGE_COMPILER_RUNS,
+    grading_artifacts_manifest_path: Path = DEFAULT_GRADING_ARTIFACTS_MANIFEST,
+    grading_artifacts_runs_path: Path = DEFAULT_GRADING_ARTIFACTS_RUNS,
+    governance_manifest_path: Path = DEFAULT_GOVERNANCE_MANIFEST,
+    governance_files_path: Path = DEFAULT_GOVERNANCE_FILES,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
     generated_at: str | None = None,
 ) -> dict[str, Any]:
@@ -198,11 +275,30 @@ def build_okf_bundle(
 
     brief_manifest = load_json(brief_manifest_path)
     asset_buckets_doc = load_json(asset_buckets_path)
+    raw_profile = load_json(raw_profile_path)
+    json_sources = load_jsonl(json_sources_path)
     okf_scope = load_json(okf_scope_path)
+    okf_cases = load_jsonl(okf_cases_path)
+    okf_rubrics = load_jsonl(okf_rubrics_path)
+    okf_points = load_jsonl(okf_points_path)
     okf_alignment = load_json(okf_alignment_path)
     gap_manifest = load_json(gap_manifest_path)
     next_actions = load_json(next_actions_path)
-    validate_inputs(brief_manifest, okf_scope, okf_alignment, gap_manifest)
+    knowledge_compiler_manifest = load_json(knowledge_compiler_manifest_path)
+    knowledge_compiler_runs = load_jsonl(knowledge_compiler_runs_path)
+    grading_artifacts_manifest = load_json(grading_artifacts_manifest_path)
+    grading_artifacts_runs = load_jsonl(grading_artifacts_runs_path)
+    governance_manifest = load_json(governance_manifest_path)
+    governance_files = load_jsonl(governance_files_path)
+    validate_inputs(
+        brief_manifest,
+        okf_scope,
+        okf_alignment,
+        gap_manifest,
+        knowledge_compiler_manifest,
+        grading_artifacts_manifest,
+        governance_manifest,
+    )
 
     buckets = asset_buckets_doc.get("asset_buckets")
     if not isinstance(buckets, list) or not buckets:
@@ -218,6 +314,8 @@ def build_okf_bundle(
     okf_counts = okf_scope.get("counts") or {}
     alignment_counts = okf_alignment.get("counts") or {}
     gap_counts = gap_manifest.get("counts") or {}
+    assets = raw_profile.get("assets") or {}
+    source_hash_by_path = source_hashes(json_sources)
 
     bucket_links = []
     for bucket in buckets:
@@ -355,6 +453,531 @@ Alignment helps AI follow evidence links. It does not promote candidate knowledg
         "\n".join(gap_body),
     )
 
+    compiler_counts = knowledge_compiler_manifest.get("counts") or {}
+    compiler_stage_counts = compiler_counts.get("by_stage") or {}
+    compiler_kind_counts = compiler_counts.get("by_kind") or {}
+    compiler_run_lines = [
+        "# Knowledge Compiler Workbench",
+        "",
+        "## What It Is",
+        "",
+        "This card routes AI into `artifacts/knowledge_compiler/2026` without copying compiler payloads into OKF.",
+        "",
+        "## Counts",
+        "",
+        f"- Runs: {compiler_counts.get('runs')}",
+        f"- Files: {compiler_counts.get('files')}",
+        f"- Manifest-like files: {compiler_counts.get('manifest_like_files')}",
+        f"- Total bytes: {compiler_counts.get('total_bytes')}",
+        "",
+        "## Stage Split",
+        "",
+    ]
+    for stage, count in compiler_stage_counts.items():
+        compiler_run_lines.append(f"- `{stage}`: {count}")
+    compiler_run_lines.extend(["", "## Run Kinds", ""])
+    for kind, count in compiler_kind_counts.items():
+        compiler_run_lines.append(f"- `{kind}`: {count}")
+    compiler_run_lines.extend(["", "## Top Runs", ""])
+    for run in sorted(knowledge_compiler_runs, key=lambda item: (item.get("compiler_stage", ""), item.get("run_id", "")))[:20]:
+        compiler_run_lines.append(
+            f"- `{run.get('run_id')}`: stage=`{run.get('compiler_stage')}`, "
+            f"kind=`{run.get('run_kind')}`, files={run.get('files')}"
+        )
+    compiler_run_lines.extend(
+        [
+            "",
+            "## Use",
+            "",
+            "- Use candidate runs to find compiler-produced teaching cards, rubric candidates, scoring-point assets, and recall calibration material.",
+            "- Use fixture runs only for test/workbench reproduction.",
+            "- Treat release-named runs as release-shaped until runtime supply has a separate signed pointer.",
+            "",
+            "## Boundary",
+            "",
+            "This OKF card is a workbench navigation layer. It does not sign runtime supply, write canonical truth, or authorize official scoring.",
+        ]
+    )
+    write_md(
+        output_root / "assets" / "knowledge-compiler-workbench.md",
+        {
+            "type": "Concept",
+            "title": "Knowledge Compiler Workbench",
+            "description": "Compiler-run ledger for artifacts/knowledge_compiler with candidate/release/fixture boundaries.",
+            "resource": display_path(knowledge_compiler_manifest_path),
+            "tags": ["luban", "okf", "knowledge-compiler", "compiled-assets"],
+            "timestamp": generated_at,
+            "status": knowledge_compiler_manifest.get("authority_status"),
+        },
+        "\n".join(compiler_run_lines),
+    )
+
+    grading_counts = grading_artifacts_manifest.get("counts") or {}
+    grading_area_counts = grading_counts.get("by_area") or {}
+    grading_risk_counts = grading_counts.get("by_risk_level") or {}
+    grading_lines = [
+        "# Luban Grading Artifacts Map",
+        "",
+        "## What It Is",
+        "",
+        "This card helps AI understand the shape of `artifacts/luban_grading_artifacts` without treating any artifact as production truth.",
+        "",
+        "## Counts",
+        "",
+        f"- Runs: {grading_counts.get('runs')}",
+        f"- Files: {grading_counts.get('files')}",
+        f"- Manifest-like files: {grading_counts.get('manifest_like_files')}",
+        f"- Total bytes: {grading_counts.get('total_bytes')}",
+        "",
+        "## Area Split",
+        "",
+    ]
+    for area, count in grading_area_counts.items():
+        grading_lines.append(f"- `{area}`: {count}")
+    grading_lines.extend(["", "## Risk Split", ""])
+    for risk, count in grading_risk_counts.items():
+        grading_lines.append(f"- `{risk}`: {count}")
+    grading_lines.extend(["", "## High-Risk Context Sample", ""])
+    high_risk_runs = [run for run in grading_artifacts_runs if run.get("risk_level") == "high"]
+    for run in sorted(high_risk_runs, key=lambda item: item.get("bytes", 0), reverse=True)[:20]:
+        grading_lines.append(
+            f"- `{run.get('run_id')}`: area=`{run.get('area')}`, files={run.get('files')}"
+        )
+    grading_lines.extend(
+        [
+            "",
+            "## Use",
+            "",
+            "- Use this map to orient AI around grading experiments, gold reviews, source alignment, runtime-shadow evidence, and learning-brain artifacts.",
+            "- Treat high-risk entries as context requiring separate verification, not as usable production supply.",
+            "- Follow the ledger files when exact artifact paths are needed.",
+            "",
+            "## Boundary",
+            "",
+            "This OKF card is only for AI project understanding. It does not participate in production, does not sign runtime supply, and does not authorize official scoring.",
+        ]
+    )
+    write_md(
+        output_root / "assets" / "luban-grading-artifacts-map.md",
+        {
+            "type": "Concept",
+            "title": "Luban Grading Artifacts Map",
+            "description": "AI-only map of artifacts/luban_grading_artifacts with area and risk boundaries.",
+            "resource": display_path(grading_artifacts_manifest_path),
+            "tags": ["luban", "okf", "grading-artifacts", "ai-context-only"],
+            "timestamp": generated_at,
+            "status": grading_artifacts_manifest.get("authority_status"),
+        },
+        "\n".join(grading_lines),
+    )
+
+    governance_counts = governance_manifest.get("counts") or {}
+    governance_domain_counts = governance_counts.get("by_domain") or {}
+    governance_area_counts = governance_counts.get("by_area") or {}
+    governance_risk_counts = governance_counts.get("by_risk_level") or {}
+    governance_lines = [
+        "# DeepTutor Governance Map",
+        "",
+        "## What It Is",
+        "",
+        "This card helps AI find the right project governance source before changing plans, contracts, runbooks, or agent behavior.",
+        "",
+        "## Counts",
+        "",
+        f"- Files: {governance_counts.get('files')}",
+        f"- Total bytes: {governance_counts.get('total_bytes')}",
+        "",
+        "## Domain Split",
+        "",
+    ]
+    for domain, count in governance_domain_counts.items():
+        governance_lines.append(f"- `{domain}`: {count}")
+    governance_lines.extend(["", "## Area Split", ""])
+    for area, count in governance_area_counts.items():
+        governance_lines.append(f"- `{area}`: {count}")
+    governance_lines.extend(["", "## Risk Split", ""])
+    for risk, count in governance_risk_counts.items():
+        governance_lines.append(f"- `{risk}`: {count}")
+    governance_lines.extend(["", "## Mandatory Entry Points", ""])
+    entry_points = [
+        row for row in governance_files
+        if row.get("source_path") in {
+            "docs/plan/INDEX.md",
+            "contracts/index.yaml",
+            "agent-skills/catalog.yaml",
+        }
+        or row.get("source_path", "").endswith("ci-runtime-smoke-guardrails.md")
+    ]
+    for row in sorted(entry_points, key=lambda item: item.get("source_path", "")):
+        governance_lines.append(
+            f"- `{row.get('source_path')}`: role=`{row.get('authority_role')}`, area=`{row.get('area')}`"
+        )
+    governance_lines.extend(
+        [
+            "",
+            "## Use",
+            "",
+            "- Use this map before planning, release, CI repair, contract changes, source-grounded changes, or agent-skill work.",
+            "- Follow the referenced source document for exact instructions; this card is only a router.",
+            "- Treat high-risk governance documents as mandatory read-before-act context.",
+            "",
+            "## Boundary",
+            "",
+            "This OKF card is only for AI project understanding. It does not replace contracts, runbooks, plans, or skills and does not participate in production.",
+        ]
+    )
+    write_md(
+        output_root / "assets" / "governance-map.md",
+        {
+            "type": "Concept",
+            "title": "DeepTutor Governance Map",
+            "description": "AI-only map of plans, runbooks, contracts, docs/contracts, and agent-skills.",
+            "resource": display_path(governance_manifest_path),
+            "tags": ["deeptutor", "okf", "governance", "ai-context-only"],
+            "timestamp": generated_at,
+            "status": governance_manifest.get("authority_status"),
+        },
+        "\n".join(governance_lines),
+    )
+
+    exam_year_links = []
+    for row in sorted((assets.get("exam") or {}).get("by_year") or [], key=lambda item: item["year"]):
+        year = row["year"]
+        source_path = f"docs/原始数据/{row['path']}"
+        filename = f"year-{year}.md"
+        exam_year_links.append((year, f"content_cards/exams/{filename}"))
+        exercise_types = row.get("exercise_types") or {}
+        stats = row.get("stats") or {}
+        body = f"""# {year} 建筑实务真题
+
+## What AI Can Understand Here
+
+This card gives the AI a direct year-level view of the exam source: question volume, case-study coverage, and where to read the cleaned JSON.
+
+## Structure
+
+- Chunks: {row.get('chunks')}
+- Exercises: {row.get('exercises')}
+- Single choice: {exercise_types.get('single_choice')}
+- Multiple choice: {exercise_types.get('multiple_choice')}
+- Case study: {exercise_types.get('case_study')}
+- Stats keys: {", ".join(sorted(stats.keys())) if stats else "unknown"}
+
+## Source
+
+- Cleaned JSON: `{source_path}`
+- Source hash: `{source_hash_by_path.get(source_path, 'unknown')}`
+
+## Use
+
+- Use this as the entry point for year-specific exam analysis.
+- Follow the source JSON for full question text, answers, and analysis.
+- Use rubric case cards when candidate scoring points are needed.
+
+## Boundary
+
+This content card is source evidence navigation, not official scoring authority.
+"""
+        write_md(
+            output_root / "content_cards" / "exams" / filename,
+            {
+                "type": "ContentCard",
+                "title": f"{year} 建筑实务真题",
+                "description": f"{year} cleaned exam source with question and case-study counts.",
+                "resource": source_path,
+                "tags": ["luban", "exam", str(year), "content-card"],
+                "timestamp": generated_at,
+                "status": "source_evidence_card",
+                "source_hash": source_hash_by_path.get(source_path, ""),
+            },
+            body,
+        )
+
+    rubrics_by_case = jsonl_by_key(okf_rubrics, "case_id")
+    points_by_rubric = jsonl_by_key(okf_points, "rubric_id")
+    case_links = []
+    for case in sorted(okf_cases, key=lambda item: item["case_id"]):
+        case_id = case["case_id"]
+        filename = f"{slug(case_id)}.md"
+        case_links.append((case_id, f"content_cards/rubrics/{filename}"))
+        source = case.get("exam_source") or {}
+        source_path = source.get("source_path", "")
+        question_chunk = case.get("question_chunk") or {}
+        lines = [
+            f"# {case_id}",
+            "",
+            "## What AI Can Understand Here",
+            "",
+            "This card exposes the case-level candidate rubric shape: source chunk, sub-question rubrics, score caps, and representative scoring points.",
+            "",
+            "## Source Anchor",
+            "",
+            f"- Exam source: `{source_path}`",
+            f"- Source hash: `{source.get('file_sha256', '')}`",
+            f"- Chunk: `{question_chunk.get('chunk_id', '')}`",
+            f"- Anchor: {question_chunk.get('anchor', '')}",
+            f"- Page: {question_chunk.get('page', '')}",
+            "",
+            "## Rubrics",
+            "",
+        ]
+        for rubric in sorted(rubrics_by_case.get(case_id, []), key=lambda item: item["rubric_id"]):
+            lines.append(
+                f"### {rubric['rubric_id']} - sub-question {rubric.get('sub_question')} "
+                f"({rubric.get('sub_q_total_score')} pts)"
+            )
+            lines.append("")
+            lines.append(f"- Judge rule: {rubric.get('judge_rule')}")
+            lines.append(f"- Source path: `{rubric.get('source_json_path')}`")
+            lines.append("- Candidate scoring points:")
+            for point in points_by_rubric.get(rubric["rubric_id"], [])[:8]:
+                lines.append(
+                    f"  - `{point.get('point_id')}` [{point.get('point_type')}, "
+                    f"{point.get('point_score')} pt]: {short_text(point.get('text'), 180)}"
+                )
+            lines.append("")
+        lines.extend(
+            [
+                "## Boundary",
+                "",
+                "This is candidate scoring knowledge from source-layer extraction. It is not a signed grading artifact and not official score authority.",
+            ]
+        )
+        write_md(
+            output_root / "content_cards" / "rubrics" / filename,
+            {
+                "type": "ContentCard",
+                "title": case_id,
+                "description": f"Candidate rubric content card for {case_id}.",
+                "resource": source_path,
+                "tags": ["luban", "rubric", "case", case_id, "content-card"],
+                "timestamp": generated_at,
+                "status": "candidate_source_card",
+                "official_score_allowed": False,
+            },
+            "\n".join(lines),
+        )
+
+    textbook = assets.get("textbook") or {}
+    textbook_lines = [
+        "# 2026 教材结构化内容",
+        "",
+        "## What AI Can Understand Here",
+        "",
+        "This card summarizes the structured textbook source and points the AI to the fixed JSON blocks instead of copying the full textbook into OKF.",
+        "",
+        "## Fixed Source Files",
+        "",
+        f"- Total fixed content blocks: {textbook.get('v3_fixed_content_blocks')}",
+    ]
+    for row in textbook.get("v3_fixed") or []:
+        source_path = f"docs/原始数据/{row['path']}"
+        meta = row.get("meta") or {}
+        textbook_lines.append(
+            f"- `{source_path}`: {row.get('content_blocks')} blocks, "
+            f"subject={meta.get('subject')}, version={meta.get('version')}"
+        )
+    textbook_lines.extend(
+        [
+            "",
+            "## Use",
+            "",
+            "- Use this card to locate textbook grounding sources.",
+            "- Read the source JSON only when a task needs exact paragraph-level evidence.",
+            "",
+            "## Boundary",
+            "",
+            "This card is a curated source map, not a full textbook mirror.",
+        ]
+    )
+    write_md(
+        output_root / "content_cards" / "textbooks" / "textbook-2026.md",
+        {
+            "type": "ContentCard",
+            "title": "2026 教材结构化内容",
+            "description": "Structured 2026 textbook source files and content-block coverage.",
+            "resource": "docs/原始数据/2026_副本/2026教材/第二次加强",
+            "tags": ["luban", "textbook", "2026", "content-card"],
+            "timestamp": generated_at,
+            "status": "source_evidence_card",
+        },
+        "\n".join(textbook_lines),
+    )
+
+    standard_links = []
+    for row in sorted((assets.get("standards") or {}).get("rows") or [], key=lambda item: item["title"]):
+        filename = f"{slug(row['title'])}.md"
+        source_path = f"docs/原始数据/{row['path']}"
+        standard_links.append((row["title"], f"content_cards/standards/{filename}"))
+        body = f"""# {row['title']}
+
+## What AI Can Understand Here
+
+This card identifies a structured standard/specification source and its node coverage.
+
+## Structure
+
+- Nodes: {row.get('nodes')}
+- Content blocks: {row.get('content_blocks')}
+- Unmatched nodes: {row.get('unmatched_nodes')}
+- Top keys: {", ".join(row.get('keys') or [])}
+
+## Source
+
+- JSON: `{source_path}`
+- Source hash: `{source_hash_by_path.get(source_path, 'unknown')}`
+
+## Boundary
+
+Use this as standard evidence navigation. Do not treat it as exam rubric or official scoring authority.
+"""
+        write_md(
+            output_root / "content_cards" / "standards" / filename,
+            {
+                "type": "ContentCard",
+                "title": row["title"],
+                "description": f"Structured standard source with {row.get('nodes')} nodes.",
+                "resource": source_path,
+                "tags": ["luban", "standard", "content-card"],
+                "timestamp": generated_at,
+                "status": "source_evidence_card",
+                "source_hash": source_hash_by_path.get(source_path, ""),
+            },
+            body,
+        )
+
+    lecture_links = []
+    for row in sorted((assets.get("lectures") or {}).get("rows") or [], key=lambda item: item["name"]):
+        filename = f"{slug(row['name'])}.md"
+        source_path = f"docs/原始数据/{row['path']}"
+        lecture_links.append((row["name"], f"content_cards/lectures/{filename}"))
+        body = f"""# {row['name']}
+
+## What AI Can Understand Here
+
+This card identifies one lecture package and its page-level JSON coverage.
+
+## Structure
+
+- Page JSON files: {row.get('page_json')}
+- Aggregate JSON files: {row.get('aggregate_json')}
+- Sample pages: {", ".join(row.get('sample_pages') or [])}
+
+## Source
+
+- Package path: `{source_path}`
+
+## Use
+
+Use lecture cards for teacher-expression style, worked examples, and topic explanation material. Prefer textbook/standard cards for source authority.
+
+## Boundary
+
+Lecture material is teaching evidence, not textbook authority and not official scoring authority.
+"""
+        write_md(
+            output_root / "content_cards" / "lectures" / filename,
+            {
+                "type": "ContentCard",
+                "title": row["name"],
+                "description": "Lecture package with page-level JSON coverage.",
+                "resource": source_path,
+                "tags": ["luban", "lecture", "content-card"],
+                "timestamp": generated_at,
+                "status": "teaching_evidence_card",
+            },
+            body,
+        )
+
+    practice_links = []
+    for name, row in sorted((assets.get("practice") or {}).items()):
+        filename = f"{slug(name)}.md"
+        source_path = f"docs/原始数据/{row['path']}"
+        practice_links.append((name, f"content_cards/practice/{filename}"))
+        exercise_types = row.get("exercise_types") or {}
+        body = f"""# {name} 章节练习库
+
+## What AI Can Understand Here
+
+This card summarizes one objective-practice source for drill generation, answer checking, and weak-point explanation.
+
+## Structure
+
+- Chunks: {row.get('chunks')}
+- Exercises: {row.get('exercises')}
+- Single choice: {exercise_types.get('single_choice')}
+- Multiple choice: {exercise_types.get('multi_choice')}
+- Correct answers available: {row.get('correct_answer_nonempty')}
+- Analysis available: {row.get('analysis_nonempty')}
+
+## Source
+
+- JSON: `{source_path}`
+- Source hash: `{source_hash_by_path.get(source_path, 'unknown')}`
+
+## Boundary
+
+Use this as practice source evidence. It does not replace exam source evidence or official scoring authority.
+"""
+        write_md(
+            output_root / "content_cards" / "practice" / filename,
+            {
+                "type": "ContentCard",
+                "title": f"{name} 章节练习库",
+                "description": f"Objective practice source with {row.get('exercises')} exercises.",
+                "resource": source_path,
+                "tags": ["luban", "practice", name.lower(), "content-card"],
+                "timestamp": generated_at,
+                "status": "practice_source_card",
+                "source_hash": source_hash_by_path.get(source_path, ""),
+            },
+            body,
+        )
+
+    content_index_lines = [
+        "# OKF Content Cards v0",
+        "",
+        "These are L1 curated content cards. They make core assets directly scannable without mirroring full JSON/PDF source files into OKF.",
+        "",
+        "## Exams",
+        "",
+    ]
+    for year, link in exam_year_links:
+        content_index_lines.append(f"- [{year} 建筑实务真题]({link.replace('content_cards/', '')})")
+    content_index_lines.extend(["", "## Candidate Case Rubrics", ""])
+    for case_id, link in case_links:
+        content_index_lines.append(f"- [{case_id}]({link.replace('content_cards/', '')})")
+    content_index_lines.extend(["", "## Textbooks", "", "- [2026 教材结构化内容](textbooks/textbook-2026.md)", "", "## Standards", ""])
+    for title, link in standard_links:
+        content_index_lines.append(f"- [{title}]({link.replace('content_cards/', '')})")
+    content_index_lines.extend(["", "## Lectures", ""])
+    for title, link in lecture_links:
+        content_index_lines.append(f"- [{title}]({link.replace('content_cards/', '')})")
+    content_index_lines.extend(["", "## Practice", ""])
+    for title, link in practice_links:
+        content_index_lines.append(f"- [{title} 章节练习库]({link.replace('content_cards/', '')})")
+    content_index_lines.extend(
+        [
+            "",
+            "## Boundary",
+            "",
+            "Content cards summarize and route. They do not copy full source payloads, sign runtime supply, or authorize official scoring.",
+        ]
+    )
+    write_md(
+        output_root / "content_cards" / "index.md",
+        {
+            "type": "BundleIndex",
+            "title": "OKF Content Cards v0",
+            "description": "L1 curated content cards for core Luban data assets.",
+            "resource": display_path(output_root / "content_cards"),
+            "tags": ["luban", "okf", "content-card"],
+            "timestamp": generated_at,
+            "status": "curated_content_cards",
+        },
+        "\n".join(content_index_lines),
+    )
+
     write_md(
         output_root / "log.md",
         {
@@ -373,6 +996,7 @@ Alignment helps AI follow evidence links. It does not promote candidate knowledg
 - Generator: `{GENERATOR}`
 - Output root: `{display_path(output_root)}`
 - Format boundary: Markdown files with YAML frontmatter only.
+- L1 content cards: `{len(exam_year_links) + len(case_links) + len(standard_links) + len(lecture_links) + len(practice_links) + 2}` markdown files.
 - Runtime boundary: no runtime supply, no official score authority, no LearnerState/GBrain writes.
 """,
     )
@@ -395,6 +1019,10 @@ Alignment helps AI follow evidence links. It does not promote candidate knowledg
         "- [OKF candidate scope](okf/candidate-scope.md)",
         "- [OKF source alignment](okf/source-alignment.md)",
         "- [Asset gap map](gaps/asset-gap-map.md)",
+        "- [L1 content cards](content_cards/index.md)",
+        "- [Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)",
+        "- [Luban grading artifacts map](assets/luban-grading-artifacts-map.md)",
+        "- [DeepTutor governance map](assets/governance-map.md)",
         "",
         "## Asset Buckets",
         "",
@@ -406,7 +1034,7 @@ Alignment helps AI follow evidence links. It does not promote candidate knowledg
             "",
             "## Format Boundary",
             "",
-            "OKF here means Markdown + YAML frontmatter + links. Signing, runtime pointer policy, official scoring, LearnerState, and GBrain writes are DeepTutor governance layers, not OKF format requirements.",
+            "OKF here means Markdown + YAML frontmatter + links. L1 content cards summarize and route into source evidence; they do not mirror full source payloads. Signing, runtime pointer policy, official scoring, LearnerState, and GBrain writes are DeepTutor governance layers, not OKF format requirements.",
             "",
             "## Generation",
             "",
@@ -435,10 +1063,21 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--brief-manifest", type=Path, default=DEFAULT_BRIEF_MANIFEST)
     parser.add_argument("--asset-buckets", type=Path, default=DEFAULT_ASSET_BUCKETS)
+    parser.add_argument("--raw-profile", type=Path, default=DEFAULT_RAW_PROFILE)
+    parser.add_argument("--json-sources", type=Path, default=DEFAULT_JSON_SOURCES)
     parser.add_argument("--okf-scope", type=Path, default=DEFAULT_OKF_SCOPE)
+    parser.add_argument("--okf-cases", type=Path, default=DEFAULT_OKF_CASES)
+    parser.add_argument("--okf-rubrics", type=Path, default=DEFAULT_OKF_RUBRICS)
+    parser.add_argument("--okf-points", type=Path, default=DEFAULT_OKF_POINTS)
     parser.add_argument("--okf-alignment", type=Path, default=DEFAULT_OKF_ALIGNMENT)
     parser.add_argument("--gap-manifest", type=Path, default=DEFAULT_GAP_MANIFEST)
     parser.add_argument("--next-actions", type=Path, default=DEFAULT_NEXT_ACTIONS)
+    parser.add_argument("--knowledge-compiler-manifest", type=Path, default=DEFAULT_KNOWLEDGE_COMPILER_MANIFEST)
+    parser.add_argument("--knowledge-compiler-runs", type=Path, default=DEFAULT_KNOWLEDGE_COMPILER_RUNS)
+    parser.add_argument("--grading-artifacts-manifest", type=Path, default=DEFAULT_GRADING_ARTIFACTS_MANIFEST)
+    parser.add_argument("--grading-artifacts-runs", type=Path, default=DEFAULT_GRADING_ARTIFACTS_RUNS)
+    parser.add_argument("--governance-manifest", type=Path, default=DEFAULT_GOVERNANCE_MANIFEST)
+    parser.add_argument("--governance-files", type=Path, default=DEFAULT_GOVERNANCE_FILES)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--generated-at", default=None)
     return parser.parse_args()
@@ -449,10 +1088,21 @@ def main() -> int:
     result = build_okf_bundle(
         brief_manifest_path=args.brief_manifest,
         asset_buckets_path=args.asset_buckets,
+        raw_profile_path=args.raw_profile,
+        json_sources_path=args.json_sources,
         okf_scope_path=args.okf_scope,
+        okf_cases_path=args.okf_cases,
+        okf_rubrics_path=args.okf_rubrics,
+        okf_points_path=args.okf_points,
         okf_alignment_path=args.okf_alignment,
         gap_manifest_path=args.gap_manifest,
         next_actions_path=args.next_actions,
+        knowledge_compiler_manifest_path=args.knowledge_compiler_manifest,
+        knowledge_compiler_runs_path=args.knowledge_compiler_runs,
+        grading_artifacts_manifest_path=args.grading_artifacts_manifest,
+        grading_artifacts_runs_path=args.grading_artifacts_runs,
+        governance_manifest_path=args.governance_manifest,
+        governance_files_path=args.governance_files,
         output_root=args.output_root,
         generated_at=args.generated_at,
     )

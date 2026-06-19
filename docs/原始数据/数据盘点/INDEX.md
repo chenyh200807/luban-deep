@@ -39,7 +39,7 @@
 | 2026-06-19 | [编译资产收录 v1](2026-06-19-编译资产收录v1.md) | **artifacts 编译资产已纳入总账**:索引 5,059 文件 / 21 分组 / 545 manifest-like 快照;payload 保留原路径,状态 `compiled_asset_inventory_only`,非 runtime truth / 非 official score authority。 |
 | 2026-06-19 | [编译资产 Authority Map v1](2026-06-19-编译资产AuthorityMap-v1.md) | **编译资产消费边界已建图**:21 group 全部分类;真实 runtime pointer / manifest 15 条,其中 4 published+hash-gated、11 candidate/blocked;`artifacts/*` 直读 runtime 允许数=0。 |
 | 2026-06-19 | [资产缺口地图 v1](2026-06-19-资产缺口地图v1.md) | **OKF/source/runtime 缺口地图已生成**:9 个开放缺口项(P1 5 / P2 4);P1 包含真题内容缺口 139、P1 PDF 21、OKF case-level-only 16、OKF candidate 未签发 25、`v_case_rubric_scored` live-reader policy conflict 1;状态 `asset_gap_map_only`。 |
-| 2026-06-19 | [OKF Bundle v0](okf_bundle_v0/index.md) | **回归 Google-style OKF 极简形态**:只输出 Markdown + YAML frontmatter + links;把 ledger/gap/runtime signing 降级为外部治理层,OKF 本体只做 AI 可读导航。 |
+| 2026-06-19 | [OKF Bundle v0](okf_bundle_v0/index.md) | **回归 Google-style OKF 极简形态并补 L1 内容卡**:只输出 Markdown + YAML frontmatter + links;新增真题年份、案例 rubric、教材、标准、讲义、章节练习 content cards,让 AI 可扫读核心内容结构,但不镜像全文、不接 runtime。 |
 | 2026-06-19 | [OKF-like rubric pilot v0](okf_pilot/rubric_v0/index.md) | **最小 OKF-like 小样**:从 `case_rubric_canonical.json` 切 2021 案例一,生成 1 case / 5 rubric / 15 scoring point 的 Markdown review projections 与 compiled JSON inspection artifacts;保留 `authority=training_org_analysis_yousen`、`not_official=true`、`official_score_allowed=false`,补 question/rubric provenance 与 machine non-runtime guard,不接 runtime。 |
 
 ## 抽取产物(`docs/原始数据/数据盘点/extractions/`)

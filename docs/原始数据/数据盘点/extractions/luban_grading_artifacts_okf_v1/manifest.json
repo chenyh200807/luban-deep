@@ -1,0 +1,71 @@
+{
+  "schema": "luban_grading_artifacts_okf_manifest.v1",
+  "generated_at": "2026-06-20T00:00:00+08:00",
+  "authority_status": "ai_project_context_only",
+  "runtime_guard": {
+    "release_stage": "ai_project_context_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_roots": {
+    "luban_grading_artifacts": "artifacts/luban_grading_artifacts"
+  },
+  "copy_policy": {
+    "payloads_copied": false,
+    "reason": "OKF is a navigation and risk map for AI understanding, not a production artifact mirror"
+  },
+  "artifact_refs": {
+    "artifact_runs": "artifact_runs.jsonl",
+    "file_index": "file_index.jsonl",
+    "summary": "summary.md"
+  },
+  "counts": {
+    "runs": 344,
+    "files": 3313,
+    "total_bytes": 342825443,
+    "manifest_like_files": 760,
+    "by_area": {
+      "artifact_workbench": 84,
+      "governance_audit": 62,
+      "runtime_shadow": 59,
+      "release_candidate": 51,
+      "source_alignment": 40,
+      "eval_benchmark": 25,
+      "learning_brain": 14,
+      "gold_review": 7,
+      "skill_pack": 2
+    },
+    "by_risk_level": {
+      "high": 143,
+      "low": 131,
+      "medium": 70
+    },
+    "by_extension": {
+      ".json": 2240,
+      ".md": 627,
+      ".jsonl": 295,
+      ".py": 45,
+      ".db": 22,
+      ".db-shm": 22,
+      ".db-wal": 22,
+      ".csv": 14,
+      ".log": 13,
+      ".txt": 6,
+      ".sql": 3,
+      ".yml": 3,
+      ".html": 1
+    }
+  },
+  "guardrails": [
+    "AI project understanding only",
+    "not production",
+    "not runtime supply",
+    "not official scoring authority",
+    "not canonical learner truth"
+  ]
+}

@@ -50,8 +50,16 @@ def test_okf_bundle_is_markdown_yaml_only(tmp_path):
     assert "okf/source-alignment.md" in files
     assert "gaps/asset-gap-map.md" in files
     assert "assets/case-rubric-candidate-scope.md" in files
+    assert "assets/governance-map.md" in files
+    assert "assets/knowledge-compiler-workbench.md" in files
+    assert "assets/luban-grading-artifacts-map.md" in files
+    assert "content_cards/index.md" in files
+    assert "content_cards/exams/year-2021.md" in files
+    assert "content_cards/rubrics/case-2021-1.md" in files
+    assert "content_cards/textbooks/textbook-2026.md" in files
     assert files == sorted(files)
     assert all(path.endswith(".md") for path in files)
+    assert len(files) == 76
 
     for rel_path in files:
         frontmatter = _frontmatter(output_root / rel_path)
@@ -64,6 +72,11 @@ def test_okf_bundle_is_markdown_yaml_only(tmp_path):
     index = (output_root / "index.md").read_text(encoding="utf-8")
     assert "Markdown + YAML frontmatter + links" in index
     assert "Candidate cases / rubrics / scoring points: 25 / 117 / 431" in index
+    assert "[L1 content cards](content_cards/index.md)" in index
+    assert "[DeepTutor governance map](assets/governance-map.md)" in index
+    assert "[Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)" in index
+    assert "[Luban grading artifacts map](assets/luban-grading-artifacts-map.md)" in index
+    assert "they do not mirror full source payloads" in index
     assert "DeepTutor governance layers, not OKF format requirements" in index
 
     candidate = (output_root / "okf" / "candidate-scope.md").read_text(encoding="utf-8")
@@ -71,6 +84,46 @@ def test_okf_bundle_is_markdown_yaml_only(tmp_path):
     assert "Rubrics: 117" in candidate
     assert "Scoring points: 431" in candidate
     assert "not official scoring authority" in candidate
+
+    compiler_card = (output_root / "assets" / "knowledge-compiler-workbench.md").read_text(encoding="utf-8")
+    assert "Knowledge Compiler Workbench" in compiler_card
+    assert "## Stage Split" in compiler_card
+    assert "`candidate`" in compiler_card
+    assert "`fixture`" in compiler_card
+    assert "does not sign runtime supply" in compiler_card
+
+    grading_card = (output_root / "assets" / "luban-grading-artifacts-map.md").read_text(encoding="utf-8")
+    assert "Luban Grading Artifacts Map" in grading_card
+    assert "AI project understanding" in grading_card
+    assert "## Area Split" in grading_card
+    assert "## Risk Split" in grading_card
+    assert "does not participate in production" in grading_card
+
+    governance_card = (output_root / "assets" / "governance-map.md").read_text(encoding="utf-8")
+    assert "DeepTutor Governance Map" in governance_card
+    assert "Mandatory Entry Points" in governance_card
+    assert "docs/plan/INDEX.md" in governance_card
+    assert "contracts/index.yaml" in governance_card
+    assert "does not replace contracts, runbooks, plans, or skills" in governance_card
+
+    content_index = (output_root / "content_cards" / "index.md").read_text(encoding="utf-8")
+    assert "L1 curated content cards" in content_index
+    assert "[2021 建筑实务真题](exams/year-2021.md)" in content_index
+    assert "[case_2021_1](rubrics/case-2021-1.md)" in content_index
+    assert "do not copy full source payloads" in content_index
+
+    exam_card = (output_root / "content_cards" / "exams" / "year-2021.md").read_text(encoding="utf-8")
+    assert "Case study:" in exam_card
+    assert "FINAL_CLEANED_EXAM_V2021.json" in exam_card
+
+    case_card = (output_root / "content_cards" / "rubrics" / "case-2021-1.md").read_text(encoding="utf-8")
+    assert "sp_2021_1_q01_01" in case_card
+    assert "分包单位与建筑工人应签订劳动合同" in case_card
+    assert "not official score authority" in case_card
+
+    textbook_card = (output_root / "content_cards" / "textbooks" / "textbook-2026.md").read_text(encoding="utf-8")
+    assert "650" in textbook_card
+    assert "not a full textbook mirror" in textbook_card
 
 
 def test_okf_bundle_rejects_dangerous_output_root_before_reset(monkeypatch):

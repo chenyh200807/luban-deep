@@ -7,7 +7,7 @@ tags:
   - "luban"
   - "okf"
   - "asset-inventory"
-timestamp: "2026-06-19T00:00:00+08:00"
+timestamp: "2026-06-20T00:00:00+08:00"
 status: "markdown_yaml_only"
 ---
 
@@ -28,6 +28,10 @@ This is the minimal OKF shape for Luban data assets: Markdown files with YAML fr
 - [OKF candidate scope](okf/candidate-scope.md)
 - [OKF source alignment](okf/source-alignment.md)
 - [Asset gap map](gaps/asset-gap-map.md)
+- [L1 content cards](content_cards/index.md)
+- [Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)
+- [Luban grading artifacts map](assets/luban-grading-artifacts-map.md)
+- [DeepTutor governance map](assets/governance-map.md)
 
 ## Asset Buckets
 
@@ -46,7 +50,7 @@ This is the minimal OKF shape for Luban data assets: Markdown files with YAML fr
 
 ## Format Boundary
 
-OKF here means Markdown + YAML frontmatter + links. Signing, runtime pointer policy, official scoring, LearnerState, and GBrain writes are DeepTutor governance layers, not OKF format requirements.
+OKF here means Markdown + YAML frontmatter + links. L1 content cards summarize and route into source evidence; they do not mirror full source payloads. Signing, runtime pointer policy, official scoring, LearnerState, and GBrain writes are DeepTutor governance layers, not OKF format requirements.
 
 ## Generation
 
