@@ -371,9 +371,12 @@ jobs:
       - name: Run smoke tests
         run: |
           echo "🧪 Running smoke test subset"
-          # Grading / learner-state / RAG / capabilities are launch-critical correctness
-          # cores. They must execute in CI so a scoring/learner regression cannot merge
-          # undetected (contract-guard only enforces test-file coupling, not execution).
+          # Grading / learner-state / capabilities are launch-critical correctness cores.
+          # They must execute in CI so a scoring/learner regression cannot merge undetected
+          # (contract-guard only enforces test-file coupling, not execution). tests/services/rag
+          # is intentionally excluded: it mixes hermetic units with network-dependent retrieval
+          # integration tests (live embedding API / DB host) that a hermetic smoke job must not
+          # run; RAG retrieval quality is gated separately by the eval / golden-set baseline.
           pytest -q --import-mode=importlib \
             tests/api \
             tests/cli \
@@ -398,8 +401,7 @@ jobs:
             tests/tools \
             tests/capabilities \
             tests/services/construction_grading \
-            tests/services/learner_state \
-            tests/services/rag
+            tests/services/learner_state
         env:
           PYTHONPATH: ${{ github.workspace }}
 
