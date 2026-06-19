@@ -1,0 +1,38 @@
+{
+  "schema_id": "luban_per_question_grading_object.v1",
+  "compiler": "scripts/run_luban_per_question_grading_object_compile.py",
+  "extraction": "deterministic_no_llm",
+  "textbook_chunks_loaded": 650,
+  "questions": [
+    {
+      "question_id": "Q2023-1A434000-P0010-02-Q1",
+      "chunk_id": "EXAM_1A434000_P0010_02",
+      "official_total_score": 7.0,
+      "scoring_point_count": 3,
+      "textbook_anchor_hit": 8,
+      "textbook_anchor_total": 13,
+      "textbook_anchor_hit_rate": 0.6153846153846154,
+      "selection_note": "flaw_correction + enumeration (见证记录)"
+    },
+    {
+      "question_id": "Q2023-1A433000-P0012-02-Q1",
+      "chunk_id": "EXAM_1A433000_P0012_02",
+      "official_total_score": 6.0,
+      "scoring_point_count": 4,
+      "textbook_anchor_hit": 7,
+      "textbook_anchor_total": 14,
+      "textbook_anchor_hit_rate": 0.5,
+      "selection_note": "calculation (网络计划/成倍节拍)"
+    },
+    {
+      "question_id": "Q2024-1A432000-P0015-01",
+      "chunk_id": "EXAM_1A432000_P0015_01",
+      "official_total_score": 22.0,
+      "scoring_point_count": 24,
+      "textbook_anchor_hit": 17,
+      "textbook_anchor_total": 29,
+      "textbook_anchor_hit_rate": 0.5862068965517241,
+      "selection_note": "enumeration + exceptions + calculation (22分)"
+    }
+  ]
+}

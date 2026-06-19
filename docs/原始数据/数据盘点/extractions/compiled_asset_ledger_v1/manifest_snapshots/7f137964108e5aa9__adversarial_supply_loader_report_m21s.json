@@ -1,0 +1,13 @@
+{
+  "attacks": {
+    "clean_checkout_no_artifacts": "pass (loader -> bundle; 192 runtime tests pass)",
+    "malformed_manifest": "fail-closed (BetaSupplyUnavailable)",
+    "hash_mismatch_tamper": "fail-closed (content_hash != manifest)",
+    "missing_bundle": "fail-closed (missing inventory)",
+    "old_artifact_fallback_silent": "blocked (artifacts only via explicit LUBAN_SUPPLY_DEV_ARTIFACTS=1; default=bundle)",
+    "official_answer_as_source": "blocked (typed_policy is scoring policy; deterministic matcher only; manifest: models NEVER a source)",
+    "production_default_pollution": "blocked (registry status=release_candidate, production_default=off)"
+  },
+  "all_resolved": true,
+  "safety_all_zero": true
+}

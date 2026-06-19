@@ -1,0 +1,63 @@
+{
+  "milestone": "M14E_ai_council_retest_canonical_pilot",
+  "proposals_read": 3,
+  "proposals_expected_from_m13e": 3,
+  "council_seats": [
+    {
+      "seat": "deepseek_v4",
+      "kind": "live",
+      "status": "provider_available_not_called"
+    },
+    {
+      "seat": "qwen37",
+      "kind": "live",
+      "status": "provider_available_not_called"
+    },
+    {
+      "seat": "gpt55",
+      "kind": "live",
+      "status": "provider_available_not_called"
+    },
+    {
+      "seat": "opus48_self_judge",
+      "kind": "in_session_self_judge",
+      "status": "in_session"
+    }
+  ],
+  "council_live_calls": 0,
+  "council_accepted": 0,
+  "real_retest_plans": 3,
+  "real_runtime_graded": 0,
+  "real_retest_blocked": 3,
+  "real_retest_proofs_valid": 0,
+  "canonical_write_candidates": 0,
+  "classify_disposition": {
+    "needs_real_retest": 18,
+    "insufficient_evidence": 2,
+    "blocked_shadow_only": 80,
+    "ai_council_review_ready": 3
+  },
+  "patterns": {
+    "classify_and_act": "5-way",
+    "fanout_and_synthesize": "live DeepSeek/Qwen + GPT fail-closed + Opus self-judge",
+    "generate_and_filter": "retest tasks filtered for evidence/source/point-mapping",
+    "tournament": "<=2 strongest claim/retest per learner",
+    "adversarial_verification": "13 attacks",
+    "loop_until_done": "every candidate has a final disposition"
+  },
+  "model_usage_actual": {
+    "deepseek_v4": "provider_available_not_called",
+    "qwen37": "provider_available_not_called",
+    "gpt55": "provider_available_not_called",
+    "opus48_self_judge": "in_session_deterministic_labelled_not_human",
+    "live_calls": 0
+  },
+  "verdict": "WEAK-GO",
+  "verdict_reason": "AI council final operational, but real retest runtime entry is BLOCKED (adapter has no fresh-grading path) -> 0 real retest proof",
+  "production_write_guard": {
+    "production_write_count": 0,
+    "canonical_truth_written": false,
+    "human_reviewed_written": 0,
+    "dry_run_only": true
+  }
+}

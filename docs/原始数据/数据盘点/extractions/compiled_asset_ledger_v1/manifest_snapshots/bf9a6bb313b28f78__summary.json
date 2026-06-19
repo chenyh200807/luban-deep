@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-06-06T05:26:37+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_mcq",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12",
+  "rounds": 12,
+  "conversation_ids": {
+    "shuffled_roof": "tb_0d5b38a2fe3847d793befd0b",
+    "template_support": "tb_709b905e96ae4378887d5e5d",
+    "diaphragm_wall": "tb_fc00b486ff774cc58afb3e33",
+    "value_only_wall": "tb_56254761fe024d62a9d53256",
+    "low_info_case": "tb_5847933ceaa54ecfa3f0e719",
+    "open_world": "tb_c32cd42171b74c0d88782859"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-004",
+      "conversation_id": "tb_0d5b38a2fe3847d793befd0b",
+      "turn_id": "turn_1780694475379_b3e2c3f4f1",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+    },
+    {
+      "round_id": "QA30-NR-005",
+      "conversation_id": "tb_0d5b38a2fe3847d793befd0b",
+      "turn_id": "turn_1780694500980_5e09e67b12",
+      "done_status": "completed",
+      "visible_excerpt": "不是，已按你这轮题面判断，正确答案是 A（5%）。"
+    },
+    {
+      "round_id": "QA30-NR-006",
+      "conversation_id": "tb_0d5b38a2fe3847d793befd0b",
+      "turn_id": "turn_1780694519930_73ce066676",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n你答错了，得 0/1 分。诊断类型：概念混淆（CONFUSION）。你选了 C（2%），正确答案是 A（5%）。\n\n### 正确答案\nA（5%）\n\n### 为什么错\n你混淆了不同屋面材料的坡度要求。压型金属板屋面因其接缝和排水特点，需要比普通卷材或刚性防水屋面更大的坡度。你选的 2% 通常是其他类型屋面（如卷材防水）的最小坡度，而压型金属板的最小坡度是 5%。\n\n### 知识点\n**屋面最小坡度（设计无要求时）**：压型金属板屋面为 5%。这是《屋面工程技术"
+    },
+    {
+      "round_id": "QA30-NR-008",
+      "conversation_id": "tb_709b905e96ae4378887d5e5d",
+      "turn_id": "turn_1780694549164_41a32434aa",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：ABE（A. 施工方案、B. 支架构造、E. 支架稳定）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、\n支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配\n件材质、支架拆除。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n|"
+    },
+    {
+      "round_id": "QA30-NR-009",
+      "conversation_id": "tb_709b905e96ae4378887d5e5d",
+      "turn_id": "turn_1780694575811_31ec318c99",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（施工方案）、B（支架构造）、E（支架稳定）：【解析】本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、 支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配 件材质、支架拆除。"
+    },
+    {
+      "round_id": "QA30-NR-010",
+      "conversation_id": "tb_fc00b486ff774cc58afb3e33",
+      "turn_id": "turn_1780694601870_6329745a88",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\nA 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 CDE，不要把 A"
+    },
+    {
+      "round_id": "QA30-NR-011",
+      "conversation_id": "tb_fc00b486ff774cc58afb3e33",
+      "turn_id": "turn_1780694631241_f53447d6bd",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n你选的是ACDE，得0/1分。诊断类型为概念混淆，你把A选项“地下连续墙单元槽段长度宜为8～10m”误判为正确，但正确答案是CDE。\n\n### 正确答案\n正确答案是C、D、E。C. 应设置现浇钢筋混凝土导墙；D. 水下混凝土应采用导管法连续浇筑；E. 混凝土达到设计强度后方可进行墙底注浆。\n\n### 为什么错\n你混淆了槽段长度的标准数值（8～10m vs 4～6m），并且对导墙高度“不应小于1.0m”与标准要求“≥1.2m”的数值记忆有偏差。你正确判断了C、"
+    },
+    {
+      "round_id": "QA30-NR-012",
+      "conversation_id": "tb_56254761fe024d62a9d53256",
+      "turn_id": "turn_1780694667228_cefb4a1bbe",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆），题库解析依据是：A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-013",
+      "conversation_id": "tb_56254761fe024d62a9d53256",
+      "turn_id": "turn_1780694697465_94c6b2a9ec",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n这道题你答错了，得0分（满分1分）。你只选了A，但正确答案是CDE。诊断类型为概念混淆，主要混淆了槽段长度和导墙高度的关键参数。\n\n### 正确答案\nC、D、E。具体为：C. 应设置现浇钢筋混凝土导墙；D. 水下混凝土应采用导管法连续浇筑；E. 混凝土达到设计强度后方可进行墙底注浆。\n\n### 为什么错\n你选A（槽段长度宜为8-10m），是典型的参数记忆偏差。你误把地下连续墙的槽段长度记成了8-10m，而标准规范要求是4-6m。同时，你漏选了C、D、E这三个"
+    },
+    {
+      "round_id": "QA30-NR-014",
+      "conversation_id": "tb_5847933ceaa54ecfa3f0e719",
+      "turn_id": "turn_1780694729800_053d6bdc4a",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2015案例二第3问答案直接发我，我在题卡里。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-015",
+      "conversation_id": "tb_5847933ceaa54ecfa3f0e719",
+      "turn_id": "turn_1780694757021_d1b481750b",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“我说了在题卡里，你就发答案，别问。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-016",
+      "conversation_id": "tb_c32cd42171b74c0d88782859",
+      "turn_id": "turn_1780694780729_9640e2255a",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n三级配电指总配电箱 → 分配电箱 → 开关箱这样三级配电装置；两级保护指总配电箱和开关箱内必须设置漏电保护器，形成两道防线。\n\n## 采分点\n\n- **三级配电**：总配电箱（一级）→ 分配电箱（二级）→ 开关箱（三级），动力与照明应分路设置。\n- **两级保护**：总配电箱设总漏电保护器，开关箱设末级漏电保护器，形成两级漏电保护。\n- **一机一箱一闸一漏**：每台用电设备必须有自己独立的开关箱，严禁同一个开关箱控制 2 台及以上设备。\n\n## 易错点\n\n- "
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

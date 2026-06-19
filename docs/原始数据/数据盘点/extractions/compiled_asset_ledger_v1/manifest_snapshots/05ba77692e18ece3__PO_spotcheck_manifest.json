@@ -1,0 +1,13 @@
+{
+  "packet_path": "artifacts/luban_no_human_v1_5/spotcheck_content_markdown_pilot_gate_20260602/PO_spotcheck_packet.csv",
+  "keys_path": "artifacts/luban_no_human_v1_5/spotcheck_content_markdown_pilot_gate_20260602/PO_spotcheck_keys.json",
+  "row_count": 37,
+  "stratum_counts": {
+    "corrected_repaired": 10,
+    "current_class_b": 10,
+    "genuinely_absent": 4,
+    "paraphrase": 10,
+    "stable_deterministic": 3
+  },
+  "instruction": "踩字口径: 命中=学生写出教材原文那几个字; 近义/同义/口号/大白话不算; 列举型按写对的原文术语个数给分。对照 textbook_provenance 的原文判,别凭印象。"
+}

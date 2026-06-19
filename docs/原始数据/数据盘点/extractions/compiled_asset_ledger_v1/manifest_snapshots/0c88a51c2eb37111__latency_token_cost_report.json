@@ -1,0 +1,12 @@
+{
+  "runtime_live_calls": 130,
+  "failclosed_calls": 0,
+  "qwen_fallback_live": 22,
+  "council_deepseek_qwen_calls": 80,
+  "council_codex_calls": 4,
+  "latency_ms_p50": 2154.7,
+  "latency_ms_p95": 3412.0,
+  "latency_ms_max": 4648.3,
+  "token_budget_per_packet": 1200,
+  "token_efficiency": "scoped packet (counted points + policy slices only)"
+}

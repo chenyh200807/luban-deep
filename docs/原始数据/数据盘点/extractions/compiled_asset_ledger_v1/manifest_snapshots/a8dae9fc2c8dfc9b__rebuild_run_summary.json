@@ -1,0 +1,23 @@
+{
+  "nodes": 603,
+  "edges": 859,
+  "edges_by_type": {
+    "related": 204,
+    "hierarchy": 583,
+    "preceding": 2,
+    "part_of": 3,
+    "prerequisite": 67
+  },
+  "lecture_authored_edges": 357,
+  "llm_semantic_edges": 1152,
+  "curriculum_seed_edges": 17,
+  "cleaning": {
+    "related_siblings_dropped": 43,
+    "related_symmetric_merged": 0,
+    "prerequisite_removed": 0,
+    "prerequisite_is_dag": true
+  },
+  "prerequisite_mutual_pairs": 0,
+  "isolated_nodes": 0,
+  "semantic_edges_input_present": true
+}

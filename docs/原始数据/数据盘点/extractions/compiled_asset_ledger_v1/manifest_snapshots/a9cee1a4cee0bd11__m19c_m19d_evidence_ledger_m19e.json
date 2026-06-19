@@ -1,0 +1,39 @@
+{
+  "canonical_statement": "M19E may request authorization for remote limited qa_/operator_ default only; broad default and canonical learner truth write remain NO-GO.",
+  "m19c": {
+    "authorization_detected": true,
+    "authorization_scope": "M19C limited qa_/operator_ default only",
+    "broad_production_default_enabled": false,
+    "canonical_truth_write_enabled": false,
+    "canonical_truth_written": false,
+    "default_cohort_prefixes": [
+      "qa_",
+      "operator_"
+    ],
+    "default_mode": "one_percent_qa_operator_default",
+    "limited_default_enabled": true,
+    "non_cohort_blocked": true,
+    "production_write_count": 0,
+    "remote_deployment_written": false,
+    "safety_all_pass": true
+  },
+  "m19d": {
+    "canonical_truth_written": false,
+    "cohort_hit_count": 231,
+    "deepseek_success_count": 256,
+    "failclosed_count": 8,
+    "failclosed_rate": 0.029197,
+    "fallback_rate": 0.036496,
+    "keep_limited_default_on": "YES",
+    "latency_p50_ms": 26.654,
+    "latency_p95_ms": 45.969,
+    "latency_p99_ms": 72.451,
+    "m19d_soak_verdict": "GO",
+    "non_cohort_blocked_count": 15,
+    "production_write_count": 0,
+    "qwen_fallback_count": 10,
+    "remote_aliyun_deployment_authorization_review": "GO",
+    "rollback_all_pass": true,
+    "submissions_total": 300
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "stage": "M12 Internal Live QA Runtime Drill",
+  "real_entry": "/api/v1/ws deep_question QA/test branch (no new WS, no kernel replacement)",
+  "workflow_patterns": {
+    "classify_and_act": "11 buckets",
+    "fanout_and_synthesize": "deterministic tests = sole authority; DeepSeek/Qwen/GPT5.5 advisory (no key -> fail-closed, not fabricated); Opus = workflow judge",
+    "generate_and_filter": "WS submission variants; rejected: direct-hook calls / new WS / production write",
+    "tournament": "kept the risk-exposing sample per bucket (miss/partial/contradiction/kill/malformed)",
+    "adversarial_verification": [
+      "negative_control_auto_certified",
+      "legacy_overwrite",
+      "flag_off_beta_leak",
+      "kill_switch_bypass",
+      "non_qa_user_gets_beta",
+      "artifact_malformed_fail_open",
+      "duplicate_replay_nondeterminism"
+    ],
+    "loop_until_done": "every sample has a final_disposition"
+  },
+  "model_usage_actual": {
+    "deepseek_v4": "advisory_not_invoked",
+    "qwen37": "advisory_not_invoked",
+    "gpt55": "provider_unavailable_fail_closed",
+    "opus48": "workflow_judge_executing_agent",
+    "deterministic_tests": "sole_pass_fail_authority"
+  },
+  "supply_counts": {
+    "machine_specs": 45,
+    "list_specs": 14,
+    "source_backed": 23,
+    "review_required": 31,
+    "external_required": 13,
+    "beta_shadow_scoring_supply": 82
+  },
+  "observability": {
+    "runtime_submissions": 86,
+    "latency_ms_p50": 23.4,
+    "latency_ms_p95": 1310.6,
+    "latency_ms_max": 1534.9,
+    "runtime_failure_rate": 0.023,
+    "pending_rate": 0.756,
+    "override_rate_dryrun": 1.0,
+    "bad_certified": 0,
+    "source_mismatch": 0,
+    "false_positive": 0,
+    "false_negative": 0,
+    "unsupported_positive": 0,
+    "legacy_equal_rate": 1.0,
+    "production_write_count": 0,
+    "secrets_logged": false
+  },
+  "verdict": "GO",
+  "production_v1": "NO-GO"
+}

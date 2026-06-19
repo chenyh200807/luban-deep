@@ -1,0 +1,16 @@
+{
+  "blocks_processed": 650,
+  "total_cards": 1309,
+  "signed_count": 1303,
+  "work_order_count": 6,
+  "dropped_count": 0,
+  "by_provenance_bucket": {
+    "textbook_authority": 698,
+    "textbook_concept": 597,
+    "synthesis": 6,
+    "machine_spec": 8
+  },
+  "signed_pct_of_cards": 0.995,
+  "node_codes_covered": 20,
+  "honest_note": "signed = verbatim-confirmed subset; backlog (external/synthesis/human-gate) is named + append-only; NOT a claim the whole textbook is compiled to answer-keys."
+}

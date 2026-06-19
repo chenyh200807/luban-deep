@@ -1,0 +1,338 @@
+{
+  "status": "ok",
+  "verdict": "GO",
+  "deepseek_live_ok": 22,
+  "qwen_fallback_ok": 10,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "official_answer_laundering": 0,
+  "latency_ms_p50": 2341.3,
+  "primary_model": "deepseek_v4_flash",
+  "fallback_model": "qwen3.7_plus",
+  "deepseek_entries": [
+    {
+      "question_id": "M2-2015-30-00",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2933.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-30-01",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1216.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 1
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1830.8,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 3696.0,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 7
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2546.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 1,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-32-00",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2087.3,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-32-01",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2395.4,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2341.3,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-34-00",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2080.0,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2382.0,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 4
+    },
+    {
+      "question_id": "M2-2015-34-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1860.7,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2040.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2016-30-01",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1906.8,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    },
+    {
+      "question_id": "M2-2016-31-00",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2210.3,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    },
+    {
+      "question_id": "M2-2016-31-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1656.7,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    },
+    {
+      "question_id": "M2-2015-30-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1696.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    },
+    {
+      "question_id": "M2-2015-30-03",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2061.1,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    },
+    {
+      "question_id": "M2-2015-32-03",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1120.2,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 1
+    },
+    {
+      "question_id": "M2-2015-33-02",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2379.0,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 3
+    },
+    {
+      "question_id": "M2-2015-33-04",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 2555.6,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 4
+    },
+    {
+      "question_id": "M2-2015-34-04",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1167.5,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 1
+    },
+    {
+      "question_id": "M2-2016-30-03",
+      "model_used": "deepseek_v4_flash",
+      "fallback_used": false,
+      "failclosed": false,
+      "latency_ms": 1973.8,
+      "false_positive": 0,
+      "source_mismatch": 0,
+      "auto_shadow_count": 0,
+      "review_required_count": 2
+    }
+  ],
+  "qwen_entries": [
+    {
+      "question_id": "M2-2015-30-00",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 6801.1,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-30-01",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 3019.0,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 7945.8,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 16164.2,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 9768.0,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-32-00",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 536.3,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-32-01",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 7670.4,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 7853.7,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-34-00",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 549.9,
+      "false_positive": 0
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "model_used": "qwen3.7_plus",
+      "fallback_used": true,
+      "failclosed": false,
+      "latency_ms": 8993.5,
+      "false_positive": 0
+    }
+  ]
+}

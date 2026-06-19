@@ -1,0 +1,121 @@
+{
+  "blockers": [
+    "live_provider_authorization_missing",
+    "learning_brain_signed_authorization_missing",
+    "operator_signature_missing",
+    "controlled_default_authorization_missing",
+    "release_truth_authorization_missing"
+  ],
+  "input_schemas": {
+    "controlled_default_authorization": "luban_rich_leaf_controlled_default_authorization_package.v1",
+    "decision_validation": "luban_rich_leaf_semantic_review_decision_validation.v1",
+    "legacy_quality_audit": "luban_rich_leaf_legacy_compilation_quality_audit.v1",
+    "manual_review_packets": "luban_rich_leaf_manual_review_packets.v1",
+    "release_governance_review": "luban_rich_leaf_release_governance_review_packet.v1",
+    "runtime_default_gate": "luban_rich_leaf_runtime_default_gate.v1",
+    "semantic_runtime_live_ab": "luban_rich_leaf_semantic_runtime_live_ab.v1",
+    "signed_authorization_template": "luban_rich_leaf_signed_authorization_template.v1",
+    "writeback_execution_gate": "luban_rich_leaf_test_learner_writeback_execution_gate.v1"
+  },
+  "learning_brain_write_status": "blocked_pending_signed_authorization",
+  "not_exercised": [
+    "runtime_default",
+    "canonical_truth_write",
+    "official_score",
+    "production_db_write",
+    "release_truth_governance"
+  ],
+  "overall_verdict": "WEAK_GO_SHADOW_CANDIDATE",
+  "quality_claim_allowed": false,
+  "recommended_next_actions": [
+    "run_authorized_live_provider_ab",
+    "obtain_signed_runtime_default_decision_and_rollback_plan",
+    "obtain_signed_test_learner_writeback_authorization",
+    "run_release_governance_review_after_shadow_gates"
+  ],
+  "release_truth_claimed": false,
+  "runtime_default_status": "ready_for_controlled_default_review",
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "learner_memory_write_count": 0,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "safety_violations": [],
+  "schema": "luban_rich_leaf_compiler_status_ledger.v1",
+  "stage_status": {
+    "controlled_default_authorization": {
+      "default_installed": false,
+      "status": "ready_for_operator_signature",
+      "verdict": "READY_FOR_OPERATOR_SIGNATURE"
+    },
+    "learning_brain_writeback": {
+      "learner_memory_write_count": 0,
+      "status": "blocked_pending_signed_authorization",
+      "verdict": "BLOCKED_PENDING_SIGNED_AUTHORIZATION"
+    },
+    "legacy_quality": {
+      "status": "blocked_for_direct_reuse",
+      "verdict": "NO_GO_FOR_DIRECT_REUSE"
+    },
+    "live_runtime_ab": {
+      "provider_call_count": 0,
+      "status": "blocked_provider_authorization",
+      "verdict": "BLOCKED_PROVIDER_AUTHORIZATION_REQUIRED"
+    },
+    "manual_review": {
+      "by_missing_lane": {
+        "lecture": 25,
+        "question": 12,
+        "standard": 52,
+        "textbook": 34
+      },
+      "packet_count": 123,
+      "status": "shadow_decisions_completed"
+    },
+    "release_governance": {
+      "release_truth_claimed": false,
+      "status": "blocked_for_release_truth",
+      "verdict": "BLOCKED_FOR_RELEASE_TRUTH"
+    },
+    "runtime_default_gate": {
+      "default_installed": false,
+      "status": "ready_for_controlled_default_review",
+      "verdict": "READY_FOR_CONTROLLED_DEFAULT_REVIEW"
+    },
+    "semantic_review": {
+      "status": "validated",
+      "verdict": "PASS"
+    },
+    "signed_authorization_template": {
+      "status": "ready_for_external_signature_capture",
+      "template_count": 3,
+      "verdict": "READY_FOR_EXTERNAL_SIGNATURE_CAPTURE",
+      "write_executed": false
+    }
+  },
+  "summary": {
+    "blocker_count": 5,
+    "learner_memory_write_count": 0,
+    "legacy_artifact_dir_count": 9,
+    "legacy_direct_reuse_blocked_count": 9,
+    "legacy_quality_gap_count": 25,
+    "legacy_safety_violation_count": 1,
+    "live_runtime_executed": false,
+    "manual_review_packet_count": 123,
+    "missing_semantic_decision_count": 0,
+    "planned_learning_event_count": 274,
+    "production_write_count": 0,
+    "provider_call_count": 0,
+    "release_governance_blocker_count": 4,
+    "runtime_default_streaming_sample_count": 16,
+    "runtime_default_streaming_ttft_delta_ms": -43.57,
+    "runtime_token_pack_unit_count": 102,
+    "safety_violation_count": 0,
+    "semantic_audit_item_count": 3506,
+    "semantic_decision_count": 3506,
+    "signed_authorization_template_count": 3
+  }
+}

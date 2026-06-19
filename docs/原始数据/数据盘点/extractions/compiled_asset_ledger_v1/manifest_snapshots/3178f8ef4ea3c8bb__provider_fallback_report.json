@@ -1,0 +1,10 @@
+{
+  "forced_primary_fail_qwen_live": 20,
+  "qwen_fp": 0,
+  "qwen_source_mismatch": 0,
+  "double_provider_failclosed": true,
+  "legacy_intact_on_double_fail": true,
+  "fail_open": false,
+  "natural_fallback_in_main_run": 0,
+  "note": "v1 has DeepSeek primary + Qwen fallback + fail-closed; v0 has no provider dependency"
+}

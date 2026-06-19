@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-06-09T12:23:30+0800",
+  "api_base_url": "https://test2.yousenjiaoyu.com",
+  "ws_url": "wss://test2.yousenjiaoyu.com/api/v1/ws",
+  "username": "qa_compiled_shadow",
+  "created_user": false,
+  "rounds": 10,
+  "metrics": {
+    "total": 10,
+    "evaluable_total": 10,
+    "failed_rounds": 0,
+    "metric_status": "ok",
+    "compiled_hit_rate": 0.0,
+    "wrong_path_rate": 0.0,
+    "source_validity_status": "no_compiled_hit_samples",
+    "source_validity_rate": null,
+    "fail_open_rate": 1.0,
+    "answer_improvement_rate": 0.0,
+    "answer_regression_rate": 0.0,
+    "token_delta_total": 170,
+    "token_delta_avg": 17.0
+  },
+  "transcript": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/qa/tutorbot-compiled-knowledge-shadow-20260609-121832/transcript.jsonl",
+  "note": "Online HTTP+WS TutorBot shadow. Does not change production default or canonical truth."
+}

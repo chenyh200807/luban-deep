@@ -1,0 +1,117 @@
+{
+  "schema_version": "luban-multimodel-jury-gold.v0.1",
+  "arms": [
+    "deepseek_v4_flash",
+    "gpt55",
+    "opus48",
+    "qwen37"
+  ],
+  "target_arm": "qwen37",
+  "summary": {
+    "total_points": 131,
+    "full_consensus_points": 107,
+    "frontier_points": 24,
+    "unsupported_positive_points": 0,
+    "full_consensus_rate": 0.8168
+  },
+  "pairwise_agreement": [
+    {
+      "left": "deepseek_v4_flash",
+      "right": "gpt55",
+      "compared": 131,
+      "hit_agreement": 0.9008,
+      "hit_score_agreement": 0.8397
+    },
+    {
+      "left": "deepseek_v4_flash",
+      "right": "opus48",
+      "compared": 131,
+      "hit_agreement": 0.9008,
+      "hit_score_agreement": 0.8626
+    },
+    {
+      "left": "deepseek_v4_flash",
+      "right": "qwen37",
+      "compared": 131,
+      "hit_agreement": 0.9008,
+      "hit_score_agreement": 0.8779
+    },
+    {
+      "left": "gpt55",
+      "right": "opus48",
+      "compared": 131,
+      "hit_agreement": 0.916,
+      "hit_score_agreement": 0.9084
+    },
+    {
+      "left": "gpt55",
+      "right": "qwen37",
+      "compared": 131,
+      "hit_agreement": 0.8779,
+      "hit_score_agreement": 0.8702
+    },
+    {
+      "left": "opus48",
+      "right": "qwen37",
+      "compared": 131,
+      "hit_agreement": 0.9542,
+      "hit_score_agreement": 0.9466
+    }
+  ],
+  "target_vs_jury": {
+    "target_arm": "qwen37",
+    "jury_point_count": 108,
+    "point_hit_agreement": 0.9907,
+    "mean_abs_point_score_delta": 0.0163,
+    "disagreement_count": 1,
+    "disagreements": [
+      {
+        "case_id": "Q16-1A436000",
+        "student_id": "S2",
+        "point_id": "P2",
+        "target_hit": "miss",
+        "target_score": 0.0,
+        "jury_hit": "hit",
+        "jury_score": 1.765,
+        "target_rationale": "学生回答'没有垫层'缺少'混凝土'，且'大概70mm左右'为大白话且与规范要求的'至少70mm'意思不符，属于方向错误/大白话，严格按踩字纪律不给分。"
+      }
+    ]
+  },
+  "human_checks": {
+    "jury_vs_human": {
+      "point_count": 108,
+      "point_hit_agreement": 1.0,
+      "mean_abs_point_score_delta": 0.0148,
+      "disagreement_count": 3,
+      "disagreements": [
+        {
+          "case_id": "Q14-1A430000",
+          "student_id": "S2",
+          "point_id": "P5",
+          "human_hit": "partial",
+          "human_score": 0.33,
+          "jury_hit": "partial",
+          "jury_score": 0.3
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "student_id": "S2",
+          "point_id": "P5",
+          "human_hit": "partial",
+          "human_score": 3.43,
+          "jury_hit": "partial",
+          "jury_score": 4.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "student_id": "S2",
+          "point_id": "P7",
+          "human_hit": "partial",
+          "human_score": 2.0,
+          "jury_hit": "partial",
+          "jury_score": 3.0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "case_tag_distribution": {
+    "exact_required_discipline": 73,
+    "generic": 359,
+    "list_rule_partial": 53
+  },
+  "exact_required_discipline_count": 73,
+  "gold_label_count": 418,
+  "high_risk_count": 67,
+  "list_rule_partial_count": 53,
+  "notes": "Offline distillation candidates only. is_gold_label=True iff Best-Quality auto_certified (not high_risk, not unsupported). Unconfirmed high_risk/unsupported points are kept with label_status pending_review/unsupported and is_gold_label=False — they are NEVER a correct answer. teacher-final remains the only Learning Brain write authority.",
+  "pending_review_count": 66,
+  "policy_type_distribution": {
+    "calculation": 85,
+    "exact_required": 200,
+    "figure_label": 15,
+    "high_risk_review": 20,
+    "list_rule": 155,
+    "penalty_rule": 10
+  },
+  "provenance": {
+    "best_quality": "best_quality_for_golden over cached 4-model 485 predictions",
+    "scoring_artifact": "build_question_grading_artifact (golden v1 + typed_policy)",
+    "touches_production": false,
+    "trains_model": false,
+    "unconfirmed_high_risk_as_gold": false
+  },
+  "question_count": 20,
+  "sample_count": 485,
+  "schema_version": "luban_distillation_sample.v0",
+  "student_sample_count": 100,
+  "unsupported_count": 1,
+  "version_id": "distillation_samples_v0_20260604"
+}

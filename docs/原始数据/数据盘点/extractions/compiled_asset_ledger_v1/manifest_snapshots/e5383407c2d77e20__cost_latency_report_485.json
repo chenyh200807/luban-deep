@@ -1,0 +1,38 @@
+{
+  "schema": "luban-485-cost-latency.v0.1",
+  "status": "directional_shadow",
+  "approved_budget": "GPT5.5x60 + Opus4.8x60",
+  "note": "held-out 40 reused (earlier); this campaign = pilot 5 + remaining 55 per model. DeepSeek run x60 (not 36) to keep the model-under-test on one consistent typed_policy prompt; DeepSeek/Qwen are non-cost-gated. GPT5.5 via Codex CLI and Opus4.8 via subagents had no per-call latency instrumentation.",
+  "arms": {
+    "deepseek_v4_flash_typed_policy_primary": {
+      "calls": 2,
+      "retries": 1,
+      "avg_latency_s": 31.836,
+      "p95_latency_s": 29.276,
+      "avg_completion_tokens": 7669.0,
+      "failed_then_retried_ok": 0
+    },
+    "qwen37_plus_nothink_primary": {
+      "calls": 1,
+      "retries": 0,
+      "avg_latency_s": 21.738,
+      "p95_latency_s": 21.738,
+      "avg_completion_tokens": 1113.0,
+      "failed_then_retried_ok": 0
+    },
+    "gpt55_primary": {
+      "calls_this_campaign": 60,
+      "runner": "Codex CLI",
+      "latency": "not_instrumented; qualitatively slow (minutes/batch, verbose point-by-point); 2 batches initially stalled in background then re-run synchronously",
+      "parse_failure": "recovered via re-dispatch; final 485/485 present"
+    },
+    "opus48_primary": {
+      "calls_this_campaign": 60,
+      "runner": "subagent",
+      "latency": "not_instrumented",
+      "schema_note": "batch_3 returned task_id/verdict variant; normalized post-hoc; 1 batch returned 12/14 samples then backfilled"
+    }
+  },
+  "within_approved_budget": true,
+  "budget_note": "GPT5.5 and Opus4.8 each = 60 samples this campaign (= approved). DeepSeek=60, Qwen=60 (non-cost-gated)."
+}

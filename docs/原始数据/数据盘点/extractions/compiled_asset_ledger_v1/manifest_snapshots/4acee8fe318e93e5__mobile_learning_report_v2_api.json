@@ -1,0 +1,1461 @@
+{
+  "ok": true,
+  "user_id": "qa_judge_loop_p2_live_readback",
+  "schema_version": 2,
+  "authority": {
+    "read_model": "learning-report-read-model",
+    "progress_source": "learner_memory_events.learning_evidence",
+    "learning_brain_source": "dry_run_learning_evidence",
+    "learning_brain_degraded": true,
+    "personalization_context_source": "PersonalizationContextPack",
+    "next_best_action_source": "training_intent",
+    "note_assets_source": "learner_notebook_cards",
+    "today_tasks_source": "learning-report-read-model.note_assets",
+    "deprecated_page_sources": [
+      "/api/v1/practice/today-progress",
+      "/api/v1/homepage/dashboard",
+      "/api/v1/assessment/profile",
+      "/api/v1/plan/mastery-dashboard",
+      "/api/v1/learning-brain/projection"
+    ],
+    "conversation_source": "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]",
+    "attempt_detail_source": "attempt-detail-read-model",
+    "mistake_book_source": "learner_mistake_book_items",
+    "training_intent_source": "learning-report-read-model",
+    "home_context_source": "home_dashboard.today_focus/recommended_prompts"
+  },
+  "degraded": false,
+  "degraded_sources": [],
+  "source_status": {
+    "today_progress": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "home_dashboard": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "assessment_profile": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "mastery_dashboard": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "learner_events": {
+      "ok": true,
+      "latency_ms": 1,
+      "error": null
+    },
+    "note_assets": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null,
+      "count": 0
+    },
+    "compiled_truth": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "dry_run_synthesis": {
+      "ok": true,
+      "latency_ms": 1,
+      "error": null
+    }
+  },
+  "feature_flags": {
+    "flag": "LEARNING_STATE_INFERENCE_V2",
+    "stage": "off",
+    "enabled": false,
+    "evidence": false,
+    "state_projection": false,
+    "action_loop": false,
+    "verification": false
+  },
+  "freshness": {
+    "generated_at": "2026-06-12T00:44:28.376003+08:00",
+    "event_count": 2,
+    "latest_event_at": "2026-06-12T00:44:28.139125+08:00",
+    "unknown_date_count": 0,
+    "window_truncated": false
+  },
+  "overview": {
+    "today_done": 2,
+    "recent_three_done": 2,
+    "attempt_count": 2,
+    "today_unique_questions": 1,
+    "recent_three_unique_questions": 1,
+    "unique_question_count": 1,
+    "daily_target": 30,
+    "streak_days": 1,
+    "weak_node_count": 0,
+    "due_today_count": 0,
+    "focus_hint": "优先补强采分点遗漏",
+    "learner_level": "qa",
+    "study_tip": "",
+    "overall_mastery": 25
+  },
+  "progress_feedback": {
+    "summary": "近 3 天已累计完成 2 次练习，节奏刚刚建立起来，继续推进就会看到更稳的变化",
+    "insight": "这段时间你主要在补“施工质量管理”，已积累 2 条练习证据",
+    "cards": [
+      {
+        "label": "近 3 天完成",
+        "value": "2次",
+        "detail": "刚开始形成连续输出",
+        "tone_class": "tone-good"
+      },
+      {
+        "label": "连续学习",
+        "value": "1天",
+        "detail": "还在建立连续性",
+        "tone_class": "tone-accent"
+      },
+      {
+        "label": "主攻主题",
+        "value": "2条证据",
+        "detail": "最近在补“施工质量管理”",
+        "tone_class": "tone-accent"
+      },
+      {
+        "label": "复习压力",
+        "value": "0项",
+        "detail": "当前复习压力可控",
+        "tone_class": "tone-good"
+      }
+    ],
+    "milestones": [
+      {
+        "title": "最近 3 天保持输出",
+        "detail": "累计已完成 2 次练习，节奏没有断开",
+        "tone_class": "tone-accent"
+      },
+      {
+        "title": "主攻章节开始沉淀",
+        "detail": "“施工质量管理”已积累 2 条练习证据，已经有持续推进的迹象",
+        "tone_class": "tone-accent"
+      },
+      {
+        "title": "今日学习已经启动",
+        "detail": "今天已完成 2/30 次练习，把当天目标打满会更容易看到正向反馈",
+        "tone_class": "tone-accent"
+      }
+    ]
+  },
+  "mastery": {
+    "overall_mastery": {
+      "score": 25,
+      "confidence": 0.37,
+      "status": "insufficient_evidence",
+      "sample_count": 2,
+      "coverage_ratio": 0.2,
+      "last_practiced_at": "2026-06-12T00:44:28.139125+08:00",
+      "level": "weak",
+      "forgetting_risk": 0.6,
+      "needs_revalidation": true,
+      "decay_profile_days": 14
+    },
+    "groups": [
+      {
+        "name": "练习证据",
+        "avg_mastery": 25,
+        "avg_status": "weak",
+        "avg_class": "avg-low",
+        "chapters": [
+          {
+            "textbook_chapter_no": 9,
+            "textbook_chapter_name": "第9章 施工质量管理",
+            "taxonomy_path": [
+              "施工质量管理"
+            ],
+            "parent_name": "施工质量管理",
+            "name": "施工质量管理",
+            "mastery": 25,
+            "status": "weak",
+            "color": "#f87171",
+            "done": 2,
+            "correct": 0,
+            "last_activity_at": "2026-06-12T00:44:28.139125+08:00",
+            "source": "learning_evidence"
+          }
+        ]
+      }
+    ],
+    "hotspots": [
+      {
+        "textbook_chapter_no": 9,
+        "textbook_chapter_name": "第9章 施工质量管理",
+        "taxonomy_path": [
+          "施工质量管理"
+        ],
+        "parent_name": "施工质量管理",
+        "name": "施工质量管理",
+        "mastery": 25,
+        "status": "weak",
+        "color": "#f87171",
+        "done": 2,
+        "correct": 0,
+        "last_activity_at": "2026-06-12T00:44:28.139125+08:00",
+        "source": "learning_evidence"
+      }
+    ],
+    "knowledge_summary": {
+      "total_nodes": 3735,
+      "coded_nodes": 3733,
+      "leaf_nodes": 2786,
+      "unique_codes": 1284,
+      "duplicate_code_rows": 2449,
+      "total_textbook_chapters": 13,
+      "evaluated_topics": 1,
+      "evaluated_leaf_points": 0,
+      "mastered_topics": 0,
+      "developing_topics": 0,
+      "weak_topics": 1,
+      "unmeasured_leaf_points": 2786,
+      "textbook_chapters": [
+        {
+          "chapter_no": 1,
+          "chapter_name": "第1章 建筑工程设计技术",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 2,
+          "chapter_name": "第2章 主要建筑工程材料的性能与应用",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 3,
+          "chapter_name": "第3章 建筑工程施工技术",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 4,
+          "chapter_name": "第4章 相关法规",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 5,
+          "chapter_name": "第5章 相关标准",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 6,
+          "chapter_name": "第6章 建筑工程企业资质与施工组织",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 7,
+          "chapter_name": "第7章 工程招标投标与合同管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 8,
+          "chapter_name": "第8章 施工进度管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 9,
+          "chapter_name": "第9章 施工质量管理",
+          "section_count": 0,
+          "evaluated_topics": 1,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 1,
+          "top_topics": [
+            "施工质量管理"
+          ],
+          "status": "weak"
+        },
+        {
+          "chapter_no": 10,
+          "chapter_name": "第10章 施工成本管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 11,
+          "chapter_name": "第11章 施工安全管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 12,
+          "chapter_name": "第12章 绿色建造及施工现场环境管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 13,
+          "chapter_name": "第13章 施工资源管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        }
+      ]
+    },
+    "review_summary": {
+      "total_due": 0
+    },
+    "dimensions": [
+      {
+        "name": "施工质量管理",
+        "score": 25,
+        "confidence": 0.37,
+        "status": "insufficient_evidence",
+        "sample_count": 2,
+        "coverage_ratio": 0.2,
+        "last_practiced_at": "2026-06-12T00:44:28.139125+08:00",
+        "level": "weak",
+        "forgetting_risk": 0.6,
+        "needs_revalidation": true,
+        "decay_profile_days": 14
+      }
+    ]
+  },
+  "radar_dimensions": [
+    {
+      "name": "施工质量管理",
+      "value": 0.25,
+      "score": 25,
+      "rate_text": "25%",
+      "status": "weak",
+      "level": "weak",
+      "color": "#f87171",
+      "taxonomy_path": [
+        "施工质量管理"
+      ],
+      "parent_name": "施工质量管理",
+      "textbook_chapter_no": 9,
+      "textbook_chapter_name": "第9章 施工质量管理"
+    }
+  ],
+  "study_plan": {
+    "focus_topic": "施工质量管理",
+    "priority_task": "先做 3 道“施工质量管理”专项题",
+    "study_method": "先辨清条件边界，再说出判断抓手，换场景练一次，最后用验证题闭环",
+    "time_budget": "约 8 分钟",
+    "coach_note": "最近 2 次作答暴露“采分点遗漏”，先围绕“施工质量管理”修正判断抓手。",
+    "source": "training_prescription"
+  },
+  "learning_brain": {
+    "ok": true,
+    "projection_subject": "construction_exam_learning_truth",
+    "schema_version": 2,
+    "output_projection_hash": "sha256:9282c98e37fddb66c904cb488761c4a64a788073f6c8a44298a51b3ba492a014",
+    "synthesis_run": {
+      "output_projection_hash": "sha256:9282c98e37fddb66c904cb488761c4a64a788073f6c8a44298a51b3ba492a014",
+      "status": "dry_run_ok",
+      "input_event_count": 2
+    },
+    "weak_points": [],
+    "visible_sections": {
+      "current_truth": [
+        {
+          "key": "truth-0",
+          "current_truth": "施工质量管理 上出现 采分点遗漏 错因",
+          "evidence_level": "L0_observed",
+          "evidence_level_label": "单次观察",
+          "memory_lifecycle_stage": "short_term_learning_memory",
+          "memory_lifecycle_label": "短期观察",
+          "confidence": 0.45,
+          "display_title": "施工质量管理 上出现 采分点遗漏 错因",
+          "display_meta": "错因：施工质量管理 / 采分点遗漏",
+          "supporting_event_labels": [
+            "最近一次批改",
+            "上一次批改"
+          ]
+        }
+      ],
+      "evidence_flow": [
+        {
+          "key": "evidence-0",
+          "display_label": "错因",
+          "display_title": "施工质量管理 上出现 采分点遗漏 错因",
+          "display_path": "施工质量管理 上出现 采分点遗漏 错因",
+          "tone": ""
+        },
+        {
+          "key": "evidence-1",
+          "display_label": "错因",
+          "display_title": "施工质量管理 上出现 采分点遗漏 错因",
+          "display_path": "施工质量管理 上出现 采分点遗漏 错因",
+          "tone": ""
+        },
+        {
+          "key": "evidence-2",
+          "display_label": "训练使用题目",
+          "display_title": "训练使用题目",
+          "display_path": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04",
+          "tone": ""
+        },
+        {
+          "key": "evidence-3",
+          "display_label": "训练使用题目",
+          "display_title": "训练使用题目",
+          "display_path": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04",
+          "tone": ""
+        }
+      ],
+      "next_training": []
+    },
+    "graph_chain": {
+      "has_training_uses_question": true,
+      "has_training_improved_error": false,
+      "has_training_not_improved_error": false,
+      "training_uses_question": [
+        {
+          "key": "edge-0",
+          "edge_type": "training_uses_question",
+          "display_path": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04",
+          "display_meta": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04"
+        },
+        {
+          "key": "edge-1",
+          "edge_type": "training_uses_question",
+          "display_path": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04",
+          "display_meta": "训练建议：案例题补强 / (2) 钉钉子法：①当施工后不久，卷材有下滑趋势 → 案例题：Q2023-03__P04"
+        }
+      ],
+      "training_improved_error": [],
+      "training_not_improved_error": []
+    },
+    "event_count": 2,
+    "created_claim_count": 0,
+    "typed_graph_edge_count": 10
+  },
+  "learner_facing": {
+    "summary": {
+      "title": "今日学习复盘",
+      "headline": "最近 2 次练习里，重点关注 施工质量管理。",
+      "today_done": 2,
+      "recent_three_done": 2,
+      "primary_focus": "施工质量管理",
+      "weak_count": 1
+    },
+    "recent_attempts": [
+      {
+        "key": "attempt-7a5625ab74bf",
+        "attempt_ref": "eyJlIjoiY2FiMjE1OTNmM2YxNDczMDg3OWM0OGM1N2Q3OWFmZGIiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS4zOTk5Nzc4OTEzMjNlN2RiZDZkOGNlYmE",
+        "subject_id": "construction_exam_1",
+        "bot_id": "construction-exam",
+        "time_label": "今天 00:44",
+        "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+        "question_text": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "options": [],
+        "concept": "施工质量管理",
+        "result_label": "答错",
+        "tone": "wrong",
+        "answer_line": "得分：2.5/5.0",
+        "diagnosis": "采分点遗漏",
+        "diagnosis_detail": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "explanation": "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "evidence_label": "最近一次批改",
+        "collectable": true,
+        "is_bookmarked": false,
+        "bookmark_label": "",
+        "detail_lines": [
+          "得分：2.5/5.0",
+          "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+          "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。"
+        ],
+        "quality": {
+          "authority": "local_live_readback_fixture",
+          "degraded_reason": "解析暂缺；题干暂缺",
+          "detail_ready": false,
+          "evidence_cap_reasons": [
+            "missing_rag_evidence"
+          ],
+          "evidence_level": "L0_observed",
+          "missing_fields": [
+            "explanation",
+            "question_stem"
+          ],
+          "progress_countable": true,
+          "stable_truth_eligible": false,
+          "truth_eligible": true,
+          "writeback_eligible": true
+        }
+      },
+      {
+        "key": "attempt-20c8d0f64dd9",
+        "attempt_ref": "eyJlIjoiZjc0YmI1MTNkMjY5NGFjNTlkYjFkMTY3MzkzOTE0Y2EiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS5iY2Q5YjAzMmVlMWJiYzJmMzA5NmRmMTU",
+        "subject_id": "construction_exam_1",
+        "bot_id": "construction-exam",
+        "time_label": "今天 00:44",
+        "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+        "question_text": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "options": [],
+        "concept": "施工质量管理",
+        "result_label": "答错",
+        "tone": "wrong",
+        "answer_line": "得分：2.5/5.0",
+        "diagnosis": "采分点遗漏",
+        "diagnosis_detail": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "explanation": "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "evidence_label": "上一次批改",
+        "collectable": true,
+        "is_bookmarked": false,
+        "bookmark_label": "",
+        "detail_lines": [
+          "得分：2.5/5.0",
+          "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+          "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。"
+        ],
+        "quality": {
+          "authority": "local_live_readback_fixture",
+          "degraded_reason": "解析暂缺；题干暂缺",
+          "detail_ready": false,
+          "evidence_cap_reasons": [
+            "missing_rag_evidence"
+          ],
+          "evidence_level": "L0_observed",
+          "missing_fields": [
+            "explanation",
+            "question_stem"
+          ],
+          "progress_countable": true,
+          "stable_truth_eligible": false,
+          "truth_eligible": true,
+          "writeback_eligible": true
+        }
+      }
+    ],
+    "diagnoses": [
+      {
+        "key": "施工质量管理::采分点遗漏",
+        "level_label": "需要重点补",
+        "title": "施工质量管理：采分点遗漏",
+        "concept": "施工质量管理",
+        "error": "采分点遗漏",
+        "meta": "最近出现 2 次",
+        "detail": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "action": "先做 3 道施工质量管理相关辨析题",
+        "count": 2,
+        "evidence_refs": [
+          "evidence-20c8d0f64dd9",
+          "evidence-7a5625ab74bf"
+        ],
+        "topic_candidates": [
+          "(2)钉钉子法：①当施工后不久"
+        ]
+      }
+    ],
+    "evidence_timeline": [
+      {
+        "key": "timeline-0",
+        "time_label": "今天 00:44",
+        "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+        "line": "答错；得分：2.5/5.0；采分点遗漏",
+        "tone": "wrong"
+      },
+      {
+        "key": "timeline-1",
+        "time_label": "今天 00:44",
+        "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+        "line": "答错；得分：2.5/5.0；采分点遗漏",
+        "tone": "wrong"
+      }
+    ],
+    "training_loops": [
+      {
+        "key": "loop-0",
+        "title": "采分点遗漏",
+        "from": "错因：施工质量管理 / 采分点遗漏",
+        "training": "训练：先做 3 道施工质量管理相关辨析题",
+        "outcome": "变化：仍需通过下一轮训练验证",
+        "tone": "not-improved"
+      }
+    ],
+    "next_action": {
+      "title": "先做 3 道“施工质量管理”专项题",
+      "subtitle": "目标：把“采分点遗漏”这一类错误拉回主线",
+      "concept": "施工质量管理",
+      "error": "采分点遗漏",
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_6672ede619bbb315",
+        "concept_id": "",
+        "concept_label": "施工质量管理",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-20c8d0f64dd9",
+          "evidence-7a5625ab74bf"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.833
+      },
+      "cta": "开始训练",
+      "estimated_minutes": 8,
+      "action_id": "nba_1_lti_6672ede619bbb315",
+      "training_intent_id": "lti_6672ede619bbb315",
+      "source": "training_intent",
+      "prescription_authority": "training_intent",
+      "why_this_now": "该训练意图有 2 条学习证据支持。",
+      "evidence_refs": [
+        "evidence-20c8d0f64dd9",
+        "evidence-7a5625ab74bf"
+      ]
+    }
+  },
+  "truth_sections": {
+    "stable_truths": [
+      {
+        "label": "施工质量管理：采分点遗漏",
+        "concept": "施工质量管理",
+        "error": "采分点遗漏",
+        "count": 2,
+        "stable_count": 2,
+        "latest_at": "2026-06-12T00:44:28.139125+08:00",
+        "conversation_only": false,
+        "level_label": "重复出现"
+      }
+    ],
+    "recent_observations": [],
+    "needs_confirmation": []
+  },
+  "personalization_context": {
+    "schema_version": 1,
+    "user_id": "qa_judge_loop_p2_live_readback",
+    "source": "PersonalizationContextPack",
+    "authority": {
+      "claims": "learning_synthesis",
+      "evidence": "learner_memory_events.learning_evidence",
+      "prescription": "training_intent"
+    },
+    "top_claims": [
+      {
+        "claim_id": "1A434000:E02",
+        "object_type": "error",
+        "claim_status": "observed",
+        "decay_state": "active",
+        "trend_state": "repeated_active",
+        "concept_id": "",
+        "label": "施工质量管理 上出现 采分点遗漏 错因",
+        "confidence": 0.45,
+        "evidence_refs": [
+          "f74bb513d2694ac59db1d167393914ca",
+          "cab21593f3f14730879c48c57d79afdb"
+        ],
+        "occurrence_count": 2,
+        "occurrence_timeline": [
+          {
+            "event_id": "cab21593f3f14730879c48c57d79afdb",
+            "observed_at": "",
+            "question_id": "",
+            "turn_id": ""
+          },
+          {
+            "event_id": "f74bb513d2694ac59db1d167393914ca",
+            "observed_at": "",
+            "question_id": "",
+            "turn_id": ""
+          }
+        ]
+      }
+    ],
+    "recent_improvement_signals": [],
+    "recent_evidence_refs": [
+      "f74bb513d2694ac59db1d167393914ca",
+      "cab21593f3f14730879c48c57d79afdb"
+    ],
+    "active_training_intent": {
+      "source": "learning_report",
+      "prescription_authority": "training_intent",
+      "training_intent_id": "lti_6672ede619bbb315",
+      "concept_id": "",
+      "concept_label": "施工质量管理",
+      "error_code": "",
+      "error_label": "采分点遗漏",
+      "training_mode": "mixed_review",
+      "attempt_refs": [],
+      "question_count": 4,
+      "reason": "最近出现 2 次",
+      "intent_version": 2,
+      "status": "active",
+      "ability_dimension": "",
+      "behavior_state": "",
+      "evidence_refs": [
+        "evidence-20c8d0f64dd9",
+        "evidence-7a5625ab74bf"
+      ],
+      "prescription_steps": [
+        {
+          "phase": "repair_root",
+          "question_count": 1
+        },
+        {
+          "phase": "expression_drill",
+          "question_count": 1
+        },
+        {
+          "phase": "transfer_case",
+          "question_count": 1
+        },
+        {
+          "phase": "verification_probe",
+          "question_count": 1
+        }
+      ],
+      "success_criteria": {
+        "requires_revalidation": true,
+        "min_correct_probe_count": 1,
+        "max_repeat_error_count": 0
+      },
+      "priority": 0.833
+    },
+    "next_best_action_candidates": [
+      {
+        "action_id": "nba_1_lti_6672ede619bbb315",
+        "training_intent_id": "lti_6672ede619bbb315",
+        "source": "dry_run_fallback",
+        "prescription_authority": "training_intent",
+        "status": "degraded",
+        "title": "先补一题可诊断练习",
+        "action_type": "retest_or_targeted_practice",
+        "target": "施工质量管理 · 采分点遗漏",
+        "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+        "materials": [
+          "教材：施工质量管理相关章节",
+          "相似真题",
+          "错因清单：采分点遗漏"
+        ],
+        "success_measure": "复测命中目标采分点，且不再重复该错误",
+        "evidence_refs": [],
+        "intent": {
+          "source": "learning_report",
+          "prescription_authority": "training_intent",
+          "training_intent_id": "lti_6672ede619bbb315",
+          "concept_id": "",
+          "concept_label": "施工质量管理",
+          "error_code": "",
+          "error_label": "采分点遗漏",
+          "training_mode": "mixed_review",
+          "attempt_refs": [],
+          "question_count": 4,
+          "reason": "最近出现 2 次",
+          "intent_version": 2,
+          "status": "active",
+          "ability_dimension": "",
+          "behavior_state": "",
+          "evidence_refs": [
+            "evidence-20c8d0f64dd9",
+            "evidence-7a5625ab74bf"
+          ],
+          "prescription_steps": [
+            {
+              "phase": "repair_root",
+              "question_count": 1
+            },
+            {
+              "phase": "expression_drill",
+              "question_count": 1
+            },
+            {
+              "phase": "transfer_case",
+              "question_count": 1
+            },
+            {
+              "phase": "verification_probe",
+              "question_count": 1
+            }
+          ],
+          "success_criteria": {
+            "requires_revalidation": true,
+            "min_correct_probe_count": 1,
+            "max_repeat_error_count": 0
+          },
+          "priority": 0.833
+        },
+        "degraded": true
+      }
+    ],
+    "feedback_guidance": {
+      "authority": "PersonalizationContextPack_read_only",
+      "grading_tone": "advanced_repeat_mistake",
+      "explanation_depth": "reference_prior_pattern",
+      "prior_claim_label": "施工质量管理 上出现 采分点遗漏 错因",
+      "next_action_hint": "下一题：施工质量管理 · 采分点遗漏"
+    },
+    "gaps": []
+  },
+  "next_best_actions": [
+    {
+      "action_id": "nba_1_lti_6672ede619bbb315",
+      "training_intent_id": "lti_6672ede619bbb315",
+      "source": "dry_run_fallback",
+      "prescription_authority": "training_intent",
+      "status": "degraded",
+      "title": "先补一题可诊断练习",
+      "action_type": "retest_or_targeted_practice",
+      "target": "施工质量管理 · 采分点遗漏",
+      "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+      "materials": [
+        "教材：施工质量管理相关章节",
+        "相似真题",
+        "错因清单：采分点遗漏"
+      ],
+      "success_measure": "复测命中目标采分点，且不再重复该错误",
+      "evidence_refs": [],
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_6672ede619bbb315",
+        "concept_id": "",
+        "concept_label": "施工质量管理",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-20c8d0f64dd9",
+          "evidence-7a5625ab74bf"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.833
+      },
+      "degraded": true
+    }
+  ],
+  "next_training": [
+    {
+      "title": "先做 3 道“施工质量管理”专项题",
+      "reason": "目标：把“采分点遗漏”这一类错误拉回主线",
+      "estimated_minutes": 8,
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_6672ede619bbb315",
+        "concept_id": "",
+        "concept_label": "施工质量管理",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-20c8d0f64dd9",
+          "evidence-7a5625ab74bf"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.833
+      }
+    }
+  ],
+  "training_prescription": {
+    "status": "active",
+    "source": "training_intent",
+    "title": "围绕“施工质量管理”完成闭环训练",
+    "priority_task": "先做 3 道“施工质量管理”专项题",
+    "subtitle": "先修“采分点遗漏”，再用新题验证",
+    "display_topic": "施工质量管理",
+    "error_label": "采分点遗漏",
+    "why_this": "最近 2 次作答暴露“采分点遗漏”，先围绕“施工质量管理”修正判断抓手。",
+    "evidence_count": 2,
+    "evidence_refs": [
+      "evidence-20c8d0f64dd9",
+      "evidence-7a5625ab74bf"
+    ],
+    "estimated_minutes": 8,
+    "question_plan": [
+      {
+        "phase": "repair_root",
+        "phase_label": "补根因",
+        "label": "先辨清施工质量管理的条件边界",
+        "question_count": 1
+      },
+      {
+        "phase": "expression_drill",
+        "phase_label": "表达训练",
+        "label": "说清施工质量管理的判断抓手",
+        "question_count": 1
+      },
+      {
+        "phase": "transfer_case",
+        "phase_label": "迁移练习",
+        "label": "换一个场景判断施工质量管理",
+        "question_count": 1
+      },
+      {
+        "phase": "verification_probe",
+        "phase_label": "验证题",
+        "label": "用 1 题验证不再采分点遗漏",
+        "question_count": 1
+      }
+    ],
+    "success_criteria": {
+      "requires_revalidation": true,
+      "min_correct_probe_count": 1,
+      "max_repeat_error_count": 0
+    },
+    "training_intent_id": "lti_6672ede619bbb315"
+  },
+  "note_assets": {
+    "items": [],
+    "count": 0,
+    "source_status": {
+      "ok": true,
+      "authority": "learner_notebook_cards",
+      "generated_at": "2026-06-12T00:44:28.374830+08:00"
+    }
+  },
+  "today_tasks": [],
+  "scoring_point_map": {
+    "items": [],
+    "empty_state": "rubric_pending",
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence",
+      "model": "rule_based_v1",
+      "degraded": true,
+      "blocked_reason": "feature_flag_off"
+    }
+  },
+  "prescription_outcomes": [],
+  "revalidation_queue": {
+    "items": [],
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
+      "model": "rule_based_arrs_v1",
+      "daily_capacity": 1,
+      "candidate_count": 0,
+      "due_count": 0,
+      "blocked_reasons": [
+        "feature_flag_off"
+      ]
+    }
+  },
+  "learning_state": {
+    "knowledge_state": [],
+    "ability_state": [],
+    "behavior_state": [],
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence",
+      "model": "rule_based_v1",
+      "degraded": true,
+      "blocked_reason": "feature_flag_off"
+    }
+  },
+  "long_term_analytics": {
+    "recurrent_errors": [],
+    "progression_summary": {
+      "trend_direction": "improving",
+      "active_weak_count": 0,
+      "recurrent_error_count": 0
+    }
+  },
+  "legacy_compat": {
+    "today_progress": {
+      "today_done": 0,
+      "daily_target": 30,
+      "streak_days": 0
+    },
+    "home_dashboard": {
+      "review": {
+        "due_today": 0,
+        "overdue": 0
+      },
+      "mastery": {
+        "weak_nodes": []
+      },
+      "today": {
+        "hint": "优先补强采分点遗漏"
+      },
+      "recommended_prompts": []
+    },
+    "assessment_profile": {
+      "level": "qa",
+      "chapter_mastery": {}
+    },
+    "mastery_dashboard": {
+      "overall_mastery": 0,
+      "groups": [],
+      "hotspots": [],
+      "review_summary": {
+        "total_due": 0
+      }
+    }
+  },
+  "grading_to_brain_loop": {
+    "status": "action_ready",
+    "next_required_action": "start_next_action",
+    "evidence_refs": [
+      "attempt-7a5625ab74bf",
+      "attempt-20c8d0f64dd9",
+      "timeline-0",
+      "timeline-1"
+    ],
+    "current_action": {
+      "title": "先补一题可诊断练习",
+      "action_type": "retest_or_targeted_practice",
+      "prescription_authority": "training_intent"
+    },
+    "latest_outcome": {
+      "training_intent_id": "",
+      "status": "",
+      "score_ratio": null,
+      "verified_at": ""
+    },
+    "stages": [
+      {
+        "key": "grading_result",
+        "label": "本次批改",
+        "status": "ready",
+        "evidence_count": 2,
+        "authority": "learner_memory_events.learning_evidence"
+      },
+      {
+        "key": "learning_evidence",
+        "label": "学习证据",
+        "status": "ready",
+        "evidence_refs": [
+          "attempt-7a5625ab74bf",
+          "attempt-20c8d0f64dd9",
+          "timeline-0",
+          "timeline-1"
+        ],
+        "authority": "learner_memory_events.learning_evidence"
+      },
+      {
+        "key": "learner_claim",
+        "label": "长期画像",
+        "status": "ready",
+        "claim_count": 1,
+        "authority": "LearningBrainReadModel"
+      },
+      {
+        "key": "personalization_context",
+        "label": "个性化上下文",
+        "status": "ready",
+        "authority": "PersonalizationContextPack"
+      },
+      {
+        "key": "next_action",
+        "label": "下一步动作",
+        "status": "ready",
+        "action_type": "retest_or_targeted_practice",
+        "authority": "training_intent"
+      },
+      {
+        "key": "retest",
+        "label": "复测结果",
+        "status": "pending",
+        "next_required_action": "start_next_action",
+        "authority": "prescription_outcomes"
+      }
+    ],
+    "authority": {
+      "grading_evidence": "learner_memory_events.learning_evidence",
+      "learner_model": "LearningBrainReadModel",
+      "personalization": "PersonalizationContextPack",
+      "action": "training_intent",
+      "retest": "prescription_outcomes"
+    },
+    "source_status": {
+      "degraded": false,
+      "learning_brain_degraded": true
+    }
+  },
+  "recent_attempts": [
+    {
+      "key": "attempt-7a5625ab74bf",
+      "attempt_ref": "eyJlIjoiY2FiMjE1OTNmM2YxNDczMDg3OWM0OGM1N2Q3OWFmZGIiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS4zOTk5Nzc4OTEzMjNlN2RiZDZkOGNlYmE",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:44",
+      "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "question_text": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "options": [],
+      "concept": "施工质量管理",
+      "result_label": "答错",
+      "tone": "wrong",
+      "answer_line": "得分：2.5/5.0",
+      "diagnosis": "采分点遗漏",
+      "diagnosis_detail": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "explanation": "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "evidence_label": "最近一次批改",
+      "collectable": true,
+      "is_bookmarked": false,
+      "bookmark_label": "",
+      "detail_lines": [
+        "得分：2.5/5.0",
+        "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。"
+      ],
+      "quality": {
+        "authority": "local_live_readback_fixture",
+        "degraded_reason": "解析暂缺；题干暂缺",
+        "detail_ready": false,
+        "evidence_cap_reasons": [
+          "missing_rag_evidence"
+        ],
+        "evidence_level": "L0_observed",
+        "missing_fields": [
+          "explanation",
+          "question_stem"
+        ],
+        "progress_countable": true,
+        "stable_truth_eligible": false,
+        "truth_eligible": true,
+        "writeback_eligible": true
+      }
+    },
+    {
+      "key": "attempt-20c8d0f64dd9",
+      "attempt_ref": "eyJlIjoiZjc0YmI1MTNkMjY5NGFjNTlkYjFkMTY3MzkzOTE0Y2EiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS5iY2Q5YjAzMmVlMWJiYzJmMzA5NmRmMTU",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:44",
+      "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "question_text": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "options": [],
+      "concept": "施工质量管理",
+      "result_label": "答错",
+      "tone": "wrong",
+      "answer_line": "得分：2.5/5.0",
+      "diagnosis": "采分点遗漏",
+      "diagnosis_detail": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "explanation": "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "evidence_label": "上一次批改",
+      "collectable": true,
+      "is_bookmarked": false,
+      "bookmark_label": "",
+      "detail_lines": [
+        "得分：2.5/5.0",
+        "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+        "先回看本题条件和选项边界：(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。"
+      ],
+      "quality": {
+        "authority": "local_live_readback_fixture",
+        "degraded_reason": "解析暂缺；题干暂缺",
+        "detail_ready": false,
+        "evidence_cap_reasons": [
+          "missing_rag_evidence"
+        ],
+        "evidence_level": "L0_observed",
+        "missing_fields": [
+          "explanation",
+          "question_stem"
+        ],
+        "progress_countable": true,
+        "stable_truth_eligible": false,
+        "truth_eligible": true,
+        "writeback_eligible": true
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "key": "timeline-0",
+      "time_label": "今天 00:44",
+      "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "line": "答错；得分：2.5/5.0；采分点遗漏",
+      "tone": "wrong"
+    },
+    {
+      "key": "timeline-1",
+      "time_label": "今天 00:44",
+      "title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "line": "答错；得分：2.5/5.0；采分点遗漏",
+      "tone": "wrong"
+    }
+  ],
+  "training_loop_cards": [
+    {
+      "key": "loop-0",
+      "title": "采分点遗漏",
+      "from": "错因：施工质量管理 / 采分点遗漏",
+      "training": "训练：先做 3 道施工质量管理相关辨析题",
+      "outcome": "变化：仍需通过下一轮训练验证",
+      "tone": "not-improved"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_key": "attempt-7a5625ab74bf",
+      "attempt_ref": "eyJlIjoiY2FiMjE1OTNmM2YxNDczMDg3OWM0OGM1N2Q3OWFmZGIiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS4zOTk5Nzc4OTEzMjNlN2RiZDZkOGNlYmE",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:44",
+      "question_title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "question_preview": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "result_label": "答错",
+      "answer_line": "得分：2.5/5.0",
+      "diagnosis": "采分点遗漏",
+      "why_it_matters": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "is_bookmarked": false,
+      "actions": {
+        "detail": true,
+        "bookmark": true,
+        "retry": true
+      }
+    },
+    {
+      "attempt_key": "attempt-20c8d0f64dd9",
+      "attempt_ref": "eyJlIjoiZjc0YmI1MTNkMjY5NGFjNTlkYjFkMTY3MzkzOTE0Y2EiLCJrIjoidjEiLCJxIjoiUTIwMjMtMDNfX1AwNCIsInUiOiJxYV9qdWRnZV9sb29wX3AyX2xpdmVfcmVhZGJhY2siLCJ2IjoxfS5iY2Q5YjAzMmVlMWJiYzJmMzA5NmRmMTU",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:44",
+      "question_title": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部…",
+      "question_preview": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "result_label": "答错",
+      "answer_line": "得分：2.5/5.0",
+      "diagnosis": "采分点遗漏",
+      "why_it_matters": "(2) 钉钉子法：①当施工后不久，卷材有下滑趋势时，可在卷材的上部离屋脊 300~450mm 范围内钉三排 50mm 长圆钉，钉眼上灌胶结料。②卷材流淌后，横向搭接若有错动，应清除边缘翘起处的旧胶结料，重新浇灌胶结料，并压实刮平。",
+      "is_bookmarked": false,
+      "actions": {
+        "detail": true,
+        "bookmark": true,
+        "retry": true
+      }
+    }
+  ],
+  "hero": {
+    "stage_label": "qa",
+    "headline": "当前最该补：施工质量管理",
+    "subline": "最近 2 次练习里，重点关注 施工质量管理。",
+    "primary_cta": {
+      "label": "开始训练",
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_6672ede619bbb315",
+        "concept_id": "",
+        "concept_label": "施工质量管理",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-20c8d0f64dd9",
+          "evidence-7a5625ab74bf"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.833
+      }
+    }
+  },
+  "home_personalization": {
+    "focus_ref": "home_dashboard.today_focus",
+    "recommended_prompt_count": 0,
+    "latest_conversation_signal": "",
+    "source_status": {}
+  },
+  "today_prescription": {
+    "title": "围绕“施工质量管理”完成闭环训练",
+    "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+    "evidence_refs": [
+      "evidence-20c8d0f64dd9",
+      "evidence-7a5625ab74bf"
+    ],
+    "source": "dry_run_fallback",
+    "prescription_authority": "training_intent",
+    "degraded": true,
+    "primary_action": {
+      "type": "starter_action",
+      "intent_id": "lti_6672ede619bbb315",
+      "prescription_authority": "training_intent"
+    }
+  },
+  "mistake_book": {
+    "count": 0,
+    "recent_items": [],
+    "etag": "",
+    "generated_at": "",
+    "source_status": {
+      "ok": true
+    }
+  },
+  "i18n_keys": {
+    "locale": "zh-CN",
+    "hero.headline": "learning_report.hero.headline",
+    "attempt.result": "learning_report.attempt.result",
+    "next_training.title": "learning_report.next_training.title"
+  }
+}

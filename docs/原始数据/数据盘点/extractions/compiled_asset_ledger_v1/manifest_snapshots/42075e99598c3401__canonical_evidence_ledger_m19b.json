@@ -1,0 +1,62 @@
+{
+  "canonical_runtime_llm_scaleout_axis": "GO",
+  "m16_controlled_runtime": {
+    "auto_count": 54,
+    "legacy_equal_rate": 1.0,
+    "production_write_count": 0,
+    "retained": true,
+    "verdict": "GO"
+  },
+  "m17a_runtime_llm_adjudication": {
+    "legacy_equal_rate": 1.0,
+    "live_calls": 25,
+    "production_write_count": 0,
+    "retained": true,
+    "validator_false_positive_prevented": 8,
+    "verdict": "GO"
+  },
+  "m17b_runtime_llm_scaleout": {
+    "council_points_reviewed": 70,
+    "council_vote_as_source": 0,
+    "deepseek_live_calls_before_m17c": 28,
+    "latency_p50_ms": 23.4,
+    "latency_p95_ms": 2298.6,
+    "original_verdict": "WEAK-GO",
+    "point_decisions": 519,
+    "qwen_fallback_drills": 24,
+    "real_qwen_fallback_completed": 4,
+    "retained_safety": true,
+    "superseded_field": "m17b_verdict/deepseek_live_ge_80",
+    "ws_submissions": 140
+  },
+  "m17c_deepseek_live_completion": {
+    "duplicated_paid_calls": 0,
+    "m17c_new_live_calls": 27,
+    "merged_deepseek_live_calls": 80,
+    "merged_ge_80": true,
+    "safety_all_zero": true,
+    "supersedes": "M17B live-call blocker",
+    "verdict": "GO"
+  },
+  "m18c_learning_brain": {
+    "evidence_drafts": 45,
+    "pcps": 6,
+    "retained": true,
+    "shadow_promoted_to_mastery": 0,
+    "verdict": "GO"
+  },
+  "m18d_canonical_gate": {
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "real_retest_proof_safe": true,
+    "retained": true,
+    "verdict": "GO"
+  },
+  "m19a_preflight": {
+    "original_verdict": "GO",
+    "retained": "rollback/observability/cost skeleton retained; waiting slots filled by M17C/M19B",
+    "superseded_field": "production_default_decision=DEFERRED_TO_M19_AFTER_M17B"
+  },
+  "production_default": "OFF",
+  "production_v1": "NO-GO"
+}

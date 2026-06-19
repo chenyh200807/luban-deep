@@ -1,0 +1,158 @@
+{
+  "baseline_calibration": {
+    "calibration_pass_rate": 0.8260869565217391,
+    "calibration_passed": 19,
+    "calibration_total": 23,
+    "failed_cases": [
+      {
+        "expected": "hit",
+        "hit": true,
+        "path_ok": null,
+        "question": "高层住宅的建筑高度是怎么界定的？"
+      },
+      {
+        "expected": "hit",
+        "hit": true,
+        "path_ok": null,
+        "question": "脚手架连墙件设置有什么要求？"
+      },
+      {
+        "expected": "open",
+        "hit": true,
+        "path_ok": null,
+        "question": "双代号网络计划总时差怎么算？"
+      },
+      {
+        "expected": "open",
+        "hit": true,
+        "path_ok": null,
+        "question": "分部工程质量验收谁组织？"
+      }
+    ],
+    "hit_passed": 8,
+    "hit_rate_threshold": 0.8,
+    "hit_total": 8,
+    "status": "evaluated",
+    "teaching_context_hit_rate": 1.0
+  },
+  "calibration_safe_subset": {
+    "installable": true,
+    "rejected_new_repair_count": 0,
+    "rejected_repairs": [],
+    "selected_calibration": {
+      "calibration_pass_rate": 0.8260869565217391,
+      "calibration_passed": 19,
+      "calibration_total": 23,
+      "failed_cases": [
+        {
+          "expected": "hit",
+          "hit": true,
+          "path_ok": null,
+          "question": "高层住宅的建筑高度是怎么界定的？"
+        },
+        {
+          "expected": "hit",
+          "hit": true,
+          "path_ok": null,
+          "question": "脚手架连墙件设置有什么要求？"
+        },
+        {
+          "expected": "open",
+          "hit": true,
+          "path_ok": null,
+          "question": "双代号网络计划总时差怎么算？"
+        },
+        {
+          "expected": "open",
+          "hit": true,
+          "path_ok": null,
+          "question": "分部工程质量验收谁组织？"
+        }
+      ],
+      "hit_passed": 8,
+      "hit_rate_threshold": 0.8,
+      "hit_total": 8,
+      "status": "evaluated",
+      "teaching_context_hit_rate": 1.0
+    },
+    "selected_new_repair_count": 48
+  },
+  "candidate_calibration": {
+    "calibration_pass_rate": 0.8260869565217391,
+    "calibration_passed": 19,
+    "calibration_total": 23,
+    "failed_cases": [
+      {
+        "expected": "hit",
+        "hit": true,
+        "path_ok": null,
+        "question": "高层住宅的建筑高度是怎么界定的？"
+      },
+      {
+        "expected": "hit",
+        "hit": true,
+        "path_ok": null,
+        "question": "脚手架连墙件设置有什么要求？"
+      },
+      {
+        "expected": "open",
+        "hit": true,
+        "path_ok": null,
+        "question": "双代号网络计划总时差怎么算？"
+      },
+      {
+        "expected": "open",
+        "hit": true,
+        "path_ok": null,
+        "question": "分部工程质量验收谁组织？"
+      }
+    ],
+    "hit_passed": 8,
+    "hit_rate_threshold": 0.8,
+    "hit_total": 8,
+    "status": "evaluated",
+    "teaching_context_hit_rate": 1.0
+  },
+  "candidate_installable": true,
+  "deferred_broad_parent_count": 0,
+  "deferred_protected_hit_count": 0,
+  "deferred_review_count": 21,
+  "deferred_review_node_codes": [
+    "1A411011-03",
+    "1A411012-03",
+    "1A411012-03-a",
+    "1A412014-06",
+    "1A412014-06-a",
+    "1A412032-01",
+    "1A413000-03",
+    "1A413000-03-a",
+    "1A413000-03-b",
+    "1A413024-03-b",
+    "1A413033-03-c",
+    "1A413042-01-d",
+    "1A413042-01-f",
+    "1A413042-02",
+    "1A413042-02-a",
+    "1A413042-05-a",
+    "1A413042-06-b",
+    "1A413043-01-h",
+    "1A413061-04-f",
+    "1A413061-13-a",
+    "1A413061-13-b"
+  ],
+  "existing_overlay_used": false,
+  "existing_repair_count": 0,
+  "input_work_order_count": 73,
+  "installed_runtime_supply_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/source_alignment_repairs.json",
+  "merged_repair_count": 48,
+  "new_repair_count": 48,
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": true,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "status": "compiled_candidate",
+  "strong_source_conflict_work_order_count": 52
+}

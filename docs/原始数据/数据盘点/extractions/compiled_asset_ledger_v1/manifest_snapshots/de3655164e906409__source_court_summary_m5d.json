@@ -1,0 +1,25 @@
+{
+  "disputed_questions": 9,
+  "council_approved": 0,
+  "council_not_publish": 9,
+  "by_council_action": {
+    "split_point": 5,
+    "drop_point": 4,
+    "rewrite_point": 4,
+    "require_external_source": 5,
+    "approve_with_repaired_anchor": 6,
+    "keep_draft": 1
+  },
+  "final_authority": "ai_expert_council_final",
+  "human_reviewed": false,
+  "votes_fabricated": false,
+  "new_live_api_calls": 0,
+  "reused_live_jury_votes": 33,
+  "council_roles": [
+    "chief_rubric_architect",
+    "strict_grading_prosecutor",
+    "chinese_domain_semantics_reviewer",
+    "workflow_judge_adversarial"
+  ],
+  "formal_registry_emitted": false
+}

@@ -1,0 +1,15 @@
+{
+  "stage": "M7 Registry v1 Source Repair Factory",
+  "patterns": [
+    "classify_and_act",
+    "fanout_and_synthesize",
+    "adversarial_verification",
+    "generate_and_filter",
+    "tournament",
+    "loop_until_done"
+  ],
+  "source_authority": "2026 textbook content_markdown verbatim exact-match ONLY",
+  "ai_expert_council": "adjudicates semantic support; never creates source; final_authority=ai_expert_council_final",
+  "live_llm_api_called": false,
+  "formal_registry_emitted": false
+}

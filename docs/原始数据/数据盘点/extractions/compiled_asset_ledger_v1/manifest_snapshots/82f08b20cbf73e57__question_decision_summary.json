@@ -1,0 +1,82 @@
+{
+  "M2-2015-30-00": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-30-02": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-31-02": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-31-03": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-32-00": {
+    "decision": "publish_candidate",
+    "quorum_met": true,
+    "rationale": "all points jury-accepted AND M4 published gate (coverage/policy/spec) passed"
+  },
+  "M2-2015-32-01": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-32-02": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-33-01": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-34-00": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2015-34-01": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-30-00": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-30-01": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-31-00": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-31-01": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-31-02": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  },
+  "M2-2016-31-03": {
+    "decision": "needs_po_review",
+    "quorum_met": true,
+    "rationale": "split/high-risk points or M4 draft gate not met -> PO review"
+  }
+}

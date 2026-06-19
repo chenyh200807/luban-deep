@@ -1,0 +1,9 @@
+{
+  "clean_checkout": true,
+  "artifacts_present": false,
+  "matrix_passed": 192,
+  "skipped": 10,
+  "failed": 0,
+  "runtime_tests_pass_without_artifacts": true,
+  "pilot_skipped_reason": "best_quality_4model cached eval predictions absent (dev/eval-only)"
+}

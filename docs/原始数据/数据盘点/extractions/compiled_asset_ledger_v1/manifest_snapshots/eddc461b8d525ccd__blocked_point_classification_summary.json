@@ -1,0 +1,11 @@
+{
+  "category_counts": {
+    "external_source_needed": 51,
+    "figure_label_not_runtime_safe": 1,
+    "calculation_spec_missing": 20,
+    "semantic_allowed_not_runtime_safe": 28,
+    "list_rule_denominator_missing": 12,
+    "rewrite_needed": 13
+  },
+  "total": 125
+}

@@ -1,0 +1,25 @@
+{
+  "audit": "Master Plan Closure Freeze — test readiness",
+  "date": "2026-06-06",
+  "policy": "hermetic/test subset only; NO large live LLM re-run",
+  "runs_this_round": [
+    {
+      "cmd": "pytest test_deep_question_adapter.py test_compiled_context.py test_compiled_context_consumers.py test_compiler_feedback.py test_objective_governed_registry_extractor.py test_open_world_diagnostic.py tests/integration/test_luban_m27_open_world_ws_integration.py -q",
+      "result": "37 passed",
+      "covers": "mainline core + client-answer-key laundering fix + M27 real /api/v1/ws integration"
+    }
+  ],
+  "prior_round_evidence_still_valid_core_source_stable": {
+    "construction_grading_full": "269 passed (M28 round)",
+    "learning_brain_router_writeback_aidraft": "37 passed (M28 round)",
+    "unified_ws_guard": "161 passed (M28 round)"
+  },
+  "live_not_rerun": [
+    "DeepSeek/Qwen live adjudication (creds-gated; runner-reported in m26_live artifacts)",
+    "KB v5 live retrieval (creds-gated)",
+    "questions_bank governed live extraction (creds-gated)",
+    "acceptance oracle --run-ws (owned by parallel agent; script churning at t0)"
+  ],
+  "readiness": "mainline hermetic + M27 real-WS integration GREEN. Sufficient for pre-landing review of the luban grading commit IF working tree is confirmed silent. Live gates remain runner-reported (not reviewer-reproducible without creds).",
+  "blocking_caveat": "test stability is meaningful only if no agent is still editing source; see file_mtime_stability_check.json."
+}

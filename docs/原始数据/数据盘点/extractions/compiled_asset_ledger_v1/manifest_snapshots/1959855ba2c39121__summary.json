@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-06T07:34:33+0800",
+  "entry_surface": "near_real_http_ws_intent_practice_after_fix",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_practice_fix_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-intent-context-probes-20260606-after-practice-fix",
+  "rounds": 2,
+  "conversation_ids": {
+    "practice_then_answer": "tb_aa9c14f566cc435a8e9bd9bd"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-INTENT-001-FIX",
+      "conversation_id": "tb_aa9c14f566cc435a8e9bd9bd",
+      "turn_id": "turn_1780702435300_4a7df4989c",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n在双代号网络计划中，某工作的最早开始时间为第3天，持续时间为5天，其紧后工作的最早开始时间为第9天，则该工作的自由时差为多少天？\n- A. 0天\n- B. 1天\n- C. 2天\n- D. 3天\n\n**答案：** B\n\n**解析：** 自由时差是指在不影响其紧后工作最早开始的前提下，本工作可以利用的机动时间。计算公式为：自由时差 = 紧后工作最早开始时间 - 本工作最早完成时间。本工作最早完成时间 = 最早开始时间 + 持续时间 = 3 + 5 = 8天。"
+    },
+    {
+      "round_id": "QA30-INTENT-002-FIX",
+      "conversation_id": "tb_aa9c14f566cc435a8e9bd9bd",
+      "turn_id": "turn_1780702466080_3518bcab04",
+      "done_status": "completed",
+      "visible_excerpt": "你这轮有多道题，我还不能确定要批改哪一题。\n\n请带上题号发送，例如：第1题选B、q2 选C，或一次性写成：q1 A，q2 C，q3 B。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

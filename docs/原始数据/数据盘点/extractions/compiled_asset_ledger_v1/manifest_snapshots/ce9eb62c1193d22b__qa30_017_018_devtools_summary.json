@@ -1,0 +1,75 @@
+{
+  "surface": "real_wechat_package_devtools_automation",
+  "pagePath": "packageDeeptutor/pages/chat/chat",
+  "entrySource": "qa30_017_018",
+  "userMessageContext": {
+    "question_id": "qa30_visible_q1",
+    "question": "压型金属板屋面最低坡度是多少？",
+    "question_type": "single_choice",
+    "options": {
+      "A": "5%",
+      "B": "1%",
+      "C": "2%",
+      "D": "3%"
+    },
+    "user_answer": "A"
+  },
+  "firstPayload": {
+    "text": "我选A",
+    "structuredSubmitContext": {
+      "questions": [
+        {
+          "question_number": 1,
+          "question_id": "qa30_visible_q1",
+          "stem": "压型金属板屋面最低坡度是多少？",
+          "hint": "",
+          "options": {
+            "A": "5%",
+            "B": "1%",
+            "C": "2%",
+            "D": "3%"
+          },
+          "question_type": "single_choice",
+          "selected_answer": "A"
+        }
+      ],
+      "answers": [
+        {
+          "question_number": 1,
+          "question_id": "qa30_visible_q1",
+          "selected_answer": "A",
+          "question_type": "single_choice"
+        }
+      ]
+    },
+    "followupQuestionContext": {
+      "question_id": "qa30_visible_q1",
+      "question": "压型金属板屋面最低坡度是多少？",
+      "question_type": "single_choice",
+      "options": {
+        "A": "5%",
+        "B": "1%",
+        "C": "2%",
+        "D": "3%"
+      },
+      "user_answer": "A"
+    }
+  },
+  "messageCountAfterRetry": 2,
+  "messagesAfterRetry": [
+    {
+      "id": "u0",
+      "role": "user",
+      "content": "我选A",
+      "hasFollowupQuestionContext": true,
+      "streaming": false
+    },
+    {
+      "id": "a3",
+      "role": "ai",
+      "content": "",
+      "hasFollowupQuestionContext": false,
+      "streaming": false
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "baseline": {
+    "verified": 28,
+    "weak": 5,
+    "missing": 105
+  },
+  "m4": {
+    "verified": 36,
+    "weak": 102,
+    "missing": 0
+  },
+  "new_verified_anchors": 8,
+  "new_verified_by_scope": {
+    "node": 0,
+    "parent": 0,
+    "full_kb": 8
+  },
+  "published_candidate_not_final": 20,
+  "draft": 10,
+  "auto_certifiable_points": 36,
+  "registry_emitted": false,
+  "top_missing_reasons": [
+    "真题术语与教材原文表述差异（同义/缩写/口语化），逐字不命中",
+    "list_rule item set 在教材中分散，不在单一 chunk verbatim",
+    "calculation 点需 calculation_spec，非 verbatim 术语",
+    "node_code 未解析，full_kb 检索噪声大"
+  ]
+}

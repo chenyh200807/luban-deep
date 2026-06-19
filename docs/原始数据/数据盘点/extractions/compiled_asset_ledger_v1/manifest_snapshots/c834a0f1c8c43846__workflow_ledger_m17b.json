@@ -1,0 +1,46 @@
+{
+  "classify_and_act": {
+    "classes": {
+      "list_rule": 53,
+      "textbook": 73,
+      "machine_logic": 112,
+      "review_only": 129,
+      "machine_calc": 12
+    },
+    "all_final": true
+  },
+  "fanout_and_synthesize": {
+    "gpt55_chief_rubric_architect": false,
+    "opus48_workflow_judge": "in_session",
+    "deepseek_strict_prosecutor": "live",
+    "qwen_chinese_reviewer": "live/fallback",
+    "deterministic_validator": "sole_auto_judge"
+  },
+  "generate_and_filter": {
+    "variants": [
+      "compact(minimal_ids)",
+      "evidence_rich(full_policy)",
+      "learner_context"
+    ]
+  },
+  "tournament": {
+    "winner": "evidence_rich_full_policy",
+    "basis": "validator-checkable + full evidence"
+  },
+  "adversarial_verification": {
+    "attacks": [
+      "off_by_one",
+      "contradiction",
+      "list_partial",
+      "near_synonym",
+      "irrelevant",
+      "source_laundering",
+      "high_risk_overclaim"
+    ],
+    "false_positive": 0
+  },
+  "loop_until_done": {
+    "point_decisions": 519,
+    "unknown": 0
+  }
+}

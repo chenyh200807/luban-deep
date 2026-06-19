@@ -1,0 +1,29 @@
+{
+  "stage": "M13 Formal Release Candidate Gate",
+  "scope": "limited internal release candidate — production default OFF, no formal registry",
+  "real_ws_path": "FastAPI TestClient /api/v1/ws -> TurnRuntimeManager -> ChatOrchestrator -> DeepQuestionCapability -> _maybe_attach_v1_beta_shadow -> beta_shadow_loader",
+  "consumed": {
+    "m12": "runtime drill",
+    "m12a": "authority partition (82 authority-backed)"
+  },
+  "invariants": {
+    "ws_submissions": 140,
+    "ws_submissions_ge_120": true,
+    "runtime_coverage_complete": true,
+    "adversarial_negatives": 45,
+    "adversarial_negatives_ge_40": true,
+    "false_positive": 0,
+    "bad_certified": 0,
+    "source_mismatch": 0,
+    "legacy_equal_rate": 1.0,
+    "production_write_count": 0,
+    "learning_brain_writeback": 0,
+    "non_cohort_blocked": true,
+    "kill_switch_works": true,
+    "artifact_fail_closed": true,
+    "all_adversarial_fail_closed": true
+  },
+  "production_default": "OFF",
+  "formal_registry_emitted": false,
+  "production_runtime_connected": false
+}

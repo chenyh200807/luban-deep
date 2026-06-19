@@ -1,0 +1,18 @@
+{
+ "schema": "luban_quarantine_rescue.v1",
+ "generated_at_date": "2026-06-14",
+ "re_triage": {
+  "real_answer_rescuable": 10,
+  "score_gap_only": 4,
+  "jiexi_body_usable": 11,
+  "genuinely_placeholder": 14
+ },
+ "rescued_n": 25,
+ "genuinely_placeholder_unrecoverable": 14,
+ "both_models_mnm_clean": "21/25",
+ "needs_opus_arbiter": "17/25",
+ "score_gap_flagged_for_owner": 4,
+ "mean_points_deepseek": 10.0,
+ "coverage_lift": "179 → 200 (rescued 21 of 39 quarantine)",
+ "honest_note": "14/39 genuinely placeholder (no real answer in source) — NOT fabricated; score_gap cases compile structurally but official_total_score must come from owner."
+}

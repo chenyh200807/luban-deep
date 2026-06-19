@@ -1,0 +1,43 @@
+{
+  "sample_total": 63,
+  "kind_counts": {
+    "source_backed_positive": 14,
+    "high_risk": 9,
+    "external": 6,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "override_simulation": 6,
+    "duplicate_retry": 5,
+    "empty_or_error_input": 1
+  },
+  "disposition_counts": {
+    "auto_shadow_safe": 19,
+    "review_required_high_risk": 9,
+    "external_source_needed": 6,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "teacher_override_needed": 6,
+    "blocked_from_writeback": 1
+  },
+  "ready_leak_count": 0,
+  "consumes": [
+    "artifacts/luban_grading_artifacts/v1_alpha_grand_sprint_m8_20260604",
+    "artifacts/luban_grading_artifacts/v1_beta_shadow_grand_sprint_m9_20260604",
+    "artifacts/luban_grading_artifacts/v1_beta_shadow_source_assault_m9_20260604"
+  ],
+  "patterns": {
+    "classify_and_act": "8-way disposition",
+    "fanout_and_synthesize": "Qwen/DeepSeek/GPT5.5/Opus + deterministic",
+    "generate_and_filter": "review queue + packets, filter no-provenance/production-write/formal-grade",
+    "tournament": "terse vs verbose packet, pick lowest teacher cost",
+    "adversarial_verification": "misclick/duplicate/override/source_gap-ready/legacy/empty",
+    "loop_until_done": "every sample has a final disposition"
+  },
+  "model_usage": {
+    "small_models": "advisory (not run; deterministic backbone)",
+    "gpt55": "provider_unavailable_fail_closed",
+    "opus48": "in_session_qa_judge",
+    "live_calls": 0,
+    "deterministic": "legacy hash / runtime gate / metrics / writeback dry_run"
+  }
+}

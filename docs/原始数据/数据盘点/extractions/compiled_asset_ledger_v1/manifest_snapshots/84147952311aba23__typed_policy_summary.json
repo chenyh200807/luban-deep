@@ -1,0 +1,27 @@
+{
+  "schema_version": "luban_typed_policy.v0.1",
+  "version_id": "typed-policy-38073116a5011f8c",
+  "total_points": 97,
+  "policy_type_counts": {
+    "exact_required": 40,
+    "semantic_allowed": 0,
+    "list_rule": 31,
+    "calculation": 17,
+    "figure_label": 3,
+    "penalty_rule": 2,
+    "high_risk_review": 4
+  },
+  "policy_readiness_counts": {
+    "needs_human_or_source_curation": 4,
+    "needs_list_denominator_curation": 4,
+    "needs_numeric_validator_spec": 17,
+    "needs_penalty_trigger_validator": 2,
+    "ready_for_llm_adjudication": 70
+  },
+  "validation_issue_counts": {
+    "list_rule_missing_denominator": 4
+  },
+  "residual_signal_points": 9,
+  "auto_certify_points": 0,
+  "hard_boundary": "directional_shadow_only_not_runtime"
+}

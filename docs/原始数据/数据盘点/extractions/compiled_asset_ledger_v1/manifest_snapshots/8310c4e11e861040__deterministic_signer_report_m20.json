@@ -1,0 +1,29 @@
+{
+  "deterministic_signer": "m20_candidate_delta_signer",
+  "schema_validation_pass": true,
+  "schema_errors": [],
+  "source_boundary_validation_pass": true,
+  "source_boundary_failures": [],
+  "official_answer_upgraded_to_textbook": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "human_reviewed": false,
+  "release_candidate_delta_signed": true,
+  "signed_artifact_kind": "release_candidate_delta_not_formal_registry",
+  "candidate_delta_count": 122,
+  "accepted_delta_count": 69,
+  "rejected_variant_count": 6,
+  "hash_version": {
+    "version": "m20_20260604_delta_v1",
+    "registry_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+    "supersedes": [
+      "runtime_llm_ai_council_scaleout_m17b_m18_20260604/artifact_feedback_candidates.jsonl",
+      "runtime_llm_ai_council_scaleout_m17b_m18_20260604/validator_downgrade_audit.jsonl",
+      "teacher_review_ops_hardening_m13d_20260604/review_queue_consolidated_m13d.jsonl"
+    ],
+    "rollback_pointer": "rollback_to_m17c_m18d_m13d_input_artifacts_no_runtime_change"
+  },
+  "production_runtime_connected": false,
+  "production_write_count": 0,
+  "canonical_learner_truth_written": false
+}

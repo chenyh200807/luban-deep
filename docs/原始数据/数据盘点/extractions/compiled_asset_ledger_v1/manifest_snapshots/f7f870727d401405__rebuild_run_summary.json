@@ -1,0 +1,13 @@
+{
+  "clauses": 2355,
+  "standards": 55,
+  "mandatory": 1636,
+  "canonical_linked": 2353,
+  "verify": true,
+  "resolution_index": {
+    "leaves": 1534,
+    "index_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/v_canonical_taxonomy_index_candidate",
+    "registry_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/v_concept_registry_candidate",
+    "registry_loaded": true
+  }
+}

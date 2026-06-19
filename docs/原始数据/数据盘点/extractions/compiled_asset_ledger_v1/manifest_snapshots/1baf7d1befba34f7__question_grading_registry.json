@@ -1,0 +1,170 @@
+{
+  "questions": {
+    "Q1-NA": {
+      "artifact_id": "Q1-NA::qga_v0_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "1925c1dd003a0d0f4357a67b50391582606f37828575e54651982d7f1e5ddec9",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 1
+    },
+    "Q10-1A422000": {
+      "artifact_id": "Q10-1A422000::qga_v0_20260604",
+      "auto_certifiable_point_count": 7,
+      "content_hash": "036bb0994b115b418dac76339ad59eabd7334d2a6ea843ef62303eb418d5d9ed",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 7
+    },
+    "Q11-1A434020": {
+      "artifact_id": "Q11-1A434020::qga_v0_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "daa7e13e470e3ef253f01bd43c3159dcb8e02bff1a4ed7beb7a31e99ad0ecfea",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q12-1A412000-罚则": {
+      "artifact_id": "Q12-1A412000-罚则::qga_v0_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "98a816b8d4710b17e181fff4db43ce6c3d837b41992de6a90c87fc01af5d5b9b",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q13-1A421000": {
+      "artifact_id": "Q13-1A421000::qga_v0_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "77870c3969844a00fa6b8adae84176095dd97df01bb2d0cf413c7f18b32a7f0d",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q14-1A430000": {
+      "artifact_id": "Q14-1A430000::qga_v0_20260604",
+      "auto_certifiable_point_count": 8,
+      "content_hash": "628ef14161a142b5b5e64446e6e141aaf389c22bbfa384ff7f0de929f7d9b33b",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 10
+    },
+    "Q15-NA": {
+      "artifact_id": "Q15-NA::qga_v0_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "5846f67e639ae006cce1bc70e2ee24d48c4ee06f4ee646ade4c0ad454d78e127",
+      "status": "blocked",
+      "status_reason": "zero_auto_certifiable_with_high_risk",
+      "total_scoring_points": 3
+    },
+    "Q16-1A436000": {
+      "artifact_id": "Q16-1A436000::qga_v0_20260604",
+      "auto_certifiable_point_count": 6,
+      "content_hash": "f3d352e2408198d70337a6adaf3a407874590f033ec01f1b3d90971b6bd8c150",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 6
+    },
+    "Q17-1A433000": {
+      "artifact_id": "Q17-1A433000::qga_v0_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "f2c2573efdc50efabd02cf587ba34dacc4fe2ac341d040e04a8c8bd734982b63",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 5
+    },
+    "Q18-1A434000": {
+      "artifact_id": "Q18-1A434000::qga_v0_20260604",
+      "auto_certifiable_point_count": 10,
+      "content_hash": "a718aea12d51b9d7d446edfab86c6a7de3fdf160549efc964e038e400ba70404",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 11
+    },
+    "Q19-1A432000": {
+      "artifact_id": "Q19-1A432000::qga_v0_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "49126ace36503cb3540cc3d998466c37e3eeea3a29e03fc7501266b9aa9168dd",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 4
+    },
+    "Q2-1A436000-罚则": {
+      "artifact_id": "Q2-1A436000-罚则::qga_v0_20260604",
+      "auto_certifiable_point_count": 4,
+      "content_hash": "327b7aa4d078fc6711e7006d9d05e60d3e1c3a2f22c8c2f0e670d7910e22bb6c",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 4
+    },
+    "Q20-1A413000": {
+      "artifact_id": "Q20-1A413000::qga_v0_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "39ba9f94f8094ce2e44c8562e1ccded6ddd07d338883630a01f7e3b9d845b15a",
+      "status": "draft",
+      "status_reason": "no_auto_certifiable_points",
+      "total_scoring_points": 9
+    },
+    "Q3-1A433000": {
+      "artifact_id": "Q3-1A433000::qga_v0_20260604",
+      "auto_certifiable_point_count": 8,
+      "content_hash": "a0ff09f9e7ab2d275798c26c448fa5eac167074f1ff34e41f1070ec8726437cb",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 10
+    },
+    "Q4-1A434000-罚则": {
+      "artifact_id": "Q4-1A434000-罚则::qga_v0_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "e42599392b29e29021ac848dbb1b78381c87319c2730e18946fc50ff39de35aa",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q5-1A432000": {
+      "artifact_id": "Q5-1A432000::qga_v0_20260604",
+      "auto_certifiable_point_count": 4,
+      "content_hash": "45193536846df9e32b78af72b7107f055373c9191d13924e61321893159b8ba9",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 7
+    },
+    "Q6-1A413000-罚则": {
+      "artifact_id": "Q6-1A413000-罚则::qga_v0_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "43651bb52a373bb6a6a7a3c21467eede76d554bda112f86db7dea20a41c59ff0",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q7-1A431000": {
+      "artifact_id": "Q7-1A431000::qga_v0_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "7df3e3ca82fce89f78afdc562f189995959298f107dbbdeb006323d5582116d5",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 3
+    },
+    "Q8-1A413030": {
+      "artifact_id": "Q8-1A413030::qga_v0_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "aabf38b76b40bf7d13e49e63a545591e8c1d41fda21696ae105356080416ed99",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 1
+    },
+    "Q9-1A413040": {
+      "artifact_id": "Q9-1A413040::qga_v0_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "2916802037aafda22bd4de166a2d64146d0e1136aa9637f3393d07eefb658829",
+      "status": "published",
+      "status_reason": "has_auto_certifiable_points",
+      "total_scoring_points": 1
+    }
+  },
+  "summary": {
+    "blocked": 1,
+    "draft": 1,
+    "published": 18
+  },
+  "version_id": "qga_v0_20260604"
+}

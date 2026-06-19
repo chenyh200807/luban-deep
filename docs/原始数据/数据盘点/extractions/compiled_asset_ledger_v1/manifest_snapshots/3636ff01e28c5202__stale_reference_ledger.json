@@ -1,0 +1,2495 @@
+{
+ "schema": "luban_taxonomy_stale_reference_ledger.v1",
+ "generated_at": "2026-06-12T15:59:50.030909",
+ "canonical_source": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+ "canonical_code_count": 2178,
+ "staleness_rule": "stale = code not in canonical set AND not a bare chapter code whose trailing-zero-stripped prefix matches a canonical bare code prefix (L1-L4 truncation-resolvable)",
+ "scan_scope": [
+  "deeptutor/services/construction_grading/runtime_supply/**/*.json",
+  "deeptutor/services/**/*.py",
+  "deeptutor/api/**/*.py",
+  "tests/**/*.py",
+  "tests/**/*.json",
+  "contracts/",
+  "deeptutor/contracts/",
+  "deeptutor/services/taxonomy/compiled/construction_2026_taxonomy.compiled.json"
+ ],
+ "excluded": [
+  "artifacts/"
+ ],
+ "classification": {
+  "candidate_only": true,
+  "review_only": true
+ },
+ "safety": {
+  "production_write_count": 0
+ },
+ "summary_by_group": {
+  "runtime_supply_json": {
+   "files": 15,
+   "files_with_stale": 14,
+   "code_occurrences": 48239,
+   "stale_occurrences": 36957
+  },
+  "source_py": {
+   "files": 8,
+   "files_with_stale": 5,
+   "code_occurrences": 56,
+   "stale_occurrences": 6
+  },
+  "tests_py": {
+   "files": 111,
+   "files_with_stale": 34,
+   "code_occurrences": 893,
+   "stale_occurrences": 180
+  },
+  "tests_fixture_json": {
+   "files": 3,
+   "files_with_stale": 0,
+   "code_occurrences": 59,
+   "stale_occurrences": 0
+  },
+  "compiled_taxonomy": {
+   "files": 1,
+   "files_with_stale": 1,
+   "code_occurrences": 22996,
+   "stale_occurrences": 17056
+  }
+ },
+ "summary_by_fix_action": {
+  "a_regenerate": {
+   "files": 11,
+   "stale_occurrences": 52380
+  },
+  "c_historical_review_only": {
+   "files": 8,
+   "stale_occurrences": 1638
+  },
+  "b_manual_edit": {
+   "files": 35,
+   "stale_occurrences": 181
+  },
+  "none_clean": {
+   "files": 84,
+   "stale_occurrences": 0
+  }
+ },
+ "rows": [
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 29387,
+   "unique_codes": 1282,
+   "stale_occurrences": 25257,
+   "unique_stale_codes": 785,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-b",
+    "1A411011-01-c",
+    "1A411011-02"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_concept_registry_compile.py"
+  },
+  {
+   "file": "deeptutor/services/taxonomy/compiled/construction_2026_taxonomy.compiled.json",
+   "group": "compiled_taxonomy",
+   "total_code_occurrences": 22996,
+   "unique_codes": 1265,
+   "stale_occurrences": 17056,
+   "unique_stale_codes": 769,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-b",
+    "1A411011-01-c",
+    "1A411011-02"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/compile_construction_2026_taxonomy.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 3158,
+   "unique_codes": 781,
+   "stale_occurrences": 3158,
+   "unique_stale_codes": 781,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-b",
+    "1A411011-01-c",
+    "1A411011-02"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_canonical_taxonomy_index.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_canonical_knowledge_graph/graph_adjacency.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 2564,
+   "unique_codes": 496,
+   "stale_occurrences": 2474,
+   "unique_stale_codes": 443,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-c",
+    "1A411011-02",
+    "1A411011-03"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_knowledge_graph_build.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses/standard_clauses.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 2248,
+   "unique_codes": 220,
+   "stale_occurrences": 2248,
+   "unique_stale_codes": 220,
+   "stale_samples": [
+    "1A411011-01-c",
+    "1A411011-02",
+    "1A411011-02-d",
+    "1A411011-03",
+    "1A411011-04"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_standards_compile.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 2841,
+   "unique_codes": 260,
+   "stale_occurrences": 1560,
+   "unique_stale_codes": 242,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-c",
+    "1A411011-02",
+    "1A411011-03"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_textbook_knowledge_compile.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/migration_report.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 2090,
+   "unique_codes": 1282,
+   "stale_occurrences": 1540,
+   "unique_stale_codes": 785,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a",
+    "1A411011-01-b",
+    "1A411011-01-c",
+    "1A411011-02"
+   ],
+   "fix_action": "c_historical_review_only"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 4593,
+   "unique_codes": 509,
+   "stale_occurrences": 531,
+   "unique_stale_codes": 433,
+   "stale_samples": [
+    "1A411001",
+    "1A411002",
+    "1A411003",
+    "1A411004",
+    "1A411011-01"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_canonical_knowledge_unification.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored/case_rubric_scored.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 1004,
+   "unique_codes": 20,
+   "stale_occurrences": 48,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A432001",
+    "1A432002"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_rubric_compile.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_topic_waterproof/topic_waterproof.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 138,
+   "unique_codes": 63,
+   "stale_occurrences": 46,
+   "unique_stale_codes": 46,
+   "stale_samples": [
+    "1A411020",
+    "1A412031-01",
+    "1A412031-01-a",
+    "1A412031-01-b",
+    "1A412031-01-c"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/run_luban_waterproof_topic_shard.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/source_alignment_repairs.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 45,
+   "unique_codes": 45,
+   "stale_occurrences": 45,
+   "unique_stale_codes": 45,
+   "stale_samples": [
+    "1A411011-04-b",
+    "1A411012-01-d",
+    "1A411012-02-b",
+    "1A411012-03-d",
+    "1A412012-01-b"
+   ],
+   "fix_action": "c_historical_review_only"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/structural_conflicts_review.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 128,
+   "unique_codes": 57,
+   "stale_occurrences": 42,
+   "unique_stale_codes": 13,
+   "stale_samples": [
+    "1A412022-01",
+    "1A413024-04",
+    "1A413024-04-a",
+    "1A413024-04-e",
+    "1A413046-03"
+   ],
+   "fix_action": "c_historical_review_only"
+  },
+  {
+   "file": "tests/services/construction_grading/test_canonical_knowledge_runtime.py",
+   "group": "tests_py",
+   "total_code_occurrences": 36,
+   "unique_codes": 3,
+   "stale_occurrences": 30,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A412010-01",
+    "1A413030-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 17,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 49,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 65,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 68,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 74,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 97,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 113,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 134,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 144,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 168,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 178,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 189,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 202,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 202,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 203,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 203,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 213,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 215,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 222,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 222,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 223,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 223,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 238,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 240,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 242,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 249,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 250,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 258,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 259,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 261,
+     "code": "1A412010-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_knowledge_graph.py",
+   "group": "tests_py",
+   "total_code_occurrences": 24,
+   "unique_codes": 11,
+   "stale_occurrences": 13,
+   "unique_stale_codes": 6,
+   "stale_samples": [
+    "1A411011-01",
+    "1A412010-01",
+    "1A413030-02",
+    "1A413040-01",
+    "1A413061-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 15,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 17,
+     "code": "1A413040-01"
+    },
+    {
+     "line": 32,
+     "code": "1A413040-01"
+    },
+    {
+     "line": 45,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 45,
+     "code": "1A413040-01"
+    },
+    {
+     "line": 48,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 49,
+     "code": "1A413040-01"
+    },
+    {
+     "line": 79,
+     "code": "1A413061-01-a"
+    },
+    {
+     "line": 79,
+     "code": "1A413061-01-b"
+    },
+    {
+     "line": 80,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 80,
+     "code": "1A413030-02"
+    },
+    {
+     "line": 81,
+     "code": "1A413030-02"
+    },
+    {
+     "line": 81,
+     "code": "1A411011-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_learner_concept_migration.py",
+   "group": "tests_py",
+   "total_code_occurrences": 12,
+   "unique_codes": 2,
+   "stale_occurrences": 12,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A411011-01",
+    "1A412010-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 14,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 15,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 16,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 23,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 31,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 38,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 50,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 53,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 68,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 68,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 75,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 76,
+     "code": "1A412010-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_concept_registry.py",
+   "group": "tests_py",
+   "total_code_occurrences": 11,
+   "unique_codes": 6,
+   "stale_occurrences": 11,
+   "unique_stale_codes": 6,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-09",
+    "1A413050-01",
+    "1A413050-07",
+    "1A413053-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 13,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 15,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 18,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 21,
+     "code": "1A413050-01"
+    },
+    {
+     "line": 23,
+     "code": "1A413053-01"
+    },
+    {
+     "line": 47,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 49,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 51,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 60,
+     "code": "1A411011-09"
+    },
+    {
+     "line": 115,
+     "code": "1A413050-07"
+    },
+    {
+     "line": 116,
+     "code": "1A413053-07"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/taxonomy/test_learning_topic_resolver.py",
+   "group": "tests_py",
+   "total_code_occurrences": 24,
+   "unique_codes": 6,
+   "stale_occurrences": 11,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-02-d"
+   ],
+   "stale_locations": [
+    {
+     "line": 66,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 67,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 74,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 75,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 76,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 77,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 78,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 103,
+     "code": "1A411011-02-d"
+    },
+    {
+     "line": 107,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 158,
+     "code": "1A411011-01"
+    },
+    {
+     "line": 163,
+     "code": "1A411011-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_v23_residual_source_repair.py",
+   "group": "tests_py",
+   "total_code_occurrences": 12,
+   "unique_codes": 4,
+   "stale_occurrences": 10,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A412014-02",
+    "1A413061-07-d"
+   ],
+   "stale_locations": [
+    {
+     "line": 50,
+     "code": "1A412014-02"
+    },
+    {
+     "line": 92,
+     "code": "1A412014-02"
+    },
+    {
+     "line": 108,
+     "code": "1A412014-02"
+    },
+    {
+     "line": 117,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 124,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 168,
+     "code": "1A412014-02"
+    },
+    {
+     "line": 259,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 262,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 268,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 283,
+     "code": "1A413061-07-d"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_taxonomy_dedup_rehome_candidate.py",
+   "group": "tests_py",
+   "total_code_occurrences": 22,
+   "unique_codes": 14,
+   "stale_occurrences": 10,
+   "unique_stale_codes": 7,
+   "stale_samples": [
+    "1A413061-01",
+    "1A413061-01x",
+    "1A413061-04",
+    "1A413061-04-b",
+    "1A413061-07"
+   ],
+   "stale_locations": [
+    {
+     "line": 26,
+     "code": "1A413061-01"
+    },
+    {
+     "line": 27,
+     "code": "1A413061-01"
+    },
+    {
+     "line": 29,
+     "code": "1A413061-01"
+    },
+    {
+     "line": 32,
+     "code": "1A413061-04"
+    },
+    {
+     "line": 34,
+     "code": "1A413061-04-b"
+    },
+    {
+     "line": 36,
+     "code": "1A413061-08"
+    },
+    {
+     "line": 38,
+     "code": "1A413061-07"
+    },
+    {
+     "line": 40,
+     "code": "1A413061-07-d"
+    },
+    {
+     "line": 93,
+     "code": "1A413061-01"
+    },
+    {
+     "line": 94,
+     "code": "1A413061-01x"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/services/construction_grading/test_canonical_taxonomy.py",
+   "group": "tests_py",
+   "total_code_occurrences": 19,
+   "unique_codes": 8,
+   "stale_occurrences": 10,
+   "unique_stale_codes": 3,
+   "stale_samples": [
+    "1A412010-01",
+    "1A412010-01-a",
+    "1A413030-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 17,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 19,
+     "code": "1A412010-01-a"
+    },
+    {
+     "line": 25,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 42,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 42,
+     "code": "1A412010-01-a"
+    },
+    {
+     "line": 42,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 43,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 50,
+     "code": "1A412010-01-a"
+    },
+    {
+     "line": 56,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 64,
+     "code": "1A413030-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_knowledge_unification.py",
+   "group": "tests_py",
+   "total_code_occurrences": 19,
+   "unique_codes": 6,
+   "stale_occurrences": 10,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A412010-01",
+    "1A413030-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 15,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 19,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 44,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 44,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 45,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 45,
+     "code": "1A413030-01"
+    },
+    {
+     "line": 68,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 73,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 85,
+     "code": "1A412010-01"
+    },
+    {
+     "line": 86,
+     "code": "1A413030-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_canonical_resolution.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 2,
+   "stale_occurrences": 7,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A413031-01",
+    "1A413099-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 18,
+     "code": "1A413031-01"
+    },
+    {
+     "line": 24,
+     "code": "1A413031-01"
+    },
+    {
+     "line": 34,
+     "code": "1A413099-01"
+    },
+    {
+     "line": 35,
+     "code": "1A413031-01"
+    },
+    {
+     "line": 36,
+     "code": "1A413031-01"
+    },
+    {
+     "line": 36,
+     "code": "1A413031-01"
+    },
+    {
+     "line": 42,
+     "code": "1A413099-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/quarantine.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 6,
+   "unique_codes": 3,
+   "stale_occurrences": 6,
+   "unique_stale_codes": 3,
+   "stale_samples": [
+    "1A413024-04-a",
+    "1A413024-04-e",
+    "1A413052-0"
+   ],
+   "fix_action": "c_historical_review_only"
+  },
+  {
+   "file": "tests/scripts/test_luban_taxonomy_book_derived_rebuild.py",
+   "group": "tests_py",
+   "total_code_occurrences": 11,
+   "unique_codes": 7,
+   "stale_occurrences": 5,
+   "unique_stale_codes": 4,
+   "stale_samples": [
+    "1A412014-02",
+    "1A412014-09",
+    "1A412014-B",
+    "1A432002"
+   ],
+   "stale_locations": [
+    {
+     "line": 28,
+     "code": "1A412014-02"
+    },
+    {
+     "line": 34,
+     "code": "1A412014-09"
+    },
+    {
+     "line": 98,
+     "code": "1A412014-B"
+    },
+    {
+     "line": 106,
+     "code": "1A432002"
+    },
+    {
+     "line": 129,
+     "code": "1A412014-B"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_v2_taxonomy_leaf_linking.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 4,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A411011-01-a",
+    "1A412012-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 26,
+     "code": "1A412012-01-a"
+    },
+    {
+     "line": 27,
+     "code": "1A412012-01-a"
+    },
+    {
+     "line": 28,
+     "code": "1A411011-01-a"
+    },
+    {
+     "line": 43,
+     "code": "1A412012-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/services/construction_grading/test_textbook_knowledge_runtime.py",
+   "group": "tests_py",
+   "total_code_occurrences": 21,
+   "unique_codes": 3,
+   "stale_occurrences": 4,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A411011-07",
+    "1A411011-07-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 159,
+     "code": "1A411011-07"
+    },
+    {
+     "line": 160,
+     "code": "1A411011-07-a"
+    },
+    {
+     "line": 161,
+     "code": "1A411011-07-a"
+    },
+    {
+     "line": 166,
+     "code": "1A411011-07-a"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_report_read_model.py",
+   "group": "tests_py",
+   "total_code_occurrences": 62,
+   "unique_codes": 6,
+   "stale_occurrences": 4,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A415041"
+   ],
+   "stale_locations": [
+    {
+     "line": 1814,
+     "code": "1A415041"
+    },
+    {
+     "line": 1814,
+     "code": "1A415041"
+    },
+    {
+     "line": 1830,
+     "code": "1A415041"
+    },
+    {
+     "line": 1850,
+     "code": "1A415041"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/learner_state/test_personalization_context.py",
+   "group": "tests_py",
+   "total_code_occurrences": 10,
+   "unique_codes": 3,
+   "stale_occurrences": 4,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A415000"
+   ],
+   "stale_locations": [
+    {
+     "line": 113,
+     "code": "1A415000"
+    },
+    {
+     "line": 125,
+     "code": "1A415000"
+    },
+    {
+     "line": 128,
+     "code": "1A415000"
+    },
+    {
+     "line": 139,
+     "code": "1A415000"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/assessment/test_blueprint_coverage.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 4,
+   "stale_occurrences": 3,
+   "unique_stale_codes": 3,
+   "stale_samples": [
+    "1A411002",
+    "1A411011-02-d",
+    "1A426001"
+   ],
+   "stale_locations": [
+    {
+     "line": 478,
+     "code": "1A411002"
+    },
+    {
+     "line": 517,
+     "code": "1A411011-02-d"
+    },
+    {
+     "line": 545,
+     "code": "1A426001"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_general_knowledge_context.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 3,
+   "stale_occurrences": 3,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A411011-01",
+    "1A411011-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 8,
+     "code": "1A411011-01-a"
+    },
+    {
+     "line": 9,
+     "code": "1A411011-01-a"
+    },
+    {
+     "line": 10,
+     "code": "1A411011-01"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/source_compiler/test_scoring_point_recall_calibration.py",
+   "group": "tests_py",
+   "total_code_occurrences": 43,
+   "unique_codes": 12,
+   "stale_occurrences": 3,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A432001"
+   ],
+   "stale_locations": [
+    {
+     "line": 36,
+     "code": "1A432001"
+    },
+    {
+     "line": 40,
+     "code": "1A432001"
+    },
+    {
+     "line": 43,
+     "code": "1A432001"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/taxonomy/test_construction_taxonomy.py",
+   "group": "tests_py",
+   "total_code_occurrences": 14,
+   "unique_codes": 8,
+   "stale_occurrences": 3,
+   "unique_stale_codes": 3,
+   "stale_samples": [
+    "1A411011-02-d",
+    "1A432019",
+    "1A438999"
+   ],
+   "stale_locations": [
+    {
+     "line": 18,
+     "code": "1A411011-02-d"
+    },
+    {
+     "line": 22,
+     "code": "1A432019"
+    },
+    {
+     "line": 23,
+     "code": "1A438999"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/tutorbot/test_agent_loop_case_rubric_v1.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 3,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A415000"
+   ],
+   "stale_locations": [
+    {
+     "line": 302,
+     "code": "1A415000"
+    },
+    {
+     "line": 305,
+     "code": "1A415000"
+    },
+    {
+     "line": 333,
+     "code": "1A415000"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/knowledge_graph.py",
+   "group": "source_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 4,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A413061-01",
+    "1A413061-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 128,
+     "code": "1A413061-01-a"
+    },
+    {
+     "line": 128,
+     "code": "1A413061-01"
+    }
+   ],
+   "fix_action": "c_historical_review_only",
+   "note": "stale codes appear only in docstrings/comments as shape examples; no live logic"
+  },
+  {
+   "file": "tests/scripts/test_luban_p0_leaf_source_reanchor_candidates.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412011-01-f"
+   ],
+   "stale_locations": [
+    {
+     "line": 84,
+     "code": "1A412011-01-f"
+    },
+    {
+     "line": 87,
+     "code": "1A412011-01-f"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_terminal_leaf_completion_runner.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412012-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 27,
+     "code": "1A412012-01-a"
+    },
+    {
+     "line": 35,
+     "code": "1A412012-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_taxonomy_skeleton_repair.py",
+   "group": "tests_py",
+   "total_code_occurrences": 20,
+   "unique_codes": 8,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A412010-X",
+    "1A413000-S1"
+   ],
+   "stale_locations": [
+    {
+     "line": 33,
+     "code": "1A412010-X"
+    },
+    {
+     "line": 39,
+     "code": "1A413000-S1"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/services/assessment/test_testset_assembly.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A414010"
+   ],
+   "stale_locations": [
+    {
+     "line": 26,
+     "code": "1A414010"
+    },
+    {
+     "line": 206,
+     "code": "1A414010"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/member_console/test_service.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 2,
+   "stale_samples": [
+    "1A414010",
+    "1A414020"
+   ],
+   "stale_locations": [
+    {
+     "line": 2757,
+     "code": "1A414010"
+    },
+    {
+     "line": 2835,
+     "code": "1A414020"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/rag/test_historical_question_resolver.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 3,
+   "stale_occurrences": 2,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411020"
+   ],
+   "stale_locations": [
+    {
+     "line": 74,
+     "code": "1A411020"
+    },
+    {
+     "line": 91,
+     "code": "1A411020"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/canonical_taxonomy.py",
+   "group": "source_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A413061-01"
+   ],
+   "stale_locations": [
+    {
+     "line": 32,
+     "code": "1A413061-01"
+    }
+   ],
+   "fix_action": "c_historical_review_only",
+   "note": "stale codes appear only in docstrings/comments as shape examples; no live logic"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/compiled_registry_resolver.py",
+   "group": "source_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411011-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 197,
+     "code": "1A411011-01-a"
+    }
+   ],
+   "fix_action": "c_historical_review_only",
+   "note": "stale codes appear only in docstrings/comments as shape examples; no live logic"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 3,
+   "unique_codes": 2,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412011-1"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/export_kb_v5_full_to_runtime_supply.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards/lecture_teaching_cards.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412011-1"
+   ],
+   "fix_action": "a_regenerate",
+   "generator_script": "scripts/persist_lecture_teaching_cards.py"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/textbook_knowledge_runtime.py",
+   "group": "source_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411011-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 52,
+     "code": "1A411011-01-a"
+    }
+   ],
+   "fix_action": "c_historical_review_only",
+   "note": "stale codes appear only in docstrings/comments as shape examples; no live logic"
+  },
+  {
+   "file": "deeptutor/services/member_console/service.py",
+   "group": "source_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A414010"
+   ],
+   "stale_locations": [
+    {
+     "line": 491,
+     "code": "1A414010"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "live hardcoded node_code=\"1A414010\" in DEV_FALLBACK payload at line 491"
+  },
+  {
+   "file": "tests/capabilities/test_deep_question_grading_to_brain_writeback.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A415000"
+   ],
+   "stale_locations": [
+    {
+     "line": 86,
+     "code": "1A415000"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_phase0_validator.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411011-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 33,
+     "code": "1A411011-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_runtime_token_pack_streaming_ab.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412012-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 182,
+     "code": "1A412012-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_v2_taxonomy_shadow_review.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A412012-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 35,
+     "code": "1A412012-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit",
+   "note": "tests one-shot historical luban script; consider freezing with script instead of editing"
+  },
+  {
+   "file": "tests/services/assessment/test_scoring.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A414010"
+   ],
+   "stale_locations": [
+    {
+     "line": 19,
+     "code": "1A414010"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/citations/test_normalizer.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 3,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411020"
+   ],
+   "stale_locations": [
+    {
+     "line": 310,
+     "code": "1A411020"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/construction_grading/test_rich_leaf_artifacts_phase0.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411011-01-a"
+   ],
+   "stale_locations": [
+    {
+     "line": 39,
+     "code": "1A411011-01-a"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "tests/services/test_question_followup.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 1,
+   "unique_stale_codes": 1,
+   "stale_samples": [
+    "1A411021"
+   ],
+   "stale_locations": [
+    {
+     "line": 1765,
+     "code": "1A411021"
+    }
+   ],
+   "fix_action": "b_manual_edit"
+  },
+  {
+   "file": "deeptutor/api/routers/learning_brain.py",
+   "group": "source_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "deeptutor/services/construction_grading/runtime_supply/v_slice_case_rubric/case_rubric_release_candidate_slice.json",
+   "group": "runtime_supply_json",
+   "total_code_occurrences": 33,
+   "unique_codes": 3,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "deeptutor/services/taxonomy/construction_learning_graph.py",
+   "group": "source_py",
+   "total_code_occurrences": 39,
+   "unique_codes": 12,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "deeptutor/services/taxonomy/taxonomy_authority.py",
+   "group": "source_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_learning_brain_ai_draft_harness.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_learning_brain_router.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_learning_brain_teacher_review_writeback.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_luban_runtime_shadow_live_route.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_luban_teacher_review_ux_v0.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_mobile_router.py",
+   "group": "tests_py",
+   "total_code_occurrences": 20,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/api/test_unified_ws_turn_runtime.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/capabilities/test_deep_question_answer_citations.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/capabilities/test_next_training_signal_consumption.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/core/test_capabilities_runtime.py",
+   "group": "tests_py",
+   "total_code_occurrences": 10,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/core/test_deep_question_active_object.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/core/test_deep_question_submission_grading.py",
+   "group": "tests_py",
+   "total_code_occurrences": 9,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/core/test_deep_question_textbook_knowledge.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/fixtures/learning_brain_golden_projection.json",
+   "group": "tests_fixture_json",
+   "total_code_occurrences": 7,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/fixtures/learning_brain_personalization_cases.json",
+   "group": "tests_fixture_json",
+   "total_code_occurrences": 16,
+   "unique_codes": 3,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/fixtures/learning_state_scenarios.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/fixtures/luban_m35_case_scoring/manifest.json",
+   "group": "tests_fixture_json",
+   "total_code_occurrences": 36,
+   "unique_codes": 13,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/integration/test_learner_memory_lifecycle_certified_policy.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/integration/test_luban_model_jury_teacher_review_pilot.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_backfill_2026_textbook_chunk_metadata.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_build_luban_no_human_v1_5_golden.py",
+   "group": "tests_py",
+   "total_code_occurrences": 48,
+   "unique_codes": 10,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_calibrate_2026_scoring_point_recall.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_compile_2026_scoring_point_assets.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_agentic_grading_harness.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_deepseek_exact_required_fallback_eval.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_jury_frontier_adjudication_packet.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_batch_relink_candidates.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_rich_leaf_leaf_evidence_recompile.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_teacher_review_pilot.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 4,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_luban_typed_policy_artifacts.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_poc_luban_case_grading_three_arms.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 5,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/scripts/test_run_learning_brain_dream_cycle.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/assessment/test_learning_evidence.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/assessment/test_writeback.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/benchmark/test_luban_no_human_v1_5.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_artifact_first_llm_judge.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_artifact_runtime_gate.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_audit_and_writeback.py",
+   "group": "tests_py",
+   "total_code_occurrences": 10,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_case_grading_kernel.py",
+   "group": "tests_py",
+   "total_code_occurrences": 18,
+   "unique_codes": 6,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_compiled_context.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_deep_question_adapter.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_learning_evidence.py",
+   "group": "tests_py",
+   "total_code_occurrences": 21,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_learning_evidence_payload.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_mcq_grading.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_question_grading_artifacts.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_question_grading_registry.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_rubric_grader_v1.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_runtime_shadow_integration.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_textbook_knowledge_compiler.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_textbook_knowledge_worker.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/construction_grading/test_textbook_paraphrase_review.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_attempt_detail_read_model.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_conversation_learning_evidence_event.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_evidence_story_read_model.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_brain_lint.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_brain_read_model.py",
+   "group": "tests_py",
+   "total_code_occurrences": 19,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_evidence_quality_gate.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_graph_projection.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_state_projection.py",
+   "group": "tests_py",
+   "total_code_occurrences": 8,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_synthesis.py",
+   "group": "tests_py",
+   "total_code_occurrences": 46,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_learning_synthesis_window.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_m35_learning_evidence_readback.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_next_best_action.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_revalidation_queue.py",
+   "group": "tests_py",
+   "total_code_occurrences": 2,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_scoring_point_map_read_model.py",
+   "group": "tests_py",
+   "total_code_occurrences": 7,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_service.py",
+   "group": "tests_py",
+   "total_code_occurrences": 37,
+   "unique_codes": 3,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_supabase_store.py",
+   "group": "tests_py",
+   "total_code_occurrences": 3,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_supabase_writer.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/learner_state/test_training_intent.py",
+   "group": "tests_py",
+   "total_code_occurrences": 9,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/member_console/test_home_dashboard_learning_projection.py",
+   "group": "tests_py",
+   "total_code_occurrences": 9,
+   "unique_codes": 3,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_compiled_truth_source.py",
+   "group": "tests_py",
+   "total_code_occurrences": 11,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_learning_fact_retrieval_pipeline.py",
+   "group": "tests_py",
+   "total_code_occurrences": 5,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_maintenance.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_provenance.py",
+   "group": "tests_py",
+   "total_code_occurrences": 8,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_rag_pipelines.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/rag/test_retrieval_plan.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/source_compiler/test_answer_rubric_extractor.py",
+   "group": "tests_py",
+   "total_code_occurrences": 4,
+   "unique_codes": 2,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/source_compiler/test_rubric_evidence_aligner.py",
+   "group": "tests_py",
+   "total_code_occurrences": 6,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/source_compiler/test_scoring_point_asset_compiler.py",
+   "group": "tests_py",
+   "total_code_occurrences": 1,
+   "unique_codes": 1,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  },
+  {
+   "file": "tests/services/taxonomy/test_construction_learning_graph.py",
+   "group": "tests_py",
+   "total_code_occurrences": 16,
+   "unique_codes": 6,
+   "stale_occurrences": 0,
+   "unique_stale_codes": 0,
+   "stale_samples": [],
+   "fix_action": "none_clean"
+  }
+ ]
+}

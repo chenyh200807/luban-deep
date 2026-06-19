@@ -1,0 +1,39 @@
+{
+  "milestone": "M30 canonical manifest pointer (single authority)",
+  "date": "2026-06-06",
+  "canonical_manifest": "artifacts/luban_grading_artifacts/full_knowledge_compiler_release_candidate_m30_20260606/compiled_knowledge_registry_manifest_m30.json",
+  "schema_version": "compiled_knowledge_registry.v2",
+  "registry_content_hash": "9395cacc060fe480e80f81e5effbf68690b94803ff7f4afb8e0848995a7bebc3",
+  "registry_signature": "01305466bb366b10bc3a5f1b65f79055f45710c37a3d6872ced7d49d20e741eb",
+  "objective_lane": {
+    "content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+    "count": 2640,
+    "conflict": 1,
+    "rejected": 14,
+    "status": "release_candidate",
+    "namespace": "objective_answer_key_full"
+  },
+  "source_lane": {
+    "count": 30,
+    "status": "release_candidate",
+    "role": "retrieval_context_only"
+  },
+  "case_rubric_lane": {
+    "signed": 70,
+    "status": "release_candidate"
+  },
+  "m20_delta_lane": {
+    "status": "release_candidate",
+    "namespace": "m20_delta_absorbed"
+  },
+  "producer_script": "scripts/run_luban_full_knowledge_compiler_m30.py",
+  "producer_module": "deeptutor/services/construction_grading/full_knowledge_compiler.py",
+  "status": "release_candidate",
+  "published": false,
+  "production_default_connected": false,
+  "canonical_truth_written": false,
+  "auditors_concur": {
+    "B_crosscheck": "concurs (points at this dir, same registry hash)",
+    "C_readonly": "independent re-run, auditor-only"
+  }
+}

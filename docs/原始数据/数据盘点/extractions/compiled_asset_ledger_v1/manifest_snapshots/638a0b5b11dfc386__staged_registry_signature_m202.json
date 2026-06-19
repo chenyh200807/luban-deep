@@ -1,0 +1,13 @@
+{
+  "artifact_kind": "staged_registry_signature",
+  "candidate_hash": "ac68c20c9bc124e165a6e44281e502774681aea27c874b9cced3c3a755a057df",
+  "delta_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+  "production_default_connected": false,
+  "published": false,
+  "signature": "c1bccfa9850c703ccb750ca0435fb387026a0d8197d561a37c9dc2c4bf9375af",
+  "signature_algorithm": "sha256-json-canonical-local",
+  "signed": true,
+  "signed_namespace": "luban_registry_candidate_staging_m202_20260605",
+  "signed_status": "staged_release_candidate",
+  "signer": "m202_deterministic_staging_signer"
+}

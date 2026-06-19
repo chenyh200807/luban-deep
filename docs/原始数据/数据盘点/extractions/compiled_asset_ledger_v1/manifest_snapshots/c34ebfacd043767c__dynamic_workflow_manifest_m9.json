@@ -1,0 +1,185 @@
+{
+  "milestone": "M9_beta_shadow_source_assault",
+  "phase0_canonical_m8_verdict": "WEAK-GO",
+  "phase0_patched_files": [
+    "canonical_m8_verdict_override.json",
+    "release_risk_matrix.json",
+    "FINDING_v1_alpha_grand_sprint_m8_20260604.md"
+  ],
+  "patterns": {
+    "classify_and_act": "P1 gap 6-class",
+    "fanout_and_synthesize": "P1 small/big model + deterministic",
+    "generate_and_filter": "P1 variant gen -> verbatim filter",
+    "tournament": "P1 per-point best anchor",
+    "adversarial_verification": "P1 skeptic + P3 false_positive + P5 invariants",
+    "loop_until_done": "recovered_some_then_variants_exhausted"
+  },
+  "model_usage_plan": {
+    "small_models": [
+      "qwen-plus",
+      "deepseek-chat"
+    ],
+    "small_model_role": "advisory only; never source",
+    "gpt55": "skeptic_if_available_else_fail_closed",
+    "opus48": "in_session_judge",
+    "deterministic": "verbatim exact-match / variant gen / hard gate / runtime gate / metrics",
+    "max_live_small_model_calls": 0
+  },
+  "model_usage_actual": {
+    "live_overlay": {
+      "status": "skipped_no_budget",
+      "calls_made": 0,
+      "advisories": [],
+      "note": "advisory only; never source"
+    },
+    "gpt55": "provider_unavailable",
+    "opus48": "executing_agent_judge"
+  },
+  "inputs": {
+    "m8_source_gaps": 57,
+    "m8_source_backed": 18
+  },
+  "source_coverage_delta": {
+    "m8_source_backed_total": 18,
+    "m9_new_verified_source_recovered": 5,
+    "auto_preview_before": 18,
+    "auto_preview_after": 23,
+    "auto_preview_target": 50,
+    "gap_total": 57,
+    "gap_class_counts": {
+      "external_source_required": 14,
+      "list_rule_partial_coverage": 7,
+      "textbook_phrase_variant_needed": 28,
+      "query_term_too_narrow": 5,
+      "calculation_needs_formula_source": 2,
+      "should_drop_or_keep_draft": 1
+    },
+    "source_authority_invariants": {
+      "official_answer_as_textbook": 0,
+      "model_vote_as_source": 0,
+      "source_mismatch": 0,
+      "case_answer_laundering": 0,
+      "list_rule_partial_anchor_auto": 0
+    },
+    "all_invariants_zero": true,
+    "stop_reason": "recovered_some_then_variants_exhausted",
+    "big_model_skeptic_status": {
+      "gpt55": "provider_unavailable",
+      "opus48": "provider_unavailable"
+    },
+    "live_overlay": {
+      "status": "skipped_no_budget",
+      "calls_made": 0,
+      "advisories": [],
+      "note": "advisory only; never source"
+    }
+  },
+  "auto_path_summary": {
+    "beta_points_tested": 17,
+    "total_cases": 85,
+    "kinds_covered": [
+      "contradiction",
+      "hit",
+      "irrelevant",
+      "miss",
+      "partial"
+    ],
+    "expected_auto_hit": 17,
+    "actual_auto_hit": 17,
+    "true_positive": 17,
+    "false_positive": 0,
+    "false_negative": 0,
+    "partial_rejected": 17,
+    "contradiction_rejected": 17,
+    "production_default_auto_count": 0,
+    "allow_beta_shadow_auto_for_test": true,
+    "production_default_flag": false,
+    "legacy_construction_grading_result_unchanged": true,
+    "production_db_written": false,
+    "latency_ms": 0.41
+  },
+  "beta_shadow_candidate": {
+    "version_id": "luban_v1_beta_shadow_candidate_m9_20260604",
+    "status": "beta_shadow_candidate",
+    "formal_registry_emitted": false,
+    "production_runtime_connected": false,
+    "v0_overwritten": false,
+    "human_reviewed": false,
+    "ai_expert_council_final_authority": "non_human_review_triage_only_never_textbook_source",
+    "source_authority": "textbook_exact_match",
+    "source_backed_point_total": 17,
+    "from_m8": 12,
+    "from_m9_recovered": 5,
+    "questions": {
+      "M2-2015-30-00": 2,
+      "M2-2015-30-01": 1,
+      "M2-2015-31-01": 1,
+      "M2-2015-31-02": 2,
+      "M2-2015-31-03": 2,
+      "M2-2015-32-00": 2,
+      "M2-2015-32-01": 1,
+      "M2-2015-32-02": 1,
+      "M2-2015-34-00": 1,
+      "M2-2015-34-02": 1,
+      "M2-2016-30-00": 1,
+      "M2-2016-31-00": 1,
+      "M2-2016-31-02": 1
+    }
+  },
+  "runtime_gate_preview": {
+    "sample_question_id": "M2-2015-30-01",
+    "beta_shadow_status_seen": [
+      "beta_shadow_candidate"
+    ],
+    "production_default_auto_count": 0,
+    "reason": "beta_shadow_candidate status is never 'published' -> gate auto-certifies 0 in production",
+    "production_runtime_connected": false
+  },
+  "product_slice_study_cards": 10,
+  "m10_gate": {
+    "m10_gated_beta_qa_verdict": "WEAK-GO",
+    "verdict_reason": "safety invariants all 0 and auto-path evidence exists, but auto_preview=23 (<50) -> sample/coverage insufficient for full GO",
+    "criteria": {
+      "auto_preview_after": 23,
+      "auto_preview_target": 50,
+      "auto_cases_total": 85,
+      "auto_cases_target": 30,
+      "auto_path_kinds_covered": [
+        "contradiction",
+        "hit",
+        "irrelevant",
+        "miss",
+        "partial"
+      ],
+      "false_positive": 0,
+      "false_negative": 0,
+      "production_default_auto_count": 0,
+      "source_authority_invariants": {
+        "official_answer_as_textbook": 0,
+        "model_vote_as_source": 0,
+        "source_mismatch": 0,
+        "case_answer_laundering": 0,
+        "list_rule_partial_anchor_auto": 0
+      },
+      "legacy_ok": true,
+      "study_cards": 10
+    },
+    "constraints": {
+      "formal_registry_emitted": false,
+      "production_runtime_connected": false,
+      "v0_overwritten": false,
+      "human_reviewed": false,
+      "alpha_not_smuggled_to_beta": true,
+      "beta_not_smuggled_to_production": true
+    }
+  },
+  "outputs_dir": "artifacts/luban_grading_artifacts/v1_beta_shadow_source_assault_m9_20260604",
+  "hard_red_lines": {
+    "formal_registry_emitted": false,
+    "v0_overwritten": false,
+    "production_runtime_connected": false,
+    "official_answer_as_textbook": 0,
+    "model_vote_as_source": 0,
+    "human_reviewed": false
+  }
+}

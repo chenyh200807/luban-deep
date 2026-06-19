@@ -1,0 +1,98 @@
+{
+ "schema": "luban_registry_adjudication_council.v1",
+ "generated_at": "2026-06-12",
+ "reviewer": "ai-council-claude-20260612",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true,
+  "runtime_install_allowed": false,
+  "production_default": false,
+  "release_truth_claimed": false
+ },
+ "safety": {
+  "production_write_count": 0
+ },
+ "task1_structural_conflicts": {
+  "conflict_rows": 32,
+  "pairs": 16,
+  "action_distribution": {
+   "adjudicated_merge": 16,
+   "adjudicated_keep_separate": 0,
+   "adjudicated_quarantine": 0
+  },
+  "unanimous_3_0": 16,
+  "key_finding": "全部32行为同一根因: 新taxonomy在「建筑工程施工技术 > 智能建造新技术」下把绿色施工/BIM/智慧工地三个L3小节挂了两套编码块(1A413135/143/146 与 1A413160/170/180), 16个叶子各重复一次; 2026教材仅有一处3.7智能建造新技术(卷9-166 p148-151, PDF 156-159), 全部判merge",
+  "evidence_gap_flags": [
+   {
+    "leaf": "模型创建与使用",
+    "note": "2026教材无精确同名标题, 内容在 1A437000_150_0296 p150 BIM节内"
+   },
+   {
+    "leaf": "项目多方协同管理技术",
+    "note": "2026教材对应小节为\"项目机械设备协同管理技术\"(1A437000_151_0297 p151), 名称不一致, 疑承自旧版教材"
+   },
+   {
+    "leaf": "建筑垃圾监管技术",
+    "note": "2026教材3.7.3无同名标题(邻近为p152现场环境监管技术), 叶名教材溯源弱"
+   }
+  ],
+  "evidence_gap_recommendation": "三个叶名与2026教材标题不完全对齐——merge裁决不受影响(两变体互为重复), 但编译轴采分点教材溯源时需对这3个叶子单独复核命名来源"
+ },
+ "task2_old_adjudications": {
+  "total": 67,
+  "disposition_distribution": {
+   "obsolete": 50,
+   "reapply": 16,
+   "needs_human": 1
+  },
+  "breakdown": {
+   "reapply_16": "智能建造16叶子对冲突在新树原样重现, 给出新树等价concept_ids(与任务1裁决一致)",
+   "obsolete_50": "3个L3容器merge已被编译器confirmed_same自动消解 + 14个畸形alias码merge组在新树无对应码 + 32个LLM虚构叶deprecation在新registry无所指 + 1个「第5章 相关标准」旧空容器已消解",
+   "needs_human_1": "c_3d60181ea2ea5565 第4章 相关法规"
+  }
+ },
+ "split_decisions": [
+  {
+   "item": "c_3d60181ea2ea5565 deprecate L1根「第4章 相关法规」的旧裁决重放",
+   "perspectives": {
+    "structural": "可机械重放: concept_id与path在新registry仍存在且rebuild已carryover",
+    "semantic": "不应重放: 新树该根1A422000下挂167个book-derived子节点, 教材卷167-221法规章节实文支撑(chunk 1A422000_052_0078 p52等), 旧\"源中无据\"前提已失效",
+    "exam": "不应重放: 相关法规章节是实务考试在考内容, 整章deprecate会使该章判分与学情归因失锚"
+   },
+   "majority": "2:1 不重放(撤销deprecation)",
+   "disposition": "needs_human",
+   "rationale": "L1根级治理决策且已被机械carryover, 影响面大, 按规程升级人工"
+  }
+ ],
+ "task3_learner_memory_backfill": {
+  "question": "qa_/operator_ cohort 历史 learner_memory_events: patch(逐条映射回写) vs regenerate(作废重生成)",
+  "plan_source": "artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/learner_memory_backfill_dryrun_plan.json",
+  "perspectives": {
+   "data_integrity": {
+    "vote": "regenerate",
+    "reason": "该cohort数据本是合成QA测试数据(plan自述+G4闸门仅对qa_/operator_开过), 无真实学习者历史价值需逐条保真; patch后新旧taxonomy混血payload反而留下口径裂缝, regenerate产出全量新码一致的干净数据"
+   },
+   "engineering_cost": {
+    "vote": "regenerate",
+    "reason": "patch需census+两级映射表(175+1395条)+unmapped兜底+dry-run+金丝雀+回滚快照全套基建; regenerate只需标superseded+重跑QA生成流程, 成本显著更低"
+   },
+   "mis_edit_risk": {
+    "vote": "regenerate",
+    "reason": "patch是对learner_memory_events的原地UPDATE, 即使cohort过滤+幂等也存在误触/unmapped误猜风险; regenerate是追加+标记废弃, 零原地改写, 旧行保留可审计"
+   }
+  },
+  "vote_summary": "3:0 regenerate",
+  "recommendation": "regenerate",
+  "conditions": [
+   "旧事件只标superseded不物理删除",
+   "严守 cohort_filter (qa_%/operator_%)",
+   "重生成走新canonical码",
+   "执行仍需owner在G4口径下明确授权, 本裁决为review-only建议"
+  ]
+ },
+ "totals": {
+  "decisions_emitted": 83,
+  "split_decision_count": 1,
+  "evidence_gap_flag_count": 3
+ }
+}

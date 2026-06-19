@@ -1,0 +1,20 @@
+{
+  "production_default": "OFF (NO-GO without explicit authorization)",
+  "published_registry": "false (release_candidate only)",
+  "canonical_learner_truth_write": "OFF (NO-GO without explicit authorization)",
+  "remote_db_write": "none this session",
+  "what_is_live_safe": [
+    "formative objective/case grading + diagnosis",
+    "open-world non-refusing diagnostic",
+    "KB v5 retrieval",
+    "compiled context 5 surfaces",
+    "LB preview evidence"
+  ],
+  "what_needs_authorization": [
+    "production default flip",
+    "publish registry",
+    "canonical learner-truth write",
+    "remote/Aliyun deploy"
+  ],
+  "remaining_engineering_blocker": "wire governed questions_bank answer_key into deep_question objective grading so in-bank scores become release-truth (currently formative)."
+}

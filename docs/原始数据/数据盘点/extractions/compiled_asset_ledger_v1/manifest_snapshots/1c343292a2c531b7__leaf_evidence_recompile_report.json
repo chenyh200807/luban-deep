@@ -1,0 +1,1120 @@
+{
+  "blockers": [],
+  "classification": {
+    "candidate_only": true,
+    "canonical_pointer_written": false,
+    "leaf_evidence_recompile": true,
+    "production_default": false,
+    "quality_claim_allowed": false,
+    "release_truth_claimed": false,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "not_exercised": [
+    "production_rag_runtime",
+    "runtime_default_install",
+    "canonical_truth_write",
+    "official_score",
+    "production_db_write",
+    "release_truth_claim",
+    "live_provider_revalidation"
+  ],
+  "quality_claim_allowed": false,
+  "recompiled_runtime_token_pack_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/rich_leaf_full2026_v25_leaf_evidence_recompile_20260612/runtime_token_pack_v25_candidate.json",
+  "rows": [
+    {
+      "chunk_id": "1A436000_010_0011",
+      "leaf_id": "1A436000-B027",
+      "status": "recompiled",
+      "unit_id": "rtp22_6479cb5948444fbe"
+    },
+    {
+      "chunk_id": "1A412010_056_0112",
+      "leaf_id": "1A412010-B046",
+      "status": "recompiled",
+      "unit_id": "rtp22_c2ebccc15ec3e1de"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_84424b1eada52ddf"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_35251740c6e9a242"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_c12258ad263a92f7"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_a66aef358d8dc35a"
+    },
+    {
+      "chunk_id": "1A435000_046_0066",
+      "leaf_id": "1A435000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_f93f3caa37d6fd38"
+    },
+    {
+      "chunk_id": "1A435000_038_0050",
+      "leaf_id": "1A435000-B033",
+      "status": "recompiled",
+      "unit_id": "rtp22_835e470dcedca876"
+    },
+    {
+      "chunk_id": "1A435000_040_0054",
+      "leaf_id": "1A435000-B010",
+      "status": "recompiled",
+      "unit_id": "rtp22_a6e8b5863d026352"
+    },
+    {
+      "chunk_id": "1A432002_035_0046",
+      "leaf_id": "1A432000-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_644b5aa47357bddc"
+    },
+    {
+      "chunk_id": "1A435000_038_0050",
+      "leaf_id": "1A435000-B034",
+      "status": "recompiled",
+      "unit_id": "rtp22_a525eab61b0b4f48"
+    },
+    {
+      "chunk_id": "1A432002_035_0046",
+      "leaf_id": "1A432000-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_e31cf9084293f787"
+    },
+    {
+      "chunk_id": "1A432002_035_0046",
+      "leaf_id": "1A432000-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_32917d051c6c7db8"
+    },
+    {
+      "chunk_id": "1A432000_049_0070",
+      "leaf_id": "1A432000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_b77f67733213f59a"
+    },
+    {
+      "chunk_id": "1A413030_137_0262",
+      "leaf_id": "1A413030-B083",
+      "status": "recompiled",
+      "unit_id": "rtp22_5843035d723538d8"
+    },
+    {
+      "chunk_id": "1A413030_091_0169",
+      "leaf_id": "1A413030-B153",
+      "status": "recompiled",
+      "unit_id": "rtp22_e6894b8ea709cfdc"
+    },
+    {
+      "chunk_id": "1A412010_042_0071",
+      "leaf_id": "1A412010-B058",
+      "status": "recompiled",
+      "unit_id": "rtp22_e150c28c9b7f3b92"
+    },
+    {
+      "chunk_id": "1A412010_042_0071",
+      "leaf_id": "1A412010-B058",
+      "status": "recompiled",
+      "unit_id": "rtp22_16e46efd331bb376"
+    },
+    {
+      "chunk_id": "1A413000_085_0158",
+      "leaf_id": "1A413000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_299b37f9c102b64a"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_8ba5aade8c5e90d6"
+    },
+    {
+      "chunk_id": "1A413030_090_0165",
+      "leaf_id": "1A413030-B134",
+      "status": "recompiled",
+      "unit_id": "rtp22_a3648c940e13fa4a"
+    },
+    {
+      "chunk_id": "1A413030_090_0165",
+      "leaf_id": "1A413030-B134",
+      "status": "recompiled",
+      "unit_id": "rtp22_60e32a5890f43642"
+    },
+    {
+      "chunk_id": "1A413030_092_0171",
+      "leaf_id": "1A413030-B151",
+      "status": "recompiled",
+      "unit_id": "rtp22_ae16f9f246b0a776"
+    },
+    {
+      "chunk_id": "1A413030_091_0169",
+      "leaf_id": "1A413030-B153",
+      "status": "recompiled",
+      "unit_id": "rtp22_aeaf2ff9bd970e9d"
+    },
+    {
+      "chunk_id": "1A413030_090_0165",
+      "leaf_id": "1A413030-B134",
+      "status": "recompiled",
+      "unit_id": "rtp22_4f2a788d3ae1cd5e"
+    },
+    {
+      "chunk_id": "1A436000_111_0184",
+      "leaf_id": "1A436000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_29953cb3130f3a57"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_a2459e083eef45b1"
+    },
+    {
+      "chunk_id": "1A413030_092_0173",
+      "leaf_id": "1A413030-B132",
+      "status": "recompiled",
+      "unit_id": "rtp22_e0d57cf9ca98f955"
+    },
+    {
+      "chunk_id": "1A422000_027_0046",
+      "leaf_id": "1A422000-B041",
+      "status": "recompiled",
+      "unit_id": "rtp22_3ffdad7c2b2d58ab"
+    },
+    {
+      "chunk_id": "1A422000_038_0062",
+      "leaf_id": "1A422000-B154",
+      "status": "recompiled",
+      "unit_id": "rtp22_5b1037172e1e6bb0"
+    },
+    {
+      "chunk_id": "1A422000_036_0060",
+      "leaf_id": "1A422000-B122",
+      "status": "recompiled",
+      "unit_id": "rtp22_2a5e9c63963eb2ac"
+    },
+    {
+      "chunk_id": "1A411011_033_0060",
+      "leaf_id": "1A411011-B111",
+      "status": "recompiled",
+      "unit_id": "rtp22_c937aeb443f7d915"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_5f3e5835db406487"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_f607f3a612f8a9c3"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_c5e22ff96bffb712"
+    },
+    {
+      "chunk_id": "1A412010_042_0071",
+      "leaf_id": "1A412010-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_f60f51b26d674731"
+    },
+    {
+      "chunk_id": "1A412010_044_0077",
+      "leaf_id": "1A412010-B081",
+      "status": "recompiled",
+      "unit_id": "rtp22_49399e321486ceaf"
+    },
+    {
+      "chunk_id": "1A412010_042_0071",
+      "leaf_id": "1A412010-B044",
+      "status": "recompiled",
+      "unit_id": "rtp22_0f9109a8d9781c0b"
+    },
+    {
+      "chunk_id": "1A412010_046_0080",
+      "leaf_id": "1A412010-B088",
+      "status": "recompiled",
+      "unit_id": "rtp22_ae709d1007bf9b20"
+    },
+    {
+      "chunk_id": "1A412010_046_0081",
+      "leaf_id": "1A412010-B090",
+      "status": "recompiled",
+      "unit_id": "rtp22_44cb81d4ba4a2e49"
+    },
+    {
+      "chunk_id": "1A412010_047_0082",
+      "leaf_id": "1A412010-B064",
+      "status": "recompiled",
+      "unit_id": "rtp22_dcca58385c05e3e9"
+    },
+    {
+      "chunk_id": "1A413030_105_0202",
+      "leaf_id": "1A413030-B103",
+      "status": "recompiled",
+      "unit_id": "rtp22_c95645ec0cf9bee8"
+    },
+    {
+      "chunk_id": "1A412010_044_0077",
+      "leaf_id": "1A412010-B081",
+      "status": "recompiled",
+      "unit_id": "rtp22_e329c9604af46204"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_877733df0e21a834"
+    },
+    {
+      "chunk_id": "1A411011_004_0009",
+      "leaf_id": "1A411011-B059",
+      "status": "recompiled",
+      "unit_id": "rtp22_7e23b4481637f0ee"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_1ab413f6397d24a9"
+    },
+    {
+      "chunk_id": "1A434000_080_0126",
+      "leaf_id": "1A434000-B030",
+      "status": "recompiled",
+      "unit_id": "rtp22_07f6193aa1985739"
+    },
+    {
+      "chunk_id": "1A422000_021_0029",
+      "leaf_id": "1A422000-B051",
+      "status": "recompiled",
+      "unit_id": "rtp22_66af94e2bb3874bd"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_7dafb5697c5d3b7f"
+    },
+    {
+      "chunk_id": "1A422000_048_0074",
+      "leaf_id": "1A422000-B071",
+      "status": "recompiled",
+      "unit_id": "rtp22_c3cdbadc1c5e0042"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_e230012f53dcebae"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_6895352e490b6250"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_06eecb897c4c25fc"
+    },
+    {
+      "chunk_id": "1A412010_062_0120",
+      "leaf_id": "1A412010-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_ce3ca86010f9e9dd"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_c68fe131f1644e38"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_d8b6becb52bddd10"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_cd2f9e227dd96ce0"
+    },
+    {
+      "chunk_id": "1A413030_125_0238",
+      "leaf_id": "1A413030-B016",
+      "status": "recompiled",
+      "unit_id": "rtp22_9a930302fd1b23f0"
+    },
+    {
+      "chunk_id": "1A422000_021_0029",
+      "leaf_id": "1A422000-B051",
+      "status": "recompiled",
+      "unit_id": "rtp22_684a3f226d85ced2"
+    },
+    {
+      "chunk_id": "1A413030_125_0237",
+      "leaf_id": "1A413030-B146",
+      "status": "recompiled",
+      "unit_id": "rtp22_0897013e6e84c495"
+    },
+    {
+      "chunk_id": "1A413030_123_0233",
+      "leaf_id": "1A413030-B173",
+      "status": "recompiled",
+      "unit_id": "rtp22_642caeaf9b66a8ac"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_7b21f6876c48dc3b"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B166",
+      "status": "recompiled",
+      "unit_id": "rtp22_ed19952f75965353"
+    },
+    {
+      "chunk_id": "1A436000_010_0011",
+      "leaf_id": "1A436000-B027",
+      "status": "recompiled",
+      "unit_id": "rtp22_e365f10383cc3a29"
+    },
+    {
+      "chunk_id": "1A436000_099_0163",
+      "leaf_id": "1A436000-B057",
+      "status": "recompiled",
+      "unit_id": "rtp22_eba054c8b64853a5"
+    },
+    {
+      "chunk_id": "1A413030_121_0229",
+      "leaf_id": "1A413030-B117",
+      "status": "recompiled",
+      "unit_id": "rtp22_d9b4837f5da3f896"
+    },
+    {
+      "chunk_id": "1A413030_103_0196",
+      "leaf_id": "1A413030-B115",
+      "status": "recompiled",
+      "unit_id": "rtp22_0fc24e8e6b01a899"
+    },
+    {
+      "chunk_id": "1A436000_107_0174",
+      "leaf_id": "1A436000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_ae1dff252acfff5b"
+    },
+    {
+      "chunk_id": "1A413030_131_0252",
+      "leaf_id": "1A413030-B025",
+      "status": "recompiled",
+      "unit_id": "rtp22_8d6da5a464165d7d"
+    },
+    {
+      "chunk_id": "1A437000_144_0230",
+      "leaf_id": "1A437000-B039",
+      "status": "recompiled",
+      "unit_id": "rtp22_2dbd09e4611f8a60"
+    },
+    {
+      "chunk_id": "1A438000_159_0259",
+      "leaf_id": "1A438000-B038",
+      "status": "recompiled",
+      "unit_id": "rtp22_3a54fd7311a1cf13"
+    },
+    {
+      "chunk_id": "1A411011_011_0021",
+      "leaf_id": "1A411011-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_73fd8f9a9384e8e3"
+    },
+    {
+      "chunk_id": "1A411011_011_0021",
+      "leaf_id": "1A411011-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_a975475fd257f977"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_f33151ce6cb3d9a1"
+    },
+    {
+      "chunk_id": "1A412010_045_0078",
+      "leaf_id": "1A412010-B059",
+      "status": "recompiled",
+      "unit_id": "rtp22_1b4c32b1a22a3905"
+    },
+    {
+      "chunk_id": "1A436000_010_0011",
+      "leaf_id": "1A436000-B027",
+      "status": "recompiled",
+      "unit_id": "rtp22_961184ca33aaa87e"
+    },
+    {
+      "chunk_id": "1A438000_160_0260",
+      "leaf_id": "1A438000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_59ccb23e9e537626"
+    },
+    {
+      "chunk_id": "1A438000_160_0260",
+      "leaf_id": "1A438000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_2c3d49ffdcf049ab"
+    },
+    {
+      "chunk_id": "1A413030_103_0196",
+      "leaf_id": "1A413030-B115",
+      "status": "recompiled",
+      "unit_id": "rtp22_ed4d1e0fb10c8457"
+    },
+    {
+      "chunk_id": "1A413030_103_0196",
+      "leaf_id": "1A413030-B115",
+      "status": "recompiled",
+      "unit_id": "rtp22_ad8b0ffa1f243fb8"
+    },
+    {
+      "chunk_id": "1A413030_104_0197",
+      "leaf_id": "1A413030-B158",
+      "status": "recompiled",
+      "unit_id": "rtp22_f23e6de24506bf74"
+    },
+    {
+      "chunk_id": "1A412010_045_0078",
+      "leaf_id": "1A412010-B059",
+      "status": "recompiled",
+      "unit_id": "rtp22_fede61398de7c550"
+    },
+    {
+      "chunk_id": "1A438000_153_0299",
+      "leaf_id": "1A438000-B089",
+      "status": "recompiled",
+      "unit_id": "rtp22_f089c5aace000e60"
+    },
+    {
+      "chunk_id": "1A422000_027_0046",
+      "leaf_id": "1A422000-B041",
+      "status": "recompiled",
+      "unit_id": "rtp22_ad7591d1b3df13fa"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_6d88870190b5df8d"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_cf8f750105f99784"
+    },
+    {
+      "chunk_id": "1A411011_011_0021",
+      "leaf_id": "1A411011-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_a30911f1cbb61e46"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_082e177f51ad5c7a"
+    },
+    {
+      "chunk_id": "1A411011_033_0060",
+      "leaf_id": "1A411011-B024",
+      "status": "recompiled",
+      "unit_id": "rtp22_3216c30e93622ae4"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_b01752b7b2e3a44e"
+    },
+    {
+      "chunk_id": "1A436000_115_0189",
+      "leaf_id": "1A436000-B113",
+      "status": "recompiled",
+      "unit_id": "rtp22_2d98cdcffee14ac0"
+    },
+    {
+      "chunk_id": "1A411011_031_0055",
+      "leaf_id": "1A411011-B095",
+      "status": "recompiled",
+      "unit_id": "rtp22_13d16c9693151fc9"
+    },
+    {
+      "chunk_id": "1A413030_125_0237",
+      "leaf_id": "1A413030-B146",
+      "status": "recompiled",
+      "unit_id": "rtp22_0c125538d00c85e2"
+    },
+    {
+      "chunk_id": "1A437000_140_0223",
+      "leaf_id": "1A437000-B094",
+      "status": "recompiled",
+      "unit_id": "rtp22_a12c6408d1a75d5e"
+    },
+    {
+      "chunk_id": "1A413030_112_0220",
+      "leaf_id": "1A413030-B245",
+      "status": "recompiled",
+      "unit_id": "rtp22_fc8b42d3f50323ea"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B166",
+      "status": "recompiled",
+      "unit_id": "rtp22_711d2c7635461be2"
+    },
+    {
+      "chunk_id": "1A438000_160_0260",
+      "leaf_id": "1A438000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_65ac025df7a18b11"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_d65946231801fb20"
+    },
+    {
+      "chunk_id": "1A436000_010_0010",
+      "leaf_id": "1A436000-B176",
+      "status": "recompiled",
+      "unit_id": "rtp22_74ce2e048091ddc5"
+    },
+    {
+      "chunk_id": "1A438000_153_0299",
+      "leaf_id": "1A438000-B089",
+      "status": "recompiled",
+      "unit_id": "rtp22_26ba1149df709367"
+    },
+    {
+      "chunk_id": "1A422000_036_0060",
+      "leaf_id": "1A422000-B122",
+      "status": "recompiled",
+      "unit_id": "rtp22_175c7bcca4493eae"
+    },
+    {
+      "chunk_id": "1A436000_124_0198",
+      "leaf_id": "1A436000-B020",
+      "status": "recompiled",
+      "unit_id": "rtp22_124ce7d2a004a42a"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_0c54a96852ce2075"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_f4ca16b3a2f7ea68"
+    },
+    {
+      "chunk_id": "1A413030_090_0165",
+      "leaf_id": "1A413030-B134",
+      "status": "recompiled",
+      "unit_id": "rtp22_53aa409ea48b0b9c"
+    },
+    {
+      "chunk_id": "1A438000_153_0299",
+      "leaf_id": "1A438000-B067",
+      "status": "recompiled",
+      "unit_id": "rtp22_79c8d5444b921255"
+    },
+    {
+      "chunk_id": "1A411011_026_0048",
+      "leaf_id": "1A411011-B136",
+      "status": "recompiled",
+      "unit_id": "rtp22_8641075b6832e640"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B166",
+      "status": "recompiled",
+      "unit_id": "rtp22_11207a9eb48b893e"
+    },
+    {
+      "chunk_id": "1A438000_161_0261",
+      "leaf_id": "1A438000-B049",
+      "status": "recompiled",
+      "unit_id": "rtp22_262c1803c5d80680"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_afc149720016b053"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_9d41faa85cf82ff5"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_eee0da30d1eff6ce"
+    },
+    {
+      "chunk_id": "1A411011_034_0061",
+      "leaf_id": "1A411011-B151",
+      "status": "recompiled",
+      "unit_id": "rtp22_efb00432fbb46129"
+    },
+    {
+      "chunk_id": "1A412010_056_0112",
+      "leaf_id": "1A412010-B100",
+      "status": "recompiled",
+      "unit_id": "rtp22_a344d845ea1c3ba1"
+    },
+    {
+      "chunk_id": "1A412000_040_0068",
+      "leaf_id": "1A412000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_0729d8289332fbed"
+    },
+    {
+      "chunk_id": "1A412000_040_0068",
+      "leaf_id": "1A412000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_5f9cda68faab2d24"
+    },
+    {
+      "chunk_id": "1A411011_008_0016",
+      "leaf_id": "1A411011-B139",
+      "status": "recompiled",
+      "unit_id": "rtp22_190bd73beb684617"
+    },
+    {
+      "chunk_id": "1A432002_031_0041",
+      "leaf_id": "1A432000-B017",
+      "status": "recompiled",
+      "unit_id": "rtp22_ed7d9aefd9a47f43"
+    },
+    {
+      "chunk_id": "1A413030_130_0249",
+      "leaf_id": "1A413030-B252",
+      "status": "recompiled",
+      "unit_id": "rtp22_a2ce6f8b6c75ded1"
+    },
+    {
+      "chunk_id": "1A411011_004_0009",
+      "leaf_id": "1A411011-B004",
+      "status": "recompiled",
+      "unit_id": "rtp22_ae2dafde764a4367"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_d380a9bf513c9ad9"
+    },
+    {
+      "chunk_id": "1A413030_131_0250",
+      "leaf_id": "1A413030-B116",
+      "status": "recompiled",
+      "unit_id": "rtp22_eb1616a731d7474e"
+    },
+    {
+      "chunk_id": "1A412010_045_0078",
+      "leaf_id": "1A412010-B059",
+      "status": "recompiled",
+      "unit_id": "rtp22_ee48f1a3112700bc"
+    },
+    {
+      "chunk_id": "1A436000_010_0011",
+      "leaf_id": "1A436000-B021",
+      "status": "recompiled",
+      "unit_id": "rtp22_66964f2a9401d24d"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B166",
+      "status": "recompiled",
+      "unit_id": "rtp22_e6d5223dc1216870"
+    },
+    {
+      "chunk_id": "1A413030_103_0196",
+      "leaf_id": "1A413030-B115",
+      "status": "recompiled",
+      "unit_id": "rtp22_1c5ea782deabae54"
+    },
+    {
+      "chunk_id": "1A413030_135_0260",
+      "leaf_id": "1A413030-B009",
+      "status": "recompiled",
+      "unit_id": "rtp22_10b500edd2e2dc5d"
+    },
+    {
+      "chunk_id": "1A413030_096_0181",
+      "leaf_id": "1A413030-B063",
+      "status": "recompiled",
+      "unit_id": "rtp22_b3190467a5f2fd13"
+    },
+    {
+      "chunk_id": "1A412010_045_0078",
+      "leaf_id": "1A412010-B059",
+      "status": "recompiled",
+      "unit_id": "rtp22_cb107f416333e55d"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_8c649c721621dc7c"
+    },
+    {
+      "chunk_id": "1A438000_158_0258",
+      "leaf_id": "1A438000-B028",
+      "status": "recompiled",
+      "unit_id": "rtp22_2865fcda30102455"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_f2d5ff8e7d0aab94"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_5667f4ea722a787f"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_9d9a5ddba41c363a"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_9797bac0dd82254a"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_351d3b37469f68fa"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B030",
+      "status": "recompiled",
+      "unit_id": "rtp22_215db14ea3b505bf"
+    },
+    {
+      "chunk_id": "1A431000_006_0006",
+      "leaf_id": "1A431000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp22_a9441f6473a05a5d"
+    },
+    {
+      "chunk_id": "1A438000_160_0260",
+      "leaf_id": "1A438000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_e1459d515eae0f72"
+    },
+    {
+      "chunk_id": "1A431000_008_0008",
+      "leaf_id": "1A431000-B006",
+      "status": "recompiled",
+      "unit_id": "rtp22_19df0f6644e945cc"
+    },
+    {
+      "chunk_id": "1A411011_031_0055",
+      "leaf_id": "1A411011-B095",
+      "status": "recompiled",
+      "unit_id": "rtp22_92a114887679676f"
+    },
+    {
+      "chunk_id": "1A413000_085_0158",
+      "leaf_id": "1A413000-B019",
+      "status": "recompiled",
+      "unit_id": "rtp22_cbf9b24616241359"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B091",
+      "status": "recompiled",
+      "unit_id": "rtp22_f4abfd93261ddbc4"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_8c8f2eaa9fede003"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B091",
+      "status": "recompiled",
+      "unit_id": "rtp22_41ff83a5781a99ea"
+    },
+    {
+      "chunk_id": "1A431000_008_0008",
+      "leaf_id": "1A431000-B006",
+      "status": "recompiled",
+      "unit_id": "rtp22_35a61ffa3d085bc5"
+    },
+    {
+      "chunk_id": "1A438000_153_0299",
+      "leaf_id": "1A438000-B089",
+      "status": "recompiled",
+      "unit_id": "rtp22_df0bf29314e9463b"
+    },
+    {
+      "chunk_id": "1A411011_033_0060",
+      "leaf_id": "1A411011-B024",
+      "status": "recompiled",
+      "unit_id": "rtp22_68003fe35d348ec3"
+    },
+    {
+      "chunk_id": "1A413030_105_0202",
+      "leaf_id": "1A413030-B103",
+      "status": "recompiled",
+      "unit_id": "rtp22_5f159e32f0047078"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_94cb5dbdc60375a8"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_3d023579df49116c"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_ea78b0c6235685cf"
+    },
+    {
+      "chunk_id": "1A411011_001_0001",
+      "leaf_id": "1A411011-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_a7a89abbef2dc249"
+    },
+    {
+      "chunk_id": "1A411011_004_0009",
+      "leaf_id": "1A411011-B004",
+      "status": "recompiled",
+      "unit_id": "rtp22_b60d9b6f9994f2f8"
+    },
+    {
+      "chunk_id": "1A435000_040_0054",
+      "leaf_id": "1A435000-B010",
+      "status": "recompiled",
+      "unit_id": "rtp22_d2f24c45f63aff5c"
+    },
+    {
+      "chunk_id": "1A411011_003_0006",
+      "leaf_id": "1A411011-B056",
+      "status": "recompiled",
+      "unit_id": "rtp22_497488947bdef3c8"
+    },
+    {
+      "status": "leaf_not_in_new_taxonomy",
+      "unit_id": "rtp22_0446a1a57e6f9954"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_d52554d476b20fa3"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_74cdeb194375a441"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_daeb548583df56ed"
+    },
+    {
+      "chunk_id": "1A411011_001_0001",
+      "leaf_id": "1A411011-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_fc4107450c681e7f"
+    },
+    {
+      "chunk_id": "1A433000_051_0074",
+      "leaf_id": "1A433000-B011",
+      "status": "recompiled",
+      "unit_id": "rtp22_2eb636b4b6b1978c"
+    },
+    {
+      "chunk_id": "1A436000_124_0198",
+      "leaf_id": "1A436000-B020",
+      "status": "recompiled",
+      "unit_id": "rtp22_ddba25f767059b2c"
+    },
+    {
+      "chunk_id": "1A436000_107_0174",
+      "leaf_id": "1A436000-B001",
+      "status": "recompiled",
+      "unit_id": "rtp22_d37f6eef473727f6"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp22_f9fdb651ce58106f"
+    },
+    {
+      "chunk_id": "1A412010_056_0112",
+      "leaf_id": "1A412010-B100",
+      "status": "recompiled",
+      "unit_id": "rtp22_5d37559cc90ef2ab"
+    },
+    {
+      "chunk_id": "1A412010_062_0120",
+      "leaf_id": "1A412010-B135",
+      "status": "recompiled",
+      "unit_id": "rtp22_e61e85c6423d0b78"
+    },
+    {
+      "chunk_id": "1A438000_159_0259",
+      "leaf_id": "1A438000-B087",
+      "status": "recompiled",
+      "unit_id": "rtp22_921a7170124dc085"
+    },
+    {
+      "chunk_id": "1A438000_159_0259",
+      "leaf_id": "1A438000-B020",
+      "status": "recompiled",
+      "unit_id": "rtp22_29a31b9a131b4128"
+    },
+    {
+      "chunk_id": "1A437000_131_0212",
+      "leaf_id": "1A437000-B110",
+      "status": "recompiled",
+      "unit_id": "rtp22_45ebb8f10b00de90"
+    },
+    {
+      "chunk_id": "1A436000_010_0011",
+      "leaf_id": "1A436000-B021",
+      "status": "recompiled",
+      "unit_id": "rtp22_c2a88c696e5ca2b5"
+    },
+    {
+      "chunk_id": "1A411011_001_0001",
+      "leaf_id": "1A411011-B053",
+      "status": "recompiled",
+      "unit_id": "rtp22_a2833630ce193cab"
+    },
+    {
+      "chunk_id": "1A436000_010_0010",
+      "leaf_id": "1A436000-B092",
+      "status": "recompiled",
+      "unit_id": "rtp22_4d46f162a30e8f2a"
+    },
+    {
+      "chunk_id": "1A436000_010_0010",
+      "leaf_id": "1A436000-B092",
+      "status": "recompiled",
+      "unit_id": "rtp22_eff9ef602a3b602a"
+    },
+    {
+      "chunk_id": "1A422000_025_0040",
+      "leaf_id": "1A422000-B091",
+      "status": "recompiled",
+      "unit_id": "rtp22_136d5bba7255abdf"
+    },
+    {
+      "chunk_id": "1A422000_022_0031",
+      "leaf_id": "1A422000-B018",
+      "status": "recompiled",
+      "unit_id": "rtp23_2b61fc26a2e53fd4"
+    },
+    {
+      "chunk_id": "1A413030_114_0222",
+      "leaf_id": "1A413030-B026",
+      "status": "recompiled",
+      "unit_id": "rtp23_77b93d7f2993a9e9"
+    },
+    {
+      "chunk_id": "1A413030_121_0229",
+      "leaf_id": "1A413030-B117",
+      "status": "recompiled",
+      "unit_id": "rtp23_78671d0487c7cfca"
+    },
+    {
+      "chunk_id": "1A411011_033_0060",
+      "leaf_id": "1A411011-B024",
+      "status": "recompiled",
+      "unit_id": "rtp23_e65e0567ff3d7539"
+    },
+    {
+      "chunk_id": "1A413030_135_0260",
+      "leaf_id": "1A413030-B009",
+      "status": "recompiled",
+      "unit_id": "rtp23_ad49b91d7bf59466"
+    },
+    {
+      "chunk_id": "1A422000_028_0048",
+      "leaf_id": "1A422000-B029",
+      "status": "recompiled",
+      "unit_id": "rtp23_caa19c6b46e903cc"
+    },
+    {
+      "chunk_id": "1A434000_080_0128",
+      "leaf_id": "1A434000-B022",
+      "status": "recompiled",
+      "unit_id": "rtp23_7f6027ade9f9df13"
+    }
+  ],
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_leaf_evidence_recompile.v1",
+  "summary": {
+    "blocker_count": 0,
+    "production_write_count": 0,
+    "recompiled_unit_count": 175,
+    "skipped_unit_count": 7,
+    "unit_count": 182
+  },
+  "verdict": "PASS_LEAF_EVIDENCE_RECOMPILE"
+}

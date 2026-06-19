@@ -1,0 +1,20 @@
+{
+  "standard_clauses": {
+    "added": 0,
+    "removed": 0,
+    "unchanged": 1,
+    "content_hash_changed": 0
+  },
+  "question_capsules": {
+    "added": 0,
+    "removed": 1,
+    "unchanged": 0,
+    "content_hash_changed": 0
+  },
+  "lecture_teaching_cards": {
+    "added": 0,
+    "removed": 1,
+    "unchanged": 0,
+    "content_hash_changed": 0
+  }
+}

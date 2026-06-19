@@ -1,0 +1,96 @@
+{
+  "stage": "M9 v1 Beta Shadow Grand Sprint",
+  "final_status": "DONE",
+  "workflow_ledger": {
+    "classify_and_act": {
+      "where": "_classify_remaining_points",
+      "evidence_file": "classification_results_m9.json",
+      "buckets": [
+        "source_hunt_expandable",
+        "calculation_spec_repairable",
+        "list_rule_repairable",
+        "semantic_never_auto",
+        "external_source_required",
+        "drop_or_keep_draft",
+        "product_shadow_eligible"
+      ]
+    },
+    "fanout_and_synthesize": {
+      "where": "_model_usage_plan + _source_expansion",
+      "evidence_file": "model_usage_plan_m9.json",
+      "roles": {
+        "DeepSeek-V4": "batch source query / term expansion / strict reject (advisory)",
+        "Qwen 3.7 Plus": "Chinese textbook term + list item normalization (advisory)",
+        "Codex GPT5.5": "compiler / schema / runtime gate / product loop reviewer (advisory)",
+        "Claude Opus 4.8": "workflow judge + adversarial source court + final synthesis",
+        "deterministic_scripts": "textbook verbatim exact-match + coverage==1.0 + runtime shadow + bad_case scan (SOURCE AUTHORITY)"
+      }
+    },
+    "adversarial_verification": {
+      "where": "_adversarial_source_court",
+      "evidence_file": "adversarial_source_reviews_m9.jsonl",
+      "checks": [
+        "official_answer_disguised_as_textbook",
+        "model_vote_as_source",
+        "council_vote_as_source",
+        "list_rule_coverage_below_1_0",
+        "calculation_spec_incomplete",
+        "evidence_span_not_verbatim",
+        "question_overpromoted_by_minority_points"
+      ]
+    },
+    "generate_and_filter": {
+      "where": "_source_expansion",
+      "evidence_file": "rejected_source_candidates_m9.jsonl",
+      "filters": [
+        "exact_match_fail_reject",
+        "semantic_only_never_auto",
+        "partial_list_blocked",
+        "external_source_work_order",
+        "no_provenance_reject"
+      ]
+    },
+    "tournament": {
+      "where": "_source_expansion (model pairwise judge advisory; deterministic aggregator decides)",
+      "evidence_file": "verified_source_candidates_m9.jsonl",
+      "rule": "models may only reorder candidates / supply objections; deterministic source gate is final"
+    },
+    "loop_until_done": {
+      "where": "_source_expansion rounds",
+      "evidence_file": "source_coverage_delta.json",
+      "stop_rules": [
+        "new_verified_round == 0",
+        "source_backed_auto_preview >= 50",
+        "safety_invariant_failed",
+        "round_cap_reached"
+      ]
+    }
+  },
+  "result": {
+    "verdict": "WEAK-GO",
+    "new_track_source_backed_total": 18,
+    "beta_shadow_total_auto_preview": 87,
+    "m9_new_source_backed": 0,
+    "study_cards": 12,
+    "bad_certified": 0,
+    "source_mismatch": 0,
+    "formal_registry_emitted": false,
+    "v0_overwritten": false,
+    "production_runtime_connected": false,
+    "legacy_unchanged": true,
+    "invariants_all_pass": true,
+    "out_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/v1_beta_shadow_grand_sprint_m9_20260604"
+  },
+  "invariants": {
+    "source_mismatch_zero": true,
+    "bad_certified_zero": true,
+    "official_answer_as_textbook_zero": true,
+    "model_vote_as_source_zero": true,
+    "list_rule_partial_anchor_auto_zero": true,
+    "legacy_unchanged": true,
+    "no_formal_registry": true,
+    "v0_not_overwritten": true,
+    "product_loop_complete": true,
+    "study_cards_at_least_10": true
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "current_runtime_authority": [
+    "M19C local limited default ON",
+    "M19D soak GO"
+  ],
+  "interpretation_authority": [
+    "M19B corrected canonical patch"
+  ],
+  "future_delta_isolated": [
+    "M20.1 live delta replay",
+    "M20.2 staged registry candidate"
+  ],
+  "remote_deploy_authorization_package": "M19E-R (GO, no remote write)",
+  "state": {
+    "m19b_corrected": {
+      "limited_default_candidate": "GO",
+      "production_default_flip_now": "NO-GO",
+      "rollback_measurement_bug_explained": true,
+      "council_bare_word_block_not_veto": true
+    },
+    "m19c": {
+      "limited_default_enabled": true,
+      "default_cohort_prefixes": [
+        "qa_",
+        "operator_"
+      ],
+      "broad_production_default_enabled": false,
+      "canonical_truth_write_enabled": false,
+      "remote_deployment_written": false,
+      "state": "local_ON",
+      "authorization": {
+        "one_percent_qa_operator_default": "GO",
+        "production_v1_default_flip": "NO-GO",
+        "canonical_learner_truth_write": "NO-GO"
+      }
+    },
+    "m19d": {
+      "soak_verdict": "GO",
+      "keep_limited_default_on": "YES",
+      "false_positive": 0,
+      "production_write_count": 0,
+      "canonical_truth_written": false,
+      "rollback_works": true
+    },
+    "m201": {
+      "verdict": "GO",
+      "delta_submissions": 100,
+      "role": "future_delta"
+    },
+    "m202": {
+      "verdict": "GO",
+      "present": true,
+      "role": "future_delta",
+      "independent_namespace": true,
+      "runtime_unchanged": true
+    },
+    "m19e_r": {
+      "verdict": "GO",
+      "no_remote_write": true,
+      "remote_env_modified": false
+    }
+  },
+  "branch": "docs/luban-golden-v0-sop-and-dataset",
+  "is_main": false
+}

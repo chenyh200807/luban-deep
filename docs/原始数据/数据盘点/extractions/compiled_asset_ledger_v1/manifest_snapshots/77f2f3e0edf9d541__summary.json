@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-06-06T06:58:26+0800",
+  "entry_surface": "near_real_http_ws_next_probe",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_next_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-next-probes-20260606-authority",
+  "rounds": 6,
+  "conversation_ids": {
+    "ambiguous_multi_card": "tb_51e705fc539040d2ab8a8783",
+    "low_info_exam_index": "tb_e026a052604f44579f8f3280",
+    "shuffled_value_anchor": "tb_bd18c117fb0e4429a7937174",
+    "switch_question_midstream": "tb_85b826c595e14c34812f0d00"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NEXT-001",
+      "conversation_id": "tb_51e705fc539040d2ab8a8783",
+      "turn_id": "turn_1780700179394_25308260b9",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“给我出两道2025一建建筑实务单选真题，不要先给答案。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NEXT-002",
+      "conversation_id": "tb_51e705fc539040d2ab8a8783",
+      "turn_id": "turn_1780700201745_c6b64e475b",
+      "done_status": "completed",
+      "visible_excerpt": "我还不知道你要批改哪一道题。\n\n请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+    },
+    {
+      "round_id": "QA30-NEXT-003",
+      "conversation_id": "tb_e026a052604f44579f8f3280",
+      "turn_id": "turn_1780700217174_c42e08a315",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n第15题答案：**C**（单层防排结合法）\n\n## 判断依据\n\n地下工程防水等级为一级时，应设**两道防水设防**，其中至少有一道是**结构自防水混凝土**。题目中\"单层防排结合法\"仅设一道防水层，不满足一级防水等级要求。\n\n## 采分点\n\n- 一级防水等级 → 两道设防\n- 至少一道为结构自防水混凝土\n- 单层防排结合法仅一道防水，不符合要求\n\n## 易错点\n\n- 容易把\"防排结合\"和\"设防道数\"搞混。防排结合是设计原则，设防道数是构造要求，两回事。\n- 一级"
+    },
+    {
+      "round_id": "QA30-NEXT-004",
+      "conversation_id": "tb_bd18c117fb0e4429a7937174",
+      "turn_id": "turn_1780700236735_761badca06",
+      "done_status": "completed",
+      "visible_excerpt": "标准答案是 C（C. 25），题库解析依据是：解析：室内工程防水设计工作年限不应低于25年。"
+    },
+    {
+      "round_id": "QA30-NEXT-005",
+      "conversation_id": "tb_85b826c595e14c34812f0d00",
+      "turn_id": "turn_1780700261164_3d49e928fb",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. 初步设计）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 B，不要把 A. 方案设计、C. 施工图设计、D. 专项设计 误并入答案。 |\n\n## 🎯 核心"
+    },
+    {
+      "round_id": "QA30-NEXT-006",
+      "conversation_id": "tb_85b826c595e14c34812f0d00",
+      "turn_id": "turn_1780700296622_1bf6574aaa",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（初步设计）：【解析】初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

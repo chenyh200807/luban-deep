@@ -1,0 +1,3 @@
+{"point_id": "P1.s1", "llm_used": false, "status": "candidate_draft", "proposed_bucket": null, "note": "LLM org skipped (no key / --no-llm); deterministic partition only", "promote_to_release": false}
+{"point_id": "P1.s2", "llm_used": false, "status": "candidate_draft", "proposed_bucket": null, "note": "LLM org skipped (no key / --no-llm); deterministic partition only", "promote_to_release": false}
+{"point_id": "P2", "llm_used": false, "status": "candidate_draft", "proposed_bucket": null, "note": "LLM org skipped (no key / --no-llm); deterministic partition only", "promote_to_release": false}

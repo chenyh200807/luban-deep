@@ -1,0 +1,18 @@
+{
+  "new_questions_discovered": 0,
+  "new_questions_published": 0,
+  "new_questions_draft": 0,
+  "net_new_auto_certifiable_points": 0,
+  "note": "demo packets are EXISTING golden questions already in registry v0; no NEW questions exist to add.",
+  "demo_packets": 5,
+  "demo_textbook_verified_anchors": 12,
+  "demo_weak_or_missing_anchors": 14,
+  "blocked_reasons_top": [
+    "no_raw_case_question_corpus_in_repo (docs/2026 absent)",
+    "all_artifact_slices_reference_Q1_Q20",
+    "exam_quality_bank_is_mcq_out_of_scope",
+    "node_6134_assets_are_knowledge_seeds_not_questions",
+    "reanchor_yields_0_enrichment_for_v0_weak_points"
+  ],
+  "still_needs": "new exam/textbook case-question corpus + official_answer + verbatim textbook anchoring + PO review"
+}

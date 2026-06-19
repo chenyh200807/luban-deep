@@ -1,0 +1,39 @@
+{
+  "classify_and_act": {
+    "already_live": {
+      "m17a": 25,
+      "m17b": 28,
+      "reusable_total": 53
+    },
+    "needs_live_to_reach_80": 27,
+    "rate_limited_in_m17b": 0,
+    "fallback_only": 24,
+    "council_only": 70,
+    "m17b_verdict": "WEAK-GO",
+    "m17b_gap_reason": "deepseek_live 28 < 80"
+  },
+  "loop_until_done": {
+    "target_merged": 80,
+    "new_live_calls": 27,
+    "merged": 80,
+    "attempts": 27
+  },
+  "adversarial_verification": {
+    "validator_rerun_on_new": true,
+    "false_positive": 0,
+    "source_mismatch": 0,
+    "downgrades": 3
+  },
+  "fanout_and_synthesize": {
+    "merged_m17a_m17b_m17c": true
+  },
+  "tournament": {
+    "reused_winner": "evidence_rich_full_policy",
+    "not_rerun": true,
+    "stable_in_new_live": true
+  },
+  "final_gate": {
+    "verdict": "GO",
+    "m17_scaleout": "GO"
+  }
+}

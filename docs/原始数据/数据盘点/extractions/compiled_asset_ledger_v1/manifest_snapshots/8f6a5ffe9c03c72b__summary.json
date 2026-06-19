@@ -1,0 +1,59 @@
+{
+  "schema": "luban_per_question_full_compile.v1",
+  "review_only": true,
+  "total_case_study": 218,
+  "compiled_ok": 179,
+  "quarantined": 39,
+  "clean_rate": 0.8211,
+  "quarantine_by_reason": {
+    "granularity_collapse": 1,
+    "analysis_as_answer": 9,
+    "ai_placeholder_answer": 17,
+    "null_or_zero_score": 12
+  },
+  "quarantine_by_year": {
+    "2017": 2,
+    "2018": 8,
+    "2019": 5,
+    "2020": 8,
+    "2021": 5,
+    "2022": 3,
+    "2023": 4,
+    "2024": 1,
+    "2025": 3
+  },
+  "coverage_vs_prod_bank": {
+    "prod_bank_qids": 174,
+    "compiled_objects": 179,
+    "compiled_distinct_year_unique_qids": 179,
+    "prod_covered_by_new": 154,
+    "prod_dropped_by_new": [
+      "9001",
+      "9534",
+      "EXAM_1A432000_P0014_02::E2",
+      "EXAM_1A432000_P0017_05::E0",
+      "EXAM_1A432000_P0019_01::E0",
+      "EXAM_1A432000_P0020_02::E0",
+      "EXAM_1A432000_P0023_01::E0",
+      "EXAM_1A433000_P0009_01::E0",
+      "EXAM_1A433000_P0010_02::E0",
+      "EXAM_1A433000_P0014_08::E0",
+      "EXAM_1A433000_P0018_02::E4",
+      "EXAM_1A433000_P0019_01::E0",
+      "EXAM_1A434000_P0013_01::E0",
+      "EXAM_1A434000_P0020_02::E0",
+      "EXAM_1A436000_P0015_01::E0",
+      "EXAM_1A436000_P0018_02::E0",
+      "EXAM_1A436000_P0023_01::E0",
+      "EXAM_1A436000_P0024_02::E0",
+      "EXAM_1A436000_P0025_03::E0",
+      "EXAM_1A436000_P0026_04::E0"
+    ],
+    "prod_dropped_count": 20,
+    "new_not_in_prod_count": 1
+  },
+  "point_count_stats": {
+    "total_scoring_points": 482,
+    "mean_points_per_q": 2.69
+  }
+}

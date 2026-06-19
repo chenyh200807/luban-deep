@@ -1,0 +1,40 @@
+{
+  "auto_preview_m8": 18,
+  "auto_preview_m9": 23,
+  "beta_shadow_gradeable_total": 82,
+  "coverage_uplift_vs_m9": 59,
+  "go_conditions": {
+    "all_residual_classified": true,
+    "contradiction_rejected_full": true,
+    "false_positive_zero": true,
+    "list_full_coverage_specs_attack_clean": true,
+    "machine_checkable_ge_20": true,
+    "safety_invariants_clean": true,
+    "source_backed_auto_ge_50": false
+  },
+  "list_full_coverage_passing": 14,
+  "m10_new_spec_gradeable_points": 59,
+  "m11_gated_beta_qa_verdict": "WEAK-GO",
+  "m8_alpha_shadow_not_downgraded": true,
+  "machine_checkable_passing": 45,
+  "production_v1": "NO-GO",
+  "safety_invariants": {
+    "formal_registry_emitted": false,
+    "human_reviewed_true": 0,
+    "live_call_fabricated": false,
+    "model_vote_as_source": 0,
+    "official_answer_as_textbook": 0,
+    "production_runtime_connected": false,
+    "semantic_only_auto": 0,
+    "v0_overwritten": false
+  },
+  "source_assault_canonical_m8_note": "canonical_m8_verdict=WEAK-GO means 'not gated beta / not production' only; it does NOT downgrade M8 alpha_shadow GO",
+  "source_backed_auto_preview": 23,
+  "source_backed_auto_target": 50,
+  "three_axis_verdict": {
+    "m8_alpha_shadow": "GO",
+    "m9_m10_gated_beta_readiness": "WEAK-GO",
+    "production_v1": "NO-GO"
+  },
+  "weak_go_reason": "machine-checkable spec supply is a real attack-clean increment, but source-backed auto preview 23 < 50 and the new non-textbook specs are unvalidated candidates pending M11 QA / teacher review"
+}

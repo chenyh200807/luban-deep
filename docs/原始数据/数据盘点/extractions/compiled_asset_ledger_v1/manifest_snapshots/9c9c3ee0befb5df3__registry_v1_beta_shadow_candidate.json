@@ -1,0 +1,28 @@
+{
+  "version_id": "luban_v1_beta_shadow_candidate_m9_20260604",
+  "status": "beta_shadow_candidate",
+  "formal_registry_emitted": false,
+  "production_runtime_connected": false,
+  "v0_overwritten": false,
+  "human_reviewed": false,
+  "ai_expert_council_final_authority": "non_human_review_triage_only_never_textbook_source",
+  "source_authority": "textbook_exact_match",
+  "source_backed_point_total": 17,
+  "from_m8": 12,
+  "from_m9_recovered": 5,
+  "questions": {
+    "M2-2015-30-00": 2,
+    "M2-2015-30-01": 1,
+    "M2-2015-31-01": 1,
+    "M2-2015-31-02": 2,
+    "M2-2015-31-03": 2,
+    "M2-2015-32-00": 2,
+    "M2-2015-32-01": 1,
+    "M2-2015-32-02": 1,
+    "M2-2015-34-00": 1,
+    "M2-2015-34-02": 1,
+    "M2-2016-30-00": 1,
+    "M2-2016-31-00": 1,
+    "M2-2016-31-02": 1
+  }
+}

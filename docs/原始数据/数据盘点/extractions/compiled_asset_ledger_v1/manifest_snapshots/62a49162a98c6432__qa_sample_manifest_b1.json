@@ -1,0 +1,655 @@
+{
+  "sample_total": 63,
+  "kind_counts": {
+    "source_backed_positive": 14,
+    "high_risk": 9,
+    "external": 6,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "override_simulation": 6,
+    "duplicate_retry": 5,
+    "empty_or_error_input": 1
+  },
+  "type_coverage": {
+    "source_backed_positive": 14,
+    "high_risk": 9,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "external": 6,
+    "override_simulation": 6,
+    "duplicate_retry": 5,
+    "empty_or_error_input": 1
+  },
+  "samples": [
+    {
+      "sample_id": "qa_b1_pos_000",
+      "student_id": "qa_b1_pos_000",
+      "question_id": "M2-2015-30-01",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_001",
+      "student_id": "qa_b1_pos_001",
+      "question_id": "M2-2015-31-02",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_002",
+      "student_id": "qa_b1_pos_002",
+      "question_id": "M2-2015-31-02",
+      "point_id": "P2",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_003",
+      "student_id": "qa_b1_pos_003",
+      "question_id": "M2-2015-32-02",
+      "point_id": "P3",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_004",
+      "student_id": "qa_b1_pos_004",
+      "question_id": "M2-2016-30-00",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_005",
+      "student_id": "qa_b1_pos_005",
+      "question_id": "M2-2015-30-00",
+      "point_id": "P1.s1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_006",
+      "student_id": "qa_b1_pos_006",
+      "question_id": "M2-2015-30-00",
+      "point_id": "P1.s2",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_007",
+      "student_id": "qa_b1_pos_007",
+      "question_id": "M2-2015-32-00",
+      "point_id": "P1.s1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_008",
+      "student_id": "qa_b1_pos_008",
+      "question_id": "M2-2015-32-00",
+      "point_id": "P1.s2",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_009",
+      "student_id": "qa_b1_pos_009",
+      "question_id": "M2-2015-32-01",
+      "point_id": "P1.s1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_010",
+      "student_id": "qa_b1_pos_010",
+      "question_id": "M2-2015-34-00",
+      "point_id": "P1.s1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_011",
+      "student_id": "qa_b1_pos_011",
+      "question_id": "M2-2016-31-02",
+      "point_id": "P1.s1",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_012",
+      "student_id": "qa_b1_pos_012",
+      "question_id": "M2-2015-31-01",
+      "point_id": "P5",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_pos_013",
+      "student_id": "qa_b1_pos_013",
+      "question_id": "M2-2015-31-03",
+      "point_id": "P4",
+      "policy_type": "exact_required",
+      "kind": "source_backed_positive",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_014",
+      "student_id": "qa_b1_high_risk_014",
+      "question_id": "Q15-NA",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_015",
+      "student_id": "qa_b1_high_risk_015",
+      "question_id": "Q15-NA",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_016",
+      "student_id": "qa_b1_high_risk_016",
+      "question_id": "Q17-1A433000",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_017",
+      "student_id": "qa_b1_high_risk_017",
+      "question_id": "Q17-1A433000",
+      "point_id": "P3",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_018",
+      "student_id": "qa_b1_high_risk_018",
+      "question_id": "Q17-1A433000",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_019",
+      "student_id": "qa_b1_high_risk_019",
+      "question_id": "Q17-1A433000",
+      "point_id": "P3",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_020",
+      "student_id": "qa_b1_high_risk_020",
+      "question_id": "Q17-1A433000",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_021",
+      "student_id": "qa_b1_high_risk_021",
+      "question_id": "Q17-1A433000",
+      "point_id": "P3",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_high_risk_022",
+      "student_id": "qa_b1_high_risk_022",
+      "question_id": "Q18-1A434000",
+      "point_id": "P11",
+      "policy_type": "high_risk_review",
+      "kind": "high_risk",
+      "disposition": "review_required_high_risk",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_external_023",
+      "student_id": "qa_b1_external_023",
+      "question_id": "Q7-1A431000",
+      "point_id": "P1",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_external_024",
+      "student_id": "qa_b1_external_024",
+      "question_id": "Q7-1A431000",
+      "point_id": "P1",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_external_025",
+      "student_id": "qa_b1_external_025",
+      "question_id": "Q7-1A431000",
+      "point_id": "P1",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_external_026",
+      "student_id": "qa_b1_external_026",
+      "question_id": "Q7-1A431000",
+      "point_id": "P1",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_external_027",
+      "student_id": "qa_b1_external_027",
+      "question_id": "Q14-1A430000",
+      "point_id": "P1",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_external_028",
+      "student_id": "qa_b1_external_028",
+      "question_id": "Q14-1A430000",
+      "point_id": "P2",
+      "policy_type": "figure_label",
+      "kind": "external",
+      "disposition": "external_source_needed",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_029",
+      "student_id": "qa_b1_source_gap_029",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_030",
+      "student_id": "qa_b1_source_gap_030",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P2",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_031",
+      "student_id": "qa_b1_source_gap_031",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P3",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_032",
+      "student_id": "qa_b1_source_gap_032",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P4",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_033",
+      "student_id": "qa_b1_source_gap_033",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_034",
+      "student_id": "qa_b1_source_gap_034",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P2",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_035",
+      "student_id": "qa_b1_source_gap_035",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P3",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_036",
+      "student_id": "qa_b1_source_gap_036",
+      "question_id": "Q2-1A436000-罚则",
+      "point_id": "P4",
+      "policy_type": "exact_required",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_037",
+      "student_id": "qa_b1_source_gap_037",
+      "question_id": "Q1-NA",
+      "point_id": "P1",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_038",
+      "student_id": "qa_b1_source_gap_038",
+      "question_id": "Q1-NA",
+      "point_id": "P1",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_039",
+      "student_id": "qa_b1_source_gap_039",
+      "question_id": "Q3-1A433000",
+      "point_id": "P1",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_040",
+      "student_id": "qa_b1_source_gap_040",
+      "question_id": "Q3-1A433000",
+      "point_id": "P10",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_041",
+      "student_id": "qa_b1_source_gap_041",
+      "question_id": "Q3-1A433000",
+      "point_id": "P10",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_source_gap_042",
+      "student_id": "qa_b1_source_gap_042",
+      "question_id": "Q3-1A433000",
+      "point_id": "P1",
+      "policy_type": "list_rule",
+      "kind": "source_gap",
+      "disposition": "source_gap",
+      "operator_action": "send_to_external_source"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_043",
+      "student_id": "qa_b1_spec_gap_043",
+      "question_id": "Q3-1A433000",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_044",
+      "student_id": "qa_b1_spec_gap_044",
+      "question_id": "Q3-1A433000",
+      "point_id": "P3",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_045",
+      "student_id": "qa_b1_spec_gap_045",
+      "question_id": "Q3-1A433000",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_046",
+      "student_id": "qa_b1_spec_gap_046",
+      "question_id": "Q3-1A433000",
+      "point_id": "P3",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_047",
+      "student_id": "qa_b1_spec_gap_047",
+      "question_id": "Q3-1A433000",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_048",
+      "student_id": "qa_b1_spec_gap_048",
+      "question_id": "Q3-1A433000",
+      "point_id": "P3",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_049",
+      "student_id": "qa_b1_spec_gap_049",
+      "question_id": "Q3-1A433000",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_spec_gap_050",
+      "student_id": "qa_b1_spec_gap_050",
+      "question_id": "Q3-1A433000",
+      "point_id": "P3",
+      "policy_type": "calculation",
+      "kind": "spec_gap",
+      "disposition": "spec_gap",
+      "operator_action": "send_to_spec_repair"
+    },
+    {
+      "sample_id": "qa_b1_override_051",
+      "student_id": "qa_b1_override_051",
+      "question_id": "Q15-NA",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_override_052",
+      "student_id": "qa_b1_override_052",
+      "question_id": "Q15-NA",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_override_053",
+      "student_id": "qa_b1_override_053",
+      "question_id": "Q17-1A433000",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_override_054",
+      "student_id": "qa_b1_override_054",
+      "question_id": "Q17-1A433000",
+      "point_id": "P3",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_override_055",
+      "student_id": "qa_b1_override_055",
+      "question_id": "Q17-1A433000",
+      "point_id": "P1",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_override_056",
+      "student_id": "qa_b1_override_056",
+      "question_id": "Q17-1A433000",
+      "point_id": "P3",
+      "policy_type": "high_risk_review",
+      "kind": "override_simulation",
+      "disposition": "teacher_override_needed",
+      "operator_action": "override"
+    },
+    {
+      "sample_id": "qa_b1_dup_000",
+      "student_id": "qa_b1_pos_000",
+      "question_id": "M2-2015-30-01",
+      "point_id": "P2",
+      "policy_type": "calculation",
+      "kind": "duplicate_retry",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_dup_001",
+      "student_id": "qa_b1_pos_001",
+      "question_id": "M2-2015-31-02",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "duplicate_retry",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_dup_002",
+      "student_id": "qa_b1_pos_002",
+      "question_id": "M2-2015-31-02",
+      "point_id": "P2",
+      "policy_type": "exact_required",
+      "kind": "duplicate_retry",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_dup_003",
+      "student_id": "qa_b1_pos_003",
+      "question_id": "M2-2015-32-02",
+      "point_id": "P3",
+      "policy_type": "exact_required",
+      "kind": "duplicate_retry",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_dup_004",
+      "student_id": "qa_b1_pos_004",
+      "question_id": "M2-2016-30-00",
+      "point_id": "P1",
+      "policy_type": "exact_required",
+      "kind": "duplicate_retry",
+      "disposition": "auto_shadow_safe",
+      "operator_action": "accept"
+    },
+    {
+      "sample_id": "qa_b1_empty_999",
+      "student_id": "qa_b1_empty_999",
+      "question_id": "Q-UNKNOWN",
+      "point_id": "P?",
+      "policy_type": "exact_required",
+      "kind": "empty_or_error_input",
+      "disposition": "blocked_from_writeback",
+      "operator_action": "drop"
+    }
+  ]
+}

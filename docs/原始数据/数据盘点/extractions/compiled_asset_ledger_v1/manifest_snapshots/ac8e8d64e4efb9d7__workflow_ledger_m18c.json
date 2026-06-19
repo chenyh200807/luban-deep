@@ -1,0 +1,58 @@
+{
+  "classify_and_act": {
+    "evidence_file": "evidence_draft_inventory_m18c.json",
+    "buckets": [
+      "accept",
+      "partial",
+      "reject",
+      "needs_review",
+      "validator_downgraded",
+      "retest_proof",
+      "shadow_only",
+      "blocked_from_claim"
+    ]
+  },
+  "fanout_and_synthesize": {
+    "views": [
+      "claim_lifecycle_projection_m18c.jsonl",
+      "personalization_context_packs_m18c.jsonl",
+      "retest_plan_candidates_m18c.jsonl",
+      "dream_cycle_lint_candidates_m18c.jsonl"
+    ]
+  },
+  "generate_and_filter": {
+    "evidence_file": "next_action_tournament_m18c.json",
+    "filters": [
+      "overclaim",
+      "generic_fallback",
+      "no_evidence_personalization"
+    ]
+  },
+  "tournament": {
+    "evidence_file": "next_action_tournament_m18c.json",
+    "rule": "shortest + most-actionable + most-evidence + non-overclaim"
+  },
+  "adversarial_verification": {
+    "evidence_file": "leakage_and_authority_attack_results_m18c.json",
+    "attacks": [
+      "shadow_to_mastery",
+      "simulated_retest_as_real",
+      "cross_user_leak",
+      "subject_leak",
+      "teacher_only_leak",
+      "unsupported_claim",
+      "stale_claim",
+      "contradiction"
+    ]
+  },
+  "loop_until_done": {
+    "final_dispositions": [
+      "claim_candidate",
+      "needs_retest",
+      "blocked_from_claim",
+      "review_candidate",
+      "rejected_candidate",
+      "insufficient_evidence"
+    ]
+  }
+}

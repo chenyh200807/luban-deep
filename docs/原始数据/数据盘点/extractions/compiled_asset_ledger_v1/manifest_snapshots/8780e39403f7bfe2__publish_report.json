@@ -1,0 +1,27 @@
+{
+  "auto_certifiable_point_count": 69,
+  "blocked_count": 1,
+  "blocked_reasons": {},
+  "draft_count": 1,
+  "missing_policy_count": 0,
+  "missing_source_count": 28,
+  "policy_type_counts": {
+    "calculation": 17,
+    "exact_required": 40,
+    "figure_label": 3,
+    "high_risk_review": 4,
+    "list_rule": 31,
+    "penalty_rule": 2
+  },
+  "published_count": 18,
+  "source_type_counts": {
+    "list_rule": 33,
+    "official_basis": 97,
+    "textbook": 69
+  },
+  "top_risks": [],
+  "total_questions": 20,
+  "total_scoring_points": 97,
+  "version_id": "qga_v0_20260604",
+  "weak_source_point_count": 28
+}

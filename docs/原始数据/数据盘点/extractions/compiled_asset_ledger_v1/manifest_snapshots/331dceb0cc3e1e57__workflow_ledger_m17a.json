@@ -1,0 +1,24 @@
+{
+  "classify_and_act": {
+    "counted_kinds": {
+      "textbook_verbatim": 23,
+      "machine_checkable_logic": 30,
+      "machine_checkable_calc": 3,
+      "list_rule_full_coverage": 14
+    }
+  },
+  "fanout_and_synthesize": "GradingPacket schema + LLM contract + validator contract + LB draft synthesized; DeepSeek/Qwen runtime; GPT5.5/Opus build-only (council fail-closed/in-session)",
+  "generate_and_filter": "3 packet variants; minimal_ids_only rejected (not validator-checkable)",
+  "tournament": "full_policy packet selected (validator-checkable + full evidence)",
+  "adversarial_verification": [
+    "spec_wrong (validator floor)",
+    "evidence_span_laundering",
+    "kill_switch",
+    "non_cohort",
+    "legacy_overwrite"
+  ],
+  "loop_until_done": {
+    "adjudicated": 25,
+    "verdict": "GO"
+  }
+}

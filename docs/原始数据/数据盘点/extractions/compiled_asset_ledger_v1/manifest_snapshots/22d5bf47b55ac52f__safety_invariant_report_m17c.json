@@ -1,0 +1,15 @@
+{
+  "false_positive": 0,
+  "bad_certified": 0,
+  "source_mismatch": 0,
+  "official_answer_as_textbook": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "list_partial_auto": 0,
+  "legacy_equal_rate": 1.0,
+  "production_write_count": 0,
+  "production_default_enabled": false,
+  "duplicated_paid_calls": 0,
+  "secrets_printed": false,
+  "safety_all_zero": true
+}

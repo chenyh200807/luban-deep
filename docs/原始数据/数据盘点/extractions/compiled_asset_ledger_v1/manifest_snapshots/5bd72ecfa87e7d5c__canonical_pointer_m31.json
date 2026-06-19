@@ -1,0 +1,16 @@
+{
+  "schema_version": "luban_m31_governed_objective_pointer.v1",
+  "bundle_path": "deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+  "namespace": "objective_answer_key_full",
+  "status": "release_candidate",
+  "published": false,
+  "expected_content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+  "matches_m30_canonical_hash": true,
+  "record_count": 2640,
+  "rejected_count": 14,
+  "conflict_count": 1,
+  "coverage": "full_2640_canonical_match",
+  "source": "live_questions_bank_readonly",
+  "live_blocker": "",
+  "note": "Runtime loads ONLY this tracked bundle; authenticity = tracked path + pinned hash."
+}

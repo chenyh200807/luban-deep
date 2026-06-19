@@ -1,0 +1,66 @@
+{
+  "alignment_counts": {
+    "coverage_gap_missing_node": 1,
+    "coverage_gap_na": 2,
+    "exact": 16,
+    "expanded_parent": 1
+  },
+  "all_kb_candidate_hit": 82,
+  "all_kb_candidate_recall": 0.36607142857142855,
+  "by_point_type": {
+    "calculation": {
+      "all_kb_candidate_recall": 0.07142857142857142,
+      "all_kb_hit": 1,
+      "point_all_terms_hit": 0,
+      "point_all_terms_recall": 0.0,
+      "point_any_term_hit": 0,
+      "point_any_term_recall": 0.0,
+      "point_total": 14,
+      "term_hit": 0,
+      "term_recall": 0.0,
+      "term_total": 14
+    },
+    "figure_label": {
+      "all_kb_candidate_recall": 0.3125,
+      "all_kb_hit": 5,
+      "point_all_terms_hit": 0,
+      "point_all_terms_recall": 0.0,
+      "point_any_term_hit": 1,
+      "point_any_term_recall": 0.3333333333333333,
+      "point_total": 3,
+      "term_hit": 3,
+      "term_recall": 0.1875,
+      "term_total": 16
+    },
+    "non_textbook": {
+      "all_kb_candidate_recall": 0.125,
+      "all_kb_hit": 1,
+      "point_all_terms_hit": 0,
+      "point_all_terms_recall": 0.0,
+      "point_any_term_hit": 0,
+      "point_any_term_recall": 0.0,
+      "point_total": 2,
+      "term_hit": 0,
+      "term_recall": 0.0,
+      "term_total": 8
+    },
+    "text_term": {
+      "all_kb_candidate_recall": 0.4032258064516129,
+      "all_kb_hit": 75,
+      "point_all_terms_hit": 7,
+      "point_all_terms_recall": 0.0958904109589041,
+      "point_any_term_hit": 20,
+      "point_any_term_recall": 0.273972602739726,
+      "point_total": 73,
+      "term_hit": 31,
+      "term_recall": 0.16666666666666666,
+      "term_total": 186
+    }
+  },
+  "case_count": 20,
+  "excluded_na_terms": 12,
+  "term_hit": 34,
+  "term_miss": 190,
+  "term_recall": 0.15178571428571427,
+  "term_total": 224
+}

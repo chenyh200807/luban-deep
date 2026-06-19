@@ -1,0 +1,25 @@
+{
+  "canonical_learner_truth_write": false,
+  "date": "2026-06-05",
+  "default_cohort_prefixes": [
+    "qa_",
+    "operator_"
+  ],
+  "input_artifact": "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605",
+  "kernel_replaced": false,
+  "live_llm_calls_executed": false,
+  "m19c_state": "ON",
+  "m20_1_delta_absorbed": false,
+  "new_ws_route_added": false,
+  "non_cohort_policy": "blocked_from_limited_default",
+  "production_db_write": false,
+  "production_default_broad": "NO-GO",
+  "provider_mode": "deterministic_in_process_provider_for_m19d_soak_monitoring",
+  "published_registry_emitted": false,
+  "real_entry": "/api/v1/ws TestClient",
+  "requested_submissions": 300,
+  "secrets_printed": false,
+  "stage": "M19D Limited Default Soak Monitoring",
+  "stage_or_commit_performed": false,
+  "test_prefix_policy": "explicit_regression_only_not_default"
+}

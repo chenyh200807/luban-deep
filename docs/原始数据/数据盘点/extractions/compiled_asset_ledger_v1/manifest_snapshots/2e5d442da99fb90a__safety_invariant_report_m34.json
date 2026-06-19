@@ -1,0 +1,10 @@
+{
+  "answer_key_minted": 0,
+  "authority": "luban_general_knowledge_context",
+  "canonical_truth_written": false,
+  "llm_may_decide_correctness_violations": 0,
+  "mutable_chunk_as_answer_key": 0,
+  "official_score_allowed_violations": 0,
+  "production_write_count": 0,
+  "wrong_chapter_attribution": 0
+}

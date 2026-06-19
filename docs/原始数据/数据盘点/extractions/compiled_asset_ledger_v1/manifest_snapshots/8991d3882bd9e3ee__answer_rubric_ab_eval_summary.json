@@ -1,0 +1,18 @@
+{
+  "artifact_points_total": 124,
+  "artifact_token_proxy_total": 1322,
+  "artifact_usable_cases": 10,
+  "artifact_usable_rate": 0.8333,
+  "baseline_points_total": 0,
+  "baseline_token_proxy_total": 10641,
+  "baseline_usable_cases": 0,
+  "baseline_usable_rate": 0.0,
+  "blocked_candidates": 2,
+  "cases": 12,
+  "low_confidence_cases": 1,
+  "missing_score_cases": 2,
+  "publishable_candidates": 10,
+  "review_required_candidates": 0,
+  "skipped_sources": 0,
+  "token_reduction_proxy": 0.8758
+}

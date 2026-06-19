@@ -1,0 +1,150 @@
+{
+  "generated_at": "2026-06-06T06:17:00+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload_nr017_034",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_case",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-nr017-034",
+  "rounds": 18,
+  "conversation_ids": {
+    "design_phase": "tb_06df0435bc0e4ba1aa5732cc",
+    "shading": "tb_e4451a94358b4e03ab19feb3",
+    "tempered_glass": "tb_6be79647522a4fdcbc4fa127",
+    "waterproof_concrete": "tb_f45d051a9c62434fba8a13eb",
+    "pit_surge": "tb_d1dda0e73946438c9242f8df",
+    "low_info_exam_index": "tb_d252c4c67cd8464a9f669aa4",
+    "case_masonry": "tb_428b08b6ced941abaa80a3ea",
+    "outside_subject": "tb_2ba78c1a3f7b41dc8bd33d63",
+    "roof_conflict": "tb_d4a4f4d4e91342a095ccb461"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-017",
+      "conversation_id": "tb_06df0435bc0e4ba1aa5732cc",
+      "turn_id": "turn_1780697376832_e36da7b7ce",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. 初步设计）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 B，不要把 A. 方案设计、C. 施工图设计、D. 专项设计 误并入答案。 |\n\n## 🎯 核心"
+    },
+    {
+      "round_id": "QA30-NR-018",
+      "conversation_id": "tb_06df0435bc0e4ba1aa5732cc",
+      "turn_id": "turn_1780697395888_e8c4d5167a",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（初步设计）：【解析】初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。"
+    },
+    {
+      "round_id": "QA30-NR-019",
+      "conversation_id": "tb_06df0435bc0e4ba1aa5732cc",
+      "turn_id": "turn_1780697402988_2ce180a3dc",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 A（A. 2%），题库解析依据是：种植平屋面排水坡度不宜小于2%；天沟、檐沟的排水坡度不宜小于1%。"
+    },
+    {
+      "round_id": "QA30-NR-020",
+      "conversation_id": "tb_06df0435bc0e4ba1aa5732cc",
+      "turn_id": "turn_1780697442028_addd2d57ee",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** A（2%）\n**正确答案：** A（2%）\n\n## 🧐 解析\n**标准解析：**\n【解析】种植平屋面排水坡度不宜小于2%；天沟、檐沟的排水坡度不宜小于1%。\n\n**核心判断：**\n正确选项是 A（2%）。\n\n**逐项解析：**\n- A. 2%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n- B. 5%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 10%：排除项。它与本题标准结论不一致，"
+    },
+    {
+      "round_id": "QA30-NR-021",
+      "conversation_id": "tb_e4451a94358b4e03ab19feb3",
+      "turn_id": "turn_1780697449727_e6097b79bb",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：A（A. 水平）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n固定式遮阳时，南向宜采用水平遮阳；东北、西北及北回归线以南地区的北向宜采用垂直遮阳；东、西向窗口宜采用挡板遮阳；东南、西南朝向窗口宜采用组合遮阳。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 A，不要把 B. 垂直、C. 组合、D. 挡板 误并入答案"
+    },
+    {
+      "round_id": "QA30-NR-022",
+      "conversation_id": "tb_e4451a94358b4e03ab19feb3",
+      "turn_id": "turn_1780697488934_b76996c1b2",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（水平）：【解析】固定式遮阳时，南向宜采用水平遮阳；东北、西北及北回归线以南地区的北向宜采用垂直遮阳；东、西向窗口宜采用挡板遮阳；东南、西南朝向窗口宜采用组合遮阳。"
+    },
+    {
+      "round_id": "QA30-NR-023",
+      "conversation_id": "tb_6be79647522a4fdcbc4fa127",
+      "turn_id": "turn_1780697495992_6932bbd38c",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 BE（B. 可能发生爆炸、E. 机械强度高），题库解析依据是：本题考查的是安全玻璃，钢化玻璃的特性包括：机械强度高；弹性好；热稳定性好；碎后不\n易伤人；可发生自爆。"
+    },
+    {
+      "round_id": "QA30-NR-024",
+      "conversation_id": "tb_6be79647522a4fdcbc4fa127",
+      "turn_id": "turn_1780697519612_e240fe15ef",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（可能发生爆炸）、E（机械强度高）：【解析】本题考查的是安全玻璃，钢化玻璃的特性包括：机械强度高；弹性好；热稳定性好；碎后不 易伤人；可发生自爆。"
+    },
+    {
+      "round_id": "QA30-NR-025",
+      "conversation_id": "tb_f45d051a9c62434fba8a13eb",
+      "turn_id": "turn_1780697542499_b1ae9bd2ac",
+      "done_status": "completed",
+      "visible_excerpt": "我还不知道你要批改哪一道题。\n\n请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+    },
+    {
+      "round_id": "QA30-NR-026",
+      "conversation_id": "tb_f45d051a9c62434fba8a13eb",
+      "turn_id": "turn_1780697565682_9f15ad93a9",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n对大多数考生来说，**7天不够**，但看你怎么用。\n\n## 判断依据\n\n- 7天只够做 **高频考点速过 + 错题复盘 + 模拟题手感保持**，做不到系统重学。\n- 如果目标是 **稳住已会、抢回易错分**，7天有价值。\n- 如果指望7天从零补完所有薄弱模块，不现实。\n\n## 采分点\n\n- **7天策略**：只做三件事——①每天一套选择题保持手感，②集中复盘错题本里频次最高的3个考点，③案例题练2道完整作答+1道采分点速写。\n- **时间分配建议**：前3天专攻"
+    },
+    {
+      "round_id": "QA30-NR-027",
+      "conversation_id": "tb_d1dda0e73946438c9242f8df",
+      "turn_id": "turn_1780697605466_4644485a92",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：BE（B. 钻孔减压、E. 水平封底隔渗）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n当基坑底为隔水层且层底作用有承压水时，应进行坑底突涌验算。必要时可采取水平封底隔\n渗或钻孔减压措施，保证坑底土层稳定；避免突涌的发生。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 BE，不要把 A. 集水明排、C. 井点降水"
+    },
+    {
+      "round_id": "QA30-NR-028",
+      "conversation_id": "tb_d1dda0e73946438c9242f8df",
+      "turn_id": "turn_1780697636490_68d43c5775",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（钻孔减压）、E（水平封底隔渗）：【解析】当基坑底为隔水层且层底作用有承压水时，应进行坑底突涌验算。必要时可采取水平封底隔 渗或钻孔减压措施，保证坑底土层稳定；避免突涌的发生。"
+    },
+    {
+      "round_id": "QA30-NR-029",
+      "conversation_id": "tb_d252c4c67cd8464a9f669aa4",
+      "turn_id": "turn_1780697644091_87de15d8f7",
+      "done_status": "completed",
+      "visible_excerpt": "我还不知道你要批改哪一道题。\n\n请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+    },
+    {
+      "round_id": "QA30-NR-030",
+      "conversation_id": "tb_d252c4c67cd8464a9f669aa4",
+      "turn_id": "turn_1780697668366_eddd8b032a",
+      "done_status": "completed",
+      "visible_excerpt": "好的，按第8题直接判。请把你的答案发过来，我直接判定对错并拆错因。"
+    },
+    {
+      "round_id": "QA30-NR-031",
+      "conversation_id": "tb_428b08b6ced941abaa80a3ea",
+      "turn_id": "turn_1780697713837_5533532095",
+      "done_status": "completed",
+      "visible_excerpt": "好的，我按采分点推演帮你批改这道题。\n\n---\n\n## 评分口径\n采分点推演阅卷（本题无人工校准 Rubric，以下为基于标准答案的推演评分）\n\n## 预计得分\n**4分 / 5分**\n\n## 采分点拆解\n\n| 采分点 | 你的答案 | 得分 |\n|--------|----------|------|\n| ① 指出\"不妥\" | 写了\"不妥\" | ✅ 满分 |\n| ② 龄期≥28天 | 写了\"应龄期28天\" | ✅ 满分 |\n| ③ 含水率要求 | 写了\"含水率宜小于30%\""
+    },
+    {
+      "round_id": "QA30-NR-032",
+      "conversation_id": "tb_428b08b6ced941abaa80a3ea",
+      "turn_id": "turn_1780697741881_5e56ed4411",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n7天不行，因为**蒸压加气混凝土砌块的收缩变形尚未稳定**，上墙后容易开裂。\n\n## 判断依据\n规范要求加气混凝土砌块**龄期≥28天**才能用于砌筑，7天时：\n- **收缩率大：** 出釜后早期收缩快，上墙后持续收缩会导致墙体开裂\n- **强度未稳定：** 养护龄期不足，抗压强度还在增长过程中\n\n## 采分点\n- 不妥，龄期不应少于28天\n- 上墙前含水率不宜大于20%\n\n## 易错点\n- **加气块28天** vs **普通混凝土小砌块28天**——两者龄期要"
+    },
+    {
+      "round_id": "QA30-NR-033",
+      "conversation_id": "tb_2ba78c1a3f7b41dc8bd33d63",
+      "turn_id": "turn_1780697769219_adc844919a",
+      "done_status": "completed",
+      "visible_excerpt": "好的，你问的是**二建市政**的沥青混合料摊铺温度，我先按通用考试口径给你讲，证据不足的地方会说明。\n\n---\n\n## 结论\n\n沥青混合料摊铺温度的核心记忆逻辑是：**看粘层（改性/普通）→ 定下限**。普通沥青摊铺温度不低于 **110℃**，改性沥青不低于 **160℃**。\n\n## 判断依据（通用考试口径）\n\n沥青混合料到场后，摊铺温度取决于两个因素：\n\n1. **沥青种类**：普通道路石油沥青 vs 改性沥青。\n2. **气温条件**：低温季节适当提高下限。\n\n**普"
+    },
+    {
+      "round_id": "QA30-NR-034",
+      "conversation_id": "tb_d4a4f4d4e91342a095ccb461",
+      "turn_id": "turn_1780697800992_43a0d87dfb",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：D（D. 5%）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n屋面最小坡度：压型金属板：5%。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 D，不要把 A. 1%、B. 2%、C. 3% 误并入答案。 |\n\n## 🎯 核心要点\n- ✅ 命中：D. 5%是本题题库标准答案。\n- ❌ 遗漏：不要把A. 1%、B. "
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

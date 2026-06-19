@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-06-06T06:45:55+0800",
+  "entry_surface": "near_real_http_ws_case_authority_after_fix",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_case",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-case-authority-after-fix-20260606",
+  "rounds": 1,
+  "conversation_ids": {
+    "case_masonry": "tb_5fd8674b45cc4733af8df3ed"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-031-FIX",
+      "conversation_id": "tb_5fd8674b45cc4733af8df3ed",
+      "turn_id": "turn_1780699538894_903501ae4d",
+      "done_status": "completed",
+      "visible_excerpt": "## 评分口径\n提分诊断（本轮没有命中题库原题、标准答案或结构化采分点）\n\n## 预计得分\n本次不硬估标准分。\n\n你当前作答：不妥，应龄期28天，含水率宜小于30%\n\n## 先看你的作答\n- 可以先保留你已经写出的判断和关键参数。\n- 但案例题是否给分，必须以原题标准答案、分值和采分点为准；本轮没有这份 authority，不能把诊断包装成官方阅卷。\n\n## 下一步\n把题卡、题号、标准答案或采分点一起发来，我再按标准采分点逐条批改；如果只有题面和你的作答，我可以继续帮你改成更"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

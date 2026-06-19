@@ -1,0 +1,71 @@
+{
+  "go_no_go": {
+    "verdict": "GO",
+    "scope": "textbook verbatim lane — full 2026 textbook signed pack; NO publish / production / canonical / remote",
+    "hard_gates": {
+      "signed_something": true,
+      "bundle_verifies": true,
+      "verbatim_rate_ok": true,
+      "external_laundering_zero": true,
+      "key_number_not_in_text_signed_zero": true,
+      "promote_only_in_s5": true,
+      "no_source_laundering": true,
+      "tamper_fail_closed": true,
+      "published_false": true,
+      "canonical_truth_not_written": true,
+      "production_write_zero": true,
+      "node_code_indexed": true,
+      "handoff_authority_is_server_only": true,
+      "coverage_reported_honestly": true
+    },
+    "blocks_processed": 650,
+    "out_of_scope_unchanged": [
+      "publish",
+      "production_default",
+      "canonical_learner_truth",
+      "remote_deploy"
+    ]
+  },
+  "coverage": {
+    "blocks_processed": 650,
+    "total_cards": 1309,
+    "signed_count": 1303,
+    "work_order_count": 6,
+    "dropped_count": 0,
+    "by_provenance_bucket": {
+      "textbook_authority": 698,
+      "textbook_concept": 597,
+      "synthesis": 6,
+      "machine_spec": 8
+    },
+    "signed_pct_of_cards": 0.995,
+    "node_codes_covered": 18,
+    "honest_note": "signed = verbatim-confirmed subset; backlog (external/synthesis/human-gate) is named + append-only; NOT a claim the whole textbook is compiled to answer-keys."
+  },
+  "audit": {
+    "signed": 1303,
+    "quote_not_in_corpus": 0,
+    "key_number_not_in_corpus": 0,
+    "verbatim_rate_ok": true
+  },
+  "handoff": {
+    "sample_node": "1A411011",
+    "granted_official_score_allowed": true,
+    "ungranted_official_score_allowed": false,
+    "authority_is_server_kwarg_only": true
+  },
+  "blocks": 650,
+  "cards": 1309,
+  "blocklist_size": 7,
+  "native_node_code_reanchor": {
+    "stale_blocks": 29,
+    "by_stale_code": {
+      "1A421000": 6,
+      "1A432001": 8,
+      "1A432002": 15
+    },
+    "by_method": {
+      "classify_leaf_l4_prefix": 29
+    }
+  }
+}

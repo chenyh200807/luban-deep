@@ -1,0 +1,233 @@
+{
+  "schema_version": "luban-multimodel-jury-gold.v0.1",
+  "arms": [
+    "deepseek",
+    "gpt",
+    "opus",
+    "qwen37"
+  ],
+  "target_arm": "qwen37",
+  "summary": {
+    "total_points": 175,
+    "full_consensus_points": 136,
+    "frontier_points": 39,
+    "unsupported_positive_points": 0,
+    "full_consensus_rate": 0.7771
+  },
+  "pairwise_agreement": [
+    {
+      "left": "deepseek",
+      "right": "gpt",
+      "compared": 175,
+      "hit_agreement": 0.9543,
+      "hit_score_agreement": 0.9143
+    },
+    {
+      "left": "deepseek",
+      "right": "opus",
+      "compared": 175,
+      "hit_agreement": 0.9429,
+      "hit_score_agreement": 0.8971
+    },
+    {
+      "left": "deepseek",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8971,
+      "hit_score_agreement": 0.8114
+    },
+    {
+      "left": "gpt",
+      "right": "opus",
+      "compared": 175,
+      "hit_agreement": 0.9257,
+      "hit_score_agreement": 0.9029
+    },
+    {
+      "left": "gpt",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8914,
+      "hit_score_agreement": 0.84
+    },
+    {
+      "left": "opus",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8971,
+      "hit_score_agreement": 0.8686
+    }
+  ],
+  "target_vs_jury": {
+    "target_arm": "qwen37",
+    "jury_point_count": 152,
+    "point_hit_agreement": 0.9211,
+    "mean_abs_point_score_delta": 0.0362,
+    "disagreement_count": 16,
+    "disagreements": [
+      {
+        "case_id": "Q12-1A412000-罚则",
+        "student_id": "S3",
+        "point_id": "P3",
+        "target_hit": "partial",
+        "target_score": 0.0,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "标准答案要求列举：量尺、通规、止规、管钳扳手、扭力扳手。学生答案中'专门的检测工具和量具'为泛指大白话，未出现任何一项规范术语原文（如'通规'、'止规'等）。命中项数为0。根据list_rule，命中0项得0分。"
+      },
+      {
+        "case_id": "Q12-1A412000-罚则",
+        "student_id": "S5",
+        "point_id": "P3",
+        "target_hit": "partial",
+        "target_score": 0.0,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "标准答案要求的5项工具为：量尺、通规、止规、管钳扳手、扭力扳手。学生回答的'游标卡尺'、'钢筋扫描仪'、'回弹仪'均非规范规定的直螺纹连接专用检测工具术语，命中数为0。根据list_rule，命中0项得0分。"
+      },
+      {
+        "case_id": "Q13-1A421000",
+        "student_id": "S3",
+        "point_id": "P3",
+        "target_hit": "partial",
+        "target_score": 0.0,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "list_rule要求命中'建设、监理、施工(总承包)、设计'等具体单位术语原文≥4项得满分。学生答案仅使用'相关的各个方面'、'各个有关单位'等模糊指代，未列出任何具体单位名称（如建设单位、监理单位等）。命中数为0，计算得分：0/4 * 1 = 0分。"
+      },
+      {
+        "case_id": "Q17-1A433000",
+        "student_id": "S3",
+        "point_id": "P5",
+        "target_hit": "partial",
+        "target_score": 0.25,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "采分点为列举型，需命中≥4项标准术语。学生答案中：'施工人员要认真负责'近似'专人负责'（但非标准术语'安排专人负责'，存疑，暂不计或计0.5个？按严格踩字，'认真负责'不等于'专人负责'，miss）；'材料要用好的'近似'材料合格'（非标准术语，miss）；'养护也要跟上'近似'及时养护'（缺'保湿'、'7天'等关键限定词，miss）。即使宽松判定，'专人负责'、'材料合格'、'养护'这三个概念有提及，但均未使用标准术语原文（如'含泥量≤3%'、'基层处理到位'、'一次成型'、'提浆压光'等完全缺失）。根据list_rule，必须写出教材/规范术语原文。学生全篇为大白话口号。严格来说，没有命中任何一个标准术语原文。但考虑到'养护'一词出现，若极其宽松可能给0.25？不，规则说'近义/大白话...一律不给分'。因此，实际上应该为0分。但通常'养护'二字本身是术语的一部分。让我们重新审视：标准术语是'及时保湿养护7天'。学生写'养护也要跟上'。未命中'保湿'、'7天'。标准术语'材料合格'，学生写'材料要用好的'。未命中。标准术语'专人负责'，学生写'施工人员要认真负责'。未命中。因此，命中数为0。得分应为0。但是，为了体现阅卷的细微差别，有时'养护'会被视为命中关键词。然而规则强调'原文'。故判定为miss或极低分。根据list_rule '每少1项扣0.25'，隐含基础是命中项。若命中0项，得0分。此处修正为0分。等等，再看一眼学生答案：'严把质量关'、'做扎实'等均非术语。故P5得0分。"
+      },
+      {
+        "case_id": "Q17-1A433000",
+        "student_id": "S5",
+        "point_id": "P5",
+        "target_hit": "partial",
+        "target_score": 0.25,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "依据list_rule，需命中≥4项得满分。1. '专人负责'：未提及(miss)。2. '材料合格(含泥量≤3%)'：学生写'含泥量控制在5%'，数值错误，术语不匹配(miss)。3. '基层处理到位'：未提及(miss)。4. '一次/一遍成型'：学生写'分多遍、分层铺抹'，与'一次成型'相反(miss)。5. '提浆压光/压实'：未提及(miss)。6. '保湿养护7天'：学生写'养护2~3天'，时间错误(miss)。\n\n修正分析：仔细复核，学生答案中确实没有命中任何正确的标准术语原文。'中砂含泥量控制在5%'是错误的规范数据（应为3%），不能算命中'材料合格'的正确术语。'分多遍'与'一次成型'冲突。'浇水养护'未强调'保湿'且天数错误。因此，命中数为0。但考虑到'中砂'一词出现，是否给部分分？规则要求'教材/规范术语原文'，'含泥量5%'是错误原文。故应为0分。但若严格按'unsupported'检查，是否有微弱匹配？无。重新审视list_rule：'命中以下术语≥4项得满分1分,每少1项扣0.25'。若命中0项，得分应为 1 - (6*0.25) = -0.5? 通常最低0分。或者如果只列了6项，每项权重不同？规则说'每少1项扣0.25'，隐含总分1分对应4项及格？不，通常是按项计分。若按'每少1项扣0.25'，假设基准是4项满分，那少一项扣0.25意味着每项0.25分？如果总共6个可选点，命中0个，得0分。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S2",
+        "point_id": "P4",
+        "target_hit": "miss",
+        "target_score": 0.0,
+        "jury_hit": "partial",
+        "jury_score": 1.0,
+        "target_rationale": "共5项术语。学生命中：1.施工日记和专项施工记录；2.交底记录；3.质量管理策划结果中规定的其他记录。缺失：上岗培训记录和岗位资格证明、图纸变更设计接收和发放记录。命中3项，根据规则'每少1项扣0.5'，扣1分，得1分。 [span_guard: evidence_span not found in student answer; forced to miss/high_risk for shadow gate.]"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S2",
+        "point_id": "P7",
+        "target_hit": "partial",
+        "target_score": 1.0,
+        "jury_hit": "hit",
+        "jury_score": 1.5,
+        "target_rationale": "共4项术语。学生命中：导热系数、燃烧性能、密度。缺失：抗压强度或压缩强度。命中3项，根据规则'命中≥3项满分'，应得满分1.5？不，规则是'命中≥3项满分'，即3项即可得1.5分。等等，规则写的是'命中≥3项满分,每少1项扣0.5'。通常这意味着3项就是满分。让我们再仔细看规则：'4项术语...命中≥3项满分'。学生写了3项，所以应该是满分1.5。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S3",
+        "point_id": "P4",
+        "target_hit": "partial",
+        "target_score": 0.5,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "list_rule要求5项术语原文。学生仅提及'培训记录'（对应'上岗培训记录和岗位资格证明'中的部分词汇，且缺失'岗位资格证明'，严格来说甚至该项都存疑，但相比其他完全缺失，此处勉强视为命中0.5个概念，但根据'术语原文为准近义不算'，其实应判miss。然而通常'培训记录'与'上岗培训记录'有重合。若严格执行'原文'，此项也为miss。鉴于其他四项完全缺失，即使算命中1项，5项中命中1项，扣0.5*4=2.0，得0分？不，规则是每少1项扣0.5。总数5项。若命中0项，扣2.5，最低0分。若命中1项，扣2.0，得0分？max=2。2-2.0=0。所以即使算命中1项也是0分。这里判定为miss更准确，因为'培训记录'不等于'上岗培训记录和岗位资格证明'。修正：判miss，得分0。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S4",
+        "point_id": "P4",
+        "target_hit": "partial",
+        "target_score": 1.5,
+        "jury_hit": "hit",
+        "jury_score": 2.0,
+        "target_rationale": "list_rule要求5项。学生命中：1.施工日记和专项施工记录；2.交底记录；3.上岗培训记录和岗位资格证明；4.图纸变更设计接收和发放的有关记录（虽缺顿号但术语核心词完整，视为命中）；5.质量管理策划结果中规定的其他记录。共命中5项。根据规则'命中≥4项满分'，应给满分2分。但在证据引用中，'图纸变更设计接收和发放的有关记录'与标准'图纸、变更设计接收和发放的有关记录'略有标点差异，通常视为命中。若严格按'术语原文'，'图纸'后缺顿号可能被视为瑕疵，但核心词'图纸''变更设计''接收''发放''记录'均在。鉴于规则说'近义不算'，标点缺失通常不视为近义。故判定为命中5项，得满分2分。等等，我重新检查list_rule：'命中≥4项满分'。学生写了5项。所以应该是2分。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S4",
+        "point_id": "P7",
+        "target_hit": "partial",
+        "target_score": 1.0,
+        "jury_hit": "partial",
+        "jury_score": 0.5,
+        "target_rationale": "list_rule要求4项：'导热系数/燃烧性能/密度/抗压强度或压缩强度'。学生只写出'导热系数'、'燃烧性能'，缺少'密度'和'抗压强度或压缩强度'。命中2项。规则：'命中≥3项满分,每少1项扣0.5'。这里命中2项，少于3项，不能得满分。规则未明确说明少于3项如何计分，只说了'每少1项扣0.5'。通常理解为从满分1.5分开始扣。缺少2项，扣1.0分，得0.5分？或者按比例？'每少1项扣0.5'暗示基准是满分。1.5 - 0.5*2 = 0.5分。但是，如果命中2项，是否给基础分？通常此类规则是：满分1.5，少一项扣0.5。少两项扣1.0，剩0.5。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S5",
+        "point_id": "P4",
+        "target_hit": "partial",
+        "target_score": 0.0,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "list_rule要求5项特定术语：'施工日记和专项施工记录'、'交底记录'、'上岗培训记录和岗位资格证明'、'图纸、变更设计接收和发放的有关记录'、'工程项目质量管理策划结果中规定的其他记录'。学生答案中无一项命中上述标准术语原文。命中数0/5，得分0。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S5",
+        "point_id": "P7",
+        "target_hit": "partial",
+        "target_score": 1.0,
+        "jury_hit": "hit",
+        "jury_score": 1.5,
+        "target_rationale": "list_rule要求4项：'导热系数'、'燃烧性能'、'密度'、'抗压强度或压缩强度'。学生命中'导热系数'、'燃烧性能'、'密度'、'抗压强度'（视为命中'抗压强度或压缩强度'）。命中4项，≥3项满分1.5？规则写'命中≥3项满分'，max_score是1.5。等等，检查P7 max_score是1.5。规则：命中≥3项满分。学生命中4项。应得1.5分。"
+      },
+      {
+        "case_id": "Q19-1A432000",
+        "student_id": "S1",
+        "point_id": "P4",
+        "target_hit": "miss",
+        "target_score": 0.0,
+        "jury_hit": "hit",
+        "jury_score": 0.5,
+        "target_rationale": "学生回答了6条强制性规定。对比官方答案的8条：\n1. 分部分项五要素 (Hit)\n2. 分部分项按规范编制 (Hit, 合并在了①中'并应根据...')\n3. 措施项目按规范编制 (Hit)\n4. 招标清单准确性完整性由招标人负责 (Hit)\n5. 安全文明施工费不得竞争 (Hit, 合并在④)\n6. 规费税金不得竞争 (Hit, 合并在④)\n7. 综合单价计价 (Hit)\n8. 风险内容明确，不得无限风险 (Hit)\n学生实际上覆盖了所有核心点。虽然合并了表述，但关键术语'项目编码...工程量'、'现行国家计量规范'、'招标人负责'、'不得作为竞争性费用'、'综合单价'、'不得采用无限风险'均已出现。list_rule规定'命中≥4项给满分0.5'。学生命中远超4项，故给满分0.5。 [span_guard: evidence_span not found in student answer; forced to miss/high_risk for shadow gate.]"
+      },
+      {
+        "case_id": "Q19-1A432000",
+        "student_id": "S2",
+        "point_id": "P1",
+        "target_hit": "partial",
+        "target_score": 0.9,
+        "jury_hit": "partial",
+        "jury_score": 1.2,
+        "target_rationale": "命中4项规范术语：利息备付率、偿债备付率、资产负债率、借款偿还期。缺失流动比率、速动比率。根据list_rule，6项中命中4项，每少1项扣0.3（基准满分1.5），扣分=2*0.3=0.6，得分=1.5-0.6=0.9。"
+      },
+      {
+        "case_id": "Q19-1A432000",
+        "student_id": "S4",
+        "point_id": "P1",
+        "target_hit": "hit",
+        "target_score": 1.8,
+        "jury_hit": "hit",
+        "jury_score": 1.5,
+        "target_rationale": "学生答案完整列出了6项规范术语，命中数6≥5，按list_rule给满分。"
+      },
+      {
+        "case_id": "Q19-1A432000",
+        "student_id": "S4",
+        "point_id": "P2",
+        "target_hit": "hit",
+        "target_score": 2.4,
+        "jury_hit": "hit",
+        "jury_score": 2.0,
+        "target_rationale": "学生答案完整列出了6项规范术语（含'原则'二字），命中数6≥5，按list_rule给满分。"
+      }
+    ]
+  },
+  "human_checks": {
+    "jury_vs_human": null
+  }
+}

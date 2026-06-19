@@ -1,0 +1,20 @@
+{
+  "m7_compatible": true,
+  "list_rule_requires_coverage_1_0": true,
+  "council_final_action_gate_enforced": true,
+  "repaired_anchor_deterministic_reverify_required": true,
+  "normalized_points_auto_certifiable": 0,
+  "split_points_auto_certifiable": 0,
+  "official_answer_upgraded_to_textbook_source": 0,
+  "human_reviewed_true_count": 0,
+  "formal_registry_emitted": false,
+  "runtime_connected": false,
+  "forbidden_actions_blocked_from_auto": [
+    "split_point",
+    "require_external_source",
+    "rewrite_point",
+    "drop_point",
+    "keep_draft",
+    "council_not_publish"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-06T07:19:59+0800",
+  "entry_surface": "near_real_http_ws_learner_answer_after_fix_r2",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_value_state_fix_r2_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-next-probes-20260606-learner-answer-after-fix-r2",
+  "rounds": 2,
+  "conversation_ids": {
+    "low_info_exam_index": "tb_0b5744a7892b4079916477b4",
+    "shuffled_value_anchor": "tb_eab1119b05bc4d929d7d9bb0"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NEXT-003-FIX",
+      "conversation_id": "tb_0b5744a7892b4079916477b4",
+      "turn_id": "turn_1780701559286_0f0aff0e39",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2025建筑实务第15题答案直接发我，别问。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NEXT-004-FIX",
+      "conversation_id": "tb_eab1119b05bc4d929d7d9bb0",
+      "turn_id": "turn_1780701584608_8f279dafa3",
+      "done_status": "completed",
+      "visible_excerpt": "标准答案是 B（B. 25年），题库解析依据是：解析：室内工程防水设计工作年限不应低于25年。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

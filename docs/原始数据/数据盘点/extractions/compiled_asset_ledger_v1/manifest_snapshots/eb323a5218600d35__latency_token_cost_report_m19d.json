@@ -1,0 +1,13 @@
+{
+  "cost_basis": "no new live calls; deterministic provider soak, M17C supplies live ability evidence",
+  "cost_estimate_p50_usd": 0,
+  "cost_estimate_p95_usd": 0,
+  "duplicated_paid_calls": 0,
+  "latency_p50_ms": 26.654,
+  "latency_p95_ms": 45.969,
+  "latency_p99_ms": 72.451,
+  "live_llm_calls_executed": false,
+  "submissions_total": 300,
+  "token_p50": 1200.0,
+  "token_p95": 1200.0
+}

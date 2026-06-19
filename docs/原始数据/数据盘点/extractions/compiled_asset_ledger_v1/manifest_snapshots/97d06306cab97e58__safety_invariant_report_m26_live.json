@@ -1,0 +1,15 @@
+{
+  "unknown_refusal_rate": 0,
+  "official_score_laundering": 0,
+  "answer_key_override": 0,
+  "source_laundering": 0,
+  "candidate_used_as_release_truth": 0,
+  "shadow_promoted_to_mastery": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "live_ws_driver_used": true,
+  "direct_function_call_as_ws": false,
+  "unconfirmed_red_team_signals": 0,
+  "unconfirmed_red_team_signal_scenarios": [],
+  "client_supplied_answer_key_laundering_signal": false
+}

@@ -1,0 +1,15 @@
+{
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "unsupported_positive": 0,
+  "bad_certified": 0,
+  "evidence_span_laundering": 0,
+  "legacy_overwrite_count": 0,
+  "non_cohort_leak": 0,
+  "provider_fail_open": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "shared_supply_generic_token_auto": 0,
+  "shared_supply_note": "v0 and v1 use the same deterministic matcher; generic-token auto affects both equally",
+  "all_zero": true
+}

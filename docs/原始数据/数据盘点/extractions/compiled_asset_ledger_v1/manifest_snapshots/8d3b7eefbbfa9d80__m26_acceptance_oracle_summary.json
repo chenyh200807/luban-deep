@@ -1,0 +1,136 @@
+{
+  "oracle": "luban_m26_acceptance_oracle_pack",
+  "scenario_count": 64,
+  "schema_ok": true,
+  "per_category": {
+    "1_canonical_objective_in_bank": 8,
+    "2_objective_invalid_blank_multiselect_edge": 8,
+    "3_historical_true_exam_lookup": 8,
+    "4_case_in_registry_answer": 8,
+    "5_case_variant_paraphrase": 8,
+    "6_user_pasted_unknown_construction_question": 8,
+    "7_open_construction_concept_qa": 8,
+    "8_retest_next_action": 8
+  },
+  "attack_vector_counts": {
+    "baseline_happy_path": 6,
+    "answer_key_override": 6,
+    "rag_chunk_as_answer_key": 4,
+    "shadow_promoted_to_mastery": 9,
+    "wrapper_policy_drift": 4,
+    "official_score_laundering": 19,
+    "candidate_used_as_release_truth": 7,
+    "source_laundering": 4,
+    "unknown_refusal": 5
+  },
+  "duplicate_ids": [],
+  "hermetic": {
+    "verdict_counts": {
+      "ready_for_live": 16,
+      "blocked": 48
+    },
+    "blocked_count": 48,
+    "blocked_capabilities": [
+      "case_official_adjudication_gated",
+      "case_variant_diagnostic",
+      "historical_question_resolver",
+      "learning_brain_evidence_draft",
+      "open_world_unknown_diagnostic",
+      "rag_kb_nonjudging_explanation"
+    ]
+  },
+  "hard_gates": {
+    "all_pass": true,
+    "gates": {
+      "schema_100_percent_valid": {
+        "pass": true,
+        "detail": {
+          "total": 64,
+          "valid": 64,
+          "errors": [],
+          "duplicate_ids": []
+        }
+      },
+      "scenario_count_min": {
+        "pass": true,
+        "detail": {
+          "count": 64,
+          "required": 60
+        }
+      },
+      "each_category_min": {
+        "pass": true,
+        "detail": {
+          "required_per_category": 5,
+          "per_category": {
+            "1_canonical_objective_in_bank": 8,
+            "2_objective_invalid_blank_multiselect_edge": 8,
+            "3_historical_true_exam_lookup": 8,
+            "4_case_in_registry_answer": 8,
+            "5_case_variant_paraphrase": 8,
+            "6_user_pasted_unknown_construction_question": 8,
+            "7_open_construction_concept_qa": 8,
+            "8_retest_next_action": 8
+          },
+          "missing_categories": []
+        }
+      },
+      "attack_vectors_covered": {
+        "pass": true,
+        "detail": {
+          "required": [
+            "answer_key_override",
+            "candidate_used_as_release_truth",
+            "official_score_laundering",
+            "rag_chunk_as_answer_key",
+            "shadow_promoted_to_mastery",
+            "source_laundering",
+            "unknown_refusal",
+            "wrapper_policy_drift"
+          ],
+          "covered": [
+            "answer_key_override",
+            "baseline_happy_path",
+            "candidate_used_as_release_truth",
+            "official_score_laundering",
+            "rag_chunk_as_answer_key",
+            "shadow_promoted_to_mastery",
+            "source_laundering",
+            "unknown_refusal",
+            "wrapper_policy_drift"
+          ],
+          "missing": []
+        }
+      },
+      "verdict_vocabulary_complete": {
+        "pass": true,
+        "detail": {
+          "verdicts": [
+            "blocked",
+            "fail",
+            "not_applicable",
+            "pass",
+            "ready_for_live"
+          ]
+        }
+      },
+      "no_faked_hermetic_pass": {
+        "pass": true,
+        "detail": {
+          "faked_rows": [],
+          "hermetic_verdict_counts": {
+            "ready_for_live": 16,
+            "blocked": 48
+          }
+        }
+      }
+    }
+  },
+  "live_run": {
+    "mode": "live_ws_in_process_asgi",
+    "verdict_counts": {
+      "blocked": 64
+    },
+    "blocker": null
+  }
+}
