@@ -8,3 +8,10 @@
 /scripts/ci/baselines/** @chenyh200807
 /.secrets.baseline @chenyh200807
 /.bandit-baseline.json @chenyh200807
+
+# Require owner review for the contract-guard's own rule source. contracts/index.yaml
+# defines every domain's protected_patterns / test_files; an unreviewed PR could
+# weaken the grading/turn gate by editing the rules it is judged against. The
+# contract-index-no-shrink closure in check_contract_guard.py is the structural
+# backstop; this is the review-layer one.
+/contracts/** @chenyh200807

@@ -1,3 +1,5 @@
 # Run a daily runtime backup at 03:10 UTC and prune old archives.
-10 3 * * * cd /opt/deeptutor && /usr/bin/python3 scripts/backup_data.py >> /var/log/deeptutor-backup.log 2>&1
-20 3 * * * cd /opt/deeptutor && /usr/bin/python3 scripts/prune_backups.py --keep-daily 7 --keep-weekly 2 --keep-monthly 1 >> /var/log/deeptutor-backup.log 2>&1
+# /root/deeptutor is the single writable root on the Aliyun host (AGENTS.md §3.7);
+# keep the working dir AND the log inside it — never /opt/deeptutor or /var/log.
+10 3 * * * cd /root/deeptutor && /usr/bin/python3 scripts/backup_data.py >> /root/deeptutor/data/backup.log 2>&1
+20 3 * * * cd /root/deeptutor && /usr/bin/python3 scripts/prune_backups.py --keep-daily 7 --keep-weekly 2 --keep-monthly 1 >> /root/deeptutor/data/backup.log 2>&1
