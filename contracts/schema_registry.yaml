@@ -72,6 +72,33 @@ completeness_closure:
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
   # not in T1/T2 MUST match a tier3_carve_out pattern (no uncovered identifier).
 
+# ── Content / asset contracts (non-grading, non-runtime-canonical) ───────────
+#
+# These contracts govern persisted teaching/preview artifacts that are consumed by
+# the diagram-microlesson production toolchain, not by the grading / serving /
+# learner-brain runtime. They are registered here to prevent untracked content
+# schema drift, but they are deliberately outside T1/T2: no official-score
+# authority, no runtime-canonical claim, no grading field canonicalization.
+content_asset_contracts:
+  - name: luban_teaching_animation.v0
+    owner: diagram_microlesson
+    contract_for: presentation-only lesson artifact (beats/narration/QA/timing/action metadata)
+    validation_gate: artifacts/luban_case_family_assets/diagram_microlesson/validate_animation_action_schema.py
+    validation_scope: optional-present animation_action[] by default; per-card gate may pass --require-actions
+    consumed_by: build_lesson_narration.mjs + render_teaching_animation.py + render_archetype_journey.py + validate_timing_sync.mjs
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
+  - name: luban_card_bundle_manifest.v0
+    owner: diagram_microlesson
+    contract_for: preview/production asset manifest (master/lesson/timing/rendered/practice file list and hashes)
+    validation_gate: artifacts/luban_case_family_assets/diagram_microlesson/build_card_bundle_manifest.py
+    validation_scope: required core assets plus timing audio by default; practice can be made blocking with --require-practice; emitted paths are bundle-root relative
+    consumed_by: gate.sh + preview/review workflow + later WeChat WebView package assembly
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
+
 # ── Tier3 carve-out: ephemeral one-shot artifacts (rule, NOT 1:1 registration) ─
 #
 # Tier3 = audit / eval / ab / gate / report / packet / record / work_orders /

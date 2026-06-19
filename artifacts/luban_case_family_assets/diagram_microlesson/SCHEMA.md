@@ -115,6 +115,51 @@
 - renderer **不得**根据 `diagnosis` 或 `critical_path` **重新判分**，只能展示已编译 verdict。
 - `compute_cpm()` 只是 **build-time 自洽校验器/派生器**（校验 N01 的 `expected` 与确定性 CPM 一致并派生 ES/EF 供展示），**不是 official scoring authority**；日后可抽成独立网络计划编译器，仍不得让前端 renderer 现场判断。
 
+## 教学动画编译工件 `luban_teaching_animation.v0`
+
+`*.lesson.json` 是图解微课的 presentation compile artifact：它描述讲解节拍、旁白、答疑、舞台状态和展示动作，供 narration / timing / renderer 消费。它不是知识库、不是评分对象、不是 official answer key，也不创建新的 schema-version authority。
+
+M1 在现有 `luban_teaching_animation.v0` 内为 `teach.beats[]` 增加可选但在 J01 中必填的 `animation_action[]` 元数据：
+
+```jsonc
+{
+  "id": "gate5_act",
+  "stage": "gate5",
+  "claim": true,
+  "anchor": "decision.outcomes[need_argumentation].label",
+  "sync_keyword": "组织专家论证",
+  "animation_action": [
+    {"type": "highlight", "target": "data-id:action.expert_argumentation"},
+    {"type": "keycard", "target": "data-id:keycard.gate5_act"}
+  ],
+  "keycard": {"text": "→ 超规模还要组织专家论证", "tone": "a"},
+  "narration": "..."
+}
+```
+
+约束：
+
+- `animation_action[]` 只表达展示编排，不得新增、修改、推断知识事实或采分点。
+- M1 允许的 `type` 只有 `camera` / `highlight` / `reveal` / `keycard`。
+- 每个 action 必须有 `target`，且格式为 `data-id:<非空 id>`；`data-id:` 后不能为空。
+- `target` 是展示层定位钩子，不是 source_ref、scoring_point_id、official key 或 canonical knowledge id。
+- `claim=true` 的 `teach.beats[]` 和 `qa[].a` 必须带 `sync_keyword`，且该关键词必须命中对应 timing 段文本/keycard；由 `validate_timing_sync.mjs` fail-closed 守门。
+- 渲染器可以在 M1 先忽略 `animation_action[]`；消费它时仍只能做展示动作，不得现场判分或改写事实。
+
+## Bundle manifest `luban_card_bundle_manifest.v0`
+
+`*.bundle_manifest.json` / gate report 内的 `card_bundle_manifest.json` 是 preview/production 工具链资产清单。它记录 master、lesson、timing、rendered HTML、practice HTML 的存在状态、大小和 sha256，用来防止资源污染和缓存/缺文件假绿。
+
+边界：
+
+- `official_score_allowed=false`。
+- `runtime_canonical=false`。
+- `grading_authority=false`。
+- `learner_state_write_allowed=false`。
+- core assets(master/lesson/timing/rendered/timing.audio) 缺失必须失败；practice 在 M4 前可标 `pending_m4`，加 `--require-practice` 后才 blocking。
+- manifest 面向可迁移 bundle 审查,路径必须相对 bundle root；不得把 `/Users/...` 这类本机绝对路径当 release manifest truth。
+- manifest 可以含 schema/version/hash 等制作侧元数据，但不得直接注入学生 HTML；学生 HTML 只展示学习说明和教学内容。
+
 ## network_plan_keypath 字段
 
 ```jsonc

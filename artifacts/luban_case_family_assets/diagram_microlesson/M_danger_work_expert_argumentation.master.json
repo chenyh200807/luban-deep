@@ -20,6 +20,8 @@
   "examiner_intent": "考的不是背'要论证',是会不会用两级判据给【具体工程+具体数值】分档;尤其会不会处理'危大但未超规模'的中间档和'未达危大'的下限档。",
 
   "teaching_card_ref": "J01_danger_work_expert_argumentation",
+  "teaching_lesson_ref": "J01_danger_work_expert_argumentation.lesson.json",
+  "_lesson_ref_note": "讲懂层=教学动画脚本(PPT 式逐点 + 双人答疑);闭环渲染器 render_archetype_journey.py 读 master(顶层),把它内嵌为第一幕,讲完直接进 variants 闯关→mastery_discrimination 看穿,一镜到底。",
 
   "R3_scenario_templates": [
     {"id": "pit", "engineering": "基坑支护/开挖", "danger_threshold": "开挖深度≥3m(或<3m但地质/周边复杂)", "over_scale_threshold": "开挖深度≥5m"},
@@ -56,30 +58,35 @@
     {"id": "MC_wrong_threshold", "name": "用错工程的阈值", "signal": "把基坑 3/5m 套到模板支撑/脚手架", "maps_error_code_candidate": "(待映射)", "fix": "按工程查对应阈值表(基坑3/5、模板5/8、脚手架24/50)"}
   ],
 
+  "_variants_design_note": "变题 = R3_scenario_templates × R4_variable_rules 合法派生,每个挂 basis_ref 可追溯依据(被质疑回依据验证·红线17)。两类都要有:① 同工程(基坑)换数值分档(上限/中间边界/下限),考'会不会用两级判据分档';② 【换工程考判据链迁移】(模板/脚手架)——换工程是 R4.can_vary 明文允许的,正是考'掌握不变量(判据链)'而非'背基坑两个数'的必要题。迁移题题干给【该工程】阈值是合理的:定位=考判据链会不会迁移,不考背模板/脚手架阈值(背阈值是另一考点);讲懂幕已铺垫'判据链通用、阈值随工程'(transfer beat)。曾因被质疑动摇删过模板题=错误,已据 R3/R4 恢复。",
   "variants": [
-    {"id": "V1_pit", "scenario_id": "pit", "stem": "某工程基坑开挖深度 5.5m,已编制专项施工方案。是否需组织专家论证?",
-     "answer": "C", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案,但未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
-     "judged_outcome": "need_argumentation", "basis": "5.5m≥3m 危大、≥5m 超规模", "tier_tag": "上限档(需论证)", "feedback": "对:5.5≥5,超过一定规模,要论证。"},
-    {"id": "V2_formwork", "scenario_id": "formwork", "stem": "某模板支撑工程搭设高度 6m(模板支撑≥5m 危大、≥8m 超规模)。判断?",
-     "answer": "B", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案,但 6m<8m 未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
-     "judged_outcome": "scheme_only", "basis": "6≥5 危大、6<8 未超规模", "tier_tag": "中间档(编方案不论证)·边界陷阱", "feedback": "对:6m 到了危大但没到超规模,编方案即可,不用论证。"},
-    {"id": "V3_scaffold", "scenario_id": "scaffold", "stem": "某落地式钢管脚手架搭设高度 55m(脚手架≥24m 危大、≥50m 超规模)。判断?",
-     "answer": "C", "options": [{"id":"A","text":"非危大"},{"id":"B","text":"危大但未超规模,无需论证"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
-     "judged_outcome": "need_argumentation", "basis": "55≥24 危大、≥50 超规模", "tier_tag": "上限档(换工程仍需论证)", "feedback": "对:换成脚手架,55≥50 照样超规模,要论证。"},
-    {"id": "V4_pit_low", "scenario_id": "pit", "stem": "某基坑开挖深度 2.5m,地质简单、周边空旷。判断?",
-     "answer": "A", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"危大须编方案"},{"id":"C","text":"超过一定规模危大,需专家论证"}],
-     "judged_outcome": "not_dangerous", "basis": "2.5m<3m 且地质/周边不复杂,未达危大", "tier_tag": "下限档(非危大)", "feedback": "对:没到 3m 又不复杂,不构成危大,连专项方案都不需要。"}
+    {"id": "V1_pit_upper", "scenario_id": "pit", "basis_ref": "R3.pit(开挖≥3m 危大 / ≥5m 超规模)", "stem": "某工程基坑开挖深度 5.5m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?",
+     "answer": "C", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"属危大须编方案,但无需专家论证"},{"id":"C","text":"危大且超过一定规模,需专家论证"}],
+     "judged_outcome": "need_argumentation", "basis": "5.5m≥3m 危大、≥5m 超规模", "tier_tag": "上限档(需论证)", "feedback": "对:5.5m 已到 5m 这一档,超过一定规模,要论证。"},
+    {"id": "V2_pit_mid", "scenario_id": "pit", "basis_ref": "R3.pit(开挖≥3m 危大 / ≥5m 超规模)", "stem": "某工程基坑开挖深度 4m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?",
+     "answer": "B", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"属危大须编方案,但无需专家论证"},{"id":"C","text":"危大且超过一定规模,需专家论证"}],
+     "judged_outcome": "scheme_only", "basis": "4m≥3m 危大、4m<5m 未超规模", "tier_tag": "中间档(编方案不论证)·边界陷阱", "feedback": "对:4m 到了危大,但没到超过一定规模那一档,编方案即可、不用论证——这正是最容易混的中间档。"},
+    {"id": "V3_pit_low", "scenario_id": "pit", "basis_ref": "R3.pit(<3m 且不复杂=未达危大)", "stem": "某工程基坑开挖深度 2.5m,地质简单、周边空旷。是否需组织专家论证?",
+     "answer": "A", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"属危大须编方案"},{"id":"C","text":"危大且超过一定规模,需专家论证"}],
+     "judged_outcome": "not_dangerous", "basis": "2.5m<3m 且地质/周边不复杂,未达危大", "tier_tag": "下限档(非危大)", "feedback": "对:没到 3m 又不复杂,不构成危大,连专项方案都不需要。"},
+    {"id": "V4_formwork", "scenario_id": "formwork", "basis_ref": "R3.formwork(搭设高度≥5m 危大 / ≥8m 超规模)", "stem": "换个工程:某混凝土模板支撑工程搭设高度 6m(该工程:搭设高度≥5m 属危大、≥8m 属超过一定规模)。是否需组织专家论证?",
+     "answer": "B", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"属危大须编方案,但无需专家论证"},{"id":"C","text":"危大且超过一定规模,需专家论证"}],
+     "judged_outcome": "scheme_only", "basis": "6m≥5m 危大、6m<8m 未超规模(模板支撑阈值)", "tier_tag": "迁移档(换工程·危大不超规模)", "feedback": "对:换成模板支撑,判据链照走——6m≥5m 是危大要编方案,6m<8m 没到超规模、不用论证。换了工程,两道判据的结构没变,只是阈值数字不同。"},
+    {"id": "V5_scaffold", "scenario_id": "scaffold", "basis_ref": "R3.scaffold(搭设高度≥24m 危大 / ≥50m 超规模)", "stem": "再换个工程:某落地式钢管脚手架搭设高度 55m(该工程:搭设高度≥24m 属危大、≥50m 属超过一定规模)。是否需组织专家论证?",
+     "answer": "C", "options": [{"id":"A","text":"非危大,无需专项方案"},{"id":"B","text":"属危大须编方案,但无需专家论证"},{"id":"C","text":"危大且超过一定规模,需专家论证"}],
+     "judged_outcome": "need_argumentation", "basis": "55m≥24m 危大、55m≥50m 超规模(脚手架阈值)", "tier_tag": "迁移档(换工程·超规模需论证)", "feedback": "对:换成脚手架,55m≥24m 是危大、≥50m 超过一定规模,要论证。判据链换工程照样成立。"}
   ],
 
   "mastery_discrimination": {
-    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。",
-    "real_understanding_signal": "V1-V4 判档全对,尤其 V2(边界:危大未超规模)与 V4(下限:非危大)对 = 会用两级判据分档,不是背原题。",
-    "rote_signal": "只 V1 对(原题数值),V2/V4 错 = 背了'危大要论证'的结论,不会分档。",
-    "discriminator_strength": "V2(边界陷阱)+ V4(非危大)是关键鉴别题:背过的人在这两题最易翻车。",
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。题集 = 基坑分档 + 换工程迁移,既考分档又考迁移。",
+    "key_discriminator_ids": ["V2_pit_mid", "V4_formwork"],
+    "real_understanding_signal": "V1-V5 全对,尤其 V2(同工程中间档边界)与 V4(换工程模板迁移)对 = 既会分档、又能把判据链迁移到新工程,真掌握不变量,不是背基坑那两个数。",
+    "rote_signal": "只 V1 对(基坑原题数值),V2(换数值分档)或 V4/V5(换工程迁移)错 = 背了基坑结论,不会分档/不会迁移。",
+    "discriminator_strength": "V2(分档边界)+ V4(换工程迁移)是关键鉴别题:背过的人最易在'中间档'和'换工程'翻车;V3(下限)、V5(脚手架)进一步佐证。",
     "warm_feedback": {
-      "all_correct": "你是真的会分档了——危大、超规模两道判据分得清,这类题稳。",
-      "partial": "就差边界那一步:再看 V2,'到了危大但没到超规模'只编方案、不论证。你离真懂只差这一档。",
-      "rote_leaning": "先别急着记'要论证'。回判断流把两道判据走一遍:第一道判危大(编方案)、第二道判超规模(才论证)。走顺了,换什么工程你都不慌。"
+      "all_correct": "你是真的掌握了判据链——不管基坑、模板还是脚手架,都先判危大、再判超规模,还分得清中间档。这类题稳。",
+      "partial": "判据链你会走,差在迁移:换个工程(模板、脚手架),只要题目给了该工程阈值,照样是这两道闸。把'结构通用、阈值随工程'记牢就齐了。",
+      "rote_leaning": "先别急着背基坑那两个数。记结构:第一道判危大(编方案)、第二道判超规模(才论证)——这套对所有危大工程都成立,换工程只是阈值不同。走顺结构,换什么工程你都不慌。"
     }
   },
 

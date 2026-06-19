@@ -1,0 +1,99 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "J01_danger_work_expert_argumentation",
+  "derived_from": "J01_danger_work_expert_argumentation.schema_draft.json",
+  "archetype_master_ref": "M_danger_work_expert_argumentation.master.json",
+  "style": "teach_then_qa",
+  "title": "危大工程要不要专家论证 · 老师带你看懂",
+  "subtitle": "老师边讲边在画面上逐点写,讲完再帮你答疑",
+  "_design_note": "PPT 式逐点讲解:teach 拆成 beat,每 beat = 一句旁白 +(可选)画面图形动作 stage +(可选)关键词卡 keycard 飞入,跟旁白节奏走。stage 不写则继承上一 beat(画面不回退)。讲解口吻是包装,所有考点事实必须 anchor 回 J01 卡真实字段(claim=true),防漂移。",
+  "boundary": "这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判据为候选,未签发",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": true, "anchor": "scenario.caption", "sync_keyword": "要不要专家论证",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:stage.intro"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "keycard": {"text": "常考:这个工程要不要专家论证?", "tone": "q"},
+       "narration": "案例题最常考'这个工程要不要专家论证'。丢分往往不是不知道有专项方案,而是分不清两档判据。"},
+      {"id": "case", "stage": "dig", "claim": true, "anchor": "decision.scenario_given", "sync_keyword": "基坑开挖 5.5m",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:stage.dig"},
+         {"type": "reveal", "target": "data-id:pit.depth_5_5"},
+         {"type": "keycard", "target": "data-id:keycard.case"}
+       ],
+       "keycard": {"text": "本题:基坑开挖 5.5m,方案已编", "tone": "q"},
+       "narration": "看这道题:基坑开挖深度五米五,方案已经编好,问要不要组织专家论证?咱们顺着深度往下走。"},
+      {"id": "gate3_crit", "stage": "gate3", "claim": true, "anchor": "decision.judgment_points[0].criterion", "sync_keyword": "大于等于三米",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:threshold.3m"},
+         {"type": "highlight", "target": "data-id:criterion.danger"},
+         {"type": "keycard", "target": "data-id:keycard.gate3_crit"}
+       ],
+       "keycard": {"text": "判据①  开挖 ≥ 3m(或虽 <3m 但地质/周边复杂)= 危大", "tone": "a"},
+       "narration": "第一道判据:基坑开挖深度大于等于三米,就属于危险性较大的分部分项工程;注意,就算不到三米,但地质复杂、周边有建筑,同样算危大——危大不只看深度。"},
+      {"id": "gate3_act", "stage": "gate3", "claim": true, "anchor": "decision.outcomes[scheme_only].label", "sync_keyword": "必须编专项施工方案",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:action.special_plan"},
+         {"type": "keycard", "target": "data-id:keycard.gate3_act"}
+       ],
+       "keycard": {"text": "→ 危大就必须编专项施工方案", "tone": "a"},
+       "narration": "只要够上危大,就必须编专项施工方案。本题五米五,过了第一道闸。"},
+      {"id": "gate5_crit", "stage": "gate5", "claim": true, "anchor": "decision.judgment_points[1].criterion", "sync_keyword": "大于等于五米",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:threshold.5m"},
+         {"type": "highlight", "target": "data-id:criterion.overscale"},
+         {"type": "keycard", "target": "data-id:keycard.gate5_crit"}
+       ],
+       "keycard": {"text": "判据②  开挖 ≥ 5m = 超过一定规模", "tone": "a"},
+       "narration": "第二道判据:开挖深度大于等于五米,就属于超过一定规模的危大工程。"},
+      {"id": "gate5_act", "stage": "gate5", "claim": true, "anchor": "decision.outcomes[need_argumentation].label", "sync_keyword": "组织专家论证",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:action.expert_argumentation"},
+         {"type": "keycard", "target": "data-id:keycard.gate5_act"}
+       ],
+       "keycard": {"text": "→ 超规模还要组织专家论证", "tone": "a"},
+       "narration": "到了这一档,专项方案还得再组织专家论证。本题五米五,第二道闸也过了。"},
+      {"id": "transfer", "stage": "conclude", "claim": true, "anchor": "master:R2_invariant", "sync_keyword": "先判危大、再判超规模",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:stage.conclude"},
+         {"type": "reveal", "target": "data-id:invariant.two_gates"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"}
+       ],
+       "keycard": {"text": "判据链通用:换工程换数值,两道判据不变(阈值随工程查)", "tone": "a"},
+       "narration": "再记一点:这两道判据不只管基坑——换成模板支撑、脚手架,照样是先判危大、再判超规模这两道闸,只是每种工程的阈值数字不同。记结构,数字按工程查。"},
+      {"id": "concl", "stage": "conclude", "claim": true, "anchor": "decision.reached_outcome", "sync_keyword": "应当组织专家论证",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:conclusion.need_argumentation"},
+         {"type": "keycard", "target": "data-id:keycard.concl"}
+       ],
+       "keycard": {"text": "结论:应组织专家论证", "tone": "concl"},
+       "narration": "两道闸全过,结论很干脆:这个专项施工方案应当组织专家论证。"},
+      {"id": "score", "stage": "conclude", "claim": true, "anchor": "scoring_points[1].keywords", "sync_keyword": "超过一定规模、专项方案、专家论证",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:score.keywords"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "keycard": {"text": "采分词:≥5m · 超过一定规模 · 专项方案 · 专家论证", "tone": "score"},
+       "narration": "采分就盯这几组词:基坑开挖深度、大于等于五米、超过一定规模、专项方案、专家论证。写到了就稳。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,我要是只写'需要专家论证',不写判据,能拿分吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why", "sync_keyword": "把判据写出来",
+           "text": "这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那反过来,要是只挖三米五呢?也得论证吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "decision.outcomes[scheme_only]", "sync_keyword": "三米五过了第一道闸、没过第二道",
+           "text": "好问题,这正是出题人埋的坑。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那我怎么才能不混?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "memory_hook", "sync_keyword": "三米危大编方案,五米超规模要论证",
+           "text": "记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下用四道题试试你,看你是真会分档还是背过的。"}}
+  ]
+}

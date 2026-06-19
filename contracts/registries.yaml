@@ -114,3 +114,15 @@ scanners:
   - script: scripts/check_secret_envs.py
     governs: secret-in-env scan (pre-commit / on-demand)
     enforcement: operational
+  - script: scripts/check_luban_animation_taxonomy_alignment.py
+    governs: diagram microlesson animation pack taxonomy alignment registry
+    enforcement: operational
+    runs_in: on-demand / animation pack planning gate
+  - script: artifacts/luban_case_family_assets/diagram_microlesson/validate_data_id_targets.mjs
+    governs: diagram microlesson animation_action data-id targets resolve in rendered HTML
+    enforcement: operational
+    runs_in: artifacts/luban_case_family_assets/diagram_microlesson/gate.sh
+  - script: artifacts/luban_case_family_assets/diagram_microlesson/validate_timing_sync.mjs
+    governs: diagram microlesson audio/timing sync keywords, keyword-to-segment match, and duration budget
+    enforcement: operational
+    runs_in: artifacts/luban_case_family_assets/diagram_microlesson/gate.sh

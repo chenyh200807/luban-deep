@@ -1,6 +1,6 @@
 ---
 name: luban-diagram-microlesson
-description: Use this whenever you author, render, redesign, or review a 鲁班 diagram micro-lesson under artifacts/luban_case_family_assets/diagram_microlesson/ —— 单卡(F16 起鼓割补 / N01 网络计划 / C01 对照 / D01 诊断 / J01 判断)、**video-first 动画学习卡(Remotion/HTML,首屏hook→讲解视频→独立闯关)**或完整深母题学习闭环(讲懂教学动画→闯关→看穿)。触发于:新增 template_type / 卡 JSON / 母题 master / 讲懂 lesson;改 render_*.py/Remotion;做教学动画、运镜、配音、闯关变题、采分句输出题、看穿;修"一上来讲内容/画面静止翻页/没有声音/音画不同步/题目混在讲解页/练习没图/没有手机体验"。核心边界:动画内容和数据基础必须来自母题引擎(master/card/variants/scoring/misconception),renderer/Remotion 只表达不造权威;candidate 不冒充签发;学生端别露 source_ref/P编号/schema/candidate;看穿读 master signal 不另造。声明卡/母题/动画"做完了"之前必读。
+description: Use when authoring, rendering, redesigning, or reviewing 鲁班 diagram micro-lessons or video-first 深母题学习卡 under artifacts/luban_case_family_assets/diagram_microlesson/, especially card JSON, master data, renderers, Remotion, narration, practice pages, mobile player UX, student-safe boundaries, or prototype/template selection.
 ---
 
 # 鲁班图解微课 / 深母题学习闭环 (diagram_microlesson)
@@ -9,8 +9,8 @@ description: Use this whenever you author, render, redesign, or review a 鲁班 
 > **实现物料**全部在 `artifacts/luban_case_family_assets/diagram_microlesson/`(渲染器/脚本/样板卡/母题),本 skill 只装"怎么造"的规则,物料是 thin wrapper。
 > **唯一目录**:`artifacts/luban_case_family_assets/diagram_microlesson/`。不新建第二套目录 / 第二个 schema_version / 第二份 skill。
 >
-> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`validate_schema_drafts.py`(校验门)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
-> references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first 动画学习卡/Remotion/独立闯关页先读 `animation-production-director.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
+> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
+> references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
 
 ## 这套 skill 解决什么
 
@@ -18,22 +18,44 @@ description: Use this whenever you author, render, redesign, or review a 鲁班 
 
 **N01 之后的当前默认路线**:母题引擎数据 → 识别 6+1 原型 → 设计 video-first 讲解动画(先 hook 为什么学,再纠错/推演/采分) → 独立闯关页(每题有图/变化图,选项统一成"对象/路径 + 结果 + 判断依据",含采分句输出题) → 看穿/暖反馈。不要回到"静态卡 + 几个按钮"或"旁白播客 + 画面翻页"。
 
-## N01 video-first 经验(2026-06-18,当前动画样板)
+## video-first 路由(2026-06-19)
 
-这轮 `N01_network_video_first.rendered.html` 的实际开发经验要成为后续默认标准:
+本文件只做入口路由,不再复制完整导演手册。造或修 video-first 动画学习卡时必须按顺序读:
 
-1. **首屏先抓人,不是直接讲内容**:第一帧必须有完整 hook("为什么值得学 / 考试怎么拿分 / 常和哪些题连在一起"),poster 可读,中央播放按钮清楚。学生还没点播放就知道为什么要看。
-2. **讲解页 video-first,练习页独立**:讲解页负责看懂;练习页负责闯关。不要把做题混在视频下面导致认知目标混乱。
-3. **必须有声音和旁白节奏**:老师主讲用稳定音色,学生答疑另一个音色;音频离线生成,页面只播放。音画不同步时优先调画面节奏,让关键视觉略早于/贴合旁白关键词。
-4. **Remotion 承担真实动画,HTML 壳承担交互**:动画要有推近、聚焦、暗化非重点、多页面/场景切换、答题纸 reveal;HTML 翻页或 CSS 假动效不够。
-5. **运镜服务理解**:讲到 C 就推近 C,讲到路径就沿路径 trace,讲到采分句就切到答题纸;不要大箭头乱飞或一直锁在同一画面。
-6. **练习题每题必须有图**:原图题有原图高亮,变化题有变化图,采分句题有答题纸/关键路径图。没有图的题会退化成传统刷题。
-7. **选项统一成考试表达**:不是 A/B/C 短词,而是"路径/对象 + 工期/档位/结果 + 判断依据"。学生是在练答题语言。
-8. **题目要递进**:原图识别 → 错觉鉴别 → 换数重算/迁移 → 时差/边界辨析 → 采分句输出。最后必须逼学生写出能拿分的一句话。
-9. **播放结束后 CTA 变主行动**:讲完后顶部/底部主入口自动切到"开始闯关";未听完可保留次级入口,但不能抢主线。
-10. **手机验收是硬门**:390px 首屏、播放、ended CTA、未答阻断、采分句判定、结果页都要跑。只看桌面浏览器不算完成。
+1. `references/animation-production-director.md`:量产导演、旁白、运镜、练习、手机播放器、验收分层。
+2. `references/learning-stage-shell.md`:稳定学习舞台模板、slot 边界、横竖屏/theater 运行时验收。
+3. `references/video-first-pressure-tests.md`:跨 6+1 原型的压力场景,防止把 N01 网络图外形当万能模板。
+4. `references/anti-patterns.md`:N01/S01 已踩坑的反例、根因、修法和 gate。
 
-细则读 `references/animation-production-director.md`;N01 是 ③计算/图结构原型的 video-first 样板,不是一次性实验。
+`N01_network_video_first.rendered.html` 的价值是**导演方法**,不是网络图 UI。后续 F16/J01/C01/D01/S01 等不同原型继承的是:母题数据先行、先 hook、先打错觉、Remotion 真动画、音画同步、orientation-adaptive 响应式学习舞台、独立闯关页、每题配图、采分句输出、自然收尾、预览合同门。具体视觉必须换成本原型的剖面、判断树、对照图、答案扫描或诊断图。
+
+### v0 typed action 路线(2026-06-19)
+
+当前不新建 `LubanLessonIR`。现有 `luban_teaching_animation.v0` 的 `*.lesson.json` 就是动画 IR,只在
+`teach.beats[]` 内演进 `animation_action[]`:
+
+- `type` 白名单:`camera` / `highlight` / `reveal` / `keycard`。
+- `target` 必须是 `data-id:<id>`。
+- renderer 输出必须提供 `[data-card-id]`、`[data-stage-shell]`、`[data-beat-id]`、`[data-action-id]`、`[data-visual-node-id]`、`[data-practice-id]` 和 `window.__LUBAN_LESSON_MANIFEST__`。
+- `data-id:<id>` 只能命中 renderer 合同内的 `data-*` hook,不得靠普通 DOM `id` 假通过。
+- 学生 HTML 中的 manifest 只暴露 presentation action wiring;不得包含 `schema_version`、`source_ref`、`scoring_point`、`candidate`、E-code、P-code 等制作侧/内部 token。
+- 默认校验是 optional-present:旧 v0 lesson 没有 `animation_action[]` 不能因此失败;具体 MVP 卡需要 action 时由 `--require-actions` 或 `gate.sh` 显式要求。
+- J01 当前确定性门:
+
+```bash
+artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
+```
+
+该门已覆盖 schema/action/timing/render/practice/data-id/runtime/bundle manifest,不生成 MP4;practice 或 timing.audio 缺失会在 gate 中失败。runtime gate 必须通过真实 `[data-theater-toggle]` 入口进入 theater,不得在 gate 里直接给页面加 `.theater` 假通过。timing gate 必须验证 `sync_keyword` 命中对应 timing 段文本/keycard,不能只看字段存在。
+
+### decision-first 修正(2026-06-19)
+
+`video-first` 不是所有考点的入口权威。对 `decision_branch_reveal`、安全放行、验收判断、危大分档这类"会不会判"的考点,普通入口默认改成 **decision-first**:
+
+- 首屏先给一个最小判断题/错觉题,让学生先作答或表态,再播放讲解纠错。
+- 动画/音频是教练反馈,不是主路径本身;学生不用全屏也能完成判断、得到反馈、进入闯关。
+- 横屏/宽屏优先使用"左侧大图/判断树 + 右侧教练反馈/选项/采分原子",不要把内容锁成竖屏视频。
+- `video-first` 仍可用于计算推演、构造演示、流程动画,但不能压过该原型的核心认知动作。
 
 ## Phase 流程(每造一张卡走一遍)
 
@@ -52,7 +74,7 @@ Phase 3  旁白预生成(do-once,见 references/narration-spec.md):node artifact
          生产换云 TTS 只改配音一环;运行时不实时合成。先 --print 校稿再配音
 Phase 4  渲染:render_<原型>_card.py → 自动接同名 timing → 有声交互卡(旁白播放器 + <audio> + 时间轴同步:
          播到某段高亮/reveal 对应锚点 why/item/scoring/wrap)。数据驱动型参数→自动 SVG;构造/工序型用图元/手作 SVG
-Phase 5  验收门:validate_schema_drafts.py 过 + 手机 390px 无横滚(artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs 截图)+ student-safe(不漏
+Phase 5  验收门:validate_schema_drafts.py 过 + video-first 静态预览合同门(validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html)+ 学习舞台运行时门(validate_learning_stage_runtime.mjs <topic>.rendered.html,覆盖 390 竖屏/横屏/宽屏/theater)+ 手机 390px 无横滚(cdp_shot.mjs 截图)+ student-safe(不漏
          source_ref/E-code/采分点 id/schema/candidate)+ 采分点绑定对 + 不文生图 + 旁白派生自白名单字段
 Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu_product_validation_plan.md,KPI=同类题正确率提升;不过不铺量
 ```
@@ -62,7 +84,7 @@ Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_micro
 | 原型 | 何时选(认知结构) | reference 文件 | schema body |
 |---|---|---|---|
 | ① 时序/工序 | 有先后顺序的流程/工序/验收 | `references/type-process_step.md` | `steps[]` |
-| ② 构造/空间 | 节点/剖面/层次/空间关系 | `references/type-section.md` | `layers[]`(待定) |
+| ② 构造/空间 | 节点/剖面/层次/空间关系 | `references/type-section.md` | `steps[]`(当前 SCHEMA 登记的 layer_section_reveal 承载;专用 `layers[]` 未登记前不得另造 body) |
 | ③ 计算/图结构 | 可计算的图/网络/时间约束 | `references/type-graph.md` | `question_data{activities,dependencies,expected}` |
 | ④ 判断/分支 | 条件→判断→结论(5 mode:链/分类/全要件/择一/角色链) | `references/type-decision.md` | `decision`(✅ J01,render_decision_card) |
 | ⑤ 对比/正误 | 对错做法/规范vs非规范/通病 | `references/type-contrast.md` | `contrast_items[]`(草稿,见 artifacts/luban_case_family_assets/diagram_microlesson/C01) |
@@ -94,6 +116,12 @@ Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_micro
 19. **动画内容和数据基础必须来自母题引擎**:动画层不自由造题、不自由编采分句、不自由判掌握。先读 `master/card/variants/scoring_points/misconception/source_refs`,再写 storyboard;Remotion/HTML 只负责表达、运镜、交互和验证。缺母题数据只能做视觉小样,不能标"深母题学习卡"。
 20. **video-first 首屏必须有 hook + poster + 中央播放**:不能黑帧、不能一上来直接讲知识内容、不能只有一个静态卡片。学生点播放前必须看见"为什么值得学"和学习收益。
 21. **练习页独立且每题配图**:闯关不要混在讲解页里;每道题有原图/变化图/诊断图/答题纸,选项统一"对象/路径 + 结果 + 判断依据",最后至少一道采分句输出题;未答不能下一题。
+22. **视频必须有自然收尾**:最后 8-15 秒要回扣本卡主线、总结采分动作、桥接闯关。不能在答疑后直接结束,不能只靠页面 CTA 代替旁白收束。
+23. **学习舞台比例必须先对,但不能锁死 9:16**:普通窗口采用 `orientation-adaptive / responsive learning stage`,根据手机竖屏、手机横屏、桌面宽屏和小程序 web-view 容器自适应。竖屏手机可优先接近 9:16/4:5,但横屏和宽屏必须扩大有效教学画面,不能把内容缩成小竖片。全屏只显示学习内容,不是网页缩放;点击屏幕才浮出播放/暂停/静音/退出、可拖动进度和章节跳转;控制层必须避开字幕/讲解卡,并考虑 `safe-area`。
+24. **章节节点必须有语义标签**:不要只给 1/2/3/8。节点应是"先学/错觉/读图/顺推/逆推/时差/线路/采分"这类学习阶段,让学生知道点它会去哪。
+25. **重新生成媒体后必须破缓存**:本地/小程序 web-view 容易缓存同名 mp4/poster/mp3;HTML 引用要带 mtime/hash 版本参数,否则手机端可能仍在看旧片。
+26. **预览评审不重新生成 MP4**:如果只是给用户看 UI/UX、排版、文案、交互或学习卡效果,优先改 HTML/CSS/数据并用 Remotion still、CDP/Playwright 手机截图验收;可以复用已有 MP4 做播放源,但不要每次 full render 新 MP4。只有音画同步成片验收、媒体内容变化、正式候选/发布、缓存验证,或用户明确要视频文件时,才执行 `remotion render` + `ffprobe`。
+27. **默认声纹只作为离线 TTS 生成参数,不能和现有音频脱节**:新生成/重配音时,老师/旁白默认 `longanhuan_v3`(龙安欢 V3),学生模拟默认 `Ethan`(晨煦)。已有音频未重新生成时,不要只改 metadata 造成"标的声音"和 mp3 实际声音不一致。
 
 ## 元规律(为什么这套成立)
 
@@ -114,9 +142,9 @@ N01 证明了一个更适合手机小程序预览的形态:先做**讲解视频�
 
 - **数据权威 = 母题引擎**:master/card/variants/scoring/misconception/source 是内容源;动画只是可视化导演层。
 - **讲解结构 = why hook → wrong idea → visual correction → process/logic → answer-paper score sentence → QA bridge**。
-- **视觉结构 = 9:16 Remotion + frame-driven camera + spotlight/dim + 多场景切换 + poster**。
+- **视觉结构 = 响应式学习舞台 + frame-driven camera + spotlight/dim + 多场景切换 + poster**。手机竖屏优先,但横屏/桌面要用两栏、侧栏、bottom sheet 等方式保住主教学焦点。
 - **闯关结构 = 独立页面 + 每题 mini diagram/variation diagram + 递进题 + 采分句输出题 + 暖结果页**。
-- **验收结构 = Remotion stills + full render + ffprobe + 390px Playwright/CDP**。
+- **验收结构分两档**:预览评审=HTML/CSS + Remotion still/CDP 390px截图,不默认生成 MP4;成片验收=full render + ffprobe + 音画同步截图,只在音画同步、正式候选、发布或用户明确要视频文件时执行。
 
 ### 学习闭环 + 教学动画 → 见 `references/teaching-animation-journey.md`
 
@@ -130,7 +158,7 @@ N01 证明了一个更适合手机小程序预览的形态:先做**讲解视频�
 
 很多考点不是干净的单原型(如"基坑支护"=构造②+判断④;"质量通病"=对比⑤+诊断⑥)。**不要为了凑 7 选 1 把考点硬切碎。** 规则:
 
-1. **定主原型**:看"这题最难的那一步靠什么认知结构过"——它定 body(`steps[]` / `contrast_items[]` / `diagnosis[]` 三选一,互斥)。
+1. **定主原型**:看"这题最难的那一步靠什么认知结构过"——它定唯一主 body,具体 body 以本表和 `SCHEMA.md` 当前登记为准,不得为了混合考点临时造第二套 body。
 2. **次结构降级嵌入**:次要结构进辅助字段(如对比卡里嵌一句判断依据),不另开一套 body。
 3. **真跨两类且都重**:拆成**卡组**("主卡 + 对比卡"按 `card_id` 串联),每张仍是单 body 的合法 v1 卡,而不是一张卡塞两套 body。
 
