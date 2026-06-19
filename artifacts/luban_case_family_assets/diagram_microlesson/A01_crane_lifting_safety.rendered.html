@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>A01 起重吊装安全 · 有声白板</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;overflow-y:auto}
+body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+.phone{width:100%;max-width:1180px;min-height:100svh;margin:0 auto;padding:clamp(8px,2vw,18px)}
+.lesson{min-height:calc(100svh - 16px);background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:8px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"rail" "top" "caption" "stage" "atoms" "controls" "nav";gap:8px;overflow:visible;box-shadow:0 14px 32px rgba(31,41,55,.08)}
+.rail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.rail span,.rail a{height:28px;border:1px solid #d7e2ed;border-radius:10px;background:#f6f9fc;color:#607287;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}
+.rail .on{background:#176b7a;color:#fff;border-color:#176b7a}.rail a.ready{background:#f97316;color:#fff;border-color:#f97316}
+.rail{grid-area:rail}.topline{grid-area:top;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.kicker{color:#176b7a;font-size:11px;font-weight:950}.title h1{margin:2px 0 0;font-size:19px;line-height:1.12;letter-spacing:0}
+.top-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}.full-btn,.time{height:30px;border:1px solid #c9dce8;border-radius:999px;background:#fff;color:#176b7a;padding:0 9px;font-size:11px;font-weight:950;display:flex;align-items:center}
+.stage{grid-area:stage;position:relative;justify-self:center;min-height:0;aspect-ratio:4/5;width:100%;max-width:520px;background:#eaf1f6;border:1px solid #d2dee9;border-radius:16px;overflow:hidden}
+.stage video,.stage audio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.poster{position:absolute;inset:0;z-index:4;background:#eaf1f6;display:none;place-items:center;transition:opacity .18s ease}
+.poster img{width:100%;height:100%;object-fit:contain;background:#eaf1f6}
+.started .poster{opacity:0;pointer-events:none}
+.visual{position:absolute;inset:0;background:#eaf1f6;overflow:hidden}
+.board{position:absolute;left:7%;right:7%;top:6%;bottom:8%;border-radius:26px;background:#fffdf7;border:3px solid #ded4bd;overflow:hidden;box-shadow:0 20px 42px rgba(31,41,55,.08)}
+.grid{position:absolute;inset:0;background:linear-gradient(#eadfcb 1px,transparent 1px),linear-gradient(90deg,#eadfcb 1px,transparent 1px);background-size:100% 16%,25% 100%;opacity:.64}
+.scene{position:absolute;inset:0;z-index:2;padding:13% 11% 11%;display:flex;flex-direction:column}
+.eyebrow{color:#176b7a;font-size:14px;font-weight:950}.scene h2{margin:7px 0 7px;font-size:29px;line-height:1.08;letter-spacing:0}.scene p{margin:0;color:#607287;font-size:13px;line-height:1.38;font-weight:850}
+.scene-trial{padding:8% 10% 8%}.scene-trial h2{font-size:25px;margin:5px 0}.scene-trial p{font-size:12px;line-height:1.25}.scene-trial .crane-focus svg{height:198px}.scene-trial .single-gate{padding:9px 12px;grid-template-columns:58px 1fr}.scene-trial .single-gate b{font-size:20px}.scene-trial .single-gate span{font-size:12px;line-height:1.22}
+.hook-lines{margin-top:auto;display:grid;gap:8px}.hook-lines div{border:3px solid #176b7a;border-radius:14px;background:#fff;padding:10px 12px;font-size:14px;font-weight:950}
+.trap-card{margin:auto 0;border:4px solid #c2410c;border-radius:22px;background:#fff3e9;padding:18px 14px;text-align:center}.trap-card b{display:block;color:#c2410c;font-size:26px}.trap-card span{display:block;margin-top:8px;color:#7c2d12;font-size:15px;font-weight:900}
+.decision{margin:auto 0 0;display:grid;gap:9px}.gate{min-height:62px;border:3px solid #d6e2ec;border-radius:16px;background:#fff;display:grid;grid-template-columns:74px 1fr;align-items:center;padding:8px 12px;box-shadow:0 8px 18px rgba(31,41,55,.05)}.gate b{color:#176b7a;font-size:20px}.gate span{font-size:13px;line-height:1.22;font-weight:900;color:#17202a}.gate.dim{opacity:.24}.gate.hit{border-color:#f97316;background:#fff7ed;transform:scale(1.03)}.gate.ok{border-color:#176b7a}
+.crane-focus{margin:auto 0 0;display:grid;place-items:center}.crane-focus svg{width:100%;height:250px;overflow:visible}.trial-label{fill:#c2410c;font-size:20px;font-weight:950}.orange{stroke:#f97316}.dark{stroke:#425466}.single-gate{margin:8px 0 0;border:4px solid #f97316;border-radius:18px;background:#fff7ed;padding:12px 14px;display:grid;grid-template-columns:72px 1fr;align-items:center;gap:8px}.single-gate b{color:#176b7a;font-size:23px}.single-gate span{font-size:14px;line-height:1.25;font-weight:950}.score-paper{margin:auto 0;border:3px solid #c8dcf5;border-radius:20px;background:#fff;padding:16px;box-shadow:0 16px 34px rgba(31,41,55,.12)}.score-paper h3{margin:0 0 12px;color:#1d4ed8;font-size:22px}.score-paper div{border:1px solid #dbe7f2;border-radius:12px;padding:10px;margin:8px 0;font-size:15px;line-height:1.25;font-weight:900}.score-paper mark{background:#fff3e9;color:#c2410c;border-radius:8px;padding:1px 5px}
+.qa-box{margin:auto 0;border-radius:20px;background:#fff;border:3px solid #c8dcf5;padding:18px 16px;box-shadow:0 16px 34px rgba(31,41,55,.10)}.qa-box b{display:block;color:#176b7a;font-size:15px}.qa-box p{margin:9px 0 0;color:#17202a;font-size:21px;line-height:1.28;font-weight:950}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:999px;border:4px solid rgba(255,255,255,.96);background:rgba(23,107,122,.96);color:#fff;font-weight:950;font-size:17px;box-shadow:0 18px 44px rgba(31,41,55,.24);z-index:20}.started .center-play{opacity:0;pointer-events:none}
+.caption{grid-area:caption;border:1px solid #c8dcf5;background:#f2f7ff;border-radius:13px;padding:8px 10px;overflow:hidden}.caption h2{font-size:15px;color:#1d4ed8;margin:0 0 3px;line-height:1.15}.caption p{font-size:13px;line-height:1.34;margin:0;font-weight:850;color:#24364b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.quick-options{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;margin-top:8px}.quick-options button{min-height:34px;border:1px solid #cbd9e6;border-radius:11px;background:#fff;color:#24364b;font-size:12px;font-weight:950}.quick-options button:first-child{border-color:#176b7a;color:#176b7a;background:#f0fbfd}.quick-options button.wrong-choice{border-color:#fed7aa;background:#fff7ed;color:#9a3412}.started .quick-options{display:none}
+.atoms{grid-area:atoms;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.atoms div{min-height:40px;border:1px solid #d7e2ed;background:#f7fafc;border-radius:11px;padding:6px}.atoms b{display:block;font-size:11px;color:#176b7a;line-height:1}.atoms span{display:block;margin-top:3px;font-size:11px;line-height:1.16;font-weight:900;color:#34465b}.atoms .on{border-color:#fed7aa;background:#fff7ed}.atoms .on span{color:#9a3412}
+.controls{grid-area:controls;display:flex;flex-direction:column;gap:7px}.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.row button,.nav a,.nav button{height:38px;border-radius:12px;border:1px solid #cbd9e6;background:#fff;font-size:13px;font-weight:900;color:#24364b}.row .play{background:#176b7a;color:#fff;border-color:#176b7a}
+.lesson:not(.started) .controls,.lesson:not(.started) .atoms,.lesson:not(.started) .nav{display:none}
+.scrubber{position:relative;height:34px;border-radius:999px;background:#d6e2ec;overflow:visible}.scrubber input{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;opacity:1;appearance:none;-webkit-appearance:none;background:transparent;touch-action:none}.scrubber input::-webkit-slider-runnable-track{height:34px;background:transparent}.scrubber input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:3px;border-radius:999px;border:5px solid #f97316;background:#fff;box-shadow:0 5px 14px rgba(31,41,55,.22)}.scrubber span{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#176b7a,#f97316);border-radius:999px}
+.chapters{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}.beat-dot{height:28px;border:1px solid #cbd9e6;border-radius:999px;background:#eef4f8;color:#607287;font-size:10px;font-weight:950}.beat-dot.active{background:#176b7a;color:#fff;border-color:#176b7a}.beat-dot.current{background:#f97316;color:#fff;border-color:#f97316}
+.nav{grid-area:nav;display:grid;grid-template-columns:1fr 1.2fr;gap:6px}.nav a{text-decoration:none;display:flex;align-items:center;justify-content:center;background:#eef4f8;color:#607287}.nav a.ready{background:#f97316;color:#fff;border-color:#f97316;box-shadow:0 10px 22px rgba(249,115,22,.22)}.exit-full{display:none}
+.lesson.theater{position:fixed;inset:0;z-index:9999;width:100vw;height:100dvh;max-width:none;border-radius:0;border:0;padding:0;background:#05080b;box-shadow:none}.lesson.theater .rail,.lesson.theater .topline,.lesson.theater .caption,.lesson.theater .atoms,.lesson.theater .nav,.lesson.theater .center-play{display:none}.lesson.theater .poster{display:none!important}.lesson.theater .stage{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:1;width:100vw!important;height:100dvh!important;max-width:none;aspect-ratio:auto;align-self:stretch;border:0;border-radius:0;background:#05080b;display:block}.lesson.theater.controls-visible .stage{bottom:calc(150px + env(safe-area-inset-bottom))!important;height:auto!important}.lesson.theater .visual{position:absolute!important;inset:0!important}.lesson.theater .controls{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;padding:10px;border:1px solid rgba(203,217,230,.92);border-radius:18px;background:#fff;box-shadow:0 14px 34px rgba(31,41,55,.20);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}.lesson.theater.controls-visible .controls{opacity:1;transform:translateY(0);pointer-events:auto;display:flex}.lesson.theater .row{grid-template-columns:1fr 1fr 1fr .8fr}.lesson.theater .exit-full{display:block}
+@media(max-width:520px){.phone{padding:8px}.lesson{max-width:480px;margin:0 auto}.controls{position:sticky;bottom:8px;z-index:25;padding:8px;border:1px solid rgba(203,217,230,.9);border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 10px 24px rgba(31,41,55,.12)}}
+@media(min-width:760px){.lesson{max-width:1120px;margin:0 auto;min-height:auto;grid-template-columns:minmax(420px,1fr) minmax(280px,360px);grid-template-areas:"rail rail" "top top" "stage caption" "stage atoms" "stage controls" "stage nav";align-items:start}.stage{max-width:none;aspect-ratio:4/3}.caption,.atoms,.controls,.nav{align-self:start}.caption p{-webkit-line-clamp:4}.quick-options{grid-template-columns:1fr}.atoms{grid-template-columns:1fr 1fr}.atoms div{min-height:56px}.controls{position:static}.nav{grid-template-columns:1fr}}
+@media(orientation:landscape) and (max-height:520px){.phone{max-width:none;padding:6px}.lesson{max-width:none;min-height:calc(100svh - 12px);grid-template-columns:minmax(360px,1fr) minmax(220px,32vw);grid-template-areas:"top top" "stage caption" "stage atoms" "stage controls" "stage nav";gap:6px}.rail{display:none}.title h1{font-size:17px}.top-actions .time{height:28px}.stage{height:calc(100svh - 58px);width:auto;max-width:100%;aspect-ratio:4/3}.caption{padding:7px 8px}.caption h2{font-size:13px}.caption p{font-size:12px;-webkit-line-clamp:3}.atoms{grid-template-columns:1fr 1fr}.atoms div{min-height:34px;padding:5px}.row button,.nav a,.nav button{height:32px}.beat-dot{height:24px}.scene{padding:7% 8%}.scene h2{font-size:24px}.scene-trial .crane-focus svg{height:clamp(130px,34vh,190px)}.scene-trial .single-gate{padding:7px 10px}.lesson.theater.controls-visible .stage{bottom:calc(140px + env(safe-area-inset-bottom))}}
+@media(max-height:760px) and (orientation:portrait){.rail{display:none}.title h1{font-size:18px}.caption h2{font-size:14px}.caption p{font-size:12px}.atoms div{min-height:34px;padding:5px}.row button,.nav a,.nav button{height:34px}.beat-dot{height:25px}.scene{padding:9% 9% 9%}.scene h2{font-size:25px}.gate{min-height:54px}.lesson.theater.controls-visible .stage{bottom:calc(140px + env(safe-area-inset-bottom))}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="phone">
+  <section class="lesson orientation-adaptive state-hook" id="lesson">
+    <div class="rail"><span class="on">① 讲懂</span><a id="gate" href="A01_crane_lifting_safety.practice.html" aria-disabled="true">② 看完后闯关</a><span>③ 看穿</span></div>
+    <div class="topline">
+      <div class="title"><div class="kicker">鲁班深母题 · A01 起重吊装</div><h1>正式起吊先过四道门</h1></div>
+      <div class="top-actions"><button class="full-btn" id="fullBtn" type="button">全屏</button><div class="time" id="timeLabel">00:00</div></div>
+    </div>
+    <div class="stage">
+      <video id="videoShell" preload="metadata" playsinline poster="A01_crane_lifting_safety.poster.svg?v=20260619"></video>
+      <audio id="audio" preload="metadata" src="A01_crane_lifting_safety.lesson.mp3?v=202606191443"></audio>
+      <div class="poster"><img src="A01_crane_lifting_safety.poster.svg?v=20260619" alt="A01 首帧白板"></div>
+      <div class="visual" aria-hidden="true">
+        <div class="board"><div class="grid"></div></div>
+        <div class="scene" id="scene"></div>
+      </div>
+      <button class="center-play" id="centerPlay" type="button">播放视频</button>
+    </div>
+    <div class="caption">
+      <h2 id="capTitle">先判一下</h2>
+      <p id="capText">95%额定起重量已经吊起。现在能不能直接正式吊?</p>
+      <div class="quick-options" id="quickOptions">
+        <button type="button" data-choice="correct">不能,先试吊</button>
+        <button class="wrong-choice" type="button" data-choice="wrong">能,设备够</button>
+        <button type="button" data-choice="unsure">看完再判</button>
+      </div>
+    </div>
+    <div class="atoms" id="atoms"><div><b>人证</b><span>待判断</span></div><div><b>装置</b><span>待判断</span></div><div><b>试吊</b><span>待判断</span></div><div><b>应急</b><span>待判断</span></div></div>
+    <div class="controls">
+      <div class="row"><button class="play" id="playBtn" type="button">播放</button><button id="pauseBtn" type="button">暂停</button><button id="muteBtn" type="button">静音</button><button class="exit-full" id="exitFullBtn" type="button">退出</button></div>
+      <label class="scrubber"><input id="scrub" type="range" min="0" max="1000" value="0" step="1"><span id="fill"></span></label>
+      <div class="chapters">
+        <button class="beat-dot" type="button" data-i="0">先学</button><button class="beat-dot" type="button" data-i="1">错觉</button><button class="beat-dot" type="button" data-i="2">人证</button><button class="beat-dot" type="button" data-i="3">装置</button><button class="beat-dot" type="button" data-i="4">试吊</button><button class="beat-dot" type="button" data-i="5">应急</button><button class="beat-dot" type="button" data-i="6">采分</button><button class="beat-dot" type="button" data-i="7">闯关</button>
+      </div>
+    </div>
+    <div class="nav"><button id="restartBtn" type="button">从头看</button><a id="cta" href="A01_crane_lifting_safety.practice.html" aria-disabled="true" data-ready-label="开始闯关">看完后闯关</a></div>
+  </section>
+</main>
+<script type="application/json" id="lessonData">{
+  "audio":"A01_crane_lifting_safety.lesson.mp3",
+  "video_beats":[
+    {"id":"hook","stage":"hook","chapter":"先学"},
+    {"id":"trap","stage":"trap","chapter":"错觉"},
+    {"id":"personnel","stage":"personnel","chapter":"人证"},
+    {"id":"device","stage":"device","chapter":"装置"},
+    {"id":"trial","stage":"trial","chapter":"试吊"},
+    {"id":"stop","stage":"stop","chapter":"应急"},
+    {"id":"score","stage":"score","chapter":"采分"},
+    {"id":"bridge","stage":"bridge","chapter":"闯关"}
+  ],
+  "timing":{"totalSec":147.408,"segments":[
+    {"kind":"teach","state":"hook","speaker":"T","claim":true,"anchor":"exam_context.student_facing_hook","text":"先别急着背安全管理。起重吊装题真正问的是:这一下能不能正式吊。考场最容易丢的是最后一句:先试吊,再检查,确认安全后继续。","startSec":0,"durSec":11.688},
+    {"kind":"teach","state":"trap","speaker":"T","claim":true,"anchor":"teaching_spine.wrong_idea","text":"很多人会想,人员持证,设备完好,那就可以直接吊。这个想法很危险,因为它把起重吊装当成设备能力题,漏掉了正式起吊前的放行判断。","startSec":12.088,"durSec":11.976},
+    {"kind":"teach","state":"personnel","speaker":"T","claim":true,"anchor":"decision.judgment_points[personnel].criterion","text":"第一道门看人。起重司机、信号工、司索工这类关键人员,必须持证到位。缺人缺证,就不要往下走。","startSec":24.464,"durSec":8.736},
+    {"kind":"teach","state":"device","speaker":"T","claim":true,"anchor":"decision.judgment_points[device_environment].criterion","text":"第二道门看装置和环境。安全装置要完整可靠;恶劣天气要停吊;雨雪后复工,还要清理现场,做好防滑和防漏电。","startSec":33.6,"durSec":9.792},
+    {"kind":"teach","state":"trial","speaker":"T","claim":true,"anchor":"decision.judgment_points[trial_lift].criterion","text":"第三道门是本题的刀口。起吊荷载达到额定起重量百分之九十以上,先把重物离地约十五厘米试吊,检查平稳性、设备和绑扎,确认安全后才能继续。","startSec":43.792,"durSec":12.696},
+    {"kind":"teach","state":"stop","speaker":"T","claim":true,"anchor":"decision.judgment_points[emergency_guard].criterion","text":"第四道门看异常处置。突然停电或异常时,控制器归零,断开电源,把重物安全降到地面,不能让重物长时间悬空。","startSec":56.888,"durSec":10.68},
+    {"kind":"teach","state":"score","speaker":"T","claim":true,"anchor":"teaching_spine.exam_phrase","text":"落到答题纸上,不要只写不能吊。要写完整:百分之九十以上,离地约十五厘米试吊,检查平稳性、设备和绑扎,确认安全后方可继续。","startSec":67.968,"durSec":12.144},
+    {"kind":"teach","state":"bridge","speaker":"T","claim":true,"anchor":"memory_hook","text":"记住四道门:人证、装置环境、试吊、停吊应急。接下来换成缺信号工、雨雪后复工、突然停电,你仍然按这四道门判。","startSec":80.512,"durSec":11.448},
+    {"kind":"q","state":"conclude","speaker":"S","claim":false,"text":"如果人员和设备都没问题,是不是就差不多可以吊了?","startSec":92.36,"durSec":3.52},
+    {"kind":"a","state":"conclude","speaker":"T","claim":true,"anchor":"decision.judgment_points[trial_lift].verdict_reason","text":"还不行。本题是百分之九十五额定起重量,已经过了百分之九十控制线。没有先试吊检查,就不能直接正式起吊。","startSec":96.28,"durSec":9.312},
+    {"kind":"q","state":"conclude","speaker":"S","claim":false,"text":"雨雪后是不是只要雪停了,就能恢复吊装?","startSec":105.992,"durSec":3.28},
+    {"kind":"a","state":"conclude","speaker":"T","claim":true,"anchor":"process_overlay.steps[environment].action","text":"不能只看雪停。要清理冰雪,采取防滑、防漏电措施,再确认设备状态可靠。天气后复工本身就是一道放行门。","startSec":109.672,"durSec":10.128},
+    {"kind":"q","state":"conclude","speaker":"S","claim":false,"text":"停电的时候,重物已经吊起来了,能不能先悬着等一会儿?","startSec":120.2,"durSec":3.84},
+    {"kind":"a","state":"conclude","speaker":"T","claim":true,"anchor":"decision.judgment_points[emergency_guard].criterion","text":"不能。异常时要控制器归零,断开电源,把重物安全降到地面。长时间悬空就是这类题的典型扣分点。","startSec":124.44,"durSec":9.36},
+    {"kind":"closing","state":"closing","speaker":"T","claim":true,"anchor":"teaching_spine.warm_correction","text":"收个尾:起重吊装别只写设备没问题。先过四道门,尤其把高负荷试吊检查写完整。现在开始闯关,看你能不能把这句话迁移到新题里。","startSec":134.2,"durSec":12.408}
+  ]}
+}</script>
+<script>
+const data=JSON.parse(document.getElementById("lessonData").textContent);
+const total=data.timing.totalSec;
+const segments=data.timing.segments;
+const chapterTimes=[0,12.088,24.464,33.6,43.792,56.888,67.968,80.512];
+const chapterLabels=["先学","错觉","人证","装置","试吊","应急","采分","闯关"];
+const scene=document.getElementById("scene"),lesson=document.getElementById("lesson"),audio=document.getElementById("audio"),centerPlay=document.getElementById("centerPlay"),playBtn=document.getElementById("playBtn"),pauseBtn=document.getElementById("pauseBtn"),muteBtn=document.getElementById("muteBtn"),restartBtn=document.getElementById("restartBtn"),scrub=document.getElementById("scrub"),fill=document.getElementById("fill"),capTitle=document.getElementById("capTitle"),capText=document.getElementById("capText"),timeLabel=document.getElementById("timeLabel"),cta=document.getElementById("cta"),gate=document.getElementById("gate"),fullBtn=document.getElementById("fullBtn"),exitFullBtn=document.getElementById("exitFullBtn"),quickOptions=document.getElementById("quickOptions"),atoms=[...document.querySelectorAll("#atoms div")],dots=[...document.querySelectorAll(".beat-dot")];
+let unlocked=false,dragging=false,hideTimer=null;
+function pad(n){return String(Math.floor(n)).padStart(2,"0")}function fmt(x){return `${pad(x/60)}:${pad(x%60)}`}
+function segmentAt(t){let s=segments[0];for(const seg of segments){if(t>=seg.startSec-.05)s=seg}return s}
+function chapterAt(t){let k=0;chapterTimes.forEach((c,i)=>{if(t>=c-.05)k=i});return k}
+function stateFor(seg){
+  if(seg.kind==="closing")return "closing";
+  if(seg.kind==="q")return "qa";
+  if(seg.kind==="a"&&seg.anchor&&seg.anchor.includes("trial_lift"))return "trial";
+  if(seg.kind==="a"&&seg.anchor&&seg.anchor.includes("environment"))return "device";
+  if(seg.kind==="a"&&seg.anchor&&seg.anchor.includes("emergency"))return "stop";
+  return seg.state;
+}
+function renderGate(focus){
+  const gates=[["personnel","人证","司机、信号、司索持证到位"],["device","装置","安全装置可靠,天气复工条件满足"],["trial","试吊","90%以上先离地约15cm试吊检查"],["stop","应急","异常停吊,归零断电,重物落地"]];
+  return `<div class="decision">${gates.map(([id,b,t])=>`<div class="gate ${id===focus?"hit":""} ${id!==focus?"dim":""}"><b>${b}</b><span>${t}</span></div>`).join("")}</div>`;
+}
+function craneSvg(){
+  return `<div class="crane-focus"><svg viewBox="0 0 360 250"><path class="dark" d="M42 44h210M82 44v176M222 44v176" stroke-width="10" stroke-linecap="round" fill="none"/><path class="dark" d="M222 44c56 40 56 96 16 142" stroke-width="9" stroke-linecap="round" fill="none"/><path class="dark" d="M238 186v28M220 214h36" stroke-width="8" stroke-linecap="round" fill="none"/><rect x="198" y="176" width="78" height="44" rx="12" fill="#fff3e9" stroke="#f97316" stroke-width="5"/><text x="237" y="204" text-anchor="middle" class="trial-label">95%</text><path d="M286 198h56" class="orange" stroke-width="6" stroke-linecap="round" stroke-dasharray="10 9"/><text x="286" y="184" fill="#f97316" font-size="16" font-weight="900">15cm试吊</text></svg></div>`;
+}
+function sceneHtml(seg){
+  const st=stateFor(seg);
+  if(st==="hook")return `<div class="eyebrow">先别急着吊</div><h2>考场问的是<br>能不能正式吊</h2><p>不是背安全管理,而是把“先试吊、再检查、确认后继续”写成分。</p>${craneSvg()}`;
+  if(st==="trap")return `<div class="eyebrow">先抓错觉</div><div class="trap-card"><b>人员+设备<br>不等于能吊</b><span>漏掉试吊检查,结论就错。</span></div>`;
+  if(st==="personnel")return `<div class="eyebrow">第一门</div><h2>人证</h2><p>关键人员不到位,不能进入试吊。</p>${renderGate("personnel")}`;
+  if(st==="device")return `<div class="eyebrow">第二门</div><h2>装置环境</h2><p>安全装置可靠;雨雪后还要清理、防滑、防漏电。</p>${renderGate("device")}`;
+  if(st==="trial")return `<div class="eyebrow">第三门</div><h2>试吊检查</h2><p>90%以上负荷,先离地约15cm试吊。</p>${craneSvg()}<div class="single-gate"><b>试吊</b><span>查平稳性、设备和绑扎,确认安全后再继续。</span></div>`;
+  if(st==="stop")return `<div class="eyebrow">第四门</div><h2>停吊应急</h2><p>归零、断电、重物落地,不能悬空等待。</p>${renderGate("stop")}`;
+  if(st==="score")return `<div class="eyebrow">答题纸</div><div class="score-paper"><h3>采分句四格</h3><div><mark>90%以上</mark>额定起重量</div><div>离地约<mark>15cm试吊</mark></div><div>检查平稳性、设备、绑扎</div><div>确认安全后方可继续</div></div>`;
+  if(st==="bridge")return `<div class="eyebrow">记忆钩子</div><h2>四道门</h2><p>人证、装置环境、试吊、停吊应急。换题也按这条线判。</p>${renderGate("trial")}`;
+  if(st==="qa")return `<div class="eyebrow">学生追问</div><div class="qa-box"><b>晨煦问</b><p>${seg.text}</p></div>`;
+  return `<div class="eyebrow">收个尾</div><h2>别只写设备没问题</h2><p>先过四道门,尤其把高负荷试吊检查写完整。现在开始闯关。</p>${renderGate("trial")}`;
+}
+function unlock(){if(unlocked)return;unlocked=true;cta.textContent=cta.dataset.readyLabel;cta.classList.add("ready");cta.removeAttribute("aria-disabled");gate.textContent="② 开始闯关";gate.classList.add("ready");gate.removeAttribute("aria-disabled")}
+function paint(){
+  const t=audio.currentTime||0,pct=Math.min(1,t/total);if(!dragging)scrub.value=String(Math.round(pct*1000));fill.style.width=`${pct*100}%`;timeLabel.textContent=`${fmt(t)} / ${fmt(total)}`;
+  const seg=segmentAt(t),st=stateFor(seg),ci=chapterAt(t),chapter=chapterLabels[ci],preStart=t<.05&&audio.paused&&!lesson.classList.contains("started");
+  scene.className=`scene scene-${st}`;scene.innerHTML=sceneHtml(seg);
+  if(!preStart){capTitle.textContent=`${ci+1}. ${chapter}`;capText.textContent=seg.text;}
+  lesson.classList.toggle("started",t>0||!audio.paused);lesson.classList.toggle("state-hook",stateFor(seg)==="hook");
+  dots.forEach((d,i)=>{d.classList.toggle("active",i<=ci);d.classList.toggle("current",i===ci)});
+  atoms.forEach((a,i)=>{const on=ci>=[2,3,4,5][i];a.classList.toggle("on",on);if(on)a.querySelector("span").textContent=["持证到位","装置环境合格","15cm试吊检查","异常停吊落地"][i]});
+  if(t>=total-.25||audio.ended)unlock();
+}
+quickOptions.addEventListener("click",e=>{const btn=e.target.closest("button");if(!btn)return;const c=btn.dataset.choice;quickOptions.querySelectorAll("button").forEach(b=>b.disabled=false);btn.disabled=true;if(c==="correct"){capTitle.textContent="判对了:第三门是刀口";capText.textContent="不能直接正式吊。95%已超过90%控制线,要先离地约15cm试吊,检查平稳性、设备和绑扎。"}else if(c==="wrong"){capTitle.textContent="这就是本题错觉";capText.textContent="设备够不等于能正式吊。高负荷起吊前漏掉试吊检查,主观题最后一句就丢分。"}else{capTitle.textContent="看完只抓一个动作";capText.textContent="接下来只看四道门,尤其是90%以上先15cm试吊这一步。"};try{navigator.vibrate&&navigator.vibrate(8)}catch(err){}});
+async function play(){lesson.classList.add("started");try{await audio.play()}catch(err){}paint();showControls(true)}
+function pause(){audio.pause();paint();showControls(false)}
+centerPlay.onclick=play;playBtn.onclick=play;pauseBtn.onclick=pause;restartBtn.onclick=()=>{audio.currentTime=0;play()};muteBtn.onclick=()=>{audio.muted=!audio.muted;muteBtn.textContent=audio.muted?"取消静音":"静音"};
+audio.addEventListener("timeupdate",paint);audio.addEventListener("loadedmetadata",paint);audio.addEventListener("ended",()=>{unlock();paint()});
+scrub.oninput=()=>{dragging=true;audio.currentTime=Number(scrub.value)/1000*total;paint()};scrub.onchange=()=>{dragging=false;paint()};
+dots.forEach(d=>d.onclick=()=>{audio.currentTime=chapterTimes[Number(d.dataset.i)];paint();showControls(true)});
+function guard(e){if(!unlocked){e.preventDefault();capText.textContent="先听完收尾,再进入闯关。";showControls(false)}}cta.onclick=guard;gate.onclick=guard;
+function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement||null}function setFullButton(){fullBtn.textContent=fsEl()||lesson.classList.contains("theater")?"退出":"全屏"}
+function hideControls(){clearTimeout(hideTimer);hideTimer=null;lesson.classList.remove("controls-visible")}function showControls(auto=true){if(!lesson.classList.contains("theater"))return;clearTimeout(hideTimer);lesson.classList.add("controls-visible");if(auto&&!audio.paused)hideTimer=setTimeout(()=>lesson.classList.remove("controls-visible"),3200)}
+async function toggleFull(e){e&&e.stopPropagation();const active=fsEl()||lesson.classList.contains("theater");if(active){if(fsEl()){try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(err){}}lesson.classList.remove("native-fullscreen","theater");hideControls();setFullButton();return}lesson.classList.add("theater");showControls(false);const request=lesson.requestFullscreen||lesson.webkitRequestFullscreen;if(request){try{await request.call(lesson);lesson.classList.add("native-fullscreen")}catch(err){}}setFullButton()}
+function syncFs(){if(!fsEl()&&lesson.classList.contains("native-fullscreen")){lesson.classList.remove("native-fullscreen","theater");hideControls()}setFullButton()}
+fullBtn.onclick=toggleFull;exitFullBtn.onclick=toggleFull;document.addEventListener("fullscreenchange",syncFs);document.addEventListener("webkitfullscreenchange",syncFs);lesson.onclick=e=>{if(!lesson.classList.contains("theater")||e.target.closest(".controls")||e.target.closest(".full-btn"))return;lesson.classList.contains("controls-visible")?hideControls():showControls(true)};paint();
+</script>
+</body>
+</html>

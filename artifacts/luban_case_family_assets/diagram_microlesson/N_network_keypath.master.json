@@ -1,0 +1,51 @@
+{
+  "schema_version": "luban_deep_archetype_master.sample.v0",
+  "master_id": "N_network_keypath",
+  "_status_note": "深母题【完整闭环样板·计算类③】(围绕一个考点:网络计划关键线路怎么判断)。第三个考点,用权威位 skill (agent-skills/luban-diagram-microlesson) 复刻,验证 skill 在【计算类】(要算,非判断/工序)上的复用。讲懂卡=N01_network_keypath.json。sample 不冒充生产 case_family。",
+  "exam_point": "网络计划关键线路怎么判断(总时差为 0)",
+  "taxonomy_ref": "1A420000",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "runtime_rule": "只读/只发候选/不写结论:误区映射 ERROR_CODE_REGISTRY、mastery 是鉴别候选(终判归 LearnerStateService)。",
+    "student_boundary": "这是教学演示用的网络计划例子,帮你练判断方法;不是某道官方真题,具体数字以你自己做的题为准。"
+  },
+  "R2_invariant": "求关键线路的算法恒定:① 理逻辑(紧前紧后)→ ② 顺推最早时间 → ③ 逆推最迟时间 → ④ 总时差 = 最迟 − 最早,把【总时差为 0】的工作连成的连续线路 = 关键线路,其长度 = 总工期。换皮只换网络图结构/工期数值,这套算法不变。",
+  "examiner_intent": "考的不是背某条线路,是会不会用'总时差为 0'这套算法找关键线路;尤其不被'最长单个工作''只加工期'误导,会分总时差/自由时差,换个网络图/数值照样会算。",
+  "teaching_card_ref": "N01_network_keypath",
+  "teaching_lesson_ref": "N01_network_keypath.lesson.json",
+  "_lesson_ref_note": "讲懂层=网络图逐步标注教学动画(读逻辑→顺推最早→逆推最迟→标总时差→高亮关键线路)+ 双人答疑。render_archetype_journey.py 读本 master 组装一镜到底闭环。",
+  "R4_variable_rules": {
+    "can_vary": ["网络图结构(工作数/逻辑关系)", "各工作持续时间数值"],
+    "must_not_vary": ["求解算法(理逻辑→顺推→逆推→总时差为0=关键线路)", "总时差/自由时差的定义"],
+    "boundary": "变题只换网络图/数值,不改算法。计算类【题干给网络图与工期是题目数据本身,不是泄答案】——答案是'算出来的关键线路/工期/时差',与判断类'别泄判据阈值'不同。"
+  },
+  "_variants_design_note": "计算类变题 = 同算法换网络图/数值 + 误区辨析,每题挂 basis_ref 可追溯 N01 expected/error_reveals。关键鉴别题 = W3(改数值重算·迁移)+ W4(总/自由时差)——背过的人只记原图答案、换数值就错、混淆两种时差。",
+  "variants": [
+    {"id": "W1_base", "basis_ref": "N01.question_data.expected.critical_path", "stem": "某工程 A~E 五项工作(A=3,B=2,C=4,D=2,E=3 天):A、B 可开工即做;C、D 紧接 A,D 还需等 B;E 需 C、D 均完成。下列哪条是关键线路?",
+     "answer": "B", "options": [{"id":"A","text":"开始-A-D-E-结束"},{"id":"B","text":"开始-A-C-E-结束"},{"id":"C","text":"开始-B-D-E-结束"},{"id":"D","text":"工期最长的工作 C"}],
+     "judged_outcome": "critical_ACE", "basis": "A-C-E 各工作总时差=0,长度 3+4+3=10=总工期", "tier_tag": "基础档(原图找关键线路)", "feedback": "对:开始-A-C-E-结束 上每项总时差都为 0,合计 10 天,就是关键线路。"},
+    {"id": "W2_longest_trap", "basis_ref": "N01.error_reveals[longest_single_activity]", "stem": "关于关键线路,下列说法正确的是?",
+     "answer": "B", "options": [{"id":"A","text":"工期最长的那个单个工作,就是关键工作"},{"id":"B","text":"关键线路是总时差为 0 的连续线路,要看整条路"},{"id":"C","text":"关键线路一定只有一条,且不会变"}],
+     "judged_outcome": "concept_zero_float", "basis": "关键看总时差为0的整条线路,非最长单个工作;数值变线路可变、可多条", "tier_tag": "误区档(最长工作陷阱)", "feedback": "对:关键线路是'总时差为 0 的连续线路',不是最粗那一根;数值一变线路可能变、也可能不止一条。"},
+    {"id": "W3_transfer", "basis_ref": "N01.expected + R2 算法(改数值重算)", "stem": "把上题里 D 的持续时间从 2 天改成 5 天(其余不变)。关键线路变成?",
+     "answer": "A", "options": [{"id":"A","text":"开始-A-D-E-结束(总工期 11 天)"},{"id":"B","text":"仍是开始-A-C-E-结束(10 天)"},{"id":"C","text":"开始-B-D-E-结束(10 天)"}],
+     "judged_outcome": "recompute_ADE", "basis": "D=5 后 A-D-E=3+5+3=11>A-C-E=10,关键线路改走 A-D-E、总工期 11", "tier_tag": "迁移档(改数值重算)·关键鉴别", "feedback": "对:D 改 5 天后,A-D-E=11 天超过 A-C-E=10 天,关键线路就改走 A-D-E、总工期变 11 天。换了数值要重新算,不能背原答案。"},
+    {"id": "W4_float", "basis_ref": "N01.question_data.expected.float.B", "stem": "回到原图(D=2)。工作 B 的总时差与自由时差分别是多少?",
+     "answer": "C", "options": [{"id":"A","text":"总时差 0、自由时差 0"},{"id":"B","text":"总时差 1、自由时差 1"},{"id":"C","text":"总时差 3、自由时差 1"}],
+     "judged_outcome": "float_B", "basis": "B 总时差=3(能拖3天不影响总工期)、自由时差=1(不影响紧后D最早开始)", "tier_tag": "时差档(总vs自由)·关键鉴别", "feedback": "对:B 总时差 3、自由时差 1——总时差对总工期、自由时差对紧后工作,两者不是一回事。"}
+  ],
+  "mastery_discrimination": {
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);看穿'会算法 vs 背原图答案'。",
+    "key_discriminator_ids": ["W3_transfer", "W4_float"],
+    "real_understanding_signal": "W1-W4 全对,尤其 W3(改数值重算)与 W4(分总/自由时差)对 = 真会'总时差为0'算法、换数值会重算,不是背原图那条线。",
+    "rote_signal": "只 W1 对(原图答案),W3(改了数值)错 = 背了原答案不会重算;W4 错 = 混淆总时差/自由时差。",
+    "discriminator_strength": "W3(改数值重算)+ W4(总vs自由时差)是关键鉴别题:背过的人最易在'换数值'和'两种时差'翻车;W2(概念)佐证。",
+    "warm_feedback": {
+      "all_correct": "你是真会这套算法了——理逻辑、顺推逆推、看总时差为 0,换个网络图、改个数值你都能重新算出来。这类题稳。",
+      "partial": "算法你会走,差在'换数值要重算'和'两种时差别混':总时差对总工期、自由时差对紧后工作。把这两点补上就齐了。",
+      "rote_leaning": "先别背那条线路。记算法:理紧前紧后 → 顺推最早、逆推最迟 → 总时差为 0 的连续线路就是关键线路。数值一变就重走一遍,换什么图你都不慌。"
+    }
+  },
+  "_maps_to_production": "讲懂→teaching_card_ref(N01);R2/examiner_intent→case_family_structure;误区→ERROR_CODE_REGISTRY 映射;mastery_discrimination→retest_discriminator_candidate;落盘将来→artifacts/luban_case_family_assets/<case_family_id>/case_family.yaml(待 schema 登记)。"
+}

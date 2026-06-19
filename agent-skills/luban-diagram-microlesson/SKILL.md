@@ -9,7 +9,7 @@ description: Use when authoring, rendering, redesigning, or reviewing 鲁班 dia
 > **实现物料**全部在 `artifacts/luban_case_family_assets/diagram_microlesson/`(渲染器/脚本/样板卡/母题),本 skill 只装"怎么造"的规则,物料是 thin wrapper。
 > **唯一目录**:`artifacts/luban_case_family_assets/diagram_microlesson/`。不新建第二套目录 / 第二个 schema_version / 第二份 skill。
 >
-> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
+> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`F16_qigu.animation_ir.v0.json` + `render_animation_ir_preview.py` + `remotion_demo/src/F16AnimationIrPreview.tsx`(**OpenMAIC-style animation_ir.v0 新引擎样板**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_animation_ir_preview.mjs`(**IR scene 生命周期/信息量/闯关入口门**)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first/IR 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
 > references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
 
 ## 这套 skill 解决什么
@@ -47,6 +47,39 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 ```
 
 该门已覆盖 schema/action/timing/render/practice/data-id/runtime/bundle manifest,不生成 MP4;practice 或 timing.audio 缺失会在 gate 中失败。runtime gate 必须通过真实 `[data-theater-toggle]` 入口进入 theater,不得在 gate 里直接给页面加 `.theater` 假通过。timing gate 必须验证 `sync_keyword` 命中对应 timing 段文本/keycard,不能只看字段存在。
+
+### animation_ir.v0 路线(OpenMAIC-style,2026-06-19)
+
+当页面出现叠层、比例漂移、横竖屏细微变化就坏,说明问题不在某个 CSS 细节,而是 renderer 在累积页面状态。后续新引擎默认走:
+
+```
+母题数据(master/card/lesson/timing/practice)
+→ animation_ir.v0(scene/focus/enter/hold/exit/layout/camera/visible_nodes/keycard/coach)
+→ HTML preview renderer(确定性 switch/scene)
+→ Remotion renderer(吃同一份 IR)
+→ gate(静态 + 真实 DOM)
+```
+
+硬规则:
+
+1. AI/LLM 可以充分发挥,但只发挥在 `animation_ir.v0` 的编排层;不得直接画像素、不得输出自由 HTML 当唯一真相。
+2. 每个 beat/scene 必须显式写 `scene`、`focus`、`enter`、`hold`、`exit`、`layout`、`camera`、`visible_nodes`、`keycard`、`coach`。
+3. renderer 只认 IR,每个时刻只渲染当前 scene;禁止靠 `reached-*`、历史 class、已播放节点数组来累积画面。
+4. `visible_nodes.length <= render_contract.max_visible_nodes`。F16 这类工序/构造卡默认拆成多 scene:起鼓病因、割开放气、干燥清基、附加封严、蓄水检验、答题纸采分句、闯关桥接。
+5. HTML preview 是产品评审入口;正式成片时 Remotion renderer 必须吃同一份 IR。预览阶段不生成 MP4。
+6. gate 至少覆盖:IR schema/必填字段、scene 不重叠、当前屏最大可见信息数、keycard 不累积、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene。
+7. `construction-whiteboard-director` 可作为导演/质检 skill 使用:它帮助定义"当前 beat 该看什么、什么必须退出、最终白板是否干净";但它不是内容权威,也不是 renderer authority。最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+
+当前最小样板:
+
+```bash
+python artifacts/luban_case_family_assets/diagram_microlesson/render_animation_ir_preview.py \
+  artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.animation_ir.v0.json
+
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_animation_ir_preview.mjs \
+  artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.animation_ir.v0.json \
+  artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.animation_ir_preview.html
+```
 
 ### decision-first 修正(2026-06-19)
 

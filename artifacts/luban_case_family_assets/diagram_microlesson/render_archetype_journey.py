@@ -56,9 +56,10 @@ _EXTRA_CSS = """
 .step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
 .step.done{color:#3fd39a;border-color:#26513c}
 .keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.kc{opacity:0;transform:translateX(-12px);transition:opacity .4s,transform .4s;
-  background:#16202d;border-left:3px solid #3a4a60;border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
-.kc.in{opacity:1;transform:none}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
 .kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
 .kc-a{border-left-color:#3fd39a;color:#cdeedd}
 .kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
@@ -108,14 +109,18 @@ _EXTRA_CSS = """
 .cta.ghost{background:#1a2533;color:#cfe0f0}
 .mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
 .scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
 	.lesson.theater{max-width:none;padding:0;background:#0f1722}
 .lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
 .lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
 .lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
 .lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
 	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
 	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
-	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
 	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
 	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
 	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
@@ -172,7 +177,7 @@ def _teach_keycards(lesson: dict, timing: dict | None) -> str:
             beat_id = str(beat.get("id") or f"beat_{teach_i}")
             action_id = f"{beat_id}.keycard"
             cards.append(
-                f'<div class="kc kc-{esc(kc.get("tone","a"))}" data-start="{s["startSec"]}" '
+                f'<div class="kc kc-{esc(kc.get("tone","a"))}" data-start="{s["startSec"]}" data-seg-idx="{s["idx"]}" '
                 f'data-beat-id="{esc(beat_id)}" data-action-id="{esc(action_id)}" '
                 f'data-visual-node-id="keycard.{esc(beat_id)}">{esc(kc["text"])}</div>'
             )
@@ -276,6 +281,7 @@ def _quiz_blocks(variants: list[dict]) -> str:
     n = len(variants)
     out = []
     for qi, v in enumerate(variants):
+        qlabel = v.get("tier_tag") or v.get("judged_outcome") or "变式题"
         opts = "".join(
             f'<button class="qopt" data-qi="{qi}" data-oid="{esc(o["id"])}">'
             f'<b>{esc(o["id"])}.</b> {esc(o["text"])}</button>'
@@ -283,7 +289,7 @@ def _quiz_blocks(variants: list[dict]) -> str:
         )
         out.append(
             f'<div class="qblock seg" data-qi="{qi}" data-practice-id="{esc(v["id"])}">'
-            f'<p class="qlabel">闯关 · 第 <b>{qi+1}</b>/{n} 题 · 用两道判据给新工程分档</p>'
+            f'<p class="qlabel">闯关 · 第 <b>{qi+1}</b>/{n} 题 · {esc(qlabel)}</p>'
             f'<p class="qstem">{esc(v["stem"])}</p>'
             f'<div class="qopts">{opts}</div>'
             f'<div class="qfb" data-qi="{qi}"></div>'
@@ -388,7 +394,7 @@ def render(master_path: Path) -> str:
     <div class="stage" id="stage" data-stage-shell="visual-stage">
       {stage_svg}
 	      {score_strip}
-      <div class="banner" data-visual-node-id="invariant.two_gates stage.conclude"><span data-visual-node-id="conclusion.need_argumentation">{esc(banner)}</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">{esc(banner)}</span></div>
       <button class="center-play" id="centerPlay" type="button">播放讲解</button>
     </div>
     <div class="keycards" id="keycards">{_teach_keycards(lesson, timing)}</div>
@@ -432,7 +438,7 @@ def render(master_path: Path) -> str:
         <input class="scrubber" id="scrubber" type="range" min="0" max="{timing["totalSec"] if timing else 0}" value="0" step="0.05" aria-label="拖动播放进度">
       </div>
     </div>
-    <div class="dots" id="dots">{dots_html}</div>
+    <div class="dots" id="dots">{dots_html}<a class="dot practice-dot" href="{esc(practice_href)}">闯关</a></div>
   </div>
 </div>
 <audio id="au" preload="metadata"{' src="' + esc(audio_src) + '"' if audio_src else ''}></audio>
@@ -467,13 +473,14 @@ function flowTo(el){{requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView(
 	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
 const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
 const lesson=document.querySelector('.lesson');
-const dots=[...document.querySelectorAll('.dot')],kcs=[...document.querySelectorAll('.kc')];
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
 const fmt=s=>{{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');}};
 tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
 if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
 let curState=null;
 function setStage(st){{if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
-  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ');
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
   dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}}
 let qaShown=false;
 function revealQA(){{if(!qaShown){{qaShown=true;qa.classList.add('show');}}}}
@@ -485,6 +492,7 @@ function paint(){{const t=au.currentTime;
   fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
   kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
   const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
   if(s.kind==='teach'){{caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}}
   else{{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}}
   if(t>=DATA.teachEndSec-0.2)revealQA();}}

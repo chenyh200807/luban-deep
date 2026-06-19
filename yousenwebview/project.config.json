@@ -3,8 +3,8 @@
   "packOptions": {
     "ignore": [
       {
-        "type": "folder",
-        "value": ".tmp_ad_assets"
+        "value": ".tmp_ad_assets",
+        "type": "folder"
       }
     ],
     "include": []

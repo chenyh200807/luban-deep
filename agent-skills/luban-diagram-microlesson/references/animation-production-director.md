@@ -212,6 +212,28 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 
 ## 6. Remotion / HTML 实现纪律
 
+### 6.0 OpenMAIC-style IR 分工
+
+稳定不靠锁死 AI,而靠分工:
+
+- AI/专家组负责产结构化中间表示:每个 beat/scene 明确 `scene/focus/enter/hold/exit/layout/camera/visible_nodes/keycard/coach`。
+- renderer 只做确定性渲染:纯 switch/组件映射,不让自由 HTML、CSS class 累积或上一次播放状态决定下一屏。
+- 预览和正式成片共用同一份 IR:HTML renderer 用来快速评审手机交互;Remotion renderer 用来正式成片,不得另写一份 storyboard。
+- gate 证明 scene 生命周期:当前屏 visible nodes 有上限、只有一个 active scene、只有一个 keycard、theater 仍有闯关入口、无 `reached-*` 累积。
+
+F16 这类工序/构造型卡的默认拆法:
+
+1. `hook`:先打错觉,告诉学生为什么这题不是"补一层"。
+2. `disease`:剖面认病因,气/水汽顶起卷材。
+3. `cut`:割开放气,打掉直接加铺错觉。
+4. `dry`:排气干燥、清基层/旧胶。
+5. `add/seal`:附加层盖过边缘、新卷材搭接封严。
+6. `test`:蓄水/淋水检验。
+7. `score`:答题纸采分句。
+8. `closing`:收束主线并切闯关。
+
+每一屏都要回答一句话:"这一屏结束时,学生应该形成哪一句可写进答题纸/判断题的表达?"答不上来就删屏或合并屏。
+
 ### 6.1 Remotion
 
 - 所有动画由 `useCurrentFrame()` 驱动;用秒写 timing,乘 `fps`。

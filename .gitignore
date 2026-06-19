@@ -341,3 +341,14 @@ var/official_billing/
 # Claude Code agent workspace (settings, transcripts, isolated worktrees).
 # Like .codex/.gstack — agent scratch state, must never enter git or reach prod.
 .claude/
+
+# Browser/Playwright session dumps — transient debug scratch, never commit.
+.playwright-cli/
+
+# Raw source data: multi-GB PDFs and a nested git clone (2026_副本 carries its own .git).
+# Far too large for this repo; keep out of history.
+docs/原始数据/PDF/
+docs/原始数据/2026_副本/
+
+# Video-first prototype renders are regenerable (remotion) and ship via CDN, not git.
+*.remotion.mp4

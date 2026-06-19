@@ -1,0 +1,750 @@
+{
+  "schema": "luban_compiled_asset_group_authority_map.v1",
+  "groups": [
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/[root_files]",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 6,
+      "bytes": 581330,
+      "manifest_like_files": 2,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/assessment_flywheel",
+      "group_kind": "assessment_flywheel",
+      "files": 2,
+      "bytes": 5764,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/assessment_testset",
+      "group_kind": "assessment_testset",
+      "files": 9,
+      "bytes": 1428036,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/bi_reconciliation_20260612",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 6,
+      "bytes": 57340,
+      "manifest_like_files": 4,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/billing_golive",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 3,
+      "bytes": 36350,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "auxiliary_artifact_or_report_read_only",
+      "owner_authority": "local_artifact_owner_unknown",
+      "llm_role": "summarize and classify only",
+      "deterministic_gate": "manual owner review before any promotion",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Treat as inventory/audit evidence until a named owner signs a downstream artifact.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/knowledge_compiler",
+      "group_kind": "knowledge_compiler_workbench",
+      "files": 189,
+      "bytes": 50729003,
+      "manifest_like_files": 22,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban-posters",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 16,
+      "bytes": 14547779,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "multimedia_or_product_candidate_read_only",
+      "owner_authority": "product_asset_workbench",
+      "llm_role": "organize candidate visual/product assets and extract metadata",
+      "deterministic_gate": "visual QA, source provenance, release packaging",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "product_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use for inspection and product asset planning, not teaching/score truth.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban-usage-infographic-v1",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 4,
+      "bytes": 9153663,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "multimedia_or_product_candidate_read_only",
+      "owner_authority": "product_asset_workbench",
+      "llm_role": "organize candidate visual/product assets and extract metadata",
+      "deterministic_gate": "visual QA, source provenance, release packaging",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "product_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use for inspection and product asset planning, not teaching/score truth.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_agentic_grading_harness",
+      "group_kind": "agentic_grading_harness",
+      "files": 142,
+      "bytes": 5181069,
+      "manifest_like_files": 2,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_case_family_assets",
+      "group_kind": "case_family_multimedia_assets",
+      "files": 232,
+      "bytes": 85881117,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "multimedia_or_product_candidate_read_only",
+      "owner_authority": "product_asset_workbench",
+      "llm_role": "organize candidate visual/product assets and extract metadata",
+      "deterministic_gate": "visual QA, source provenance, release packaging",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "product_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use for inspection and product asset planning, not teaching/score truth.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_case_grading_three_arms",
+      "group_kind": "case_grading_ab_workbench",
+      "files": 32,
+      "bytes": 39561956,
+      "manifest_like_files": 2,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_consensus_gold",
+      "group_kind": "consensus_gold_shadow_review",
+      "files": 496,
+      "bytes": 23704129,
+      "manifest_like_files": 27,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_grading_artifacts",
+      "group_kind": "grading_compiler_shadow_workbench",
+      "files": 3314,
+      "bytes": 342826336,
+      "manifest_like_files": 353,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_human_validation_v1",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 21,
+      "bytes": 991428,
+      "manifest_like_files": 2,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_knowql_nexus_three_arm_ab",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 17,
+      "bytes": 3649726,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_no_human_v1_5",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 101,
+      "bytes": 11864860,
+      "manifest_like_files": 19,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/luban_typed_policy",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 5,
+      "bytes": 282668,
+      "manifest_like_files": 1,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "candidate_compiler_workbench_read_only",
+      "owner_authority": "compiler_or_skill_kernel_required",
+      "llm_role": "extract, align, critique, and propose candidate knowledge/rubric structures",
+      "deterministic_gate": "schema validation, source hash, adversarial review, signed release, rollback pointer",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_worker",
+        "compiler_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "LLMs may organize candidates here; runtime may only consume a signed packet emitted downstream.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/onboarding_motion_qa_20260612",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 128,
+      "bytes": 107185692,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "multimedia_or_product_candidate_read_only",
+      "owner_authority": "product_asset_workbench",
+      "llm_role": "organize candidate visual/product assets and extract metadata",
+      "deterministic_gate": "visual QA, source provenance, release packaging",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "product_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use for inspection and product asset planning, not teaching/score truth.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/qa",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 278,
+      "bytes": 14946974,
+      "manifest_like_files": 100,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "artifacts/security",
+      "group_kind": "artifact_auxiliary_or_report",
+      "files": 1,
+      "bytes": 18547,
+      "manifest_like_files": 0,
+      "ledger_authority_status": "artifact_workbench_or_candidate_inventory",
+      "authority_class": "review_or_audit_evidence_read_only",
+      "owner_authority": "review_or_qa_workbench",
+      "llm_role": "critique, compare, summarize review evidence",
+      "deterministic_gate": "cannot become runtime supply without source validation and release signing",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "compiler_reviewer",
+        "qa_reviewer"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Use as evidence for review, never as canonical source or runtime packet.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "luban_compiled_asset_group_authority.v1",
+      "asset_group": "runtime_supply",
+      "group_kind": "runtime_supply_mixed_published_and_candidate",
+      "files": 57,
+      "bytes": 27623686,
+      "manifest_like_files": 18,
+      "ledger_authority_status": "runtime_supply_inventory_mixed_publication_status",
+      "authority_class": "runtime_supply_pointer_gated",
+      "owner_authority": "runtime_supply_publisher",
+      "llm_role": "summarize published/candidate status; do not promote truth",
+      "deterministic_gate": "per canonical pointer: published/status/hash/schema/consumer gate",
+      "direct_runtime_read_allowed": false,
+      "allowed_consumers": [
+        "asset_inventory_agent",
+        "runtime_consumer_only_after_runtime_pointers_gate"
+      ],
+      "forbidden_consumers": [
+        "official_score",
+        "learner_truth_writer",
+        "gbrain_writer",
+        "production_registry_writer",
+        "runtime_default_without_pointer_gate"
+      ],
+      "use_rule": "Do not consume the group as a whole; inspect runtime_pointers.jsonl and the referenced canonical pointer first.",
+      "runtime_guard": {
+        "release_stage": "compiled_asset_authority_map_only",
+        "runtime_consumable": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    }
+  ]
+}

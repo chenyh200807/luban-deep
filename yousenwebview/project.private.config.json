@@ -22,21 +22,52 @@
   },
   "condition": {
     "miniprogram": {
-      "current": 0,
       "list": [
         {
-          "id": 0,
-          "name": "host home",
-          "pathName": "pages/freeCourse/freeCourse",
+          "name": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
+          "pathName": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
           "query": "",
+          "scene": null,
+          "launchMode": "default",
+          "partialCompile": {
+            "enabled": false,
+            "pages": [
+              "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest"
+            ]
+          }
+        },
+        {
+          "name": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
+          "pathName": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
+          "query": "",
+          "launchMode": "default",
           "scene": null
         },
         {
-          "id": 1,
-          "name": "额度中心 billing",
-          "pathName": "packageDeeptutor/pages/billing/billing",
+          "name": "pages/freeCourse/freeCourse",
+          "pathName": "pages/freeCourse/freeCourse",
           "query": "",
-          "scene": null
+          "launchMode": "default",
+          "scene": null,
+          "partialCompile": {
+            "enabled": false,
+            "pages": [
+              "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest"
+            ]
+          }
+        },
+        {
+          "name": "pages/freeCourse/freeCourse",
+          "pathName": "pages/freeCourse/freeCourse",
+          "query": "",
+          "launchMode": "default",
+          "scene": null,
+          "partialCompile": {
+            "enabled": false,
+            "pages": [
+              "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest"
+            ]
+          }
         }
       ]
     }

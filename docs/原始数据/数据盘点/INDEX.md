@@ -37,6 +37,9 @@
 | 2026-06-19 | [全数据资产 AI 速览 v1](2026-06-19-全数据资产AI速览v1.md) | **目标改为全数据资产总账**:生成 `data_asset_brief_v1`,让 AI 一分钟知道 1107 原始文件 / 383 清洗 JSON / 95 PDF / 615 图片 / 555 真题 / 1033 章节题 / 650 教材 blocks / 5077 标准节点 / 431 候选 scoring points;状态 `asset_inventory_only`,非 runtime supply。 |
 | 2026-06-19 | [PDF 源账本 v1](2026-06-19-PDF源账本v1.md) | **PDF 逐文件账本已生成**:95 个 PDF 全部 hash/分类/候选派生状态建账;39 个有候选结构化派生引用,56 个仍需编译或映射;状态 `raw_pdf_evidence_ledger`,非 runtime supply / 非 official score authority。 |
 | 2026-06-19 | [编译资产收录 v1](2026-06-19-编译资产收录v1.md) | **artifacts 编译资产已纳入总账**:索引 5,059 文件 / 21 分组 / 545 manifest-like 快照;payload 保留原路径,状态 `compiled_asset_inventory_only`,非 runtime truth / 非 official score authority。 |
+| 2026-06-19 | [编译资产 Authority Map v1](2026-06-19-编译资产AuthorityMap-v1.md) | **编译资产消费边界已建图**:21 group 全部分类;真实 runtime pointer / manifest 15 条,其中 4 published+hash-gated、11 candidate/blocked;`artifacts/*` 直读 runtime 允许数=0。 |
+| 2026-06-19 | [资产缺口地图 v1](2026-06-19-资产缺口地图v1.md) | **OKF/source/runtime 缺口地图已生成**:9 个开放缺口项(P1 5 / P2 4);P1 包含真题内容缺口 139、P1 PDF 21、OKF case-level-only 16、OKF candidate 未签发 25、`v_case_rubric_scored` live-reader policy conflict 1;状态 `asset_gap_map_only`。 |
+| 2026-06-19 | [OKF Bundle v0](okf_bundle_v0/index.md) | **回归 Google-style OKF 极简形态**:只输出 Markdown + YAML frontmatter + links;把 ledger/gap/runtime signing 降级为外部治理层,OKF 本体只做 AI 可读导航。 |
 | 2026-06-19 | [OKF-like rubric pilot v0](okf_pilot/rubric_v0/index.md) | **最小 OKF-like 小样**:从 `case_rubric_canonical.json` 切 2021 案例一,生成 1 case / 5 rubric / 15 scoring point 的 Markdown review projections 与 compiled JSON inspection artifacts;保留 `authority=training_org_analysis_yousen`、`not_official=true`、`official_score_allowed=false`,补 question/rubric provenance 与 machine non-runtime guard,不接 runtime。 |
 
 ## 抽取产物(`docs/原始数据/数据盘点/extractions/`)
@@ -56,6 +59,8 @@
 | `data_asset_brief_v1/` | ✅ AI-first 全数据资产总账:`manifest.json`、`asset_buckets.json`、`ai_brief.md`;聚合 raw profile / JSON ledger / OKF candidate scope,输出 1107 原始文件、383 JSON、95 PDF、615 图片、555 真题、1033 章节题等一页式入口,**asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
 | `pdf_source_ledger_v1/` | ✅ PDF raw evidence ledger:`manifest.json`、`pdf_sources.jsonl`、`summary.md`;95 个 PDF 全部逐文件 hash/分类/候选派生状态建账,39 个有候选结构化派生引用、56 个仍需编译或映射,**raw_pdf_evidence_ledger / 非 runtime supply / 非 official scoring authority** |
 | `compiled_asset_ledger_v1/` | ✅ 编译资产 inventory ledger:`manifest.json`、`asset_groups.json`、`files.jsonl`、`manifest_refs.jsonl`、`manifest_snapshots/`;索引 `artifacts/` 与 `runtime_supply/` 5,059 文件,复制 545 个小型 manifest-like 快照,**compiled_asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
+| `compiled_asset_authority_map_v1/` | ✅ 编译资产 authority map:`manifest.json`、`group_authority.json`、`runtime_pointers.jsonl`、`consumer_policy.json`;21 group 分类,15 条真实 runtime pointer / manifest 审计,4 published+hash-gated / 11 candidate-blocked,**authority_map_only / 非 runtime install / 非 official scoring authority** |
+| `asset_gap_map_v1/` | ✅ 资产缺口地图:`manifest.json`、`gap_summary.json`、`gap_items.jsonl`、`action_queues.json`、`next_actions.json`;9 个开放缺口项(P1 5 / P2 4),含 JSON claim review、PDF compile/provenance、OKF 小问级 alignment、runtime consumer evidence 和 live-reader policy conflict,**asset_gap_map_only / 非 runtime supply / 非 official scoring authority** |
 
 ## 待办盘点(下次补)
 

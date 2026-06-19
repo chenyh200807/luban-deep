@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 起鼓割补 · 图解采分点（地基实验·确定性SVG·手机可看）</title>
+<style>
+  :root{
+    --ink:#1d2530; --sub:#6b7686; --line:#e7ebf0; --bg:#eef1f5;
+    --green:#1aa06d; --green-bg:#e8f7f0; --amber:#e08a1e; --amber-bg:#fdf2e3;
+    --blue:#2f6df0; --blue-bg:#eaf1ff; --gold:#f5a623;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",Roboto,sans-serif;padding:16px 10px 44px}
+  .top{max-width:430px;margin:0 auto 10px;text-align:center}
+  .top h1{font-size:16px;margin:0 0 4px}
+  .top p{margin:3px auto;color:var(--sub);font-size:12px;line-height:1.55;max-width:400px}
+  .badge{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--sub);margin:2px 3px}
+  .phone{max-width:412px;margin:0 auto;background:#fff;border-radius:26px;padding:8px;box-shadow:0 8px 26px rgba(20,30,50,.10);border:1px solid #dfe4ea}
+  .screen{background:#f6f8fb;border-radius:18px;overflow:hidden}
+  .navbar{padding:11px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:#fff}
+  .navbar .t{font-size:14px;font-weight:700}
+  .navbar .tag{margin-left:auto;font-size:10px;color:#fff;background:var(--blue);border-radius:10px;padding:2px 8px}
+  .body{padding:14px}
+  .sec{font-size:12px;font-weight:700;color:var(--ink);margin:14px 2px 7px;border-left:3px solid var(--blue);padding-left:8px}
+  .sec:first-child{margin-top:2px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;margin:8px 0}
+  .scene-cap{font-size:11px;color:var(--sub);text-align:center;margin-top:6px}
+  .ai-note{font-size:10px;color:#9a6512;background:#fff7e8;border:1px dashed #f3d9a6;border-radius:8px;padding:6px 9px;margin-top:8px;line-height:1.5}
+  .step{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px;margin:9px 0}
+  .step .svgbox{flex:0 0 92px}
+  .step .meta{flex:1;min-width:0}
+  .step .no{display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px;margin-right:5px}
+  .step .act{font-size:13px;font-weight:700;line-height:1.4}
+  .step .desc{font-size:11.5px;color:#3b4452;line-height:1.5;margin-top:4px}
+  .sp{display:inline-block;border-radius:7px;padding:2px 7px;font-size:10px;font-weight:700;margin-top:7px}
+  .sp.p10{background:var(--green-bg);color:#137a52;border:1px solid #b8e6cf}
+  .sp.p11{background:var(--amber-bg);color:#9a5e12;border:1px solid #f1d4a3}
+  .err{display:inline-block;font-size:10px;color:#b85618;background:#fbe2d6;border-radius:6px;padding:1px 6px;margin-left:4px;font-family:ui-monospace,Menlo,monospace}
+  .scoretbl{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px}
+  .scoretbl td{border:1px solid var(--line);padding:7px 8px;vertical-align:top;line-height:1.5}
+  .scoretbl .h{background:#f0f3f8;font-weight:700;white-space:nowrap;color:var(--sub)}
+  .warm{background:#fff7ee;border:1px solid #f3d9a6;border-radius:12px;padding:11px 12px;font-size:12px;color:#8a5a17;line-height:1.6;margin-top:9px}
+  .warm b{color:#6b4310}
+  .hook{background:#eef4ff;border:1px solid #cfe0ff;border-radius:11px;padding:10px 12px;font-size:12.5px;color:#173a86;margin-top:9px;line-height:1.5;text-align:center;font-weight:600}
+  .auth{font-size:10px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-top:10px;line-height:1.5}
+  .note{max-width:430px;margin:14px auto 0;font-size:11px;color:var(--sub);line-height:1.6;padding:0 6px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>F16 起鼓割补 · 图解采分点（地基实验）</h1>
+  <p><span class="badge">确定性 SVG</span><span class="badge">手机可看 · 无需点击</span><span class="badge">非真小程序</span></p>
+  <p>验证"用确定性 SVG 把工序画出来、每步绑到已签发采分点"这条地基。图全部内联 SVG（不跑 JS、不靠文生图）。</p>
+</div>
+
+<div class="phone"><div class="screen">
+  <div class="navbar"><span class="t">屋面卷材防水 · 起鼓割补</span><span class="tag">讲透一个考点</span></div>
+  <div class="body">
+
+    <div class="sec">① 工程现场长什么样</div>
+    <div class="card">
+      <svg viewBox="0 0 380 120" width="100%" height="auto" role="img" aria-label="屋面卷材起鼓示意">
+        <rect x="10" y="78" width="360" height="26" fill="#cdd6e2"/>
+        <text x="16" y="96" font-size="10" fill="#5a6678">结构基层 / 找平层</text>
+        <!-- 卷材层，中间鼓起 -->
+        <path d="M10 78 L150 78 Q190 30 230 78 L370 78" fill="none" stroke="#2f6df0" stroke-width="5"/>
+        <path d="M150 78 Q190 30 230 78 Z" fill="#eaf1ff" opacity="0.7"/>
+        <text x="160" y="58" font-size="11" fill="#2f6df0" font-weight="700">鼓泡</text>
+        <!-- 进气/进水箭头 -->
+        <text x="182" y="74" font-size="10" fill="#d9534f">气/水</text>
+        <text x="250" y="50" font-size="10" fill="#5a6678">卷材与基层间进气或进水 → 局部鼓起</text>
+      </svg>
+      <div class="scene-cap">卷材与基层粘不牢 + 夹了气/水 → 鼓泡，受热受压会扩大、开裂渗漏。</div>
+      <div class="ai-note">📷 这里可再配一张"屋面鼓泡现场照"(AI 示意图，非真实现场/非规范节点详图)——需图像生成，暂留位。</div>
+    </div>
+
+    <div class="sec">② 为什么这道题容易丢分</div>
+    <div class="card" style="font-size:12px;color:#3b4452;line-height:1.65">
+      会写"割补"的人多，但常<b>漏掉"先放气"</b>和<b>"重贴前要分层剥开旧卷材"</b>——直接盖一层新卷材，气没排、新旧没咬合，照样鼓、照样渗。阅卷正是踩这两处。
+    </div>
+
+    <div class="sec">③④ 正确工序（每步对应采分点）</div>
+
+    <div class="step">
+      <div class="svgbox">
+        <svg viewBox="0 0 90 64" width="92" role="img" aria-label="割开放气">
+          <rect x="6" y="40" width="78" height="14" fill="#cdd6e2"/>
+          <path d="M6 40 L30 40 Q45 14 60 40 L84 40" fill="none" stroke="#1aa06d" stroke-width="4"/>
+          <line x1="40" y1="20" x2="50" y2="30" stroke="#d9534f" stroke-width="2"/>
+          <line x1="50" y1="20" x2="40" y2="30" stroke="#d9534f" stroke-width="2"/>
+          <text x="30" y="14" font-size="9" fill="#d9534f">气↑</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="act"><span class="no">1</span>割开鼓泡，放气</div>
+        <div class="desc">沿鼓泡割开（十字/放射），把里面的气体、潮气排尽。</div>
+        <span class="sp p10">采分点 P10 · 放气（exact_required 0.75）</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="svgbox">
+        <svg viewBox="0 0 90 64" width="92" role="img" aria-label="清除旧胶擦干">
+          <rect x="6" y="40" width="78" height="14" fill="#cdd6e2"/>
+          <rect x="20" y="34" width="50" height="6" fill="#b9a98c"/>
+          <path d="M30 22 L36 34 M44 20 L48 34 M58 22 L62 34" stroke="#e08a1e" stroke-width="2" fill="none"/>
+          <text x="22" y="18" font-size="9" fill="#9a5e12">清旧胶/擦干</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="act"><span class="no">2</span>清除旧胶结料，基层擦干</div>
+        <div class="desc">把割开处的旧胶结料、杂物清干净，基层擦干（含水会再鼓）。</div>
+        <span class="sp p10">采分点 P10 · 擦干 / 清除旧胶结料（exact_required 0.75）</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="svgbox">
+        <svg viewBox="0 0 90 64" width="92" role="img" aria-label="烘烤分层剥开">
+          <rect x="6" y="42" width="78" height="14" fill="#cdd6e2"/>
+          <path d="M14 42 L44 42 Q52 30 60 38" fill="none" stroke="#2f6df0" stroke-width="4"/>
+          <text x="50" y="30" font-size="14" fill="#e08a1e">🔥</text>
+          <text x="14" y="22" font-size="9" fill="#9a5e12">烘烤·分层剥开</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="act"><span class="no">3</span>喷灯烘烤，分层剥开旧卷材</div>
+        <div class="desc">喷灯烘烤软化，把旧卷材<b>分层剥开</b>（不是硬扯），为新卷材连续咬合做准备。</div>
+        <span class="sp p11">采分点 P11 · 喷灯烘烤 / 分层剥开（high_risk_review 0.75）</span>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="svgbox">
+        <svg viewBox="0 0 90 64" width="92" role="img" aria-label="重贴新卷材">
+          <rect x="6" y="42" width="78" height="14" fill="#cdd6e2"/>
+          <rect x="6" y="36" width="78" height="6" fill="#2f6df0"/>
+          <rect x="34" y="30" width="50" height="6" fill="#1aa06d"/>
+          <text x="34" y="26" font-size="9" fill="#137a52">新卷材·搭接</text>
+        </svg>
+      </div>
+      <div class="meta">
+        <div class="act"><span class="no">4</span>重贴新卷材，搭接压实</div>
+        <div class="desc">铺贴新卷材，与原防水层<b>连续搭接</b>、压实排气，恢复整体防水。</div>
+        <span class="sp p11">采分点 P11 · 重贴新卷材（high_risk_review 0.75）</span>
+      </div>
+    </div>
+
+    <div class="sec">⑤ 考试采分点怎么写（已签发）</div>
+    <div class="card" style="padding:8px">
+      <table class="scoretbl">
+        <tr><td class="h">P10 · 0.75</td><td>放气；擦干；清除旧胶结料 <span style="color:var(--sub)">(exact_required，须写到关键词)</span></td></tr>
+        <tr><td class="h">P11 · 0.75</td><td>喷灯烘烤；分层剥开；重贴新卷材 <span style="color:var(--sub)">(high_risk_review)</span></td></tr>
+      </table>
+    </div>
+
+    <div class="sec">⑥ 学生常见错误表达</div>
+    <div class="card" style="font-size:12px;color:#3b4452;line-height:1.7">
+      ✗ "把鼓泡处补一层新卷材" <span class="err">E03 关键词缺失</span>（漏放气、漏清旧胶）<br>
+      ✗ "直接重贴新卷材" <span class="err">E06 程序顺序错误</span>（漏分层剥开，新旧不咬合）
+    </div>
+
+    <div class="warm">✅ <b>你已经抓住了"割补"这个大方向，这很好。</b>就差两个动作没写全：<b>先放气清旧胶</b>、<b>重贴前分层剥开</b>。补上这两句，P10/P11 这 1.5 分就稳稳到手——这类题以后再骗不到你。</div>
+
+    <div class="hook">🔑 记忆钩子：<br>"先放气清旧胶，剥开再重贴"</div>
+
+    <div class="auth">⚖️ 判分依据：已签发工件 <code>Q18-1A434000::qga_v0_20260604</code>，口径为培训机构(佑森)教研估分，<b>非官方阅卷</b>。图为自研确定性 SVG（流程示意，非规范级构造详图）。</div>
+
+  </div>
+</div></div>
+
+<div class="note">
+  这是「图解采分点」地基实验:确定性 SVG 工序图 + 每步绑已签发采分点 + 暖版纠正 + 记忆钩子，纯静态手机可看。<br>
+  ⑦ 真题/小练 与 ⑧ 完整 8 步精讲卡(先讲后测)在地基验通过后再拼。现场照(①的占位)需图像生成补。
+</div>
+</body>
+</html>

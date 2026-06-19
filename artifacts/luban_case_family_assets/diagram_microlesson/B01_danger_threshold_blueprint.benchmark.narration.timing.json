@@ -1,0 +1,44 @@
+{
+  "audio": "B01_danger_threshold_blueprint.benchmark.narration.mp3",
+  "totalSec": 50.049,
+  "derived_from": "fields",
+  "segments": [
+    {
+      "id": "opening",
+      "anchor": "blueprint",
+      "text": "危大工程:要不要专家论证。关键就两道闸,我们一个一个看。",
+      "startSec": 0,
+      "durSec": 5.959
+    },
+    {
+      "id": "panel_pit",
+      "anchor": "blueprint",
+      "text": "先看基坑支护 / 开挖。到3米就是危大,要编专项方案;再到5米超过一定规模,才要专家论证。",
+      "startSec": 6.459,
+      "durSec": 10.092,
+      "highlight": "pit"
+    },
+    {
+      "id": "panel_formwork",
+      "anchor": "blueprint",
+      "text": "再看混凝土模板支撑。到5米就是危大,要编专项方案;再到8米超过一定规模,才要专家论证。",
+      "startSec": 17.051,
+      "durSec": 9.971,
+      "highlight": "formwork"
+    },
+    {
+      "id": "rule",
+      "anchor": "blueprint",
+      "text": "记住,两道闸缺一不可,过危大阈值,编专项施工方案;再过超过一定规模阈值,才要专家论证。",
+      "startSec": 27.522,
+      "durSec": 10.117
+    },
+    {
+      "id": "diff",
+      "anchor": "diff",
+      "text": "这些数字都标着规范出处,不是凭空生成的,可以查、可以核。这就是和那种好看但说不清出处的图最大的不同。",
+      "startSec": 38.139,
+      "durSec": 11.109
+    }
+  ]
+}

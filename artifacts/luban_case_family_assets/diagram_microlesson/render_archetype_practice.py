@@ -81,6 +81,8 @@ def _scenario_specs(master: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 
 def _variant_visual(master: dict[str, Any], variant: dict[str, Any]) -> str:
+    if not master.get("R3_scenario_templates"):
+        return _process_variant_visual(master, variant)
     stem = str(variant.get("stem", ""))
     basis = str(variant.get("basis", ""))
     nums = [float(x) for x in re.findall(r"(\d+(?:\.\d+)?)m", stem + " " + basis)]
@@ -113,14 +115,77 @@ def _variant_visual(master: dict[str, Any], variant: dict[str, Any]) -> str:
 </svg>"""
 
 
+def _process_variant_visual(master: dict[str, Any], variant: dict[str, Any]) -> str:
+    text = " ".join(str(variant.get(k, "")) for k in ("stem", "basis", "judged_outcome", "tier_tag"))
+    outcome = str(variant.get("judged_outcome", ""))
+    if "closure" in outcome or "附加层" in text or "搭接" in text or "闭合" in text:
+        active = "add"
+        note = "漏防水闭合层"
+    elif "test" in outcome or "检验" in text or "蓄水" in text or "淋水" in text:
+        active = "test"
+        note = "漏检验闭环"
+    elif "direct" in outcome or "直接" in text or "盖住" in text:
+        active = "dry"
+        note = "错在直接覆盖"
+    elif "transfer" in outcome or "卫生间" in text:
+        active = "transfer"
+        note = "换场景仍走闭环"
+    else:
+        active = "cut"
+        note = "先治病因"
+    steps = [
+        ("cut", "割开放气", 46),
+        ("dry", "干燥清基", 128),
+        ("add", "附加封严", 210),
+        ("test", "试水闭环", 292),
+    ]
+    items = []
+    for sid, label, x in steps:
+        hot = sid == active or (active == "transfer" and sid in {"cut", "dry", "add", "test"})
+        cls = "hot" if hot else "soft"
+        items.append(
+            f"""<g class="step {cls}">
+    <circle cx="{x}" cy="74" r="26"/>
+    <text x="{x}" y="79" text-anchor="middle" font-size="13" font-weight="900">{esc(label)}</text>
+  </g>"""
+        )
+    return f"""<svg viewBox="0 0 390 220" role="img" aria-label="起鼓割补流程图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="46" fill="#176b7a" font-size="16" font-weight="900">起鼓割补 · 先治因再闭合</text>
+  <path d="M72 74 H266" stroke="#b7c5d3" stroke-width="6" stroke-linecap="round"/>
+  {''.join(items)}
+  <g class="roof" transform="translate(42 124)">
+    <rect x="0" y="48" width="306" height="28" rx="4" fill="#6b7280"/>
+    <rect x="0" y="36" width="306" height="12" fill="#b9ad8e"/>
+    <path d="M118 36 Q153 4 188 36 Z" fill="#334155" opacity=".26"/>
+    <path d="M150 34 L150 14 M146 21 L150 12 L154 21" stroke="#f97316" stroke-width="2" fill="none"/>
+    <rect x="92" y="28" width="128" height="8" rx="2" fill="#15803d" opacity=".78"/>
+    <rect x="74" y="18" width="164" height="8" rx="2" fill="#2563eb" opacity=".66"/>
+  </g>
+  <text x="195" y="118" text-anchor="middle" fill="#f97316" font-size="15" font-weight="900">{esc(note)}</text>
+</svg>"""
+
+
 def _wrong_basis(option_text: str) -> str:
+    if "病害识别" in option_text:
+        return "错因：题干已经识别起鼓，真正漏的是后续闭合措施"
+    if "施工单位" in option_text or "责任" in option_text:
+        return "错因：本题考施工修补工序，不是责任主体"
+    if "品牌" in option_text or "型号" in option_text:
+        return "错因：考试要写工序和采分动作，不是卷材品牌型号"
+    if "直接" in option_text or "盖住" in option_text or "重铺地砖" in option_text or "表面再刷" in option_text:
+        return "错因：直接覆盖没有先处理气、水汽和基层病因"
+    if "已经恢复" in option_text or "可以" in option_text:
+        return "错因：铺贴完成还缺蓄水或淋水检验闭环"
+    if "整片" in option_text or "全部铲除" in option_text or "一整层" in option_text:
+        return "错因：过度处理，题目问的是局部起鼓割补闭环"
     if "非危大" in option_text:
         return "错因：第一道危大阈值没过清"
     if "无需专家论证" in option_text or "无需论证" in option_text:
         return "错因：漏看第二道超规模阈值"
     if "需专家论证" in option_text or "需要专家论证" in option_text:
         return "错因：把危大和超规模混成一档"
-    return "错因：没有同时核对两道闸"
+    return "错因：没有按本题不变量完整判断"
 
 
 def _option_text(variant: dict[str, Any], option: dict[str, Any]) -> str:
@@ -142,6 +207,7 @@ def render(master_path: Path) -> str:
     card = _load_card(master_path, master)
     terms = _score_terms(card)
     variants = master.get("variants", [])
+    process_mode = not master.get("R3_scenario_templates")
     practice = []
     sections: list[str] = []
     for i, variant in enumerate(variants, 1):
@@ -176,20 +242,37 @@ def render(master_path: Path) -> str:
         )
     score_qid = f"q{len(variants)+1}"
     sample = "、".join(terms[:6]) if terms else "先判危大、再判超规模、最后写结论"
+    score_pieces = (
+        [
+            ("病害对象", "如:卷材防水层起鼓部位"),
+            ("病因处理", "如:割开放气、排气干燥、清除旧胶结料"),
+            ("闭合检验", "如:附加层、搭接封严、蓄水或淋水检验"),
+        ]
+        if process_mode
+        else [
+            ("对象/阈值", "如:基坑开挖深度5.5m"),
+            ("判断结果", "危大且超过一定规模"),
+            ("处理结论", "专项施工方案应组织专家论证"),
+        ]
+    )
+    score_svg_title = "起鼓割补采分句" if process_mode else "答题纸三件套"
+    score_svg_line = "病害对象 + 治病因 + 闭合检验" if process_mode else "对象/阈值 + 判断结果 + 处理结论"
+    score_labels = "\n".join(
+        f'<label><span>{esc(label)}</span><input data-field="field{idx}" placeholder="{esc(ph)}"></label>'
+        for idx, (label, ph) in enumerate(score_pieces, 1)
+    )
     sections.append(
         f"""<section class="q" data-practice-id="{esc(score_qid)}" data-qid="{esc(score_qid)}">
   <div class="qtop"><span>第 {len(variants)+1}/{len(variants)+1} 问</span><em>采分句输出</em></div>
   <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="采分句答题纸">
     <rect x="28" y="30" width="334" height="154" rx="18" fill="#fff" stroke="#d8e2ec" stroke-width="4"/>
-    <text x="58" y="72" fill="#176b7a" font-size="17" font-weight="900">答题纸三件套</text>
-    <text x="58" y="112" fill="#17202a" font-size="16" font-weight="900">对象/阈值 + 判断结果 + 处理结论</text>
+    <text x="58" y="72" fill="#176b7a" font-size="17" font-weight="900">{esc(score_svg_title)}</text>
+    <text x="58" y="112" fill="#17202a" font-size="16" font-weight="900">{esc(score_svg_line)}</text>
     <path d="M58 138h274" stroke="#f97316" stroke-width="7" stroke-linecap="round"/>
   </svg></div>
   <h2>把这类题写成一句能拿分的话。</h2>
   <div class="score-write">
-    <label><span>对象/阈值</span><input data-field="fact" placeholder="如:基坑开挖深度5.5m"></label>
-    <label><span>判断结果</span><input data-field="judgment" placeholder="危大且超过一定规模"></label>
-    <label><span>处理结论</span><input data-field="conclusion" placeholder="专项施工方案应组织专家论证"></label>
+    {score_labels}
     <button type="button" class="check-score" data-check-score="1">检查采分句</button>
   </div>
   <div class="feedback" id="fb-{esc(score_qid)}"></div>
@@ -203,7 +286,7 @@ def render(master_path: Path) -> str:
         "warm_feedback": (master.get("mastery_discrimination", {}).get("warm_feedback") or {}),
     }
     css = """
-*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100vh;padding:12px 10px 96px}header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}header a{border:1px solid #cad8e5;border-radius:999px;padding:9px 11px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:12px;font-weight:900}h1{font-size:22px;margin:3px 0 0;line-height:1.2}.progress{height:6px;border-radius:999px;background:#d6e2ec;margin-bottom:12px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:13px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.q.active{display:block}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right}.diagram{height:220px;background:#fffdf7;border:1px solid #eadfcb;border-radius:14px;margin:10px 0;display:grid;place-items:center;overflow:hidden}.diagram svg{width:100%;height:100%}.gate rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.q h2{font-size:18px;line-height:1.34;margin:10px 0 12px}.options{display:grid;gap:9px}.option{text-align:left;min-height:58px;border:1px solid #cfdae6;background:#fff;border-radius:14px;padding:11px 12px;color:#24364b;font-size:15px;font-weight:800;line-height:1.42}.option.correct{border-color:#73c596;background:#ecf9f2}.option.wrong{border-color:#fb923c;background:#fff3e9}.option:disabled{opacity:1}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write span{font-size:12px;font-weight:900;color:#176b7a}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:12px;border-radius:13px;padding:11px;font-size:14px;font-weight:800;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #d2dee9;box-shadow:0 -10px 28px rgba(31,41,55,.12)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100vh;padding:12px 10px 96px}header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}header a{border:1px solid #cad8e5;border-radius:999px;padding:9px 11px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:12px;font-weight:900}h1{font-size:22px;margin:3px 0 0;line-height:1.2}.progress{height:6px;border-radius:999px;background:#d6e2ec;margin-bottom:12px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:13px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.q.active{display:block}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right}.diagram{height:220px;background:#fffdf7;border:1px solid #eadfcb;border-radius:14px;margin:10px 0;display:grid;place-items:center;overflow:hidden}.diagram svg{width:100%;height:100%}.gate rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step.hot circle{fill:#fff7ed;stroke:#f97316;stroke-width:5}.step.soft circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.q h2{font-size:18px;line-height:1.34;margin:10px 0 12px}.options{display:grid;gap:9px}.option{text-align:left;min-height:58px;border:1px solid #cfdae6;background:#fff;border-radius:14px;padding:11px 12px;color:#24364b;font-size:15px;font-weight:800;line-height:1.42}.option.correct{border-color:#73c596;background:#ecf9f2}.option.wrong{border-color:#fb923c;background:#fff3e9}.option:disabled{opacity:1}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write span{font-size:12px;font-weight:900;color:#176b7a}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:12px;border-radius:13px;padding:11px;font-size:14px;font-weight:800;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #d2dee9;box-shadow:0 -10px 28px rgba(31,41,55,.12)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}
 """
     practice_link = master_path.name.replace(".master.json", ".journey.html")
     return f"""<!doctype html><html lang="zh-CN"><head>
@@ -219,13 +302,15 @@ def render(master_path: Path) -> str:
 <script>
 const DATA=JSON.parse(document.getElementById('practiceData').textContent);
 const qs=[...document.querySelectorAll('.q')], selected={{}}, progress=document.getElementById('progressFill');
+const prevBtn=document.getElementById('prevQ'), nextBtn=document.getElementById('nextQ');
 let current=0, score=0;
 const qById=Object.fromEntries(DATA.practice.map(q=>[q.id,q]));
 const clean=s=>String(s||'').replace(/\\s+/g,'').replace(/[，。；、,.;]/g,'').toLowerCase();
 function el(tag, cls, text){{const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node;}}
 function showFeedback(box, ok, mainText, basisText){{box.className='feedback show '+(ok?'correct':'wrong');box.replaceChildren(document.createTextNode((ok?'对。':'再看判据。')+' '+mainText), el('span','basis',basisText));}}
-function show(i){{current=Math.max(0,Math.min(qs.length-1,i));qs.forEach((q,idx)=>q.classList.toggle('active',idx===current));progress.style.width=((current+1)/qs.length*100)+'%';document.getElementById('nextQ').textContent=current===qs.length-1?'查看结果':'下一题';}}
 function done(i){{const qid=qs[i].dataset.qid;return !!selected[qid];}}
+function updateNav(){{prevBtn.disabled=current===0;const ready=done(current);nextBtn.disabled=!ready;nextBtn.textContent=ready?(current===qs.length-1?'查看结果':'下一题'):'先作答';}}
+function show(i){{current=Math.max(0,Math.min(qs.length-1,i));qs.forEach((q,idx)=>q.classList.toggle('active',idx===current));progress.style.width=((current+1)/qs.length*100)+'%';updateNav();}}
 function needAnswer(){{const btn=document.getElementById('nextQ'),old=btn.textContent;btn.textContent='先独立作答';btn.classList.add('blocked');setTimeout(()=>{{btn.textContent=old;btn.classList.remove('blocked');}},900);}}
 document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',()=>{{
   const qEl=btn.closest('.q'), qid=qEl.dataset.qid, q=qById[qid]; if(selected[qid])return;
@@ -234,6 +319,7 @@ document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',(
 	  const opt=(q.options||[]).find(o=>o.id===btn.dataset.opt)||{{feedback:''}};
 	  const fb=document.getElementById('fb-'+qid);
 	  showFeedback(fb, ok, ok?(q.correct_feedback||''):(opt.feedback||''), '判据:'+(q.basis||'')+(q.tier?' · '+q.tier:''));
+  updateNav();
 	}}));
 document.querySelector('[data-check-score]').addEventListener('click',()=>{{
   const qEl=qs[qs.length-1], qid=qEl.dataset.qid, values=[...qEl.querySelectorAll('input')].map(i=>i.value).join('');
@@ -243,10 +329,11 @@ document.querySelector('[data-check-score]').addEventListener('click',()=>{{
 	  const fb=document.getElementById('fb-'+qid);
 	  fb.className='feedback show '+(hit>=3?'correct':'wrong');
 	  fb.replaceChildren(document.createTextNode(hit>=3?'对。':'还不够像采分句。'), el('span','basis','可写:'+DATA.sample_score_sentence));
+  updateNav();
 	}});
-document.getElementById('prevQ').addEventListener('click',()=>show(current-1));
-document.getElementById('nextQ').addEventListener('click',()=>{{if(!done(current)){{needAnswer();return;}} if(current<qs.length-1)show(current+1);else showDone();}});
-function showDone(){{qs.forEach(q=>q.classList.remove('active'));document.getElementById('done').classList.add('show');progress.style.width='100%';const ratio=score+'/'+qs.length;document.getElementById('scoreText').textContent=ratio+'。'+((DATA.warm_feedback||{{}}).all_correct||'把判断链写成采分句,才算真正会拿分。');document.getElementById('atoms').replaceChildren(...(DATA.score_terms||[]).slice(0,6).map(t=>{{const s=document.createElement('span');s.textContent=t;return s;}}));}}
+prevBtn.addEventListener('click',()=>show(current-1));
+nextBtn.addEventListener('click',()=>{{if(!done(current)){{needAnswer();return;}} if(current<qs.length-1)show(current+1);else showDone();}});
+function showDone(){{qs.forEach(q=>q.classList.remove('active'));document.getElementById('done').classList.add('show');document.querySelector('nav').style.display='none';progress.style.width='100%';const ratio=score+'/'+qs.length;document.getElementById('scoreText').textContent=ratio+'。'+((DATA.warm_feedback||{{}}).all_correct||'把判断链写成采分句,才算真正会拿分。');document.getElementById('atoms').replaceChildren(...(DATA.score_terms||[]).slice(0,6).map(t=>{{const s=document.createElement('span');s.textContent=t;return s;}}));}}
 show(0);
 </script></body></html>"""
 

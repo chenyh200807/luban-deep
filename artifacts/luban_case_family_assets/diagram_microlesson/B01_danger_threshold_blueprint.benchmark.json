@@ -1,0 +1,62 @@
+{
+  "schema_version": "luban_diagram_microlesson.benchmark_spike.v0",
+  "card_id": "B01_danger_threshold_blueprint",
+  "_status_note": "视觉对标 spike:复刻 NotebookLM PPTX image7(消能减震/蓝图密度)的视觉信息密度,证明我们的确定性内联 SVG 能达到同等密度,且与之关键不同——每个阈值数字屏上都带规范出处(NotebookLM 把数字烤进 AI 位图、无出处、不可核)。非生产 case_family、非登记 template_type、不判分、不冒充签发。阈值取自 M_danger_work_expert_argumentation.master.json R3_scenario_templates(候选),编译期须对规范原文逐条锚定后才可签发。",
+  "title": "危大工程:要不要专家论证",
+  "subtitle": "同样的蓝图密度 · 但每个数字都说得清出处",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "student_boundary": "危大范围与论证标准以现行规范、教材和你的考试大纲为准;以下数值为教研整理,未签发。"
+  },
+  "rule_chain": "两道闸 · 缺一不可:① 过【危大阈值】→ 编专项施工方案;② 再过【超过一定规模阈值】→ 才要专家论证。",
+  "narration": {"voice_hint": "Tingting"},
+  "panels": [
+    {
+      "id": "pit",
+      "name": "基坑支护 / 开挖",
+      "diagram": "pit_section",
+      "thresholds": [
+        {
+          "tier": "危大",
+          "label": "开挖深度 ≥ 3m",
+          "value_m": 3,
+          "source_ref": {"id": "SR_pit_danger", "cite": "《危大规定》(住建部令37号)·危大工程范围", "kind": "candidate", "content_sha256": "(待编译锚定规范原文)"}
+        },
+        {
+          "tier": "超规模",
+          "label": "开挖深度 ≥ 5m",
+          "value_m": 5,
+          "source_ref": {"id": "SR_pit_scale", "cite": "《危大规定》·超过一定规模的危大工程范围", "kind": "candidate", "content_sha256": "(待编译锚定规范原文)"}
+        }
+      ]
+    },
+    {
+      "id": "formwork",
+      "name": "混凝土模板支撑",
+      "diagram": "formwork_section",
+      "thresholds": [
+        {
+          "tier": "危大",
+          "label": "搭设高度 ≥ 5m",
+          "value_m": 5,
+          "source_ref": {"id": "SR_fw_danger", "cite": "《危大规定》(住建部令37号)·危大工程范围", "kind": "candidate", "content_sha256": "(待编译锚定规范原文)"}
+        },
+        {
+          "tier": "超规模",
+          "label": "搭设高度 ≥ 8m",
+          "value_m": 8,
+          "source_ref": {"id": "SR_fw_scale", "cite": "《危大规定》·超过一定规模的危大工程范围", "kind": "candidate", "content_sha256": "(待编译锚定规范原文)"}
+        }
+      ]
+    }
+  ],
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title", "subtitle", "panels[].name", "panels[].thresholds[].tier",
+      "panels[].thresholds[].label", "panels[].thresholds[].source_ref.cite",
+      "rule_chain", "authority.student_boundary"
+    ],
+    "student_forbidden": ["source_ref.id", "source_ref.content_sha256", "schema_version", "card_id", "candidate", "母题包", "本系统"]
+  }
+}

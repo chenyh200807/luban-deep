@@ -1,0 +1,59 @@
+{
+  "schema_version": "luban_deep_archetype_master.sample.v0",
+  "master_id": "M_roof_bulge_repair",
+  "_status_note": "深母题【完整闭环样板·工序类】(围绕一个考点:屋面卷材防水起鼓怎么修补)。用 teaching-animation-journey skill 复刻 F16,验证 skill 在【工序类(①时序)】而非【判断类(④)】上的复用。对齐《深母题数据标准 v1.0》R1-R8 + 运行时铁律。sample 不冒充生产 case_family_structure.v1。讲懂卡=F16_qigu.json。",
+  "exam_point": "屋面卷材防水起鼓怎么修补(割补工序)",
+  "taxonomy_ref": "1A434000",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "runtime_rule": "只读/只发候选/不写结论:工序采分点只引用 F16 卡(P10/P11,终判归 grading artifact)、mastery 是鉴别候选(终判归 LearnerStateService)。",
+    "student_boundary": "这是培训机构教研的估分讲解,不是官方阅卷;图为教学示意,具体数值以教材和规范为准。"
+  },
+  "R1_source_refs": [
+    {"ref": "Q18-1A434000 案例真题估分卡(佑森教研)+ 屋面工程质量验收/防水修补教学整理", "content_sha256": "(待补:编译时对教材/规范原文锚定)", "kind": "candidate"}
+  ],
+  "R2_invariant": "修补结构恒定:① 治病因(沿鼓泡割开放气 → 排气干燥 → 清理基层/处理剂)→ ② 恢复防水闭合(嵌填找平 → 增铺附加层盖过病害边缘 → 新卷材搭接封严)→ ③ 检验闭环(蓄水/淋水检验确认不渗漏)。换皮只换病害部位/材料/病象,这条'先治因→再恢复防水→再检验'的闭环不变。",
+  "examiner_intent": "考的不是背八个动作,是有没有把'治病因 → 恢复防水闭合 → 检验'写完整;尤其最易漏的中间闭合层(基层处理 / 附加层盖过边缘 / 搭接封严)和收尾的蓄水检验。",
+  "teaching_card_ref": "F16_qigu",
+  "teaching_lesson_ref": "F16_qigu.lesson.json",
+  "_lesson_ref_note": "讲懂层=屋面剖面工序教学动画(PPT 逐点 + 双人答疑);render_archetype_journey.py 读本 master 组装一镜到底闭环。",
+  "R5_scoring_point_refs": [
+    {"ref_id": "P10", "binds": "F16.scoring_points[P10]", "note": "放气/擦干/清除旧胶结料;只引用,终判归 grading artifact"},
+    {"ref_id": "P11", "binds": "F16.scoring_points[P11]", "note": "喷灯烘烤/分层剥开/重贴新卷材"}
+  ],
+  "R8_misconception": [
+    {"id": "MC_weak_repair", "name": "泛泛修补", "signal": "只写'修补防水层/加强处理',无具体工序", "maps_error_code_candidate": "E03(待映射 ERROR_CODE_REGISTRY)", "fix": "先写'割开放气'等具体动作"},
+    {"id": "MC_direct_cover", "name": "直接覆盖", "signal": "鼓泡上直接铺新卷材,漏放气干燥", "maps_error_code_candidate": "E06", "fix": "先治病因(放气干燥处理基层)再恢复防水"},
+    {"id": "MC_miss_closure", "name": "漏中间闭合层", "signal": "割开晾干就重铺,漏基层处理/附加层/搭接封严", "maps_error_code_candidate": "E03", "fix": "补回基层处理→附加层盖过边缘→搭接封严"},
+    {"id": "MC_no_test", "name": "漏检验闭环", "signal": "铺完即结束,无蓄水/淋水检验", "maps_error_code_candidate": "E06", "fix": "收尾加蓄水或淋水检验确认不渗漏"}
+  ],
+  "_variants_design_note": "工序类闯关【同考点变病象/部位,考闭环完整性,不考记忆型数字】:找漏点 / 判顺序 / 换部位迁移 / 检验闭环。关键鉴别题=最易翻车的'中间闭合层'(W1)和'检验闭环'(W4)——背过的人只记'割开排气铺卷材',漏防水闭合层和收尾检验。",
+  "variants": [
+    {"id": "W1_miss_closure", "scenario_id": "roof", "stem": "学生答:\"将鼓泡处割开,排气擦干后直接铺贴新卷材并压实。\" 这份答案最可能漏掉哪类关键表达?",
+     "answer": "B", "options": [{"id":"A","text":"漏写起鼓病害识别"},{"id":"B","text":"漏写基层处理、附加层、搭接封严这层防水闭合"},{"id":"C","text":"漏写施工单位责任"}],
+     "judged_outcome": "miss_closure", "basis": "有割开/排气/干燥,但直接铺新卷材→漏中间闭合层", "tier_tag": "中间闭合层(最易漏)·关键鉴别", "feedback": "对:它有割开、排气、干燥,但直接铺了新卷材,漏了基层处理、附加层盖过边缘、搭接封严这层防水闭合。"},
+    {"id": "W2_order", "scenario_id": "roof", "stem": "现场图省事,在鼓泡处直接加铺一层新卷材盖住。这样做对吗?",
+     "answer": "B", "options": [{"id":"A","text":"对,省时又快"},{"id":"B","text":"不对:没放气干燥处理基层,底下气和水汽会再把它顶鼓"},{"id":"C","text":"不对,应把整片屋面卷材全部铲除重做"}],
+     "judged_outcome": "order_wrong", "basis": "顺序错:先治病因(放气干燥)再恢复防水", "tier_tag": "顺序档(直接覆盖)", "feedback": "对:底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥,再铺新卷材。"},
+    {"id": "W3_transfer", "scenario_id": "bathroom", "stem": "换个场景:卫生间地面防水层局部空鼓、有渗漏。核心修补思路应是?",
+     "answer": "B", "options": [{"id":"A","text":"直接在地面重铺地砖盖住"},{"id":"B","text":"同样:割开放气→干燥处理基层→附加层→新防水层搭接封严→闭水试验"},{"id":"C","text":"只在表面再刷一层防水涂料"}],
+     "judged_outcome": "transfer_ok", "basis": "换部位,'治病因→恢复防水闭合→检验'闭环不变", "tier_tag": "迁移档(换部位·闭环不变)", "feedback": "对:换到卫生间,病害对象变了,但'治病因→恢复防水闭合→闭水检验'这条闭环不变——这就是真会迁移,不是只背屋面那一套。"},
+    {"id": "W4_no_test", "scenario_id": "roof", "stem": "起鼓割补,做完\"放气、干燥、基层处理、附加层、新卷材搭接封严\",就可以收工了吗?",
+     "answer": "B", "options": [{"id":"A","text":"可以,防水层已经恢复"},{"id":"B","text":"还差一步:做蓄水或淋水检验,确认不渗漏才验收"},{"id":"C","text":"还要在上面再加铺一整层卷材"}],
+     "judged_outcome": "need_test", "basis": "工程闭环=施工+验收检验", "tier_tag": "检验闭环(收尾)·关键鉴别", "feedback": "对:案例题爱考闭环,修补做完必须蓄水或淋水试验,确认不渗漏才算验收通过。漏了这一句白丢分。"}
+  ],
+  "mastery_discrimination": {
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。工序类:看闭环完整 + 能否迁移。",
+    "key_discriminator_ids": ["W1_miss_closure", "W4_no_test"],
+    "real_understanding_signal": "W1-W4 全对,尤其 W1(漏中间闭合层)与 W4(漏检验闭环)对 = 抓住'治病因→恢复防水闭合→检验'的完整闭环,W3(换卫生间仍是这条闭环)对 = 会迁移,不是背屋面原题动作。",
+    "rote_signal": "只 W2/W3 对、W1+W4 错 = 只记'割开排气铺卷材',漏掉中间防水闭合层和收尾检验——典型背过。",
+    "discriminator_strength": "W1(中间闭合层)+ W4(检验闭环)是关键鉴别题:背过的人最爱在这两处翻车;W3(换部位迁移)进一步看穿是否抓的是闭环结构而非屋面原题。",
+    "warm_feedback": {
+      "all_correct": "你是真的把闭环走通了——治病因、恢复防水闭合、最后检验,缺一不可,还能换到卫生间迁移。这类题稳。",
+      "partial": "就差闭环那一层:割开排气只是开头,真正得分的是基层处理、附加层盖过边缘、搭接封严,最后再补一句蓄水检验。你离真懂只差这一段。",
+      "rote_leaning": "先别急着背动作顺序。记住这条闭环:先治病因(放气、干燥、清基层)→ 再恢复防水(附加层盖过边缘、搭接封严)→ 最后检验(蓄水/淋水不渗漏)。走顺了,换屋面还是卫生间你都不慌。"
+    }
+  },
+  "_maps_to_production": "讲懂→teaching_card_ref(F16);R2/R3/examiner_intent→case_family_structure;R5→grading artifact 引用(P10/P11);R8→ERROR_CODE_REGISTRY 映射;mastery_discrimination→retest_discriminator_candidate;落盘将来→artifacts/luban_case_family_assets/<case_family_id>/case_family.yaml(待 schema 登记)。"
+}

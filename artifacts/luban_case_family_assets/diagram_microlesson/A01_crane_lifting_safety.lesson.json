@@ -1,0 +1,143 @@
+{
+  "schema": "luban_teaching_animation.v0",
+  "card_id": "A01_crane_lifting_safety",
+  "derived_from": "A01_crane_lifting_safety.json",
+  "style": "video_first_then_practice",
+  "prototype": "decision_branch_reveal_draft",
+  "secondary_visual": "process_step_reveal",
+  "speakers": {
+    "T": {
+      "name": "龙安欢",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "name": "晨煦",
+      "voice": "Ethan"
+    }
+  },
+  "teach": {
+    "beats": [
+      {
+        "id": "hook",
+        "stage": "hook",
+        "state": "hook",
+        "claim": true,
+        "anchor": "exam_context.student_facing_hook",
+        "keycard": "why",
+        "narration": "先别急着背安全管理。起重吊装题真正问的是:这一下能不能正式吊。考场最容易丢的是最后一句:先试吊,再检查,确认安全后继续。"
+      },
+      {
+        "id": "trap",
+        "stage": "trap",
+        "state": "trap",
+        "claim": true,
+        "anchor": "teaching_spine.wrong_idea",
+        "keycard": "wrong_idea",
+        "narration": "很多人会想,人员持证,设备完好,那就可以直接吊。这个想法很危险,因为它把起重吊装当成设备能力题,漏掉了正式起吊前的放行判断。"
+      },
+      {
+        "id": "personnel",
+        "stage": "personnel",
+        "state": "personnel",
+        "claim": true,
+        "anchor": "decision.judgment_points[personnel].criterion",
+        "keycard": "personnel",
+        "narration": "第一道门看人。起重司机、信号工、司索工这类关键人员,必须持证到位。缺人缺证,就不要往下走。"
+      },
+      {
+        "id": "device",
+        "stage": "device",
+        "state": "device",
+        "claim": true,
+        "anchor": "decision.judgment_points[device_environment].criterion",
+        "keycard": "device",
+        "narration": "第二道门看装置和环境。安全装置要完整可靠;恶劣天气要停吊;雨雪后复工,还要清理现场,做好防滑和防漏电。"
+      },
+      {
+        "id": "trial",
+        "stage": "trial",
+        "state": "trial",
+        "claim": true,
+        "anchor": "decision.judgment_points[trial_lift].criterion",
+        "keycard": "trial_lift",
+        "narration": "第三道门是本题的刀口。起吊荷载达到额定起重量百分之九十以上,先把重物离地约十五厘米试吊,检查平稳性、设备和绑扎,确认安全后才能继续。"
+      },
+      {
+        "id": "stop",
+        "stage": "stop",
+        "state": "stop",
+        "claim": true,
+        "anchor": "decision.judgment_points[emergency_guard].criterion",
+        "keycard": "emergency",
+        "narration": "第四道门看异常处置。突然停电或异常时,控制器归零,断开电源,把重物安全降到地面,不能让重物长时间悬空。"
+      },
+      {
+        "id": "score",
+        "stage": "score",
+        "state": "score",
+        "claim": true,
+        "anchor": "teaching_spine.exam_phrase",
+        "keycard": "score_sentence",
+        "narration": "落到答题纸上,不要只写不能吊。要写完整:百分之九十以上,离地约十五厘米试吊,检查平稳性、设备和绑扎,确认安全后方可继续。"
+      },
+      {
+        "id": "bridge",
+        "stage": "bridge",
+        "state": "bridge",
+        "claim": true,
+        "anchor": "memory_hook",
+        "keycard": "memory_hook",
+        "narration": "记住四道门:人证、装置环境、试吊、停吊应急。接下来换成缺信号工、雨雪后复工、突然停电,你仍然按这四道门判。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "如果人员和设备都没问题,是不是就差不多可以吊了?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "decision.judgment_points[trial_lift].verdict_reason",
+        "text": "还不行。本题是百分之九十五额定起重量,已经过了百分之九十控制线。没有先试吊检查,就不能直接正式起吊。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "雨雪后是不是只要雪停了,就能恢复吊装?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "process_overlay.steps[environment].action",
+        "text": "不能只看雪停。要清理冰雪,采取防滑、防漏电措施,再确认设备状态可靠。天气后复工本身就是一道放行门。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "停电的时候,重物已经吊起来了,能不能先悬着等一会儿?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "decision.judgment_points[emergency_guard].criterion",
+        "text": "不能。异常时要控制器归零,断开电源,把重物安全降到地面。长时间悬空就是这类题的典型扣分点。"
+      }
+    }
+  ],
+  "closing": {
+    "speaker": "T",
+    "state": "closing",
+    "claim": true,
+    "anchor": "teaching_spine.warm_correction",
+    "keycard": "closing",
+    "text": "收个尾:起重吊装别只写设备没问题。先过四道门,尤其把高负荷试吊检查写完整。现在开始闯关,看你能不能把这句话迁移到新题里。"
+  }
+}

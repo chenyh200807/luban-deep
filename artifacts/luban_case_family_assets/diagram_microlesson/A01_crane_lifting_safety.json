@@ -1,0 +1,374 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "A01_crane_lifting_safety",
+  "template_type": "decision_branch_reveal_draft",
+  "title": "起重吊装安全 · 正式起吊前先过四道门",
+  "taxonomy_ref": "1A436000",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "judging_artifact_id": null,
+    "judging_authority_label": "母题引擎候选训练卡,非官方阅卷口径",
+    "source_boundary": "依据 2026 教材清洗文本、runtime_supply 起重吊装安全管理 chunk、危大工程范围与案例题干的候选编译弹药。正式采分口径须经母题包签发。",
+    "student_boundary": "这是鲁班训练卡,用于考前判断动作训练;正式答案以教材、规范和当年考试要求为准。"
+  },
+  "exam_context": {
+    "student_facing_hook": "起重吊装题不是问你会不会背安全管理,而是问:这一下能不能正式吊。考场最常扣分的是少写'先试吊、再检查、确认后继续'。",
+    "scene": "塔吊本次起吊荷载达到额定起重量95%。司机、信号工、司索工均持证,安全装置完好,雨雪后已清理并采取防滑防漏电措施。项目部准备直接正式起吊,没有先将重物吊离地面约15cm试吊检查。",
+    "exam_action": "看到起重吊装,按四道门判:人员证件、装置环境、试吊检查、异常停吊。",
+    "difficulty": "A",
+    "tags": ["安全高频", "流程化纠错", "decision_branch_reveal", "process_step_reveal"]
+  },
+  "source_refs": [
+    {
+      "id": "R1_lifting_safety_management",
+      "label": "起重吊装安全管理要求",
+      "source_path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+      "source_record": "起重吊装安全管理 chunk",
+      "summary": "特种作业人员持证上岗;安全装置完整灵敏可靠;6级以上大风、大雨、雾、大雪等恶劣天气停止吊装;雨雪后清理冰雪并采取防滑防漏电措施,先试吊确认制动器灵敏可靠方可作业;停电时控制器归零、断电、重物落地,严禁长时间悬空。"
+    },
+    {
+      "id": "R2_trial_lift_case",
+      "label": "额定起重量90%以上先试吊检查",
+      "source_path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+      "source_record": "塔吊起吊荷载达到额定起重量95%案例题",
+      "summary": "塔吊起吊荷载达到额定起重量90%以上时,先将重物吊起离地约15cm,检查重物平稳性、起重设备、绑扎等,确认安全后继续起吊作业。"
+    },
+    {
+      "id": "R3_major_hazard_crane",
+      "label": "起重机械重大事故隐患",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-167-221.json",
+      "source_record": "重大事故隐患判定标准-起重机械及吊装工程",
+      "summary": "塔式起重机、施工升降机、物料提升机等起重机械设备未经验收合格即投入使用,或未按规定办理使用登记,属于重大事故隐患候选弹药。"
+    },
+    {
+      "id": "R4_danger_threshold",
+      "label": "起重吊装危大与超规模阈值",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-167-221.json",
+      "source_record": "危大工程范围与超过一定规模范围",
+      "summary": "非常规起重设备、方法且单件起吊重量10kN及以上属于危大;单件起吊重量100kN及以上属于超过一定规模需专家论证;起重机械安装拆卸满足起重量300kN及以上或高度相关阈值也需论证。"
+    }
+  ],
+  "teaching_spine": {
+    "wrong_idea": "吊装设备没问题、人员也到场,就可以直接起吊;试吊只是形式,不写也行。",
+    "visual_correction": "正式起吊不是看'能不能吊得动',而是先过四道门:人员持证,装置和环境合格,达到90%以上负荷先离地试吊检查,异常或恶劣天气立即停吊。",
+    "exam_phrase": "塔吊起吊荷载达到额定起重量90%以上时,应先将重物吊离地面约15cm进行试吊,检查重物平稳性、起重设备和绑扎等情况,确认安全后方可继续起吊;恶劣天气或异常情况应停止吊装,严禁重物长时间悬空。",
+    "warm_correction": "你能想到要检查设备,方向是对的。真正拿分要再补一句:先试吊,检查平稳、设备和绑扎,确认安全后再继续。",
+    "authority": "candidate teaching prototype; facts anchored to R1-R4 source refs, not official scoring authority"
+  },
+  "process_overlay": {
+    "role": "secondary_support",
+    "why_not_primary_body": "本卡核心难点是能否正式起吊的条件判断,流程只辅助纠错;主 body 仍为 decision,不另开 steps 主 body。",
+    "steps": [
+      {
+        "id": "prepare",
+        "title": "作业前",
+        "action": "人员持证,设备验收,安全装置完整可靠",
+        "loss": "只写设备能用,漏人员和装置"
+      },
+      {
+        "id": "environment",
+        "title": "天气后",
+        "action": "恶劣天气停吊;雨雪后清理、防滑、防漏电",
+        "loss": "雨雪后直接复工"
+      },
+      {
+        "id": "trial",
+        "title": "正式吊前",
+        "action": "90%以上负荷先离地约15cm试吊检查",
+        "loss": "直接正式起吊"
+      },
+      {
+        "id": "emergency",
+        "title": "异常时",
+        "action": "控制器归零、断电、重物落地,不得长时间悬空",
+        "loss": "重物悬空等待"
+      }
+    ]
+  },
+  "decision": {
+    "mode": "criteria_chain",
+    "scenario_given": "塔吊起吊荷载达到额定起重量95%,人员持证、装置完好、雨雪后已采取措施,但项目部没有先试吊检查,准备直接正式起吊。问:能否继续?",
+    "judgment_points": [
+      {
+        "id": "personnel",
+        "question": "人员是否持证到位?",
+        "criterion": "起重司机、起重信号工、起重司索工等特种作业人员应考核合格、持证上岗。",
+        "verdict": "met",
+        "verdict_reason": "题干给出司机、信号工、司索工均持证,人员门通过。",
+        "basis": "人员管理候选弹药 R1",
+        "source_ref": "R1_lifting_safety_management (候选·未签发)",
+        "scoring_point_binding": "SP_personnel",
+        "next_on_met": "device_environment",
+        "next_on_unmet": "outcome:stop_personnel"
+      },
+      {
+        "id": "device_environment",
+        "question": "装置和环境是否满足作业前条件?",
+        "criterion": "安全装置应完整、灵敏可靠;恶劣天气停止吊装;雨雪后复工应清理冰雪并采取防滑、防漏电措施。",
+        "verdict": "met",
+        "verdict_reason": "题干给出安全装置完好,雨雪后已清理并采取措施,这一门通过。",
+        "basis": "安全装置与停工复工要求候选弹药 R1",
+        "source_ref": "R1_lifting_safety_management (候选·未签发)",
+        "scoring_point_binding": "SP_environment",
+        "next_on_met": "trial_lift",
+        "next_on_unmet": "outcome:stop_environment"
+      },
+      {
+        "id": "trial_lift",
+        "question": "达到高负荷起吊时,是否先试吊并检查?",
+        "criterion": "起吊荷载达到额定起重量90%以上时,应先将重物吊离地面约15cm试吊,检查重物平稳性、起重设备和绑扎等,确认安全后再继续。",
+        "verdict": "unmet",
+        "verdict_reason": "本题为95%额定起重量,但题干说没有先试吊检查,直接正式起吊,所以不能继续。",
+        "basis": "90%以上负荷试吊检查候选弹药 R2",
+        "source_ref": "R2_trial_lift_case (候选·未签发)",
+        "scoring_point_binding": "SP_trial_lift",
+        "next_on_met": "emergency_guard",
+        "next_on_unmet": "outcome:stop_recheck"
+      },
+      {
+        "id": "emergency_guard",
+        "question": "异常或停电时是否能正确处置?",
+        "criterion": "异常、停电时控制器归零,断开电源,将重物安全降到地面,严禁起吊重物后长时间悬空。",
+        "verdict": "na",
+        "verdict_reason": "本题尚未进入异常处置,但这是起重吊装安全题的兜底采分点。",
+        "basis": "停电应急候选弹药 R1",
+        "source_ref": "R1_lifting_safety_management (候选·未签发)",
+        "scoring_point_binding": "SP_emergency",
+        "next_on_met": "outcome:allow_after_check",
+        "next_on_unmet": "outcome:stop_emergency"
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "stop_recheck",
+        "label": "不能直接正式起吊;应先离地约15cm试吊,检查平稳性、设备和绑扎,确认安全后再继续",
+        "kind": "target",
+        "scoring_point_binding": "SP_conclusion"
+      },
+      {
+        "id": "allow_after_check",
+        "label": "人员、装置环境、试吊检查和异常预案均满足后,方可继续起吊",
+        "kind": "alt",
+        "scoring_point_binding": "SP_conclusion"
+      },
+      {
+        "id": "stop_personnel",
+        "label": "人员未持证或关键工种不到位,不得吊装",
+        "kind": "alt"
+      },
+      {
+        "id": "stop_environment",
+        "label": "安全装置或天气复工条件不满足,应停止吊装",
+        "kind": "alt"
+      },
+      {
+        "id": "stop_emergency",
+        "label": "异常处置不满足,不得让重物长时间悬空",
+        "kind": "alt"
+      }
+    ],
+    "reached_outcome": "stop_recheck"
+  },
+  "scoring_points": [
+    {
+      "id": "SP_personnel",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["特种作业人员", "持证上岗", "司机", "信号工", "司索工"],
+      "source_ref": "R1_lifting_safety_management (教研草拟·候选·未签发)",
+      "used_by": ["personnel"]
+    },
+    {
+      "id": "SP_environment",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["安全装置", "灵敏可靠", "恶劣天气停吊", "防滑", "防漏电"],
+      "source_ref": "R1_lifting_safety_management (教研草拟·候选·未签发)",
+      "used_by": ["device_environment"]
+    },
+    {
+      "id": "SP_trial_lift",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["90%以上", "离地约15cm", "试吊", "平稳性", "绑扎"],
+      "source_ref": "R2_trial_lift_case (教研草拟·候选·未签发)",
+      "used_by": ["trial_lift"]
+    },
+    {
+      "id": "SP_emergency",
+      "kind": "candidate_teaching_prototype",
+      "tier": "supporting",
+      "keywords": ["控制器归零", "断开电源", "重物落地", "严禁长时间悬空"],
+      "source_ref": "R1_lifting_safety_management (教研草拟·候选·未签发)",
+      "used_by": ["emergency_guard"]
+    },
+    {
+      "id": "SP_conclusion",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["不得直接起吊", "先试吊检查", "确认安全后继续"],
+      "source_ref": "A01_exam_phrase (教研草拟·候选·未签发)",
+      "used_by": ["stop_recheck", "allow_after_check"]
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "skip_trial",
+      "text": "写'设备和人员都没问题,可以直接起吊'。",
+      "error_code": "A01-01(候选·未登记)",
+      "loss_display": "漏高负荷试吊",
+      "why": "95%已超过90%控制线,必须先离地约15cm试吊并检查。",
+      "jump_point_id": "trial_lift"
+    },
+    {
+      "id": "ignore_weather",
+      "text": "写'雨雪后天气好转即可直接复工'。",
+      "error_code": "A01-02(候选·未登记)",
+      "loss_display": "漏复工措施",
+      "why": "雨雪后要清理冰雪,采取防滑和防漏电措施,并确认制动器可靠。",
+      "jump_point_id": "device_environment"
+    },
+    {
+      "id": "hang_wait",
+      "text": "停电时让重物先悬空等待来电。",
+      "error_code": "A01-03(候选·未登记)",
+      "loss_display": "悬空处置错误",
+      "why": "停电或异常时应控制器归零、断电,并将重物安全降到地面,不得长时间悬空。",
+      "jump_point_id": "emergency_guard"
+    }
+  ],
+  "memory_hook": "起重吊装四道门:人证、装置环境、试吊、停吊应急。",
+  "video_beats": [
+    {"id": "hook", "stage": "hook", "title": "为什么先学它", "chapter": "先学", "subtitle": "起重题问的是能不能正式吊,不是能不能吊得动。"},
+    {"id": "trap", "stage": "trap", "title": "先抓错觉", "chapter": "错觉", "subtitle": "95%额定起重量,不能直接正式起吊。"},
+    {"id": "personnel", "stage": "personnel", "title": "第一门:人证", "chapter": "人证", "subtitle": "司机、信号、司索等关键人员要持证到位。"},
+    {"id": "device", "stage": "device", "title": "第二门:装置环境", "chapter": "装置", "subtitle": "安全装置可靠,恶劣天气停吊,雨雪后先处理现场。"},
+    {"id": "trial", "stage": "trial", "title": "第三门:试吊", "chapter": "试吊", "subtitle": "90%以上负荷先离地约15cm试吊检查。"},
+    {"id": "stop", "stage": "stop", "title": "第四门:停吊应急", "chapter": "应急", "subtitle": "异常时归零断电,重物落地,不得长时间悬空。"},
+    {"id": "score", "stage": "score", "title": "写成采分句", "chapter": "采分", "subtitle": "把试吊、检查、确认安全后继续写完整。"},
+    {"id": "bridge", "stage": "bridge", "title": "去闯关验证", "chapter": "闯关", "subtitle": "换天气、换人员、换构件,仍按四道门判。"}
+  ],
+  "quiz": [
+    {
+      "id": "q_trial_lift",
+      "kind": "mcq",
+      "tier_tag": "原图识别",
+      "question": "塔吊本次起吊达到额定起重量95%,最关键的放行动作是什么?",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "直接正式起吊;设备能吊得动即可", "feedback": "错在跳过90%以上负荷的试吊检查。"},
+        {"id": "B", "text": "先离地约15cm试吊;检查平稳性、设备和绑扎;确认安全后继续", "feedback": "对。这句话就是本卡的核心采分句。"},
+        {"id": "C", "text": "只让安全员口头同意;不需要检查绑扎", "feedback": "口头同意不能替代试吊检查。"}
+      ],
+      "basis_ref": "decision.judgment_points[trial_lift]"
+    },
+    {
+      "id": "q_personnel_trap",
+      "kind": "mcq",
+      "tier_tag": "错觉鉴别",
+      "question": "起重信号工临时未到,班组长说自己也能指挥。下列判断正确的是?",
+      "answer": "A",
+      "options": [
+        {"id": "A", "text": "不得吊装;起重信号工属于关键特种作业人员,应持证到位", "feedback": "对。先过人员门,没有信号工不能靠经验替代。"},
+        {"id": "B", "text": "可以吊装;只要司机持证就够", "feedback": "错。起重信号、司索等人员也要符合要求。"},
+        {"id": "C", "text": "可以先吊低一点试试;出问题再停", "feedback": "错。人员门不通过,不能进入试吊。"}
+      ],
+      "basis_ref": "decision.judgment_points[personnel]"
+    },
+    {
+      "id": "q_weather",
+      "kind": "mcq",
+      "tier_tag": "流程纠错",
+      "question": "大雪后准备恢复吊装,更稳的处理是?",
+      "answer": "C",
+      "options": [
+        {"id": "A", "text": "雪停即可复工;先抢进度", "feedback": "错。雨雪后还要清理和防滑防漏电。"},
+        {"id": "B", "text": "只检查吊钩;现场冰雪不影响", "feedback": "错。现场环境也是放行门。"},
+        {"id": "C", "text": "清理冰雪并采取防滑、防漏电措施,先试吊确认制动器可靠", "feedback": "对。天气后复工不是直接开吊。"}
+      ],
+      "basis_ref": "source_refs[R1_lifting_safety_management]"
+    },
+    {
+      "id": "q_emergency",
+      "kind": "mcq",
+      "tier_tag": "边界题",
+      "question": "吊装过程中突然停电,重物已经离地。哪种处理正确?",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "保持重物悬空等待来电", "feedback": "错。严禁重物长时间悬空。"},
+        {"id": "B", "text": "控制器拉到零位,断开电源,将重物安全降到地面", "feedback": "对。异常处理要写到动作。"},
+        {"id": "C", "text": "继续操作限位装置代替控制机构", "feedback": "错。不能用限位装置代替操作机构。"}
+      ],
+      "basis_ref": "decision.judgment_points[emergency_guard]"
+    },
+    {
+      "id": "q_score_sentence",
+      "kind": "score_sentence",
+      "tier_tag": "采分句输出",
+      "question": "把'95%额定起重量能否直接吊'写成采分句。",
+      "answer_atoms": ["控制线", "试吊动作", "检查项目", "结论"],
+      "prompts": [
+        {"id": "threshold", "label": "控制线", "placeholder": "达到额定起重量90%以上"},
+        {"id": "trial", "label": "试吊动作", "placeholder": "离地约15cm试吊"},
+        {"id": "check", "label": "检查项目", "placeholder": "平稳性、设备、绑扎"},
+        {"id": "conclusion", "label": "结论", "placeholder": "确认安全后方可继续"}
+      ],
+      "feedback": "标准结构:塔吊起吊荷载达到额定起重量90%以上时,应先将重物吊离地面约15cm进行试吊,检查重物平稳性、起重设备和绑扎等情况,确认安全后方可继续起吊。",
+      "basis_ref": "teaching_spine.exam_phrase"
+    }
+  ],
+  "deep_archetype": {
+    "score_atoms": ["90%以上控制线", "离地约15cm试吊", "检查平稳性/设备/绑扎", "确认安全后继续", "异常停吊与重物落地"],
+    "mastery_discrimination": {
+      "key_discriminator_ids": ["q_weather", "q_emergency", "q_score_sentence"],
+      "not_formal_learner_state": true,
+      "candidate_signal": "能在换成天气复工、人员缺证、停电异常时仍按四道门写出结论,才算看穿。"
+    }
+  },
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title",
+      "exam_context.student_facing_hook",
+      "exam_context.scene",
+      "exam_context.exam_action",
+      "teaching_spine.wrong_idea",
+      "teaching_spine.visual_correction",
+      "teaching_spine.exam_phrase",
+      "teaching_spine.warm_correction",
+      "process_overlay.steps[].title",
+      "process_overlay.steps[].action",
+      "process_overlay.steps[].loss",
+      "decision.scenario_given",
+      "decision.judgment_points[].question",
+      "decision.judgment_points[].criterion",
+      "decision.judgment_points[].verdict_reason",
+      "decision.judgment_points[].basis",
+      "decision.outcomes[].label",
+      "common_errors[].text",
+      "common_errors[].loss_display",
+      "common_errors[].why",
+      "memory_hook",
+      "video_beats",
+      "quiz",
+      "authority.student_boundary"
+    ],
+    "internal_only_fields": [
+      "source_refs",
+      "decision.mode",
+      "decision.reached_outcome",
+      "decision.judgment_points[].verdict",
+      "decision.judgment_points[].source_ref",
+      "decision.judgment_points[].scoring_point_binding",
+      "decision.judgment_points[].next_on_met",
+      "decision.judgment_points[].next_on_unmet",
+      "decision.outcomes[].kind",
+      "decision.outcomes[].scoring_point_binding",
+      "scoring_points[].id",
+      "scoring_points[].source_ref",
+      "scoring_points[].kind",
+      "common_errors[].error_code",
+      "authority.source_boundary",
+      "authority.judging_authority_label"
+    ]
+  }
+}

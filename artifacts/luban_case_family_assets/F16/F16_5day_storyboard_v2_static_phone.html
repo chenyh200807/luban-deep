@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 防水 · 5 天留存闭环(组装版) — 看图版(静态,手机可看,无需点击)</title>
+<style>
+  :root{
+    --ink:#1d2530; --sub:#6b7686; --line:#e7ebf0; --bg:#eef1f5;
+    --green:#1aa06d; --green-bg:#e8f7f0; --amber:#e08a1e; --amber-bg:#fdf2e3;
+    --red:#d9534f; --red-bg:#fdecea; --blue:#2f6df0; --blue-bg:#eaf1ff; --gold:#f5a623;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",Roboto,sans-serif;padding:18px 12px 50px}
+  .top{max-width:1320px;margin:0 auto 8px;text-align:center}
+  .top h1{font-size:18px;margin:0 0 6px}
+  .top p{margin:4px auto;color:var(--sub);font-size:13px;line-height:1.6;max-width:720px}
+  .badge{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:20px;padding:3px 12px;font-size:12px;color:var(--sub);margin:2px 4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;max-width:1320px;margin:18px auto;padding:0 6px}
+  .col{display:flex;flex-direction:column}
+  .col-title{font-size:13px;color:var(--sub);margin:0 0 9px;font-weight:600;line-height:1.4}
+  .col-title b{color:var(--ink)}
+  .phone{background:#fff;border-radius:28px;padding:9px;box-shadow:0 8px 26px rgba(20,30,50,.10);border:1px solid #dfe4ea}
+  .screen{background:#f6f8fb;border-radius:20px;overflow:hidden;min-height:560px;display:flex;flex-direction:column}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 3px;font-size:11px;color:#8a94a3}
+  .navbar{padding:5px 16px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:#fff}
+  .navbar .t{font-size:14px;font-weight:600}
+  .navbar .day{margin-left:auto;font-size:11px;color:var(--sub)}
+  .body{padding:15px;flex:1}
+  .streak{display:inline-flex;align-items:center;gap:5px;background:#fff5e6;color:#c47b12;border-radius:14px;padding:4px 10px;font-size:12px;font-weight:600}
+  .plan{font-size:11.5px;color:var(--sub);background:#f0f3f8;border-radius:10px;padding:8px 10px;margin:8px 0 4px;line-height:1.5}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;margin:11px 0}
+  .card.lead{background:linear-gradient(135deg,#2f6df0,#5a93ff);color:#fff;border:none}
+  .card.lead.warm{background:linear-gradient(135deg,#e9892a,#f5a623)}
+  .card.lead .k{font-size:12px;opacity:.92}
+  .card.lead .v{font-size:18px;font-weight:700;margin:6px 0 2px;line-height:1.35}
+  .card.lead .meta{font-size:11.5px;opacity:.88}
+  .dots{display:flex;gap:5px;margin:12px 0 2px}
+  .dot{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.35)}
+  .dot.on{background:#fff}
+  .cta{display:block;text-align:center;background:var(--blue);color:#fff;border-radius:12px;padding:12px;font-size:14px;font-weight:600;margin-top:13px}
+  .cta.green{background:var(--green)} .cta.ghost{background:#fff;color:var(--blue);border:1px solid #cfe0ff}
+  .q-meta{font-size:11.5px;color:var(--sub);margin-bottom:6px}
+  .stem{font-size:13.5px;line-height:1.6;margin:4px 0 12px;font-weight:500}
+  .opt{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:8px 0;font-size:12.5px;line-height:1.45;background:#fff;display:flex;gap:8px}
+  .opt .lab{font-weight:700;color:var(--sub)}
+  .opt.sel{border-color:var(--blue);background:var(--blue-bg)}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg)}
+  .opt.right{border-color:var(--green);background:var(--green-bg)}
+  .opt.dim{opacity:.5}
+  .diag{border-radius:14px;padding:14px;margin:10px 0}
+  .diag.bad{background:var(--amber-bg);border:1px solid #f1d4a3}
+  .diag.good{background:var(--green-bg);border:1px solid #b8e6cf}
+  .diag.xray{background:#f3f0ff;border:1px solid #d9cffb}
+  .diag h4{margin:0 0 8px;font-size:13.5px}
+  .tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px}
+  .tag.err{background:#fbe2d6;color:#b85618}
+  .tag.code{background:#e7ecf3;color:#54627a;font-family:ui-monospace,Menlo,monospace}
+  .diag p{margin:7px 0;font-size:12px;line-height:1.55;color:#3b4452}
+  .diag .why{background:#fff;border-radius:9px;padding:10px 11px;font-size:12px;line-height:1.55;margin-top:7px}
+  .xraystep{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.5;margin:6px 0;color:#3b3160}
+  .xraystep b{color:#5a3fc0;white-space:nowrap}
+  .src{display:flex;gap:7px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:11px;color:var(--blue);margin-top:7px;line-height:1.45}
+  .warm{background:#fff7ee;border:1px solid #f3d9a6;border-radius:12px;padding:12px 13px;font-size:12.5px;color:#8a5a17;margin-top:10px;line-height:1.6}
+  .warm b{color:#6b4310}
+  .hook{background:#eef4ff;border:1px solid #cfe0ff;border-radius:11px;padding:10px 12px;font-size:12px;color:#2554b0;margin-top:9px;line-height:1.5}
+  .hook b{color:#173a86}
+  .retest-banner{background:#fff7e8;border:1px solid #f3d9a6;border-radius:11px;padding:10px;font-size:12px;color:#9a6512;margin-bottom:11px;line-height:1.5}
+  .ta{width:100%;border:1px solid #cdd6e2;border-radius:11px;padding:11px;font-size:12px;line-height:1.6;background:#fbfcfe;color:#3b4452;min-height:92px;white-space:pre-wrap}
+  .ptrow{display:flex;gap:8px;padding:10px 11px;border-radius:9px;margin:7px 0;font-size:12px;line-height:1.45;align-items:flex-start}
+  .ptrow.hit{background:var(--green-bg);border:1px solid #b8e6cf}
+  .ptrow.miss{background:var(--amber-bg);border:1px solid #f1d4a3}
+  .ptrow.na{background:#f0f3f8;border:1px solid var(--line);color:#8a94a3}
+  .ptrow .ic{font-weight:700;font-size:13px;white-space:nowrap}
+  .ptrow .tn{font-size:10px;color:var(--sub);margin-top:3px}
+  .scorebar{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px;margin:9px 0}
+  .scorebar .s{font-size:20px;font-weight:700}
+  .win{background:var(--green-bg);border:1px solid #b8e6cf;border-radius:13px;padding:14px;margin:11px 0}
+  .win .big{font-size:15px;font-weight:700;color:var(--green);margin-bottom:6px}
+  .win .sub{font-size:12px;color:#356b53;line-height:1.6}
+  .sectionhead{max-width:1320px;margin:26px auto 2px;padding:0 8px;font-size:15px;font-weight:700;color:var(--ink);border-left:4px solid var(--blue);padding-left:10px}
+  .sectionhead small{font-weight:500;color:var(--sub);font-size:12px}
+  .note{max-width:1320px;margin:24px auto 0;padding:0 8px}
+  .note .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+  .note ul{margin:6px 0;padding-left:18px;line-height:1.8;font-size:13px;color:#374151}
+  .note .warnbox{color:#9a6512;background:#fff7e8;border:1px solid #f3d9a6;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-top:10px;line-height:1.6}
+  code{font-family:ui-monospace,Menlo,monospace;background:#eef1f5;border-radius:5px;padding:1px 5px;font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>F16 防水 · 5 天提分留存闭环(组装版) — 看图版</h1>
+  <p><span class="badge">静态 · 手机直接看</span><span class="badge">无需点击 · 往下滑</span><span class="badge">原型 · 非真小程序</span></p>
+  <p>三个不变量(顺水搭接 / 迎水面 / 节点先行)用「看穿式」MCQ 建立 → 第 4 天唯一已签发判分点做真 AI 半写批改 → 第 5 天换皮综合复测验证「真懂 vs 背过」。每屏下方小字说明它在闭环里的角色。</p>
+</div>
+
+<!-- ============ DAY 1 ============ -->
+<div class="sectionhead">Day 1 · 顺水搭接方向 <small>深题 D1 · 因果 why · 不变量:水从高往低流,缝口要背向来水</small></div>
+<div class="grid">
+
+  <div class="col">
+    <p class="col-title"><b>① 入口 · 今日一刀</b> · 低摩擦 2 分钟</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日任务</span><span class="day">第 1 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 1 天</span>
+        <div class="card lead"><div class="k">今天只看穿你最常错的一块</div><div class="v">卷材到底从哪头往哪头铺</div>
+          <div class="meta">预计 2 分钟 · 选错当场告诉你为什么</div>
+          <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div></div>
+        <div class="card" style="color:var(--sub);font-size:12px;line-height:1.6">第一天还没有「昨天的错题」。今天做完,明天第一题帮你复测今天踩的坑。</div>
+        <div class="cta">开始(约 2 分钟)</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 1「今日一刀」——只给 1 个最高收益任务。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>② 表皮试探</b> · 干扰项=诊断探针</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:42</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">看穿 1/3</span><span class="day">第 1 天</span></div>
+      <div class="body">
+        <div class="q-meta">屋面北高南低 · 雨水北→南流</div>
+        <div class="stem">两名工人争论卷材搭接方向。哪种做法最能解释「顺水搭接」的本质?</div>
+        <div class="opt right"><span class="lab">A</span><span>由低(南)向高(北)铺,北侧后铺卷材盖住南侧卷材的上坡侧边缘,水沿坡下流时跨过缝口、不钻入。</span></div>
+        <div class="opt wrong"><span class="lab">B</span><span>由北高向南低铺,南侧压北侧,因为「后铺压先铺」总是对的。 ← 你选了这个</span></div>
+        <div class="opt dim"><span class="lab">C</span><span>搭接宽度够就行,坡向和缝口朝向不影响渗漏。</span></div>
+        <div class="opt dim"><span class="lab">D</span><span>为减少接缝,卷材垂直屋脊铺,缝向由施工方便定。</span></div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 2。每个错项对应一个真实误解,不是凑选项。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>③ 透视揭底 + 暖纠正</b> · wow 兑现点</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:43</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">看穿这道题</span><span class="day">第 1 天</span></div>
+      <div class="body">
+        <div class="diag xray">
+          <h4>🔍 我帮你看穿这道题</h4>
+          <div class="xraystep"><b>表皮</b><span>把坡向改成「北高南低」,逼你代入水流方向。</span></div>
+          <div class="xraystep"><b>不变量</b><span>顺水搭接 = 缝口背向来水,高处那张压住低处那张的边。</span></div>
+          <div class="xraystep"><b>出题人意图</b><span>坡向一反,背「顺水搭接」四个字的人就会套错。</span></div>
+          <div class="xraystep"><b>你的误解</b><span><span class="tag err">E11 迁移失败</span>你把「后铺压先铺」当成了绝对规则。</span></div>
+        </div>
+        <div class="src">📖 教材 1A434000_068_0104:检查卷材铺贴方向及顺序、搭接缝位置 · 讲义:由低向高、搭接缝顺水</div>
+        <div class="warm">✅ <b>你方向感其实是对的</b>——知道要顺水。就差最后一步:把「谁压谁」交给<b>水流</b>定,而不是交给「后铺」这个口诀。水从北来,就让北边那张压住南边那张的边。这一步想通,这类题再骗不到你。</div>
+        <div class="hook">🔁 <b>明天</b>我换成地下室外墙,水从外面土里来——还是「水从哪来」这个判断,换个场景测你。</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 3-6。先捧→点差距→给安全网→留明日悬念。</p>
+  </div>
+
+</div>
+
+<!-- ============ DAY 2 ============ -->
+<div class="sectionhead">Day 2 · 迎水面设防 <small>深题 D3 · 鉴别 · 不变量:迎水面=水首先作用的一侧(地下室=外侧)</small></div>
+<div class="grid">
+
+  <div class="col">
+    <p class="col-title"><b>① 入口 · 先复测昨天</b> · 同魂换场景</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>8:02</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日任务</span><span class="day">第 2 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 2 天</span>
+        <div class="retest-banner">↩︎ 先复测昨天:你昨天看穿了「水从哪来,定谁压谁」。今天还是这个魂,换地下室。</div>
+        <div class="card lead"><div class="k">换个场景考同一个判断</div><div class="v">地下室防水,到底贴里还是贴外</div>
+          <div class="meta">预计 2 分钟 · 含 1 道昨日复测</div>
+          <div class="dots"><span class="dot on"></span><span class="dot on"></span><span class="dot"></span></div></div>
+        <div class="cta">开始(约 2 分钟)</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 7 的次日兑现——昨天的坑今天先复测(same-node)。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>② 透视揭底 + 暖纠正</b></p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>8:04</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">看穿这道题</span><span class="day">第 2 天</span></div>
+      <div class="body">
+        <div class="q-meta">地下室外墙外侧=回填土+地下水,赶工想贴内侧</div>
+        <div class="diag xray">
+          <h4>🔍 我帮你看穿这道题</h4>
+          <div class="xraystep"><b>表皮</b><span>用「内侧好施工、漏了好补」当诱饵。</span></div>
+          <div class="xraystep"><b>不变量</b><span>迎水面=水来的那面;地下室的水从外侧土里来。</span></div>
+          <div class="xraystep"><b>出题人意图</b><span>用施工/维修便利,诱你离开迎水面原则。</span></div>
+          <div class="xraystep"><b>你的误解</b><span><span class="tag err">E10 规范适用错误</span>你用「检修便利」替代了「迎水面」。</span></div>
+        </div>
+        <div class="src">📖 教材 1A413030_134_0258:外墙防水层应设在迎水面 · 1A413030_130_0247:外设防水层</div>
+        <div class="warm">✅ <b>你没说错,内侧确实好修。</b>但这题考的不是好不好修,是水从哪边压过来。贴外侧,水压帮你把防水压在墙上;贴内侧,水先泡了墙、还想把防水顶下来。记住「迎水面=水来的那面」,屋面和地下室就统一了。</div>
+        <div class="hook">🔁 <b>明天</b>不换「水从哪来」了,换个新魂:<b>节点</b>。看你会不会被「后补也行」骗到。</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 3-6。第二个不变量,同一套看穿结构。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>③ 进步收据</b> · 昨日复测通过</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>8:05</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日小结</span><span class="day">第 2 天</span></div>
+      <div class="body">
+        <div class="win"><div class="big">↩︎ 昨天那个坑,今天你跨过去了</div>
+          <div class="sub">昨天你在屋面北高南低栽过;今天换成地下室外墙,你一次判对了水从哪来。同一个魂,换皮没骗到你。</div></div>
+        <div class="card" style="font-size:12px;color:var(--sub);line-height:1.6">已看穿:① 顺水搭接 ② 迎水面设防<br>待验证盲点(明天复测):节点先行</div>
+        <div class="hook">📌 <b>明日约定卡已生成</b>:明天用「管根+阴角」的新工地,测你今天还没练的节点先行。</div>
+        <div class="cta ghost">明天见 · 已连续 2 天</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:留存核心——「未闭合悬念」+进步可见,驱动次日回访。</p>
+  </div>
+
+</div>
+
+<!-- ============ DAY 3 ============ -->
+<div class="sectionhead">Day 3 · 节点先行 <small>深题 D2 · 因果 why · 不变量:节点是渗漏起点,先做节点再连续搭接</small></div>
+<div class="grid">
+
+  <div class="col">
+    <p class="col-title"><b>① 表皮试探</b> · 第三个不变量</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>21:30</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">看穿 1/3</span><span class="day">第 3 天</span></div>
+      <div class="body">
+        <div class="retest-banner">↩︎ 复测前两天:水从哪来你已经会判了。今天看你会不会被「多补点总没错」带偏。</div>
+        <div class="q-meta">卫生间外墙交接处:有阴角 + 一根穿墙管</div>
+        <div class="stem">工人说「先把大面卷材铺完,再在管根、阴角上贴附加层补强也行」。哪项反驳最准确?</div>
+        <div class="opt right"><span class="lab">A</span><span>不行。节点是渗漏高风险部位,应先处理管根/阴角/收口,再让大面与节点连续搭接;后贴补丁边缘易成张口和窜水路径。</span></div>
+        <div class="opt wrong"><span class="lab">B</span><span>可以。只要后补附加层面积更大,先后顺序不影响渗漏。 ← 你选了这个</span></div>
+        <div class="opt dim"><span class="lab">C</span><span>可以。大面已覆盖基层,节点附加层只是美观增强。</span></div>
+        <div class="opt dim"><span class="lab">D</span><span>不行,但只因为「教材写了先节点后大面」。</span></div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 1-2。最强干扰项 B 用「面积更大更保险」诱你。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>② 透视揭底 + 暖纠正</b></p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>21:32</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">看穿这道题</span><span class="day">第 3 天</span></div>
+      <div class="body">
+        <div class="diag xray">
+          <h4>🔍 我帮你看穿这道题</h4>
+          <div class="xraystep"><b>表皮</b><span>「先大面、后补附加层,面积更大」。</span></div>
+          <div class="xraystep"><b>不变量</b><span>节点先行 + 大面连续压接,不给水留缝。</span></div>
+          <div class="xraystep"><b>出题人意图</b><span>用「面积更大」补偿你对顺序的忽视。</span></div>
+          <div class="xraystep"><b>你的误解</b><span><span class="tag err">E06 程序顺序错误</span>你用面积补偿了顺序和搭接连续性。</span></div>
+        </div>
+        <div class="src">📖 教材 1A434000_068_0104 附加层/细部 · _075_0117 穿墙管止水环 · _077_0120 收口张口/分层搭槎</div>
+        <div class="warm">✅ <b>你想「多补点总没错」——这份谨慎是好的。</b>但防水不是补得多,是不给水留缝。节点是水最先钻的地方,先做它、再让大面压上去连成一片,补丁才不会变成新缝。顺序对了,你那份谨慎才真正生效。</div>
+        <div class="hook">🔁 <b>明天</b>换一种:你<b>自己写</b>,AI 按真实阅卷采分点给你批,看你写的能不能踩到分。</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:三个不变量集齐;明日预告从「判断」转「半写真批改」。</p>
+  </div>
+
+</div>
+
+<!-- ============ DAY 4 ============ -->
+<div class="sectionhead">Day 4 · 屋面卷材起鼓割补(半写题) <small>Q18 P10/P11 · 唯一已签发判分点 · 真 AI 踩点批改</small></div>
+<div class="grid">
+
+  <div class="col">
+    <p class="col-title"><b>① 半写入口</b> · 今天不选答案</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>7:50</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日任务</span><span class="day">第 4 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 4 天</span>
+        <div class="card lead warm"><div class="k">前三天你练「判断」。今天你来「写」</div><div class="v">屋面卷材起鼓了,你来写怎么割补</div>
+          <div class="meta">AI 按真实采分点告诉你:哪句踩到分、哪句差一口气</div></div>
+        <div class="card" style="font-size:12px;color:var(--sub);line-height:1.6">这是这 5 天里唯一一道有「真实阅卷采分点」的题。只判两个点(放气清理 / 烘烤剥贴),范围外的不算你漏答。</div>
+        <div class="ta">我的作答:先在起鼓处放气,把里面的旧胶结料清除干净,再用喷灯烘烤后重新贴一层新卷材压住。</div>
+        <div class="cta green">提交给 AI 批改</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 1-2 的半写形态。task_scope={P10,P11},纯文字无图。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>② 踩点批改</b> · 真签发工件判分</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>7:51</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">AI 踩点批改</span><span class="day">第 4 天</span></div>
+      <div class="body">
+        <div class="scorebar"><span>本题得分(范围内 2 点)</span><span class="s"><span style="color:var(--green)">0.75</span> / 1.5</span></div>
+        <div class="ptrow hit"><span class="ic" style="color:var(--green)">✓ 踩中</span><span>你写了「放气 + 清除旧胶结料」 → 命中 <b>P10</b>(放气/擦干/清除旧胶结料)<div class="tn">exact_required · 0.75</div></span></div>
+        <div class="ptrow miss"><span class="ic" style="color:var(--amber)">差一句</span><span>你没写到:重贴前要<b>分层剥开</b>旧卷材 → <b>P11</b> 差这一句<div class="tn">high_risk_review · 0.75 · <span class="tag code">E03 关键词缺失</span></div></span></div>
+        <div class="ptrow na"><span class="ic">未判</span><span>基层含水率、保护层等不在本次范围 → not_evaluated(不算你漏答)</span></div>
+        <div class="warm">✅ <b>你已经写出了割补的大框架,这很不容易</b>——很多人连「要先放气」都想不到。就差一个动作:重贴新卷材前要「分层剥开」,这是把新旧卷材连成一体的关键。补上这一句,这 0.75 分稳稳到手。</div>
+        <div class="src">⚖️ 判分依据:已签发工件 Q18-1A434000::qga_v0_20260604(教研估分口径,非官方阅卷)</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:步骤 3-5。「AI 真按采分点看我写的」——这是核心 wow。</p>
+  </div>
+
+</div>
+
+<!-- ============ DAY 5 ============ -->
+<div class="sectionhead">Day 5 · 三处防水换皮综合复测 <small>深题 D4 · 元认知 · 验证「真懂 vs 背过」</small></div>
+<div class="grid">
+
+  <div class="col">
+    <p class="col-title"><b>① 综合复测</b> · 换个新工地</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>20:10</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">总复测</span><span class="day">第 5 天</span></div>
+      <div class="body">
+        <div class="retest-banner">🎯 这不是新知识,是把这 5 天的魂用一次。换个你没见过的工地。</div>
+        <div class="q-meta">同一天处理三处:屋面天沟卷材 / 地下室外墙卷材 / 穿墙管根</div>
+        <div class="stem">哪套安排最能说明施工员「真懂防水」,而不是只背清单?</div>
+        <div class="opt right"><span class="lab">A</span><span>屋面由低向高顺水铺;地下室防水放迎水外侧并做保护;穿墙管先清外表面、设止水环、处理管根,再与大面连续搭接。 ← 你选了这个</span></div>
+        <div class="opt dim"><span class="lab">B</span><span>屋面搭接够宽即可;地下室内侧方便维修贴内侧;穿墙管最后表面补一圈。</span></div>
+        <div class="opt dim"><span class="lab">C</span><span>三处都先铺大面,最后统一补节点,工序整齐便于验收。</span></div>
+        <div class="opt dim"><span class="lab">D</span><span>哪方便贴哪,材料合格就行。</span></div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:same-node 综合复测。三个不变量在一题里同时受考。</p>
+  </div>
+
+  <div class="col">
+    <p class="col-title"><b>② 进步收据</b> · 真懂 vs 背过</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>20:12</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">5 天小结</span><span class="day">第 5 天</span></div>
+      <div class="body">
+        <div class="win"><div class="big">🎉 这就是真懂和背过的区别</div>
+          <div class="sub">5 天前你大概会选 C(先大面、最后统一补节点,看起来最整齐)。今天你选了 A。你不是背下了答案——这 5 天每天那个「水从哪来、缝口避水、节点先行」的判断,今天一次用上了三个。</div></div>
+        <div class="diag xray">
+          <h4>🔍 你这 5 天看穿了什么</h4>
+          <div class="xraystep"><b>Day1</b><span>顺水搭接:缝口背向来水</span></div>
+          <div class="xraystep"><b>Day2</b><span>迎水面:水来的那面才设防</span></div>
+          <div class="xraystep"><b>Day3</b><span>节点先行:先做节点再连续搭接</span></div>
+          <div class="xraystep"><b>Day4</b><span>起鼓割补:放气清理→分层剥开重贴</span></div>
+        </div>
+        <div class="warm">💛 <b>就算今天还错一两处也没关系</b>——错的那处正好告诉我们明天先陪你练哪个。你已经连续来了 5 天,这件事本身就比答案更重要。</div>
+      </div>
+    </div></div>
+    <p class="col-title" style="margin-top:9px">闭环角色:元认知收口——把「会判断」升成「我真懂这一类」。</p>
+  </div>
+
+</div>
+
+<!-- ============ 诚实边界 ============ -->
+<div class="note"><div class="box">
+  <h3 style="margin:0 0 6px;font-size:15px">诚实边界(单一权威纪律 · 钉在剧本里,不可越)</h3>
+  <ul>
+    <li><b>判分</b>:仅 Day4 走已签发 artifact(Q18 P10/P11,<code>training_org</code> 估分口径、<b>非官方阅卷</b>);D1-D4 是 inference-validated MCQ,<b>不进 official 判分</b>,只做教学/诊断候选。</li>
+    <li><b>错因</b>:全程只引用 <code>ERROR_CODE_REGISTRY</code> 的 E 系列(E03/E04/E06/E07/E10/E11),display-only,<b>不新建</b>第二套错因。</li>
+    <li><b>知识点</b>:taxonomy 118 防水叶,创建时钉 runtime index 现值(taxonomy 一天多改,不抄历史 sha)。</li>
+    <li><b>学情/掌握</b>:深母题只发 <code>task_candidate</code> / <code>retest_discriminator_candidate</code>;掌握结论由 <code>LearnerStateService</code> / <code>learning_evidence</code> / <code>revalidation_queue</code> 消费后产生,<b>前端不自算</b>。</li>
+    <li><b>复测</b>:起鼓割补工序<b>无 same-point 复测题</b>,Day5 是 <code>same-node</code> 深化,不得伪装成 point-level 干净提升。</li>
+    <li><b>题面图</b>:全程纯文字(D1-D4 场景文字化 + Q18 纯文字工序),规避防水案例题普遍带构造图的 G5 形态问题。</li>
+  </ul>
+  <div class="warnbox">🎯 <b>这 5 天的唯一目的是采集「真实考生作答」并验证留存</b>。GO 信号 = D1/D2 的<b>真实回访行为</b>,不是 NPS、不是「题做完了」。验收口径:创始人亲手走完觉得 wow/不假/判分贴谱 → 放给 ≥3 个真实学员 → 看到次日真实回访。</div>
+</div></div>
+
+</body>
+</html>

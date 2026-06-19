@@ -1,5 +1,5 @@
 // 一次性 CDP 手机截图器(零依赖, Node24 原生 fetch+WebSocket)。
-// 用法: node cdp_shot.mjs <input.html> <out.png> [width] [evalJS]
+// 用法: node cdp_shot.mjs <input.html> <out.png> [width|widthxheight] [evalJS]
 // 启 headless Chrome → 设移动视口 → 导航 → (可选注入 JS) → full-page 截图 → 杀 Chrome。
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -8,10 +8,12 @@ import { join, resolve } from "node:path";
 
 const [, , input, out, widthArg, evalJS] = process.argv;
 if (!input || !out) { console.error("usage: node cdp_shot.mjs <input.html> <out.png> [width] [evalJS]"); process.exit(2); }
-const width = Number(widthArg) || 390;
+const [widthText, heightText] = String(widthArg || "390").split("x");
+const width = Number(widthText) || 390;
+const viewportHeight = Number(heightText) || 844;
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const userDir = mkdtempSync(join(tmpdir(), "cdp-shot-"));
-const PORT = 9337;
+const PORT = 9300 + Math.floor(Math.random() * 600);
 
 const chrome = spawn(CHROME, [
   "--headless=new", `--remote-debugging-port=${PORT}`, `--user-data-dir=${userDir}`,
@@ -59,7 +61,7 @@ function cdp(ws) {
   const { send } = cdp(ws);
   await send("Page.enable");
   await send("Runtime.enable");
-  await send("Emulation.setDeviceMetricsOverride", { width, height: 844, deviceScaleFactor: 2, mobile: true });
+  await send("Emulation.setDeviceMetricsOverride", { width, height: viewportHeight, deviceScaleFactor: 2, mobile: true });
   const url = "file://" + resolve(input);
   await send("Page.navigate", { url });
   // 轮询 readyState(比 loadEventFired 稳, 见 zero-dep-cdp 记忆)

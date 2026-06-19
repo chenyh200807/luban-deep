@@ -1,0 +1,187 @@
+{
+  "audio": "J01_danger_work_expert_argumentation.dialogue.mp3",
+  "totalSec": 161.723,
+  "style": "notebooklm_two_voice",
+  "segments": [
+    {
+      "idx": 0,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "哎我问你个事——案例题老问'这个工程要不要请专家论证',我每次都靠猜。这玩意儿到底咋判?",
+      "startSec": 0,
+      "durSec": 8.102
+    },
+    {
+      "idx": 1,
+      "speaker": "B",
+      "anchor": "scenario.caption",
+      "claim": true,
+      "text": "你这一问就问到点子上了。其实丢分的人不是不知道有'专项方案'这回事,是把两件事搅成了一团。",
+      "startSec": 8.452,
+      "durSec": 9.456
+    },
+    {
+      "idx": 2,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "哪两件事?",
+      "startSec": 18.258,
+      "durSec": 1.041
+    },
+    {
+      "idx": 3,
+      "speaker": "B",
+      "anchor": "student_goal",
+      "claim": true,
+      "text": "'危大工程'和'超过一定规模的危大工程'。听着像绕口令,其实是两道闸,得一道一道过。",
+      "startSec": 19.649,
+      "durSec": 8.316
+    },
+    {
+      "idx": 4,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "两道闸……你给我打个比方呗。",
+      "startSec": 28.315,
+      "durSec": 2.794
+    },
+    {
+      "idx": 5,
+      "speaker": "B",
+      "anchor": null,
+      "claim": false,
+      "text": "你就想成进游乐园。第一道闸看你够不够高,够高才算'危险项目',得专门给你配个方案;第二道闸更狠——你不光高,还特别高,那光有方案不够,还得请专家组当面验。",
+      "startSec": 31.459,
+      "durSec": 16.573
+    },
+    {
+      "idx": 6,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "那这'够高'具体是多少?",
+      "startSec": 48.383,
+      "durSec": 2.04
+    },
+    {
+      "idx": 7,
+      "speaker": "B",
+      "anchor": "decision.judgment_points[0].criterion",
+      "claim": true,
+      "text": "记两个数就行。基坑开挖,挖到三米——三米及以上,就是危大,要编专项施工方案。",
+      "startSec": 50.773,
+      "durSec": 8.457
+    },
+    {
+      "idx": 8,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "三米。那第二道闸呢?",
+      "startSec": 59.58,
+      "durSec": 2.016
+    },
+    {
+      "idx": 9,
+      "speaker": "B",
+      "anchor": "decision.judgment_points[1].criterion",
+      "claim": true,
+      "text": "五米。挖到五米及以上,就叫'超过一定规模',这时候方案必须再请专家论证。",
+      "startSec": 61.946,
+      "durSec": 7.655
+    },
+    {
+      "idx": 10,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "啊我懂了!三米一道线,五米一道线。那要是题目给五米五呢?",
+      "startSec": 69.951,
+      "durSec": 5.709
+    },
+    {
+      "idx": 11,
+      "speaker": "B",
+      "anchor": "decision.reached_outcome",
+      "claim": true,
+      "text": "五米五,两道闸全过——比三米深,是危大;比五米还深,超规模。所以结论很干脆:这个专项方案,得组织专家论证。",
+      "startSec": 76.01,
+      "durSec": 12.066
+    },
+    {
+      "idx": 12,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "等等,那我要是只写'需要专家论证',能拿分吗?",
+      "startSec": 88.426,
+      "durSec": 4.619
+    },
+    {
+      "idx": 13,
+      "speaker": "B",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "这就是最可惜的丢分。你结论对了,可阅卷老师不知道你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句话写上,判断分才到手。",
+      "startSec": 93.395,
+      "durSec": 16.264
+    },
+    {
+      "idx": 14,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "那反过来,要是只挖三米五呢?是不是也得论证?",
+      "startSec": 110.009,
+      "durSec": 4.606
+    },
+    {
+      "idx": 15,
+      "speaker": "B",
+      "anchor": "decision.outcomes[scheme_only]",
+      "claim": true,
+      "text": "好问题,这正是出题人埋的坑。三米五,过了第一道闸、没过第二道——是危大,要编方案,但不到五米,不用专家论证,光编方案就够了。",
+      "startSec": 114.965,
+      "durSec": 13.51
+    },
+    {
+      "idx": 16,
+      "speaker": "A",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "哦——所以不是'危大就一定要论证',中间还有一档。",
+      "startSec": 128.825,
+      "durSec": 4.502
+    },
+    {
+      "idx": 17,
+      "speaker": "B",
+      "anchor": "memory_hook",
+      "claim": true,
+      "text": "对,这一档最容易混。记住这句口诀就乱不了:三米危大编方案,五米超规模要论证。",
+      "startSec": 133.677,
+      "durSec": 8.619
+    },
+    {
+      "idx": 18,
+      "speaker": "A",
+      "anchor": null,
+      "claim": false,
+      "text": "三米危大编方案,五米超规模要论证。这下我记住了!",
+      "startSec": 142.646,
+      "durSec": 4.93
+    },
+    {
+      "idx": 19,
+      "speaker": "B",
+      "anchor": "warm_correction_html",
+      "claim": true,
+      "text": "而且我得夸你一句,你能想到'危大要有专项方案',方向已经对了一半。剩下的就是把两个数、两道闸说清楚,这类判断题你就稳了。",
+      "startSec": 147.926,
+      "durSec": 12.997
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "luban_asset_gap_next_actions.v1",
+  "principle": "LLMs maintain candidate knowledge organization; deterministic gates sign releases and protect authority.",
+  "actions": [
+    {
+      "order": 1,
+      "gap_id": "exam_content_gap",
+      "priority": "P1",
+      "affected_count": 139,
+      "action": "Backfill exam taxonomy/analysis/score candidate gaps before signed grading release.",
+      "pass_criteria": "source chunk evidence, rubric refs, score cap validation, official_score_allowed remains false",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 2,
+      "gap_id": "pdf_p1_compile_or_map",
+      "priority": "P1",
+      "affected_count": 21,
+      "action": "Run PDF compiler or mapping workflow for the P1 queue before any release signing.",
+      "pass_criteria": "source hash, page/chunk provenance, schema validation, OCR quality or mapping proof",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 3,
+      "gap_id": "okf_case_level_alignment_backfill",
+      "priority": "P1",
+      "affected_count": 16,
+      "action": "Backfill sub-question-level source alignment for the 16 case-level-only cases.",
+      "pass_criteria": "case/sub-question count, source chunk anchors, rubric refs, score cap validation",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 4,
+      "gap_id": "okf_candidate_not_signed_release",
+      "priority": "P1",
+      "affected_count": 25,
+      "action": "Create signed release-candidate review pack; do not promote candidate scope directly.",
+      "pass_criteria": "schema validation, source verification, adversarial scoring guard, signed release pointer",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 5,
+      "gap_id": "runtime_policy_conflict_live_reader",
+      "priority": "P1",
+      "affected_count": 1,
+      "action": "Decide whether to publish/sign the bank or change the reader default to a published pointer path.",
+      "pass_criteria": "reader default, pointer policy, hash/schema gate, rollback behavior, and test evidence agree",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 6,
+      "gap_id": "runtime_published_pointer_consumer_evidence",
+      "priority": "P2",
+      "affected_count": 4,
+      "action": "For each published pointer, run or record a true consumer read proof before calling it runtime-ready.",
+      "pass_criteria": "consumer smoke/trace, hash match, schema gate, rollback verification",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 7,
+      "gap_id": "pdf_p2_verify_provenance",
+      "priority": "P2",
+      "affected_count": 39,
+      "action": "Backfill PDF->JSON provenance map for candidate derivatives.",
+      "pass_criteria": "PDF hash, derivative JSON hash, page/chunk anchors, manual or scripted provenance proof",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 8,
+      "gap_id": "json_source_claim_review_gap",
+      "priority": "P2",
+      "affected_count": 383,
+      "action": "Review source claims by bucket, prioritizing exam, standard, textbook, and taxonomy before lectures.",
+      "pass_criteria": "file hash, source path, bucket policy, schema shape, human or scripted claim review",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    },
+    {
+      "order": 9,
+      "gap_id": "runtime_candidate_or_blocked_pointers",
+      "priority": "P2",
+      "affected_count": 11,
+      "action": "Review candidate/blocked pointers one by one; publish only via signed gate.",
+      "pass_criteria": "published flag, content hash, schema, signed owner decision, rollback pointer",
+      "must_not_do": [
+        "do not write runtime_supply",
+        "do not claim official score",
+        "do not write LearnerState/GBrain/production registry"
+      ]
+    }
+  ],
+  "runtime_guard": {
+    "release_stage": "asset_gap_map_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  }
+}

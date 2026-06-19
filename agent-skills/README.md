@@ -60,8 +60,9 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   rollback, and post-launch verification workflow.
 - `luban-rich-leaf-compiler`: RichLeafArtifact / 2026 source compilation /
   review queue / runtime supply candidate workflow.
-- `luban-diagram-microlesson`: 图解微课卡 authoring / 确定性 renderer / 一屏一重点
-  翻页 deck UX / 单一权威边界 / web-view 沙盒 / 零依赖 CDP 验收 workflow.
+- `luban-diagram-microlesson`: 图解微课卡 authoring / 6+1 原型选择 /
+  video-first 动画学习卡 / 母题引擎内容权威 / 确定性 renderer /
+  preview contract gate / web-view 沙盒 / 零依赖 CDP 验收 workflow.
 - `external-tool-absorption-boundary`: adopting/upgrading a plugin, marketplace skill,
   gstack, CLI, MCP, or shared hook — audit + neutralize opinionated defaults
   (auto-commit, CLAUDE.md injection, blocking hooks, telemetry) so they never

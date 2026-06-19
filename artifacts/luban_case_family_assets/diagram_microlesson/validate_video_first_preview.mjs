@@ -65,7 +65,16 @@ function jsonScript(html, id) {
 
 function checkLessonContract(file, html) {
   const data = jsonScript(html, "lessonData");
+  const irPreview = jsonScript(html, "irPreviewData");
   const hasInlineChapters = /const\s+chapters\s*=\s*\[/.test(html);
+
+  if (irPreview) {
+    const scenes = Array.isArray(irPreview.scenes) ? irPreview.scenes : [];
+    const chapters = Array.isArray(irPreview.chapters) ? irPreview.chapters : [];
+    scenes.length >= 6 ? pass(file, "ir_preview_scenes", `${scenes.length} IR preview scenes`) : fail(file, "ir_preview_scenes", "expected at least 6 IR preview scenes");
+    chapters.length >= 4 ? pass(file, "ir_preview_chapters", `${chapters.length} semantic chapters`) : fail(file, "ir_preview_chapters", "expected semantic chapters in IR preview data");
+    return;
+  }
 
   if (!data) {
     if (hasInlineChapters) warn(file, "lesson_contract", "no lessonData JSON; falling back to inline chapters shell check");
@@ -96,9 +105,9 @@ function checkLessonContract(file, html) {
 
 function checkRendered(file, html) {
   if (!html) return;
-  const isJourneyShell = /data-stage-shell=["'][^"']*archetype-journey|window\.__LUBAN_LESSON_MANIFEST__/.test(html);
+  const isJourneyShell = /data-stage-shell=["'][^"']*archetype-journey|data-animation-ir-preview=["']v0["']|window\.__LUBAN_LESSON_MANIFEST__/.test(html);
   if (isJourneyShell) {
-    pass(file, "stage_shell_mode", "decision-first journey shell");
+    pass(file, "stage_shell_mode", "decision-first/IR learning shell");
   } else {
     /<video\b/i.test(html) ? pass(file, "video", "has video element") : fail(file, "video", "missing video element");
     /playsinline/i.test(html) ? pass(file, "playsinline", "mobile inline playback enabled") : fail(file, "playsinline", "missing playsinline");
@@ -118,7 +127,7 @@ function checkRendered(file, html) {
   /\.practice\.html/i.test(html) ? pass(file, "practice_link", "links independent practice page") : fail(file, "practice_link", "missing independent practice link");
   /开始闯关/.test(html) ? pass(file, "ended_cta", "has post-play challenge CTA") : fail(file, "ended_cta", "missing post-play challenge CTA");
 
-  const labels = [...html.matchAll(/(?:label\s*:\s*["']|class=["'][^"']*beat-dot[^"']*["'][^>]*>)([^"'<>{}]{1,8})/g)]
+  const labels = [...html.matchAll(/(?:label\s*:\s*["']|class=["'][^"']*(?:beat-dot|chapter)[^"']*["'][^>]*>)([^"'<>{}]{1,8})/g)]
     .map((m) => m[1].trim())
     .filter(Boolean);
   if (labels.length >= 3) {
