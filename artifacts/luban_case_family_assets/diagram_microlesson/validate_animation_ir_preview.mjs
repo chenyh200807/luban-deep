@@ -106,6 +106,11 @@ function checkStatic(ir, html) {
   } else {
     pass("captions", "has timing-derived captions");
   }
+  if (!/"actions"\s*:/.test(html) || !/\.kind===['"]reveal/.test(html) || !/\.kind===['"]camera/.test(html)) {
+    fail("action_playback", "preview must expose and consume an action queue");
+  } else {
+    pass("action_playback", "has deterministic action queue playback");
+  }
   if (!/controls-visible/.test(html)) {
     fail("theater_controls_autohide", "theater controls must use show/hide state");
   } else {
@@ -214,7 +219,10 @@ async function checkRuntime(ir) {
     ].filter(Boolean);
 
     for (const scene of samples) {
-      const t = Number(scene.start_sec) + 0.2;
+      const sceneStart = Number(scene.start_sec);
+      const sceneEnd = Number(scene.end_sec);
+      const sceneDur = Math.max(0.8, sceneEnd - sceneStart);
+      const t = sceneStart + Math.min(2.5, Math.max(0.8, sceneDur * 0.45));
       const expression = `
         (() => {
           window.__IR_PLAYER__.seek(${JSON.stringify(t)});
@@ -241,6 +249,8 @@ async function checkRuntime(ir) {
       else pass("runtime_one_active_scene", `${scene.id}: one active scene`);
       if (value.visibleNodes.length > maxNodes) fail("runtime_visible_budget", `${scene.id}: ${value.visibleNodes.length} visible nodes > ${maxNodes}`);
       else pass("runtime_visible_budget", `${scene.id}: ${value.visibleNodes.length}/${maxNodes}`);
+      if (value.visibleNodes.length < 1) fail("runtime_visible_progress", `${scene.id}: no visible node after scene midpoint`);
+      else pass("runtime_visible_progress", `${scene.id}: progressive reveal produced visible nodes`);
       if (value.keycards !== 1) fail("runtime_keycard_budget", `${scene.id}: ${value.keycards} visible keycards`);
       else pass("runtime_keycard_budget", `${scene.id}: one keycard`);
       if (!value.caption) fail("runtime_caption", `${scene.id}: caption is empty`);

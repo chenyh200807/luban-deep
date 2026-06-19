@@ -221,6 +221,16 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 - 预览和正式成片共用同一份 IR:HTML renderer 用来快速评审手机交互;Remotion renderer 用来正式成片,不得另写一份 storyboard。
 - gate 证明 scene 生命周期:当前屏 visible nodes 有上限、只有一个 active scene、只有一个 keycard、theater 仍有闯关入口、无 `reached-*` 累积。
 
+2026-06-20 复盘:只做到 `scene` 级 storyboard 仍然会像幻灯片。OpenMAIC 更成熟的做法是 `actions` 级 playback:
+
+- `scene` 只定义这一页的认知边界、布局和可用图元。
+- `actions[]` 才定义动画和教学节奏:reveal 哪个 `data-id`、highlight 哪个对象、camera 推近哪里、哪个 keycard 进入/退出、字幕/旁白对应哪段。
+- renderer 必须串行消费 action 队列,每次 action 结束要么进入 hold,要么明确 exit;不要让旧 keycard、旧标注、旧节点继续占屏。
+- HTML preview 可以用 JS/CSS 模拟 action playback 供手机评审;正式 Remotion 必须用同一份 action IR 和 `useCurrentFrame()` 重放,不能另起一套视觉脚本。
+- gate 不能只查页面存在。至少抽样 scene 中段,证明当前 scene 有节点被 action/progressive reveal 显示、字幕非空、keycard 不累积、theater 控制层默认隐藏且点击浮出。
+
+这条是 60 卡量产底线:任何"画面乱/叠加/比例一变就坏/像翻页/字幕丢失/控制条占屏"的问题,优先升级 IR、renderer、gate 或本导演手册;不要只改某一张卡的 CSS。
+
 F16 这类工序/构造型卡的默认拆法:
 
 1. `hook`:先打错觉,告诉学生为什么这题不是"补一层"。

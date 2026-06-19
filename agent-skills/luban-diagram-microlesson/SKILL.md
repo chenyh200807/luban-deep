@@ -64,11 +64,14 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 
 1. AI/LLM 可以充分发挥,但只发挥在 `animation_ir.v0` 的编排层;不得直接画像素、不得输出自由 HTML 当唯一真相。
 2. 每个 beat/scene 必须显式写 `scene`、`focus`、`enter`、`hold`、`exit`、`layout`、`camera`、`visible_nodes`、`keycard`、`coach`。
-3. renderer 只认 IR,每个时刻只渲染当前 scene;禁止靠 `reached-*`、历史 class、已播放节点数组来累积画面。
-4. `visible_nodes.length <= render_contract.max_visible_nodes`。F16 这类工序/构造卡默认拆成多 scene:起鼓病因、割开放气、干燥清基、附加封严、蓄水检验、答题纸采分句、闯关桥接。
-5. HTML preview 是产品评审入口;正式成片时 Remotion renderer 必须吃同一份 IR。预览阶段不生成 MP4。
-6. gate 至少覆盖:IR schema/必填字段、scene 不重叠、当前屏最大可见信息数、keycard 不累积、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene。
-7. `construction-whiteboard-director` 可作为导演/质检 skill 使用:它帮助定义"当前 beat 该看什么、什么必须退出、最终白板是否干净";但它不是内容权威,也不是 renderer authority。最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+3. **scene 只是页面边界,action 才是动画**。OpenMAIC 的关键不是"把整页换得更顺",而是 action 队列串行执行。`animation_ir.v0` 必须继续演进 `micro_actions/actions[]`:每个 action 明确 `target(data-id)`、`kind(reveal/highlight/camera/annotate/exit/speech)`、`start/end`、`enter/exit`。renderer 只能消费这些 action,不能凭历史 DOM 状态猜下一步。
+4. renderer 只认 IR,每个时刻只渲染当前 scene 和当前 action 集;禁止靠 `reached-*`、历史 class、已播放节点数组来累积画面。
+5. `visible_nodes.length <= render_contract.max_visible_nodes`。F16 这类工序/构造卡默认拆成多 scene:起鼓病因、割开放气、干燥清基、附加封严、蓄水检验、答题纸采分句、闯关桥接。
+6. HTML preview 是产品评审入口,不是 Remotion 成片。它必须模拟 action playback、字幕、拖动、theater 交互;正式成片时 Remotion renderer 必须吃同一份 IR。预览阶段不生成 MP4。
+7. gate 至少覆盖:IR schema/必填字段、scene 不重叠、当前屏最大可见信息数、keycard 不累积、字幕存在、theater 默认隐藏控制层且点击浮出、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene、scene 中段至少有一个节点经 action/progressive reveal 可见。
+8. `construction-whiteboard-director` 可作为导演/质检 skill 使用:它帮助定义"当前 beat 该看什么、什么必须退出、最终白板是否干净";但它不是内容权威,也不是 renderer authority。最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+
+60 张卡量产的核心目标:每次 F16/N01/S01/A01 暴露的问题,都要优先沉淀到 `animation_ir.v0`、renderer、gate 或本 skill,而不是只修单卡 CSS。单卡能看只是样例;可复用 workflow 才是交付物。
 
 当前最小样板:
 
