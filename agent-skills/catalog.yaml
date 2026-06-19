@@ -25,6 +25,10 @@ skills:
     path: agent-skills/deeptutor-code-simplification/SKILL.md
     lane: review
     expected_use: conditional
+  - name: deeptutor-ci-runtime-fix-gate
+    path: agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md
+    lane: ci
+    expected_use: conditional
   - name: deeptutor-docs-adr-gate
     path: agent-skills/deeptutor-docs-adr-gate/SKILL.md
     lane: docs
@@ -67,6 +71,10 @@ skills:
     expected_use: conditional
   - name: deeptutor-source-grounded-change
     path: agent-skills/deeptutor-source-grounded-change/SKILL.md
+    lane: source-grounding
+    expected_use: conditional
+  - name: deeptutor-storm-source-inspection
+    path: agent-skills/deeptutor-storm-source-inspection/SKILL.md
     lane: source-grounding
     expected_use: conditional
   - name: deeptutor-spec-plan-gate

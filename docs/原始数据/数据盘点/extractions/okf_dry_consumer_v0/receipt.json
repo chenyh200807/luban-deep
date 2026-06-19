@@ -1,0 +1,54 @@
+{
+  "schema": "luban_okf_dry_consumer_receipt.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "status": "dry_consumed_non_runtime",
+  "compiled_root": "docs/原始数据/数据盘点/extractions/okf_rubric_pilot_v0",
+  "runtime_guard": {
+    "release_stage": "dry_consumer_receipt",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "counts": {
+    "cases": 1,
+    "rubrics": 5,
+    "scoring_points": 15
+  },
+  "source_manifest": {
+    "source_path": "docs/原始数据/数据盘点/extractions/okf_rubric_pilot_v0/manifest.json",
+    "authority": "training_org_analysis_yousen",
+    "official_score_allowed": false
+  },
+  "sample": {
+    "case_id": "case_2021_1",
+    "rubric_ids": [
+      "rubric_2021_1_q01",
+      "rubric_2021_1_q02",
+      "rubric_2021_1_q03",
+      "rubric_2021_1_q04",
+      "rubric_2021_1_q05"
+    ],
+    "scoring_point_ids": [
+      "sp_2021_1_q01_01",
+      "sp_2021_1_q01_02",
+      "sp_2021_1_q01_03",
+      "sp_2021_1_q01_04",
+      "sp_2021_1_q02_01",
+      "sp_2021_1_q03_01",
+      "sp_2021_1_q04_01",
+      "sp_2021_1_q04_02"
+    ]
+  },
+  "forbidden_writes": [
+    "runtime_supply",
+    "canonical_truth",
+    "LearnerState",
+    "GBrain",
+    "production_registry",
+    "official_score"
+  ]
+}

@@ -421,8 +421,10 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)：非平凡实现、修复、审查、文档/计划、发布准备、或吸收外部 agent skill pack 时的 DeepTutor 本地调度入口。
 - [deeptutor-spec-plan-gate](./agent-skills/deeptutor-spec-plan-gate/SKILL.md)：PRD / roadmap / implementation plan / capability status 的本地 spec-plan 门槛。
 - [deeptutor-source-grounded-change](./agent-skills/deeptutor-source-grounded-change/SKILL.md)：框架、库、API、外部文档依赖类改动的 source-driven 工作流。
+- [deeptutor-storm-source-inspection](./agent-skills/deeptutor-storm-source-inspection/SKILL.md)：STORM / Co-STORM 式多视角 source inspection，用于知识编译、OKF-like pilot、ADR 和研究综合；输出只能是 candidate/review-only findings，不得成为 runtime、评分、RAG、citation 或 learner truth authority。
 - [deeptutor-incremental-implementation](./agent-skills/deeptutor-incremental-implementation/SKILL.md)：多文件改动的小步垂直切片实现工作流。
 - [deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)：行为变更、bug 修复、文档/skill 变更的测试与证据门槛。
+- [deeptutor-ci-runtime-fix-gate](./agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md)：GitHub Actions、CI runtime、route smoke、contract guard、detect-secrets、Deploy Gate 等失败的同 SHA 复现与修复门槛。
 - [deeptutor-api-contract-design](./agent-skills/deeptutor-api-contract-design/SKILL.md)：REST / WebSocket / trace / session / schema 边界的 contract-first 设计工作流。
 - [deeptutor-schema-authority-gate](./agent-skills/deeptutor-schema-authority-gate/SKILL.md)：稳定 schema、schema registry、typed object、ViewModel/event payload 的单一权威和机器校验门槛。
 - [deeptutor-resource-registry-gate](./agent-skills/deeptutor-resource-registry-gate/SKILL.md)：DB、env/flag/secret、provider、process/cron、route、model/harness、governance scanner 等基础资源的 register-before-use 门槛。

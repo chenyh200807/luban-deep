@@ -1,0 +1,646 @@
+{
+  "generated_at": "2026-06-18T03:01:26.663805+00:00",
+  "repo_root": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "scope_roots": {
+    "knowledge_compiler_2026": "artifacts/knowledge_compiler/2026",
+    "luban_grading_artifacts": "artifacts/luban_grading_artifacts",
+    "runtime_supply": "deeptutor/services/construction_grading/runtime_supply",
+    "data_inventory_extractions": "docs/原始数据/数据盘点/extractions",
+    "case_family_assets": "artifacts/luban_case_family_assets"
+  },
+  "file_inventory": {
+    "knowledge_compiler_2026": {
+      "path": "artifacts/knowledge_compiler/2026",
+      "exists": true,
+      "files": 189,
+      "bytes": 50729003,
+      "extensions": {
+        ".jsonl": 50,
+        ".json": 49,
+        ".png": 38,
+        ".txt": 38,
+        ".md": 14
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets_by_node.json",
+          "bytes": 7323165
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets.jsonl",
+          "bytes": 6082255
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/lecture_compile_20260608/lecture_teaching_cards.jsonl",
+          "bytes": 1426351
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_46.png",
+          "bytes": 871953
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_167.png",
+          "bytes": 829086
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_249.png",
+          "bytes": 823786
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_77.png",
+          "bytes": 821101
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_97.png",
+          "bytes": 795016
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_186.png",
+          "bytes": 793597
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_170.png",
+          "bytes": 793482
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_157.png",
+          "bytes": 791561
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_352.png",
+          "bytes": 776740
+        }
+      ]
+    },
+    "luban_grading_artifacts": {
+      "path": "artifacts/luban_grading_artifacts",
+      "exists": true,
+      "files": 3314,
+      "bytes": 342826336,
+      "extensions": {
+        ".json": 2241,
+        ".md": 627,
+        ".jsonl": 295,
+        ".py": 45,
+        ".db": 22,
+        ".db-shm": 22,
+        ".db-wal": 22,
+        ".csv": 14,
+        ".log": 13,
+        ".txt": 6,
+        ".sql": 3,
+        ".yml": 3,
+        ".html": 1
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_gap_20260612/source_gap_candidates.json",
+          "bytes": 29520044
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_runtime_default_gate_chain_20260613/rerun_with_frozen_inputs/runtime_supply_regression.json",
+          "bytes": 19905604
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+          "bytes": 11690955
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_audit_queue_20260612/semantic_audit_queue.json",
+          "bytes": 9274067
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_field_promotion_review_materialized_20260612/field_promotion_review.json",
+          "bytes": 8400057
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_materialized_20260612/semantic_evidence_audit_record.json",
+          "bytes": 8394862
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_seed_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7401100
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_no_decisions_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7391521
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_field_candidates_materialized_20260612/rich_leaf_field_candidates.json",
+          "bytes": 7248815
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_artifact_candidates_materialized_20260612/rich_leaf_artifact_candidates.json",
+          "bytes": 6942519
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_refinement_closure_20260612/runtime_token_pack_v32_lecture_enrichment_candidate.json",
+          "bytes": 6602591
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v11_coverage_expansion_20260613/runtime_token_pack_v311_quarantine_annotated.json",
+          "bytes": 6104315
+        }
+      ]
+    },
+    "runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply",
+      "exists": true,
+      "files": 57,
+      "bytes": 27623686,
+      "extensions": {
+        ".json": 49,
+        ".jsonl": 8
+      },
+      "largest_files": [
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+          "bytes": 5737635
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+          "bytes": 3701405
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+          "bytes": 3383793
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+          "bytes": 2743126
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json",
+          "bytes": 2608123
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards/lecture_teaching_cards.json",
+          "bytes": 1905313
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses/standard_clauses.json",
+          "bytes": 1483784
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/case_rubric_scored_pgo.json",
+          "bytes": 1396549
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+          "bytes": 990943
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored/case_rubric_scored.json",
+          "bytes": 769265
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+          "bytes": 427627
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_answer_skill_pack_all8/shards/professional-technology.json",
+          "bytes": 362845
+        }
+      ]
+    },
+    "data_inventory_extractions": {
+      "path": "docs/原始数据/数据盘点/extractions",
+      "exists": true,
+      "files": 10,
+      "bytes": 410780,
+      "extensions": {
+        ".jsonl": 7,
+        ".json": 3
+      },
+      "largest_files": [
+        {
+          "path": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+          "bytes": 96107
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/case_rubric_canonical.json",
+          "bytes": 86272
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+          "bytes": 75068
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/per_question_score_backfill.jsonl",
+          "bytes": 43496
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2026-06-18-compiled-assets-current-profile.json",
+          "bytes": 23391
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2022bukao_jianzhu_case_rubric.jsonl",
+          "bytes": 21700
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2023_jianzhu_case_rubric.jsonl",
+          "bytes": 18206
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2021_jianzhu_case_rubric.jsonl",
+          "bytes": 17768
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2025_jianzhu_case_rubric.jsonl",
+          "bytes": 15470
+        },
+        {
+          "path": "docs/原始数据/数据盘点/extractions/2024_jianzhu_case_rubric.jsonl",
+          "bytes": 13302
+        }
+      ]
+    },
+    "case_family_assets": {
+      "path": "artifacts/luban_case_family_assets",
+      "exists": true,
+      "files": 97,
+      "bytes": 24808502,
+      "extensions": {
+        ".png": 30,
+        ".md": 23,
+        ".html": 15,
+        ".json": 11,
+        ".py": 6,
+        ".mjs": 3,
+        ".tsx": 3,
+        ".mp3": 2,
+        ".mp4": 2,
+        "[no_ext]": 1,
+        ".ts": 1
+      },
+      "largest_files": [
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/f16-roof-blister-repair.mp4",
+          "bytes": 3085092
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/joint-workflow.mp4",
+          "bytes": 1975456
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.practice_feedback.png",
+          "bytes": 1660034
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.error_reveal.png",
+          "bytes": 1649999
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.desktop.png",
+          "bytes": 1375696
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/C01.mobile.playing.png",
+          "bytes": 1061163
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01.selfcontained.html",
+          "bytes": 1060879
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/C01.mobile.narrator.png",
+          "bytes": 1024338
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/C01.mobile.revealed.png",
+          "bytes": 1012302
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01.mobile.png",
+          "bytes": 968578
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/C01.mobile.veiled.png",
+          "bytes": 967558
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/C01.selfcontained.html",
+          "bytes": 921877
+        }
+      ]
+    }
+  },
+  "key_assets": {
+    "scoring_point_assets": {
+      "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602",
+      "schema_version": "luban_scoring_point_assets.v0.1",
+      "quality_gate": "pass",
+      "asset_count": 6134,
+      "chunk_count": 650,
+      "node_count": 20,
+      "seed_hit_rate": 0.812532637075718,
+      "textbook_anchor_rate_for_text_assets": 1.0,
+      "jsonl_points": 6134,
+      "by_node_top_level_count": 20,
+      "fixture_warning": "pytest-scoring-point-assets is excluded from production interpretation; it is a test fixture."
+    },
+    "lecture_compile": {
+      "path": "artifacts/knowledge_compiler/2026/lecture_compile_20260608",
+      "jsonl_counts": {
+        "lecture_teaching_cards.jsonl": 540,
+        "rubric_candidates.jsonl": 0,
+        "standard_clauses.jsonl": 0,
+        "question_capsules.jsonl": 0,
+        "question_capsule_to_questions_bank.jsonl": 0,
+        "question_capsule_unmatched.jsonl": 0,
+        "option_reasoning_backfill.jsonl": 0,
+        "taxonomy_index.jsonl": 0
+      }
+    },
+    "rich_leaf_runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context",
+      "canonical_pointer": {
+        "expected_content_hash": "b61b65da77f24db5c1946bb6fda9dda8732a54b0c4be7f35db97e3dd1a3cd86b",
+        "namespace": "rich_leaf_context",
+        "published": false,
+        "quarantine_excluded_count": 17,
+        "record_count": 1595,
+        "source_pack_version": "v3.1.1_frozen_v11_quarantine_annotated",
+        "status": "release_candidate"
+      },
+      "bundle_records": 1595,
+      "bundle_manifest_keys": [
+        "canonical_truth_written",
+        "content_hash",
+        "llm_may_decide_correctness",
+        "namespace",
+        "official_score_allowed",
+        "published",
+        "quarantine_excluded_count",
+        "record_count",
+        "rollback_pointer",
+        "schema",
+        "signature",
+        "source_pack_schema",
+        "source_pack_unit_count",
+        "source_pack_version",
+        "status",
+        "tier"
+      ]
+    },
+    "rich_leaf_v32_scoring_points": {
+      "path": "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+      "schema": "luban_rich_leaf_runtime_token_pack.v2.3",
+      "version": "v3.2_scoring_points_enriched",
+      "status": "candidate_ready_for_shadow_ab_full_accounted",
+      "summary": {
+        "evidence_leaf_count": 1612,
+        "lane_counts": {
+          "lecture_page": 4,
+          "lecture_unit_carryover": 2,
+          "textbook": 1606
+        },
+        "production_write_count": 0,
+        "unit_count": 1612,
+        "unresolved_count": 0
+      },
+      "scoring_points_summary": {
+        "m35_attachments_total": 205,
+        "m35_points_attached": 66,
+        "points_by_source": {
+          "chunk_assessment": 1567,
+          "knowledge_card": 3933,
+          "m35_artifact": 205
+        },
+        "points_total": 5705,
+        "units_total": 1612,
+        "units_with_scoring_points": 1606,
+        "units_without_scoring_points": 6
+      },
+      "runtime_token_pack_units": 1612
+    },
+    "llm_deep_compile_runner": {
+      "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_llm_deep_compile_runner_20260612/llm_deep_compile_runner_deepseek_full313_merged_candidates.json",
+      "schema": "luban_rich_leaf_llm_deep_compile_merged_candidates.v1",
+      "verdict": "PASS_LLM_DEEP_COMPILE_SHADOW_CANDIDATES",
+      "execution_mode": "merged_shadow_candidates",
+      "quality_claim_allowed": false,
+      "summary": {
+        "candidate_count": 313,
+        "completion_tokens": 212543,
+        "error_count": 0,
+        "planned_work_order_count": 313,
+        "production_write_count": 0,
+        "prompt_tokens": 504035,
+        "provider_call_count": 341,
+        "runtime_install_count": 0,
+        "success_rate": 1.0,
+        "unique_candidate_work_order_count": 313
+      },
+      "candidate_count": 313,
+      "not_exercised": [
+        "semantic_review",
+        "evidence_span_auditor",
+        "prosecutor",
+        "defense",
+        "arbiter",
+        "bucket_taxonomist",
+        "runtime_default_install",
+        "canonical_truth_write",
+        "production_db_write",
+        "release_truth_claim"
+      ]
+    },
+    "per_question_grading_object": {
+      "path": "artifacts/luban_grading_artifacts/per_question_grading_object_full_compile_20260614",
+      "summary": {
+        "schema": "luban_per_question_full_compile.v1",
+        "review_only": true,
+        "total_case_study": 218,
+        "compiled_ok": 179,
+        "quarantined": 39,
+        "clean_rate": 0.8211,
+        "quarantine_by_reason": {
+          "granularity_collapse": 1,
+          "analysis_as_answer": 9,
+          "ai_placeholder_answer": 17,
+          "null_or_zero_score": 12
+        },
+        "quarantine_by_year": {
+          "2017": 2,
+          "2018": 8,
+          "2019": 5,
+          "2020": 8,
+          "2021": 5,
+          "2022": 3,
+          "2023": 4,
+          "2024": 1,
+          "2025": 3
+        },
+        "coverage_vs_prod_bank": {
+          "prod_bank_qids": 174,
+          "compiled_objects": 179,
+          "compiled_distinct_year_unique_qids": 179,
+          "prod_covered_by_new": 154,
+          "prod_dropped_by_new": [
+            "9001",
+            "9534",
+            "EXAM_1A432000_P0014_02::E2",
+            "EXAM_1A432000_P0017_05::E0",
+            "EXAM_1A432000_P0019_01::E0",
+            "EXAM_1A432000_P0020_02::E0",
+            "EXAM_1A432000_P0023_01::E0",
+            "EXAM_1A433000_P0009_01::E0",
+            "EXAM_1A433000_P0010_02::E0",
+            "EXAM_1A433000_P0014_08::E0",
+            "EXAM_1A433000_P0018_02::E4",
+            "EXAM_1A433000_P0019_01::E0",
+            "EXAM_1A434000_P0013_01::E0",
+            "EXAM_1A434000_P0020_02::E0",
+            "EXAM_1A436000_P0015_01::E0",
+            "EXAM_1A436000_P0018_02::E0",
+            "EXAM_1A436000_P0023_01::E0",
+            "EXAM_1A436000_P0024_02::E0",
+            "EXAM_1A436000_P0025_03::E0",
+            "EXAM_1A436000_P0026_04::E0"
+          ],
+          "prod_dropped_count": 20,
+          "new_not_in_prod_count": 1
+        },
+        "point_count_stats": {
+          "total_scoring_points": 482,
+          "mean_points_per_q": 2.69
+        }
+      },
+      "object_files": 179,
+      "derived_scoring_points": 482,
+      "derived_score_null_points": 482,
+      "official_score_allowed_distribution": {
+        "False": 179
+      },
+      "per_point_score_authority_distribution": {
+        "pending_calibration_not_official": 179
+      }
+    },
+    "runtime_supply": {
+      "path": "deeptutor/services/construction_grading/runtime_supply",
+      "canonical_pointer_count": 10,
+      "published_distribution": {
+        "False": 6,
+        "True": 4
+      },
+      "canonical_pointers": [
+        {
+          "bundle": "v_canonical_unified_knowledge",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge",
+          "namespace": "canonical_unified_knowledge",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_case_rubric_scored",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored",
+          "namespace": "case_rubric_scored",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_case_rubric_scored_pgo",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo",
+          "namespace": "case_rubric_scored_pgo",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_kb_v5_chunks_full",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full",
+          "namespace": "kb_v5_chunks_full",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "chunk_count": 3596
+          }
+        },
+        {
+          "bundle": "v_lecture_teaching_cards",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards",
+          "namespace": "lecture_teaching_cards",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "card_count": 540
+          }
+        },
+        {
+          "bundle": "v_rich_leaf_context",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context",
+          "namespace": "rich_leaf_context",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {
+            "record_count": 1595,
+            "quarantine_excluded_count": 17
+          }
+        },
+        {
+          "bundle": "v_slice_case_rubric",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_slice_case_rubric",
+          "namespace": "case_rubric_full",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "signed_point_count": 18
+          }
+        },
+        {
+          "bundle": "v_standard_clauses",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses",
+          "namespace": "standard_clauses",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {}
+        },
+        {
+          "bundle": "v_textbook_knowledge_full",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full",
+          "namespace": "textbook_knowledge_full",
+          "status": "release_candidate",
+          "published": false,
+          "selected_counts": {
+            "signed_point_count": 1303
+          }
+        },
+        {
+          "bundle": "v_topic_waterproof",
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_topic_waterproof",
+          "namespace": "topic_waterproof",
+          "status": "release_candidate",
+          "published": true,
+          "selected_counts": {
+            "node_count": 44
+          }
+        }
+      ]
+    },
+    "data_inventory_extractions": {
+      "path": "docs/原始数据/数据盘点/extractions",
+      "files": 10,
+      "jsonl_counts": {
+        "2021_jianzhu_case_rubric.jsonl": 86,
+        "2022bukao_jianzhu_case_rubric.jsonl": 111,
+        "2023_jianzhu_case_rubric.jsonl": 90,
+        "2024_jianzhu_case_rubric.jsonl": 68,
+        "2025_jianzhu_case_rubric.jsonl": 81,
+        "ALL_jianzhu_case_rubric.jsonl": 432,
+        "per_question_score_backfill.jsonl": 180
+      },
+      "json_files": [
+        "2026-06-18-compiled-assets-current-profile.json",
+        "2026-06-18-raw-data-current-profile.json",
+        "case_rubric_canonical.json"
+      ]
+    }
+  },
+  "interpretation_guardrail": {
+    "release_truth": "runtime_supply canonical pointers and production gates control runtime truth; artifact workbench outputs are shadow/workbench unless published and wired.",
+    "official_scoring_authority": "PGO/rubric candidates remain pending when per-point scores are null or authority is pending_calibration_not_official."
+  }
+}

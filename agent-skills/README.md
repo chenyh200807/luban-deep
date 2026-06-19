@@ -14,10 +14,16 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   roadmap, PRD, architecture, and capability-status work under `docs/plan/`.
 - `deeptutor-source-grounded-change`: source-driven workflow for framework,
   library, API, or external-reference changes where stale assumptions are risky.
+- `deeptutor-storm-source-inspection`: STORM/Co-STORM-like multi-perspective
+  source inspection for knowledge compilation, OKF-like pilots, ADRs, and
+  research synthesis; outputs stay candidate/review-only.
 - `deeptutor-incremental-implementation`: thin vertical-slice implementation
   workflow for multi-file DeepTutor changes.
 - `deeptutor-test-verification-gate`: test-first and evidence-first workflow
   for behavior changes, bug fixes, and doc/skill validations.
+- `deeptutor-ci-runtime-fix-gate`: CI/runtime failure workflow for GitHub
+  Actions, route smoke, contract guard, detect-secrets, and same-SHA deploy
+  gate failures.
 - `deeptutor-api-contract-design`: contract-first API and control-plane
   boundary workflow for REST, WebSocket, trace, session, and schema changes.
 - `deeptutor-schema-authority-gate`: schema and registry authority workflow for
@@ -107,12 +113,14 @@ verification evidence for that stronger claim.
 The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 
 - Define and plan: `deeptutor-spec-plan-gate`
-- Ground in sources: `deeptutor-source-grounded-change`
+- Ground in sources: `deeptutor-source-grounded-change`,
+  `deeptutor-storm-source-inspection`
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
   `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
+  `deeptutor-ci-runtime-fix-gate`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
   `luban-rich-leaf-compiler`
 - Debug and repair: `deeptutor-authority-debugging`,
