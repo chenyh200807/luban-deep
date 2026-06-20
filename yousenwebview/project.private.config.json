@@ -22,11 +22,12 @@
   },
   "condition": {
     "miniprogram": {
+      "current": 0,
       "list": [
         {
           "name": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
           "pathName": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
-          "query": "",
+          "query": "card=c02",
           "scene": null,
           "launchMode": "default",
           "partialCompile": {

@@ -2,10 +2,11 @@
 // 用途: 在 DevTools / 内测里手动验证 F16/N01 图解卡静态 HTML 的 webview 表现。
 // 边界: 只渲染 web-view; 不接业务接口、不写数据库、不写 learning evidence、
 //       不挂正式导航、不接评分/learner state。
-// 默认直接加载本地服务的 F16; 看 N01 加 query ?card=n01; 也支持 ?url=<完整地址>。
-// 真机预览时 127.0.0.1 是手机自己; 可用 ?card=n01&host=192.168.x.x:8799
-// 或 ?base=http%3A%2F%2F192.168.x.x%3A8799 覆盖本地静态服务地址。
-var BASE = "http://127.0.0.1:8799";
+// 默认直接加载当前 Luban Animation IR smoke 卡 C02; 也支持 ?url=<完整地址>。
+// 真机 web-view 不接受 127.0.0.1 / 192.168.x.x 这类本地 HTTP 地址。
+// 默认走 HTTPS 预览目录; DevTools 模拟器调试时仍可用 ?base=... 覆盖。
+var BASE = "https://test2.yousenjiaoyu.com/luban-preview/c02";
+var DEFAULT_CARD = "c02";
 
 function decodeMaybe(value) {
   try {
@@ -27,6 +28,7 @@ function baseFromQuery(query) {
 function cards(base) {
   return {
     f16: base + "/F16_qigu.rendered.html",
+    c02: base + "/C02_progress_payment.animation_ir_preview.html",
     n01: base + "/N01_network_video_first.rendered.html",
     n01_old: base + "/N01_network_keypath.rendered.html",
     c01: base + "/C01_construction_joint_contrast.schema_draft.rendered.html",
@@ -36,14 +38,14 @@ function cards(base) {
   };
 }
 Page({
-  data: { url: cards(BASE).f16 },
+  data: { url: cards(BASE)[DEFAULT_CARD] },
   onLoad: function (query) {
     if (query && query.url) {
       this.setData({ url: decodeMaybe(query.url) });
       return;
     }
     var CARDS = cards(baseFromQuery(query));
-    var card = (query && query.card) || "f16";
-    this.setData({ url: CARDS[card] || CARDS.f16 });
+    var card = (query && query.card) || DEFAULT_CARD;
+    this.setData({ url: CARDS[card] || CARDS[DEFAULT_CARD] });
   },
 });
