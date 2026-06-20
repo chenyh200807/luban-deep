@@ -1,0 +1,248 @@
+{
+  "bare_answer_empty": {
+    "_capability": "chat",
+    "active_object": null,
+    "business_gate_result": "blocked_unanchored_answer_submission",
+    "decision_source": "deterministic",
+    "exact_question_blocked_reason": "unanchored_answer_submission",
+    "followup_action_intent": null,
+    "needs_clarification": true,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "missing_active_question",
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_unanchored_answer_submission",
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": null
+  },
+  "bare_answer_multi": {
+    "_capability": "chat",
+    "active_object": {
+      "object_id": "qset",
+      "object_type": "question_set"
+    },
+    "business_gate_result": "blocked_unanchored_answer_submission",
+    "decision_source": "deterministic",
+    "exact_question_blocked_reason": "unanchored_answer_submission",
+    "followup_action_intent": null,
+    "needs_clarification": true,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "missing_active_question",
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_unanchored_answer_submission",
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": null
+  },
+  "case_answer_empty": {
+    "_capability": "chat",
+    "active_object": null,
+    "business_gate_result": "llm_unavailable",
+    "decision_source": "llm",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "llm",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_general_chat",
+      "relation_to_active_object": "out_of_scope_chat"
+    }
+  },
+  "full_mcq_empty": {
+    "_capability": "chat",
+    "active_object": null,
+    "business_gate_result": "passed",
+    "decision_source": "deterministic",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": "mcq_grading",
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [
+      "construction-exam-tutor",
+      "construction-mcq-grading"
+    ],
+    "required_anchor_status": "satisfied",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_general_chat",
+      "relation_to_active_object": "out_of_scope_chat"
+    }
+  },
+  "full_mcq_reveal_empty": {
+    "_capability": "chat",
+    "active_object": null,
+    "business_gate_result": "no_candidate",
+    "decision_source": "none",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "none",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_general_chat",
+      "relation_to_active_object": "out_of_scope_chat"
+    }
+  },
+  "lowinfo_exam_empty": {
+    "_capability": "chat",
+    "active_object": {
+      "object_id": "exam-query:2025防水真题答案直接发我",
+      "object_type": "question_lifecycle_clarification"
+    },
+    "business_gate_result": "blocked_low_information_exam_query",
+    "decision_source": "deterministic",
+    "exact_question_blocked_reason": "low_information_exam_query",
+    "followup_action_intent": null,
+    "needs_clarification": true,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "missing_question_anchor",
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "blocked_low_information_exam_query",
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": null
+  },
+  "numbered_batch_multi": {
+    "_capability": "deep_question",
+    "active_object": {
+      "object_id": "question_set:q1",
+      "object_type": "question_set"
+    },
+    "business_gate_result": "passed",
+    "decision_source": "deterministic",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": "mcq_grading",
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [
+      "construction-exam-tutor",
+      "construction-mcq-grading"
+    ],
+    "required_anchor_status": "satisfied",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "deep_question",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "append_answer_slots"
+      ],
+      "next_action": "route_to_grading",
+      "relation_to_active_object": "answer_active_object"
+    }
+  },
+  "practice_req_empty": {
+    "_capability": "deep_question",
+    "active_object": null,
+    "business_gate_result": "passed",
+    "decision_source": "deterministic",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": "practice_generation",
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [
+      "construction-exam-tutor",
+      "construction-question-supply"
+    ],
+    "required_anchor_status": "satisfied",
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "deterministic_practice_generation",
+    "semantic_router_selected_capability": "deep_question",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": null
+  },
+  "refer_past_q_multi": {
+    "_capability": "chat",
+    "active_object": {
+      "object_id": "qset",
+      "object_type": "question_set"
+    },
+    "business_gate_result": "no_candidate",
+    "decision_source": "none",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "none",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_general_chat",
+      "relation_to_active_object": "temporary_detour"
+    }
+  },
+  "smalltalk_empty": {
+    "_capability": "chat",
+    "active_object": null,
+    "business_gate_result": "no_candidate",
+    "decision_source": "none",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": null,
+    "question_lifecycle_scene_source": "none",
+    "question_lifecycle_skill_names": [],
+    "required_anchor_status": "",
+    "semantic_router_mode": "primary",
+    "semantic_router_mode_reason": "semantic_router_primary",
+    "semantic_router_scope_match": true,
+    "semantic_router_selected_capability": "chat",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_general_chat",
+      "relation_to_active_object": "out_of_scope_chat"
+    }
+  }
+}

@@ -49,3 +49,36 @@ shared failure shape：`unconsumed island`（共享历史 authority 已注入、
 ## 回滚
 
 单 commit 粒度；无 schema/DB 变更，无 env flag。回退 orchestrator 路由即恢复旧的结构化解析 + 安全兜底。
+
+---
+
+## 真闭包迁移设计(task #12,2026-06-21 双专家定稿)
+
+### 诊断:单一权威已存在、被三个 producer 旁路
+`semantic_router.resolve_question_semantic_routing`(semantic_router.py:594,产 `turn_semantic_decision`)**已经**消费完整输入(message + active_object + suspended_object_stack + question_followup_context + history),已owns submission/followup/practice/ambiguity/stack-resume 全部逻辑——**无需新建任何权威**。债在于它被旁路:
+- **Producer 1 = turn_runtime**(最先,turn 入口):`_build_turn_semantic_decision`(turn_runtime.py:1020,调用:4836)自建第二套 decision;R1 `_resolve_question_followup_context_and_action`(:1417)+ R3-R6 各自 `resolve_submission_attempt`。
+- **Producer 2 = question_lifecycle_skills**(第二,orchestrator 内):`derive_question_lifecycle_scene`(:934,调 resolve_submission_attempt:1004 + looks_like_question_followup:1024)再判一遍 relation 决定 scene 路由叉。
+- **Producer 3 = semantic_router**(第三):本该唯一的 C0。
+
+### 保留 vs 收口(关键区分)
+- **保留独立(genuine message-shape recognizers,只吃 message)**:`looks_like_free_text_mcq_question_surface`/`_mcq_grading`/`full_case_answer_submission`/`free_text_case_grading`/`value_only_mcq_option_surface`/`free_text_mcq_answer_request` + deep_question 自带题面解析。它们是 C0 **消费**的输入,不是重复决策。task#12 step1(PR #156)已把其中的 MCQ 正则原语收口到 `mcq_surface_patterns.py`。
+- **收口(relation/submission 判定)**:turn_runtime R1-R7、lifecycle R8-R11、orchestrator R12-R17、deep_question R18-R19 → 全部降为"喂证据 + 读 C0 结果"。
+- **误标不可迁(baseline 里但无路由作用的内容/风格分类器)**:`_looks_like_empty_retrieval_answer`/`_looks_like_diagram_answer`/`_looks_like_question_stem_label`/`_looks_like_process_only_answer`/`_looks_like_session_followup`/`_looks_like_structured_submission_followup` + deep_question 判分后选项措辞闸(option_mapping/scoring/wrong_cause/missing_selection)。**永久 allowlist,不迁。**
+
+### ordering 难题的解(推荐方案 B)
+不让 lifecycle 读 metadata(可被忽略),也不留两个 decider。**把 `turn_semantic_decision` 在 `_select_capability` 入口算一次,作为参数传入 `resolve_question_lifecycle_scene_decision`**;lifecycle 用纯表 `(next_action,relation,target_object_type)→scene` 映射,保留它的 business gating(scene→skill stack、clarification 政策),但**停止再判 relation**(删 R8 的 resolve_submission_attempt/looks_like_question_followup;R9/R10 由 C0 的 ambiguity gate 投影,直接删)。decision 作参数 → 结构上无法旁路。
+
+### 安全增量顺序(每步独立 PR + harness golden 逐项 diff + live eval + 退 baseline 行)
+0. **characterization harness**(本 PR):golden 基线,每步必须保持逐项不变。
+1. ✅ 表面识别原语单一源(PR #156)。
+2. deep_question 删 `_default_turn_semantic_decision`(:5002)伪造回退 → 只读、缺则 fail loud。
+3. orchestrator scope/legacy 闸(R12-R16)改读 decision;用既有 shadow 基建做 A/B parity。
+4. **lifecycle 变 decision 的纯投影**(R8-R11)——解开 ordering;高危,scene 分布 diff 验证。
+5. turn_runtime 停产第二套 decision(R1-R7)——最高危,最后做,全 WS readback gate + 生产 shadow。
+6. CI 闸 fail-on-new → fail-on-any(baseline 清空到只剩 genuine recognizers + 内容分类器 allowlist)。
+
+### 假收口陷阱(专家明列,务必避免)
+新建 `TurnRelationResolver` 类(=第四套)/ lifecycle 经 metadata 读(可忽略,应传参)/ 留 `_default_turn_semantic_decision` 当 fallback(=第二权威,应 fail loud)/ 把 C0 的 LLM interpreter 降级成正则让 lifecycle 先跑(=语义降级,契约禁)/ 迁移内容分类器(=制造耦合)/ 把 CI 静态闸当闭包(真闭包是 runtime fail-closed:每个 consumer 缺 `turn_semantic_decision` 即抛错)。
+
+### harness 落点
+`tests/runtime/characterization/`(snapshot.py 直接调 `_select_capability` 快照决策键;conftest.py 双 LLM mock 靶点 + 调用计数;routing_matrix.py 起步 10 行 tier A/C;golden/routing_decisions.json)。Tier-A 行额外断言**不触 LLM**(守 §67/§72 确定性不变量)。局限:只保真矩阵内行;Tier C 只证"给定该 mock 输出路由不变",LLM 实际输出仍需 N 次 live eval。
