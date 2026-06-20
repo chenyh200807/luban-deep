@@ -100,5 +100,6 @@
   "sitemapLocation": "sitemap.json",
   "darkmode": true,
   "lazyCodeLoading": "requiredComponents",
-  "__usePrivacyCheck__": true
+  "__usePrivacyCheck__": true,
+  "requiredPrivateInfos": ["phoneNumber"]
 }
