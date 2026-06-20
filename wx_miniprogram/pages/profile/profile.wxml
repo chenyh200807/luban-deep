@@ -178,10 +178,10 @@
       <view class="links-card glass-card">
         <block
           wx:for="{{linkItems}}"
-          wx:key="id"
         >
           <view
             class="link-row"
+            wx:key="id"
             bindtap="openLink"
             data-id="{{item.id}}"
           >

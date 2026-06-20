@@ -4,8 +4,7 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 
-// [W5-3] Debounce timer for settings save
-var _saveTimer = null;
+// [W5-3] Debounce timer for settings save — moved to instance level (this._saveTimer)
 var SAVE_DEBOUNCE_MS = 500;
 var BADGE_DESC_BY_ID = {
   1: "完成首次练习或摸底测试",
@@ -29,14 +28,21 @@ function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
       icon: badge.icon,
       name: badge.name,
       desc: badge.desc || BADGE_DESC_BY_ID[id] || "完成对应学习目标后自动点亮",
-      earned: hasRemote && typeof badge.earned === "boolean" ? badge.earned : earned.has(id),
+      earned:
+        hasRemote && typeof badge.earned === "boolean"
+          ? badge.earned
+          : earned.has(id),
     };
   });
 }
 
 function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
-  var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
-  var balance = Number(data.balance || data.points || data.display_balance || 0);
+  var data = api.unwrapResponse
+    ? api.unwrapResponse(raw) || raw || {}
+    : raw || {};
+  var balance = Number(
+    data.balance || data.points || data.display_balance || 0,
+  );
   if (!isFinite(balance)) balance = 0;
   var percent = _walletPercent(balance, ledgerRaw);
   var percentLabel = "剩余 " + _formatPercent(percent);
@@ -63,7 +69,9 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
 }
 
 function _walletPercent(balance, ledgerRaw) {
-  var data = api.unwrapResponse ? api.unwrapResponse(ledgerRaw) : ledgerRaw || {};
+  var data = api.unwrapResponse
+    ? api.unwrapResponse(ledgerRaw)
+    : ledgerRaw || {};
   var entries = Array.isArray(data.entries) ? data.entries : [];
   var debits = 0;
   var positive = 0;
@@ -72,13 +80,19 @@ function _walletPercent(balance, ledgerRaw) {
     if (delta > 0) positive += delta;
     if (delta < 0) debits += Math.abs(delta);
   });
-  var denominator = Math.max(1, Math.round(positive), Math.round(balance + debits), Math.round(balance));
+  var denominator = Math.max(
+    1,
+    Math.round(positive),
+    Math.round(balance + debits),
+    Math.round(balance),
+  );
   return Math.max(0, Math.min(100, (Number(balance || 0) / denominator) * 100));
 }
 
 function _formatPercent(value) {
   var rounded = Math.round(Number(value || 0) * 10) / 10;
-  if (Math.abs(rounded - Math.round(rounded)) < 0.001) return String(Math.round(rounded)) + "%";
+  if (Math.abs(rounded - Math.round(rounded)) < 0.001)
+    return String(Math.round(rounded)) + "%";
   return rounded.toFixed(1) + "%";
 }
 
@@ -115,14 +129,62 @@ Page({
     reviewReminder: false,
 
     badges: [
-      { id: 1, icon: "🏆", name: "首战告捷", desc: "完成首次练习或摸底测试", earned: false },
-      { id: 2, icon: "🎯", name: "连胜达人", desc: "连续多题答对，保持稳定正确率", earned: false },
-      { id: 3, icon: "📚", name: "博览群书", desc: "覆盖多个章节并形成学习记录", earned: false },
-      { id: 4, icon: "🔥", name: "坚持之星", desc: "连续学习多天，形成复习节奏", earned: false },
-      { id: 5, icon: "💡", name: "解题高手", desc: "完成高质量解析或错题复盘", earned: false },
-      { id: 6, icon: "🌟", name: "满分王者", desc: "在阶段测评中达到优秀表现", earned: false },
-      { id: 7, icon: "⚡", name: "速战速决", desc: "在限定时间内完成练习任务", earned: false },
-      { id: 8, icon: "🎖️", name: "精英学员", desc: "持续完成学习目标并保持高掌握度", earned: false },
+      {
+        id: 1,
+        icon: "🏆",
+        name: "首战告捷",
+        desc: "完成首次练习或摸底测试",
+        earned: false,
+      },
+      {
+        id: 2,
+        icon: "🎯",
+        name: "连胜达人",
+        desc: "连续多题答对，保持稳定正确率",
+        earned: false,
+      },
+      {
+        id: 3,
+        icon: "📚",
+        name: "博览群书",
+        desc: "覆盖多个章节并形成学习记录",
+        earned: false,
+      },
+      {
+        id: 4,
+        icon: "🔥",
+        name: "坚持之星",
+        desc: "连续学习多天，形成复习节奏",
+        earned: false,
+      },
+      {
+        id: 5,
+        icon: "💡",
+        name: "解题高手",
+        desc: "完成高质量解析或错题复盘",
+        earned: false,
+      },
+      {
+        id: 6,
+        icon: "🌟",
+        name: "满分王者",
+        desc: "在阶段测评中达到优秀表现",
+        earned: false,
+      },
+      {
+        id: 7,
+        icon: "⚡",
+        name: "速战速决",
+        desc: "在限定时间内完成练习任务",
+        earned: false,
+      },
+      {
+        id: 8,
+        icon: "🎖️",
+        name: "精英学员",
+        desc: "持续完成学习目标并保持高掌握度",
+        earned: false,
+      },
     ],
 
     // 隐藏了"学习计划"（后期开发）
@@ -174,7 +236,11 @@ Page({
         self.setData(_normalizeWalletUsage(results[0], results[1], results[2]));
       })
       .catch(function () {
-        self.setData({ usageLoading: false, usageRows: [], usageDetailShow: false });
+        self.setData({
+          usageLoading: false,
+          usageRows: [],
+          usageDetailShow: false,
+        });
       });
   },
 
@@ -222,9 +288,15 @@ Page({
     api
       .getBadges()
       .then(function (raw) {
-        var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
+        var data = api.unwrapResponse
+          ? api.unwrapResponse(raw) || raw || {}
+          : raw || {};
         self.setData({
-          badges: _normalizeBadges(data.badges, fallbackEarnedIds, self.data.badges),
+          badges: _normalizeBadges(
+            data.badges,
+            fallbackEarnedIds,
+            self.data.badges,
+          ),
         });
       })
       .catch(function () {
@@ -288,21 +360,21 @@ Page({
           return;
         }
         var tempPath = file.tempFilePath;
-        // 保存到本地缓存
+        // 保存到本地缓存（仅用于本地展示，不上传服务端路径）
         wx.getFileSystemManager().saveFile({
           tempFilePath: tempPath,
           success: function (saveRes) {
             var savedPath = saveRes.savedFilePath;
             wx.setStorageSync("local_avatar_path", savedPath);
             self.setData({ avatarUrl: savedPath });
-            self._saveSettings({ avatar_url: savedPath });
+            // 本地路径无法被服务端访问，不写入 avatar_url
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
           fail: function () {
-            // saveFile 失败时直接用临时路径
+            // saveFile 失败时直接用临时路径（仅本次会话有效）
             wx.setStorageSync("local_avatar_path", tempPath);
             self.setData({ avatarUrl: tempPath });
-            self._saveSettings({ avatar_url: tempPath });
+            // 本地临时路径无法被服务端访问，不写入 avatar_url
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
         });
@@ -348,11 +420,11 @@ Page({
     // Merge new patch into pending patch
     this._pendingPatch = Object.assign(this._pendingPatch || {}, patch);
     var self = this;
-    if (_saveTimer) clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(function () {
+    if (this._saveTimer) clearTimeout(this._saveTimer);
+    this._saveTimer = setTimeout(function () {
       var merged = self._pendingPatch;
       self._pendingPatch = {};
-      _saveTimer = null;
+      self._saveTimer = null;
       self._saveSettings(merged);
     }, SAVE_DEBOUNCE_MS);
   },
@@ -391,6 +463,10 @@ Page({
     } else if (id === "terms") {
       wx.navigateTo({ url: "/pages/legal/terms" });
     }
+  },
+
+  onUnload: function () {
+    clearTimeout(this._saveTimer);
   },
 
   logout: function () {
