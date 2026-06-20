@@ -35,8 +35,11 @@ always: false
 
 | 业务事实 | Authority | 本 Skill 的职责 |
 | --- | --- | --- |
-| 标准答案 | `grading_key.correct_answer`（active_object 隐藏答案）→ `questions_bank.correct_answer` | 判定用户答案是否命中 |
+| 标准答案的**值/内容** | `grading_key.correct_answer`（active_object 隐藏答案）→ `questions_bank.correct_answer` | 判定用户答案是否命中 |
+| 选项**字母↔值**的映射 | **学员当前题面**（active question / 用户粘贴题目）——唯一权威 | 把正确的值映射回学员题面对应字母；按学员题面字母比对用户作答 |
 | 题干与选项 | `questions_bank` / active question / 用户粘贴题目 | 保持题目锚点，解释选项 |
+
+> **题面字母对齐（硬约束）**：题库 / grounding 的 `correct_answer` 字母和选项顺序是**题库内部坐标**，常与学员当前看到的题面不一致（同一值“5%”题库是 D、学员题面可能是 A）。判分流程必须：①用 `correct_answer` 定正确的**值**；②回到**学员当前题面的 Options** 找出值匹配的字母作为对用户的“正确答案”；③按学员所选字母在**学员题面**里对应的值判对错。grounding 里的题库字母/编号只能取“值”，**绝不可直接当作对用户的答案字母输出**——直接搬题库字母会把答对的判成答错。
 | 知识依据 | 题库解析、RAG（`kb_chunks` / `standard_articles`）、provenance | 解释错因和回扣考点；开放世界裁决的唯一证据来源 |
 | 错因沉淀 | `LearnerStateService` | 输出可写回的 error signal |
 | 下一题建议 | `assessment.teaching_policy` + 题库检索 | 输出 focus concept 和最小训练动作 |
@@ -92,6 +95,7 @@ MCQ 判分内核（`construction_grading/mcq.py`）**不消费 case 编译采分
    - 资料利用细则见 `references/mcq-source-grounding.md`。
 
 4. **判定与计分**
+   - **先对齐题面字母**：标准答案先取“正确的值”，再回到学员当前题面 Options 找出值匹配的字母（见上“题面字母对齐”硬约束）；不要直接把题库 `correct_answer` 字母当作对用户的答案。
    - 有标准答案：先给结果（正确 / 错误 / 部分正确），多选必须区分漏选和错选。
    - 多选部分得分按题库评分规则或考试规则处理；规则不明时只给命中/漏选/错选，不编造精确分。
    - 标准答案缺失：开放世界裁决，输出口径“按教材依据裁决”，不冒充题库标准答案。
