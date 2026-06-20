@@ -254,12 +254,14 @@ Page({
     wx.showLoading({ title: "重新提交中" });
     api.retryPhotoAnswerSession(this.data.sessionId, { mode: "rerun" }).then(
       function () {
+        if (that._destroyed) return;
         wx.hideLoading();
         that.setData({ status: "processing", failText: "" });
         that._pollTries = 0;
         that._poll();
       },
       function (err) {
+        if (that._destroyed) return;
         wx.hideLoading();
         wx.showToast({
           title: (err && err.message) || "重试失败",
@@ -302,6 +304,7 @@ Page({
         ),
       })
       .then(function (res) {
+        if (that._destroyed) return;
         that.setData({ confirming: false });
         if (res.status === "needs_review_ack") {
           wx.showModal({
@@ -313,6 +316,7 @@ Page({
             confirmText: "确定提交",
             success: function (modal) {
               if (modal.confirm) {
+                if (that._destroyed) return;
                 that._doConfirm(true);
               }
             },
@@ -322,6 +326,7 @@ Page({
         that._onConfirmed(res);
       })
       .catch(function (err) {
+        if (that._destroyed) return;
         that.setData({ confirming: false });
         wx.showToast({
           title: (err && err.message) || "确认失败",
