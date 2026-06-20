@@ -38,6 +38,9 @@ from deeptutor.services.rag.exact_authority import (
     normalize_exact_authority_display_text,
     should_force_exact_authority,
 )
+from deeptutor.services.rag.historical_questions import (
+    project_grounding_text_to_query_surface,
+)
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
 from deeptutor.services.security.tutorbot_guardrails import (
     classify_tutorbot_user_input,
@@ -2483,6 +2486,12 @@ class AgentLoop:
         result_text = normalize_exact_authority_display_text(guarded_context.content)
         if not result_text:
             return initial_messages
+        # Project question-bank grounding onto the learner's pasted option surface so
+        # the grading LLM never reads a bank answer LETTER that conflicts with what the
+        # learner sees (value 5% is bank-D but learner-A; the model otherwise anchors on
+        # the bank letter and marks a correct answer wrong). Deterministic + fail-safe:
+        # unchanged when the learner pasted no options or values don't correspond.
+        result_text = project_grounding_text_to_query_surface(result_text, current_message)
 
         tool_trace_metadata: dict[str, Any] | None = None
         try:
