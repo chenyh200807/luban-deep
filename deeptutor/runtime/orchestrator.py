@@ -41,6 +41,7 @@ from deeptutor.services.question_lifecycle_skills import (
 )
 from deeptutor.services.semantic_router import (
     build_active_object_from_question_context,
+    is_unresolved_switch_followup,
     normalize_active_object,
     question_context_from_active_object,
     resolve_question_semantic_routing,
@@ -214,6 +215,23 @@ class ChatOrchestrator:
                 turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
                 semantic_route = turn_semantic_decision_route(turn_decision)
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                # Context-continuity invariant (contracts/turn.md §跨能力上下文连续性):
+                # an unresolved switch/back-reference (learner asked about an EARLIER
+                # object we can't resolve to a structured target) depends on prior
+                # context that lives in conversation_context_text. Route it to the
+                # context-continuous main LLM (TutorBot) to answer from history — never
+                # into deep_question's structured switch resolver, which fail-closes
+                # ("can't locate that question") = amnesia.
+                if is_unresolved_switch_followup(turn_decision):
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_unresolved_switch_to_context_continuity"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",
@@ -251,6 +269,19 @@ class ChatOrchestrator:
                 turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
                 semantic_route = turn_semantic_decision_route(turn_decision)
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                # Context-continuity invariant: unresolved switch/back-reference → the
+                # context-continuous main LLM (TutorBot, from conversation_context_text),
+                # never the deep_question structured switch resolver (fail-closed amnesia).
+                if is_unresolved_switch_followup(turn_decision):
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_unresolved_switch_to_context_continuity"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",
@@ -368,6 +399,16 @@ class ChatOrchestrator:
             context.metadata["semantic_router_shadow_decision"] = {}
             context.metadata["semantic_router_shadow_route"] = ""
             semantic_route = turn_semantic_decision_route(turn_decision)
+            # Context-continuity invariant: an unresolved switch/back-reference depends on
+            # prior context (conversation_context_text) → route to the context-continuous
+            # main LLM, never the deep_question structured switch resolver (fail-closed).
+            if is_unresolved_switch_followup(turn_decision):
+                cap_name = self._default_chat_capability(context)
+                context.metadata["semantic_router_mode_reason"] = (
+                    "unresolved_switch_to_context_continuity"
+                )
+                context.metadata["semantic_router_selected_capability"] = cap_name
+                return cap_name
             if semantic_route == "deep_question":
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
                 if next_action == "route_to_grading":

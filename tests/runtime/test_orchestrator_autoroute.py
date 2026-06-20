@@ -2726,3 +2726,64 @@ async def test_orchestrator_captures_routing_input_without_changing_route() -> N
     assert registry.captured[0] == "deep_question"
     # in-place capture of the exact routing message (closes the post-join breakpoint)
     assert context.metadata["semantic_router_captured_input"] == "考我一道流水施工的题"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_unresolved_switch_to_context_continuous_main_llm() -> None:
+    """Context-continuity invariant (contracts/turn.md §跨能力上下文连续性).
+
+    A back-reference to an EARLIER question that cannot be resolved to a structured
+    target (the unresolved-switch signature) must route to the context-continuous main
+    LLM (TutorBot, which carries conversation_context_text), NOT into deep_question's
+    structured switch resolver — which fail-closes ("can't locate that question") and
+    produces cross-capability amnesia. This is the architectural fix for the recurring
+    "switched capability, lost context" class.
+    """
+
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _unresolved_switch_decision(context, message):  # noqa: ANN001
+        decision = {
+            "relation_to_active_object": "switch_to_new_object",
+            "next_action": "route_to_followup_explainer",
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = _unresolved_switch_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-unresolved-switch",
+        user_message="刚才那道我选A的屋面坡度题，再帮我把考点讲透",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            # pre-stamped lifecycle scene so the resolver honors it without an LLM call
+            "question_lifecycle_scene": "question_review",
+            # an active multi-question set is present (practice-gen replaced the old one)
+            "question_followup_context": {
+                "items": [
+                    {"question_id": "q1", "question": "平屋面防水道数",
+                     "options": {"A": "1道", "B": "2道", "C": "3道", "D": "4道"},
+                     "correct_answer": "B", "question_type": "single_choice"},
+                    {"question_id": "q2", "question": "结构找坡坡度",
+                     "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+                     "correct_answer": "C", "question_type": "single_choice"},
+                ]
+            },
+        },
+        language="zh",
+    )
+
+    cap = await orchestrator._select_capability(context)
+
+    # routed to the context-continuous main LLM, NOT the fail-closed structured resolver
+    assert cap == "tutorbot"
+    assert cap != "deep_question"
+    assert (
+        context.metadata.get("semantic_router_mode_reason")
+        == "llm_unresolved_switch_to_context_continuity"
+        or "unresolved_switch_to_context_continuity"
+        in str(context.metadata.get("semantic_router_mode_reason"))
+    )
