@@ -380,3 +380,40 @@ async def test_coordinator_lightweight_topic_generation_extracts_reference_ancho
     assert "题库参考题目：屋面防水施工基本要求正确的有（　　）。" in templates[0].metadata["knowledge_context"]
     assert "A. 以排为主，以防为辅" in templates[0].metadata["knowledge_context"]
     assert "题库解析要点：A选项错误，屋面防水以防为主，以排为辅。" in templates[0].metadata["knowledge_context"]
+
+
+def test_lightweight_anchor_rejects_off_topic_rag_hit() -> None:
+    # Bug#1 主因 regression: an off-topic RAG hit (SMA topic → 垂直运输/井架 question)
+    # must NOT become the canonical generation anchor; fall back to the pure topic
+    # anchor so the generator stays on the user's 考点.
+    from deeptutor.agents.question.coordinator import AgentCoordinator
+
+    off_topic = AgentCoordinator._build_lightweight_rag_anchor_payload(
+        user_topic="再出一道SMA沥青混合料关键技术要求的选择题",
+        result={
+            "answer": "",
+            "exact_question": {
+                "stem": "下列哪一项属于垂直运输设备？",
+                "options": {"A": "手推车", "B": "井架"},
+                "correct_answer": "B",
+                "analysis": "井架属于垂直运输。",
+                "source_group": "exact_question",
+            },
+        },
+    )
+    assert "reference_question" not in off_topic  # rejected -> pure topic anchor (base)
+
+    on_topic = AgentCoordinator._build_lightweight_rag_anchor_payload(
+        user_topic="出一道法律基础的选择题",
+        result={
+            "answer": "",
+            "exact_question": {
+                "stem": "下列哪一项属于法律？",
+                "options": {"A": "法律", "B": "行政法规"},
+                "correct_answer": "A",
+                "analysis": "全国人大制定的是法律。",
+                "source_group": "exact_question",
+            },
+        },
+    )
+    assert on_topic.get("reference_question") == "下列哪一项属于法律？"  # kept
