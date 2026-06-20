@@ -513,3 +513,67 @@ async def test_supabase_search_raises_typed_error_on_primary_failure(
     assert err.query == "防水等级"
     assert err.stage == "pipeline.search"
     assert "primary plan exploded" in str(err)
+
+
+# Bug#6: question_exact_text keyword false-positive. A keyword search on a shared
+# common term ("混凝土") returned a totally unrelated bank MCQ and surfaced its
+# answer as authoritative. The deterministic stem-correspondence guard must reject
+# a text/keyword match whose stem the learner's query does not actually cover, while
+# still accepting genuine paraphrases/pastes. Calibrated: unrelated coverage ~0.08,
+# real paraphrase coverage >=0.4 (see /tmp calibration in the Bug#6 investigation).
+_FALSE_STEM = "地下工程的防水等级分为（  ），防水混凝土的适用环境温度不得高于（  ）。"
+
+
+def test_stem_correspondence_rejects_incidental_keyword_match() -> None:
+    from deeptutor.services.rag.pipelines.supabase_strategy import (
+        exact_question_stem_corresponds,
+    )
+
+    # the production false positive: chitchat sharing only "混凝土" with the stem
+    assert not exact_question_stem_corresponds(
+        original_query="我是二建零基础小白，钢筋和混凝土哪个硬啊？",
+        matched_stem=_FALSE_STEM,
+        question_type="single_choice",
+    )
+    # a comparison that shares no discriminative content at all
+    assert not exact_question_stem_corresponds(
+        original_query="水泥和钢筋哪个贵？",
+        matched_stem=_FALSE_STEM,
+        question_type="single_choice",
+    )
+
+
+def test_stem_correspondence_accepts_real_paraphrase_or_paste() -> None:
+    from deeptutor.services.rag.pipelines.supabase_strategy import (
+        exact_question_stem_corresponds,
+    )
+
+    assert exact_question_stem_corresponds(
+        original_query="防水混凝土的适用环境温度不得高于多少？",
+        matched_stem=_FALSE_STEM,
+        question_type="single_choice",
+    )
+    assert exact_question_stem_corresponds(
+        original_query="大体积混凝土里表温差控制多少？",
+        matched_stem="大体积混凝土施工里表温差不宜大于（  ）。",
+        question_type="single_choice",
+    )
+
+
+def test_stem_correspondence_skips_case_study_and_empty() -> None:
+    from deeptutor.services.rag.pipelines.supabase_strategy import (
+        exact_question_stem_corresponds,
+    )
+
+    # case_study matches use bundle coverage, not surface overlap — never gated here
+    assert exact_question_stem_corresponds(
+        original_query="背景资料：某项目……问题一：……",
+        matched_stem=_FALSE_STEM,
+        question_type="case_study",
+    )
+    # an empty matched stem cannot be an authoritative exact match
+    assert not exact_question_stem_corresponds(
+        original_query="防水混凝土温度",
+        matched_stem="",
+        question_type="single_choice",
+    )
