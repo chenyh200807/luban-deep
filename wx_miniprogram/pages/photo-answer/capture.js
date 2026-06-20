@@ -16,6 +16,7 @@ Page({
   },
 
   onLoad: function (options) {
+    this._mounted = true;
     var stem = "";
     try {
       stem = decodeURIComponent(options.stem || "");
@@ -29,6 +30,10 @@ Page({
     if (!this.data.questionId) {
       this.setData({ errorText: "缺少题号，请从题目页进入拍照作答" });
     }
+  },
+
+  onUnload: function () {
+    this._mounted = false;
   },
 
   addPhotos: function () {
@@ -45,6 +50,7 @@ Page({
       sizeType: ["compressed"],
       camera: "back",
       success: function (res) {
+        if (!that._mounted) return;
         var added = (res.tempFiles || []).map(function (f) {
           return {
             tempPath: f.tempFilePath,
@@ -93,6 +99,7 @@ Page({
 
     ensureSession
       .then(function (res) {
+        if (!that._mounted) return;
         that.sessionId = (res.session && res.session.id) || that.sessionId;
         if (!that.sessionId) {
           throw new Error("SESSION_CREATE_FAILED");
@@ -100,6 +107,7 @@ Page({
         var chain = Promise.resolve();
         that.data.pages.forEach(function (page, index) {
           chain = chain.then(function () {
+            if (!that._mounted) return null;
             if (page.status === "done") {
               return null;
             }
@@ -108,6 +116,7 @@ Page({
               .uploadPhotoAnswerPage(that.sessionId, index, page.tempPath)
               .then(
                 function (uploaded) {
+                  if (!that._mounted) return;
                   var issues =
                     (uploaded.quality && uploaded.quality.issues) || [];
                   that.setData({
@@ -128,6 +137,7 @@ Page({
                   }
                 },
                 function (err) {
+                  if (!that._mounted) return;
                   that.setData({ ["pages[" + index + "].status"]: "failed" });
                   throw err;
                 },
@@ -137,15 +147,18 @@ Page({
         return chain;
       })
       .then(function () {
+        if (!that._mounted) return;
         return api.submitPhotoAnswerSession(that.sessionId);
       })
       .then(function () {
+        if (!that._mounted) return;
         that.setData({ submitting: false });
         wx.navigateTo({
           url: "/pages/photo-answer/confirm?session_id=" + that.sessionId,
         });
       })
       .catch(function (err) {
+        if (!that._mounted) return;
         that.setData({
           submitting: false,
           errorText: (err && err.message) || "上传失败，请重试",

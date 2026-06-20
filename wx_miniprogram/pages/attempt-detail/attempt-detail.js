@@ -35,6 +35,7 @@ Page({
   },
 
   onLoad(options) {
+    this._unloaded = false;
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync
         ? wx.getSystemInfoSync()

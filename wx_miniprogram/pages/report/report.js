@@ -978,6 +978,7 @@ Page({
       ];
 
       const result = await Promise.all(tasks);
+      if (!this._mounted) return;
       const progress = api.unwrapResponse(result[0]) || {};
       const home = api.unwrapResponse(result[1]) || {};
       const assessment = api.unwrapResponse(result[2]) || {};
@@ -1070,6 +1071,7 @@ Page({
       var normalized = normalizeLearningBrainPayload(
         await api.getLearningBrainProjection(),
       );
+      if (!this._mounted) return;
       var isEmpty =
         normalized.truths.length === 0 &&
         normalized.evidence.length === 0 &&
@@ -1093,6 +1095,7 @@ Page({
         learningBrainEmpty: isEmpty,
       });
     } catch (e) {
+      if (!this._mounted) return;
       this.setData({
         learningBrainLoading: false,
         learningBrainError: true,
@@ -1106,12 +1109,14 @@ Page({
     try {
       var dims = [];
       var result = await api.getAssessmentProfile();
+      if (!this._mounted) return;
       var data = api.unwrapResponse(result) || {};
       dims = buildRadarDimensionsFromAssessment(data);
 
       if (!dims.length) {
         try {
           var radarResult = await api.getRadarData(RADAR_SELF_SUBJECT);
+          if (!this._mounted) return;
           var radarData = api.unwrapResponse(radarResult) || {};
           var radarDims = normalizeRadarDimensions(radarData);
           if (radarDims.length && hasPositiveRadarSignal(radarDims)) {
@@ -1121,6 +1126,7 @@ Page({
       }
 
       if (dims.length === 0) {
+        if (!this._mounted) return;
         this.setData({ radarLoading: false });
         return;
       }
@@ -1153,6 +1159,7 @@ Page({
         };
       });
 
+      if (!this._mounted) return;
       this.setData({
         radarDimensions: dims,
         strongCount: strong,
@@ -1169,6 +1176,7 @@ Page({
       }
     } catch (e) {
       // 雷达数据加载失败，通过 radarError 状态展示
+      if (!this._mounted) return;
       this.setData({ radarLoading: false, radarError: true });
     }
   },
@@ -1177,6 +1185,7 @@ Page({
   async _loadMastery() {
     try {
       var result = await api.getMasteryDashboard();
+      if (!this._mounted) return;
       var data = api.unwrapResponse(result) || {};
       var groups = (data.groups || []).map(function (group) {
         return {
@@ -1223,6 +1232,7 @@ Page({
 
       if (!groups.length && !hasOverall) {
         var fallback = await api.getAssessmentProfile();
+        if (!this._mounted) return;
         var fallbackData = api.unwrapResponse(fallback) || {};
         var cm = fallbackData.chapter_mastery || {};
         var observedChapters = [];
@@ -1272,6 +1282,7 @@ Page({
         reviewSummary = { total_due: 0, overdue_count: 0 };
       }
 
+      if (!this._mounted) return;
       this.setData({
         overallMastery: overall,
         masteryScoreClass: masteryScoreClass,
@@ -1287,6 +1298,7 @@ Page({
       });
     } catch (e) {
       // 掌握度数据加载失败，通过 masteryError 状态展示
+      if (!this._mounted) return;
       this.setData({ masteryLoading: false, masteryError: true });
     }
   },
@@ -1527,6 +1539,7 @@ Page({
     }
     try {
       await api.saveMistakeBookItem(mistakeBookPayloadFromCard(card));
+      if (!this._mounted) return;
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
         wx.showToast({
           title: "已收藏到云端错题集",
@@ -1538,6 +1551,7 @@ Page({
         this._loadLearningReport();
       }
     } catch (_err) {
+      if (!this._mounted) return;
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
         wx.showToast({
           title: "收藏失败，请稍后重试",
