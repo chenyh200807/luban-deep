@@ -22,14 +22,18 @@ attach_question_lifecycle_scene_to_context).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 import logging
-import re
-from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any
 
 from deeptutor.core.context import UnifiedContext
+from deeptutor.services.mcq_surface_patterns import (
+    OPTION_ANSWER_ASSERTION_RE,
+    OPTION_LIST_RE,
+)
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.agent.skills import SkillsLoader
@@ -883,15 +887,14 @@ _FREE_TEXT_MCQ_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "批改",
     "判断",
 )
-_FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
-    r"(?:我选|我选择|选|答案是|我的答案是)\s*[A-DＡ-Ｄ]",
-    re.IGNORECASE,
-)
-_FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
-    r"(?:^|[\s，。；;：:？！!?）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff])).{0,240}?"
-    r"(?:[\s，。；;：:])B(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))",
-    re.IGNORECASE | re.DOTALL,
-)
+# Single-sourced from the canonical MCQ-surface primitive module (task #12 step 1,
+# contracts/turn.md §硬约束 24). These names remain as module-local aliases so every
+# existing call site is unchanged (behavior byte-identical), but the regexes now have
+# ONE definition shared with the submission authority instead of a per-module copy.
+# The canonical module is dependency-free, so this module-level import does not break
+# question_lifecycle_skills' import-safety (contracts/capability.md §27).
+_FREE_TEXT_MCQ_OPTION_SELECTION_RE = OPTION_ANSWER_ASSERTION_RE
+_FREE_TEXT_MCQ_OPTION_LIST_RE = OPTION_LIST_RE
 _FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS: tuple[str, ...] = (
     "正确答案",
     "标准答案",
