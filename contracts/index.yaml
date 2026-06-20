@@ -342,6 +342,7 @@ domains:
     test_files:
       - tests/services/rag/test_rag_pipelines.py
       - tests/services/rag/test_rag_retrieval_timeout.py
+      - tests/services/rag/test_mcq_option_surface_grading.py
       - tests/services/rag/test_kbv5_pipeline.py
       - tests/services/rag/test_historical_question_resolver.py
       - tests/services/rag/test_index_versioning.py
