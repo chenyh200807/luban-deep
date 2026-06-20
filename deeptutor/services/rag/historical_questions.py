@@ -309,6 +309,55 @@ def _project_to_query_option_surface(candidate: dict[str, Any], query: str) -> d
     return projected
 
 
+_GROUNDING_OPTION_ANSWER_BLOCK = re.compile(
+    r"【选项】\s*(?P<opts>\[.*?\])\s*\n\s*【答案】\s*(?P<ans>[A-Ea-e]+)"
+)
+
+
+def project_grounding_text_to_query_surface(text: str, query: str) -> str:
+    """Rewrite question-bank grounding (``【选项】``/``【答案】``) onto the learner's
+    pasted option surface.
+
+    The grounding string the grading LLM reads carries the bank's letter↔value
+    surface (e.g. value 5% is option D, ``【答案】D``). When the learner pasted the
+    SAME question with a different option order (5% as A), the bank letter conflicts
+    with what the learner sees, and the model intermittently anchors on the bank
+    letter — marking a correct answer wrong. Projecting the grounding onto the
+    learner surface removes the conflicting surface from the prompt entirely, so the
+    decision is deterministic rather than left to the model.
+
+    Reuses the single projection authority ``_project_to_query_option_surface``.
+    Fail-safe: returns ``text`` unchanged when the learner pasted no options, when
+    option values do not correspond, or on any parse failure.
+    """
+
+    if not text or len(_extract_query_options(query)) < 2:
+        return text
+
+    def _rewrite(match: re.Match[str]) -> str:
+        try:
+            options = json.loads(match.group("opts"))
+        except Exception:
+            return match.group(0)
+        candidate = {
+            "options": options,
+            "correct_answer": match.group("ans").strip(),
+        }
+        projected = _project_to_query_option_surface(candidate, query)
+        if (projected.get("metadata") or {}).get("option_surface") != "query":
+            return match.group(0)
+        new_options = json.dumps(projected.get("options"), ensure_ascii=False)
+        new_answer = str(projected.get("correct_answer") or "").strip()
+        if not new_answer:
+            return match.group(0)
+        return f"【选项】{new_options}\n【答案】{new_answer}"
+
+    try:
+        return _GROUNDING_OPTION_ANSWER_BLOCK.sub(_rewrite, text)
+    except Exception:
+        return text
+
+
 def _unique_options_by_normalized_value(raw: Any) -> dict[str, dict[str, str]]:
     options = _normalize_options(raw)
     by_value: dict[str, dict[str, str]] = {}

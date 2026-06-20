@@ -979,3 +979,61 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     assert target["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
     assert target["case_grading_adjudication_group_count"] == 3
     assert target["case_grading_adjudication_point_count"] == 24
+
+
+# ── task#10: pasted-MCQ grounding projected onto the learner option surface ────
+# When a learner pastes an MCQ whose option order differs from the question bank,
+# the prefetch RAG grounding the grading LLM reads must be projected onto the
+# learner's surface, so the prompt never carries a conflicting bank answer letter.
+def test_prefetch_grounded_rag_projects_bank_grounding_to_learner_surface() -> None:
+    bank_grounding = (
+        "【题目】某工程屋面为压型金属板，坡度最小值是（）。\n"
+        '【选项】[{"key": "A", "value": "1%"}, {"key": "B", "value": "2%"}, '
+        '{"key": "C", "value": "3%"}, {"key": "D", "value": "5%"}]\n'
+        "【答案】D\n【解析】压型金属板：5%。"
+    )
+    learner = "某工程屋面为压型金属板，坡度最小值是（）。A.5% B.2% C.3% D.1%。我选A，判对错。"
+
+    class _RagTool:
+        def preview_args(self, args):
+            return args
+
+        def consume_trace_metadata(self):
+            return {}
+
+    class _Tools:
+        def get(self, name):
+            return _RagTool()
+
+        async def execute(self, name, args):
+            return bank_grounding
+
+    class _Ctx:
+        def add_assistant_message(self, messages, content, **_kwargs):
+            return [*messages, {"role": "assistant", "content": content}]
+
+        def add_tool_result(self, messages, tool_call_id, name, result):
+            return [*messages, {"role": "tool", "name": name, "content": result}]
+
+    loop = _loop()
+    loop.tools = _Tools()
+    loop.context = _Ctx()
+    loop._should_prefetch_grounded_rag = lambda **_k: True
+    loop._build_rag_preview_args = lambda *_a, **_k: {"query": learner}
+    loop._augment_rag_trace_metadata = lambda **_k: {}
+    loop._record_rag_trace_status = lambda *_a, **_k: None
+
+    initial = [{"role": "user", "content": learner}]
+    messages = asyncio.run(
+        loop._maybe_prefetch_grounded_rag(
+            initial_messages=initial,
+            current_message=learner,
+            runtime_metadata={},
+        )
+    )
+    tool_msgs = [m for m in messages if m.get("role") == "tool"]
+    assert tool_msgs, "grounding tool result must be injected"
+    grounding = tool_msgs[-1]["content"]
+    # bank answer D rewritten to the learner's A (whose value is the correct 5%).
+    assert "【答案】A" in grounding
+    assert "【答案】D" not in grounding
