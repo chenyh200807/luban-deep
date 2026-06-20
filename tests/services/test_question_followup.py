@@ -2168,3 +2168,33 @@ def test_redact_question_followup_context_for_public_drops_grading_authority_fie
     assert result["public_status"] == "ok"
     assert result["evidence_refs"] == [{"field": "public_status", "value": "ok"}]
     assert result["source_fields"] == ["public_status"]
+
+
+def _mcq_ctx() -> dict:
+    return {
+        "question_id": "q_active_mcq",
+        "question": "下列属于垂直运输设备的是？",
+        "question_type": "single_choice",
+        "options": {"A": "手推车", "B": "井架", "C": "搅拌车", "D": "布料机"},
+        "correct_answer": "B",
+    }
+
+
+def test_resolve_submission_attempt_generation_request_is_not_a_submission() -> None:
+    # Bug#1 次因 regression: with an active MCQ, a NEW-question / switch request must
+    # NOT be mined into an option submission (otherwise a fabricated "你选了A" grading
+    # turn fires on a turn where the learner never answered).
+    for msg in (
+        "再出一道SMA沥青混合料的选择题",
+        "换一道真正SMA沥青混合料的题",
+        "出一道深基坑支护的单选题",
+    ):
+        _target, submission = resolve_submission_attempt(msg, _mcq_ctx())
+        assert submission is None, f"generation/switch request wrongly graded: {msg!r}"
+
+
+def test_resolve_submission_attempt_mixed_answer_then_generation_keeps_submission() -> None:
+    # §5.1 red line: a turn that LEADS with an explicit answer still submits, even
+    # though it also asks for more questions.
+    _target, submission = resolve_submission_attempt("我选A，再出3题", _mcq_ctx())
+    assert submission is not None
