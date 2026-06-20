@@ -35,6 +35,7 @@
  P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→cdp_shot)
       animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
       independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开
+ P3.5 Review Packet:记录 machine gates、目标截图墙、judge/human issue、root-cause triage、修复层级和允许回炉字段
  P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
  过关? NO→ P5 结构化反馈喂回 → 回 P1 改 IR(只改表现,anchor 不动) / YES→ P6 学员门(KPI 正确率)
 ```
@@ -50,6 +51,7 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - 每次失败必须补一条 root-cause triage:
   `{symptom, shared_failure_shape, one_authority, broken_contract, fix_layer: IR|renderer|gate|skill|card-css, new_gate_or_antipattern}`。
   如果 `fix_layer=card-css`,必须说明为什么不是 stage shell / renderer / gate 的 shared failure;否则不准合入。
+- 每轮必须形成 `workflow-review-loop.md` 定义的 review packet。机器门绿但截图/人审发现问题时,先补 gate/anti-pattern 或标 `needs_human_review`,再修页面。
 - 审查必须前置一层:LLM judge/人审前,先跑 pre-render gate。常见失败如 unsupported primitive、visual node 没 backing、action target 不存在、Remotion wrapper 没导入当前 IR,都不应该进入视觉评审。
 
 ## 5. 门/judge/人审三分(anti-patterns 15 条)
@@ -68,8 +70,8 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - **MVP(先 1 卡,不 fan out)**:选已有母题卡(J01/④ 或 F16/①),手工跑完整 loop。**验收 = "改表现字段三轮内从红到绿"**(证闭环收敛),不追 60 张。
 - **扩到 60**:复用 learning stage 合同 + 6 `fixture/golden` → 每原型各 1 张样板验证 → fan out 60。
 - **量产 gated on retention**:先用 MVP 那张过 P6 学员留存,再铺量。
-- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、J01 `gate.sh` 已落地;
-  judge+修订 prompt 模板仍是后续补齐项。
+- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、J01 `gate.sh`、`workflow-review-loop.md` 已落地;
+  judge 自动执行器和批量截图墙仍是后续补齐项。
 
 ## 6.1 J01 确定性切片(2026-06-19)
 

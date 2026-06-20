@@ -10,7 +10,7 @@ description: Use when authoring, rendering, redesigning, or reviewing 鲁班 dia
 > **唯一目录**:`artifacts/luban_case_family_assets/diagram_microlesson/`。不新建第二套目录 / 第二个 schema_version / 第二份 skill。
 >
 > 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`F16_qigu.animation_ir.v0.json` + `render_animation_ir_preview.py` + `remotion_demo/src/AnimationIrRenderer.tsx` + `remotion_demo/src/F16AnimationIrPreview.tsx`(**OpenMAIC-style animation_ir.v0 新引擎样板:通用 renderer + F16 thin wrapper**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_animation_ir_contract.mjs`(**渲染前 IR contract 门:scene/action/visual_library/Remotion 同源**)、`validate_animation_ir_preview.mjs`(**渲染后 IR→HTML 等价/真实视口/遮挡/触控/闯关解锁门**)、`validate_challenge_theater_practice.mjs`(**独立闯关页真实视口/文字可读/图元标签适配门**)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first/IR 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
-> references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
+> references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `workflow-review-loop.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
 
 ## 这套 skill 解决什么
 
@@ -24,8 +24,9 @@ description: Use when authoring, rendering, redesigning, or reviewing 鲁班 dia
 
 1. `references/animation-production-director.md`:量产导演、旁白、运镜、练习、手机播放器、验收分层。
 2. `references/learning-stage-shell.md`:稳定学习舞台模板、slot 边界、横竖屏/theater 运行时验收。
-3. `references/video-first-pressure-tests.md`:跨 6+1 原型的压力场景,防止把 N01 网络图外形当万能模板。
-4. `references/anti-patterns.md`:N01/S01 已踩坑的反例、根因、修法和 gate。
+3. `references/workflow-review-loop.md`:机器门、截图墙、LLM/human 评审、root-cause triage 和回炉修订格式。
+4. `references/video-first-pressure-tests.md`:跨 6+1 原型的压力场景,防止把 N01 网络图外形当万能模板。
+5. `references/anti-patterns.md`:N01/S01 已踩坑的反例、根因、修法和 gate。
 
 `N01_network_video_first.rendered.html` 的价值是**导演方法**,不是网络图 UI。后续 F16/J01/C01/D01/S01 等不同原型继承的是:母题数据先行、先 hook、先打错觉、Remotion 真动画、音画同步、orientation-adaptive 响应式学习舞台、独立闯关页、每题配图、采分句输出、自然收尾、预览合同门。具体视觉必须换成本原型的剖面、判断树、对照图、答案扫描或诊断图。
 
@@ -74,7 +75,8 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 9. 手机 preview gate 必须跑真实视口矩阵:360/390/430 竖屏 + 844/932 横屏;断言播放器不遮挡 `.visual`/字幕/教练卡/CTA、控件命中盒 >=44px、无横向 overflow、闯关 CTA 在采分句前 locked、采分句后 enabled、seek 到旧时间不残留 off-scene 节点。
 10. **练习页也必须是 runtime 产品面,不是附属 HTML**:独立闯关页必须跑 `validate_challenge_theater_practice.mjs` 或同级 gate,覆盖 360/390 竖屏、844 横屏和至少一个宽屏/桌面视口;检查文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据默认渐进展开、触控 >=44px。没有这道门,不得说 practice 合格。
 11. **截图证据是验收的一部分**:机器门 PASS 后还要用 `cdp_shot.mjs` 截目标视口。若用户反馈来自某个截图/设备比例,该比例必须加入下一轮 gate 或截图证据。禁止只看 390x844 或只看 DOM 指标就判合格。
-12. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+12. **机器门之后必须形成 review packet**:按 `workflow-review-loop.md` 记录 gate 输出、目标截图墙、judge/human 发现、root-cause triage、修复层级和回炉字段。若人眼发现问题但没有新增 gate/anti-pattern/triage,不得把本轮标为 workflow improvement。
+13. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
 
 60 张卡量产的核心目标:每次 F16/N01/S01/A01 暴露的问题,都要优先沉淀到 `animation_ir.v0`、renderer、gate 或本 skill,而不是只修单卡 CSS。单卡能看只是样例;可复用 workflow 才是交付物。
 如果某次修复选择只改 card CSS,必须在复盘中写明为什么不是 stage shell / renderer / gate 问题;否则默认返工。

@@ -32,6 +32,7 @@
 | 只用 opacity 隐藏 | 元素看不见但还被 gate/点击层当作可见或遮挡 | 视觉隐藏和布局/命中语义混用 | 临时退出用 `display:none` 或明确 `aria-hidden/pointer-events`,不要只调透明度 | hit-test / occlusion gate |
 | 先渲染后救火 | 页面出来才发现比例、叠层、Remotion 没吃同源 IR | 缺 pre-render contract gate,把 schema 问题拖到 UI 评审 | IR 生成后先跑 `validate_animation_ir_contract.mjs`;不过不渲染、不调 CSS | pre-render IR gate |
 | Remotion 单卡另写一套 | HTML preview 变好了,正式成片又偏;或 topic TSX 里硬编码 F16 SVG | Remotion 成了第二份 storyboard/renderer truth | topic wrapper 只导入 IR/timing;通用 `AnimationIrRenderer` 消费 `visual_library/actions` | contract gate 查 wrapper 导入当前 IR + 委托通用 renderer |
+| 机器绿但无评审包 | gate PASS 后仍反复被用户截图指出拥挤/错位/没动画 | 没把截图墙和人审发现回写成 root-cause triage,下一轮 agent 又只看命令绿灯 | 按 `workflow-review-loop.md` 形成 review packet;人眼发现的问题必须补 gate/anti-pattern 或标 needs_human_review | review packet + screenshot wall |
 
 ## 2. 快速判定
 
@@ -47,6 +48,7 @@
 - 你只跑了静态 HTML gate,但没有跑 `validate_learning_stage_runtime.mjs` 的真实视口矩阵。
 - 你只看 390x844,但没有看 360 窄竖屏、844/932 横屏和 theater 控制层。
 - 你说 practice 合格,但没跑闯关页 runtime gate,没看目标视口截图,也没查 SVG 标签是否挤压。
+- 你说 workflow 改好了,但没有 review packet,没有 root-cause triage,也没有说明新增了哪个 gate/anti-pattern。
 - 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
 - 你发现问题后只改某张卡 CSS,却没有说明为什么不该沉淀到 renderer/gate/skill。
 - 用户说“不满意”,你的第一反应是换视觉风格,而不是检查 hook、主线、节奏、练习闭环。

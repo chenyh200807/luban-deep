@@ -149,7 +149,8 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_t
 7. `validate_video_first_preview.mjs` / `validate_animation_ir_preview.mjs`:静态表现合同、IR→HTML 等价、student-safe、独立练习页、章节、practice link、CTA 解锁。
 8. `validate_learning_stage_runtime.mjs`:真实视口布局、横竖屏、通过真实 `[data-theater-toggle]` 进入 theater、控件遮挡。
 9. `cdp_shot.mjs` + Remotion still:留下人工复审截图;关键帧至少看 hook/trap/worked/score/closing。
-10. `build_card_bundle_manifest.py`:bundle-root 相对路径 + master/lesson/timing/rendered/practice/audio hash;成片档才跑 Remotion render + ffprobe + 音画同步截图。
+10. `workflow-review-loop.md`:把 gate 输出、截图墙、人审/LLM judge、root-cause triage 和回炉层级记录成 review packet。
+11. `build_card_bundle_manifest.py`:bundle-root 相对路径 + master/lesson/timing/rendered/practice/audio hash;成片档才跑 Remotion render + ffprobe + 音画同步截图。
 
 如果第 3 层没过,不要继续调文案、颜色或题目。先修 IR/renderer contract。
 
@@ -172,6 +173,7 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 - 练习页文字和图元标签通过 runtime 可读性 gate。
 - preview 阶段不重新生成 MP4。
 - 截图人工看过,没有明显小片化、遮挡、文本挤压和无意义空白。
+- review packet 已记录 gate、截图、发现、root-cause triage 和修复层级。
 
 ## 7. 反复出 bug 时的处理顺序
 
