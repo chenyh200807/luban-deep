@@ -369,6 +369,9 @@ Page({
   // ── 生命周期 ──────────────────────────────────
 
   onLoad: function (options) {
+    this._destroyed = false;
+    this._recoveryAborted = false;
+    this._restoringConversation = false;
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var app = getApp();
@@ -525,16 +528,20 @@ Page({
     ) {
       this.clearMessages();
     }
-    // 从历史记录恢复对话
+    // 从历史记录恢复对话（_restoringConversation 防止 onShow 多次调用时并发重入）
     var restoringConversation = false;
-    if (app.globalData.pendingConversationId) {
-      var convId = app.globalData.pendingConversationId;
-      app.globalData.pendingConversationId = null;
-      restoringConversation = true;
-      self._restoreConversation(convId);
-    } else if (!this.data.hasMessages && this._convId && this._sid) {
-      restoringConversation = true;
-      self._restoreConversation(this._convId);
+    if (!this._restoringConversation) {
+      if (app.globalData.pendingConversationId) {
+        var convId = app.globalData.pendingConversationId;
+        app.globalData.pendingConversationId = null;
+        restoringConversation = true;
+        this._restoringConversation = true;
+        self._restoreConversation(convId);
+      } else if (!this.data.hasMessages && this._convId && this._sid) {
+        restoringConversation = true;
+        this._restoringConversation = true;
+        self._restoreConversation(this._convId);
+      }
     }
     if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
       this._pendingRecoveryActive = true;
@@ -546,6 +553,9 @@ Page({
             self._recoveringTurn = false;
           }
         },
+        function () {
+          self._pendingRecoveryActive = false;
+        },
       );
     }
     // ensurePhone = checkAuth + 手机号强制检查，缺手机号会跳回登录页
@@ -555,6 +565,7 @@ Page({
       api
         .getUserInfo()
         .then(function (raw) {
+          if (self._destroyed) return;
           var info = api.unwrapResponse(raw);
           var name = info.username || info.display_name || "用户";
           self.setData({
@@ -597,6 +608,12 @@ Page({
     this._teardownObserver();
   },
   onUnload: function () {
+    this._destroyed = true;
+    this._recoveryAborted = true;
+    if (this._inputTimer) {
+      clearTimeout(this._inputTimer);
+      this._inputTimer = null;
+    }
     this._stop();
     this._teardownObserver();
   },
@@ -832,6 +849,7 @@ Page({
   },
 
   _applyHydratedConversationMessages: function (rawMsgs, conversationMeta) {
+    if (this._destroyed) return;
     var self = this;
     var hydrated = this._hydrateConversationMessages(rawMsgs || []);
     var restoredMode = resolveConversationAnswerMode(conversationMeta);
@@ -851,14 +869,17 @@ Page({
     this._counter = hydrated.counter;
     this.setData(update);
     setTimeout(function () {
+      if (self._destroyed) return;
       self._releaseBottomAnchor();
     }, 80);
     setTimeout(function () {
+      if (self._destroyed) return;
       self._setupObserver();
     }, 50);
   },
 
   _finishPendingTurnRecovery: function (serverMessages) {
+    if (this._destroyed) return;
     var hasServerMessages = Array.isArray(serverMessages);
     this._recoveringTurn = false;
     this._clearPendingTurn();
@@ -940,9 +961,11 @@ Page({
     }
     var self = this;
     setTimeout(function () {
+      if (self._destroyed) return;
       self._releaseBottomAnchor();
     }, 80);
     setTimeout(function () {
+      if (self._destroyed) return;
       self._setupObserver();
     }, 50);
     return true;
@@ -1002,22 +1025,29 @@ Page({
           if (
             !chatTurnRecovery.hasRecoveredAssistant(serverMessages, pending)
           ) {
-            if (attempt < maxAttempts) {
+            if (attempt < maxAttempts && !self._recoveryAborted) {
               return new Promise(function (resolve) {
                 setTimeout(
                   function () {
+                    if (self._recoveryAborted) {
+                      resolve(false);
+                      return;
+                    }
                     resolve(tryFetch());
                   },
                   opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700,
                 );
               });
             }
-            self._finishPendingTurnRecovery(
-              opts.longPoll ? serverMessages : null,
-            );
+            if (!self._recoveryAborted) {
+              self._finishPendingTurnRecovery(
+                opts.longPoll ? serverMessages : null,
+              );
+            }
             return false;
           }
 
+          if (self._recoveryAborted) return false;
           self._applyHydratedConversationMessages(
             serverMessages,
             data.conversation || data,
@@ -1027,6 +1057,7 @@ Page({
           return true;
         })
         .catch(function (err) {
+          if (self._recoveryAborted) return false;
           if (err && err.statusCode === 404) {
             if (
               wx.getStorageSync("current_session_id") === pending.conversationId
@@ -1039,10 +1070,14 @@ Page({
             self._finishPendingTurnRecovery();
             return false;
           }
-          if (attempt < maxAttempts) {
+          if (attempt < maxAttempts && !self._recoveryAborted) {
             return new Promise(function (resolve) {
               setTimeout(
                 function () {
+                  if (self._recoveryAborted) {
+                    resolve(false);
+                    return;
+                  }
                   resolve(tryFetch());
                 },
                 opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700,
@@ -1205,6 +1240,7 @@ Page({
       if (this._autoScrollEnabled) {
         var self = this;
         setTimeout(function () {
+          if (self._destroyed) return;
           self._releaseBottomAnchor();
         }, 80);
       }
@@ -1225,12 +1261,17 @@ Page({
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
-      this._recoverTurnFromHistory().then(function (recovered) {
-        recoverySelf._pendingRecoveryActive = false;
-        if (!recovered) {
-          recoverySelf._recoveringTurn = false;
-        }
-      });
+      this._recoverTurnFromHistory().then(
+        function (recovered) {
+          recoverySelf._pendingRecoveryActive = false;
+          if (!recovered) {
+            recoverySelf._recoveringTurn = false;
+          }
+        },
+        function () {
+          recoverySelf._pendingRecoveryActive = false;
+        },
+      );
       return;
     }
     this._recoveringTurn = false;
@@ -1257,6 +1298,7 @@ Page({
     }
 
     this._recoverTurnFromHistory().then(function (recovered) {
+      if (self._destroyed) return;
       if (recovered) {
         wx.showToast({ title: "已恢复本轮回答", icon: "none" });
         return;
@@ -1748,11 +1790,13 @@ Page({
     return api
       .getHomeDashboard()
       .then(function (resp) {
+        if (self._destroyed) return;
         var d = unwrap(resp) || {};
         writeCachedHomeDashboard(d);
         self.setData(buildHomeDashboardUpdate(d));
       })
       .catch(function (err) {
+        if (self._destroyed) return;
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
         if (cachedDashboard) return;
         // 降级：仍显示默认焦点条
@@ -1821,6 +1865,7 @@ Page({
     // 动画结束后清除 transition，避免影响下次拖拽
     var self = this;
     setTimeout(function () {
+      if (self._destroyed) return;
       self.setData({ _heroDragTransition: "none" });
     }, 520);
   },
@@ -1922,6 +1967,7 @@ Page({
     api
       .getRuntimeCapabilities()
       .then(function (res) {
+        if (self._destroyed) return;
         var body = unwrap(res) || {};
         var tools =
           body.tools && typeof body.tools === "object" ? body.tools : {};
@@ -1943,6 +1989,7 @@ Page({
         }
       })
       .catch(function () {
+        if (self._destroyed) return;
         self.setData({
           webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
           enableWebSearch: false,
@@ -2035,7 +2082,9 @@ Page({
   },
 
   sendMessage: function () {
-    if (!getApp().globalData.networkAvailable) {
+    var _app = getApp();
+    if (!_app || !_app.globalData) return;
+    if (!_app.globalData.networkAvailable) {
       wx.showToast({ title: "当前无网络连接", icon: "none", duration: 2000 });
       return;
     }
@@ -2077,7 +2126,9 @@ Page({
 
   _send: function (query, extraOpts) {
     var self = this;
-    if (!getApp().globalData.networkAvailable) {
+    var _app = getApp();
+    if (!_app || !_app.globalData) return;
+    if (!_app.globalData.networkAvailable) {
       wx.showToast({ title: "当前无网络连接", icon: "none", duration: 2000 });
       return;
     }
@@ -2096,6 +2147,9 @@ Page({
       api
         .createConversation()
         .then(function (raw) {
+          if (self._destroyed) {
+            return;
+          }
           // [FIX-SESSION-ROOT-CAUSE 2026-04-01] ApiResponse 包装必须 unwrap
           // 之前直接读 data.conversation，但 data 是 {code,data,message} 包装
           // 导致 conv.id=undefined → session_id=None → 每次新 thread → 上下文断裂
@@ -2115,6 +2169,9 @@ Page({
           self._doSend(query, extraOpts);
         })
         .catch(function (err) {
+          if (self._destroyed) {
+            return;
+          }
           self.setData({ isStreaming: false });
           if (String((err && err.message) || "") === "AUTH_EXPIRED") {
             return;
@@ -2371,6 +2428,8 @@ Page({
     api
       .getConversationMessages(convId)
       .then(function (raw) {
+        self._restoringConversation = false;
+        if (self._destroyed) return;
         var data = api.unwrapResponse(raw);
         self._applyHydratedConversationMessages(
           data.messages || data || [],
@@ -2378,6 +2437,8 @@ Page({
         );
       })
       .catch(function (err) {
+        self._restoringConversation = false;
+        if (self._destroyed) return;
         if (err && err.statusCode === 404) {
           if (wx.getStorageSync("current_session_id") === convId) {
             wx.removeStorageSync("current_session_id");
@@ -3097,6 +3158,7 @@ Page({
       this.data.feedbackComment,
     );
     var finishSuccess = function () {
+      if (self._destroyed) return;
       wx.showToast({ title: "感谢反馈", icon: "success", duration: 1500 });
       self.setData({
         feedbackMsgId: "",
@@ -3106,6 +3168,7 @@ Page({
       });
     };
     var finishFailure = function () {
+      if (self._destroyed) return;
       wx.showToast({
         title: "提交失败，请稍后重试",
         icon: "none",

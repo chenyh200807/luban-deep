@@ -88,12 +88,17 @@ Page({
   },
 
   onLoad: function () {
+    this._mounted = true;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
       navHeight: info.statusBarHeight + 44,
       isDark: helpers.isDark(),
     });
+  },
+
+  onUnload: function () {
+    this._mounted = false;
   },
 
   onShow: function () {

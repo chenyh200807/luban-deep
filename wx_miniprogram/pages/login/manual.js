@@ -107,6 +107,7 @@ Page({
         noAuth: true,
       })
       .then(function (resp) {
+        if (!self._mounted) return;
         var inner = resp.data || resp;
         var outerCode = resp.code !== undefined ? resp.code : inner.code;
         var outerMsg = resp.message || inner.message || "发送失败";
@@ -141,6 +142,7 @@ Page({
         }
       })
       .catch(function (err) {
+        if (!self._mounted) return;
         var m = String(err.message || "");
         var msg = "发送失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
@@ -154,6 +156,11 @@ Page({
     if (self._codeTimer) clearInterval(self._codeTimer);
     var remaining = seconds;
     self._codeTimer = setInterval(function () {
+      if (!self._mounted) {
+        clearInterval(self._codeTimer);
+        self._codeTimer = null;
+        return;
+      }
       remaining--;
       if (remaining <= 0) {
         clearInterval(self._codeTimer);

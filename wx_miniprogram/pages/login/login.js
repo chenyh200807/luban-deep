@@ -161,9 +161,11 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );
@@ -294,9 +296,11 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );

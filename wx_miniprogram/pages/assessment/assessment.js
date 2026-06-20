@@ -303,6 +303,7 @@ Page({
   },
 
   onLoad: function () {
+    this._pageUnloaded = false;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -545,7 +546,10 @@ Page({
             " 题，确定提交吗？",
         confirmText: "提交",
         success: function (res) {
-          if (res.confirm) self._doSubmit();
+          if (res.confirm) {
+            if (self._pageUnloaded) return;
+            self._doSubmit();
+          }
         },
       });
       return;
@@ -558,7 +562,10 @@ Page({
     helpers.vibrate("medium");
     self.setData({ stage: "loading", submitting: true });
 
-    var timeSpent = Math.round((Date.now() - self._startTime) / 1000);
+    var timeSpent =
+      self._startTime > 0
+        ? Math.round((Date.now() - self._startTime) / 1000)
+        : 0;
     var answers = {};
     var keys = self.data.selectedKeys;
     Object.keys(keys).forEach(function (qId) {

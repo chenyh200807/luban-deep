@@ -414,6 +414,7 @@ Page({
   },
 
   onShow: function () {
+    this._abortPending = false;
     this.setData({ isDark: helpers.isDark() });
     helpers.syncTabBar(this, 1);
     var self = this;
@@ -593,6 +594,7 @@ Page({
     api
       .deleteConversation(convId)
       .then(function () {
+        if (self._abortPending) return;
         _rememberDeletedConversationIds([convId]);
         self._removeFromGroups([convId]);
         wx.removeStorageSync(CACHE_KEY);
@@ -600,6 +602,7 @@ Page({
         wx.showToast({ title: "已删除", icon: "success" });
       })
       .catch(function () {
+        if (self._abortPending) return;
         wx.showToast({ title: "删除失败", icon: "none" });
       });
   },
@@ -620,6 +623,7 @@ Page({
         api
           .batchConversations("archive", [convId])
           .then(function () {
+            if (self._abortPending) return;
             wx.hideLoading();
             self._removeFromGroups([convId]);
             wx.removeStorageSync(CACHE_KEY);
@@ -627,6 +631,7 @@ Page({
             wx.showToast({ title: "已归档", icon: "success" });
           })
           .catch(function () {
+            if (self._abortPending) return;
             wx.hideLoading();
             wx.showToast({ title: "归档失败", icon: "none" });
           });
@@ -747,6 +752,7 @@ Page({
     api
       .batchConversations(action, ids)
       .then(function (res) {
+        if (self._abortPending) return;
         wx.hideLoading();
         if (action === "delete") {
           _rememberDeletedConversationIds(ids);
@@ -765,6 +771,7 @@ Page({
         wx.showToast({ title: msg, icon: "success" });
       })
       .catch(function () {
+        if (self._abortPending) return;
         wx.hideLoading();
         wx.showToast({ title: "操作失败", icon: "none" });
       });

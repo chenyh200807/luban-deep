@@ -206,14 +206,22 @@ function rawRequest(opts) {
             reject(new Error("AUTH_EXPIRED"));
             return;
           }
-          // Token 过期 — 清除并跳转登录
-          auth.clearToken();
-          var app = getApp_();
-          if (app) {
-            app.globalData.token = null;
-          }
-          relaunchLogin();
-          reject(new Error("AUTH_EXPIRED"));
+          // Try refresh before giving up — avoids premature logouts when the
+          // token expires between the proactive check and the server response.
+          refreshAuthToken(opts)
+            .then(function () {
+              return rawRequest(
+                Object.assign({}, opts, { skipAuthRefresh: true }),
+              );
+            })
+            .then(resolve, reject);
+          return;
+        }
+
+        if (res.statusCode === 503) {
+          var e503 = new Error("FEATURE_DISABLED");
+          e503.code = "FEATURE_DISABLED";
+          reject(e503);
           return;
         }
 
@@ -239,13 +247,6 @@ function rawRequest(opts) {
           )
             .then(resolve)
             .catch(reject);
-          return;
-        }
-
-        if (res.statusCode === 503) {
-          var e503 = new Error("FEATURE_DISABLED");
-          e503.code = "FEATURE_DISABLED";
-          reject(e503);
           return;
         }
 

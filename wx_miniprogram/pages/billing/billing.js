@@ -16,6 +16,7 @@ Page({
   },
 
   onLoad() {
+    this._unloaded = false;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,

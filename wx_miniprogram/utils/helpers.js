@@ -182,7 +182,7 @@ function getPerformanceLevel() {
     // 2) 内存辅助判定（安卓有效，iOS 不返回此字段）
     //    deviceMemory 以 GB 为单位（部分微信版本为 MB）
     var mem = sys.memorySize || 0; // MB
-    if (mem > 0 && mem <= 3072) {
+    if (mem > 0 && mem <= 3072 && level !== "high") {
       level = "low";
     } else if (mem > 3072 && mem <= 5120 && level === "high") {
       level = "medium";
@@ -200,11 +200,11 @@ function getPerformanceLevel() {
     if (platform === "ios" && sysVersion >= 13 && sysVersion < 15) {
       if (level === "high") level = "medium";
     }
+    _perfLevel = level;
   } catch (_) {
-    level = "medium"; // 检测失败保守处理
+    level = "medium"; // 检测失败保守处理，不缓存以便下次重试
   }
 
-  _perfLevel = level;
   return level;
 }
 
