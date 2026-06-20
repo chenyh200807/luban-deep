@@ -21,9 +21,11 @@
 | 练习题没图 | 选择题像普通刷题,没有深母题迁移 | 没把变题视觉化 | 每题配原图/变化图/诊断图/答题纸 | preview gate 检查 question SVG |
 | 选项短词化 | 点对了但不会写主观题答案 | 选项只服务选择,不服务采分表达 | 选项写“对象/路径 + 结果 + 判断依据”;末题做采分句输出 | practice review |
 | 题图文字挤压 | 流程节点/判断节点里字挤成一团,学生看不清 | 图元尺寸和标签长度没有合同,只测外层不溢出 | 改 renderer 图元语法:长标签用 pill/多行/缩写+图例,不要硬塞小圆;把标签适配纳入 runtime gate | `validate_challenge_theater_practice.mjs` 的 SVG label fit |
+| SVG 标签压线/跑边 | 标签贴着箭头、压住卡片边框,或跑出白板 | 把标注当坐标文本,没有图元级安全布局;gate 只查外层 overflow,不查 text/text 或 text/path | flow_arrow 等 primitive 必须自带 label badge/line offset;renderer 负责避让,IR 不手调;gate 在 scene 后段检查 SVG text collision 和 arrow label clearance | `validate_animation_ir_preview.mjs` 的 `runtime_svg_text_collision` |
 | 右栏文字被裁 | 横屏/宽屏时学生答或题干只显示半句 | grid 列宽/overflow 只测页面横滚,没测文本块 scrollWidth | 右栏设 min-width/minmax,文本 `overflow-wrap:anywhere`;gate 查 visible text block 不裁切 | `text_not_clipped` + 宽屏截图 |
 | 只套 N01 外形 | 构造题也像网络图,判断题也像白板节点 | 把样板 UI 当 authority | 先按 6+1 选原型,再选该原型视觉语法 | pressure tests |
 | 学生端泄漏内部词 | 页面出现 `candidate` / `source_ref` / `P10` / `E03` | renderer 没做 student-safe package gate | 学生包禁止内部 token;制作侧追溯放在源 JSON/后台 | preview gate fail-closed |
+| 答疑入口裸塞母题 MD | 问 AI 能用,但 HTML/URL 里暴露原始资料路径、候选采分点或制作字段 | 把静态卡当成问答后端,没有 context handoff 边界 | 前端只发 `context_id + 当前 scene/caption + safe summary`;TutorBot/后端按 context_id 取母题 MD | `ai_ask_entry` + student-safe gate |
 | 无母题数据也标深母题 | 画面漂亮但题和采分句不可追溯 | 表现层越权造内容 | 缺 master/card/variants/source 时只叫视觉小样 | skill 红线 + schema gate |
 | CTA 过早或重复 | 开场就能跳闯关,学生跳过采分句;页面里同时有多个强 CTA | challenge 状态不是由 timing/scene 派生,而是常驻 UI | 默认 `challengeUnlockSec=score.start`;采分句前 CTA locked,采分句后 enabled;普通页去重,底部主行动承担闯关 | `validate_animation_ir_preview.mjs` 的 `runtime_challenge_unlock` |
 | 固定播放器遮挡 | 360 竖屏或横屏时播放器盖住字幕、教练卡、采分句或 CTA | shell 用固定 bottom magic number,没有测量真实 player 高度 | `ResizeObserver` 写 `--player-h`;正文/theater 布局用该变量;横屏避免 fixed overlay 遮挡 | `runtime_player_occlusion` + viewport matrix |
@@ -50,6 +52,8 @@
 - 你说 practice 合格,但没跑闯关页 runtime gate,没看目标视口截图,也没查 SVG 标签是否挤压。
 - 你说 workflow 改好了,但没有 review packet,没有 root-cause triage,也没有说明新增了哪个 gate/anti-pattern。
 - 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
+- 你发现 SVG 文字贴箭头/压边,但只调当前卡 x/y,没有把 flow_arrow/note/pill primitive 变成自带安全区的图元。
+- 你加了"问 AI",但只是跳到空白聊天页,没有带当前 scene、字幕和考点上下文。
 - 你发现问题后只改某张卡 CSS,却没有说明为什么不该沉淀到 renderer/gate/skill。
 - 用户说“不满意”,你的第一反应是换视觉风格,而不是检查 hook、主线、节奏、练习闭环。
 

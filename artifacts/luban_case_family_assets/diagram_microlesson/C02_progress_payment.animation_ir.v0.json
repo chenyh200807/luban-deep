@@ -1,0 +1,1127 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "C02_progress_payment_animation_ir_v0",
+  "card_id": "C02_progress_payment",
+  "master_id": "C02_payment_measurement_pricing",
+  "prototype": "calculation_chain_reveal",
+  "mode": "video_first_preview",
+  "display": {
+    "kicker": "鲁班深母题 · C02 进度款",
+    "title": "进度款题先判四口径"
+  },
+  "main_exam_action": "把进度款题写成资金链采分句:先判哪笔钱,再锁量价、时点、扣减。",
+  "source_refs": {
+    "master": "docs/原始数据/考点原料/成品/C02_进度款与计量计价.md",
+    "timing": "C02_progress_payment.lesson.timing.json",
+    "audio": "C02_progress_payment.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "C02_progress_payment.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/C02AnimationIrPreview.tsx",
+    "remotion_composition": "C02AnimationIrPreview",
+    "practice_href": "C02_progress_payment.practice.html",
+    "max_visible_nodes": 4,
+    "challenge_unlock_sec": 80.448,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "ai_context": {
+    "context_id": "C02_progress_payment",
+    "title": "进度款题先判四口径",
+    "main_exam_action": "把进度款题写成资金链采分句:先判哪笔钱,再锁量价、时点、扣减。",
+    "safe_summary": "进度款类题先判四个口径:哪笔钱、量价口径、时点口径、扣减口径。不要先套公式,要先把当期、累计、税前价、预付款扣回和质保金扣留说清楚。",
+    "key_points": [
+      "哪笔钱:预付款、进度款、结算款、质保金先分清。",
+      "量价口径:工程量和综合单价是否含税、是否净量。",
+      "时点口径:累计完成还是当期完成,会影响起扣和实付。",
+      "扣减口径:扣预付款、前期已付、发包人扣款和质保金。"
+    ],
+    "handoff_mode": "context_id_plus_current_scene"
+  },
+  "teaching_spine": {
+    "wrong_idea": "看到价款题就先套公式,把当期、累计、含税、扣回混在一起算。",
+    "visual_correction": "先把钱走成一条单向链:报价口径到已完工程量,再到当期应得,最后扣预付和质保。",
+    "exam_phrase": "先说明综合单价为不含税税前全费用价;预付款按扣暂列后的合同价乘比例;累计完成达到起扣点后扣回预付款;当期应付按累计应付扣累计扣回、前期已付和发包人扣款计算;未约定支付比例不低于80%,质保金不超过结算总价3%。",
+    "warm_correction": "不是背一个万能公式,而是先把四个口径钉死。"
+  },
+  "visual_library": {
+    "hook": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "wrong_formula",
+          "kind": "pill",
+          "tone": "danger",
+          "x": 42,
+          "y": 54,
+          "w": 276,
+          "h": 54,
+          "text": "错觉:看到公式就套"
+        },
+        {
+          "id": "score_goal",
+          "kind": "pill",
+          "tone": "success",
+          "x": 58,
+          "y": 132,
+          "w": 244,
+          "h": 70,
+          "text": "目标:四口径先判准",
+          "subtext": "哪笔钱 / 量价 / 时点 / 扣减"
+        }
+      ]
+    },
+    "trap": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "direct_formula",
+          "kind": "pill",
+          "tone": "danger",
+          "x": 44,
+          "y": 52,
+          "w": 272,
+          "h": 48,
+          "text": "合同价 × 比例 = ?"
+        },
+        {
+          "id": "tax_trap",
+          "kind": "note",
+          "tone": "amber",
+          "x": 54,
+          "y": 116,
+          "w": 252,
+          "h": 42,
+          "text": "税先塞进单价:会重复计税"
+        },
+        {
+          "id": "current_trap",
+          "kind": "note",
+          "tone": "amber",
+          "x": 54,
+          "y": 170,
+          "w": 252,
+          "h": 42,
+          "text": "当期和累计混用:扣回点会错"
+        },
+        {
+          "id": "wrong_arrow",
+          "kind": "flow_arrow",
+          "tone": "danger",
+          "x1": 104,
+          "x2": 256,
+          "y": 226,
+          "text": "先停手"
+        }
+      ]
+    },
+    "four_mouth": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "money_kind",
+          "kind": "pill",
+          "tone": "blue",
+          "x": 24,
+          "y": 56,
+          "w": 148,
+          "h": 52,
+          "text": "哪笔钱",
+          "subtext": "预付/进度/质保"
+        },
+        {
+          "id": "qty_price",
+          "kind": "pill",
+          "tone": "success",
+          "x": 188,
+          "y": 56,
+          "w": 148,
+          "h": 52,
+          "text": "量价口径",
+          "subtext": "净量 × 税前价"
+        },
+        {
+          "id": "time_point",
+          "kind": "pill",
+          "tone": "amber",
+          "x": 24,
+          "y": 150,
+          "w": 148,
+          "h": 52,
+          "text": "时点口径",
+          "subtext": "累计还是当期"
+        },
+        {
+          "id": "deduction",
+          "kind": "pill",
+          "tone": "danger",
+          "x": 188,
+          "y": 150,
+          "w": 148,
+          "h": 52,
+          "text": "扣减口径",
+          "subtext": "扣预付/扣质保"
+        }
+      ]
+    },
+    "advance": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "advance_base",
+          "kind": "answer_box",
+          "tone": "blue",
+          "x": 44,
+          "y": 54,
+          "w": 272,
+          "h": 42,
+          "text": "预付款 = 扣暂列后的合同价 × 比例"
+        },
+        {
+          "id": "deduction_point",
+          "kind": "threshold_meter",
+          "tone": "amber",
+          "x": 56,
+          "y": 126,
+          "w": 248,
+          "value": 0.68,
+          "text": "起扣点 = 合同价 - 预付款 ÷ 材料占比"
+        },
+        {
+          "id": "trigger",
+          "kind": "pill",
+          "tone": "success",
+          "x": 70,
+          "y": 190,
+          "w": 220,
+          "h": 42,
+          "text": "累计完成达到后,才开始扣回"
+        },
+        {
+          "id": "variable_share",
+          "kind": "note",
+          "tone": "neutral",
+          "x": 84,
+          "y": 232,
+          "w": 192,
+          "h": 28,
+          "text": "材料占比看题干给值"
+        }
+      ]
+    },
+    "progress": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "cumulative_value",
+          "kind": "pill",
+          "tone": "blue",
+          "x": 38,
+          "y": 48,
+          "w": 126,
+          "h": 48,
+          "text": "累计已完 × 比例"
+        },
+        {
+          "id": "deduct_back",
+          "kind": "pill",
+          "tone": "danger",
+          "x": 196,
+          "y": 48,
+          "w": 126,
+          "h": 48,
+          "text": "减累计扣回"
+        },
+        {
+          "id": "paid_before",
+          "kind": "pill",
+          "tone": "amber",
+          "x": 38,
+          "y": 130,
+          "w": 126,
+          "h": 48,
+          "text": "减前期已付"
+        },
+        {
+          "id": "pay_formula",
+          "kind": "answer_box",
+          "tone": "success",
+          "x": 56,
+          "y": 204,
+          "w": 248,
+          "h": 42,
+          "text": "当期实付 = 累计应付 - 已扣 - 已付 - 扣款"
+        }
+      ]
+    },
+    "limits": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "floor80",
+          "kind": "pill",
+          "tone": "success",
+          "x": 46,
+          "y": 60,
+          "w": 268,
+          "h": 54,
+          "text": "未约定支付比例:不低于 80%"
+        },
+        {
+          "id": "retention3",
+          "kind": "pill",
+          "tone": "amber",
+          "x": 58,
+          "y": 134,
+          "w": 244,
+          "h": 54,
+          "text": "质保金 ≤ 结算总价 3%"
+        },
+        {
+          "id": "precondition",
+          "kind": "note",
+          "tone": "neutral",
+          "x": 68,
+          "y": 210,
+          "w": 224,
+          "h": 32,
+          "text": "先看题干:有约定按约定,无约定看红线"
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "score_line1",
+          "kind": "answer_box",
+          "tone": "blue",
+          "x": 40,
+          "y": 88,
+          "w": 280,
+          "h": 38,
+          "text": "先判:预付/进度/结算/质保是哪笔钱"
+        },
+        {
+          "id": "score_line2",
+          "kind": "answer_box",
+          "tone": "success",
+          "x": 40,
+          "y": 136,
+          "w": 280,
+          "h": 38,
+          "text": "再写:量价口径、累计时点、扣回规则"
+        },
+        {
+          "id": "score_line3",
+          "kind": "answer_box",
+          "tone": "amber",
+          "x": 40,
+          "y": 184,
+          "w": 280,
+          "h": 38,
+          "text": "最后落句:当期实付金额或判断结论"
+        },
+        {
+          "id": "score_atoms",
+          "kind": "note",
+          "tone": "danger",
+          "x": 74,
+          "y": 228,
+          "w": 212,
+          "h": 28,
+          "text": "少写口径,很容易有算式没采分"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "四口径资金链",
+          "subtext": "哪笔钱 → 量价 → 时点 → 扣减"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关"
+        }
+      ]
+    },
+    "qa_boundary": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "qa_q1",
+          "kind": "dialogue_box",
+          "tone": "blue",
+          "x": 30,
+          "y": 54,
+          "w": 300,
+          "h": 42,
+          "text": "问1  合同价×比例就行?"
+        },
+        {
+          "id": "qa_q2",
+          "kind": "dialogue_box",
+          "tone": "amber",
+          "x": 30,
+          "y": 116,
+          "w": 300,
+          "h": 42,
+          "text": "问2  起扣点背固定比例?"
+        },
+        {
+          "id": "qa_q3",
+          "kind": "dialogue_box",
+          "tone": "success",
+          "x": 30,
+          "y": 178,
+          "w": 300,
+          "h": 42,
+          "text": "问3  只写公式够不够?"
+        },
+        {
+          "id": "qa_answer",
+          "kind": "note",
+          "tone": "neutral",
+          "x": 62,
+          "y": 232,
+          "w": 236,
+          "h": 28,
+          "text": "答疑只补边界,不打断主讲"
+        }
+      ]
+    }
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0
+    },
+    {
+      "id": "trap",
+      "label": "错觉",
+      "start_sec": 11.32
+    },
+    {
+      "id": "four_mouth",
+      "label": "四口径",
+      "start_sec": 21.272
+    },
+    {
+      "id": "advance",
+      "label": "预付",
+      "start_sec": 32.352
+    },
+    {
+      "id": "progress",
+      "label": "进度款",
+      "start_sec": 54.048
+    },
+    {
+      "id": "limits",
+      "label": "红线",
+      "start_sec": 64.456
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 80.448
+    },
+    {
+      "id": "qa_boundary",
+      "label": "答疑",
+      "start_sec": 92.224
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 133.792
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0,
+      "end_sec": 11.32,
+      "scene": "hook_board",
+      "focus": "wrong_formula",
+      "enter": [
+        "board.fade_in",
+        "wrong_formula.slide_in",
+        "score_goal.reveal"
+      ],
+      "hold": [
+        "wrong_formula.spotlight",
+        "background.dim"
+      ],
+      "exit": [
+        "wrong_formula.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "wrong_formula",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "wrong_formula",
+        "score_goal"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "wrong_formula",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_formula",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "wrong_formula",
+          "start": 0.18,
+          "end": 0.54
+        },
+        {
+          "kind": "reveal",
+          "target": "score_goal",
+          "start": 0.42,
+          "end": 0.62
+        },
+        {
+          "kind": "highlight",
+          "target": "score_goal",
+          "start": 0.62,
+          "end": 0.92
+        }
+      ],
+      "keycard": "考场丢分:不是不会算,是口径没判",
+      "coach": "进度款题先别急着按计算器。你要先交代这是一笔什么钱,按什么口径算。"
+    },
+    {
+      "id": "trap",
+      "label": "错觉",
+      "start_sec": 11.32,
+      "end_sec": 21.272,
+      "scene": "trap_board",
+      "focus": "direct_formula",
+      "enter": [
+        "direct_formula.pop",
+        "tax_trap.reveal",
+        "current_trap.reveal"
+      ],
+      "hold": [
+        "direct_formula.freeze",
+        "tax_trap.warn"
+      ],
+      "exit": [
+        "direct_formula.fade_out",
+        "tax_trap.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "freeze-frame",
+        "target": "direct_formula",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "direct_formula",
+        "tax_trap",
+        "current_trap",
+        "wrong_arrow"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "freeze-frame",
+          "target": "direct_formula",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "direct_formula",
+          "start": 0.04,
+          "end": 0.18
+        },
+        {
+          "kind": "highlight",
+          "target": "direct_formula",
+          "start": 0.16,
+          "end": 0.44
+        },
+        {
+          "kind": "reveal",
+          "target": "tax_trap",
+          "start": 0.34,
+          "end": 0.52
+        },
+        {
+          "kind": "reveal",
+          "target": "current_trap",
+          "start": 0.56,
+          "end": 0.72
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_arrow",
+          "start": 0.78,
+          "end": 0.92
+        }
+      ],
+      "keycard": "先停手:直接套公式最危险",
+      "coach": "题干里的税、暂列金、累计完成额、前期已付,都可能在换口径。直接套公式会把钱算到另一条链上。"
+    },
+    {
+      "id": "four_mouth",
+      "label": "四口径",
+      "start_sec": 21.272,
+      "end_sec": 32.352,
+      "scene": "four_dimension_board",
+      "focus": "money_kind",
+      "enter": [
+        "money_kind.reveal",
+        "qty_price.reveal",
+        "time_point.reveal",
+        "deduction.reveal"
+      ],
+      "hold": [
+        "money_kind.spotlight",
+        "qty_price.spotlight"
+      ],
+      "exit": [
+        "board.clean_transition"
+      ],
+      "layout": {
+        "portrait": "two_by_two",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "money_kind",
+        "duration_sec": 0.42
+      },
+      "visible_nodes": [
+        "money_kind",
+        "qty_price",
+        "time_point",
+        "deduction"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "money_kind",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "money_kind",
+          "start": 0.05,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "money_kind",
+          "start": 0.16,
+          "end": 0.38
+        },
+        {
+          "kind": "reveal",
+          "target": "qty_price",
+          "start": 0.3,
+          "end": 0.46
+        },
+        {
+          "kind": "reveal",
+          "target": "time_point",
+          "start": 0.54,
+          "end": 0.68
+        },
+        {
+          "kind": "reveal",
+          "target": "deduction",
+          "start": 0.74,
+          "end": 0.88
+        }
+      ],
+      "keycard": "四口径:哪笔钱、量价、时点、扣减",
+      "coach": "这四个格子就是进度款题的方向盘。先判钱的类型,再判量价、时间和扣减。"
+    },
+    {
+      "id": "advance",
+      "label": "预付款起扣",
+      "start_sec": 32.352,
+      "end_sec": 54.048,
+      "scene": "advance_threshold",
+      "focus": "deduction_point",
+      "enter": [
+        "advance_base.reveal",
+        "deduction_point.draw",
+        "trigger.pop"
+      ],
+      "hold": [
+        "deduction_point.spotlight",
+        "trigger.pulse"
+      ],
+      "exit": [
+        "advance_base.fade_out"
+      ],
+      "layout": {
+        "portrait": "threshold_closeup",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "deduction_point",
+        "duration_sec": 0.55
+      },
+      "visible_nodes": [
+        "advance_base",
+        "deduction_point",
+        "trigger",
+        "variable_share"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "trace",
+          "target": "deduction_point",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "advance_base",
+          "start": 0.04,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "deduction_point",
+          "start": 0.22,
+          "end": 0.44
+        },
+        {
+          "kind": "highlight",
+          "target": "deduction_point",
+          "start": 0.42,
+          "end": 0.74
+        },
+        {
+          "kind": "reveal",
+          "target": "trigger",
+          "start": 0.58,
+          "end": 0.76
+        },
+        {
+          "kind": "reveal",
+          "target": "variable_share",
+          "start": 0.8,
+          "end": 0.92
+        }
+      ],
+      "keycard": "预付款:先扣暂列,达到起扣点才扣回",
+      "coach": "预付款不是到最后一次性扣。累计完成额过了起扣点,才开始逐步扣回。材料占比必须按题干给值。"
+    },
+    {
+      "id": "progress",
+      "label": "进度款",
+      "start_sec": 54.048,
+      "end_sec": 64.456,
+      "scene": "progress_payment_formula",
+      "focus": "pay_formula",
+      "enter": [
+        "cumulative_value.reveal",
+        "deduct_back.reveal",
+        "paid_before.reveal",
+        "pay_formula.reveal"
+      ],
+      "hold": [
+        "pay_formula.spotlight"
+      ],
+      "exit": [
+        "formula.compress_to_sentence"
+      ],
+      "layout": {
+        "portrait": "formula_stack",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "pull-back",
+        "target": "pay_formula",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "cumulative_value",
+        "deduct_back",
+        "paid_before",
+        "pay_formula"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "pull-back",
+          "target": "pay_formula",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "cumulative_value",
+          "start": 0.04,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "deduct_back",
+          "start": 0.26,
+          "end": 0.4
+        },
+        {
+          "kind": "reveal",
+          "target": "paid_before",
+          "start": 0.48,
+          "end": 0.62
+        },
+        {
+          "kind": "reveal",
+          "target": "pay_formula",
+          "start": 0.68,
+          "end": 0.88
+        },
+        {
+          "kind": "highlight",
+          "target": "pay_formula",
+          "start": 0.78,
+          "end": 1
+        }
+      ],
+      "keycard": "进度款:先算累计应得,再倒扣到本期",
+      "coach": "当期实付不是当月产值乘比例。先算累计应得,再减累计扣回、前期已付和发包人扣款。"
+    },
+    {
+      "id": "limits",
+      "label": "两条红线",
+      "start_sec": 64.456,
+      "end_sec": 80.448,
+      "scene": "legal_limits",
+      "focus": "floor80",
+      "enter": [
+        "floor80.reveal",
+        "retention3.reveal",
+        "precondition.reveal"
+      ],
+      "hold": [
+        "floor80.spotlight",
+        "retention3.spotlight"
+      ],
+      "exit": [
+        "limits.fade_to_score"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "floor80",
+        "duration_sec": 0.4
+      },
+      "visible_nodes": [
+        "floor80",
+        "retention3",
+        "precondition"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "floor80",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "floor80",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "highlight",
+          "target": "floor80",
+          "start": 0.18,
+          "end": 0.44
+        },
+        {
+          "kind": "reveal",
+          "target": "retention3",
+          "start": 0.42,
+          "end": 0.58
+        },
+        {
+          "kind": "highlight",
+          "target": "retention3",
+          "start": 0.56,
+          "end": 0.78
+        },
+        {
+          "kind": "reveal",
+          "target": "precondition",
+          "start": 0.76,
+          "end": 0.92
+        }
+      ],
+      "keycard": "两个边界:无约定 80%,质保金 3%",
+      "coach": "80%不是所有题都硬套,它的前提是没有约定支付比例。质保金看结算总价上限,别换错基数。"
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 80.448,
+      "end_sec": 92.224,
+      "scene": "answer_paper",
+      "focus": "score_line2",
+      "enter": [
+        "score_line1.reveal",
+        "score_line2.reveal",
+        "score_line3.reveal"
+      ],
+      "hold": [
+        "score_line2.spotlight",
+        "score_atoms.warn"
+      ],
+      "exit": [
+        "answer_paper.to_challenge"
+      ],
+      "layout": {
+        "portrait": "answer_paper",
+        "landscape": "paper_left_coach_right",
+        "theater": "paper_clean"
+      },
+      "camera": {
+        "verb": "answer-paper",
+        "target": "score_line2",
+        "duration_sec": 0.48
+      },
+      "visible_nodes": [
+        "score_line1",
+        "score_line2",
+        "score_line3",
+        "score_atoms"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "answer-paper",
+          "target": "score_line2",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "score_line1",
+          "start": 0.04,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "score_line2",
+          "start": 0.28,
+          "end": 0.44
+        },
+        {
+          "kind": "highlight",
+          "target": "score_line2",
+          "start": 0.42,
+          "end": 0.72
+        },
+        {
+          "kind": "reveal",
+          "target": "score_line3",
+          "start": 0.58,
+          "end": 0.74
+        },
+        {
+          "kind": "reveal",
+          "target": "score_atoms",
+          "start": 0.8,
+          "end": 0.94
+        }
+      ],
+      "keycard": "答题纸:先写口径,再写算式",
+      "coach": "采分句要让阅卷人看到你没混口径。先判钱,再写量价、累计时点和扣减规则,最后落到当期实付。"
+    },
+    {
+      "id": "qa_boundary",
+      "label": "答疑",
+      "start_sec": 92.224,
+      "end_sec": 133.792,
+      "scene": "qa_boundary_board",
+      "focus": "qa_q1",
+      "enter": [
+        "qa_q1.reveal",
+        "qa_q2.reveal",
+        "qa_q3.reveal"
+      ],
+      "hold": [
+        "qa_q1.spotlight",
+        "qa_answer.reveal"
+      ],
+      "exit": [
+        "qa_boundary.fade_to_closing"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "qa_q1",
+        "duration_sec": 0.42
+      },
+      "visible_nodes": [
+        "qa_q1",
+        "qa_q2",
+        "qa_q3",
+        "qa_answer"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "qa_q1",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_q1",
+          "start": 0.04,
+          "end": 0.18
+        },
+        {
+          "kind": "highlight",
+          "target": "qa_q1",
+          "start": 0.16,
+          "end": 0.34
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_q2",
+          "start": 0.36,
+          "end": 0.5
+        },
+        {
+          "kind": "highlight",
+          "target": "qa_q2",
+          "start": 0.48,
+          "end": 0.66
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_q3",
+          "start": 0.66,
+          "end": 0.8
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_answer",
+          "start": 0.82,
+          "end": 0.94
+        }
+      ],
+      "keycard": "三问答疑:补口径、起扣点、采分表达",
+      "coach": "主线讲完后,再集中处理三个真会卡住的问题:能不能直接乘、起扣点怎么来、公式之外还要写什么。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 133.792,
+      "end_sec": 143.736,
+      "scene": "closing_board",
+      "focus": "challenge_cta",
+      "enter": [
+        "closing_sentence.reveal",
+        "challenge_cta.reveal"
+      ],
+      "hold": [
+        "challenge_cta.pulse"
+      ],
+      "exit": [
+        "scene.end"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "challenge_cta",
+        "duration_sec": 0.4
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "challenge_cta",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.08,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.42,
+          "end": 0.62
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_cta",
+          "start": 0.62,
+          "end": 1
+        }
+      ],
+      "keycard": "一句话钩子:钱链先判口径,再动公式",
+      "coach": "现在进入闯关。遇到价款题,先画这条四口径资金链,再算。"
+    }
+  ]
+}

@@ -127,10 +127,12 @@
 
 ### 4.2 教师与学生声音
 
-- 老师:稳定、短句、像考前点拨,优先讲判断动作和采分句。
-- 学生:只在讲完主线后出现,负责提出真实困惑,不要打断主讲。
-- TTS 推荐:老师 `longanhuan_v3`;学生追问默认且优先用 `Ethan`(晨煦)。除非用户明确指定,不要混用其他学生音色。音频离线生成,运行时只播放。
+- 老师:稳定、短句、像考前点拨,优先讲判断动作和采分句;可以自然加入"注意哈/这里别急哈/记住哈",但不能每句机械重复。
+- 学生:东北男孩追问口吻,只问真会卡的问题,不要捧哏、不要复述老师结论、不要打断主讲。
+- TTS 推荐:老师 `longanhuan_v3`(龙安欢 V3);学生追问默认且优先用 `longlaotie_v3`(龙老铁)。除非用户明确指定,不要混用其他学生音色。音频离线生成,运行时只播放。
 - 每句旁白 8-18 秒为宜;超过 20 秒必须拆 beat。
+- 结构红线:老师主讲必须先完整建立模型;学生问答集中放在后置 `qa[]`,至少三问三答,每问对应真实卡点。不要把学生问题塞进 `teach.beats[]`,否则主线会碎。
+- 口癖红线:口语词只用于开场抓人和结尾回扣,不是每个 beat 的句尾装饰。超过两处就会显得机械,应优先删。
 
 ### 4.3 旁白红线
 
@@ -140,6 +142,18 @@
 - 不让画面只跟着字幕走;旁白每说一个关键动作,画面必须有对应变化。
 - 不在答疑后突然结束;没有 closing 段就不算完成。
 - 不让收尾变成泛鼓励;收尾必须回扣本卡的考试动作和下一步闯关。
+
+### 4.4 讲解中即时答疑
+
+学生看动画时的问题通常不是"整章不会",而是"当前这个画面为什么这么判"。因此答疑入口必须贴着当前 beat,但不能把动画页改造成第二套 TutorBot。
+
+标准做法:
+
+1. 播放中提供轻量 `Ask AI` 入口;点击后暂停讲解,打开 bottom sheet/side sheet。
+2. 自动打包上下文:`context_id`、当前 `scene/focus/keycard/coach`、当前字幕、`main_exam_action`、safe summary、key points。
+3. 静态 preview 可以复制上下文或 `postMessage` 给宿主;小程序正式态由宿主跳 TutorBot,后端按 `context_id` 取完整母题 MD/variants/source。
+4. 学生端 HTML 不注入 raw MD、source path、candidate、E-code、采分点内部 id。答疑质量靠后端 fat skill + 母题 authority,不是靠静态页多塞资料。
+5. 回答后最好支持"回到刚才时间点继续",否则问答会打断学习节奏。
 
 ## 5. 视觉与运镜:像老师导演注意力
 
@@ -226,6 +240,7 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 - `scene` 只定义这一页的认知边界、布局和可用图元。
 - `actions[]` 才定义动画和教学节奏:reveal 哪个 `data-id`、highlight 哪个对象、camera 推近哪里、哪个 keycard 进入/退出、字幕/旁白对应哪段。
 - renderer 必须串行消费 action 队列,每次 action 结束要么进入 hold,要么明确 exit;不要让旧 keycard、旧标注、旧节点继续占屏。
+- 旁白 timing 的 `state` 必须一一命中 IR scene id。`qa[]` 应显式给 `state`(如 `qa_boundary`),`closing` 应显式给 `state`(如 `closing_challenge`)。不要让生成器默认 state 和 IR scene 名靠人工猜,否则字幕、scene 和章节会错位。
 - HTML preview 可以用 JS/CSS 模拟 action playback 供手机评审;正式 Remotion 必须用同一份 action IR 和 `useCurrentFrame()` 重放,不能另起一套视觉脚本。
 - topic Remotion 文件必须是 thin wrapper:只导入该卡 `animation_ir.v0.json` / `timing.json`,再传给通用 `AnimationIrRenderer`。不得在 topic wrapper 里再写一份 F16/N01/A01 的视觉逻辑。
 - 通用 renderer 才能持有图元/action switch。要新增表现力,优先扩 `visual_library` schema、primitive kind、action kind 和对应 gate;不要在单卡文件里分叉。
@@ -475,7 +490,7 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 
 1. **首屏**:白板 poster + 中央播放按钮 + 完整 hook。学生点播放前就知道"为什么学这个能多拿分"。
 2. **讲解视频**:Remotion 负责动画主体;每个 beat 有一个视觉动作,如 push-in、spotlight、trace、dim、scene change、answer-paper reveal。
-3. **旁白音色**:老师主讲用 `longanhuan_v3`,学生答疑默认用 `Ethan`(晨煦);音频离线生成,运行时只播放。
+3. **旁白音色**:老师主讲用 `longanhuan_v3`(龙安欢 V3),学生答疑默认用 `longlaotie_v3`(龙老铁,东北男孩);音频离线生成,运行时只播放。
 4. **音画同步**:关键视觉可以略早于旁白关键词出现,但不能晚到让学生听完才看到;同步问题优先调画面 timing,不是拉长空白。
 5. **场景丰富度**:不要整段锁在同一白板。至少包含 hook 场景、错觉场景、主推演场景、采分句/答题纸场景、答疑/闯关桥接场景。
 6. **独立闯关页**:练习从讲解页分离;播放结束后主 CTA 自动切到"开始闯关"。

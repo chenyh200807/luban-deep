@@ -101,6 +101,13 @@ function checkStatic(ir, html) {
   } else {
     pass("scrubber", "has draggable range scrubber");
   }
+  if (ir.source_refs?.audio) {
+    if (!/URL\.createObjectURL/.test(html) || !/fetch\(DATA\.audio\)/.test(html)) {
+      fail("audio_seekable_preview", "audio previews must blob-load mp3 on HTTP so scrubber/chapter seek works with simple static servers");
+    } else {
+      pass("audio_seekable_preview", "audio preview uses Blob fallback for seekable local HTTP playback");
+    }
+  }
   if (!/data-caption=["']1["']/.test(html) || !/"segments"\s*:/.test(html)) {
     fail("captions", "preview must expose timing-derived captions");
   } else {
@@ -130,6 +137,13 @@ function checkStatic(ir, html) {
     fail("player_a11y", "caption live region and button pressed state are required");
   } else {
     pass("player_a11y", "caption and controls expose basic accessibility state");
+  }
+  if (ir.render_contract?.ai_ask_required) {
+    if (!/data-ai-ask-entry/.test(html) || !/data-ai-ask-panel/.test(html) || !/luban_ai_ask/.test(html)) {
+      fail("ai_ask_entry", "AI ask handoff requires an entry button, panel, and structured context event");
+    } else {
+      pass("ai_ask_entry", "AI ask entry exposes structured current-scene context");
+    }
   }
 
   const dataMatch = html.match(/<script[^>]+id=["']irPreviewData["'][^>]*>([\s\S]*?)<\/script>/);
@@ -259,14 +273,9 @@ async function checkRuntime(ir) {
       { name: "portrait_430", width: 430, height: 932, mobile: true },
       { name: "landscape_844", width: 844, height: 390, mobile: true },
       { name: "landscape_932", width: 932, height: 430, mobile: true },
+      { name: "wide_1302", width: 1302, height: 950, mobile: false },
     ];
-    const samples = [
-      ir.scenes[0],
-      ir.scenes[Math.min(1, ir.scenes.length - 1)],
-      ir.scenes.find((scene) => scene.id === "score"),
-      ir.scenes.find((scene) => scene.id === "qa_closure"),
-      ir.scenes.find((scene) => scene.id === "closing_challenge"),
-    ].filter(Boolean);
+    const samples = ir.scenes.filter(Boolean);
     const scoreScene = ir.scenes.find((scene) => scene.id === "score") || ir.scenes.at(-2) || ir.scenes.at(-1);
     const challengeUnlockSec = Number(ir.render_contract?.challenge_unlock_sec ?? scoreScene.start_sec);
 
@@ -308,6 +317,7 @@ async function checkRuntime(ir) {
           };
           const stage = document.querySelector(".stage");
           const player = document.querySelector(".player");
+          const aiAskButtons = [...document.querySelectorAll("[data-ai-ask-entry]")].filter(visible).length;
           const buttons = [...document.querySelectorAll("button,a,input[type=range]")].filter(visible);
           const smallTargets = buttons
             .map((el) => ({name: (el.textContent || el.getAttribute("aria-label") || el.className || el.tagName).trim().slice(0, 28), rect: rect(el)}))
@@ -319,6 +329,7 @@ async function checkRuntime(ir) {
             overflowX: document.documentElement.scrollWidth - innerWidth,
             stage: rect(stage),
             player: rect(player),
+            aiAskButtons,
             smallTargets,
             missingNames,
             captionLive: document.querySelector("[data-caption]")?.getAttribute("aria-live") || "",
@@ -348,12 +359,15 @@ async function checkRuntime(ir) {
       else pass("runtime_accessible_names", `${viewport.name}: visible controls have names`);
       layoutValue.captionLive === "polite" ? pass("runtime_caption_live", `${viewport.name}: caption is live`) : fail("runtime_caption_live", `${viewport.name}: caption missing aria-live`);
       layoutValue.playPressed && layoutValue.theaterPressed ? pass("runtime_pressed_state", `${viewport.name}: player buttons expose pressed state`) : fail("runtime_pressed_state", `${viewport.name}: missing aria-pressed`);
+      if (ir.render_contract?.ai_ask_required) {
+        layoutValue.aiAskButtons >= 1 ? pass("runtime_ai_ask_entry", `${viewport.name}: AI ask entry visible`) : fail("runtime_ai_ask_entry", `${viewport.name}: AI ask entry missing`);
+      }
 
       for (const scene of samples) {
         const sceneStart = Number(scene.start_sec);
         const sceneEnd = Number(scene.end_sec);
         const sceneDur = Math.max(0.8, sceneEnd - sceneStart);
-        const t = sceneStart + Math.min(2.5, Math.max(0.8, sceneDur * 0.45));
+        const t = sceneStart + Math.max(0.25, Math.min(sceneDur - 0.15, Math.max(0.8, sceneDur * 0.86)));
         const expression = `
         (() => {
           window.__IR_PLAYER__.seek(${JSON.stringify(t)});
@@ -367,11 +381,54 @@ async function checkRuntime(ir) {
             const r = el.getBoundingClientRect();
             return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};
           };
-          const intersects = (a,b) => !!a && !!b && a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+          const intersects = (a,b,pad=1) => !!a && !!b && a.left < b.right - pad && a.right > b.left + pad && a.top < b.bottom - pad && a.bottom > b.top + pad;
           const activeScenes = [...document.querySelectorAll(".scene.active")];
           const active = activeScenes[0];
           const player = document.querySelector(".player");
           const playerRect = rect(player);
+          const coachRect = rect(active?.querySelector(".coach-card"));
+          const inViewport = (r) => !!r && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1;
+          const pillLabelIssues = active ? [...active.querySelectorAll('[data-visual-kind="pill"]')].flatMap((node) => {
+            const box = node.querySelector("rect");
+            if (!box || !box.getBBox) return [];
+            const rb = box.getBBox();
+            return [...node.querySelectorAll("text")].filter((text) => {
+              const tb = text.getBBox();
+              return tb.x < rb.x + 4 || tb.x + tb.width > rb.x + rb.width - 4 || tb.y < rb.y + 3 || tb.y + tb.height > rb.y + rb.height - 3;
+            }).map((text) => (node.dataset.visibleNode || "pill") + ":" + (text.textContent || "").trim().slice(0, 18));
+          }) : [];
+          const svgTextIssues = active ? (() => {
+            const issues = [];
+            const texts = [...active.querySelectorAll("[data-visible-node] text")]
+              .filter(visible)
+              .map((text) => {
+                const node = text.closest("[data-visible-node]");
+                return { text, node, id: node?.dataset.visibleNode || "text", kind: node?.dataset.visualKind || "", label: (text.textContent || "").trim().slice(0, 18), rect: rect(text) };
+              })
+              .filter((item) => item.label && item.rect);
+            for (let i = 0; i < texts.length; i += 1) {
+              for (let j = i + 1; j < texts.length; j += 1) {
+                if (texts[i].node === texts[j].node) continue;
+                if (intersects(texts[i].rect, texts[j].rect, 3)) {
+                  issues.push(texts[i].id + ":" + texts[i].label + "<->" + texts[j].id + ":" + texts[j].label);
+                }
+              }
+            }
+            for (const node of [...active.querySelectorAll('[data-visual-kind="flow_arrow"]')].filter(visible)) {
+              const path = node.querySelector("path");
+              if (!path || !path.getBBox) continue;
+              const pb = path.getBBox();
+              for (const text of [...node.querySelectorAll("text")].filter(visible)) {
+                const tb = text.getBBox();
+                const lineZone = { x: pb.x - 8, y: pb.y - 10, width: pb.width + 16, height: Math.max(20, pb.height + 20) };
+                const overlapsLineZone = tb.x < lineZone.x + lineZone.width && tb.x + tb.width > lineZone.x && tb.y < lineZone.y + lineZone.height && tb.y + tb.height > lineZone.y;
+                if (overlapsLineZone) {
+                  issues.push((node.dataset.visibleNode || "flow_arrow") + " label too close to arrow:" + (text.textContent || "").trim().slice(0, 18));
+                }
+              }
+            }
+            return issues;
+          })() : [];
           const protectedEls = [
             ...document.querySelectorAll(".scene.active .visual, .caption-line, .scene.active .coach-card, .challenge-inline")
           ].filter(visible);
@@ -387,7 +444,10 @@ async function checkRuntime(ir) {
           visibleNodes: active ? [...active.querySelectorAll("[data-visible-node]")].filter(visible).map((el) => el.dataset.visibleNode) : [],
           keycards: active ? [...active.querySelectorAll(".coach-card")].filter(visible).length : 0,
           caption: document.querySelector("[data-caption]")?.textContent?.trim() || "",
-          challengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter(visible).length,
+	          coachInViewport: inViewport(coachRect),
+	          pillLabelIssues,
+	          svgTextIssues,
+	          challengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter(visible).length,
           enabledChallengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter((el) => visible(el) && el.getAttribute("aria-disabled") !== "true").length,
           playerBlocks,
           captionCoachOverlap,
@@ -407,6 +467,12 @@ async function checkRuntime(ir) {
         else pass("runtime_keycard_budget", `${label}: one keycard`);
         if (!value.caption) fail("runtime_caption", `${label}: caption is empty`);
         else pass("runtime_caption", `${label}: caption visible`);
+        if (!value.coachInViewport) fail("runtime_coach_in_view", `${label}: coach card is outside viewport`);
+        else pass("runtime_coach_in_view", `${label}: coach card is inside viewport`);
+        if (value.pillLabelIssues.length) fail("runtime_svg_label_fit", `${label}: pill labels too close to edge ${value.pillLabelIssues.join(", ")}`);
+        else pass("runtime_svg_label_fit", `${label}: pill labels have safe padding`);
+        if (value.svgTextIssues.length) fail("runtime_svg_text_collision", `${label}: svg text collision/line crowding ${value.svgTextIssues.join(", ")}`);
+        else pass("runtime_svg_text_collision", `${label}: svg text avoids other labels and arrows`);
         if (value.playerBlocks.length) fail("runtime_player_occlusion", `${label}: player overlaps ${value.playerBlocks.join(", ")}`);
         else pass("runtime_player_occlusion", `${label}: player does not cover protected content`);
         if (value.captionCoachOverlap) fail("runtime_caption_coach_overlap", `${label}: caption overlaps coach card`);

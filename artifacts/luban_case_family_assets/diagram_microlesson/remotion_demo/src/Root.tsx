@@ -1,5 +1,10 @@
 import { Composition } from "remotion";
 import {
+  C02AnimationIrPreview,
+  C02_IR_DURATION_FRAMES,
+  C02_IR_FPS,
+} from "./C02AnimationIrPreview";
+import {
   F16AnimationIrPreview,
   F16_IR_DURATION_FRAMES,
   F16_IR_FPS,
@@ -38,6 +43,14 @@ export const RemotionRoot: React.FC = () => {
         component={F16RoofBlisterRepair}
         durationInFrames={F16_DURATION_FRAMES}
         fps={F16_FPS}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="C02AnimationIrPreview"
+        component={C02AnimationIrPreview}
+        durationInFrames={C02_IR_DURATION_FRAMES}
+        fps={C02_IR_FPS}
         width={1080}
         height={1920}
       />

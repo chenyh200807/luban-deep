@@ -28,6 +28,7 @@
 | `transport` | 播放、暂停、静音、进度、章节 | 壳统一实现 |
 | `chapter_nav` | 语义节点,如先学/错觉/试吊/采分 | lesson video_beats |
 | `challenge_cta` | 看完后闯关/开始闯关 | independent practice |
+| `ai_ask` | 当前画面一键答疑 | context_id + 当前 scene/caption + safe 母题摘要 |
 
 稳定壳负责:
 
@@ -39,6 +40,7 @@
 - 播放结束后 CTA 变成闯关。
 - player 高度运行时测量,不得写死 124/132px 之类 magic number。
 - 采分句前闯关 CTA 只能 locked/弱提示;采分句后才 enabled/主行动。
+- AI 答疑入口轻量悬浮,不抢 stage 空间;打开时暂停播放,自动带当前画面上下文;静态 preview 可复制/`postMessage`,并提供本地 preview answer/fallback 用于快速验证"带上下文问答"体验;小程序正式态由宿主进入 TutorBot,后端按 `context_id` 读取母题资料。
 
 稳定壳必须暴露机器可校验 hooks,不要靠 class/id 默契:
 
@@ -51,10 +53,14 @@
 | `[data-visual-node-id]` | `data-id:<target>` 的 DOM 命中目标 |
 | `[data-practice-id]` | 练习题/变题节点 |
 | `window.__LUBAN_LESSON_MANIFEST__` | renderer 输出给门禁/调试的结构化 manifest |
+| `[data-ai-ask-entry]` | 当前画面答疑入口 |
+| `[data-ai-ask-panel]` | 答疑上下文面板 |
 
 `data-visual-node-id` 可以包含多个空格分隔 id,但不得把 `source_ref`、采分点内部 id 或 taxonomy code 暴露给学生端。`animation_action[].target` 只能命中这些 `data-*` hook,普通 DOM `id` 不算命中。
 
 `window.__LUBAN_LESSON_MANIFEST__` 只能放 presentation action wiring,不得放 `schema_version`、`source_ref`、`scoring_point`、E-code、P-code、candidate 等制作侧/内部 token。资产级 schema/hash 放 `card_bundle_manifest.json`,不要注入学生 HTML。
+
+AI 答疑的上下文包也遵守同一条 student-safe 规则。学生端只可带 `context_id`、当前 scene、当前字幕、safe summary 和 key points;完整母题 MD、source path、basis_ref、候选采分点等由后端根据 `context_id` 查,不要塞进 HTML 或 URL。
 
 内容层只负责:
 
@@ -113,9 +119,12 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 - controls 高度不过载,不压住主 stage。
 - 固定播放器不得遮挡 `.visual`、字幕、教练卡、采分句或 CTA。
 - 可见按钮/链接/range 命中盒不小于 44px。
+- `[data-ai-ask-entry]` 命中盒不小于 44px,且不造成主 stage/coach 裁切。
+- Ask AI 打开后必须能看到当前 scene/keycard/caption 上下文;未接宿主时也要有 preview answer/fallback,不能只显示"已发送"或空白聊天页。
 - 字幕必须是独立 live region,不要挂进 `.visual` 跟着 camera transform。
 - 闯关 CTA 必须由 timing/scene 派生 unlock;采分句前 locked,采分句后 enabled。
 - seek 回旧 scene 时,旧 scene 节点不得继续可见。
+- animation_ir preview 要在 scene 后段采样,检查 SVG pill label padding、text/text 碰撞、flow_arrow label 与箭头线安全间距;标签避让由 primitive renderer 负责,不能靠每张卡手调坐标。
 
 独立练习页也必须走真实视口 gate,不能只被 `validate_video_first_preview.mjs`
 静态扫过。默认命令:

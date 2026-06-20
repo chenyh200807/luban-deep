@@ -37,6 +37,8 @@ const VISUAL_KINDS = new Set([
   "dialogue_box",
   "closing_text",
   "challenge_button",
+  "flow_arrow",
+  "threshold_meter",
   "note",
 ]);
 const INTERNAL_TOKEN_RE = /(source_ref|schema_version|candidate|official_score_allowed|\bE\d{2}\b|\bP\d{2,}\b)/i;

@@ -42,7 +42,8 @@ def _tone(name: object) -> dict[str, str]:
 
 def _visual_group(node: dict[str, Any], body: str) -> str:
     node_id = esc(node.get("id", "node"))
-    return f'<g data-visible-node="{node_id}" data-visual-node-id="{node_id}">{body}</g>'
+    kind = esc(node.get("kind", "node"))
+    return f'<g data-visible-node="{node_id}" data-visual-node-id="{node_id}" data-visual-kind="{kind}">{body}</g>'
 
 
 def _svg_text(text: object, x: object, y: object, *, size: int = 14, fill: str = "#0f1722", weight: int = 900, anchor: str = "middle") -> str:
@@ -55,6 +56,31 @@ def _svg_text(text: object, x: object, y: object, *, size: int = 14, fill: str =
             f'font-size="{size}" font-weight="{weight}" fill="{fill}">{esc(part)}</text>'
         )
     return "".join(lines)
+
+
+def _fit_font_size(text: object, width: float, base: int, *, minimum: int = 10) -> int:
+    longest = max((len(line) for line in str(text or "").split("\n")), default=0)
+    if longest <= 0:
+        return base
+    # SVG text has no layout engine; keep labels inside their primitive instead
+    # of relying on the browser to wrap or clip.
+    estimated = int((max(width - 20, 24) / max(longest, 1)) * 1.08)
+    return max(minimum, min(base, estimated))
+
+
+def _label_badge(text: object, cx: float, cy: float, *, tone: dict[str, str], width: float | None = None, size: int = 12) -> str:
+    label = str(text or "")
+    if not label:
+        return ""
+    badge_w = width or max(54, min(116, len(label) * size * 0.92 + 22))
+    badge_h = size + 13
+    x = cx - badge_w / 2
+    y = cy - badge_h / 2
+    return (
+        f'<rect x="{x}" y="{y}" width="{badge_w}" height="{badge_h}" rx="8" '
+        f'fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="1.6"/>'
+        + _svg_text(label, cx, cy + size * 0.34, size=size, fill=tone["text"], weight=900)
+    )
 
 
 def _roof_section(node: dict[str, Any]) -> str:
@@ -84,9 +110,12 @@ def _primitive_svg(node: dict[str, Any]) -> str:
     text = node.get("text", "")
     subtext = node.get("subtext", "")
     if kind == "pill":
-        text_svg = _svg_text(text, x + w / 2, y + (25 if subtext else h / 2 + 6), size=16, fill=tone["text"])
+        title_size = _fit_font_size(text, w, 16, minimum=11)
+        sub_size = _fit_font_size(subtext, w, 12, minimum=10)
+        title_y = y + (h * 0.42 if subtext else h / 2 + title_size * 0.36)
+        text_svg = _svg_text(text, x + w / 2, title_y, size=title_size, fill=tone["text"])
         if subtext:
-            text_svg += _svg_text(subtext, x + w / 2, y + 51, size=13, fill=tone["text"], weight=800)
+            text_svg += _svg_text(subtext, x + w / 2, y + h * 0.76, size=sub_size, fill=tone["text"], weight=800)
         return _visual_group(
             node,
             f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="3"/>{text_svg}',
@@ -189,6 +218,33 @@ def _primitive_svg(node: dict[str, Any]) -> str:
         return _visual_group(
             node,
             f'<rect x="90" y="166" width="180" height="44" rx="22" fill="#ffd27f"/><text x="180" y="194" text-anchor="middle" font-size="17" font-weight="900" fill="#0f1722">{esc(text)}</text>',
+        )
+    if kind == "flow_arrow":
+        x1 = float(node.get("x1", x))
+        x2 = float(node.get("x2", x + w))
+        yy = float(node.get("y", y))
+        stroke = tone["stroke"]
+        label_text = str(text or "")
+        badge_w = max(54, min(116, len(label_text) * 12 * 0.92 + 22))
+        line_start = x1 + badge_w + 12 if label_text else x1
+        if line_start > x2 - 30:
+            line_start = x1
+        label = _label_badge(label_text, x1 + badge_w / 2, yy, tone=tone, width=badge_w, size=12) if label_text else ""
+        return _visual_group(
+            node,
+            f'<path d="M{line_start} {yy} H{x2}" stroke="{stroke}" stroke-width="5" stroke-linecap="round"/>'
+            f'<path d="M{x2 - 12} {yy - 8} L{x2} {yy} L{x2 - 12} {yy + 8}" fill="none" stroke="{stroke}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'
+            + label,
+        )
+    if kind == "threshold_meter":
+        value = max(0, min(1, float(node.get("value", 0.62))))
+        marker = x + w * value
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="18" rx="9" fill="#e2e8f0"/>'
+            f'<rect x="{x}" y="{y}" width="{w * value}" height="18" rx="9" fill="{tone["stroke"]}" opacity=".85"/>'
+            f'<path d="M{marker} {y - 8} V{y + 30}" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>'
+            + _svg_text(text, x + w / 2, y + 48, size=13, fill=tone["text"]),
         )
     return _visual_group(
         node,
@@ -332,22 +388,41 @@ def render(ir_path: Path) -> str:
     timing_path = base / ir["source_refs"]["timing"]
     timing = json.loads(timing_path.read_text(encoding="utf-8")) if timing_path.exists() else {}
     audio = ir["source_refs"].get("audio", "")
+    audio_url = audio
+    if audio:
+        audio_path = base / audio
+        if audio_path.exists():
+            audio_url = f"{audio}?v={int(audio_path.stat().st_mtime)}"
     practice_href = ir.get("render_contract", {}).get("practice_href", "")
     max_nodes = int(ir.get("render_contract", {}).get("max_visible_nodes", 4))
+    display = ir.get("display", {})
+    title = display.get("title", "鲁班动画教案")
+    kicker = display.get("kicker", f"鲁班深母题 · {ir.get('card_id', '')}")
+    ai_context = {
+        "contextId": ir.get("ai_context", {}).get("context_id", ir.get("card_id", "")),
+        "title": ir.get("ai_context", {}).get("title", title),
+        "mainExamAction": ir.get("ai_context", {}).get("main_exam_action", ir["main_exam_action"]),
+        "safeSummary": ir.get("ai_context", {}).get("safe_summary", ir.get("teaching_spine", {}).get("warm_correction", "")),
+        "keyPoints": ir.get("ai_context", {}).get("key_points", []),
+        "handoffMode": ir.get("ai_context", {}).get("handoff_mode", "context_id_plus_current_scene"),
+    }
 
     scenes = ir["scenes"]
     visual_library = ir.get("visual_library", {})
     student_data = {
-        "title": "屋面卷材防水起鼓怎么修补",
+        "title": title,
+        "kicker": kicker,
         "subtitle": ir["main_exam_action"],
         "totalSec": timing.get("totalSec", scenes[-1]["end_sec"]),
         "challengeUnlockSec": ir.get("render_contract", {}).get(
             "challenge_unlock_sec",
             next((s["start_sec"] for s in scenes if s["id"] == "score"), scenes[-1]["start_sec"]),
         ),
-        "audio": audio,
+        "audio": audio_url,
         "practiceHref": practice_href,
         "maxVisibleNodes": max_nodes,
+        "aiAskRequired": bool(ir.get("render_contract", {}).get("ai_ask_required", False)),
+        "aiContext": ai_context,
         "chapters": ir["chapters"],
         "segments": [
             {
@@ -400,16 +475,25 @@ body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFo
 .subtitle{margin:10px 0 12px;color:#9fb0c2;font-size:13px;font-weight:800;line-height:1.5}
 .stage{--camera-scale:1;--camera-x:0px;--camera-y:0px;position:relative;background:#13202e;border:1px solid #24364b;border-radius:20px;min-height:430px;display:grid;align-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation}
 .stage:focus-visible{outline:3px solid #ffd27f;outline-offset:3px}
-.scene{display:none;padding:16px}.scene.active{display:grid;gap:12px;padding-bottom:88px;animation:sceneIn .2s ease-out}
-.visual{position:relative;min-height:270px;display:grid;place-items:center;transform:translate3d(var(--camera-x),var(--camera-y),0) scale(var(--camera-scale));transition:transform .12s linear;will-change:transform}
-.visual svg{width:100%;height:auto;display:block}
+.scene{display:none;min-width:0;padding:16px}.scene.active{display:grid;min-width:0;gap:12px;padding-bottom:88px;animation:sceneIn .2s ease-out}
+.visual{position:relative;min-width:0;max-width:100%;min-height:270px;display:grid;place-items:center;transform:translate3d(var(--camera-x),var(--camera-y),0) scale(var(--camera-scale));transition:transform .12s linear;will-change:transform}
+.visual svg{width:100%;max-width:100%;height:auto;display:block}
 [data-visible-node]{opacity:0;transform-box:fill-box;transform-origin:center;will-change:opacity,transform,filter}.node-focus{filter:drop-shadow(0 0 9px rgba(255,210,127,.75))}
-.coach-card{border-left:4px solid #ffd27f;background:#172434;border-radius:14px;padding:12px 13px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}
+.coach-card{min-width:0;max-width:100%;overflow-wrap:anywhere;border-left:4px solid #ffd27f;background:#172434;border-radius:14px;padding:12px 13px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}
 .coach-card b{display:block;color:#ffd27f;font-size:15px;line-height:1.35;margin-bottom:6px}.coach-card span{display:block;color:#dbe6f1;font-size:14px;line-height:1.55;font-weight:800}
 .caption-line{position:relative;z-index:4;min-height:40px;padding:10px 13px;border-radius:13px;background:rgba(9,17,27,.84);border:1px solid rgba(207,224,240,.18);box-shadow:0 14px 32px rgba(0,0,0,.28);color:#eef6ff;font-size:14px;font-weight:900;line-height:1.45;text-align:center;backdrop-filter:blur(8px)}
 .caption-line[data-speaker="S"]{color:#d7e9ff;border-color:rgba(96,165,250,.35)}
 .center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;border:0;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:17px;font-weight:900;padding:16px 24px;box-shadow:0 18px 44px rgba(0,0,0,.35)}
 .lesson.started .center-play{display:none}
+.ask-ai{position:absolute;right:12px;top:12px;z-index:7;min-width:52px;min-height:44px;border:1px solid rgba(255,210,127,.52);border-radius:999px;background:rgba(13,23,35,.82);color:#ffd27f;font-size:13px;font-weight:900;box-shadow:0 14px 32px rgba(0,0,0,.28);backdrop-filter:blur(8px)}
+.ask-ai:focus-visible,.ask-send:focus-visible,.ask-copy:focus-visible,.ask-close:focus-visible{outline:3px solid #ffd27f;outline-offset:2px}
+.ask-panel[hidden]{display:none}.ask-panel{position:fixed;inset:0;z-index:65;display:grid;align-items:end;background:rgba(2,6,12,.5);padding:14px}
+.ask-sheet{width:min(560px,100%);margin:0 auto;border:1px solid #2f4560;border-radius:20px;background:#101b2a;box-shadow:0 24px 70px rgba(0,0,0,.48);padding:14px;color:#eef6ff}
+.ask-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}.ask-head b{display:block;font-size:16px;line-height:1.35}.ask-head span{display:block;margin-top:4px;color:#9fb0c2;font-size:12px;font-weight:800;line-height:1.45}
+.ask-close{width:44px;height:44px;border:1px solid #31445c;border-radius:999px;background:#162234;color:#dceafe;font-weight:900}.ask-current{border-left:4px solid #ffd27f;border-radius:12px;background:#172434;padding:10px 12px;color:#dbeafe;font-size:13px;font-weight:850;line-height:1.45;margin-bottom:10px}
+.ask-input{width:100%;min-height:86px;resize:vertical;border:1px solid #31445c;border-radius:14px;background:#0d1723;color:#eef6ff;padding:11px 12px;font:inherit;font-size:14px;line-height:1.5}
+.ask-actions{display:flex;gap:10px;margin-top:10px}.ask-send,.ask-copy{flex:1;min-height:46px;border-radius:14px;border:1px solid #31445c;font-weight:900}.ask-send{background:#ffd27f;color:#101826;border-color:#ffd27f}.ask-copy{background:#162234;color:#dceafe}.ask-status{min-height:18px;margin:8px 2px 0;color:#9fb0c2;font-size:12px;font-weight:800;line-height:1.35}
+.ask-answer{margin-top:10px;border:1px solid rgba(255,210,127,.3);border-radius:14px;background:#0d1723;padding:11px 12px;color:#eef6ff;font-size:13px;font-weight:800;line-height:1.55;white-space:pre-wrap}
 .challenge-inline{display:none;align-items:center;justify-content:center;margin:12px 0 0;min-height:48px;border-radius:14px;border:1px dashed #3a4a60;color:#9fb0c2;text-decoration:none;font-weight:900}
 .challenge-inline.ready{color:#ffd27f;border-color:#6d5327;background:#1a150c}
 .theater-hint{position:fixed;left:50%;bottom:calc(var(--player-h) + 18px + env(safe-area-inset-bottom));z-index:45;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;border:1px solid rgba(207,224,240,.2);border-radius:999px;background:rgba(9,17,27,.78);color:#eaf3ff;font-size:13px;font-weight:900;padding:8px 13px;transition:opacity .18s,transform .18s}
@@ -431,23 +515,28 @@ body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFo
 .lesson.theater .top,.lesson.theater .subtitle,.lesson.theater .challenge-inline{display:none}
 .lesson.theater .stage{position:fixed;inset:0;border:0;border-radius:0;min-height:0;transition:inset .18s ease}
 .lesson.theater.controls-visible .stage{inset:0 0 calc(var(--player-h) + env(safe-area-inset-bottom)) 0}
-.lesson.theater .scene{height:100%;align-content:start;padding:clamp(18px,6vh,52px) 18px 18px}
+.lesson.theater .scene{height:100%;align-content:center;padding:clamp(18px,6vh,52px) 18px 18px}
 .lesson.theater .visual{min-height:0}.lesson.theater .visual svg{max-height:min(52dvh,460px)}
 .lesson.theater .coach-card{margin-top:4px}
 .lesson.theater .caption-line{font-size:15px}
 .lesson.theater.controls-visible .caption-line,.lesson.theater.controls-visible .coach-card{display:none}
+.lesson.theater:not(.controls-visible) .ask-ai{opacity:0;pointer-events:none}
 .lesson.theater .player{z-index:40;opacity:0;transform:translateY(105%);pointer-events:none}
 .lesson.theater.controls-visible .player{opacity:1;transform:none;pointer-events:auto}
 @media (orientation:landscape),(min-width:760px){
   .lesson{max-width:980px}.stage{min-height:420px}
-  .scene.active{grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);align-items:center}
-  .visual{min-height:330px}.coach-card{align-self:center}
-  .lesson.theater .scene.active{grid-template-columns:minmax(0,1.2fr) minmax(260px,.55fr)}
-  .lesson.theater .visual svg{max-height:70dvh}.lesson.theater .caption-line{left:8%;right:8%;bottom:20px}
+  .scene.active{grid-template-columns:minmax(0,1fr) minmax(230px,320px);grid-template-rows:minmax(0,1fr) auto;align-items:center}
+  .visual{grid-column:1;grid-row:1 / span 2}.caption-line{grid-column:2;grid-row:1;align-self:end}.coach-card{grid-column:2;grid-row:2;align-self:start}
+  .visual{min-height:330px}
+  .lesson.theater .scene.active{grid-template-columns:minmax(0,1fr) minmax(220px,300px)}
+  .lesson.theater .visual svg{max-height:min(68dvh,620px)}.lesson.theater .caption-line{left:8%;right:8%;bottom:20px}
 }
 @media (orientation:landscape) and (max-height:520px){
-  .lesson{max-width:none;min-height:auto;padding:10px 12px 0}.subtitle{margin-bottom:8px}.top h1{font-size:20px}
-  .stage{min-height:calc(100dvh - 132px)}
+  .lesson{max-width:none;min-height:auto;padding:8px 10px 0}.subtitle{display:none}.top h1{font-size:20px}
+  .stage{min-height:calc(100dvh - var(--player-h) - 54px)}
+  .scene.active{padding:8px 12px;gap:8px}
+  .visual{min-height:0}.visual svg{max-height:calc(100dvh - var(--player-h) - 72px)}
+  .caption-line{min-height:0;padding:7px 9px;font-size:12px;line-height:1.35}.coach-card{padding:8px 10px}.coach-card b{font-size:13px}.coach-card span{font-size:12px;line-height:1.4}
   .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
   .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
   .lesson.theater .scene{padding:14px 18px}.lesson.theater .visual svg{max-height:58dvh}
@@ -464,16 +553,27 @@ body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFo
 """
     return f"""<!doctype html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>F16 起鼓割补 · IR 预览</title><style>{css}</style></head>
+<title>{esc(title)} · IR 预览</title><style>{css}</style></head>
 <body>
 <main class="lesson orientation-adaptive" data-card-id="{esc(ir['card_id'])}" data-stage-shell="animation-ir-preview" data-animation-ir-preview="v0">
-  <div class="top"><div><p class="kicker">鲁班深母题 · F16 起鼓割补</p><h1>屋面卷材防水起鼓怎么修补</h1></div><div class="time"><span id="cur">0:00</span> / <span id="tot">0:00</span></div></div>
+  <div class="top"><div><p class="kicker">{esc(kicker)}</p><h1>{esc(title)}</h1></div><div class="time"><span id="cur">0:00</span> / <span id="tot">0:00</span></div></div>
   <p class="subtitle">{esc(ir['main_exam_action'])}</p>
   <div class="stage" id="stage" data-stage-shell="visual-stage" tabindex="0" aria-label="动画学习舞台，轻点显示或隐藏控制">
     {scenes_html}
     <div class="caption-line" id="captionLine" data-caption="1" data-speaker="T" role="status" aria-live="polite"></div>
     <div class="theater-hint" id="theaterHint" aria-hidden="true">轻点显示控制</div>
+    <button class="ask-ai" id="askAi" type="button" data-ai-ask-entry="1" aria-label="带当前画面问 AI">问 AI</button>
     <button class="center-play" id="centerPlay" type="button" aria-label="播放讲解">播放讲解</button>
+  </div>
+  <div class="ask-panel" id="askPanel" data-ai-ask-panel="1" hidden>
+    <div class="ask-sheet" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+      <div class="ask-head"><div><b id="askTitle">带着当前画面问 AI</b><span>会自动带上本卡考点、当前画面、字幕和采分主线。</span></div><button class="ask-close" id="askClose" type="button" aria-label="关闭 AI 答疑">×</button></div>
+      <div class="ask-current" id="askCurrent"></div>
+      <textarea class="ask-input" id="askInput" placeholder="比如：这一步为什么要先判口径？"></textarea>
+      <div class="ask-actions"><button class="ask-copy" id="askCopy" type="button">复制上下文</button><button class="ask-send" id="askSend" type="button">发送到答疑</button></div>
+      <div class="ask-status" id="askStatus" role="status" aria-live="polite"></div>
+      <div class="ask-answer" id="askAnswer" hidden></div>
+    </div>
   </div>
   <a class="challenge-inline" href="{esc(practice_href)}" data-challenge-cta="inline" aria-disabled="true">先看采分句再闯关 →</a>
   <div class="player controls" id="player">
@@ -487,17 +587,23 @@ body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFo
       <div class="chapters">{chapters_html}</div>
     </div>
   </div>
-  <audio id="au" preload="metadata"{' src="' + esc(audio) + '"' if audio else ''}></audio>
+  <audio id="au" preload="metadata"{' src="' + esc(audio_url) + '"' if audio_url else ''}></audio>
 </main>
 <script type="application/json" id="irPreviewData">{js_json(student_data)}</script>
 <script>
 const DATA=JSON.parse(document.getElementById('irPreviewData').textContent);
 const lesson=document.querySelector('.lesson'),au=document.getElementById('au'),play=document.getElementById('play'),centerPlay=document.getElementById('centerPlay'),scrubber=document.getElementById('scrubber'),fill=document.getElementById('fill');
 const cur=document.getElementById('cur'),cur2=document.getElementById('cur2'),tot=document.getElementById('tot'),tot2=document.getElementById('tot2'),theaterToggle=document.getElementById('theaterToggle'),stage=document.getElementById('stage'),player=document.getElementById('player'),captionLine=document.getElementById('captionLine');
+const askAi=document.getElementById('askAi'),askPanel=document.getElementById('askPanel'),askClose=document.getElementById('askClose'),askCurrent=document.getElementById('askCurrent'),askInput=document.getElementById('askInput'),askCopy=document.getElementById('askCopy'),askSend=document.getElementById('askSend'),askStatus=document.getElementById('askStatus'),askAnswer=document.getElementById('askAnswer');
 const scenes=[...document.querySelectorAll('.scene')],chapters=[...document.querySelectorAll('.chapter')];
 const challengeLinks=[...document.querySelectorAll('[data-challenge-cta]')];
 const fmt=s=>{{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}};
-let raf=0,hideTimer=0,hintTimer=0,lastScene='';
+const hasAudio=Boolean(DATA.audio);
+let raf=0,hideTimer=0,hintTimer=0,lastScene='',virtualTime=0,virtualPlaying=false,lastTick=0;
+const getTime=()=>hasAudio?Number(au.currentTime||0):virtualTime;
+const isPaused=()=>hasAudio?au.paused:!virtualPlaying;
+const setTime=t=>{{const next=Math.max(0,Math.min(DATA.totalSec,Number(t)||0));if(hasAudio)au.currentTime=next;else virtualTime=next;return next;}};
+const audioReadyPromise=hasAudio&&location.protocol.startsWith('http')?fetch(DATA.audio).then(r=>{{if(!r.ok)throw new Error('audio fetch '+r.status);return r.blob();}}).then(blob=>new Promise(resolve=>{{const url=URL.createObjectURL(blob);au.addEventListener('loadedmetadata',resolve,{{once:true}});au.src=url;au.load();}})).catch(()=>undefined):Promise.resolve();
 tot.textContent=tot2.textContent=fmt(DATA.totalSec);
 const scoreStart=Number(DATA.challengeUnlockSec??(DATA.scenes.find(s=>s.id==='score')||DATA.scenes.at(-2)||DATA.scenes.at(-1)).start);
 const clamp01=x=>Math.max(0,Math.min(1,x));
@@ -507,28 +613,41 @@ function segmentAt(t){{return (DATA.segments||[]).find(s=>t>=s.start-0.18&&t<s.e
 function syncPlayerHeight(){{lesson.style.setProperty('--player-h',Math.ceil(player.getBoundingClientRect().height||132)+'px');}}
 if('ResizeObserver' in window)new ResizeObserver(syncPlayerHeight).observe(player);
 window.addEventListener('resize',syncPlayerHeight);
-function scoreReady(t=Number(au.currentTime||scrubber.value||0)){{return t>=scoreStart-0.1||t>=DATA.totalSec-0.5;}}
+function scoreReady(t=Number(getTime()||scrubber.value||0)){{return t>=scoreStart-0.1||t>=DATA.totalSec-0.5;}}
 function updateChallenge(t){{const ready=scoreReady(t);lesson.classList.toggle('challenge-ready',ready);challengeLinks.forEach(link=>{{link.classList.toggle('ready',ready);link.setAttribute('aria-disabled',ready?'false':'true');link.textContent=link.dataset.challengeCta==='inline'?(ready?'用采分句闯关 →':'先看采分句再闯关 →'):(ready?'闯关':'采分后闯关');}});}}
 function showHint(){{if(!lesson.classList.contains('theater'))return;clearTimeout(hintTimer);lesson.classList.add('show-hint');hintTimer=setTimeout(()=>lesson.classList.remove('show-hint'),1400);}}
-function setControls(visible=true,auto=true){{clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible)lesson.classList.remove('show-hint');else showHint();if(visible&&auto&&lesson.classList.contains('theater')&&!au.paused)hideTimer=setTimeout(()=>setControls(false,false),2600);}}
+function setControls(visible=true,auto=true){{clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible)lesson.classList.remove('show-hint');else showHint();if(visible&&auto&&lesson.classList.contains('theater')&&!isPaused())hideTimer=setTimeout(()=>setControls(false,false),2600);}}
 function setPlayState(isPlaying){{play.textContent=isPlaying?'⏸':'▶';play.setAttribute('aria-label',isPlaying?'暂停讲解':'播放讲解');play.setAttribute('aria-pressed',isPlaying?'true':'false');}}
 function applyMotion(activeEl,active,t){{if(!activeEl)return;const dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur),nodes=[...activeEl.querySelectorAll('[data-visible-node]')],actions=active.actions||[];const cameraAction=actions.find(a=>a.kind==='camera')||{{verb:active.camera,start:0,end:.28}},cameraVerb=cameraAction.verb||active.camera;const cameraPush=cameraVerb==='push-in'||cameraVerb==='spotlight'||cameraVerb==='answer-paper'||cameraVerb==='trace';const cameraP=ease((p-(cameraAction.start||0))/Math.max(.05,(cameraAction.end||.28)-(cameraAction.start||0)));stage.style.setProperty('--camera-scale',String(1+(cameraPush?0.035*cameraP:0)));stage.style.setProperty('--camera-y',(cameraVerb==='pull-back'?String(-8*ease(p)):'0')+'px');nodes.forEach((node,i)=>{{const name=node.dataset.visibleNode||'';const reveal=actions.find(a=>a.kind==='reveal'&&a.target===name)||{{start:.04+i*.14,end:.22+i*.14}};const v=ease((p-reveal.start)/Math.max(.05,reveal.end-reveal.start));const highlighted=actions.some(a=>a.kind==='highlight'&&(a.target===name||name===a.target||name.includes(a.target))&&p>=a.start&&p<=a.end)||name===active.focus||name.includes(active.focus);node.style.opacity=String(v);node.style.transform=`translateY(${{(1-v)*10}}px) scale(${{0.96+v*0.04}})`;node.classList.toggle('node-focus',highlighted);}});if(active.id!==lastScene){{scenes.forEach(scene=>{{if(scene!==activeEl)scene.querySelectorAll('[data-visible-node]').forEach(node=>{{node.style.opacity='0';node.style.transform='translateY(10px) scale(.96)';node.classList.remove('node-focus');}});}});lastScene=active.id;}}}}
-function paint(){{const t=Number(au.currentTime||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.add('started');lesson.classList.toggle('paused',au.paused);lesson.classList.toggle('playing',!au.paused);let activeEl=null;scenes.forEach(el=>{{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;}});const coach=activeEl?.querySelector('.coach-card');if(activeEl&&coach&&captionLine.parentElement!==activeEl)activeEl.insertBefore(captionLine,coach);applyMotion(activeEl,active,t);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);captionLine.hidden=!seg;captionLine.textContent=seg?.text||'';captionLine.dataset.speaker=seg?.speaker||'T';updateChallenge(t);syncPlayerHeight();}}
-function loop(){{paint();if(!au.paused)raf=requestAnimationFrame(loop);}}
+function paint(){{const t=Number(getTime()||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.toggle('paused',isPaused());lesson.classList.toggle('playing',!isPaused());let activeEl=null;scenes.forEach(el=>{{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;}});const coach=activeEl?.querySelector('.coach-card');if(activeEl&&coach&&captionLine.parentElement!==activeEl)activeEl.insertBefore(captionLine,coach);const motionT=!lesson.classList.contains('started')&&t<0.05?active.start+Math.max(1,(active.end-active.start)*0.55):t;applyMotion(activeEl,active,motionT);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);captionLine.hidden=!seg;captionLine.textContent=seg?.text||'';captionLine.dataset.speaker=seg?.speaker||'T';updateChallenge(t);syncPlayerHeight();}}
+function tickVirtualClock(){{if(!hasAudio&&virtualPlaying){{const now=performance.now();if(lastTick)virtualTime+=Math.max(0,(now-lastTick)/1000);lastTick=now;if(virtualTime>=DATA.totalSec){{virtualTime=DATA.totalSec;virtualPlaying=false;setPlayState(false);setControls(true,false);}}}}}}
+function loop(){{tickVirtualClock();paint();if(!isPaused())raf=requestAnimationFrame(loop);}}
 function startLoop(){{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}}
-function seek(t){{au.currentTime=Math.max(0,Math.min(DATA.totalSec,Number(t)||0));scrubber.value=String(au.currentTime);paint();setControls(true);}}
-function playAudio(){{lesson.classList.add('started');return au.play().then(()=>{{setPlayState(true);setControls(true);startLoop();}}).catch(()=>{{paint();}});}}
-function toggle(){{if(au.paused)playAudio();else{{au.pause();setPlayState(false);setControls(true,false);paint();}}}}
+function seek(t){{const next=setTime(t);if(next>0.2)lesson.classList.add('started');scrubber.value=String(next);paint();setControls(true);}}
+async function playAudio(){{lesson.classList.add('started');if(!hasAudio){{virtualPlaying=true;lastTick=performance.now();setPlayState(true);setControls(true);startLoop();return Promise.resolve();}}await audioReadyPromise;return au.play().then(()=>{{setPlayState(true);setControls(true);startLoop();}}).catch(()=>{{paint();}});}}
+function toggle(){{if(isPaused())playAudio();else{{if(hasAudio)au.pause();else virtualPlaying=false;setPlayState(false);setControls(true,false);paint();}}}}
+function pauseForAsk(){{if(hasAudio)au.pause();else virtualPlaying=false;setPlayState(false);setControls(true,false);paint();}}
+function currentAskContext(){{const t=Number(getTime()||0);const active=sceneAt(t);const seg=segmentAt(t);return {{type:'luban_ai_ask',cardId:lesson.dataset.cardId||'',contextId:DATA.aiContext?.contextId||lesson.dataset.cardId||'',title:DATA.aiContext?.title||DATA.title,mainExamAction:DATA.aiContext?.mainExamAction||DATA.subtitle,currentScene:{{id:active.id,label:active.label,focus:active.focus,keycard:active.keycard,coach:active.coach}},currentCaption:seg?{{speaker:seg.speaker,text:seg.text,start:seg.start,end:seg.end}}:null,safeSummary:DATA.aiContext?.safeSummary||'',keyPoints:DATA.aiContext?.keyPoints||[],time:t}};}}
+function askTextPayload(context){{return ['【当前画面】'+context.currentScene.label+' · '+context.currentScene.keycard,'【字幕】'+(context.currentCaption?.text||'暂无'),'【本卡主线】'+context.mainExamAction,'【安全上下文】'+context.safeSummary,'【我的问题】'+(askInput.value.trim()||'请解释我当前画面容易卡住的点。')].join('\\n');}}
+function openAskPanel(){{pauseForAsk();const context=currentAskContext();askCurrent.textContent=`当前: ${{context.currentScene.label}}｜${{context.currentScene.keycard}}｜${{context.currentCaption?.text||context.currentScene.coach}}`;askInput.value='';askStatus.textContent='';askAnswer.hidden=true;askAnswer.textContent='';askPanel.hidden=false;setControls(true,false);requestAnimationFrame(()=>askInput.focus());}}
+function closeAskPanel(){{askPanel.hidden=true;askStatus.textContent='';askAnswer.hidden=true;askAnswer.textContent='';stage.focus();}}
+async function copyAskContext(){{const context=currentAskContext();const text=askTextPayload(context);try{{await navigator.clipboard.writeText(text);askStatus.textContent='已复制当前画面上下文，可以粘贴给答疑。';}}catch{{askStatus.textContent='复制失败，请长按选中文本后手动复制。';}}}}
+function previewAskAnswer(context){{const points=(context.keyPoints||[]).slice(0,3).map(point=>'• '+point).join('\\n');const question=askInput.value.trim()||'我现在最容易卡在哪里？';return `预览答疑：你问「${{question}}」\\n\\n先看当前画面：${{context.currentScene.label}}。这一幕抓的是「${{context.currentScene.keycard}}」。\\n${{context.currentScene.coach}}\\n\\n答题主线：${{context.mainExamAction}}\\n${{points?'\\n可带走的依据：\\n'+points:''}}\\n\\n正式小程序里，这个入口会把 contextId、当前画面和问题发给 TutorBot，由后端读取母题数据继续追问。`;}}
+function sendAskContext(){{const payload=currentAskContext();payload.question=askInput.value.trim();const message={{type:'luban_ai_ask',payload}};try{{window.wx?.miniProgram?.postMessage({{data:message}});}}catch{{}}try{{window.parent?.postMessage(message,'*');}}catch{{}}askAnswer.textContent=previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent=payload.question?'预览模式已给出上下文答疑；正式版会发送给小程序 TutorBot。':'可以先看预览答疑，也可以补一句更具体的问题。';}}
 play.addEventListener('click',toggle);centerPlay.addEventListener('click',playAudio);au.addEventListener('timeupdate',paint);au.addEventListener('play',()=>setPlayState(true));au.addEventListener('pause',()=>setPlayState(false));au.addEventListener('ended',()=>{{setPlayState(false);seek(DATA.totalSec);setControls(true,false);}});
 scrubber.addEventListener('input',()=>seek(scrubber.value));chapters.forEach(btn=>btn.addEventListener('click',()=>{{seek(btn.dataset.t);playAudio();}}));
 stage.addEventListener('click',e=>{{if(e.target===centerPlay)return;if(lesson.classList.contains('theater'))setControls(true);}});
 stage.addEventListener('keydown',e=>{{if((e.key==='Enter'||e.key===' ')&&lesson.classList.contains('theater')){{e.preventDefault();setControls(true);}}}});
 player.addEventListener('click',e=>e.stopPropagation());
+askAi.addEventListener('click',e=>{{e.stopPropagation();openAskPanel();}});
+askClose.addEventListener('click',closeAskPanel);askCopy.addEventListener('click',copyAskContext);askSend.addEventListener('click',sendAskContext);
+askPanel.addEventListener('click',e=>{{if(e.target===askPanel)closeAskPanel();}});
+document.addEventListener('keydown',e=>{{if(e.key==='Escape'&&!askPanel.hidden)closeAskPanel();}});
 challengeLinks.forEach(link=>link.addEventListener('click',e=>{{if(scoreReady())return;e.preventDefault();seek(scoreStart);playAudio();}}));
 async function setTheater(on){{lesson.classList.toggle('theater',on);theaterToggle.textContent=on?'退出':'全屏';theaterToggle.setAttribute('aria-label',on?'退出全屏学习模式':'进入全屏学习模式');theaterToggle.setAttribute('aria-pressed',on?'true':'false');if(on){{showHint();try{{await stage.requestFullscreen?.();}}catch{{}}}}else{{lesson.classList.remove('show-hint');if(document.fullscreenElement){{try{{await document.exitFullscreen();}}catch{{}}}}}}setControls(true);syncPlayerHeight();paint();}}
 theaterToggle.addEventListener('click',()=>setTheater(!lesson.classList.contains('theater')));
 document.addEventListener('fullscreenchange',()=>{{if(!document.fullscreenElement&&lesson.classList.contains('theater')){{lesson.classList.remove('theater');theaterToggle.textContent='全屏';theaterToggle.setAttribute('aria-label','进入全屏学习模式');theaterToggle.setAttribute('aria-pressed','false');setControls(true,false);paint();}}}});
-window.__IR_PLAYER__={{seek,paint,state:()=>({{time:Number(au.currentTime||0),scene:sceneAt(Number(au.currentTime||0)).id}})}};
+window.__IR_PLAYER__={{seek,paint,state:()=>({{time:Number(getTime()||0),scene:sceneAt(Number(getTime()||0)).id,hasAudio,playing:!isPaused()}})}};
 syncPlayerHeight();seek(0);setPlayState(false);setControls(false,false);
 </script></body></html>"""
 

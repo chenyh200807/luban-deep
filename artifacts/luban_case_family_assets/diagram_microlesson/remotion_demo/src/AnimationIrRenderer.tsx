@@ -28,6 +28,7 @@ type VisualNode = {
   base_y?: number;
   text?: string;
   subtext?: string;
+  value?: number;
 };
 
 type VisualScene = {
@@ -161,6 +162,42 @@ const TextLines: React.FC<{
   );
 };
 
+const fitFontSize = (text: string | undefined, width: number, base: number, minimum = 10) => {
+  const longest = Math.max(0, ...String(text || "").split("\n").map((line) => line.length));
+  if (!longest) return base;
+  const estimated = Math.floor((Math.max(width - 20, 24) / Math.max(longest, 1)) * 1.08);
+  return Math.max(minimum, Math.min(base, estimated));
+};
+
+const LabelBadge: React.FC<{
+  text?: string;
+  cx: number;
+  cy: number;
+  tone: ReturnType<typeof toneOf>;
+  width?: number;
+  size?: number;
+}> = ({ text, cx, cy, tone, width, size = 12 }) => {
+  const label = String(text || "");
+  if (!label) return null;
+  const badgeW = width ?? Math.max(54, Math.min(116, label.length * size * 0.92 + 22));
+  const badgeH = size + 13;
+  return (
+    <>
+      <rect
+        x={cx - badgeW / 2}
+        y={cy - badgeH / 2}
+        width={badgeW}
+        height={badgeH}
+        rx={8}
+        fill={tone.fill}
+        stroke={tone.stroke}
+        strokeWidth={1.6}
+      />
+      <TextLines text={label} x={cx} y={cy + size * 0.34} size={size} fill={tone.text} />
+    </>
+  );
+};
+
 const Primitive: React.FC<{
   node: VisualNode;
   opacity: number;
@@ -176,11 +213,14 @@ const Primitive: React.FC<{
   const common = { opacity, transform, transformBox: "fill-box" as const, transformOrigin: "center", filter };
 
   if (node.kind === "pill") {
+    const titleSize = fitFontSize(node.text, w, 16, 11);
+    const subSize = fitFontSize(node.subtext, w, 12, 10);
+    const titleY = y + (node.subtext ? h * 0.42 : h / 2 + titleSize * 0.36);
     return (
       <g style={common}>
         <rect x={x} y={y} width={w} height={h} rx={14} fill={t.fill} stroke={t.stroke} strokeWidth={3} />
-        <TextLines text={node.text} x={x + w / 2} y={y + (node.subtext ? 25 : h / 2 + 6)} size={16} fill={t.text} />
-        {node.subtext ? <TextLines text={node.subtext} x={x + w / 2} y={y + 51} size={13} fill={t.text} weight={850} /> : null}
+        <TextLines text={node.text} x={x + w / 2} y={titleY} size={titleSize} fill={t.text} />
+        {node.subtext ? <TextLines text={node.subtext} x={x + w / 2} y={y + h * 0.76} size={subSize} fill={t.text} weight={850} /> : null}
       </g>
     );
   }
@@ -312,6 +352,33 @@ const Primitive: React.FC<{
       <g style={common}>
         <rect x={90} y={166} width={180} height={44} rx={22} fill={colors.amber} />
         <TextLines text={node.text} x={180} y={194} size={17} fill="#0f1722" />
+      </g>
+    );
+  }
+  if (node.kind === "flow_arrow") {
+    const x1 = node.x1 ?? x;
+    const x2 = node.x2 ?? x + w;
+    const label = String(node.text || "");
+    const badgeW = Math.max(54, Math.min(116, label.length * 12 * 0.92 + 22));
+    let lineStart = label ? x1 + badgeW + 12 : x1;
+    if (lineStart > x2 - 30) lineStart = x1;
+    return (
+      <g style={common}>
+        <path d={`M${lineStart} ${y} H${x2}`} stroke={t.stroke} strokeWidth={5} strokeLinecap="round" />
+        <path d={`M${x2 - 12} ${y - 8} L${x2} ${y} L${x2 - 12} ${y + 8}`} fill="none" stroke={t.stroke} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+        <LabelBadge text={label} cx={x1 + badgeW / 2} cy={y} tone={t} width={badgeW} size={12} />
+      </g>
+    );
+  }
+  if (node.kind === "threshold_meter") {
+    const value = Math.max(0, Math.min(1, node.value ?? 0.62));
+    const marker = x + w * value;
+    return (
+      <g style={common}>
+        <rect x={x} y={y} width={w} height={18} rx={9} fill="#e2e8f0" />
+        <rect x={x} y={y} width={w * value} height={18} rx={9} fill={t.stroke} opacity={0.85} />
+        <path d={`M${marker} ${y - 8} V${y + 30}`} stroke="#f97316" strokeWidth={4} strokeLinecap="round" />
+        <TextLines text={node.text} x={x + w / 2} y={y + 48} size={13} fill={t.text} />
       </g>
     );
   }

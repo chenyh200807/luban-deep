@@ -71,12 +71,13 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 5. `visible_nodes.length <= render_contract.max_visible_nodes`。F16 这类工序/构造卡默认拆成多 scene:起鼓病因、割开放气、干燥清基、附加封严、蓄水检验、答题纸采分句、闯关桥接。
 6. HTML preview 是产品评审入口,不是 Remotion 成片。它必须模拟 action playback、字幕、拖动、theater 交互;正式成片时 Remotion renderer 必须吃同一份 IR。预览阶段不生成 MP4。
 7. **前面先审**:IR 生成后、任何 renderer 运行前先跑 `validate_animation_ir_contract.mjs`。它必须证明 scene 时间不重叠、visible_nodes 有 visual_library backing、action kind/target/timing 合法、student-safe 文本无内部 token、Remotion wrapper 导入当前 IR 并委托通用 `AnimationIrRenderer`。没过不要渲染,更不要调 CSS。
-8. post-render gate 至少覆盖:IR schema/必填字段、scene 不重叠、IR→HTML preview data 等价、当前屏最大可见信息数、keycard 不累积、字幕存在、字幕 live region、theater 默认隐藏控制层且点击浮出、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene、scene 中段至少有一个节点经 action/progressive reveal 可见。
+8. post-render gate 至少覆盖:IR schema/必填字段、scene 不重叠、IR→HTML preview data 等价、当前屏最大可见信息数、keycard 不累积、字幕存在、字幕 live region、theater 默认隐藏控制层且点击浮出、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene、scene 后段至少有一个节点经 action/progressive reveal 可见。不要只抽 scene 中段;很多拥挤/叠层只在全 reveal 后暴露。
 9. 手机 preview gate 必须跑真实视口矩阵:360/390/430 竖屏 + 844/932 横屏;断言播放器不遮挡 `.visual`/字幕/教练卡/CTA、控件命中盒 >=44px、无横向 overflow、闯关 CTA 在采分句前 locked、采分句后 enabled、seek 到旧时间不残留 off-scene 节点。
-10. **练习页也必须是 runtime 产品面,不是附属 HTML**:独立闯关页必须跑 `validate_challenge_theater_practice.mjs` 或同级 gate,覆盖 360/390 竖屏、844 横屏和至少一个宽屏/桌面视口;检查文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据默认渐进展开、触控 >=44px。没有这道门,不得说 practice 合格。
-11. **截图证据是验收的一部分**:机器门 PASS 后还要用 `cdp_shot.mjs` 截目标视口。若用户反馈来自某个截图/设备比例,该比例必须加入下一轮 gate 或截图证据。禁止只看 390x844 或只看 DOM 指标就判合格。
-12. **机器门之后必须形成 review packet**:按 `workflow-review-loop.md` 记录 gate 输出、目标截图墙、judge/human 发现、root-cause triage、修复层级和回炉字段。若人眼发现问题但没有新增 gate/anti-pattern/triage,不得把本轮标为 workflow improvement。
-13. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+10. **SVG 文本安全是 renderer/gate 合同,不是单卡坐标问题**:所有图元必须自带安全文字策略(pill fit、多行、徽标占位、箭头从标签后起笔、必要时图例化)。post-render gate 必须检查 pill label padding、SVG text/text 碰撞、flow_arrow label 与箭头线间距。截图发现文字贴边/压线/跑出白板时,优先改 primitive renderer + gate,不要只改当前卡 x/y。
+11. **练习页也必须是 runtime 产品面,不是附属 HTML**:独立闯关页必须跑 `validate_challenge_theater_practice.mjs` 或同级 gate,覆盖 360/390 竖屏、844 横屏和至少一个宽屏/桌面视口;检查文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据默认渐进展开、触控 >=44px。没有这道门,不得说 practice 合格。
+12. **截图证据是验收的一部分**:机器门 PASS 后还要用 `cdp_shot.mjs` 截目标视口。若用户反馈来自某个截图/设备比例,该比例必须加入下一轮 gate 或截图证据。禁止只看 390x844 或只看 DOM 指标就判合格。
+13. **机器门之后必须形成 review packet**:按 `workflow-review-loop.md` 记录 gate 输出、目标截图墙、judge/human 发现、root-cause triage、修复层级和回炉字段。若人眼发现问题但没有新增 gate/anti-pattern/triage,不得把本轮标为 workflow improvement。
+14. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
 
 60 张卡量产的核心目标:每次 F16/N01/S01/A01 暴露的问题,都要优先沉淀到 `animation_ir.v0`、renderer、gate 或本 skill,而不是只修单卡 CSS。单卡能看只是样例;可复用 workflow 才是交付物。
 如果某次修复选择只改 card CSS,必须在复盘中写明为什么不是 stage shell / renderer / gate 问题;否则默认返工。
@@ -173,7 +174,11 @@ Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_micro
 25. **练习页可读性是硬门,不是美术建议**:所有题图/流程图/判断图的文字必须在图元内可读,不得把 4 字以上标签硬塞进小圆/窄框;题干、学生答、选项、反馈在竖屏/横屏/宽屏都必须 wrap 而不是裁切。发现这类问题要改 renderer 图元/布局/gate,不要只调当前卡 CSS。
 26. **重新生成媒体后必须破缓存**:本地/小程序 web-view 容易缓存同名 mp4/poster/mp3;HTML 引用要带 mtime/hash 版本参数,否则手机端可能仍在看旧片。
 27. **预览评审不重新生成 MP4**:如果只是给用户看 UI/UX、排版、文案、交互或学习卡效果,优先改 HTML/CSS/数据并用 Remotion still、CDP/Playwright 手机截图验收;可以复用已有 MP4 做播放源,但不要每次 full render 新 MP4。只有音画同步成片验收、媒体内容变化、正式候选/发布、缓存验证,或用户明确要视频文件时,才执行 `remotion render` + `ffprobe`。
-28. **默认声纹只作为离线 TTS 生成参数,不能和现有音频脱节**:新生成/重配音时,老师/旁白默认 `longanhuan_v3`(龙安欢 V3),学生模拟默认 `Ethan`(晨煦)。已有音频未重新生成时,不要只改 metadata 造成"标的声音"和 mp3 实际声音不一致。
+28. **默认声纹只作为离线 TTS 生成参数,不能和现有音频脱节**:新生成/重配音时,老师/旁白默认 `longanhuan_v3`(龙安欢 V3),学生模拟默认 `longlaotie_v3`(龙老铁,东北男孩)。已有音频未重新生成时,不要只改 metadata 造成"标的声音"和 mp3 实际声音不一致。
+29. **教学动画问答结构必须先讲后问**:学生追问只放顶层 `qa[]`,不得塞进 `teach.beats[]` 打断主讲;有 `qa[]` 时默认至少三问三答,集中处理真实边界问题。每组 QA 必须有明确 `state` 映射到 IR scene(如 `qa_boundary`),closing 必须能显式指定 state(如 `closing_challenge`)。
+30. **口癖是人物质感,不是节拍器**:老师可在 hook 和 closing 自然使用"注意哈/最后收束一句哈"之类口语钩子,但不得每个知识点都加。生成器/审稿时若老师口癖超过两处,先改旁白结构,不要让 TTS 把机械感放大。
+31. **讲解中必须预留上下文答疑入口**:动画卡不是封闭视频。preview shell 应提供轻量 `Ask AI` slot,点击后暂停讲解,自动打包 `context_id + 当前 scene/focus/keycard/coach + 当前字幕 + safe_summary/key_points`。学生 HTML 只暴露安全上下文;完整母题 MD/source/basis_ref 由小程序/TutorBot 后端按 `context_id` 解析,不得把 raw MD、`source_ref`、candidate、采分点内部 id 注入学生端。未接小程序前,HTML preview 必须提供本地 preview answer/fallback,用于快速验证"学员提问→带上下文回答"的交互体验;正式答案权威仍在 TutorBot/后端 fat skill。
+32. **用户截图暴露的问题必须变成 gate 或 anti-pattern**:如果人眼发现某个比例下文字贴边、右栏裁切、舞台拥挤,下一轮必须把该比例加入 runtime viewport 或截图墙,并补对应 renderer/gate 检查。只改当前卡坐标而不补 workflow 约束,不算改进。
 
 ## 元规律(为什么这套成立)
 
