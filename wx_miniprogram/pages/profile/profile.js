@@ -337,6 +337,7 @@ Page({
         self.data.username === "用户" ? "输入你的昵称" : self.data.username,
       success: function (res) {
         if (res.confirm && res.content && res.content.trim()) {
+          if (!self._mounted) return;
           var newName = res.content.trim().slice(0, 20);
           self.setData({
             username: newName,
