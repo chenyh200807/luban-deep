@@ -46,9 +46,18 @@ Page({
       camera: "back",
       success: function (res) {
         var added = (res.tempFiles || []).map(function (f) {
-          return { tempPath: f.tempFilePath, status: "ready", qualityIssues: [] };
+          return {
+            tempPath: f.tempFilePath,
+            status: "ready",
+            qualityIssues: [],
+          };
         });
         that.setData({ pages: that.data.pages.concat(added), errorText: "" });
+      },
+      fail: function (err) {
+        var code = err && err.errCode;
+        if (code === -2 || code === 2) return; // user cancelled
+        wx.showToast({ title: "请在设置中允许访问相机或相册", icon: "none" });
       },
     });
   },
@@ -77,7 +86,10 @@ Page({
 
     var ensureSession = this.sessionId
       ? Promise.resolve({ session: { id: this.sessionId } })
-      : api.createPhotoAnswerSession(this.data.questionId, this.data.questionStem);
+      : api.createPhotoAnswerSession(
+          this.data.questionId,
+          this.data.questionStem,
+        );
 
     ensureSession
       .then(function (res) {
@@ -92,26 +104,34 @@ Page({
               return null;
             }
             that.setData({ ["pages[" + index + "].status"]: "uploading" });
-            return api.uploadPhotoAnswerPage(that.sessionId, index, page.tempPath).then(
-              function (uploaded) {
-                var issues = (uploaded.quality && uploaded.quality.issues) || [];
-                that.setData({
-                  ["pages[" + index + "].status"]: "done",
-                  ["pages[" + index + "].qualityIssues"]: issues,
-                });
-                if (issues.length) {
-                  wx.showToast({
-                    title: "第" + (index + 1) + "页" + that._qualityHint(issues) + "，建议重拍",
-                    icon: "none",
-                    duration: 2500,
+            return api
+              .uploadPhotoAnswerPage(that.sessionId, index, page.tempPath)
+              .then(
+                function (uploaded) {
+                  var issues =
+                    (uploaded.quality && uploaded.quality.issues) || [];
+                  that.setData({
+                    ["pages[" + index + "].status"]: "done",
+                    ["pages[" + index + "].qualityIssues"]: issues,
                   });
-                }
-              },
-              function (err) {
-                that.setData({ ["pages[" + index + "].status"]: "failed" });
-                throw err;
-              }
-            );
+                  if (issues.length) {
+                    wx.showToast({
+                      title:
+                        "第" +
+                        (index + 1) +
+                        "页" +
+                        that._qualityHint(issues) +
+                        "，建议重拍",
+                      icon: "none",
+                      duration: 2500,
+                    });
+                  }
+                },
+                function (err) {
+                  that.setData({ ["pages[" + index + "].status"]: "failed" });
+                  throw err;
+                },
+              );
           });
         });
         return chain;
