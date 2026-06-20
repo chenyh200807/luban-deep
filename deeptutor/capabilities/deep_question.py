@@ -3574,6 +3574,41 @@ class DeepQuestionCapability(BaseCapability):
             },
         }
 
+    @staticmethod
+    def _mcq_grading_context_from_full_submission(raw_user_message: str) -> dict[str, Any] | None:
+        """Parse a learner-pasted MCQ (own stem + own option surface + answer) into a
+        grading context on the LEARNER's surface, mirroring the case full-submission
+        parser. correct_answer is left empty so open-world adjudication decides the
+        correct VALUE while the answer LETTER stays bound to the options the learner
+        actually saw — never a bank option order. Returns None when the message is not
+        a self-contained MCQ with an answer."""
+        text = str(raw_user_message or "").strip()
+        if not text:
+            return None
+        from deeptutor.services.rag.historical_questions import _extract_query_options
+
+        options = {
+            str(opt.get("key") or "").strip().upper(): str(opt.get("value") or "").strip()
+            for opt in _extract_query_options(text)
+            if str(opt.get("key") or "").strip() and str(opt.get("value") or "").strip()
+        }
+        if len(options) < 2:
+            return None
+        _target, submission = resolve_submission_attempt(
+            text, {"question": text, "question_type": "choice", "options": options}
+        )
+        user_answer = str((submission or {}).get("answer") or "").strip()
+        if not user_answer:
+            return None
+        return {
+            "question_id": "",
+            "question": text,
+            "question_type": "choice",
+            "options": options,
+            "user_answer": user_answer,
+            "correct_answer": "",
+        }
+
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
         from deeptutor.services.llm.config import get_llm_config
@@ -3674,6 +3709,47 @@ class DeepQuestionCapability(BaseCapability):
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="case_grading_full_submission",
+                    correct_answer_present=False,
+                    kb_name=kb_name,
+                )
+                return
+        if (
+            lifecycle_scene == "mcq_grading"
+            and not force_generate_questions
+            and not (
+                isinstance(followup_question_context, dict)
+                and followup_question_context.get("question")
+            )
+        ):
+            # A learner pasted a self-contained MCQ (own stem + own option order) and
+            # answered it. There is no active question object, so the structured branch
+            # below cannot fire and (without this) the turn degrades to free-form
+            # generation where the LLM grades on the bank's option letters — marking a
+            # correct answer wrong. Mirror the case full-submission entry: build the
+            # grading context on the LEARNER's option surface and grade open-world so
+            # the answer letter stays bound to what the learner saw.
+            full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
+            if full_mcq_context is not None:
+                mcq_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                    next_action="route_to_grading",
+                    active_object=active_object,
+                    question_context=full_mcq_context,
+                    user_message=raw_user_message,
+                )
+                context.metadata["question_followup_context"] = dict(full_mcq_context)
+                context.metadata["turn_semantic_decision"] = mcq_turn_decision
+                await self._emit_grading_result(
+                    stream=stream,
+                    context=context,
+                    llm_config=llm_config,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=mcq_turn_decision,
+                    graded_context=full_mcq_context,
+                    raw_user_message=raw_user_message,
+                    selected_mode=selected_mode,
+                    authority_source="mcq_grading_full_submission",
                     correct_answer_present=False,
                     kb_name=kb_name,
                 )

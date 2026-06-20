@@ -266,6 +266,15 @@ class SubmissionGraderAgent(BaseAgent):
                     "禁止以缺少标准答案为由拒绝判分或要求重新生成题目；"
                     "禁止把你的裁决表述为“题库标准答案/真题官方答案”，表述用“依据教材/规范判定”。"
                     "已带参考答案（Reference answer）的条目仍以该参考答案为准。",
+                    # Lock answer letters to the learner's shown option surface. The
+                    # grounding evidence may carry a question-bank version whose option
+                    # ORDER differs (e.g. value 5% is D in the bank but A here); using the
+                    # bank letter marks a correct answer wrong. Decide the correct VALUE,
+                    # then report the letter from THESE options whose value matches.
+                    "选项字母只认上面 Options 里列出的、学员当前看到的选项："
+                    "先裁决正确的“值/内容”，再回到这些 Options 找出值正确的那个字母作为正确答案；"
+                    "grounding 证据里的任何题库编号/字母只能用于取“值”，绝不可直接当作答案字母输出。"
+                    "判定学员对错，也按学员所选字母在这些 Options 中对应的值来比对。",
                 ]
             )
         if has_authoritative_grading:
