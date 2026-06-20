@@ -501,6 +501,33 @@ def turn_semantic_decision_route(decision: dict[str, Any] | None) -> str | None:
     return None
 
 
+def is_unresolved_switch_followup(decision: dict[str, Any] | None) -> bool:
+    """Canonical predicate: the learner referenced a DIFFERENT / earlier object but the
+    runtime could not resolve a concrete structured target, so the decision degraded to
+    a followup on the (stale) active object.
+
+    ``switch_to_new_object`` never legitimately co-occurs with
+    ``route_to_followup_explainer`` (a real switch resolves a NEW active object and
+    routes to generation/grading; a real followup carries ``ask_about_active_object`` /
+    ``answer_active_object``). This exact combo is the unambiguous "wanted a different /
+    earlier object, fell back to the stale one" signature.
+
+    Context-continuity invariant (see contracts/turn.md §跨能力上下文连续性): such a turn
+    depends on prior conversation context that lives in ``conversation_context_text``
+    (the canonical shared history, unconditionally injected into the main conversational
+    LLM). It MUST be routed to that context-continuous executor (TutorBot) to be answered
+    from history — never fail-closed as "I can't locate that question" amnesia. This
+    predicate is the SINGLE source of that signature; orchestrator routing and the
+    deep_question safety net both read it (no second definition).
+    """
+
+    decision = decision if isinstance(decision, dict) else {}
+    return (
+        str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
+        and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
+    )
+
+
 def build_active_object_from_question_context(
     question_context: dict[str, Any] | None,
     *,
