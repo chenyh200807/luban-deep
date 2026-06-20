@@ -1002,7 +1002,16 @@ async def _resolve_from_suspended_stack(
         return None
 
     suspended_candidate, candidate_question_context, candidate_action, candidate_decision = best_candidate
-    if prefers_previous_object or not active_is_strong_match:
+    candidate_route = semantic_route_for_decision(candidate_decision)
+    # Resume a suspended question on a message that does NOT explicitly reference going
+    # back only when it is a genuine SUBMISSION to that question (the answer itself
+    # disambiguates which question is meant). A mere followup-shaped match — an extension /
+    # new-knowledge question that loosely resembles a followup to a suspended question —
+    # must NOT resume it: promoting it yields switch_to_new_object + route_to_followup_explainer,
+    # which `_is_unresolved_switch_followup` then rejects as an unresolved switch ("can't
+    # locate that question, resend it"). Such a question is answered on the current context /
+    # open instead. Explicit back-reference (prefers_previous_object) still resumes either way.
+    if prefers_previous_object or (not active_is_strong_match and candidate_route == "submission"):
         resumed_decision = _promote_suspended_candidate_decision(
             suspended_candidate=suspended_candidate,
             candidate_decision=candidate_decision,
