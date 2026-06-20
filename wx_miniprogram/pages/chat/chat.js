@@ -369,6 +369,7 @@ Page({
   // ── 生命周期 ──────────────────────────────────
 
   onLoad: function (options) {
+    this._destroyed = false;
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var app = getApp();
@@ -546,6 +547,9 @@ Page({
             self._recoveringTurn = false;
           }
         },
+        function () {
+          self._pendingRecoveryActive = false;
+        },
       );
     }
     // ensurePhone = checkAuth + 手机号强制检查，缺手机号会跳回登录页
@@ -597,6 +601,7 @@ Page({
     this._teardownObserver();
   },
   onUnload: function () {
+    this._destroyed = true;
     this._stop();
     this._teardownObserver();
   },
@@ -2096,6 +2101,7 @@ Page({
       api
         .createConversation()
         .then(function (raw) {
+          if (self._destroyed) return;
           // [FIX-SESSION-ROOT-CAUSE 2026-04-01] ApiResponse 包装必须 unwrap
           // 之前直接读 data.conversation，但 data 是 {code,data,message} 包装
           // 导致 conv.id=undefined → session_id=None → 每次新 thread → 上下文断裂
@@ -2115,6 +2121,7 @@ Page({
           self._doSend(query, extraOpts);
         })
         .catch(function (err) {
+          if (self._destroyed) return;
           self.setData({ isStreaming: false });
           if (String((err && err.message) || "") === "AUTH_EXPIRED") {
             return;
