@@ -3104,6 +3104,7 @@ Page({
       this.data.feedbackComment,
     );
     var finishSuccess = function () {
+      if (self._destroyed) return;
       wx.showToast({ title: "感谢反馈", icon: "success", duration: 1500 });
       self.setData({
         feedbackMsgId: "",
@@ -3113,6 +3114,7 @@ Page({
       });
     };
     var finishFailure = function () {
+      if (self._destroyed) return;
       wx.showToast({
         title: "提交失败，请稍后重试",
         icon: "none",
