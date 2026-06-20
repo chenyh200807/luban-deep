@@ -979,3 +979,28 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     assert target["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
     assert target["case_grading_adjudication_group_count"] == 3
     assert target["case_grading_adjudication_point_count"] == 24
+
+
+def test_projected_exact_question_renders_authority_on_learner_surface() -> None:
+    # task#10 (tutorbot capability): a bank MCQ exact_question (5% = D in the bank)
+    # projected onto the learner's pasted surface (5% = A) must make the deterministic
+    # exact-authority response state the answer as A — not the bank letter D — so a
+    # learner who answered A (5%) is graded correct. This proves the loop's projection
+    # of _prefetched_exact_question fixes the grading surface end-to-end (no LLM).
+    from deeptutor.services.rag.exact_authority import build_exact_authority_response
+    from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+
+    bank = {
+        "answer_kind": "mcq",
+        "stem": "某工程屋面为压型金属板，设计无要求时屋面坡度最小值是（）。",
+        "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+        "correct_answer": "D",
+    }
+    learner_query = "某工程屋面...坡度最小值是（）。A.5% B.2% C.3% D.1%。我选A"
+    projected = SupabasePipeline._project_mcq_exact_question_to_query_surface(bank, learner_query)
+    assert projected["correct_answer"] == "A"  # remapped to learner surface
+
+    rendered = build_exact_authority_response(projected, user_message="我选A")
+    # The authority response names A (the learner's correct letter), never D.
+    assert "A" in rendered
+    assert "正确答案是 D" not in rendered and "正确答案 D" not in rendered
