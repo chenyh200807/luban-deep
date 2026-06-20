@@ -1,0 +1,70 @@
+{
+  "auto_certifiable_point_count": 6,
+  "final_authority": "ai_expert_council_final",
+  "formal_registry_emitted": false,
+  "human_reviewed": false,
+  "package_status": "candidate_dry_run",
+  "point_count": 25,
+  "production_runtime_connected": false,
+  "question_count": 9,
+  "questions": [
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-30-00",
+      "status": "candidate_dry_run",
+      "total_point_count": 2
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-32-00",
+      "status": "candidate_dry_run",
+      "total_point_count": 1
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-32-01",
+      "status": "candidate_dry_run",
+      "total_point_count": 2
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-33-00",
+      "status": "candidate_dry_run",
+      "total_point_count": 2
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-34-00",
+      "status": "candidate_dry_run",
+      "total_point_count": 2
+    },
+    {
+      "auto_certifiable_point_count": 4,
+      "question_id": "M2-2015-34-01",
+      "status": "candidate_dry_run",
+      "total_point_count": 8
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2015-34-03",
+      "status": "candidate_dry_run",
+      "total_point_count": 1
+    },
+    {
+      "auto_certifiable_point_count": 2,
+      "question_id": "M2-2016-30-01",
+      "status": "candidate_dry_run",
+      "total_point_count": 6
+    },
+    {
+      "auto_certifiable_point_count": 0,
+      "question_id": "M2-2016-31-02",
+      "status": "candidate_dry_run",
+      "total_point_count": 1
+    }
+  ],
+  "schema_version": "question_grading_artifact.v1_council_hardened_candidate",
+  "simulation_only": true,
+  "source_authority": "textbook_exact_match",
+  "version_id": "qga_v1_council_hardened_candidate_m7_20260604"
+}

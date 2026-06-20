@@ -1,0 +1,23 @@
+{
+  "milestone": "M30R schema + hash consistency",
+  "date": "2026-06-06",
+  "canonical": {
+    "schema": "compiled_knowledge_registry.v2",
+    "registry_content_hash": "9395cacc060fe480e80f81e5effbf68690b94803ff7f4afb8e0848995a7bebc3"
+  },
+  "runtime_read_schema": "luban_context_pack.v1 (compiled_context consumed by 5 surfaces; M27)",
+  "cross_variant_hashes": {
+    "A_canonical": "9395cacc060fe480",
+    "B_own_resign": "49d85772 (auditor-only)",
+    "B_crosscheck_of_A": "9395cacc060fe480 (CONCURS A)",
+    "C_readonly_rerun": "36fcaaced (separate live snapshot, auditor-only)"
+  },
+  "why_hashes_differ_across_variants": "Each variant independently re-extracts the live questions_bank with its own script/normalization; independent live re-extraction is NOT bit-reproducible. Therefore the canonical authority is the PINNED A manifest, not 'whatever a re-run produces'. B explicitly defers to A and concurs A's hash.",
+  "consistency_verdict": "CONSISTENT under single-authority reading: A is canonical; B concurs A; C is an auditor re-run. The differing B-own/C hashes are auditor snapshots, not competing authorities.",
+  "objective_count_agree": {
+    "A": 2640,
+    "B_reports_authoritative": 2640,
+    "input_rows": 2655,
+    "conflict": 1
+  }
+}

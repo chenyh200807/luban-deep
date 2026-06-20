@@ -1,0 +1,61 @@
+{
+  "classify_and_act": {
+    "evidence_file": "evidence_ledger_m19a.json",
+    "classes": [
+      "runtime_safety",
+      "llm_quality",
+      "lb_proof",
+      "fallback",
+      "rollback",
+      "cost",
+      "latency",
+      "provider_readiness",
+      "remaining_blockers"
+    ]
+  },
+  "fanout_and_synthesize": {
+    "perspectives": [
+      "release_manager",
+      "observability_architect",
+      "cost_latency_owner",
+      "risk_council"
+    ],
+    "evidence_file": "release_readiness_matrix_m19a.json"
+  },
+  "generate_and_filter": {
+    "evidence_file": "default_rollout_strategy_tournament_m19a.json",
+    "strategies": [
+      "shadow_only",
+      "one_percent_qa_operator_default",
+      "named_cohort_default"
+    ]
+  },
+  "tournament": {
+    "rule": "fastest-revert + fully-observable + cost-bounded + truth-write-clear; candidate only, not executed"
+  },
+  "adversarial_verification": {
+    "evidence_file": "failure_mode_drill_results_m19a.json",
+    "drills": [
+      "provider_down",
+      "deepseek_timeout",
+      "qwen_fallback_fail",
+      "malformed_registry",
+      "bad_artifact_hash",
+      "non_cohort_leak",
+      "legacy_overwrite",
+      "lb_truth_accidental_write",
+      "cost_spike",
+      "secret_leak"
+    ]
+  },
+  "loop_until_done": {
+    "dispositions": [
+      "pass",
+      "blocked",
+      "needs_m17b_evidence",
+      "needs_operator_authorization",
+      "rollback_ready",
+      "no_go"
+    ]
+  }
+}

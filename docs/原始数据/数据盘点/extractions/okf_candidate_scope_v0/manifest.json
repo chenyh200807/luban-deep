@@ -1,0 +1,37 @@
+{
+  "schema": "luban_okf_candidate_scope_manifest.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "status": "source_layer_candidate_complete",
+  "authority_status": "candidate_review",
+  "runtime_guard": {
+    "release_stage": "source_layer_candidate",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_paths": {
+    "canonical_rubric": "docs/原始数据/数据盘点/extractions/case_rubric_canonical.json",
+    "source_alignment_root": "docs/原始数据/数据盘点/extractions/okf_source_alignment_v0"
+  },
+  "artifact_refs": {
+    "cases": "cases.jsonl",
+    "rubrics": "rubrics.jsonl",
+    "scoring_points": "scoring_points.jsonl",
+    "scoring_point_index": "scoring_point_index.json"
+  },
+  "counts": {
+    "cases": 25,
+    "rubrics": 117,
+    "scoring_points": 431
+  },
+  "guardrails": [
+    "source-layer candidate only",
+    "not signed runtime supply",
+    "no official scoring claim",
+    "no learner truth write"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+ "total_cases": 179,
+ "consensus_no_arbiter": 81,
+ "deterministic_tiebreak": 10,
+ "opus_cohort": 88,
+ "opus_batches": 8,
+ "cost_note": "Opus runs on 88 cases in 8 batches; 10 resolved free by type-rule tie-break."
+}

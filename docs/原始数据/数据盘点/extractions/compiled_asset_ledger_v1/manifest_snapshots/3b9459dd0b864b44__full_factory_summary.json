@@ -1,0 +1,34 @@
+{
+ "schema": "luban_full_factory_candidate.v1",
+ "generated_at_date": "2026-06-14",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true,
+  "production_gated_by": "human/adversarial sign-off + migration plan stages"
+ },
+ "n_cases": 179,
+ "final_must_not_mint_clean": "179/179",
+ "must_not_mint_violations": [],
+ "total_scoring_points": 1290,
+ "mean_points_per_q": 7.21,
+ "collapsed_to_le1_after": "4/179",
+ "point_type_distribution": {
+  "calculation": 11,
+  "flaw_correction": 22,
+  "list": 69,
+  "mixed": 73,
+  "single": 4
+ },
+ "resolution_lane_distribution": {
+  "A_consensus": 81,
+  "B_deterministic_tiebreak": 10,
+  "C_opus_arbiter": 88
+ },
+ "lift_vs_pre_factory": {
+  "before_mean_pts_per_q": 2.69,
+  "after_mean_pts_per_q": 7.21,
+  "before_collapsed_le1": "91/179",
+  "after_collapsed_le1": "4/179",
+  "note": "before = deterministic compiler alone (splitter fail-closed on prose); after = + multi-AI type-conditioned segmentation/authoring (Opus-arbitrated)"
+ }
+}

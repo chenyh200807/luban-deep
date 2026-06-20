@@ -1,0 +1,70 @@
+{
+  "ok": false,
+  "mode": "live_readback",
+  "fixture": "tests/fixtures/luban_m35_case_scoring",
+  "trace": {
+    "attempt_id": "attempt_m35_gate_001",
+    "user_id": "qa_m35",
+    "question_id": "Q1-NA",
+    "artifact_version": "m35_case_scoring_20260609",
+    "learning_evidence": {
+      "artifact_version": "m35_case_scoring_20260609",
+      "question_id": "Q1-NA",
+      "point_count": 2,
+      "point_matches": [
+        {
+          "point_id": "Q1-NA::P1",
+          "status": "hit",
+          "mistake_code": ""
+        },
+        {
+          "point_id": "Q1-NA::P2",
+          "status": "miss",
+          "mistake_code": "E02"
+        }
+      ]
+    },
+    "learner_memory_event": {
+      "event_type": "m35_point_grading_evidence",
+      "payload": {
+        "artifact_version": "m35_case_scoring_20260609",
+        "question_id": "Q1-NA",
+        "point_count": 2,
+        "point_matches": [
+          {
+            "point_id": "Q1-NA::P1",
+            "status": "hit",
+            "mistake_code": ""
+          },
+          {
+            "point_id": "Q1-NA::P2",
+            "status": "miss",
+            "mistake_code": "E02"
+          }
+        ]
+      }
+    },
+    "weakness_projection": {
+      "mistake_codes": [
+        "E02"
+      ],
+      "source": "point_matches"
+    },
+    "next_action": {
+      "action_type": "targeted_retest",
+      "basis": "missed_scoring_points"
+    },
+    "retest_condition": {
+      "required": true,
+      "must_reference_artifact_version": "m35_case_scoring_20260609"
+    },
+    "canonical_truth_written": false,
+    "mode": "live_readback",
+    "live_readback": {},
+    "required_readbacks_present": false,
+    "convergence_claim_allowed": false
+  },
+  "convergence_claim_allowed": false,
+  "canonical_truth_written": false,
+  "production_write_count": 0
+}

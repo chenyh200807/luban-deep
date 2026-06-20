@@ -1,0 +1,118 @@
+{
+  "schema_version": "luban_m35_ai_governed_gold_labeling.v1",
+  "labeling_run": true,
+  "live": {
+    "cli_flag": true,
+    "env_flag": true,
+    "api_key_envs_present": [],
+    "status": "live_labeling_completed"
+  },
+  "answers_path": "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/student_answers.jsonl",
+  "manifest_path": "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+  "manifest_summary": {
+    "row_count": 19,
+    "gold_row_count": 2,
+    "downgraded_row_count": 17,
+    "downgrade_reason_counts": {
+      "mutation_test_failed": 11,
+      "unresolved_adversarial_objection": 1,
+      "insufficient_independent_blind_accepts": 5
+    },
+    "fleiss_kappa": 0.01565,
+    "kappa_item_count": 38,
+    "kappa_items_excluded_for_abstention": 0,
+    "mutation_pass_rate": 0.846154,
+    "mutation_case_count": 78,
+    "stop_condition_triggered": true,
+    "stop_condition": {
+      "triggered": true,
+      "reasons": [
+        "fleiss_kappa_below_threshold"
+      ],
+      "fleiss_kappa_threshold": 0.6,
+      "mutation_pass_rate_threshold": 0.8
+    },
+    "model_roles": {
+      "blind_panel": [
+        "deepseek-chat",
+        "fable",
+        "qwen-max"
+      ],
+      "arbiter": "deepseek-reasoner",
+      "adversarial_prosecutor": "opus"
+    }
+  },
+  "model_stats": {
+    "deepseek-chat": {
+      "calls": 183,
+      "cached_hits": 131,
+      "abstains": 0,
+      "prompt_tokens": 44357,
+      "completion_tokens": 2907,
+      "total_tokens": 47264,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": 0.013641,
+      "pricing_basis": "deepseek list price, cache-miss"
+    },
+    "qwen-max": {
+      "calls": 183,
+      "cached_hits": 129,
+      "abstains": 1,
+      "prompt_tokens": 49787,
+      "completion_tokens": 4583,
+      "total_tokens": 54370,
+      "abstain_reasons": {
+        "URLError: <urlopen error _ssl.c:989: The handshake operation timed out>": 1
+      },
+      "abstain_rate": 0.005464,
+      "estimated_cost_usd": 0.022479,
+      "pricing_basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"
+    },
+    "fable": {
+      "calls": 183,
+      "cached_hits": 121,
+      "abstains": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    },
+    "deepseek-reasoner": {
+      "calls": 16,
+      "cached_hits": 4,
+      "abstains": 7,
+      "prompt_tokens": 10607,
+      "completion_tokens": 4399,
+      "total_tokens": 15006,
+      "abstain_reasons": {
+        "unparseable_output": 7
+      },
+      "abstain_rate": 0.4375,
+      "estimated_cost_usd": 0.004818,
+      "pricing_basis": "deepseek list price, cache-miss"
+    },
+    "opus": {
+      "calls": 28,
+      "cached_hits": 16,
+      "abstains": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    }
+  },
+  "estimated_cost_usd_metered_models": 0.040938,
+  "self_check": {
+    "passed": true,
+    "gold_rows_validated": 2,
+    "downgraded_rows_without_protocol_block": 17,
+    "violations": []
+  }
+}

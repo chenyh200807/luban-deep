@@ -1,0 +1,83 @@
+{
+  "schema_version": "luban-multimodel-jury-gold.v0.1",
+  "arms": [
+    "deepseek",
+    "gpt",
+    "opus",
+    "qwen37"
+  ],
+  "target_arm": "deepseek",
+  "summary": {
+    "total_points": 26,
+    "full_consensus_points": 18,
+    "frontier_points": 8,
+    "unsupported_positive_points": 0,
+    "full_consensus_rate": 0.6923
+  },
+  "pairwise_agreement": [
+    {
+      "left": "deepseek",
+      "right": "gpt",
+      "compared": 26,
+      "hit_agreement": 0.8846,
+      "hit_score_agreement": 0.8462
+    },
+    {
+      "left": "deepseek",
+      "right": "opus",
+      "compared": 26,
+      "hit_agreement": 0.8077,
+      "hit_score_agreement": 0.7692
+    },
+    {
+      "left": "deepseek",
+      "right": "qwen37",
+      "compared": 26,
+      "hit_agreement": 0.7692,
+      "hit_score_agreement": 0.7692
+    },
+    {
+      "left": "gpt",
+      "right": "opus",
+      "compared": 26,
+      "hit_agreement": 0.9231,
+      "hit_score_agreement": 0.9231
+    },
+    {
+      "left": "gpt",
+      "right": "qwen37",
+      "compared": 26,
+      "hit_agreement": 0.8077,
+      "hit_score_agreement": 0.7692
+    },
+    {
+      "left": "opus",
+      "right": "qwen37",
+      "compared": 26,
+      "hit_agreement": 0.8077,
+      "hit_score_agreement": 0.7692
+    }
+  ],
+  "target_vs_jury": {
+    "target_arm": "deepseek",
+    "jury_point_count": 19,
+    "point_hit_agreement": 0.9474,
+    "mean_abs_point_score_delta": 0.0464,
+    "disagreement_count": 1,
+    "disagreements": [
+      {
+        "case_id": "Q16-1A436000",
+        "student_id": "S2",
+        "point_id": "P2",
+        "target_hit": "partial",
+        "target_score": 0.882,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "学生指出了保护层厚度问题，但未使用原文术语“保护层厚度”和“混凝土垫层”，使用了近义表述“没有垫层”，按exact_required规则给予部分分。"
+      }
+    ]
+  },
+  "human_checks": {
+    "jury_vs_human": null
+  }
+}

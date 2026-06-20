@@ -1,0 +1,18 @@
+{
+  "tamper_fail_closed": true,
+  "checks": [
+    {
+      "name": "clean_verify",
+      "pass": true
+    },
+    {
+      "name": "flip_answer_key_detected",
+      "fail_closed": true
+    },
+    {
+      "name": "bad_signature_detected",
+      "fail_closed": true
+    }
+  ],
+  "all_fail_closed": true
+}

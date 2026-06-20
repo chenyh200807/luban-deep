@@ -1,0 +1,65 @@
+{
+  "schema_version": "luban_four_arm_ab_freeze.v1",
+  "frozen_at": "2026-06-11T19:26:43+0800",
+  "commands": [
+    "python3 scripts/run_luban_four_arm_scoring_ab.py --limit 16 --tier live_provider_sample --live --output-dir artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_small_16",
+    "python3 scripts/run_luban_four_arm_scoring_ab.py --limit 0 --tier live_provider_sample --live --compile-aliases --output-dir artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162",
+    "python3 scripts/analyze_luban_four_arm_splits.py",
+    "python3 scripts/run_luban_qwen_blind_residual_audit.py"
+  ],
+  "inputs": {
+    "labeled_answers": {
+      "path": "artifacts/luban_grading_artifacts/m35_gold_labeling_full/student_answers.jsonl",
+      "hash": "sha256:bee94cb09e08d1975680c528c5a70b67387596454e201667ae47326e7d336f53",
+      "label_mix": "8 ai_governed_gold + 154 ai_council_directional"
+    },
+    "question_manifest": {
+      "path": "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+      "hash": "sha256:962e7e886c424021c1f6f12d2e38f0d0d138ea57ae9cc22ef66a7b4129f3ebea"
+    }
+  },
+  "code": {
+    "scripts/run_luban_four_arm_scoring_ab.py": "sha256:893975143edd43c30f8a12c3b95a6a9394ab83ef8705380d4ae4c65a9cdaf37f",
+    "scripts/analyze_luban_four_arm_splits.py": "sha256:05fb150b974e2b13686009655df3be1c75467c6af6cba011e5edba791852f254",
+    "scripts/run_luban_qwen_blind_residual_audit.py": "sha256:079923ab7ea61b5407ec2efb429d05256606013a4e364bfec6b29beff005bc9a",
+    "deeptutor/services/construction_grading/artifact_first_llm_judge.py": "sha256:7ffe3007d108423d481352b1892b33cfed0825d4ecf002826aa77499831ca452",
+    "deeptutor/services/construction_grading/judge_point_enrichment.py": "sha256:fa4feb4529273fa833c1d0ad2e973f5dad66772d5757087064901e70f13cfb41"
+  },
+  "outputs": {
+    "report.json": "sha256:23ae4295fbd7ebc7584a0b35ce0201b7abb70cb72012a526895fe33c5a43a9f2",
+    "per_row.jsonl": "sha256:d847f1364131b34f94435d43117c51689fa9e7b111ab49f07bc4a502a20339bf",
+    "analysis_splits.json": "sha256:d9ba03630b22ecc4c4ac2689122c841742393c8690691c082f24fb96ae38de9f",
+    "qwen_blind_audit.json": "sha256:ad158b087b5f6bf35b6df167e8ef555702ae39f3ce28a1adb88971a4504b21c2"
+  },
+  "git": {
+    "head": "54c4b763fa3c2e311f0aea26fe748a9dd7d7e6ac",
+    "branch": "main",
+    "dirty_or_untracked": [
+      "?? deeptutor/services/construction_grading/artifact_first_llm_judge.py",
+      "?? deeptutor/services/construction_grading/judge_point_enrichment.py",
+      "?? scripts/analyze_luban_four_arm_splits.py",
+      "?? scripts/run_luban_four_arm_scoring_ab.py",
+      "?? scripts/run_luban_qwen_blind_residual_audit.py",
+      "?? tests/scripts/test_luban_four_arm_scoring_ab.py",
+      "?? tests/services/construction_grading/test_artifact_first_llm_judge.py",
+      "?? tests/services/construction_grading/test_judge_point_enrichment.py"
+    ]
+  },
+  "providers": {
+    "deepseek": "162 judge calls + 5 alias chunks, 141694 tokens, 0 errors",
+    "qwen-max": "26 blind audit calls, 9802 tokens, 0 errors",
+    "not_exercised": [
+      "gpt5.5 (no API key)",
+      "claude API (no key; subscription CLI quota wall)"
+    ]
+  },
+  "safety": {
+    "production_write_count": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "canonical_truth_written": false,
+    "published_registry_written": false,
+    "is_release_truth": false,
+    "official_score_allowed": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "stage": "M3.5 Rubric Normalization Factory",
+  "generated_by": "scripts/build_luban_blocked_point_rubric_normalization_m35.py",
+  "deterministic_parser_only": true,
+  "live_llm_api_called": false,
+  "secret_printed": false,
+  "input_artifacts": {
+    "m7_source_repair": "artifacts/luban_grading_artifacts/registry_v1_source_repair_factory_m7_20260604",
+    "m7_council_hardened": "artifacts/luban_grading_artifacts/registry_v1_council_hardened_candidate_m7_20260604",
+    "m5_authority": "artifacts/luban_grading_artifacts/case_rubric_authority_adjudication_m5_20260604",
+    "m3_structuring": "artifacts/luban_grading_artifacts/case_rubric_structuring_m3_20260604",
+    "m5d_source_court": "artifacts/luban_grading_artifacts/ai_expert_council_source_court_m5d_20260604",
+    "official_bank_root": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库"
+  },
+  "no_runtime_kernel_rag_db_web_bi_billing_changes": true,
+  "official_answer_is_textbook_source": false,
+  "official_answer_is_source_authority": false,
+  "normalized_candidate_is_verified": false,
+  "normalized_candidate_auto_certifiable": false,
+  "formal_registry_emitted": false,
+  "human_reviewed": false,
+  "required_outputs": [
+    "normalization_workflow_manifest.json",
+    "unified_blocked_point_backlog.json",
+    "blocked_point_normalization_inventory.json",
+    "normalized_rubric_candidates.jsonl",
+    "split_point_proposals.jsonl",
+    "rejected_normalization_variants.jsonl",
+    "normalization_quality_report.json",
+    "source_hunt_query_terms.jsonl",
+    "m7_rerun_readiness_report.json",
+    "compiler_hard_gate_compatibility_report.json",
+    "FINDING_blocked_point_rubric_normalization_m35_20260604.md"
+  ]
+}

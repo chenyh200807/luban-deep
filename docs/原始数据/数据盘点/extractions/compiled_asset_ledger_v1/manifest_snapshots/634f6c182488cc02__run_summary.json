@@ -1,0 +1,15 @@
+{
+  "dry_run": true,
+  "writeback": false,
+  "target_samples": 196,
+  "completed_samples": 100,
+  "completion_rate": 0.5102,
+  "total_points": 485,
+  "parse_failures": 0,
+  "unsupported_points": 19,
+  "high_risk_points": 93,
+  "auto_certified_points": 383,
+  "latency_p50": 13.74,
+  "latency_p95": 49.27,
+  "latency_max": 56.16
+}

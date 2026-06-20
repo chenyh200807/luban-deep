@@ -1,0 +1,308 @@
+[
+  {
+    "question_id": "M2-2015-30-00",
+    "point_count": 2,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.5,
+    "question_authority_status": "draft_review_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-30-01",
+    "point_count": 2,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-30-02",
+    "point_count": 8,
+    "auto_certifiable_point_count": 3,
+    "source_coverage": 0.375,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-30-03",
+    "point_count": 5,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-31-00",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-31-01",
+    "point_count": 6,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-31-02",
+    "point_count": 8,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.125,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-31-03",
+    "point_count": 7,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-32-00",
+    "point_count": 1,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 1.0,
+    "question_authority_status": "publish_ready_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-32-01",
+    "point_count": 2,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.5,
+    "question_authority_status": "draft_review_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-32-02",
+    "point_count": 8,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.125,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-32-03",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-33-00",
+    "point_count": 2,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-33-01",
+    "point_count": 7,
+    "auto_certifiable_point_count": 2,
+    "source_coverage": 0.2857142857142857,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-33-02",
+    "point_count": 8,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-33-03",
+    "point_count": 2,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-33-04",
+    "point_count": 5,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-34-00",
+    "point_count": 2,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.5,
+    "question_authority_status": "draft_review_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-34-01",
+    "point_count": 8,
+    "auto_certifiable_point_count": 4,
+    "source_coverage": 0.5,
+    "question_authority_status": "draft_review_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-34-02",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-34-03",
+    "point_count": 1,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-34-04",
+    "point_count": 7,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-30-00",
+    "point_count": 4,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.25,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-30-01",
+    "point_count": 6,
+    "auto_certifiable_point_count": 3,
+    "source_coverage": 0.5,
+    "question_authority_status": "draft_review_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-30-02",
+    "point_count": 2,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-30-03",
+    "point_count": 4,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-31-00",
+    "point_count": 6,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.16666666666666666,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-31-01",
+    "point_count": 7,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 0.14285714285714285,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-31-02",
+    "point_count": 1,
+    "auto_certifiable_point_count": 1,
+    "source_coverage": 1.0,
+    "question_authority_status": "publish_ready_candidate",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2016-31-03",
+    "point_count": 8,
+    "auto_certifiable_point_count": 3,
+    "source_coverage": 0.375,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_anchor_refinement"
+  },
+  {
+    "question_id": "M2-2015-EXAM_XW2015_CASE_1-01",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "published_candidate_not_final",
+    "input_source": "m4_source_lookup"
+  },
+  {
+    "question_id": "M2-2016-EXAM_XW2016_CASE_1-01",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft_candidate",
+    "input_source": "m4_source_lookup"
+  },
+  {
+    "question_id": "M2-2020-EXAM_1A434020_P0009_01-01",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft_candidate",
+    "input_source": "m4_source_lookup"
+  },
+  {
+    "question_id": "M2-2023-EXAM_1A434000_P0010_02-01",
+    "point_count": 3,
+    "auto_certifiable_point_count": 0,
+    "source_coverage": 0.0,
+    "question_authority_status": "po_review_required",
+    "candidate_status_before": "draft_candidate",
+    "input_source": "m4_source_lookup"
+  }
+]

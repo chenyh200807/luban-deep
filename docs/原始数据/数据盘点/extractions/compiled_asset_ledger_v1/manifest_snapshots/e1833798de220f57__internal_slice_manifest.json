@@ -1,0 +1,1336 @@
+{
+  "slice_id": "luban-qwen-heldout-8cases-40samples",
+  "status": "blind_awaiting_human_labels",
+  "selected_samples": [
+    {
+      "case_id": "Q1-NA",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 5.0,
+          "gold_score": 5.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q1-NA",
+      "student_id": "S2",
+      "archetype": "半对(漏一项)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 5.0,
+          "gold_score": 2.5
+        }
+      ]
+    },
+    {
+      "case_id": "Q1-NA",
+      "student_id": "S3",
+      "archetype": "口号化空泛(近义大白话)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 5.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q1-NA",
+      "student_id": "S4",
+      "archetype": "漏关键条件(只命中一项,且把已有项重复写)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 5.0,
+          "gold_score": 2.5
+        }
+      ]
+    },
+    {
+      "case_id": "Q1-NA",
+      "student_id": "S5",
+      "archetype": "误用规范/概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 5.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q8-1A413030",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q8-1A413030",
+      "student_id": "S2",
+      "archetype": "半对(中间向两侧思路对但顺序错)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q8-1A413030",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q8-1A413030",
+      "student_id": "S4",
+      "archetype": "漏关键条件(顺序给了但非对称逻辑)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q8-1A413030",
+      "student_id": "S5",
+      "archetype": "概念混淆/规范误用",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q10-1A422000",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q10-1A422000",
+      "student_id": "S2",
+      "archetype": "半对",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q10-1A422000",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q10-1A422000",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q10-1A422000",
+      "student_id": "S5",
+      "archetype": "误用规范或概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q12-1A412000-罚则",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q12-1A412000-罚则",
+      "student_id": "S2",
+      "archetype": "半对(部分规范术语)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q12-1A412000-罚则",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q12-1A412000-罚则",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q12-1A412000-罚则",
+      "student_id": "S5",
+      "archetype": "误用规范/概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q13-1A421000",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q13-1A421000",
+      "student_id": "S2",
+      "archetype": "半对",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        }
+      ]
+    },
+    {
+      "case_id": "Q13-1A421000",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q13-1A421000",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        }
+      ]
+    },
+    {
+      "case_id": "Q13-1A421000",
+      "student_id": "S5",
+      "archetype": "误用规范/概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q17-1A433000",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q17-1A433000",
+      "student_id": "S2",
+      "archetype": "半对(部分规范术语)",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        }
+      ]
+    },
+    {
+      "case_id": "Q17-1A433000",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q17-1A433000",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q17-1A433000",
+      "student_id": "S5",
+      "archetype": "误用规范/概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q18-1A434000",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "hit",
+          "max_score": 0.75,
+          "gold_score": 0.75
+        },
+        {
+          "point_id": "P11",
+          "ledger_hit": "hit",
+          "max_score": 0.75,
+          "gold_score": 0.75
+        }
+      ]
+    },
+    {
+      "case_id": "Q18-1A434000",
+      "student_id": "S2",
+      "archetype": "半对",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "hit",
+          "max_score": 0.75,
+          "gold_score": 0.75
+        },
+        {
+          "point_id": "P11",
+          "ledger_hit": "miss",
+          "max_score": 0.75,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q18-1A434000",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "miss",
+          "max_score": 0.75,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P11",
+          "ledger_hit": "miss",
+          "max_score": 0.75,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q18-1A434000",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "partial",
+          "max_score": 1.5,
+          "gold_score": 0.75
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "hit",
+          "max_score": 0.75,
+          "gold_score": 0.75
+        },
+        {
+          "point_id": "P11",
+          "ledger_hit": "hit",
+          "max_score": 0.75,
+          "gold_score": 0.75
+        }
+      ]
+    },
+    {
+      "case_id": "Q18-1A434000",
+      "student_id": "S5",
+      "archetype": "误用规范或概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "miss",
+          "max_score": 0.75,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P11",
+          "ledger_hit": "miss",
+          "max_score": 0.75,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q19-1A432000",
+      "student_id": "S1",
+      "archetype": "完整满分",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.8,
+          "gold_score": 1.8
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.4,
+          "gold_score": 2.4
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.2,
+          "gold_score": 1.2
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 0.6,
+          "gold_score": 0.6
+        }
+      ]
+    },
+    {
+      "case_id": "Q19-1A432000",
+      "student_id": "S2",
+      "archetype": "半对",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 1.8,
+          "gold_score": 0.9
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "partial",
+          "max_score": 2.4,
+          "gold_score": 1.2
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.2,
+          "gold_score": 1.2
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 0.6,
+          "gold_score": 0.3
+        }
+      ]
+    },
+    {
+      "case_id": "Q19-1A432000",
+      "student_id": "S3",
+      "archetype": "口号化空泛",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.8,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.4,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.2,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 0.6,
+          "gold_score": 0.0
+        }
+      ]
+    },
+    {
+      "case_id": "Q19-1A432000",
+      "student_id": "S4",
+      "archetype": "漏关键条件",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 1.8,
+          "gold_score": 1.8
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.4,
+          "gold_score": 2.4
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.2,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 0.6,
+          "gold_score": 0.6
+        }
+      ]
+    },
+    {
+      "case_id": "Q19-1A432000",
+      "student_id": "S5",
+      "archetype": "误用规范或概念混淆",
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 1.8,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.4,
+          "gold_score": 0.0
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.2,
+          "gold_score": 1.2
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 0.6,
+          "gold_score": 0.0
+        }
+      ]
+    }
+  ]
+}

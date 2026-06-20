@@ -1,0 +1,33 @@
+{
+  "milestone": "M28 Learning Brain compiled-context consumer audit",
+  "date": "2026-06-06",
+  "audit_only": true,
+  "function_under_review": "deeptutor/services/construction_grading/learning_evidence.py::build_learning_evidence_from_context_pack",
+  "production_callers": [],
+  "non_production_callers": [
+    "tests/services/construction_grading/test_compiled_context_consumers.py:67,81",
+    "scripts/run_luban_compiled_context_open_world_m26.py:130,169"
+  ],
+  "legacy_lb_writeback_paths_still_using_old_payload": [
+    "deeptutor/services/construction_grading/teacher_review_writeback.py:101 -> build_learning_evidence_payload",
+    "deeptutor/services/construction_grading/ai_draft_shadow.py:179 -> build_learning_evidence_payload",
+    "deeptutor/services/construction_grading/writeback.py:55 -> build_learning_evidence_payload"
+  ],
+  "coverage": {
+    "compiled_context_surfaces_in_production": ["objective", "case", "historical", "open_world"],
+    "lb_preview_consumption_in_production": "0 of 4 surfaces (function never called in prod)",
+    "lb_preview_consumption_in_hermetic": "1.0 (script/test path)",
+    "hard_acceptance_target": ">= 0.95",
+    "verdict": "NOT MET in production; met only hermetically"
+  },
+  "authority_safety_of_the_function_itself": {
+    "preview_only": true,
+    "mastery_raised": false,
+    "canonical_truth_written": false,
+    "claim_promotion_allowed_logic": "= official_score_allowed (learning_evidence.py); candidate/open-world => false",
+    "compiled_context_evidence_refs": "marked is_answer_key=false, preview refs only; no second memory authority",
+    "note": "the function is authority-correct; the gap is purely that no production surface CALLS it yet."
+  },
+  "required_next_step_when_tree_stable": "wire it into a real LB-preview runtime surface (e.g. after grading/diagnostic result assembly) so all 4 compiled_context surfaces emit preview evidence; strictly preview_only.",
+  "blocked_by": "working tree moving + parallel agent owns deep_question_adapter.py/deep_question.py; do not collide."
+}

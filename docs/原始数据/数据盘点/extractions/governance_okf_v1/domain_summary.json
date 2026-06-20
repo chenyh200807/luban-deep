@@ -1,0 +1,383 @@
+{
+  "schema": "deeptutor_governance_domain_summary.v1",
+  "domains": [
+    {
+      "schema": "deeptutor_governance_domain_summary.v1",
+      "domain": "agent_skills",
+      "files": 45,
+      "bytes": 240728,
+      "by_area": {
+        "governance_context": 13,
+        "agent_skill": 11,
+        "ci_quality_gate": 6,
+        "data_knowledge": 3,
+        "contract_authority": 3,
+        "wechat_frontend": 3,
+        "learner_state": 3,
+        "release_operations": 2,
+        "billing_business": 1
+      },
+      "by_risk_level": {
+        "medium": 34,
+        "high": 11
+      },
+      "top_files": [
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/animation-production-director.md",
+          "title": "animation-production-director.md · 鲁班深母题动画学习卡量产导演",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/SKILL.md",
+          "title": "鲁班图解微课 / 深母题学习闭环 (diagram_microlesson)",
+          "area": "agent_skill",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/teaching-animation-journey.md",
+          "title": "teaching-animation-journey.md · 教学动画 + 完整学习闭环(讲懂→闯关→看穿)",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/production-workflow.md",
+          "title": "production-workflow.md · 动画学习卡量产 workflow(LLM 发挥 + 评审迭代)",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-learning-pack-factory/SKILL.md",
+          "title": "鲁班教研测一体学习包生产线",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/anti-patterns.md",
+          "title": "anti-patterns.md · video-first 学习卡反例库",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md",
+          "title": "DeepTutor Engineering Lifecycle Gate",
+          "area": "agent_skill",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/luban-diagram-microlesson/references/learning-stage-shell.md",
+          "title": "learning-stage-shell.md · 学习舞台模板与运行时验收",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/README.md",
+          "title": "DeepTutor Agent Skills",
+          "area": "governance_context",
+          "risk_level": "medium"
+        },
+        {
+          "path": "agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md",
+          "title": "WeChat TutorBot Real-Entry QA",
+          "area": "wechat_frontend",
+          "risk_level": "medium"
+        }
+      ],
+      "runtime_guard": {
+        "release_stage": "ai_project_context_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "deeptutor_governance_domain_summary.v1",
+      "domain": "contracts",
+      "files": 14,
+      "bytes": 291134,
+      "by_area": {
+        "contract_authority": 14
+      },
+      "by_risk_level": {
+        "high": 14
+      },
+      "top_files": [
+        {
+          "path": "contracts/learner-state.md",
+          "title": "Learner State Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/schema_registry.yaml",
+          "title": "schema_registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/turn.md",
+          "title": "Turn Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/index.yaml",
+          "title": "index",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/capability.md",
+          "title": "Capability Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/env_registry.yaml",
+          "title": "env_registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/learning-report.md",
+          "title": "Learning Report Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/rag.md",
+          "title": "RAG Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/provider_registry.yaml",
+          "title": "provider_registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "contracts/db_registry.yaml",
+          "title": "db_registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        }
+      ],
+      "runtime_guard": {
+        "release_stage": "ai_project_context_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "deeptutor_governance_domain_summary.v1",
+      "domain": "docs_contracts",
+      "files": 2,
+      "bytes": 11469,
+      "by_area": {
+        "contract_authority": 2
+      },
+      "by_risk_level": {
+        "high": 2
+      },
+      "top_files": [
+        {
+          "path": "docs/contracts/learning-state-inference.md",
+          "title": "Learning State Inference Contract",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/contracts/error_code_registry.md",
+          "title": "Error Code Registry",
+          "area": "contract_authority",
+          "risk_level": "high"
+        }
+      ],
+      "runtime_guard": {
+        "release_stage": "ai_project_context_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "deeptutor_governance_domain_summary.v1",
+      "domain": "plan",
+      "files": 188,
+      "bytes": 5308981,
+      "by_area": {
+        "governance_context": 62,
+        "data_knowledge": 26,
+        "ci_quality_gate": 23,
+        "learner_state": 20,
+        "contract_authority": 18,
+        "billing_business": 18,
+        "planning_index": 9,
+        "wechat_frontend": 7,
+        "release_operations": 5
+      },
+      "by_risk_level": {
+        "low": 97,
+        "high": 46,
+        "medium": 45
+      },
+      "top_files": [
+        {
+          "path": "docs/plan/INDEX.md",
+          "title": "DeepTutor 计划目录索引",
+          "area": "planning_index",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
+          "title": "鲁班 Grading-to-Brain 总控计划 v2（当前作战图）",
+          "area": "planning_index",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/附件与原型资源/artifacts/hermes-edu-skills-inventory.json",
+          "title": "hermes-edu-skills-inventory",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/学习脑与学员记忆/2026-05-22-luban-learning-state-inference-engine-transformation-plan.md",
+          "title": "Luban Learning State Inference Engine Transformation Plan",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "docs/plan/学习脑与学员记忆/2026-05-21-luban-learning-report-world-class-optimization-plan.md",
+          "title": "Luban Learning Report World-Class Optimization Implementation Plan",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "docs/plan/评分引擎与金标工件/2026-06-09-luban-nexus-like-scoring-artifact-engine-execution-plan.md",
+          "title": "M35 Luban Nexus-like Scoring Artifact Engine Implementation Plan",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/学习脑与学员记忆/2026-05-18-deeptutor-learning-fact-retrieval-implementation-plan.md",
+          "title": "DeepTutor Learning Fact Retrieval Implementation Plan",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "docs/plan/题目生命周期与助教运行时/2026-05-13-luban-case-grading-error-map-implementation-plan.md",
+          "title": "Luban Case Grading Error Map Implementation Plan",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/plan/会员钱包计费与经营后台/2026-06-03-official-provider-billing-reconciliation-implementation-plan.md",
+          "title": "Official Provider Billing Reconciliation Implementation Plan",
+          "area": "contract_authority",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/plan/题目生命周期与助教运行时/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md",
+          "title": "DeepTutor Question Lifecycle Skill Authority Execution Plan",
+          "area": "governance_context",
+          "risk_level": "low"
+        }
+      ],
+      "runtime_guard": {
+        "release_stage": "ai_project_context_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "schema": "deeptutor_governance_domain_summary.v1",
+      "domain": "runbook",
+      "files": 7,
+      "bytes": 38355,
+      "by_area": {
+        "release_operations": 3,
+        "ci_quality_gate": 2,
+        "governance_context": 1,
+        "learner_state": 1
+      },
+      "by_risk_level": {
+        "high": 5,
+        "low": 1,
+        "medium": 1
+      },
+      "top_files": [
+        {
+          "path": "docs/runbook/2026-06-11-prelaunch-hardening-and-concurrent-deploy-retro.md",
+          "title": "2026-06-11 上线前根因加固 + 部署 + 并发撞车 复盘",
+          "area": "release_operations",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/runbook/2026-05-30-billing-go-live-runbook.md",
+          "title": "计费上线 Runbook（B1 校正 + flag 翻 ON）",
+          "area": "release_operations",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/runbook/2026-05-25-pr-alpha-owner-key-backfill.md",
+          "title": "PR-α Runbook — session.owner_key 回填",
+          "area": "governance_context",
+          "risk_level": "low"
+        },
+        {
+          "path": "docs/runbook/ci-runtime-smoke-guardrails.md",
+          "title": "CI Runtime Smoke Guardrails",
+          "area": "ci_quality_gate",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/runbook/learning-report-flag-changes.md",
+          "title": "Learning Report Flag Changes",
+          "area": "learner_state",
+          "risk_level": "medium"
+        },
+        {
+          "path": "docs/runbook/2026-06-12-capacity-and-edge-hardening.md",
+          "title": "容量与边缘加固 — 应用步骤 + 内存发现",
+          "area": "release_operations",
+          "risk_level": "high"
+        },
+        {
+          "path": "docs/runbook/wechat-harness-standalone-smoke.md",
+          "title": "Wechat Harness Standalone Smoke",
+          "area": "ci_quality_gate",
+          "risk_level": "high"
+        }
+      ],
+      "runtime_guard": {
+        "release_stage": "ai_project_context_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    }
+  ]
+}

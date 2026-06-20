@@ -1,0 +1,4184 @@
+{
+  "bucket_rules": {
+    "lecture-strong": "counts.lecture > 0 and no higher-risk bucket",
+    "question-bank-strong": "counts.question > 0 and no weak/polluted marker",
+    "standard-strong": "counts.standard > 0 and no higher-risk bucket",
+    "textbook-strong": "counts.textbook > 0 and no higher-risk bucket",
+    "weak/polluted/sparse": "repair negative hit, source pollution, question_without_knowledge, or all source counts zero"
+  },
+  "candidate_pool_size": 30,
+  "candidate_pools": {
+    "lecture-strong": [
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "节水工艺",
+          "循环用水装置",
+          "冲洗用水",
+          "计量管理"
+        ],
+        "leaf_id": "1A413061-07-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节水与水资源利用要点 > 节水施工工艺",
+        "reason": "source_lane_count",
+        "selection_key": "077d9864b5a8402be08ad8fadf5ac9af132dfb5dc099040442b2e5e21cfad9ce",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "施工与拆除顺序一致",
+          "先撑后挖",
+          "爆破拆除前防护措施"
+        ],
+        "leaf_id": "1A413022-09-a",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 内支撑与锚杆施工要求 > 内支撑施工与拆除",
+        "reason": "source_lane_count",
+        "selection_key": "0dc8f9d01fb068187ebd4f44198fc3fe73c3337b2c1ecb8c1b8411f7e3d859d4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "定型",
+          "非定型",
+          "止水带",
+          "密封条",
+          "密封膏",
+          "密封胶"
+        ],
+        "leaf_id": "1A412031-05-a",
+        "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 建筑密封与堵漏灌浆材料 > 密封材料分类",
+        "reason": "source_lane_count",
+        "selection_key": "103eed30726e9ba7ce4adc62c205756a0c4c4ed6753461af454b66f090fd838a",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "不透水性",
+          "拉伸强度",
+          "断裂伸长率",
+          "耐老化",
+          "低温弯折"
+        ],
+        "leaf_id": "1A412031-03",
+        "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 防水卷材性能指标",
+        "reason": "source_lane_count",
+        "selection_key": "12cd18c275f62fe8f0c03e82c5172394b8cab467989d29e6fa4746afdb198673",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "无纺布",
+          "化纤无纺布"
+        ],
+        "leaf_id": "1A413051-03-f",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面防水基本要求 > 防水层胎体材料要求",
+        "reason": "source_lane_count",
+        "selection_key": "2d319ba091ab5eae36496b422da4fe5d1a89bf89df593c91d87599d3f107d671",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "雨后观察",
+          "淋水试验",
+          "蓄水试验"
+        ],
+        "leaf_id": "1A413051-06-a",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 保护层和隔离层施工 > 防水层验收要求",
+        "reason": "source_lane_count",
+        "selection_key": "3077bd968a0f59e42b2ea1804fd73701defe69e5c43901cc90fb807f887df37f",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "平行滑轨",
+          "跨越施工",
+          "场地狭窄",
+          "起重运输不便"
+        ],
+        "leaf_id": "1A413043-11-c",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 大跨度空间钢结构安装方法 > 滑移法适用范围",
+        "reason": "source_lane_count",
+        "selection_key": "53b968ae0694ce4bc2ec44515a3d5345bb842dfc25d8330da08503d5a63977fc",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "固定部分",
+          "人工部分",
+          "材料部分",
+          "价格指数",
+          "调值公式"
+        ],
+        "leaf_id": "1A413000-05-a",
+        "name_path": "智能建造新技术 > 工程造价动态调整方法 > 调值公式法（动态结算）",
+        "reason": "source_lane_count",
+        "selection_key": "53de71603522a2db0c05dec72a9951cadd20f03e12cdf3a9c38466b9780278ef",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "纸面石膏板",
+          "水泥加压板",
+          "钉眼处理",
+          "接缝错开"
+        ],
+        "leaf_id": "1A413062-03",
+        "name_path": "装饰装修工程施工 > 吊顶工程施工 > 罩面板安装要求",
+        "reason": "source_lane_count",
+        "selection_key": "53fe2d1cf6f12dffc4a8dd9e2d91ffcccba42f72bc8cf37d8acc1d163990795a",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "粗骨料",
+          "粒径",
+          "25mm",
+          "不宜超过3m"
+        ],
+        "leaf_id": "1A413041-03-a",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土自由落距控制 > 粗骨料粒径大于25mm的落距限制",
+        "reason": "source_lane_count",
+        "selection_key": "55f697bfe0484240dd0d5434da70b1d3b31bc9711925b28770dc1d52023bb313",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "自由落距",
+          "骨料粒径",
+          "3m",
+          "6m",
+          "溜管",
+          "串筒"
+        ],
+        "leaf_id": "1A413041-03",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土自由落距控制",
+        "reason": "source_lane_count",
+        "selection_key": "6b98df14ee5ad47f0f60746ad91819c5ec3fc67285ae296b5fe7c028d5cfbde6",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "招标人编制",
+          "投标人自主报价",
+          "单价合同",
+          "总价合同",
+          "工程量清单责任"
+        ],
+        "leaf_id": "1A413000-03-a",
+        "name_path": "智能建造新技术 > 合同价款确定与调整 > 合同价款的确定",
+        "reason": "source_lane_count",
+        "selection_key": "7c0ffa335de67394570dd739857441eead9887da871987368cf4ae290a5841cd",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "管井",
+          "真空井点",
+          "喷射井点",
+          "多级降水"
+        ],
+        "leaf_id": "1A413021-03-a",
+        "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 基坑降水施工规定 > 降水方法选择",
+        "reason": "source_lane_count",
+        "selection_key": "7e3c4c884001fd59072cf6fb9b5c45271b8031dc82ce002990b9231c61da7152",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "垃圾分类",
+          "回收再利用",
+          "减量化",
+          "资源化"
+        ],
+        "leaf_id": "1A413061-10-f",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工创新技术 > 建筑垃圾减排与回收",
+        "reason": "source_lane_count",
+        "selection_key": "7fee59b793c6bf95f4be6bb2ec568f7d765951de7a529a63ff8c6713666c3ee4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "静载试验",
+          "抗压承载力",
+          "抗拔承载力",
+          "水平承载力"
+        ],
+        "leaf_id": "1A413032-02-d",
+        "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工质量控制 > 承载力检测",
+        "reason": "source_lane_count",
+        "selection_key": "81db00eb38723aaf848a1304d6d72e8755990e8e711ff85aed740620a3ecd07d",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "施工平面管理",
+          "场地围挡",
+          "出入口管理",
+          "环境保护",
+          "文明施工"
+        ],
+        "leaf_id": "1A413022-06",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 施工平面管理",
+        "reason": "source_lane_count",
+        "selection_key": "83d6f5576aedc047387345102d875b2497386465205a80003bec39952c0fbb58",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "运输",
+          "吊装",
+          "临时支撑",
+          "构件存放"
+        ],
+        "leaf_id": "1A413044-01",
+        "name_path": "主体结构工程施工 > 装配式混凝土结构工程施工 > 装配式混凝土结构施工安全要点",
+        "reason": "source_lane_count",
+        "selection_key": "902259f5f6559645fb0544f296f4532e8a91d72480e6937c7573248b75fa7128",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "抗渗等级",
+          "厚度",
+          "裂缝宽度",
+          "养护期"
+        ],
+        "leaf_id": "1A413023-02",
+        "name_path": "土石方工程施工 > 人工降排水施工 > 防水混凝土施工要求",
+        "reason": "source_lane_count",
+        "selection_key": "95590bc8777d61c75568e4fc918432fac6a7628a6d24eb42a7822a6f7a86ef28",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "I级",
+          "II级"
+        ],
+        "leaf_id": "1A412031-01-c",
+        "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 建筑防水材料特性 > 屋面防水等级",
+        "reason": "source_lane_count",
+        "selection_key": "ab19963768952c6258dbce8b09df06737cb73ca99c6c94b5e0348087734b1812",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "U形",
+          "C形",
+          "CH形",
+          "T形",
+          "H形",
+          "V形",
+          "L形"
+        ],
+        "leaf_id": "1A412025-05-b",
+        "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 龙骨分类与应用 > 龙骨按断面形状分类",
+        "reason": "source_lane_count",
+        "selection_key": "acd59a5ce434139cb63959c500d1ea9ff069b09c38cd48665d24005b62d0dea5",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "整体模型",
+          "下部支承",
+          "大跨度",
+          "稳定性",
+          "风荷载",
+          "抗震"
+        ],
+        "leaf_id": "1A413043-01-g",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 钢结构通用规定 > 体型复杂结构计算",
+        "reason": "source_lane_count",
+        "selection_key": "b6955737be9ab5a2d9f91834f025b7fb53667a1fec9efda55ef5d18b161866e9",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "场地清理",
+          "测量放线",
+          "设备检查"
+        ],
+        "leaf_id": "1A413031-02-a",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求 > 施工前准备",
+        "reason": "source_lane_count",
+        "selection_key": "c2428633a22ac73a13b4585c3c58d3073871654773ba6c0a725137170b6b1aaa",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "满焊",
+          "焊接连接"
+        ],
+        "leaf_id": "1A413023-05-a",
+        "name_path": "土石方工程施工 > 人工降排水施工 > 止水带施工要求 > 钢板止水带连接方式",
+        "reason": "source_lane_count",
+        "selection_key": "cb0d93c6339d72c51593926c6cda3614f5a38d3fe128f292724c00077e450b82",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "混凝土强度",
+          "回填夯实",
+          "基准点",
+          "准确齐全",
+          "轴线",
+          "标高",
+          "地脚螺栓位置"
+        ],
+        "leaf_id": "1A413043-05-a",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 钢结构基础验收与安装要求 > 基础验收标准",
+        "reason": "source_lane_count",
+        "selection_key": "cf691a035e7d6cc9f73e483cf49787c7d238f29c6e70360cecf2e254c875c7e8",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "门窗洞口",
+          "雨蓬",
+          "阳台",
+          "变形缝",
+          "伸出外墙管道",
+          "女儿墙",
+          "外挑构件",
+          "穿墙空洞"
+        ],
+        "leaf_id": "1A413054-03-c",
+        "name_path": "屋面与防水工程施工 > 室内与外墙防水工程施工 > 外墙防水设计要求 > 外墙节点构造防水设计内容",
+        "reason": "source_lane_count",
+        "selection_key": "e5c7d38a09a47fa7a56d78bec5fedbe530b8e983b2d68fb662b6b699c2d5bdd9",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "毛光板",
+          "普型板",
+          "圆弧板",
+          "异型板",
+          "细面板",
+          "镜面板",
+          "粗面板",
+          "优等品",
+          "一等品",
+          "合格品"
+        ],
+        "leaf_id": "1A412021-01-b",
+        "name_path": "装饰装修工程材料 > 饰面板材(砖)和建筑陶瓷的特性与应用 > 天然花岗石的特性与应用 > 花岗石的分类与等级",
+        "reason": "source_lane_count",
+        "selection_key": "eaef89807498b2c0864ccf9ca78bd2fcb3410ab9663a913c6bd5366b2ecb7cda",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "厚度控制",
+          "平整度",
+          "接缝处理",
+          "抗裂性能"
+        ],
+        "leaf_id": "1A413052-02",
+        "name_path": "屋面与防水工程施工 > 保温隔热工程施工 > 保温隔热工程质量控制",
+        "reason": "source_lane_count",
+        "selection_key": "ec180503ca66c9425dfd5816c8db7087f8f8574322b6f76f6c2bae3d33d30d72",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "地基坚实",
+          "排水措施",
+          "扫地杆",
+          "连墙件"
+        ],
+        "leaf_id": "1A413046-01-a",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 常用施工脚手架类型与安全要求 > 脚手架搭设基本要求",
+        "reason": "source_lane_count",
+        "selection_key": "f08ee6e58a619f8199deb3152898307f07ddd3abf737802c12f7de52d991a1c7",
+        "task_pairs": []
+      },
+      {
+        "bucket": "lecture-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "排砖",
+          "整砖优先",
+          "非整砖宽度",
+          "专用粘结剂",
+          "填缝顺序"
+        ],
+        "leaf_id": "1A413061-15",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 饰面砖粘贴施工工艺",
+        "reason": "source_lane_count",
+        "selection_key": "f732f5dca6ced33fbe5d5addaf69fb979141e53864eb61c529847b70b8e58480",
+        "task_pairs": []
+      }
+    ],
+    "question-bank-strong": [
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 7,
+          "standard": 20,
+          "textbook": 3
+        },
+        "keywords": [
+          "住宅建筑",
+          "公共建筑",
+          "工业建筑"
+        ],
+        "leaf_id": "1A411011-02",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑物分类与构成 > 按建筑用途分类",
+        "reason": "source_lane_count",
+        "selection_key": "00cce5c8ad58a07ec9f94ebb79d66ea7edeacb251fc27d8524e608ae1de798f8",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "间距",
+          "刚性连接",
+          "抗风能力",
+          "水平投影"
+        ],
+        "leaf_id": "1A413046-02-b",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架搭设与拆除要求 > 连墙件设置要求",
+        "reason": "source_lane_count",
+        "selection_key": "065e1cf6c98e5ab86a3a7b9df9f14a4bf3fd67f2303d6e58643e548bfb6dc419",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "铺贴方向",
+          "顺序",
+          "附加层",
+          "搭接长度",
+          "搭接缝位置"
+        ],
+        "leaf_id": "1A413051-02-a",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面防水层施工质量控制 > 卷材铺贴施工要求",
+        "reason": "source_lane_count",
+        "selection_key": "0681eb5b3f37005442120be3903d7bbd709a192ceefee484b6960a0205d68f9e",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 6,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "分部分项工程费",
+          "措施项目费",
+          "其他项目费",
+          "增值税"
+        ],
+        "leaf_id": "1A413000-01-b",
+        "name_path": "智能建造新技术 > 建筑工程费用构成与计价 > 按造价形成划分",
+        "reason": "source_lane_count",
+        "selection_key": "0747469850b1ee746983032b0a9aec2ebe1598fbf1e0e79296546f3f4fb9f650",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "高强度",
+          "刚性",
+          "可加工性",
+          "耐腐蚀",
+          "耐候性"
+        ],
+        "leaf_id": "1A412025-03-b",
+        "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 彩色涂层钢板 > 彩色涂层钢板特点",
+        "reason": "source_lane_count",
+        "selection_key": "0a5d9e7d5e190e76ecaaecedf0f7494be1a4367b8ebf7f1f8433d292a04ac1cd",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 3
+        },
+        "keywords": [
+          "工程量",
+          "劳动力投入量",
+          "持续时间",
+          "班次",
+          "劳动效率",
+          "每班工作时间"
+        ],
+        "leaf_id": "1A413061-01-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳动力需求计划的编制 > 变量关系分析",
+        "reason": "source_lane_count",
+        "selection_key": "0b8a3c50d1af48215d69d884c5002ea64ae00f32f85958c81c16e78d5102e782",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 4,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "搭设流程",
+          "安装",
+          "升降",
+          "拆除"
+        ],
+        "leaf_id": "1A413022-03-c",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 脚手架工程专项施工方案编制要求 > 施工工艺流程",
+        "reason": "source_lane_count",
+        "selection_key": "0dbde0b1b6a43956aab0fbe01f31562fe6695631b4930c9b813a4298e22ddac9",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "低应变法",
+          "高应变法",
+          "钻芯法",
+          "声波透射法"
+        ],
+        "leaf_id": "1A413032-02-c",
+        "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工质量控制 > 桩身完整性检测",
+        "reason": "source_lane_count",
+        "selection_key": "0ea2b2e3632157e7ce7ff5cd108a86baf8754f2211fe1cee78495200c72a7b74",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 2,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "变形",
+          "徐变",
+          "收缩",
+          "碳化",
+          "碱骨料反应",
+          "抗渗性",
+          "抗冻性",
+          "抗侵蚀性"
+        ],
+        "leaf_id": "1A412013-04",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的变形与耐久性",
+        "reason": "source_lane_count",
+        "selection_key": "1030608374c88a85d8152d8ccf206f98ac980cad7f5f15b3aad946b76ccb8a55",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 2,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "立式运输",
+          "水平运输",
+          "倾斜角度",
+          "隔垫块"
+        ],
+        "leaf_id": "1A413044-01-a",
+        "name_path": "主体结构工程施工 > 装配式混凝土结构工程施工 > 装配式混凝土结构施工安全要点 > 预制构件运输方式",
+        "reason": "source_lane_count",
+        "selection_key": "11d27cb8bdb9bad2f2a9788ea4ea17212cfeaa0264a1d49030e2e45069931e20",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 5,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "高性能减水剂",
+          "高效减水剂",
+          "普通减水剂",
+          "引气减水剂",
+          "早强剂",
+          "缓凝剂",
+          "引气剂",
+          "防冻剂",
+          "膨胀剂",
+          "防水剂",
+          "泵送剂"
+        ],
+        "leaf_id": "1A412013-05-a",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土外加剂的功能与应用 > 外加剂的分类",
+        "reason": "source_lane_count",
+        "selection_key": "123fcf08bef3412d48c179f5f56262107cc29ec6dce075736dc7ec4b579f2f89",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 2,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "干燥环境",
+          "水中混凝土",
+          "大体积混凝土",
+          "早强要求",
+          "高强混凝土",
+          "耐磨性",
+          "侵蚀介质"
+        ],
+        "leaf_id": "1A412012-03-e",
+        "name_path": "结构工程材料 > 水泥的性能与应用 > 常用水泥的特性及应用 > 水泥选用原则",
+        "reason": "source_lane_count",
+        "selection_key": "1382369e62b8159479ee13e8a19f2bc7077c9386de82eac580477fd1aba7326e",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 6,
+          "question": 104,
+          "standard": 229,
+          "textbook": 76
+        },
+        "keywords": [
+          "27m",
+          "高层住宅",
+          "100m",
+          "超高层"
+        ],
+        "leaf_id": "1A411011-01",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑物分类与构成 > 按建筑高度分类",
+        "reason": "source_lane_count",
+        "selection_key": "16b506d8ad91c93eced12e8ecc86bb094b853147f519524d40798c356c681c59",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 4
+        },
+        "keywords": [
+          "验收程序",
+          "签字确认",
+          "验收标识",
+          "档案管理"
+        ],
+        "leaf_id": "1A413022-04-f",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 危大工程现场安全管理 > 验收与档案管理",
+        "reason": "source_lane_count",
+        "selection_key": "198fff8883558636cfe6fb58cbab35668f28b1730cff2f52aee628770aeaba72",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 5,
+          "question": 31,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "防水层",
+          "保温层",
+          "找平层",
+          "排气道"
+        ],
+        "leaf_id": "1A413051-01",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面工程构造与施工安全",
+        "reason": "source_lane_count",
+        "selection_key": "1a6836ab0ff2b8deb59b651edb2d6ce6769e196786efcddabb6ecd036a1e4367",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 2,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "导热系数",
+          "密度",
+          "抗压强度",
+          "燃烧性能",
+          "粘结强度",
+          "耐腐蚀"
+        ],
+        "leaf_id": "1A413053-03-b",
+        "name_path": "屋面与防水工程施工 > 地下室防水工程施工 > 建筑节能工程质量通病防治 > 墙体保温材料性能要求",
+        "reason": "source_lane_count",
+        "selection_key": "1d5d6405ba774c6d9c697b92b04b335eb4e7f1ecf5e3df532875bcec9e789d20",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "钢管脚手架",
+          "悬挑脚手架",
+          "附着式升降脚手架",
+          "安全防护"
+        ],
+        "leaf_id": "1A413046-01",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 常用施工脚手架类型与安全要求",
+        "reason": "source_lane_count",
+        "selection_key": "202596f07a882ea241ed2001f6f20458f1ee495db80db6956751cd39dbd3d70c",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "超挖",
+          "损坏支护结构",
+          "降水设施"
+        ],
+        "leaf_id": "1A413021-01-b",
+        "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 岩土分类与工程性能 > 土方开挖禁止行为",
+        "reason": "source_lane_count",
+        "selection_key": "22e80b3e36c68f7e659da1743fbd1b5fb30471d5372c0ab2c45c45ecb7dabf57",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 5,
+          "question": 6,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "硅酸盐水泥",
+          "普通硅酸盐水泥",
+          "矿渣硅酸盐水泥",
+          "火山灰质硅酸盐水泥",
+          "粉煤灰硅酸盐水泥",
+          "复合硅酸盐水泥",
+          "代号",
+          "强度等级"
+        ],
+        "leaf_id": "1A412012-01",
+        "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的分类与代号",
+        "reason": "source_lane_count",
+        "selection_key": "238eeec48f4854a679af8d8f5e2f07fabb93f30a034a4f1a650fa11d4d066d96",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 3,
+          "question": 35,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "岩土",
+          "分类",
+          "工程性能",
+          "软土",
+          "流塑状"
+        ],
+        "leaf_id": "1A413021-01",
+        "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 岩土分类与工程性能",
+        "reason": "source_lane_count",
+        "selection_key": "23dc789c25fab3409fe0407c2364a4d5c0ba8313f2781411a9226deb3485d595",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 4,
+          "question": 30,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "模板支撑",
+          "高空作业",
+          "机械伤害",
+          "触电"
+        ],
+        "leaf_id": "1A413041-01",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土结构施工安全要点",
+        "reason": "source_lane_count",
+        "selection_key": "26ec5a67e54f4868cb4c247d45fce2af123f505c1c046614654784a0326a9278",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 3,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "清除杂物",
+          "排水",
+          "阶梯形",
+          "阶高0.2～0.3m",
+          "阶宽>1m"
+        ],
+        "leaf_id": "1A413024-04-c",
+        "name_path": "土石方工程施工 > 土石方工程与回填施工 > 土方回填施工要求 > 地基处理",
+        "reason": "source_lane_count",
+        "selection_key": "270166d69eec22f1df218e4df2a029eaed3e21af26437c12cec507618b32c157",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "分层厚度",
+          "施工方法",
+          "碾压遍数",
+          "功率"
+        ],
+        "leaf_id": "1A413024-03-b",
+        "name_path": "土石方工程施工 > 土石方工程与回填施工 > 砂和石地基施工 > 施工前工艺性试验",
+        "reason": "source_lane_count",
+        "selection_key": "28436f86bbc1e784825cbfc8d3a50da6ec868455539bfd470e9055b25979af73",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 18,
+          "standard": 0,
+          "textbook": 4
+        },
+        "keywords": [
+          "150mm立方体",
+          "28d龄期",
+          "标准养护",
+          "C20",
+          "C25",
+          "C30",
+          "C35",
+          "C40",
+          "C45",
+          "C50",
+          "C55",
+          "C60"
+        ],
+        "leaf_id": "1A412013-03-a",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的强度 > 立方体抗压强度与强度等级",
+        "reason": "source_lane_count",
+        "selection_key": "294c0654ecc6549b956611afaf3ff0f287b7dfc810ac08209311ca31e9c8ccb3",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 3,
+          "question": 2,
+          "standard": 38,
+          "textbook": 1
+        },
+        "keywords": [
+          "金属",
+          "木材",
+          "塑料",
+          "复合材料"
+        ],
+        "leaf_id": "1A413062-01-c",
+        "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类 > 格栅吊顶",
+        "reason": "source_lane_count",
+        "selection_key": "2ca7a5a5eac66cbd76a5d4bb5397631954d0d7aebc5afaf8b9f027e419cf39a4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "平行屋脊",
+          "上下层不垂直",
+          "顺流水方向"
+        ],
+        "leaf_id": "1A413051-04-a",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面卷材防水层施工 > 卷材铺贴方向规定",
+        "reason": "source_lane_count",
+        "selection_key": "2f98c65e873d194b88118cc90442e785a316b7bf782fbbfcba5ec8b1f43481d3",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 7,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "一级",
+          "耐根穿刺防水层",
+          "至少一道"
+        ],
+        "leaf_id": "1A413052-04-a",
+        "name_path": "屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求 > 种植屋面防水等级",
+        "reason": "source_lane_count",
+        "selection_key": "314b44e0d5e8a1afe910835350dc065d86c3813cf28b82873fe91299f5bbe3ae",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 13,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "绿色建筑",
+          "节能减排",
+          "资源循环",
+          "生态环保",
+          "低碳建造",
+          "智慧运营"
+        ],
+        "leaf_id": "1A411012-02-e",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑设计程序与要求 > 建筑设计基本要求 > 实现可持续发展目标",
+        "reason": "source_lane_count",
+        "selection_key": "3222522c0a6b5b28d37c23f9f5d6f9f8d2e93ef0292defbb09a902167872e1cb",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 4,
+          "standard": 0,
+          "textbook": 3
+        },
+        "keywords": [
+          "抗压强度",
+          "抗折强度",
+          "3d",
+          "28d",
+          "胶砂法",
+          "表2.1-3"
+        ],
+        "leaf_id": "1A412012-02-c",
+        "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的技术要求 > 强度等级标准",
+        "reason": "source_lane_count",
+        "selection_key": "32ca7b36878e6054615fb71898304839d7cb11b680af415936cbea0ae3680b77",
+        "task_pairs": []
+      },
+      {
+        "bucket": "question-bank-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 1,
+          "standard": 34,
+          "textbook": 2
+        },
+        "keywords": [
+          "坍落度",
+          "超灌高度",
+          "充盈系数",
+          "水下混凝土"
+        ],
+        "leaf_id": "1A413032-02-b",
+        "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工质量控制 > 混凝土质量控制",
+        "reason": "source_lane_count",
+        "selection_key": "3551770bc6383e1f5f5b49db67961533eed8d2cd58ad4aed3fb6b48b360a4b09",
+        "task_pairs": []
+      }
+    ],
+    "standard-strong": [
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 4,
+          "textbook": 2
+        },
+        "keywords": [
+          "台阶分层",
+          "浇筑停歇",
+          "钢筋位置",
+          "杯口模板"
+        ],
+        "leaf_id": "1A413033-01-b",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工形式 > 独立基础施工",
+        "reason": "source_lane_count",
+        "selection_key": "0726a701cba7bdd196e17d3d610cfe24276e0d1e2913120257b14dea50bfe565",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 16,
+          "textbook": 0
+        },
+        "keywords": [
+          "轻钢龙骨",
+          "铝合金龙骨",
+          "木龙骨",
+          "石膏板",
+          "矿棉板",
+          "铝扣板",
+          "PVC板"
+        ],
+        "leaf_id": "1A413062-01-b",
+        "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类 > 板块面层吊顶",
+        "reason": "source_lane_count",
+        "selection_key": "10c9314f2e656a20206d5ea50195d2093ff7325e6a6ef3b887216784a9eac57c",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 3,
+          "textbook": 0
+        },
+        "keywords": [
+          "整体面层吊顶",
+          "板块面层吊顶",
+          "格栅吊顶"
+        ],
+        "leaf_id": "1A413062-01",
+        "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类",
+        "reason": "source_lane_count",
+        "selection_key": "123aaae004352421121f627b4d568b24be87c38c4cf7f3980dac2b7a08e3c7bf",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 4,
+          "textbook": 0
+        },
+        "keywords": [
+          "低水化热水泥",
+          "坍落度≤180mm",
+          "水胶比控制",
+          "砂率38%～45%"
+        ],
+        "leaf_id": "1A413033-03-b",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 大体积混凝土施工 > 配合比设计",
+        "reason": "source_lane_count",
+        "selection_key": "175b7cf85dedc446f078b37d21aea344eb150c73339f4f8f7ac3d20f0d679897",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 1,
+          "textbook": 0
+        },
+        "keywords": [
+          "节能",
+          "可再生能源",
+          "高效设备",
+          "用电控制"
+        ],
+        "leaf_id": "1A413061-08",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+        "reason": "source_lane_count",
+        "selection_key": "1981303c8dd335054b3b4eb410d236b4ca5e92b8f70b6ce098828aedf1187804",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 4,
+          "textbook": 0
+        },
+        "keywords": [
+          "保温设计",
+          "隔热设计",
+          "热阻值",
+          "Low-E玻璃",
+          "通风屋面",
+          "遮阳措施",
+          "气候分区"
+        ],
+        "leaf_id": "1A411013-04",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑保温与隔热设计",
+        "reason": "source_lane_count",
+        "selection_key": "1cee9f6ce67765b6fd4778b74c9eba8f732661200b6c9fc15452dd20dee8fcbd",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 7,
+          "textbook": 4
+        },
+        "keywords": [
+          "模板强度",
+          "支撑系统",
+          "剪刀撑",
+          "起拱高度"
+        ],
+        "leaf_id": "1A413033-02-b",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工技术要求 > 模板工程要求",
+        "reason": "source_lane_count",
+        "selection_key": "2318010b32595ac0bf396d776a833959219f870adc25478064235f3ee811f84b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 2,
+          "textbook": 0
+        },
+        "keywords": [
+          "固定遮阳",
+          "活动遮阳",
+          "水平遮阳",
+          "垂直遮阳",
+          "组合遮阳",
+          "挡板遮阳"
+        ],
+        "leaf_id": "1A411013-04-d",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑保温与隔热设计 > 建筑遮阳设计",
+        "reason": "source_lane_count",
+        "selection_key": "23866c40909051bfb4d5c569fe57f4aff4f23de169f4351d2b43f342204bb5c7",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 1,
+          "textbook": 0
+        },
+        "keywords": [
+          "现场管理",
+          "技术力量",
+          "质量水平",
+          "文明施工",
+          "安全措施",
+          "管理制度"
+        ],
+        "leaf_id": "1A413061-04-c",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务分包管理流程 > 实地考察要点",
+        "reason": "source_lane_count",
+        "selection_key": "295d381c72f1c56b9e6109900a3be84ca87750b173efd6fdccc1470f4ae97ea4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 1,
+          "textbook": 1
+        },
+        "keywords": [
+          "参数控制",
+          "分层施工",
+          "监测记录"
+        ],
+        "leaf_id": "1A413031-02-b",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求 > 施工过程控制",
+        "reason": "source_lane_count",
+        "selection_key": "2c64f2047553f3cfcc6d78342812b4ebfef7e652c67b843bfb9a15222ad73d4f",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 16,
+          "textbook": 0
+        },
+        "keywords": [
+          "石膏板",
+          "钙塑板",
+          "矿棉板",
+          "金属板",
+          "塑料板"
+        ],
+        "leaf_id": "1A413062-01-a",
+        "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类 > 整体面层吊顶",
+        "reason": "source_lane_count",
+        "selection_key": "3586dbb89f055d26f8533127c23106a9f242120a4ab8eefcd176bc376856e925",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 5,
+          "question": 0,
+          "standard": 61,
+          "textbook": 5
+        },
+        "keywords": [
+          "垂直度",
+          "桩位偏差",
+          "混凝土强度",
+          "桩身完整性"
+        ],
+        "leaf_id": "1A413032-02",
+        "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工质量控制",
+        "reason": "source_lane_count",
+        "selection_key": "3b5a4da28b66e341d42a29954a8b8d6e12a76fa833973495ddedbc0ce2a92384",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 2,
+          "textbook": 0
+        },
+        "keywords": [
+          "放射性"
+        ],
+        "leaf_id": "1A413061-14-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 饰面砖工程材料复验要求 > 室内用陶瓷砖放射性",
+        "reason": "source_lane_count",
+        "selection_key": "4b8fa4c019a160606ed4e7b0c4146994587a4c5a0f3bd45f1ef90885b6510446",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 5,
+          "textbook": 2
+        },
+        "keywords": [
+          "整体浇筑",
+          "后浇带设置",
+          "模板支撑",
+          "混凝土供应"
+        ],
+        "leaf_id": "1A413033-01-c",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工形式 > 筏形基础施工",
+        "reason": "source_lane_count",
+        "selection_key": "4fb9495134892061fe043df4f48a8528e21027e01f1a290d758807ec02625417",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 5,
+          "question": 0,
+          "standard": 27,
+          "textbook": 3
+        },
+        "keywords": [
+          "自然"
+        ],
+        "leaf_id": "1A411013-05",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑自然通风设计",
+        "reason": "source_lane_count",
+        "selection_key": "505e86c5fa2989b7353516c9877ef952cf11481091e9b2911e3cec5b46f892fc",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 14,
+          "textbook": 0
+        },
+        "keywords": [
+          "堆载预压",
+          "真空预压",
+          "排水系统"
+        ],
+        "leaf_id": "1A413031-01-c",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理方法分类 > 预压法实施步骤",
+        "reason": "source_lane_count",
+        "selection_key": "6d569d30fefc38dfaf05dbb7984bb79e6091632e820ead43a101f8b1fd3206ae",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 9,
+          "textbook": 1
+        },
+        "keywords": [
+          "夯击能",
+          "夯点布置",
+          "夯击遍数"
+        ],
+        "leaf_id": "1A413031-01-b",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理方法分类 > 强夯法施工要点",
+        "reason": "source_lane_count",
+        "selection_key": "777d439fe5d412f5a0a4d5367960216a8bf444e5c75388efc7c837dc899695ba",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 6,
+          "textbook": 0
+        },
+        "keywords": [
+          "放射性",
+          "拉伸粘结强度",
+          "抗冻性"
+        ],
+        "leaf_id": "1A413061-14",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 饰面砖工程材料复验要求",
+        "reason": "source_lane_count",
+        "selection_key": "794903ede473691bc3b4e6a1d588c130a51b2e0eb0fd31253381e5fcc5dd7749",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 6,
+          "textbook": 2
+        },
+        "keywords": [
+          "分段分层",
+          "浇筑长度",
+          "标高控制",
+          "模板支设"
+        ],
+        "leaf_id": "1A413033-01-a",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工形式 > 条形基础施工",
+        "reason": "source_lane_count",
+        "selection_key": "7a18eaff4d9415fb029f074442e68f87d6c25c012ea6bee3fdb1e1f6268a2781",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 3,
+          "textbook": 0
+        },
+        "keywords": [
+          "先水平后垂直",
+          "连续平直",
+          "无裂纹"
+        ],
+        "leaf_id": "1A413061-15-c",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 饰面砖粘贴施工工艺 > 填缝施工顺序",
+        "reason": "source_lane_count",
+        "selection_key": "7e8575fcdb2559545606bd44dc5b08651b5b0b439517cbd1f7540a9635faa33a",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 1,
+          "textbook": 0
+        },
+        "keywords": [
+          "明框",
+          "隐框",
+          "半隐框",
+          "全玻",
+          "点支承"
+        ],
+        "leaf_id": "1A413061-16-b",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类 > 按支承方式分类",
+        "reason": "source_lane_count",
+        "selection_key": "8e2c01a4fa8ad4aa445aee75c4253636418bf5e119a73a026d5339526074660f",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 1,
+          "textbook": 1
+        },
+        "keywords": [
+          "温控措施",
+          "配合比设计",
+          "浇筑方法",
+          "养护要求"
+        ],
+        "leaf_id": "1A413033-03",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 大体积混凝土施工",
+        "reason": "source_lane_count",
+        "selection_key": "9442aa7d30af16baf41c5922e07a5c79a0dc83e24678f629bc64af769ebe3c45",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 3,
+          "textbook": 2
+        },
+        "keywords": [
+          "保湿养护",
+          "拆模强度",
+          "后浇带养护",
+          "温度控制"
+        ],
+        "leaf_id": "1A413033-02-d",
+        "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工技术要求 > 养护与拆模",
+        "reason": "source_lane_count",
+        "selection_key": "9d31e82dfde7a6804ae109007e66acde36e5d6c0b2336f209b0b2d9c41c7a339",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 7,
+          "textbook": 1
+        },
+        "keywords": [
+          "静载试验",
+          "动力触探",
+          "取样检验"
+        ],
+        "leaf_id": "1A413031-02-c",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求 > 质量检测方法",
+        "reason": "source_lane_count",
+        "selection_key": "9f34f2ee7bc18b3b0225c64096ee2cf59562134a97b996762869f2a1264c7dd6",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 2,
+          "textbook": 0
+        },
+        "keywords": [
+          "拉伸粘结强度"
+        ],
+        "leaf_id": "1A413061-14-b",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 饰面砖工程材料复验要求 > 粘结材料拉伸粘结强度",
+        "reason": "source_lane_count",
+        "selection_key": "a5d6a86d8829e4b1ad4c01beb439285a8616ddae4bd6832dcfd449f3e2573630",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 11,
+          "textbook": 0
+        },
+        "keywords": [
+          "软弱土层",
+          "浅层处理",
+          "承载力不足"
+        ],
+        "leaf_id": "1A413031-01-a",
+        "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理方法分类 > 换填垫层法适用条件",
+        "reason": "source_lane_count",
+        "selection_key": "b28b47b0a6bed5134fcc6f01b9a345c1297d8d1094925854e53846f165d0e24c",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 4,
+          "textbook": 0
+        },
+        "keywords": [
+          "浅色外饰面",
+          "通风屋面",
+          "反射隔热",
+          "淋水降温",
+          "种植屋面",
+          "老虎窗"
+        ],
+        "leaf_id": "1A411013-04-b",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑保温与隔热设计 > 隔热设计方法",
+        "reason": "source_lane_count",
+        "selection_key": "b3070fdcf2e31f9af33fe3380ff266b9af605299e5d110e7499331bc73cb85e7",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 2,
+          "textbook": 1
+        },
+        "keywords": [
+          "法人营业执照",
+          "资质证书",
+          "组织机构代码",
+          "年度统计表",
+          "分包合同",
+          "备案证书",
+          "通知书",
+          "劳动合同",
+          "考勤记录",
+          "月报表"
+        ],
+        "leaf_id": "1A413061-05-d",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑工人实名制管理 > 资料归档与管理",
+        "reason": "source_lane_count",
+        "selection_key": "b3af11785d7c0dbb0b9456656cffce7f8cc50b41fcba377ead8786ee29d065b4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 8,
+          "textbook": 1
+        },
+        "keywords": [
+          "整体面层",
+          "板块面层",
+          "木竹面层"
+        ],
+        "leaf_id": "1A413063-01",
+        "name_path": "装饰装修工程施工 > 地面工程施工 > 地面工程分类",
+        "reason": "source_lane_count",
+        "selection_key": "becd946aab8e198eae69c0a78ebce14b624b4928fd22711c018e4841bc93dfe9",
+        "task_pairs": []
+      },
+      {
+        "bucket": "standard-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 2,
+          "textbook": 0
+        },
+        "keywords": [
+          "噪声源",
+          "A声级",
+          "昼间夜间",
+          "隔声降噪",
+          "电梯布置",
+          "管道隔音",
+          "结构传声"
+        ],
+        "leaf_id": "1A411013-03",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑噪声控制要求",
+        "reason": "source_lane_count",
+        "selection_key": "c987590abf5b06cf91414a073a7600a1dedf22f281314138bdcec2e54e3dc516",
+        "task_pairs": []
+      }
+    ],
+    "textbook-strong": [
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "落地脚手架计算书",
+          "附着式脚手架计算书",
+          "吊篮计算",
+          "平面图",
+          "剖面图"
+        ],
+        "leaf_id": "1A413022-03-h",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 脚手架工程专项施工方案编制要求 > 计算书与施工图纸",
+        "reason": "source_lane_count",
+        "selection_key": "011e0d8d3a25c5e62382125d166a2f3ab4afb7ec5e662862560810d53de67596",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "巡查频次",
+          "问题登记",
+          "整改闭环",
+          "影像资料"
+        ],
+        "leaf_id": "1A413046-06-b",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架验收与检查制度 > 日常巡检与动态监控",
+        "reason": "source_lane_count",
+        "selection_key": "062bfce408e880c6136d7acf45b6b70d774a5b178cacf10807c3f60d9ad16ba1",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "大风",
+          "雨雪",
+          "暂停作业",
+          "防滑防冻"
+        ],
+        "leaf_id": "1A413046-03-b",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架使用期间管理规定 > 恶劣天气应对措施",
+        "reason": "source_lane_count",
+        "selection_key": "0745d34b6b3fb5fae0e46ad04bce05f4bab0a71cc0273cfcbd3e11c70aa82833",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "P4",
+          "P6",
+          "P8",
+          "P10",
+          "P12",
+          ">P12"
+        ],
+        "leaf_id": "1A412013-04-c",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的变形与耐久性 > 抗渗等级",
+        "reason": "source_lane_count",
+        "selection_key": "0abce644009e21771a3c179cf0a8fdc62b28d3b528746e1020f407331b426cb0",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "因地制宜",
+          "防为主",
+          "防排结合",
+          "综合治理"
+        ],
+        "leaf_id": "1A413023-01-a",
+        "name_path": "土石方工程施工 > 人工降排水施工 > 防水工程基本原则 > 防水设计原则",
+        "reason": "source_lane_count",
+        "selection_key": "0e646a858d0a7d5ded702ee7cc7b9b99c70deae75718df700b4a549f1ff8df78",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 5
+        },
+        "keywords": [
+          "轻型钢结构",
+          "装饰工程",
+          "栏杆",
+          "扶手",
+          "护栏",
+          "电箱护罩"
+        ],
+        "leaf_id": "1A412025-01-b",
+        "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 装饰装修用钢材 > 冷弯型钢特性与用途",
+        "reason": "source_lane_count",
+        "selection_key": "0fea36880a9419cc68eb8b4eb2f2f37f6ef50d9328983b60418abbb5d33c08fa",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "不溶物",
+          "烧失量",
+          "三氧化硫",
+          "氧化镁",
+          "氯离子"
+        ],
+        "leaf_id": "1A412012-02-e",
+        "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的技术要求 > 化学指标要求",
+        "reason": "source_lane_count",
+        "selection_key": "11af70bd329dfc1c01249d205bb532066130930d3a7fb0b3b6559835a8d37a63",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "索赔意向书",
+          "索赔报告",
+          "证据材料",
+          "审核期限"
+        ],
+        "leaf_id": "1A413000-06-c",
+        "name_path": "智能建造新技术 > 工程变更、新增工程与索赔 > 索赔证据与程序",
+        "reason": "source_lane_count",
+        "selection_key": "139863e4f92a850f381d189b2820352e70c55908e334dd5690817f30099bcd62",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 3
+        },
+        "keywords": [
+          "计量周期",
+          "支付比例",
+          "累计已支付款",
+          "预付款扣回"
+        ],
+        "leaf_id": "1A413000-04-b",
+        "name_path": "智能建造新技术 > 工程价款支付与结算 > 工程进度款支付",
+        "reason": "source_lane_count",
+        "selection_key": "13e978b8da407de8786e424701b89cbb632783f9206c8bf7331e102e491b4513",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 5
+        },
+        "keywords": [
+          "塔式起重机",
+          "混凝土泵",
+          "施工升降机",
+          "覆盖范围",
+          "防碰撞"
+        ],
+        "leaf_id": "1A413022-05-c",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 施工总平面布置图设计 > 大型机械布置",
+        "reason": "source_lane_count",
+        "selection_key": "14021b1851ade8c64a40d9b610eb31bb0e8e251efec5729b0ed458491d2d021a",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "工程变更",
+          "新增工程",
+          "工程索赔",
+          "费用索赔",
+          "工期索赔"
+        ],
+        "leaf_id": "1A413000-06",
+        "name_path": "智能建造新技术 > 工程变更、新增工程与索赔",
+        "reason": "source_lane_count",
+        "selection_key": "174cef6ccbe6e8a50b6d4fc6b68845f060089b132c9eb6b2bfc592c0283b9121",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "整榀安装",
+          "分段安装",
+          "变形控制",
+          "侧向临时约束",
+          "吊装过程",
+          "防止变形"
+        ],
+        "leaf_id": "1A413043-08",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 钢桁架（屋架）安装要求",
+        "reason": "source_lane_count",
+        "selection_key": "1cff69a7e45d7975704c9997f365c84c6ceb53d74a5c54f633b6e9698625e1f3",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "构件堆场",
+          "运输车辆",
+          "场地平整",
+          "电源水源",
+          "排水通畅",
+          "起重设备",
+          "塔式起重机",
+          "履带式起重机",
+          "汽车式起重机",
+          "非定型产品",
+          "专项方案",
+          "评审"
+        ],
+        "leaf_id": "1A413043-04",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 钢结构安装场地与设备要求",
+        "reason": "source_lane_count",
+        "selection_key": "1d8765e49637920d2eb6276c8d147352de405149cb5fbb2d5ab3c8060c1935aa",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "企业性质",
+          "资质等级",
+          "社会信誉",
+          "资金情况",
+          "劳动力资源",
+          "施工业绩",
+          "履约能力",
+          "管理水平"
+        ],
+        "leaf_id": "1A413061-04-b",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务分包管理流程 > 资格预审内容",
+        "reason": "source_lane_count",
+        "selection_key": "25f91fdfbb71c4e3468eaf05fcdc9c88d6c1e6eeba865c54d06bbc464a39b006",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "靠近使用点",
+          "平行道路",
+          "危险品隔离",
+          "防火间距"
+        ],
+        "leaf_id": "1A413022-05-d",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 施工总平面布置图设计 > 仓库与堆场布置",
+        "reason": "source_lane_count",
+        "selection_key": "287b9d2a937dc78df91a1d24623d5eeea7419a8879827cda2019cf9cf95444b7",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "保湿养护",
+          "酒水",
+          "覆盖",
+          "喷涂",
+          "养护时间",
+          "14d"
+        ],
+        "leaf_id": "1A413041-05",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土养护要求",
+        "reason": "source_lane_count",
+        "selection_key": "36ca0e46a359ff4cc1f68bb4a01f8c80456c40215a318549aed6f5b0c9ab68cf",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 3,
+          "question": 0,
+          "standard": 0,
+          "textbook": 3
+        },
+        "keywords": [
+          "合同条款",
+          "权利义务",
+          "付款方式",
+          "违约责任"
+        ],
+        "leaf_id": "1A413061-04-f",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务分包管理流程 > 签订劳务分包合同",
+        "reason": "source_lane_count",
+        "selection_key": "3d500f21e1e8b5700cf0598c5a518fa0ba5df9dd00acb67c0e97b341c28a38e7",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "安全帽",
+          "防护服",
+          "防毒面具",
+          "耳塞",
+          "绝缘鞋"
+        ],
+        "leaf_id": "1A413061-11-c",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 施工现场卫生防疫与职业健康 > 劳动防护用品配备",
+        "reason": "source_lane_count",
+        "selection_key": "475a02a7f45d4baa6923eb909d288efed1290ffb158bb6de706eb541cb92cd1b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "工作量",
+          "生产任务量",
+          "劳动定额",
+          "生产定员人数"
+        ],
+        "leaf_id": "1A413061-02-b",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳动力配置计划的编制方法 > 按劳动定额计算定员",
+        "reason": "source_lane_count",
+        "selection_key": "4c81b6a34883a68221912d15ef516a9e1083966e20a12d930f341ac4ad528e9b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 3,
+          "question": 0,
+          "standard": 0,
+          "textbook": 6
+        },
+        "keywords": [
+          "工程量清单缺项",
+          "暂列金额",
+          "物价变化",
+          "工程变更",
+          "工程索赔"
+        ],
+        "leaf_id": "1A413000-03-b",
+        "name_path": "智能建造新技术 > 合同价款确定与调整 > 合同价款调整事项",
+        "reason": "source_lane_count",
+        "selection_key": "4d95934869ca4ddb691a54bbe4bd34f5f9fcc9c051cd75aefc8ebc68f92ec7fc",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "复层涂料",
+          "内墙",
+          "外墙",
+          "功能性",
+          "水性",
+          "溶剂型"
+        ],
+        "leaf_id": "1A412024-01",
+        "name_path": "装饰装修工程材料 > 涂饰与裱糊材料的特性与应用 > 涂饰材料分类与应用",
+        "reason": "source_lane_count",
+        "selection_key": "52fe16dd2f0a3e950b6e2c35aaf302b55fd8aa74c880afd7ca921042ea68b294",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "随机抽样",
+          "外观检查",
+          "合格证",
+          "检测报告"
+        ],
+        "leaf_id": "1A413046-04-b",
+        "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架材料与构配件管理 > 构配件进场验收流程",
+        "reason": "source_lane_count",
+        "selection_key": "5334f07d4c61982b88bd08361236ed90103ca9e82baf9d000de4897e23f27085",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 1,
+          "question": 0,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "碎石",
+          "卵石",
+          "最大粒径",
+          "连续粒级",
+          "单粒粒级",
+          "针片状颗粒",
+          "坚固性",
+          "硫酸钠溶液检验"
+        ],
+        "leaf_id": "1A412013-01-c",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土组成材料的技术要求 > 粗骨料（石）的技术要求",
+        "reason": "source_lane_count",
+        "selection_key": "54c4f7faa2fb0e8cd56536355b0b151f27271216634e7302813a21a535de9367",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "MU3.5",
+          "MU5",
+          "A2.5",
+          "A3.5",
+          "内墙",
+          "外墙"
+        ],
+        "leaf_id": "1A413042-01-e",
+        "name_path": "主体结构工程施工 > 砌体结构工程施工 > 砌体结构通用规定 > 填充墙材料强度要求",
+        "reason": "source_lane_count",
+        "selection_key": "5a2c938e935b1eca9e54a1013997629401a68b28345797d8c599c64d7cb40384",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "檐口",
+          "檐沟",
+          "女儿墙",
+          "水落口",
+          "附加层",
+          "收头处理"
+        ],
+        "leaf_id": "1A413051-07",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面细部构造施工",
+        "reason": "source_lane_count",
+        "selection_key": "5e4fcabd0d075be79c0dd8a2ac1c59884478faaa3c7c24c5fc1f9f6f72d0703f",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "搭接错缝",
+          "双层铺贴",
+          "收头固定",
+          "起鼓张口"
+        ],
+        "leaf_id": "1A413023-03",
+        "name_path": "土石方工程施工 > 人工降排水施工 > 卷材防水施工要求",
+        "reason": "source_lane_count",
+        "selection_key": "618eecc7c61c369d661fd1102860bdab2e0f87fb32ae987f54da48b60daded45",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "800mm范围内双粘",
+          "金属压条",
+          "密封材料封严",
+          "滴水槽"
+        ],
+        "leaf_id": "1A413051-07-a",
+        "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面细部构造施工 > 檐口卷材收头处理",
+        "reason": "source_lane_count",
+        "selection_key": "65ff606fe76cc7da6f52b44e72e1dc0adf726cc18f3477e90052b8d1ca430388",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "实名制管理卡",
+          "工资代发",
+          "考勤管理",
+          "门禁管理",
+          "售饭管理",
+          "生物识别",
+          "电子考勤",
+          "档案保存"
+        ],
+        "leaf_id": "1A413061-06",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 实名制管理卡功能",
+        "reason": "source_lane_count",
+        "selection_key": "686eb5689a8df1150a22ecf9b297a022c1b7aa5c2f2d40ac7c01dfd7c27da730",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "对接焊缝",
+          "角焊缝",
+          "塞焊",
+          "槽焊",
+          "电渣焊"
+        ],
+        "leaf_id": "1A413041-07-a",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 钢结构连接方法 > 焊接接头类型",
+        "reason": "source_lane_count",
+        "selection_key": "753ff2d5cbffddd880f126a10bb5a96e61fdb6504c4f598df1d0d94deb783e74",
+        "task_pairs": []
+      },
+      {
+        "bucket": "textbook-strong",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 13
+        },
+        "keywords": [
+          "B03",
+          "B04",
+          "B05",
+          "B06",
+          "B07",
+          "A1.5",
+          "A2.0",
+          "A2.5",
+          "A3.5",
+          "A5.0",
+          "保温",
+          "强度"
+        ],
+        "leaf_id": "1A412014-01",
+        "name_path": "结构工程材料 > 砌体材料的性能与应用 > 蒸压加气混凝土砌块的性能与应用",
+        "reason": "source_lane_count",
+        "selection_key": "759828f7a74d2d1c59ef7032ef0ad1d2745ee0c6c9a92ff071ba3730a00f71cf",
+        "task_pairs": []
+      }
+    ],
+    "weak/polluted/sparse": [
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "三元乙丙",
+          "聚氯乙烯",
+          "氯化聚乙烯",
+          "氯化聚乙烯-橡胶共混",
+          "二元丁橡胶"
+        ],
+        "leaf_id": "1A412031-02-b",
+        "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 防水卷材分类 > 高分子防水卷材",
+        "reason": "negative_or_sparse",
+        "selection_key": "00efb2c26667e5dd008bf6264e88ada02e4506d7a98b245d23af03791ec83592",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "预付款比例",
+          "主要材料占比",
+          "起扣点计算"
+        ],
+        "leaf_id": "1A413000-04-a",
+        "name_path": "智能建造新技术 > 工程价款支付与结算 > 工程预付款与起扣点",
+        "reason": "negative_or_sparse",
+        "selection_key": "018a8e760d6e65dec2ad67850af1cf61f76aaaaf38beb578d6b4e1e930d9aadf",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 2,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "方案设计",
+          "初步设计",
+          "施工图设计"
+        ],
+        "leaf_id": "1A411012-01",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑设计程序与要求 > 建筑设计程序",
+        "reason": "negative_or_sparse",
+        "selection_key": "02a11bb7444e6823d7c553d8626ec90be029067084bcd74b00cf61855943ef8d",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 5,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "安全组织",
+          "质量保证",
+          "文明施工",
+          "监测监控",
+          "应急预案"
+        ],
+        "leaf_id": "1A413022-01-e",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 基坑工程专项施工方案编制要求 > 施工保证措施",
+        "reason": "negative_or_sparse",
+        "selection_key": "02eb5774ee54481ec54b49db83f5e49c332a52c50665d36982779273d547dde0",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 2,
+          "question": 0,
+          "standard": 0,
+          "textbook": 1
+        },
+        "keywords": [
+          "C25",
+          "混凝土强度",
+          "冠梁"
+        ],
+        "leaf_id": "1A413021-02-b",
+        "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 基坑支护施工要求 > 混凝土内支撑强度等级",
+        "reason": "negative_or_sparse",
+        "selection_key": "031a50f7d0459f42a394e23d07980203696ed255804b8198b2773a732412cfac",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "热轧型钢",
+          "冷弯型钢",
+          "表面缺陷",
+          "截面形式"
+        ],
+        "leaf_id": "1A412025-01",
+        "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 装饰装修用钢材",
+        "reason": "negative_or_sparse",
+        "selection_key": "03dc4a07a2507284e0d6a33a69038417d63b97b94406fc6d179cdc3d96986db6",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "连续浇筑",
+          "间歇时间",
+          "初凝",
+          "施工缝",
+          "后浇带"
+        ],
+        "leaf_id": "1A413041-04",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土连续浇筑与施工缝",
+        "reason": "negative_or_sparse",
+        "selection_key": "03dc65baa0f980af9db0c64133f2a425fab73a2fc2117b4d03a028d6f7d43d9b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "太阳能",
+          "地热能",
+          "自然通风",
+          "节能指标"
+        ],
+        "leaf_id": "1A413061-08-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点 > 可再生能源利用",
+        "reason": "negative_or_sparse",
+        "selection_key": "0438cdb8bbe919ee7dd020d6a963a68e9f3ff9f087491847b757903cb4079955",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "合同期限",
+          "工作内容",
+          "工作条件",
+          "工资标准",
+          "支付方式",
+          "支付时间",
+          "合同解除条件",
+          "双方责任"
+        ],
+        "leaf_id": "1A413061-03-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务用工基本规定 > 签订劳动合同要求",
+        "reason": "negative_or_sparse",
+        "selection_key": "0487f2230fb394ad8db354fdccd9db377a493b1d4970e996512f40d42117e2d2",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "文化建设",
+          "整洁卫生",
+          "安全生产",
+          "居民影响"
+        ],
+        "leaf_id": "1A413061-12-a",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 文明施工与成品保护 > 文明施工基本要求",
+        "reason": "negative_or_sparse",
+        "selection_key": "06de989e9cfb29ab68578eb0bb941c252586ddf3937a5c75fd962c634beaf93b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 9,
+          "question": 10,
+          "standard": 0,
+          "textbook": 2
+        },
+        "keywords": [
+          "安装",
+          "连接",
+          "剩余固定",
+          "堆场"
+        ],
+        "leaf_id": "1A413041-10-a",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 压型金属板施工 > 压型钢板安装与连接",
+        "reason": "negative_or_sparse",
+        "selection_key": "06e92485e80ffb9d9c5526d9e077a9b16689fe12a2b63aec88f9d2f4c2cba933",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 4,
+          "standard": 0,
+          "textbook": 5
+        },
+        "keywords": [
+          "P·I",
+          "P·II",
+          "P·O",
+          "P·S·A",
+          "P·S·B",
+          "P·P",
+          "P·F",
+          "P·C",
+          "42.5",
+          "52.5",
+          "62.5",
+          "R"
+        ],
+        "leaf_id": "1A412012-01-b",
+        "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的分类与代号 > 水泥代号与强度等级",
+        "reason": "negative_or_sparse",
+        "selection_key": "06f276c0f044b72d1568d574e5ea534df102e07d98c0db922fac0e15f1a231df",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "荷载变形",
+          "非荷载变形",
+          "化学收缩",
+          "干湿变形",
+          "温度变形"
+        ],
+        "leaf_id": "1A412013-04-a",
+        "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的变形与耐久性 > 混凝土的变形类型",
+        "reason": "negative_or_sparse",
+        "selection_key": "07251834852365580962c05826bb288749836a1c2d61e9ac9d52d5decb009f27",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "供水系统",
+          "取水点",
+          "净水设施",
+          "贮水装置",
+          "配水管网"
+        ],
+        "leaf_id": "1A413022-08-c",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 临时用水设计 > 临时用水管理",
+        "reason": "negative_or_sparse",
+        "selection_key": "0760ca63261531bcaff30130ed256ba92fffd7a0b1590c773c8df83943fabb66",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "隔声墙",
+          "楼板隔声"
+        ],
+        "leaf_id": "1A411013-01-c",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑室内物理环境技术要求 > 隔声设计要求",
+        "reason": "negative_or_sparse",
+        "selection_key": "077cb5b4bc79743b7bdf63b6657b73e443d18978d7dc7cd861733526ba7394f1",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "外墙",
+          "屋面",
+          "吊顶",
+          "夹芯保温板材"
+        ],
+        "leaf_id": "1A412025-04-c",
+        "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 压型金属板 > 压型金属板应用",
+        "reason": "negative_or_sparse",
+        "selection_key": "0830783aa0043def9dd8b286c9cb404ef146962cb8bed49f46fe981c15b687c6",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "先张法",
+          "后张法",
+          "张拉控制应力",
+          "放张顺序",
+          "锚具类型"
+        ],
+        "leaf_id": "1A413041-06",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 预应力混凝土施工",
+        "reason": "negative_or_sparse",
+        "selection_key": "09cb04bd4bc403bc9569da51b0acd8f198813484cc59eec43703ae27d4fb299e",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "严禁加水",
+          "保湿养护",
+          "不少于14d"
+        ],
+        "leaf_id": "1A413023-02-c",
+        "name_path": "土石方工程施工 > 人工降排水施工 > 防水混凝土施工要求 > 混凝土施工与养护",
+        "reason": "negative_or_sparse",
+        "selection_key": "09d6d3af35243566cb6878f8a3dbf9d27fa9359bba99ce47c8e0d996fcfe1683",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "正常照明",
+          "应急照明",
+          "值班照明",
+          "暂设照明",
+          "障碍照明"
+        ],
+        "leaf_id": "1A411013-02-b",
+        "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑照明设计要求 > 照明种类划分",
+        "reason": "negative_or_sparse",
+        "selection_key": "09eb817674bba00780ae1a01361e3a0594d3fa09576bb04d6dc69cdbd6bfb3cd",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 2,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "Mb20",
+          "Mb15",
+          "Mb10",
+          "Mb5",
+          "混凝土空心砖",
+          "混凝土多孔砖",
+          "单排孔混凝土砌块",
+          "混凝土砌块",
+          "煤矸石混凝土砌块"
+        ],
+        "leaf_id": "1A412014-05-b",
+        "name_path": "结构工程材料 > 砌体材料的性能与应用 > 砂浆强度等级与适用砌体 > 砌块专用砂浆强度等级与适用砌体",
+        "reason": "negative_or_sparse",
+        "selection_key": "0a50af86cb08a17a9d062a1678dc0eb38ef4e2c167210d943cb145c81d6746ee",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "白点",
+          "杂质",
+          "含量限值"
+        ],
+        "leaf_id": "1A412024-03-b",
+        "name_path": "装饰装修工程材料 > 涂饰与裱糊材料的特性与应用 > 壁纸原辅料要求 > 表面质量标准",
+        "reason": "negative_or_sparse",
+        "selection_key": "0a8076bcb0176f5479084e2037e3a362810e33be3fd00bffca348d19c0ae079b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "地基下沉",
+          "杆件间距过大",
+          "斜撑缺失",
+          "节点不牢固"
+        ],
+        "leaf_id": "1A413041-01-a",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土结构施工安全要点 > 模板支撑体系安全隐患",
+        "reason": "negative_or_sparse",
+        "selection_key": "0aaa7f53b159f285a344d4ffac4096eaa939dd2ee11932eb856b6902f4ee165b",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "高空作业",
+          "吊装安全",
+          "防坠器",
+          "临时支撑"
+        ],
+        "leaf_id": "1A413043-01",
+        "name_path": "主体结构工程施工 > 钢结构工程施工 > 钢结构施工安全要点",
+        "reason": "negative_or_sparse",
+        "selection_key": "0aba2d26790dc7b079e1a2bc96e0ec1d52ffe6b4c752bf4b1ec03cbd3340c78e",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "消防器材",
+          "动火审批",
+          "灭火器配置",
+          "应急响应"
+        ],
+        "leaf_id": "1A413061-12-c",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 文明施工与成品保护 > 消防与安全设施",
+        "reason": "negative_or_sparse",
+        "selection_key": "0b14c314c65c68ec6692f49df6aa3dfb05e752c287571ce63e7282f1bf42b6ae",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "粗骨料",
+          "粒径",
+          "≤25mm",
+          "不超过6m"
+        ],
+        "leaf_id": "1A413041-03-b",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土自由落距控制 > 粗骨料粒径小于等于25mm的落距限制",
+        "reason": "negative_or_sparse",
+        "selection_key": "0b75a15d77bc33ae1a94f04b4b7587cf388cb0a5876f9af9caac9fd2ac84aba1",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 1,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "防火制度",
+          "动火等级",
+          "消防器材",
+          "危险品管理"
+        ],
+        "leaf_id": "1A413061-13",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 施工现场防火安全管理",
+        "reason": "negative_or_sparse",
+        "selection_key": "0c64add84cf72c3a90826458c894e542be25b50888df1f92feebd3b3cf346266",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "科学合理",
+          "减少占地",
+          "分区明确",
+          "节能环保",
+          "消防要求"
+        ],
+        "leaf_id": "1A413022-05-b",
+        "name_path": "土石方工程施工 > 基坑支护工程施工 > 施工总平面布置图设计 > 平面布置设计原则",
+        "reason": "negative_or_sparse",
+        "selection_key": "0c7e25cc05d395926cfef7e8d1420f1195a46d333c735fb8696f726350cf46f4",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "锚固件",
+          "可靠固定",
+          "现场拉拔试验"
+        ],
+        "leaf_id": "1A413061-08-f",
+        "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑节能工程质量验收要求 > 保温装饰板锚固要求",
+        "reason": "negative_or_sparse",
+        "selection_key": "0d88d8c382ac44d0403f5b4a49e8099e75e0c9d0f6a7fc3c57758ee40b5660fe",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 3,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "除锈",
+          "表面处理",
+          "涂装方法",
+          "环境条件",
+          "保护措施"
+        ],
+        "leaf_id": "1A413041-11",
+        "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 钢结构涂装施工",
+        "reason": "negative_or_sparse",
+        "selection_key": "0f3bbcbf3cbb4d33548714d849d6009453591562249c5c8e9ccf6d357b71af77",
+        "task_pairs": []
+      },
+      {
+        "bucket": "weak/polluted/sparse",
+        "counts": {
+          "lecture": 0,
+          "question": 0,
+          "standard": 0,
+          "textbook": 0
+        },
+        "keywords": [
+          "斜坡搭接",
+          "搭接错开",
+          "分层厚度",
+          "工艺性试验"
+        ],
+        "leaf_id": "1A413024-03",
+        "name_path": "土石方工程施工 > 土石方工程与回填施工 > 砂和石地基施工",
+        "reason": "negative_or_sparse",
+        "selection_key": "11c40862eba13523a9cf7b6779b6c4dd98f893bb68e69bfe78272c4d375ffcf4",
+        "task_pairs": []
+      }
+    ]
+  },
+  "classification": {
+    "candidate_only": true,
+    "review_required": true
+  },
+  "input_hashes": {
+    "canonical_taxonomy_index": "732d7822052e777f9b3a22d47de42e31cac6103c8819a13e1591156415c47c92",
+    "canonical_unified_knowledge": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
+    "source_alignment_repairs": "8b539a78adca3d214e1edc2478a68fa45fe6fe09466d9f70ff2d9a225b683ba8"
+  },
+  "per_bucket": 10,
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_phase1_sample_manifest.v1",
+  "seed": "rich_leaf_phase1_20260611",
+  "selected_leaves": [
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 1,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "三元乙丙",
+        "聚氯乙烯",
+        "氯化聚乙烯",
+        "氯化聚乙烯-橡胶共混",
+        "二元丁橡胶"
+      ],
+      "leaf_id": "1A412031-02-b",
+      "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 防水卷材分类 > 高分子防水卷材",
+      "reason": "negative_or_sparse",
+      "selection_key": "00efb2c26667e5dd008bf6264e88ada02e4506d7a98b245d23af03791ec83592",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "预付款比例",
+        "主要材料占比",
+        "起扣点计算"
+      ],
+      "leaf_id": "1A413000-04-a",
+      "name_path": "智能建造新技术 > 工程价款支付与结算 > 工程预付款与起扣点",
+      "reason": "negative_or_sparse",
+      "selection_key": "018a8e760d6e65dec2ad67850af1cf61f76aaaaf38beb578d6b4e1e930d9aadf",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 2,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "方案设计",
+        "初步设计",
+        "施工图设计"
+      ],
+      "leaf_id": "1A411012-01",
+      "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑设计程序与要求 > 建筑设计程序",
+      "reason": "negative_or_sparse",
+      "selection_key": "02a11bb7444e6823d7c553d8626ec90be029067084bcd74b00cf61855943ef8d",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 5,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "安全组织",
+        "质量保证",
+        "文明施工",
+        "监测监控",
+        "应急预案"
+      ],
+      "leaf_id": "1A413022-01-e",
+      "name_path": "土石方工程施工 > 基坑支护工程施工 > 基坑工程专项施工方案编制要求 > 施工保证措施",
+      "reason": "negative_or_sparse",
+      "selection_key": "02eb5774ee54481ec54b49db83f5e49c332a52c50665d36982779273d547dde0",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 2,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "C25",
+        "混凝土强度",
+        "冠梁"
+      ],
+      "leaf_id": "1A413021-02-b",
+      "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 基坑支护施工要求 > 混凝土内支撑强度等级",
+      "reason": "negative_or_sparse",
+      "selection_key": "031a50f7d0459f42a394e23d07980203696ed255804b8198b2773a732412cfac",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "热轧型钢",
+        "冷弯型钢",
+        "表面缺陷",
+        "截面形式"
+      ],
+      "leaf_id": "1A412025-01",
+      "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 装饰装修用钢材",
+      "reason": "negative_or_sparse",
+      "selection_key": "03dc4a07a2507284e0d6a33a69038417d63b97b94406fc6d179cdc3d96986db6",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 1,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "连续浇筑",
+        "间歇时间",
+        "初凝",
+        "施工缝",
+        "后浇带"
+      ],
+      "leaf_id": "1A413041-04",
+      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土连续浇筑与施工缝",
+      "reason": "negative_or_sparse",
+      "selection_key": "03dc65baa0f980af9db0c64133f2a425fab73a2fc2117b4d03a028d6f7d43d9b",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "太阳能",
+        "地热能",
+        "自然通风",
+        "节能指标"
+      ],
+      "leaf_id": "1A413061-08-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点 > 可再生能源利用",
+      "reason": "negative_or_sparse",
+      "selection_key": "0438cdb8bbe919ee7dd020d6a963a68e9f3ff9f087491847b757903cb4079955",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "合同期限",
+        "工作内容",
+        "工作条件",
+        "工资标准",
+        "支付方式",
+        "支付时间",
+        "合同解除条件",
+        "双方责任"
+      ],
+      "leaf_id": "1A413061-03-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务用工基本规定 > 签订劳动合同要求",
+      "reason": "negative_or_sparse",
+      "selection_key": "0487f2230fb394ad8db354fdccd9db377a493b1d4970e996512f40d42117e2d2",
+      "task_pairs": []
+    },
+    {
+      "bucket": "weak/polluted/sparse",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "文化建设",
+        "整洁卫生",
+        "安全生产",
+        "居民影响"
+      ],
+      "leaf_id": "1A413061-12-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 文明施工与成品保护 > 文明施工基本要求",
+      "reason": "negative_or_sparse",
+      "selection_key": "06de989e9cfb29ab68578eb0bb941c252586ddf3937a5c75fd962c634beaf93b",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 7,
+        "standard": 20,
+        "textbook": 3
+      },
+      "keywords": [
+        "住宅建筑",
+        "公共建筑",
+        "工业建筑"
+      ],
+      "leaf_id": "1A411011-02",
+      "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑物分类与构成 > 按建筑用途分类",
+      "reason": "source_lane_count",
+      "selection_key": "00cce5c8ad58a07ec9f94ebb79d66ea7edeacb251fc27d8524e608ae1de798f8",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 1,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "间距",
+        "刚性连接",
+        "抗风能力",
+        "水平投影"
+      ],
+      "leaf_id": "1A413046-02-b",
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架搭设与拆除要求 > 连墙件设置要求",
+      "reason": "source_lane_count",
+      "selection_key": "065e1cf6c98e5ab86a3a7b9df9f14a4bf3fd67f2303d6e58643e548bfb6dc419",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 2,
+        "question": 1,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "铺贴方向",
+        "顺序",
+        "附加层",
+        "搭接长度",
+        "搭接缝位置"
+      ],
+      "leaf_id": "1A413051-02-a",
+      "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面防水层施工质量控制 > 卷材铺贴施工要求",
+      "reason": "source_lane_count",
+      "selection_key": "0681eb5b3f37005442120be3903d7bbd709a192ceefee484b6960a0205d68f9e",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 6,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "分部分项工程费",
+        "措施项目费",
+        "其他项目费",
+        "增值税"
+      ],
+      "leaf_id": "1A413000-01-b",
+      "name_path": "智能建造新技术 > 建筑工程费用构成与计价 > 按造价形成划分",
+      "reason": "source_lane_count",
+      "selection_key": "0747469850b1ee746983032b0a9aec2ebe1598fbf1e0e79296546f3f4fb9f650",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 1,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "高强度",
+        "刚性",
+        "可加工性",
+        "耐腐蚀",
+        "耐候性"
+      ],
+      "leaf_id": "1A412025-03-b",
+      "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 彩色涂层钢板 > 彩色涂层钢板特点",
+      "reason": "source_lane_count",
+      "selection_key": "0a5d9e7d5e190e76ecaaecedf0f7494be1a4367b8ebf7f1f8433d292a04ac1cd",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 1,
+        "standard": 0,
+        "textbook": 3
+      },
+      "keywords": [
+        "工程量",
+        "劳动力投入量",
+        "持续时间",
+        "班次",
+        "劳动效率",
+        "每班工作时间"
+      ],
+      "leaf_id": "1A413061-01-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳动力需求计划的编制 > 变量关系分析",
+      "reason": "source_lane_count",
+      "selection_key": "0b8a3c50d1af48215d69d884c5002ea64ae00f32f85958c81c16e78d5102e782",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 4,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "搭设流程",
+        "安装",
+        "升降",
+        "拆除"
+      ],
+      "leaf_id": "1A413022-03-c",
+      "name_path": "土石方工程施工 > 基坑支护工程施工 > 脚手架工程专项施工方案编制要求 > 施工工艺流程",
+      "reason": "source_lane_count",
+      "selection_key": "0dbde0b1b6a43956aab0fbe01f31562fe6695631b4930c9b813a4298e22ddac9",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 1,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "低应变法",
+        "高应变法",
+        "钻芯法",
+        "声波透射法"
+      ],
+      "leaf_id": "1A413032-02-c",
+      "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工质量控制 > 桩身完整性检测",
+      "reason": "source_lane_count",
+      "selection_key": "0ea2b2e3632157e7ce7ff5cd108a86baf8754f2211fe1cee78495200c72a7b74",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 2,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "变形",
+        "徐变",
+        "收缩",
+        "碳化",
+        "碱骨料反应",
+        "抗渗性",
+        "抗冻性",
+        "抗侵蚀性"
+      ],
+      "leaf_id": "1A412013-04",
+      "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的变形与耐久性",
+      "reason": "source_lane_count",
+      "selection_key": "1030608374c88a85d8152d8ccf206f98ac980cad7f5f15b3aad946b76ccb8a55",
+      "task_pairs": []
+    },
+    {
+      "bucket": "question-bank-strong",
+      "counts": {
+        "lecture": 2,
+        "question": 2,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "立式运输",
+        "水平运输",
+        "倾斜角度",
+        "隔垫块"
+      ],
+      "leaf_id": "1A413044-01-a",
+      "name_path": "主体结构工程施工 > 装配式混凝土结构工程施工 > 装配式混凝土结构施工安全要点 > 预制构件运输方式",
+      "reason": "source_lane_count",
+      "selection_key": "11d27cb8bdb9bad2f2a9788ea4ea17212cfeaa0264a1d49030e2e45069931e20",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 4,
+        "textbook": 2
+      },
+      "keywords": [
+        "台阶分层",
+        "浇筑停歇",
+        "钢筋位置",
+        "杯口模板"
+      ],
+      "leaf_id": "1A413033-01-b",
+      "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工形式 > 独立基础施工",
+      "reason": "source_lane_count",
+      "selection_key": "0726a701cba7bdd196e17d3d610cfe24276e0d1e2913120257b14dea50bfe565",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 16,
+        "textbook": 0
+      },
+      "keywords": [
+        "轻钢龙骨",
+        "铝合金龙骨",
+        "木龙骨",
+        "石膏板",
+        "矿棉板",
+        "铝扣板",
+        "PVC板"
+      ],
+      "leaf_id": "1A413062-01-b",
+      "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类 > 板块面层吊顶",
+      "reason": "source_lane_count",
+      "selection_key": "10c9314f2e656a20206d5ea50195d2093ff7325e6a6ef3b887216784a9eac57c",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 3,
+        "textbook": 0
+      },
+      "keywords": [
+        "整体面层吊顶",
+        "板块面层吊顶",
+        "格栅吊顶"
+      ],
+      "leaf_id": "1A413062-01",
+      "name_path": "装饰装修工程施工 > 吊顶工程施工 > 吊顶工程分类",
+      "reason": "source_lane_count",
+      "selection_key": "123aaae004352421121f627b4d568b24be87c38c4cf7f3980dac2b7a08e3c7bf",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 4,
+        "textbook": 0
+      },
+      "keywords": [
+        "低水化热水泥",
+        "坍落度≤180mm",
+        "水胶比控制",
+        "砂率38%～45%"
+      ],
+      "leaf_id": "1A413033-03-b",
+      "name_path": "地基与基础工程施工 > 混凝土基础施工 > 大体积混凝土施工 > 配合比设计",
+      "reason": "source_lane_count",
+      "selection_key": "175b7cf85dedc446f078b37d21aea344eb150c73339f4f8f7ac3d20f0d679897",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 1,
+        "textbook": 0
+      },
+      "keywords": [
+        "节能",
+        "可再生能源",
+        "高效设备",
+        "用电控制"
+      ],
+      "leaf_id": "1A413061-08",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "source_lane_count",
+      "selection_key": "1981303c8dd335054b3b4eb410d236b4ca5e92b8f70b6ce098828aedf1187804",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 4,
+        "textbook": 0
+      },
+      "keywords": [
+        "保温设计",
+        "隔热设计",
+        "热阻值",
+        "Low-E玻璃",
+        "通风屋面",
+        "遮阳措施",
+        "气候分区"
+      ],
+      "leaf_id": "1A411013-04",
+      "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑保温与隔热设计",
+      "reason": "source_lane_count",
+      "selection_key": "1cee9f6ce67765b6fd4778b74c9eba8f732661200b6c9fc15452dd20dee8fcbd",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 7,
+        "textbook": 4
+      },
+      "keywords": [
+        "模板强度",
+        "支撑系统",
+        "剪刀撑",
+        "起拱高度"
+      ],
+      "leaf_id": "1A413033-02-b",
+      "name_path": "地基与基础工程施工 > 混凝土基础施工 > 混凝土基础施工技术要求 > 模板工程要求",
+      "reason": "source_lane_count",
+      "selection_key": "2318010b32595ac0bf396d776a833959219f870adc25478064235f3ee811f84b",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 2,
+        "textbook": 0
+      },
+      "keywords": [
+        "固定遮阳",
+        "活动遮阳",
+        "水平遮阳",
+        "垂直遮阳",
+        "组合遮阳",
+        "挡板遮阳"
+      ],
+      "leaf_id": "1A411013-04-d",
+      "name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑保温与隔热设计 > 建筑遮阳设计",
+      "reason": "source_lane_count",
+      "selection_key": "23866c40909051bfb4d5c569fe57f4aff4f23de169f4351d2b43f342204bb5c7",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 1,
+        "textbook": 0
+      },
+      "keywords": [
+        "现场管理",
+        "技术力量",
+        "质量水平",
+        "文明施工",
+        "安全措施",
+        "管理制度"
+      ],
+      "leaf_id": "1A413061-04-c",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务分包管理流程 > 实地考察要点",
+      "reason": "source_lane_count",
+      "selection_key": "295d381c72f1c56b9e6109900a3be84ca87750b173efd6fdccc1470f4ae97ea4",
+      "task_pairs": []
+    },
+    {
+      "bucket": "standard-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 1,
+        "textbook": 1
+      },
+      "keywords": [
+        "参数控制",
+        "分层施工",
+        "监测记录"
+      ],
+      "leaf_id": "1A413031-02-b",
+      "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求 > 施工过程控制",
+      "reason": "source_lane_count",
+      "selection_key": "2c64f2047553f3cfcc6d78342812b4ebfef7e652c67b843bfb9a15222ad73d4f",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "落地脚手架计算书",
+        "附着式脚手架计算书",
+        "吊篮计算",
+        "平面图",
+        "剖面图"
+      ],
+      "leaf_id": "1A413022-03-h",
+      "name_path": "土石方工程施工 > 基坑支护工程施工 > 脚手架工程专项施工方案编制要求 > 计算书与施工图纸",
+      "reason": "source_lane_count",
+      "selection_key": "011e0d8d3a25c5e62382125d166a2f3ab4afb7ec5e662862560810d53de67596",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 2
+      },
+      "keywords": [
+        "巡查频次",
+        "问题登记",
+        "整改闭环",
+        "影像资料"
+      ],
+      "leaf_id": "1A413046-06-b",
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架验收与检查制度 > 日常巡检与动态监控",
+      "reason": "source_lane_count",
+      "selection_key": "062bfce408e880c6136d7acf45b6b70d774a5b178cacf10807c3f60d9ad16ba1",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 2,
+        "question": 0,
+        "standard": 0,
+        "textbook": 2
+      },
+      "keywords": [
+        "大风",
+        "雨雪",
+        "暂停作业",
+        "防滑防冻"
+      ],
+      "leaf_id": "1A413046-03-b",
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架使用期间管理规定 > 恶劣天气应对措施",
+      "reason": "source_lane_count",
+      "selection_key": "0745d34b6b3fb5fae0e46ad04bce05f4bab0a71cc0273cfcbd3e11c70aa82833",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "P4",
+        "P6",
+        "P8",
+        "P10",
+        "P12",
+        ">P12"
+      ],
+      "leaf_id": "1A412013-04-c",
+      "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土的变形与耐久性 > 抗渗等级",
+      "reason": "source_lane_count",
+      "selection_key": "0abce644009e21771a3c179cf0a8fdc62b28d3b528746e1020f407331b426cb0",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "因地制宜",
+        "防为主",
+        "防排结合",
+        "综合治理"
+      ],
+      "leaf_id": "1A413023-01-a",
+      "name_path": "土石方工程施工 > 人工降排水施工 > 防水工程基本原则 > 防水设计原则",
+      "reason": "source_lane_count",
+      "selection_key": "0e646a858d0a7d5ded702ee7cc7b9b99c70deae75718df700b4a549f1ff8df78",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 5
+      },
+      "keywords": [
+        "轻型钢结构",
+        "装饰工程",
+        "栏杆",
+        "扶手",
+        "护栏",
+        "电箱护罩"
+      ],
+      "leaf_id": "1A412025-01-b",
+      "name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 装饰装修用钢材 > 冷弯型钢特性与用途",
+      "reason": "source_lane_count",
+      "selection_key": "0fea36880a9419cc68eb8b4eb2f2f37f6ef50d9328983b60418abbb5d33c08fa",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "不溶物",
+        "烧失量",
+        "三氧化硫",
+        "氧化镁",
+        "氯离子"
+      ],
+      "leaf_id": "1A412012-02-e",
+      "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的技术要求 > 化学指标要求",
+      "reason": "source_lane_count",
+      "selection_key": "11af70bd329dfc1c01249d205bb532066130930d3a7fb0b3b6559835a8d37a63",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 1
+      },
+      "keywords": [
+        "索赔意向书",
+        "索赔报告",
+        "证据材料",
+        "审核期限"
+      ],
+      "leaf_id": "1A413000-06-c",
+      "name_path": "智能建造新技术 > 工程变更、新增工程与索赔 > 索赔证据与程序",
+      "reason": "source_lane_count",
+      "selection_key": "139863e4f92a850f381d189b2820352e70c55908e334dd5690817f30099bcd62",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 0,
+        "question": 0,
+        "standard": 0,
+        "textbook": 3
+      },
+      "keywords": [
+        "计量周期",
+        "支付比例",
+        "累计已支付款",
+        "预付款扣回"
+      ],
+      "leaf_id": "1A413000-04-b",
+      "name_path": "智能建造新技术 > 工程价款支付与结算 > 工程进度款支付",
+      "reason": "source_lane_count",
+      "selection_key": "13e978b8da407de8786e424701b89cbb632783f9206c8bf7331e102e491b4513",
+      "task_pairs": []
+    },
+    {
+      "bucket": "textbook-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 5
+      },
+      "keywords": [
+        "塔式起重机",
+        "混凝土泵",
+        "施工升降机",
+        "覆盖范围",
+        "防碰撞"
+      ],
+      "leaf_id": "1A413022-05-c",
+      "name_path": "土石方工程施工 > 基坑支护工程施工 > 施工总平面布置图设计 > 大型机械布置",
+      "reason": "source_lane_count",
+      "selection_key": "14021b1851ade8c64a40d9b610eb31bb0e8e251efec5729b0ed458491d2d021a",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "节水工艺",
+        "循环用水装置",
+        "冲洗用水",
+        "计量管理"
+      ],
+      "leaf_id": "1A413061-07-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节水与水资源利用要点 > 节水施工工艺",
+      "reason": "source_lane_count",
+      "selection_key": "077d9864b5a8402be08ad8fadf5ac9af132dfb5dc099040442b2e5e21cfad9ce",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "施工与拆除顺序一致",
+        "先撑后挖",
+        "爆破拆除前防护措施"
+      ],
+      "leaf_id": "1A413022-09-a",
+      "name_path": "土石方工程施工 > 基坑支护工程施工 > 内支撑与锚杆施工要求 > 内支撑施工与拆除",
+      "reason": "source_lane_count",
+      "selection_key": "0dc8f9d01fb068187ebd4f44198fc3fe73c3337b2c1ecb8c1b8411f7e3d859d4",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "定型",
+        "非定型",
+        "止水带",
+        "密封条",
+        "密封膏",
+        "密封胶"
+      ],
+      "leaf_id": "1A412031-05-a",
+      "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 建筑密封与堵漏灌浆材料 > 密封材料分类",
+      "reason": "source_lane_count",
+      "selection_key": "103eed30726e9ba7ce4adc62c205756a0c4c4ed6753461af454b66f090fd838a",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "不透水性",
+        "拉伸强度",
+        "断裂伸长率",
+        "耐老化",
+        "低温弯折"
+      ],
+      "leaf_id": "1A412031-03",
+      "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 防水卷材性能指标",
+      "reason": "source_lane_count",
+      "selection_key": "12cd18c275f62fe8f0c03e82c5172394b8cab467989d29e6fa4746afdb198673",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "无纺布",
+        "化纤无纺布"
+      ],
+      "leaf_id": "1A413051-03-f",
+      "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 屋面防水基本要求 > 防水层胎体材料要求",
+      "reason": "source_lane_count",
+      "selection_key": "2d319ba091ab5eae36496b422da4fe5d1a89bf89df593c91d87599d3f107d671",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "雨后观察",
+        "淋水试验",
+        "蓄水试验"
+      ],
+      "leaf_id": "1A413051-06-a",
+      "name_path": "屋面与防水工程施工 > 屋面工程构造和施工 > 保护层和隔离层施工 > 防水层验收要求",
+      "reason": "source_lane_count",
+      "selection_key": "3077bd968a0f59e42b2ea1804fd73701defe69e5c43901cc90fb807f887df37f",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "平行滑轨",
+        "跨越施工",
+        "场地狭窄",
+        "起重运输不便"
+      ],
+      "leaf_id": "1A413043-11-c",
+      "name_path": "主体结构工程施工 > 钢结构工程施工 > 大跨度空间钢结构安装方法 > 滑移法适用范围",
+      "reason": "source_lane_count",
+      "selection_key": "53b968ae0694ce4bc2ec44515a3d5345bb842dfc25d8330da08503d5a63977fc",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "固定部分",
+        "人工部分",
+        "材料部分",
+        "价格指数",
+        "调值公式"
+      ],
+      "leaf_id": "1A413000-05-a",
+      "name_path": "智能建造新技术 > 工程造价动态调整方法 > 调值公式法（动态结算）",
+      "reason": "source_lane_count",
+      "selection_key": "53de71603522a2db0c05dec72a9951cadd20f03e12cdf3a9c38466b9780278ef",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "纸面石膏板",
+        "水泥加压板",
+        "钉眼处理",
+        "接缝错开"
+      ],
+      "leaf_id": "1A413062-03",
+      "name_path": "装饰装修工程施工 > 吊顶工程施工 > 罩面板安装要求",
+      "reason": "source_lane_count",
+      "selection_key": "53fe2d1cf6f12dffc4a8dd9e2d91ffcccba42f72bc8cf37d8acc1d163990795a",
+      "task_pairs": []
+    },
+    {
+      "bucket": "lecture-strong",
+      "counts": {
+        "lecture": 1,
+        "question": 0,
+        "standard": 0,
+        "textbook": 0
+      },
+      "keywords": [
+        "粗骨料",
+        "粒径",
+        "25mm",
+        "不宜超过3m"
+      ],
+      "leaf_id": "1A413041-03-a",
+      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土自由落距控制 > 粗骨料粒径大于25mm的落距限制",
+      "reason": "source_lane_count",
+      "selection_key": "55f697bfe0484240dd0d5434da70b1d3b31bc9711925b28770dc1d52023bb313",
+      "task_pairs": []
+    }
+  ],
+  "summary": {
+    "bucket_count": 5,
+    "bucket_counts": {
+      "lecture-strong": 10,
+      "question-bank-strong": 10,
+      "standard-strong": 10,
+      "textbook-strong": 10,
+      "weak/polluted/sparse": 10
+    },
+    "selected_count": 50
+  }
+}

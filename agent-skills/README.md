@@ -18,6 +18,9 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   workflow for multi-file DeepTutor changes.
 - `deeptutor-test-verification-gate`: test-first and evidence-first workflow
   for behavior changes, bug fixes, and doc/skill validations.
+- `deeptutor-ci-runtime-fix-gate`: CI/runtime failure workflow for GitHub
+  Actions, route smoke, contract guard, detect-secrets, and same-SHA deploy
+  gate failures.
 - `deeptutor-api-contract-design`: contract-first API and control-plane
   boundary workflow for REST, WebSocket, trace, session, and schema changes.
 - `deeptutor-schema-authority-gate`: schema and registry authority workflow for
@@ -54,6 +57,8 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   rollback, and post-launch verification workflow.
 - `luban-rich-leaf-compiler`: RichLeafArtifact / 2026 source compilation /
   review queue / runtime supply candidate workflow.
+- `luban-okf-context`: AI-only OKF source-navigation workflow for data asset,
+  topic coverage, exam/source-evidence, and candidate/runtime boundary questions.
 - `luban-diagram-microlesson`: 图解微课卡 authoring / 确定性 renderer / 一屏一重点
   翻页 deck UX / 单一权威边界 / web-view 沙盒 / 零依赖 CDP 验收 workflow.
 - `external-tool-absorption-boundary`: adopting/upgrading a plugin, marketplace skill,
@@ -111,8 +116,9 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
-  `luban-diagram-microlesson`
+  `luban-okf-context`, `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
+  `deeptutor-ci-runtime-fix-gate`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
   `luban-rich-leaf-compiler`
 - Debug and repair: `deeptutor-authority-debugging`,

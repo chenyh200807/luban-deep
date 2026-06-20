@@ -1,0 +1,110 @@
+{
+ "schema": "luban_taxonomy_placement_review_council.v1",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true
+ },
+ "safety": {
+  "production_write_count": 0
+ },
+ "generated_at": "2026-06-12",
+ "scanned": {
+  "total_leaves": 1643,
+  "chapter_anchors": 18
+ },
+ "phase1_category_distribution": {
+  "cross_chapter_suspect": 109,
+  "pathological_name": 71,
+  "junk_name": 132
+ },
+ "phase2_deep_check": {
+  "cross_chapter_checked": 109,
+  "verdicts": {
+   "move": 100,
+   "quarantine": 1,
+   "keep": 8
+  }
+ },
+ "per_chapter_suspects": {
+  "1A411011 建筑物分类与构成": {
+   "pathological_name": 12,
+   "junk_name": 1
+  },
+  "1A412010 结构工程材料": {
+   "pathological_name": 2,
+   "junk_name": 12
+  },
+  "1A413000 建筑工程施工技术": {
+   "pathological_name": 11
+  },
+  "1A413030 地基与基础工程施工": {
+   "pathological_name": 2,
+   "junk_name": 17
+  },
+  "1A421010 建筑工程建设相关规定": {
+   "pathological_name": 3,
+   "junk_name": 1
+  },
+  "1A422000 第4章 相关法规": {
+   "pathological_name": 13,
+   "junk_name": 19
+  },
+  "1A431000 建筑工程项目管理实务": {
+   "junk_name": 10
+  },
+  "1A431011 设计企业资质": {
+   "cross_chapter_suspect": 35,
+   "pathological_name": 3
+  },
+  "1A432000 工程招标投标与合同管理": {
+   "pathological_name": 3,
+   "junk_name": 4
+  },
+  "1A433000 施工进度管理": {
+   "pathological_name": 2,
+   "junk_name": 7
+  },
+  "1A434000 施工质量管理": {
+   "pathological_name": 2,
+   "junk_name": 12
+  },
+  "1A434020 项目施工质量检查与检验": {
+   "junk_name": 2
+  },
+  "1A435000 施工成本管理": {
+   "cross_chapter_suspect": 35,
+   "junk_name": 4
+  },
+  "1A435020 施工成本分析与控制": {
+   "junk_name": 11
+  },
+  "1A436000 施工安全管理": {
+   "pathological_name": 14,
+   "junk_name": 10
+  },
+  "1A437000 绿色建造及施工现场环境管理": {
+   "cross_chapter_suspect": 7,
+   "pathological_name": 1,
+   "junk_name": 19
+  },
+  "1A438000 施工资源管理": {
+   "cross_chapter_suspect": 32,
+   "pathological_name": 3,
+   "junk_name": 3
+  }
+ },
+ "systemic_findings": [
+  "1A431011（名为\"设计企业资质\"）锚下35个叶全部是教材第6章施工组织内容（平面布置/临时水电/检验试验/工程资料）——锚级整体错挂，建议整组迁至 1A431010",
+  "1A435000 施工成本管理混入35个教材第7章（合同价款/造价构成/结算支付/调值/索赔，卷3 p38-46）叶子，应迁至 1A432000",
+  "1A438000 施工资源管理混入28个教材第3章3.8季节性施工（冬期/雨期/高温）叶子（卷1 p152-158），应迁至 1A413000，含已知案例\"防水工程\"",
+  "锚粒度问题（同章不跨章，未逐叶列出）：1A413030\"地基与基础工程施工\"吸收了第3章全部小节（主体结构/防水/装饰装修/幕墙等273叶）；1A411011\"建筑物分类与构成\"吸收第1章全部设计构造主题；建议后续按教材节号重切锚",
+  "chunk 1A438000_152_0298（现场环境监管技术）被错配为多个无关叶（冬期施工技术/建筑地基基础工程/砌体工程）的evidence——存在 evidence 错绑"
+ ],
+ "known_case_ruling": {
+  "code": "1A438000-B093",
+  "name": "防水工程",
+  "verdict": "move",
+  "target_chapter": "1A413000",
+  "rationale": "chunk(1A438000_154_0302, 卷1 p154)原文为\"防水工程 (1)防水混凝土的冬期施工…\"，属教材第3章3.8.1冬期施工技术按分项工程展开的小节，与施工资源管理无关"
+ }
+}

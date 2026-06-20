@@ -1,0 +1,59 @@
+{
+  "base_pack": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/rich_leaf_frozen_v11_coverage_expansion_20260613/runtime_token_pack_v311_quarantine_annotated.json",
+  "base_pack_version": "v3.1.1_frozen_v11_quarantine_annotated",
+  "classification": {
+    "candidate_only": true,
+    "canonical_pointer_written": false,
+    "production_default": false,
+    "quality_claim_allowed": false,
+    "release_truth_claimed": false,
+    "review_only": true,
+    "runtime_install_allowed": false,
+    "scoring_point_enriched": true
+  },
+  "m35_accounting": {
+    "distinct_evidence_chunks": 55,
+    "evidence_chunks_unmapped_to_units": [
+      "1A422000_027_0046",
+      "1A434000_066_0098",
+      "1A437000_137_0220"
+    ],
+    "gold_points_total": 97,
+    "migratable_with_textbook_provenance": 69,
+    "skipped_no_textbook_provenance": 28
+  },
+  "not_exercised": [
+    "production_rag_runtime",
+    "runtime_default_install",
+    "canonical_truth_write",
+    "official_score",
+    "production_db_write",
+    "release_truth_claim",
+    "live_provider_revalidation"
+  ],
+  "pack_version": "v3.2_scoring_points_enriched",
+  "quality_claim_allowed": false,
+  "runtime_token_pack_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_scoring_point_compile.v1",
+  "summary": {
+    "m35_attachments_total": 205,
+    "m35_points_attached": 66,
+    "points_by_source": {
+      "chunk_assessment": 1567,
+      "knowledge_card": 3933,
+      "m35_artifact": 205
+    },
+    "points_total": 5705,
+    "units_total": 1612,
+    "units_with_scoring_points": 1606,
+    "units_without_scoring_points": 6
+  },
+  "verdict": "PASS_SCORING_POINT_COMPILE"
+}

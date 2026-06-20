@@ -1,0 +1,291 @@
+{
+  "blockers": [
+    "canonical_unified_knowledge_partial_leaf_coverage",
+    "m34_confidence_calibration_not_passed",
+    "m34_live_ws_gate_not_executed",
+    "m34_live_ws_status_not_pass",
+    "student_answers_source_available_but_not_release_truth"
+  ],
+  "coverage": {
+    "canonical_unified_knowledge": {
+      "canonical_leaves_total": 3158,
+      "leaves_populated": 395,
+      "leaves_with_lecture": 214,
+      "leaves_with_question": 245,
+      "leaves_with_standard": 64,
+      "leaves_with_textbook": 240,
+      "populated_leaf_rate": 0.12507916402786573
+    },
+    "m34_general_knowledge": {
+      "blockers": [
+        "confidence_calibration_not_passed",
+        "live_ws_gate_not_executed",
+        "live_ws_status_not_pass"
+      ],
+      "calibration_pass_rate": 0.9565217391304348,
+      "compiler_source_work_order_count": 52,
+      "teaching_context_hit_rate": 0.875,
+      "threshold": 0.8,
+      "verdict": "NO-GO"
+    },
+    "m35_scoring": {
+      "not_exercised": [
+        "production_db_write",
+        "canonical_learner_truth_write",
+        "published_registry_write",
+        "remote_or_aliyun_write",
+        "system_wide_m34_default_flip",
+        "gpt55_or_claude_api_runtime_arm",
+        "human_or_governance_release_signature"
+      ],
+      "phase1_shadow_verdict": null,
+      "quality_claim_allowed": null,
+      "release_verdict": null
+    }
+  },
+  "next_compile_work_orders": [
+    {
+      "current": {
+        "canonical_leaves_total": 3158,
+        "leaves_populated": 395,
+        "leaves_with_lecture": 214,
+        "leaves_with_question": 245,
+        "leaves_with_standard": 64,
+        "leaves_with_textbook": 240,
+        "populated_leaf_rate": 0.12507916402786573
+      },
+      "id": "unified_knowledge_expand_leaf_coverage",
+      "reason": "canonical unified knowledge is the Nexus-like learning_mapping context, but populated leaves are below system-wide coverage."
+    },
+    {
+      "current": {
+        "blockers": [
+          "confidence_calibration_not_passed",
+          "live_ws_gate_not_executed",
+          "live_ws_status_not_pass"
+        ],
+        "calibration_pass_rate": 0.9565217391304348,
+        "compiler_source_work_order_count": 52,
+        "teaching_context_hit_rate": 0.875,
+        "threshold": 0.8,
+        "verdict": "NO-GO"
+      },
+      "id": "m34_live_shadow_gate",
+      "reason": "general compiled teaching context still has live gate and calibration blockers."
+    },
+    {
+      "current": {
+        "runtime_record_count": 0,
+        "runtime_shards": [],
+        "sample_sources": [
+          "题库/近三年案例题_按学生答卷排版.docx",
+          "题库/近三年案例题_按学生答卷排版.md"
+        ],
+        "source_file_count": 2,
+        "status": "source_available_not_release_truth"
+      },
+      "id": "student_answer_authority_lane",
+      "reason": "student answer files are raw/source answer material; they are not release truth and need separate gold/governance handling."
+    },
+    {
+      "current": "not_yet_single_system_wide_contract",
+      "id": "knowql_like_query_contract",
+      "reason": "Nexus-like runtime should expose explicit ask/where/ground/shape/confidence/budget semantics across grader and teaching context."
+    }
+  ],
+  "overall_status": "compiled_assets_present_but_not_system_wide_complete",
+  "purpose": "Map docs/2026 source authority to runtime_supply compiled artifacts without claiming release truth.",
+  "runtime_supply_root": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply",
+  "safety": {
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "read_only_audit": true,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_docs2026_runtime_reconciliation.v1",
+  "source_lanes": {
+    "lectures": {
+      "runtime_record_count": 540,
+      "runtime_shards": [
+        {
+          "content_hash": "f8d8b7bbdd76c8deb8eeba085f4e30130127f6be8274eb6cf2005760665042f2",
+          "exists": true,
+          "namespace": "lecture_teaching_cards",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards/lecture_teaching_cards.json",
+          "published": true,
+          "record_count": 540,
+          "status": "release_candidate",
+          "tier": null
+        }
+      ],
+      "sample_sources": [
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+        "讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_16_16.json"
+      ],
+      "source_file_count": 335,
+      "status": "compiled_release_candidate"
+    },
+    "question_bank": {
+      "runtime_record_count": 7457,
+      "runtime_shards": [
+        {
+          "content_hash": "478fa856b2fe46189d966aaa8532ec608047fd7fc77305b51654ad776da65050",
+          "exists": true,
+          "namespace": "kb_v5_chunks_full",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+          "published": true,
+          "record_count": 3596,
+          "status": "release_candidate",
+          "tier": null
+        },
+        {
+          "content_hash": "45addc2741d687bb55f7f13e3c160753d73f386f2432eb7471a7dc51ae64eb10",
+          "exists": true,
+          "namespace": "case_rubric_scored",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored/case_rubric_scored.json",
+          "published": false,
+          "record_count": 1221,
+          "status": "release_candidate",
+          "tier": null
+        },
+        {
+          "content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+          "exists": true,
+          "namespace": "objective_answer_key_full",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+          "published": null,
+          "record_count": 2640,
+          "status": "release_candidate",
+          "tier": null
+        }
+      ],
+      "sample_sources": [
+        "题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+        "题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+        "题库/2017年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2017.json",
+        "题库/2018年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2018.json",
+        "题库/2019年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2019.json",
+        "题库/2020年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2020.json",
+        "题库/2021年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2021.json",
+        "题库/2022年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2022.json"
+      ],
+      "source_file_count": 13,
+      "status": "compiled_release_candidate"
+    },
+    "standards": {
+      "runtime_record_count": 2355,
+      "runtime_shards": [
+        {
+          "content_hash": "6b3c3c902c99dcc7760a015d1d8b264f88790ef35cb49266f310b380aca803b8",
+          "exists": true,
+          "namespace": "standard_clauses",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_standard_clauses/standard_clauses.json",
+          "published": true,
+          "record_count": 2355,
+          "status": "release_candidate",
+          "tier": null
+        }
+      ],
+      "sample_sources": [
+        "标准文件/13、GB55003-2021《建筑与市政地基基础通用规范》.json",
+        "标准文件/15、GB+51004-2015建筑地基基础工程施工规范.json",
+        "标准文件/16、JGJ120-2012《建筑基坑支护技术规程》.json",
+        "标准文件/18、GB+50207-2012屋面工程质量验收规范（清晰版）.json",
+        "标准文件/19、GB50210-2018建筑装饰装修工程质量验收标准.json",
+        "标准文件/1、GB50352-2019民用建筑设计统一标准.json",
+        "标准文件/20、GB50354-2005《建筑内部装修防火施工及验收规范》.json",
+        "标准文件/22、GBT51366-2019建筑碳排放计算标准.json"
+      ],
+      "source_file_count": 8,
+      "status": "compiled_release_candidate"
+    },
+    "student_answers": {
+      "runtime_record_count": 0,
+      "runtime_shards": [],
+      "sample_sources": [
+        "题库/近三年案例题_按学生答卷排版.docx",
+        "题库/近三年案例题_按学生答卷排版.md"
+      ],
+      "source_file_count": 2,
+      "status": "source_available_not_release_truth"
+    },
+    "taxonomy": {
+      "runtime_record_count": 404,
+      "runtime_shards": [
+        {
+          "content_hash": "732d7822052e777f9b3a22d47de42e31cac6103c8819a13e1591156415c47c92",
+          "exists": true,
+          "namespace": "canonical_taxonomy_index",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+          "published": null,
+          "record_count": null,
+          "status": "release_candidate",
+          "tier": null
+        },
+        {
+          "content_hash": "91059d75469fc402a11597b6eb146926b93faa7fb041665aebce3cdf16315eb2",
+          "exists": true,
+          "namespace": "concept_registry",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json",
+          "published": null,
+          "record_count": null,
+          "status": "release_candidate",
+          "tier": null
+        },
+        {
+          "content_hash": "421e69484befbdc39b115f10e1838fcc1aba79ca972e5edd8a4a64197448a628",
+          "exists": true,
+          "namespace": "canonical_knowledge_graph",
+          "official_score_allowed": false,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_canonical_knowledge_graph/graph_adjacency.json",
+          "published": null,
+          "record_count": 404,
+          "status": "release_candidate",
+          "tier": "teaching_context_not_answer_key"
+        }
+      ],
+      "sample_sources": [
+        "taxonomy/FINAL_CLEANED_TAXONOMY2026.json"
+      ],
+      "source_file_count": 1,
+      "status": "compiled_release_candidate"
+    },
+    "textbook": {
+      "runtime_record_count": 1303,
+      "runtime_shards": [
+        {
+          "content_hash": "01aba5a33736e5b4f17ad085ce7fefc1f0a946a268f9cbff4094b9452bf56fd0",
+          "exists": true,
+          "namespace": "textbook_knowledge_full",
+          "official_score_allowed": null,
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+          "published": false,
+          "record_count": 1303,
+          "status": "release_candidate",
+          "tier": null
+        }
+      ],
+      "sample_sources": [
+        "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+        "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+        "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json"
+      ],
+      "source_file_count": 3,
+      "status": "compiled_release_candidate"
+    }
+  },
+  "source_root": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026"
+}

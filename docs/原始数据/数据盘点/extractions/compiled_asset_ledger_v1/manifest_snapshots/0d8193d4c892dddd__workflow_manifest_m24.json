@@ -1,0 +1,16 @@
+{
+  "stage": "M24 v0 vs v1 A/B benchmark",
+  "mode": "smoke",
+  "workflow": {
+    "classify_and_act": "sample_inventory_m24.jsonl (by authority_kind/difficulty)",
+    "fanout_and_synthesize": "v0 / v1 / rag_readonly / learning_brain views",
+    "generate_and_filter": "7 answer variants per question",
+    "tournament": "product_effect_examples_m24.md",
+    "adversarial_verification": "adversarial_safety_report_m24.json",
+    "loop_until_done": "every sample has final_disposition in quality matrix"
+  },
+  "entry": "/api/v1/ws TestClient (real)",
+  "v1_flag": "grading_engine_v1_llm_adjudication",
+  "live_llm_executed": false,
+  "submissions": 40
+}

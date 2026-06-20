@@ -1,0 +1,4 @@
+{"layer": "objective_answer_key", "method": "deterministic_governed_extraction", "llm_used": false, "reason": "answer authority = governed correct_answer column; LLM must NOT change keys (task1)", "grade": "release_candidate"}
+{"layer": "source_context", "method": "deterministic_provenance_extraction", "llm_used": false, "kb_v5_embedding": "pending_creds", "grade": "release_candidate_provenance"}
+{"layer": "case_rubric", "method": "deterministic_structural_extraction", "llm_used": false, "llm_采分点_finegrain": "pending_live_llm", "grade": "release_candidate_structural"}
+{"layer": "m20_delta", "method": "read_classify_on_disk", "llm_used": false, "grade": "classified"}

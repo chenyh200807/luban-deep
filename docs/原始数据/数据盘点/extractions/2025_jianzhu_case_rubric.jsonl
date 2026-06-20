@@ -1,0 +1,81 @@
+{"_meta":{"year":2025,"exam":"建筑工程管理与实务","source":"佑森教育闫力齐独家解析","source_path":"docs/原始数据/PDF/真题/2025年一建《建筑实务》真题及答案解析-【佑森教育闫力齐独家解析】.pdf","source_authority":"training_org_analysis_yousen","NOT_official":true,"method":"vision Read pages 9-17","scoring_rule":"小题得分=min(Σ命中采分点×point_score, sub_q_total_score) 累加封顶","caveat":"采分点文本经视觉转录,生产前须对照PDF复核;point_score是踩点给分池,Σ常>sub_q_total属正常踩点制","extracted_at":"2026-06-16"}}
+{"case_no":1,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":1,"point_text":"钢筋绑扎机器人","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":2,"point_text":"混凝土整平机器人","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":3,"point_text":"钢结构焊接机器人","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":4,"point_text":"现场清扫机器人","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":5,"point_text":"测量放线机器人","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"2","sub_q_total_score":5.0,"point_seq":1,"point_text":"BIM、物联网、大数据、区块链、人工智能","point_score":5.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":1,"point_text":"改正:装配式建筑垃圾产生量每万平方米不大于200t,且不包括工程渣土、工程泥浆","point_score":2.0,"point_type":"改错","page":9}
+{"case_no":1,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":2,"point_text":"废旧木材、钢筋余料、塑料等","point_score":3.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":1,"point_text":"预拌砂浆的使用时间应按照厂方提供的说明书确定","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":2,"point_text":"骨料应采取遮阳防晒等措施;必要时对粗骨料喷雾降温","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":3,"point_text":"混凝土宜选用水化热较低的水泥","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":4,"point_text":"混凝土浇筑宜在早间或晚间进行,且宜连续浇筑","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":1,"sub_q_no":"4","sub_q_total_score":5.0,"point_seq":5,"point_text":"防水材料施工环境最高气温不宜超过35℃","point_score":1.0,"point_type":"列举","page":9}
+{"case_no":2,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":1,"point_text":"调整前关键线路 A→B→E→F→H","point_score":1.0,"point_type":"计算结果","page":11}
+{"case_no":2,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":2,"point_text":"调整前总工期 19个月","point_score":1.0,"point_type":"计算结果","page":11}
+{"case_no":2,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":3,"point_text":"调整后总工期 20个月","point_score":1.0,"point_type":"计算结果","page":11}
+{"case_no":2,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":4,"point_text":"非关键工作调整;剩余工作重新编制进度计划","point_score":2.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"2","sub_q_total_score":5.0,"point_seq":1,"point_text":"材料的数量、运输车辆、见证人员","point_score":3.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"2","sub_q_total_score":5.0,"point_seq":2,"point_text":"供应商、施工单位","point_score":2.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"3","sub_q_total_score":3.0,"point_seq":1,"point_text":"安全保证措施、质量技术保证措施、季节性施工保证措施","point_score":3.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"4","sub_q_total_score":4.0,"point_seq":1,"point_text":"地基承载力、导轨架的附墙位置和距离、楼层平台通道、出入口防护门","point_score":4.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"5","sub_q_total_score":3.0,"point_seq":1,"point_text":"吸声、隔振","point_score":1.0,"point_type":"列举","page":11}
+{"case_no":2,"sub_q_no":"5","sub_q_total_score":3.0,"point_seq":2,"point_text":"隔声性能、混响时间","point_score":2.0,"point_type":"列举","page":11}
+{"case_no":3,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":1,"point_text":"灌注桩混凝土强度检验试件取样不正确","point_score":1.0,"point_type":"判断","page":13}
+{"case_no":3,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":2,"point_text":"桩长、桩径","point_score":2.0,"point_type":"列举","page":13}
+{"case_no":3,"sub_q_no":"1","sub_q_total_score":5.0,"point_seq":3,"point_text":"低应变法、高应变法、声波透射法、钻芯法","point_score":2.0,"point_type":"列举","page":13}
+{"case_no":3,"sub_q_no":"2","sub_q_total_score":6.0,"point_seq":1,"point_text":"改正①:有主、次梁的楼板宜顺次梁方向浇筑","point_score":1.0,"point_type":"改错","page":13}
+{"case_no":3,"sub_q_no":"2","sub_q_total_score":6.0,"point_seq":2,"point_text":"改正②:单向板宜沿板的长边方向浇筑","point_score":1.0,"point_type":"改错","page":13}
+{"case_no":3,"sub_q_no":"2","sub_q_total_score":6.0,"point_seq":3,"point_text":"钢筋保护层厚度、结构位置与尺寸偏差、合约约定的项目;必要时可检验其他项目","point_score":4.0,"point_type":"列举","page":13}
+{"case_no":3,"sub_q_no":"3","sub_q_total_score":3.0,"point_seq":1,"point_text":"对板底接缝高差及宽度进行校核","point_score":1.0,"point_type":"程序","page":13}
+{"case_no":3,"sub_q_no":"3","sub_q_total_score":3.0,"point_seq":2,"point_text":"将构件重新起吊,通过可调支托进行调节","point_score":1.0,"point_type":"程序","page":13}
+{"case_no":3,"sub_q_no":"3","sub_q_total_score":3.0,"point_seq":3,"point_text":"先主梁后次梁,先低后高","point_score":1.0,"point_type":"程序","page":13}
+{"case_no":3,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":1,"point_text":"严重流淌、中等流淌、轻微流淌","point_score":1.0,"point_type":"分类","page":13}
+{"case_no":3,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":2,"point_text":"严重流淌:可考虑拆除重铺","point_score":1.0,"point_type":"措施","page":13}
+{"case_no":3,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":3,"point_text":"轻微流淌:如不发生渗漏,一般可不予治理","point_score":1.0,"point_type":"措施","page":13}
+{"case_no":3,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":4,"point_text":"中等流淌:切割法、局部切除重铺、钉钉子法","point_score":3.0,"point_type":"措施","page":13}
+{"case_no":4,"sub_q_no":"1","sub_q_total_score":4.0,"point_seq":1,"point_text":"①潜在投标人数量较多的项目;②大型、技术复杂的项目","point_score":2.0,"point_type":"列举","page":15}
+{"case_no":4,"sub_q_no":"1","sub_q_total_score":4.0,"point_seq":2,"point_text":"①合格制;②有限数量制","point_score":2.0,"point_type":"列举","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":1,"point_text":"计划、组织、协调方案","point_score":3.0,"point_type":"列举","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":2,"point_text":"(1)正确","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":3,"point_text":"(2)不正确(主体设计不得分包给其他单位)","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":4,"point_text":"(3)不正确(不得转包,也不得将设计和施工业务一并/分别分包给其他单位)","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":5,"point_text":"(4)不正确","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"2","sub_q_total_score":8.0,"point_seq":6,"point_text":"(5)不正确(禁止分包单位将其承包的工程再分包)","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":1,"point_text":"甲方不妥:对所有投标人提出的招标文件疑问,在投标截止日前5日书面回复","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":2,"point_text":"理由:应当在投标截止时间至少15日前书面或网站通知所有招标文件收受人;不足15日的应顺延提交投标文件截止时间","point_score":2.0,"point_type":"改错","page":15}
+{"case_no":4,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":3,"point_text":"乙方不妥:乙方对通用条款个别内容提出修改意见","point_score":1.0,"point_type":"判断","page":15}
+{"case_no":4,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":4,"point_text":"理由:通用条款应不加修改的引用","point_score":1.0,"point_type":"改错","page":15}
+{"case_no":4,"sub_q_no":"4","sub_q_total_score":7.0,"point_seq":1,"point_text":"12.10-0.72-1.10=10.28亿元","point_score":3.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"4","sub_q_total_score":7.0,"point_seq":2,"point_text":"工程投标、施工准备、施工过程、竣工验收","point_score":4.0,"point_type":"列举","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":1,"point_text":"分部分项工程费=2200×12000/10000=2640.00万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":2,"point_text":"措施项目费=2640×10%=264.00万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":3,"point_text":"其他项目费=70+26=96.00万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":4,"point_text":"规费=(2640+264+96)×2%=60.00万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":5,"point_text":"增值税=(2640+264+96+60)×9%=275.40万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":4,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":6,"point_text":"造价=2640+264+96+60+275.4=3335.40万元","point_score":1.0,"point_type":"计算步骤","page":15}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":1,"point_text":"项目经理应取得注册建造师职业资格证、安全生产考核合格证B证","point_score":2.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":2,"point_text":"①参与组织对项目各阶段的重大决策","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":3,"point_text":"②主持项目管理机构工作","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":4,"point_text":"③决定授权范围内的项目资源使用","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":5,"point_text":"④在组织制度的框架下制订项目管理机构管理制度","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":6,"point_text":"⑤参与选择并直接管理具有相应资质的分包人","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":7,"point_text":"⑥在授权范围内与项目相关方进行直接沟通","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"1","sub_q_total_score":5.5,"point_seq":8,"point_text":"⑦法定代表人和组织授予的其他权利","point_score":0.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"2","sub_q_total_score":6.0,"point_seq":1,"point_text":"质量监管、安全监管、从业人员实名制管理、移动数据采集、视频监控、基础数据管理、应用维护子系统","point_score":3.0,"point_type":"列举","partial_credit_rule":"写出3项即得3分","page":17}
+{"case_no":5,"sub_q_no":"2","sub_q_total_score":6.0,"point_seq":2,"point_text":"工地扬尘监测数据、现场环境噪声监测数据、工地小气候气象监测数据","point_score":3.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":1,"point_text":"B 企业安全管理部门","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":2,"point_text":"C 项目责任工程师","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":3,"point_text":"D 项目安全管理部门","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":4,"point_text":"E 班组","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"3","sub_q_total_score":5.0,"point_seq":5,"point_text":"F 项目责任工程师","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":1,"point_text":"机械类、电器类、辐射类、高坠类","point_score":4.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":2,"point_text":"①施工企业未取得安全生产许可证,擅自从事建筑施工活动","point_score":1.0,"point_type":"列举","page":17,"_note":"(2)各项标1.0分,与本小题封顶6.0并存=踩点制给分池"}
+{"case_no":5,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":3,"point_text":"②施工单位主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书,从事相关工作","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":4,"point_text":"③特种作业人员未取得特种作业人员操作资格证书上岗作业","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"4","sub_q_total_score":6.0,"point_seq":5,"point_text":"④危险性较大的分部分项工程未编制、未审核专项施工方案","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":1,"point_text":"\"听\"、\"测\"、\"运转试验\"","point_score":1.5,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":2,"point_text":"①现场安全标志设置情况","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":3,"point_text":"②劳动防护用品使用情况","point_score":1.0,"point_type":"列举","page":17}
+{"case_no":5,"sub_q_no":"5","sub_q_total_score":6.0,"point_seq":4,"point_text":"③现场安全防护情况","point_score":1.0,"point_type":"列举","page":17}

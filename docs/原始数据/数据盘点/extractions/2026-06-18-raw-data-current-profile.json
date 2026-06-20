@@ -1,0 +1,1581 @@
+{
+  "generated_at": "2026-06-18T02:54:10.733239+00:00",
+  "root": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/docs/原始数据",
+  "scope": {
+    "raw_asset_files_exclude": [
+      ".DS_Store",
+      ".git",
+      "__pycache__",
+      "node_modules",
+      "数据盘点"
+    ],
+    "note": "Primary metrics exclude generated inventory docs under 数据盘点; all_files includes them for reconciliation."
+  },
+  "raw_asset_file_inventory": {
+    "total_files": 1107,
+    "total_bytes": 4746166407,
+    "by_extension": [
+      {
+        "extension": ".png",
+        "files": 611,
+        "bytes": 222671057
+      },
+      {
+        "extension": ".json",
+        "files": 383,
+        "bytes": 127238746
+      },
+      {
+        "extension": ".pdf",
+        "files": 95,
+        "bytes": 4386216862
+      },
+      {
+        "extension": ".py",
+        "files": 6,
+        "bytes": 241351
+      },
+      {
+        "extension": ".jpg",
+        "files": 4,
+        "bytes": 7987843
+      },
+      {
+        "extension": ".md",
+        "files": 3,
+        "bytes": 599247
+      },
+      {
+        "extension": ".old_axis",
+        "files": 3,
+        "bytes": 918856
+      },
+      {
+        "extension": "[no_ext]",
+        "files": 1,
+        "bytes": 23
+      },
+      {
+        "extension": ".docx",
+        "files": 1,
+        "bytes": 292422
+      }
+    ],
+    "by_top_dir": [
+      {
+        "top_dir": "2026_副本",
+        "files": 1008,
+        "bytes": 351961702
+      },
+      {
+        "top_dir": "PDF",
+        "files": 99,
+        "bytes": 4394204705
+      }
+    ],
+    "largest_files": [
+      {
+        "bytes": 730206229,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《学天一本通+必刷题》SMR【推荐】/2025年一建【建筑】学天-一本通（精讲班讲义）.pdf"
+      },
+      {
+        "bytes": 241697159,
+        "path": "PDF/教材/2026一建《建筑》电子版教材.pdf"
+      },
+      {
+        "bytes": 241697159,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材.pdf"
+      },
+      {
+        "bytes": 199018100,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《千锤百炼》王玮【推荐】/一建建筑-王玮-千锤百炼.pdf"
+      },
+      {
+        "bytes": 177946457,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《蓝宝典+真题汇编》233【推荐】/2025年一建【建筑】-233-高清蓝宝典.pdf"
+      },
+      {
+        "bytes": 167636968,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《最强图文教材》SMR【推荐】/2025一建建筑-图文教材（全）.pdf"
+      },
+      {
+        "bytes": 166038018,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《口袋建造师-背诵版》周超【推荐】/25一建建筑-周超-口袋书背诵完整版.pdf"
+      },
+      {
+        "bytes": 159027453,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《专题聚焦》龙炎飞【推荐】/25年一建建筑-龙炎飞-专题聚焦【重点推荐】.pdf"
+      },
+      {
+        "bytes": 128432581,
+        "path": "PDF/建筑实务11.20_副本/2025年一建电子版教材（可搜索版）/2025一建《建筑实务》电子教材（可搜索）.pdf"
+      },
+      {
+        "bytes": 126609807,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《点题一本通》赵爱林【推荐】/2025一建建筑-赵爱林-点.题一本通.pdf"
+      },
+      {
+        "bytes": 118732154,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《百题讲坛》龙炎飞【推荐】/2025年一建建筑-龙炎飞-百题讲坛【推荐】.pdf"
+      },
+      {
+        "bytes": 108495502,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《思维导图+核心考点+教材变动》HX/一建-建筑-新大纲考点精粹 - 2025.pdf"
+      },
+      {
+        "bytes": 102530914,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材(9-166)/2026一建《建筑》电子版教材_9-166.pdf"
+      },
+      {
+        "bytes": 100080233,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材(222-382)/2026一建《建筑》电子版教材_222-382.pdf"
+      },
+      {
+        "bytes": 87054304,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《新版-四色笔记》SMR【推荐】/2025年一建-建筑-四色笔记【高清】.pdf"
+      },
+      {
+        "bytes": 85967011,
+        "path": "PDF/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_副本.pdf"
+      },
+      {
+        "bytes": 78105127,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《高频考点默写本-新版》SMR【推荐】/一建建筑-一建一遍过-高频考点默写本（25年新版）.pdf"
+      },
+      {
+        "bytes": 73618653,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《学天一本通+必刷题》SMR【推荐】/XT-建筑-必刷题-答案.pdf"
+      },
+      {
+        "bytes": 73243539,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《金点题合集》金月【推荐】/25年一建建筑-金月-金点题合集（576题）.pdf"
+      },
+      {
+        "bytes": 68432849,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《章节千题斩》SMR【推荐】/2025年一级建造师《建筑工程管理与实务》章节千题.pdf"
+      },
+      {
+        "bytes": 64272775,
+        "path": "PDF/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究.pdf"
+      },
+      {
+        "bytes": 63563609,
+        "path": "PDF/行业标准文件/8、GB_T 50328-2014 建设工程文件归档规范(2019年版).pdf"
+      },
+      {
+        "bytes": 60968187,
+        "path": "PDF/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_副本.pdf"
+      },
+      {
+        "bytes": 53551675,
+        "path": "PDF/建筑实务11.20_副本/2025年一建电子版教材（可搜索版）/2025一建《建筑实务》电子教材（可搜索）_220-383.pdf"
+      },
+      {
+        "bytes": 53355404,
+        "path": "PDF/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_副本.pdf"
+      }
+    ]
+  },
+  "all_file_inventory": {
+    "total_files": 1132,
+    "total_bytes": 4746694502,
+    "by_extension": [
+      {
+        "extension": ".png",
+        "files": 611,
+        "bytes": 222671057
+      },
+      {
+        "extension": ".json",
+        "files": 385,
+        "bytes": 127400086
+      },
+      {
+        "extension": ".pdf",
+        "files": 95,
+        "bytes": 4386216862
+      },
+      {
+        "extension": ".md",
+        "files": 18,
+        "bytes": 719270
+      },
+      {
+        "extension": ".py",
+        "files": 7,
+        "bytes": 262034
+      },
+      {
+        "extension": ".jsonl",
+        "files": 7,
+        "bytes": 226049
+      },
+      {
+        "extension": ".jpg",
+        "files": 4,
+        "bytes": 7987843
+      },
+      {
+        "extension": ".old_axis",
+        "files": 3,
+        "bytes": 918856
+      },
+      {
+        "extension": "[no_ext]",
+        "files": 1,
+        "bytes": 23
+      },
+      {
+        "extension": ".docx",
+        "files": 1,
+        "bytes": 292422
+      }
+    ],
+    "by_top_dir": [
+      {
+        "top_dir": "2026_副本",
+        "files": 1008,
+        "bytes": 351961702
+      },
+      {
+        "top_dir": "PDF",
+        "files": 99,
+        "bytes": 4394204705
+      },
+      {
+        "top_dir": "数据盘点",
+        "files": 25,
+        "bytes": 528095
+      }
+    ],
+    "largest_files": [
+      {
+        "bytes": 730206229,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《学天一本通+必刷题》SMR【推荐】/2025年一建【建筑】学天-一本通（精讲班讲义）.pdf"
+      },
+      {
+        "bytes": 241697159,
+        "path": "PDF/教材/2026一建《建筑》电子版教材.pdf"
+      },
+      {
+        "bytes": 241697159,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材.pdf"
+      },
+      {
+        "bytes": 199018100,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《千锤百炼》王玮【推荐】/一建建筑-王玮-千锤百炼.pdf"
+      },
+      {
+        "bytes": 177946457,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《蓝宝典+真题汇编》233【推荐】/2025年一建【建筑】-233-高清蓝宝典.pdf"
+      },
+      {
+        "bytes": 167636968,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《最强图文教材》SMR【推荐】/2025一建建筑-图文教材（全）.pdf"
+      },
+      {
+        "bytes": 166038018,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《口袋建造师-背诵版》周超【推荐】/25一建建筑-周超-口袋书背诵完整版.pdf"
+      },
+      {
+        "bytes": 159027453,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《专题聚焦》龙炎飞【推荐】/25年一建建筑-龙炎飞-专题聚焦【重点推荐】.pdf"
+      },
+      {
+        "bytes": 128432581,
+        "path": "PDF/建筑实务11.20_副本/2025年一建电子版教材（可搜索版）/2025一建《建筑实务》电子教材（可搜索）.pdf"
+      },
+      {
+        "bytes": 126609807,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《点题一本通》赵爱林【推荐】/2025一建建筑-赵爱林-点.题一本通.pdf"
+      },
+      {
+        "bytes": 118732154,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《百题讲坛》龙炎飞【推荐】/2025年一建建筑-龙炎飞-百题讲坛【推荐】.pdf"
+      },
+      {
+        "bytes": 108495502,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《思维导图+核心考点+教材变动》HX/一建-建筑-新大纲考点精粹 - 2025.pdf"
+      },
+      {
+        "bytes": 102530914,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材(9-166)/2026一建《建筑》电子版教材_9-166.pdf"
+      },
+      {
+        "bytes": 100080233,
+        "path": "PDF/建筑实务11.20_副本/2026一建《建筑》电子版教材(222-382)/2026一建《建筑》电子版教材_222-382.pdf"
+      },
+      {
+        "bytes": 87054304,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《新版-四色笔记》SMR【推荐】/2025年一建-建筑-四色笔记【高清】.pdf"
+      },
+      {
+        "bytes": 85967011,
+        "path": "PDF/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_副本.pdf"
+      },
+      {
+        "bytes": 78105127,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《高频考点默写本-新版》SMR【推荐】/一建建筑-一建一遍过-高频考点默写本（25年新版）.pdf"
+      },
+      {
+        "bytes": 73618653,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《学天一本通+必刷题》SMR【推荐】/XT-建筑-必刷题-答案.pdf"
+      },
+      {
+        "bytes": 73243539,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/建筑《金点题合集》金月【推荐】/25年一建建筑-金月-金点题合集（576题）.pdf"
+      },
+      {
+        "bytes": 68432849,
+        "path": "PDF/一建建筑实务（智能体资料）_副本/精选/建筑《章节千题斩》SMR【推荐】/2025年一级建造师《建筑工程管理与实务》章节千题.pdf"
+      },
+      {
+        "bytes": 64272775,
+        "path": "PDF/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究.pdf"
+      },
+      {
+        "bytes": 63563609,
+        "path": "PDF/行业标准文件/8、GB_T 50328-2014 建设工程文件归档规范(2019年版).pdf"
+      },
+      {
+        "bytes": 60968187,
+        "path": "PDF/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_副本.pdf"
+      },
+      {
+        "bytes": 53551675,
+        "path": "PDF/建筑实务11.20_副本/2025年一建电子版教材（可搜索版）/2025一建《建筑实务》电子教材（可搜索）_220-383.pdf"
+      },
+      {
+        "bytes": 53355404,
+        "path": "PDF/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_副本.pdf"
+      }
+    ]
+  },
+  "json_inventory": {
+    "json_files": 383,
+    "valid_json": 383,
+    "invalid_json": [],
+    "by_top_dir": {
+      "2026_副本": 383
+    },
+    "top_keys": {
+      "meta": 36,
+      "stats": 22,
+      "chunks": 13,
+      "content_blocks": 9,
+      "outline_structure": 9,
+      "document_meta": 8,
+      "nodes": 8,
+      "anchor_map": 3,
+      "node_code_map": 3,
+      "topic_alias_map": 3,
+      "1A411011_001_0001": 2,
+      "1A411011_002_0002": 2,
+      "1A411011_002_0003": 2,
+      "1A411011_002_0004": 2,
+      "1A411011_002_0005": 2,
+      "1A411011_003_0006": 2,
+      "1A411011_003_0007": 2,
+      "1A411011_003_0008": 2,
+      "1A411011_004_0009": 2,
+      "1A411011_005_0010": 2,
+      "1A411011_006_0011": 2,
+      "1A411011_007_0012": 2,
+      "1A411011_007_0013": 2,
+      "1A411011_008_0014": 2,
+      "1A411011_008_0015": 2,
+      "1A411011_008_0016": 2,
+      "1A411011_009_0017": 2,
+      "1A411011_009_0018": 2,
+      "1A411011_009_0019": 2,
+      "1A411011_010_0020": 2
+    },
+    "top_signatures": {
+      "list": 338,
+      "chunks | meta | stats": 13,
+      "meta | outline_structure | stats": 9,
+      "content_blocks | meta": 6,
+      "document_meta | meta | nodes": 4,
+      "anchor_map | node_code_map | topic_alias_map": 3,
+      "content_blocks | document_meta | meta | nodes": 3,
+      "1A411011_001_0001 | 1A411011_002_0002 | 1A411011_002_0003 | 1A411011_002_0004 | 1A411011_002_0005 | 1A411011_003_0006 | 1A411011_003_0007 | 1A411011_003_0008 | 1A411011_004_0009 | 1A411011_005_0010 | 1A411011_006_0011 | 1A411011_007_0012": 2,
+      "1A421000_001_0001 | 1A421000_002_0002 | 1A421000_003_0003 | 1A421000_004_0004 | 1A421000_014_0020 | 1A421000_015_0021 | 1A422000_016_0022 | 1A422000_017_0023 | 1A422000_018_0024 | 1A422000_018_0025 | 1A422000_018_0026 | 1A422000_019_0027": 2,
+      "1A431000_001_0001 | 1A431000_002_0002 | 1A431000_003_0003 | 1A431000_004_0004 | 1A431000_005_0005 | 1A431000_006_0006 | 1A431000_007_0007 | 1A431000_008_0008 | 1A431000_009_0009 | 1A431011_011_0012 | 1A431011_012_0013 | 1A431011_013_0014": 2,
+      "document_meta | meta | nodes | unmatched_nodes": 1
+    }
+  },
+  "assets": {
+    "exam": {
+      "files": 11,
+      "years": [
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "chunks": 464,
+      "exercises": 555,
+      "exercise_types": {
+        "single_choice": 227,
+        "multiple_choice": 110,
+        "case_study": 218
+      },
+      "case_study": {
+        "total": 218,
+        "correct_answer_non_placeholder": 218,
+        "analysis_nonempty": 161,
+        "score_nonnull": 206
+      },
+      "choice": {
+        "total": 337,
+        "correct_answer_nonempty": 337,
+        "analysis_nonempty": 337
+      },
+      "taxonomy_missing": 70,
+      "by_year": [
+        {
+          "year": 2015,
+          "path": "2026_副本/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+          "chunks": 35,
+          "exercises": 52,
+          "exercise_types": {
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 22
+          },
+          "stats": {
+            "total_chunks": 35,
+            "total_exercises": 52,
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 22
+          }
+        },
+        {
+          "year": 2016,
+          "path": "2026_副本/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+          "chunks": 35,
+          "exercises": 53,
+          "exercise_types": {
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 23
+          },
+          "stats": {
+            "total_chunks": 35,
+            "total_exercises": 53,
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 23
+          }
+        },
+        {
+          "year": 2017,
+          "path": "2026_副本/题库/2017年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2017.json",
+          "chunks": 34,
+          "exercises": 35,
+          "exercise_types": {
+            "single_choice": 15,
+            "multiple_choice": 7,
+            "case_study": 13
+          },
+          "stats": {
+            "total_chunks": 34,
+            "total_exercises": 35,
+            "total_params": 112
+          }
+        },
+        {
+          "year": 2018,
+          "path": "2026_副本/题库/2018年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2018.json",
+          "chunks": 48,
+          "exercises": 48,
+          "exercise_types": {
+            "single_choice": 21,
+            "multiple_choice": 8,
+            "case_study": 19
+          },
+          "stats": {
+            "total_chunks": 48,
+            "total_exercises": 50,
+            "total_params": 140
+          }
+        },
+        {
+          "year": 2019,
+          "path": "2026_副本/题库/2019年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2019.json",
+          "chunks": 48,
+          "exercises": 52,
+          "exercise_types": {
+            "single_choice": 23,
+            "multiple_choice": 10,
+            "case_study": 19
+          },
+          "stats": {
+            "total_chunks": 48,
+            "total_exercises": 52,
+            "total_params": 127
+          }
+        },
+        {
+          "year": 2020,
+          "path": "2026_副本/题库/2020年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2020.json",
+          "chunks": 53,
+          "exercises": 56,
+          "exercise_types": {
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 26
+          },
+          "stats": {
+            "total_chunks": 53,
+            "total_exercises": 56,
+            "total_params": 107
+          }
+        },
+        {
+          "year": 2021,
+          "path": "2026_副本/题库/2021年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2021.json",
+          "chunks": 46,
+          "exercises": 59,
+          "exercise_types": {
+            "single_choice": 24,
+            "multiple_choice": 14,
+            "case_study": 21
+          },
+          "stats": {
+            "total_chunks": 46,
+            "total_exercises": 59,
+            "total_params": 132
+          }
+        },
+        {
+          "year": 2022,
+          "path": "2026_副本/题库/2022年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2022.json",
+          "chunks": 44,
+          "exercises": 44,
+          "exercise_types": {
+            "single_choice": 22,
+            "multiple_choice": 10,
+            "case_study": 12
+          },
+          "stats": {
+            "total_chunks": 44,
+            "total_exercises": 44,
+            "total_params": 131
+          }
+        },
+        {
+          "year": 2023,
+          "path": "2026_副本/题库/2023年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2023.json",
+          "chunks": 38,
+          "exercises": 61,
+          "exercise_types": {
+            "single_choice": 20,
+            "multiple_choice": 10,
+            "case_study": 31
+          },
+          "stats": {
+            "total_chunks": 38,
+            "total_exercises": 61,
+            "total_params": 101
+          }
+        },
+        {
+          "year": 2024,
+          "path": "2026_副本/题库/2024年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2024.json",
+          "chunks": 40,
+          "exercises": 38,
+          "exercise_types": {
+            "single_choice": 20,
+            "multiple_choice": 11,
+            "case_study": 7
+          },
+          "stats": {
+            "total_chunks": 40,
+            "total_exercises": 39,
+            "total_params": 145
+          }
+        },
+        {
+          "year": 2025,
+          "path": "2026_副本/题库/2025年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2025.json",
+          "chunks": 43,
+          "exercises": 57,
+          "exercise_types": {
+            "single_choice": 22,
+            "multiple_choice": 10,
+            "case_study": 25
+          },
+          "stats": {
+            "total_chunks": 43,
+            "total_exercises": 59,
+            "total_params": 85
+          }
+        }
+      ]
+    },
+    "practice": {
+      "ZL500": {
+        "path": "2026_副本/题库/864考证宝典ZL/FINAL_CLEANED_ZL500.json",
+        "chunks": 403,
+        "exercises": 403,
+        "exercise_types": {
+          "single_choice": 279,
+          "multi_choice": 124
+        },
+        "correct_answer_nonempty": 403,
+        "analysis_nonempty": 403,
+        "stats": {
+          "total_chunks": 403,
+          "total_exercises": 403,
+          "total_single_choice": 279,
+          "total_multi_choice": 124,
+          "matched_answers": 403,
+          "unmatched_answers": 0,
+          "dedup_self": 1,
+          "dedup_qiantizan": 20,
+          "no_node_mapping": 0,
+          "sections_found": [
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4",
+            "11.2",
+            "11.3",
+            "11.4",
+            "12.1",
+            "12.3",
+            "13.1",
+            "13.2",
+            "2.1",
+            "2.2",
+            "2.3",
+            "3.1",
+            "3.2",
+            "3.3",
+            "3.4",
+            "3.5",
+            "3.6",
+            "3.7",
+            "3.8",
+            "4.2",
+            "5.1",
+            "5.2",
+            "5.3",
+            "5.4",
+            "5.5",
+            "6.2",
+            "6.3",
+            "6.4",
+            "6.5",
+            "6.6",
+            "6.7",
+            "6.8",
+            "7.1",
+            "7.2",
+            "8.1",
+            "9.2",
+            "9.3",
+            "9.4"
+          ]
+        }
+      },
+      "QIANTIZAN": {
+        "path": "2026_副本/题库/章节千题斩SMR/FINAL_CLEANED_QIANTIZAN.json",
+        "chunks": 630,
+        "exercises": 630,
+        "exercise_types": {
+          "single_choice": 402,
+          "multi_choice": 228
+        },
+        "correct_answer_nonempty": 630,
+        "analysis_nonempty": 630,
+        "stats": {
+          "total_chunks": 630,
+          "total_exercises": 630,
+          "total_single_choice": 402,
+          "total_multi_choice": 228,
+          "total_skipped_dup": 1,
+          "total_no_node_mapping": 0,
+          "sections_found": [
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4",
+            "1.5",
+            "10.1",
+            "10.2",
+            "10.3",
+            "11.1",
+            "11.2",
+            "11.3",
+            "11.4",
+            "12.1",
+            "12.2",
+            "12.3",
+            "13.1",
+            "13.2",
+            "13.3",
+            "2.1",
+            "2.2",
+            "2.3",
+            "3.1",
+            "3.2",
+            "3.3",
+            "3.4",
+            "3.5",
+            "3.6",
+            "3.7",
+            "3.8",
+            "4.1",
+            "4.2",
+            "5.1",
+            "5.2",
+            "5.3",
+            "5.4",
+            "5.5",
+            "6.1",
+            "6.2",
+            "6.3",
+            "6.4",
+            "6.5",
+            "6.6",
+            "6.7",
+            "6.8",
+            "7.1",
+            "7.2",
+            "8.1",
+            "8.2",
+            "9.1",
+            "9.2",
+            "9.3",
+            "9.4"
+          ]
+        }
+      }
+    },
+    "textbook": {
+      "v3_fixed_files": 3,
+      "v3_fixed_content_blocks": 650,
+      "v3_fixed": [
+        {
+          "path": "2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+          "content_blocks": 81,
+          "meta": {
+            "year": 2026,
+            "subject": "建筑实务",
+            "version": "增强版v3.2",
+            "generated_at": "2026-01-10T21:38:15.545188"
+          }
+        },
+        {
+          "path": "2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+          "content_blocks": 261,
+          "meta": {
+            "year": 2026,
+            "subject": "建筑实务",
+            "version": "增强版v3.2",
+            "generated_at": "2026-01-10T21:30:20.487359"
+          }
+        },
+        {
+          "path": "2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+          "content_blocks": 308,
+          "meta": {
+            "year": 2026,
+            "subject": "建筑实务",
+            "version": "增强版v3.2",
+            "generated_at": "2026-01-11T10:56:13.883000"
+          }
+        }
+      ],
+      "first_cleaned_files": 3,
+      "first_cleaned": [
+        {
+          "path": "2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-167-221.json",
+          "top_type": "list",
+          "items": 81
+        },
+        {
+          "path": "2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-222-382.json",
+          "top_type": "list",
+          "items": 261
+        },
+        {
+          "path": "2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-9-166.json",
+          "top_type": "list",
+          "items": 308
+        }
+      ]
+    },
+    "taxonomy": {
+      "path": "2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+      "stats": {
+        "anchored_chunk_count": 650,
+        "book_chunk_count": 650,
+        "book_derived_leaf_count": 1681,
+        "leaf_count": 1976,
+        "total_node_count": 2116
+      },
+      "top_keys": [
+        "meta",
+        "outline_structure",
+        "stats"
+      ]
+    },
+    "standards": {
+      "files": 8,
+      "total_nodes": 5077,
+      "total_content_blocks": 2785,
+      "rows": [
+        {
+          "path": "2026_副本/标准文件/13、GB55003-2021《建筑与市政地基基础通用规范》.json",
+          "title": "13、GB55003-2021《建筑与市政地基基础通用规范》",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes"
+          ],
+          "nodes": 217,
+          "content_blocks": 0,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/15、GB+51004-2015建筑地基基础工程施工规范.json",
+          "title": "15、GB+51004-2015建筑地基基础工程施工规范",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes",
+            "content_blocks"
+          ],
+          "nodes": 1514,
+          "content_blocks": 1514,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/16、JGJ120-2012《建筑基坑支护技术规程》.json",
+          "title": "16、JGJ120-2012《建筑基坑支护技术规程》",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes",
+            "unmatched_nodes"
+          ],
+          "nodes": 1013,
+          "content_blocks": 0,
+          "unmatched_nodes": 1
+        },
+        {
+          "path": "2026_副本/标准文件/18、GB+50207-2012屋面工程质量验收规范（清晰版）.json",
+          "title": "18、GB+50207-2012屋面工程质量验收规范（清晰版）",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes"
+          ],
+          "nodes": 748,
+          "content_blocks": 0,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/19、GB50210-2018建筑装饰装修工程质量验收标准.json",
+          "title": "19、GB50210-2018建筑装饰装修工程质量验收标准",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes",
+            "content_blocks"
+          ],
+          "nodes": 734,
+          "content_blocks": 736,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/1、GB50352-2019民用建筑设计统一标准.json",
+          "title": "1、GB50352-2019民用建筑设计统一标准",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes",
+            "content_blocks"
+          ],
+          "nodes": 531,
+          "content_blocks": 535,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/20、GB50354-2005《建筑内部装修防火施工及验收规范》.json",
+          "title": "20、GB50354-2005《建筑内部装修防火施工及验收规范》",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes"
+          ],
+          "nodes": 165,
+          "content_blocks": 0,
+          "unmatched_nodes": 0
+        },
+        {
+          "path": "2026_副本/标准文件/22、GBT51366-2019建筑碳排放计算标准.json",
+          "title": "22、GBT51366-2019建筑碳排放计算标准",
+          "keys": [
+            "meta",
+            "document_meta",
+            "nodes"
+          ],
+          "nodes": 155,
+          "content_blocks": 0,
+          "unmatched_nodes": 0
+        }
+      ]
+    },
+    "lectures": {
+      "packages": 8,
+      "page_json": 327,
+      "aggregate_json": 8,
+      "rows": [
+        {
+          "name": "2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 29,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 32,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 21,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 50,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 56,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 38,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        },
+        {
+          "name": "2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 67,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_11_11.json",
+            "page_12_12.json",
+            "page_13_13.json"
+          ]
+        },
+        {
+          "name": "2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8",
+          "path": "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8",
+          "page_json": 34,
+          "aggregate_json": 1,
+          "sample_pages": [
+            "page_10_10.json",
+            "page_11_11.json",
+            "page_12_12.json"
+          ]
+        }
+      ]
+    },
+    "cards": {
+      "path": null,
+      "md_cards": 0,
+      "manifest_candidates": []
+    },
+    "pdf_and_images": {
+      "pdf_files": 95,
+      "pdf_by_top_subdir": {
+        "一建建筑实务（智能体资料）_副本": 46,
+        "行业标准文件": 21,
+        "建筑实务11.20_副本": 12,
+        "讲义": 9,
+        "真题": 6,
+        "教材": 1
+      },
+      "image_files": 615,
+      "image_by_extension": {
+        ".png": 611,
+        ".jpg": 4
+      },
+      "render_check_png": {
+        "docx_render_check": 299,
+        "docx_render_check_v2": 312
+      }
+    },
+    "duplicate_and_version_signals": {
+      "duplicate_basenames_top": [
+        {
+          "basename": "page_11_11.json",
+          "count": 8
+        },
+        {
+          "basename": "page_12_12.json",
+          "count": 8
+        },
+        {
+          "basename": "page_13_13.json",
+          "count": 8
+        },
+        {
+          "basename": "page_14_14.json",
+          "count": 8
+        },
+        {
+          "basename": "page_15_15.json",
+          "count": 8
+        },
+        {
+          "basename": "page_16_16.json",
+          "count": 8
+        },
+        {
+          "basename": "page_17_17.json",
+          "count": 8
+        },
+        {
+          "basename": "page_18_18.json",
+          "count": 8
+        },
+        {
+          "basename": "page_19_19.json",
+          "count": 8
+        },
+        {
+          "basename": "page_1_1.json",
+          "count": 8
+        },
+        {
+          "basename": "page_20_20.json",
+          "count": 8
+        },
+        {
+          "basename": "page_21_21.json",
+          "count": 8
+        },
+        {
+          "basename": "page_2_2.json",
+          "count": 8
+        },
+        {
+          "basename": "page_3_3.json",
+          "count": 8
+        },
+        {
+          "basename": "page_4_4.json",
+          "count": 8
+        },
+        {
+          "basename": "page_5_5.json",
+          "count": 8
+        },
+        {
+          "basename": "page_10_10.json",
+          "count": 7
+        },
+        {
+          "basename": "page_22_22.json",
+          "count": 7
+        },
+        {
+          "basename": "page_23_23.json",
+          "count": 7
+        },
+        {
+          "basename": "page_24_24.json",
+          "count": 7
+        },
+        {
+          "basename": "page_25_25.json",
+          "count": 7
+        },
+        {
+          "basename": "page_26_26.json",
+          "count": 7
+        },
+        {
+          "basename": "page_27_27.json",
+          "count": 7
+        },
+        {
+          "basename": "page_28_28.json",
+          "count": 7
+        },
+        {
+          "basename": "page_29_29.json",
+          "count": 7
+        },
+        {
+          "basename": "page_6_6.json",
+          "count": 7
+        },
+        {
+          "basename": "page_7_7.json",
+          "count": 7
+        },
+        {
+          "basename": "page_8_8.json",
+          "count": 7
+        },
+        {
+          "basename": "page_9_9.json",
+          "count": 7
+        },
+        {
+          "basename": "page_30_30.json",
+          "count": 6
+        }
+      ],
+      "version_cluster_hints_top": [
+        {
+          "cluster_hint": "EXAM_.json",
+          "count": 11,
+          "sample_paths": [
+            "2026_副本/题库/2015年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2015.json",
+            "2026_副本/题库/2016年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2016.json",
+            "2026_副本/题库/2017年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2017.json",
+            "2026_副本/题库/2018年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2018.json",
+            "2026_副本/题库/2019年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2019.json",
+            "2026_副本/题库/2020年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2020.json",
+            "2026_副本/题库/2021年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2021.json",
+            "2026_副本/题库/2022年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2022.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_11_11.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_11_11.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_11_11.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_12_12.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_12_12.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_12_12.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_13_13.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_13_13.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_13_13.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_14_14.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_14_14.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_14_14.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_15_15.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_15_15.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_15_15.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_16_16.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_16_16.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_16_16.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_17_17.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_17_17.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_17_17.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_18_18.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_18_18.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_18_18.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_19_19.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_19_19.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_19_19.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_1_1.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_1_1.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_1_1.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_20_20.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_20_20.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_21_21.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_21_21.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_21_21.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_2_2.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_2_2.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_2_2.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_3_3.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_3_3.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_3_3.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_4_4.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_4_4.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_4_4.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_5_5.json",
+          "count": 8,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_5_5.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_5_5.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_10_10.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_10_10.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_10_10.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_22_22.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_22_22.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_22_22.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_23_23.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_23_23.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_23_23.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_24_24.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_24_24.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_24_24.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_25_25.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_25_25.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_25_25.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_26_26.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_26_26.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_26_26.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_27_27.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_27_27.json"
+          ]
+        },
+        {
+          "cluster_hint": "page_28_28.json",
+          "count": 7,
+          "sample_paths": [
+            "2026_副本/讲义/2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_28_28.json",
+            "2026_副本/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_28_28.json"
+          ]
+        }
+      ]
+    },
+    "asset_buckets": [
+      {
+        "asset": "历年真题练习",
+        "count": 555,
+        "unit": "exercise"
+      },
+      {
+        "asset": "章节练习",
+        "count": 1033,
+        "unit": "exercise"
+      },
+      {
+        "asset": "教材内容块",
+        "count": 650,
+        "unit": "block"
+      },
+      {
+        "asset": "知识卡片",
+        "count": 0,
+        "unit": "card"
+      },
+      {
+        "asset": "taxonomy叶节点",
+        "count": 1976,
+        "unit": "node"
+      },
+      {
+        "asset": "规范条目节点",
+        "count": 5077,
+        "unit": "node"
+      },
+      {
+        "asset": "讲义页JSON",
+        "count": 327,
+        "unit": "page_json"
+      },
+      {
+        "asset": "PDF资料",
+        "count": 95,
+        "unit": "file"
+      },
+      {
+        "asset": "渲染/图片",
+        "count": 615,
+        "unit": "file"
+      }
+    ]
+  },
+  "chart_generation": {
+    "status": "skipped",
+    "reason": "missing Python chart dependency: matplotlib"
+  }
+}

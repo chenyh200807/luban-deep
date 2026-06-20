@@ -1,0 +1,20 @@
+{
+  "answer_key_override": 0,
+  "llm_changed_key": 0,
+  "rag_chunk_as_answer_key": 0,
+  "model_vote_as_source": 0,
+  "official_answer_as_source": 0,
+  "false_positive": 0,
+  "tamper_fail_closed": true,
+  "non_cohort_blocked": true,
+  "legacy_equal_rate": 1.0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "published": false,
+  "production_default_connected": false,
+  "client_supplied_registry_status_ignored": true,
+  "controlled_official_only": true,
+  "rejected_or_conflict_scored_as_release": 0,
+  "content_hash_reproducible": true,
+  "matches_m30_canonical_hash": true
+}

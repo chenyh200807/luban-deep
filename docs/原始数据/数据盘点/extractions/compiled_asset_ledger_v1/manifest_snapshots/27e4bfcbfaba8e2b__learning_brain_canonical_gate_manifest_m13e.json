@@ -1,0 +1,38 @@
+{
+  "milestone": "M13E_learning_brain_canonical_claim_gate",
+  "role": "canonical_write_gate_design_and_dryrun_proof",
+  "inputs": {
+    "c_lb1_claims": 20,
+    "m11_preview": 15,
+    "m12_preview": 65,
+    "teacher_bridge_grants": 3
+  },
+  "preview_events_total": 100,
+  "patterns": {
+    "classify_and_act": "5-way disposition",
+    "fanout_and_synthesize": "model summary advisory + deterministic gate judge",
+    "generate_and_filter": "claim proposals filtered: shadow-only/un-retested/un-teacher-reviewed/overclaim removed",
+    "tournament": "per-question most conservative point-level claim",
+    "adversarial_verification": "overclaim/shadow-promote/sim-improved/leak/replay/regression",
+    "loop_until_done": "every preview event has a final disposition"
+  },
+  "model_usage": {
+    "small_models": "advisory bucket/summary (not run; deterministic backbone)",
+    "gpt55": "provider_unavailable_fail_closed",
+    "opus48": "in_session_skeptic",
+    "live_calls": 0,
+    "deterministic_gate_is_only_canonical_judge": true
+  },
+  "personalization_contract": {
+    "contract": "PersonalizationContextPack",
+    "is_only_personalization_authority": true,
+    "second_authority": false,
+    "no_second_learner_memory": true,
+    "no_second_rag": true,
+    "production_write_count": 0,
+    "note": "M13E reuses the existing PersonalizationContextPack contract; it creates no second personalization authority, learner memory, or RAG."
+  },
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "verdict": "WEAK-GO"
+}

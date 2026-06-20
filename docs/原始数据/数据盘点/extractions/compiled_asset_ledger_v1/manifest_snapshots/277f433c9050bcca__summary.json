@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-06-06T07:30:07+0800",
+  "entry_surface": "near_real_http_ws_intent_context_probe",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_intent_context_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-intent-context-probes-20260606",
+  "rounds": 10,
+  "conversation_ids": {
+    "practice_then_answer": "tb_22c61b91e3574a91b3490e53",
+    "related_generation_after_exact": "tb_77794d73f43549828a29deda",
+    "outside_bank": "tb_66693ec9b00840b484ada912",
+    "multi_followup": "tb_4911b8f4a3b04846b49a2904"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-INTENT-001",
+      "conversation_id": "tb_22c61b91e3574a91b3490e53",
+      "turn_id": "turn_1780701997320_ef12a21247",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-INTENT-002",
+      "conversation_id": "tb_22c61b91e3574a91b3490e53",
+      "turn_id": "turn_1780702019622_daa9a11325",
+      "done_status": "completed",
+      "visible_excerpt": "我还不知道你要批改哪一道题。\n\n请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+    },
+    {
+      "round_id": "QA30-INTENT-003",
+      "conversation_id": "tb_22c61b91e3574a91b3490e53",
+      "turn_id": "turn_1780702028199_569ee69bf6",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“那2025建筑实务第15题答案直接发我，别问。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-INTENT-004",
+      "conversation_id": "tb_22c61b91e3574a91b3490e53",
+      "turn_id": "turn_1780702053594_5d4f8d185e",
+      "done_status": "completed",
+      "visible_excerpt": "标准答案是 B（B. 25年），题库解析依据是：解析：室内工程防水设计工作年限不应低于25年。"
+    },
+    {
+      "round_id": "QA30-INTENT-005",
+      "conversation_id": "tb_22c61b91e3574a91b3490e53",
+      "turn_id": "turn_1780702060922_ca321a23f0",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（25年）：解析：室内工程防水设计工作年限不应低于25年。"
+    },
+    {
+      "round_id": "QA30-INTENT-006",
+      "conversation_id": "tb_77794d73f43549828a29deda",
+      "turn_id": "turn_1780702082192_6fd9203c5e",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：A（A. 5%）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n屋面最小坡度：压型金属板：5%。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 A，不要把 B. 1%、C. 2%、D. 3% 误并入答案。 |\n\n## 🎯 核心要点\n- ✅ 命中：A. 5%是本题题库标准答案。\n- ❌ 遗漏：不要把B. 1%、C. "
+    },
+    {
+      "round_id": "QA30-INTENT-007",
+      "conversation_id": "tb_77794d73f43549828a29deda",
+      "turn_id": "turn_1780702123263_4ac0847e9f",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n某压型金属板屋面，设计未注明坡度要求，其最小坡度应为多少？\n- A. 3%\n- B. 5%\n- C. 8%\n- D. 10%\n\n### 第 2 题\n\n压型金属板屋面，当设计未明确坡度要求时，其最小坡度值应为多少？\n- A. 5%\n- B. 10%\n- C. 15%\n- D. 20%"
+    },
+    {
+      "round_id": "QA30-INTENT-008",
+      "conversation_id": "tb_66693ec9b00840b484ada912",
+      "turn_id": "turn_1780702149294_05f59b5934",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n按现行政策（2026年未发布报名条件改革新政），一级建造师报考条件为：**取得工程类或工程经济类大学专科学历，工作满6年，其中从事建设工程项目施工管理工作满4年**（本科满4年/3年，硕士满2年，博士满1年）。\n\n## 注意\n\n2026年是否已实施新版报考条件（如降低工作年限或放开专业限制），目前我手上的证据不足以确认最新政策变化。建议你登录 **中国人事考试网（www.cpta.com.cn）** 查看当年报考文件，以官方通知为准。"
+    },
+    {
+      "round_id": "QA30-INTENT-009",
+      "conversation_id": "tb_4911b8f4a3b04846b49a2904",
+      "turn_id": "turn_1780702175609_65c586eea3",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆），题库解析依据是：A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-INTENT-010",
+      "conversation_id": "tb_4911b8f4a3b04846b49a2904",
+      "turn_id": "turn_1780702183849_bf3a06f942",
+      "done_status": "completed",
+      "visible_excerpt": "不行，应≥1.2m。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

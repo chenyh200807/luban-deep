@@ -1,0 +1,11 @@
+{
+  "official_answer_as_source": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "rag_chunk_as_answer_key": 0,
+  "answer_key_override": 0,
+  "llm_changed_key": 0,
+  "candidate_delta_enters_release_truth": 0,
+  "client_supplied_answer_key_release_truth": 0,
+  "all_clean": true
+}

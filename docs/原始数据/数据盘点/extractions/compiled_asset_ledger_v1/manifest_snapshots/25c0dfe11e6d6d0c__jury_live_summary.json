@@ -1,0 +1,30 @@
+{
+  "limit": 11,
+  "only_status": "published_candidate",
+  "questions_reviewed": 11,
+  "newly_reviewed_this_run": 9,
+  "jurors": [
+    "gpt55(codex)",
+    "deepseek_v4",
+    "qwen37"
+  ],
+  "votes_fabricated": false,
+  "sanctioned_cache_used": false,
+  "formal_registry_emitted": false,
+  "publish_candidate": 0,
+  "draft_candidate": 2,
+  "needs_po_review": 9,
+  "quorum_per_question": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+  ]
+}

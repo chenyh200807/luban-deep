@@ -1,0 +1,22 @@
+{
+  "questions_bank_objective_full_count": 2640,
+  "questions_bank_input_rows": 2655,
+  "objective_conflict_count": 1,
+  "source_laundering": 0,
+  "answer_key_override": 0,
+  "model_vote_as_source": 0,
+  "rag_chunk_as_answer_key": 0,
+  "official_answer_as_source": 0,
+  "candidate_used_as_release_truth": 0,
+  "list_partial_auto": 0,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "tamper_fail_closed": true,
+  "laundering_origins_blocked": true,
+  "rollback_pointer_present": true,
+  "production_write_count": 0,
+  "published_registry": false,
+  "production_default_connected": false,
+  "canonical_truth_written": false,
+  "all_lanes_release_candidate": true
+}

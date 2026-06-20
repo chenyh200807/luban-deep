@@ -1,0 +1,38 @@
+{
+  "schema_version": "luban_four_arm_ab_freeze.v3_final",
+  "frozen_at": "2026-06-11T19:53:13+0800",
+  "command": "python3 scripts/run_luban_four_arm_scoring_ab.py --limit 0 --tier live_provider_sample --live --compile-aliases --output-dir .../live_full_162_v3_final",
+  "delta_vs_v1": [
+    "make_retrying_batch_judge missing-verdict 重试",
+    "derived calculation_spec 改 advisory（artifact 直传保持硬闸）"
+  ],
+  "inputs": {
+    "labeled_answers": "sha256:bee94cb09e08d1975680c528c5a70b67387596454e201667ae47326e7d336f53",
+    "question_manifest": "sha256:962e7e886c424021c1f6f12d2e38f0d0d138ea57ae9cc22ef66a7b4129f3ebea"
+  },
+  "code": {
+    "scripts/run_luban_four_arm_scoring_ab.py": "sha256:dcc741ce17117eea3e7870b98d18b1aa0f115fdb046490a9b365f64a8f5fb579",
+    "deeptutor/services/construction_grading/artifact_first_llm_judge.py": "sha256:36be91b9ca0edd6338e541b8138419f756e79052c9facf33f626a87606aa1414",
+    "deeptutor/services/construction_grading/judge_point_enrichment.py": "sha256:fa4feb4529273fa833c1d0ad2e973f5dad66772d5757087064901e70f13cfb41",
+    "scripts/run_luban_judge_grading_to_brain_trace.py": "sha256:b70a3ed2bc91d05ca8ee515ccd440d60eb980288c8dddbd5207b93884c4b6194"
+  },
+  "outputs": {
+    "report.json": "sha256:8e9b8867f8a5248b834ef8eca079204ac64cde574a6a8106525a191d8e164c4c",
+    "per_row.jsonl": "sha256:d5a8aed7e6f96d740e05ebb25b88fca9586961f5df6932ae6d8b4a4c3abd26cd",
+    "clean_subset_analysis.json": "sha256:5a26a5b3bba0156e56710f7f85ce862d80dbdbec1ba39a7e29e90909e8046a8f"
+  },
+  "git": {
+    "head": "54c4b763fa3c2e311f0aea26fe748a9dd7d7e6ac",
+    "branch": "main"
+  },
+  "regression": "construction_grading 域 577 passed + learner_state 关键链 40 passed + 新增 41 测试",
+  "safety": {
+    "production_write_count": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "canonical_truth_written": false,
+    "published_registry_written": false,
+    "is_release_truth": false,
+    "official_score_allowed": false
+  }
+}

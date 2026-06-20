@@ -1,0 +1,41 @@
+{
+  "answer_unit_count": 122,
+  "content_hash": "d21a68ac9531fd5b68606d9aa0d9dc3020b6b7db5dfdb2355cb49bfb792a65f1",
+  "namespace": "lecture_answer_skill_pack",
+  "official_score_allowed": false,
+  "pilot_lectures": [
+    "流水施工&网络计划",
+    "主体结构"
+  ],
+  "producer": "scripts/run_luban_lecture_answer_skill_pack_compile.py",
+  "published": false,
+  "rollback_pointer": "none; first lecture-answer-method release_candidate",
+  "schema_version": "luban_lecture_answer_skill_pack.v1",
+  "shard_count": 2,
+  "shards": [
+    {
+      "content_hash": "9eb9c79c09ac7bd94a54db8211fbd58cce3f136dfcc9ddd31793204d3cf4f921",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.main-structure",
+      "path": "shards/main-structure.json",
+      "record_count": 76,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "main-structure"
+    },
+    {
+      "content_hash": "577b4f9fc41566d62851428373f262ed2fb9a17385b491efac0781f57a8ecbe4",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.schedule-network",
+      "path": "shards/schedule-network.json",
+      "record_count": 46,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "schedule-network"
+    }
+  ],
+  "signature": "36fdce6165c0f2181d628f43eb09c22749fdf18ac064f1ec41179fb58f7ea287",
+  "source_inventory_hash": "496638e8370c5c99db920efc35faa4f8db877ddfc827e00d12efa1ece362f55e",
+  "source_lecture_count": 8,
+  "status": "release_candidate",
+  "tier": "teaching_answer_method_not_answer_key",
+  "version": "2026-06-14"
+}

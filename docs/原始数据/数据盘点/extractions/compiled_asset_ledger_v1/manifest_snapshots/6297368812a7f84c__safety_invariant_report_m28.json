@@ -1,0 +1,38 @@
+{
+  "milestone": "M28 safety invariant reconciliation",
+  "date": "2026-06-06",
+  "source": "reconciled from m26_live safety_invariant + m27 safety_invariant + reviewer-run regression (34+269+37+161 passed)",
+  "invariants": {
+    "m26_live_go_still_holds": true,
+    "m27_open_world_followup_wiring_still_holds": true,
+    "learning_brain_evidence_coverage_compiled_context_surfaces": {
+      "production": 0.0,
+      "hermetic": 1.0,
+      "target": 0.95,
+      "met_in_production": false,
+      "reason": "gap_1: build_learning_evidence_from_context_pack has no production caller"
+    },
+    "shadow_promoted_to_mastery": 0,
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "candidate_used_as_release_truth": 0,
+    "legacy_overwrite": 0,
+    "source_laundering": 0,
+    "answer_key_override": 0,
+    "model_vote_as_source": 0,
+    "rag_chunk_as_answer_key": 0,
+    "open_world_refusal_rate": 0.0,
+    "fail_closed_legacy_intact": true,
+    "remote_write": 0,
+    "default_flip": 0,
+    "published_registry": false
+  },
+  "out_of_scope_quarantined_not_in_luban_verdict": {
+    "turn_runtime_terminal_commit_started": "registered out-of-scope (CONTRACT review needed)",
+    "miniprogram_pending_turn_continuity": "registered out-of-scope",
+    "agents_md_agent_skills": "registered out-of-scope (commit-cohesion note)",
+    "miniprogram_api_base_failover": "registered out-of-scope",
+    "web_bi": "registered out-of-scope"
+  },
+  "all_hard_invariants_clean_except": ["learning_brain_evidence_coverage (production) — gap_1 open"]
+}

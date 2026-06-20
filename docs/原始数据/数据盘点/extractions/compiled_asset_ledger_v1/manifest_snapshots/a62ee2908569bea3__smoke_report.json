@@ -1,0 +1,142 @@
+{
+  "smoke_id": "luban_freeze_activation_20260612",
+  "generated_at": "2026-06-12T11:55:21.444506+00:00",
+  "python": "3.11.11",
+  "frozen_tag_expected": "taxonomy-frozen-v1-20260612",
+  "checks": [
+    {
+      "name": "all_modules_import",
+      "pass": true,
+      "detail": "8 modules imported fresh"
+    },
+    {
+      "name": "compiled_sha_is_frozen",
+      "pass": true,
+      "detail": {
+        "path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+        "sha256": "83cb2fab8d9d54462f260a954694098a9bbd516f3624e42a8e9d81648d283a7c"
+      }
+    },
+    {
+      "name": "tree_stats_2038_axis",
+      "pass": true,
+      "detail": {
+        "total_nodes": 2038,
+        "coded_nodes": 2038,
+        "leaf_nodes": 1898,
+        "unique_codes": 2038,
+        "duplicate_code_rows": 0
+      }
+    },
+    {
+      "name": "canonical_resolution_index_clean",
+      "pass": true,
+      "detail": {
+        "canonical_code_count": 1534,
+        "retired_codes_present": []
+      }
+    },
+    {
+      "name": "canonical_unified_bundle_verifies",
+      "pass": true,
+      "detail": {
+        "node_count": 535,
+        "content_hash": "f586ba86ce494cbf09fc662eb2aa89d6ad64fa07744c505e448c8606adf50ac1"
+      }
+    },
+    {
+      "name": "question_grading_registry_loads",
+      "pass": true,
+      "detail": {
+        "repr": "QuestionGradingRegistry",
+        "rows": 0
+      }
+    },
+    {
+      "name": "textbook_directory_loads",
+      "pass": true,
+      "detail": {
+        "chapters": 13
+      }
+    }
+  ],
+  "queries": [
+    {
+      "query": "taxonomy_label('1A411000')",
+      "output": {
+        "label": "建筑设计与构造",
+        "display": "建筑设计与构造（1A411000）"
+      },
+      "retired_codes_in_output": [],
+      "pass": true
+    },
+    {
+      "query": "resolve_learning_topic_from_payload(next_training_signal.focus='建筑工程企业资质')",
+      "output": {
+        "label": "建筑工程企业资质",
+        "code": "1A431010-x2",
+        "source": "taxonomy_label",
+        "confidence": "high"
+      },
+      "retired_codes_in_output": [],
+      "pass": true
+    },
+    {
+      "query": "to_canonical('网络计划中总时差与自由时差的计算')",
+      "output": {
+        "code": "1A433000-G03",
+        "name_path": "施工进度管理 > 网络计划时间参数与关键线路"
+      },
+      "retired_codes_in_output": [],
+      "pass": true
+    },
+    {
+      "query": "resolve_general_knowledge_context('绿色建造的相关规定有哪些？')",
+      "output": {
+        "node_code": null,
+        "name_path": null,
+        "sources": {
+          "textbook": 6,
+          "standard": 0,
+          "lecture": 6,
+          "question": 6
+        },
+        "authority": "luban_general_knowledge_context"
+      },
+      "retired_codes_in_output": [],
+      "pass": true
+    },
+    {
+      "query": "resolve_canonical_knowledge(frozen node)",
+      "output": {
+        "available_nodes": 535,
+        "resolved_node": "1A411010-R01",
+        "pack_sources": {
+          "textbook": 0,
+          "standard": 6,
+          "lecture": 1,
+          "question": 6
+        }
+      },
+      "retired_codes_in_output": [],
+      "pass": true
+    }
+  ],
+  "overlay_state": {
+    "general_detached_nodes": 48,
+    "detached_units": 0,
+    "hash_mismatch_warning_seen": false
+  },
+  "textbook_knowledge_probe": {
+    "ok": false,
+    "retired_codes_in_output": []
+  },
+  "runtime_warnings": [],
+  "summary": {
+    "checks_total": 7,
+    "checks_passed": 7,
+    "queries_total": 5,
+    "queries_passed": 5,
+    "overall": "PASS"
+  }
+}

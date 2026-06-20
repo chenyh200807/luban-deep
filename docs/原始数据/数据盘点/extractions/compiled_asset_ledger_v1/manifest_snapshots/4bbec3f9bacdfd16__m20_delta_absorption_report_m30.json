@@ -1,0 +1,498 @@
+{
+  "namespace": "m20_delta_absorbed",
+  "status": "release_candidate",
+  "published": false,
+  "input_count": 69,
+  "release_candidate": [],
+  "staged_delta": [
+    {
+      "delta_id": "m20_0642a60f90d9dbdb",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_bae0b2e4558232fc",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_7d2a73d268eb5d14",
+      "kind": "rubric_normalization_delta",
+      "origin": "textbook_verbatim",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_d34324ef8d37ad07",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_320f672ac7aa1607",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_98bd19cf3e3d9bab",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_ed3168c7358cdfec",
+      "kind": "rubric_normalization_delta",
+      "origin": "textbook_verbatim",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_9e0a34c108717713",
+      "kind": "rubric_normalization_delta",
+      "origin": "textbook_verbatim",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_0f1fa9b8f20e1f37",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_03f81be1cbc1848f",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_f562c0f03d4b54ac",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_0adb01c36dbaebfb",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_e55bf9fc0c346801",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_efe9afdbed46e0a4",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_73ef50b92c03b8da",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_b7ab0835d9dd0ebe",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_625031f94b0e0077",
+      "kind": "rubric_normalization_delta",
+      "origin": "textbook_verbatim",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_1d98bbcb032e11fc",
+      "kind": "list_rule_coverage_delta",
+      "origin": "list_rule_full_coverage",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_bc2c89b457ade2e4",
+      "kind": "machine_spec_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_c771d3a631d879c1",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_670dd3764bea2676",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_53ce2fc916d4f3ae",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_74b1dcac5e348dcb",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_9cd0166dc82940cf",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_eb0f11a95abe6c19",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_4820f46e4a98de33",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_3c0ac3d4bfd8f290",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_19bcea8cb0f765bf",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_24140b6c2c27af0d",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_fa70f948d47d4a72",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_c54879bcf9dbac6e",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_8777bb252f5a7d16",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_829f505f09398287",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_526c3e8e85c8dafe",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_2dc7cbab29f311de",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_5e709f5c3a208137",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_b22b10abc850d681",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_9906a51ffec7933e",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_1bb4642e369efbed",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_ad15a7411a87bfe4",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_d06db32a373a4f41",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_af5f657a464d43fa",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_7cb4d0cef178c65e",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_27bc302fd16d4fe3",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_6832a21280fdb3bd",
+      "kind": "grading_packet_compression_delta",
+      "origin": "textbook_verbatim",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_d14943d1145cbfdc",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_9b30c97f0868a3db",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_7c50313e15c8c26d",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_0382926194b7e2e2",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_8acf2037c9f506a5",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_611990a9daadfcbb",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_bb36515b60d0e2d7",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_9d4fb6ea45e1ff44",
+      "kind": "grading_packet_compression_delta",
+      "origin": "machine_checkable_logic",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_f579ea5ba8ce0359",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_3b5b3d68510129ad",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_a652f4468376fc39",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_3ebc098e539e845e",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_bbf3486f66882377",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_d88f7592dc66b0e5",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_31e95c268e22d4c4",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_2a9b4164162e9494",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_241466852653fe84",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_db4024d181719fab",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_964a787610ef628d",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_393694378d82d05b",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_b98c7a7bb3bdb5a9",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_007cdba1a2263253",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_275e93d737c42bd9",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    },
+    {
+      "delta_id": "m20_c89310a894efa295",
+      "kind": "learning_brain_claim_mapping_delta",
+      "origin": "learning_brain_retest_proof",
+      "promote_to_release": false,
+      "reason": "staged_pending_more_evidence"
+    }
+  ],
+  "work_order": [],
+  "content_hash": "8c9e420add07aaca7ec06379e2d784f2347579f8c960637ebd021cc3c7cb9a7a",
+  "signature": "47879064935030d8e74e5c6c9c92b9d75eb2c2770478078b17ac74f81a589df4",
+  "no_runtime_impact": true,
+  "candidate_used_as_release_truth": 0,
+  "rollback_pointer": "legacy (deltas absorbed in separate namespace; current registry untouched)"
+}

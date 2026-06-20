@@ -1,0 +1,29 @@
+{
+  "objective_answer_key": {
+    "count": 3,
+    "source_kind": "questions_bank_hermetic_fixture",
+    "scope": "hermetic_fixture",
+    "conflict_count": 0,
+    "conflicts_have_work_order": true,
+    "rejected_count": 0,
+    "live_blocker": "QUESTIONS_BANK_DB_URL absent; cannot read governed questions_bank. Hermetic fixture used. Live blocker: set QUESTIONS_BANK_DB_URL (read-only role) and confirm the questions_bank column projection (question_id/question_type/stem/options/official_answer) against production before flipping to release_candidate from live."
+  },
+  "case_rubric": {
+    "case_count": 3,
+    "status_counts": {
+      "unknown": 2
+    },
+    "source_backed_point_count": 0
+  },
+  "m20_candidate_delta": {
+    "accepted_delta_count": 69,
+    "role": "candidate_only"
+  },
+  "work_orders": [
+    {
+      "kind": "objective_live_source",
+      "reason": "answer keys came from hermetic fixture, not live questions_bank",
+      "next_step": "set QUESTIONS_BANK_DB_URL (read-only) + confirm column projection, re-run"
+    }
+  ]
+}

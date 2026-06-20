@@ -1,0 +1,97 @@
+{
+  "schema_version": "luban_four_arm_scoring_ab.v1",
+  "evaluation_tier": "live_provider_sample",
+  "sample_count": 162,
+  "fixture": {
+    "answers_path": "artifacts/luban_grading_artifacts/m35_gold_labeling_full_patched_20260611/student_answers.jsonl",
+    "manifest_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+    "label_authority_counts": {
+      "ai_council_directional": 154,
+      "ai_governed_gold": 8
+    }
+  },
+  "verdict_ceiling": "DIRECTIONAL_SHADOW",
+  "quality_claim_allowed": false,
+  "gold_label_count": 8,
+  "label_count": 162,
+  "arm_semantics": {
+    "legacy": "real CaseGradingSkillKernel deterministic path (offline; no live open-world branches)",
+    "current_rag_offline": "kernel + reference-answer evidence replay; OFFLINE PROJECTION, low representativeness of online RAG",
+    "artifact_first_compiled": "kernel + manifest scoring-point grading_key (deterministic guard)",
+    "artifact_first_llm_judge": "prescreen + constrained DeepSeek batch judge on uncertain points only"
+  },
+  "fail_open_definition": "predicted > gold + 0.2*max_score (over-credit rate)",
+  "alias_compiler_status": "compiled_47_points",
+  "summary": {
+    "legacy": {
+      "sample_count": 162,
+      "score_mae": 2.1265,
+      "point_precision": 0.9815,
+      "point_recall": 0.9815,
+      "fail_open_rate": 0.0864,
+      "evidence_span_rate": 0.9938,
+      "mean_token": 1182.7037,
+      "mean_latency_ms": 0.3409,
+      "high_risk_review_rate": 0.0
+    },
+    "current_rag_offline": {
+      "sample_count": 162,
+      "score_mae": 2.1265,
+      "point_precision": 0.9815,
+      "point_recall": 0.9815,
+      "fail_open_rate": 0.0864,
+      "evidence_span_rate": 0.9938,
+      "mean_token": 1280.8765,
+      "mean_latency_ms": 0.2593,
+      "high_risk_review_rate": 0.0
+    },
+    "artifact_first_compiled": {
+      "sample_count": 162,
+      "score_mae": 0.1667,
+      "point_precision": 0.9959,
+      "point_recall": 1.0,
+      "fail_open_rate": 0.0617,
+      "evidence_span_rate": 1.0,
+      "mean_token": 1358.2593,
+      "mean_latency_ms": 0.1535,
+      "high_risk_review_rate": 0.0
+    },
+    "artifact_first_llm_judge": {
+      "sample_count": 162,
+      "score_mae": 0.0749,
+      "point_precision": 1.0,
+      "point_recall": 0.9979,
+      "fail_open_rate": 0.0062,
+      "evidence_span_rate": 1.0,
+      "mean_token": 805.3025,
+      "mean_latency_ms": 2330.7547,
+      "high_risk_review_rate": 0.0247
+    }
+  },
+  "prior_failure_comparison": {
+    "old_point_hit_agreement": 0.5267,
+    "old_score_mae": 4.6091,
+    "judge_score_mae": 0.0749,
+    "judge_beats_prior_mae": true
+  },
+  "phase1_criteria_check": {
+    "judge_mae_not_worse_than_legacy": true,
+    "judge_fail_open_not_higher_than_legacy": true
+  },
+  "provider": {
+    "provider_call_count": 167,
+    "prompt_tokens": 98402,
+    "completion_tokens": 40254,
+    "total_tokens": 138656,
+    "error_count": 0
+  },
+  "safety": {
+    "production_write_count": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "canonical_truth_written": false,
+    "published_registry_written": false,
+    "is_release_truth": false,
+    "official_score_allowed": false
+  }
+}

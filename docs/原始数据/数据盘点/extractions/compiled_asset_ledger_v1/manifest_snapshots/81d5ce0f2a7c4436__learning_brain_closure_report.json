@@ -1,0 +1,9 @@
+{
+  "preview_only": true,
+  "canonical_truth_written": false,
+  "mastery_raised": false,
+  "shadow_or_candidate_promoted_to_mastery": 0,
+  "pipeline": "grading_evidence -> learner claim (preview) -> PCP -> next_action -> retest plan (simulated, not proof)",
+  "simulated_retest_not_proof": true,
+  "source": "artifacts/luban_grading_artifacts/m26_live_closure_20260606/learning_brain_evidence_report_m26.json"
+}

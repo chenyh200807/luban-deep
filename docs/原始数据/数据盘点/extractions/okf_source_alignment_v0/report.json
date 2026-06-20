@@ -1,0 +1,26 @@
+{
+  "schema": "luban_okf_source_alignment_report.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "status": "case_source_alignment_ready",
+  "runtime_guard": {
+    "release_stage": "source_alignment",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "counts": {
+    "target_cases": 25,
+    "aligned_cases": 25,
+    "ordinal_subquestion_matches": 9,
+    "case_level_only": 16
+  },
+  "next_action": {
+    "id": "expand_okf_candidate_scope",
+    "status": "ready_for_source_layer_expansion",
+    "reason": "all canonical cases have cleaned exam JSON case chunks"
+  }
+}

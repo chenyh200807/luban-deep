@@ -1,0 +1,395 @@
+{
+  "blockers": [],
+  "classification": {
+    "batch_relink_patch": true,
+    "candidate_only": true,
+    "canonical_pointer_written": false,
+    "production_default": false,
+    "quality_claim_allowed": false,
+    "release_truth_claimed": false,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "not_exercised": [
+    "production_rag_runtime",
+    "runtime_default_install",
+    "canonical_truth_write",
+    "official_score",
+    "production_db_write",
+    "release_truth_claim",
+    "live_provider_revalidation",
+    "human_or_council_review_of_relink_candidates"
+  ],
+  "patched_runtime_token_pack_path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_v233_source_acquisition_20260612/runtime_token_pack_v233_candidate.json",
+  "quality_claim_allowed": false,
+  "relinked": [
+    {
+      "ambiguous_runner_up": true,
+      "chunk_id": "LEC_1A413040_P0020_001",
+      "keyword_overlap_new": 0.8,
+      "keyword_overlap_old": 0.0,
+      "leaf_id": "1A413041-12-b",
+      "leaf_name_path": "主体结构工程施工 > 混凝土结构工程施工 > 装配式混凝土结构施工 > 专项施工方案内容",
+      "source_path": "讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+      "unit_id": "rtp22_9d41faa85cf82ff5"
+    },
+    {
+      "ambiguous_runner_up": true,
+      "chunk_id": "LEC_1A413040_P0020_001",
+      "keyword_overlap_new": 0.8,
+      "keyword_overlap_old": 0.0,
+      "leaf_id": "1A413041-12-b",
+      "leaf_name_path": "主体结构工程施工 > 混凝土结构工程施工 > 装配式混凝土结构施工 > 专项施工方案内容",
+      "source_path": "讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/page_20_20.json",
+      "unit_id": "rtp22_3d023579df49116c"
+    },
+    {
+      "ambiguous_runner_up": false,
+      "chunk_id": "LEC_1A412010_P0029_001",
+      "keyword_overlap_new": 1.0,
+      "keyword_overlap_old": 0.0,
+      "leaf_id": "1A412025-05-a",
+      "leaf_name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 龙骨分类与应用 > 龙骨按用途分类",
+      "source_path": "讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_30_30.json",
+      "unit_id": "rtp23_2b61fc26a2e53fd4"
+    },
+    {
+      "ambiguous_runner_up": true,
+      "chunk_id": "1A412000_041_0069",
+      "keyword_overlap_new": 1.0,
+      "keyword_overlap_old": 0.9167,
+      "leaf_id": "1A412011-01",
+      "leaf_name_path": "结构工程材料 > 建筑钢材的性能与应用 > 钢材化学成分对性能的影响",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "unit_id": "rtp22_0729d8289332fbed"
+    },
+    {
+      "ambiguous_runner_up": true,
+      "chunk_id": "1A411011_007_0013",
+      "keyword_overlap_new": 1.0,
+      "keyword_overlap_old": 0.0,
+      "leaf_id": "1A411013-05",
+      "leaf_name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑自然通风设计",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "unit_id": "rtp22_190bd73beb684617"
+    },
+    {
+      "ambiguous_runner_up": false,
+      "chunk_id": "1A412000_041_0069",
+      "keyword_overlap_new": 1.0,
+      "keyword_overlap_old": 0.7143,
+      "leaf_id": "1A412011-01-a",
+      "leaf_name_path": "结构工程材料 > 建筑钢材的性能与应用 > 钢材化学成分对性能的影响 > 碳元素对钢材性能的影响",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "unit_id": "rtp22_5f9cda68faab2d24"
+    },
+    {
+      "ambiguous_runner_up": false,
+      "chunk_id": "1A413030_143_0278",
+      "keyword_overlap_new": 0.6,
+      "keyword_overlap_old": 0.2,
+      "leaf_id": "1A412024-02",
+      "leaf_name_path": "装饰装修工程材料 > 涂饰与裱糊材料的特性与应用 > 壁纸的分类与性能",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "unit_id": "rtp22_877733df0e21a834"
+    },
+    {
+      "ambiguous_runner_up": true,
+      "chunk_id": "1A411011_035_0062",
+      "keyword_overlap_new": 0.6,
+      "keyword_overlap_old": 0.2,
+      "leaf_id": "1A413041-12-a",
+      "leaf_name_path": "主体结构工程施工 > 混凝土结构工程施工 > 装配式混凝土结构施工 > 施工组织设计要求",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "unit_id": "rtp22_a9441f6473a05a5d"
+    }
+  ],
+  "run_provenance": {
+    "corpus": {
+      "book_files": [
+        "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+        "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json"
+      ],
+      "lecture_page_file_count": 327
+    },
+    "derived_targets": {
+      "demoted_from": "batch_relink_spot_check_demotions_full40.json",
+      "exclusion_unit_count": 9,
+      "target_unit_count": 29,
+      "unresolved_from": "v232 batch_relink_report.json"
+    }
+  },
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_batch_relink_candidates.v1",
+  "summary": {
+    "ambiguous_relink_count": 5,
+    "blocker_count": 0,
+    "canonical_chunk_count": 1186,
+    "production_write_count": 0,
+    "relinked_unit_count": 8,
+    "target_unit_count": 29,
+    "unresolved_unit_count": 21
+  },
+  "unresolved_work_orders": [
+    {
+      "best_chunk_id": null,
+      "best_score": 0.0,
+      "candidate_only": true,
+      "leaf_id": "1A411013-03-c",
+      "leaf_name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑室内物理环境技术要求 > 建筑噪声控制要求 > 住宅防噪设计措施",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_1ab413f6397d24a9",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_7dafb5697c5d3b7f",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_6895352e490b6250",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_06eecb897c4c25fc",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_c68fe131f1644e38",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_d8b6becb52bddd10",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A421000_001_0001",
+      "best_score": 0.25,
+      "candidate_only": true,
+      "leaf_id": "1A413022-04-f",
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 危大工程现场安全管理 > 验收与档案管理",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_ed19952f75965353",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A431000_004_0004",
+      "best_score": 0.3333,
+      "candidate_only": true,
+      "leaf_id": "1A413061-04-c",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳务分包管理流程 > 实地考察要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_3a54fd7311a1cf13",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A412000_038_0066",
+      "best_score": 0.4444,
+      "candidate_only": true,
+      "leaf_id": "1A412025-01-a",
+      "leaf_name_path": "装饰装修工程材料 > 建筑金属材料的特性与应用 > 装饰装修用钢材 > 型钢分类与表面要求",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_082e177f51ad5c7a",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A436000_128_0206",
+      "best_score": 0.3333,
+      "candidate_only": true,
+      "leaf_id": "1A413042-01-b",
+      "leaf_name_path": "主体结构工程施工 > 砌体结构工程施工 > 砌体结构施工安全要点 > 砌体材料堆放规定",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_b01752b7b2e3a44e",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_046_0072",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413061-08",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 节能与能源利用要点",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_a12c6408d1a75d5e",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A411011_026_0048",
+      "best_score": 0.4286,
+      "candidate_only": true,
+      "leaf_id": "1A413042-01-d",
+      "leaf_name_path": "主体结构工程施工 > 砌体结构工程施工 > 砌体结构通用规定 > 环境类别与防护措施",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_79c8d5444b921255",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A421000_001_0001",
+      "best_score": 0.25,
+      "candidate_only": true,
+      "leaf_id": "1A413022-04-f",
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 危大工程现场安全管理 > 验收与档案管理",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_11207a9eb48b893e",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A432002_031_0041",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413022-01-b",
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 基坑工程专项施工方案编制要求 > 相关资料准备",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_ed7d9aefd9a47f43",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A411011_004_0009",
+      "best_score": 0.1667,
+      "candidate_only": true,
+      "leaf_id": "1A411012-02-d",
+      "leaf_name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑设计程序与要求 > 建筑设计基本要求 > 遵循技术经济原则",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_8c649c721621dc7c",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A411011_004_0009",
+      "best_score": 0.1667,
+      "candidate_only": true,
+      "leaf_id": "1A411012-02-d",
+      "leaf_name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑设计程序与要求 > 建筑设计基本要求 > 遵循技术经济原则",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_0446a1a57e6f9954",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A413030_141_0276",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413031-02",
+      "leaf_name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_136d5bba7255abdf",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A413000_086_0159",
+      "best_score": 0.25,
+      "candidate_only": true,
+      "leaf_id": "1A413031-01",
+      "leaf_name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理方法分类",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_0c54a96852ce2075",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_016_0022",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413022-02-g",
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 模板支撑体系专项施工方案编制要求 > 施工保证措施",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_4d46f162a30e8f2a",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A413030_098_0184",
+      "best_score": 0.2,
+      "candidate_only": true,
+      "leaf_id": "1A413042-06",
+      "leaf_name_path": "主体结构工程施工 > 砌体结构工程施工 > 圈梁构造要求",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_68003fe35d348ec3",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    },
+    {
+      "best_chunk_id": "1A422000_016_0022",
+      "best_score": 0.5,
+      "candidate_only": true,
+      "leaf_id": "1A413022-03-f",
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 脚手架工程专项施工方案编制要求 > 施工保证措施",
+      "reason": "no_candidate_chunk_above_threshold",
+      "recommended_action": "needs new source acquisition or taxonomy review; do not promote this unit",
+      "review_only": true,
+      "unit_id": "rtp22_eff9ef602a3b602a",
+      "work_order_type": "batch_relink_unresolved_source_gap"
+    }
+  ],
+  "verdict": "PASS_BATCH_RELINK_CANDIDATES_WITH_UNRESOLVED"
+}

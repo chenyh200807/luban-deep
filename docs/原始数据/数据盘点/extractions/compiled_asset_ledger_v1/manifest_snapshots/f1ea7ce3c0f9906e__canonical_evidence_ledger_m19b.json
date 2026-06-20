@@ -1,0 +1,49 @@
+{
+  "m16_controlled_runtime": {
+    "verdict": "GO"
+  },
+  "m17a_runtime_llm": {
+    "verdict": "GO",
+    "live_calls": 25
+  },
+  "m17b_scaleout": {
+    "verdict_original": "WEAK-GO",
+    "deepseek_live": 28,
+    "superseded_by": "M17C (merged live=80)"
+  },
+  "m17c_calibration": {
+    "verdict": "GO",
+    "merged_deepseek_live": 80,
+    "merged_ge_80": true,
+    "duplicated_paid_calls": 0
+  },
+  "m17_scaleout_axis_after_m17c": "GO",
+  "m18c_dream_cycle": {
+    "verdict": "GO"
+  },
+  "m18d_canonical_gate": {
+    "verdict": "GO",
+    "real_retest_proof_valid": 16,
+    "canonical_write_dryrun_candidate": 16,
+    "canonical_truth_written": false,
+    "production_write_count": 0
+  },
+  "m19a_preflight": {
+    "verdict": "GO",
+    "decision": "DEFERRED_TO_M19_AFTER_M17B",
+    "rollback_three_paths_verified": true,
+    "retained": [
+      "rollback",
+      "observability",
+      "cost",
+      "runbook"
+    ]
+  },
+  "production_runtime_models": {
+    "primary": "deepseek_v4_flash",
+    "fallback": "qwen3.7_plus"
+  },
+  "review_authority": "ai_expert_council_final",
+  "human_reviewed": false,
+  "po_reviewed": false
+}

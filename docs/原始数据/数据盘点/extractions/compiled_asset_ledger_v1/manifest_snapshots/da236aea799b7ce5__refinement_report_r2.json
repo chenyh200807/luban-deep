@@ -1,0 +1,38 @@
+{
+ "schema": "luban_rich_leaf_source_refinement_closure.v1",
+ "generated_at_date": "2026-06-12",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true,
+  "runtime_install_allowed": false,
+  "production_default": false,
+  "release_truth_claimed": false,
+  "quality_claim_allowed": false
+ },
+ "safety": {
+  "canonical_truth_written": false,
+  "production_write_count": 0,
+  "installed_runtime_supply": false,
+  "release_truth_claimed": false
+ },
+ "not_exercised": [
+  "runtime_default_install",
+  "canonical_truth_write",
+  "official_score",
+  "production_db_write",
+  "release_truth_claim",
+  "pack_merge"
+ ],
+ "summary": {
+  "input_candidates": 35,
+  "decisions": {
+   "accept_shadow_candidate": 17,
+   "needs_source_refinement": 18
+  },
+  "items_total": 452,
+  "items_grounded": 231,
+  "prompt_tokens": 844292,
+  "completion_tokens": 24813
+ },
+ "verdict": "REFINEMENT_CLOSURE_COMPLETED"
+}

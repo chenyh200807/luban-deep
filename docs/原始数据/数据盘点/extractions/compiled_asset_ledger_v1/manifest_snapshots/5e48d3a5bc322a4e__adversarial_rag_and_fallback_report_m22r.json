@@ -1,0 +1,17 @@
+{
+  "rag": {
+    "source_laundering_official_answer_indexed": false,
+    "official_answer_used_as_query_or_source": false,
+    "retrieval_failed_count": 21,
+    "schema_not_deployed": true,
+    "no_remote_write_or_schema_deploy": true,
+    "second_authority_created": false
+  },
+  "qwen_fallback": {
+    "false_positive": 0,
+    "source_mismatch": 0,
+    "fail_open": false,
+    "double_provider_failclosed": true,
+    "legacy_intact_on_double_fail": true
+  }
+}

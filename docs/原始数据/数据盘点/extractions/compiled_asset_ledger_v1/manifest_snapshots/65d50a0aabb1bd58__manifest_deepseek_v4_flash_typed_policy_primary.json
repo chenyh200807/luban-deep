@@ -1,0 +1,12 @@
+{
+  "arm": "deepseek_v4_flash_typed_policy_primary",
+  "model": "deepseek-v4-flash",
+  "samples_done": 55,
+  "points": 284,
+  "calls": 2,
+  "retries": 1,
+  "failed_samples": [],
+  "avg_latency_s": 31.836,
+  "p95_latency_s": 29.276,
+  "avg_completion_tokens": 7669.0
+}

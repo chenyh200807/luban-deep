@@ -1,0 +1,19 @@
+{
+  "clean_checkout": true,
+  "artifacts_present": false,
+  "passed": 190,
+  "skipped": 26,
+  "failed": 0,
+  "skipped_class": "review-artifact-dependent milestone/eval drills (pilot 4-model cache, M19C/M19D audit) -> test_only skipif",
+  "core_runtime_pass": true,
+  "matrix": [
+    "runtime_supply_bundle_m21s",
+    "artifact_runtime_gate",
+    "question_grading_registry",
+    "runtime_shadow_adapter",
+    "m17a_ws_adjudication",
+    "beta_shadow_ws_drill_m12",
+    "m16_controlled_runtime_ws",
+    "ws_runtime_shadow_turn_smoke"
+  ]
+}

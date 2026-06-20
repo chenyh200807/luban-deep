@@ -1,0 +1,12 @@
+{
+  "namespace": "topic_waterproof",
+  "nodes": 27,
+  "source_counts": {
+    "textbook": 19,
+    "standard": 0,
+    "lecture": 22,
+    "question": 81
+  },
+  "verify": true,
+  "out": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/v_topic_waterproof_candidate"
+}

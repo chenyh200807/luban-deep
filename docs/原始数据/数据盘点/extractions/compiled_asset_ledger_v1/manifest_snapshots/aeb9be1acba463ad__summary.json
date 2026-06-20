@@ -1,0 +1,553 @@
+{
+  "artifact": "wechat-tutorbot-real-final7-20260606",
+  "generated_at": "2026-06-05T20:51:07.066Z",
+  "entry_surface": "real_wechat_package",
+  "local_backend": "http://127.0.0.1:8001",
+  "devtools_project": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/yousenwebview",
+  "ledger": [
+    {
+      "round_id": "QA30-REAL-FINAL7-001",
+      "query": "某工程屋面做法为压型金属板，当设计无要求时，屋面最小坡度为多少？A. 1% B. 2% C. 3% D. 5%，我选C，别展开，一句话",
+      "expected": "标错，官方答案 D/5%，不展开。",
+      "expected_authority": "tutorbot_exact_fast_path",
+      "learner_answer": "C",
+      "official_answer": "D",
+      "entry_surface": "real_wechat_package",
+      "page_path": "packageDeeptutor/pages/chat/chat",
+      "transcript": {
+        "learner": "某工程屋面做法为压型金属板，当设计无要求时，屋面最小坡度为多少？A. 1% B. 2% C. 3% D. 5%，我选C，别展开，一句话",
+        "tutorbot_visible_reply": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+      },
+      "conversation_id": "unified_1780692619402_d7820eca",
+      "turn_id": "turn_1780692619406_68b9905083",
+      "question_source": "historical_bank_external_fastapi20251222_roof_min_slope_pressure_metal_panel",
+      "source_hash": "see docs/qa/2026-06-06-wechat-tutorbot-question-source-manifest.md",
+      "question_id": "historical_exact_unresolved_in_frontend_probe",
+      "resolved_authority": "tutorbot_exact_fast_path",
+      "authority_trace": "real package _send -> /api/v1/chat/start-turn -> /api/v1/ws subscribe_turn -> public token/final -> package renderableContent",
+      "actual": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+      "ai_content_len": 42,
+      "renderable_len": 42,
+      "engine": "tutorbot",
+      "billing": null,
+      "stream_events": [
+        {
+          "kind": "status",
+          "eventType": "stage_start",
+          "content": "responding"
+        },
+        {
+          "kind": "status",
+          "eventType": "tool_call",
+          "content": "rag"
+        },
+        {
+          "kind": "status",
+          "eventType": "tool_result",
+          "content": "【题库原题】\n某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。\nA. 1%\nB. 2%\nC. 3%\nD. 5%\n标准答案：D\n解析：屋面最小坡度：压型金属板：5%。"
+        },
+        {
+          "kind": "token",
+          "len": 42,
+          "text": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+        },
+        {
+          "kind": "final",
+          "hasResponse": true,
+          "responseLen": 42,
+          "response": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692619406_68b9905083",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "final",
+          "hasResponse": false,
+          "responseLen": 0,
+          "response": "",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692619406_68b9905083",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "done"
+        }
+      ],
+      "correctness": "pass",
+      "language_understanding": 5,
+      "explanation_quality": 5,
+      "expression_quality": 5,
+      "customer_satisfaction": 5,
+      "refusal_class": "not_refusal",
+      "issue_id": "",
+      "severity": "pass",
+      "fix_status": "not_needed",
+      "human_evaluation_note": "正确标出 C 错、官方答案 D/5%，满足一句话。"
+    },
+    {
+      "round_id": "QA30-REAL-FINAL7-002",
+      "query": "那C呢？一句话",
+      "expected": "仍绑定上一题，说明 C=3% 不对，D=5%。",
+      "expected_authority": "active_question_followup",
+      "learner_answer": "C",
+      "official_answer": "D",
+      "entry_surface": "real_wechat_package",
+      "page_path": "packageDeeptutor/pages/chat/chat",
+      "transcript": {
+        "learner": "那C呢？一句话",
+        "tutorbot_visible_reply": "正确答案是 D（5%）：屋面最小坡度：压型金属板：5%。"
+      },
+      "conversation_id": "unified_1780692619402_d7820eca",
+      "turn_id": "turn_1780692636572_eaf7c2a65d",
+      "question_source": "historical_bank_external_fastapi20251222_roof_min_slope_pressure_metal_panel",
+      "source_hash": "see docs/qa/2026-06-06-wechat-tutorbot-question-source-manifest.md",
+      "question_id": "active_question_from_previous_turn",
+      "resolved_authority": "active_question_followup",
+      "authority_trace": "real package _send -> /api/v1/chat/start-turn -> /api/v1/ws subscribe_turn -> public token/final -> package renderableContent",
+      "actual": "正确答案是 D（5%）：屋面最小坡度：压型金属板：5%。",
+      "ai_content_len": 28,
+      "renderable_len": 28,
+      "engine": "tutorbot",
+      "billing": null,
+      "stream_events": [
+        {
+          "kind": "status",
+          "eventType": "stage_start",
+          "content": "generation"
+        },
+        {
+          "kind": "token",
+          "len": 28,
+          "text": "正确答案是 D（5%）：屋面最小坡度：压型金属板：5%。"
+        },
+        {
+          "kind": "final",
+          "hasResponse": true,
+          "responseLen": 28,
+          "response": "正确答案是 D（5%）：屋面最小坡度：压型金属板：5%。",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692636572_eaf7c2a65d",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "final",
+          "hasResponse": false,
+          "responseLen": 0,
+          "response": "",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692636572_eaf7c2a65d",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "done"
+        }
+      ],
+      "correctness": "partial",
+      "language_understanding": 4,
+      "explanation_quality": 3,
+      "expression_quality": 4,
+      "customer_satisfaction": 3,
+      "refusal_class": "not_refusal",
+      "issue_id": "WX-EXP-005",
+      "severity": "P2",
+      "fix_status": "deferred",
+      "human_evaluation_note": "上下文没有丢，仍给 D/5%；但追问“那C呢”时没有直接说 C=3% 不对，满意度一般。"
+    },
+    {
+      "round_id": "QA30-REAL-FINAL7-003",
+      "query": "那我改选D，对吗？一句话",
+      "expected": "仍绑定上一题，确认 D 正确。",
+      "expected_authority": "active_question_regrade_or_followup",
+      "learner_answer": "D",
+      "official_answer": "D",
+      "entry_surface": "real_wechat_package",
+      "page_path": "packageDeeptutor/pages/chat/chat",
+      "transcript": {
+        "learner": "那我改选D，对吗？一句话",
+        "tutorbot_visible_reply": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** D（5%）\n**正确答案：** D（5%）\n\n## 🧐 解析\n**标准解析：**\n屋面最小坡度：压型金属板：5%。\n\n**核心判断：**\n正确选项是 D（5%）。\n\n**逐项解析：**\n- A. 1%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- B. 2%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 3%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- D. 5%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n\n**采分点：**\n- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。\n- 对照正确选项中的规范关键词，不用相近概念替代标准表述。\n- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。\n\n**易错点：**\n- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。\n- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。\n- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。\n\n**记忆口诀：**\n先看题干限定，再背正确项关键词：5%。"
+      },
+      "conversation_id": "unified_1780692619402_d7820eca",
+      "turn_id": "turn_1780692651216_75ccc15068",
+      "question_source": "historical_bank_external_fastapi20251222_roof_min_slope_pressure_metal_panel",
+      "source_hash": "see docs/qa/2026-06-06-wechat-tutorbot-question-source-manifest.md",
+      "question_id": "active_question_from_previous_turn",
+      "resolved_authority": "active_question_regrade_or_followup",
+      "authority_trace": "real package _send -> /api/v1/chat/start-turn -> /api/v1/ws subscribe_turn -> public token/final -> package renderableContent",
+      "actual": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** D（5%）\n**正确答案：** D（5%）\n\n## 🧐 解析\n**标准解析：**\n屋面最小坡度：压型金属板：5%。\n\n**核心判断：**\n正确选项是 D（5%）。\n\n**逐项解析：**\n- A. 1%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- B. 2%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 3%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- D. 5%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n\n**采分点：**\n- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。\n- 对照正确选项中的规范关键词，不用相近概念替代标准表述。\n- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。\n\n**易错点：**\n- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。\n- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。\n- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。\n\n**记忆口诀：**\n先看题干限定，再背正确项关键词：5%。",
+      "ai_content_len": 522,
+      "renderable_len": 522,
+      "engine": "tutorbot",
+      "billing": null,
+      "stream_events": [
+        {
+          "kind": "status",
+          "eventType": "stage_start",
+          "content": "generation"
+        },
+        {
+          "kind": "token",
+          "len": 522,
+          "text": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** D（5%）\n**正确答案：** D（5%）\n\n## 🧐 解析\n**标准解析：**\n屋面最小坡度：压型金属板：5%。\n\n**核心判断：**\n正确选项是 D（5%）。\n\n**逐项解析：**\n- A. 1%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- B. 2%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 3%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- D. 5%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n\n**采分点：**\n- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。\n- 对照正确选项中的规范关键词，不用相近概念替代标准表述。\n- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。\n\n**易错点：**\n- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。\n- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。\n- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。\n\n**记忆口诀：**\n先看题干限定，再背正确项关键词：5%。"
+        },
+        {
+          "kind": "final",
+          "hasResponse": true,
+          "responseLen": 522,
+          "response": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** D（5%）\n**正确答案：** D（5%）\n\n## 🧐 解析\n**标准解析：**\n屋面最小坡度：压型金属板：5%。\n\n**核心判断：**\n正确选项是 D（5%）。\n\n**逐项解析：**\n- A. 1%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- B. 2%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 3%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- D. 5%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n\n**采分点：**\n- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。\n- 对照正确选项中的规范关键词，不用相近概念替代标准表述。\n- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。\n\n**易错点：**\n- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。\n- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。\n- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。\n\n**记忆口诀：**\n先看题干限定，再背正确项关键词：5%。",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692651216_75ccc15068",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "final",
+          "hasResponse": false,
+          "responseLen": 0,
+          "response": "",
+          "engineSessionId": "unified_1780692619402_d7820eca",
+          "engineTurnId": "turn_1780692651216_75ccc15068",
+          "engine": "tutorbot"
+        },
+        {
+          "kind": "done"
+        }
+      ],
+      "correctness": "pass",
+      "language_understanding": 5,
+      "explanation_quality": 3,
+      "expression_quality": 2,
+      "customer_satisfaction": 2,
+      "refusal_class": "not_refusal",
+      "issue_id": "WX-EXP-006",
+      "severity": "P2",
+      "fix_status": "deferred",
+      "human_evaluation_note": "上下文和官方答案正确，但用户要求“一句话”，系统输出完整阅卷模板，体验差。"
+    }
+  ],
+  "backend_messages_readback": {
+    "status": 200,
+    "body": {
+      "conversation": {
+        "id": "unified_1780692619402_d7820eca",
+        "session_id": "unified_1780692619402_d7820eca",
+        "preferences": {
+          "chat_mode": "fast",
+          "tools": [
+            "rag"
+          ],
+          "knowledge_bases": [
+            "construction-exam"
+          ],
+          "language": "zh",
+          "bot_id": "construction-exam-coach",
+          "source": "wx_miniprogram",
+          "user_id": "7465c84a-d1d6-4ff8-82d8-22945addbf86",
+          "wallet_user_id": "7465c84a-d1d6-4ff8-82d8-22945addbf86",
+          "learning_user_id": "7465c84a-d1d6-4ff8-82d8-22945addbf86",
+          "capability": "deep_question",
+          "archived": false,
+          "interaction_hints": {
+            "profile": "tutorbot",
+            "product_surface": "wechat_miniprogram",
+            "entry_role": "tutorbot",
+            "subject_domain": "construction_exam",
+            "requested_response_mode": "smart",
+            "effective_response_mode": "fast",
+            "selected_mode": "fast",
+            "response_mode_selection_reason": "explicit_brevity",
+            "allow_general_chat_fallback": true,
+            "priorities": [],
+            "grounding_reasons": [
+              "tutorbot_context",
+              "rag_enabled"
+            ],
+            "suppress_answer_reveal_on_generate": true
+          },
+          "conversation_id": "unified_1780692619402_d7820eca",
+          "session_id": "unified_1780692619402_d7820eca",
+          "title": "某工程屋面做法为压型金属板，当设计无要求时，屋面最小坡度为多少？...",
+          "default_tools": [
+            "rag"
+          ],
+          "answer_citations_required": false,
+          "requested_response_mode": "smart",
+          "selected_mode": "fast",
+          "effective_response_mode": "fast",
+          "response_mode_selection_reason": "explicit_brevity",
+          "execution_path": "tutorbot_exact_fast_path",
+          "mode_execution_policy": {
+            "max_tool_rounds": 1,
+            "allow_deep_stage": false,
+            "response_density": "short",
+            "latency_budget_ms": 6000,
+            "knowledge_strategy": "kb_first",
+            "workflow": "single_shot_with_prefetch",
+            "model_fallback_allowed": true,
+            "web_search_allowed": true,
+            "execution_path": "tutorbot_kb_first_fast_policy"
+          },
+          "kb_aliases": [
+            "construction-exam",
+            "construction-exam-coach",
+            "construction-exam-tutor",
+            "construction_exam_tutor",
+            "construction-knowledge",
+            "construction_knowledge"
+          ],
+          "default_knowledge_bases": [
+            "construction-exam"
+          ],
+          "suppress_answer_reveal_on_generate": true,
+          "question_lifecycle_decision": {
+            "scene": "mcq_grading",
+            "decision_source": "deterministic",
+            "scene_confidence": 1,
+            "reason": "deterministic lifecycle scene matched",
+            "required_anchor_status": "satisfied",
+            "exact_question_blocked_reason": "",
+            "selected_skill_names": [
+              "construction-exam-tutor",
+              "construction-mcq-grading"
+            ],
+            "needs_clarification": false,
+            "llm_scene_candidate": null,
+            "business_gate_result": "passed"
+          },
+          "decision_source": "deterministic",
+          "scene_confidence": 1,
+          "required_anchor_status": "satisfied",
+          "selected_skill_names": [
+            "construction-exam-tutor",
+            "construction-mcq-grading"
+          ],
+          "business_gate_result": "passed",
+          "question_lifecycle_scene": "mcq_grading",
+          "question_lifecycle_scene_source": "deterministic",
+          "question_lifecycle_scene_confidence": 1,
+          "question_lifecycle_scene_reason": "deterministic lifecycle scene matched",
+          "question_lifecycle_skill_names": [
+            "construction-exam-tutor",
+            "construction-mcq-grading"
+          ],
+          "memory_context": "## 学员级长期状态\n以下内容属于当前学员的长期状态真相，按需使用，不要外溢到其他学员。\n\n### learner_progress\n- 今日完成：未设置/30\n- 连续天数：未设置\n- 建筑构造：未设置/1\n- 地基基础：未设置/1\n\n### learner_profile\n- 学员：qa_tutorbot_mcq（7465c84a-d1d6-4ff8-82d8-22945addbf86）\n- 当前聚焦：入门摸底\n- 当前目标提问：帮我做一次入门摸底测试\n- 难度偏好：适中，兼顾做对与理解\n- 讲解风格：详细，把逻辑讲透\n\n### learner_summary\n## 当前学习概览\n- 当前聚焦：入门摸底（建筑构造等14个章节，均未开始）\n- 今日完成：0/30\n- 每日目标：30",
+          "turn_id": "turn_1780692619406_68b9905083",
+          "default_kb": "construction-exam",
+          "active_object": {
+            "object_type": "open_chat_topic",
+            "object_id": "unified_1780692619402_d7820eca",
+            "scope": {
+              "domain": "session",
+              "session_id": "unified_1780692619402_d7820eca",
+              "source": ""
+            },
+            "state_snapshot": {
+              "session_id": "unified_1780692619402_d7820eca",
+              "title": "New conversation",
+              "compressed_summary": "",
+              "source": "",
+              "status": "running"
+            },
+            "version": 1,
+            "entered_at": "1780692619.465843",
+            "last_touched_at": "1780692619.465843",
+            "source_turn_id": "turn_1780692619406_68b9905083"
+          },
+          "last_exact_fast_path": true,
+          "skill_stack": [
+            "construction-exam-tutor",
+            "construction-mcq-grading",
+            "lecture-waterproof-energy-decoration"
+          ],
+          "skill_trace": [
+            {
+              "name": "lecture-waterproof-energy-decoration",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "memory",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-learning-evidence-story",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "deep-research",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-learning-support",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-exam-tutor",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "knowledge-base",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "deep-solve",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "notebook",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-question-supply",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "deep-question",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-study-assistant",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-question-review",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-mcq-grading",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-case-grading",
+              "kind": "always",
+              "status": "always_loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-exam-tutor",
+              "kind": "question_lifecycle",
+              "status": "loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "construction-mcq-grading",
+              "kind": "question_lifecycle",
+              "status": "loaded",
+              "source": "workspace"
+            },
+            {
+              "name": "lecture-waterproof-energy-decoration",
+              "kind": "topic_lecture",
+              "status": "loaded",
+              "source": "workspace"
+            }
+          ],
+          "loader_source": {
+            "construction-exam-tutor": "workspace",
+            "construction-mcq-grading": "workspace",
+            "lecture-waterproof-energy-decoration": "workspace"
+          },
+          "skill_source_status": {
+            "complete": true,
+            "missing_skills": [],
+            "missing_assets": []
+          },
+          "exact_fast_path_hit": true,
+          "actual_tool_rounds": 1,
+          "rag_retrieval_degraded": false,
+          "degraded_exact_answer_guard_applied": false,
+          "degraded_mcq_grading_guard_applied": false
+        },
+        "created_at": "2026-06-06T04:50:19.402915",
+        "updated_at": "2026-06-06T04:50:58.743292",
+        "title": "某工程屋面做法为压型金属板，当设计无要求时，屋面最小坡度为多少？A. 1% B. 2% C. 3% ...",
+        "status": "completed",
+        "capability": "deep_question",
+        "message_count": 6,
+        "last_message": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+        "created_at_ms": 1780692619403,
+        "updated_at_ms": 1780692658743
+      },
+      "messages": [
+        {
+          "id": "648",
+          "role": "user",
+          "content": "某工程屋面做法为压型金属板，当设计无要求时，屋面最小坡度为多少？A. 1% B. 2% C. 3% D. 5%，我选C，别展开，一句话",
+          "created_at": "2026-06-06T04:50:26.537652",
+          "engine_turn_id": "",
+          "presentation": null
+        },
+        {
+          "id": "650",
+          "role": "assistant",
+          "content": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+          "created_at": "2026-06-06T04:50:26.907470",
+          "engine_turn_id": "",
+          "presentation": null
+        },
+        {
+          "id": "652",
+          "role": "user",
+          "content": "那C呢？一句话",
+          "created_at": "2026-06-06T04:50:49.729051",
+          "engine_turn_id": "",
+          "presentation": null
+        },
+        {
+          "id": "653",
+          "role": "assistant",
+          "content": "正确答案是 D（5%）：屋面最小坡度：压型金属板：5%。",
+          "created_at": "2026-06-06T04:50:49.734273",
+          "engine_turn_id": "turn_1780692636572_eaf7c2a65d",
+          "presentation": null
+        },
+        {
+          "id": "654",
+          "role": "user",
+          "content": "那我改选D，对吗？一句话",
+          "created_at": "2026-06-06T04:50:58.164353",
+          "engine_turn_id": "",
+          "presentation": null
+        },
+        {
+          "id": "655",
+          "role": "assistant",
+          "content": "## 📊 阅卷结论\n**结果：** 正确\n**你的答案：** D（5%）\n**正确答案：** D（5%）\n\n## 🧐 解析\n**标准解析：**\n屋面最小坡度：压型金属板：5%。\n\n**核心判断：**\n正确选项是 D（5%）。\n\n**逐项解析：**\n- A. 1%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- B. 2%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- C. 3%：排除项。它与本题标准结论不一致，不能作为正确答案。\n- D. 5%：正确且你已选中。它直接对应题干要求和标准答案，应保留。\n\n**采分点：**\n- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。\n- 对照正确选项中的规范关键词，不用相近概念替代标准表述。\n- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。\n\n**易错点：**\n- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。\n- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。\n- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。\n\n**记忆口诀：**\n先看题干限定，再背正确项关键词：5%。",
+          "created_at": "2026-06-06T04:50:58.743292",
+          "engine_turn_id": "turn_1780692651216_75ccc15068",
+          "presentation": null
+        }
+      ]
+    }
+  },
+  "pass_count": 2,
+  "partial_count": 1,
+  "fail_count": 0,
+  "corrected_by_human_review": true,
+  "correction_note": "Automated heuristic over-penalized exact-answer wording and template text; human QA classification applied."
+}

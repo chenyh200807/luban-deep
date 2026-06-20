@@ -1,0 +1,183 @@
+{
+  "summary": {
+    "namespace": "luban_compiler_candidate",
+    "count": 6,
+    "by_kind": {
+      "source_candidate": 6
+    },
+    "source_laundering_blocked": 0,
+    "candidate_used_as_release_truth": 0,
+    "all_separate_from_release": true,
+    "ledger_hash": "ccafc2b34929dfc8"
+  },
+  "entries": [
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A432001_027_0033::C0",
+        "node_code": "1A432001",
+        "chunk_id": "1A432001_027_0033",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "工程总承包单位资质要求",
+        "claim_content": "工程总承包单位应具备与工程规模相适应的工程设计资质和施工资质，或由具有相应资质的设计单位和施工单位组成联合体。",
+        "triage": {
+          "clause_count": 2,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": true,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "20f2c958e40736fa",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    },
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A432001_027_0033::C1",
+        "node_code": "1A432001",
+        "chunk_id": "1A432001_027_0033",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "工程总承包单位禁止情形",
+        "claim_content": "不得是项目的代建单位、项目管理单位、监理单位、造价咨询单位、招标代理单位。",
+        "triage": {
+          "clause_count": 4,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": true,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "517e77b2cf14d2de",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    },
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A435000_089_0147::C0",
+        "node_code": "1A435000",
+        "chunk_id": "1A435000_089_0147",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "施工项目成本构成",
+        "claim_content": "施工项目成本由直接成本和间接成本组成。直接成本包括材料费、机械费、人工费、措施费；间接成本为现场管理费。",
+        "triage": {
+          "clause_count": 3,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": true,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "df5f1f151684f619",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    },
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A411011_024_0045::C2",
+        "node_code": "1A411011",
+        "chunk_id": "1A411011_024_0045",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "房屋建筑结构设计工作年限",
+        "claim_content": "临时性建筑结构：5年；普通房屋和构筑物：50年；特别重要的建筑结构：100年。",
+        "triage": {
+          "clause_count": 3,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": false,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "8d0a19fda6f648e7",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    },
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A413000_085_0158::C2",
+        "node_code": "1A413000",
+        "chunk_id": "1A413000_085_0158",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "填土压实参数表",
+        "claim_content": "| 压实机具 | 分层厚度 (mm) | 每层压实遍数 (次) |\n|----------|----------------|--------------------|\n| 平碾     | 250~300        | 6~8                |\n| 振动压实机 | 250~350        | 3~4                |\n| 柴油打夯机 | 200~250        | 3~4                |\n| 人工打夯 | < 200          | 3~4                |",
+        "triage": {
+          "clause_count": 8,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": false,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "e9b381abcfd33bae",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    },
+    {
+      "namespace": "luban_compiler_candidate",
+      "kind": "source_candidate",
+      "origin": "council_vote",
+      "status": "candidate_unverified",
+      "promote_to_release": false,
+      "is_release_truth": false,
+      "reason": "open_verified_paraphrase_review_channel",
+      "payload": {
+        "point_id": "1A413030_092_0173::C0",
+        "node_code": "1A413030",
+        "chunk_id": "1A413030_092_0173",
+        "review_question": "该知识卡片是否是源教材块的【忠实改写/归纳】？（卡片论断必须完全由源块内容支撑、不新增任何事实、不改动任何数字；仅因表述重组而非逐字，故走改写复核。是=faithful，否=not_faithful）",
+        "claim_title": "桩基检测方法汇总",
+        "claim_content": "1. 静载试验：抗压/抗拔/水平；2. 钻芯法：测强度、桩长、沉渣；3. 低应变法：测缺陷；4. 高应变法：测承载力；5. 声波透射法：测缺陷。",
+        "triage": {
+          "clause_count": 5,
+          "clauses_verbatim_in_source": 0,
+          "clause_coverage": 0.0,
+          "key_numbers_all_grounded": true,
+          "grounded_key_numbers": []
+        },
+        "target_namespace": "textbook_paraphrase_review",
+        "weaker_class_than_verbatim": true
+      },
+      "candidate_id": "0567880a6fac6859",
+      "next_action": "route_to_llm_assisted_compiler_then_deterministic_release_gate"
+    }
+  ]
+}

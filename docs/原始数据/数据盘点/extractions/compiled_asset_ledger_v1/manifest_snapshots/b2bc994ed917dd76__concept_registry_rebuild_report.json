@@ -1,0 +1,122 @@
+{
+  "schema_version": "luban_concept_registry_rebuild.v1",
+  "generated_at": "2026-06-12",
+  "candidate_only": true,
+  "review_only": true,
+  "production_write_count": 0,
+  "runtime_supply_untouched": true,
+  "inputs": {
+    "taxonomy": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+    "taxonomy_coded_nodes": 2181,
+    "prior_registry": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json (read-only copy seeded into candidate dir for durable concept_id reuse)",
+    "adjudication_decisions": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/adjudication_decisions.json (read-only copy; 67 governed decisions from the OLD tree)",
+    "compiler": "scripts/run_luban_concept_registry_compile.py run() executed verbatim with OUT redirected to the candidate dir"
+  },
+  "code_change_required": [
+    {
+      "file": "deeptutor/services/construction_grading/concept_registry.py",
+      "change": "quarantine code regex ^1A\\d{6}(-[0-9a-z]+)*$ -> ^1A\\d{6}(-[0-9A-Za-z]+)*$",
+      "reason": "book-derived rebuild emits uppercase leaf suffixes (1A412010-B103); old regex quarantined all 1681 leaves. Legacy lowercase codes remain accepted; all 8 existing tests still pass unchanged.",
+      "committed": false
+    }
+  ],
+  "compile_result": {
+    "input_nodes_clean": 2178,
+    "concept_count": 2147,
+    "quarantined_malformed": 3,
+    "merged_confirmed": 31,
+    "structural_conflicts_pre_adjudication": 32,
+    "unresolved_adjudications": 32,
+    "collided_codes": 0,
+    "reused_prior_ids": 272,
+    "gates": {
+      "compilation_safe": false,
+      "coverage_indexing_safe": true,
+      "cross_release_semantic_identity_safe": false,
+      "human_adjudicated_merge_split_safe": false,
+      "learner_state_durable_key_safe": false,
+      "legacy_alias_migration_safe": true,
+      "llm_adjudication_present": false,
+      "retrieval_safe": false,
+      "topology_snapshot_safe": true
+    },
+    "content_hash": "7a9e5e9fc34702ffbeaab7ca013e3f5d07d7904a37bd4002ed8324484347a6fe"
+  },
+  "code_audit": {
+    "regex": "\\b1A4\\d{5}(?:-[0-9A-Za-z]+)*\\b",
+    "canonical_code_set_size": 2181,
+    "per_file": {
+      "concept_registry.json": {
+        "total_mentions": 28706,
+        "unique": 2178,
+        "stale": 0
+      },
+      "migration_report.json": {
+        "total_mentions": 2178,
+        "unique": 2178,
+        "stale": 0
+      },
+      "structural_conflicts_review.json": {
+        "total_mentions": 64,
+        "unique": 38,
+        "stale": 0
+      },
+      "adjudication_decisions.json": {
+        "stale": 0
+      },
+      "migration_edges.json": {
+        "stale": 0
+      },
+      "quarantine.json": {
+        "stale": 0
+      }
+    },
+    "stale_codes_total": 0,
+    "note": "2178 unique = 2181 canonical minus 3 quarantined malformed codes (1A421020x2, 1A422020x2, 1A431010x2)"
+  },
+  "old_adjudication_decisions_carryover": {
+    "decisions": 67,
+    "distinct_old_concept_ids": 100,
+    "ids_still_present_in_new_registry": 1,
+    "applied": [
+      {
+        "concept_id": "c_3d60181ea2ea5565",
+        "canonical_path": "第4章 相关法规",
+        "action": "deprecated_alias",
+        "review_flag": "verdict was rendered against the OLD tree; re-verify against book-derived content before promotion"
+      }
+    ],
+    "skipped": 66,
+    "method": "mechanical carryover is by fingerprint (name_path_hash|parent) only — the compiler's own prior-matching; no fabricated remapping attempted",
+    "consequence": "32 NEW structural_conflicts are pending -> retrieval_safe/compilation_safe gates are false until a fresh adjudication round"
+  },
+  "tests": {
+    "file": "tests/services/construction_grading/test_concept_registry.py",
+    "result": "8 passed",
+    "fixtures_needing_update": [],
+    "note": "fixtures use hermetic synthetic old-style lowercase codes (1A411011-01 etc.); they exercise compiler invariants, not canonical lookups, and still pass under the broadened regex — no fixture flip required"
+  },
+  "blockers": [
+    {
+      "id": "B1",
+      "severity": "high",
+      "what": "67 governed adjudication decisions are keyed to old concept_ids; only 1 fingerprint survived the rebuild. The 32 new structural_conflicts (see structural_conflicts_review.json) need a FRESH governed adjudication round before retrieval_safe/compilation_safe open."
+    },
+    {
+      "id": "B2",
+      "severity": "medium",
+      "what": "3 upstream taxonomy nodes carry malformed dedup-suffix codes (1A421020x2, 1A422020x2, 1A431010x2, levels 2-3, 11 children total). Quarantined, not fabricated around. Their children compile but carry the malformed code as parent pointer. Fix belongs upstream in the taxonomy file."
+    },
+    {
+      "id": "B3",
+      "severity": "medium",
+      "what": "concept_registry.py regex fix is uncommitted working-tree change; sibling stale lowercase-only code regexes remain in canonical_resolution.py:81 and knowledge_graph.py:27 (out of this task's scope) — they will fail to extract new uppercase codes."
+    },
+    {
+      "id": "B4",
+      "severity": "info",
+      "what": "Surviving deprecated_alias on root container 第4章 相关法规 (c_3d60181ea2ea5565) deprecates one of 4 L1 chapters from the retrieval surface based on an old-tree arbitration; needs human re-confirmation."
+    }
+  ],
+  "candidate_dir": "artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/v_concept_registry_candidate"
+}

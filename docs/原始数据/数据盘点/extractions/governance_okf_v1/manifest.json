@@ -1,0 +1,71 @@
+{
+  "schema": "deeptutor_governance_okf_manifest.v1",
+  "generated_at": "2026-06-20T00:00:00+08:00",
+  "authority_status": "ai_project_context_only",
+  "runtime_guard": {
+    "release_stage": "ai_project_context_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_roots": {
+    "agent_skills": "agent-skills",
+    "contracts": "contracts",
+    "docs_contracts": "docs/contracts",
+    "plan": "docs/plan",
+    "runbook": "docs/runbook"
+  },
+  "copy_policy": {
+    "payloads_copied": false,
+    "reason": "OKF routes AI to governance sources without replacing contracts, plans, runbooks, or skills"
+  },
+  "artifact_refs": {
+    "governance_files": "governance_files.jsonl",
+    "domain_summary": "domain_summary.json",
+    "summary": "summary.md"
+  },
+  "counts": {
+    "files": 256,
+    "total_bytes": 5890667,
+    "by_domain": {
+      "plan": 188,
+      "agent_skills": 45,
+      "contracts": 14,
+      "runbook": 7,
+      "docs_contracts": 2
+    },
+    "by_area": {
+      "governance_context": 76,
+      "contract_authority": 37,
+      "ci_quality_gate": 31,
+      "data_knowledge": 29,
+      "learner_state": 24,
+      "billing_business": 19,
+      "agent_skill": 11,
+      "release_operations": 10,
+      "wechat_frontend": 10,
+      "planning_index": 9
+    },
+    "by_risk_level": {
+      "low": 98,
+      "medium": 80,
+      "high": 78
+    },
+    "by_extension": {
+      ".md": 246,
+      ".yaml": 9,
+      ".json": 1
+    }
+  },
+  "guardrails": [
+    "AI project understanding only",
+    "not production",
+    "not a replacement for contracts or runbooks",
+    "not runtime supply",
+    "not official scoring authority"
+  ]
+}

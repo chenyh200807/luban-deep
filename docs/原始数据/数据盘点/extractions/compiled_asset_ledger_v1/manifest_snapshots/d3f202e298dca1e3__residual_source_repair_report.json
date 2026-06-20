@@ -1,0 +1,115 @@
+{
+  "blockers": [],
+  "classification": {
+    "candidate_only": true,
+    "canonical_pointer_written": false,
+    "production_default": false,
+    "quality_claim_allowed": false,
+    "release_truth_claimed": false,
+    "residual_repair_patch": true,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "follow_up_work_orders": [
+    {
+      "candidate_only": true,
+      "conflicting_leaf_names": [
+        "屋顶透光部分面积限制",
+        "项目管理信息系统子系统"
+      ],
+      "leaf_id": "1A413061-07-d",
+      "recommended_action": "canonical taxonomy owner must assign unique codes before this leaf can carry canonical truth",
+      "review_only": true,
+      "work_order_type": "taxonomy_duplicate_code"
+    }
+  ],
+  "not_exercised": [
+    "production_rag_runtime",
+    "runtime_default_install",
+    "canonical_truth_write",
+    "official_score",
+    "production_db_write",
+    "release_truth_claim",
+    "live_provider_revalidation"
+  ],
+  "patched_runtime_token_pack_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/rich_leaf_full2026_v231_residual_repair_20260612/runtime_token_pack_v231_candidate.json",
+  "quality_claim_allowed": false,
+  "repaired_unit_count": 2,
+  "repairs": [
+    {
+      "leaf_id": "1A412014-02",
+      "leaf_name_path": "结构工程材料 > 砌体材料的性能与应用 > 石材的性能与应用",
+      "repair": {
+        "base_work_order_id": "v23_live_residual_work_order_4f2289ffa97b0a72",
+        "investigation_note": "原 unit 被 deterministic_dedup_margin 路径错链到 GB55003-2021 地基基础通用规范；撞中的是 leaf keywords 中的非判别词（基础/耐久性/墙体）。教材 9-166 卷 p.51 chunk 1A412010_051_0092 为该 leaf 的权威正文，与 canonical taxonomy keywords（天然石材/抗压强度/耐久性/传热性/基础/勒脚/墙体/经济性）逐项对应。",
+        "keyword_hits": [
+          "天然石材",
+          "抗压强度",
+          "耐久性",
+          "传热性",
+          "基础",
+          "勒脚",
+          "墙体",
+          "经济性"
+        ],
+        "keyword_overlap_new": 1.0,
+        "keyword_overlap_old": 0.25,
+        "replaced_source_path": "标准文件/13、GB55003-2021《建筑与市政地基基础通用规范》.json"
+      },
+      "source_ref": {
+        "chunk_id": "1A412010_051_0092",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 51,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A412010_051_0092",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "a4c19c7755a6cf653ac3774ae39aa39ea7f68c7753737e65f6bd7772c1c74096"
+      },
+      "unit_id": "rtp22_c2ebccc15ec3e1de"
+    },
+    {
+      "leaf_id": "1A413061-07-d",
+      "leaf_name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工信息化系统应用 > 项目管理信息系统子系统",
+      "repair": {
+        "base_work_order_id": "v23_live_residual_work_order_07c8307e6126061a",
+        "investigation_note": "原 unit 被 ai_shadow_review 路径错链到《招投标及合同管理》讲义 p.29（仲裁内容）；撞中的是 leaf keyword「合同管理」。教材 222-382 卷 p.131 第12章 chunk 1A437000_131_0212 明确定义项目管理信息系统的成本/进度/质量/材料设备/合同/安全/文档七个子系统，覆盖全部 5 个 taxonomy keywords。另：该 leaf code 1A413061-07-d 在 canonical taxonomy 中重复（同 code 另有「屋顶透光部分面积限制」），需 taxonomy owner 处理。",
+        "keyword_hits": [
+          "成本管理",
+          "进度管理",
+          "质量管理",
+          "安全管理",
+          "合同管理"
+        ],
+        "keyword_overlap_new": 1.0,
+        "keyword_overlap_old": 0.0,
+        "replaced_source_path": "讲义/2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8/page_29_29.json"
+      },
+      "source_ref": {
+        "chunk_id": "1A437000_131_0212",
+        "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+        "page_num": 131,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_131_0212",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+        "span_hash": "7c4cc738263dc35399733b92f801561c2edc233aaf848672f9605f8ba8291a75"
+      },
+      "unit_id": "rtp22_a66aef358d8dc35a"
+    }
+  ],
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_v23_residual_source_repair.v1",
+  "summary": {
+    "blocker_count": 0,
+    "follow_up_work_order_count": 1,
+    "production_write_count": 0,
+    "repair_candidate_count": 2,
+    "repaired_unit_count": 2
+  },
+  "verdict": "PASS_V23_RESIDUAL_SOURCE_REPAIR_CANDIDATES"
+}

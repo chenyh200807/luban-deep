@@ -1,0 +1,3474 @@
+[
+  {
+    "question_id": "M2-2015-30-00",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.5,
+    "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工",
+    "official_answer": "施工总进度计划的内容包括：编制说明，施工总进度计划表( 图)，分期( 分批) 实施工程的开、\n竣工日期及工期一览表，资源需要量及供应平衡表等。( 注：只需写出题目上缺少的即可)。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "施工总进度计划的内容包括：编制说明，施工总进度计划表( 图)，分期( 分批) 实施工程的开、\n竣工日期及工期一览表，资源",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A433000_059_0089",
+            "textbook_quote": "编制说明"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "施工总进度计划的内容包括",
+          "编制说明",
+          "施工总进度计划表(",
+          "分期(",
+          "分批)",
+          "实施工程的开"
+        ],
+        "list_spec": {
+          "denominator": 6,
+          "terms": [
+            "施工总进度计划的内容包括",
+            "编制说明",
+            "施工总进度计划表(",
+            "分期(",
+            "分批)",
+            "实施工程的开"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "( 注：只需写出题目上缺少的即可)",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "只需写出题目上缺少的即可)"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-31-03",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.571,
+    "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检",
+    "official_answer": "保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时\n应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压\n强度或压缩强度，粘结材料的粘结强度，增强网的力学性能、抗腐蚀性能等进行复验。\n节能分部工程验收组织不妥之处：施工单位项目负责人组织不妥。应该是总监理工程师组织。组织参\n加的人员不妥当。设计单位项目负责人和施工单位技术、质量部门负责人应参加节能分部工程验收。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434000_080_0127",
+            "textbook_quote": "保温隔热材料，其导热系数、密度、抗压强度"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "对其检验时\n应核查质量证明文件及进场复验报告( 复验应为见证取样送检)",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434000_080_0127",
+            "textbook_quote": "对其检验时\n应核查质量证明文件及进场复验"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "并对保温材料的导热系数、密度、抗压\n强度或压缩强度，粘结材料的粘结强度，增强网的力学性能、抗腐蚀性能等进行复验",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434000_080_0127",
+            "textbook_quote": "并对保温材料的导热系数、密度、抗压\n强度"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "节能分部工程验收组织不妥之处：施工单位项目负责人组织不妥",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "节能分部工程验收组织不妥之处",
+          "施工单位项目负责人组织不妥"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "应该是总监理工程师组织",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "应该是总监理工程师组织"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "组织参\n加的人员不妥当",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "组织参",
+          "加的人员不妥当"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "设计单位项目负责人和施工单位技术、质量部门负责人应参加节能分部工程验收",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434020_085_0137",
+            "textbook_quote": "设计单位项目负责人和施工单位技术、质量部"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-32-00",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 1.0,
+    "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层",
+    "official_answer": "还应单独编制的专项施工方案包括：深基坑支护工程、降水工程、土方开挖工程、模板工程及支撑\n体系， 建筑幕墙安装工程。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "还应单独编制的专项施工方案包括：深基坑支护工程、降水工程、土方开挖工程、模板工程及支撑\n体系， 建筑幕墙安装工程",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A436000_008_0011",
+            "textbook_quote": "降水工程"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "还应单独编制的专项施工方案包括",
+          "深基坑支护工程",
+          "降水工程",
+          "土方开挖工程",
+          "模板工程及支撑",
+          "体系"
+        ],
+        "list_spec": {
+          "denominator": 6,
+          "terms": [
+            "还应单独编制的专项施工方案包括",
+            "深基坑支护工程",
+            "降水工程",
+            "土方开挖工程",
+            "模板工程及支撑",
+            "体系"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-32-01",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 1.0,
+    "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层",
+    "official_answer": "“三违”还包括违章指挥、违反劳动纪律。\n混凝土内支撑拆除还可以采用：机械拆除、爆破拆除和静力破碎拆除。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "“三违”还包括违章指挥、违反劳动纪律",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A436000_099_0163",
+            "textbook_quote": "违反劳动纪律"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "“三违”还包括违章指挥",
+          "违反劳动纪律"
+        ],
+        "list_spec": {
+          "denominator": 2,
+          "terms": [
+            "“三违”还包括违章指挥",
+            "违反劳动纪律"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "混凝土内支撑拆除还可以采用：机械拆除、爆破拆除和静力破碎拆除",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_055_0081",
+            "textbook_quote": "机械拆除"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-33-00",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 1.0,
+    "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按",
+    "official_answer": "为配合建设单位办理施工许可证，总承包单位应编制的施工组织设计中有根据建筑工程特点制定的\n相应质量、安全技术措施，专业性较强的工程项，编制了专项质重、安全施工组织设计。另外还需有施工\n现场总平面布置图、临时设施规划方案和已搭建情况，施工现场安全防护设施搭设( 设置) 计划、施工进\n度计划、安全措施费用计划，专项安全施工组织设计( 方案、措施)，拟进入施工现场使用的施工起重机\n械设备( 塔式起重机、物料提升机、外用电梯) 的型号、数量，工程项目负责人、安全管理人员及特种作\n业人员持证上岗情况，建设单位安全监督人员名册、工程监理单位人员名册，以及其他应提交的材料。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "为配合建设单位办理施工许可证，总承包单位应编制的施工组织设计中有根据建筑工程特点制定的\n相应质量、安全技术措施，专业性较",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A421000_003_0003",
+            "textbook_quote": "专业性较强的工程项"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "figure_label",
+        "max_score": 2,
+        "label": "另外还需有施工\n现场总平面布置图、临时设施规划方案和已搭建情况，施工现场安全防护设施搭设( 设置) 计划、施工进\n度计划",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A436000_007_0010",
+            "textbook_quote": "塔式起重机"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-34-00",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.5,
+    "stem": "[题干缺失] 2015年案例5第1问",
+    "official_answer": "资源管理还包括人力资源管理、机械设备管理、技术管理和资金管理。资源管理计划应包括建立资\n源管理制度，编制资源使用计划、供应计划和处置计划，规定控制程序和责任体系。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "资源管理还包括人力资源管理、机械设备管理、技术管理和资金管理",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A437000_131_0212",
+            "textbook_quote": "机械设备管理"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "资源管理还包括人力资源管理",
+          "机械设备管理",
+          "技术管理和资金管理"
+        ],
+        "list_spec": {
+          "denominator": 3,
+          "terms": [
+            "资源管理还包括人力资源管理",
+            "机械设备管理",
+            "技术管理和资金管理"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "资源管理计划应包括建立资\n源管理制度，编制资源使用计划、供应计划和处置计划，规定控制程序和责任体系",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "资源管理计划应包括建立资",
+          "源管理制度",
+          "编制资源使用计划",
+          "供应计划和处置计划",
+          "规定控制程序和责任体系"
+        ],
+        "list_spec": {
+          "denominator": 5,
+          "terms": [
+            "资源管理计划应包括建立资",
+            "源管理制度",
+            "编制资源使用计划",
+            "供应计划和处置计划",
+            "规定控制程序和责任体系"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-34-01",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.75,
+    "stem": "[题干缺失] 2015年案例5第2问",
+    "official_answer": "不妥之处一：材料加工场地布置在场外。\n\n\n正确做法：材料加工场地布置在场内，应使材料和构件的运输量最小，垂直运输设备发挥较大的作用；\n有关联的加工厂适当集中。\n不妥之处二：现场设置一个出入口。\n正确做法：施工现场宜考虑设置两个以上大门。\n不妥之处三：场地附近设置 3.8m 宽环形载重单车道主干道( 兼消防车道)，并进行硬化，转弯半径\n10m。\n正确做法：施工现场的主要道路应进行硬化处理，主干道应有排水措施。主干道宽度单行道不小于\n4m，双行道不小于 6m。消防车道不小于 4m，载重车转弯半径不宜小于 15m。\n不妥之处四：在干道外侧开挖 400×600mm 管沟，将临时供电线缆，临时用水管线置",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处一：材料加工场地布置在场外",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处一",
+          "材料加工场地布置在场外"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：材料加工场地布置在场内，应使材料和构件的运输量最小，垂直运输设备发挥较大的作用",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_012_0013",
+            "textbook_quote": "应使材料和构件的运输量最小"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "材料加工场地布置在场内",
+          "应使材料和构件的运输量最小",
+          "垂直运输设备发挥较大的作用"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "有关联的加工厂适当集中",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_012_0013",
+            "textbook_quote": "有关联的加工厂适当集中"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "有关联的加工厂适当集中"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处二：现场设置一个出入口",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处二",
+          "现场设置一个出入口"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：施工现场宜考虑设置两个以上大门",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_011_0012",
+            "textbook_quote": "施工现场宜考虑设置两个以上大门"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "施工现场宜考虑设置两个以上大门"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处三：场地附近设置 3.8m 宽环形载重单车道主干道( 兼消防车道)，并进行硬化，转弯半径\n10m",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_011_0012",
+            "textbook_quote": "转弯半径"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "不妥之处三",
+          "场地附近设置",
+          "3.8m",
+          "宽环形载重单车道主干道(",
+          "兼消防车道)",
+          "并进行硬化"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：施工现场的主要道路应进行硬化处理，主干道应有排水措施",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_012_0013",
+            "textbook_quote": "施工现场的主要道路应进行硬化处理"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "施工现场的主要道路应进行硬化处理",
+          "主干道应有排水措施"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "主干道宽度单行道不小于\n4m，双行道不小于 6m",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_012_0013",
+            "textbook_quote": "主干道宽度单行道不小于\n4m，双行道不小"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-34-03",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 1.0,
+    "stem": "[题干缺失] 2015年案例5第4问",
+    "official_answer": "可以推广与应用的新技术有：高强钢筋应用技术、钢筋焊接网应用技术、大直径钢筋直螺纹连接技术、\n无粘结预应力技术、有粘结预应力技术、索结构预应力施工技术、建筑用成型钢筋制品加工与配送技术、\n钢筋机械锚固技术。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "可以推广与应用的新技术有：高强钢筋应用技术、钢筋焊接网应用技术、大直径钢筋直螺纹连接技术、\n无粘结预应力技术、有粘结预应",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_035_0057",
+            "textbook_quote": "有粘结预应"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "可以推广与应用的新技术有",
+          "高强钢筋应用技术",
+          "钢筋焊接网应用技术",
+          "大直径钢筋直螺纹连接技术",
+          "无粘结预应力技术",
+          "有粘结预应力技术"
+        ],
+        "list_spec": {
+          "denominator": 6,
+          "terms": [
+            "可以推广与应用的新技术有",
+            "高强钢筋应用技术",
+            "钢筋焊接网应用技术",
+            "大直径钢筋直螺纹连接技术",
+            "无粘结预应力技术",
+            "有粘结预应力技术"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-30-01",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.667,
+    "stem": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础\n设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工\n单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工\n时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第\n三方测量单位进行施工阶段的建筑变形测量。\n基础桩设计桩径Φ800mm、长度35m—42m，混凝土强度等级C30，共计900 根。施\n工单位编制的桩基施工方案中列明：采用泥浆护壁成孔、导管法水下灌注C30 混凝土；灌\n注时桩顶混凝土面超过设计标高500mm；",
+    "official_answer": "当变形量发生异常后，第三方监测机构必须立即报告委托方同时应及时增加观测次数或调整变形测\n量方案。当建筑变形观测过程中发生下列情况之一时，必须立即报告委托方：\n(1) 变形量或变形速率出现异常变化；\n(2) 周边或开挖面出现塌陷，滑坡情况；\n(3) 变形量达到或超出预警值；\n(4) 由于地霞、暴雨、冻融等自然灾害引起的其他异常变形情况。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "当变形量发生异常后，第三方监测机构必须立即报告委托方同时应及时增加观测次数或调整变形测\n量方案",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "当建筑变形观测过程中发生下列情况之一时，必须立即报告委托方：",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413000_074_0141",
+            "textbook_quote": "当建筑变形观测过程中发生下列情况之一时"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "必须立即报告委托方"
+        ],
+        "list_spec": {
+          "denominator": 1,
+          "terms": [
+            "必须立即报告委托方"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "变形量或变形速率出现异常变化",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413000_074_0141",
+            "textbook_quote": "变形量或变形速率出现异常变化"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "变形量或变形速率出现异常变化"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "周边或开挖面出现塌陷，滑坡情况",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413000_074_0141",
+            "textbook_quote": "周边或开挖面出现塌陷"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "周边或开挖面出现塌陷",
+          "滑坡情况"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "变形量达到或超出预警值",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "变形量达到或超出预警值"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "由于地霞、暴雨、冻融等自然灾害引起的其他异常变形情况",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413000_074_0141",
+            "textbook_quote": "冻融等自然灾害引起的其他异常变形情况"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-30-02",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 0.5,
+    "stem": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础\n设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工\n单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工\n时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第\n三方测量单位进行施工阶段的建筑变形测量。\n基础桩设计桩径Φ800mm、长度35m—42m，混凝土强度等级C30，共计900 根。施\n工单位编制的桩基施工方案中列明：采用泥浆护壁成孔、导管法水下灌注C30 混凝土；灌\n注时桩顶混凝土面超过设计标高500mm；",
+    "official_answer": "横道图为：\n施工\n施工进度（周）\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n工序①\n过程\n工序②\n工序③",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "figure_label",
+        "max_score": 2,
+        "label": "横道图为：\n施工\n施工进度（周）\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n工序",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A433000_055_0082",
+            "textbook_quote": "施工进度（周）"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "过程\n工序",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "过程",
+          "工序"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-31-02",
+    "m5a_status": "published_candidate",
+    "priority": 1,
+    "verified_coverage": 1.0,
+    "stem": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构\n网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。\n地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监\n理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架\n全部拆除。\n“两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设\n计要求，经设计单位验算，需对二层结构进行加固处理，造成直接经济损失300 余万元，\n工程质量事故发生后，现场有关人员立即向本单位负责人报告，并在规定的时间内逐级上\n报至市( 设区) 级人民政府住房和城乡建设主",
+    "official_answer": "还应有：首次采用的钢材、焊接材料、焊接方法、焊接位置等也需要进行焊接工艺的评定。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "还应有：首次采用的钢材、焊接材料、焊接方法、焊接位置等也需要进行焊接工艺的评定",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_038_0062",
+            "textbook_quote": "焊接材料"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "还应有",
+          "首次采用的钢材",
+          "焊接材料",
+          "焊接方法",
+          "焊接位置等也需要进行焊接工艺的评定"
+        ],
+        "list_spec": {
+          "denominator": 5,
+          "terms": [
+            "还应有",
+            "首次采用的钢材",
+            "焊接材料",
+            "焊接方法",
+            "焊接位置等也需要进行焊接工艺的评定"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-30-01",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.0,
+    "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工",
+    "official_answer": "调整后的施工进度计划网络图如下所示：\n( 注：只需要将 3—4 之间增加一个虚工作即可)\n网络图中关键线路有两条，分别是 A →B →F →H →I 和 A →D →G →H →I。总工期为\nT=5+7+5+4+4=25 或 T=5+8+4+4+4=25 个月。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "figure_label",
+        "max_score": 2,
+        "label": "调整后的施工进度计划网络图如下所示：\n( 注：只需要将 3—4 之间增加一个虚工作即可)\n网络图中关键线路有两条，分别是",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "总工期为\nT=5+7+5+4+4=25 或 T=5+8+4+4+4=25 个月",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-30-02",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.375,
+    "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工",
+    "official_answer": "(1) 工期索赔：索赔不成立。\n理由：因为 C 为非关键工作，总时差为 1 个月，设计变更后导致工期延误 2 个月，对总工期影响只\n有 1 个月， 所以，C 工作的工期索赔为 1 个月。\n费用索赔：索赔成立。C 工作索赔费用 27.2 万合理。\n理由：因为设计变更是非承包商原因导致的承包商自身经济损失，承包商有权对建设单位提出费用\n索赔。\n(2) 工期索赔：索赔不成立。E 工作索赔 3 个月的工期不合理。\n理由：因为 E 为非关键工作，总时差为 4 个月，不可抗力导致了工期延误 3 个月，延误时长未超过\n总时差， 所以工期索赔不成立。\n费用索赔：索赔不成立。E 工作索赔 32.7 万费用不合理",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "工期索赔：索赔不成立",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A435000_046_0066",
+            "textbook_quote": "工期索赔"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "工期索赔",
+          "索赔不成立"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "理由：因为 C 为非关键工作，总时差为 1 个月，设计变更后导致工期延误 2 个月，对总工期影响只\n有 1 个月， 所以",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "费用索赔：索赔成立",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A435000_046_0066",
+            "textbook_quote": "费用索赔"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "费用索赔",
+          "索赔成立"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "C 工作索赔费用 27.2 万合理",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "工作索赔费用",
+          "27.2",
+          "万合理"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：因为设计变更是非承包商原因导致的承包商自身经济损失，承包商有权对建设单位提出费用\n索赔",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "工期索赔：索赔不成立",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A435000_046_0066",
+            "textbook_quote": "工期索赔"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "工期索赔",
+          "索赔不成立"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "E 工作索赔 3 个月的工期不合理",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "工作索赔",
+          "个月的工期不合理"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：因为 E 为非关键工作，总时差为 4 个月，不可抗力导致了工期延误 3 个月，延误时长未超过\n总时差， 所以工期索",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-30-03",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.0,
+    "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工",
+    "official_answer": "(1) 不需要组织专家论证，只需要编制模板工程专项施工方案。需要编制专项施工方案和组织专家\n论证的梁跨度分别为 10m 以上、18m 以上。\n(2) 长度超过 4m 的梁板应按照设计起拱，若设计无要求时，可以按照梁跨度的 1/1000~3/1000 起拱。\n因此梁的起拱高度为 10.5mm-31.5mm，所以最小起拱高度为 10.5mm\n(3) 混凝土的浇筑高度为 900mm。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "不需要组织专家论证，只需要编制模板工程专项施工方案",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "需要编制专项施工方案和组织专家\n论证的梁跨度分别为 10m 以上、18m 以上",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "需要编制专项施工方案和组织专家",
+          "论证的梁跨度分别为",
+          "10m",
+          "以上",
+          "18m",
+          "以上"
+        ],
+        "list_spec": {
+          "denominator": 6,
+          "terms": [
+            "需要编制专项施工方案和组织专家",
+            "论证的梁跨度分别为",
+            "10m",
+            "以上",
+            "18m",
+            "以上"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "长度超过 4m 的梁板应按照设计起拱，若设计无要求时，可以按照梁跨度的 1/1000~3/1000 起拱",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "因此梁的起拱高度为 10.5mm-31.5mm，所以最小起拱高度为 10.5mm",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "混凝土的浇筑高度为 900mm",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "混凝土的浇筑高度为",
+          "900mm"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-32-02",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.125,
+    "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层",
+    "official_answer": "不妥之处一：施工员进行安全技术交底。\n正确做法：应由项目技术负责人或专业技术人员进行技术交底。\n不妥之处二：在卸料平台三个侧边设置 1200mm 高的固定式安全防护栏杆。\n正确做法：应在卸料平台两侧设置固定的防护栏杆，底部设置 200mm 高挡脚板。\n悬挑式钢平台必须符合下列规定：\n(1) 悬挑式钢平台应按现行的相应规范进行设计，其结构构造应能防止左右晃动，计算书及图纸应编\n入施工组织设计。\n(2) 悬挑式钢平台的搁支点与上部拉结点，必须位于建筑物上，不得设置在脚手架等施工设备上。\n(3) 斜拉杆或钢丝绳，构造上宜两边各设前后两道，两道中的每一道均应作单道受力计算。\n(4) 应设置 4 个经过",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处一：施工员进行安全技术交底",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处一",
+          "施工员进行安全技术交底"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：应由项目技术负责人或专业技术人员进行技术交底",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处二：在卸料平台三个侧边设置 1200mm 高的固定式安全防护栏杆",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处二",
+          "在卸料平台三个侧边设置",
+          "1200mm",
+          "高的固定式安全防护栏杆"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：应在卸料平台两侧设置固定的防护栏杆，底部设置 200mm 高挡脚板",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A436000_005_0006",
+            "textbook_quote": "底部设置"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "应在卸料平台两侧设置固定的防护栏杆",
+          "底部设置",
+          "200mm",
+          "高挡脚板"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "悬挑式钢平台必须符合下列规定：",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "悬挑式钢平台必须符合下列规定"
+        ],
+        "list_spec": {
+          "denominator": 1,
+          "terms": [
+            "悬挑式钢平台必须符合下列规定"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "悬挑式钢平台应按现行的相应规范进行设计，其结构构造应能防止左右晃动，计算书及图纸应编\n入施工组织设计",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "悬挑式钢平台的搁支点与上部拉结点，必须位于建筑物上，不得设置在脚手架等施工设备上",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "斜拉杆或钢丝绳，构造上宜两边各设前后两道，两道中的每一道均应作单道受力计算",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-33-02",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.0,
+    "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按",
+    "official_answer": "方案一：\n采购成本=320×6=1920 元；\n存储成本=0.5×(1800÷6)×3500×4‰ ×6=12600 元；\n采购和存储费用之和为 1920+12600=14520 元。\n方案二：\n采购成本=330×3=990 元；\n存储成本=0.5×(1800÷3)×3450×3‰ ×6=18630 元；\n采购和存储费用之和为 990+18630=19620 元。\n由此可见，方案一采购费和储存费之和较小，总承包单位应选择方案一。\n现金流量表的内容应当包括经营活动、投资活动和筹资活动产生的现金流量。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "方案一：\n采购成本=320×6=1920 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "存储成本=0.5×(1800÷6)×3500×4‰ ×6=12600 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "采购和存储费用之和为 1920+12600=14520 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "方案二：\n采购成本=330×3=990 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "存储成本=0.5×(1800÷3)×3450×3‰ ×6=18630 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "采购和存储费用之和为 990+18630=19620 元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "由此可见，方案一采购费和储存费之和较小，总承包单位应选择方案一",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "现金流量表的内容应当包括经营活动、投资活动和筹资活动产生的现金流量",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "现金流量表的内容应当包括经营活动",
+          "投资活动和筹资活动产生的现金流量"
+        ],
+        "list_spec": {
+          "denominator": 2,
+          "terms": [
+            "现金流量表的内容应当包括经营活动",
+            "投资活动和筹资活动产生的现金流量"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-33-03",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.0,
+    "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按",
+    "official_answer": "(1) 按 2013 年清单规范，考虑扣除暂列金额：\n预付款：(31922.13 －1000)×15%=30922.13×5%=4638.32\n起扣点：31922.13 －4638.32/65%=24786.25\n(2) 总包单位索赔：资金占用费 1.88 万元，利润 18.26 万元。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "按 2013 年清单规范，考虑扣除暂列金额：\n预付款：(31922.13 －1000)×15%=30922.13×5%=",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "总包单位索赔：资金占用费 1.88 万元，利润 18.26 万元",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "总包单位索赔",
+          "资金占用费",
+          "1.88",
+          "万元",
+          "利润",
+          "18.26"
+        ],
+        "list_spec": {
+          "denominator": 6,
+          "terms": [
+            "总包单位索赔",
+            "资金占用费",
+            "1.88",
+            "万元",
+            "利润",
+            "18.26"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-31-03",
+    "m5a_status": "needs_po_review",
+    "priority": 2,
+    "verified_coverage": 0.375,
+    "stem": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构\n网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。\n地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监\n理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架\n全部拆除。\n“两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设\n计要求，经设计单位验算，需对二层结构进行加固处理，造成直接经济损失300 余万元，\n工程质量事故发生后，现场有关人员立即向本单位负责人报告，并在规定的时间内逐级上\n报至市( 设区) 级人民政府住房和城乡建设主",
+    "official_answer": "不妥之处一：进场小砌块龄期达到 21d 后，即开始浇水湿润，待小砌块表面出现浮水后，开始砌筑\n施工。正确做法：进场小砌块的产品龄期不小于 28d，不需对小砌块浇水湿润，如遇天气干燥炎热，宜在\n砌筑前对其喷水湿润。\n不妥之处二：小砌块的搭接长度为块体长度的 1/3。\n正确做法：单排孔小砌块的搭接长度应为块体长度的 1/2。\n不妥之处三：竖向灰缝的砂浆饱满度为 85%。\n正确做法：竖向灰缝的砂浆饱满度不得低于 90%.\n不妥之处四：填充墙砌筑 7d 后即开始顶砌施工。\n正确做法：填充墙梁口下最后 3 皮砖应在下部墙砌完 14d 后砌筑。\n不妥之处五：在部分墙体上留\u0002了净宽度为 1.2m 的临时施工",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处一：进场小砌块龄期达到 21d 后，即开始浇水湿润，待小砌块表面出现浮水后，开始砌筑\n施工",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处一",
+          "进场小砌块龄期达到",
+          "21d",
+          "即开始浇水湿润",
+          "待小砌块表面出现浮水后",
+          "开始砌筑"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：进场小砌块的产品龄期不小于 28d，不需对小砌块浇水湿润，如遇天气干燥炎热，宜在\n砌筑前对其喷水湿润",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A438000_157_0305",
+            "textbook_quote": "砌筑前对其喷水湿润"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "进场小砌块的产品龄期不小于",
+          "28d",
+          "不需对小砌块浇水湿润",
+          "如遇天气干燥炎热",
+          "宜在"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "不妥之处二：小砌块的搭接长度为块体长度的 1/3",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "calculation",
+        "max_score": 2,
+        "label": "正确做法：单排孔小砌块的搭接长度应为块体长度的 1/2",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处三：竖向灰缝的砂浆饱满度为 85%",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处三",
+          "竖向灰缝的砂浆饱满度为",
+          "85%"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：竖向灰缝的砂浆饱满度不得低于 90%.\n不妥之处四：填充墙砌筑 7d 后即开始顶砌施工",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434000_074_0116",
+            "textbook_quote": "填充墙砌筑"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "竖向灰缝的砂浆饱满度不得低于",
+          "90%.",
+          "不妥之处四",
+          "填充墙砌筑",
+          "7d"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：填充墙梁口下最后 3 皮砖应在下部墙砌完 14d 后砌筑",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "填充墙梁口下最后",
+          "皮砖应在下部墙砌完",
+          "14d",
+          "后砌筑"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处五：在部分墙体上留\u0002了净宽度为 1.2m 的临时施工洞口",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413030_106_0208",
+            "textbook_quote": "的临时施工洞口"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "不妥之处五",
+          "在部分墙体上留\u0002了净宽度为",
+          "1.2m",
+          "的临时施工洞口"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-31-00",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.333,
+    "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检",
+    "official_answer": "还应检查钢构件预检和配套、定位轴线及标高和地脚螺栓的检查、安装机械的选择、安装流水段的\n划分和安装顺序的确定等。\n钢构件现场堆场具备的基本条件：场地平整、坚实，无水坑、冰层；地面干燥，有较好的排水设施，\n同时车辆进出方便，方便起吊构件。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "还应检查钢构件预检和配套、定位轴线及标高和地脚螺栓的检查、安装机械的选择、安装流水段的\n划分和安装顺序的确定等",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "钢构件现场堆场具备的基本条件：场地平整、坚实，无水坑、冰层",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_054_0080",
+            "textbook_quote": "场地平整"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "地面干燥，有较好的排水设施，\n同时车辆进出方便，方便起吊构件",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-31-01",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.167,
+    "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检",
+    "official_answer": "幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度\n不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小\n于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防\n火密封胶密封。\n\n\n幕墙工程中有关安全和功能的检测项目有：硅酮结构胶的相容性试验；幕墙后置埋件的现场拉拔强度；\n幕墙的抗风压性能、空气渗透性能、雨水渗漏性能及平面变形性能。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度\n不应小于 100mm，并应满足设",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_016_0022",
+            "textbook_quote": "不应小于"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "防火层应采用厚度不小\n于 1.5mm 的镀锌钢板承托，不得采用铝板",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "防火层应采用厚度不小",
+          "1.5mm",
+          "的镀锌钢板承托",
+          "不得采用铝板"
+        ],
+        "list_spec": {
+          "denominator": 4,
+          "terms": [
+            "防火层应采用厚度不小",
+            "1.5mm",
+            "的镀锌钢板承托",
+            "不得采用铝板"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防\n火密封胶密封",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "幕墙工程中有关安全和功能的检测项目有：硅酮结构胶的相容性试验",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "幕墙工程中有关安全和功能的检测项目有",
+          "硅酮结构胶的相容性试验"
+        ],
+        "list_spec": {
+          "denominator": 2,
+          "terms": [
+            "幕墙工程中有关安全和功能的检测项目有",
+            "硅酮结构胶的相容性试验"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "幕墙后置埋件的现场拉拔强度",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "幕墙后置埋件的现场拉拔强度"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "幕墙的抗风压性能、空气渗透性能、雨水渗漏性能及平面变形性能",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-31-02",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.125,
+    "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检",
+    "official_answer": "错误之一：泛水高度为 200mm。正确做法：泛水高度至少为 250mm。\n错误之二：阴阳角基层卷材防水为直角形式。\n正确做法：阴阳角基层卷材做成 45 度角或圆弧型。\n错误之三：女儿墙泛水处防水层没有做附加层。\n正确做法：女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于\n250mm。\n错误之四：压顶檐口下端未做处理。\n正确做法：压顶檐口下端应做鹰嘴和滴水槽。\n错误之五：卷材收头未作处理。\n正确做法：卷材收头应用金属压条钉压固定，并应用密封材料封严。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "错误之一：泛水高度为 200mm",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "错误之一",
+          "泛水高度为",
+          "200mm"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：泛水高度至少为 250mm",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "泛水高度至少为",
+          "250mm"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "错误之二：阴阳角基层卷材防水为直角形式",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：阴阳角基层卷材做成 45 度角或圆弧型",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "阴阳角基层卷材做成",
+          "45",
+          "度角或圆弧型"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "错误之三：女儿墙泛水处防水层没有做附加层",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于\n250mm",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A413030_125_0237",
+            "textbook_quote": "女儿墙泛水处的防水层下应增设附加层"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "女儿墙泛水处的防水层下应增设附加层",
+          "附加层在平面和立面的宽度均不应小于",
+          "250mm"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "错误之四：压顶檐口下端未做处理",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "错误之四",
+          "压顶檐口下端未做处理"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P8",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：压顶檐口下端应做鹰嘴和滴水槽",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "压顶檐口下端应做鹰嘴和滴水槽"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-32-03",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.0,
+    "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层",
+    "official_answer": "施工单位对事故责任人的处理不妥，应由事故调查组提交对事故责任人的处理建议，由负责调查事\n故的人民政府作出批复，事故发生单位应当按照该批复，对本单位负有事故责任的人员进行处理。对事故\n责任者严格按照安全事故责任追究的法律法规的规定进行严肃处理，不仅要追究事故直接责任人的责任，\n同时要追究有关负责人的领导责任。\n事故调查组还应有公安机关、劳动保障行政部门、工会和人民检察院派员参加。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "施工单位对事故责任人的处理不妥，应由事故调查组提交对事故责任人的处理建议，由负责调查事\n故的人民政府作出批复，事故发生单",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "施工单位对事故责任人的处理不妥",
+          "由负责调查事",
+          "故的人民政府作出批复",
+          "事故发生单位应当按照该批复",
+          "对本单位负有事故责任的人员进行处理"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "对事故\n责任者严格按照安全事故责任追究的法律法规的规定进行严肃处理，不仅要追究事故直接责任人的责任，\n同时要追究有关负责",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "事故调查组还应有公安机关、劳动保障行政部门、工会和人民检察院派员参加",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-33-01",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.286,
+    "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按",
+    "official_answer": "不妥之处：项目经理编制了项目管理规划大纲和项目管理实施规划。\n正确做法：项目管理规划大纲是总包单位领导层编制的文件，项目经理根据项目管理规划大纲编制项\n目管理实施规划。\n编制项目管理目标责任书应依据下列资料：(1) 项目合同文件；(2) 组织的管理制度；(3) 项目管理规\n划大纲；(4) 组织的经营方针和目标。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处：项目经理编制了项目管理规划大纲和项目管理实施规划",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之处"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：项目管理规划大纲是总包单位领导层编制的文件，项目经理根据项目管理规划大纲编制项\n目管理实施规划",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431000_004_0004",
+            "textbook_quote": "目管理实施规划"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "项目经理根据项目管理规划大纲编制项",
+          "目管理实施规划"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "编制项目管理目标责任书应依据下列资料：",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "编制项目管理目标责任书应依据下列资料"
+        ],
+        "list_spec": {
+          "denominator": 1,
+          "terms": [
+            "编制项目管理目标责任书应依据下列资料"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "项目合同文件",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "项目合同文件"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "组织的管理制度",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "组织的管理制度"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "项目管理规\n划大纲",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431000_003_0003",
+            "textbook_quote": "项目管理规"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "项目管理规",
+          "划大纲"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "组织的经营方针和目标",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "组织的经营方针和目标"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-33-04",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.2,
+    "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按",
+    "official_answer": "(1) 不妥之一：劳务分包单位进场后进行备案工作；\n正确做法：劳务分包单位进场前进行备案工作。\n(2) 不妥之二：木工班长代领工人工资；\n正确做法：劳务公司直接发给工人。\n(3) 除身份证外，还应将施工人员花名册、劳动合同文本、岗位技能证书的复印件及时报送总承包单位。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之一：劳务分包单位进场后进行备案工作",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之一",
+          "劳务分包单位进场后进行备案工作"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：劳务分包单位进场前进行备案工作",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "劳务分包单位进场前进行备案工作"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之二：木工班长代领工人工资",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥之二",
+          "木工班长代领工人工资"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：劳务公司直接发给工人",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "劳务公司直接发给工人"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "除身份证外，还应将施工人员花名册、劳动合同文本、岗位技能证书的复印件及时报送总承包单位",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A438000_160_0260",
+            "textbook_quote": "劳动合同文本"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-34-02",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.333,
+    "stem": "【背景资料】\n\n【问题】8m 宽环形载重单车",
+    "official_answer": "不妥之处一：项目经理安排土建技术人员编制了《现场施工用电组织设计》，经相关部门审核、项\n目技术负责人批准，总监理工程师签认。\n正确做法：《现场施工用电组织设计》必须由电气工程技术人员编制，相关部门审核，并经具有法人\n资格企业的技术负责人批准，现场监理签认后实施。\n临电使用前参加验收的部门有：编制部门、审核部门、批准部门和使用部门共同参加。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥之处一：项目经理安排土建技术人员编制了《现场施工用电组织设计》，经相关部门审核、项\n目技术负责人批准，总监理工程师签",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A434020_083_0132",
+            "textbook_quote": "总监理工程师签"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "不妥之处一",
+          "经相关部门审核",
+          "目技术负责人批准",
+          "总监理工程师签认"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：《现场施工用电组织设计》必须由电气工程技术人员编制，相关部门审核，并经具有法人\n资格企业的技术负责人批准，现场",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "相关部门审核",
+          "并经具有法人",
+          "资格企业的技术负责人批准",
+          "现场监理签认后实施"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "临电使用前参加验收的部门有：编制部门、审核部门、批准部门和使用部门共同参加",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "临电使用前参加验收的部门有",
+          "编制部门",
+          "审核部门",
+          "批准部门和使用部门共同参加"
+        ],
+        "list_spec": {
+          "denominator": 4,
+          "terms": [
+            "临电使用前参加验收的部门有",
+            "编制部门",
+            "审核部门",
+            "批准部门和使用部门共同参加"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2015-34-04",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.143,
+    "stem": "[题干缺失] 2015年案例5第5问",
+    "official_answer": "(1) 不符合规定之处：①经项目负责人安全验算后批准用塔吊起吊。理由：应经企业技术负责人批准；\n②超载6%；理由：塔吊机械不得超荷载和起吊不明质量的物件。特殊情况下必须使用时，必须经过验算\n与批准，不超过10%\n(2) 在试吊时应进行下列项检查：起重机的稳定性、制动器的可靠注、重物的平稳性、绑扎的牢固性。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "不符合规定之处：",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不符合规定之处"
+        ],
+        "list_spec": {
+          "denominator": 1,
+          "terms": [
+            "不符合规定之处"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "经项目负责人安全验算后批准用塔吊起吊",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：应经企业技术负责人批准",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "超载6%",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "超载6%"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：塔吊机械不得超荷载和起吊不明质量的物件",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "特殊情况下必须使用时，必须经过验算\n与批准，不超过10%",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A438000_157_0255",
+            "textbook_quote": "不超过10%"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "在试吊时应进行下列项检查：起重机的稳定性、制动器的可靠注、重物的平稳性、绑扎的牢固性",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-30-00",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.25,
+    "stem": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础\n设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工\n单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工\n时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第\n三方测量单位进行施工阶段的建筑变形测量。\n基础桩设计桩径Φ800mm、长度35m—42m，混凝土强度等级C30，共计900 根。施\n工单位编制的桩基施工方案中列明：采用泥浆护壁成孔、导管法水下灌注C30 混凝土；灌\n注时桩顶混凝土面超过设计标高500mm；",
+    "official_answer": "不妥一：灌注指桩顶混凝土面超过设计标高 500mm。\n正确做法：水下灌注时桩顶混凝土面标高到少要比设计标高超灌 0.8 到 1.0m。\n不妥二：成桩后按总桩数的 20% 对桩身质量进行检验。\n正确做法，对设计等级为甲级或地质条件复杂，成桩质量可靠性低的灌注桩，抽检数量不应少于总数\n的 30%，且不应少于 20 根。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥一：灌注指桩顶混凝土面超过设计标高 500mm",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥一",
+          "灌注指桩顶混凝土面超过设计标高",
+          "500mm"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法：水下灌注时桩顶混凝土面标高到少要比设计标高超灌 0.8 到 1.0m",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "正确做法",
+          "0.8",
+          "1.0m"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥二：成桩后按总桩数的 20% 对桩身质量进行检验",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥二",
+          "成桩后按总桩数的",
+          "20%",
+          "对桩身质量进行检验"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "正确做法，对设计等级为甲级或地质条件复杂，成桩质量可靠性低的灌注桩，抽检数量不应少于总数\n的 30%，且不应少于 20 ",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A422000_032_0052",
+            "textbook_quote": "且不应少于"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "正确做法",
+          "对设计等级为甲级或地质条件复杂",
+          "成桩质量可靠性低的灌注桩",
+          "抽检数量不应少于总数",
+          "30%",
+          "且不应少于"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-30-03",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.25,
+    "stem": "【背景资料】某综合楼工程，地下三层，地上二十层，总建筑面积68000m2。地基基础\n设计等级为甲级，灌注桩筏板基础，现浇钢筋混凝土框架- 剪力墙结构，建设单位与施工\n单位按照《建设工程施工合同( 示范文本)》(GF—2013—0201) 签订了施工合同，约定竣工\n时需向建设单位移交变形测量报告，部分主要材料由建设单位采购提供。施工单位委托第\n三方测量单位进行施工阶段的建筑变形测量。\n基础桩设计桩径Φ800mm、长度35m—42m，混凝土强度等级C30，共计900 根。施\n工单位编制的桩基施工方案中列明：采用泥浆护壁成孔、导管法水下灌注C30 混凝土；灌\n注时桩顶混凝土面超过设计标高500mm；",
+    "official_answer": "索赔一：建设单位采购的材料进场复检结果不合格，施工单位提出费用索赔 8 万元成立。\n理由：这是属于建设单位的责任、发包人未按照约定的时间和要求提供原材料，设备，场地，资金技\n术 资料的， 承包人可以顺延工程日期，且在索赔时限内，因此有权要求赔偿停工、窝工等损失。\n索赔二 ：施工单位对剥离检验及恢复发生的费用索赔 4 万元成立。\n理由：无论何时甲方提出对工程部位进行剥离检验的要求时，乙方应按要求进行剥露、若剥离检查无\n问题，且在索赔时限内，因此施工方因此产生的费用损失可以索赔。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "索赔一：建设单位采购的材料进场复检结果不合格，施工单位提出费用索赔 8 万元成立",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：这是属于建设单位的责任、发包人未按照约定的时间和要求提供原材料，设备，场地，资金技\n术 资料的， 承包人可以顺延工",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "索赔二 ：施工单位对剥离检验及恢复发生的费用索赔 4 万元成立",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "理由：无论何时甲方提出对工程部位进行剥离检验的要求时，乙方应按要求进行剥露、若剥离检查无\n问题，且在索赔时限内，因此施工",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A412010_042_0071",
+            "textbook_quote": "因此施工"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": []
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-31-00",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.167,
+    "stem": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构\n网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。\n地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监\n理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架\n全部拆除。\n“两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设\n计要求，经设计单位验算，需对二层结构进行加固处理，造成直接经济损失300 余万元，\n工程质量事故发生后，现场有关人员立即向本单位负责人报告，并在规定的时间内逐级上\n报至市( 设区) 级人民政府住房和城乡建设主",
+    "official_answer": "不正确。前置条件：\n(1) 底模应该在预应力张拉后拆除；\n(2) 底膜及支架拆除时的混凝土强度应符合同条件养护试件的强度要求；\n(3) 经过项目技术负责人的批准；\n(4) 有孔道灌浆的，灌浆强度不应低于 C30。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不正确",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不正确"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "前置条件：",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A421000_003_0003",
+            "textbook_quote": "前置条件"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "前置条件"
+        ],
+        "list_spec": {
+          "denominator": 1,
+          "terms": [
+            "前置条件"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "底模应该在预应力张拉后拆除",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "底模应该在预应力张拉后拆除"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "底膜及支架拆除时的混凝土强度应符合同条件养护试件的强度要求",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "经过项目技术负责人的批准",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "经过项目技术负责人的批准"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "semantic_allowed",
+        "max_score": 2,
+        "label": "有孔道灌浆的，灌浆强度不应低于 C30",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  },
+  {
+    "question_id": "M2-2016-31-01",
+    "m5a_status": "draft_candidate",
+    "priority": 3,
+    "verified_coverage": 0.143,
+    "stem": "【背景资料】某新建体育馆工程，建筑面积约2300m2，现浇钢筋混凝土结构，钢结构\n网架屋盖，地下一层，地上四层，地下室顶板设计有后张法预应力混凝土梁。\n地下室顶板同条件养护试件强度达到设计要求时，施工单位现场生产经理立即向监\n理工程师口头申请拆除地下室顶板模板，监理工程师同意后，现场将地下室顶板及支架\n全部拆除。\n“两年专项治理行动”检查时，二层混凝土结构经回弹取芯法检验，其强度不满足设\n计要求，经设计单位验算，需对二层结构进行加固处理，造成直接经济损失300 余万元，\n工程质量事故发生后，现场有关人员立即向本单位负责人报告，并在规定的时间内逐级上\n报至市( 设区) 级人民政府住房和城乡建设主",
+    "official_answer": "本质量事故属于一般事故。\n不妥一：现场有关人员立即向本单位负责人报告。\n不妥二 ：并在规定的时间内逐级上报至市( 设区) 级人民政府住建主管部门。质量事故报告还应包括\n以下内容：\n(1) 事故的初步原因；\n(2) 事故报告联系人及联系方式；\n(3) 其他应报吉的情况。",
+    "scoring_points": [
+      {
+        "point_id": "P1",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "本质量事故属于一般事故",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "本质量事故属于一般事故"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P2",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥一：现场有关人员立即向本单位负责人报告",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥一",
+          "现场有关人员立即向本单位负责人报告"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P3",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "不妥二 ：并在规定的时间内逐级上报至市( 设区) 级人民政府住建主管部门",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "不妥二",
+          "并在规定的时间内逐级上报至市(",
+          "设区)",
+          "级人民政府住建主管部门"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P4",
+        "policy_type": "list_rule",
+        "max_score": 2,
+        "label": "质量事故报告还应包括\n以下内容：",
+        "auto_certifiable": true,
+        "source_status": "ok",
+        "verified_anchors": [
+          {
+            "chunk_id": "1A431011_017_0018",
+            "textbook_quote": "以下内容"
+          }
+        ],
+        "weak_sources": [],
+        "required_terms": [
+          "质量事故报告还应包括",
+          "以下内容"
+        ],
+        "list_spec": {
+          "denominator": 2,
+          "terms": [
+            "质量事故报告还应包括",
+            "以下内容"
+          ]
+        },
+        "calculation_spec": null,
+        "known_gaps": []
+      },
+      {
+        "point_id": "P5",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "事故的初步原因",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "事故的初步原因"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P6",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "事故报告联系人及联系方式",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "事故报告联系人及联系方式"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      },
+      {
+        "point_id": "P7",
+        "policy_type": "exact_required",
+        "max_score": 2,
+        "label": "其他应报吉的情况",
+        "auto_certifiable": false,
+        "source_status": "missing_or_weak",
+        "verified_anchors": [],
+        "weak_sources": [
+          {
+            "source_type": "official_answer"
+          }
+        ],
+        "required_terms": [
+          "其他应报吉的情况"
+        ],
+        "list_spec": null,
+        "calculation_spec": null,
+        "known_gaps": [
+          "no_verbatim_textbook_anchor"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,4675 @@
+{
+  "fixture_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
+  "report_path": "artifacts/luban_no_human_v1_5/rubric_to_textbook_r6_20260602/no_human_v1_5_report.md",
+  "summary_path": "artifacts/luban_no_human_v1_5/rubric_to_textbook_r6_20260602/no_human_v1_5_summary.json",
+  "po_queue_path": "artifacts/luban_no_human_v1_5/rubric_to_textbook_r6_20260602/R7a_PO_self_decision_queue.json",
+  "external_expert_queue_path": "artifacts/luban_no_human_v1_5/rubric_to_textbook_r6_20260602/R7b_external_expert_last_resort_queue.json",
+  "summary": {
+    "cases": 20,
+    "samples": 100,
+    "point_labels": 485,
+    "deterministic_point_labels": 429,
+    "deterministic_ratio": 0.8845,
+    "residual_point_labels": 56,
+    "residual_counts": {
+      "boundary": 56
+    },
+    "resolution_counts": {
+      "A": 429,
+      "B": 56
+    },
+    "po_workload_ratio": 0.1155,
+    "external_expert_necessity_ratio": 0.0,
+    "mean_deterministic_score": 0.7677
+  },
+  "point_summary": {
+    "point_count": 97,
+    "point_type_counts": {
+      "calculation": 17,
+      "figure_label": 3,
+      "non_textbook": 4,
+      "text_term": 73
+    },
+    "anchor_source_counts": {
+      "calculation": 17,
+      "exam_figure": 3,
+      "non_textbook": 4,
+      "official_answer_weak": 4,
+      "textbook": 69
+    },
+    "textbook_anchor_point_ratio": 0.7113
+  },
+  "previous_summary": null,
+  "unanchored_root_cause_counts": {
+    "genuinely_absent": 16,
+    "rubric_is_paraphrase": 27,
+    "junk_non_term": 5,
+    "label_subterms_anchored_to_official_sources": 4,
+    "non_textbook_cross_subject": 2,
+    "official_answer_weak_repaired_to_content_markdown": 2
+  },
+  "independent_triage": {
+    "available": false,
+    "reason": "missing_independent_agent_labels"
+  },
+  "human_escalation_queue_counts": {
+    "R7a_PO_self_decision": 56,
+    "R7b_external_expert_last_resort": 0
+  },
+  "v0_vs_v1_5_comparison": {
+    "available": true,
+    "prior_report_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_grading_three_arms/kernel_rule_support_20260601/full_three_arms_20260601_185157.json",
+    "summary": {
+      "artifact_first": {
+        "sample_count": 100,
+        "mean_abs_score_delta_v1_5": 1.5253,
+        "mean_abs_score_delta_v0_same_subset": 1.5968
+      },
+      "baseline": {
+        "sample_count": 100,
+        "mean_abs_score_delta_v1_5": 3.2936,
+        "mean_abs_score_delta_v0_same_subset": 3.5471
+      },
+      "rag": {
+        "sample_count": 100,
+        "mean_abs_score_delta_v1_5": 3.2936,
+        "mean_abs_score_delta_v0_same_subset": 3.5471
+      }
+    },
+    "rows": {
+      "baseline": [
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.75,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.3333,
+          "v0_ledger_score": 14.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 12.3333,
+          "abs_delta_v0": 14.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.3333,
+          "v0_ledger_score": 8.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.3333,
+          "abs_delta_v0": 8.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.0,
+          "v0_ledger_score": 10.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.0,
+          "abs_delta_v0": 10.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.3333,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.3333,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 6.0,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.0,
+          "abs_delta_v0": 4.5
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 23.5,
+          "v0_ledger_score": 25.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 23.5,
+          "abs_delta_v0": 25.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 14.7143,
+          "v0_ledger_score": 16.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 14.7143,
+          "abs_delta_v0": 16.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 3.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 3.5
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 17.9286,
+          "v0_ledger_score": 20.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 17.9286,
+          "abs_delta_v0": 20.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 9.7857,
+          "v0_ledger_score": 12.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 9.7857,
+          "abs_delta_v0": 12.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.75,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.25,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.25,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.5,
+          "v0_ledger_score": 5.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.5,
+          "abs_delta_v0": 5.5
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 3.25
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.25,
+          "v0_ledger_score": 2.75,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.25,
+          "abs_delta_v0": 2.75
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.75,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.75,
+          "abs_delta_v0": 3.25
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.5,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.5,
+          "abs_delta_v0": 4.5
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 2.25
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 2.25
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.6,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.6,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.4,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.4,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.5917,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.5917,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.8833,
+          "v0_ledger_score": 3.3,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.8833,
+          "abs_delta_v0": 3.3
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.9583,
+          "v0_ledger_score": 3.8,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.9583,
+          "abs_delta_v0": 3.8
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.6167,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.6167,
+          "abs_delta_v0": 1.2
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 10.001,
+          "v0_ledger_score": 10.001,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.001,
+          "abs_delta_v0": 10.001
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 1.7645,
+          "v0_ledger_score": 7.0595,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.7645,
+          "abs_delta_v0": 7.0595
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 7.3535,
+          "v0_ledger_score": 8.236,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.3535,
+          "abs_delta_v0": 8.236
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 4.118,
+          "v0_ledger_score": 4.118,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.118,
+          "abs_delta_v0": 4.118
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 2.3,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.3,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.5
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.4,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.4,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.0,
+          "v0_ledger_score": 13.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 12.0,
+          "abs_delta_v0": 13.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.2916,
+          "v0_ledger_score": 7.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.2916,
+          "abs_delta_v0": 7.5
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.6667,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.6667,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.5833,
+          "v0_ledger_score": 11.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.5833,
+          "abs_delta_v0": 11.25
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.7917,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.7917,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.2,
+          "v0_ledger_score": 4.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.2,
+          "abs_delta_v0": 4.2
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.24,
+          "v0_ledger_score": 2.7,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.24,
+          "abs_delta_v0": 2.7
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 1.32,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.32,
+          "abs_delta_v0": 1.2
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 5.4,
+          "v0_ledger_score": 5.4,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.4,
+          "abs_delta_v0": 5.4
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.4,
+          "v0_ledger_score": 3.4,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.4,
+          "abs_delta_v0": 3.4
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.7,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.7,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.1,
+          "v0_ledger_score": 4.1,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.1,
+          "abs_delta_v0": 4.1
+        }
+      ],
+      "rag": [
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.75,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.3333,
+          "v0_ledger_score": 14.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 12.3333,
+          "abs_delta_v0": 14.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.3333,
+          "v0_ledger_score": 8.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.3333,
+          "abs_delta_v0": 8.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.0,
+          "v0_ledger_score": 10.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.0,
+          "abs_delta_v0": 10.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.3333,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.3333,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 6.0,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.0,
+          "abs_delta_v0": 4.5
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 23.5,
+          "v0_ledger_score": 25.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 23.5,
+          "abs_delta_v0": 25.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 14.7143,
+          "v0_ledger_score": 16.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 14.7143,
+          "abs_delta_v0": 16.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 3.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 3.5
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 17.9286,
+          "v0_ledger_score": 20.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 17.9286,
+          "abs_delta_v0": 20.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 9.7857,
+          "v0_ledger_score": 12.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 9.7857,
+          "abs_delta_v0": 12.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.75,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.25,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.25,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.5,
+          "v0_ledger_score": 5.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.5,
+          "abs_delta_v0": 5.5
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 3.25
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.25,
+          "v0_ledger_score": 2.75,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.25,
+          "abs_delta_v0": 2.75
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.75,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.75,
+          "abs_delta_v0": 3.25
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 7.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.5,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.5,
+          "abs_delta_v0": 4.5
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 2.25
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 2.25
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.6,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.6,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.4,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.4,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.5917,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.5917,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.8833,
+          "v0_ledger_score": 3.3,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.8833,
+          "abs_delta_v0": 3.3
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.9583,
+          "v0_ledger_score": 3.8,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.9583,
+          "abs_delta_v0": 3.8
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.6167,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.6167,
+          "abs_delta_v0": 1.2
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 10.001,
+          "v0_ledger_score": 10.001,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.001,
+          "abs_delta_v0": 10.001
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 1.7645,
+          "v0_ledger_score": 7.0595,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.7645,
+          "abs_delta_v0": 7.0595
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 7.3535,
+          "v0_ledger_score": 8.236,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 7.3535,
+          "abs_delta_v0": 8.236
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 4.118,
+          "v0_ledger_score": 4.118,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.118,
+          "abs_delta_v0": 4.118
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 2.3,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.3,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.5
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.4,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.4,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.0,
+          "v0_ledger_score": 13.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 12.0,
+          "abs_delta_v0": 13.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.2916,
+          "v0_ledger_score": 7.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 6.2916,
+          "abs_delta_v0": 7.5
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.6667,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.6667,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.5833,
+          "v0_ledger_score": 11.25,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 10.5833,
+          "abs_delta_v0": 11.25
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.7917,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.7917,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.2,
+          "v0_ledger_score": 4.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.2,
+          "abs_delta_v0": 4.2
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.24,
+          "v0_ledger_score": 2.7,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.24,
+          "abs_delta_v0": 2.7
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 1.32,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.32,
+          "abs_delta_v0": 1.2
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 5.4,
+          "v0_ledger_score": 5.4,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.4,
+          "abs_delta_v0": 5.4
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.4,
+          "v0_ledger_score": 3.4,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.4,
+          "abs_delta_v0": 3.4
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.7,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.7,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.1,
+          "v0_ledger_score": 4.1,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 4.1,
+          "abs_delta_v0": 4.1
+        }
+      ],
+      "artifact_first": [
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 5.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 3.3333,
+          "abs_delta_v1_5": 0.4167,
+          "abs_delta_v0": 0.8333
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 1.6667,
+          "abs_delta_v1_5": 0.8333,
+          "abs_delta_v0": 0.8333
+        },
+        {
+          "case_id": "Q1-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 7.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 4.3333,
+          "abs_delta_v1_5": 0.3333,
+          "abs_delta_v0": 0.6667
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 2.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 4.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q2-1A436000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 3.6667,
+          "abs_delta_v1_5": 0.1667,
+          "abs_delta_v0": 0.3333
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.3333,
+          "v0_ledger_score": 14.0,
+          "pred_score_on_deterministic_subset": 8.3571,
+          "abs_delta_v1_5": 3.9762,
+          "abs_delta_v0": 5.6429
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.3333,
+          "v0_ledger_score": 8.0,
+          "pred_score_on_deterministic_subset": 3.7143,
+          "abs_delta_v1_5": 2.619,
+          "abs_delta_v0": 4.2857
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.0,
+          "v0_ledger_score": 10.0,
+          "pred_score_on_deterministic_subset": 6.8571,
+          "abs_delta_v1_5": 3.1429,
+          "abs_delta_v0": 3.1429
+        },
+        {
+          "case_id": "Q3-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.3333,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.5,
+          "abs_delta_v1_5": 2.8333,
+          "abs_delta_v0": 0.5
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 3.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 4.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 6.0,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 2.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 1.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 7.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 3.0,
+          "abs_delta_v1_5": 4.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q4-1A434000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 1.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 23.5,
+          "v0_ledger_score": 25.0,
+          "pred_score_on_deterministic_subset": 8.3333,
+          "abs_delta_v1_5": 15.1667,
+          "abs_delta_v0": 16.6667
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 14.7143,
+          "v0_ledger_score": 16.0,
+          "pred_score_on_deterministic_subset": 7.0,
+          "abs_delta_v1_5": 7.7143,
+          "abs_delta_v0": 9.0
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 3.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 3.5
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 17.9286,
+          "v0_ledger_score": 20.0,
+          "pred_score_on_deterministic_subset": 8.3333,
+          "abs_delta_v1_5": 9.5953,
+          "abs_delta_v0": 11.6667
+        },
+        {
+          "case_id": "Q5-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 9.7857,
+          "v0_ledger_score": 12.5,
+          "pred_score_on_deterministic_subset": 4.0,
+          "abs_delta_v1_5": 5.7857,
+          "abs_delta_v0": 8.5
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.75,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 2.9167,
+          "abs_delta_v1_5": 0.8333,
+          "abs_delta_v0": 2.0833
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 1.625,
+          "abs_delta_v1_5": 0.875,
+          "abs_delta_v0": 0.875
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.25,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 1.6667,
+          "abs_delta_v1_5": 0.5833,
+          "abs_delta_v0": 0.8333
+        },
+        {
+          "case_id": "Q6-1A413000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.75,
+          "abs_delta_v1_5": 0.25,
+          "abs_delta_v0": 0.75
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.5,
+          "v0_ledger_score": 5.5,
+          "pred_score_on_deterministic_subset": 0.75,
+          "abs_delta_v1_5": 4.75,
+          "abs_delta_v0": 4.75
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.25,
+          "abs_delta_v1_5": 2.25,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.25,
+          "v0_ledger_score": 2.75,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 3.25,
+          "abs_delta_v0": 2.75
+        },
+        {
+          "case_id": "Q7-1A431000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 1.75,
+          "v0_ledger_score": 3.25,
+          "pred_score_on_deterministic_subset": 0.5,
+          "abs_delta_v1_5": 1.25,
+          "abs_delta_v0": 2.75
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q8-1A413030",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 5.0,
+          "abs_delta_v0": 5.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 2.5,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 2.5
+        },
+        {
+          "case_id": "Q9-1A413040",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 7.0,
+          "pred_score_on_deterministic_subset": 7.0,
+          "abs_delta_v1_5": 3.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 2.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 2.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 4.0,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q10-1A422000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 2.0,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.5,
+          "v0_ledger_score": 4.5,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 3.0,
+          "abs_delta_v0": 3.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 4.0,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 2.5,
+          "abs_delta_v0": 0.75
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q11-1A434020",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P3"
+          ],
+          "v1_5_gold_score": 3.5,
+          "v0_ledger_score": 2.25,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.75
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 3.0,
+          "abs_delta_v1_5": 1.5,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 1.5,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.5
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 0.75,
+          "abs_delta_v1_5": 0.75,
+          "abs_delta_v0": 0.75
+        },
+        {
+          "case_id": "Q12-1A412000-罚则",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 5.0,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 2.7143,
+          "abs_delta_v1_5": 2.2857,
+          "abs_delta_v0": 2.2857
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.6,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 0.4286,
+          "abs_delta_v1_5": 2.1714,
+          "abs_delta_v0": 2.0714
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 0.4,
+          "v0_ledger_score": 2.5,
+          "pred_score_on_deterministic_subset": 2.2857,
+          "abs_delta_v1_5": 1.8857,
+          "abs_delta_v0": 0.2143
+        },
+        {
+          "case_id": "Q13-1A421000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3"
+          ],
+          "v1_5_gold_score": 2.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 2.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.5917,
+          "v0_ledger_score": 5.0,
+          "pred_score_on_deterministic_subset": 3.15,
+          "abs_delta_v1_5": 1.4417,
+          "abs_delta_v0": 1.85
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.8833,
+          "v0_ledger_score": 3.3,
+          "pred_score_on_deterministic_subset": 2.7,
+          "abs_delta_v1_5": 1.1833,
+          "abs_delta_v0": 0.6
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.9583,
+          "v0_ledger_score": 3.8,
+          "pred_score_on_deterministic_subset": 2.45,
+          "abs_delta_v1_5": 1.5083,
+          "abs_delta_v0": 1.35
+        },
+        {
+          "case_id": "Q14-1A430000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P10",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.6167,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 1.0,
+          "abs_delta_v1_5": 0.6167,
+          "abs_delta_v0": 0.2
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q15-NA",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P3"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 10.001,
+          "v0_ledger_score": 10.001,
+          "pred_score_on_deterministic_subset": 4.706,
+          "abs_delta_v1_5": 5.295,
+          "abs_delta_v0": 5.295
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 1.7645,
+          "v0_ledger_score": 7.0595,
+          "pred_score_on_deterministic_subset": 1.5292,
+          "abs_delta_v1_5": 0.2353,
+          "abs_delta_v0": 5.5303
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 7.3535,
+          "v0_ledger_score": 8.236,
+          "pred_score_on_deterministic_subset": 4.706,
+          "abs_delta_v1_5": 2.6475,
+          "abs_delta_v0": 3.53
+        },
+        {
+          "case_id": "Q16-1A436000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6"
+          ],
+          "v1_5_gold_score": 4.118,
+          "v0_ledger_score": 4.118,
+          "pred_score_on_deterministic_subset": 2.353,
+          "abs_delta_v1_5": 1.765,
+          "abs_delta_v0": 1.765
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 2.3,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 2.0,
+          "abs_delta_v1_5": 0.3,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.0,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 1.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.5,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.5
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 1.4,
+          "v0_ledger_score": 2.0,
+          "pred_score_on_deterministic_subset": 1.0,
+          "abs_delta_v1_5": 0.4,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q17-1A433000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P4",
+            "P5"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 12.0,
+          "v0_ledger_score": 13.0,
+          "pred_score_on_deterministic_subset": 11.3,
+          "abs_delta_v1_5": 0.7,
+          "abs_delta_v0": 1.7
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 6.2916,
+          "v0_ledger_score": 7.5,
+          "pred_score_on_deterministic_subset": 4.825,
+          "abs_delta_v1_5": 1.4666,
+          "abs_delta_v0": 2.675
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.6667,
+          "v0_ledger_score": 1.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.6667,
+          "abs_delta_v0": 1.0
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 10.5833,
+          "v0_ledger_score": 11.25,
+          "pred_score_on_deterministic_subset": 9.65,
+          "abs_delta_v1_5": 0.9333,
+          "abs_delta_v0": 1.6
+        },
+        {
+          "case_id": "Q18-1A434000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 1.7917,
+          "v0_ledger_score": 1.5,
+          "pred_score_on_deterministic_subset": 1.5,
+          "abs_delta_v1_5": 0.2917,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 4.2,
+          "v0_ledger_score": 4.2,
+          "pred_score_on_deterministic_subset": 2.4,
+          "abs_delta_v1_5": 1.8,
+          "abs_delta_v0": 1.8
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.24,
+          "v0_ledger_score": 2.7,
+          "pred_score_on_deterministic_subset": 1.6,
+          "abs_delta_v1_5": 1.64,
+          "abs_delta_v0": 1.1
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 3.0,
+          "v0_ledger_score": 3.0,
+          "pred_score_on_deterministic_subset": 2.4,
+          "abs_delta_v1_5": 0.6,
+          "abs_delta_v0": 0.6
+        },
+        {
+          "case_id": "Q19-1A432000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P2",
+            "P3",
+            "P4"
+          ],
+          "v1_5_gold_score": 1.32,
+          "v0_ledger_score": 1.2,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 1.32,
+          "abs_delta_v0": 1.2
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S1",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 5.4,
+          "v0_ledger_score": 5.4,
+          "pred_score_on_deterministic_subset": 5.4,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S2",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 3.4,
+          "v0_ledger_score": 3.4,
+          "pred_score_on_deterministic_subset": 3.4,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S3",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 0.0,
+          "v0_ledger_score": 0.0,
+          "pred_score_on_deterministic_subset": 0.0,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S4",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.7,
+          "v0_ledger_score": 4.0,
+          "pred_score_on_deterministic_subset": 4.7,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.7
+        },
+        {
+          "case_id": "Q20-1A413000",
+          "sample_id": "S5",
+          "deterministic_points": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5",
+            "P6",
+            "P7",
+            "P8",
+            "P9"
+          ],
+          "v1_5_gold_score": 4.1,
+          "v0_ledger_score": 4.1,
+          "pred_score_on_deterministic_subset": 4.1,
+          "abs_delta_v1_5": 0.0,
+          "abs_delta_v0": 0.0
+        }
+      ]
+    }
+  }
+}

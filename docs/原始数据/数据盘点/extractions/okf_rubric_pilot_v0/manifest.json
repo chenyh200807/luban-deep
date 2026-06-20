@@ -1,0 +1,36 @@
+{
+  "schema": "luban_okf_like_rubric_pilot_manifest.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "source_path": "docs/原始数据/数据盘点/extractions/case_rubric_canonical.json",
+  "source_sha256": "1d93638e813d9a4e026fd39849f7804a715a6d63c4b06d5795bd1aca7e1c4ce0",
+  "year": "2021",
+  "case_no": "1",
+  "authority": "training_org_analysis_yousen",
+  "not_official": true,
+  "official_score_allowed": false,
+  "runtime_guard": {
+    "release_stage": "source_pilot",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "artifact_refs": {
+    "question_context_pack": "question_context_pack.json",
+    "scoring_point_index": "scoring_point_index.json"
+  },
+  "counts": {
+    "cases": 1,
+    "rubrics": 5,
+    "scoring_points": 15
+  },
+  "guardrails": [
+    "source-layer pilot only",
+    "no runtime default",
+    "no official scoring claim",
+    "no learner truth write"
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "luban_okf_landing_gap_report.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "status": "source_layer_target_matched",
+  "runtime_guard": {
+    "release_stage": "source_layer_gap_report",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "target": {
+    "canonical_rubric": {
+      "source_path": "docs/原始数据/数据盘点/extractions/case_rubric_canonical.json",
+      "cases": 25,
+      "rubrics": 117,
+      "scoring_points": 431,
+      "by_year": [
+        {
+          "year": "2021",
+          "cases": 5,
+          "rubrics": 25,
+          "scoring_points": 85
+        },
+        {
+          "year": "2022",
+          "cases": 5,
+          "rubrics": 21,
+          "scoring_points": 110
+        },
+        {
+          "year": "2023",
+          "cases": 5,
+          "rubrics": 23,
+          "scoring_points": 89
+        },
+        {
+          "year": "2024",
+          "cases": 5,
+          "rubrics": 25,
+          "scoring_points": 67
+        },
+        {
+          "year": "2025",
+          "cases": 5,
+          "rubrics": 23,
+          "scoring_points": 80
+        }
+      ]
+    }
+  },
+  "current": {
+    "json_source_ledger": {
+      "source_path": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/manifest.json",
+      "json_sources": 383,
+      "buckets": {
+        "exam_cleaned_json": 11,
+        "lecture_cleaned_json": 335,
+        "practice_qiantizan_json": 1,
+        "practice_zl500_json": 1,
+        "standard_cleaned_json": 8,
+        "taxonomy_backup_json": 8,
+        "taxonomy_cleaned_json": 1,
+        "textbook_cleaned_json": 6,
+        "textbook_core_json": 3,
+        "textbook_enrichment_json": 6,
+        "textbook_index_json": 3
+      },
+      "authority_status": "raw_evidence_ledger"
+    },
+    "okf_pilot": {
+      "source_path": "docs/原始数据/数据盘点/extractions/okf_rubric_pilot_v0/manifest.json",
+      "cases": 1,
+      "rubrics": 5,
+      "scoring_points": 15,
+      "authority": "training_org_analysis_yousen",
+      "official_score_allowed": false
+    },
+    "okf_dry_consumer": {
+      "source_path": "docs/原始数据/数据盘点/extractions/okf_dry_consumer_v0/receipt.json",
+      "exists": true,
+      "status": "dry_consumed_non_runtime",
+      "counts": {
+        "cases": 1,
+        "rubrics": 5,
+        "scoring_points": 15
+      }
+    },
+    "okf_source_alignment": {
+      "source_path": "docs/原始数据/数据盘点/extractions/okf_source_alignment_v0/report.json",
+      "exists": true,
+      "status": "case_source_alignment_ready",
+      "counts": {
+        "target_cases": 25,
+        "aligned_cases": 25,
+        "ordinal_subquestion_matches": 9,
+        "case_level_only": 16
+      }
+    },
+    "okf_candidate_scope": {
+      "source_path": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/manifest.json",
+      "exists": true,
+      "status": "source_layer_candidate_complete",
+      "cases": 25,
+      "rubrics": 117,
+      "scoring_points": 431
+    }
+  },
+  "gap": {
+    "remaining_cases": 0,
+    "remaining_rubrics": 0,
+    "remaining_scoring_points": 0
+  },
+  "next_actions": [
+    {
+      "id": "okf_dry_consumer",
+      "status": "completed",
+      "reason": "compiled inspection artifacts were read without runtime/canonical writes"
+    },
+    {
+      "id": "ledger_to_okf_source_alignment",
+      "status": "completed",
+      "reason": "exam_cleaned_json and rubric candidate cases are source-aligned"
+    },
+    {
+      "id": "expand_okf_candidate_scope",
+      "status": "completed",
+      "reason": "source-layer candidate scope covers the canonical rubric target"
+    }
+  ]
+}

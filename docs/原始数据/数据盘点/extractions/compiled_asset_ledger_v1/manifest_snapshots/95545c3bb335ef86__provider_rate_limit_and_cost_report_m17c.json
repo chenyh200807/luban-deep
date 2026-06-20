@@ -1,0 +1,10 @@
+{
+  "rate_limit_events": 0,
+  "rate_events": [],
+  "backoff": "exponential base=1.5s, max_retries=3",
+  "resume": "checkpointed by packet_hash; completed calls never re-paid",
+  "new_live_calls": 27,
+  "duplicated_paid_calls": 0,
+  "cost_marker": "metered by DeepSeek live call count; deterministic validator zero model cost",
+  "secrets_printed": false
+}

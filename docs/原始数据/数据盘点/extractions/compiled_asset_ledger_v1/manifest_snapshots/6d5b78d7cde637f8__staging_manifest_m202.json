@@ -1,0 +1,66 @@
+{
+  "artifact_kind": "m202_staging_manifest",
+  "candidate_hash": "ac68c20c9bc124e165a6e44281e502774681aea27c874b9cced3c3a755a057df",
+  "delta_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+  "files": {
+    "FINDING_delta_to_registry_candidate_staging_m202_20260605.md": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/FINDING_delta_to_registry_candidate_staging_m202_20260605.md",
+      "sha256": "f9c79a43d372c1a79cef4c6d60853ec0af6a04b36612dae6430b50509605bcf0"
+    },
+    "delta_classification_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/delta_classification_m202.json",
+      "sha256": "cdc37270e8510ed5679df199c0dc24333a3363ee6429c1e64fc3e6e16d1b629c"
+    },
+    "deterministic_validation_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/deterministic_validation_m202.json",
+      "sha256": "504c79937612ad383a25c1577f34effe90aaa6e0c46834753003c21ffc8903f1"
+    },
+    "input_delta_audit_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/input_delta_audit_m202.json",
+      "sha256": "272f532ecc66d41a81d775278e7869bee1df68c9852b1dc9d2724fb9e3887868"
+    },
+    "lb_claim_mapping_delta_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/lb_claim_mapping_delta_m202.json",
+      "sha256": "950d157046843c075aadea8ef242ae6427e891d5293b3ce8fae8fcdf545677cc"
+    },
+    "no_runtime_impact_audit_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/no_runtime_impact_audit_m202.json",
+      "sha256": "dd2236eefea56ae35aaca70f50a928a668f8b36b5f9049f96223e3513388fec7"
+    },
+    "regression_projection_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/regression_projection_m202.json",
+      "sha256": "390e260205344bdbd3045ff5edc758d7a0cff5b6d89c44ff52c7b1afbd74dae0"
+    },
+    "release_decision_input_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/release_decision_input_m202.json",
+      "sha256": "8e8ad45e68eb8edee3f351d9650b9c415d7f6d9cc763bacb23212a4f5b83ac09"
+    },
+    "staged_registry_candidate_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_candidate_m202.json",
+      "sha256": "ad0c99c6444040340b6ac8adcc4180626ce7d58a267e4fa895d45dfb2c0e8268"
+    },
+    "staged_registry_signature_m202.json": {
+      "path": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_signature_m202.json",
+      "sha256": "acc7356384ce71d5ce888a6e042866759dd935f2d1b49a412c141d5a4a129431"
+    }
+  },
+  "output_dir": "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605",
+  "production_default_changed": false,
+  "published": false,
+  "release_decision_executed": false,
+  "required_outputs": [
+    "staging_manifest_m202.json",
+    "input_delta_audit_m202.json",
+    "delta_classification_m202.json",
+    "staged_registry_candidate_m202.json",
+    "staged_registry_signature_m202.json",
+    "deterministic_validation_m202.json",
+    "regression_projection_m202.json",
+    "lb_claim_mapping_delta_m202.json",
+    "release_decision_input_m202.json",
+    "no_runtime_impact_audit_m202.json",
+    "FINDING_delta_to_registry_candidate_staging_m202_20260605.md"
+  ],
+  "stage": "M20.2 Delta-to-Registry Candidate Staging",
+  "status": "staged_release_candidate"
+}

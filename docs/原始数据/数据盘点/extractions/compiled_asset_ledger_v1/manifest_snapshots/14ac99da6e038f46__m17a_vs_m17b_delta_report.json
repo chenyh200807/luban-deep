@@ -1,0 +1,17 @@
+{
+  "m17a": {
+    "real_adjudications": 25,
+    "granularity_gains": 12,
+    "fp": 0
+  },
+  "m17b": {
+    "runtime_submissions": 130,
+    "live_calls": 130,
+    "point_decisions": 347,
+    "granularity_partial": 22,
+    "needs_review": 42,
+    "validator_downgrades": 31,
+    "fp": 0
+  },
+  "scale_delta": "M17A 25 -> M17B 130 runtime submissions; council calibration added"
+}

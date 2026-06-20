@@ -1,0 +1,9 @@
+{
+  "stage": "M16 Controlled Production Runtime Flip",
+  "real_entry": "/api/v1/ws -> _maybe_attach_v1_controlled_runtime",
+  "registry_version": "qga_v1_release_candidate_m16_20260604",
+  "production_default": "off",
+  "controlled_auto_total": 54,
+  "verdict": "GO",
+  "production_v1": "NO-GO"
+}

@@ -1,0 +1,8 @@
+{
+  "status": "data_blocked",
+  "reason": "no new gradeable case-question source beyond golden 20",
+  "new_question_count": 0,
+  "fabricated": false,
+  "v0_coverage_unchanged": true,
+  "see": "artifacts/luban_grading_artifacts/registry_v1_20260604/data_blocker_report.md"
+}

@@ -1,0 +1,134 @@
+{
+  "schema_version": "luban_taxonomy_runtime_supply_rebuild.v1",
+  "generated_at_date": "2026-06-12",
+  "classification": {
+    "candidate_only": true,
+    "review_only": true
+  },
+  "safety": {
+    "production_write_count": 0,
+    "db_write_count": 0,
+    "remote_calls": 0,
+    "runtime_supply_writes": 0,
+    "compiled_dir_writes": 0,
+    "outputs_root": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612"
+  },
+  "inputs": {
+    "canonical_taxonomy": {
+      "path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+      "sha256": "abc088ccb5576db3ee978b29e014f182c4de49b8046d16021d4b2f9c895093c4"
+    },
+    "pre_book_derived_backup": {
+      "path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026_pre_book_derived_backup_20260612.json",
+      "sha256": "38249e82e4d7a38c5b50341bb0c75ef12e599850381a11160121a8dbbbd09e81"
+    }
+  },
+  "tasks": {
+    "compiled_label_map_alias_merge": {
+      "status": "completed",
+      "output": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/construction_2026_taxonomy.compiled_alias_merged_candidate.json",
+      "new_codes": 2156,
+      "alias_retained": 474,
+      "conflicts_new_wins": 490,
+      "merged_total": 2630,
+      "new_nodes_total": 2156,
+      "old_nodes_total": 3474,
+      "new_ambiguous_codes": 0,
+      "old_ambiguous_codes": 300,
+      "deprecated_codes_excluded": 15,
+      "blockers": []
+    },
+    "canonical_taxonomy_index_candidate": {
+      "status": "completed_with_blockers",
+      "mode": "logic_replicated_output_redirected",
+      "reason": "script hardcodes OUT to runtime_supply/v_canonical_taxonomy_index with no CLI output param",
+      "output": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/luban_taxonomy_runtime_supply_rebuild_20260612/canonical_taxonomy_index_candidate.json",
+      "leaf_count": 204,
+      "childless_keyworded_nodes_in_new_canonical": 1681,
+      "childless_keyworded_by_level": {
+        "5": 204,
+        "4": 483,
+        "3": 780,
+        "2": 214
+      },
+      "content_hash": "64c57e65f36c78e76d405ac3e6cbccd85da055524e4b74e23e58952ed2b69eb4",
+      "vs_current_runtime_supply": {
+        "current_leaf_count": 3158,
+        "current_content_hash": "732d7822052e777f9b3a22d47de42e31cac6103c8819a13e1591156415c47c92",
+        "codes_added_vs_current": 204,
+        "codes_removed_vs_current": 781,
+        "codes_shared": 0
+      },
+      "blockers": [
+        "leaf-definition mismatch: CanonicalTaxonomy.leaf_codes() (level in (5,6) + keywords) sees only 204 leaves, but the new canonical has 1681 childless keyworded nodes (spread over levels ['2', '3', '4', '5']). The candidate index is mechanically valid but semantically incomplete; before promotion either the canonical level numbering must be normalized or CanonicalTaxonomy's leaf rule migrated to childless+keywords.",
+        "zero code overlap with current runtime_supply index: old -01/-a leaf codes were fully replaced by textbook-derived -Bnnn codes; every consumer keyed on old leaf codes (learner_state anchors, point registry, unified knowledge) requires code migration before this index can be promoted."
+      ]
+    },
+    "unified_knowledge_rebuild_assessment": {
+      "status": "assessed_not_run",
+      "checks": {
+        "textbook_bundle": {
+          "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+          "records": 1303,
+          "native_code_nonempty": 1303,
+          "native_code_in_new_tree": 1244,
+          "native_code_is_new_leaf": 0,
+          "native_code_orphaned": 59
+        },
+        "standard_anchors": {
+          "anchor_codes": [
+            "1A411010",
+            "1A413020",
+            "1A413030",
+            "1A413050",
+            "1A413060",
+            "1A437000"
+          ],
+          "missing_in_new_tree": [],
+          "present_but_no_classification_leaves": [
+            "1A413020",
+            "1A413030",
+            "1A413050",
+            "1A413060",
+            "1A437000"
+          ]
+        },
+        "source_dirs": {
+          "标准文件": {
+            "exists": true,
+            "json_files": 8
+          },
+          "讲义": {
+            "exists": true,
+            "json_files": 335
+          },
+          "题库": {
+            "exists": true,
+            "json_files": 13
+          }
+        },
+        "script_write_targets": {
+          "artifacts_out": "artifacts/luban_grading_artifacts/canonical_unified_knowledge_20260606 (would OVERWRITE the 20260606 run)",
+          "runtime_supply_out": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/ (written whenever verify_unified_bundle passes — FORBIDDEN under candidate-only policy)",
+          "tax_path": "hardcoded to the new canonical path (already points at rebuilt file)"
+        },
+        "new_canonical_stats": {
+          "nodes_total": 2181,
+          "classification_leaves_l5l6_with_keywords": 204
+        }
+      },
+      "blockers": [
+        "textbook bundle: 59/1303 native node_codes not in new canonical tree -> those units lose their anchor and fall to global keyword classification (accuracy risk)",
+        "anchor codes present but subtree has no classification leaves under the current level-(5,6) leaf rule: 1A413020,1A413030,1A413050,1A413060,1A437000 -> standards classification (anchor+keyword) would collapse to unclassified/global-keyword; depends on the same leaf-definition migration as the taxonomy index.",
+        "run_luban_canonical_knowledge_unification.py as-is writes runtime_supply/v_canonical_unified_knowledge and overwrites the 20260606 artifacts dir; needs OUT/SUPPLY redirection (no CLI params) before any candidate rerun"
+      ]
+    }
+  },
+  "blockers": [
+    "leaf-definition mismatch: CanonicalTaxonomy.leaf_codes() (level in (5,6) + keywords) sees only 204 leaves, but the new canonical has 1681 childless keyworded nodes (spread over levels ['2', '3', '4', '5']). The candidate index is mechanically valid but semantically incomplete; before promotion either the canonical level numbering must be normalized or CanonicalTaxonomy's leaf rule migrated to childless+keywords.",
+    "zero code overlap with current runtime_supply index: old -01/-a leaf codes were fully replaced by textbook-derived -Bnnn codes; every consumer keyed on old leaf codes (learner_state anchors, point registry, unified knowledge) requires code migration before this index can be promoted.",
+    "textbook bundle: 59/1303 native node_codes not in new canonical tree -> those units lose their anchor and fall to global keyword classification (accuracy risk)",
+    "anchor codes present but subtree has no classification leaves under the current level-(5,6) leaf rule: 1A413020,1A413030,1A413050,1A413060,1A437000 -> standards classification (anchor+keyword) would collapse to unclassified/global-keyword; depends on the same leaf-definition migration as the taxonomy index.",
+    "run_luban_canonical_knowledge_unification.py as-is writes runtime_supply/v_canonical_unified_knowledge and overwrites the 20260606 artifacts dir; needs OUT/SUPPLY redirection (no CLI params) before any candidate rerun"
+  ]
+}

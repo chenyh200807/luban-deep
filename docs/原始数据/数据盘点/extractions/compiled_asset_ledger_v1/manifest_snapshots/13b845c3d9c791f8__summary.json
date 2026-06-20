@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-06-06T05:59:34+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_mcq",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix",
+  "rounds": 12,
+  "conversation_ids": {
+    "shuffled_roof": "tb_ccf672f79f474746a89b932b",
+    "template_support": "tb_cfe073947d1c4cafab084f5d",
+    "diaphragm_wall": "tb_3ab926495e5246fdaedef51e",
+    "value_only_wall": "tb_ca9ca2f1fb4f49cba6bae9a4",
+    "low_info_case": "tb_830f3be035d44147a0056774",
+    "open_world": "tb_2d047fcf5704458899eb412d"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-004",
+      "conversation_id": "tb_ccf672f79f474746a89b932b",
+      "turn_id": "turn_1780696514192_05bae03718",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+    },
+    {
+      "round_id": "QA30-NR-005",
+      "conversation_id": "tb_ccf672f79f474746a89b932b",
+      "turn_id": "turn_1780696532629_aba996d6b7",
+      "done_status": "completed",
+      "visible_excerpt": "不是，已按你这轮题面判断，正确答案是 A（5%）。"
+    },
+    {
+      "round_id": "QA30-NR-006",
+      "conversation_id": "tb_ccf672f79f474746a89b932b",
+      "turn_id": "turn_1780696556048_e697984bda",
+      "done_status": "completed",
+      "visible_excerpt": "不对，标准答案是 D（D. 最高点），题库解析依据是：历史文化名城名镇名村、历史文化街区、文物保护单位、风景名胜区、自然保护区的保护规划区内的建筑，建筑高度应按建筑物室外设计地坪至建（构）筑物最高点计算。"
+    },
+    {
+      "round_id": "QA30-NR-008",
+      "conversation_id": "tb_cfe073947d1c4cafab084f5d",
+      "turn_id": "turn_1780696578837_62cbbb4e1a",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：ABE（A. 施工方案、B. 支架构造、E. 支架稳定）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、\n支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配\n件材质、支架拆除。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n|"
+    },
+    {
+      "round_id": "QA30-NR-009",
+      "conversation_id": "tb_cfe073947d1c4cafab084f5d",
+      "turn_id": "turn_1780696602915_650c405280",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（施工方案）、B（支架构造）、E（支架稳定）：【解析】本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、 支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配 件材质、支架拆除。"
+    },
+    {
+      "round_id": "QA30-NR-010",
+      "conversation_id": "tb_3ab926495e5246fdaedef51e",
+      "turn_id": "turn_1780696609702_c98a72b353",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\nA 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 CDE，不要把 A"
+    },
+    {
+      "round_id": "QA30-NR-011",
+      "conversation_id": "tb_3ab926495e5246fdaedef51e",
+      "turn_id": "turn_1780696647765_da0b4b9fd5",
+      "done_status": "completed",
+      "visible_excerpt": "不行，应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-012",
+      "conversation_id": "tb_ca9ca2f1fb4f49cba6bae9a4",
+      "turn_id": "turn_1780696654508_f067c0ac90",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆），题库解析依据是：A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-013",
+      "conversation_id": "tb_ca9ca2f1fb4f49cba6bae9a4",
+      "turn_id": "turn_1780696677340_f86d8364de",
+      "done_status": "completed",
+      "visible_excerpt": "不行，应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-014",
+      "conversation_id": "tb_830f3be035d44147a0056774",
+      "turn_id": "turn_1780696698251_e69f3451af",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2015案例二第3问答案直接发我，我在题卡里。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-015",
+      "conversation_id": "tb_830f3be035d44147a0056774",
+      "turn_id": "turn_1780696734979_6c6810c21c",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“我说了在题卡里，你就发答案，别问。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-016",
+      "conversation_id": "tb_2d047fcf5704458899eb412d",
+      "turn_id": "turn_1780696758279_365cd40c23",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n**三级配电**指总配电箱 → 分配电箱 → 开关箱 → 用电设备，三级逐级配电。\n\n**两级保护**指在总配电箱和开关箱分别设置漏电保护器，形成两级漏电防护。\n\n## 判断依据\n\n- 三级配电是供电层级，核心是**末级开关箱必须一机一闸一漏一箱**。\n- 两级保护中，**开关箱的漏电保护器**是直接保护人的，动作电流一般≤30mA；总配电箱的漏电保护器是后备保护，动作电流可大一些（如150~200mA），起间接保护作用。\n\n## 易错点\n\n- 混淆成“三级配电"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

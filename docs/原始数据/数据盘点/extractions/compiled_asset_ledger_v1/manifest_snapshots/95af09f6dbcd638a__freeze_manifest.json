@@ -1,0 +1,41 @@
+{
+  "schema_version": "luban_four_arm_ab_freeze.v5_patched_gold_FINAL",
+  "frozen_at": "2026-06-11T20:20:35+0800",
+  "command": "python3 scripts/run_luban_four_arm_scoring_ab.py --limit 0 --tier live_provider_sample --live --compile-aliases --answers artifacts/luban_grading_artifacts/m35_gold_labeling_full_patched_20260611/student_answers.jsonl --output-dir .../live_full_162_v5_patched_gold",
+  "lineage": [
+    "v1: 初版(争议桶fail_open回归→根因=金标协议损伤)",
+    "v2: +missing-verdict重试",
+    "v3: +derived calc advisory",
+    "v4: +Codex 5项加固",
+    "v5: 对 patched gold 终评(本版)"
+  ],
+  "gold": {
+    "path": "artifacts/luban_grading_artifacts/m35_gold_labeling_full_patched_20260611/student_answers.jsonl",
+    "hash": "sha256:d616844beae581b395209d8b8f3344bf0fe308f98a81ebb0468bcd93037a3600",
+    "note": "v1 162行 + 7行由五模型面板 v2 重标替换(WO_GOLD_READJ_20260611), 0 unadjudicated"
+  },
+  "code": {
+    "scripts/run_luban_four_arm_scoring_ab.py": "sha256:dcc741ce17117eea3e7870b98d18b1aa0f115fdb046490a9b365f64a8f5fb579",
+    "deeptutor/services/construction_grading/artifact_first_llm_judge.py": "sha256:ead9d9034db5b30c43805b31d12b45482fc745020a395244073fce4ee1bdacca",
+    "deeptutor/services/construction_grading/judge_point_enrichment.py": "sha256:fa4feb4529273fa833c1d0ad2e973f5dad66772d5757087064901e70f13cfb41"
+  },
+  "outputs": {
+    "report.json": "sha256:f2a486df416d90b8cb75c3284b969d2d3438a522171d9e61c3c3fb5b9ec156b0",
+    "per_row.jsonl": "sha256:8f846829f5c28debfb2d591ea9716bdc5fe05220ad33dcaa61a1c4ce8f8a715c",
+    "final_analysis.json": "sha256:d87eb01cbcdb8e38b1cdb00c97139b236afeaf9e2783989312353dcb2fcc474d"
+  },
+  "git": {
+    "head": "54c4b763fa3c2e311f0aea26fe748a9dd7d7e6ac",
+    "branch": "main"
+  },
+  "safety": {
+    "production_write_count": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "canonical_truth_written": false,
+    "published_registry_written": false,
+    "is_release_truth": false,
+    "official_score_allowed": false,
+    "quality_claim_allowed": false
+  }
+}

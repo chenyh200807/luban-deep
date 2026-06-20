@@ -1,0 +1,57 @@
+{
+  "verdict": "GO",
+  "packets_reviewed": 6,
+  "models_unanimous": "6/6",
+  "council_faithful": 0,
+  "signed_count": 0,
+  "routed_back_count": 6,
+  "supply_persisted": false,
+  "signed_namespace": "textbook_paraphrase_review",
+  "reviewer": "opus-4.8+codex-gpt5.5",
+  "hard_gates": {
+    "verdicts_cover_all_packets": true,
+    "signed_only_governed_faithful": true,
+    "zero_verbatim_authority": true,
+    "separate_namespace": true,
+    "bundle_verifies_if_signed": true
+  },
+  "routed_back": [
+    {
+      "point_id": "1A432001_027_0033::C0",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    },
+    {
+      "point_id": "1A432001_027_0033::C1",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    },
+    {
+      "point_id": "1A435000_089_0147::C0",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    },
+    {
+      "point_id": "1A411011_024_0045::C2",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    },
+    {
+      "point_id": "1A413000_085_0158::C2",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    },
+    {
+      "point_id": "1A413030_092_0173::C0",
+      "reason": "no_governed_faithful_verdict",
+      "verdict": "not_faithful",
+      "reviewer_role": "governed_council"
+    }
+  ],
+  "note": "council faithfulness is a governed input; signing is deterministic. signed=0 means the governed council rejected every card — channel discipline holding, NOT a failure."
+}

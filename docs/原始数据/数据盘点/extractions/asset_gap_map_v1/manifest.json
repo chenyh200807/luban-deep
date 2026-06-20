@@ -1,0 +1,68 @@
+{
+  "schema": "luban_asset_gap_map_manifest.v1",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "authority_status": "asset_gap_map_only",
+  "runtime_guard": {
+    "release_stage": "asset_gap_map_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_paths": {
+    "data_asset_brief": "docs/原始数据/数据盘点/extractions/data_asset_brief_v1/manifest.json",
+    "asset_buckets": "docs/原始数据/数据盘点/extractions/data_asset_brief_v1/asset_buckets.json",
+    "json_source_ledger": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/manifest.json",
+    "json_sources": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl",
+    "pdf_source_ledger": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/manifest.json",
+    "pdf_sources": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/pdf_sources.jsonl",
+    "okf_candidate_scope": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/manifest.json",
+    "okf_source_alignment": "docs/原始数据/数据盘点/extractions/okf_source_alignment_v0/report.json",
+    "okf_case_alignment": "docs/原始数据/数据盘点/extractions/okf_source_alignment_v0/case_alignment.jsonl",
+    "compiled_asset_authority_map": "docs/原始数据/数据盘点/extractions/compiled_asset_authority_map_v1/manifest.json",
+    "runtime_pointers": "docs/原始数据/数据盘点/extractions/compiled_asset_authority_map_v1/runtime_pointers.jsonl"
+  },
+  "outputs": {
+    "gap_summary": "gap_summary.json",
+    "gap_items": "gap_items.jsonl",
+    "action_queues": "action_queues.json",
+    "next_actions": "next_actions.json",
+    "summary": "summary.md"
+  },
+  "counts": {
+    "gap_items": 9,
+    "open_gap_items": 9,
+    "by_priority": {
+      "P1": 5,
+      "P2": 4
+    },
+    "by_area": {
+      "runtime_supply": 3,
+      "pdf_source": 2,
+      "exam_source": 1,
+      "okf_release": 1,
+      "okf_source_alignment": 1,
+      "json_source": 1
+    },
+    "action_queue_counts": {
+      "exam_content_gap": 3,
+      "json_source_claim_review_backlog": 383,
+      "pdf_p1_compile_or_map": 21,
+      "pdf_p2_verify_provenance": 39,
+      "pdf_p2_compile_if_needed": 7,
+      "okf_case_level_alignment_backfill": 16,
+      "runtime_published_pointer_consumer_evidence": 4,
+      "runtime_policy_conflict_live_reader": 1,
+      "runtime_blocked_or_candidate_pointer_review": 11
+    }
+  },
+  "guardrails": [
+    "gap map only; not runtime install",
+    "LLM outputs are candidate organization work only",
+    "deterministic gates sign releases and protect authority",
+    "official score and learner truth remain false"
+  ]
+}

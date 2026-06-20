@@ -1,0 +1,22 @@
+{
+  "classify_and_act": "M15 outputs -> registry / runtime / cohort / rollback / observability",
+  "fanout_and_synthesize": {
+    "deterministic_script": "sole authority",
+    "deepseek_qwen_gpt55": "advisory_not_invoked",
+    "opus48": "in_session_workflow_judge"
+  },
+  "adversarial_verification": [
+    "spec_wrong_target_point_fp",
+    "kill_switch",
+    "malformed_registry",
+    "non_cohort",
+    "legacy_overwrite",
+    "rollback"
+  ],
+  "generate_and_filter": "controlled cohort submissions; rejected new WS / production default / DB write / official_answer-as-source",
+  "tournament": "minimal release-candidate registry + thin controlled hook reusing beta_shadow scoring",
+  "loop_until_done": {
+    "controlled_auto_total": 54,
+    "verdict": "GO"
+  }
+}

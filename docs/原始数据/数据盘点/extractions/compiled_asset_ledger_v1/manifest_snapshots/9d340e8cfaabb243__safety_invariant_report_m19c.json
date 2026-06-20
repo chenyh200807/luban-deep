@@ -1,0 +1,16 @@
+{
+  "all_pass": true,
+  "auto_shadow_count": 0,
+  "bad_certified": 0,
+  "canonical_truth_written": false,
+  "council_vote_as_source": 0,
+  "false_positive": 0,
+  "kill_switch_works": true,
+  "legacy_overwrite": 0,
+  "list_partial_auto": 0,
+  "model_vote_as_source": 0,
+  "non_cohort_blocked": true,
+  "official_answer_as_source": 0,
+  "production_write_count": 0,
+  "source_mismatch": 0
+}

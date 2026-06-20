@@ -1,0 +1,19 @@
+{
+  "version_id": "luban_v1_alpha_shadow_m8_20260604",
+  "status": "alpha_shadow",
+  "formal_registry_emitted": false,
+  "production_runtime_connected": false,
+  "human_reviewed": false,
+  "v0_published_baseline": {
+    "published_count": 18,
+    "auto_certifiable_point_count": 69
+  },
+  "components": {
+    "v0_published_baseline_included_as_reference": true,
+    "m7_reverified_auto_points": 6,
+    "m7r_new_source_backed_points": 12,
+    "weak_or_source_gap_points_diagnostic_only": 57
+  },
+  "alpha_auto_preview_total": 18,
+  "not_production_grade": true
+}

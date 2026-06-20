@@ -1,0 +1,7 @@
+{
+  "objective_tamper_fail_closed": true,
+  "source_tamper_fail_closed": true,
+  "case_tamper_fail_closed": true,
+  "laundering_origins_blocked": true,
+  "rag_model_council_as_source": 0
+}

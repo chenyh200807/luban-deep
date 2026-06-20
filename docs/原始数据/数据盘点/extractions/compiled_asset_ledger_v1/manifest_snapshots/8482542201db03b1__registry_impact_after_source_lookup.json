@@ -1,0 +1,19 @@
+{
+  "simulation_only": true,
+  "formal_registry_emitted": false,
+  "input_still_weak_count": 10,
+  "textbook_verified_new": 0,
+  "standard_verified_candidate": 0,
+  "official_weak": 10,
+  "source_gap": 0,
+  "new_auto_certifiable_points": 0,
+  "cumulative_auto_certifiable_points": 2,
+  "backfill_auto_certifiable_points": 2,
+  "published_candidate_not_final_count": 1,
+  "unpublishable_reasons": [
+    "official_weak_not_strong_source",
+    "standard_candidate_requires_po_or_expert_review",
+    "source_gap_requires_source_lookup_or_drop_point",
+    "formal_registry_not_emitted"
+  ]
+}

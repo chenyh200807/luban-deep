@@ -1,0 +1,92 @@
+{
+  "stage": "M8 v1 Alpha Grand Sprint",
+  "final_status": "DONE",
+  "workflow_phases": [
+    "Phase 0 input reconciliation",
+    "Phase 1 M7R source hunt",
+    "Phase 2 alpha gate",
+    "Phase 3 alpha registry pack",
+    "Phase 4 runtime shadow",
+    "Phase 5 QA/diagnostic batch",
+    "Phase 6 Learning Brain progress report",
+    "Phase 7 final adversarial review"
+  ],
+  "workflow_patterns": {
+    "classify_and_act": "Phase 2 alpha gate",
+    "fanout_and_synthesize": "model role split plus deterministic workers",
+    "generate_and_filter": "M7R source hunt over 47 ready + 22 split",
+    "tournament": "best deterministic textbook exact match per point",
+    "adversarial_verification": "source skeptic plus final review",
+    "loop_until_done": "every candidate gets verified/source_gap/review/drop status"
+  },
+  "model_usage_actual": {
+    "live_calls_requested": false,
+    "live_calls_performed": false,
+    "models": [
+      {
+        "provider": "deepseek",
+        "model": "DeepSeek-V4",
+        "max_calls": 0,
+        "purpose": "small-model source-hit triage and QA draft; advisory only, not source authority",
+        "fallback_if_unavailable": "deterministic exact match proceeds; mark provider_unavailable"
+      },
+      {
+        "provider": "dashscope",
+        "model": "Qwen 3.7 Plus",
+        "max_calls": 0,
+        "purpose": "small-model Chinese term boundary and list_rule item semantic check; advisory only",
+        "fallback_if_unavailable": "deterministic item coverage gate proceeds"
+      },
+      {
+        "provider": "openai",
+        "model": "Codex GPT5.5",
+        "max_calls": 0,
+        "purpose": "large-model rubric schema, compiler compatibility, source-gate skeptic review",
+        "fallback_if_unavailable": "fail closed to deterministic hard gate plus recorded provider_unavailable"
+      },
+      {
+        "provider": "anthropic",
+        "model": "Claude Code Opus 4.8",
+        "max_calls": 0,
+        "purpose": "large-model workflow judge, adversarial verifier, final go/no-go",
+        "fallback_if_unavailable": "executing orchestrator records adversarial review without source authority"
+      }
+    ],
+    "actual_calls": {
+      "DeepSeek-V4": 0,
+      "Qwen 3.7 Plus": 0,
+      "Codex GPT5.5": 0,
+      "Claude Code Opus 4.8": 0
+    },
+    "deterministic_source_gate_is_authority": true,
+    "note": "No live model call is made by default; models cannot replace deterministic textbook exact match."
+  },
+  "source_gate": {
+    "candidates_hunted": 69,
+    "normalized_ready_hunted": 47,
+    "split_candidates_hunted": 22,
+    "verified_source_candidates": 12,
+    "source_gap_candidates": 57,
+    "official_answer_upgraded_to_textbook": 0,
+    "model_vote_upgraded_to_textbook": 0,
+    "source_mismatch": 0,
+    "list_rule_partial_anchor_auto": 0,
+    "deterministic_textbook_exact_match_is_source_authority": true,
+    "production_runtime_connected": false
+  },
+  "alpha_gate": {
+    "new_verified_source_candidates": 12,
+    "existing_m7_safe_auto_preview": 6,
+    "total_auto_preview": 18,
+    "mode": "full_alpha_pack",
+    "qa_sample_target": 20,
+    "enter_alpha_registry_pack": true,
+    "enter_runtime_shadow": true,
+    "enter_qa_batch": true,
+    "recommendation": "run full alpha pack plus QA batch",
+    "production_runtime_connected": false
+  },
+  "v1_alpha_go_no_go": "GO",
+  "production_runtime_connected": false,
+  "formal_registry_emitted": false
+}

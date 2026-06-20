@@ -1,0 +1,20 @@
+{
+  "open_world_refusal_rate": 0.0,
+  "open_world_all_labeled": true,
+  "open_world_no_formal_score": true,
+  "open_world_no_official_answer_claim": true,
+  "open_world_work_order_count": 3,
+  "four_surface_single_schema": true,
+  "official_score_laundering": 0,
+  "answer_key_override": 0,
+  "source_laundering": 0,
+  "rag_chunk_as_answer_key": 0,
+  "model_vote_as_source": 0,
+  "candidate_used_as_release_truth": 0,
+  "production_write_count": 0,
+  "remote_write": 0,
+  "default_flip": 0,
+  "published_registry": false,
+  "canonical_truth_written": false,
+  "learning_brain_preview_only": true
+}

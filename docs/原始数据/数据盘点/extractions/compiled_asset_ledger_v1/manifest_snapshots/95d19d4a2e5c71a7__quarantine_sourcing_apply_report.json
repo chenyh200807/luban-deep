@@ -1,0 +1,259 @@
+{
+ "schema": "luban_council_quarantine_sourcing_apply.v1",
+ "generated_at": "2026-06-12",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true,
+  "production_write_count": 0
+ },
+ "input_pack": "artifacts/luban_grading_artifacts/rich_leaf_full2026_v25_leaf_evidence_recompile_20260612/runtime_token_pack_v253_candidate.json",
+ "sourcing_artifact": "artifacts/luban_grading_artifacts/luban_ai_council_20260612/quarantine_sourcing/quarantine_sourcing_candidate.json",
+ "counts": {
+  "rows": 24,
+  "sourced": 24,
+  "blocked": 0
+ },
+ "sourced_units": [
+  {
+   "unit_id": "rtp22_0446a1a57e6f9954",
+   "leaf_id": "1A411012-02-d",
+   "lane": "textbook",
+   "confidence": "medium",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A411011_004_0009",
+   "concepts": 4,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_06eecb897c4c25fc",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_082e177f51ad5c7a",
+   "leaf_id": "1A422000-B018",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json#chunk:1A422000_022_0031",
+   "concepts": 3,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_0c54a96852ce2075",
+   "leaf_id": "1A422000-B018",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json#chunk:1A422000_022_0031",
+   "concepts": 3,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_10b500edd2e2dc5d",
+   "leaf_id": "1A413030-B009",
+   "lane": "standard",
+   "confidence": "medium",
+   "record_id": "标准文件/15、GB+51004-2015建筑地基基础工程施工规范.json#article:3.0.2",
+   "concepts": 1,
+   "teaching_cards": 0,
+   "rules": 0
+  },
+  {
+   "unit_id": "rtp22_11207a9eb48b893e",
+   "leaf_id": "1A422000-B166",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json#chunk:1A422000_025_0040",
+   "concepts": 3,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_136d5bba7255abdf",
+   "leaf_id": "1A422000-B091",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json#chunk:1A422000_025_0040",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_190bd73beb684617",
+   "leaf_id": "1A411011-B139",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A411011_008_0016",
+   "concepts": 4,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_1ab413f6397d24a9",
+   "leaf_id": "1A411013-03-c",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A411011_007_0012",
+   "concepts": 4,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_3a54fd7311a1cf13",
+   "leaf_id": "1A438000-B038",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A438000_159_0259",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_4d46f162a30e8f2a",
+   "leaf_id": "1A436000-B092",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A431000_008_0008",
+   "concepts": 4,
+   "teaching_cards": 2,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_68003fe35d348ec3",
+   "leaf_id": "1A411011-B024",
+   "lane": "lecture",
+   "confidence": "medium",
+   "record_id": "讲义/2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8/page_20_20.json#chunk:LEC_1A422030_P0019_003",
+   "concepts": 4,
+   "teaching_cards": 0,
+   "rules": 0
+  },
+  {
+   "unit_id": "rtp22_6895352e490b6250",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_79c8d5444b921255",
+   "leaf_id": "1A438000-B067",
+   "lane": "textbook",
+   "confidence": "medium",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A438000_154_0300",
+   "concepts": 4,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_7dafb5697c5d3b7f",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_8c649c721621dc7c",
+   "leaf_id": "1A411012-02-d",
+   "lane": "textbook",
+   "confidence": "medium",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A411011_004_0009",
+   "concepts": 4,
+   "teaching_cards": 1,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_a12c6408d1a75d5e",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_b01752b7b2e3a44e",
+   "leaf_id": "1A413042-01-b",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A436000_118_0192",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_c68fe131f1644e38",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_d8b6becb52bddd10",
+   "leaf_id": "1A437000-B094",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A437000_140_0223",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp22_ed19952f75965353",
+   "leaf_id": "1A422000-B166",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json#chunk:1A422000_025_0040",
+   "concepts": 3,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_ed7d9aefd9a47f43",
+   "leaf_id": "1A432000-B017",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A432002_031_0041",
+   "concepts": 4,
+   "teaching_cards": 3,
+   "rules": 1
+  },
+  {
+   "unit_id": "rtp22_eff9ef602a3b602a",
+   "leaf_id": "1A436000-B092",
+   "lane": "textbook",
+   "confidence": "high",
+   "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A431000_008_0008",
+   "concepts": 4,
+   "teaching_cards": 2,
+   "rules": 2
+  },
+  {
+   "unit_id": "rtp23_ad49b91d7bf59466",
+   "leaf_id": "1A413030-B009",
+   "lane": "standard",
+   "confidence": "medium",
+   "record_id": "标准文件/15、GB+51004-2015建筑地基基础工程施工规范.json#article:3.0.2",
+   "concepts": 1,
+   "teaching_cards": 0,
+   "rules": 0
+  }
+ ],
+ "blockers": []
+}

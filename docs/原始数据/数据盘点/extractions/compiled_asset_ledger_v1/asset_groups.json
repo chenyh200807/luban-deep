@@ -1,0 +1,906 @@
+{
+  "schema": "luban_compiled_asset_groups.v1",
+  "asset_groups": [
+    {
+      "asset_group": "artifacts/[root_files]",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 6,
+      "bytes": 581330,
+      "extensions": {
+        ".md": 5,
+        ".pdf": 1
+      },
+      "manifest_like_files": 2,
+      "largest_files": [
+        {
+          "path": "artifacts/luban-sales-onepager.pdf",
+          "bytes": 429144
+        },
+        {
+          "path": "artifacts/luban-marketing-round2.md",
+          "bytes": 57614
+        },
+        {
+          "path": "artifacts/luban-growth-report-round1.md",
+          "bytes": 44509
+        },
+        {
+          "path": "artifacts/luban-nexus-research-report.md",
+          "bytes": 23991
+        },
+        {
+          "path": "artifacts/luban-marketing-round3-website-copy.md",
+          "bytes": 23909
+        },
+        {
+          "path": "artifacts/luban-sales-onepager.md",
+          "bytes": 2163
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/assessment_flywheel",
+      "group_kind": "assessment_flywheel",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 2,
+      "bytes": 5764,
+      "extensions": {
+        ".json": 1,
+        ".md": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/assessment_flywheel/p0b-p1-flywheel-verify/topic_catalog_dry_run.json",
+          "bytes": 5051
+        },
+        {
+          "path": "artifacts/assessment_flywheel/p0b-p1-flywheel-verify/topic_catalog_dry_run.md",
+          "bytes": 713
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/assessment_testset",
+      "group_kind": "assessment_testset",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 9,
+      "bytes": 1428036,
+      "extensions": {
+        ".csv": 3,
+        ".json": 3,
+        ".md": 3
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/coverage_waterproof_decoration_mep.json",
+          "bytes": 553737
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/coverage_waterproof.json",
+          "bytes": 293843
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/candidate_review.csv",
+          "bytes": 284745
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/candidate_review_waterproof_decoration_mep.csv",
+          "bytes": 186323
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/candidate_review_waterproof.csv",
+          "bytes": 99819
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/coverage.json",
+          "bytes": 6529
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/coverage_waterproof_decoration_mep.md",
+          "bytes": 1225
+        },
+        {
+          "path": "artifacts/assessment_testset/p0a/p0a-phase-minus-1-current/coverage_waterproof.md",
+          "bytes": 1189
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/bi_reconciliation_20260612",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 6,
+      "bytes": 57340,
+      "extensions": {
+        ".json": 4,
+        ".md": 2
+      },
+      "manifest_like_files": 4,
+      "largest_files": [
+        {
+          "path": "artifacts/bi_reconciliation_20260612/post_p2_deploy/metric_dictionary.json",
+          "bytes": 17549
+        },
+        {
+          "path": "artifacts/bi_reconciliation_20260612/metric_dictionary.json",
+          "bytes": 13773
+        },
+        {
+          "path": "artifacts/bi_reconciliation_20260612/post_p2_deploy/reconciliation_report.json",
+          "bytes": 9512
+        },
+        {
+          "path": "artifacts/bi_reconciliation_20260612/reconciliation_report.json",
+          "bytes": 7744
+        },
+        {
+          "path": "artifacts/bi_reconciliation_20260612/reconciliation_report.md",
+          "bytes": 5166
+        },
+        {
+          "path": "artifacts/bi_reconciliation_20260612/post_p2_deploy/reconciliation_report.md",
+          "bytes": 3596
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/billing_golive",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 3,
+      "bytes": 36350,
+      "extensions": {
+        ".json": 2,
+        ".tsv": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/billing_golive/wallet_projection_consistency.json",
+          "bytes": 30270
+        },
+        {
+          "path": "artifacts/billing_golive/balance_correction_diff.tsv",
+          "bytes": 5214
+        },
+        {
+          "path": "artifacts/billing_golive/wallet_projection_rebuild.json",
+          "bytes": 866
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/knowledge_compiler",
+      "group_kind": "knowledge_compiler_workbench",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 189,
+      "bytes": 50729003,
+      "extensions": {
+        ".jsonl": 50,
+        ".json": 49,
+        ".png": 38,
+        ".txt": 38,
+        ".md": 14
+      },
+      "manifest_like_files": 22,
+      "largest_files": [
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets_by_node.json",
+          "bytes": 7323165
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/scoring_point_assets.jsonl",
+          "bytes": 6082255
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/lecture_compile_20260608/lecture_teaching_cards.jsonl",
+          "bytes": 1426351
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_46.png",
+          "bytes": 871953
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_167.png",
+          "bytes": 829086
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_249.png",
+          "bytes": 823786
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_77.png",
+          "bytes": 821101
+        },
+        {
+          "path": "artifacts/knowledge_compiler/2026/scoring-point-assets-20260602/pdf_page_renders_full_queue_v2/page_97.png",
+          "bytes": 795016
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban-posters",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 16,
+      "bytes": 14547779,
+      "extensions": {
+        ".png": 9,
+        ".html": 6,
+        ".css": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-02-sprint-v2.png",
+          "bytes": 2394135
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-02-sprint-v3.png",
+          "bytes": 2375646
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-02-sprint.png",
+          "bytes": 2248688
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/assets/black-gold-ai-sprint-bg.png",
+          "bytes": 2091230
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/assets/blue-red-product-bg.png",
+          "bytes": 1583227
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-01-enrollment-v3.png",
+          "bytes": 1282406
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-01-enrollment-v2.png",
+          "bytes": 1251682
+        },
+        {
+          "path": "artifacts/luban-posters/2026-06-02/luban-poster-01-enrollment.png",
+          "bytes": 1124624
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban-usage-infographic-v1",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 4,
+      "bytes": 9153663,
+      "extensions": {
+        ".md": 1,
+        ".psd": 1,
+        ".html": 1,
+        ".png": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/luban-usage-infographic-v1/luban-usage-infographic-v1-flat.psd",
+          "bytes": 8035240
+        },
+        {
+          "path": "artifacts/luban-usage-infographic-v1/luban-usage-infographic-v1.png",
+          "bytes": 1098831
+        },
+        {
+          "path": "artifacts/luban-usage-infographic-v1/luban-usage-infographic-v1.html",
+          "bytes": 16898
+        },
+        {
+          "path": "artifacts/luban-usage-infographic-v1/luban-usage-infographic-v1-copy.md",
+          "bytes": 2694
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_agentic_grading_harness",
+      "group_kind": "agentic_grading_harness",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 142,
+      "bytes": 5181069,
+      "extensions": {
+        ".json": 107,
+        ".md": 28,
+        ".py": 5,
+        ".csv": 2
+      },
+      "manifest_like_files": 2,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260603_heldout_unified_typed_policy/unified_predictions_span_guarded.json",
+          "bytes": 435698
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260603_heldout_unified_typed_policy/unified_typed_policy_packet.json",
+          "bytes": 395908
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260603_heldout_unified_typed_policy/unified_predictions.json",
+          "bytes": 367995
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_typed_policy_packet.json",
+          "bytes": 320702
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_predictions_span_guarded.json",
+          "bytes": 273542
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_predictions_template.json",
+          "bytes": 239865
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_agentic_20260602/agentic_predictions_dual_guardrail.json",
+          "bytes": 220610
+        },
+        {
+          "path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_agentic_20260602/agentic_predictions_filled.json",
+          "bytes": 211792
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_case_family_assets",
+      "group_kind": "case_family_multimedia_assets",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 232,
+      "bytes": 85881117,
+      "extensions": {
+        ".png": 105,
+        ".json": 36,
+        ".html": 30,
+        ".md": 15,
+        ".mp3": 13,
+        ".py": 12,
+        ".mjs": 9,
+        ".tsx": 5,
+        ".mp4": 4,
+        ".svg": 1,
+        "[no_ext]": 1,
+        ".ts": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/N01_network_video_first.remotion.mp4",
+          "bytes": 14710637
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/S01_scaffold_template_acceptance.remotion.mp4",
+          "bytes": 10997431
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/f16-roof-blister-repair.mp4",
+          "bytes": 3085092
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01_mvp_render.lesson.mp3",
+          "bytes": 2084731
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/remotion_demo/out/joint-workflow.mp4",
+          "bytes": 1975456
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.practice_feedback.png",
+          "bytes": 1660034
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu.rendered.mobile.error_reveal.png",
+          "bytes": 1649999
+        },
+        {
+          "path": "artifacts/luban_case_family_assets/diagram_microlesson/J01_danger_work_expert_argumentation.dialogue.mp3",
+          "bytes": 1613614
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_case_grading_three_arms",
+      "group_kind": "case_grading_ab_workbench",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 32,
+      "bytes": 39561956,
+      "extensions": {
+        ".md": 17,
+        ".json": 15
+      },
+      "manifest_like_files": 2,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_case_grading_three_arms/kernel_rule_support_20260601/full_three_arms_20260601_184722.json",
+          "bytes": 3054821
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/kernel_rule_support_20260601/full_three_arms_20260601_184856.json",
+          "bytes": 3033679
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/full_v0_directional/pilot_three_arms_20260601_182430.json",
+          "bytes": 3020584
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/full_v0_directional/full_three_arms_20260601_183231.json",
+          "bytes": 3020560
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/post_score_first_ab_20260615_rerun/full_three_arms_20260615_235148.json",
+          "bytes": 2960508
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/post_score_first_ab_20260615/full_three_arms_20260615_234343.json",
+          "bytes": 2960504
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/kernel_rule_support_20260601/full_three_arms_20260601_185039.json",
+          "bytes": 2960501
+        },
+        {
+          "path": "artifacts/luban_case_grading_three_arms/content_markdown_reanchor_20260602/full_three_arms_20260602_011500.json",
+          "bytes": 2960411
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_consensus_gold",
+      "group_kind": "consensus_gold_shadow_review",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 496,
+      "bytes": 23704129,
+      "extensions": {
+        ".json": 320,
+        ".md": 79,
+        ".csv": 38,
+        ".log": 16,
+        ".png": 13,
+        ".jsonl": 8,
+        ".py": 5,
+        ".db": 4,
+        ".db-shm": 4,
+        ".db-wal": 4,
+        ".html": 2,
+        ".lock": 2,
+        ".txt": 1
+      },
+      "manifest_like_files": 27,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_consensus_gold/distillation_samples_v0_20260604/distillation_samples.jsonl",
+          "bytes": 2001175
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/deepseek_shadow_v0_full_485_20260603/unified_predictions_485_span_guarded.json",
+          "bytes": 1336224
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/deepseek_shadow_v0_full_485_20260603/unified_predictions_485.json",
+          "bytes": 1198261
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/deepseek_shadow_v0_full_485_20260603/unified_typed_policy_packet_485.json",
+          "bytes": 1094973
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/ai_draft_full100_20260604/ai_draft_results.json",
+          "bytes": 1031596
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/ai_draft_full100_20260604/ai_draft_results.jsonl",
+          "bytes": 695115
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/deepseek_shadow_v0_full_485_20260603/predictions/remaining_55_packet.json",
+          "bytes": 649873
+        },
+        {
+          "path": "artifacts/luban_consensus_gold/deepseek_shadow_v0_full_485_20260603/predictions/codex_b3.log",
+          "bytes": 631369
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_grading_artifacts",
+      "group_kind": "grading_compiler_shadow_workbench",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 3314,
+      "bytes": 342826336,
+      "extensions": {
+        ".json": 2241,
+        ".md": 627,
+        ".jsonl": 295,
+        ".py": 45,
+        ".db": 22,
+        ".db-shm": 22,
+        ".db-wal": 22,
+        ".csv": 14,
+        ".log": 13,
+        ".txt": 6,
+        ".sql": 3,
+        ".yml": 3,
+        ".html": 1
+      },
+      "manifest_like_files": 353,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_source_gap_20260612/source_gap_candidates.json",
+          "bytes": 29520044
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_frozen_v1_runtime_default_gate_chain_20260613/rerun_with_frozen_inputs/runtime_supply_regression.json",
+          "bytes": 19905604
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json",
+          "bytes": 11690955
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_audit_queue_20260612/semantic_audit_queue.json",
+          "bytes": 9274067
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_field_promotion_review_materialized_20260612/field_promotion_review.json",
+          "bytes": 8400057
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_materialized_20260612/semantic_evidence_audit_record.json",
+          "bytes": 8394862
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_seed_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7401100
+        },
+        {
+          "path": "artifacts/luban_grading_artifacts/rich_leaf_full2026_semantic_evidence_audit_record_no_decisions_20260612/semantic_evidence_audit_record.json",
+          "bytes": 7391521
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_human_validation_v1",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 21,
+      "bytes": 991428,
+      "extensions": {
+        ".json": 9,
+        ".md": 7,
+        ".csv": 4,
+        ".py": 1
+      },
+      "manifest_like_files": 2,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260603_heldout/agentic_grading_packet.json",
+          "bytes": 205656
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260603_heldout/qwen_nothink_predictions_span_guarded.json",
+          "bytes": 119011
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260603_heldout/qwen_nothink_predictions.json",
+          "bytes": 99718
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260601/po_review_packet.json",
+          "bytes": 79856
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260601/阅卷审阅册_老师用.md",
+          "bytes": 74519
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260601/internal_slice_manifest.json",
+          "bytes": 67850
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260603_heldout/阅卷审阅册_老师用.md",
+          "bytes": 57479
+        },
+        {
+          "path": "artifacts/luban_human_validation_v1/po_slice_20260601/po_labels_template.json",
+          "bytes": 52954
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_knowql_nexus_three_arm_ab",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 17,
+      "bytes": 3649726,
+      "extensions": {
+        ".json": 9,
+        ".md": 8
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/full_three_arm_ab_20260615_182915.json",
+          "bytes": 1635494
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/full_three_arm_ab_20260615_182431.json",
+          "bytes": 1598744
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/post_score_first_live_20260615_sample10/pilot_three_arm_ab_20260615_234532.json",
+          "bytes": 116889
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/post_score_first_live_20260615_rerun/pilot_three_arm_ab_20260615_235138.json",
+          "bytes": 115974
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/post_score_first_live_20260615_smoke/pilot_three_arm_ab_20260615_234444.json",
+          "bytes": 40071
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/full_three_arm_ab_20260615_182915.md",
+          "bytes": 30483
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/full_three_arm_ab_20260615_182431.md",
+          "bytes": 30370
+        },
+        {
+          "path": "artifacts/luban_knowql_nexus_three_arm_ab/pilot_three_arm_ab_20260615_182614.json",
+          "bytes": 22221
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_no_human_v1_5",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 101,
+      "bytes": 11864860,
+      "extensions": {
+        ".json": 54,
+        ".md": 24,
+        ".csv": 14,
+        ".txt": 7,
+        ".py": 2
+      },
+      "manifest_like_files": 19,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_no_human_v1_5/rubric_to_textbook_r6_20260602/three_arm_rerun/full_three_arms_20260602_212518.json",
+          "bytes": 2960402
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/per_term_anchor_r5_20260602/three_arm_rerun/full_three_arms_20260602_210938.json",
+          "bytes": 2960391
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/content_markdown_reanchor_pilot_gate_20260602/R7a_PO_self_decision_queue.json",
+          "bytes": 755953
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/per_term_anchor_r5_20260602/R7a_PO_self_decision_queue.json",
+          "bytes": 426675
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/content_markdown_reanchor_20260602/R7a_PO_self_decision_queue.json",
+          "bytes": 413677
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/20260601_textbook_anchored/independent_triage_merge.json",
+          "bytes": 271491
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/provenance_fix_r7_20260602/R7a_PO_self_decision_queue.json",
+          "bytes": 255623
+        },
+        {
+          "path": "artifacts/luban_no_human_v1_5/provenance_fix_r7_20260602/point_classification_r5_20260602.json",
+          "bytes": 254041
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/luban_typed_policy",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 5,
+      "bytes": 282668,
+      "extensions": {
+        ".json": 3,
+        ".md": 1,
+        ".csv": 1
+      },
+      "manifest_like_files": 1,
+      "largest_files": [
+        {
+          "path": "artifacts/luban_typed_policy/po_slice_20260601_typed_policy_20260603/typed_policy_candidates.json",
+          "bytes": 250958
+        },
+        {
+          "path": "artifacts/luban_typed_policy/po_slice_20260601_typed_policy_20260603/typed_policy_candidates.csv",
+          "bytes": 27277
+        },
+        {
+          "path": "artifacts/luban_typed_policy/po_slice_20260601_typed_policy_20260603/FINDING_typed_policy_candidates_20260603.md",
+          "bytes": 2828
+        },
+        {
+          "path": "artifacts/luban_typed_policy/po_slice_20260601_typed_policy_20260603/typed_policy_validation_issues.json",
+          "bytes": 855
+        },
+        {
+          "path": "artifacts/luban_typed_policy/po_slice_20260601_typed_policy_20260603/typed_policy_summary.json",
+          "bytes": 750
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/onboarding_motion_qa_20260612",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 128,
+      "bytes": 107185692,
+      "extensions": {
+        ".png": 127,
+        ".md": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/06_loop_next.png",
+          "bytes": 1364615
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/10_grade_full.png",
+          "bytes": 1363637
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/05_loop.png",
+          "bytes": 1359035
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/07_cta.png",
+          "bytes": 1337061
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v12/02_p2_scores.png",
+          "bytes": 1332987
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v13/02_scores_fixed.png",
+          "bytes": 1331081
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/09_hook_gold.png",
+          "bytes": 1330422
+        },
+        {
+          "path": "artifacts/onboarding_motion_qa_20260612/v3/04_grade_score.png",
+          "bytes": 1329327
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/qa",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 278,
+      "bytes": 14946974,
+      "extensions": {
+        ".json": 122,
+        ".jsonl": 85,
+        ".txt": 31,
+        ".md": 25,
+        ".png": 10,
+        ".js": 4,
+        ".py": 1
+      },
+      "manifest_like_files": 100,
+      "largest_files": [
+        {
+          "path": "artifacts/qa/tutorbot-compiled-knowledge-shadow-20260609-095649/transcript.jsonl",
+          "bytes": 1814551
+        },
+        {
+          "path": "artifacts/qa/wechat-tutorbot-real-exam-20260606/near_real_run/transcript.jsonl",
+          "bytes": 956401
+        },
+        {
+          "path": "artifacts/qa/wechat-tutorbot-real-exam-20260606/transcripts.jsonl",
+          "bytes": 956401
+        },
+        {
+          "path": "artifacts/qa/wechat-tutorbot-terminal-qa30-001-002-007-20260606/terminal_qa30_001_002_007_results.json",
+          "bytes": 814937
+        },
+        {
+          "path": "artifacts/qa/product-behavior-bi-member-ops/desktop-member-ops.png",
+          "bytes": 503448
+        },
+        {
+          "path": "artifacts/qa/tutorbot-compiled-knowledge-shadow-20260609-121832/transcript.jsonl",
+          "bytes": 483769
+        },
+        {
+          "path": "artifacts/qa/wechat-tutorbot-authority-final-20260606/conversation-transcripts.jsonl",
+          "bytes": 411055
+        },
+        {
+          "path": "artifacts/qa/tutorbot-compiled-knowledge-shadow-20260609-120219/transcript.jsonl",
+          "bytes": 388280
+        }
+      ]
+    },
+    {
+      "asset_group": "artifacts/security",
+      "group_kind": "artifact_auxiliary_or_report",
+      "authority_status": "artifact_workbench_or_candidate_inventory",
+      "files": 1,
+      "bytes": 18547,
+      "extensions": {
+        ".md": 1
+      },
+      "manifest_like_files": 0,
+      "largest_files": [
+        {
+          "path": "artifacts/security/2026-06-11-prelaunch-cso-audit.md",
+          "bytes": 18547
+        }
+      ]
+    },
+    {
+      "asset_group": "runtime_supply",
+      "group_kind": "runtime_supply_mixed_published_and_candidate",
+      "authority_status": "runtime_supply_inventory_mixed_publication_status",
+      "files": 57,
+      "bytes": 27623686,
+      "extensions": {
+        ".json": 49,
+        ".jsonl": 8
+      },
+      "manifest_like_files": 18,
+      "largest_files": [
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+          "bytes": 5737635
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_kb_v5_chunks_full/kb_v5_chunks_full.json",
+          "bytes": 3701405
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+          "bytes": 3383793
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+          "bytes": 2743126
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_concept_registry/concept_registry.json",
+          "bytes": 2608123
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_lecture_teaching_cards/lecture_teaching_cards.json",
+          "bytes": 1905313
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_standard_clauses/standard_clauses.json",
+          "bytes": 1483784
+        },
+        {
+          "path": "deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/case_rubric_scored_pgo.json",
+          "bytes": 1396549
+        }
+      ]
+    }
+  ]
+}
