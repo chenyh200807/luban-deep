@@ -40,6 +40,27 @@ DEFAULT_KB_BASE_DIR = str(
 )
 
 
+# Single-step bound for ONE RAG retrieval (load index + retrieve). Without it the
+# retrieval runs in the default thread pool with no timeout, so a slow/stalled
+# index-load or embedding call eats the whole turn deadline — the 200-260s silent
+# turn-timeout failure mode observed in production. On timeout we degrade via the
+# existing RAGError path (RAGService catches RAGError and serves a historical
+# fallback) instead of hanging the turn.
+_RAG_RETRIEVAL_TIMEOUT_ENV = "DEEPTUTOR_RAG_RETRIEVAL_TIMEOUT_SECONDS"
+_RAG_RETRIEVAL_TIMEOUT_DEFAULT = 30.0
+
+
+def _rag_retrieval_timeout_seconds() -> float:
+    from deeptutor.services.config.env_store import get_env_store
+
+    raw = str(get_env_store().get(_RAG_RETRIEVAL_TIMEOUT_ENV, "") or "").strip()
+    try:
+        value = float(raw) if raw else _RAG_RETRIEVAL_TIMEOUT_DEFAULT
+    except ValueError:
+        value = _RAG_RETRIEVAL_TIMEOUT_DEFAULT
+    return max(5.0, min(120.0, value))
+
+
 def _embedding_dict_from_payload(payload: Any) -> Any:
     if not isinstance(payload, dict):
         return None
@@ -477,8 +498,12 @@ class LlamaIndexPipeline:
                 nodes = retriever.retrieve(query)
                 return nodes
 
-            # Execute retrieval in thread pool to avoid blocking
-            nodes = await loop.run_in_executor(None, load_and_retrieve)
+            # Execute retrieval in thread pool to avoid blocking — but bound it so a
+            # stalled index-load / embedding call cannot eat the whole turn deadline.
+            nodes = await asyncio.wait_for(
+                loop.run_in_executor(None, load_and_retrieve),
+                timeout=_rag_retrieval_timeout_seconds(),
+            )
 
             context_parts = []
             sources = []
@@ -507,6 +532,21 @@ class LlamaIndexPipeline:
                 result["warning"] = embedding_mismatch_warning
             return result
 
+        except asyncio.TimeoutError as e:
+            # Bounded retrieval timed out: degrade (RAGService serves a historical
+            # fallback on RAGError) instead of letting the turn hang to its deadline.
+            self.logger.warning(
+                "llamaindex retrieval timed out after %.1fs (kb=%s); degrading",
+                _rag_retrieval_timeout_seconds(),
+                kb_name,
+            )
+            raise RAGSearchError(
+                f"llamaindex retrieval timed out after {_rag_retrieval_timeout_seconds():.1f}s",
+                provider="llamaindex",
+                kb_name=kb_name,
+                query=query,
+                stage="pipeline.search.timeout",
+            ) from e
         except Exception as e:
             self.logger.error(f"Search failed: {e}")
             import traceback
