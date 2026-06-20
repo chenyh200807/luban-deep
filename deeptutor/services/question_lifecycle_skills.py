@@ -217,18 +217,41 @@ async def resolve_question_lifecycle_scene_decision(
                 business_gate_result="pre_stamped_scene",
             )
     scene = derive_question_lifecycle_scene(ctx)
+    # A back-reference to an EARLIER question + explanation intent ("刚才那道屋面坡度题，
+    # 讲讲考点") is not a submission to the current active set. After a practice-gen turn
+    # replaces the active object with a new set, the embedded "我选A" otherwise trips the
+    # submission gates (ambiguous / unanchored / free-text) and the original question is
+    # lost. Suppress those surface-token gates so the turn routes to explanation via
+    # conversation history. Answer-led turns are exempt inside the detector itself.
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            _looks_like_past_question_explanation_request,
+        )
+
+        recall_explanation_request = _looks_like_past_question_explanation_request(
+            user_message
+        )
+    except Exception:
+        recall_explanation_request = False
     unanchored_submission = (
-        _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+        not recall_explanation_request
+        and _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
         and scene != "mcq_grading"
     )
-    ambiguous_multi_submission = _looks_like_ambiguous_multi_question_submission(
-        user_message,
-        metadata,
+    ambiguous_multi_submission = (
+        not recall_explanation_request
+        and _looks_like_ambiguous_multi_question_submission(
+            user_message,
+            metadata,
+        )
     )
     low_information_exam_query = is_low_information_exam_query(
         user_message
     ) and not _low_information_query_can_use_active_question(user_message, metadata)
-    free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
+    free_text_mcq_answer_request = (
+        not recall_explanation_request
+        and _looks_like_free_text_mcq_answer_request(user_message)
+    )
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
         if isinstance(metadata, dict)

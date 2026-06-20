@@ -4924,23 +4924,18 @@ class DeepQuestionCapability(BaseCapability):
 
     @staticmethod
     def _is_unresolved_switch_followup(turn_semantic_decision: dict[str, Any] | None) -> bool:
-        """True for the failed-switch signature (P1-Y).
+        """Failed-switch signature — delegates to the SINGLE canonical predicate.
 
-        The learner asked to switch/return to a DIFFERENT question, but the runtime
-        could not resolve a concrete target, so the decision degraded to a followup
-        on the current active object. ``switch_to_new_object`` never legitimately
-        co-occurs with ``route_to_followup_explainer`` (a real switch resolves a new
-        active object and routes to generation/grading; a real followup carries
-        ``ask_about_active_object`` / ``answer_active_object``). So this exact combo
-        is the unambiguous "wanted a different question, fell back to the stale one"
-        case — answer it as a clarification, not a stale-object followup.
+        The orchestrator now routes this signature to the context-continuous main LLM
+        (see contracts/turn.md §跨能力上下文连续性), so this in-capability check is a
+        safety net only. The signature definition lives once in
+        ``semantic_router.is_unresolved_switch_followup``; this thin wrapper reads it so
+        there is no second copy that can drift.
         """
 
-        decision = turn_semantic_decision if isinstance(turn_semantic_decision, dict) else {}
-        return (
-            str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
-            and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
-        )
+        from deeptutor.services.semantic_router import is_unresolved_switch_followup
+
+        return is_unresolved_switch_followup(turn_semantic_decision)
 
     async def _emit_unresolved_switch_clarification(
         self,

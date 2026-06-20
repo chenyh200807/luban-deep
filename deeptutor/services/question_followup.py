@@ -157,6 +157,45 @@ _GENERATION_INTENT_MARKERS = (
     "选择题", "单选题", "多选题", "判断题", "案例题", "简答题",
     "刷题", "练题", "练习", "做题", "出几道", "出三道", "出两道",
 )
+# A turn that explicitly recalls an EARLIER question ("刚才那道…题" / "回到之前那道")
+# and asks to explain it is NOT a fresh answer submission to the current active
+# question/set. After a practice-generation turn replaces the active object with a
+# new question set, "刚才那道屋面坡度题，讲讲考点" must route to explanation via
+# conversation history, not be mined for an option letter and hijacked into the
+# ambiguous "name the question number" clarification. Closed vocabulary; shared by
+# the option submission extractor (the subjective extractor already guards
+# explanation intent). Answer-led turns keep submission priority via the leading
+# guards below, so this never suppresses a genuine submission.
+_PAST_QUESTION_BACKREFERENCE_MARKERS = (
+    "刚才那", "刚才的那", "刚才做的", "刚刚那", "之前那", "之前做的",
+    "上一道", "上一题", "上道题", "上一道题", "前面那", "回到刚才",
+    "回到之前", "回到上", "前面做的", "刚才讲的那", "刚才那一",
+)
+_PAST_QUESTION_EXPLANATION_MARKERS = (
+    "讲考点", "讲讲", "讲透", "讲一下", "讲解", "讲明白", "讲清楚", "讲下",
+    "拆考点", "拆一下", "为什么", "为啥", "再讲", "回顾", "复盘",
+    "怎么分析", "考点", "知识点", "再帮我", "再给我讲",
+)
+
+
+def _looks_like_past_question_explanation_request(text: str) -> bool:
+    """Back-reference to an EARLIER question + explanation intent → not a submission.
+
+    Symmetric with the generation-intent guard: refuse to mine an option key out of
+    "刚才那道我选A的屋面坡度题，再帮我把考点讲透" so the turn is routed to explanation
+    over conversation history instead of being misread as an ambiguous submission to
+    the current (newly generated) question set. Answer-led / leading-submission turns
+    are exempt and keep submission priority.
+    """
+
+    t = str(text or "").strip()
+    if not t:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
+        return False
+    return any(b in t for b in _PAST_QUESTION_BACKREFERENCE_MARKERS) and any(
+        e in t for e in _PAST_QUESTION_EXPLANATION_MARKERS
+    )
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -1289,6 +1328,11 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     text = str(message or "").strip()
     if not text:
         return None
+    # A back-reference to an EARLIER question + explanation intent is not a fresh
+    # subjective answer either (a multi-question set normalizes to a "written" set-level
+    # type, so this path would otherwise capture the whole recall sentence as the answer).
+    if _looks_like_past_question_explanation_request(text):
+        return None
     explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
     prestrip_lowered = text.lower()
     prestrip_question_markers = (
@@ -1648,6 +1692,12 @@ def _extract_option_submission(
         and not _LEADING_OPTION_ANSWER.match(text)
         and any(marker in text for marker in _GENERATION_INTENT_MARKERS)
     ):
+        return None
+    # A back-reference to an EARLIER question + explanation intent ("刚才那道我选A的
+    # 屋面坡度题，讲讲考点") is not a fresh answer to the current set — refuse to mine
+    # an option key so it routes to explanation via history instead of the ambiguous
+    # "name the question number" clarification.
+    if _looks_like_past_question_explanation_request(text):
         return None
 
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")
