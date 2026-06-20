@@ -2198,3 +2198,49 @@ def test_resolve_submission_attempt_mixed_answer_then_generation_keeps_submissio
     # though it also asks for more questions.
     _target, submission = resolve_submission_attempt("我选A，再出3题", _mcq_ctx())
     assert submission is not None
+
+
+# ── task#11: 回指历史题+讲解 不被误判成对当前多题集的作答 ──────────────────────
+def _multi_question_set() -> dict:
+    return {
+        "items": [
+            {"question_id": "q1", "question": "平屋面防水道数",
+             "options": {"A": "1道", "B": "2道", "C": "3道", "D": "4道"},
+             "correct_answer": "B", "question_type": "single_choice"},
+            {"question_id": "q2", "question": "结构找坡坡度",
+             "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+             "correct_answer": "C", "question_type": "single_choice"},
+            {"question_id": "q3", "question": "卷材搭接宽度",
+             "options": {"A": "50", "B": "80", "C": "100", "D": "150"},
+             "correct_answer": "C", "question_type": "single_choice"},
+        ]
+    }
+
+
+def test_backreference_explanation_is_not_a_submission_to_active_set() -> None:
+    # After a practice-gen turn replaced the active object with a new set, recalling an
+    # EARLIER question to explain it must NOT be mined as an ambiguous submission.
+    _target, submission = resolve_submission_attempt(
+        "刚才那道我选A的屋面坡度题，再帮我把考点讲透", _multi_question_set()
+    )
+    assert submission is None
+
+
+def test_backreference_without_explanation_or_genuine_submission_still_blocks() -> None:
+    # A bare ambiguous submission ("我选B" against a multi-set) must still be caught so
+    # the learner is asked which question — no regression to the existing guard.
+    _target, submission = resolve_submission_attempt("我选B", _multi_question_set())
+    assert isinstance(submission, dict) and submission.get("kind") == "ambiguous"
+
+
+def test_backreference_guard_exempts_answer_led_and_plain_submissions() -> None:
+    # The new back-reference/explanation guard must never suppress an answer-led turn
+    # or a plain submission — only recall-and-explain turns.
+    from deeptutor.services.question_followup import (
+        _looks_like_past_question_explanation_request as _guard,
+    )
+    assert _guard("刚才那道我选A的屋面坡度题，讲讲考点") is True
+    assert _guard("A") is False
+    assert _guard("我选A") is False
+    assert _guard("B，刚才那题再讲讲") is False  # answer-led keeps priority
+    assert _guard("刚才那道屋面题") is False  # back-ref without explanation isn't suppressed

@@ -196,3 +196,47 @@ def test_missing_skill_degrades_without_crashing(tmp_path: Path) -> None:
     assert result.instructions == "# Exam Tutor"
     assert result.source_status.complete is False
     assert result.source_status.missing_skills == ("construction-question-supply",)
+
+
+def test_backreference_explanation_not_blocked_as_submission_after_practice_gen() -> None:
+    """task#11: after a practice-gen turn replaces the active object with a new set,
+    recalling an EARLIER question to explain it must not be blocked by the submission
+    gates (ambiguous / unanchored / free-text) — it routes to explanation instead."""
+    import asyncio
+
+    from deeptutor.services.question_lifecycle_skills import (
+        resolve_question_lifecycle_scene_decision,
+    )
+
+    multi_set = {
+        "question_followup_context": {
+            "items": [
+                {"question_id": "q1", "question": "平屋面防水道数",
+                 "options": {"A": "1道", "B": "2道", "C": "3道", "D": "4道"},
+                 "correct_answer": "B", "question_type": "single_choice"},
+                {"question_id": "q2", "question": "结构找坡坡度",
+                 "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+                 "correct_answer": "C", "question_type": "single_choice"},
+                {"question_id": "q3", "question": "卷材搭接宽度",
+                 "options": {"A": "50", "B": "80", "C": "100", "D": "150"},
+                 "correct_answer": "C", "question_type": "single_choice"},
+            ]
+        }
+    }
+
+    recall = UnifiedContext(
+        user_message="刚才那道我选A的屋面坡度题，再帮我把考点讲透",
+        metadata=dict(multi_set),
+    )
+    decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(recall, enable_llm=False)
+    )
+    assert decision.needs_clarification is False
+    assert decision.exact_question_blocked_reason in (None, "")
+
+    # A genuine ambiguous submission to the same set is still gated (no regression).
+    genuine = UnifiedContext(user_message="我选B", metadata=dict(multi_set))
+    blocked = asyncio.run(
+        resolve_question_lifecycle_scene_decision(genuine, enable_llm=False)
+    )
+    assert blocked.needs_clarification is True
