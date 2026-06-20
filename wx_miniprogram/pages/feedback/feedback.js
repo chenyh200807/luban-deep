@@ -190,6 +190,7 @@ Page({
   },
 
   onLoad: function (query) {
+    this._mounted = true;
     var win = helpers.getWindowInfo ? helpers.getWindowInfo() : {};
     var device = getDeviceInfo();
     var source =
@@ -217,6 +218,7 @@ Page({
     if (!wx.getNetworkType) return;
     wx.getNetworkType({
       success: function (res) {
+        if (!self._mounted) return;
         self.setData({
           contextSnapshot: Object.assign({}, self.data.contextSnapshot, {
             network_type: res.networkType || "",
@@ -224,6 +226,10 @@ Page({
         });
       },
     });
+  },
+
+  onUnload: function () {
+    this._mounted = false;
   },
 
   goBack: function () {
@@ -362,13 +368,16 @@ Page({
         );
       })
       .then(function () {
+        if (!self._mounted) return;
         wx.showToast({ title: "反馈已提交", icon: "success" });
         self.setData({ submitting: false });
         setTimeout(function () {
+          if (!self._mounted) return;
           wx.navigateBack({ delta: 1, fail: function () {} });
         }, 1500);
       })
       .catch(function () {
+        if (!self._mounted) return;
         wx.showToast({ title: "附件或反馈提交失败", icon: "none" });
         self.setData({ submitting: false });
       });

@@ -5,7 +5,8 @@ const USER_ID_KEY = "auth_user_id";
 
 function normalizeExpiry(value) {
   if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
-    return 0;
+    var ts = Math.floor(new Date(value).getTime() / 1000);
+    return ts > 0 ? ts : 0;
   }
   var parsed = parseInt(value, 10);
   return parsed > 0 ? parsed : 0;
@@ -30,14 +31,12 @@ function collectCandidates(source, canonical, fallback) {
     return;
   }
   if (typeof source !== "object") return;
-  [
-    source.canonical_uid,
-    source.canonicalUid,
-    source.canonicalUserId,
-  ].forEach(function (value) {
-    var text = normalizeText(value);
-    if (text) canonical.push(text);
-  });
+  [source.canonical_uid, source.canonicalUid, source.canonicalUserId].forEach(
+    function (value) {
+      var text = normalizeText(value);
+      if (text) canonical.push(text);
+    },
+  );
   [
     source.user_id,
     source.userId,
@@ -56,7 +55,9 @@ function collectCandidates(source, canonical, fallback) {
 }
 
 function decodeBase64UrlToUtf8(value) {
-  var normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  var normalized = String(value || "")
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
   while (normalized.length % 4) {
     normalized += "=";
   }
@@ -143,7 +144,9 @@ const auth = {
     var normalizedExpiry = normalizeExpiry(expiresAt);
     if (typeof expiresAt === "object" && expiresAt !== null) {
       userSource = expiresAt;
-      normalizedExpiry = normalizeExpiry(expiresAt.expires_at || expiresAt.expiresAt || expiresAt.exp);
+      normalizedExpiry = normalizeExpiry(
+        expiresAt.expires_at || expiresAt.expiresAt || expiresAt.exp,
+      );
     }
     if (normalizedExpiry) {
       wx.setStorageSync(TOKEN_EXP_KEY, normalizedExpiry);

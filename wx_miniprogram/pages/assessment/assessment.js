@@ -545,7 +545,10 @@ Page({
             " 题，确定提交吗？",
         confirmText: "提交",
         success: function (res) {
-          if (res.confirm) self._doSubmit();
+          if (res.confirm) {
+            if (self._pageUnloaded) return;
+            self._doSubmit();
+          }
         },
       });
       return;
