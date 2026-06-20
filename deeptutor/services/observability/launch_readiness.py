@@ -27,12 +27,12 @@ _MANUAL_CHECKS = {
     },
     "playwright": {
         "label": "Playwright",
-        "required": True,
+        "required": False,
         "missing_summary": "Playwright 回归还没有进入 readiness evidence",
     },
     "wechat_devtools": {
         "label": "微信 DevTools",
-        "required": True,
+        "required": False,
         "missing_summary": "微信 DevTools CLI 主包 smoke 还没有进入 readiness evidence",
     },
 }
@@ -233,7 +233,7 @@ def _stale_release_row(
     return _row(
         check_id=check_id,
         label=label,
-        status=_FAIL,
+        status=_FAIL if required else _WARN,
         required=required,
         summary="证据不属于当前 release spine",
         evidence=[

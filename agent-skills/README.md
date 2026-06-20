@@ -60,6 +60,11 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   rollback, and post-launch verification workflow.
 - `luban-rich-leaf-compiler`: RichLeafArtifact / 2026 source compilation /
   review queue / runtime supply candidate workflow.
+- `luban-learning-pack-factory`: batch production workflow for Luban 教研测一体
+  learning packs, high-frequency mother-topic cards, teaching animations,
+  variants, and mastery-discrimination checks.
+- `luban-okf-context`: AI-only OKF source-navigation workflow for data asset,
+  topic coverage, exam/source-evidence, and candidate/runtime boundary questions.
 - `luban-diagram-microlesson`: 图解微课卡 authoring / 6+1 原型选择 /
   video-first 动画学习卡 / 母题引擎内容权威 / 确定性 renderer /
   preview contract gate / web-view 沙盒 / 零依赖 CDP 验收 workflow.
@@ -119,11 +124,11 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
-  `luban-diagram-microlesson`
+  `luban-okf-context`, `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
   `deeptutor-ci-runtime-fix-gate`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
-  `luban-rich-leaf-compiler`
+  `luban-rich-leaf-compiler`, `luban-learning-pack-factory`
 - Debug and repair: `deeptutor-authority-debugging`,
   `anti-overfit-repair-review`
 - Review and simplify: `deeptutor-review-quality-gate`,

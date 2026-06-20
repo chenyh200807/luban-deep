@@ -23,6 +23,13 @@
 | 只套 N01 外形 | 构造题也像网络图,判断题也像白板节点 | 把样板 UI 当 authority | 先按 6+1 选原型,再选该原型视觉语法 | pressure tests |
 | 学生端泄漏内部词 | 页面出现 `candidate` / `source_ref` / `P10` / `E03` | renderer 没做 student-safe package gate | 学生包禁止内部 token;制作侧追溯放在源 JSON/后台 | preview gate fail-closed |
 | 无母题数据也标深母题 | 画面漂亮但题和采分句不可追溯 | 表现层越权造内容 | 缺 master/card/variants/source 时只叫视觉小样 | skill 红线 + schema gate |
+| CTA 过早或重复 | 开场就能跳闯关,学生跳过采分句;页面里同时有多个强 CTA | challenge 状态不是由 timing/scene 派生,而是常驻 UI | 默认 `challengeUnlockSec=score.start`;采分句前 CTA locked,采分句后 enabled;普通页去重,底部主行动承担闯关 | `validate_animation_ir_preview.mjs` 的 `runtime_challenge_unlock` |
+| 固定播放器遮挡 | 360 竖屏或横屏时播放器盖住字幕、教练卡、采分句或 CTA | shell 用固定 bottom magic number,没有测量真实 player 高度 | `ResizeObserver` 写 `--player-h`;正文/theater 布局用该变量;横屏避免 fixed overlay 遮挡 | `runtime_player_occlusion` + viewport matrix |
+| 字幕跟着图一起缩放 | 运镜时字幕/教练卡被 camera transform 带走,看起来晃或压图 | caption 被塞进 `.visual`,和施工图共用 transform | `.visual` 只放 SVG/图元;字幕放 stage overlay/live region;coach 是独立 slot | static a11y + screenshot |
+| 控制层浮出压内容 | 点击全屏后播放器出来,字幕/教练卡和控制条叠在一起 | theater controls 是 overlay,但没有定义浮出时哪些内容让位/退出 | controls visible 时临时隐藏或让出 caption/coach;auto-hide 后恢复 | `runtime_theater_occlusion` |
+| 只用 opacity 隐藏 | 元素看不见但还被 gate/点击层当作可见或遮挡 | 视觉隐藏和布局/命中语义混用 | 临时退出用 `display:none` 或明确 `aria-hidden/pointer-events`,不要只调透明度 | hit-test / occlusion gate |
+| 先渲染后救火 | 页面出来才发现比例、叠层、Remotion 没吃同源 IR | 缺 pre-render contract gate,把 schema 问题拖到 UI 评审 | IR 生成后先跑 `validate_animation_ir_contract.mjs`;不过不渲染、不调 CSS | pre-render IR gate |
+| Remotion 单卡另写一套 | HTML preview 变好了,正式成片又偏;或 topic TSX 里硬编码 F16 SVG | Remotion 成了第二份 storyboard/renderer truth | topic wrapper 只导入 IR/timing;通用 `AnimationIrRenderer` 消费 `visual_library/actions` | contract gate 查 wrapper 导入当前 IR + 委托通用 renderer |
 
 ## 2. 快速判定
 
@@ -33,7 +40,11 @@
 - 你正在写练习题,但不知道它来自哪个 variant / basis_ref。
 - 你正在加文案,但这句话没有 anchor 或只是老师自由发挥的考点事实。
 - 你正在做全屏,但普通态竖屏截图里内容仍是小片,或横屏/宽屏截图里仍被锁成窄竖条。
+- 你还没跑 `validate_animation_ir_contract.mjs`,就已经开始看 HTML 或改 CSS。
+- 你在 Remotion topic 文件里写 `if (scene.id === "...")` 或硬编码某张卡的 SVG。
 - 你只跑了静态 HTML gate,但没有跑 `validate_learning_stage_runtime.mjs` 的真实视口矩阵。
+- 你只看 390x844,但没有看 360 窄竖屏、844/932 横屏和 theater 控制层。
+- 你发现问题后只改某张卡 CSS,却没有说明为什么不该沉淀到 renderer/gate/skill。
 - 用户说“不满意”,你的第一反应是换视觉风格,而不是检查 hook、主线、节奏、练习闭环。
 
 ## 3. 修复顺序

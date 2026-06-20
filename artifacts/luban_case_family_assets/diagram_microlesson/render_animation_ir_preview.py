@@ -27,6 +27,192 @@ def js_json(value: object) -> str:
     )
 
 
+TONES: dict[str, dict[str, str]] = {
+    "danger": {"fill": "#fff7ed", "stroke": "#f97316", "text": "#9a3412"},
+    "success": {"fill": "#ecfdf5", "stroke": "#10b981", "text": "#047857"},
+    "blue": {"fill": "#eff6ff", "stroke": "#60a5fa", "text": "#1d4ed8"},
+    "amber": {"fill": "#fffbeb", "stroke": "#f59e0b", "text": "#b45309"},
+    "neutral": {"fill": "#f8fafc", "stroke": "#cbd5e1", "text": "#334155"},
+}
+
+
+def _tone(name: object) -> dict[str, str]:
+    return TONES.get(str(name or "neutral"), TONES["neutral"])
+
+
+def _visual_group(node: dict[str, Any], body: str) -> str:
+    node_id = esc(node.get("id", "node"))
+    return f'<g data-visible-node="{node_id}" data-visual-node-id="{node_id}">{body}</g>'
+
+
+def _svg_text(text: object, x: object, y: object, *, size: int = 14, fill: str = "#0f1722", weight: int = 900, anchor: str = "middle") -> str:
+    parts = str(text or "").split("\n")
+    lines = []
+    for index, part in enumerate(parts):
+        dy = index * (size + 5)
+        lines.append(
+            f'<text x="{esc(x)}" y="{esc(float(y) + dy)}" text-anchor="{anchor}" '
+            f'font-size="{size}" font-weight="{weight}" fill="{fill}">{esc(part)}</text>'
+        )
+    return "".join(lines)
+
+
+def _roof_section(node: dict[str, Any]) -> str:
+    x = float(node.get("x", 32))
+    y = float(node.get("y", 150))
+    w = float(node.get("w", 296))
+    base_h = float(node.get("base_h", 58))
+    return _visual_group(
+        node,
+        f"""
+        <rect x="{x}" y="{y + 28}" width="{w}" height="{base_h}" rx="4" fill="#87919d"/>
+        <rect x="{x}" y="{y + 12}" width="{w}" height="16" fill="#c5b78f"/>
+        <rect x="{x}" y="{y}" width="{w}" height="12" fill="#34465b"/>
+        <text x="{x + 12}" y="{y + 9}" font-size="10" font-weight="900" fill="#e2edf7">卷材</text>
+        <text x="{x + 12}" y="{y + 45}" font-size="10" font-weight="900" fill="#f8fafc">基层</text>
+        """,
+    )
+
+
+def _primitive_svg(node: dict[str, Any]) -> str:
+    kind = str(node.get("kind", "note"))
+    tone = _tone(node.get("tone"))
+    x = float(node.get("x", 0))
+    y = float(node.get("y", 0))
+    w = float(node.get("w", 180))
+    h = float(node.get("h", 42))
+    text = node.get("text", "")
+    subtext = node.get("subtext", "")
+    if kind == "pill":
+        text_svg = _svg_text(text, x + w / 2, y + (25 if subtext else h / 2 + 6), size=16, fill=tone["text"])
+        if subtext:
+            text_svg += _svg_text(subtext, x + w / 2, y + 51, size=13, fill=tone["text"], weight=800)
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="3"/>{text_svg}',
+        )
+    if kind == "roof_section":
+        return _roof_section(node)
+    if kind == "bulge":
+        cx = float(node.get("x", 180))
+        by = float(node.get("base_y", 150))
+        return _visual_group(
+            node,
+            f'<path d="M{cx - 34} {by} Q{cx} {by - 58} {cx + 34} {by} Z" fill="#34465b" stroke="#60a5fa" stroke-width="4"/>'
+            + _svg_text(text, cx, by - 76, size=15, fill="#1d4ed8"),
+        )
+    if kind == "up_arrows":
+        cx = x
+        yy = y
+        return _visual_group(
+            node,
+            f'<path d="M{cx - 16} {yy} V{yy - 32} M{cx} {yy} V{yy - 42} M{cx + 16} {yy} V{yy - 32}" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>'
+            f'<path d="M{cx - 22} {yy - 26} l6 -8 l6 8 M{cx - 6} {yy - 36} l6 -8 l6 8 M{cx + 10} {yy - 26} l6 -8 l6 8" fill="none" stroke="#f59e0b" stroke-width="3"/>',
+        )
+    if kind == "up_arrow":
+        hh = float(node.get("h", 54))
+        return _visual_group(
+            node,
+            f'<path d="M{x} {y} V{y - hh}" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>'
+            f'<path d="M{x - 9} {y - hh + 12} l9 -13 l9 13" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>',
+        )
+    if kind == "cut_cross":
+        return _visual_group(
+            node,
+            f'<path d="M{x - 18} {y + 18} L{x + 18} {y - 18} M{x - 18} {y - 18} L{x + 18} {y + 18}" stroke="#ef4444" stroke-width="8" stroke-linecap="round"/>'
+            + _svg_text(text, x, y - 42, size=16, fill="#b91c1c"),
+        )
+    if kind == "dry_zone":
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="none" stroke="#60a5fa" stroke-width="5" stroke-dasharray="9 7"/>'
+            + _svg_text(text, x + w / 2, y - 18, size=16, fill="#1d4ed8"),
+        )
+    if kind == "sweep_line":
+        return _visual_group(
+            node,
+            f'<path d="M{x} {y} H{x + w}" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>'
+            + _svg_text(text, x + w / 2, y + 24, size=13, fill="#b45309"),
+        )
+    if kind == "membrane_strip":
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="14" rx="5" fill="{tone["stroke"]}"/>'
+            + _svg_text(text, x + w / 2, y - 18, size=16, fill=tone["text"]),
+        )
+    if kind == "coverage_bracket":
+        x1 = float(node.get("x1", x))
+        x2 = float(node.get("x2", x + w))
+        yy = float(node.get("y", y))
+        return _visual_group(
+            node,
+            f'<path d="M{x1} {yy - 12} v22 M{x2} {yy - 12} v22 M{x1} {yy} H{x2}" stroke="#10b981" stroke-width="4" fill="none"/>'
+            + _svg_text(text, (x1 + x2) / 2, yy + 32, size=13, fill="#047857"),
+        )
+    if kind == "lap_curve":
+        x1 = float(node.get("x1", x))
+        x2 = float(node.get("x2", x + w))
+        yy = float(node.get("y", y))
+        return _visual_group(
+            node,
+            f'<path d="M{x1} {yy} C{x1 + 40} {yy + 26} {x2 - 40} {yy + 26} {x2} {yy}" stroke="#60a5fa" stroke-width="4" fill="none" stroke-dasharray="10 7"/>',
+        )
+    if kind == "water_layer":
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="24" rx="7" fill="#60a5fa" opacity=".72"/>'
+            + _svg_text(text, x + w / 2, y - 16, size=16, fill="#1d4ed8"),
+        )
+    if kind == "check_badge":
+        return _visual_group(
+            node,
+            f'<circle cx="{x}" cy="{y}" r="24" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/><text x="{x}" y="{y + 9}" text-anchor="middle" font-size="28" font-weight="900" fill="#047857">✓</text>',
+        )
+    if kind == "answer_box":
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="38" rx="11" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2"/>'
+            + _svg_text(text, x + w / 2, y + 24, size=13, fill=tone["text"]),
+        )
+    if kind == "dialogue_box":
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="42" rx="12" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2"/>'
+            + _svg_text(text, x + w / 2, y + 26, size=13, fill=tone["text"]),
+        )
+    if kind == "closing_text":
+        return _visual_group(
+            node,
+            _svg_text(text, 180, 90, size=18, fill="#047857") + _svg_text(subtext, 180, 132, size=19, fill="#0f1722"),
+        )
+    if kind == "challenge_button":
+        return _visual_group(
+            node,
+            f'<rect x="90" y="166" width="180" height="44" rx="22" fill="#ffd27f"/><text x="180" y="194" text-anchor="middle" font-size="17" font-weight="900" fill="#0f1722">{esc(text)}</text>',
+        )
+    return _visual_group(
+        node,
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2"/>'
+        + _svg_text(text, x + w / 2, y + h / 2 + 5, size=13, fill=tone["text"]),
+    )
+
+
+def _visual_svg(scene: dict[str, Any], visual_library: dict[str, Any]) -> str | None:
+    visual = visual_library.get(str(scene.get("id")))
+    if not visual:
+        return None
+    board = str(visual.get("board", "warm_grid"))
+    if board == "paper":
+        background = '<rect x="28" y="30" width="304" height="210" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="4"/>' + _svg_text("答题纸这样写", 54, 72, size=15, fill="#176b7a", anchor="start")
+    elif board == "closing":
+        background = '<rect x="24" y="34" width="312" height="198" rx="22" fill="#ecfdf5" stroke="#10b981" stroke-width="3"/>'
+    else:
+        background = '<rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/>'
+    nodes = "".join(_primitive_svg(node) for node in visual.get("nodes", []))
+    label = esc(scene.get("label", "教学图"))
+    return f'<svg viewBox="0 0 360 270" role="img" aria-label="{label}">{background}{nodes}</svg>'
+
+
 def _section_svg(scene_id: str) -> str:
     overlays: dict[str, str] = {
         "hook": """
@@ -99,7 +285,11 @@ def _closing_svg() -> str:
     </svg>"""
 
 
-def _scene_visual(scene: dict[str, Any]) -> str:
+def _scene_visual(scene: dict[str, Any], visual_library: dict[str, Any] | None = None) -> str:
+    if visual_library:
+        rendered = _visual_svg(scene, visual_library)
+        if rendered:
+            return rendered
     sid = str(scene["id"])
     if sid == "score":
         return _answer_paper_svg()
@@ -112,6 +302,9 @@ def _scene_visual(scene: dict[str, Any]) -> str:
 
 def _scene_actions(scene: dict[str, Any]) -> list[dict[str, Any]]:
     """Derive a deterministic OpenMAIC-style action queue for preview playback."""
+    explicit = scene.get("actions")
+    if isinstance(explicit, list) and explicit:
+        return explicit
     nodes = list(scene.get("visible_nodes", []))
     actions: list[dict[str, Any]] = []
     for index, node_id in enumerate(nodes):
@@ -143,10 +336,15 @@ def render(ir_path: Path) -> str:
     max_nodes = int(ir.get("render_contract", {}).get("max_visible_nodes", 4))
 
     scenes = ir["scenes"]
+    visual_library = ir.get("visual_library", {})
     student_data = {
         "title": "屋面卷材防水起鼓怎么修补",
         "subtitle": ir["main_exam_action"],
         "totalSec": timing.get("totalSec", scenes[-1]["end_sec"]),
+        "challengeUnlockSec": ir.get("render_contract", {}).get(
+            "challenge_unlock_sec",
+            next((s["start_sec"] for s in scenes if s["id"] == "score"), scenes[-1]["start_sec"]),
+        ),
         "audio": audio,
         "practiceHref": practice_href,
         "maxVisibleNodes": max_nodes,
@@ -172,6 +370,7 @@ def render(ir_path: Path) -> str:
                 "keycard": s["keycard"],
                 "coach": s["coach"],
                 "visibleNodes": s["visible_nodes"],
+                "visual": visual_library.get(s["id"], {}),
                 "actions": _scene_actions(s),
             }
             for s in scenes
@@ -184,13 +383,84 @@ def render(ir_path: Path) -> str:
     )
     scenes_html = "\n".join(
         f"""<section class="scene" data-scene-id="{esc(s["id"])}" data-focus="{esc(s["focus"])}" data-visible-count="{len(s["visible_nodes"])}">
-  <div class="visual">{_scene_visual(s)}</div>
+  <div class="visual">{_scene_visual(s, visual_library)}</div>
   <div class="coach-card" data-info-node="keycard"><b>{esc(s["keycard"])}</b><span>{esc(s["coach"])}</span></div>
 </section>"""
         for s in scenes
     )
     css = """
-*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.lesson{max-width:460px;margin:0 auto;min-height:100vh;padding:14px 12px 132px}.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.kicker{font-size:12px;font-weight:900;color:#ffd27f;margin:0 0 6px}.top h1{font-size:22px;line-height:1.2;margin:0}.time{border:1px solid #31445c;border-radius:999px;padding:7px 10px;color:#cfe0f0;font-size:12px;font-weight:900;white-space:nowrap}.subtitle{margin:10px 0 12px;color:#9fb0c2;font-size:13px;font-weight:800;line-height:1.5}.stage{--camera-scale:1;--camera-x:0px;--camera-y:0px;position:relative;background:#13202e;border:1px solid #24364b;border-radius:20px;min-height:430px;display:grid;align-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation}.scene{display:none;padding:16px}.scene.active{display:grid;gap:12px;animation:sceneIn .2s ease-out}.visual{position:relative;min-height:270px;display:grid;place-items:center;transform:translate3d(var(--camera-x),var(--camera-y),0) scale(var(--camera-scale));transition:transform .12s linear;will-change:transform}.visual svg{width:100%;height:auto;display:block}[data-visible-node]{opacity:0;transform-box:fill-box;transform-origin:center;will-change:opacity,transform,filter}.node-focus{filter:drop-shadow(0 0 9px rgba(255,210,127,.75))}.coach-card{border-left:4px solid #ffd27f;background:#172434;border-radius:14px;padding:12px 13px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}.coach-card b{display:block;color:#ffd27f;font-size:15px;line-height:1.35;margin-bottom:6px}.coach-card span{display:block;color:#dbe6f1;font-size:14px;line-height:1.55;font-weight:800}.caption-line{position:absolute;left:14px;right:14px;bottom:14px;z-index:4;min-height:40px;padding:10px 13px;border-radius:13px;background:rgba(9,17,27,.82);border:1px solid rgba(207,224,240,.18);box-shadow:0 14px 32px rgba(0,0,0,.28);color:#eef6ff;font-size:14px;font-weight:900;line-height:1.45;text-align:center;backdrop-filter:blur(8px)}.caption-line[data-speaker="S"]{color:#d7e9ff;border-color:rgba(96,165,250,.35)}.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;border:0;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:17px;font-weight:900;padding:16px 24px;box-shadow:0 18px 44px rgba(0,0,0,.35)}.lesson.started .center-play{display:none}.challenge-inline{display:flex;align-items:center;justify-content:center;margin:12px 0 0;min-height:46px;border-radius:14px;border:1px dashed #3a4a60;color:#cfe0f0;text-decoration:none;font-weight:900}.player{position:fixed;left:0;right:0;bottom:0;background:rgba(13,23,35,.96);border-top:1px solid #233148;backdrop-filter:blur(10px);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:20;transition:opacity .18s ease,transform .18s ease}.player-inner{max-width:460px;margin:0 auto}.row{display:flex;align-items:center;gap:10px}.play,.theater,.challenge{border:1px solid #3a4a60;background:#162234;color:#cfe0f0;font-weight:900;border-radius:999px;height:44px}.play{width:54px;border:0;background:#ffd27f;color:#0f1722;font-size:20px}.theater{width:58px}.challenge{min-width:64px;text-decoration:none;display:flex;align-items:center;justify-content:center;color:#ffd27f;border-color:#5a421c;background:#211a0c}.progress{flex:1;min-width:0}.ptime{display:flex;justify-content:space-between;color:#9fb0c2;font-size:12px;font-weight:800;margin-bottom:4px}.bar{height:8px;border-radius:999px;background:#26344a;overflow:hidden}.fill{height:100%;width:0;background:#ffd27f}.scrubber{width:100%;accent-color:#ffd27f;margin-top:7px}.chapters{display:flex;gap:6px;margin-top:8px}.chapter{flex:1;border:1px solid #2b3b50;background:#172434;color:#9fb0c2;border-radius:9px;min-height:34px;font-weight:900}.chapter.on{background:#ffd27f;color:#0f1722;border-color:#ffd27f}@keyframes sceneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.lesson.theater{max-width:none;padding:0;background:#0d1723}.lesson.theater .top,.lesson.theater .subtitle,.lesson.theater .challenge-inline{display:none}.lesson.theater .stage{position:fixed;inset:0;border:0;border-radius:0;min-height:0;transition:inset .18s ease}.lesson.theater.controls-visible .stage{inset:0 0 124px 0}.lesson.theater .scene{height:100%;align-content:center;padding:24px}.lesson.theater .visual{min-height:0}.lesson.theater .visual svg{max-height:62vh}.lesson.theater .coach-card{margin-top:4px}.lesson.theater .caption-line{bottom:18px;left:18px;right:18px;font-size:15px}.lesson.theater.controls-visible .caption-line{bottom:16px}.lesson.theater .player{z-index:40;opacity:0;transform:translateY(105%);pointer-events:none}.lesson.theater.controls-visible .player{opacity:1;transform:none;pointer-events:auto}@media (orientation:landscape),(min-width:760px){.lesson{max-width:980px}.stage{min-height:420px}.scene.active{grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);align-items:center}.visual{min-height:330px}.coach-card{align-self:center}.lesson.theater .scene.active{grid-template-columns:minmax(0,1.2fr) minmax(260px,.55fr)}.lesson.theater .visual svg{max-height:76vh}.lesson.theater .caption-line{left:8%;right:8%;bottom:20px}}@media(max-width:420px){.top h1{font-size:20px}.stage{min-height:430px}.scene{padding:12px}.coach-card b{font-size:14px}.coach-card span{font-size:13px}.caption-line{font-size:13px}.chapter{font-size:12px}}
+*{box-sizing:border-box}
+:root{--player-h:132px}
+html,body{margin:0;max-width:100%;overflow-x:hidden}
+body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+.lesson{max-width:460px;margin:0 auto;min-height:100dvh;padding:14px 12px calc(var(--player-h) + 14px + env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.kicker{font-size:12px;font-weight:900;color:#ffd27f;margin:0 0 6px}.top h1{font-size:22px;line-height:1.2;margin:0}
+.time{border:1px solid #31445c;border-radius:999px;padding:7px 10px;color:#cfe0f0;font-size:12px;font-weight:900;white-space:nowrap}
+.subtitle{margin:10px 0 12px;color:#9fb0c2;font-size:13px;font-weight:800;line-height:1.5}
+.stage{--camera-scale:1;--camera-x:0px;--camera-y:0px;position:relative;background:#13202e;border:1px solid #24364b;border-radius:20px;min-height:430px;display:grid;align-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation}
+.stage:focus-visible{outline:3px solid #ffd27f;outline-offset:3px}
+.scene{display:none;padding:16px}.scene.active{display:grid;gap:12px;padding-bottom:88px;animation:sceneIn .2s ease-out}
+.visual{position:relative;min-height:270px;display:grid;place-items:center;transform:translate3d(var(--camera-x),var(--camera-y),0) scale(var(--camera-scale));transition:transform .12s linear;will-change:transform}
+.visual svg{width:100%;height:auto;display:block}
+[data-visible-node]{opacity:0;transform-box:fill-box;transform-origin:center;will-change:opacity,transform,filter}.node-focus{filter:drop-shadow(0 0 9px rgba(255,210,127,.75))}
+.coach-card{border-left:4px solid #ffd27f;background:#172434;border-radius:14px;padding:12px 13px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}
+.coach-card b{display:block;color:#ffd27f;font-size:15px;line-height:1.35;margin-bottom:6px}.coach-card span{display:block;color:#dbe6f1;font-size:14px;line-height:1.55;font-weight:800}
+.caption-line{position:relative;z-index:4;min-height:40px;padding:10px 13px;border-radius:13px;background:rgba(9,17,27,.84);border:1px solid rgba(207,224,240,.18);box-shadow:0 14px 32px rgba(0,0,0,.28);color:#eef6ff;font-size:14px;font-weight:900;line-height:1.45;text-align:center;backdrop-filter:blur(8px)}
+.caption-line[data-speaker="S"]{color:#d7e9ff;border-color:rgba(96,165,250,.35)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;border:0;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:17px;font-weight:900;padding:16px 24px;box-shadow:0 18px 44px rgba(0,0,0,.35)}
+.lesson.started .center-play{display:none}
+.challenge-inline{display:none;align-items:center;justify-content:center;margin:12px 0 0;min-height:48px;border-radius:14px;border:1px dashed #3a4a60;color:#9fb0c2;text-decoration:none;font-weight:900}
+.challenge-inline.ready{color:#ffd27f;border-color:#6d5327;background:#1a150c}
+.theater-hint{position:fixed;left:50%;bottom:calc(var(--player-h) + 18px + env(safe-area-inset-bottom));z-index:45;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;border:1px solid rgba(207,224,240,.2);border-radius:999px;background:rgba(9,17,27,.78);color:#eaf3ff;font-size:13px;font-weight:900;padding:8px 13px;transition:opacity .18s,transform .18s}
+.lesson.theater.show-hint .theater-hint{opacity:1;transform:translateX(-50%)}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(13,23,35,.96);border-top:1px solid #233148;backdrop-filter:blur(10px);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:20;transition:opacity .18s ease,transform .18s ease}
+.player-inner{max-width:460px;margin:0 auto}.row{display:flex;align-items:center;gap:10px}
+.play,.theater,.challenge{border:1px solid #3a4a60;background:#162234;color:#cfe0f0;font-weight:900;border-radius:999px;height:48px;min-width:48px}
+.play{width:58px;border:0;background:#ffd27f;color:#0f1722;font-size:20px}.theater{width:60px}
+.challenge{min-width:72px;text-decoration:none;display:flex;align-items:center;justify-content:center;color:#8fa3b8;border-color:#2b3b50;background:#172434}
+.challenge.ready{color:#ffd27f;border-color:#5a421c;background:#211a0c}
+.progress{flex:1;min-width:0}.ptime{display:flex;justify-content:space-between;color:#9fb0c2;font-size:12px;font-weight:800;margin-bottom:2px}
+.bar{height:8px;border-radius:999px;background:#26344a;overflow:hidden}.fill{height:100%;width:0;background:#ffd27f}
+.scrubber{width:100%;height:44px;accent-color:#ffd27f;margin:0}
+.chapters{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:1px;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}
+.chapter{flex:0 0 auto;min-width:72px;border:1px solid #2b3b50;background:#172434;color:#9fb0c2;border-radius:12px;min-height:44px;padding:0 10px;font-weight:900}
+.chapter.on{background:#ffd27f;color:#0f1722;border-color:#ffd27f}
+@keyframes sceneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.lesson.theater{max-width:none;padding:0;background:#0d1723}
+.lesson.theater .top,.lesson.theater .subtitle,.lesson.theater .challenge-inline{display:none}
+.lesson.theater .stage{position:fixed;inset:0;border:0;border-radius:0;min-height:0;transition:inset .18s ease}
+.lesson.theater.controls-visible .stage{inset:0 0 calc(var(--player-h) + env(safe-area-inset-bottom)) 0}
+.lesson.theater .scene{height:100%;align-content:start;padding:clamp(18px,6vh,52px) 18px 18px}
+.lesson.theater .visual{min-height:0}.lesson.theater .visual svg{max-height:min(52dvh,460px)}
+.lesson.theater .coach-card{margin-top:4px}
+.lesson.theater .caption-line{font-size:15px}
+.lesson.theater.controls-visible .caption-line,.lesson.theater.controls-visible .coach-card{display:none}
+.lesson.theater .player{z-index:40;opacity:0;transform:translateY(105%);pointer-events:none}
+.lesson.theater.controls-visible .player{opacity:1;transform:none;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson{max-width:980px}.stage{min-height:420px}
+  .scene.active{grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);align-items:center}
+  .visual{min-height:330px}.coach-card{align-self:center}
+  .lesson.theater .scene.active{grid-template-columns:minmax(0,1.2fr) minmax(260px,.55fr)}
+  .lesson.theater .visual svg{max-height:70dvh}.lesson.theater .caption-line{left:8%;right:8%;bottom:20px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .lesson{max-width:none;min-height:auto;padding:10px 12px 0}.subtitle{margin-bottom:8px}.top h1{font-size:20px}
+  .stage{min-height:calc(100dvh - 132px)}
+  .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
+  .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
+  .lesson.theater .scene{padding:14px 18px}.lesson.theater .visual svg{max-height:58dvh}
+}
+@media(max-width:420px){
+  .top h1{font-size:20px}.stage{min-height:430px}.scene{padding:12px}
+  .coach-card b{font-size:14px}.coach-card span{font-size:13px}.caption-line{font-size:13px}.chapter{font-size:12px}
+}
+@media(max-width:370px){
+  .lesson{padding:12px 12px 0}
+  .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
+  .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
+}
 """
     return f"""<!doctype html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -199,19 +469,20 @@ def render(ir_path: Path) -> str:
 <main class="lesson orientation-adaptive" data-card-id="{esc(ir['card_id'])}" data-stage-shell="animation-ir-preview" data-animation-ir-preview="v0">
   <div class="top"><div><p class="kicker">鲁班深母题 · F16 起鼓割补</p><h1>屋面卷材防水起鼓怎么修补</h1></div><div class="time"><span id="cur">0:00</span> / <span id="tot">0:00</span></div></div>
   <p class="subtitle">{esc(ir['main_exam_action'])}</p>
-  <div class="stage" id="stage" data-stage-shell="visual-stage">
+  <div class="stage" id="stage" data-stage-shell="visual-stage" tabindex="0" aria-label="动画学习舞台，轻点显示或隐藏控制">
     {scenes_html}
-    <div class="caption-line" id="captionLine" data-caption="1" data-speaker="T"></div>
-    <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    <div class="caption-line" id="captionLine" data-caption="1" data-speaker="T" role="status" aria-live="polite"></div>
+    <div class="theater-hint" id="theaterHint" aria-hidden="true">轻点显示控制</div>
+    <button class="center-play" id="centerPlay" type="button" aria-label="播放讲解">播放讲解</button>
   </div>
-  <a class="challenge-inline" href="{esc(practice_href)}" data-challenge-cta="inline">直接进入闯关 →</a>
+  <a class="challenge-inline" href="{esc(practice_href)}" data-challenge-cta="inline" aria-disabled="true">先看采分句再闯关 →</a>
   <div class="player controls" id="player">
     <div class="player-inner">
       <div class="row">
-        <button class="play" id="play" type="button">▶</button>
-        <button class="theater" id="theaterToggle" data-theater-toggle="1" type="button">全屏</button>
+        <button class="play" id="play" type="button" aria-label="播放讲解" aria-pressed="false">▶</button>
+        <button class="theater" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="进入全屏学习模式" aria-pressed="false">全屏</button>
         <div class="progress"><div class="ptime"><span id="cur2">0:00</span><span id="tot2">0:00</span></div><div class="bar"><div class="fill" id="fill"></div></div><input class="scrubber" id="scrubber" type="range" min="0" max="{student_data['totalSec']}" value="0" step="0.05" aria-label="拖动播放进度"></div>
-        <a class="challenge" href="{esc(practice_href)}" data-challenge-cta="controls">闯关</a>
+        <a class="challenge" href="{esc(practice_href)}" data-challenge-cta="controls" aria-disabled="true">采分后闯关</a>
       </div>
       <div class="chapters">{chapters_html}</div>
     </div>
@@ -224,28 +495,41 @@ const DATA=JSON.parse(document.getElementById('irPreviewData').textContent);
 const lesson=document.querySelector('.lesson'),au=document.getElementById('au'),play=document.getElementById('play'),centerPlay=document.getElementById('centerPlay'),scrubber=document.getElementById('scrubber'),fill=document.getElementById('fill');
 const cur=document.getElementById('cur'),cur2=document.getElementById('cur2'),tot=document.getElementById('tot'),tot2=document.getElementById('tot2'),theaterToggle=document.getElementById('theaterToggle'),stage=document.getElementById('stage'),player=document.getElementById('player'),captionLine=document.getElementById('captionLine');
 const scenes=[...document.querySelectorAll('.scene')],chapters=[...document.querySelectorAll('.chapter')];
+const challengeLinks=[...document.querySelectorAll('[data-challenge-cta]')];
 const fmt=s=>{{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}};
-let raf=0,hideTimer=0,lastScene='';
+let raf=0,hideTimer=0,hintTimer=0,lastScene='';
 tot.textContent=tot2.textContent=fmt(DATA.totalSec);
+const scoreStart=Number(DATA.challengeUnlockSec??(DATA.scenes.find(s=>s.id==='score')||DATA.scenes.at(-2)||DATA.scenes.at(-1)).start);
 const clamp01=x=>Math.max(0,Math.min(1,x));
 const ease=x=>{{x=clamp01(x);return 1-Math.pow(1-x,3);}};
 function sceneAt(t){{return DATA.scenes.find(s=>t>=s.start-0.05&&t<s.end-0.05)||DATA.scenes[DATA.scenes.length-1];}}
-function segmentAt(t){{return (DATA.segments||[]).find(s=>t>=s.start-0.05&&t<s.end-0.05)||(DATA.segments||[]).at(-1)||{{text:'',speaker:'T'}};}}
-function setControls(visible=true,auto=true){{clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible&&auto&&lesson.classList.contains('theater')&&!au.paused)hideTimer=setTimeout(()=>lesson.classList.remove('controls-visible'),2600);}}
+function segmentAt(t){{return (DATA.segments||[]).find(s=>t>=s.start-0.18&&t<s.end+0.18)||null;}}
+function syncPlayerHeight(){{lesson.style.setProperty('--player-h',Math.ceil(player.getBoundingClientRect().height||132)+'px');}}
+if('ResizeObserver' in window)new ResizeObserver(syncPlayerHeight).observe(player);
+window.addEventListener('resize',syncPlayerHeight);
+function scoreReady(t=Number(au.currentTime||scrubber.value||0)){{return t>=scoreStart-0.1||t>=DATA.totalSec-0.5;}}
+function updateChallenge(t){{const ready=scoreReady(t);lesson.classList.toggle('challenge-ready',ready);challengeLinks.forEach(link=>{{link.classList.toggle('ready',ready);link.setAttribute('aria-disabled',ready?'false':'true');link.textContent=link.dataset.challengeCta==='inline'?(ready?'用采分句闯关 →':'先看采分句再闯关 →'):(ready?'闯关':'采分后闯关');}});}}
+function showHint(){{if(!lesson.classList.contains('theater'))return;clearTimeout(hintTimer);lesson.classList.add('show-hint');hintTimer=setTimeout(()=>lesson.classList.remove('show-hint'),1400);}}
+function setControls(visible=true,auto=true){{clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible)lesson.classList.remove('show-hint');else showHint();if(visible&&auto&&lesson.classList.contains('theater')&&!au.paused)hideTimer=setTimeout(()=>setControls(false,false),2600);}}
+function setPlayState(isPlaying){{play.textContent=isPlaying?'⏸':'▶';play.setAttribute('aria-label',isPlaying?'暂停讲解':'播放讲解');play.setAttribute('aria-pressed',isPlaying?'true':'false');}}
 function applyMotion(activeEl,active,t){{if(!activeEl)return;const dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur),nodes=[...activeEl.querySelectorAll('[data-visible-node]')],actions=active.actions||[];const cameraAction=actions.find(a=>a.kind==='camera')||{{verb:active.camera,start:0,end:.28}},cameraVerb=cameraAction.verb||active.camera;const cameraPush=cameraVerb==='push-in'||cameraVerb==='spotlight'||cameraVerb==='answer-paper'||cameraVerb==='trace';const cameraP=ease((p-(cameraAction.start||0))/Math.max(.05,(cameraAction.end||.28)-(cameraAction.start||0)));stage.style.setProperty('--camera-scale',String(1+(cameraPush?0.035*cameraP:0)));stage.style.setProperty('--camera-y',(cameraVerb==='pull-back'?String(-8*ease(p)):'0')+'px');nodes.forEach((node,i)=>{{const name=node.dataset.visibleNode||'';const reveal=actions.find(a=>a.kind==='reveal'&&a.target===name)||{{start:.04+i*.14,end:.22+i*.14}};const v=ease((p-reveal.start)/Math.max(.05,reveal.end-reveal.start));const highlighted=actions.some(a=>a.kind==='highlight'&&(a.target===name||name===a.target||name.includes(a.target))&&p>=a.start&&p<=a.end)||name===active.focus||name.includes(active.focus);node.style.opacity=String(v);node.style.transform=`translateY(${{(1-v)*10}}px) scale(${{0.96+v*0.04}})`;node.classList.toggle('node-focus',highlighted);}});if(active.id!==lastScene){{scenes.forEach(scene=>{{if(scene!==activeEl)scene.querySelectorAll('[data-visible-node]').forEach(node=>{{node.style.opacity='0';node.style.transform='translateY(10px) scale(.96)';node.classList.remove('node-focus');}});}});lastScene=active.id;}}}}
-function paint(){{const t=Number(au.currentTime||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.add('started');lesson.classList.toggle('paused',au.paused);lesson.classList.toggle('playing',!au.paused);let activeEl=null;scenes.forEach(el=>{{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;}});const visual=activeEl?.querySelector('.visual');if(visual&&captionLine.parentElement!==visual)visual.appendChild(captionLine);applyMotion(activeEl,active,t);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);captionLine.textContent=seg.text||active.coach||'';captionLine.dataset.speaker=seg.speaker||'T';}}
+function paint(){{const t=Number(au.currentTime||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.add('started');lesson.classList.toggle('paused',au.paused);lesson.classList.toggle('playing',!au.paused);let activeEl=null;scenes.forEach(el=>{{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;}});const coach=activeEl?.querySelector('.coach-card');if(activeEl&&coach&&captionLine.parentElement!==activeEl)activeEl.insertBefore(captionLine,coach);applyMotion(activeEl,active,t);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);captionLine.hidden=!seg;captionLine.textContent=seg?.text||'';captionLine.dataset.speaker=seg?.speaker||'T';updateChallenge(t);syncPlayerHeight();}}
 function loop(){{paint();if(!au.paused)raf=requestAnimationFrame(loop);}}
 function startLoop(){{cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}}
 function seek(t){{au.currentTime=Math.max(0,Math.min(DATA.totalSec,Number(t)||0));scrubber.value=String(au.currentTime);paint();setControls(true);}}
-function playAudio(){{lesson.classList.add('started');return au.play().then(()=>{{play.textContent='⏸';setControls(true);startLoop();}}).catch(()=>{{paint();}});}}
-function toggle(){{if(au.paused)playAudio();else{{au.pause();play.textContent='▶';setControls(true,false);paint();}}}}
-play.addEventListener('click',toggle);centerPlay.addEventListener('click',playAudio);au.addEventListener('timeupdate',paint);au.addEventListener('ended',()=>{{play.textContent='▶';seek(DATA.totalSec);setControls(true,false);}});
+function playAudio(){{lesson.classList.add('started');return au.play().then(()=>{{setPlayState(true);setControls(true);startLoop();}}).catch(()=>{{paint();}});}}
+function toggle(){{if(au.paused)playAudio();else{{au.pause();setPlayState(false);setControls(true,false);paint();}}}}
+play.addEventListener('click',toggle);centerPlay.addEventListener('click',playAudio);au.addEventListener('timeupdate',paint);au.addEventListener('play',()=>setPlayState(true));au.addEventListener('pause',()=>setPlayState(false));au.addEventListener('ended',()=>{{setPlayState(false);seek(DATA.totalSec);setControls(true,false);}});
 scrubber.addEventListener('input',()=>seek(scrubber.value));chapters.forEach(btn=>btn.addEventListener('click',()=>{{seek(btn.dataset.t);playAudio();}}));
 stage.addEventListener('click',e=>{{if(e.target===centerPlay)return;if(lesson.classList.contains('theater'))setControls(true);}});
+stage.addEventListener('keydown',e=>{{if((e.key==='Enter'||e.key===' ')&&lesson.classList.contains('theater')){{e.preventDefault();setControls(true);}}}});
 player.addEventListener('click',e=>e.stopPropagation());
-theaterToggle.addEventListener('click',()=>{{lesson.classList.toggle('theater');theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';setControls(true);paint();}});
+challengeLinks.forEach(link=>link.addEventListener('click',e=>{{if(scoreReady())return;e.preventDefault();seek(scoreStart);playAudio();}}));
+async function setTheater(on){{lesson.classList.toggle('theater',on);theaterToggle.textContent=on?'退出':'全屏';theaterToggle.setAttribute('aria-label',on?'退出全屏学习模式':'进入全屏学习模式');theaterToggle.setAttribute('aria-pressed',on?'true':'false');if(on){{showHint();try{{await stage.requestFullscreen?.();}}catch{{}}}}else{{lesson.classList.remove('show-hint');if(document.fullscreenElement){{try{{await document.exitFullscreen();}}catch{{}}}}}}setControls(true);syncPlayerHeight();paint();}}
+theaterToggle.addEventListener('click',()=>setTheater(!lesson.classList.contains('theater')));
+document.addEventListener('fullscreenchange',()=>{{if(!document.fullscreenElement&&lesson.classList.contains('theater')){{lesson.classList.remove('theater');theaterToggle.textContent='全屏';theaterToggle.setAttribute('aria-label','进入全屏学习模式');theaterToggle.setAttribute('aria-pressed','false');setControls(true,false);paint();}}}});
 window.__IR_PLAYER__={{seek,paint,state:()=>({{time:Number(au.currentTime||0),scene:sceneAt(Number(au.currentTime||0)).id}})}};
-seek(0);setControls(false,false);
+syncPlayerHeight();seek(0);setPlayState(false);setControls(false,false);
 </script></body></html>"""
 
 

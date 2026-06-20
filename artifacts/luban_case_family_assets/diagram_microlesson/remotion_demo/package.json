@@ -11,6 +11,7 @@
     "still:n01": "remotion still src/index.ts N01NetworkVideoFirst out/n01-network-video-first.png --frame=900",
     "still:s01": "remotion still src/index.ts S01ScaffoldTemplateAcceptance ../S01_scaffold_template_acceptance.poster.png --frame=0",
     "still:f16": "remotion still src/index.ts F16RoofBlisterRepair out/f16-roof-blister-repair.png --frame=420",
+    "still:f16-ir": "remotion still src/index.ts F16AnimationIrPreview out/f16-animation-ir-preview.png --frame=420",
     "studio": "remotion studio src/index.ts"
   },
   "dependencies": {

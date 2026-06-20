@@ -499,6 +499,40 @@ def test_build_observer_snapshot_reports_missing_arr_when_only_benchmark_exists(
     assert "missing_arr_run" in blind_spot_types
 
 
+def test_build_observer_snapshot_excludes_test_only_turns_from_headline_metrics(tmp_path) -> None:
+    event_log = TurnEventLog(events_dir=tmp_path / "events")
+    event_log.append(
+        build_turn_observation_event(
+            session_id="session-real",
+            turn_id="turn-real",
+            status="completed",
+            capability="chat",
+        )
+    )
+    event_log.append(
+        build_turn_observation_event(
+            session_id="session_general_knowledge_shadow",
+            turn_id="turn-shadow",
+            status="failed",
+            capability="deep_question",
+            surface="online_shadow",
+        )
+    )
+
+    payload = build_observer_snapshot(
+        store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
+        event_log=event_log,
+        event_days=1,
+        conversation_db_path=tmp_path / "missing-chat.db",
+        backend_log_paths=[],
+    )
+
+    assert payload["turn_events"]["event_count"] == 1
+    assert payload["turn_events"]["raw_event_count"] == 2
+    assert payload["turn_events"]["excluded_test_only_event_count"] == 1
+    assert payload["turn_events"]["error_count"] == 0
+
+
 def test_build_observer_snapshot_reports_blind_spots_when_sources_missing(tmp_path) -> None:
     payload = build_observer_snapshot(
         store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),

@@ -27,10 +27,13 @@
 一次性建库:统一 learning stage 合同 + 6+1 fixture/golden + gate.sh 串门
 每卡 loop:
  P0 母题就绪(讲义_v8 选考点→归6+1→authority)  ← 事实层在此【冻结】
- P1 LLM 生成/修订 lesson beats + animation_action[](camera/highlight/reveal/keycard)★表现放开★
-      约束:claim:true beat 必 anchor 回卡;IR 禁含 x/y/width/#id(几何归 renderer)
- P2 渲染(确定性 renderer 吃 lesson/master → journey/rendered.html + practice.html)
- P3 自动门 gate.sh(schema→action schema→timing_sync→render→data-id→runtime→practice→cdp_shot)
+ P0.5 Director Gate(construction-whiteboard-director):teaching_spine + 5-8 beats + 每 beat 一个 visual action/一句字幕/退出项
+ P1 LLM/agent 生成/修订 lesson beats 或 animation_ir.v0(scene/actions/visual_library)★表现放开★
+      约束:claim:true beat 必 anchor 回卡;selector 必须 data-id;复杂构造坐标只能落在受 schema 约束的 visual_library,不得自由 HTML 画像素
+ P1.5 Pre-render Gate(validate_animation_ir_contract.mjs / action schema):先审 IR,证明 scene/action/visual/data-id/Remotion 同源合法,不过不渲染
+ P2 渲染(确定性 renderer 吃 lesson/master/animation_ir → journey/rendered.html / preview.html / practice.html)
+ P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→cdp_shot)
+      animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
  P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
  过关? NO→ P5 结构化反馈喂回 → 回 P1 改 IR(只改表现,anchor 不动) / YES→ P6 学员门(KPI 正确率)
 ```
@@ -43,12 +46,18 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - 机器门 FAIL message(已是 `LEVEL file check: msg` 三段式)→ `gate_failures[]`。
 - LLM judge 必须按固定 schema 出:`{verdict, issues:[{axis, anti_pattern, beat_id, fix, severity}]}`。
 - 合并成修订指令喂回 P1,钉死"**只改被点名的 beat/字段,anchor 与 scoring_point_binding 不许动**"。
+- 每次失败必须补一条 root-cause triage:
+  `{symptom, shared_failure_shape, one_authority, broken_contract, fix_layer: IR|renderer|gate|skill|card-css, new_gate_or_antipattern}`。
+  如果 `fix_layer=card-css`,必须说明为什么不是 stage shell / renderer / gate 的 shared failure;否则不准合入。
+- 审查必须前置一层:LLM judge/人审前,先跑 pre-render gate。常见失败如 unsupported primitive、visual node 没 backing、action target 不存在、Remotion wrapper 没导入当前 IR,都不应该进入视觉评审。
 
 ## 5. 门/judge/人审三分(anti-patterns 15 条)
 - **~9 条全自动机器门**:schema / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / timing sync / data-id selector 命中 / 视觉快照。
+- animation_ir preview 的真实视口门是量产准入,不是 F16 特例:360/390/430 竖屏、844/932 横屏、播放器遮挡、触控 44px、字幕 live、闯关解锁、非累计 seek、student-safe 都必须 fail-closed。
 - **LLM judge**:镜头是否筛注意力、叙事一线贯穿、错觉真实。
 - **3 类纯人审**(教学品味):镜头调度、箭头层级、采分表达质量。
-- **已落地两道硬门**:`validate_timing_sync.mjs`(总时长 + `sync_keyword` 命中对应 timing 文本/keycard)、
+- **已落地三道硬门**:`validate_animation_ir_contract.mjs`(渲染前 IR scene/action/visual/Remotion 同源合同)、
+  `validate_timing_sync.mjs`(总时长 + `sync_keyword` 命中对应 timing 文本/keycard)、
   `validate_data_id_targets.mjs`(lesson `animation_action[].target` → rendered DOM 命中)。
   它们由 `artifacts/luban_case_family_assets/diagram_microlesson/gate.sh` 串联,在
   `contracts/registries.yaml` 以 `operational` 登记,不误升为全仓 PR gate。
@@ -84,6 +93,18 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 
 - N01/S02 还未接入同一套 gates。
 - judge 修订 prompt 模板和 learner evidence 仍待后续。
+
+## 6.2 F16 animation_ir.v0 切片(2026-06-20)
+
+F16 起鼓割补已补齐 OpenMAIC-style 新引擎的最小闭环:
+
+- `F16_qigu.animation_ir.v0.json` 是唯一表现 IR:scene/action/visible_nodes/keycard/coach/visual_library 在此定义。
+- `validate_animation_ir_contract.mjs` 是 **pre-render gate**:先审 IR,再允许 HTML/Remotion 渲染。
+- `render_animation_ir_preview.py` 是 HTML preview renderer:只渲当前 scene 和当前 action 集,不靠 `reached-*` 累积。
+- `remotion_demo/src/AnimationIrRenderer.tsx` 是通用 Remotion renderer:用 `useCurrentFrame()` 重放同一份 IR;`F16AnimationIrPreview.tsx` 只是导入 F16 IR/timing 的 thin wrapper。
+- `validate_animation_ir_preview.mjs` 是 post-render gate:验证 IR→HTML data 等价、scene 生命周期、控件、字幕、CTA、theater 和 mobile viewport。
+
+这条切片的关键不是 F16 图好看,而是证明 workflow 可量产:LLM/agent 改表现只改 IR;HTML 和 Remotion 都吃同一份 IR;审查先发生在 IR 层,再发生在真实页面层。后续 60 卡先复制这个分工,再扩图元库/action renderer,不要再复制 F16 专用 SVG。
 
 ## 7. MVP 验证(2026-06-19)+ judge 必查项
 

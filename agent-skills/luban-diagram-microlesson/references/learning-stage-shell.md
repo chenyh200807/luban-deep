@@ -37,6 +37,8 @@
 - 控制层点击浮出。
 - 可拖动进度和语义章节。
 - 播放结束后 CTA 变成闯关。
+- player 高度运行时测量,不得写死 124/132px 之类 magic number。
+- 采分句前闯关 CTA 只能 locked/弱提示;采分句后才 enabled/主行动。
 
 稳定壳必须暴露机器可校验 hooks,不要靠 class/id 默契:
 
@@ -109,6 +111,11 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 - 横屏/宽屏下 `.stage` 宽高比不能像窄竖条。
 - theater 下隐藏页面 chrome。
 - controls 高度不过载,不压住主 stage。
+- 固定播放器不得遮挡 `.visual`、字幕、教练卡、采分句或 CTA。
+- 可见按钮/链接/range 命中盒不小于 44px。
+- 字幕必须是独立 live region,不要挂进 `.visual` 跟着 camera transform。
+- 闯关 CTA 必须由 timing/scene 派生 unlock;采分句前 locked,采分句后 enabled。
+- seek 回旧 scene 时,旧 scene 节点不得继续可见。
 - 章节不是纯数字。
 - 可见按钮文字不明显溢出。
 
@@ -118,15 +125,16 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 
 1. `validate_schema_drafts.py`:母题/卡 schema 和基础事实结构。
 2. `validate_animation_action_schema.py`:现有 v0 lesson 的 `animation_action[]` 白名单与 `data-id:` target 形状。
-3. `build_lesson_narration.mjs --print`:旁白 claim anchor、closing、音频生成前文本。
-4. `validate_timing_sync.mjs`:总时长 + `sync_keyword` 覆盖,并命中对应 timing 段文本/keycard。
-5. `validate_data_id_targets.mjs`:lesson `animation_action[].target` 在 rendered HTML 中命中。
-6. `validate_video_first_preview.mjs`:静态表现合同、student-safe、独立练习页、章节、practice link。
-7. `validate_learning_stage_runtime.mjs`:真实视口布局、横竖屏、通过真实 `[data-theater-toggle]` 进入 theater、控件遮挡。
-8. `cdp_shot.mjs`:留下人工复审截图。
-9. `build_card_bundle_manifest.py`:bundle-root 相对路径 + master/lesson/timing/rendered/practice/audio hash;成片档才跑 Remotion render + ffprobe + 音画同步截图。
+3. `validate_animation_ir_contract.mjs`:animation_ir.v0 的 scene/action/visual_library/student-safe/Remotion 同源 **渲染前**合同。
+4. `build_lesson_narration.mjs --print`:旁白 claim anchor、closing、音频生成前文本。
+5. `validate_timing_sync.mjs`:总时长 + `sync_keyword` 覆盖,并命中对应 timing 段文本/keycard。
+6. `validate_data_id_targets.mjs`:lesson `animation_action[].target` 在 rendered HTML 中命中。
+7. `validate_video_first_preview.mjs` / `validate_animation_ir_preview.mjs`:静态表现合同、IR→HTML 等价、student-safe、独立练习页、章节、practice link、CTA 解锁。
+8. `validate_learning_stage_runtime.mjs`:真实视口布局、横竖屏、通过真实 `[data-theater-toggle]` 进入 theater、控件遮挡。
+9. `cdp_shot.mjs` + Remotion still:留下人工复审截图;关键帧至少看 hook/trap/worked/score/closing。
+10. `build_card_bundle_manifest.py`:bundle-root 相对路径 + master/lesson/timing/rendered/practice/audio hash;成片档才跑 Remotion render + ffprobe + 音画同步截图。
 
-如果第 4 层没过,不要继续调文案、颜色或题目。先修壳。
+如果第 3 层没过,不要继续调文案、颜色或题目。先修 IR/renderer contract。
 
 J01 当前确定性壳验收命令:
 
@@ -155,3 +163,4 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 4. 最后才改局部 CSS。
 
 如果只能通过给某张卡加特殊 CSS 才能过,默认说明模板不够好;优先改 Learning Stage Shell,不要积累 per-topic 补丁。
+每次修复要记录 root-cause triage:`symptom / shared_failure_shape / one_authority / broken_contract / fix_layer / new_gate_or_antipattern`。没有新增 gate 或 anti-pattern 的重复 bug,默认还没修到根上。

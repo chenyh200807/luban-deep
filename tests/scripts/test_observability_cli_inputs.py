@@ -127,42 +127,29 @@ def test_daily_observability_keeps_terminal_ws_errors_blocking(
     assert "RuntimeError" in payload["summary"]
 
 
-def test_daily_observability_metrics_fallback_records_401_provenance(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_daily_observability_metrics_auth_failure_is_not_silently_downgraded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     request = DAILY_OBSERVABILITY_MODULE.httpx.Request("GET", "http://127.0.0.1:8001/metrics")
     response = DAILY_OBSERVABILITY_MODULE.httpx.Response(401, request=request)
-
-    class _FakeClient:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, exc_type, exc, tb):
-            return False
-
-        def get(self, _url: str):
-            raise DAILY_OBSERVABILITY_MODULE.httpx.HTTPStatusError(
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "load_metrics_snapshot_shared",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            DAILY_OBSERVABILITY_MODULE.httpx.HTTPStatusError(
                 "401 Unauthorized",
                 request=request,
                 response=response,
             )
-
-    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE.httpx, "Client", lambda **_kwargs: _FakeClient())
-    monkeypatch.setattr(
-        DAILY_OBSERVABILITY_MODULE,
-        "_build_testclient_metrics_snapshot",
-        lambda: {"release": {"release_id": "rel-1"}},
+        ),
     )
 
-    payload = DAILY_OBSERVABILITY_MODULE._load_metrics_snapshot(
-        api_base_url="http://127.0.0.1:8001",
-        metrics_json=None,
-    )
-
-    provenance = payload["observability_metrics_provenance"]
-    assert provenance["source"] == "testclient_fallback"
-    assert provenance["fallback_used"] is True
-    assert provenance["status_code"] == 401
-    assert provenance["url"] == "http://127.0.0.1:8001/metrics"
-    assert "401 Unauthorized" in provenance["error"]
+    with pytest.raises(RuntimeError, match="metrics endpoint auth blocked"):
+        DAILY_OBSERVABILITY_MODULE._load_metrics_snapshot(
+            api_base_url="http://127.0.0.1:8001",
+            metrics_json=None,
+            metrics_token=None,
+        )
 
 
 def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monkeypatch, tmp_path) -> None:
@@ -309,6 +296,7 @@ def test_daily_observability_missing_surface_readiness_rows_are_evidence_gaps(tm
         store=store,
         release=release,
         changed_files=["web/app/page.tsx", "yousenwebview/project.config.json"],
+        required_checks={"playwright", "wechat_devtools"},
     )
 
     records = store.list_runs("readiness_checks", limit=10)
@@ -322,6 +310,36 @@ def test_daily_observability_missing_surface_readiness_rows_are_evidence_gaps(tm
     assert rows["wechat_devtools"]["status"] == "FAIL"
     assert rows["wechat_devtools"]["blockers"] == ["wechat_devtools_true_entry_pending"]
     assert "boundary=islogin/open are preflight until page scenario or automator evidence exists" in rows["wechat_devtools"]["evidence"]
+
+
+def test_daily_observability_marks_surface_readiness_not_required_for_non_surface_scope(tmp_path) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    store = get_control_plane_store()
+    release = {
+        "release_id": "rel-current",
+        "git_sha": "sha-current",
+        "deployment_environment": "local",
+        "prompt_version": "p-current",
+        "ff_snapshot_hash": "ff-current",
+    }
+
+    DAILY_OBSERVABILITY_MODULE._ensure_surface_readiness_rows(
+        store=store,
+        release=release,
+        changed_files=["docs/plan/INDEX.md"],
+        required_checks=set(),
+    )
+
+    records = store.list_runs("readiness_checks", limit=10)
+    rows = {
+        str((record.get("payload") or {}).get("check_id")): record.get("payload")
+        for record in records
+    }
+    assert rows["playwright"]["status"] == "SKIP"
+    assert rows["playwright"]["required"] is False
+    assert rows["playwright"]["blockers"] == []
+    assert rows["wechat_devtools"]["status"] == "SKIP"
+    assert rows["wechat_devtools"]["required"] is False
 
 
 def test_run_oa_load_json_accepts_observer_snapshot_wrapper(tmp_path) -> None:
@@ -603,6 +621,7 @@ def test_run_plan_completion_audit_cli_writes_control_plane_latest(tmp_path) -> 
     env = {
         **os.environ,
         "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+        "DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK": "1",
     }
 
     proc = subprocess.run(
@@ -632,6 +651,7 @@ def test_run_readiness_check_cli_records_command_result(tmp_path) -> None:
     env = {
         **os.environ,
         "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+        "DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK": "1",
     }
 
     proc = subprocess.run(

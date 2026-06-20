@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from typing import Any, Callable
 from urllib.parse import urlparse, urlunparse
 
 import httpx
 import websockets
+
+from deeptutor.services.observability.metrics_loader import metrics_headers
 
 
 def _build_ws_url(api_base_url: str) -> str:
@@ -17,10 +20,10 @@ def _build_ws_url(api_base_url: str) -> str:
     return urlunparse((scheme, parsed.netloc, path, "", "", ""))
 
 
-async def load_metrics_snapshot_async(*, api_base_url: str) -> dict[str, Any]:
+async def load_metrics_snapshot_async(*, api_base_url: str, metrics_token: str | None = None) -> dict[str, Any]:
     url = f"{api_base_url.rstrip('/')}/metrics"
     async with httpx.AsyncClient(timeout=5.0, trust_env=False) as client:
-        response = await client.get(url)
+        response = await client.get(url, headers=metrics_headers(metrics_token))
         response.raise_for_status()
         return response.json()
 
@@ -40,10 +43,17 @@ def _build_metrics_capture(
     }
 
 
-async def _try_load_metrics_snapshot_async(*, api_base_url: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+async def _try_load_metrics_snapshot_async(
+    *,
+    api_base_url: str,
+    metrics_token: str | None = None,
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     url = f"{api_base_url.rstrip('/')}/metrics"
     try:
-        snapshot = await load_metrics_snapshot_async(api_base_url=api_base_url)
+        snapshot = await load_metrics_snapshot_async(
+            api_base_url=api_base_url,
+            metrics_token=metrics_token,
+        )
     except httpx.HTTPStatusError as exc:
         return None, _build_metrics_capture(
             url=url,
@@ -67,6 +77,7 @@ async def run_unified_ws_smoke(
     language: str = "zh",
     capability: str | None = None,
     auth_token: str | None = None,
+    metrics_token: str | None = None,
     timeout_seconds: float = 60.0,
     connector_factory: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
@@ -100,7 +111,10 @@ async def run_unified_ws_smoke(
                 terminal_event = data
                 break
 
-    metrics_after, metrics_capture = await _try_load_metrics_snapshot_async(api_base_url=api_base_url)
+    metrics_after, metrics_capture = await _try_load_metrics_snapshot_async(
+        api_base_url=api_base_url,
+        metrics_token=metrics_token or os.getenv("DEEPTUTOR_METRICS_TOKEN"),
+    )
     duration_ms = (time.perf_counter() - started_at) * 1000.0
     passed = bool(terminal_event) and terminal_event.get("type") == "done"
 

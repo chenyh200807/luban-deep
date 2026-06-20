@@ -32,6 +32,9 @@ DEFAULT_GRADING_ARTIFACTS_MANIFEST = EXTRACTIONS_ROOT / "luban_grading_artifacts
 DEFAULT_GRADING_ARTIFACTS_RUNS = EXTRACTIONS_ROOT / "luban_grading_artifacts_okf_v1" / "artifact_runs.jsonl"
 DEFAULT_GOVERNANCE_MANIFEST = EXTRACTIONS_ROOT / "governance_okf_v1" / "manifest.json"
 DEFAULT_GOVERNANCE_FILES = EXTRACTIONS_ROOT / "governance_okf_v1" / "governance_files.jsonl"
+DEFAULT_TOPIC_MANIFEST = EXTRACTIONS_ROOT / "topic_okf_v0" / "manifest.json"
+DEFAULT_TOPICS = EXTRACTIONS_ROOT / "topic_okf_v0" / "topics.jsonl"
+DEFAULT_TOPIC_SOURCE_HITS = EXTRACTIONS_ROOT / "topic_okf_v0" / "source_hits.jsonl"
 DEFAULT_OUTPUT_ROOT = INVENTORY_ROOT / "okf_bundle_v0"
 OUTPUT_ROOT_SUFFIX = ("数据盘点", "okf_bundle_v0")
 GENERATOR = "build_okf_bundle.py"
@@ -224,6 +227,7 @@ def validate_inputs(
     knowledge_compiler_manifest: dict[str, Any],
     grading_artifacts_manifest: dict[str, Any],
     governance_manifest: dict[str, Any],
+    topic_manifest: dict[str, Any],
 ) -> None:
     if brief_manifest.get("authority_status") != "asset_inventory_only":
         raise ValueError("data asset brief must remain asset_inventory_only")
@@ -247,6 +251,10 @@ def validate_inputs(
         raise ValueError("governance OKF must remain AI-context-only")
     if (governance_manifest.get("runtime_guard") or {}).get("runtime_consumable") is not False:
         raise ValueError("governance OKF cannot be runtime consumable")
+    if topic_manifest.get("authority_status") != "ai_topic_navigation_only":
+        raise ValueError("Topic OKF must remain AI-topic-navigation-only")
+    if (topic_manifest.get("runtime_guard") or {}).get("runtime_consumable") is not False:
+        raise ValueError("Topic OKF cannot be runtime consumable")
 
 
 def build_okf_bundle(
@@ -267,6 +275,9 @@ def build_okf_bundle(
     grading_artifacts_runs_path: Path = DEFAULT_GRADING_ARTIFACTS_RUNS,
     governance_manifest_path: Path = DEFAULT_GOVERNANCE_MANIFEST,
     governance_files_path: Path = DEFAULT_GOVERNANCE_FILES,
+    topic_manifest_path: Path = DEFAULT_TOPIC_MANIFEST,
+    topics_path: Path = DEFAULT_TOPICS,
+    topic_source_hits_path: Path = DEFAULT_TOPIC_SOURCE_HITS,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
     generated_at: str | None = None,
 ) -> dict[str, Any]:
@@ -290,6 +301,9 @@ def build_okf_bundle(
     grading_artifacts_runs = load_jsonl(grading_artifacts_runs_path)
     governance_manifest = load_json(governance_manifest_path)
     governance_files = load_jsonl(governance_files_path)
+    topic_manifest = load_json(topic_manifest_path)
+    topics = load_jsonl(topics_path)
+    topic_source_hits = load_jsonl(topic_source_hits_path)
     validate_inputs(
         brief_manifest,
         okf_scope,
@@ -298,6 +312,7 @@ def build_okf_bundle(
         knowledge_compiler_manifest,
         grading_artifacts_manifest,
         governance_manifest,
+        topic_manifest,
     )
 
     buckets = asset_buckets_doc.get("asset_buckets")
@@ -934,6 +949,114 @@ Use this as practice source evidence. It does not replace exam source evidence o
             body,
         )
 
+    topic_links = []
+    hits_by_topic = jsonl_by_key(topic_source_hits, "topic_id")
+    for topic in sorted(topics, key=lambda item: item["topic_id"]):
+        topic_id = topic["topic_id"]
+        filename = f"{slug(topic_id)}.md"
+        topic_links.append((topic.get("title", topic_id), f"topics/{filename}"))
+        evidence = topic.get("evidence_summary") or {}
+        candidate_rubric = evidence.get("candidate_rubric") or {}
+        bucket_counts = evidence.get("bucket_hit_counts") or {}
+        topic_lines = [
+            f"# {topic.get('title', topic_id)}",
+            "",
+            "## What AI Can Answer Better",
+            "",
+            str(topic.get("question_intent") or "Topic-level source navigation."),
+            "",
+            "## Evidence Shape",
+            "",
+            f"- Raw source hits: {evidence.get('source_hit_count')}",
+            f"- Source files: {evidence.get('source_count')}",
+            f"- Candidate scoring points: {candidate_rubric.get('candidate_scoring_point_count')}",
+            f"- Candidate cases: {candidate_rubric.get('case_count')}",
+            f"- Candidate years: {', '.join(candidate_rubric.get('years') or []) or 'none'}",
+            "",
+            "## Source Buckets",
+            "",
+        ]
+        for bucket, count in sorted(bucket_counts.items()):
+            topic_lines.append(f"- `{bucket}`: {count} hits")
+        topic_lines.extend(["", "## Aliases", ""])
+        for alias in topic.get("aliases") or []:
+            topic_lines.append(f"- {alias}")
+        topic_lines.extend(["", "## Representative Candidate Scoring Points", ""])
+        for point in candidate_rubric.get("representative_points") or []:
+            topic_lines.append(
+                f"- `{point.get('point_id')}` ({point.get('case_id')}, {point.get('year')}): "
+                f"{short_text(point.get('text'), 180)}"
+            )
+        if not candidate_rubric.get("representative_points"):
+            topic_lines.append("- No candidate scoring-point hit in current OKF candidate scope.")
+        topic_lines.extend(["", "## Representative Source Hits", ""])
+        for hit in hits_by_topic.get(topic_id, [])[:12]:
+            topic_lines.append(
+                f"- `{hit.get('bucket')}` `{hit.get('source_path')}` at `{hit.get('json_path')}`: "
+                f"{short_text(hit.get('snippet'), 180)}"
+            )
+        topic_lines.extend(
+            [
+                "",
+                "## How To Use",
+                "",
+                "- Use this card first when the user asks about this topic across exams, textbooks, standards, lectures, or practice sources.",
+                "- Follow source paths for exact wording before making high-stakes claims.",
+                "- Treat candidate scoring-point counts as candidate evidence, not official exam-frequency truth.",
+                "",
+                "## Boundary",
+                "",
+                "This Topic OKF card is AI navigation and synthesis support only. It is not runtime supply, not official scoring authority, and not a full source mirror.",
+            ]
+        )
+        write_md(
+            output_root / "topics" / filename,
+            {
+                "type": "TopicCard",
+                "title": topic.get("title", topic_id),
+                "description": topic.get("question_intent", ""),
+                "resource": display_path(topics_path),
+                "tags": ["luban", "okf", "topic", topic_id],
+                "timestamp": generated_at,
+                "status": topic.get("authority_status"),
+                "runtime_consumable": False,
+                "official_score_allowed": False,
+            },
+            "\n".join(topic_lines),
+        )
+
+    topic_index_lines = [
+        "# Topic OKF v0",
+        "",
+        "These topic cards move the OKF bundle from asset discovery toward stable AI question-answer context.",
+        "",
+        "## Topics",
+        "",
+    ]
+    for title, link in topic_links:
+        topic_index_lines.append(f"- [{title}]({link.replace('topics/', '')})")
+    topic_index_lines.extend(
+        [
+            "",
+            "## Boundary",
+            "",
+            "Topic OKF is AI-only source navigation. It does not participate in production runtime, official scoring, LearnerState, or GBrain writes.",
+        ]
+    )
+    write_md(
+        output_root / "topics" / "index.md",
+        {
+            "type": "BundleIndex",
+            "title": "Topic OKF v0",
+            "description": "AI-only topic cards for high-frequency Luban 建筑实务 themes.",
+            "resource": display_path(topic_manifest_path),
+            "tags": ["luban", "okf", "topic"],
+            "timestamp": generated_at,
+            "status": topic_manifest.get("status"),
+        },
+        "\n".join(topic_index_lines),
+    )
+
     content_index_lines = [
         "# OKF Content Cards v0",
         "",
@@ -997,6 +1120,7 @@ Use this as practice source evidence. It does not replace exam source evidence o
 - Output root: `{display_path(output_root)}`
 - Format boundary: Markdown files with YAML frontmatter only.
 - L1 content cards: `{len(exam_year_links) + len(case_links) + len(standard_links) + len(lecture_links) + len(practice_links) + 2}` markdown files.
+- Topic cards: `{len(topic_links)}` markdown files.
 - Runtime boundary: no runtime supply, no official score authority, no LearnerState/GBrain writes.
 """,
     )
@@ -1020,6 +1144,7 @@ Use this as practice source evidence. It does not replace exam source evidence o
         "- [OKF source alignment](okf/source-alignment.md)",
         "- [Asset gap map](gaps/asset-gap-map.md)",
         "- [L1 content cards](content_cards/index.md)",
+        "- [Topic OKF cards](topics/index.md)",
         "- [Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)",
         "- [Luban grading artifacts map](assets/luban-grading-artifacts-map.md)",
         "- [DeepTutor governance map](assets/governance-map.md)",
@@ -1078,6 +1203,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--grading-artifacts-runs", type=Path, default=DEFAULT_GRADING_ARTIFACTS_RUNS)
     parser.add_argument("--governance-manifest", type=Path, default=DEFAULT_GOVERNANCE_MANIFEST)
     parser.add_argument("--governance-files", type=Path, default=DEFAULT_GOVERNANCE_FILES)
+    parser.add_argument("--topic-manifest", type=Path, default=DEFAULT_TOPIC_MANIFEST)
+    parser.add_argument("--topics", type=Path, default=DEFAULT_TOPICS)
+    parser.add_argument("--topic-source-hits", type=Path, default=DEFAULT_TOPIC_SOURCE_HITS)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--generated-at", default=None)
     return parser.parse_args()
@@ -1103,6 +1231,9 @@ def main() -> int:
         grading_artifacts_runs_path=args.grading_artifacts_runs,
         governance_manifest_path=args.governance_manifest,
         governance_files_path=args.governance_files,
+        topic_manifest_path=args.topic_manifest,
+        topics_path=args.topics,
+        topic_source_hits_path=args.topic_source_hits,
         output_root=args.output_root,
         generated_at=args.generated_at,
     )

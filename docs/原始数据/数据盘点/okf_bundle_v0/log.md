@@ -19,4 +19,5 @@ status: "markdown_yaml_only"
 - Output root: `docs/原始数据/数据盘点/okf_bundle_v0`
 - Format boundary: Markdown files with YAML frontmatter only.
 - L1 content cards: `56` markdown files.
+- Topic cards: `5` markdown files.
 - Runtime boundary: no runtime supply, no official score authority, no LearnerState/GBrain writes.

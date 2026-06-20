@@ -1,6 +1,6 @@
 ---
 name: luban-learning-pack-factory
-description: 鲁班"教研测一体"学习包的批量生产线总纲与质量闭环。用于高效、高质量地批量量产高频考点的学习包——【研:母题(不变量/变题/采分点/误解/source 溯源) + 教:讲懂动画(LLM 放开生成表现、确定性渲染) + 测:闯关变题 + 看穿真懂vs背过】三位一体,共享同一份母题事实 authority。核心范式:LLM 放开生成 → 独立 judge 评审 → 结构化反馈 → 定向修订 → loop-until-pass 收敛 → fan out 批量(MVP 验证两轮红到绿)。造法细节(6+1 原型/schema/渲染器/防漂移闸)调用 luban-diagram-microlesson,本 skill 不重复它。要批量做卡/母题/教学动画/变题/看穿时用。
+description: Use when batch-producing Luban 教研测一体 learning packs, high-frequency mother-topic cards, teaching animations, variants, or mastery-discrimination checks. 鲁班"教研测一体"学习包的批量生产线总纲与质量闭环;造法细节调用 luban-diagram-microlesson,本 skill 不重复它。
 ---
 
 # 鲁班教研测一体学习包生产线

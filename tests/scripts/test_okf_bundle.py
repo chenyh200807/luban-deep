@@ -53,13 +53,19 @@ def test_okf_bundle_is_markdown_yaml_only(tmp_path):
     assert "assets/governance-map.md" in files
     assert "assets/knowledge-compiler-workbench.md" in files
     assert "assets/luban-grading-artifacts-map.md" in files
+    assert "topics/index.md" in files
+    assert "topics/roof-waterproofing.md" in files
+    assert "topics/flow-construction.md" in files
+    assert "topics/network-planning.md" in files
+    assert "topics/claims.md" in files
+    assert "topics/quality-acceptance.md" in files
     assert "content_cards/index.md" in files
     assert "content_cards/exams/year-2021.md" in files
     assert "content_cards/rubrics/case-2021-1.md" in files
     assert "content_cards/textbooks/textbook-2026.md" in files
     assert files == sorted(files)
     assert all(path.endswith(".md") for path in files)
-    assert len(files) == 76
+    assert len(files) == 82
 
     for rel_path in files:
         frontmatter = _frontmatter(output_root / rel_path)
@@ -73,11 +79,23 @@ def test_okf_bundle_is_markdown_yaml_only(tmp_path):
     assert "Markdown + YAML frontmatter + links" in index
     assert "Candidate cases / rubrics / scoring points: 25 / 117 / 431" in index
     assert "[L1 content cards](content_cards/index.md)" in index
+    assert "[Topic OKF cards](topics/index.md)" in index
     assert "[DeepTutor governance map](assets/governance-map.md)" in index
     assert "[Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)" in index
     assert "[Luban grading artifacts map](assets/luban-grading-artifacts-map.md)" in index
     assert "they do not mirror full source payloads" in index
     assert "DeepTutor governance layers, not OKF format requirements" in index
+
+    topic_index = (output_root / "topics" / "index.md").read_text(encoding="utf-8")
+    assert "Topic OKF v0" in topic_index
+    assert "[屋面防水](roof-waterproofing.md)" in topic_index
+    assert "AI-only source navigation" in topic_index
+
+    roof_topic = (output_root / "topics" / "roof-waterproofing.md").read_text(encoding="utf-8")
+    assert "屋面防水做法" in roof_topic
+    assert "Candidate scoring points:" in roof_topic
+    assert "sp_2021_1_q05_04" in roof_topic
+    assert "Treat candidate scoring-point counts as candidate evidence" in roof_topic
 
     candidate = (output_root / "okf" / "candidate-scope.md").read_text(encoding="utf-8")
     assert "Cases: 25" in candidate

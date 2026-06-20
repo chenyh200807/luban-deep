@@ -32,8 +32,10 @@ from deeptutor.services.observability.arr_runner import write_arr_artifacts  # n
 from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
 from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
 from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
+from deeptutor.services.observability.change_impact import required_readiness_checks  # noqa: E402
 from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
+from deeptutor.services.observability.metrics_loader import load_metrics_snapshot as load_metrics_snapshot_shared  # noqa: E402
 from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot  # noqa: E402
@@ -72,6 +74,12 @@ def _surface_readiness_missing_summary(check_id: str, label: str) -> str:
     return f"{label} readiness evidence missing for current release"
 
 
+def _surface_readiness_not_required_summary(check_id: str, label: str) -> str:
+    if check_id == "wechat_devtools":
+        return f"{label} true-entry evidence is not required because current release did not touch WeChat/Web surfaces"
+    return f"{label} true-entry evidence is not required because current release did not touch Web surfaces"
+
+
 def _surface_readiness_missing_evidence(
     *,
     check_id: str,
@@ -96,6 +104,24 @@ def _surface_readiness_missing_evidence(
                 "boundary=islogin/open are preflight until page scenario or automator evidence exists",
             ]
         )
+    return evidence
+
+
+def _surface_readiness_not_required_evidence(
+    *,
+    check_id: str,
+    changed_preview: str,
+) -> list[str]:
+    evidence = [
+        "scope_authority=change_impact.required_readiness_checks",
+        f"changed_files={changed_preview}",
+        f"check_id={check_id}",
+        "required=false",
+    ]
+    if check_id == "wechat_devtools":
+        evidence.append("boundary=no yousenwebview/wx_miniprogram/web surface delta in current release scope")
+    else:
+        evidence.append("boundary=no web surface delta in current release scope")
     return evidence
 
 
@@ -200,7 +226,12 @@ def _build_testclient_metrics_snapshot() -> dict[str, Any]:
         }
 
 
-def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> dict[str, Any]:
+def _load_metrics_snapshot(
+    *,
+    api_base_url: str,
+    metrics_json: str | None,
+    metrics_token: str | None,
+) -> dict[str, Any]:
     if metrics_json:
         payload = _load_json(metrics_json)
         if not isinstance(payload, dict):
@@ -215,17 +246,17 @@ def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> di
         return payload
 
     try:
-        with httpx.Client(timeout=5.0, trust_env=False) as client:
-            response = client.get(f"{api_base_url.rstrip('/')}/metrics")
-            response.raise_for_status()
-            payload = response.json()
-        if not isinstance(payload, dict):
-            raise TypeError("metrics endpoint must return JSON object")
+        payload = load_metrics_snapshot_shared(
+            api_base_url=api_base_url,
+            metrics_json=None,
+            metrics_token=metrics_token,
+            timeout=5.0,
+        )
         payload["observability_metrics_provenance"] = {
             "source": "live_metrics_endpoint",
             "url": f"{api_base_url.rstrip('/')}/metrics",
             "fallback_used": False,
-            "status_code": int(response.status_code),
+            "status_code": 200,
             "error": "",
         }
         return payload
@@ -233,6 +264,15 @@ def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> di
         status_code = None
         if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
             status_code = int(exc.response.status_code)
+        allow_auth_fallback = (
+            str(os.getenv("DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK", "") or "").strip().lower()
+            in {"1", "true", "yes", "on"}
+        )
+        if status_code in {401, 403} and not allow_auth_fallback:
+            raise RuntimeError(
+                f"metrics endpoint auth blocked: GET {api_base_url.rstrip('/')}/metrics returned {status_code}; "
+                "set DEEPTUTOR_METRICS_TOKEN or pass --metrics-token"
+            ) from exc
         payload = _build_testclient_metrics_snapshot()
         payload["observability_metrics_provenance"] = {
             "source": "testclient_fallback",
@@ -249,6 +289,7 @@ def _ensure_om_payload(
     store,
     release: dict[str, Any],
     metrics_json: str | None,
+    metrics_token: str | None,
     api_base_url: str,
     unified_ws_smoke_timeout: float,
 ) -> dict[str, Any] | None:
@@ -258,7 +299,11 @@ def _ensure_om_payload(
         api_base_url=api_base_url,
         timeout_seconds=unified_ws_smoke_timeout,
     )
-    metrics_snapshot = _load_metrics_snapshot(api_base_url=api_base_url, metrics_json=metrics_json)
+    metrics_snapshot = _load_metrics_snapshot(
+        api_base_url=api_base_url,
+        metrics_json=metrics_json,
+        metrics_token=metrics_token,
+    )
     payload = build_om_run(
         metrics_snapshot=metrics_snapshot,
         stack_health=[],
@@ -525,6 +570,7 @@ def _ensure_surface_readiness_rows(
     store,
     release: dict[str, Any],
     changed_files: list[str],
+    required_checks: set[str],
 ) -> None:
     changed_preview = ", ".join(changed_files[:8]) if changed_files else "none"
     for check_id, label in SURFACE_READINESS_CHECKS:
@@ -537,18 +583,26 @@ def _ensure_surface_readiness_rows(
             if _same_release(release, _payload_release(payload)):
                 break
         else:
+            required = check_id in required_checks
             payload = {
                 "run_id": f"{check_id}-{int(time.time())}",
                 "check_id": check_id,
                 "label": label,
-                "status": "FAIL",
-                "required": True,
-                "summary": _surface_readiness_missing_summary(check_id, label),
+                "status": "FAIL" if required else "SKIP",
+                "required": required,
+                "summary": _surface_readiness_missing_summary(check_id, label)
+                if required
+                else _surface_readiness_not_required_summary(check_id, label),
                 "evidence": _surface_readiness_missing_evidence(
                     check_id=check_id,
                     changed_preview=changed_preview,
+                )
+                if required
+                else _surface_readiness_not_required_evidence(
+                    check_id=check_id,
+                    changed_preview=changed_preview,
                 ),
-                "blockers": _surface_readiness_missing_blockers(check_id),
+                "blockers": _surface_readiness_missing_blockers(check_id) if required else [],
                 "release": dict(release or {}),
             }
             store.write_run(
@@ -694,6 +748,7 @@ def main() -> None:
     parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
     parser.add_argument("--changed-file", action="append", default=[])
     parser.add_argument("--metrics-json")
+    parser.add_argument("--metrics-token")
     parser.add_argument("--api-base-url", default=DEFAULT_API_BASE_URL)
     parser.add_argument("--unified-ws-smoke-timeout", type=float, default=20.0)
     parser.add_argument("--event-days", type=int, default=1)
@@ -716,6 +771,7 @@ def main() -> None:
         store=store,
         release=current_release,
         metrics_json=args.metrics_json,
+        metrics_token=getattr(args, "metrics_token", None),
         api_base_url=args.api_base_url,
         unified_ws_smoke_timeout=float(getattr(args, "unified_ws_smoke_timeout", 20.0) or 20.0),
     )
@@ -730,11 +786,6 @@ def main() -> None:
         release=current_release,
         output_dir=output_dir,
         api_base_url=_quality_api_base_url(args.api_base_url, om_payload),
-    )
-    _ensure_surface_readiness_rows(
-        store=store,
-        release=current_release,
-        changed_files=changed_files,
     )
     aae_payload = _ensure_aae_payload(
         store=store,
@@ -779,6 +830,12 @@ def main() -> None:
         arr_payload=arr_payload,
         aae_payload=aae_payload,
         release=current_release,
+    )
+    _ensure_surface_readiness_rows(
+        store=store,
+        release=current_release,
+        changed_files=changed_files,
+        required_checks=set(change_impact_payload.get("required_readiness_checks") or []),
     )
     change_paths = store.write_run(
         kind="change_impact_runs",

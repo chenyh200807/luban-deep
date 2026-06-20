@@ -29,6 +29,7 @@ This is the minimal OKF shape for Luban data assets: Markdown files with YAML fr
 - [OKF source alignment](okf/source-alignment.md)
 - [Asset gap map](gaps/asset-gap-map.md)
 - [L1 content cards](content_cards/index.md)
+- [Topic OKF cards](topics/index.md)
 - [Knowledge compiler workbench](assets/knowledge-compiler-workbench.md)
 - [Luban grading artifacts map](assets/luban-grading-artifacts-map.md)
 - [DeepTutor governance map](assets/governance-map.md)

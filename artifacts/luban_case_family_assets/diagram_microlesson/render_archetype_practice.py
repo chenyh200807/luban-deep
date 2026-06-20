@@ -202,6 +202,36 @@ def _option_feedback(variant: dict[str, Any], option: dict[str, Any]) -> str:
     return _wrong_basis(str(option.get("text", "")))
 
 
+def _extract_student_answer(stem: object) -> tuple[str, str]:
+    text = str(stem or "")
+    match = re.search(r"学生答[:：]?[\"“](.+?)[\"”]\s*(.*)", text)
+    if not match:
+        return "", text
+    answer = match.group(1).strip()
+    question = match.group(2).strip()
+    return answer, question or text
+
+
+def _short_prompt(stem: object, variant: dict[str, Any], process_mode: bool) -> str:
+    student_answer, question = _extract_student_answer(stem)
+    if process_mode and student_answer and "漏掉" in question:
+        return "这份答案漏掉哪一段采分动作?"
+    if process_mode and "这样做对吗" in question:
+        return "这个做法错在哪一步?"
+    if process_mode and "可以收工" in question:
+        return "收尾还差哪一步?"
+    if process_mode and "核心修补思路" in question:
+        return "换场景后,闭环还成立吗?"
+    text = question or str(stem or "")
+    return text if len(text) <= 34 else text[:32] + "?"
+
+
+def _choice_label(option: dict[str, Any]) -> str:
+    text = str(option.get("text", "")).strip()
+    text = re.split(r"[;；。]", text, maxsplit=1)[0].strip()
+    return text if len(text) <= 24 else text[:23] + "…"
+
+
 def render(master_path: Path) -> str:
     master = _load_json(master_path)
     card = _load_card(master_path, master)
@@ -214,13 +244,25 @@ def render(master_path: Path) -> str:
         qid = f"q{i}"
         opts = []
         buttons = []
+        details = []
         for option in variant.get("options", []):
             oid = str(option.get("id", ""))
             text = _option_text(variant, option)
+            label = _choice_label(option)
             opts.append({"id": oid, "text": text, "feedback": _option_feedback(variant, option)})
             buttons.append(
-                f'<button type="button" class="option" data-opt="{esc(oid)}"><b>{esc(oid)}.</b> {esc(text)}</button>'
+                f'<button type="button" class="option" data-opt="{esc(oid)}"><b>{esc(oid)}</b><span>{esc(label)}</span></button>'
             )
+            details.append(
+                f'<li><b>{esc(oid)}.</b> {esc(text)}</li>'
+            )
+        student_answer, original_question = _extract_student_answer(variant.get("stem", ""))
+        short_prompt = _short_prompt(variant.get("stem", ""), variant, process_mode)
+        student_answer_html = (
+            f'<div class="student-answer"><span>学生答</span><p>{esc(student_answer)}</p></div>'
+            if student_answer
+            else ""
+        )
         practice.append(
             {
                 "id": qid,
@@ -235,8 +277,17 @@ def render(master_path: Path) -> str:
             f"""<section class="q" data-practice-id="{esc(qid)}" data-qid="{esc(qid)}">
   <div class="qtop"><span>第 {i}/{len(variants)+1} 问</span><em>{esc(variant.get('tier_tag','判断题'))}</em></div>
   <div class="diagram">{_variant_visual(master, variant)}</div>
-  <h2>{esc(variant.get('stem',''))}</h2>
-  <div class="options">{''.join(buttons)}</div>
+  <div class="prompt-card">
+    {student_answer_html}
+    <h2>{esc(short_prompt)}</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">{esc(variant.get('stem',''))}</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options">{''.join(buttons)}</div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol>{''.join(details)}</ol></details>
+  </div>
   <div class="feedback" id="fb-{esc(qid)}"></div>
 </section>"""
         )
@@ -286,13 +337,13 @@ def render(master_path: Path) -> str:
         "warm_feedback": (master.get("mastery_discrimination", {}).get("warm_feedback") or {}),
     }
     css = """
-*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100vh;padding:12px 10px 96px}header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}header a{border:1px solid #cad8e5;border-radius:999px;padding:9px 11px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:12px;font-weight:900}h1{font-size:22px;margin:3px 0 0;line-height:1.2}.progress{height:6px;border-radius:999px;background:#d6e2ec;margin-bottom:12px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:13px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.q.active{display:block}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right}.diagram{height:220px;background:#fffdf7;border:1px solid #eadfcb;border-radius:14px;margin:10px 0;display:grid;place-items:center;overflow:hidden}.diagram svg{width:100%;height:100%}.gate rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step.hot circle{fill:#fff7ed;stroke:#f97316;stroke-width:5}.step.soft circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.q h2{font-size:18px;line-height:1.34;margin:10px 0 12px}.options{display:grid;gap:9px}.option{text-align:left;min-height:58px;border:1px solid #cfdae6;background:#fff;border-radius:14px;padding:11px 12px;color:#24364b;font-size:15px;font-weight:800;line-height:1.42}.option.correct{border-color:#73c596;background:#ecf9f2}.option.wrong{border-color:#fb923c;background:#fff3e9}.option:disabled{opacity:1}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write span{font-size:12px;font-weight:900;color:#176b7a}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:12px;border-radius:13px;padding:11px;font-size:14px;font-weight:800;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #d2dee9;box-shadow:0 -10px 28px rgba(31,41,55,.12)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100dvh;padding:8px 10px calc(86px + env(safe-area-inset-bottom))}header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:8px}header a{border:1px solid #cad8e5;border-radius:999px;padding:0 12px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:11px;font-weight:900}h1{font-size:17px;margin:2px 0 0;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.progress{height:5px;border-radius:999px;background:#d6e2ec;margin-bottom:9px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none}.q.active{display:flex;min-height:calc(100dvh - 152px);flex-direction:column;gap:10px}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.diagram{height:clamp(292px,48dvh,430px);background:#fffdf7;border:1px solid #eadfcb;border-radius:22px;display:grid;place-items:center;overflow:hidden;box-shadow:0 16px 36px rgba(31,41,55,.1)}.diagram svg{width:100%;height:100%}.gate rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.step.hot circle{fill:#fff7ed;stroke:#f97316;stroke-width:5}.step.soft circle{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.prompt-card,.answer-zone{background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;padding:11px 12px;box-shadow:0 10px 24px rgba(31,41,55,.08)}.student-answer{border-left:4px solid #f97316;background:#fff7ed;border-radius:12px;padding:8px 10px;margin-bottom:8px}.student-answer span,.choice-label,.score-write span{display:block;font-size:12px;font-weight:900;color:#176b7a}.student-answer p{margin:3px 0 0;font-size:15px;line-height:1.45;font-weight:900;color:#24364b}.q h2{font-size:17px;line-height:1.32;margin:0}.stem-toggle{margin-top:8px;min-height:44px;border:0;background:transparent;color:#176b7a;font-weight:900;padding:0}.full-stem{display:none;margin:8px 0 0;color:#55677a;font-size:13px;line-height:1.5;font-weight:800}.q.show-stem .full-stem{display:block}.options{display:grid;gap:8px;margin-top:7px}.option{text-align:left;min-height:52px;border:1px solid #cfdae6;background:#fff;border-radius:15px;padding:8px 10px;color:#24364b;font-size:15px;font-weight:900;line-height:1.24;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:6px}.option b{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#eef4f8;color:#176b7a}.option.correct{border-color:#73c596;background:#ecf9f2}.option.correct b{background:#16a34a;color:#fff}.option.wrong{border-color:#fb923c;background:#fff3e9}.option.wrong b{background:#f97316;color:#fff}.option:disabled{opacity:1}.option-drawer{margin-top:8px;border-top:1px solid #e4edf5;padding-top:8px}.option-drawer summary{min-height:44px;color:#607287;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center}.option-drawer ol{margin:6px 0 0;padding-left:20px;color:#34465b;font-size:13px;line-height:1.55;font-weight:800}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:0;border-radius:15px;padding:12px;font-size:14px;font-weight:850;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #d2dee9;box-shadow:0 -10px 28px rgba(31,41,55,.12)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}@media(max-height:720px){.diagram{height:clamp(250px,42dvh,360px)}.student-answer p{font-size:14px}.prompt-card,.answer-zone{padding:9px 10px}.option{min-height:48px}}@media(orientation:landscape){.practice{max-width:none;padding:8px 10px calc(76px + env(safe-area-inset-bottom))}.q.active{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(290px,.88fr);grid-template-rows:auto 1fr auto;align-items:start}.qtop{grid-column:1/-1}.diagram{height:calc(100dvh - 154px)}.prompt-card{grid-column:2}.answer-zone{grid-column:2}.feedback{grid-column:1/-1}}
 """
     practice_link = master_path.name.replace(".master.json", ".journey.html")
     return f"""<!doctype html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{esc(master.get('exam_point','深母题'))} · 独立闯关</title><style>{css}</style></head>
-<body><main class="practice">
+<body><main class="practice" data-practice-shell="challenge-theater">
 <header><a href="{esc(practice_link)}">返回讲解</a><div><span>鲁班深母题 · 独立闯关</span><h1>{esc(master.get('exam_point',''))}</h1></div></header>
 <div class="progress"><div id="progressFill"></div></div>
 {''.join(sections)}
@@ -321,6 +372,10 @@ document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',(
 	  showFeedback(fb, ok, ok?(q.correct_feedback||''):(opt.feedback||''), '判据:'+(q.basis||'')+(q.tier?' · '+q.tier:''));
   updateNav();
 	}}));
+document.querySelectorAll('[data-toggle-stem]').forEach(btn=>btn.addEventListener('click',()=>{{
+  const q=btn.closest('.q'); q.classList.toggle('show-stem');
+  btn.textContent=q.classList.contains('show-stem')?'收起完整题干':'展开完整题干';
+}}));
 document.querySelector('[data-check-score]').addEventListener('click',()=>{{
   const qEl=qs[qs.length-1], qid=qEl.dataset.qid, values=[...qEl.querySelectorAll('input')].map(i=>i.value).join('');
   const terms=DATA.score_terms||[]; const hit=terms.filter(t=>clean(values).includes(clean(t))).length;

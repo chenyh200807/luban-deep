@@ -227,7 +227,11 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 - `actions[]` 才定义动画和教学节奏:reveal 哪个 `data-id`、highlight 哪个对象、camera 推近哪里、哪个 keycard 进入/退出、字幕/旁白对应哪段。
 - renderer 必须串行消费 action 队列,每次 action 结束要么进入 hold,要么明确 exit;不要让旧 keycard、旧标注、旧节点继续占屏。
 - HTML preview 可以用 JS/CSS 模拟 action playback 供手机评审;正式 Remotion 必须用同一份 action IR 和 `useCurrentFrame()` 重放,不能另起一套视觉脚本。
+- topic Remotion 文件必须是 thin wrapper:只导入该卡 `animation_ir.v0.json` / `timing.json`,再传给通用 `AnimationIrRenderer`。不得在 topic wrapper 里再写一份 F16/N01/A01 的视觉逻辑。
+- 通用 renderer 才能持有图元/action switch。要新增表现力,优先扩 `visual_library` schema、primitive kind、action kind 和对应 gate;不要在单卡文件里分叉。
+- `validate_animation_ir_contract.mjs` 是渲染前硬门:scene/action/visual_library/data-id/Remotion 同源先过,再允许 HTML preview 或 Remotion still。前置 gate 的目的就是把 unsupported primitive、selector 漂移、Remotion 没吃 IR 这类问题挡在肉眼 UI 评审之前。
 - gate 不能只查页面存在。至少抽样 scene 中段,证明当前 scene 有节点被 action/progressive reveal 显示、字幕非空、keycard 不累积、theater 控制层默认隐藏且点击浮出。
+- gate 还必须查真实手机壳:360/390/430 竖屏 + 844/932 横屏、播放器不遮挡主图/字幕/教练卡/CTA、触控 >=44px、字幕 `aria-live`、按钮 `aria-pressed`、采分句前 CTA locked、采分句后 CTA enabled、seek 回旧 scene 时不残留旧节点。
 
 这条是 60 卡量产底线:任何"画面乱/叠加/比例一变就坏/像翻页/字幕丢失/控制条占屏"的问题,优先升级 IR、renderer、gate 或本导演手册;不要只改某一张卡的 CSS。
 
@@ -251,6 +255,7 @@ F16 这类工序/构造型卡的默认拆法:
 - 进入动效优先 `Easing.bezier(0.16,1,0.3,1)`,退出用 `Easing.in(Easing.cubic)`。
 - 不用 CSS animation / transition 做 Remotion 内动画。
 - 关键帧必须可 still render:hook、误区、主推演、采分句、答疑/收尾。
+- 预览阶段默认只做 still render/截图/HTML gate,不生成 MP4。只有正式成片、音画同步、缓存验证或用户明确要视频文件时才 `remotion render`。
 
 ### 6.2 HTML 交互壳
 
@@ -267,11 +272,14 @@ F16 这类工序/构造型卡的默认拆法:
 - 普通窗口里的学习舞台必须是 `orientation-adaptive` 响应式容器,不是固定 9:16 竖屏容器。竖屏手机可用接近 9:16/4:5 的主舞台;横屏、桌面、宽容器必须改成两栏/侧栏/overlay/bottom sheet,扩大有效教学画面,避免外层大框套小竖片。全屏/theater 再覆盖为 `width:100%; height:100%; aspect-ratio:auto`。
 - 全屏必须同时有 CSS theater fallback 和浏览器 Fullscreen API 尝试;Safari/web-view 不支持时,至少保证页面内 theater 形态像播放器,不是滚动网页。
 - 点击屏幕才浮出控制层;控制层包括播放/暂停、静音、退出、可拖动进度条和章节跳转。
-- 控制层出现时,必须给视频内容预留底部空间,不能遮住字幕、讲解卡、收尾卡或采分句。
+- 控制层出现时,必须给视频内容预留底部空间,不能遮住字幕、讲解卡、收尾卡或采分句;如果空间不足,临时隐藏 caption/coach,auto-hide 后恢复。
 - 进度条必须能拖动;拖动时画面和字幕同步跳到对应时间。
 - 章节节点不要只写 `1/2/3`。用学习阶段短标签,如"先学/错觉/读图/顺推/逆推/时差/线路/采分"。
 - 如果按钮很多,优先保留播放器基本动作;视觉说明文字放进 tooltip/aria,不要塞满屏幕。
 - 重新生成 mp4/poster/mp3 后,HTML 资源引用带 mtime/hash 版本参数,避免 Safari/web-view 播旧缓存。
+- `.visual` 只承载确定性 SVG/图元和 camera transform;字幕是 stage overlay/live region,不要 append 到 `.visual` 里跟着运镜缩放。
+- player 高度必须运行时测量并驱动 CSS 变量,不要在正文或 theater inset 写死 magic number。
+- 普通页不要重复多个强 CTA。默认底部主行动负责闯关,由 timing/scene 派生 `challengeUnlockSec`;采分句前 locked,采分句后 enabled。
 
 ### 6.2.2 播放结束状态
 

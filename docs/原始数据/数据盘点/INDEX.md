@@ -41,6 +41,7 @@
 | 2026-06-19 | [资产缺口地图 v1](2026-06-19-资产缺口地图v1.md) | **OKF/source/runtime 缺口地图已生成**:9 个开放缺口项(P1 5 / P2 4);P1 包含真题内容缺口 139、P1 PDF 21、OKF case-level-only 16、OKF candidate 未签发 25、`v_case_rubric_scored` live-reader policy conflict 1;状态 `asset_gap_map_only`。 |
 | 2026-06-19 | [OKF Bundle v0](okf_bundle_v0/index.md) | **回归 Google-style OKF 极简形态并补 L1 内容卡**:只输出 Markdown + YAML frontmatter + links;新增真题年份、案例 rubric、教材、标准、讲义、章节练习 content cards,让 AI 可扫读核心内容结构,但不镜像全文、不接 runtime。 |
 | 2026-06-19 | [OKF-like rubric pilot v0](okf_pilot/rubric_v0/index.md) | **最小 OKF-like 小样**:从 `case_rubric_canonical.json` 切 2021 案例一,生成 1 case / 5 rubric / 15 scoring point 的 Markdown review projections 与 compiled JSON inspection artifacts;保留 `authority=training_org_analysis_yousen`、`not_official=true`、`official_score_allowed=false`,补 question/rubric provenance 与 machine non-runtime guard,不接 runtime。 |
+| 2026-06-20 | [Topic OKF v0](2026-06-20-Topic-OKF-v0.md) | **AI 主题导航层已落地**:生成 `topic_okf_v0` 并接入 `okf_bundle_v0/topics/`;先覆盖屋面防水、流水施工、网络计划、索赔、质量验收 5 个 P0 主题,让 AI 能先读 topic card 再回源,但 `raw_hits`/候选采分点不是官方考频或生产权威。 |
 
 ## 抽取产物(`docs/原始数据/数据盘点/extractions/`)
 
@@ -61,6 +62,7 @@
 | `compiled_asset_ledger_v1/` | ✅ 编译资产 inventory ledger:`manifest.json`、`asset_groups.json`、`files.jsonl`、`manifest_refs.jsonl`、`manifest_snapshots/`;索引 `artifacts/` 与 `runtime_supply/` 5,059 文件,复制 545 个小型 manifest-like 快照,**compiled_asset_inventory_only / 非 runtime supply / 非 official scoring authority** |
 | `compiled_asset_authority_map_v1/` | ✅ 编译资产 authority map:`manifest.json`、`group_authority.json`、`runtime_pointers.jsonl`、`consumer_policy.json`;21 group 分类,15 条真实 runtime pointer / manifest 审计,4 published+hash-gated / 11 candidate-blocked,**authority_map_only / 非 runtime install / 非 official scoring authority** |
 | `asset_gap_map_v1/` | ✅ 资产缺口地图:`manifest.json`、`gap_summary.json`、`gap_items.jsonl`、`action_queues.json`、`next_actions.json`;9 个开放缺口项(P1 5 / P2 4),含 JSON claim review、PDF compile/provenance、OKF 小问级 alignment、runtime consumer evidence 和 live-reader policy conflict,**asset_gap_map_only / 非 runtime supply / 非 official scoring authority** |
+| `topic_okf_v0/` | ✅ Topic OKF 主题导航层:`manifest.json`、`topics.jsonl`、`source_hits.jsonl`、`summary.md`;覆盖屋面防水/流水施工/网络计划/索赔/质量验收 5 个 P0 主题,并生成 `okf_bundle_v0/topics/*.md`;**ai_topic_navigation_only / 非 runtime supply / 非 official scoring authority / raw hits 不是官方考频** |
 
 ## 待办盘点(下次补)
 
