@@ -1,0 +1,106 @@
+[
+  {
+    "issue": "R4封闭性声称过强，将教学枚举/真题支撑不当升级为封闭评分规则（如“封闭成立”“越界即不妥”“漏其一=不全”等）",
+    "location": "§4 R4 总述/规则组C/封闭性自检",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "标注具体枚举项为🟢，将‘封闭/越界即不妥/机械裁决’及‘漏其一=不全’等扣分规则降级为🔴待评分artifact或🔵教学规则"
+  },
+  {
+    "issue": "“轻微流淌如不渗漏可不予治理”点支撑不足或标注缺失，可能误导读者将其误为单纯讲解而忽略判分属性",
+    "location": "§5 R5 / §7 Aha第4条",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充教材或真题quote支撑说明，或在讲解/Aha处明确标注“锚🟢判分眼”，若无法补足支撑则降级为🔵"
+  },
+  {
+    "issue": "§2原理因果讲解段被标为🔵但与判分眼存在冗余交叉，易误导读者认为该段完全脱离判分",
+    "location": "§2 原理因果（起鼓分档论述段）",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "在该段补注“机理讲解辅助，但100mm分档本身仍是🟢判分边界”，防止误读判分点降级"
+  },
+  {
+    "issue": "M2误区“治理方法张冠李戴”客观题映射M03概念混淆匹配度一般，可能更适合E07或M10",
+    "location": "§6 M2",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "客观题侧加标“或M10用常识替代规范判断”候选，待真题进一步收敛"
+  },
+  {
+    "issue": "M6误区客观题侧使用M01知识点不熟过于泛化，实际更接近E02遗漏关键采分信息或E07概念混淆",
+    "location": "§6 M6",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "客观题侧优先采用E02/E07作为主映射，M01降级为备选标签"
+  },
+  {
+    "issue": "M4误区“起鼓都割开重贴/漏100mm分档”挂M08规范数字混淆偏窄，核心是程序性遗漏而非数字混淆",
+    "location": "§6 M4",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为E02采分点遗漏为主映射，M08仅在客观题且选项含有数字干扰时备用"
+  },
+  {
+    "issue": "管道穿墙渗漏治理流程中的“避免振动”在kc quote中未明确提及",
+    "location": "§3 R2 (L3) 管道穿墙部位渗漏治理",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "若kc quote确实无支撑，将该点从🟢降级为🔵"
+  },
+  {
+    "issue": "施工缝渗漏诊断意图①中的“成因笼统（只说'防水没做好'）”在kc quote中未明确提及",
+    "location": "§4 examiner_intent 意图① / R3场景 / R4变量规则",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核对quote支撑，若无直接支撑则降级为🔵"
+  },
+  {
+    "issue": "M5误区“卷材流淌不分级、轻微也大拆重铺”的错误心智模型与kc quote不完全匹配",
+    "location": "§6 M5",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "复查quote覆盖范围，若不完备则降级三色标记"
+  },
+  {
+    "issue": "山墙女儿墙漏水治理中的“修复压顶砂浆；分层压入新卷材并加铺一层”在kc quote中未明确提及",
+    "location": "§5 R5 / R6 / R7 女儿墙治理",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充quote支撑或将该措施降级为🔵"
+  },
+  {
+    "issue": "堵漏灌浆材料分类被放进意图③核心采分和R5主干，易从相邻背景升格为主判分眼",
+    "location": "§4 examiner_intent 意图③ / §5 R5 #9",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将该点移出意图③核心采分，降级为🔵相邻背景/用材背景"
+  },
+  {
+    "issue": "E06（程序顺序错误）被用于“漏止水环、漏烤干”等遗漏型错误，与registry语义不贴",
+    "location": "§6 M3/M7 / §5 R7 管道穿墙/女儿墙",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "遗漏类错误主码改为E02（采分点遗漏），仅步骤顺序颠倒保留E06"
+  },
+  {
+    "issue": "女儿墙成因锚拆分不干净，误挂kc支撑，成因实际来自ca grading_keywords",
+    "location": "§0 本体边界 / §4 场景 S5 女儿墙",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "成因锚改挂ca，治理锚保留kc；若ca不能充教材锚，成因从🟢降🔵/🔴待更强quote"
+  }
+]

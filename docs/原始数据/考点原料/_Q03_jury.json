@@ -1,0 +1,90 @@
+[
+  {
+    "issue": "组A采分点A2、A3的成因拆分（麻面-模板，蜂窝-振捣/离析）缺乏原文一一对应，属推理派生",
+    "location": "组A A2, A3",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将这些采分点的证据等级降为🔵（逻辑推理），并注明依据教材原文归纳"
+  },
+  {
+    "issue": "填充墙‘下部墙砌完14d后砌’的quote改写非逐字，原文为‘填充墙砌筑14d后塞缝’，建议确认真题原文或降级",
+    "location": "E3",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "若真题原文为‘下部墙砌完14d后’，保留🟢；否则降🔵"
+  },
+  {
+    "issue": "R2不变量无法警示填充墙裂缝防治措施不适用于混凝土收缩裂缝等跨场景挪用",
+    "location": "R2不变量",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "在R2正文增加提示，说明不同通病的防治措施不可挪用"
+  },
+  {
+    "issue": "误区3的核心错因应为程序顺序错误E06，而非数值记错E10",
+    "location": "误区3",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将误区3错因码改为E06，或双码标注"
+  },
+  {
+    "issue": "F4中‘伸缩缝’防治措施在教材quote中未提及，仅描述原因分析",
+    "location": "组F F4",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "换锚至包含防治措施的ca引用，或降级为🔵工程通识"
+  },
+  {
+    "issue": "D3‘初凝前二次抹压’不在quote中，不能标为逐字锚定",
+    "location": "组D D3",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降级为🔵或补充包含该表述的教材引用"
+  },
+  {
+    "issue": "组F多个采分点（F1,F2,F3,F5,F6）真题印证标注待验证，但无对应真题锚",
+    "location": "组F F1,F2,F3,F5,F6",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "若无真题支撑，降为🔴或删除真题锚"
+  },
+  {
+    "issue": "组G多个采分点（G1,G2,G4,G5）真题印证标注待验证，但无对应真题锚",
+    "location": "组G G1,G2,G4,G5",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "若无真题支撑，降为🔴或删除真题锚"
+  },
+  {
+    "issue": "误区4真题锚标注待验证，无独立真题",
+    "location": "误区4",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降为🔴"
+  },
+  {
+    "issue": "误区5真题锚标注待验证，无独立真题",
+    "location": "误区5",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降为🔴"
+  },
+  {
+    "issue": "动画分镜镜头D多个分支真题锚待验证，无独立真题锚",
+    "location": "动画分镜镜头D",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降为🔴"
+  }
+]

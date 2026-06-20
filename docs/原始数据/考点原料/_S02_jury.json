@@ -1,0 +1,211 @@
+[
+  {
+    "issue": "吊索水平夹角不宜<60°/不应<45°的quote被截断，无法支撑规范数字",
+    "location": "L1#14 / P5-5a",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)",
+      "Qwen-3.7-Max"
+    ],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "补全quote至包含60°与45°原句，或降级为🔵邻接原理，暂不作为采分点"
+  },
+  {
+    "issue": "危大判定中遗漏或未明确定义“非常规起重设备、方法”前置条件，导致≥100kN直接绑定专家论证的误导",
+    "location": "R2场景1 / S3-E / L3",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)",
+      "Qwen-3.7-Max"
+    ],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "在判定流中显式注入“非常规”触发词及定义，否则降级🔵"
+  },
+  {
+    "issue": "吊点与重心同一垂直线、严禁斜吊的quote不足，仅显示吊点选择原则，未出现严禁斜吊等完整表述",
+    "location": "P5-2c / §1#8",
+    "flagged_by": [
+      "GPT-5.5(Codex)",
+      "Qwen-3.7-Max"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全quote或降为🔴待补，暂时不宜作为🟢采分点"
+  },
+  {
+    "issue": "吊装物离地200~300mm全面检查的quote不支持，原段落未出现该数值",
+    "location": "P5-2d / §1#9",
+    "flagged_by": [
+      "GPT-5.5(Codex)",
+      "Qwen-3.7-Max"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全含200~300mm的原文，否则降为🔴"
+  },
+  {
+    "issue": "预制构件主钩/吊具/构件重心三者重合的规程存在语义倒置（原文描述的是不重合的违规现象）或缺乏真题支撑",
+    "location": "P5-5b / L1#13",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "核实原文语义，若为违规现象应改为🔵反例教学，禁止作为正面采分点"
+  },
+  {
+    "issue": "P5-5装配式吊装点在前文标识为邻接原理、不应作为采分点，但在后文又设为采分点组，造成矛盾",
+    "location": "P5-5 / §1与§5.1",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "统一标记为🔵邻接原理弹药，移出S02采分点，或在显式声明下保留"
+  },
+  {
+    "issue": "起吊离地200~500mm检查区间与真题常见150mm背景存在冲突或边界风险，且pack曾误写150mm落在区间内",
+    "location": "R7 / L4.3 / §5.1数值口径留痕",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "纠正150mm不在区间内的错误表述，补充边界解释规则，当题干数值低于源料区间时仍以源料为准改正"
+  },
+  {
+    "issue": "起重吊装单件≥10kN作为危大工程门槛的quote不支持",
+    "location": "P5-3a / §1#10",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全包含10kN门槛的原文quote，否则降为🔴"
+  },
+  {
+    "issue": "超危大吊装100kN/300kN/200m三阈值quote不支持",
+    "location": "P5-3b / §1#11",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全quote，否则降为🔴"
+  },
+  {
+    "issue": "塔身垂直度≤4/1000的quote与基础设计验收混绑，未独立支撑",
+    "location": "P5-1d / V9",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "分离4/1000的对应quote，补全后恢复🟢"
+  },
+  {
+    "issue": "严禁用限位装置代替操作机构缺乏独立真题锚定",
+    "location": "P5-1b",
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供绑定的真题号，否则降为🔴"
+  },
+  {
+    "issue": "钢丝绳断丝>10%/磨损40%报废缺乏独立真题锚定",
+    "location": "P5-2a",
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供真题锚定，否则降为🔴"
+  },
+  {
+    "issue": "缆风绳安全系数3.5缺乏独立真题锚定",
+    "location": "P5-2b",
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供真题锚定，否则降为🔴"
+  },
+  {
+    "issue": "安拆风速>9.0m/s缺乏独立真题锚定",
+    "location": "P5-4a",
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供真题锚定，否则降为🔴"
+  },
+  {
+    "issue": "清洁/保养/维修前断电停稳缺乏独立真题锚定",
+    "location": "P5-4b",
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供真题锚定，否则降为🔴"
+  },
+  {
+    "issue": "压型金属板严禁钢丝绳绑扎的quote不支持",
+    "location": "§1#18",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全绑扎禁令的原文，或降为🔴"
+  },
+  {
+    "issue": "误区⑤将吊点偏心与吊索夹角混淆，解药应拆分",
+    "location": "R8误区⑤",
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为两个独立诱因卡片，分别配E码"
+  },
+  {
+    "issue": "误区②6级风场景缺少E10动作场景选错规范的案例误用码",
+    "location": "R8误区②",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "案例侧补充E10，保留M08"
+  },
+  {
+    "issue": "误区④限位代替操作机构缺少E07功能概念混淆码",
+    "location": "R8误区④",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充E07，保留M10"
+  },
+  {
+    "issue": "R2三道闸覆盖不全，缺少审批链/检查标准分类等闸",
+    "location": "R2 / §4.2",
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "增加第四闸“程序主体/检查标准”，或移出S02内核"
+  }
+]

@@ -1,0 +1,194 @@
+[
+  {
+    "issue": "R2 不变量/决策树存在过度归纳，如‘静载’条件缺乏正向锚定、动力荷载排除绑扎绝对化、代换视为逆运算牵强",
+    "location": "R2 不变量 / 决策树",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将‘静载’降级为反向推论并加注；动力荷载处改为‘优先机械连接，真题高频端点’；删除‘代换是逆运算’的表述，改为‘邻接守恒模块’"
+  },
+  {
+    "issue": "R4 变量集存在锚点不足或归类混淆，包含受压 Φ28 允许绑扎证据偏弱、装配式套筒灌浆不应与直螺纹机械连接混同",
+    "location": "R4 变量集",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "受压 Φ28 允许绑扎由‘不宜绑扎’反向推断，降级并加注；装配式竖向连接规则独立成支，不并入‘直螺纹机械端’"
+  },
+  {
+    "issue": "ME02 中‘不应超过 50%’的唯一锚点为孤证罚则，支撑不足，需进一步确认",
+    "location": "ME02 误区",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充规范原文或更权威出处，确认‘不宜’与‘不应’的采分边界"
+  },
+  {
+    "issue": "ME03‘板钢筋交错绑扎’的 error_code 映射混用题型，E02/M09 不稳定",
+    "location": "ME03 误区",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "按题型拆分：案例用 E02/E08，客观题用 M09/M10"
+  },
+  {
+    "issue": "ME05‘丝扣方向一致’挂 E02 不准确，应为规范适用/概念混淆而非采分点遗漏",
+    "location": "ME05 误区",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为 E10/E07；客观题用 M10/M03；仅完全漏写八字扣保留 E02"
+  },
+  {
+    "issue": "ME07 代换误区混用 M07/E07，多选题作答案例码混入",
+    "location": "ME07 误区",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "多选题保留 M07，辅以 M03；E07 移出用于主观案例概念混淆表"
+  },
+  {
+    "issue": "ME08 多选‘构造/设计不分’混用 M09/E10，题型码与客观题冲突",
+    "location": "ME08 误区",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "按题型拆分：客观题用 M03/M09，案例用 E10；将 E 系列从客观题映射中移除"
+  },
+  {
+    "issue": "ME01 的心智模型表述过于粗放，笼统概括‘哪种连接都行、绑扎省事’，未体现不同错误认知的根源",
+    "location": "ME01 误区",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "细化 ME01 描述，区分混淆焊接、绑扎大直径等不同认知根源"
+  },
+  {
+    "issue": "ME01 的 error_code 映射中 M09 可能更适合 E07，存在混淆",
+    "location": "ME01 误区",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将 M09 降为 E07，或按题型重新确认映射"
+  },
+  {
+    "issue": "1 表/0 节 quote 截断，‘剥肋滚压直螺纹套筒最常用’未在引文中出现",
+    "location": "1 表 / 0 节",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充完整 quote 或该条降级为需核实"
+  },
+  {
+    "issue": "1 表/5.R5/R6 动力荷载限制的 quote 截断，关键数值缺乏直接文本支撑",
+    "location": "1 表 / 5.R5/R6",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全包含接头面积百分率要求的完整 quote"
+  },
+  {
+    "issue": "1 表/3/4/5/7 中‘非边缘≤600mm、抗震底部加强区宜套筒灌浆’等规则 quote 截断",
+    "location": "1 表 / 3/4/5/7",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "更换为包含全部限制条件的完整原文 quote"
+  },
+  {
+    "issue": "1 表/6/7 板钢筋绑扎关键句的 quote 展示的是墙钢筋绑扎，与内容不匹配",
+    "location": "1 表 / 6/7",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "替换为板钢筋绑扎的原文，否则该条降级或移除"
+  },
+  {
+    "issue": "1 表/4.V4 柱接头位置规则 quote 不完整，仅显示部分数值",
+    "location": "1 表 / 4.V4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全包含 H/6、b、45°/90°等内容的完整 quote"
+  },
+  {
+    "issue": "1 表/3.V2 代换扩展规则（设计同意、验算等）quote 截断",
+    "location": "1 表 / 3.V2",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充包含裂缝、挠度验算及构造要求的完整原文"
+  },
+  {
+    "issue": "1 表/2 原理中可焊性、热脆性等关键结论的 quote 未显示",
+    "location": "1 表 / 2 原理",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充包含‘>0.3%可焊性降低’和‘硫致热裂纹’的完整 quote"
+  },
+  {
+    "issue": "2 原理/7 动画‘梁接头滑出最大拉应力区’的因果解释超出 quote 范围",
+    "location": "2 原理 / 7 动画",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将力学解释降级并注明为工程推论"
+  },
+  {
+    "issue": "4.R3 S7 仍将 2018 案例视为接头位置/检测采分点，与 8.2 自身修正冲突",
+    "location": "4.R3 S7",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "删除 2018 的直采分角色，仅保留为背景陷阱备注"
+  },
+  {
+    "issue": "5.R5 采分点表混挂 M 系列错误码，导致客观题码进入主观采分区",
+    "location": "5.R5",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将 M 码移出主观采分表，保留 E 系列或按题型拆分"
+  },
+  {
+    "issue": "5.R5 梁接头位置错误使用 E06（程序顺序错误）",
+    "location": "5.R5 梁接头位置",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改用 E10/E07；客观题用 M08/M03"
+  },
+  {
+    "issue": "ME04 梁接头位置反仅挂 M08，偏窄且题型可能冲突",
+    "location": "ME04 误区",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "客观题扩展为 M03/M08；案例用 E07/E10"
+  },
+  {
+    "issue": "ME09 钢结构焊缝/螺栓套用到钢筋连接只挂 E07 不完整，缺少客观题对应",
+    "location": "ME09 误区",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为 E07/M03，按题型使用"
+  },
+  {
+    "issue": "1 表本体/邻接中板钢筋绑扎工法、冷拉率、钢筋代换被列为本体，范围偏宽",
+    "location": "1 表本体",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降级为邻接/下游约束，不直接作为本体采分点"
+  },
+  {
+    "issue": "1 表本体/邻接中碳、硫等化学成分被列为本体基础，但 quote 是钢材性能而非连接选用条文",
+    "location": "1 表本体基础",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留为基础知识，标注为‘邻接基础’，不作为 C05 直接采分本体"
+  }
+]

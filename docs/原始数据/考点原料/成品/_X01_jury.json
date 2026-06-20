@@ -1,0 +1,58 @@
+[
+  {
+    "issue": "L2原理因果层存在无point_id支撑的讲解性外推（如围挡高度平衡逻辑、五牌一图心理学、电杆7.5m安全间距等）",
+    "location": "§2因果链 / L2原理因果层",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将该类表述明确标注为🔵讲解性推导，补充教材原文锚点或删除无据断言，避免误导为规范推理。"
+  },
+  {
+    "issue": "L6误区层错因码在早期草稿中自造（E05~E11）与registry真义不符，个别已修正匹配但仍需确认M9等匹配贴切度",
+    "location": "§6误区 / L6误区",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "对照registry彻底重判错因码，修正自造码，确保每个误区可判分且与标准码一致。"
+  },
+  {
+    "issue": "§4施工升降机封闭因素域中「围栏」关键项无quote支撑，依赖真题侧增补而非教材锚原文",
+    "location": "§4 R4规则组C / 施工升降机",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降🟡：维持升降机因素锚，但明确标注「围栏」依据为真题增补，非教材锚原文。"
+  },
+  {
+    "issue": "§5采分点12「布置对象辨识」的quote只给出图内容，未列出塔吊等具体设备名单，实质依赖真题锚而非教材锚",
+    "location": "§5 R5采分点12",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降🟡：标注采分点支撑来源为「真题锚直接、教材锚间接」，避免误导为教材直推。"
+  },
+  {
+    "issue": "L1全景#9中「路口20m内0.8m以上通透性围挡」的quote实际为入口处大门冲洗设施，未覆盖该通透性数字",
+    "location": "§1 L1全景#9 / 围挡高度",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充确认真实出处，若为教材别处或规范原文则补锚，否则降🔴。"
+  },
+  {
+    "issue": "S6和S7场景因真题暂未直命而标记为🔴，缺乏直接真题支持但教材高频备料",
+    "location": "L4 examiner_intent + R3场景 + R4变量规则",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留🔴标记并注明「真题空窗期高备料」,供后续真题验证后再升级。"
+  },
+  {
+    "issue": "R7边界候选全部标记为🔴待真人/专家裁决，尚未固化为正式判分规则",
+    "location": "L5 R5采分点 + R6答案骨架 + R7边界",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留🔴待核定，后续通过专家裁决和真题反馈固化为可判分边界。"
+  }
+]

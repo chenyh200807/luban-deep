@@ -1,0 +1,138 @@
+[
+  {
+    "issue": "§3 不变量验证中场景 S6 覆盖声明过度，其核心为‘程序主体/责任’改错，与‘漏项/错项’达标比对不完全匹配，且案例不可逐问 gate 核，证据不足",
+    "location": "§3 不变量验证 (S6 场景) / §4",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将 S6 降级为 🔵 定性描述，并补充可直接支撑的真题 gate 核证据或重新归类场景"
+  },
+  {
+    "issue": "§1#7 ‘墙体保温施工控制点’标记为本体过强，quote 仅支持施工控制，未涉及隐蔽验收内容",
+    "location": "§1 跨章知识点全景 #7",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "降级为 🔵 邻接/施工控制，若作为隐蔽验收采分点需补充对应 quote 或真题锚"
+  },
+  {
+    "issue": "见证取样送检中‘自取自送/送检后通知’的 error_code 映射不当（E06/E03 不贴切），应为规范适用错误",
+    "location": "§6 M6 / §5 R7",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将‘自取自送’改为 E10（规范适用错误），‘送检后通知’保留 E06（程序顺序错误）或调整，避免 E03 误用"
+  },
+  {
+    "issue": "§6 M2 ‘成型钢筋仍查弯曲性能’错误心智的表述/映射有误，漏项与成型钢筋例外条件未说明，且 M08 映射不贴切",
+    "location": "§6 M2",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充说明成型钢筋免弯曲的具体情况，并将映射码拆分为 M08/M01（规范数字混淆）与 M03/M10（概念/条件混淆）"
+  },
+  {
+    "issue": "§1#5 ‘见证取样材料分类’标记为 🟢 本体，但 quote 仅支撑保温材料见证取样，未列清分类全文",
+    "location": "§1 #5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降级为 🔵，或补充完整的材料分类清单 quote"
+  },
+  {
+    "issue": "§6 M5 ‘以为见证由监理确认’映射 E07 概念混淆不当，更符合记错规范条款，应主码 E10",
+    "location": "§6 M5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改用 E10 为主码，E07 作为备用"
+  },
+  {
+    "issue": "§5 R5#12 隐蔽验收时机与防雷隐蔽验收采分点混在一起，证据链断裂，防雷真题不能直接论证通用时机规则",
+    "location": "§5 R5 #12",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为两点：隐蔽验收时机（补教材锚）和防雷必须隐蔽（保留真题锚），或调整证据引用"
+  },
+  {
+    "issue": "§1 表格第 13 行层级验收程序标记 🔵 但描述包含 A02 不适用内容，易混淆",
+    "location": "§1 跨章知识点全景表格行 13",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "明确标注该行属于 A01 判分眼，屏蔽 A02"
+  },
+  {
+    "issue": "§3 R2 结构实体检验和检验批扩大暂无独立 gate 强 MCQ 真题，靠教材锚和案例侧证，证据链不足",
+    "location": "§3 R2 不变量",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "维持 🔴 并注明需补足历年案例真题锚"
+  },
+  {
+    "issue": "§5 R7 边界候选全部为 🔴 待真人/专家裁决，缺乏明确扣分规则",
+    "location": "§5 R7",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "接入评分签名制品和专家裁决后升级"
+  },
+  {
+    "issue": "§7 R8 动画分镜缺少结构实体检验的具体细节",
+    "location": "§7 R8",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充结构实体检验细节"
+  },
+  {
+    "issue": "见证取样主体规则细则（建设单位确认见证人等）的 point_id quote 不支持，主要靠真题支持",
+    "location": "§3/§4/§5",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "教材锚降级，真题锚保 🟢"
+  },
+  {
+    "issue": "§5 R5#8 保温/节能材料复验混挂，门窗节能复验 quote 不含保温材料复验项",
+    "location": "§5 R5 #8",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆行：门窗节能复验保 🟢，保温材料复验靠真题保 🟢，‘复验为见证取样送检’降 🔵"
+  },
+  {
+    "issue": "§4 R4 ‘有氯离子要求时首检外加剂’教材锚不支持，靠真题",
+    "location": "§4 R4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "教材锚降级，真题锚保 🟢"
+  },
+  {
+    "issue": "§4 R4/§5 R6-R7 ‘不合格降级用即不妥’过于绝对，与内部 quote ‘可降级使用’冲突",
+    "location": "§4 R4 / §5 R6-R7",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为‘未经审批或不符合条件降级使用 = 不妥’为候选，降级至 🔵"
+  },
+  {
+    "issue": "使用 2017 第 20 题作强 🟢 隐蔽验收真题锚不稳，答案/解析有笔误",
+    "location": "§3/§4/§5",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降 🔵 文字侧印证，不作为 gate 强锚"
+  },
+  {
+    "issue": "§4 R4 声明‘封闭·可枚举、可判分、不外溢’与同节保守声明冲突",
+    "location": "§4 R4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降级为 🔵 启发式枚举，明确越界判断需人工裁决"
+  }
+]

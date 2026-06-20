@@ -1,0 +1,98 @@
+[
+  {
+    "issue": "开关箱与配电箱间距≤30m、仓库严禁碘钨灯等边缘内容，被过度标记为核心采分点或封闭清单枚举。",
+    "location": "L3 R2 不变量 (场景S6) / §4 R4 规则组F",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将30m间距、碘钨灯等降级为外延/真题补充标识，不再作为核心点；规则组F封闭清单需逐条核验来源，避免统称point_id枚举。"
+  },
+  {
+    "issue": "停电顺序真题锚定矛盾：pack称无真题逐字锚，但本地证据存在对应问答。",
+    "location": "L5 R5 C2 / §8 C2/8.3",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充2017真题逐字语义锚，停电顺序标记为教材锚🟢+真题语义锚🟢，并移除‘无真题逐字锚’标注。"
+  },
+  {
+    "issue": "M1停送电顺序颠倒错因码使用了M08(规范数字混淆)不贴合，本质为顺序/步骤错误。",
+    "location": "L6 R8 M1 / §6 M1",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "保留E06程序顺序错误，移除M08规范数字混淆。"
+  },
+  {
+    "issue": "场景S7标记为🔴但无明确教材锚或真题支持，标记偏强。",
+    "location": "L4 R3 场景S7",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "建议降级为🔵外延或补充教材锚，作为变题备料。"
+  },
+  {
+    "issue": "安全电压表将‘潮湿/隧道/人防’与‘易触及带电体’合并为≤24V，与源quote冲突。",
+    "location": "§4 R4 规则组C",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "按源quote分档：潮湿/隧道/人防≤36V🟢；易触及带电体≤24V🟢；金属容器/锅炉等≤12V🟢。"
+  },
+  {
+    "issue": "‘二级漏保=总箱+末级开关箱/各一’泛化，源quote仅支持‘二级剩余电流动作保护系统’，未明确安装位置。",
+    "location": "§2 L2, §4 R4, §7 动画相关",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "‘二级漏保’保留🟢；具体安装位置降为🔵，除非补JGJ46原文锚。"
+  },
+  {
+    "issue": "TN-S机理解释(PE线独立、设备外壳接零等)被挂同一🟢，但源quote仅支持系统名称。",
+    "location": "§2 L2",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "TN-S系统采用要求🟢；机理解释降为🔵。"
+  },
+  {
+    "issue": "‘一机一闸一漏’中‘一漏’未被教材quote支持，仅‘一机一闸’有锚。",
+    "location": "§2 L2, §4 examiner_intent",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "‘一机一闸’🟢；‘一漏’需另补漏保锚或降级为🔵。"
+  },
+  {
+    "issue": "规则组F封闭清单标记过强，部分项仅电工持证有教材锚，50kW组织设计等来自真题，不应统称point_id枚举。",
+    "location": "§4 R4 规则组F",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为F1持证🟢教材锚、F2/F3真题锚🟢；30m/碘钨灯等降为综合补充。"
+  },
+  {
+    "issue": "施工用电检查评定项目标签本体补全题母锚偏满，并非S05核心采分本体。",
+    "location": "§0/L1 #9",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "fact保持🟢；本体标签降为‘本体外延/检查评定补充’标识。"
+  },
+  {
+    "issue": "M3‘动力照明合并不分路’、M4‘电缆深度<0.7m’错因码E03偏弱，应为规范适用或数字阈值错误。",
+    "location": "§6 M3, M4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "M3改用E10/E07，M4改用M08+E10；若为漏写关键词可保留E02/E03。"
+  },
+  {
+    "issue": "错因码表未区分案例题(E系列)与客观题(M系列)发码面，导致用例可能混用。",
+    "location": "§6 整表",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为case_error_code与mcq_error_code两列，并在混合展示时降级为🔵。"
+  }
+]

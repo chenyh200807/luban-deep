@@ -1,0 +1,58 @@
+[
+  {
+    "issue": "§2中‘外墙饰面砖伸缩缝≤6m’被用作混凝土裂缝控制佐证，属邻接噪声，不应出现在原理因果链中",
+    "location": "§2 稳固战场第二链",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "降级🔵，移出原理因果链，或标注为背景不判分项"
+  },
+  {
+    "issue": "§6中多个典型误区的error_code映射（E10/E07）过粗或不精确",
+    "location": "§6 M1, M4, M5, M7, M8",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "M1可兼收E07；M4/M5/M7改为E02/E03；M8改为E02或为E07添加条件说明"
+  },
+  {
+    "issue": "R2‘强度跑赢收缩’原理未覆盖后浇带先释放后补偿的核心逻辑",
+    "location": "§3 场景4、§4 R4 V5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将该场景降级🔵，或补充‘先让变形释放再以补偿方式封闭’的说明"
+  },
+  {
+    "issue": "R2原理对地基不均匀沉降裂缝形态解释力不足",
+    "location": "§3 R2、§7动画",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "增补‘约束/强迫位移’维度或将该类裂缝列为邻接识别场景"
+  },
+  {
+    "issue": "拆模强度门槛不属于典型养护/裂缝防治不变量，归入R2主线较牵强",
+    "location": "§3 场景6",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留时标明为‘早龄期承载安全邻接场景’，或降级🔵"
+  },
+  {
+    "issue": "多处关键数值或手段缺乏独立point_id支撑，部分待真人裁决",
+    "location": "§6 M1养护起始时机、§4 V4拆模跨度分档、§4 V5沉降后浇带≥42d、§6 M5二次抹压、§5 R7评分边界",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "逐一补全对应point_id或显式标注待权威裁决"
+  },
+  {
+    "issue": "多处标🟢参数的关键数值或判断在对应quote中被截断，未显示所需内容",
+    "location": "§1#1（间接作用）、§1#2（裂缝控制三级）、§1#8（单位用水量决定性）、§1#9（水泥凝结时间）、§1#10（外加剂场景）、§1#12（大体积温控）、§1#13（防水参数）、§1#14（后浇带微膨胀等）",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "逐项补全完整quote后再恢复🟢标记"
+  }
+]
