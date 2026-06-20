@@ -40,6 +40,7 @@ on:
       - ".github/pull_request_template.md"
       - "scripts/ci/check_secure_routers.sh"
       - "scripts/ci/baselines/secure_routers_baseline.txt"
+      - "scripts/ci/baselines/submission_relation_gates_baseline.txt"
       - "supabase/migrations/**"
       - "scripts/ci/check_rls_on_create_table.sh"
       - "scripts/ci/baselines/rls_migrations_baseline.txt"
@@ -85,6 +86,7 @@ on:
       - ".github/pull_request_template.md"
       - "scripts/ci/check_secure_routers.sh"
       - "scripts/ci/baselines/secure_routers_baseline.txt"
+      - "scripts/ci/baselines/submission_relation_gates_baseline.txt"
       - "supabase/migrations/**"
       - "scripts/ci/check_rls_on_create_table.sh"
       - "scripts/ci/baselines/rls_migrations_baseline.txt"
@@ -202,6 +204,18 @@ jobs:
         # later consolidation blocked by its WIP.
         run: |
           python scripts/check_process_registry.py --all
+
+      - name: submission/relation gate authority guard (no new _looks_like_* re-decider)
+        # contracts/turn.md §硬约束 24 (Context-Continuity): a turn's submission/relation
+        # intent ("is this an answer / which question") must be decided once by the
+        # canonical authority (turn_semantic_decision / question_followup single guard).
+        # The recurring "切链路丢上下文/失忆" class came from 15+ independent _looks_like_*
+        # gates each re-deciding it. This fail-on-new gate freezes the existing 25 (all
+        # grandfathered) and blocks a NEW independent gate from landing silently — 止血
+        # only; the semantic closure is the runtime migration that collapses the gates
+        # onto the single reader (plan doc §剩余迁移).
+        run: |
+          python scripts/check_submission_relation_gate_authority.py --all
 
       - name: harness authority guard (single SCENE_COMPOSITION / grounding / force-exact)
         # AGENTS §5.7 single-authority: the eval harness scene-composition / grounding /

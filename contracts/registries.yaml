@@ -65,6 +65,9 @@ scanners:
   - script: scripts/check_model_authority.py
     governs: single DEFAULT_LLM_MODEL / DEFAULT_LLM_PROVIDER authority
     enforcement: pr_gate
+  - script: scripts/check_submission_relation_gate_authority.py
+    governs: no NEW independent submission/relation _looks_like_* gate (Context-Continuity 止血, contracts/turn.md §24; fail-on-new, baseline-grandfathered)
+    enforcement: pr_gate
   # ── shell CI gates ──
   - script: scripts/ci/check_secure_routers.sh
     governs: routers must use the secure auth dependency (fail-on-new)
