@@ -242,8 +242,7 @@ function buildStatusEvent(event) {
     visibility === "internal" &&
     (eventType === "thinking" || eventType === "observation")
   ) {
-    metadata.sanitized_internal = true;
-    content = "";
+    return null;
   }
 
   return {
