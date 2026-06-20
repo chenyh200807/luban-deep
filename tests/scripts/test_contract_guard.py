@@ -3,7 +3,9 @@ from __future__ import annotations
 import subprocess
 
 from scripts.check_contract_guard import (
+    _detect_protected_pattern_shrink,
     evaluate_changed_files,
+    evaluate_contract_index_protected_patterns_no_shrink,
     evaluate_question_lifecycle_authority,
     evaluate_route_model_uniqueness,
     evaluate_upstream_authority_absorption,
@@ -485,3 +487,74 @@ def test_main_return_includes_schema_ok(monkeypatch) -> None:
     # and when it passes, the runner can still pass (other guards permitting on a doc-only change)
     monkeypatch.setattr(G, "evaluate_schema_registry", lambda _f: (True, "schema-registry-guard: passed"))
     assert G.main(["--base", "x", "--head", "y"]) == 0
+
+
+# ── contract-index only-grow closure: protected_patterns cannot self-grandfather ──
+
+
+def test_no_shrink_detector_flags_removed_protected_pattern() -> None:
+    # The self-grandfather move: a domain's protected glob is dropped so the now-
+    # unprotected source reads as "no domain touched".
+    base = {
+        "luban_grading_engine": {
+            "protected_patterns": [
+                "deeptutor/services/construction_grading/per_question_grading_object.py",
+                "deeptutor/services/construction_grading/per_question_grading_judge.py",
+            ]
+        }
+    }
+    head = {
+        "luban_grading_engine": {
+            "protected_patterns": [
+                "deeptutor/services/construction_grading/per_question_grading_object.py",
+            ]
+        }
+    }
+    removals = _detect_protected_pattern_shrink(base, head)
+    assert len(removals) == 1
+    assert "luban_grading_engine" in removals[0]
+    assert "per_question_grading_judge.py" in removals[0]
+
+
+def test_no_shrink_detector_flags_dropped_domain() -> None:
+    base = {"turn": {"protected_patterns": ["deeptutor/api/routers/unified_ws.py"]}}
+    head: dict = {}
+    removals = _detect_protected_pattern_shrink(base, head)
+    assert len(removals) == 1
+    assert "[turn] domain dropped" in removals[0]
+
+
+def test_no_shrink_detector_allows_only_grow() -> None:
+    base = {"turn": {"protected_patterns": ["a.py"]}}
+    head = {"turn": {"protected_patterns": ["a.py", "b.py"]}}  # added, none removed
+    assert _detect_protected_pattern_shrink(base, head) == []
+
+
+def test_no_shrink_detector_allows_identical() -> None:
+    same = {"turn": {"protected_patterns": ["a.py", "b.py"]}}
+    assert _detect_protected_pattern_shrink(same, dict(same)) == []
+
+
+def test_no_shrink_guard_skips_without_base_ref() -> None:
+    ok, message = evaluate_contract_index_protected_patterns_no_shrink(base=None, head=None)
+    assert ok is True
+    assert "skipped (no base ref)" in message
+
+
+def test_no_shrink_guard_is_in_the_one_runner(monkeypatch) -> None:
+    # A protected_patterns shrink must FAIL the central runner (no_shrink_ok is in the gate).
+    import scripts.check_contract_guard as G
+
+    monkeypatch.setattr(G, "resolve_changed_files", lambda *_a, **_k: ["README.md"])
+    monkeypatch.setattr(
+        G,
+        "evaluate_websocket_route_allowlist",
+        lambda: (True, "websocket-allowlist-guard: passed"),
+    )
+    monkeypatch.setattr(G, "evaluate_schema_registry", lambda _f: (True, "schema-registry-guard: passed"))
+    monkeypatch.setattr(
+        G,
+        "evaluate_contract_index_protected_patterns_no_shrink",
+        lambda **_k: (False, "contract-index-no-shrink-guard: failed (test)"),
+    )
+    assert G.main(["--base", "x", "--head", "y"]) == 1

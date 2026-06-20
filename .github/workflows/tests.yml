@@ -27,6 +27,9 @@ on:
       - ".secrets.baseline"
       - ".bandit-baseline.json"
       - "contracts/**"
+      # eval/ hosts the harness_authority single-authority gate (eval/gates.yaml);
+      # a change there must trigger Tests so the gate cannot drift untested.
+      - "eval/**"
       - "web/**"
       - "wx_miniprogram/**"
       - "yousenwebview/**"
@@ -69,6 +72,9 @@ on:
       - ".secrets.baseline"
       - ".bandit-baseline.json"
       - "contracts/**"
+      # eval/ hosts the harness_authority single-authority gate (eval/gates.yaml);
+      # a change there must trigger Tests so the gate cannot drift untested.
+      - "eval/**"
       - "web/**"
       - "wx_miniprogram/**"
       - "yousenwebview/**"
@@ -365,6 +371,12 @@ jobs:
       - name: Run smoke tests
         run: |
           echo "🧪 Running smoke test subset"
+          # Grading / learner-state / capabilities are launch-critical correctness cores.
+          # They must execute in CI so a scoring/learner regression cannot merge undetected
+          # (contract-guard only enforces test-file coupling, not execution). tests/services/rag
+          # is intentionally excluded: it mixes hermetic units with network-dependent retrieval
+          # integration tests (live embedding API / DB host) that a hermetic smoke job must not
+          # run; RAG retrieval quality is gated separately by the eval / golden-set baseline.
           pytest -q --import-mode=importlib \
             tests/api \
             tests/cli \
@@ -381,14 +393,15 @@ jobs:
             tests/services/test_bi_metrics.py \
             tests/services/test_path_service.py \
             tests/runtime/test_orchestrator_autoroute.py \
-            tests/capabilities/test_deep_question_question_review.py \
-            tests/capabilities/test_deep_question_lightweight_generation.py \
             tests/services/test_render_presentation.py \
             tests/core/test_prompt_parity.py \
             tests/services/memory \
             tests/services/session \
             tests/security \
-            tests/tools
+            tests/tools \
+            tests/capabilities \
+            tests/services/construction_grading \
+            tests/services/learner_state
         env:
           PYTHONPATH: ${{ github.workspace }}
 

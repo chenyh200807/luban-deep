@@ -29,11 +29,26 @@ for raw_line in env_path.read_text(encoding='utf-8').splitlines():
     key, value = line.split('=', 1)
     values[key.strip()] = value.strip()
 
-service_env = str(values.get('SERVICE_ENV') or values.get('DEEPTUTOR_ENV') or '').strip().lower()
-app_env = str(values.get('APP_ENV') or '').strip().lower()
-is_production = service_env == 'production' or app_env == 'production'
+# Production detection mirrors deeptutor/services/runtime_env.py (the single authority):
+# same key precedence, same fail-closed _NON_PRODUCTION_ENV_NAMES allowlist. This runs in
+# an SSH heredoc on the host and cannot import the package, so the set is replicated here
+# and kept in sync by tests/scripts/test_aliyun_deploy_scripts.py. FAIL-CLOSED: unset /
+# misspelled / 'aliyun' / 'prod' / unknown all resolve to production, so a real production
+# release can never silently skip the required checks below (the old `== 'production'`
+# test treated DEEPTUTOR_ENV=aliyun — a production deploy — as non-production and skipped).
+runtime_env_keys = (
+    'DEEPTUTOR_ENV', 'DEEPTUTOR_RUNTIME_ENV', 'APP_ENV', 'ENV', 'ENVIRONMENT', 'SERVICE_ENV',
+)
+non_production_env_names = {'local', 'dev', 'development', 'test', 'testing', 'ci', 'eval'}
+resolved_env = ''
+for env_key in runtime_env_keys:
+    candidate = str(values.get(env_key) or '').strip().lower()
+    if candidate:
+        resolved_env = candidate
+        break
+is_production = resolved_env not in non_production_env_names
 if not is_production:
-    print('远端环境不是 production，跳过生产发布必填校验。')
+    print(f'远端环境为 {resolved_env!r}（非生产），跳过生产发布必填校验。')
     raise SystemExit(0)
 
 missing = [
