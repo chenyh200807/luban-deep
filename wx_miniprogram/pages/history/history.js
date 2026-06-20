@@ -467,6 +467,7 @@ Page({
     api
       .getConversations(isArchived ? true : undefined)
       .then(function (raw) {
+        if (self._abortPending) return;
         // [FIX 2026-04-01] 统一 unwrap ApiResponse {code,data:{conversations}}
         var unwrapped = api.unwrapResponse(raw);
         var list = unwrapped.conversations || [];
@@ -488,6 +489,7 @@ Page({
         self._lastFetch = Date.now();
       })
       .catch(function (e) {
+        if (self._abortPending) return;
         if (!silent)
           self.setData({ loading: false, error: true, refreshing: false });
         else self.setData({ refreshing: false });

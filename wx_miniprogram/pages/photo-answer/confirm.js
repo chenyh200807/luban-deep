@@ -24,12 +24,14 @@ Page({
   },
 
   onLoad: function (options) {
+    this._destroyed = false;
     this.setData({ sessionId: String(options.session_id || "") });
     this._pollTries = 0;
     this._poll();
   },
 
   onUnload: function () {
+    this._destroyed = true;
     if (this._pollTimer) {
       clearTimeout(this._pollTimer);
     }
@@ -37,11 +39,12 @@ Page({
 
   _poll: function () {
     var that = this;
-    if (!this.data.sessionId) {
+    if (that._destroyed || !this.data.sessionId) {
       return;
     }
     api.getPhotoAnswerSession(this.data.sessionId).then(
       function (res) {
+        if (that._destroyed) return;
         var status = (res.session && res.session.status) || "processing";
         if (status === "awaiting_confirm" && res.view) {
           that._applyView(res);
@@ -62,6 +65,7 @@ Page({
         that._pollTimer = setTimeout(that._poll.bind(that), POLL_INTERVAL_MS);
       },
       function () {
+        if (that._destroyed) return;
         that._pollTries += 1;
         that._pollTimer = setTimeout(
           that._poll.bind(that),
@@ -221,16 +225,19 @@ Page({
           .then(
             function () {
               wx.hideLoading();
+              if (that._destroyed) return;
               that.setData({ escalateUsed: true });
               that._pollTries = 0;
               api
                 .getPhotoAnswerSession(that.data.sessionId)
                 .then(function (res2) {
+                  if (that._destroyed) return;
                   if (res2.view) that._applyView(res2);
                 });
             },
             function (err) {
               wx.hideLoading();
+              if (that._destroyed) return;
               that.setData({ escalateUsed: true });
               wx.showToast({
                 title: (err && err.message) || "重识别不可用",
