@@ -82,7 +82,6 @@ var ARCHETYPE_TIPS = {
   policy_seeded: "建议按当前诊断结果先补薄弱章节，再用短组练习和固定复盘巩固。",
 };
 
-
 var helpers = require("../../utils/helpers");
 
 function buildAnswerState(questions, selectedKeys, currentIndex) {
@@ -135,11 +134,9 @@ function stripInlineOptionsFromStem(stem, options) {
   var opts = options || [];
   if (!text || !opts.length) return text;
 
-  var keptLines = text
-    .split(/\r?\n/)
-    .filter(function (line) {
-      return !isInlineOptionLine(line, opts);
-    });
+  var keptLines = text.split(/\r?\n/).filter(function (line) {
+    return !isInlineOptionLine(line, opts);
+  });
   text = keptLines.join("\n").trim();
 
   var markerCount = 0;
@@ -166,7 +163,9 @@ function normalizeAssessmentOptions(rawOptions) {
     return opts.map(function (o) {
       return {
         key: String((o || {}).key || ""),
-        text: String((o || {}).text || (o || {}).label || (o || {}).value || ""),
+        text: String(
+          (o || {}).text || (o || {}).label || (o || {}).value || "",
+        ),
         value: String((o || {}).value || ""),
       };
     });
@@ -221,7 +220,10 @@ function buildSubmitSuccessFallbackModel(data) {
   var feedback = payload.diagnostic_feedback || payload.feedback || {};
   var ability = feedback.ability_overview || {};
   var actionPlan = feedback.action_plan || {};
-  var score = pickNumber(summary.score_pct, pickNumber(ability.score_pct, payload.score));
+  var score = pickNumber(
+    summary.score_pct,
+    pickNumber(ability.score_pct, payload.score),
+  );
   var level = String(payload.suggested_level || payload.level || "beginner");
   var plan = String(actionPlan.plan_strategy || "");
   return {
@@ -295,6 +297,11 @@ Page({
   _quizId: null,
   _startTime: 0,
 
+  onUnload: function () {
+    this._pageUnloaded = true;
+    clearTimeout(this._autoNextTimer);
+  },
+
   onLoad: function () {
     var info = helpers.getWindowInfo();
     this.setData({
@@ -319,6 +326,7 @@ Page({
     api
       .createAssessment("diagnostic", 20)
       .then(function (resp) {
+        if (self._pageUnloaded) return;
         try {
           // 兼容两种返回格式: {questions, quiz_id} 或 {data: {questions, quiz_id}}
           var payload = (resp && resp.data) || resp || {};
@@ -329,12 +337,20 @@ Page({
             return;
           }
           var answerState = buildAnswerState(questions, {}, 0);
-          var requestedCount = Number(payload.requested_count || questions.length) || questions.length;
-          var deliveredCount = Number(payload.delivered_count || questions.length) || questions.length;
+          var requestedCount =
+            Number(payload.requested_count || questions.length) ||
+            questions.length;
+          var deliveredCount =
+            Number(payload.delivered_count || questions.length) ||
+            questions.length;
           var scoredCount = Number(payload.scored_count || 0) || 0;
           var profileCount = Number(payload.profile_count || 0) || 0;
-          var availableCount = Number(payload.available_count || deliveredCount) || deliveredCount;
-          var shortfallCount = Math.max(0, Number(payload.shortfall_count || 0) || 0);
+          var availableCount =
+            Number(payload.available_count || deliveredCount) || deliveredCount;
+          var shortfallCount = Math.max(
+            0,
+            Number(payload.shortfall_count || 0) || 0,
+          );
           self._quizId = payload.quiz_id;
           self._startTime = Date.now();
           self.setData({
@@ -357,18 +373,30 @@ Page({
             shortfallCount: shortfallCount,
             assessmentNotice:
               shortfallCount > 0
-                ? "题库当前可用 " + availableCount + " 题，本次先完成 " + deliveredCount + " 题。"
+                ? "题库当前可用 " +
+                  availableCount +
+                  " 题，本次先完成 " +
+                  deliveredCount +
+                  " 题。"
                 : scoredCount && profileCount
-                ? "本次 " + scoredCount + " 道知识题 + " + profileCount + " 道学习画像题。"
-                : "",
+                  ? "本次 " +
+                    scoredCount +
+                    " 道知识题 + " +
+                    profileCount +
+                    " 道学习画像题。"
+                  : "",
           });
         } catch (renderErr) {
-          console.error("[Assessment] create succeeded but quiz render failed", renderErr);
+          console.error(
+            "[Assessment] create succeeded but quiz render failed",
+            renderErr,
+          );
           wx.showToast({ title: "题目数据异常", icon: "none" });
           self.setData({ stage: "welcome", starting: false });
         }
       })
       .catch(function (e) {
+        if (self._pageUnloaded) return;
         console.error("[Assessment] create request failed", e);
         wx.showToast({ title: "加载题目失败", icon: "none" });
         self.setData({ stage: "welcome", starting: false });
@@ -436,7 +464,8 @@ Page({
       this.data.currentIndex < this.data.questions.length - 1
     ) {
       var self = this;
-      setTimeout(function () {
+      clearTimeout(this._autoNextTimer);
+      this._autoNextTimer = setTimeout(function () {
         self.onNext();
       }, 300);
     }
@@ -539,6 +568,7 @@ Page({
     api
       .submitAssessment(self._quizId, answers, timeSpent)
       .then(function (resp) {
+        if (self._pageUnloaded) return;
         var data = resp.data || resp;
         try {
           // 响应已收到
@@ -623,7 +653,9 @@ Page({
 
           // 优先攻克：掌握度最低的 5 个章节
           var priority = (ap.priority_chapters || []).map(function (c) {
-            return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
+            return displayChapterName(
+              typeof c === "object" ? c.name || c.code || "" : c,
+            );
           });
           if (!priority.length && chapterList.length) {
             priority = chapterList
@@ -653,7 +685,8 @@ Page({
             archetypeIcon: ARCHETYPE_ICONS[archetype] || "?",
             responseLabel: RESPONSE_LABELS[rp] || "待继续观察",
             responseDesc: RESPONSE_DESCS[rp] || "",
-            calibrationLabel: CALIBRATION_LABELS[cal] || (cal ? "待继续观察" : ""),
+            calibrationLabel:
+              CALIBRATION_LABELS[cal] || (cal ? "待继续观察" : ""),
             errorPattern: ep,
             errorPatternName: epNames[ep] || "待继续观察",
             priorityChapters: priority.slice(0, 5),
@@ -663,7 +696,10 @@ Page({
           wx.setStorageSync("diagnostic_completed", true);
           helpers.vibrate("heavy");
         } catch (renderErr) {
-          console.error("[Assessment] submit succeeded but result render failed", renderErr);
+          console.error(
+            "[Assessment] submit succeeded but result render failed",
+            renderErr,
+          );
           self.setData(
             Object.assign(
               {
@@ -679,6 +715,7 @@ Page({
         }
       })
       .catch(function (e) {
+        if (self._pageUnloaded) return;
         // 提交失败已通过 toast 展示
         wx.showToast({ title: "提交失败，请重试", icon: "none" });
         self.setData({ stage: "quiz", submitting: false });

@@ -19,8 +19,10 @@ var RECONNECT_MAX_ATTEMPTS = wsPure.RECONNECT_MAX_ATTEMPTS;
 
 function socketUrlToApiBase(socketUrl) {
   var normalized = String(socketUrl || "").trim();
-  if (normalized.indexOf("wss://") === 0) normalized = "https://" + normalized.slice(6);
-  if (normalized.indexOf("ws://") === 0) normalized = "http://" + normalized.slice(5);
+  if (normalized.indexOf("wss://") === 0)
+    normalized = "https://" + normalized.slice(6);
+  if (normalized.indexOf("ws://") === 0)
+    normalized = "http://" + normalized.slice(5);
   return normalized.replace(/\/api\/v1\/ws(?:\?.*)?$/i, "");
 }
 
@@ -286,7 +288,8 @@ function streamChat(opts, callbacks) {
       var finalResponseEvent = buildFinalResponseEvent(eventMetadata);
       if (finalResponseEvent && cb.onFinal) {
         if (!finalResponseEvent.api_base) {
-          finalResponseEvent.api_base = connectedApiBase || endpoints.getPrimaryBaseUrl(false);
+          finalResponseEvent.api_base =
+            connectedApiBase || endpoints.getPrimaryBaseUrl(false);
         }
         finalResponseEvent.engine_session_id = chatId || sessionId;
         finalResponseEvent.engine_turn_id = turnId;
@@ -313,8 +316,9 @@ function streamChat(opts, callbacks) {
         failStream(String(event.content || "服务异常"));
         return;
       }
-      if (cb.onError)
-        cb.onError(normalizeErrorMessage(String(event.content || "服务异常")));
+      // Non-terminal server error: treat as stream-terminal on client side
+      // to prevent idle-timer double-fire of onError/onDone.
+      failStream(String(event.content || "服务异常"));
       return;
     }
 
