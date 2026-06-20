@@ -33,6 +33,7 @@ from .supabase_strategy import (
     dedupe_ranked_results,
     expand_query_variants,
     classify_query_shape,
+    exact_question_stem_corresponds,
     extract_node_code_prefix,
     is_question_like_query,
     matches_allowed_question_type,
@@ -1879,6 +1880,12 @@ class SupabasePipeline:
                 option_validation_required=option_validation_required,
             ):
                 continue
+            if not exact_question_stem_corresponds(
+                original_query=original_query,
+                matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                question_type=row.get("question_type"),
+            ):
+                continue
             return [self._normalize_question_result(row, source_group="question_exact_text", score=1.0)]
 
         if config.exact_question_text_rpc_enabled:
@@ -1909,6 +1916,12 @@ class SupabasePipeline:
                         original_query=original_query,
                         options=row.get("options"),
                         option_validation_required=option_validation_required,
+                    ):
+                        continue
+                    if not exact_question_stem_corresponds(
+                        original_query=original_query,
+                        matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                        question_type=row.get("question_type"),
                     ):
                         continue
                     return [

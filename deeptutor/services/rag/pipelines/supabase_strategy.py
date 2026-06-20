@@ -677,6 +677,54 @@ def _normalize_option_surface(text: str) -> str:
     return clean.replace("的", "")
 
 
+_EXACT_STEM_CASE_TYPES = {
+    "case",
+    "case_study",
+    "case_background",
+    "calculation",
+}
+
+
+def _exact_question_surface_bigrams(text: str) -> set[str]:
+    cleaned = re.sub(r"[\s\W_]+", "", str(text or ""), flags=re.UNICODE)
+    if len(cleaned) < 2:
+        return {cleaned} if cleaned else set()
+    return {cleaned[index : index + 2] for index in range(len(cleaned) - 1)}
+
+
+def exact_question_stem_corresponds(
+    *,
+    original_query: str,
+    matched_stem: str,
+    question_type: str | None = None,
+    min_stem_coverage: float = 0.30,
+) -> bool:
+    """Reject a text/keyword exact-question match the query does not actually cover.
+
+    The ``question_exact_text`` path can return a row that shares only an incidental
+    common term (e.g. "混凝土") with the learner's query while the matched stem is a
+    completely different bank question. Surfacing that row's answer as authoritative
+    fabricates a "标准答案" the learner never asked about. This deterministic guard
+    requires the matched stem's surface to be substantially covered by the query (the
+    learner is quoting/paraphrasing that question), not merely sharing one keyword.
+
+    Calibrated on the production false positive ("钢筋和混凝土哪个硬" vs a 防水等级 stem,
+    coverage ~0.08) against real paraphrases/pastes (coverage >= 0.4). Case-study matches
+    use bundle coverage rather than surface overlap, so they are never gated here.
+    """
+
+    if str(question_type or "").strip().lower() in _EXACT_STEM_CASE_TYPES:
+        return True
+    stem_bigrams = _exact_question_surface_bigrams(matched_stem)
+    if not stem_bigrams:
+        return False
+    query_bigrams = _exact_question_surface_bigrams(original_query)
+    if not query_bigrams:
+        return False
+    coverage = len(query_bigrams & stem_bigrams) / len(stem_bigrams)
+    return coverage >= min_stem_coverage
+
+
 def is_question_like_query(query: str) -> bool:
     lowered = str(query or "").strip().lower()
     return any(token in lowered for token in _QUESTION_HINTS)
