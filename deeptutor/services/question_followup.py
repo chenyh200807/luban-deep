@@ -144,6 +144,19 @@ _LEADING_SUBMISSION_PREFIX = re.compile(
     re.IGNORECASE,
 )
 _SUBJECTIVE_QUESTION_TYPES = {"case", "written", "subjective", "short_answer", "essay"}
+# A turn that LEADS with a bare option answer ("B" / "BCD" / "B，再出3题") is an
+# answer-led submission; §5.1 gives it priority over any trailing generation intent.
+_LEADING_OPTION_ANSWER = re.compile(r"^[A-Ea-e](?:[、，,/／\s]*[A-Ea-e])*(?:[。.!！?，,、：:\s]|$)")
+# Closed vocabulary of "ask for a (new/different) question" intents. A turn carrying
+# one of these is a generation/switch request, NOT an answer submission. Shared by
+# the subjective and option submission extractors so both refuse to treat a
+# generation/switch request as a graded answer (symmetric guard; single source).
+_GENERATION_INTENT_MARKERS = (
+    "出题", "出一道", "出一题", "来一道", "来一题", "再出", "再来一道", "再来一题",
+    "换一道", "换一题", "换个题", "换道题", "换别的", "另出", "重新出",
+    "选择题", "单选题", "多选题", "判断题", "案例题", "简答题",
+    "刷题", "练题", "练习", "做题", "出几道", "出三道", "出两道",
+)
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -1336,22 +1349,7 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     )
     if not explicit_answer and any(marker in lowered for marker in explanation_markers):
         return None
-    generation_markers = (
-        "出题",
-        "出一道",
-        "来一道",
-        "来一题",
-        "选择题",
-        "单选题",
-        "多选题",
-        "判断题",
-        "案例题",
-        "简答题",
-        "刷题",
-        "练题",
-        "练习",
-    )
-    if not explicit_answer and any(marker in lowered for marker in generation_markers):
+    if not explicit_answer and any(marker in lowered for marker in _GENERATION_INTENT_MARKERS):
         return None
     if not explicit_answer and len(stripped) < 6:
         return None
@@ -1636,6 +1634,17 @@ def _extract_option_submission(
     if _looks_like_option_challenge_followup(text, question_context):
         return None
     if _looks_like_option_value_challenge_followup(text, question_context):
+        return None
+    # Symmetric with _extract_subjective_submission: a generation/switch request
+    # ("出一道…选择题" / "换一道题") is NOT an answer — refuse to mine an option key
+    # out of it, otherwise a fabricated "你选了A" grading turn fires on a turn where
+    # the learner never answered. A mixed turn that leads with an explicit submission
+    # ("我选A，再出3题") keeps priority via the _LEADING_SUBMISSION_PREFIX exemption.
+    if (
+        not _LEADING_SUBMISSION_PREFIX.match(text)
+        and not _LEADING_OPTION_ANSWER.match(text)
+        and any(marker in text for marker in _GENERATION_INTENT_MARKERS)
+    ):
         return None
 
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")

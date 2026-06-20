@@ -983,6 +983,15 @@ class AgentCoordinator:
             clipped_analysis = analysis[:280] + ("..." if len(analysis) > 280 else "")
             parts.append(f"题库解析要点：{clipped_analysis}")
         if len(parts) > 1:
+            # Topic-relevance gate (Bug#1 主因): only adopt this RAG hit as the
+            # canonical generation anchor when it actually matches the user's topic.
+            # Otherwise an off-topic top hit (e.g. SMA query → 垂直运输 question) would
+            # become a hard anchor and the generator, told to "stay within the anchor",
+            # produces an off-topic question. Fall back to the pure topic anchor.
+            if not AgentCoordinator._structured_anchor_matches_topic(
+                user_topic, f"{stem}\n{analysis}\n{correct_answer}"
+            ):
+                return base
             return {
                 "knowledge_context": "\n".join(parts),
                 "concentration": anchor_label or stem or "当前学习主题",
@@ -1014,6 +1023,8 @@ class AgentCoordinator:
             clipped_evidence = "\n".join(evidence_texts)[:280]
             if len("\n".join(evidence_texts)) > 280:
                 clipped_evidence += "..."
+            if not AgentCoordinator._structured_anchor_matches_topic(user_topic, clipped_evidence):
+                return base
             return {
                 "knowledge_context": f"{base['knowledge_context']}\n题库参考资料：{clipped_evidence}",
                 "concentration": anchor_label,
@@ -1022,6 +1033,11 @@ class AgentCoordinator:
             }
 
         parsed_bundle = AgentCoordinator._extract_structured_anchor_from_answer(answer)
+        if parsed_bundle and not AgentCoordinator._structured_anchor_matches_topic(
+            user_topic,
+            f"{parsed_bundle.get('reference_question') or ''}\n{parsed_bundle.get('analysis') or ''}",
+        ):
+            return base
         if parsed_bundle:
             bundle_parts: list[str] = [base["knowledge_context"]]
             bundle_parts.append(f"题库参考题目：{parsed_bundle['reference_question']}")
@@ -1051,6 +1067,8 @@ class AgentCoordinator:
             }
 
         clipped_answer = answer[:280] + ("..." if len(answer) > 280 else "")
+        if not AgentCoordinator._structured_anchor_matches_topic(user_topic, clipped_answer):
+            return base
         return {
             "knowledge_context": f"{base['knowledge_context']}\n题库参考资料：{clipped_answer}",
             "concentration": anchor_label,
@@ -1173,11 +1191,23 @@ class AgentCoordinator:
                 return False
             matched = sum(1 for term in terms if term in haystack)
             return matched >= min(2, len(terms))
-        cleaned = re.sub(r"(分析|讲解|解析|讲|一道|一题|真题|题目|的|请|帮我|一下|关于)", " ", text)
-        loose_terms = [part for part in re.split(r"[\s，。！？、,.;；:：]+", cleaned) if len(part) >= 2]
+        cleaned = re.sub(
+            r"(分析|讲解|解析|讲|再出|再来|出几道|出一?[道题]|来一?[道题]|换一?[道题]|一道|一题|几道|"
+            r"真题|题目|考一?下|考一?考|考我|考|一下|关于|帮我|麻烦|请|的|题)",
+            " ",
+            text,
+        )
+        loose_terms = [part for part in re.split(r"[\s，。！？、,.;；:：0-9]+", cleaned) if len(part) >= 2]
         if not loose_terms:
             return False
-        return any(term in haystack for term in loose_terms[:3])
+        if any(term in haystack for term in loose_terms[:3]):
+            return True
+        # Finer-grained fallback: a shared distinctive 2-gram between the (cleaned)
+        # topic terms and the anchor means same subject with different wording
+        # (e.g. topic "法律基础" vs stem "属于法律" share 法律). An off-topic anchor
+        # (SMA topic vs 垂直运输/井架 stem) shares none and is rejected.
+        topic_bigrams = {t[i : i + 2] for t in loose_terms for i in range(len(t) - 1)}
+        return any(bigram in haystack for bigram in topic_bigrams)
 
     @staticmethod
     def _derive_lightweight_anchor_label(
