@@ -99,3 +99,40 @@ async def test_semantic_router_resumes_suspended_candidate_when_previous_marker_
     assert routing.turn_semantic_decision["relation_to_active_object"] == "switch_to_new_object"
     assert routing.turn_semantic_decision["next_action"] == "route_to_grading"
     assert "resume_suspended_object" in routing.turn_semantic_decision["allowed_patch"]
+
+
+@pytest.mark.asyncio
+async def test_floating_followup_does_not_resume_suspended_without_back_reference() -> None:
+    # 断裂链②C2 / 浮知识 (学生军团 Phase A 黄金复现器 H2): 一道题答完后被挂起; 学员问一个
+    # 延伸知识问(不显式回切、非作答),被松匹配成挂起题的 ask_followup。当前会被提升为
+    # switch_to_new_object + route_to_followup_explainer → 触发 _is_unresolved_switch_followup
+    # 拒答("你想回到/切换到的那道题…没能定位到")。延伸知识问应当作开放追问、不重新激活挂起题,
+    # 即不得产生 unresolved-switch 拒答签名。
+    active_object = _question_active_object("q_current", "当前题(弱匹配)", "D")
+    suspended_object = _question_active_object("q_prev_scaffold", "脚手架题", "A")
+
+    async def fake_interpret(_message, question_context):
+        qid = str((question_context or {}).get("question_id") or "")
+        if qid == "q_current":
+            return {"intent": "unrelated", "confidence": 0.5, "answers": [], "reason": "当前题不匹配"}
+        if qid == "q_prev_scaffold":
+            return {"intent": "ask_followup", "confidence": 0.9, "answers": [], "reason": "像在追问脚手架题"}
+        return None
+
+    routing = await resolve_question_semantic_routing(
+        user_message="那悬挑脚手架的高度怎么算？有什么特殊要求？",  # 无"上一题/刚才那题"等回切标记
+        metadata={"active_object": active_object, "suspended_object_stack": [suspended_object]},
+        history_context="",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=resolve_submission_attempt,
+        looks_like_question_followup=looks_like_question_followup,
+        looks_like_practice_generation_request=looks_like_practice_generation_request,
+    )
+
+    decision = routing.turn_semantic_decision or {}
+    assert not (
+        str(decision.get("relation_to_active_object")) == "switch_to_new_object"
+        and str(decision.get("next_action")) == "route_to_followup_explainer"
+    ), f"延伸知识问被误提升为切题拒答签名: {decision}"
+    if routing.active_object is not None:
+        assert routing.active_object.get("object_id") != "q_prev_scaffold", "延伸知识问不应把挂起题设为新active"
