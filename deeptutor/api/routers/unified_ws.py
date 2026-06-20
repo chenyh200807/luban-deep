@@ -297,6 +297,12 @@ def _bind_authenticated_user(
     if not isinstance(billing_context, dict):
         billing_context = {}
 
+    # Defence-in-depth: the eval-bypass marker is server-authored only (set by the
+    # mobile start-turn endpoint after signature verification). A client must never
+    # be able to smuggle it through a WS-supplied billing_context, so scrub it here
+    # regardless of the source guard downstream.
+    billing_context = {k: v for k, v in billing_context.items() if k != "eval_bypass"}
+
     requested_user_id = str(billing_context.get("user_id") or "").strip()
     if requested_user_id and requested_user_id != current_user.user_id and not current_user.is_admin:
         raise PermissionError("Forbidden billing_context user_id")
