@@ -137,6 +137,17 @@ App({
     const token = auth.getToken();
     if (token) {
       this.globalData.token = token;
+      // Session 可能已过期，静默校验；fail 时清除本地凭据强制重新登录
+      var that = this;
+      wx.checkSession({
+        fail: function () {
+          // session 过期，清除本地 token 强制重新登录
+          wx.removeStorageSync("token");
+          wx.removeStorageSync("userInfo");
+          that.globalData.token = null;
+          that.globalData.userInfo = null;
+        },
+      });
     }
 
     // [PRR-C9] Network status monitoring

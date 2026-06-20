@@ -1217,7 +1217,11 @@ Page({
       this._recoveringTurn = true;
       return;
     }
-    if (!skipHistoryRecovery && !renderedAnswer && (this._pendingTurn || this._loadPendingTurn())) {
+    if (
+      !skipHistoryRecovery &&
+      !renderedAnswer &&
+      (this._pendingTurn || this._loadPendingTurn())
+    ) {
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
@@ -2061,7 +2065,9 @@ Page({
     // 投影层已净化；此处再兜底截长，组装文案对注入面保持惰性。
     var target = String(nba.target || nba.title || "").slice(0, 80);
     if (!target) return;
-    this._send("针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。");
+    this._send(
+      "针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。",
+    );
   },
 
   stopStream: function () {
@@ -2463,10 +2469,10 @@ Page({
     var msg = actionToInput[slug] || slug;
     if (!msg) return;
     if (typeof this.setData === "function") {
-      this.setData({ input: msg });
+      this.setData({ inputText: msg });
     }
-    if (typeof this.onSend === "function") {
-      this.onSend();
+    if (typeof this.sendMessage === "function") {
+      this.sendMessage();
     }
   },
 
