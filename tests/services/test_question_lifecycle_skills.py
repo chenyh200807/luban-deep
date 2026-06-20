@@ -240,3 +240,14 @@ def test_backreference_explanation_not_blocked_as_submission_after_practice_gen(
         resolve_question_lifecycle_scene_decision(genuine, enable_llm=False)
     )
     assert blocked.needs_clarification is True
+
+
+def test_mcq_surface_regexes_single_sourced_from_canonical_module() -> None:
+    """task #12 step 1: question_lifecycle_skills must not own a private copy of the MCQ
+    option-answer / option-list regexes — it aliases the canonical single source so the
+    submission/relation primitive has one definition (contracts/turn.md §硬约束 24)."""
+    from deeptutor.services import mcq_surface_patterns as canon
+    from deeptutor.services import question_lifecycle_skills as ql
+
+    assert ql._FREE_TEXT_MCQ_OPTION_SELECTION_RE is canon.OPTION_ANSWER_ASSERTION_RE
+    assert ql._FREE_TEXT_MCQ_OPTION_LIST_RE is canon.OPTION_LIST_RE
