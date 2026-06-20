@@ -1,0 +1,42 @@
+{
+  "schema": "luban_json_source_ledger_manifest.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "source_root": "docs/原始数据/2026_副本",
+  "authority_status": "raw_evidence_ledger",
+  "runtime_guard": {
+    "release_stage": "raw_source_ledger",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "artifact_refs": {
+    "sources": "sources.jsonl",
+    "summary": "summary.json"
+  },
+  "counts": {
+    "json_sources": 383,
+    "buckets": {
+      "exam_cleaned_json": 11,
+      "lecture_cleaned_json": 335,
+      "practice_qiantizan_json": 1,
+      "practice_zl500_json": 1,
+      "standard_cleaned_json": 8,
+      "taxonomy_backup_json": 8,
+      "taxonomy_cleaned_json": 1,
+      "textbook_cleaned_json": 6,
+      "textbook_core_json": 3,
+      "textbook_enrichment_json": 6,
+      "textbook_index_json": 3
+    }
+  },
+  "guardrails": [
+    "ledger only; not runtime supply",
+    "cleaned JSON is raw evidence until source claims are reviewed",
+    "no official scoring claim",
+    "no learner truth write"
+  ]
+}

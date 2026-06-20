@@ -1,0 +1,38 @@
+{
+  "classify_and_act": {
+    "miss_classes": {
+      "answer_generator_or_matcher_miss": 8,
+      "no_construction_grading_result": 9
+    },
+    "all_classified": true
+  },
+  "fanout_and_synthesize": {
+    "deepseek_qwen": "advisory_not_invoked",
+    "gpt55": "provider_unavailable_fail_closed",
+    "opus48": "workflow_judge_executing_agent",
+    "deterministic_script": "sole_authority"
+  },
+  "generate_and_filter": {
+    "strategy": "rich per-question answers (one submission scores all counted points)",
+    "matcher_relaxed": false,
+    "official_answer_as_source": false
+  },
+  "tournament": {
+    "chosen_fix": "sample generation (rich answers) — no production-code change, matcher unchanged"
+  },
+  "adversarial_verification": {
+    "negatives": 70,
+    "false_positive": 0,
+    "attacks": [
+      "off_by_one",
+      "flip_polarity",
+      "partial_list",
+      "irrelevant"
+    ]
+  },
+  "loop_until_done": {
+    "counted_hits": 53,
+    "ge_50": true,
+    "remaining_miss": 17
+  }
+}

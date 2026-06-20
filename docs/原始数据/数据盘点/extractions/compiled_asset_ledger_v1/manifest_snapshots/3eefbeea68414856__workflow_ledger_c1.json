@@ -1,0 +1,61 @@
+{
+  "classify_and_act": {
+    "evidence_file": "classification_dispositions_c1.json",
+    "buckets": [
+      "high_confidence_evidence",
+      "shadow_only_evidence",
+      "needs_retest_claim",
+      "ready_retest_claim",
+      "blocked_from_claim",
+      "learner_visible_card",
+      "teacher_only_detail"
+    ]
+  },
+  "fanout_and_synthesize": {
+    "evidence_file": "model_usage_plan_c1.json",
+    "roles": {
+      "Qwen 3.7 Plus": "中文学习表达/学员可读性/术语解释(advisory)",
+      "DeepSeek-V4": "严格审查结论是否过度/shadow写成truth(advisory)",
+      "Codex GPT5.5": "personalization contract / claim lifecycle skeptic(advisory, fail-closed)",
+      "Claude Opus 4.8": "workflow judge + final verdict(executing agent)",
+      "deterministic_scripts": "dedupe key/claim transition/pack merge/redaction/dry-run audit (AUTHORITY)"
+    }
+  },
+  "generate_and_filter": {
+    "evidence_file": "learner_claim_projection_c1.jsonl",
+    "filters": [
+      "no_provenance_claim",
+      "shadow_to_canonical_mastery",
+      "volume_pseudo_mastery",
+      "chat_as_evidence",
+      "frontend_self_compute",
+      "production_writeback"
+    ]
+  },
+  "tournament": {
+    "evidence_file": "learner_visible_study_cards_c1.md",
+    "rule": "pick most actionable / least exaggerated / most retest-triggering card"
+  },
+  "adversarial_verification": {
+    "evidence_file": "learning_loop_failure_modes_c1.md",
+    "attacks": [
+      "duplicate_grading_write",
+      "low_confidence_promoted",
+      "claim_regression",
+      "cross_subject_contamination",
+      "teacher_only_leak",
+      "shadow_to_mastery",
+      "retest_absent_improved"
+    ]
+  },
+  "loop_until_done": {
+    "evidence_file": "learning_brain_readiness_c1.json",
+    "final_dispositions": [
+      "pack_ready",
+      "needs_retest",
+      "blocked_low_confidence",
+      "teacher_review_required",
+      "no_learning_write"
+    ]
+  }
+}

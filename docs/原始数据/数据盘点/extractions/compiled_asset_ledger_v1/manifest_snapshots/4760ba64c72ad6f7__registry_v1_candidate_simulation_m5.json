@@ -1,0 +1,16 @@
+{
+  "registry_emitted": false,
+  "input_questions": 16,
+  "publish_ready_after_jury": 1,
+  "draft_after_jury": 0,
+  "needs_po_review": 15,
+  "rejected": 0,
+  "provider_unavailable_counts": {
+    "gpt55": 16,
+    "opus48": 16,
+    "deepseek_v4": 0,
+    "qwen37": 0,
+    "glm45": 0
+  },
+  "quorum_blocked": 0
+}

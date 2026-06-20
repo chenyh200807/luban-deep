@@ -1,0 +1,9 @@
+{
+  "namespace": "topic_waterproof",
+  "status": "release_candidate",
+  "published": true,
+  "expected_content_hash": "615f644337100cebc2ef24a5f77ad65a2a665daaf2fd813b6aad58f51bd6518d",
+  "node_count": 44,
+  "coverage": "waterproof_topic_slice",
+  "published_date": "2026-06-08"
+}

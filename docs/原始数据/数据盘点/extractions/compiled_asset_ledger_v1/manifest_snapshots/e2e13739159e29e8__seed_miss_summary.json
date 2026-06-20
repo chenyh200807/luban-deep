@@ -1,0 +1,5781 @@
+{
+  "summary": {
+    "seed_total": 3503,
+    "seed_hit": 2807,
+    "seed_miss": 696,
+    "seed_hit_rate": 0.8013131601484442,
+    "unique_missed_keywords": 677,
+    "top_missed_keywords": [
+      [
+        "公式",
+        3
+      ],
+      [
+        "关键线路",
+        3
+      ],
+      [
+        "5~35℃",
+        3
+      ],
+      [
+        "1000",
+        2
+      ],
+      [
+        "样板确认",
+        2
+      ],
+      [
+        "赶工费率",
+        2
+      ],
+      [
+        "专项方案",
+        2
+      ],
+      [
+        "模板拆除",
+        2
+      ],
+      [
+        "技术资料整改",
+        2
+      ],
+      [
+        "整改通知",
+        2
+      ],
+      [
+        "禁止攀登",
+        2
+      ],
+      [
+        "不低于",
+        2
+      ],
+      [
+        "30mm",
+        2
+      ],
+      [
+        "8~12mm",
+        2
+      ],
+      [
+        "管径",
+        2
+      ],
+      [
+        "保护层厚度",
+        2
+      ],
+      [
+        "未经批准不得占用",
+        1
+      ],
+      [
+        "临时占用需批准",
+        1
+      ],
+      [
+        "挖掘需提交文件",
+        1
+      ],
+      [
+        "设置标志和防护",
+        1
+      ],
+      [
+        "竣工后清理",
+        1
+      ],
+      [
+        "城建档案机构",
+        1
+      ],
+      [
+        "质量与安全措施",
+        1
+      ],
+      [
+        "类似项目经验",
+        1
+      ],
+      [
+        "熟悉法规",
+        1
+      ],
+      [
+        "自由高度≤4m",
+        1
+      ],
+      [
+        "剪刀撑宽度6~9m",
+        1
+      ],
+      [
+        "倾角45°~60°",
+        1
+      ],
+      [
+        "禁止上下同时作业",
+        1
+      ],
+      [
+        "严禁交叉作业",
+        1
+      ],
+      [
+        "材料质量",
+        1
+      ],
+      [
+        "支承固定",
+        1
+      ],
+      [
+        "未论证",
+        1
+      ],
+      [
+        "未采取防护措施",
+        1
+      ],
+      [
+        "未监测",
+        1
+      ],
+      [
+        "未处理预兆",
+        1
+      ],
+      [
+        "专家人数不少于5名",
+        1
+      ],
+      [
+        "不得有利益关系",
+        1
+      ],
+      [
+        "论证报告需签字确认",
+        1
+      ],
+      [
+        "专项方案需先审核",
+        1
+      ],
+      [
+        "2000",
+        1
+      ],
+      [
+        "估算量",
+        1
+      ],
+      [
+        "公式4.2-2",
+        1
+      ],
+      [
+        "α",
+        1
+      ],
+      [
+        "β",
+        1
+      ],
+      [
+        "γ",
+        1
+      ],
+      [
+        "τ",
+        1
+      ],
+      [
+        "加权平均",
+        1
+      ],
+      [
+        "自动爬升模架",
+        1
+      ],
+      [
+        "卷扬机调直",
+        1
+      ]
+    ]
+  },
+  "misses": [
+    {
+      "keyword": "未经批准不得占用",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "临时占用需批准",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "挖掘需提交文件",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "设置标志和防护",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "竣工后清理",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "城建档案机构",
+      "chunk_id": "1A421000_002_0002",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 2
+    },
+    {
+      "keyword": "质量与安全措施",
+      "chunk_id": "1A421000_003_0003",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 3
+    },
+    {
+      "keyword": "类似项目经验",
+      "chunk_id": "1A421000_004_0004",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 4
+    },
+    {
+      "keyword": "熟悉法规",
+      "chunk_id": "1A421000_004_0004",
+      "node_code": "1A421000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 4
+    },
+    {
+      "keyword": "自由高度≤4m",
+      "chunk_id": "1A436000_005_0006",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 5
+    },
+    {
+      "keyword": "剪刀撑宽度6~9m",
+      "chunk_id": "1A436000_005_0006",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 5
+    },
+    {
+      "keyword": "倾角45°~60°",
+      "chunk_id": "1A436000_005_0006",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 5
+    },
+    {
+      "keyword": "禁止上下同时作业",
+      "chunk_id": "1A436000_005_0006",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 5
+    },
+    {
+      "keyword": "严禁交叉作业",
+      "chunk_id": "1A436000_006_0007",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 6
+    },
+    {
+      "keyword": "材料质量",
+      "chunk_id": "1A436000_006_0008",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 6
+    },
+    {
+      "keyword": "支承固定",
+      "chunk_id": "1A436000_006_0008",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 6
+    },
+    {
+      "keyword": "未论证",
+      "chunk_id": "1A436000_006_0009",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 6
+    },
+    {
+      "keyword": "未采取防护措施",
+      "chunk_id": "1A436000_007_0010",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 7
+    },
+    {
+      "keyword": "未监测",
+      "chunk_id": "1A436000_007_0010",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 7
+    },
+    {
+      "keyword": "未处理预兆",
+      "chunk_id": "1A436000_007_0010",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 7
+    },
+    {
+      "keyword": "专家人数不少于5名",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "不得有利益关系",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "论证报告需签字确认",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "专项方案需先审核",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "1000",
+      "chunk_id": "1A437000_010_0014",
+      "node_code": "1A437000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "2000",
+      "chunk_id": "1A437000_010_0014",
+      "node_code": "1A437000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "估算量",
+      "chunk_id": "1A437000_010_0014",
+      "node_code": "1A437000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "公式4.2-2",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "α",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "β",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "γ",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "τ",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "加权平均",
+      "chunk_id": "1A437000_011_0017",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "自动爬升模架",
+      "chunk_id": "1A437000_012_0018",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 12
+    },
+    {
+      "keyword": "卷扬机调直",
+      "chunk_id": "1A421000_014_0020",
+      "node_code": "1A421000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "石材挂接",
+      "chunk_id": "1A421000_014_0020",
+      "node_code": "1A421000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "独立构筑物",
+      "chunk_id": "1A422000_016_0022",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "防爆灯具",
+      "chunk_id": "1A422000_018_0025",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "防腐蚀灯具",
+      "chunk_id": "1A422000_018_0025",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "热工区划",
+      "chunk_id": "1A422000_018_0026",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "检测时间",
+      "chunk_id": "1A422000_018_0026",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "控制土壤氡",
+      "chunk_id": "1A422000_019_0027",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 19
+    },
+    {
+      "keyword": "材料释放量",
+      "chunk_id": "1A422000_019_0027",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 19
+    },
+    {
+      "keyword": "先安设",
+      "chunk_id": "1A422000_021_0029",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得凿孔",
+      "chunk_id": "1A422000_021_0029",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "现场制取",
+      "chunk_id": "1A422000_021_0029",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "争议处理",
+      "chunk_id": "1A422000_023_0034",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 23
+    },
+    {
+      "keyword": "Ⅰ类建筑",
+      "chunk_id": "1A422000_024_0038",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 24
+    },
+    {
+      "keyword": "破坏后果",
+      "chunk_id": "1A422000_026_0042",
+      "node_code": "1A422000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 26
+    },
+    {
+      "keyword": "试件留取",
+      "chunk_id": "1A422000_027_0045",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "高差不超过1m",
+      "chunk_id": "1A422000_028_0048",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 28
+    },
+    {
+      "keyword": "抗压抗渗抗裂",
+      "chunk_id": "1A422000_028_0048",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 28
+    },
+    {
+      "keyword": "养护期不少于14d",
+      "chunk_id": "1A422000_029_0049",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 29
+    },
+    {
+      "keyword": "不少于3点",
+      "chunk_id": "1A422000_032_0052",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "覆土厚度",
+      "chunk_id": "1A422000_033_0055",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 33
+    },
+    {
+      "keyword": "倾角范围",
+      "chunk_id": "1A422000_033_0055",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 33
+    },
+    {
+      "keyword": "焊接材料匹配",
+      "chunk_id": "1A422000_038_0062",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 38
+    },
+    {
+      "keyword": "变形类型",
+      "chunk_id": "1A422000_038_0062",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 38
+    },
+    {
+      "keyword": "叠合板底板",
+      "chunk_id": "1A422000_039_0063",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 39
+    },
+    {
+      "keyword": "不得垂直铺贴",
+      "chunk_id": "1A422000_041_0065",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 41
+    },
+    {
+      "keyword": "搭接缝错开",
+      "chunk_id": "1A422000_041_0065",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 41
+    },
+    {
+      "keyword": "先长边后短边",
+      "chunk_id": "1A422000_041_0065",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 41
+    },
+    {
+      "keyword": "防冻防结露",
+      "chunk_id": "1A422000_042_0067",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "材料检验",
+      "chunk_id": "1A422000_042_0067",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "不得擅自改动主体结构",
+      "chunk_id": "1A422000_042_0067",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "样板确认",
+      "chunk_id": "1A422000_042_0067",
+      "node_code": "1A422000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "B₁级纺织物",
+      "chunk_id": "1A422000_045_0071",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "B₁级高分子合成材料",
+      "chunk_id": "1A422000_045_0071",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "TVOC",
+      "chunk_id": "1A422000_051_0077",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 51
+    },
+    {
+      "keyword": "临时设施施工",
+      "chunk_id": "1A422000_055_0081",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "现场搅拌混凝土",
+      "chunk_id": "1A422000_055_0081",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "施工机械能耗",
+      "chunk_id": "1A422000_055_0081",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "办公用房施工",
+      "chunk_id": "1A422000_055_0081",
+      "node_code": "1A422000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "专业资质可设丙级",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "承接范围",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 1
+    },
+    {
+      "keyword": "人员资格",
+      "chunk_id": "1A431000_003_0003",
+      "node_code": "1A431000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 3
+    },
+    {
+      "keyword": "主持制定专项方案",
+      "chunk_id": "1A431000_004_0004",
+      "node_code": "1A431000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 4
+    },
+    {
+      "keyword": "组织绩效评价",
+      "chunk_id": "1A431000_004_0004",
+      "node_code": "1A431000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 4
+    },
+    {
+      "keyword": "参与竣工验收",
+      "chunk_id": "1A431000_004_0004",
+      "node_code": "1A431000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 4
+    },
+    {
+      "keyword": "施工管理及人员配备",
+      "chunk_id": "1A431000_008_0008",
+      "node_code": "1A431000",
+      "content_type": "process_flow",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 8
+    },
+    {
+      "keyword": "重新论证",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 10
+    },
+    {
+      "keyword": "建构筑物位置",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "既有环境",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 11
+    },
+    {
+      "keyword": "危险品仓库",
+      "chunk_id": "1A431011_012_0013",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 12
+    },
+    {
+      "keyword": "埋地深度",
+      "chunk_id": "1A431011_014_0015",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "专用开关箱",
+      "chunk_id": "1A431011_014_0015",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "二级保护",
+      "chunk_id": "1A431011_015_0016",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "严禁利用大地作导体",
+      "chunk_id": "1A431011_015_0016",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "送电顺序",
+      "chunk_id": "1A431011_015_0016",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "停电顺序",
+      "chunk_id": "1A431011_015_0016",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "公式(6.6-2)",
+      "chunk_id": "1A431011_016_0017",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "P₂",
+      "chunk_id": "1A431011_016_0017",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "N₄",
+      "chunk_id": "1A431011_016_0017",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "K₅",
+      "chunk_id": "1A431011_016_0017",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "24×3600",
+      "chunk_id": "1A431011_016_0017",
+      "node_code": "1A431011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "监理单位审查",
+      "chunk_id": "1A431011_017_0018",
+      "node_code": "1A431011",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "不得作为验收资料",
+      "chunk_id": "1A431011_019_0021",
+      "node_code": "1A431011",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 19
+    },
+    {
+      "keyword": "检测试验程序",
+      "chunk_id": "1A431011_019_0021",
+      "node_code": "1A431011",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 19
+    },
+    {
+      "keyword": "施工质量事故调查",
+      "chunk_id": "1A431011_021_0024",
+      "node_code": "1A431011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "及时归档",
+      "chunk_id": "1A431011_021_0025",
+      "node_code": "1A431011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "合同中明确套数",
+      "chunk_id": "1A431011_021_0025",
+      "node_code": "1A431011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "必须招标",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 23
+    },
+    {
+      "keyword": "未密封",
+      "chunk_id": "1A432001_024_0028",
+      "node_code": "1A432001",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 24
+    },
+    {
+      "keyword": "退还保证金",
+      "chunk_id": "1A432001_024_0028",
+      "node_code": "1A432001",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 24
+    },
+    {
+      "keyword": "编制投标文件",
+      "chunk_id": "1A432001_025_0030",
+      "node_code": "1A432001",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 25
+    },
+    {
+      "keyword": "施工协调",
+      "chunk_id": "1A432001_027_0033",
+      "node_code": "1A432001",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "禁止情形",
+      "chunk_id": "1A432001_027_0034",
+      "node_code": "1A432001",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "政府项目",
+      "chunk_id": "1A432001_027_0034",
+      "node_code": "1A432001",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "争议解决",
+      "chunk_id": "1A432002_027_0035",
+      "node_code": "1A432002",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "转包",
+      "chunk_id": "1A432002_029_0038",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 29
+    },
+    {
+      "keyword": "无资质",
+      "chunk_id": "1A432002_029_0038",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 29
+    },
+    {
+      "keyword": "未派驻人员",
+      "chunk_id": "1A432002_030_0040",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 30
+    },
+    {
+      "keyword": "提出申请",
+      "chunk_id": "1A432002_031_0041",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 31
+    },
+    {
+      "keyword": "劳务分包",
+      "chunk_id": "1A432002_032_0042",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "资质不符",
+      "chunk_id": "1A432002_032_0042",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "个人分包",
+      "chunk_id": "1A432002_032_0042",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "不得擅自联系发包人",
+      "chunk_id": "1A432002_033_0043",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 33
+    },
+    {
+      "keyword": "原始数据错误",
+      "chunk_id": "1A432002_036_0047",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 36
+    },
+    {
+      "keyword": "施工图纸",
+      "chunk_id": "1A432002_037_0048",
+      "node_code": "1A432002",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "技术规范",
+      "chunk_id": "1A432002_037_0048",
+      "node_code": "1A432002",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "设备安装费",
+      "chunk_id": "1A432002_037_0049",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "工具器具购置费",
+      "chunk_id": "1A432002_037_0049",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "其他费用",
+      "chunk_id": "1A432002_037_0049",
+      "node_code": "1A432002",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "1000",
+      "chunk_id": "1A435000_038_0051",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 38
+    },
+    {
+      "keyword": "80",
+      "chunk_id": "1A435000_038_0051",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 38
+    },
+    {
+      "keyword": "80000",
+      "chunk_id": "1A435000_038_0051",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 38
+    },
+    {
+      "keyword": "408.64",
+      "chunk_id": "1A435000_039_0053",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 39
+    },
+    {
+      "keyword": "总造价",
+      "chunk_id": "1A435000_040_0054",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 40
+    },
+    {
+      "keyword": "80%",
+      "chunk_id": "1A435000_041_0055",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 41
+    },
+    {
+      "keyword": "发包人累计扣除款项",
+      "chunk_id": "1A435000_042_0056",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "132万元",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "440万元",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "55万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "110万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "165万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "220万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "154万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "699.6万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "62.612万",
+      "chunk_id": "1A435000_042_0057",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "公式",
+      "chunk_id": "1A435000_043_0058",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 43
+    },
+    {
+      "keyword": "不超过",
+      "chunk_id": "1A435000_044_0059",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "结算价",
+      "chunk_id": "1A435000_044_0060",
+      "node_code": "1A435000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "乘法",
+      "chunk_id": "1A435000_044_0060",
+      "node_code": "1A435000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "合同价",
+      "chunk_id": "1A435000_044_0061",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "差价",
+      "chunk_id": "1A435000_044_0061",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "总用工量",
+      "chunk_id": "1A435000_044_0061",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "P₀",
+      "chunk_id": "1A435000_045_0064",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "a₀",
+      "chunk_id": "1A435000_045_0064",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "A/A₀",
+      "chunk_id": "1A435000_045_0064",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "当期价格指数",
+      "chunk_id": "1A435000_045_0064",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "a₀=0.20",
+      "chunk_id": "1A435000_045_0065",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "利润索赔",
+      "chunk_id": "1A435000_046_0066",
+      "node_code": "1A435000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 46
+    },
+    {
+      "keyword": "已运至现场材料",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 47
+    },
+    {
+      "keyword": "施工机具损坏",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 47
+    },
+    {
+      "keyword": "照管费用",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 47
+    },
+    {
+      "keyword": "留驻人员工资",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 47
+    },
+    {
+      "keyword": "工期顺延",
+      "chunk_id": "1A432000_049_0070",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 49
+    },
+    {
+      "keyword": "关键线路",
+      "chunk_id": "1A432000_049_0070",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 49
+    },
+    {
+      "keyword": "总工期影响",
+      "chunk_id": "1A432000_049_0070",
+      "node_code": "1A432000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 49
+    },
+    {
+      "keyword": "未尽义务",
+      "chunk_id": "1A432000_049_0072",
+      "node_code": "1A432000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 49
+    },
+    {
+      "keyword": "误期损失",
+      "chunk_id": "1A432000_050_0073",
+      "node_code": "1A432000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 50
+    },
+    {
+      "keyword": "资源均衡",
+      "chunk_id": "1A433000_051_0074",
+      "node_code": "1A433000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 51
+    },
+    {
+      "keyword": "专业队数=过程数",
+      "chunk_id": "1A433000_052_0076",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 52
+    },
+    {
+      "keyword": "K=t",
+      "chunk_id": "1A433000_052_0077",
+      "node_code": "1A433000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 52
+    },
+    {
+      "keyword": "专业队数",
+      "chunk_id": "1A433000_053_0078",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 53
+    },
+    {
+      "keyword": "6周",
+      "chunk_id": "1A433000_053_0079",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 53
+    },
+    {
+      "keyword": "技术间歇",
+      "chunk_id": "1A433000_053_0080",
+      "node_code": "1A433000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 53
+    },
+    {
+      "keyword": "32周",
+      "chunk_id": "1A433000_054_0081",
+      "node_code": "1A433000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 54
+    },
+    {
+      "keyword": "关键线路",
+      "chunk_id": "1A433000_055_0082",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "关键工作",
+      "chunk_id": "1A433000_057_0086",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "赶工费率",
+      "chunk_id": "1A433000_057_0086",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "压缩时间",
+      "chunk_id": "1A433000_057_0086",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "总工期",
+      "chunk_id": "1A433000_057_0086",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "赶工费率",
+      "chunk_id": "1A433000_057_0087",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "压缩顺序",
+      "chunk_id": "1A433000_057_0087",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "总费用",
+      "chunk_id": "1A433000_057_0087",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "关键线路",
+      "chunk_id": "1A433000_057_0087",
+      "node_code": "1A433000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "费用计算",
+      "chunk_id": "1A433000_058_0088",
+      "node_code": "1A433000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 58
+    },
+    {
+      "keyword": "平行线路",
+      "chunk_id": "1A433000_058_0088",
+      "node_code": "1A433000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 58
+    },
+    {
+      "keyword": "收集依据",
+      "chunk_id": "1A433000_060_0090",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 60
+    },
+    {
+      "keyword": "绘制计划图",
+      "chunk_id": "1A433000_060_0090",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 60
+    },
+    {
+      "keyword": "逻辑关系调整",
+      "chunk_id": "1A433000_061_0092",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 61
+    },
+    {
+      "keyword": "重新编制计划",
+      "chunk_id": "1A433000_061_0092",
+      "node_code": "1A433000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 61
+    },
+    {
+      "keyword": "隐蔽工程检查",
+      "chunk_id": "1A434000_063_0094",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 63
+    },
+    {
+      "keyword": "停工后复工检查",
+      "chunk_id": "1A434000_063_0094",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 63
+    },
+    {
+      "keyword": "分项分部工程检查",
+      "chunk_id": "1A434000_063_0094",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 63
+    },
+    {
+      "keyword": "直接承受动力荷载不宜焊接",
+      "chunk_id": "1A434000_066_0097",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 66
+    },
+    {
+      "keyword": "张拉顺序",
+      "chunk_id": "1A434000_066_0099",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 66
+    },
+    {
+      "keyword": "严禁分砌",
+      "chunk_id": "1A434000_067_0100",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 67
+    },
+    {
+      "keyword": "支座偏移",
+      "chunk_id": "1A434000_068_0101",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "节点紧贴",
+      "chunk_id": "1A434000_068_0101",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "外观尺寸",
+      "chunk_id": "1A434000_068_0103",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "铺贴方向",
+      "chunk_id": "1A434000_068_0104",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "泛水高度",
+      "chunk_id": "1A434000_068_0104",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "材料相容性",
+      "chunk_id": "1A434000_068_0104",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "基层平整干燥",
+      "chunk_id": "1A434000_068_0104",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "防潮防火",
+      "chunk_id": "1A434000_068_0104",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "材料环保",
+      "chunk_id": "1A434000_068_0105",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "客户沟通",
+      "chunk_id": "1A434000_068_0105",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "样板确认",
+      "chunk_id": "1A434000_069_0108",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 69
+    },
+    {
+      "keyword": "未降排水",
+      "chunk_id": "1A434000_070_0109",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 70
+    },
+    {
+      "keyword": "护筒埋深",
+      "chunk_id": "1A434000_071_0110",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 71
+    },
+    {
+      "keyword": "原材料不合格",
+      "chunk_id": "1A434000_072_0111",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "配合比未执行",
+      "chunk_id": "1A434000_072_0111",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "计量错误",
+      "chunk_id": "1A434000_072_0111",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "搅拌不规范",
+      "chunk_id": "1A434000_072_0111",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "养护不当",
+      "chunk_id": "1A434000_072_0111",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "模板不光滑",
+      "chunk_id": "1A434000_072_0112",
+      "node_code": "1A434000",
+      "content_type": "causal_principle",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "未湿润",
+      "chunk_id": "1A434000_072_0112",
+      "node_code": "1A434000",
+      "content_type": "causal_principle",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "隔离剂不匀",
+      "chunk_id": "1A434000_072_0112",
+      "node_code": "1A434000",
+      "content_type": "causal_principle",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "模板强度",
+      "chunk_id": "1A434000_073_0113",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 73
+    },
+    {
+      "keyword": "型钢校正",
+      "chunk_id": "1A434000_073_0115",
+      "node_code": "1A434000",
+      "content_type": "process_flow",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 73
+    },
+    {
+      "keyword": "14d后施工",
+      "chunk_id": "1A434000_074_0116",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 74
+    },
+    {
+      "keyword": "设计或施工原因",
+      "chunk_id": "1A434000_075_0117",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 75
+    },
+    {
+      "keyword": "300~450mm",
+      "chunk_id": "1A434000_076_0118",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 76
+    },
+    {
+      "keyword": "新贴方形卷材",
+      "chunk_id": "1A434000_076_0119",
+      "node_code": "1A434000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 76
+    },
+    {
+      "keyword": "拉结不牢",
+      "chunk_id": "1A434000_077_0120",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 77
+    },
+    {
+      "keyword": "重新钉压条",
+      "chunk_id": "1A434000_077_0120",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 77
+    },
+    {
+      "keyword": "清理不净",
+      "chunk_id": "1A434000_078_0123",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 78
+    },
+    {
+      "keyword": "拼缝错缝",
+      "chunk_id": "1A434000_078_0124",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 78
+    },
+    {
+      "keyword": "螺钉固定",
+      "chunk_id": "1A434000_078_0124",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 78
+    },
+    {
+      "keyword": "漆膜厚度",
+      "chunk_id": "1A434000_079_0125",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 79
+    },
+    {
+      "keyword": "严禁淘汰材料",
+      "chunk_id": "1A434000_080_0126",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "含水率控制",
+      "chunk_id": "1A434000_080_0126",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "增强网性能",
+      "chunk_id": "1A434000_080_0127",
+      "node_code": "1A434000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "资质检测",
+      "chunk_id": "1A434000_080_0128",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "专项方案",
+      "chunk_id": "1A434000_080_0128",
+      "node_code": "1A434000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "传热系数",
+      "chunk_id": "1A434000_080_0129",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "气密性",
+      "chunk_id": "1A434000_080_0129",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "中空玻璃",
+      "chunk_id": "1A434000_080_0129",
+      "node_code": "1A434000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "施工孔洞镶堵",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "模板拆除",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "技术资料整改",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "整改通知",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "监理审查",
+      "chunk_id": "1A434020_083_0132",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 83
+    },
+    {
+      "keyword": "模板拆除",
+      "chunk_id": "1A434020_084_0135",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 84
+    },
+    {
+      "keyword": "技术资料整改",
+      "chunk_id": "1A434020_084_0135",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 84
+    },
+    {
+      "keyword": "整改通知",
+      "chunk_id": "1A434020_084_0135",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 84
+    },
+    {
+      "keyword": "缺陷整改",
+      "chunk_id": "1A434020_084_0135",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 84
+    },
+    {
+      "keyword": "图纸核查",
+      "chunk_id": "1A434020_087_0144",
+      "node_code": "1A434020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "系统检测",
+      "chunk_id": "1A434020_087_0144",
+      "node_code": "1A434020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "提交竣工报告",
+      "chunk_id": "1A434020_087_0145",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "建设单位组织验收",
+      "chunk_id": "1A434020_087_0145",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "分包单位参与",
+      "chunk_id": "1A434020_087_0145",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "分部工程验收合格",
+      "chunk_id": "1A434020_088_0146",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "质量控制资料完整",
+      "chunk_id": "1A434020_088_0146",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "安全节能资料完整",
+      "chunk_id": "1A434020_088_0146",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "主要功能抽查合格",
+      "chunk_id": "1A434020_088_0146",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "观感质量符合要求",
+      "chunk_id": "1A434020_088_0146",
+      "node_code": "1A434020",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "机械使用费",
+      "chunk_id": "1A435000_089_0147",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 89
+    },
+    {
+      "keyword": "工人工资",
+      "chunk_id": "1A435000_089_0147",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 89
+    },
+    {
+      "keyword": "现场管理费",
+      "chunk_id": "1A435000_089_0147",
+      "node_code": "1A435000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 89
+    },
+    {
+      "keyword": "替代计算",
+      "chunk_id": "1A435000_091_0149",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "差额计算",
+      "chunk_id": "1A435000_091_0149",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "目标成本影响",
+      "chunk_id": "1A435000_092_0150",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "成本降低率影响",
+      "chunk_id": "1A435000_092_0150",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "5.02%",
+      "chunk_id": "1A435000_092_0151",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "4.68%",
+      "chunk_id": "1A435000_092_0151",
+      "node_code": "1A435000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "正负值判断",
+      "chunk_id": "1A435020_095_0156",
+      "node_code": "1A435020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "节支/超支",
+      "chunk_id": "1A435020_095_0156",
+      "node_code": "1A435020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "提前/延误",
+      "chunk_id": "1A435020_095_0156",
+      "node_code": "1A435020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "1.19",
+      "chunk_id": "1A435020_096_0157",
+      "node_code": "1A435020",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 96
+    },
+    {
+      "keyword": "节约",
+      "chunk_id": "1A435020_096_0158",
+      "node_code": "1A435020",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 96
+    },
+    {
+      "keyword": "提前",
+      "chunk_id": "1A435020_096_0158",
+      "node_code": "1A435020",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 96
+    },
+    {
+      "keyword": "目标分解",
+      "chunk_id": "1A436000_099_0163",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "定期考核",
+      "chunk_id": "1A436000_099_0163",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "不得重复提取",
+      "chunk_id": "1A436000_100_0164",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 100
+    },
+    {
+      "keyword": "不得用于薪酬",
+      "chunk_id": "1A436000_100_0164",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 100
+    },
+    {
+      "keyword": "合法分包单位",
+      "chunk_id": "1A436000_101_0165",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 101
+    },
+    {
+      "keyword": "检查考核",
+      "chunk_id": "1A436000_101_0165",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 101
+    },
+    {
+      "keyword": "清退不合格单位",
+      "chunk_id": "1A436000_101_0165",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 101
+    },
+    {
+      "keyword": "竣工后评价",
+      "chunk_id": "1A436000_101_0165",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 101
+    },
+    {
+      "keyword": "紧急情况分析",
+      "chunk_id": "1A436000_101_0167",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 101
+    },
+    {
+      "keyword": "潜在危险性",
+      "chunk_id": "1A436000_102_0168",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 102
+    },
+    {
+      "keyword": "A₁",
+      "chunk_id": "1A436000_107_0175",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 107
+    },
+    {
+      "keyword": "公式",
+      "chunk_id": "1A436000_107_0175",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 107
+    },
+    {
+      "keyword": "汇总表得分≥80分",
+      "chunk_id": "1A436000_108_0176",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "无可靠安全距离",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "未放坡",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "无支撑",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "地下水失控",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "堆载过近",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "无监护",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "未检测有毒气体",
+      "chunk_id": "1A436000_108_0177",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "地面裂缝",
+      "chunk_id": "1A436000_108_0178",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "支撑异响",
+      "chunk_id": "1A436000_108_0178",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "立即停止作业",
+      "chunk_id": "1A436000_108_0178",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "报告监理",
+      "chunk_id": "1A436000_108_0178",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "加固处理",
+      "chunk_id": "1A436000_108_0178",
+      "node_code": "1A436000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 108
+    },
+    {
+      "keyword": "管线分布",
+      "chunk_id": "1A436000_109_0179",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "周边建筑",
+      "chunk_id": "1A436000_109_0179",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "垫层加厚",
+      "chunk_id": "1A436000_110_0181",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 110
+    },
+    {
+      "keyword": "检查建筑物",
+      "chunk_id": "1A436000_110_0182",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 110
+    },
+    {
+      "keyword": "架空电路",
+      "chunk_id": "1A436000_111_0183",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "禁止酒后作业",
+      "chunk_id": "1A436000_111_0183",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "专项方案",
+      "chunk_id": "1A436000_111_0184",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "气体检测",
+      "chunk_id": "1A436000_111_0184",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "送风设备",
+      "chunk_id": "1A436000_111_0184",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "土石方堆放",
+      "chunk_id": "1A436000_111_0184",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "电缆架空",
+      "chunk_id": "1A436000_111_0184",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "严禁固定支撑脚手架",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "严禁悬挂起重设备",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "纵向水平杆长度≥3跨",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "接头错开≥500mm",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "搭接长度≥1m",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "旋转扣件≥3个",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "端部距离≥100mm",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "扫地杆≤200mm",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "连墙件刚性连接",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "拆除由上而下",
+      "chunk_id": "1A436000_112_0185",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "悬挑结构固定",
+      "chunk_id": "1A436000_113_0186",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "高度每2~4步",
+      "chunk_id": "1A436000_113_0186",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "地基下沉",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "杆件间距过大",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "未设斜杆",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "节点连接不牢",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "主梁未加密",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "水平结构层缺失",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "提前拆模",
+      "chunk_id": "1A436000_113_0187",
+      "node_code": "1A436000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "吊装重心",
+      "chunk_id": "1A436000_114_0188",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "高处防护",
+      "chunk_id": "1A436000_114_0188",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "机械使用",
+      "chunk_id": "1A436000_114_0188",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "不得站人",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "临边防护",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "禁止攀登",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "堆叠不超过3层",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "总荷载不超过设计值",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "工具放入箱盒",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "接地电阻≤4Ω",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "6级风停高处作业",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "专人检查",
+      "chunk_id": "1A436000_115_0189",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "同条件试块",
+      "chunk_id": "1A436000_116_0190",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 116
+    },
+    {
+      "keyword": "先支后拆",
+      "chunk_id": "1A436000_116_0190",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 116
+    },
+    {
+      "keyword": "禁止大片塌落",
+      "chunk_id": "1A436000_116_0190",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 116
+    },
+    {
+      "keyword": "普通砖不超过3层",
+      "chunk_id": "1A436000_118_0192",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 118
+    },
+    {
+      "keyword": "空心砖不超过2层",
+      "chunk_id": "1A436000_118_0192",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 118
+    },
+    {
+      "keyword": "断丝数超过10%",
+      "chunk_id": "1A436000_119_0193",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 119
+    },
+    {
+      "keyword": "不戴安全帽",
+      "chunk_id": "1A436000_120_0194",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 120
+    },
+    {
+      "keyword": "擅自拆除",
+      "chunk_id": "1A436000_120_0194",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 120
+    },
+    {
+      "keyword": "禁止攀登",
+      "chunk_id": "1A436000_122_0196",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 122
+    },
+    {
+      "keyword": "5m",
+      "chunk_id": "1A436000_124_0198",
+      "node_code": "1A436000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 124
+    },
+    {
+      "keyword": "垂直度偏差不超过 4/1000",
+      "chunk_id": "1A436000_125_0199",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 125
+    },
+    {
+      "keyword": "起吊荷载达90%以上时需先离地200~500mm检查",
+      "chunk_id": "1A436000_125_0199",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 125
+    },
+    {
+      "keyword": "6级及以上大风应停止作业",
+      "chunk_id": "1A436000_125_0199",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 125
+    },
+    {
+      "keyword": "限位装置",
+      "chunk_id": "1A436000_126_0200",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 126
+    },
+    {
+      "keyword": "6级风",
+      "chunk_id": "1A436000_126_0200",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 126
+    },
+    {
+      "keyword": "防护罩盖好",
+      "chunk_id": "1A436000_127_0202",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 127
+    },
+    {
+      "keyword": "严禁用水",
+      "chunk_id": "1A436000_127_0203",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 127
+    },
+    {
+      "keyword": "防爆间距",
+      "chunk_id": "1A436000_127_0204",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 127
+    },
+    {
+      "keyword": "抗穿透性能",
+      "chunk_id": "1A436000_130_0208",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "严禁自耦",
+      "chunk_id": "1A436000_130_0209",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "金属容器内禁止使用",
+      "chunk_id": "1A436000_130_0209",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "截水排水",
+      "chunk_id": "1A436000_130_0210",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "不得连接",
+      "chunk_id": "1A436000_130_0210",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "荷载限制",
+      "chunk_id": "1A436000_130_0210",
+      "node_code": "1A436000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "低能见度禁止作业",
+      "chunk_id": "1A436000_130_0211",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "风速>9.0m/s停止",
+      "chunk_id": "1A436000_130_0211",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "断电停稳",
+      "chunk_id": "1A436000_130_0211",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "结构验算",
+      "chunk_id": "1A436000_130_0211",
+      "node_code": "1A436000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "围护墙顶部",
+      "chunk_id": "1A437000_133_0215",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "邻近保护对象",
+      "chunk_id": "1A437000_133_0215",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "代表性部位",
+      "chunk_id": "1A437000_134_0216",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "单层网壳50m",
+      "chunk_id": "1A437000_135_0218",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 135
+    },
+    {
+      "keyword": "悬挑30m",
+      "chunk_id": "1A437000_135_0218",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 135
+    },
+    {
+      "keyword": "施工方法影响受力",
+      "chunk_id": "1A437000_135_0218",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 135
+    },
+    {
+      "keyword": "环境污染措施",
+      "chunk_id": "1A437000_136_0219",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "先进工艺",
+      "chunk_id": "1A437000_136_0219",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "环保脱模剂",
+      "chunk_id": "1A437000_137_0220",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 137
+    },
+    {
+      "keyword": "检验合格水源",
+      "chunk_id": "1A437000_138_0221",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 138
+    },
+    {
+      "keyword": "落地灰再利用",
+      "chunk_id": "1A437000_138_0221",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 138
+    },
+    {
+      "keyword": "高强度钢材",
+      "chunk_id": "1A437000_141_0224",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "建筑垃圾回收",
+      "chunk_id": "1A437000_141_0224",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "围挡标准化",
+      "chunk_id": "1A437000_143_0229",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 143
+    },
+    {
+      "keyword": "密封空间",
+      "chunk_id": "1A437000_144_0230",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 144
+    },
+    {
+      "keyword": "大量可燃物",
+      "chunk_id": "1A437000_144_0230",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 144
+    },
+    {
+      "keyword": "企业安全部门",
+      "chunk_id": "1A437000_145_0231",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 145
+    },
+    {
+      "keyword": "不得设宿舍",
+      "chunk_id": "1A437000_146_0232",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "不得用易燃材料",
+      "chunk_id": "1A437000_146_0232",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "1只灭火器",
+      "chunk_id": "1A437000_146_0233",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "明显位置",
+      "chunk_id": "1A437000_146_0234",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "铭牌朝外",
+      "chunk_id": "1A437000_146_0234",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "安全距离",
+      "chunk_id": "1A437000_147_0237",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 147
+    },
+    {
+      "keyword": "压力容器",
+      "chunk_id": "1A437000_147_0237",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 147
+    },
+    {
+      "keyword": "易燃物",
+      "chunk_id": "1A437000_147_0237",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 147
+    },
+    {
+      "keyword": "密闭空间",
+      "chunk_id": "1A437000_147_0237",
+      "node_code": "1A437000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 147
+    },
+    {
+      "keyword": "散发火星场所",
+      "chunk_id": "1A437000_147_0238",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 147
+    },
+    {
+      "keyword": "验收内容",
+      "chunk_id": "1A438000_150_0241",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 150
+    },
+    {
+      "keyword": "复试合格后使用",
+      "chunk_id": "1A438000_150_0241",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 150
+    },
+    {
+      "keyword": "严禁使用不合格材料",
+      "chunk_id": "1A438000_150_0241",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 150
+    },
+    {
+      "keyword": "70~75%",
+      "chunk_id": "1A438000_151_0242",
+      "node_code": "1A438000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 151
+    },
+    {
+      "keyword": "品种数5~10%",
+      "chunk_id": "1A438000_151_0242",
+      "node_code": "1A438000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 151
+    },
+    {
+      "keyword": "资金占比",
+      "chunk_id": "1A438000_151_0242",
+      "node_code": "1A438000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 151
+    },
+    {
+      "keyword": "同厂同品同批",
+      "chunk_id": "1A438000_151_0244",
+      "node_code": "1A438000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 151
+    },
+    {
+      "keyword": "监理监督",
+      "chunk_id": "1A438000_151_0244",
+      "node_code": "1A438000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 151
+    },
+    {
+      "keyword": "监理审批",
+      "chunk_id": "1A438000_153_0246",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 153
+    },
+    {
+      "keyword": "安全交底",
+      "chunk_id": "1A438000_154_0249",
+      "node_code": "1A438000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 154
+    },
+    {
+      "keyword": "事故调查",
+      "chunk_id": "1A438000_154_0249",
+      "node_code": "1A438000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 154
+    },
+    {
+      "keyword": "资料归档",
+      "chunk_id": "1A438000_154_0249",
+      "node_code": "1A438000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 154
+    },
+    {
+      "keyword": "签字确认",
+      "chunk_id": "1A438000_154_0250",
+      "node_code": "1A438000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 154
+    },
+    {
+      "keyword": "制度执行",
+      "chunk_id": "1A438000_155_0251",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "完整受损",
+      "chunk_id": "1A438000_155_0251",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "技术运行",
+      "chunk_id": "1A438000_155_0251",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "资料完整",
+      "chunk_id": "1A438000_155_0251",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "地基牢固",
+      "chunk_id": "1A438000_155_0252",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "传动灵活",
+      "chunk_id": "1A438000_155_0252",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "电气可靠",
+      "chunk_id": "1A438000_155_0252",
+      "node_code": "1A438000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 155
+    },
+    {
+      "keyword": "按组织机构职责范围计算",
+      "chunk_id": "1A438000_158_0258",
+      "node_code": "1A438000",
+      "content_type": "causal_principle",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "page_num": 158
+    },
+    {
+      "keyword": "藏书超100万册",
+      "chunk_id": "1A411011_002_0002",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 2
+    },
+    {
+      "keyword": "不低于",
+      "chunk_id": "1A411011_005_0010",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 5
+    },
+    {
+      "keyword": "通风屋面",
+      "chunk_id": "1A411011_008_0015",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 8
+    },
+    {
+      "keyword": "热反射层",
+      "chunk_id": "1A411011_008_0015",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 8
+    },
+    {
+      "keyword": "震中距离",
+      "chunk_id": "1A411011_009_0019",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 9
+    },
+    {
+      "keyword": "消能器厂家",
+      "chunk_id": "1A411011_014_0025",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "共同商定",
+      "chunk_id": "1A411011_014_0025",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "中向四周",
+      "chunk_id": "1A411011_014_0025",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 14
+    },
+    {
+      "keyword": "100%抽样",
+      "chunk_id": "1A411011_015_0026",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "50%抽样",
+      "chunk_id": "1A411011_015_0026",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "不少于20件",
+      "chunk_id": "1A411011_015_0026",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "不少于4件",
+      "chunk_id": "1A411011_015_0026",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "6年有效期",
+      "chunk_id": "1A411011_015_0026",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "高差≤0.015m",
+      "chunk_id": "1A411011_015_0027",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "42.5级水泥",
+      "chunk_id": "1A411011_015_0027",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 15
+    },
+    {
+      "keyword": "贴邻土壤侧",
+      "chunk_id": "1A411011_016_0029",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "防水材料",
+      "chunk_id": "1A411011_016_0030",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 16
+    },
+    {
+      "keyword": "600~1000mm",
+      "chunk_id": "1A411011_017_0031",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "3%~5%",
+      "chunk_id": "1A411011_017_0031",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "20~30m",
+      "chunk_id": "1A411011_017_0031",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "20~30mm",
+      "chunk_id": "1A411011_017_0031",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "1.10m",
+      "chunk_id": "1A411011_017_0032",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "4股",
+      "chunk_id": "1A411011_017_0033",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "2.2m",
+      "chunk_id": "1A411011_017_0033",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 17
+    },
+    {
+      "keyword": "踏步级数",
+      "chunk_id": "1A411011_018_0034",
+      "node_code": "1A411011",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "建筑类型",
+      "chunk_id": "1A411011_018_0035",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 18
+    },
+    {
+      "keyword": "30%",
+      "chunk_id": "1A411011_020_0038",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 20
+    },
+    {
+      "keyword": "20%",
+      "chunk_id": "1A411011_020_0038",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 20
+    },
+    {
+      "keyword": "不得减少安全出口",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得占用共用部分",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得擅自改变共用部分设施",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得拆除安全防护设施",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得使用禁用材料",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不得封堵窗户",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不应降低环境质量",
+      "chunk_id": "1A411011_021_0039",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "遮挡设备",
+      "chunk_id": "1A411011_021_0040",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "造型装饰",
+      "chunk_id": "1A411011_021_0040",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "吊杆长度>1.5m",
+      "chunk_id": "1A411011_021_0041",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "重量>3kg",
+      "chunk_id": "1A411011_021_0041",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "严禁安装在龙骨上",
+      "chunk_id": "1A411011_021_0041",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "吸声处理",
+      "chunk_id": "1A411011_021_0041",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "检修口",
+      "chunk_id": "1A411011_021_0041",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "伸缩缝间距≤6m",
+      "chunk_id": "1A411011_021_0042",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "宽度20mm",
+      "chunk_id": "1A411011_021_0042",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "接缝宽度≥5mm",
+      "chunk_id": "1A411011_021_0042",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "缝深≤3mm",
+      "chunk_id": "1A411011_021_0042",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "不影响保温",
+      "chunk_id": "1A411011_021_0042",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 21
+    },
+    {
+      "keyword": "防火",
+      "chunk_id": "1A411011_022_0043",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 22
+    },
+    {
+      "keyword": "振幅过大",
+      "chunk_id": "1A411011_025_0047",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 25
+    },
+    {
+      "keyword": "承载能力不足",
+      "chunk_id": "1A411011_025_0047",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 25
+    },
+    {
+      "keyword": "50年",
+      "chunk_id": "1A411011_027_0049",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "30mm",
+      "chunk_id": "1A411011_027_0049",
+      "node_code": "1A411011",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 27
+    },
+    {
+      "keyword": "非结构性构件破坏",
+      "chunk_id": "1A411011_028_0051",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 28
+    },
+    {
+      "keyword": "抗震等级二级",
+      "chunk_id": "1A411011_032_0056",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "500MPa 钢筋",
+      "chunk_id": "1A411011_032_0056",
+      "node_code": "1A411011",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 32
+    },
+    {
+      "keyword": "环保",
+      "chunk_id": "1A411011_037_0065",
+      "node_code": "1A411011",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 37
+    },
+    {
+      "keyword": "抗拉强度实测值/屈服强度实测值 ≥ 1.25",
+      "chunk_id": "1A412000_039_0067",
+      "node_code": "1A412000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 39
+    },
+    {
+      "keyword": "屈服强度实测值/标准值 ≤ 1.30",
+      "chunk_id": "1A412000_039_0067",
+      "node_code": "1A412000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 39
+    },
+    {
+      "keyword": "最大力总延伸率 ≥ 9%",
+      "chunk_id": "1A412000_039_0067",
+      "node_code": "1A412000",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 39
+    },
+    {
+      "keyword": "22.0MPa",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 42
+    },
+    {
+      "keyword": "QS标志",
+      "chunk_id": "1A412010_044_0076",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "1.5~2.0倍",
+      "chunk_id": "1A412010_044_0077",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "掺混合材料",
+      "chunk_id": "1A412010_044_0077",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "硫酸钠检验",
+      "chunk_id": "1A412010_044_0077",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 44
+    },
+    {
+      "keyword": "钢筋净距",
+      "chunk_id": "1A412010_045_0078",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "泵送管径",
+      "chunk_id": "1A412010_045_0078",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 45
+    },
+    {
+      "keyword": "掺量 ≤ 5%",
+      "chunk_id": "1A412010_046_0079",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 46
+    },
+    {
+      "keyword": "粉煤灰等级",
+      "chunk_id": "1A412010_046_0079",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 46
+    },
+    {
+      "keyword": "组成材料性质",
+      "chunk_id": "1A412010_046_0080",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 46
+    },
+    {
+      "keyword": "f_cu",
+      "chunk_id": "1A412010_046_0081",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 46
+    },
+    {
+      "keyword": "复合型",
+      "chunk_id": "1A412010_049_0088",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 49
+    },
+    {
+      "keyword": "孔洞率≥28%",
+      "chunk_id": "1A412010_050_0090",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 50
+    },
+    {
+      "keyword": "孔小而多",
+      "chunk_id": "1A412010_050_0090",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 50
+    },
+    {
+      "keyword": "MU30-MU10",
+      "chunk_id": "1A412010_050_0090",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 50
+    },
+    {
+      "keyword": "经济性差",
+      "chunk_id": "1A412010_051_0092",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 51
+    },
+    {
+      "keyword": "吸水率低",
+      "chunk_id": "1A412010_052_0098",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 52
+    },
+    {
+      "keyword": "易腐蚀",
+      "chunk_id": "1A412010_053_0101",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 53
+    },
+    {
+      "keyword": "室外",
+      "chunk_id": "1A412010_053_0103",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 53
+    },
+    {
+      "keyword": "长度≥250mm",
+      "chunk_id": "1A412010_055_0110",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "宽度≥40mm",
+      "chunk_id": "1A412010_055_0110",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "厚度≥8mm",
+      "chunk_id": "1A412010_055_0110",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "榫舌宽度≥3mm",
+      "chunk_id": "1A412010_055_0110",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 55
+    },
+    {
+      "keyword": "热稳定性差",
+      "chunk_id": "1A412010_057_0113",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "3~5mm",
+      "chunk_id": "1A412010_057_0113",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "8~12mm",
+      "chunk_id": "1A412010_057_0113",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 57
+    },
+    {
+      "keyword": "寿命≥15年",
+      "chunk_id": "1A412010_059_0115",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 59
+    },
+    {
+      "keyword": "自重轻",
+      "chunk_id": "1A412010_062_0122",
+      "node_code": "1A412010",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "U形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "C形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "CH形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "T形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "H形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "V形",
+      "chunk_id": "1A412010_062_0123",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 62
+    },
+    {
+      "keyword": "室内装饰",
+      "chunk_id": "1A412010_063_0124",
+      "node_code": "1A412010",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 63
+    },
+    {
+      "keyword": "配套使用",
+      "chunk_id": "1A412010_066_0130",
+      "node_code": "1A412010",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 66
+    },
+    {
+      "keyword": "管道保温",
+      "chunk_id": "1A412010_068_0133",
+      "node_code": "1A412010",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 68
+    },
+    {
+      "keyword": "夜间测量",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 69
+    },
+    {
+      "keyword": "不受场地限制",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 69
+    },
+    {
+      "keyword": "温度改正",
+      "chunk_id": "1A413000_071_0137",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 71
+    },
+    {
+      "keyword": "前视读数",
+      "chunk_id": "1A413000_072_0138",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "一级、二级基坑",
+      "chunk_id": "1A413000_072_0139",
+      "node_code": "1A413000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "甲级地基",
+      "chunk_id": "1A413000_072_0139",
+      "node_code": "1A413000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 72
+    },
+    {
+      "keyword": "停工时及复工时各测一次",
+      "chunk_id": "1A413000_074_0141",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 74
+    },
+    {
+      "keyword": "第一年3～4次",
+      "chunk_id": "1A413000_074_0141",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 74
+    },
+    {
+      "keyword": "最后100d沉降速率<0.04mm/d",
+      "chunk_id": "1A413000_074_0141",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 74
+    },
+    {
+      "keyword": "坚实系数4.0～10.0",
+      "chunk_id": "1A413000_075_0143",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 75
+    },
+    {
+      "keyword": "边坡稳定性",
+      "chunk_id": "1A413000_075_0144",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 75
+    },
+    {
+      "keyword": "挡土板厚度",
+      "chunk_id": "1A413000_076_0147",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 76
+    },
+    {
+      "keyword": "适用条件",
+      "chunk_id": "1A413000_076_0147",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 76
+    },
+    {
+      "keyword": "导墙厚度",
+      "chunk_id": "1A413000_077_0148",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 77
+    },
+    {
+      "keyword": "导管布置",
+      "chunk_id": "1A413000_077_0148",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 77
+    },
+    {
+      "keyword": "钢筋等级",
+      "chunk_id": "1A413000_078_0149",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 78
+    },
+    {
+      "keyword": "喷射混凝土厚度",
+      "chunk_id": "1A413000_078_0149",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 78
+    },
+    {
+      "keyword": "接头50%",
+      "chunk_id": "1A413000_080_0151",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "70%强度",
+      "chunk_id": "1A413000_080_0151",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "100%强度",
+      "chunk_id": "1A413000_080_0151",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 80
+    },
+    {
+      "keyword": "地质复杂",
+      "chunk_id": "1A413000_081_0152",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 81
+    },
+    {
+      "keyword": "第三方监测",
+      "chunk_id": "1A413000_081_0152",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 81
+    },
+    {
+      "keyword": "位移值突然增大",
+      "chunk_id": "1A413000_082_0153",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "支撑变形",
+      "chunk_id": "1A413000_082_0153",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "锚杆拔出",
+      "chunk_id": "1A413000_082_0153",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "建筑裂缝",
+      "chunk_id": "1A413000_082_0153",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "管线泄漏",
+      "chunk_id": "1A413000_082_0153",
+      "node_code": "1A413000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "基坑安全",
+      "chunk_id": "1A413000_082_0154",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "管径",
+      "chunk_id": "1A413000_082_0155",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "适用土层",
+      "chunk_id": "1A413000_082_0155",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 82
+    },
+    {
+      "keyword": "管径",
+      "chunk_id": "1A413000_083_0156",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 83
+    },
+    {
+      "keyword": "≥200mm",
+      "chunk_id": "1A413000_083_0156",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 83
+    },
+    {
+      "keyword": "≤25m",
+      "chunk_id": "1A413000_083_0156",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 83
+    },
+    {
+      "keyword": "有机质>5%",
+      "chunk_id": "1A413000_085_0158",
+      "node_code": "1A413000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 85
+    },
+    {
+      "keyword": "地基处理检测报告",
+      "chunk_id": "1A413000_086_0159",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 86
+    },
+    {
+      "keyword": "保护层厚度",
+      "chunk_id": "1A413000_086_0159",
+      "node_code": "1A413000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 86
+    },
+    {
+      "keyword": "地基持力层强度",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "灰土配合比",
+      "chunk_id": "1A413030_087_0162",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "分层厚度",
+      "chunk_id": "1A413030_087_0162",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "覆盖层",
+      "chunk_id": "1A413030_087_0162",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 87
+    },
+    {
+      "keyword": "排气孔直径",
+      "chunk_id": "1A413030_088_0163",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 88
+    },
+    {
+      "keyword": "含水量>24%",
+      "chunk_id": "1A413030_089_0164",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 89
+    },
+    {
+      "keyword": "饱和度>65%",
+      "chunk_id": "1A413030_089_0164",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 89
+    },
+    {
+      "keyword": "禁止拖拉",
+      "chunk_id": "1A413030_090_0165",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 90
+    },
+    {
+      "keyword": "浇筑混凝土",
+      "chunk_id": "1A413030_091_0168",
+      "node_code": "1A413030",
+      "content_type": "process_flow",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "端承型桩 ≤ 50mm",
+      "chunk_id": "1A413030_091_0169",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "摩擦型桩 ≤ 100mm",
+      "chunk_id": "1A413030_091_0169",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "抗拔抗水平 ≤ 200mm",
+      "chunk_id": "1A413030_091_0169",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "清孔方法",
+      "chunk_id": "1A413030_091_0169",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 91
+    },
+    {
+      "keyword": "边振边拔",
+      "chunk_id": "1A413030_092_0171",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "声波透射法",
+      "chunk_id": "1A413030_092_0173",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 92
+    },
+    {
+      "keyword": "弯钩方向",
+      "chunk_id": "1A413030_094_0175",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "短边钢筋在上",
+      "chunk_id": "1A413030_094_0175",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "锚固钢筋固定",
+      "chunk_id": "1A413030_094_0175",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "不得改变受力状态",
+      "chunk_id": "1A413030_094_0176",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "分层浇筑",
+      "chunk_id": "1A413030_094_0177",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "每层停留0.5~1.0h",
+      "chunk_id": "1A413030_094_0177",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "对称下料",
+      "chunk_id": "1A413030_094_0177",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "振捣密实",
+      "chunk_id": "1A413030_094_0177",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "初凝前拔芯模",
+      "chunk_id": "1A413030_094_0177",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 94
+    },
+    {
+      "keyword": "阶梯形推进",
+      "chunk_id": "1A413030_095_0178",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "浇筑速度一致",
+      "chunk_id": "1A413030_095_0179",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "布料点靠近",
+      "chunk_id": "1A413030_095_0179",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "自由高度限制",
+      "chunk_id": "1A413030_095_0179",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 95
+    },
+    {
+      "keyword": "5~30℃",
+      "chunk_id": "1A413030_096_0181",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 96
+    },
+    {
+      "keyword": "300~500mm",
+      "chunk_id": "1A413030_096_0181",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 96
+    },
+    {
+      "keyword": "测温频率",
+      "chunk_id": "1A413030_097_0182",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 97
+    },
+    {
+      "keyword": "≥50%",
+      "chunk_id": "1A413030_099_0185",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "≥75%",
+      "chunk_id": "1A413030_099_0185",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "≥100%",
+      "chunk_id": "1A413030_099_0185",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "非承重先拆",
+      "chunk_id": "1A413030_099_0187",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "承重后拆",
+      "chunk_id": "1A413030_099_0187",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "公式",
+      "chunk_id": "1A413030_099_0188",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "设计单位同意",
+      "chunk_id": "1A413030_099_0189",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 99
+    },
+    {
+      "keyword": "弯钩角度",
+      "chunk_id": "1A413030_100_0190",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 100
+    },
+    {
+      "keyword": "300kg/m³",
+      "chunk_id": "1A413030_102_0192",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 102
+    },
+    {
+      "keyword": "30mm",
+      "chunk_id": "1A413030_102_0194",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 102
+    },
+    {
+      "keyword": "30mm砂浆",
+      "chunk_id": "1A413030_103_0196",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 103
+    },
+    {
+      "keyword": "14d养护",
+      "chunk_id": "1A413030_103_0196",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 103
+    },
+    {
+      "keyword": "对称放张",
+      "chunk_id": "1A413030_104_0200",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 104
+    },
+    {
+      "keyword": "锚具手册",
+      "chunk_id": "1A413030_105_0201",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 105
+    },
+    {
+      "keyword": "搭接长度≥高差",
+      "chunk_id": "1A413030_106_0204",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "净宽≤1m",
+      "chunk_id": "1A413030_106_0208",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "距交接面≥500mm",
+      "chunk_id": "1A413030_106_0208",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "预埋拉结筋",
+      "chunk_id": "1A413030_106_0208",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "抗震9度需设计确认",
+      "chunk_id": "1A413030_106_0208",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "过梁三角区",
+      "chunk_id": "1A413030_106_0209",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "窗间墙<1m",
+      "chunk_id": "1A413030_106_0209",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "门窗洞口旁",
+      "chunk_id": "1A413030_106_0209",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "梁下500mm",
+      "chunk_id": "1A413030_106_0209",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "夹心墙外叶",
+      "chunk_id": "1A413030_106_0209",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 106
+    },
+    {
+      "keyword": "不得剔凿",
+      "chunk_id": "1A413030_109_0212",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "孔洞水平",
+      "chunk_id": "1A413030_109_0213",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "10mm灰缝",
+      "chunk_id": "1A413030_109_0213",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "8~12mm",
+      "chunk_id": "1A413030_109_0213",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "斜槎≤1.2m",
+      "chunk_id": "1A413030_109_0213",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "防渗漏",
+      "chunk_id": "1A413030_109_0213",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "水平投影≥2/3高度",
+      "chunk_id": "1A413030_109_0214",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "搭接≥1/3长度",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "≥150mm",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "不得浇水",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "灰缝2~4mm",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "钢筋居中",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "错位>2mm磨平",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "非专用砂浆≤15mm",
+      "chunk_id": "1A413030_109_0215",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 109
+    },
+    {
+      "keyword": "安装螺栓不少于2个",
+      "chunk_id": "1A413030_110_0217",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 110
+    },
+    {
+      "keyword": "冲钉不宜多于安装螺栓的30%",
+      "chunk_id": "1A413030_110_0217",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 110
+    },
+    {
+      "keyword": "安装螺栓不少于总孔数的1/3",
+      "chunk_id": "1A413030_110_0217",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 110
+    },
+    {
+      "keyword": "不得气割扩孔",
+      "chunk_id": "1A413030_111_0218",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "先螺栓后焊接",
+      "chunk_id": "1A413030_111_0218",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "矫正方法",
+      "chunk_id": "1A413030_111_0219",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 111
+    },
+    {
+      "keyword": "锚栓导入器",
+      "chunk_id": "1A413030_112_0220",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "垂直度校正",
+      "chunk_id": "1A413030_112_0220",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "轴线引测",
+      "chunk_id": "1A413030_112_0220",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 112
+    },
+    {
+      "keyword": "临时支撑",
+      "chunk_id": "1A413030_113_0221",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "空间稳定体系",
+      "chunk_id": "1A413030_113_0221",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "先主跨后副跨",
+      "chunk_id": "1A413030_113_0221",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 113
+    },
+    {
+      "keyword": "严禁钢丝绳绑扎",
+      "chunk_id": "1A413030_114_0222",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "锚固长度≥50mm",
+      "chunk_id": "1A413030_114_0222",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "不得火焰切割",
+      "chunk_id": "1A413030_114_0222",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "混凝土强度达标后拆除",
+      "chunk_id": "1A413030_114_0222",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 114
+    },
+    {
+      "keyword": "严禁悬停",
+      "chunk_id": "1A413030_115_0223",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 115
+    },
+    {
+      "keyword": "标识明确",
+      "chunk_id": "1A413030_116_0224",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 116
+    },
+    {
+      "keyword": "垫块上下对齐",
+      "chunk_id": "1A413030_116_0224",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 116
+    },
+    {
+      "keyword": "温度低于10℃",
+      "chunk_id": "1A413030_118_0226",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 118
+    },
+    {
+      "keyword": "24h内不低于−5℃",
+      "chunk_id": "1A413030_118_0226",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 118
+    },
+    {
+      "keyword": "搭设高度>8m",
+      "chunk_id": "1A413030_120_0228",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 120
+    },
+    {
+      "keyword": "荷载>15kN/m²",
+      "chunk_id": "1A413030_120_0228",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 120
+    },
+    {
+      "keyword": "安全等级Ⅰ级",
+      "chunk_id": "1A413030_120_0228",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 120
+    },
+    {
+      "keyword": "插入长度",
+      "chunk_id": "1A413030_121_0229",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 121
+    },
+    {
+      "keyword": "滚涂/喷涂",
+      "chunk_id": "1A413030_124_0235",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 124
+    },
+    {
+      "keyword": "不得留施工缝",
+      "chunk_id": "1A413030_124_0236",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 124
+    },
+    {
+      "keyword": "负温施工",
+      "chunk_id": "1A413030_124_0236",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 124
+    },
+    {
+      "keyword": "喷涂聚氨酯",
+      "chunk_id": "1A413030_125_0238",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 125
+    },
+    {
+      "keyword": "找平层",
+      "chunk_id": "1A413030_127_0240",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 127
+    },
+    {
+      "keyword": "同步施工",
+      "chunk_id": "1A413030_129_0246",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 129
+    },
+    {
+      "keyword": "防水混凝土为 1 道",
+      "chunk_id": "1A413030_130_0247",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "外设防水层不少于 2 道",
+      "chunk_id": "1A413030_130_0247",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "P8",
+      "chunk_id": "1A413030_130_0249",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "P10",
+      "chunk_id": "1A413030_130_0249",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 130
+    },
+    {
+      "keyword": "7d净膨胀率",
+      "chunk_id": "1A413030_131_0250",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 131
+    },
+    {
+      "keyword": "严禁雨天施工",
+      "chunk_id": "1A413030_132_0253",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 132
+    },
+    {
+      "keyword": "温度限制",
+      "chunk_id": "1A413030_132_0253",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 132
+    },
+    {
+      "keyword": "雨天禁止施工",
+      "chunk_id": "1A413030_133_0254",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "阴阳角圆弧",
+      "chunk_id": "1A413030_133_0254",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "保护层厚度",
+      "chunk_id": "1A413030_133_0254",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "不少于2道",
+      "chunk_id": "1A413030_133_0255",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "不少于1道",
+      "chunk_id": "1A413030_133_0255",
+      "node_code": "1A413030",
+      "content_type": "table_data",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 133
+    },
+    {
+      "keyword": "基层平整",
+      "chunk_id": "1A413030_134_0257",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "10mm凹槽",
+      "chunk_id": "1A413030_134_0257",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "5~35℃",
+      "chunk_id": "1A413030_134_0257",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "保温层与基层之间",
+      "chunk_id": "1A413030_134_0258",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "5~35℃",
+      "chunk_id": "1A413030_134_0259",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 134
+    },
+    {
+      "keyword": "竖龙骨间距",
+      "chunk_id": "1A413030_135_0260",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 135
+    },
+    {
+      "keyword": "自攻螺钉间距",
+      "chunk_id": "1A413030_135_0260",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 135
+    },
+    {
+      "keyword": "竖龙骨间距不超过600mm",
+      "chunk_id": "1A413030_136_0261",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "通贯龙骨设置数量",
+      "chunk_id": "1A413030_136_0261",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "严禁将消火栓直接安装在轻钢龙骨上",
+      "chunk_id": "1A413030_136_0261",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "双层板错缝安装",
+      "chunk_id": "1A413030_136_0261",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "岩棉固定方式",
+      "chunk_id": "1A413030_136_0261",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 136
+    },
+    {
+      "keyword": "50~60mm",
+      "chunk_id": "1A413030_138_0263",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 138
+    },
+    {
+      "keyword": "材料合格",
+      "chunk_id": "1A413030_138_0265",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 138
+    },
+    {
+      "keyword": "管道试压",
+      "chunk_id": "1A413030_138_0265",
+      "node_code": "1A413030",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 138
+    },
+    {
+      "keyword": "瓷砖",
+      "chunk_id": "1A413030_139_0269",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 139
+    },
+    {
+      "keyword": "环境条件",
+      "chunk_id": "1A413030_140_0271",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "管道安装",
+      "chunk_id": "1A413030_140_0271",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "防水施工",
+      "chunk_id": "1A413030_140_0271",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "门框验收",
+      "chunk_id": "1A413030_140_0271",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "基层清理",
+      "chunk_id": "1A413030_140_0271",
+      "node_code": "1A413030",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "浸湿处理",
+      "chunk_id": "1A413030_140_0272",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "勾缝时机",
+      "chunk_id": "1A413030_140_0272",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "干硬性砂浆",
+      "chunk_id": "1A413030_140_0272",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "分段铺设",
+      "chunk_id": "1A413030_140_0272",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "空鼓",
+      "chunk_id": "1A413030_140_0273",
+      "node_code": "1A413030",
+      "content_type": "process_flow",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 140
+    },
+    {
+      "keyword": "离墙10mm",
+      "chunk_id": "1A413030_141_0274",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "由内向外",
+      "chunk_id": "1A413030_141_0274",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "顺行走方向",
+      "chunk_id": "1A413030_141_0274",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "8~10mm",
+      "chunk_id": "1A413030_141_0275",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "5~35℃",
+      "chunk_id": "1A413030_141_0276",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 141
+    },
+    {
+      "keyword": "粘贴厚度8~10mm",
+      "chunk_id": "1A413030_144_0279",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 144
+    },
+    {
+      "keyword": "2个螺栓",
+      "chunk_id": "1A413030_146_0283",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "先连接角码",
+      "chunk_id": "1A413030_146_0283",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 146
+    },
+    {
+      "keyword": "金属框架连接",
+      "chunk_id": "1A413030_148_0287",
+      "node_code": "1A413030",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 148
+    },
+    {
+      "keyword": "洒水降尘",
+      "chunk_id": "1A437000_149_0290",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 149
+    },
+    {
+      "keyword": "级配回填",
+      "chunk_id": "1A437000_149_0291",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 149
+    },
+    {
+      "keyword": "就地粉碎",
+      "chunk_id": "1A437000_149_0291",
+      "node_code": "1A437000",
+      "content_type": "normative_rule",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 149
+    },
+    {
+      "keyword": "车辆冲洗",
+      "chunk_id": "1A437000_149_0293",
+      "node_code": "1A437000",
+      "content_type": "text_concept",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 149
+    },
+    {
+      "keyword": "封闭木工房",
+      "chunk_id": "1A437000_149_0294",
+      "node_code": "1A437000",
+      "content_type": "definition",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 149
+    },
+    {
+      "keyword": "不低于",
+      "chunk_id": "1A438000_153_0299",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 153
+    },
+    {
+      "keyword": "焊接预热",
+      "chunk_id": "1A438000_154_0301",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 154
+    },
+    {
+      "keyword": "不宜浇筑",
+      "chunk_id": "1A438000_156_0304",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 156
+    },
+    {
+      "keyword": "积水处理",
+      "chunk_id": "1A438000_156_0304",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 156
+    },
+    {
+      "keyword": "相同天气条件",
+      "chunk_id": "1A438000_158_0307",
+      "node_code": "1A438000",
+      "content_type": "rule_numeric",
+      "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "page_num": 158
+    }
+  ]
+}

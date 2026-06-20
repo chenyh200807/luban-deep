@@ -1,0 +1,39 @@
+{
+  "stage": "M15 Runtime Hits Expansion + Fresh Retest Entry",
+  "real_entry": "/api/v1/ws deep_question QA/test branch -> _maybe_attach_v1_beta_shadow",
+  "production_code_changed": false,
+  "matcher_relaxed": false,
+  "metrics": {
+    "m13r_counted_total_input": 70,
+    "m13r_counted_hits_input": 43,
+    "counted_authority_backed_total": 70,
+    "counted_authority_backed_runtime_hits": 53,
+    "new_runtime_hits_vs_m13r": 10,
+    "hits_by_authority_kind": {
+      "machine_checkable_logic": 20,
+      "list_rule_full_coverage": 14,
+      "textbook_verbatim": 16,
+      "machine_checkable_calc": 3
+    },
+    "question_stem_fact_counted_hits": 0,
+    "adversarial_negatives": 70,
+    "false_positive": 0,
+    "bad_certified": 0,
+    "source_mismatch": 0,
+    "legacy_equal_rate": 1.0,
+    "legacy_overwritten": false,
+    "flag_off_beta_leak": false,
+    "production_write_count": 0,
+    "kill_switch_works": true,
+    "artifact_fail_closed": true,
+    "non_cohort_blocked": true,
+    "duplicate_idempotent": true,
+    "real_retest_proof_valid": 5,
+    "canonical_write_dryrun_candidates": 5,
+    "production_truth_written": false,
+    "latency_ms_p50": 23.0
+  },
+  "release_verdict": "GO",
+  "lb_verdict": "GO",
+  "production_v1": "NO-GO"
+}

@@ -1,0 +1,46 @@
+{
+  "alignment_counts": {
+    "coverage_gap_missing_node": 1,
+    "coverage_gap_na": 2,
+    "exact": 16,
+    "expanded_parent": 1
+  },
+  "all_kb_candidate_hit": 94,
+  "all_kb_candidate_recall": 0.39662447257383965,
+  "by_point_type": {
+    "calculation": {
+      "all_kb_candidate_recall": 0.07142857142857142,
+      "all_kb_hit": 1,
+      "term_hit": 0,
+      "term_recall": 0.0,
+      "term_total": 14
+    },
+    "figure_label": {
+      "all_kb_candidate_recall": 0.3125,
+      "all_kb_hit": 5,
+      "term_hit": 3,
+      "term_recall": 0.1875,
+      "term_total": 16
+    },
+    "non_textbook": {
+      "all_kb_candidate_recall": 0.125,
+      "all_kb_hit": 1,
+      "term_hit": 0,
+      "term_recall": 0.0,
+      "term_total": 8
+    },
+    "text_term": {
+      "all_kb_candidate_recall": 0.4371859296482412,
+      "all_kb_hit": 87,
+      "term_hit": 37,
+      "term_recall": 0.18592964824120603,
+      "term_total": 199
+    }
+  },
+  "case_count": 20,
+  "excluded_na_terms": 12,
+  "term_hit": 40,
+  "term_miss": 197,
+  "term_recall": 0.16877637130801687,
+  "term_total": 237
+}

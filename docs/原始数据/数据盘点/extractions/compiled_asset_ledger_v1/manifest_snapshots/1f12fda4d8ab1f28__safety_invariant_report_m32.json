@@ -1,0 +1,25 @@
+{
+  "verified_in_this_run": {
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "shadow_promoted_to_mastery": 0,
+    "simulated_retest_as_real": 0,
+    "candidate_shard_published": 0,
+    "candidate_official_score_allowed": 0,
+    "candidate_status_allowed": true,
+    "candidate_used_as_release_truth": 0,
+    "candidate_grade_pass_promoted": 0,
+    "caller_scoping_ok": true,
+    "teacher_final_claim_confirmed": 1,
+    "real_retest_promoted_to_improvement": 1
+  },
+  "verified_clean": true,
+  "not_exercised_in_this_slice": {
+    "official_score_laundering": "compiler/adjudicator surface (M10/M17); not on this evidence->claim projection",
+    "answer_key_override": "compiler/adjudicator surface; the real consumer hardcodes is_answer_key=False on pack refs",
+    "source_laundering": "compiler/adjudicator surface (runtime_llm_adjudicator source_laundering_blocked)",
+    "rag_chunk_as_answer_key": "compiler/adjudicator surface; diagnostic_policy.retrieval_may_become_answer_key is False by construction here",
+    "cross_user_leak / cross_subject_leak": "single-tenant slice; isolation is caller-scoped per user_id (see caller_scoping_ok). Multi-tenant partition is verified by the read-model/redaction tests, not this projection slice"
+  },
+  "note": "Only attests what the run exercises; absent surfaces are named, not stamped clean."
+}

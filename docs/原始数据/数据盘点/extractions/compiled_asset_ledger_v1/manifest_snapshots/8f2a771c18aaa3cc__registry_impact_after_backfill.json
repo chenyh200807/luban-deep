@@ -1,0 +1,14 @@
+{
+  "simulation_only": true,
+  "formal_registry_emitted": false,
+  "weak_worklist_count": 12,
+  "verified_count": 2,
+  "still_weak_count": 10,
+  "blocked_count": 0,
+  "verified_by_scope": {
+    "full_kb": 2
+  },
+  "new_auto_certifiable_points": 2,
+  "published_candidate_not_final_count": 1,
+  "draft_candidate_count": 3
+}

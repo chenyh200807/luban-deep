@@ -1,0 +1,502 @@
+{
+  "schema_version": "registry_v1_canonical_state_ledger.v0",
+  "generated_at": "2026-06-04T09:40:34.698489+00:00",
+  "workspace": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "mode": {
+    "read_only_audit_except_this_output_dir": true,
+    "live_llm_invoked_this_run": false,
+    "runtime_kernel_rag_db_web_bi_billing_touched": false,
+    "formal_registry_emitted": false,
+    "commit_or_stage_performed": false
+  },
+  "canonical_state": {
+    "as_of": "2026-06-04 M5C supersedes M5/M5R/M5B interim conclusions",
+    "registry_v1_status": "blocked_for_direct_m6_publish_candidate",
+    "m6_decision": "NO-GO",
+    "m6_decision_scope": "NO-GO for direct M6 publish_candidate/formal-registry promotion. A zero-publish diagnostic compile would be possible but is not the current product next step.",
+    "next_required_stage": "M5D AI Expert Council Source Court",
+    "current_direct_publish_candidate_count": 0,
+    "current_direct_publish_candidate_question_ids": [],
+    "current_pending_review_question_count": 30,
+    "current_source_anchor_dispute_question_count": 9,
+    "m5_deterministic_auto_certifiable_points_baseline": 25,
+    "canonical_auto_certifiable_points_for_direct_publish": 0,
+    "reason": "M5 point-level gate was a deterministic baseline. M5R resolved provider quorum but its lone publish candidate was later downranked by live 3-juror M5B/M5C. Live jury reviewed all 11 M5A published candidates and left publish_ready=0."
+  },
+  "source_artifacts": {
+    "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+    "m5": "artifacts/luban_grading_artifacts/case_rubric_authority_adjudication_m5_20260604",
+    "m5r_jury_review": "artifacts/luban_grading_artifacts/case_rubric_jury_review_m5r_20260604",
+    "m5r_provider_readiness": "artifacts/luban_grading_artifacts/case_rubric_jury_provider_readiness_m5r_20260604",
+    "live_m5b": "artifacts/luban_grading_artifacts/case_rubric_jury_live_m5b_20260604",
+    "m5c_po_handoff": "artifacts/luban_grading_artifacts/case_rubric_po_review_m5c_20260604"
+  },
+  "m5_baseline": {
+    "status": "baseline_only_not_current_publish_authority",
+    "input_questions": 34,
+    "input_points": 150,
+    "source_status_counts": {
+      "verified_textbook": 38,
+      "official_weak": 112
+    },
+    "point_decision_counts": {
+      "auto_certifiable": 25,
+      "review_required_official_weak": 112,
+      "rewrite_needed": 13
+    },
+    "auto_certifiable_point_count": 25,
+    "review_required_point_count": 112,
+    "rewrite_needed_point_count": 13,
+    "publish_ready_candidate_count": 2,
+    "publish_ready_candidate_question_ids": [
+      "M2-2015-32-00",
+      "M2-2016-31-02"
+    ],
+    "draft_review_candidate_count": 5,
+    "draft_review_candidate_question_ids": [
+      "M2-2015-30-00",
+      "M2-2015-32-01",
+      "M2-2015-34-00",
+      "M2-2015-34-01",
+      "M2-2016-30-01"
+    ],
+    "po_review_required_count": 27,
+    "still_valid_conclusions": [
+      "official_weak/rewrite points are not auto-certifiable",
+      "formal registry was not emitted",
+      "25 auto_certifiable points are a deterministic pre-jury baseline only",
+      "M5 unified fact table remains useful as input evidence for later adjudication"
+    ],
+    "superseded_conclusions": [
+      "publish_ready_candidate=2 is no longer current publish readiness",
+      "M6 WEAK-GO based on M5 alone is superseded by live jury/M5C NO-GO"
+    ]
+  },
+  "m5r_jury_review": {
+    "status": "provider_quorum_unblocked_but_publish_result_superseded",
+    "input_questions": 16,
+    "publish_ready_after_jury": 1,
+    "publish_candidate_question_ids": [
+      "M2-2015-32-00"
+    ],
+    "needs_po_review": 15,
+    "quorum_blocked": 0,
+    "provider_unavailable_counts": {
+      "gpt55": 16,
+      "opus48": 16,
+      "deepseek_v4": 0,
+      "qwen37": 0,
+      "glm45": 0
+    },
+    "valid_conclusions": [
+      "M5 provider_blocked root cause was env/config mapping, not jury protocol absence",
+      "Three heterogeneous providers could reach quorum without using forbidden 485 cache",
+      "LLM jury remains review evidence, not source authority or human review"
+    ],
+    "superseded_conclusions": [
+      "M5R publish_candidate=1 (M2-2015-32-00) is superseded by live M5B/M5C, which downranked that question to needs_po_review because of source-anchor dispute"
+    ]
+  },
+  "provider_readiness_m5r": {
+    "status": "quorum_available_for_qa_jury",
+    "configured_count": 3,
+    "minimum_quorum_possible": true,
+    "provider_smoke_ok_count": 3,
+    "gpt55_configured": false,
+    "opus48_configured": false,
+    "sanctioned_cache_available": false,
+    "old_485_cache_forbidden_for_new_questions": true,
+    "secrets_printed": false
+  },
+  "live_m5b_jury": {
+    "status": "current_jury_evidence_for_published_candidate_subset",
+    "questions_reviewed": 11,
+    "newly_reviewed_this_run": 9,
+    "jurors": [
+      "gpt55(codex)",
+      "deepseek_v4",
+      "qwen37"
+    ],
+    "provider_vote_ok_count": 33,
+    "votes_fabricated": false,
+    "sanctioned_cache_used": false,
+    "formal_registry_emitted": false,
+    "publish_candidate": 0,
+    "draft_candidate": 2,
+    "needs_po_review": 9,
+    "publish_candidate_question_ids": [],
+    "draft_candidate_question_ids": [
+      "M2-2015-31-03",
+      "M2-2016-30-02"
+    ],
+    "needs_po_review_question_ids": [
+      "M2-2015-30-00",
+      "M2-2015-32-00",
+      "M2-2015-32-01",
+      "M2-2015-33-00",
+      "M2-2015-34-00",
+      "M2-2015-34-01",
+      "M2-2015-34-03",
+      "M2-2016-30-01",
+      "M2-2016-31-02"
+    ],
+    "source_unsupported_question_ids": [
+      "M2-2015-30-00",
+      "M2-2015-32-00",
+      "M2-2015-32-01",
+      "M2-2015-33-00",
+      "M2-2015-34-00",
+      "M2-2015-34-01",
+      "M2-2015-34-03",
+      "M2-2016-30-01",
+      "M2-2016-31-02"
+    ],
+    "note": "The M5B FINDING contains stale pilot wording about 2 questions; jury_live_summary.json plus M5C show the canonical 11-question run."
+  },
+  "m5c_po_review_handoff": {
+    "status": "latest_canonical_queue",
+    "total_questions": 30,
+    "jury_reviewed": 11,
+    "jury_verdicts": {
+      "needs_po_review": 9,
+      "draft_candidate": 2
+    },
+    "source_anchor_disputes": 9,
+    "by_recommended_action": {
+      "rewrite_point_or_require_external_source": 16,
+      "keep_draft": 14
+    },
+    "publish_ready": 0,
+    "formal_registry_emitted": false,
+    "po_authority_original_text": "human PO decides; jury + deterministic anchors are evidence only",
+    "po_status_counts": {
+      "pending_po": 30
+    },
+    "recommended_action_counts": {
+      "rewrite_point_or_require_external_source": 16,
+      "keep_draft": 14
+    },
+    "source_anchor_dispute_queue": [
+      {
+        "question_id": "M2-2015-30-00",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 0,
+        "verified_coverage": 0.5,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P2",
+            "policy_type": "exact_required",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "reject"
+            ],
+            "accepts": 0
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-32-00",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 1,
+        "verified_coverage": 1.0,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "list_rule",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "revise",
+              "revise"
+            ],
+            "accepts": 1
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-32-01",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 1,
+        "verified_coverage": 1.0,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P2",
+            "policy_type": "semantic_allowed",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "revise",
+              "revise"
+            ],
+            "accepts": 1
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-33-00",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 1,
+        "verified_coverage": 1.0,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "semantic_allowed",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "reject",
+              "revise"
+            ],
+            "accepts": 1
+          },
+          {
+            "point_id": "P2",
+            "policy_type": "figure_label",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "reject",
+              "reject"
+            ],
+            "accepts": 1
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-34-00",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 0,
+        "verified_coverage": 0.5,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P2",
+            "policy_type": "list_rule",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "reject"
+            ],
+            "accepts": 0
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-34-01",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 0,
+        "verified_coverage": 0.75,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "exact_required",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "needs_po_review"
+            ],
+            "accepts": 0
+          },
+          {
+            "point_id": "P4",
+            "policy_type": "exact_required",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "needs_po_review"
+            ],
+            "accepts": 0
+          },
+          {
+            "point_id": "P6",
+            "policy_type": "exact_required",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "revise",
+              "revise"
+            ],
+            "accepts": 1
+          },
+          {
+            "point_id": "P8",
+            "policy_type": "semantic_allowed",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "reject",
+              "revise"
+            ],
+            "accepts": 1
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2015-34-03",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 0,
+        "verified_coverage": 1.0,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "list_rule",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "revise"
+            ],
+            "accepts": 0
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2016-30-01",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 0,
+        "verified_coverage": 0.667,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "semantic_allowed",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "reject",
+              "reject"
+            ],
+            "accepts": 1
+          },
+          {
+            "point_id": "P5",
+            "policy_type": "exact_required",
+            "final": "needs_po_review",
+            "votes": [
+              "reject",
+              "reject",
+              "reject"
+            ],
+            "accepts": 0
+          },
+          {
+            "point_id": "P6",
+            "policy_type": "semantic_allowed",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "revise",
+              "revise"
+            ],
+            "accepts": 1
+          }
+        ]
+      },
+      {
+        "question_id": "M2-2016-31-02",
+        "m5a_status": "published_candidate",
+        "jury_verdict": "needs_po_review",
+        "jury_publish_votes": 1,
+        "verified_coverage": 1.0,
+        "po_priority": 1,
+        "recommended_action": "rewrite_point_or_require_external_source",
+        "disputed_or_non_accept_points": [
+          {
+            "point_id": "P1",
+            "policy_type": "list_rule",
+            "final": "needs_po_review",
+            "votes": [
+              "accept",
+              "reject",
+              "revise"
+            ],
+            "accepts": 1
+          }
+        ]
+      }
+    ]
+  },
+  "supersession_rules": [
+    {
+      "earlier": "M5",
+      "later": "M5R provider readiness",
+      "effect": "M5 provider_unavailable/provider_blocked was corrected; M5 LLM coverage=0 is historical."
+    },
+    {
+      "earlier": "M5",
+      "later": "M5B live + M5C",
+      "effect": "M5 publish_ready_candidate=2 and M6 WEAK-GO are superseded by live jury downranking."
+    },
+    {
+      "earlier": "M5R",
+      "later": "M5B live + M5C",
+      "effect": "M5R publish_candidate=1 is superseded; M2-2015-32-00 is now source_anchor_dispute/needs_po_review."
+    },
+    {
+      "earlier": "M5B FINDING pilot wording",
+      "later": "M5B jury_live_summary.json + M5C",
+      "effect": "2-question pilot wording is stale; current live jury coverage is 11 questions."
+    },
+    {
+      "earlier": "Master plan Day 1 M6 recommendation",
+      "later": "M5C",
+      "effect": "Direct M6 is no longer the next canonical task; M5D source court is."
+    }
+  ],
+  "ai_expert_council_final_contract_recommendation": {
+    "should_introduce_when_no_human_po": true,
+    "authority_name": "ai_expert_council_final",
+    "reviewer_type": "ai_expert_council",
+    "allowed_scope": [
+      "final adjudication of rubric candidate keep/rewrite/reject/external_source_required under a documented no-human-PO protocol",
+      "downgrade deterministic candidates when source support is disputed",
+      "recommend point label/required_terms/policy_type rewrites",
+      "create PO-style review packets with explicit non-human provenance"
+    ],
+    "forbidden_scope": [
+      "cannot become textbook source authority",
+      "cannot create or fabricate textbook_quote/source_ref",
+      "cannot upgrade official_weak to verified_textbook without deterministic content_markdown match",
+      "cannot write human_reviewed=true, po_reviewed=true, manual_qa_teacher, or human PO fields",
+      "cannot generate formal registry without release gate explicitly accepting ai_expert_council_final as review authority"
+    ],
+    "required_fields": [
+      "review_source=ai_expert_council_final",
+      "reviewer_type=ai_expert_council",
+      "human_reviewed=false",
+      "po_reviewed=false",
+      "jury_models",
+      "vote_files",
+      "votes_fabricated=false",
+      "source_authority=deterministic_textbook_exact_match",
+      "finality_scope=rubric_candidate_adjudication_not_textbook_source"
+    ]
+  }
+}

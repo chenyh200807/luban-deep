@@ -1,0 +1,22 @@
+{
+  "mode": "smoke",
+  "live": false,
+  "v0_legacy": {
+    "wall_ms_p50": 8.9,
+    "wall_ms_p95": 1251.8,
+    "wall_ms_p99": 1251.8,
+    "cost_per_submission": 0.0,
+    "provider_calls": 0,
+    "note": "deterministic legacy — free, no LLM"
+  },
+  "v1_llm_adjudication": {
+    "wall_ms_p50": 10.5,
+    "wall_ms_p95": 1152.8,
+    "wall_ms_p99": 1152.8,
+    "token_budget_per_packet": 1200,
+    "provider_calls": 18,
+    "live_calls_executed": 0,
+    "cost_per_submission": "metered_by_live_call_count (0 in hermetic)"
+  },
+  "v0_free_vs_v1_llm": "v0 = $0 deterministic; v1 = LLM-metered (DeepSeek-V4-flash primary)"
+}

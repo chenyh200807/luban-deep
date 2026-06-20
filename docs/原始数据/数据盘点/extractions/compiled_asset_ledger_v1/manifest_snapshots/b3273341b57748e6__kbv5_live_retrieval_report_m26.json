@@ -1,0 +1,120 @@
+{
+  "status": "ok",
+  "queries": 5,
+  "queries_with_chunks": 5,
+  "transport": "direct_postgres_readonly",
+  "source_table": "kb_v5.chunks",
+  "write_count": 0,
+  "rows": [
+    {
+      "query": "建筑物的构成包括哪些体系？",
+      "chunk_count": 3,
+      "latency_ms": 3515.1,
+      "embed_dim": 1024,
+      "top_sources": [
+        {
+          "chunk_id": "CET_1A411011_P0002_004",
+          "doc_type": "textbook",
+          "score_final": 0.687118775804159,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "ec5115e5"
+        },
+        {
+          "chunk_id": "CET_1A411011_P0003_001",
+          "doc_type": "textbook",
+          "score_final": 0.686169172157704,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "36503e44"
+        }
+      ]
+    },
+    {
+      "query": "施工现场临时用电三级配电两级保护",
+      "chunk_count": 3,
+      "latency_ms": 3359.2,
+      "embed_dim": 1024,
+      "top_sources": [
+        {
+          "chunk_id": "CET_1A431011_P0015_001",
+          "doc_type": "textbook",
+          "score_final": 0.640742741249286,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "4e9c6ab9"
+        },
+        {
+          "chunk_id": "CET_1A436000_P0130_002",
+          "doc_type": "textbook",
+          "score_final": 0.598230072697706,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "d2f61788"
+        }
+      ]
+    },
+    {
+      "query": "深基坑监测的主要项目",
+      "chunk_count": 3,
+      "latency_ms": 3344.2,
+      "embed_dim": 1024,
+      "top_sources": [
+        {
+          "chunk_id": "CET_1A437000_P0133_002",
+          "doc_type": "textbook",
+          "score_final": 0.619512839288293,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "413d8bca"
+        },
+        {
+          "chunk_id": "CET_1A413000_P0081_001",
+          "doc_type": "textbook",
+          "score_final": 0.605942745079294,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "ca24aefc"
+        }
+      ]
+    },
+    {
+      "query": "高大模板支撑体系验收要求",
+      "chunk_count": 3,
+      "latency_ms": 3418.7,
+      "embed_dim": 1024,
+      "top_sources": [
+        {
+          "chunk_id": "CET_1A436000_P0107_001",
+          "doc_type": "textbook",
+          "score_final": 0.56984642384606,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "7f2be40b"
+        },
+        {
+          "chunk_id": "CET_1A431000_P0009_001",
+          "doc_type": "textbook",
+          "score_final": 0.569365382677088,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "a378673d"
+        }
+      ]
+    },
+    {
+      "query": "建设工程总承包合同工期顺延",
+      "chunk_count": 3,
+      "latency_ms": 3624.7,
+      "embed_dim": 1024,
+      "top_sources": [
+        {
+          "chunk_id": "CET_1A432000_P0047_001",
+          "doc_type": "textbook",
+          "score_final": 0.581322992242296,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "5fba13e7"
+        },
+        {
+          "chunk_id": "CET_1A432000_P0049_003",
+          "doc_type": "textbook",
+          "score_final": 0.581185764427732,
+          "source_table": "kb_v5.chunks",
+          "content_hash": "9cd00f74"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "stage": "M17B Runtime LLM Scaleout + AI Council Calibration",
+  "real_entry": "/api/v1/ws deep_question (controlled + llm_adjudication modes)",
+  "tracks": [
+    "A_controlled_scale",
+    "B_validator_safety_floor",
+    "C_live_deepseek",
+    "D_qwen_fallback_drill",
+    "E_ai_council"
+  ],
+  "production_code_changed": false,
+  "matcher_relaxed": false,
+  "safety": {
+    "false_positive": 0,
+    "bad_certified": 0,
+    "source_mismatch": 0,
+    "official_answer_as_textbook": 0,
+    "model_vote_as_source": 0,
+    "council_vote_as_source": 0,
+    "list_partial_auto": 0,
+    "legacy_equal_rate": 1.0,
+    "production_write_count": 0,
+    "production_default_enabled": false,
+    "kill_switch_works": true,
+    "artifact_fail_closed": true,
+    "non_cohort_blocked": true
+  },
+  "scale": {
+    "ws_submissions": 140,
+    "ws_submissions_ge_120": true,
+    "point_decisions": 519,
+    "point_decisions_ge_300": true,
+    "deepseek_live_calls": 28,
+    "deepseek_live_ge_80": false,
+    "qwen_fallback_drills": 24,
+    "qwen_fallback_ge_20": true,
+    "real_qwen_fallback": 4,
+    "council_points_reviewed": 70,
+    "council_ge_40": true,
+    "failclosed_calls": 0
+  },
+  "verdict": "WEAK-GO"
+}

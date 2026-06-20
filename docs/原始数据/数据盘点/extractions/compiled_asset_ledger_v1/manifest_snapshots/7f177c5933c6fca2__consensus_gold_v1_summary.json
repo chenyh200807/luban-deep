@@ -1,0 +1,15 @@
+{
+  "original_total_points": 175,
+  "full_consensus_4of4": 136,
+  "frontier_total": 39,
+  "frontier_resolved": 27,
+  "frontier_unresolved": 12,
+  "frontier_resolution_classes": {
+    "resolved_score_normalized": 13,
+    "resolved_with_dissent": 14,
+    "needs_policy_review": 12
+  },
+  "consensus_gold_v1_points": 163,
+  "auto_gold_coverage": 0.9314,
+  "qwen_excluded_from_own_gold": "leave-one-out handled separately in re-eval (Task F)"
+}

@@ -1,0 +1,34 @@
+{
+  "registry_emitted": false,
+  "input_published_candidate_questions": 16,
+  "draft_candidate_questions": 9,
+  "published_candidate_questions": 7,
+  "excluded_questions": 0,
+  "total_points": 85,
+  "auto_certifiable_points_after_recheck": 28,
+  "verified_points_downgraded_on_recheck": 0,
+  "needs_jury_review_questions": 16,
+  "needs_po_review_questions": 16,
+  "top_blockers": [
+    {
+      "blocker": "calculation_without_spec",
+      "count": 3
+    },
+    {
+      "blocker": "policy_incomplete",
+      "count": 3
+    },
+    {
+      "blocker": "insufficient_verified_source_coverage(1/8)",
+      "count": 2
+    },
+    {
+      "blocker": "insufficient_verified_source_coverage(3/8)",
+      "count": 1
+    },
+    {
+      "blocker": "insufficient_verified_source_coverage(2/7)",
+      "count": 1
+    }
+  ]
+}

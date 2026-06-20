@@ -1,0 +1,21 @@
+{
+  "status": "release_candidate",
+  "is_published": false,
+  "loadable": true,
+  "schema_hash_validated": true,
+  "counted_authority_backed_total": 70,
+  "by_authority_kind": {
+    "textbook_verbatim": 23,
+    "machine_checkable_logic": 30,
+    "machine_checkable_calc": 3,
+    "list_rule_full_coverage": 14
+  },
+  "question_stem_fact_excluded": true,
+  "official_answer_as_textbook": false,
+  "model_vote_as_source": false,
+  "council_vote_as_source": false,
+  "v0_present_untouched": true,
+  "v0_overwritten": false,
+  "has_rollback_pointer": true,
+  "supply_content_hash": "68b916cdf5bd82f76c6101ae29ec387387c3c9eae068fbb61224e9583d07ffb6"
+}

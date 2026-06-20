@@ -1,0 +1,11 @@
+{
+  "namespace": "luban_compiler_candidate",
+  "count": 2618,
+  "by_kind": {
+    "rubric_candidate": 2618
+  },
+  "source_laundering_blocked": 0,
+  "candidate_used_as_release_truth": 1303,
+  "all_separate_from_release": true,
+  "ledger_hash": "43d934d05c610973"
+}

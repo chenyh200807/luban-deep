@@ -1,0 +1,436 @@
+{
+ "schema_version": 1,
+ "generated_at": "2026-06-12T03:40:18.196244+00:00",
+ "window_days": 7,
+ "summary": {
+  "total": 23,
+  "by_verdict": {
+   "missing_source": 18,
+   "coverage_gap": 2,
+   "consistent": 2,
+   "definition_mismatch": 1
+  }
+ },
+ "metrics": [
+  {
+   "metric_id": "effective_learning_members",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "effective_learning_members",
+     "source": "bi_api",
+     "value": 10.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:north_star.value"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "registered_members",
+   "verdict": "coverage_gap",
+   "diff_pct": 95.99018003273322,
+   "detail": "BI(98) 低于真相源 business(2444)——疑似采集缺口",
+   "readings": [
+    {
+     "metric_id": "registered_members",
+     "source": "bi_api",
+     "value": 98.0,
+     "window_days": 7,
+     "meta": {
+      "path": "members:dashboard.total_count"
+     }
+    },
+    {
+     "metric_id": "registered_members",
+     "source": "business",
+     "value": 2444.0,
+     "window_days": 7,
+     "meta": {
+      "definition": "supabase v_members raw count"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "activated_members",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "activated_members",
+     "source": "bi_api",
+     "value": 10.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:growth_funnel.steps[id=activated_members].value"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "active_learning_sessions",
+   "verdict": "consistent",
+   "diff_pct": 4.565701559020044,
+   "detail": "一致",
+   "readings": [
+    {
+     "metric_id": "active_learning_sessions",
+     "source": "bi_api",
+     "value": 857.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:summary.total_sessions"
+     }
+    },
+    {
+     "metric_id": "active_learning_sessions",
+     "source": "langfuse",
+     "value": 898.0,
+     "window_days": 7,
+     "meta": {
+      "kind": "daily_traces",
+      "days": 7
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "success_turn_rate",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "success_turn_rate",
+     "source": "bi_api",
+     "value": 98.4,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:summary.success_turn_rate"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "avg_session_depth",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "avg_session_depth",
+     "source": "bi_api",
+     "value": 2.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:summary.avg_session_depth"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "notebook_saves",
+   "verdict": "consistent",
+   "diff_pct": 0.0,
+   "detail": "一致",
+   "readings": [
+    {
+     "metric_id": "notebook_saves",
+     "source": "bi_api",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:summary.notebook_saves"
+     }
+    },
+    {
+     "metric_id": "notebook_saves",
+     "source": "business",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "event_name": "note_card_saved"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "total_cost_usd",
+   "verdict": "coverage_gap",
+   "diff_pct": 15.963257591127466,
+   "detail": "BI(5.4564) 低于真相源 langfuse(6.49287)——疑似采集缺口",
+   "readings": [
+    {
+     "metric_id": "total_cost_usd",
+     "source": "bi_api",
+     "value": 5.4564,
+     "window_days": 7,
+     "meta": {
+      "path": "cost:cards[label=总成本].value",
+      "overview_summary_total_cost_usd": 5.4564
+     }
+    },
+    {
+     "metric_id": "total_cost_usd",
+     "source": "langfuse",
+     "value": 6.492874239999001,
+     "window_days": 7,
+     "meta": {
+      "kind": "daily_cost",
+      "days": 7
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "renewal_risk_members",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "renewal_risk_members",
+     "source": "bi_api",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "path": "members:dashboard.churn_risk_count"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "member_health_score",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "member_health_score",
+     "source": "bi_api",
+     "value": 100.0,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:member_health.score.value"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "mastery_improvement",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": []
+  },
+  {
+   "metric_id": "ai_quality_score",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "ai_quality_score",
+     "source": "bi_api",
+     "value": 98.4,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:ai_quality.engineering_success_rate"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "cost_per_effective_learning",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "cost_per_effective_learning",
+     "source": "bi_api",
+     "value": 0.5456,
+     "window_days": 7,
+     "meta": {
+      "path": "overview:unit_economics.value"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "behavior.module.open_count",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "behavior.module.open_count",
+     "source": "business",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "event_name": "module_viewed"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "behavior.learning_report.section_view_count",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "behavior.learning_report.section_view_count",
+     "source": "business",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "event_name": "section_viewed",
+      "module": "learning_report"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "behavior.funnel.report_to_training",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: business",
+   "readings": [
+    {
+     "metric_id": "behavior.funnel.report_to_training",
+     "source": "business",
+     "value": null,
+     "window_days": 7,
+     "meta": {
+      "reason": "derived_metric_components_only",
+      "components": {
+       "report_viewers": 0.0,
+       "training_starters": 0.0
+      }
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "behavior.member_ops.report_high_no_action",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: business",
+   "readings": [
+    {
+     "metric_id": "behavior.member_ops.report_high_no_action",
+     "source": "business",
+     "value": null,
+     "window_days": 7,
+     "meta": {
+      "reason": "derived_metric_components_only",
+      "components": {
+       "report_viewers": 0.0,
+       "training_starters": 0.0
+      }
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "data_trust_score",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": []
+  },
+  {
+   "metric_id": "total_tokens",
+   "verdict": "definition_mismatch",
+   "diff_pct": 176581.9181849433,
+   "detail": "BI(2.05587e+07) 高于真相源 langfuse(11636)——疑似口径分歧或归因错误",
+   "readings": [
+    {
+     "metric_id": "total_tokens",
+     "source": "bi_api",
+     "value": 20558708.0,
+     "window_days": 7,
+     "meta": {
+      "path": "cost:cards[label=总 Token].value"
+     }
+    },
+    {
+     "metric_id": "total_tokens",
+     "source": "langfuse",
+     "value": 11636.0,
+     "window_days": 7,
+     "meta": {
+      "kind": "daily_observations",
+      "days": 7
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "today_cost_usd",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": []
+  },
+  {
+   "metric_id": "avg_turn_cost_usd",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "avg_turn_cost_usd",
+     "source": "bi_api",
+     "value": 0.0106,
+     "window_days": 7,
+     "meta": {
+      "path": "cost:cards[label=平均回合成本].value"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "member_active_count",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "member_active_count",
+     "source": "bi_api",
+     "value": 98.0,
+     "window_days": 7,
+     "meta": {
+      "path": "members:dashboard.active_count"
+     }
+    }
+   ]
+  },
+  {
+   "metric_id": "expiring_soon_members",
+   "verdict": "missing_source",
+   "diff_pct": null,
+   "detail": "缺有效读数: truth_source",
+   "readings": [
+    {
+     "metric_id": "expiring_soon_members",
+     "source": "bi_api",
+     "value": 0.0,
+     "window_days": 7,
+     "meta": {
+      "path": "members:dashboard.expiring_soon_count"
+     }
+    }
+   ]
+  }
+ ],
+ "unregistered_labels": []
+}

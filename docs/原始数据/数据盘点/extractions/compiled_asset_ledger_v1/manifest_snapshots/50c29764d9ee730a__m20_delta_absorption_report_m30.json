@@ -1,0 +1,16 @@
+{
+  "schema_version": "luban_m20_delta_absorption.v1",
+  "status": "classification_only_no_runtime_impact",
+  "candidate_delta_count": 122,
+  "rejected_delta_count": 6,
+  "release_candidate_delta_present": true,
+  "m202_classification_present": true,
+  "classification": {
+    "release_candidate": "staged in m20/release_candidate_delta + m202",
+    "staged_delta": "m202 delta_classification",
+    "work_order": "rejected/needs-source items"
+  },
+  "no_runtime_impact": true,
+  "candidate_used_as_release_truth": 0,
+  "note": "deltas READ from on-disk M20/M20.1/M20.2 artifacts; classified; NOT applied to runtime."
+}

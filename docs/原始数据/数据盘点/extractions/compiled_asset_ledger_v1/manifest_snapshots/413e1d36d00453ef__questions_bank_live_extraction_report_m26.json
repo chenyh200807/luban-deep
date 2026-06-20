@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "verdict": "GO",
+  "source_env_key": "DB_URL",
+  "source_table": "public.questions_bank",
+  "sampled_limit": 600,
+  "count": 600,
+  "rejected_count": 0,
+  "conflict_count": 0,
+  "bundle_status": "release_candidate",
+  "published": false,
+  "signature_verified": true,
+  "tamper_fail_closed": true,
+  "answer_key_override": 0,
+  "rag_chunk_as_answer_key": 0,
+  "model_vote_as_source": 0,
+  "write_count": 0,
+  "sample_record_ids": [
+    "AUTO_01d3f4fd1eb072f6_ASSESS",
+    "AUTO_092a381e34b5fc4e",
+    "AUTO_0ab8c48f8a650e14",
+    "AUTO_0cc2623a53536b80",
+    "AUTO_0d2734d2c56f381f_ASSESS"
+  ]
+}

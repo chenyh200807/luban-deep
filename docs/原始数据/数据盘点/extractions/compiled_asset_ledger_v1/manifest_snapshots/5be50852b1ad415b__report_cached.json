@@ -1,0 +1,114 @@
+{
+  "schema_version": "luban_m35_scoring_artifact_ab.v1",
+  "evaluation_tier": "cached_judge_replay",
+  "verdict": "NO-GO",
+  "quality_claim_allowed": false,
+  "verdict_ceiling": "NO-GO_OR_SHAPE_ONLY",
+  "fixture": {
+    "manifest_id": "luban_m35_case_scoring_20260609_task1",
+    "answers_path": "/Users/yehongchen/.codex/worktrees/m35-nexus-scoring-artifact-engine/deeptutor/tests/fixtures/luban_m35_case_scoring/student_answers.jsonl",
+    "manifest_path": "/Users/yehongchen/.codex/worktrees/m35-nexus-scoring-artifact-engine/deeptutor/tests/fixtures/luban_m35_case_scoring/manifest.json",
+    "fixture_limit": 20,
+    "sampled_answer_count": 20,
+    "total_answer_count": 100,
+    "answer_label_authority": "generated_self_label"
+  },
+  "label_audit": {
+    "answer_count": 100,
+    "question_count": 20,
+    "label_authority_counts": {
+      "generated_self_label": 100
+    },
+    "sample_bucket_counts": {
+      "hit": 20,
+      "partial": 10,
+      "miss": 10,
+      "wrong_content": 10,
+      "near_synonym_not_exact": 10,
+      "list_incomplete": 10,
+      "calculation": 10,
+      "stem_fact": 10,
+      "external_source_required": 5,
+      "off_path": 5
+    },
+    "missing_bucket_minimums": {},
+    "missing_contract_answer_ids": [],
+    "verdict_ceiling": "SHAPE_ONLY",
+    "quality_claim_allowed": false,
+    "poc_go_allowed": false,
+    "ai_governed_gold_allowed": false,
+    "weak_go_allowed": false,
+    "spot_check_required": false
+  },
+  "metrics": {
+    "compiled_hit_rate": 1.0,
+    "wrong_path_rate": 0.0,
+    "source_validity": 0.71134,
+    "answer_improvement": null,
+    "token_cost": {
+      "baseline_total_tokens": 0,
+      "rag_only_total_tokens": 0,
+      "artifact_first_total_tokens": 0,
+      "delta_vs_baseline": 0,
+      "basis": "not_exercised_offline_shape_runner"
+    },
+    "fail_open_rate": 0.0,
+    "point_precision": null,
+    "point_recall": null,
+    "score_mae": null,
+    "hallucinated_scoring_points": 0,
+    "source_pollution_count": 0,
+    "metric_basis": "hermetic_shape_metrics_no_quality_claim",
+    "quality_metric_status": "not_claimed_without_governed_labels",
+    "sampled_answer_count": 20
+  },
+  "prior_failure_comparison": {
+    "old_human_vs_artifact_first_point_hit_agreement": 0.5267,
+    "old_mean_abs_score_delta": 4.6091,
+    "current_point_precision": null,
+    "current_score_mae": null,
+    "prior_artifact_first_failure_beaten": false,
+    "comparison_basis": "not_claimed_generated_self_label_fixture"
+  },
+  "safety": {
+    "production_write_count": 0,
+    "canonical_truth_written": false,
+    "rag_chunk_as_answer_key": 0,
+    "candidate_used_as_release_truth": 0,
+    "client_status_promoted_to_release_truth": 0,
+    "shadow_changed_legacy_result": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "provider_call_count": 0
+  },
+  "arms": {
+    "baseline": {
+      "status": "not_exercised",
+      "reason": "no committed baseline adapter used by this hermetic Task 4 shape runner"
+    },
+    "rag_only": {
+      "status": "not_exercised",
+      "reason": "runner never lets RAG chunks become answer-key authority"
+    },
+    "artifact_first": {
+      "status": "shape_evaluated",
+      "reason": "question_grading_artifacts loaded for fixture question ids"
+    },
+    "live_provider_sample": {
+      "status": "not_exercised",
+      "provider_called": false,
+      "reason": "provider calls are intentionally absent from this runner"
+    }
+  },
+  "artifact_first": {
+    "question_count": 20,
+    "artifact_available_count": 20,
+    "artifact_missing_count": 0,
+    "total_scoring_points": 97,
+    "verified_source_point_count": 69
+  },
+  "notes": [
+    "generated_self_label fixtures are shape-only and cannot support quality claims",
+    "this runner does not call live providers, write DB state, write remote state, or touch RAG/WS/memory"
+  ]
+}

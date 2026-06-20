@@ -1,0 +1,6 @@
+{"scenario": "in_bank_objective", "lane": "objective", "authority_route": "governed_grading_authority", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": null, "diagnostic_status": null}
+{"scenario": "case_in_registry", "lane": "case", "authority_route": "governed_grading_authority", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": null, "diagnostic_status": null}
+{"scenario": "historical_question", "lane": "historical", "authority_route": "governed_grading_authority", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": null, "diagnostic_status": null}
+{"scenario": "open_world_unknown", "lane": "open_world", "authority_route": "open_world_diagnostic", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": false, "diagnostic_status": "unverified_diagnostic"}
+{"scenario": "open_world_variant", "lane": "open_world", "authority_route": "open_world_diagnostic", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": false, "diagnostic_status": "unverified_diagnostic"}
+{"scenario": "open_world_user_pasted", "lane": "open_world", "authority_route": "open_world_diagnostic", "compiled_context_schema": "luban_context_pack.v1", "formal_score_allowed": false, "diagnostic_status": "unverified_diagnostic"}

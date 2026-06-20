@@ -1,0 +1,20 @@
+{
+  "schema_version": "luban_knowledge_compiler_crosscheck.v1",
+  "status": "release_candidate",
+  "published": false,
+  "default_flip": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "runtime_read_schema": "luban_context_pack.v1",
+  "pillar_signatures": {
+    "objective_answer_key_governed": "87c0bed1d769b6598a2686fb8cba73e736f99bafe26b3579bb14f88c4f6a2293",
+    "case_rubric_registry": "a5b55353a8ac90b469ae2b0a0ddf3e23a9277c8d56ab1a691e296a45e10e89e6",
+    "kb_v5_source_context": "",
+    "m20_candidate_delta": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+    "luban_context_pack": ""
+  },
+  "pillar_count": 5,
+  "content_hash": "49d85772ee05efc8617237bc8867d3e20a88ce95475ed8c4cbb2589307ae0a9a",
+  "signature": "147ee9ae78cfdf7b290d9fb26fd9b6746d4a53d79cfe08a0ac69b2de7633ea1c",
+  "runtime_consumption": "wrapper reads signed bundle only; no policy in wrapper"
+}

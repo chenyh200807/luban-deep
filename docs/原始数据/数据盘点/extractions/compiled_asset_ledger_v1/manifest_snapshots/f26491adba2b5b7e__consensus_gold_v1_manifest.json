@@ -1,0 +1,70 @@
+{
+  "schema_version": "luban-consensus-gold-manifest.v0.1",
+  "gold_id": "luban-heldout-consensus-gold-v1-20260603",
+  "created_at": "2026-06-03T09:07:31.270099+00:00",
+  "source_slice": "po_slice_20260603_heldout",
+  "total_points": 175,
+  "gold_points": 163,
+  "coverage": 0.9314,
+  "unresolved_points": 12,
+  "input_files": [
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/consensus_gold_v1.json",
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/consensus_gold_v1_summary.json",
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/frontier_adjudicated_gold.json",
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/frontier_unresolved_queue.csv"
+  ],
+  "input_hashes": {
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/consensus_gold_v1.json": {
+      "sha256": "cadc441bedb6613b8b95901fbf417cf2ed43d63525635ddc3acff9d98b0435a9",
+      "bytes": 29347
+    },
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/consensus_gold_v1_summary.json": {
+      "sha256": "4552087b7815ce2c44a71f791346719b6387c0411a1a1ee6393fe4a43b0bd7ef",
+      "bytes": 440
+    },
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/frontier_adjudicated_gold.json": {
+      "sha256": "b7138948d1f84840bf91309e446b4c5aeddc0e41c0d23ca5c1c926de3cf43701",
+      "bytes": 18601
+    },
+    "artifacts/luban_consensus_gold/po_slice_20260603_heldout_v1/frontier_unresolved_queue.csv": {
+      "sha256": "32754b3aceeb184ef533f863fe89eca2714f90fe7ea59091db5f21522878e7ed",
+      "bytes": 947
+    }
+  },
+  "builder_scripts": [
+    "scripts/build_luban_consensus_gold.py",
+    "scripts/build_luban_multimodel_jury_gold.py",
+    "scripts/build_luban_frontier_adjudicated_gold.py"
+  ],
+  "model_arms": [
+    "gpt55",
+    "opus48",
+    "deepseek_v4",
+    "qwen37"
+  ],
+  "span_guard_status": "applied; unsupported-positive must be 0 for shadow gate pass",
+  "resolution_class_counts": {
+    "resolved_score_normalized": 13,
+    "resolved_with_dissent": 14,
+    "needs_policy_review": 12
+  },
+  "limitations": [
+    "directional/shadow only",
+    "not human gold",
+    "held-out v1 has 12 unresolved policy-review points excluded from denominator",
+    "leave-one-out scoring is model-jury agreement, not production accuracy"
+  ],
+  "allowed_uses": [
+    "offline gold production",
+    "shadow regression",
+    "model bakeoff",
+    "distillation examples"
+  ],
+  "forbidden_uses": [
+    "production runtime grading",
+    "human gold claim",
+    "pr_gate_core hard block",
+    "RAG authority",
+    "CaseGradingSkillKernel replacement"
+  ]
+}

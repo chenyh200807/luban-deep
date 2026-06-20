@@ -1,0 +1,19 @@
+{
+  "total_candidates": 30,
+  "total_scoring_points": 138,
+  "verified_textbook_points": 28,
+  "weak_points": 5,
+  "missing_points": 105,
+  "draft_count": 14,
+  "published_candidate_not_final_count": 16,
+  "blocked_count": 0,
+  "auto_certifiable_points": 28,
+  "node_resolved": 0,
+  "top_blockers": [
+    "official_answer 采分点结构化为规则启发式，须 LLM jury + PO 复核确认",
+    "verbatim 2026 教材锚命中率低（真题术语与教材原文表述差异）",
+    "node_code 多数 unresolved，缩小不了教材检索范围",
+    "calculation 缺 calculation_spec"
+  ],
+  "registry_emitted": false
+}

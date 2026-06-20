@@ -1,0 +1,24 @@
+{
+  "version": "m7_source_repair_candidate",
+  "formal_registry_emitted": false,
+  "production_runtime_connected": false,
+  "blocked_points_input": 125,
+  "verified_repaired_points": 0,
+  "keep_draft_points": 0,
+  "drop_or_external_source_points": 125,
+  "points_with_structured_anchor_terms": 0,
+  "ai_expert_council_subagents_spawned": 0,
+  "ai_expert_council_eligible_points": 0,
+  "root_cause": "0/125 blocked points carry structured required_terms / list_spec / calculation_spec, so verbatim anchoring cannot even be attempted; the upstream blocker is rubric normalization (M3 quality), not only textbook coverage",
+  "baseline_auto_certifiable": 25,
+  "theoretical_auto_certifiable_after_repair": 25,
+  "category_counts": {
+    "external_source_needed": 51,
+    "figure_label_not_runtime_safe": 1,
+    "calculation_spec_missing": 20,
+    "semantic_allowed_not_runtime_safe": 28,
+    "list_rule_denominator_missing": 12,
+    "rewrite_needed": 13
+  },
+  "official_answer_upgraded_to_textbook": 0
+}

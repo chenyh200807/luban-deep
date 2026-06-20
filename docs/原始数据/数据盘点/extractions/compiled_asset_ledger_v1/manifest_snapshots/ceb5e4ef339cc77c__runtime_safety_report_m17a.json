@@ -1,0 +1,17 @@
+{
+  "false_positive": 0,
+  "bad_certified": 0,
+  "source_mismatch": 0,
+  "legacy_equal_rate": 1.0,
+  "legacy_overwritten": false,
+  "production_write_count": 0,
+  "official_answer_as_source": false,
+  "model_vote_as_source": false,
+  "list_partial_blocked": true,
+  "non_cohort_blocked": true,
+  "kill_switch_works": true,
+  "flag_off_legacy_only": true,
+  "learning_brain_writeback": false,
+  "validator_false_positive_prevented": 8,
+  "source_laundering_blocked": 0
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "luban_compiled_asset_ledger_manifest.v1",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "authority_status": "compiled_asset_inventory_only",
+  "runtime_guard": {
+    "release_stage": "compiled_asset_inventory_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_roots": {
+    "artifacts": "artifacts",
+    "runtime_supply": "deeptutor/services/construction_grading/runtime_supply"
+  },
+  "copy_policy": {
+    "payloads_copied": false,
+    "manifest_like_snapshots_copied": true,
+    "snapshot_max_bytes": 524288,
+    "reason": "avoid duplicating large workbench payloads; preserve original artifact paths as authority"
+  },
+  "artifact_refs": {
+    "asset_groups": "asset_groups.json",
+    "files": "files.jsonl",
+    "manifest_refs": "manifest_refs.jsonl",
+    "summary": "summary.md",
+    "manifest_snapshots": "manifest_snapshots/"
+  },
+  "counts": {
+    "files": 5059,
+    "total_bytes": 740257453,
+    "asset_groups": 21,
+    "manifest_like_files": 552,
+    "manifest_refs_copied": 545,
+    "by_extension": {
+      ".json": 3024,
+      ".md": 859,
+      ".jsonl": 446,
+      ".png": 303,
+      ".txt": 83,
+      ".csv": 76,
+      ".py": 71,
+      ".html": 40,
+      ".log": 29,
+      ".db": 26,
+      ".db-shm": 26,
+      ".db-wal": 26,
+      ".mp3": 13,
+      ".mjs": 9,
+      ".tsx": 5,
+      ".mp4": 4,
+      ".js": 4,
+      ".sql": 3,
+      ".yml": 3,
+      ".lock": 2,
+      ".tsv": 1,
+      ".css": 1,
+      ".pdf": 1,
+      ".psd": 1,
+      ".svg": 1,
+      "[no_ext]": 1,
+      ".ts": 1
+    }
+  },
+  "guardrails": [
+    "compiled asset ledger only",
+    "artifact workbench != runtime truth",
+    "runtime supply publication status must be checked per canonical pointer",
+    "no official score claim"
+  ]
+}

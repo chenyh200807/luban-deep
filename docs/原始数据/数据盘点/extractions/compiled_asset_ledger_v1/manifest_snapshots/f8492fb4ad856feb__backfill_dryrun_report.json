@@ -1,0 +1,157 @@
+{
+ "schema": "luban_learner_memory_taxonomy_backfill_dryrun.v1",
+ "generated_at_date": "2026-06-12",
+ "classification": {
+  "candidate_only": true,
+  "review_only": true,
+  "dry_run": true,
+  "production_default": false,
+  "release_truth_claimed": false
+ },
+ "safety": {
+  "canonical_truth_written": false,
+  "production_write_count": 0,
+  "db_write_count": 0,
+  "reads_only": true
+ },
+ "not_exercised": [
+  "phase_3_apply",
+  "canary_batch",
+  "production_db_write",
+  "broad_cohort_anything",
+  "release_truth_claim"
+ ],
+ "mapping_sources": {
+  "old_leaf_reconciliation_mapped": 456,
+  "council_remap": 100,
+  "canonical_code_count": 2142
+ },
+ "summary": {
+  "cohort_rows_scanned": 66,
+  "affected_event_count": 11,
+  "patchable_count": 0,
+  "partial_unmapped_count": 0,
+  "unmapped_only_count": 11,
+  "stale_code_buckets": {
+   "1A411011_002_0005": 3,
+   "1A411011_003_0006": 3,
+   "1A411022": 1,
+   "1A432000:E02": 30,
+   "1A432000:E02:projected_rubric:专项方案与验收程序": 4,
+   "1A432000:E02:projected_rubric:危险性较大工程专项方案程序": 4,
+   "1A432000:E02:projected_rubric:施工现场临时用电": 2,
+   "1A432000:E04": 16,
+   "1A432000:E04:projected_rubric:专项方案与验收程序": 4,
+   "1A432000:E04:projected_rubric:危险性较大工程专项方案程序": 4
+  },
+  "unmapped_code_buckets": {
+   "1A411011_002_0005": 3,
+   "1A411011_003_0006": 3,
+   "1A411022": 1,
+   "1A432000:E02": 30,
+   "1A432000:E02:projected_rubric:专项方案与验收程序": 4,
+   "1A432000:E02:projected_rubric:危险性较大工程专项方案程序": 4,
+   "1A432000:E02:projected_rubric:施工现场临时用电": 2,
+   "1A432000:E04": 16,
+   "1A432000:E04:projected_rubric:专项方案与验收程序": 4,
+   "1A432000:E04:projected_rubric:危险性较大工程专项方案程序": 4
+  },
+  "in_scope_affected_event_count": 1,
+  "in_scope_stale_code_buckets": {
+   "1A411022": 1
+  }
+ },
+ "proposed_patches": [
+  {
+   "event_id": "52417609-ea7e-4908-9750-f5a1a6a23b3f",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "6122c218-bd0c-4331-9e35-d10bf28e9864",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "733bcf28-e63f-4db9-a589-bc2998c8f4b2",
+   "user_id": "qa_latency_probe",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "772b3ab0-f154-4def-a0e3-d84f456035d6",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "92b92c69-2a57-4eaf-a152-b12f0461ae58",
+   "user_id": "qa_lifecycle_soak_token_1781000462",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "af316c9a-a6ed-41e5-b206-4f706605da93",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "cb905ff8-b7e2-46df-8c7e-d4ed41d5bdf2",
+   "user_id": "qa_lifecycle_soak_token_1781000815",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "e7a849be-31b5-4024-8f1f-42ffdbb93643",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "ecce9259-8722-4e13-9c25-8d8ee4cc97f4",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "fac3690b-e354-4d8b-acba-2e9fb583b837",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  },
+  {
+   "event_id": "fb74d94b-909e-454b-858c-bf15df0b8e6a",
+   "user_id": "qa_student",
+   "proposed_patch": null,
+   "disposition": "unmapped_review_only"
+  }
+ ],
+ "phase_3_gate": "requires explicit owner authorization on this report; plan alternative: supersede + regenerate synthetic qa cohort",
+ "verdict": "DRY_RUN_READY_AWAITING_PHASE3_AUTHORIZATION",
+ "scoped_reanalysis": {
+  "scope_rule": "plan-defined fields only (knowledge_node_id / canonical_topic.taxonomy_code / node_code) AND value matches taxonomy code shape ^1A\\d{6}(-suffix)*$",
+  "first_pass_overreach": "initial recursive scan matched question keys (1A432000:E02 in typed_edges) and chunk ids (1A411011_002_0005 in source_refs.node_code) — neither is a taxonomy anchor",
+  "in_scope_affected_events": 1,
+  "in_scope_stale_buckets": {
+   "1A411022": 1
+  },
+  "affected_detail": [
+   {
+    "event_id": "733bcf28-e63f-4db9-a589-bc2998c8f4b2",
+    "user_id": "qa_latency_probe",
+    "memory_kind": "learning_evidence",
+    "stale_fields": {
+     "source_refs[3].node_code": "1A411022"
+    }
+   }
+  ],
+  "non_taxonomy_shaped_node_code_values": {
+   "2.0.2": 1,
+   "": 1
+  }
+ },
+ "recommendation": "qa cohort 的学情权威锚字段(knowledge_node_id/canonical_topic.taxonomy_code)无 stale taxonomy code; source_refs[].node_code 中 1 处旧章节码 1A411022 与 6 处 chunk-id 形态值均为 provenance 引用而非 learner-state 主键, 不构成 phase 3 批量 UPDATE 的必要条件。建议: 不做生产 patch(零写收尾); 若要求引用也干净, 走 plan 的替代路线(作废重生成合成 qa 数据)。"
+}

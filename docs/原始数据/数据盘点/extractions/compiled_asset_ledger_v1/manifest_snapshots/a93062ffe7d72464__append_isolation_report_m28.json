@@ -1,0 +1,40 @@
+{
+  "milestone": "M28 append-isolation audit (compiled_context / open_world / LB preview vs legacy result)",
+  "date": "2026-06-06",
+  "audit_only": true,
+  "append_sites": [
+    {
+      "site": "deeptutor/services/construction_grading/deep_question_adapter.py:65,77",
+      "writes_key": "result['compiled_context']",
+      "overwrites_legacy": false,
+      "isolation": "new key only; legacy 'authority','type','result','user_answer' untouched",
+      "try_except": false,
+      "raise_risk": "builder cannot raise on real rows (isinstance + budget defaults); P3 defensive hardening only"
+    },
+    {
+      "site": "deeptutor/services/construction_grading/objective_runtime_adapter.py:51,106",
+      "writes_key": "payload['compiled_context']",
+      "overwrites_legacy": false,
+      "isolation": "new key; candidate path forces registry_status='candidate' so official_score_allowed=false",
+      "try_except": false,
+      "raise_risk": "same as above; defensive only"
+    },
+    {
+      "site": "deeptutor/capabilities/deep_question.py::_attach_open_world_diagnostic",
+      "writes_key": "payload['compiled_context'], payload['open_world_diagnostic']",
+      "overwrites_legacy": false,
+      "isolation": "new keys; gated on not official_score_allowed and status!=resolved",
+      "try_except": true,
+      "fail_closed": "any exception returns early leaving legacy followup payload intact"
+    }
+  ],
+  "invariants": {
+    "legacy_overwrite": 0,
+    "production_truth_polluted": false,
+    "fail_closed_legacy_intact": true,
+    "v0_legacy_result_preserved": true
+  },
+  "evidence": "code read of current working tree (NOTE: deep_question_adapter.py / deep_question.py are CHURNING under a parallel agent; values are as-of reviewer read) + 501 reviewer regression tests (M26/M27 core 34, construction_grading 269, learning_brain 37, ws guard 161) show no legacy followup/grading regression.",
+  "verdict": "append isolation FUNCTIONALLY SATISFIED for the 3 wired sites; 2 adapter sites have optional P3 try/except hardening remaining. LB preview append not yet present in production (gap_1).",
+  "blocked_by": "working tree moving; no hardening applied this round."
+}

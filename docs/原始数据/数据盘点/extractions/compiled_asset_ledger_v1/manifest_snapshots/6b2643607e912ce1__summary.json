@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-06T17:01:07+0800",
+  "entry_surface": "near_real_http_ws",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_mcq",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-real-exam-20260606/re16_after_fix",
+  "rounds": 2,
+  "conversation_ids": {
+    "af_wall": "tb_861bafd9ad904572aa39075e"
+  },
+  "turns": [
+    {
+      "round_id": "RE-16-AF-setup",
+      "conversation_id": "tb_861bafd9ad904572aa39075e",
+      "turn_id": "turn_1780736437743_d41b43db9a",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆），题库解析依据是：A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。"
+    },
+    {
+      "round_id": "RE-16-AF",
+      "conversation_id": "tb_861bafd9ad904572aa39075e",
+      "turn_id": "turn_1780736460066_86e5ab1b23",
+      "done_status": "completed",
+      "visible_excerpt": "A（地下连续墙单元槽）不在标准答案（CDE）内，是干扰项。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

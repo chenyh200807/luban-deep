@@ -1,0 +1,3980 @@
+{
+  "summary": {
+    "sample_count": 306,
+    "unique_pages": 38,
+    "ocr_hit": 261,
+    "ocr_not_applicable": 14,
+    "needs_visual_review": 31,
+    "fidelity_rate_ocr_assisted": 0.8986928104575164,
+    "note": "OCR is an auxiliary locator over rendered PDF images. needs_visual_review is not a mismatch by itself."
+  },
+  "results": [
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "page_hint": 167,
+      "point_id": "sp_73116cec40e1438af7aa",
+      "quote": "《城市道路管理条例》（国务院令第198号）中规定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "《城市道路管理条例》（国务院令第198号）中规定"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "page_hint": 167,
+      "point_id": "sp_eecea738b37e81403ebb",
+      "quote": "腹带车、铁轮车或者超重、超高、超长车辆需要在城市道路上行驶的，事先须征得市政工程行政主管部门同意，并按照公安交通管理部门指定的时间、路线行驶",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "管理部门指定的时间、路线行驶"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "page_hint": 167,
+      "point_id": "sp_c3020effb8fee96cbc44",
+      "quote": "机动车不得在桥梁或者非指定的城市道路上试刹车",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "page_hint": 167,
+      "point_id": "sp_a6ee63242adefc80154f",
+      "quote": "未经市政工程行政主管部门和公安交通管理部门批准，任何单位或者个人不得占用或者挖掘城市道路",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "未经市政工程行政主管部门和公",
+        "个人不得占用或者挖掘城市道路"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A421000_001_0001",
+      "node_code": "1A421000",
+      "page_hint": 167,
+      "point_id": "sp_f06e38757344945b3068",
+      "quote": "因特殊情况需要临时占用城市道路的，须经市政工程行政主管部门和公安交通管理部门批准，方可按照规定占用",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "因特殊情况需要临时占用城市道",
+        "理部门批准，方可按照规定占用"
+      ]
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A422000_016_0022",
+      "node_code": "1A422000",
+      "page_hint": 182,
+      "point_id": "sp_51d8246f4dae4cbd7a05",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A422000_017_0023",
+      "node_code": "1A422000",
+      "page_hint": 183,
+      "point_id": "sp_75bc97ce7ca91349050d",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_39cb225899cfa5b47603",
+      "quote": "隔声",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "隔声"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_068be0e262d25b53024d",
+      "quote": "吸声",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "吸声"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_2d9c4caf86c954cf7804",
+      "quote": "消声",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "消声"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_601264622de4ef528679",
+      "quote": "隔振",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "隔振"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_63b8f9ecc94da893f8bc",
+      "quote": "噪声级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "噪声级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_ca22fc77720fea13ea62",
+      "quote": "混响时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "混响时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_eb109f4b07f32f178fbb",
+      "quote": "民用建筑室内应减少噪声干扰，应采取隔声、吸声、消声、隔振等措施使建筑声环境满足使用功能要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "民用建筑室内应减少噪声干扰，",
+        "使建筑声环境满足使用功能要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_faf974843d9899530502",
+      "quote": "对噪声敏感房间的围护结构、对有噪声源房间的围护结构应做隔声设计",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "对噪声敏感房间的围护结构、对有噪声源房间的围护结构应做隔声设计"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_e1fdf61a8f521bacfee8",
+      "quote": "管线穿过有隔声要求的墙或楼板时，应采取密封隔声措施",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "管线穿过有隔声要求的墙或楼板时，应采取密封隔声措施"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_ef736f688f560c4a3a2a",
+      "quote": "建筑内有减少反射声要求的空间，应做吸声设计",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑内有减少反射声要求的空间，应做吸声设计"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_cd239e4f92e85cde57fe",
+      "quote": "吸声材料应符合相应功能建筑的防火、防水、防腐、环保和装修效果等要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "吸声材料应符合相应功能建筑的防火、防水、防腐、环保和装修效果等要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_a442f6a16cbfff80b3a2",
+      "quote": "对建筑物内部产生噪声与振动的设备或设施，当其正常运行对噪声、振动敏感房间产生干扰时，应对其基础及连接管线采取隔振措施",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "对建筑物内部产生噪声与振动的",
+        "其基础及连接管线采取隔振措施"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_a7f65aca9aede0c52975",
+      "quote": "建筑声学工程竣工验收前，应进行竣工声学检测",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑声学工程竣工验收前，应进行竣工声学检测"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_018_0024",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_1ffe6c71cf944000e7f9",
+      "quote": "检测项目包括主要功能房间的室内噪声级、隔声性能及混响时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "检测项目包括主要功能房间的室内噪声级、隔声性能及混响时间"
+      ]
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A422000_018_0026",
+      "node_code": "1A422000",
+      "page_hint": 184,
+      "point_id": "sp_a644581d3d7b0ec96647",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A422000_019_0027",
+      "node_code": "1A422000",
+      "page_hint": 185,
+      "point_id": "sp_7b3d5a46f987192622e4",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_020_0028",
+      "node_code": "1A422000",
+      "page_hint": 186,
+      "point_id": "sp_554d9950d7b79c277fbf",
+      "quote": "关键部位",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "关键部位"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A422000_020_0028",
+      "node_code": "1A422000",
+      "page_hint": 186,
+      "point_id": "sp_d00cb5482cee8fdc8ef7",
+      "quote": "关键环节",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "关键环节"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_004_0005",
+      "node_code": "1A436000",
+      "page_hint": 170,
+      "point_id": "sp_2c3b5e1670994afdf45a",
+      "quote": "专项施工方案",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "专项施工方案"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_004_0005",
+      "node_code": "1A436000",
+      "page_hint": 170,
+      "point_id": "sp_9d791ac42a342f17de31",
+      "quote": "审批",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "审批"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "page_hint": 176,
+      "point_id": "sp_69c080c26604f2151c39",
+      "quote": "对于超过一定规模的危大工程，施工单位应当组织召开专家论证会对专项施工方案进行论证",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "对于超过一定规模的危大工程，",
+        "论证会对专项施工方案进行论证"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "page_hint": 176,
+      "point_id": "sp_4e1784016348fa915f7e",
+      "quote": "实行施工总承包的，由施工总承包单位组织召开专家论证会",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "实行施工总承包的，由施工总承包单位组织召开专家论证会"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "page_hint": 176,
+      "point_id": "sp_caf18617e1393c0c8493",
+      "quote": "专家论证前专项施工方案应当通过施工单位审核和总监理工程师审查",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "专家论证前专项施工方案应当通过施工单位审核和总监理工程师审查"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_010_0013",
+      "node_code": "1A437000",
+      "page_hint": 176,
+      "point_id": "sp_9fcb07b1c03fe1ab4d52",
+      "quote": "专家应当从地方人民政府住房城乡建设主管部门建立的专家库中选取，符合专业要求且人数不得少于5名",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "专家应当从地方人民政府住房城",
+        "合专业要求且人数不得少于5名"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_ecb4aa460ccb611ef293",
+      "quote": "综合资质只设甲级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "综合资质只设甲级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_dd561d78042c563a3a80",
+      "quote": "劳务资质不分等级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "劳务资质不分等级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_551e01bc82122043af7f",
+      "quote": "《建设工程勘察设计资质管理规定》（建设部令第160号）规定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "《建设工程勘察设计资质管理规定》（建设部令第160号）规定"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_0eb95296744b1a5f2180",
+      "quote": "工程勘察资质分为工程勘察综合资质、工程勘察专业资质、工程勘察劳务资质",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程勘察资质分为工程勘察综合",
+        "察专业资质、工程勘察劳务资质"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_d494d7b8f2ce12890c6f",
+      "quote": "工程勘察综合资质只设甲级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程勘察综合资质只设甲级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_8c4a42363b76121d6baf",
+      "quote": "工程勘察专业资质设甲级、乙级，根据工程性质和技术特点，部分专业可以设丙级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程勘察专业资质设甲级、乙级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_4a398740970040bdda36",
+      "quote": "工程勘察劳务资质不分等级",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程勘察劳务资质不分等级"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_ab790cba30850b4b5bce",
+      "quote": "取得工程勘察综合资质的企业，可以承接各专业（海洋工程勘察除外）、各等级工程勘察业务",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "取得工程勘察综合资质的企业，",
+        "察除外）、各等级工程勘察业务"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_84de69217a50053c283d",
+      "quote": "取得工程勘察专业资质的企业，可以承接相应等级相应专业的工程勘察业务",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "取得工程勘察专业资质的企业，",
+        "应等级相应专业的工程勘察业务"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_a37a658ff393ba90909e",
+      "quote": "取得工程勘察劳务资质的企业，可以承接岩土工程治理、工程钻探、凿井等工程勘察劳务业务",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "取得工程勘察劳务资质的企业，"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431000_001_0001",
+      "node_code": "1A431000",
+      "page_hint": 222,
+      "point_id": "sp_64354b49066d706ef14f",
+      "quote": "工程设计资质分为工程设计综合资质、工程设计行业资质、工程设计专业资质和工程设计专项资质",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程设计资质分为工程设计综合",
+        "计专业资质和工程设计专项资质"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_5337c33bce4129a35ece",
+      "quote": "地形状况",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "地形状况"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_48721809bc8f78070636",
+      "quote": "临时设施",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "临时设施"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_f8dd54eee4a461ed039f",
+      "quote": "施工总平面布置图应按不同的施工阶段分别绘制",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工总平面布置图应按不同的施工阶段分别绘制"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_23c225157dc0583043e6",
+      "quote": "通常有基础工程、主体结构、装饰装修和安装工程的施工总平面",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_266358d62ea95e1c65b9",
+      "quote": "项目施工用地范围内的地形状况",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目施工用地范围内的地形状况"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_a738d6f1851166d7d89a",
+      "quote": "全部拟建的建（构）筑物和其他基础设施的位置",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_b20742a78da36592abf7",
+      "quote": "项目施工用地范围内的加工、运输、储存、供电、供水供热、排水排污设施以及临时施工道路和办公、生活用房等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "时施工道路和办公、生活用房等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_55859fa311eca53fea2c",
+      "quote": "施工现场必备的安全、消防、保卫和环保等设施",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工现场必备的安全、消防、保卫和环保等设施"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_a381878bd1dfba576caf",
+      "quote": "相邻的地上、地下既有建（构）筑物及相关环境",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A431011_011_0012",
+      "node_code": "1A431011",
+      "page_hint": 232,
+      "point_id": "sp_363c052d0df8ac1e2303",
+      "quote": "平面布置科学合理，施工场地占用面积少",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "平面布置科学合理，施工场地占用面积少"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "page_hint": 268,
+      "point_id": "sp_85e3c732fcda636132b7",
+      "quote": "永久工程",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "永久工程"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "page_hint": 268,
+      "point_id": "sp_f557c3fbd1a3de885c45",
+      "quote": "第三方人员伤亡",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "第三方人员伤亡"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432000_047_0067",
+      "node_code": "1A432000",
+      "page_hint": 268,
+      "point_id": "sp_9569924ec6726d6328f8",
+      "quote": "措施项目",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "措施项目"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_1131605064332e9a7332",
+      "quote": "公开招标",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "公开招标"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_3b7a29108665db58cf8a",
+      "quote": "邀请招标",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "邀请招标"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_8aa88fef857c68f7c807",
+      "quote": "200万元",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "200万元"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_a6cc9fb9b402fec060b1",
+      "quote": "100万元",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "100万元"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_5665007ee61b1542c3a2",
+      "quote": "招标投标活动应当遵循公开、公平、公正和诚实信用的原则",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "招标投标活动应当遵循公开、公平、公正和诚实信用的原则"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432001_023_0027",
+      "node_code": "1A432001",
+      "page_hint": 244,
+      "point_id": "sp_6a7da50203975537ac91",
+      "quote": "招标方式应符合下列规定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "招标方式应符合下列规定"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_027_0035",
+      "node_code": "1A432002",
+      "page_hint": 248,
+      "point_id": "sp_0e0f1935e85366247224",
+      "quote": "订立",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "订立"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_027_0035",
+      "node_code": "1A432002",
+      "page_hint": 248,
+      "point_id": "sp_d53f8dae9096c6ad4072",
+      "quote": "履行",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "履行"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_027_0035",
+      "node_code": "1A432002",
+      "page_hint": 248,
+      "point_id": "sp_2c911afd3d658cc3af3c",
+      "quote": "变更",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "变更"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_027_0035",
+      "node_code": "1A432002",
+      "page_hint": 248,
+      "point_id": "sp_435be931107b1c2eeaaa",
+      "quote": "终止",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "终止"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_22c2bada40bb9a42ef25",
+      "quote": "合同协议书",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同协议书"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_9151cfee3ede461045ab",
+      "quote": "通用合同条件",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "通用合同条件"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_16f516c4062879f73401",
+      "quote": "专用合同条件",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "专用合同条件"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_6029f45987d3e23c61fd",
+      "quote": "总价合同",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "总价合同"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_1789635814ee7fa84084",
+      "quote": "签约合同价",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "签约合同价"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_d8f27a9938723b6ecab8",
+      "quote": "《建设项目工程总承包合同（示范文本）》GF—2020—0216（以下简称《示范文本》）由合同协议书、通用合同条件和专用合同条件三部分组成",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "《建设项目工程总承包合同（示",
+        "条件和专用合同条件三部分组成"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_dbd84883a95f6663cea3",
+      "quote": "合同协议书主要包括工程概况、合同工期、质量标准、签约合同价与合同价格形式、工程总承包项目经理、合同文件构成、承诺、订立时间、合同生效和合同份数",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同协议书主要包括工程概况、",
+        "订立时间、合同生效和合同份数"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_d4feca8938b0043abf6f",
+      "quote": "合同价格形式为总价合同，除根据合同约定的在工程实施过程中需增减的款项外，合同价格不予调整，但合同当事人另有约定的除外",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同价格形式为总价合同，除根",
+        "，但合同当事人另有约定的除外"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_b5a5543fe370bafd9689",
+      "quote": "签约合同价的价格清单构成是勘察费（如果有）、设计费、设备购置费、建筑安装工程费、暂估价、暂列金额、双方约定的其他费用（以上价格均含税）",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "签约合同价的价格清单构成是勘",
+        "的其他费用（以上价格均含税）"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A432002_028_0036",
+      "node_code": "1A432002",
+      "page_hint": 249,
+      "point_id": "sp_e8cf93d1f6f5b24f938b",
+      "quote": "通用合同条件按照有关法律法规就工程总承包项目的实施及相关事项，对合同当事人的权利义务作出原则性约定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "通用合同条件按照有关法律法规",
+        "事人的权利义务作出原则性约定"
+      ]
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A433000_051_0074",
+      "node_code": "1A433000",
+      "page_hint": 272,
+      "point_id": "sp_d9a134e27503a020b938",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_1be7218447401ad0b8c8",
+      "quote": "专业队",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "专业队"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_81fec7107e23d5c1cb4c",
+      "quote": "施工段",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工段"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_83070dc335be1c73c36b",
+      "quote": "施工时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_00b2341299adaafbd16d",
+      "quote": "流水节拍是指在组织流水施工时，某个专业队在一个施工段上的施工时间，以符号 “t” 表示",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "流水节拍是指在组织流水施工时"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_5496b58e1241aaea0e1b",
+      "quote": "指在组织流水施工时，用以表达流水施工在时间安排上所处状态的参数，主要包括流水节拍、流水步距和工期等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "指在组织流水施工时，用以表达",
+        "括流水节拍、流水步距和工期等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_00b2341299adaafbd16d",
+      "quote": "流水节拍是指在组织流水施工时，某个专业队在一个施工段上的施工时间，以符号 “t” 表示",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "流水节拍是指在组织流水施工时"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_5335f0d6b0dcb4acc7a9",
+      "quote": "流水步距是指两个相邻的专业队进入流水作业的时间间隔，以符号 “K” 表示",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "流水步距是指两个相邻的专业队"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_efdbf5788a5dcc122b2d",
+      "quote": "工期是指从第一个专业队投入流水作业开始，到最后一个专业队完成最后一道工序的最后一段工作、退出流水作业为止的整个持续时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工期是指从第一个专业队投入流",
+        "出流水作业为止的整个持续时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_44b68559fa53cd40b978",
+      "quote": "由于一项工程往往由许多流水组构成，所以这里所说的是流水组的工期，而不是整个工程的总工期",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "由于一项工程往往由许多流水组",
+        "工期，而不是整个工程的总工期"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_414780ad5407314f147f",
+      "quote": "工期可用符号 “T” 表示",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工期可用符号 “T” 表示"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0075",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_c00766eac247cb0211bd",
+      "quote": "流水施工根据流水节拍特征，分为无节奏流水施工、等节奏流水施工和异节奏流水施工",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "流水施工根据流水节拍特征，分",
+        "节奏流水施工和异节奏流水施工"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A433000_052_0076",
+      "node_code": "1A433000",
+      "page_hint": 273,
+      "point_id": "sp_39d32f6ce68c49a1287c",
+      "quote": "节拍不全相等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "节拍不全相等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_9e4d65cfc5d18b0aa6de",
+      "quote": "合同",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_5298dc66525c8ae643f4",
+      "quote": "项目管理规划大纲",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目管理规划大纲"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_0aaa4d8ca359ae9a8d43",
+      "quote": "设计文件",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "设计文件"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_e0467dc417a3a19c8570",
+      "quote": "法律法规",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "法律法规"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_cb7abee40f86fb27544b",
+      "quote": "其他要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "其他要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_be0efe4d1d2d7ee91073",
+      "quote": "项目质量计划编制依据",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目质量计划编制依据"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_6dc5386f71494525ecda",
+      "quote": "项目质量计划编制要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目质量计划编制要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_e38999be999bac38a402",
+      "quote": "项目质量计划的内容",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目质量计划的内容"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_a505c2ff0f3522fcf8a8",
+      "quote": "施工企业质量计划的监督检查",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工企业质量计划的监督检查"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_8e6b252d3af4974accf8",
+      "quote": "项目经理部质量计划的执行",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目经理部质量计划的执行"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_6b9e29b84210c8466704",
+      "quote": "合同中有关产品质量要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同中有关产品质量要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_7cc837d3398fab6ba039",
+      "quote": "项目设计文件",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目设计文件"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_f0507a56ce340b3cc9f2",
+      "quote": "相关法律法规和标准规范",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "相关法律法规和标准规范"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_71ded53031213f6a64e5",
+      "quote": "质量管理其他要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量管理其他要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_eebdaab9eac51090f5a1",
+      "quote": "项目质量计划应在项目开工前、质量策划过程中编制",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目质量计划应在项目开工前、质量策划过程中编制"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_d410a51d65eef3d43aaf",
+      "quote": "项目质量计划作为对外质量保证和对内质量控制的依据",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目质量计划作为对外质量保证和对内质量控制的依据"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_50eb55c9783971a77622",
+      "quote": "体现项目全过程质量管理要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "体现项目全过程质量管理要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_2fddc9142d77e3d30c75",
+      "quote": "质量计划可以作为项目实施规划的一部分或单独成文",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量计划可以作为项目实施规划的一部分或单独成文"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_f8a7a11369b37ff56ca7",
+      "quote": "质量计划由组织管理制度规定的责任人负责编制、审批，实施动态管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量计划由组织管理制度规定的责任人负责编制、审批，实施动态管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_769ebf17befa736b7882",
+      "quote": "质量目标和质量要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量目标和质量要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434000_062_0093",
+      "node_code": "1A434000",
+      "page_hint": 283,
+      "point_id": "sp_b137a9d4057ab415ed50",
+      "quote": "质量管理体系和管理职责",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量管理体系和管理职责"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_f8307c7a1051dfe0c53e",
+      "quote": "标高控制线",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "标高控制线"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_65067ea8d4448ccc9e0a",
+      "quote": "管道预埋",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "管道预埋"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_a3b77a2f813f24720ae8",
+      "quote": "地基与基础分部工程验收前，基础墙面上的施工孔洞须按规定镶堵密实，并作隐蔽工程验收记录",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "地基与基础分部工程验收前，基"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_ad144831578b82069834",
+      "quote": "未经验收不得进行回填土分项工程的施工，对确需分阶段进行地基与基础分部工程质量验收时，建设单位项目负责人在质监交底会上向质监人员提交书面申请，并及时向质监站备案",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "未经验收不得进行回填土分项工",
+        "书面申请，并及时向质监站备案"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_e92be2217f34b0c8f540",
+      "quote": "混凝土结构工程模板应拆除并对其表面清理干净，混凝土结构存在缺陷处应整改完成",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "混凝土结构工程模板应拆除并对",
+        "凝土结构存在缺陷处应整改完成"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_e221a66d00f50145039a",
+      "quote": "楼层标高控制线应清楚弹出，竖向结构主控轴线应弹出墨线，并做醒目标志",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "楼层标高控制线应清楚弹出，竖",
+        "轴线应弹出墨线，并做醒目标志"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_8bdc6bc9f20e7528d028",
+      "quote": "工程技术资料存在的问题均已悉数整改完成",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工程技术资料存在的问题均已悉数整改完成"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_21cf1e1911b320db13b4",
+      "quote": "施工合同和设计文件规定的地基与基础分部工程施工的内容已完成，检验、检测报告（包括环境检测报告）应符合现行验收规范和标准的要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工合同和设计文件规定的地基",
+        "符合现行验收规范和标准的要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_808be6fd72a769a66c80",
+      "quote": "安装工程中各类管道预埋结束，相应测试工作已完成，其结果符合规定要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "安装工程中各类管道预埋结束，",
+        "作已完成，其结果符合规定要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A434020_082_0131",
+      "node_code": "1A434020",
+      "page_hint": 303,
+      "point_id": "sp_06bb2a67c5d8e72cfe37",
+      "quote": "地基与基础分部工程施中，质监站发出整改（停工）通知书要求整改的质量问题都已整改完成，完成报告书已送质监站归档",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "成，完成报告书已送质监站归档"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_415b2d669ac43fa7ec01",
+      "quote": "人工费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "人工费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_25d0c099dade2ae8d9ce",
+      "quote": "材料费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_e555c8061153bc643f40",
+      "quote": "施工机具使用费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工机具使用费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_589293b87c6d846ac728",
+      "quote": "企业管理费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "企业管理费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_160a3e313e9db1690424",
+      "quote": "利润",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "利润"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_86b771f059a06c635201",
+      "quote": "税金",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "税金"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_303971a09632cdc2ffae",
+      "quote": "增值税",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "增值税"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_5090b445a206321f2c73",
+      "quote": "建筑安装工程费按照费用构成要素划分为：人工费、材料（包含工程设备，下同）费、施工机具使用费、企业管理费、利润和税金组成",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑安装工程费按照费用构成要",
+        "、企业管理费、利润和税金组成"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_829ed8aedb046bc95a11",
+      "quote": "人工费：包括计时工资或计件工资、奖金、津贴补贴、加班加点工资、特殊情况下支付的工资及规费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "、特殊情况下支付的工资及规费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_3919bdff7693a40554f8",
+      "quote": "材料费：包括材料原价、运杂费、运输损耗费、采购及保管费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料费：包括材料原价、运杂费、运输损耗费、采购及保管费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_21e7ef28ade84b1113bf",
+      "quote": "原材料费中的检验试验费列入企业管理费",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435000_038_0050",
+      "node_code": "1A435000",
+      "page_hint": 259,
+      "point_id": "sp_8e4793caa2199ea57d4d",
+      "quote": "施工机具使用费：包括施工机械使用费（含折旧费、大修理费、经常修理费、安拆费及场外运费、人工费、燃料动力费、税费）、仪器仪表使用费",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工机具使用费：包括施工机械",
+        "力费、税费）、仪器仪表使用费"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435020_096_0158",
+      "node_code": "1A435020",
+      "page_hint": 317,
+      "point_id": "sp_121e5ed473b2149b277c",
+      "quote": "BCWP",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "BCWP"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435020_096_0158",
+      "node_code": "1A435020",
+      "page_hint": 317,
+      "point_id": "sp_d19bdf4ed33643067e9d",
+      "quote": "ACWP",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "ACWP"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A435020_096_0158",
+      "node_code": "1A435020",
+      "page_hint": 317,
+      "point_id": "sp_3a9771c7865746488e9b",
+      "quote": "BCWS",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "BCWS"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_f999324fca68632df707",
+      "quote": "落地脚手架",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "落地脚手架"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_20faf9bcb681c8cbf785",
+      "quote": "附着式脚手架",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "附着式脚手架"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_70b45b2ec5acc62e9bc2",
+      "quote": "吊篮",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "吊篮"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_60b95d4b4725fe258af8",
+      "quote": "计算书",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "计算书"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_0c9abe3e2fd9f7be1929",
+      "quote": "抗倾覆",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "抗倾覆"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_939a8d87d4ac3032a062",
+      "quote": "稳定性",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "稳定性"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_879571648026ab1833cd",
+      "quote": "施工方法及操作要求： - 脚手架搭设、构造措施（剪刀撑、周边拉结、基础设置及排水措施）",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工方法及操作要求： - 脚",
+        "边拉结、基础设置及排水措施）"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_a8ce8a1cbbd0a28be6d0",
+      "quote": "附着式升降脚手架的安全装置（如防倾覆、防坠落、安全锁等）设置",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "附着式升降脚手架的安全装置（如防倾覆、防坠落、安全锁等）设置"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_b5d61bacc6b1c57a22fc",
+      "quote": "安全防护设置",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "安全防护设置"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_ca24d7d3dccdfe0049b6",
+      "quote": "脚手架安装、使用、升降及拆除等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "脚手架安装、使用、升降及拆除等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_25edb1dcb2a0462780b1",
+      "quote": "检查要求： 脚手架主要材料进场质量检查，阶段检查项目及内容",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "检查要求： 脚手架主要材料进场质量检查，阶段检查项目及内容"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_e84f9384ad6366191e09",
+      "quote": "施工保证措施： 参考基坑工程要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工保证措施： 参考基坑工程要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_f08ff293e035d05e33ac",
+      "quote": "施工管理及作业人员配备和分工： 参考基坑工程要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工管理及作业人员配备和分工： 参考基坑工程要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_0fc102923f03d9cd9d2b",
+      "quote": "验收要求： 略",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "验收要求： 略"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_6e1caf47d5e1ba143e6a",
+      "quote": "应急处置措施： 略",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_12f50fb01d72f5d5e10f",
+      "quote": "落地架立杆地基承载力",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "落地架立杆地基承载力"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_f94a204bc44af419038f",
+      "quote": "悬挑架钢梁挠度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "悬挑架钢梁挠度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_8c77758f24ff2e4d2167",
+      "quote": "附着式脚手架计算书： - 架体结构的稳定计算（厂家提供）",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "附着式脚手架计算书： - 架体结构的稳定计算（厂家提供）"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_a2a4d4bd728730e07f8f",
+      "quote": "支撑结构穿墙螺栓及螺栓孔混凝土局部承压计算",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "支撑结构穿墙螺栓及螺栓孔混凝土局部承压计算"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_262f4128edc0c8dd284b",
+      "quote": "连接节点计算",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "连接节点计算"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_926a8cebe08abdef4b88",
+      "quote": "吊篮计算： - 吊篮基础支撑结构承载力核算",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "吊篮计算： - 吊篮基础支撑结构承载力核算"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_5b1ed8b642fde62b57e5",
+      "quote": "抗倾覆验算",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "抗倾覆验算"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0010",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_1c8973cb55e44a43bbc5",
+      "quote": "加高支架稳定性验算",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "加高支架稳定性验算"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_4273df8d17f85d56d56e",
+      "quote": "重新审核",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "重新审核"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_af8bc0071a494db6d368",
+      "quote": "不得擅自修改",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "不得擅自修改"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_d8e025fb64e0dc6a1340",
+      "quote": "方案交底",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "方案交底"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_c37a725f811443ebc9c5",
+      "quote": "安全技术交底",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "安全技术交底"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A436000_010_0011",
+      "node_code": "1A436000",
+      "page_hint": 231,
+      "point_id": "sp_745fde1d154c86d2e7d2",
+      "quote": "依据《危险性较大的分部分项工程安全管理规定》（住房和城乡建设部令第37号）",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "住房和城乡建设部令第37号）"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_ecb6ed3b7f7d8a894278",
+      "quote": "成本管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "成本管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_df32161c51e410a3ce17",
+      "quote": "进度管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "进度管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_d1c7a57437aba9f73d6d",
+      "quote": "质量管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "质量管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_636c7b851ca08cec7676",
+      "quote": "材料及机械设备管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料及机械设备管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_e56052887b87c003eeb5",
+      "quote": "合同管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "合同管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_98fd0adede09a46952f6",
+      "quote": "安全管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "安全管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_fbe13ffdb07fd7cd1694",
+      "quote": "文档资料管理",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "文档资料管理"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_d021b44609206eff47d9",
+      "quote": "施工项目信息的分类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工项目信息的分类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_442bed92ba7bc10e2d7a",
+      "quote": "施工项目管理信息化的实施",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "施工项目管理信息化的实施"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_1001b61ad7bc6c516f70",
+      "quote": "项目计算机网络",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目计算机网络"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_a495e4505c0767a05838",
+      "quote": "项目办公自动化系统",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_2556e736c5756defa250",
+      "quote": "项目管理信息系统",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目管理信息系统"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_f69fcbb7f42cd34d1af6",
+      "quote": "按内容属性分为技术类、经济类、管理类和法律类等管理信息",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按内容属性分为技术类、经济类、管理类和法律类等管理信息"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_4611ad308e688ef669b1",
+      "quote": "按照管理目标分为成本、质量、安全、进度等管理信息",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按照管理目标分为成本、质量、安全、进度等管理信息"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_0da0f90bea7a479cfc1f",
+      "quote": "按照生产要素分为劳动力、材料、机械设备、技术、资金等管理信息",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按照生产要素分为劳动力、材料、机械设备、技术、资金等管理信息"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_5b3bc5242dd53231b868",
+      "quote": "项目计算机局域网",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目计算机局域网"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_6d7296854b6ce363b2d8",
+      "quote": "项目对外宣传网页",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目对外宣传网页"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_c600ebb446b449e85bd5",
+      "quote": "项目对外宣传网页可显示本工程相关的新闻动态、通知公告、工程信息、施工技术、财务信息、思想建设等方面的信息",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目对外宣传网页可显示本工程",
+        "务信息、思想建设等方面的信息"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_9ab60edbfe776d87e33d",
+      "quote": "项目使用办公自动化系统，为项目的信息沟通和共享提供统一的平台，实现总承包商信息发布、文件管理、内部邮件、手机短信提醒、办公事务的自动流转等功能",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目使用办公自动化系统，为项",
+        "醒、办公事务的自动流转等功能"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_c01f50fb9b07a080a05c",
+      "quote": "办公自动化系统内置工作流程系统，可以实现各项业务流程的管理，文件流转及审批",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "办公自动化系统内置工作流程系",
+        "务流程的管理，文件流转及审批"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_131_0212",
+      "node_code": "1A437000",
+      "page_hint": 352,
+      "point_id": "sp_f2bb71c6919e39292b30",
+      "quote": "根据工程项目管理的主要内容，项目管理信息系统通常包括：成本管理、进度管理、质量管理、材料及机械设备管理、合同管理、安全管理、文档资料管理等子系统",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "根据工程项目管理的主要内容，",
+        "全管理、文档资料管理等子系统"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_0f8f522f53cf7262cbcb",
+      "quote": "材料需用计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料需用计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_bb0b8db330893ab99c39",
+      "quote": "加工订货计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "加工订货计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_453eca1d64a92287cd4f",
+      "quote": "采购计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "采购计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_cadf40349f277f9c0cfd",
+      "quote": "分类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "分类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_e16624ebf6dd63636b57",
+      "quote": "材料计划的分类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料计划的分类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_1c379eae3aec5fe662ad",
+      "quote": "材料需用计划的编制",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料需用计划的编制"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_c606caf399118a5e35b0",
+      "quote": "材料采购计划的编制",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料采购计划的编制"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_d9bb8d23869f9450ab68",
+      "quote": "材料计划的调整",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "材料计划的调整"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_044fe893e444ea92c17b",
+      "quote": "按照计划的用途划分，材料计划分为材料需用计划、加工订货计划和采购计划",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_59e8c1b083a1239745db",
+      "quote": "按照计划的期限划分，材料计划有年度计划、季度计划、月计划、单位工程材料计划及临时追加计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按照计划的期限划分，材料计划",
+        "位工程材料计划及临时追加计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_97e5d15663097dec944a",
+      "quote": "项目常用的材料计划有：单位工程主要材料需用计划、主要材料年度需用计划、主要材料月（季）度需用计划、半成品加工订货计划、周转料具需用计划、主要材料采购计划、临时追加计划等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目常用的材料计划有：单位工",
+        "材料采购计划、临时追加计划等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_dcb3f72a590af7079371",
+      "quote": "单位工程主要材料需用计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "单位工程主要材料需用计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_6e31f9caabe14ba91d44",
+      "quote": "项目开工前，项目经理部依据施工图纸、预算、管理水平和节约措施，以单位工程为对象编制各种材料需用计划，作为编制其他材料计划及项目材料采购总量控制的依据",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "项目开工前，项目经理部依据施",
+        "及项目材料采购总量控制的依据"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_ce7f6f27aca33a996a72",
+      "quote": "主要材料年（季）度需用计划",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "主要材料年（季）度需用计划"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A438000_149_0240",
+      "node_code": "1A438000",
+      "page_hint": 370,
+      "point_id": "sp_0e0f7bd71270bf2f1564",
+      "quote": "根据项目进度计划安排，在主要材料需用计划的基础上",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "根据项目进度计划安排，在主要材料需用计划的基础上"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_4cbaa32cac05cd70674d",
+      "quote": "高层民用建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "高层民用建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_3e6724da7684aad4a221",
+      "quote": "27m",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "27m"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_190471a23b372f68740f",
+      "quote": "住宅建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "住宅建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_b6bbe7206d83a63a8068",
+      "quote": "按建筑物的用途分类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按建筑物的用途分类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_3ff93b78abf03089ed4f",
+      "quote": "民用建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "民用建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_614c8ed08a517475166d",
+      "quote": "工业建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工业建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_7b21b4a6a66711498f34",
+      "quote": "农业建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "农业建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_8fbade3cfcdd0f57726a",
+      "quote": "按建筑物的层数或高度分类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按建筑物的层数或高度分类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_bdc239eec84d729078d3",
+      "quote": "按建筑物的用途通常可以将建筑物分为民用建筑、工业建筑和农业建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "按建筑物的用途通常可以将建筑物分为民用建筑、工业建筑和农业建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_a5a617467354d26b2d17",
+      "quote": "民用建筑是为人们大量使用的非生产性建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "民用建筑是为人们大量使用的非生产性建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_d0bd52f1a20fa40eae13",
+      "quote": "根据具体使用功能的不同，它分为居住建筑和公共建筑两大类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "根据具体使用功能的不同，它分为居住建筑和公共建筑两大类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_ebb04cc99940b823464e",
+      "quote": "居住建筑主要是指供人们居住使用的建筑，可分为住宅类居住建筑和非住宅类居住建筑（如宿舍类建筑和民政建筑）",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "居住建筑主要是指供人们居住使",
+        "筑（如宿舍类建筑和民政建筑）"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_4b57165df88b3f1b9ab4",
+      "quote": "公共建筑主要是指供人们进行各种公共活动的建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "公共建筑主要是指供人们进行各种公共活动的建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_07efabd4b33b1354629b",
+      "quote": "公共建筑包含教育、办公、科研、商业服务、公众活动、交通、医疗、社会民生服务、综合类等场所的建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "公共建筑包含教育、办公、科研",
+        "民生服务、综合类等场所的建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_753841b0c069dfed3f9d",
+      "quote": "工业建筑是指为工业生产服务的各类建筑，也可以称为厂房类建筑，如生产车间、辅助车间、动力用房、仓储建筑等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "工业建筑是指为工业生产服务的",
+        "助车间、动力用房、仓储建筑等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_9aca061166b33ad87281",
+      "quote": "农业建筑是指用于农业、牧业生产和加工的建筑，如温室、畜禽饲养场、粮食和饲料加工站、农机修理站等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "农业建筑是指用于农业、牧业生",
+        "食和饲料加工站、农机修理站等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_ef7f1dbeaa11602332f2",
+      "quote": "根据《民用建筑设计统一标准》GB 50352—2019，民用建筑按地上层数或高度（应符合防火规范）分类划分应符合下列规定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "根据《民用建筑设计统一标准》",
+        "规范）分类划分应符合下列规定"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_c65f77823561a0b7f4e8",
+      "quote": "建筑高度不大于 27m 的住宅建筑、建筑高度不大于 24m 的公共建筑及建筑高度大于 24m 的单层公共建筑为低层或多层民用建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑高度不大于 27m 的住",
+        "公共建筑为低层或多层民用建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_5361df6968a2d357e252",
+      "quote": "建筑高度大于 27m 的住宅建筑和建筑高度大于 24m 的非单层公共建筑，且高度不大于 100m，为高层民用建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑高度大于 27m 的住宅",
+        "于 100m，为高层民用建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_4576104861a8dbaaf706",
+      "quote": "建筑高度大于 100m 的民用建筑为超高层建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑高度大于 100m 的民用建筑为超高层建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_85f27c9ee1d5d5637cf5",
+      "quote": "根据《建筑设计防火规范（2018 年版）》GB 50016—2014，民用建筑根据其高度和层数可分为单、多层民用建筑和高层民用建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "根据《建筑设计防火规范（20",
+        "、多层民用建筑和高层民用建筑"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_84aad1ca468f60107940",
+      "quote": "高层民用建筑根据其建筑高度、使用功能和楼层的建筑面积可分为一类和二类",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "高层民用建筑根据其建筑高度、",
+        "层的建筑面积可分为一类和二类"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_10032d4cccf80a5b7d1d",
+      "quote": "民用建筑的分类见表 1.1-1",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "民用建筑的分类见表 1.1-1"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_001_0001",
+      "node_code": "1A411011",
+      "page_hint": 9,
+      "point_id": "sp_7833a88673d91eb371e7",
+      "quote": "建筑高度的计算应符合下列规定",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑高度的计算应符合下列规定"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_002_0002",
+      "node_code": "1A411011",
+      "page_hint": 10,
+      "point_id": "sp_68c334516d49cdb7c6b4",
+      "quote": "建筑高度大于50m",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "建筑高度大于50m"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_002_0002",
+      "node_code": "1A411011",
+      "page_hint": 10,
+      "point_id": "sp_6c53a0054c0e382ba5a6",
+      "quote": "建筑面积大于1000㎡",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A411011_002_0002",
+      "node_code": "1A411011",
+      "page_hint": 10,
+      "point_id": "sp_6fc3580b17916e005f18",
+      "quote": "医疗建筑",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "医疗建筑"
+      ]
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A412000_038_0066",
+      "node_code": "1A412000",
+      "page_hint": 46,
+      "point_id": "sp_aaeddb6801d5e72bcbb3",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412000_039_0067",
+      "node_code": "1A412000",
+      "page_hint": 47,
+      "point_id": "sp_2bb1b615c96cb432ba05",
+      "quote": "HRB400",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "HRB400"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_f15611df5aaa52d010f0",
+      "quote": "初凝时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "初凝时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_8a3a108d6e090fdf4c23",
+      "quote": "终凝时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "终凝时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_e1d013bbdb8e3177b22f",
+      "quote": "45min",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "45min"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_2fc0c3bde5d18e2a79db",
+      "quote": "5h",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "5h"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_758481a4da73e4a673d5",
+      "quote": "10h",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "10h"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_6b18888356069d4c7041",
+      "quote": "水泥的凝结时间分初凝时间和终凝时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水泥的凝结时间分初凝时间和终凝时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_e20c9261d48f8dd27e2c",
+      "quote": "初凝时间是从水泥加水拌合起至水泥浆开始失去可塑性所需的时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "初凝时间是从水泥加水拌合起至水泥浆开始失去可塑性所需的时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_905295b7d4fcf90e54a9",
+      "quote": "终凝时间是从水泥加水拌合起至水泥浆完全失去可塑性并开始产生强度所需的时间",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "终凝时间是从水泥加水拌合起至",
+        "塑性并开始产生强度所需的时间"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_6541c7e6873b01df5396",
+      "quote": "为了保证有足够的时间在初凝之前完成混凝土的搅拌、运输和浇捣及砂浆的粉刷、砌筑等施工工序，初凝时间不宜过短",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "为了保证有足够的时间在初凝之",
+        "等施工工序，初凝时间不宜过短"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_995bbd86e89332c9e702",
+      "quote": "为使混凝土、砂浆能尽快地硬化达到一定的强度，以利于下道工序及早进行，避免影响施工进程，终凝时间也不宜过长",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "为使混凝土、砂浆能尽快地硬化",
+        "施工进程，终凝时间也不宜过长"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_83d33e9619beba608a57",
+      "quote": "国家标准规定，六大常用水泥的初凝时间均不应小于 45min，硅酸盐水泥的终凝时间不应大于 6.5h，其他五类常用水泥的终凝时间不应大于 10h",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "国家标准规定，六大常用水泥的",
+        "泥的终凝时间不应大于 10h"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_b417d1908dbf84dbaa74",
+      "quote": "水泥的体积安定性是指水泥在凝结硬化过程中，体积变化的均匀性",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水泥的体积安定性是指水泥在凝结硬化过程中，体积变化的均匀性"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_9e4e9b8fcb5d2adfdc1f",
+      "quote": "如果水泥硬化后产生不均匀的体积变化，即所谓体积安定性不良，就会使混凝土构件产生膨胀性裂缝，降低建筑工程质量，甚至引起严重事故",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "如果水泥硬化后产生不均匀的体",
+        "筑工程质量，甚至引起严重事故"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_3f3179de9a936cbde71d",
+      "quote": "因此，施工中必须使用安定性合格的水泥",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "因此，施工中必须使用安定性合格的水泥"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_dc627582b444d638f077",
+      "quote": "水泥安定性试验采用沸煮法和压蒸法",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_f1614f52314cf6c62e68",
+      "quote": "水泥强度分为抗压强度、抗折强度和抗拉强度三种",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水泥强度分为抗压强度、抗折强度和抗拉强度三种"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_d7a004a7e70b7076b519",
+      "quote": "民用建筑工程中，在通常情况下，不涉及水泥制品或混凝土构件的抗拉性能，水泥强度的判定只包含抗压强度和抗折强度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "民用建筑工程中，在通常情况下",
+        "判定只包含抗压强度和抗折强度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_9b3939c67e70a639a669",
+      "quote": "国家标准规定采用胶砂法来测定水泥的 3d 和 28d 的抗压强度和抗折强度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "国家标准规定采用胶砂法来测定",
+        "28d 的抗压强度和抗折强度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_98480747a82cce915ab2",
+      "quote": "通用硅酸盐水泥不同龄期对应的强度要求见表 2.1-3",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "通用硅酸盐水泥不同龄期对应的强度要求见表 2.1-3"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_504e7b992c86b5fcb3fb",
+      "quote": "硅酸盐水泥细度以比表面积表示，应不低于 300m²/kg 且不高于 400m²/kg",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "硅酸盐水泥细度以比表面积表示"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_c8ecea26361b8ef424f9",
+      "quote": "其余五种常用水泥的细度以 45μm 方孔筛筛余表示，应不低于 5%",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0071",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_49caf85618ebd319e797",
+      "quote": "当买方有特殊要求时，由买卖双方协商确定",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_5fb3ae22554e92399e5b",
+      "quote": "5R",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "5R"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_ec40f029671a74c36977",
+      "quote": "3d",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_919c72d4dba8878acf88",
+      "quote": "强度等级",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_8bdecf012941e36c6aa4",
+      "quote": "抗压强度 /MPa",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_53ee5c0911b57fe8a6a7",
+      "quote": "抗折强度 /MPa",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_2a541ca1d8d4e05f9339",
+      "quote": "≥ 12.0",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_864f666f95a48b084b15",
+      "quote": "≥ 32.5",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A412010_042_0072",
+      "node_code": "1A412010",
+      "page_hint": 50,
+      "point_id": "sp_20af998cdf6abc3577e0",
+      "quote": "≥ 17.0",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_8d9bd6499d0b40053250",
+      "quote": "激光",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "激光"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_47969503c21a1ce010e6",
+      "quote": "垂直度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "垂直度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_c4c179610948b5b086ef",
+      "quote": "水准仪主要由望远镜、水准器和基座三个主要部分组成，是为水准测量提供水平视线和对水准标尺进行读数的一种仪器",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水准仪主要由望远镜、水准器和",
+        "对水准标尺进行读数的一种仪器"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_9dedc667298542326bc1",
+      "quote": "水准仪有高精密、精密、普通等几种不同精度的仪器",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水准仪有高精密、精密、普通等几种不同精度的仪器"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_0dbc7aceaabf76213c9d",
+      "quote": "高精密水准仪主要用于国家一等水准测量及地震水准测量",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "高精密水准仪主要用于国家一等水准测量及地震水准测量"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_f7f6a67cc546438d4210",
+      "quote": "精密水准仪用于国家二等水准测量及其他精密水准测量",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "精密水准仪用于国家二等水准测量及其他精密水准测量"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_0f7876b7b475e12fc357",
+      "quote": "普通水准仪用于国家三、四等水准测量及一般工程水准测量",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "普通水准仪用于国家三、四等水准测量及一般工程水准测量"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_d4a42b8838c2b24373df",
+      "quote": "水准仪的主要功能是测量两点间的高差 $ h $，它不能直接测量待定点的高程 $ H $，但可由控制点的已知高程来推算测点的高程",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "水准仪的主要功能是测量两点间",
+        "点的已知高程来推算测点的高程"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_b0d42f12898cc549d037",
+      "quote": "另外，利用视距测量原理，它还可以测量两点间的水平距离 $ D $，但精度不高",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "另外，利用视距测量原理，它还"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_554c867793078ecb51af",
+      "quote": "激光水准仪是在水准仪的望远镜上加装一只气体激光器而成",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "激光水准仪是在水准仪的望远镜上加装一只气体激光器而成"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413000_069_0135",
+      "node_code": "1A413000",
+      "page_hint": 77,
+      "point_id": "sp_675d57162d062e55ed10",
+      "quote": "在平坦地区做长距离高差测量时，测站数较少，提高了测量的效率",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "在平坦地区做长距离高差测量时，测站数较少，提高了测量的效率"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_97fb9545f2a9ad8571db",
+      "quote": "均匀性",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "均匀性"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_2a227abf1e80796f77c4",
+      "quote": "软弱下卧层",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "软弱下卧层"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_41a26e13879008b7e940",
+      "quote": "古井",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "古井"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_5969d773e7fed9965445",
+      "quote": "墓穴",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "墓穴"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_052b9c606d9eb528b011",
+      "quote": "空洞",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "空洞"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_59f5fb67a1732fd8f25b",
+      "quote": "基槽边坡是否稳定，是否有影响边坡稳定的因素存在，如地下渗水、坑边堆载或近距离扰动等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "渗水、坑边堆载或近距离扰动等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_ab71d18843581cd59711",
+      "quote": "对难于鉴别的土质，应采用洛阳铲等手段挖至一定深度仔细鉴别",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "对难于鉴别的土质，应采用洛阳铲等手段挖至一定深度仔细鉴别"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_557c7425d7b0fb2419d8",
+      "quote": "基槽内有无旧的房基、洞穴、古井、掩埋的管道和人防设施等",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_60436d1adc246f187730",
+      "quote": "如存在上述问题，应沿其走向进行追踪，查明其在基槽内的范围、延伸方向、长度、深度及宽度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "如存在上述问题，应沿其走向进",
+        "、延伸方向、长度、深度及宽度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_66d6222fca213e918169",
+      "quote": "在进行直接观察时，可用袖珍式贯入仪或其他手段作为验槽辅助",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_338a0da8497b2a678b5d",
+      "quote": "轻型动力触探进行基槽检验时，应检查下列内容",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "轻型动力触探进行基槽检验时，应检查下列内容"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_ea9c7e3d2822b38b2045",
+      "quote": "地基持力层的强度和均匀性",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "地基持力层的强度和均匀性"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_0913a20743712b875c21",
+      "quote": "浅埋软弱下卧层或浅埋突出硬层",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "浅埋软弱下卧层或浅埋突出硬层"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_b8d62d5e48fb05103051",
+      "quote": "浅埋的会影响地基承载力或地基稳定性的古井、墓穴和空洞等",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "浅埋的会影响地基承载力或地基稳定性的古井、墓穴和空洞等"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_11d77f60983ea7982221",
+      "quote": "轻型动力触探宜采用机械自动化实施，检验深度及间距应满足表 3.2-2 要求",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "轻型动力触探宜采用机械自动化",
+        "距应满足表 3.2-2 要求"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0160",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_2ac6875b46f726ef0b6a",
+      "quote": "检验完毕后，触探孔应灌砂填实",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_88d268f51dfc405acd8a",
+      "quote": "5m",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "5m"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_24e6305959dfa8288b40",
+      "quote": "0~1.5m",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "0~1.5m"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_623bc1355820df63608a",
+      "quote": "排列方式",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_e4e8615552e309edf660",
+      "quote": "基坑（槽）宽度",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_7a6b3000aaade61fa04d",
+      "quote": "检验深度",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "检验深度"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_bf571711026d0f928988",
+      "quote": "检验间距",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_f2bd9572600e74ffd60f",
+      "quote": "中心一排",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_0ced17dfe5be1198228a",
+      "quote": "一般 1.0~1.5m，出现明显异常时，需加密至能够掌握异常边界",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_992cfb7bdadd3f9031bb",
+      "quote": "两排错开",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A413030_087_0161",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_9270687d15a09dec5a3b",
+      "quote": "8~2.0",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A413030_087_0162",
+      "node_code": "1A413030",
+      "page_hint": 95,
+      "point_id": "sp_e624f04caf38aba8ad02",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A413030_088_0163",
+      "node_code": "1A413030",
+      "page_hint": 96,
+      "point_id": "sp_7d93050e93e29969e542",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A413030_089_0164",
+      "node_code": "1A413030",
+      "page_hint": 97,
+      "point_id": "sp_ca2f8db053aaa67fd14e",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A413030_090_0165",
+      "node_code": "1A413030",
+      "page_hint": 98,
+      "point_id": "sp_56a50059c03f98462d59",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A413030_091_0166",
+      "node_code": "1A413030",
+      "page_hint": 99,
+      "point_id": "sp_05cdd1b5dc8a69c32597",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_149_0290",
+      "node_code": "1A437000",
+      "page_hint": 157,
+      "point_id": "sp_3487ab41d8978efd8ddf",
+      "quote": "冲刷厕所",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_149_0290",
+      "node_code": "1A437000",
+      "page_hint": 157,
+      "point_id": "sp_dc70ca9ff1724d65543d",
+      "quote": "洗车",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "洗车"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_149_0290",
+      "node_code": "1A437000",
+      "page_hint": 157,
+      "point_id": "sp_813acce658abfd5deb9f",
+      "quote": "在施工现场中将雨水收集后，经过雨水渗蓄、沉淀等处理，集中存放再利用",
+      "status": "pending_visual_review",
+      "ocr_status": "hit",
+      "ocr_hits": [
+        "在施工现场中将雨水收集后，经过雨水渗蓄、沉淀等处理，集中存放再利用"
+      ]
+    },
+    {
+      "anchor_source": "textbook",
+      "chunk_id": "1A437000_149_0290",
+      "node_code": "1A437000",
+      "page_hint": 157,
+      "point_id": "sp_d5332355b23d4204d0d9",
+      "quote": "回收水可直接用于冲刷厕所、施工现场洗车及现场洒水控制扬尘",
+      "status": "pending_visual_review",
+      "ocr_status": "needs_visual_review",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A438000_152_0298",
+      "node_code": "1A438000",
+      "page_hint": 160,
+      "point_id": "sp_c6ac049a3544f7041040",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A438000_153_0299",
+      "node_code": "1A438000",
+      "page_hint": 161,
+      "point_id": "sp_880788947ae2d9e72bb0",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    },
+    {
+      "anchor_source": "calculation",
+      "chunk_id": "1A438000_154_0300",
+      "node_code": "1A438000",
+      "page_hint": 162,
+      "point_id": "sp_d510cddb8fa2ed3c0bc3",
+      "quote": "",
+      "status": "pending_visual_review",
+      "ocr_status": "not_applicable_calculation_or_empty_quote",
+      "ocr_hits": []
+    }
+  ],
+  "manual_visual_review": {
+    "sample_pages": [
+      {
+        "page": 167,
+        "status": "visual_confirmed",
+        "evidence": "page contains 机动车不得在桥梁或者非指定的城市道路上试刹车 and surrounding 城市道路管理条例 text"
+      },
+      {
+        "page": 232,
+        "status": "visual_confirmed",
+        "evidence": "page contains 施工总平面布置图内容 and 基础工程、主体结构、装饰装修和安装工程的施工总平面"
+      },
+      {
+        "page": 50,
+        "status": "visual_confirmed",
+        "evidence": "page contains 通用硅酸盐水泥强度表 with 3d、抗压强度/MPa、≥12.0等 table cells"
+      },
+      {
+        "page": 313,
+        "status": "visual_confirmed",
+        "evidence": "page contains 成本构成比例分析表 with 目标成本（万元）/预算成本等 table text"
+      }
+    ],
+    "conclusion": "sampled OCR misses are rendered-PDF visible; OCR miss is not evidence of anchor failure."
+  }
+}

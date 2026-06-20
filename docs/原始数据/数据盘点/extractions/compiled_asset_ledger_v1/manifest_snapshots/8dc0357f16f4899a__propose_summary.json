@@ -1,0 +1,17 @@
+{
+ "schema": "luban_full_factory_propose.v1",
+ "generated_at_date": "2026-06-14",
+ "n_cases": 179,
+ "fatal_errors": 0,
+ "both_models_must_not_mint_clean": "168/179",
+ "needs_opus_arbiter": "98/179",
+ "needs_arbiter_pct": 0.547,
+ "point_type_distribution_deepseek": {
+  "calculation": 7,
+  "flaw_correction": 20,
+  "list": 57,
+  "mixed": 92,
+  "single": 3
+ },
+ "note": "Stage 2 = Opus arbiter on the needs_arbiter cohort only (cost-aware)."
+}

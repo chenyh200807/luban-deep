@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-06T07:43:30+0800",
+  "entry_surface": "near_real_http_ws_intent_practice_after_fix_r2",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_practice_fix_r2_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-intent-context-probes-20260606-after-practice-fix-r2",
+  "rounds": 2,
+  "conversation_ids": {
+    "practice_then_answer": "tb_32c2c8e8646c46e883fc6563"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-INTENT-001-FIX",
+      "conversation_id": "tb_32c2c8e8646c46e883fc6563",
+      "turn_id": "turn_1780702976089_ed688c6a74",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n根据《建设工程质量管理条例》，下列行为中属于建设单位违法的是？\n- A. 将工程发包给具有相应资质等级的单位\n- B. 要求施工单位使用不合格的建筑材料\n- C. 组织设计、施工、监理等单位进行竣工验收\n- D. 依法办理工程质量监督手续\n\n### 第 2 题\n\n关于建设工程施工合同纠纷，下列哪项属于专属管辖的范围？\n- A. 拖欠工程款纠纷\n- B. 建设工程设计合同纠纷\n- C. 建设工程施工合同纠纷\n- D. 建设工程监理合同纠纷"
+    },
+    {
+      "round_id": "QA30-INTENT-002-FIX",
+      "conversation_id": "tb_32c2c8e8646c46e883fc6563",
+      "turn_id": "turn_1780703002640_683d9e12f5",
+      "done_status": "completed",
+      "visible_excerpt": "你这轮有多道题，我还不能确定要批改哪一题。\n\n请带上题号发送，例如：第1题选B、q2 选C，或一次性写成：q1 A，q2 C，q3 B。"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

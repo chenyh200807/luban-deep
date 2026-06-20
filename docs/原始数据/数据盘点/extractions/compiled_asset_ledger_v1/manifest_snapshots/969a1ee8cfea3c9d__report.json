@@ -1,0 +1,19 @@
+{
+  "backlog_items": 6,
+  "channel_open_count": 6,
+  "unjoinable": [],
+  "candidate_namespace": "luban_compiler_candidate",
+  "target_signed_namespace": "textbook_paraphrase_review",
+  "all_candidates_promote_to_release": false,
+  "dry_run_signed_with_no_verdict": 0,
+  "dry_run_routed_back": 6,
+  "note": "channel OPEN; verdicts unfilled. Only a governed 'faithful' verdict (+ grounded numbers) can sign into textbook_paraphrase_review (teaching context, never verbatim).",
+  "verdict": "GO",
+  "hard_gates": {
+    "channel_opened": true,
+    "candidates_separate_namespace": true,
+    "no_candidate_promoted": true,
+    "fail_closed_without_verdict": true,
+    "zero_verbatim_authority_minted": true
+  }
+}

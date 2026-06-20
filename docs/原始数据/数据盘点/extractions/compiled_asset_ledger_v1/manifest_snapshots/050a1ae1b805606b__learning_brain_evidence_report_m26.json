@@ -1,0 +1,9 @@
+{
+  "evidence_coverage": 1.0,
+  "shadow_promoted_to_mastery": 0,
+  "candidate_promoted_to_mastery": 0,
+  "canonical_truth_written": false,
+  "mastery_raised": false,
+  "claim_promotion_allowed": false,
+  "evidence_grade": "preview_needs_retest"
+}

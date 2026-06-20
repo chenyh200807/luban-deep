@@ -1,0 +1,11 @@
+{
+  "langfuse_started": false,
+  "url": null,
+  "port": null,
+  "compose_file": "local_langfuse_compose_m24.yml",
+  "trace_ledger": "langfuse_trace_ledger.jsonl",
+  "trace_count": 20,
+  "key_status": "manual_setup_required",
+  "run_langfuse_flag": false,
+  "blocker": "langfuse boot opt-in via --run-langfuse; local-only compose written, not started"
+}

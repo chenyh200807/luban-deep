@@ -1,0 +1,35 @@
+{
+  "schema": "luban_topic_okf_manifest.v0",
+  "generated_at": "2026-06-20T00:00:00+08:00",
+  "status": "topic_okf_candidate_ready",
+  "authority_status": "ai_topic_navigation_only",
+  "runtime_guard": {
+    "release_stage": "topic_okf_candidate",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_paths": {
+    "json_sources": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl",
+    "okf_scoring_points": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/scoring_points.jsonl"
+  },
+  "artifact_refs": {
+    "topics": "topics.jsonl",
+    "source_hits": "source_hits.jsonl"
+  },
+  "counts": {
+    "topics": 5,
+    "source_hits_kept": 400,
+    "source_hit_total": 32185
+  },
+  "guardrails": [
+    "AI-only Topic OKF",
+    "not production runtime supply",
+    "not official scoring authority",
+    "not a full source mirror"
+  ]
+}

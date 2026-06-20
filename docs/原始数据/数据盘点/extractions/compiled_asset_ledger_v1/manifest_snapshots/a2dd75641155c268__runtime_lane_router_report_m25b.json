@@ -1,0 +1,18 @@
+{
+  "task": "M25-B Objective Runtime Adapter Vertical Slice",
+  "generated": "2026-06-05",
+  "integration_point": "deeptutor/capabilities/deep_question.py — append-only call after _maybe_attach_v1_llm_adjudication (same site as beta_shadow/controlled_runtime/llm_adjudication)",
+  "wrapper": "_maybe_attach_objective_candidate (thin: flag + cohort + append + fail-closed only)",
+  "flag": "grading_engine_objective_candidate (metadata/config_overrides); default OFF",
+  "cohort": "qa_/test_/operator_ (env LUBAN_OBJECTIVE_CANDIDATE_COHORT extendable); real students excluded",
+  "appended_key": "luban_grading_engine_objective_candidate (append-only; construction_grading_result never mutated)",
+  "fat_skills": {
+    "objective_grader.py": "deterministic true_false + choice grading; answer_key sole authority; no LLM",
+    "objective_runtime_adapter.py": "load+verify candidate bundle by question_id; fail-closed on tamper; fail-open open-world on not-in-bank",
+    "grading_packet_builder.py": "4-lane scoped packet (reused from M25-A)",
+    "objective_answer_key_compiler.py": "candidate bundle from tracked synthetic seed (M25-A)"
+  },
+  "no_new_chat_ws": true,
+  "single_entry": "/api/v1/ws (objective routed via existing deep_question path)",
+  "no_clobber": "deep_question.py edit is purely additive (one wrapper + flag helpers + one call); dirty-branch WIP untouched"
+}

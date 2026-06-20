@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-06-06T08:12:09+0800",
+  "entry_surface": "near_real_http_ws_high_risk_r3",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_r3_060606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-high-risk-loop-20260606-r3",
+  "rounds": 14,
+  "conversation_ids": {
+    "r3_generated_batch_grade": "tb_2c5067d44c4348be95c7ad94",
+    "r3_generated_reveal": "tb_44fee2b36af74a0a8ef0289e",
+    "r3_generated_to_exact": "tb_4736387465f6477b89113229",
+    "r3_rag_conflict": "tb_7fcd7da4796f4c57b65090ff",
+    "r3_noexact": "tb_9df4da674dbc42ffa34e2cca",
+    "r3_generated_item_switch": "tb_65e25af592964a57936398f1",
+    "r3_reveal_then_new": "tb_e98e49001f7a438e9292ac60"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-R3-GEN-GRADE-001",
+      "conversation_id": "tb_2c5067d44c4348be95c7ad94",
+      "turn_id": "turn_1780704367338_262c87a9a1",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n2025年，以下哪项最可能是中国科技领域的发展重点？\n- A. 人工智能与量子计算\n- B. 传统农业技术\n- C. 手工艺制造\n- D. 化石能源开采\n\n### 第 2 题\n\n2025年，中国在城市发展方面更可能强调什么？\n- A. 绿色低碳与智慧城市\n- B. 大规模建设高楼\n- C. 拆除历史建筑\n- D. 扩大煤炭使用"
+    },
+    {
+      "round_id": "QA30-R3-GEN-GRADE-002",
+      "conversation_id": "tb_2c5067d44c4348be95c7ad94",
+      "turn_id": "turn_1780704392501_2149ffd4ce",
+      "done_status": "completed",
+      "visible_excerpt": "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
+    },
+    {
+      "round_id": "QA30-R3-GEN-REVEAL-003",
+      "conversation_id": "tb_44fee2b36af74a0a8ef0289e",
+      "turn_id": "turn_1780704399638_17e9c1c6ad",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n根据《建设工程质量管理条例》，下列行为中属于违法分包的是？\n- A. 施工总承包单位将工程主体结构分包给其他单位\n- B. 施工总承包单位将劳务作业分包给具备资质的劳务企业\n- C. 专业分包单位将其承包的专业工程中劳务作业部分分包\n- D. 施工总承包单位将装修工程分包给具有相应资质的单位\n\n### 第 2 题\n\n关于建设工程施工合同无效的处理，下列说法正确的是？\n- A. 合同无效，则已完工部分不予支付工程款\n- B. 合同无效，但工程验收合格，承包"
+    },
+    {
+      "round_id": "QA30-R3-GEN-REVEAL-004",
+      "conversation_id": "tb_44fee2b36af74a0a8ef0289e",
+      "turn_id": "turn_1780704442975_688b781c2d",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“现在公布第2题答案和解析，不要批第1题。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-R3-GEN-SWITCH-005",
+      "conversation_id": "tb_4736387465f6477b89113229",
+      "turn_id": "turn_1780704466665_4d22896ac0",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n在建筑工程中，以下哪项属于分部工程？\n- A. 混凝土结构\n- B. 模板安装\n- C. 钢筋加工\n- D. 混凝土养护"
+    },
+    {
+      "round_id": "QA30-R3-GEN-SWITCH-006",
+      "conversation_id": "tb_4736387465f6477b89113229",
+      "turn_id": "turn_1780704491436_0fc632f9b4",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. ①②④③⑤）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n解析：瓷砖面层施工，工艺流程：基底处理→放线→浸砖→铺设结合层砂浆→铺砖→养护→勾缝。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 B，不要把 A. ①②③④⑤、C. ①③②④⑤、D. ①②④⑤③ 误并入答案。 |\n\n## 🎯 核心要点\n- ✅"
+    },
+    {
+      "round_id": "QA30-R3-RAG-CONFLICT-007",
+      "conversation_id": "tb_7fcd7da4796f4c57b65090ff",
+      "turn_id": "turn_1780704516283_0318fcd386",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. 初步设计）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 B，不要把 A. 方案设计、C. 施工图设计、D. 专项设计 误并入答案。 |\n\n## 🎯 核心"
+    },
+    {
+      "round_id": "QA30-R3-OFFBANK-008",
+      "conversation_id": "tb_7fcd7da4796f4c57b65090ff",
+      "turn_id": "turn_1780704551889_d8a59c6b08",
+      "done_status": "completed",
+      "visible_excerpt": "## ✅ 答案与解析\n**正确答案：** B（初步设计）\n\n## 🧐 解析\n【解析】初步设计文件的内容应包括设计说明书，有关专业的设计图纸、主要设备或材料表、工程概算书、有关专业计算书等。"
+    },
+    {
+      "round_id": "QA30-R3-NOEXACT-009",
+      "conversation_id": "tb_9df4da674dbc42ffa34e2cca",
+      "turn_id": "turn_1780704574320_41c036ec2b",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2026押题卷第99题答案是不是A？我只有这个题号，直接告诉我。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-R3-ITEM-SWITCH-010",
+      "conversation_id": "tb_65e25af592964a57936398f1",
+      "turn_id": "turn_1780704599639_6ddcd56f4b",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n以下哪一项属于建筑结构中的可变荷载？\n- A. 结构自重\n- B. 楼面活荷载\n- C. 土压力\n- D. 预应力\n\n**答案：** B\n\n**解析：** 可变荷载是指在设计基准期内其值随时间变化，且变化幅度较大的荷载，如楼面活荷载、风荷载、雪荷载等。结构自重、土压力和预应力通常视为永久荷载或恒载，其值随时间变化很小。\n\n### 第 2 题\n\n在双代号网络计划中，某工作的最早开始时间为第3天，最迟开始时间为第6天，最早完成时间为第9天，最迟完成时间为第1"
+    },
+    {
+      "round_id": "QA30-R3-ITEM-SWITCH-011",
+      "conversation_id": "tb_65e25af592964a57936398f1",
+      "turn_id": "turn_1780704634514_33b796c8fd",
+      "done_status": "completed",
+      "visible_excerpt": "## 判定结果：错误。\n\n你选 **B（4天）**，正确答案是 **A（3天）**。\n\n## 你错在什么\n\n你把总时差的计算公式用错了。总时差不是“最迟完成时间 - 最早开始时间”或“最迟开始时间 - 最早完成时间”，而是：\n\n- **总时差 = 最迟开始时间 - 最早开始时间**\n- **总时差 = 最迟完成时间 - 最早完成时间**\n\n## 采分点\n\n代入题干数据：\n\n- 最迟开始时间（6）− 最早开始时间（3）= **3天**\n- 最迟完成时间（12）− 最早完成时间（"
+    },
+    {
+      "round_id": "QA30-R3-ITEM-SWITCH-012",
+      "conversation_id": "tb_65e25af592964a57936398f1",
+      "turn_id": "turn_1780704658681_2f88a3e202",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n你答了 D（9天），正确答案是 A（3天），得 0/1 分。诊断类型为计算错误。\n\n### 正确答案\n**A. 3天**  \n总时差 = 最迟开始时间（6）− 最早开始时间（3）= 3天，或最迟完成时间（12）− 最早完成时间（9）= 3天。\n\n### 为什么错\n你犯了计算错误：把总时差误算成了“最迟完成时间 − 最早开始时间”（12 − 3 = 9天），混淆了正确的减法配对。总时差要求**同一时间端点**相减（开始对开始，完成对完成），不能跨端点计算。\n\n"
+    },
+    {
+      "round_id": "QA30-R3-REVEAL-NEW-013",
+      "conversation_id": "tb_e98e49001f7a438e9292ac60",
+      "turn_id": "turn_1780704687064_9297f8a8bb",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\nWhat should you do first to generate quiz items?\n- A. Ignore the anchor\n- B. Upload documents\n- C. Start writing questions\n- D. Ask for help\n\n### 第 2 题\n\nWhat does the system indicate when no documents are indexed?\n- A. Documents "
+    },
+    {
+      "round_id": "QA30-R3-REVEAL-NEW-014",
+      "conversation_id": "tb_e98e49001f7a438e9292ac60",
+      "turn_id": "turn_1780704719394_4453299598",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\nHow many quiz items should be generated for this knowledge point?\n- A. 1\n- B. 2\n- C. 3\n- D. 4"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

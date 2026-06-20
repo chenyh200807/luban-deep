@@ -1,0 +1,1833 @@
+{
+ "remediation_id": "luban_taxonomy_db_remediation_20260612",
+ "generated_at": "2026-06-12T19:24:39.297281",
+ "classification": {
+  "authorized_production_write": true,
+  "authorized_by_owner": "2026-06-12"
+ },
+ "canonical_axis": {
+  "file": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+  "sha256_at_apply": "c073124d62d32c6471a1e87934e1c49233431d1e9a9c9ea960bf90b876db2d28",
+  "note": "mid sixth-revision live file; valid set loaded dynamically at each step (2014 codes at apply time)"
+ },
+ "mapping_authority": [
+  "live FINAL_CLEANED_TAXONOMY2026.json valid set",
+  "book_derived_rebuild_report.json old_leaf_reconciliation (mapped) + anchors (anchor name re-verified candidate vs live tree)",
+  "chapter-prefix fallback with same-shape semantic gate (2021-2025 section-name authority from import-script comments; pre_book backup names trusted only for point-id codes)",
+  "name anchoring (exact > substring with section preference > bigram>=0.5) + 1 manual adjudication (1A420010 企业资质 -> 1A431010-x2)",
+  "same-shape (1A4xxxxx) targets ALWAYS name-checked; mismatch => conflict => flagged not mapped"
+ ],
+ "iron_rules": {
+  "statement_timeout": "30s per transaction (SET after BEGIN)",
+  "connect_timeout": 10,
+  "canary": "<=5 rows per table with read-back verification before bulk",
+  "physical_deletes": 0,
+  "jsonb_strategy": "jsonb_set at minimal changed subtrees; full-column rewrite only at root change",
+  "runtime_supply_untouched": true
+ },
+ "zgup": {
+  "tables": {
+   "questions_bank": {
+    "census": {
+     "total_rows": 4638,
+     "rows_with_any_old_axis_code_before": 1567,
+     "cohort_before": {},
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 4638,
+    "rows_total_after": 4638,
+    "mapped": {
+     "rows": 132,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 11
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 12
+      },
+      {
+       "old": "1A411003",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 8
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A411021",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 8
+      },
+      {
+       "old": "1A411022",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A411023",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A412001",
+       "new": "1A412000",
+       "method": "chapter_prefix",
+       "occurrences": 8
+      },
+      {
+       "old": "1A412002",
+       "new": "1A412000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A413001",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A413002",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A413003",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A413004",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A413005",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A413006",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431011",
+       "method": "name",
+       "occurrences": 7
+      },
+      {
+       "old": "1A420020",
+       "new": "1A431020",
+       "method": "name",
+       "occurrences": 8
+      },
+      {
+       "old": "1A442030",
+       "new": "1A422150",
+       "method": "name",
+       "occurrences": 10
+      },
+      {
+       "old": "1A442040",
+       "new": "1A425040",
+       "method": "name",
+       "occurrences": 6
+      },
+      {
+       "old": "1A442050",
+       "new": "1A425050",
+       "method": "name",
+       "occurrences": 22
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 194,
+     "codes": {
+      "1A414000": 2,
+      "1A414010": 14,
+      "1A414011": 2,
+      "1A414012": 4,
+      "1A414020": 6,
+      "1A414023": 2,
+      "1A415010": 2,
+      "1A415021": 2,
+      "1A415022": 4,
+      "1A415024": 2,
+      "1A415030": 2,
+      "1A415032": 2,
+      "1A415033": 2,
+      "1A415041": 8,
+      "1A415043": 2,
+      "1A415044": 2,
+      "1A415045": 4,
+      "1A415065": 4,
+      "1A416010": 2,
+      "1A421064": 2,
+      "1A432030": 10,
+      "1A432051": 2,
+      "1A433030": 15,
+      "1A433040": 24,
+      "1A434001": 2,
+      "1A435040": 2,
+      "1A436050": 1,
+      "1A441010": 10,
+      "1A441020": 24,
+      "1A442010": 22,
+      "1A442020": 12
+     }
+    },
+    "canary": {
+     "note": "canary executed and read-back verified (apply.log: applied=True verified=True); detailed pk list lost — first apply run crashed at user_mastery before JSON dump; plan data from same-session dry-run"
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 194
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "question_intelligence": {
+    "census": {
+     "total_rows": 43,
+     "rows_with_any_old_axis_code_before": 4,
+     "cohort_before": {},
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 43,
+    "rows_total_after": 43,
+    "mapped": {
+     "rows": 1,
+     "pairs": [
+      {
+       "old": "1A413002",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {}
+    },
+    "canary": {
+     "note": "canary executed and read-back verified (apply.log: applied=True verified=True); detailed pk list lost — first apply run crashed at user_mastery before JSON dump; plan data from same-session dry-run"
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 0
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "user_mastery": {
+    "census": {
+     "total_rows": 380,
+     "rows_with_any_old_axis_code_before": 9,
+     "cohort_before": {
+      "real": 9
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 380,
+    "rows_total_after": 380,
+    "mapped": {
+     "rows": 2,
+     "pairs": [
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 1
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 2,
+     "codes": {
+      "1A421064": 2
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "id": "469"
+      },
+      {
+       "id": "470"
+      },
+      {
+       "id": "2934"
+      },
+      {
+       "id": "3329"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 4,
+     "rows_flagged_unmappable": 2
+    },
+    "unique_collision_skipped": [
+     {
+      "pk": {
+       "id": "261"
+      },
+      "old": "1A411002",
+      "new": "1A411000",
+      "reason": "unique_collision_no_delete_rule"
+     },
+     {
+      "pk": {
+       "id": "262"
+      },
+      "old": "1A411002",
+      "new": "1A411000",
+      "reason": "unique_collision_no_delete_rule"
+     },
+     {
+      "pk": {
+       "id": "303"
+      },
+      "old": "1A411004",
+      "new": "1A411000",
+      "reason": "unique_collision_no_delete_rule"
+     },
+     {
+      "pk": {
+       "id": "304"
+      },
+      "old": "1A411004",
+      "new": "1A411000",
+      "reason": "unique_collision_no_delete_rule"
+     }
+    ],
+    "applied": true
+   },
+   "learner_summaries": {
+    "census": {
+     "total_rows": 77,
+     "rows_with_any_old_axis_code_before": 15,
+     "cohort_before": {
+      "real": 12,
+      "test": 3
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 77,
+    "rows_total_after": 77,
+    "mapped": {
+     "rows": 0,
+     "pairs": []
+    },
+    "unmappable_flagged": {
+     "rows": 10,
+     "codes": {
+      "1A414010": 5,
+      "1A414020": 1,
+      "1A415010": 2,
+      "1A415041": 6,
+      "1A416010": 2,
+      "1A441020": 1
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "user_id": "2651dba4-2af3-4ce4-8452-ce42fce9e03c"
+      },
+      {
+       "user_id": "da0d0a90-bb85-4e14-ba2c-1573a3a776bc"
+      },
+      {
+       "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+      },
+      {
+       "user_id": "wx_15nvMQWNrDlY"
+      },
+      {
+       "user_id": "wx_PJC1TzqzLIIM"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 10
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "learner_wikis": {
+    "census": {
+     "total_rows": 31,
+     "rows_with_any_old_axis_code_before": 9,
+     "cohort_before": {
+      "real": 9
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 31,
+    "rows_total_after": 31,
+    "mapped": {
+     "rows": 1,
+     "pairs": [
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A414010": 1,
+      "1A421064": 1
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 1
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "learner_mistake_book_items": {
+    "census": {
+     "total_rows": 948,
+     "rows_with_any_old_axis_code_before": 41,
+     "cohort_before": {
+      "real": 41
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 948,
+    "rows_total_after": 948,
+    "mapped": {
+     "rows": 0,
+     "pairs": []
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A414010": 14,
+      "1A414020": 6,
+      "1A415010": 5,
+      "1A415022": 2,
+      "1A415041": 4,
+      "1A415045": 6
+     }
+    },
+    "canary": null,
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 37
+    },
+    "unique_collision_skipped": [],
+    "applied": false
+   },
+   "user_mistakes": {
+    "census": {
+     "total_rows": 634,
+     "rows_with_any_old_axis_code_before": 47,
+     "cohort_before": {
+      "real": 47
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 634,
+    "rows_total_after": 634,
+    "mapped": {
+     "rows": 9,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411021",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A413003",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 3
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A414010": 2,
+      "1A415022": 1,
+      "1A421064": 1
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "id": "6"
+      },
+      {
+       "id": "19"
+      },
+      {
+       "id": "696"
+      },
+      {
+       "id": "161"
+      },
+      {
+       "id": "133"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 4
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "user_stats": {
+    "census": {
+     "total_rows": 2045,
+     "rows_with_any_old_axis_code_before": 122,
+     "cohort_before": {
+      "real": 120,
+      "test": 2
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 2045,
+    "rows_total_after": 2045,
+    "mapped": {
+     "rows": 19,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 15
+      },
+      {
+       "old": "1A411003",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411021",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 13
+      },
+      {
+       "old": "1A411023",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A412001",
+       "new": "1A412000",
+       "method": "chapter_prefix",
+       "occurrences": 13
+      },
+      {
+       "old": "1A412002",
+       "new": "1A412000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A413002",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 6
+      },
+      {
+       "old": "1A413003",
+       "new": "1A413000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 2
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A411001": 1,
+      "1A411002": 1,
+      "1A411003": 1,
+      "1A411004": 1,
+      "1A411021": 1,
+      "1A412001": 1,
+      "1A412002": 1,
+      "1A413002": 1,
+      "1A414010": 1,
+      "1A414011": 4,
+      "1A414012": 1,
+      "1A414020": 2,
+      "1A415022": 5,
+      "1A415041": 5,
+      "1A415044": 2,
+      "1A432051": 1
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "user_id": "4bb1960c-3da1-4d68-92fa-ad363f31da38",
+       "tag": "auto"
+      },
+      {
+       "user_id": "cdf28c62-44f2-43ad-a9c1-1bb246216f89",
+       "tag": "normal"
+      },
+      {
+       "user_id": "eb605fa1-15b2-4051-a571-0aa2ce24c67d",
+       "tag": "normal"
+      },
+      {
+       "user_id": "4c01754e-0691-4122-8b60-978be10d5437",
+       "tag": "normal"
+      },
+      {
+       "user_id": "3b20809e-0b85-4bf9-9005-60551f01596a",
+       "tag": "normal"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 2,
+     "rows_flagged_unmappable": 15
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "bot_learner_overlay_events": {
+    "census": {
+     "total_rows": 1041,
+     "rows_with_any_old_axis_code_before": 53,
+     "cohort_before": {
+      "real": 53
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 1041,
+    "rows_total_after": 1041,
+    "mapped": {
+     "rows": 52,
+     "pairs": [
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 52
+      },
+      {
+       "old": "1A411003",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 30
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 1,
+     "codes": {
+      "1A415045": 1
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "event_id": "b56e836c-cb10-4d3a-8bae-b3d9e1ed6747"
+      },
+      {
+       "event_id": "82cd6bac-b857-4cce-b959-41b8234eacd2"
+      },
+      {
+       "event_id": "fc9853f9-2332-49a4-add5-3faf205878a1"
+      },
+      {
+       "event_id": "0c02a804-1974-4d57-a090-4aaf7bb563c6"
+      },
+      {
+       "event_id": "34046c8c-a353-48fe-a0e8-d6ac232123a0"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 1
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "daily_paths": {
+    "census": {
+     "total_rows": 6,
+     "rows_with_any_old_axis_code_before": 1,
+     "cohort_before": {
+      "real": 1
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 6,
+    "rows_total_after": 6,
+    "mapped": {
+     "rows": 1,
+     "pairs": [
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {}
+    },
+    "canary": {
+     "rows": [
+      {
+       "id": "5b9d7c3c-9b71-49dd-98b5-0fea3720cae4"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 0
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "practice_sessions": {
+    "census": {
+     "total_rows": 89,
+     "rows_with_any_old_axis_code_before": 19,
+     "cohort_before": {
+      "real": 19
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 89,
+    "rows_total_after": 89,
+    "mapped": {
+     "rows": 18,
+     "pairs": [
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 18
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {}
+    },
+    "canary": {
+     "rows": [
+      {
+       "id": "91"
+      },
+      {
+       "id": "92"
+      },
+      {
+       "id": "93"
+      },
+      {
+       "id": "94"
+      },
+      {
+       "id": "95"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 0
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "assessment_forms": {
+    "census": {
+     "total_rows": 55,
+     "rows_with_any_old_axis_code_before": 52,
+     "cohort_before": {},
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 55,
+    "rows_total_after": 55,
+    "mapped": {
+     "rows": 8,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A412001",
+       "new": "1A412000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 1
+      },
+      {
+       "old": "1A442030",
+       "new": "1A422150",
+       "method": "name",
+       "occurrences": 2
+      },
+      {
+       "old": "1A442040",
+       "new": "1A425040",
+       "method": "name",
+       "occurrences": 2
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 26,
+     "codes": {
+      "1A414000": 2,
+      "1A414010": 3,
+      "1A414020": 2,
+      "1A415010": 1,
+      "1A415024": 1,
+      "1A415041": 6,
+      "1A415045": 3,
+      "1A416010": 2,
+      "1A421064": 3,
+      "1A433030": 2,
+      "1A433040": 6,
+      "1A441020": 7,
+      "1A442010": 1,
+      "1A442020": 9
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "form_id": "diagnostic_v1_form_1"
+      },
+      {
+       "form_id": "diagnostic_v1_form_2"
+      },
+      {
+       "form_id": "diagnostic_v1_form_3"
+      },
+      {
+       "form_id": "diagnostic_v1_form_4"
+      },
+      {
+       "form_id": "diagnostic_v1_form_5"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 33
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "assessment_sessions": {
+    "census": {
+     "total_rows": 97,
+     "rows_with_any_old_axis_code_before": 90,
+     "cohort_before": {
+      "real": 90
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 97,
+    "rows_total_after": 97,
+    "mapped": {
+     "rows": 37,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 33
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 5
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 82
+      },
+      {
+       "old": "1A442030",
+       "new": "1A422150",
+       "method": "name",
+       "occurrences": 38
+      },
+      {
+       "old": "1A442040",
+       "new": "1A425040",
+       "method": "name",
+       "occurrences": 12
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A414000": 1,
+      "1A414010": 15,
+      "1A414020": 12,
+      "1A415010": 5,
+      "1A415022": 13,
+      "1A415024": 1,
+      "1A415041": 4,
+      "1A415045": 11,
+      "1A421064": 1,
+      "1A433030": 7,
+      "1A433040": 22,
+      "1A442020": 34
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "session_id": "99ca2fe0-9b32-4f84-893b-f35e5b82752c"
+      },
+      {
+       "session_id": "cc7da5bf-8529-4d17-a095-928e073f9480"
+      },
+      {
+       "session_id": "faccbbed-99f9-4711-8b60-2ea26277d86d"
+      },
+      {
+       "session_id": "f05e0d0b-4682-46ba-939d-8c5ee8b1d872"
+      },
+      {
+       "session_id": "7a708574-b281-4757-a475-1567dd60729f"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 87
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "active_questions": {
+    "census": {
+     "total_rows": 961,
+     "rows_with_any_old_axis_code_before": 242,
+     "cohort_before": {
+      "real": 242
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 961,
+    "rows_total_after": 961,
+    "mapped": {
+     "rows": 14,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 3
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 4
+      },
+      {
+       "old": "1A411003",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 3
+      },
+      {
+       "old": "1A411004",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411021",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A411023",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 10
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 0,
+     "codes": {
+      "1A414011": 5,
+      "1A415041": 4,
+      "1A415065": 1,
+      "1A432002": 2
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "id": "70"
+      },
+      {
+       "id": "232"
+      },
+      {
+       "id": "913"
+      },
+      {
+       "id": "914"
+      },
+      {
+       "id": "354"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 12
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   },
+   "learner_memory_events": {
+    "census": {
+     "total_rows": 3966,
+     "rows_with_any_old_axis_code_before": 547,
+     "cohort_before": {
+      "real": 513,
+      "test": 34
+     },
+     "note": "census includes runtime-prefix-resolvable codes deliberately left to the canonical_resolution bridge"
+    },
+    "rows_total_before": 3966,
+    "rows_total_after": 3966,
+    "mapped": {
+     "rows": 57,
+     "pairs": [
+      {
+       "old": "1A411001",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 7
+      },
+      {
+       "old": "1A411002",
+       "new": "1A411000",
+       "method": "chapter_prefix",
+       "occurrences": 1
+      },
+      {
+       "old": "1A411021",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 26
+      },
+      {
+       "old": "1A411022",
+       "new": "1A411020",
+       "method": "chapter_prefix",
+       "occurrences": 2
+      },
+      {
+       "old": "1A420010",
+       "new": "1A431010-x2",
+       "method": "name",
+       "occurrences": 16
+      },
+      {
+       "old": "1A442030",
+       "new": "1A422150",
+       "method": "name",
+       "occurrences": 5
+      }
+     ]
+    },
+    "unmappable_flagged": {
+     "rows": 92,
+     "codes": {
+      "1A414000": 1,
+      "1A414010": 11,
+      "1A414020": 9,
+      "1A415010": 2,
+      "1A415022": 9,
+      "1A415024": 1,
+      "1A415041": 5,
+      "1A415045": 10,
+      "1A416010": 1,
+      "1A420161": 1,
+      "1A421064": 1,
+      "1A433030": 3,
+      "1A433040": 18,
+      "1A442020": 20
+     }
+    },
+    "canary": {
+     "rows": [
+      {
+       "event_id": "4ec75611-b7b4-4170-be9b-44aff449f828"
+      },
+      {
+       "event_id": "ce94e6dc-a585-4acb-a3e7-7fa535ac3a14"
+      },
+      {
+       "event_id": "11ef0205-76e6-43d9-b9c3-51aaf0a40bb4"
+      },
+      {
+       "event_id": "4c6eaf81-ab10-44a1-a311-753663191933"
+      },
+      {
+       "event_id": "a0460c73-a1ce-42c6-a149-271d65ec5805"
+      }
+     ],
+     "verified": true
+    },
+    "verified": {
+     "rows_with_mappable_residue": 0,
+     "rows_flagged_unmappable": 92
+    },
+    "unique_collision_skipped": [],
+    "applied": true
+   }
+  },
+  "notes": [
+   "teaching_cards: 0 stale at apply time — 1A411040 became valid again in the live tree (sweep F2 downgraded automatically); no write needed",
+   "bot_learner_overlays: 0 stale at apply time; no write needed",
+   "kb_chunks (zgup v2 KB lane): NOT in authorized task scope (lane liveness unverified, sweep F4); census only: 684/15424 rows carry old codes (93 distinct). No writes.",
+   "questions_bank analysis text old codes: cosmetic per sweep F3, not rewritten; node_code authoritative column fixed, attributes jsonb carries taxonomy_migration_20260612 / taxonomy_stale markers",
+   "user_stats verified=False in engine readback was a false negative (PK tag renames relocate rows); direct re-verification: only the 2 knowledge_map key-collision rows remain mappable",
+   "flag-only rows in tables without a dict-shaped jsonb audit column are recorded in zgup_row_change_log.json (artifact-only marker)",
+   "many flagged-unmappable codes belong to chapters 1A414/1A415/1A416/1A423/1A424/1A426 absent from the mid-revision canonical file; if the sixth revision re-adds them these flags downgrade — re-run sweep after it lands",
+   "real-user rows remediated same as qa_/operator_ cohorts per owner directive '都得改回来'; cohort split recorded in census"
+  ]
+ },
+ "bsaa_kb_v5": {
+  "concepts_total_before": 125,
+  "concepts_total_after": 125,
+  "chunks_total_before": 3596,
+  "chunks_total_after": 3596,
+  "remapped_concepts": {
+   "renamed_in_place_with_new_tree_name": 7,
+   "merged_into_existing_kept_row_zero_delete": 21,
+   "total": 28
+  },
+  "placeholders_marked_invalid": [
+   "TAX:UNKNOWN",
+   "TAX:RESOURCE",
+   "TAX:META_INFO",
+   "TAX:N/A"
+  ],
+  "flagged_unmappable_or_conflict": 39,
+  "chunks_reanchored": 115,
+  "canary": {
+   "items": [
+    "TAX:1A411030",
+    "TAX:1A432010",
+    "TAX:1A432020",
+    "TAX:1A433020",
+    "TAX:1A436010"
+   ],
+   "verified": true
+  },
+  "verification": {
+   "non_null_orphan_chunks_after": 0,
+   "tax_concepts_after": {
+    "valid": 56,
+    "flagged": 43,
+    "merged_kept": 23,
+    "unhandled": 0
+   },
+   "note": "engine verified=False was a readback artifact: renamed-away ids legitimately re-occupied by chained renames (1A431010->1A432010 after 1A432010->1A433021); direct verification clean",
+   "rename_chain_handling": "vacancy-aware fixed-point assignment + topological apply order"
+  },
+  "scope_note": "live drift widened sweep's 48 stale to 71 stale/placeholder at apply time (conflict gate also catches same-shape semantic mismatches sweep counted as valid, e.g. TAX:1A431000/1A433000/1A434000 family)",
+  "plan": {
+   "rename": [
+    {
+     "concept_id": "TAX:1A411030",
+     "new_concept_id": "TAX:1A411050",
+     "new_name": "装配式建筑设计基本要求",
+     "method": "name",
+     "detail": "substring old='装配式建筑' new='装配式建筑设计基本要求'",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A432010",
+     "new_concept_id": "TAX:1A433021",
+     "new_name": "施工进度计划编制",
+     "method": "name",
+     "detail": "substring old='施工进度计划' new='施工进度计划编制'",
+     "chunks": 26
+    },
+    {
+     "concept_id": "TAX:1A432020",
+     "new_concept_id": "TAX:1A433022",
+     "new_name": "施工进度控制",
+     "method": "name",
+     "detail": "exact name '施工进度控制'",
+     "chunks": 29
+    },
+    {
+     "concept_id": "TAX:1A433020",
+     "new_concept_id": "TAX:1A422025",
+     "new_name": "施工质量验收",
+     "method": "name",
+     "detail": "substring old='质量验收' new='施工质量验收'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A436010",
+     "new_concept_id": "TAX:1A413135",
+     "new_name": "绿色施工技术",
+     "method": "name",
+     "detail": "substring old='绿色施工' new='绿色施工技术'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A431010",
+     "new_concept_id": "TAX:1A432010",
+     "new_name": "工程招标投标",
+     "method": "name",
+     "detail": "substring old='招标投标' new='工程招标投标'",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A431020",
+     "new_concept_id": "TAX:1A432020",
+     "new_name": "工程合同管理",
+     "method": "name",
+     "detail": "substring old='合同管理' new='工程合同管理'",
+     "chunks": 2
+    }
+   ],
+   "merge": [
+    {
+     "concept_id": "TAX:1A411001",
+     "new_concept_id": "TAX:1A411000",
+     "new_name": "建筑设计与构造",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A411002",
+     "new_concept_id": "TAX:1A411000",
+     "new_name": "建筑设计与构造",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A411003",
+     "new_concept_id": "TAX:1A411000",
+     "new_name": "建筑设计与构造",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A411004",
+     "new_concept_id": "TAX:1A411000",
+     "new_name": "建筑设计与构造",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A411021",
+     "new_concept_id": "TAX:1A411020",
+     "new_name": "建筑构造设计要求",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 12
+    },
+    {
+     "concept_id": "TAX:1A411022",
+     "new_concept_id": "TAX:1A411020",
+     "new_name": "建筑构造设计要求",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A411023",
+     "new_concept_id": "TAX:1A411020",
+     "new_name": "建筑构造设计要求",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A412001",
+     "new_concept_id": "TAX:1A412000",
+     "new_name": "主要建筑工程材料的性能与应用",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 3
+    },
+    {
+     "concept_id": "TAX:1A412002",
+     "new_concept_id": "TAX:1A412000",
+     "new_name": "主要建筑工程材料的性能与应用",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A413001",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A413002",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A413003",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A413004",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A413005",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A413006",
+     "new_concept_id": "TAX:1A413000",
+     "new_name": "建筑工程施工技术",
+     "method": "chapter_prefix",
+     "detail": "old_name_check=ok",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A422010",
+     "new_concept_id": "TAX:1A431030",
+     "new_name": "施工组织设计",
+     "method": "name",
+     "detail": "exact name '施工组织设计'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A422020",
+     "new_concept_id": "TAX:1A431040",
+     "new_name": "施工平面布置",
+     "method": "name",
+     "detail": "exact name '施工平面布置'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A422030",
+     "new_concept_id": "TAX:1A431050",
+     "new_name": "施工临时用电",
+     "method": "name",
+     "detail": "exact name '施工临时用电'",
+     "chunks": 5
+    },
+    {
+     "concept_id": "TAX:1A422040",
+     "new_concept_id": "TAX:1A431060",
+     "new_name": "施工临时用水",
+     "method": "name",
+     "detail": "exact name '施工临时用水'",
+     "chunks": 4
+    },
+    {
+     "concept_id": "TAX:1A422050",
+     "new_concept_id": "TAX:1A431070",
+     "new_name": "施工检验与试验",
+     "method": "name",
+     "detail": "exact name '施工检验与试验'",
+     "chunks": 3
+    },
+    {
+     "concept_id": "TAX:1A435010",
+     "new_concept_id": "TAX:1A436000",
+     "new_name": "施工安全管理",
+     "method": "name",
+     "detail": "substring old='安全管理' new='施工安全管理'",
+     "chunks": 5
+    }
+   ],
+   "placeholder": [
+    {
+     "concept_id": "TAX:UNKNOWN",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:RESOURCE",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:META_INFO",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:N/A",
+     "chunks": 2
+    }
+   ],
+   "flag": [
+    {
+     "concept_id": "TAX:1A414010",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 5
+    },
+    {
+     "concept_id": "TAX:1A415010",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A416010",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A414020",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 3
+    },
+    {
+     "concept_id": "TAX:1A431000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['招标投标', '合同管理'] new='建筑工程项目管理实务'",
+     "chunks": 13
+    },
+    {
+     "concept_id": "TAX:1A434010",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['造价管理'] new='项目质量计划管理'",
+     "chunks": 3
+    },
+    {
+     "concept_id": "TAX:1A433010",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['质量管理体系'] new='施工进度控制方法应用'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A421064",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 0
+    },
+    {
+     "concept_id": "TAX:1A415045",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A432051",
+     "reason": "conflict",
+     "detail": "prefix target 1A432000 name mismatch old=['施工进度计划', '施工进度控制'] new='工程招标投标与合同管理'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A414023",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A414012",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415021",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415065",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A415044",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415043",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415041",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 4
+    },
+    {
+     "concept_id": "TAX:1A415024",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A415022",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A414011",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415030",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415033",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A415032",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A434001",
+     "reason": "conflict",
+     "detail": "prefix target 1A434000 name mismatch old=['造价管理'] new='施工质量管理'",
+     "chunks": 0
+    },
+    {
+     "concept_id": "TAX:1A414000",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 0
+    },
+    {
+     "concept_id": "TAX:1A430000",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 5
+    },
+    {
+     "concept_id": "TAX:1A432001",
+     "reason": "conflict",
+     "detail": "prefix target 1A432000 name mismatch old=['施工进度计划', '施工进度控制'] new='工程招标投标与合同管理'",
+     "chunks": 8
+    },
+    {
+     "concept_id": "TAX:1A432002",
+     "reason": "conflict",
+     "detail": "prefix target 1A432000 name mismatch old=['施工进度计划', '施工进度控制'] new='工程招标投标与合同管理'",
+     "chunks": 15
+    },
+    {
+     "concept_id": "TAX:1A437000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['资源管理'] new='绿色建造及施工现场环境管理'",
+     "chunks": 48
+    },
+    {
+     "concept_id": "TAX:1A422000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['施工组织设计', '施工平面布置', '施工临时用电'] new='第4章 相关法规'",
+     "chunks": 60
+    },
+    {
+     "concept_id": "TAX:1A400000",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 2
+    },
+    {
+     "concept_id": "TAX:1A432040",
+     "reason": "conflict",
+     "detail": "prefix target 1A432000 name mismatch old=['施工进度计划', '施工进度控制'] new='工程招标投标与合同管理'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A436050",
+     "reason": "conflict",
+     "detail": "prefix target 1A436000 name mismatch old=['绿色施工'] new='施工安全管理'",
+     "chunks": 1
+    },
+    {
+     "concept_id": "TAX:1A432000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['施工进度计划', '施工进度控制'] new='工程招标投标与合同管理'",
+     "chunks": 19
+    },
+    {
+     "concept_id": "TAX:1A434000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['造价管理'] new='施工质量管理'",
+     "chunks": 50
+    },
+    {
+     "concept_id": "TAX:1A435000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['安全管理'] new='施工成本管理'",
+     "chunks": 60
+    },
+    {
+     "concept_id": "TAX:1A433000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['质量管理体系', '质量验收'] new='施工进度管理'",
+     "chunks": 78
+    },
+    {
+     "concept_id": "TAX:1A421000",
+     "reason": "unmappable",
+     "detail": "",
+     "chunks": 8
+    },
+    {
+     "concept_id": "TAX:1A436000",
+     "reason": "conflict",
+     "detail": "already-valid same-shape name mismatch old=['绿色施工'] new='施工安全管理'",
+     "chunks": 84
+    }
+   ]
+  }
+ },
+ "fastapi_source": {
+  "repo": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222 (NOT a git repository — files changed in place, no commit possible)",
+  "guarded_one_off_scripts": {
+   "action": "header guard comment + sys.exit('BLOCKED(20260612): 旧轴脚本，重跑前必须迁移到 book-derived 轴'); all 15 verified parse-ok, 3 sampled verified exec-blocked",
+   "files": [
+    "scripts/import_hx500.py",
+    "scripts/import_smr_qtz.py",
+    "scripts/import_ww_qcbl.py",
+    "scripts/patch_json_missing_questions.py",
+    "scripts/patch_2019_2023_missing_questions.py",
+    "scripts/patch_2025_missing_questions.py",
+    "scripts/extract_grading_keywords_from_hq.py",
+    "scripts/kb_rebuild/insert_gap_chunks.py",
+    "scripts/kb_rebuild/insert_gap_chunks_r2.py",
+    "scripts/kb_rebuild/insert_gap_chunks_r3.py",
+    "scripts/kb_rebuild/insert_gap_chunks_r4.py",
+    "scripts/kb_rebuild/insert_gap_chunks_r4_fix.py",
+    "scripts/kb_rebuild/insert_gap_chunks_r5.py",
+    "scripts/kb_rebuild/insert_2026_delta_chunks.py",
+    "scripts/kb_rebuild/tag_2025_lecture_chunks.py"
+   ]
+  },
+  "html_visualizations": {
+   "generator_search": "no generator found in docs/2026/scripts/ or scripts/ (one-shot mockups); regeneration not possible",
+   "renamed": [
+    "docs/2026/_kmap_mockups.html -> _kmap_mockups.html.old_axis",
+    "docs/2026/_kmap_prototype.html -> _kmap_prototype.html.old_axis",
+    "docs/2026/_syllabus_graph.html -> _syllabus_graph.html.old_axis"
+   ]
+  },
+  "left_untouched": [
+   "scripts/retest_failed_cases.py / resolve_remaining_multi_choice_single_answer.py: codes only inside EXAM_/QTZ_ chunk ids (provenance-exempt)",
+   "scripts/build_practice_taxonomy_skill_resources.py: embeds pre_book point-id examples in guidance text (F12-class, low) — out of task scope, follow-up candidate",
+   "F12 docstring/tool-description example codes in active services: out of scope per sweep ('when convenient')"
+  ]
+ },
+ "blockers_and_residue": [
+  {
+   "surface": "zgup user_mastery",
+   "rows": 4,
+   "issue": "target_id rename collides with existing (user_id,target_type,new_code) row; zero-delete rule forbids merge; rows untouched + listed in unique_collision_skipped (ids 261,262,303,304)"
+  },
+  {
+   "surface": "zgup user_stats",
+   "rows": 2,
+   "issue": "knowledge_map holds BOTH old and new code keys; key rename would overwrite existing mastery entry (destructive merge) — left + artifact-flagged (deep_memory rows, users 2d9eac15/b351cf61)"
+  },
+  {
+   "surface": "zgup kb_chunks",
+   "issue": "out of authorized scope (v2 lane liveness unverified); 684 rows still carry old codes — census recorded, read-only"
+  },
+  {
+   "surface": "flagged unmappable",
+   "issue": "marker {taxonomy_stale:{flagged:'20260612',reason:'unmappable'}} written to a row jsonb column where safely possible, else artifact zgup_row_change_log.json; re-run sweep after sixth revision lands"
+  },
+  {
+   "surface": "first apply run",
+   "issue": "process crashed at user_mastery unique violation AFTER questions_bank/question_intelligence committed+verified; their detailed canary pk lists lost (reconstructed from dry-run + apply.log)"
+  }
+ ]
+}

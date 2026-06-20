@@ -1,0 +1,216 @@
+{
+  "schema": "luban_data_asset_buckets.v1",
+  "asset_buckets": [
+    {
+      "id": "all_raw_files",
+      "label": "全原始资产文件",
+      "count": 1107,
+      "unit": "file",
+      "bytes": 4746166407,
+      "primary_entry": "docs/原始数据",
+      "ai_use": "快速判断资产总体规模、文件类型、容量结构",
+      "readiness": "inventory_ready",
+      "authority_status": "raw_asset_inventory"
+    },
+    {
+      "id": "cleaned_json_sources",
+      "label": "清洗 JSON 源",
+      "count": 383,
+      "unit": "json_file",
+      "bucket_counts": {
+        "exam_cleaned_json": 11,
+        "lecture_cleaned_json": 335,
+        "practice_qiantizan_json": 1,
+        "practice_zl500_json": 1,
+        "standard_cleaned_json": 8,
+        "taxonomy_backup_json": 8,
+        "taxonomy_cleaned_json": 1,
+        "textbook_cleaned_json": 6,
+        "textbook_core_json": 3,
+        "textbook_enrichment_json": 6,
+        "textbook_index_json": 3
+      },
+      "primary_entry": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl",
+      "ai_use": "AI 快速定位教材、真题、讲义、标准、taxonomy 的结构化入口",
+      "readiness": "machine_readable_ledger_ready",
+      "authority_status": "raw_evidence_ledger"
+    },
+    {
+      "id": "exam_cleaned_json",
+      "label": "历年真题结构化 JSON",
+      "count": 11,
+      "unit": "year_file",
+      "metrics": {
+        "years": [
+          2015,
+          2016,
+          2017,
+          2018,
+          2019,
+          2020,
+          2021,
+          2022,
+          2023,
+          2024,
+          2025
+        ],
+        "chunks": 464,
+        "exercises": 555,
+        "choice_questions": 337,
+        "case_questions": 218,
+        "case_analysis_nonempty": 161,
+        "case_score_nonnull": 206,
+        "taxonomy_missing_chunks": 70
+      },
+      "primary_entry": "docs/原始数据/2026_副本/题库/*/FINAL_CLEANED_EXAM_V*.json",
+      "ai_use": "真题覆盖、考点频次、案例题候选 rubric、客观题确定性判分",
+      "readiness": "structured_high_with_case_rubric_gap",
+      "authority_status": "source_evidence_not_official_score"
+    },
+    {
+      "id": "practice_question_banks",
+      "label": "章节练习库",
+      "count": 1033,
+      "unit": "exercise",
+      "metrics": {
+        "files": 2,
+        "correct_answer_nonempty": 1033,
+        "analysis_nonempty": 1033
+      },
+      "primary_entry": "docs/原始数据/2026_副本/题库/864考证宝典ZL + 章节千题斩SMR",
+      "ai_use": "客观题练习、错因解释、章节覆盖监控",
+      "readiness": "structured_high_for_objective_questions",
+      "authority_status": "practice_source_evidence"
+    },
+    {
+      "id": "textbook_2026",
+      "label": "2026 教材结构化内容",
+      "count": 650,
+      "unit": "content_block",
+      "metrics": {
+        "fixed_files": 3,
+        "first_cleaned_files": 3
+      },
+      "primary_entry": "docs/原始数据/2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-*fixed.json",
+      "ai_use": "教材讲解、知识点 grounding、候选知识卡生成",
+      "readiness": "structured_high",
+      "authority_status": "textbook_source_evidence"
+    },
+    {
+      "id": "taxonomy_2026",
+      "label": "2026 taxonomy",
+      "count": 2116,
+      "unit": "node",
+      "metrics": {
+        "leaf_count": 1976,
+        "book_derived_leaf_count": 1681,
+        "anchored_chunk_count": 650
+      },
+      "primary_entry": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+      "ai_use": "章节/知识点路由、覆盖率、学习路径锚点",
+      "readiness": "structured_high_with_mapping_gaps",
+      "authority_status": "taxonomy_source_evidence"
+    },
+    {
+      "id": "standards_json",
+      "label": "规范/标准结构化 JSON",
+      "count": 8,
+      "unit": "standard_file",
+      "metrics": {
+        "nodes": 5077,
+        "content_blocks": 2785,
+        "unmatched_nodes": 1
+      },
+      "primary_entry": "docs/原始数据/2026_副本/标准文件/*.json",
+      "ai_use": "规范引用、案例解释 grounding、图解/构造内容约束",
+      "readiness": "structured_high_for_grounding",
+      "authority_status": "standard_source_evidence_not_exam_rubric"
+    },
+    {
+      "id": "lecture_json",
+      "label": "讲义 JSON",
+      "count": 327,
+      "unit": "page_json",
+      "metrics": {
+        "packages": 8,
+        "aggregate_json": 8
+      },
+      "primary_entry": "docs/原始数据/2026_副本/讲义/*/page_*.json",
+      "ai_use": "老师表达、讲义讲解、专题化解释素材",
+      "readiness": "structured_medium",
+      "authority_status": "lecture_source_evidence"
+    },
+    {
+      "id": "pdf_library",
+      "label": "PDF 原件库",
+      "count": 95,
+      "unit": "pdf_file",
+      "bytes": 4386216862,
+      "metrics": {
+        "pdf_by_top_subdir": {
+          "一建建筑实务（智能体资料）_副本": 46,
+          "行业标准文件": 21,
+          "建筑实务11.20_副本": 12,
+          "讲义": 9,
+          "真题": 6,
+          "教材": 1
+        }
+      },
+      "primary_entry": "docs/原始数据/PDF",
+      "ai_use": "补源、视觉核查、OCR 回溯、原件审计",
+      "readiness": "raw_evidence_needs_ocr_or_existing_json",
+      "authority_status": "raw_source_not_direct_compiled_context"
+    },
+    {
+      "id": "rendered_images",
+      "label": "渲染/图片资产",
+      "count": 615,
+      "unit": "image_file",
+      "metrics": {
+        "image_by_extension": {
+          ".png": 611,
+          ".jpg": 4
+        },
+        "render_check_png": {
+          "docx_render_check": 299,
+          "docx_render_check_v2": 312
+        }
+      },
+      "primary_entry": "docs/原始数据/2026_副本/**/docx_render_check*",
+      "ai_use": "OCR/视觉核查、题卷排版证据、图像回溯",
+      "readiness": "raw_visual_evidence",
+      "authority_status": "visual_evidence_not_text_truth"
+    },
+    {
+      "id": "compiled_assets_ledger",
+      "label": "编译资产 / artifacts 总账",
+      "count": 5059,
+      "unit": "compiled_asset_file",
+      "bytes": 740257453,
+      "metrics": {
+        "asset_groups": 21,
+        "manifest_like_files": 552,
+        "manifest_refs_copied": 545
+      },
+      "primary_entry": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
+      "ai_use": "定位 artifacts/workbench/runtime_supply 编译产物、区分 shadow candidate 与 runtime supply",
+      "readiness": "inventory_ready_not_runtime_truth",
+      "authority_status": "compiled_asset_inventory_only"
+    },
+    {
+      "id": "case_rubric_candidate_scope",
+      "label": "案例题 OKF-like 候选评分工件",
+      "count": 431,
+      "unit": "candidate_scoring_point",
+      "metrics": {
+        "cases": 25,
+        "rubrics": 117,
+        "scoring_points": 431
+      },
+      "primary_entry": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0",
+      "ai_use": "案例题候选采分点检索、source-layer 对齐、后续专家复核入口",
+      "readiness": "source_layer_candidate_complete",
+      "authority_status": "candidate_only_not_official_score"
+    }
+  ]
+}

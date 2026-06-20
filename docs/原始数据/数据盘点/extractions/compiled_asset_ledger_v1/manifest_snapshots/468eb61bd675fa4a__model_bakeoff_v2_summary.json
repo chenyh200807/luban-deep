@@ -1,0 +1,145 @@
+{
+  "schema_version": "luban-agentic-model-bakeoff-v2",
+  "status": "directional_shadow",
+  "gate": {
+    "min_point_hit_agreement": 0.93,
+    "max_mean_abs_score_delta": 0.55,
+    "max_unsupported_judgment_count": 0,
+    "min_sample_count": 24,
+    "min_point_count": 131
+  },
+  "baselines": [
+    {
+      "id": "human_vs_artifact_first",
+      "label": "artifact_first baseline",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.5267,
+      "mean_abs_score_delta": 4.6091,
+      "disagreement_count": 71
+    },
+    {
+      "id": "human_vs_ledger",
+      "label": "human_vs_ledger ceiling",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.9618,
+      "mean_abs_score_delta": 0.4292,
+      "disagreement_count": 15
+    }
+  ],
+  "arms": [
+    {
+      "id": "qwen37_primary",
+      "label": "Qwen3.7-plus primary",
+      "protocol": "agentic_packet",
+      "metrics_path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_crossmodel_qwen_20260603/crossmodel_metrics.json",
+      "metrics_key": "agentic_arms.qwen_primary",
+      "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.9389,
+      "mean_abs_score_delta": 0.4131,
+      "unsupported_judgment_count": 0,
+      "unsupported_judgment_rate": 0.0,
+      "disagreement_count": 11,
+      "gate": "pass",
+      "gate_reasons": []
+    },
+    {
+      "id": "qwen37_nothink_primary",
+      "label": "Qwen3.7-plus no-think primary",
+      "protocol": "agentic_packet_nothink",
+      "metrics_path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_crossmodel_qwen_20260603/qwen_nothink_metrics.json",
+      "metrics_key": "agentic_arms.qwen_primary_nothink",
+      "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.916,
+      "mean_abs_score_delta": 0.6927,
+      "unsupported_judgment_count": 1,
+      "unsupported_judgment_rate": 0.0076,
+      "disagreement_count": 18,
+      "gate": "fail",
+      "gate_reasons": [
+        "point_hit_agreement=0.916 < 0.93",
+        "mean_abs_score_delta=0.6927 > 0.55",
+        "unsupported_judgment_count=1"
+      ]
+    },
+    {
+      "id": "deepseek_typed_policy_span_guarded_dual",
+      "label": "DeepSeek-v4-flash typed-policy dual + span guard",
+      "protocol": "typed_policy_span_guard",
+      "metrics_path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_prediction_metrics_span_guarded.json",
+      "metrics_key": "agentic_arms.deepseek_v4_flash_dual_adjudicated",
+      "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.9466,
+      "mean_abs_score_delta": 0.4999,
+      "unsupported_judgment_count": 0,
+      "unsupported_judgment_rate": 0.0,
+      "disagreement_count": 17,
+      "gate": "pass",
+      "gate_reasons": []
+    },
+    {
+      "id": "gpt55_opus48_dual",
+      "label": "GPT5.5 + Opus4.8 dual",
+      "protocol": "agentic_packet_dual",
+      "metrics_path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_agentic_20260602/agentic_prediction_metrics.json",
+      "metrics_key": "agentic_arms.dual_adjudicated",
+      "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+      "sample_count": 24,
+      "point_count": 131,
+      "point_hit_agreement": 0.9389,
+      "mean_abs_score_delta": 0.4645,
+      "unsupported_judgment_count": 0,
+      "unsupported_judgment_rate": 0.0,
+      "disagreement_count": 13,
+      "gate": "pass",
+      "gate_reasons": []
+    }
+  ],
+  "slice_consistency": {
+    "same_slice": true,
+    "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+    "sample_counts": [
+      24
+    ],
+    "point_counts": [
+      131
+    ],
+    "same_sample_point_scope": true
+  },
+  "protocol_consistency": {
+    "same_protocol": false,
+    "protocols": [
+      "agentic_packet",
+      "agentic_packet_dual",
+      "agentic_packet_nothink",
+      "typed_policy_span_guard"
+    ],
+    "note": "Current bakeoff is same human slice and scorer, but mixed prediction protocols. Use it as candidate screening; run a unified packet before runtime promotion."
+  },
+  "best_candidate": {
+    "id": "qwen37_primary",
+    "label": "Qwen3.7-plus primary",
+    "protocol": "agentic_packet",
+    "metrics_path": "artifacts/luban_agentic_grading_harness/po_slice_20260601_crossmodel_qwen_20260603/crossmodel_metrics.json",
+    "metrics_key": "agentic_arms.qwen_primary",
+    "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+    "sample_count": 24,
+    "point_count": 131,
+    "point_hit_agreement": 0.9389,
+    "mean_abs_score_delta": 0.4131,
+    "unsupported_judgment_count": 0,
+    "unsupported_judgment_rate": 0.0,
+    "disagreement_count": 11,
+    "gate": "pass",
+    "gate_reasons": []
+  },
+  "production_runtime_decision": "not_approved",
+  "next_gate": "larger_unified_typed_policy_shadow_eval_50_to_100_answers"
+}

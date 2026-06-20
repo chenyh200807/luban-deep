@@ -25,6 +25,10 @@ skills:
     path: agent-skills/deeptutor-code-simplification/SKILL.md
     lane: review
     expected_use: conditional
+  - name: deeptutor-ci-runtime-fix-gate
+    path: agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md
+    lane: ci
+    expected_use: conditional
   - name: deeptutor-docs-adr-gate
     path: agent-skills/deeptutor-docs-adr-gate/SKILL.md
     lane: docs
@@ -83,6 +87,10 @@ skills:
     expected_use: conditional
   - name: luban-diagram-microlesson
     path: agent-skills/luban-diagram-microlesson/SKILL.md
+    lane: luban
+    expected_use: conditional
+  - name: luban-okf-context
+    path: agent-skills/luban-okf-context/SKILL.md
     lane: luban
     expected_use: conditional
   - name: luban-rich-leaf-compiler

@@ -1,0 +1,18 @@
+{
+  "source_laundering_blocked": 0,
+  "candidate_used_as_release_truth": 0,
+  "illegit_promote_outside_s5": 0,
+  "promoted_count": 1303,
+  "rag_chunk_as_answer_key": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "official_answer_as_source": 0,
+  "list_partial_auto": 0,
+  "key_number_not_in_text_signed": 0,
+  "external_or_reviewonly_auto_signed": 0,
+  "production_write_count": 0,
+  "published": false,
+  "canonical_truth_written": false,
+  "tamper_fail_closed": true,
+  "all_candidates_separate_namespace": true
+}

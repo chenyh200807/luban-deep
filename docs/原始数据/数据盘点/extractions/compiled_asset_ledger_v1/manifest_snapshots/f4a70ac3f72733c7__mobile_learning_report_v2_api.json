@@ -1,0 +1,1288 @@
+{
+  "ok": true,
+  "user_id": "qa_p4_ws_readback",
+  "schema_version": 2,
+  "authority": {
+    "read_model": "learning-report-read-model",
+    "progress_source": "learner_memory_events.learning_evidence",
+    "learning_brain_source": "dry_run_learning_evidence",
+    "learning_brain_degraded": true,
+    "personalization_context_source": "PersonalizationContextPack",
+    "next_best_action_source": "training_intent",
+    "note_assets_source": "learner_notebook_cards",
+    "today_tasks_source": "learning-report-read-model.note_assets",
+    "deprecated_page_sources": [
+      "/api/v1/practice/today-progress",
+      "/api/v1/homepage/dashboard",
+      "/api/v1/assessment/profile",
+      "/api/v1/plan/mastery-dashboard",
+      "/api/v1/learning-brain/projection"
+    ],
+    "conversation_source": "learner_memory_events.learning_evidence[evidence_source=conversation_synthesis]",
+    "attempt_detail_source": "attempt-detail-read-model",
+    "mistake_book_source": "learner_mistake_book_items",
+    "training_intent_source": "learning-report-read-model",
+    "home_context_source": "home_dashboard.today_focus/recommended_prompts"
+  },
+  "degraded": false,
+  "degraded_sources": [],
+  "source_status": {
+    "today_progress": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "home_dashboard": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "assessment_profile": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "mastery_dashboard": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "learner_events": {
+      "ok": true,
+      "latency_ms": 1,
+      "error": null
+    },
+    "note_assets": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null,
+      "count": 0
+    },
+    "compiled_truth": {
+      "ok": true,
+      "latency_ms": 0,
+      "error": null
+    },
+    "dry_run_synthesis": {
+      "ok": true,
+      "latency_ms": 1,
+      "error": null
+    }
+  },
+  "feature_flags": {
+    "flag": "LEARNING_STATE_INFERENCE_V2",
+    "stage": "off",
+    "enabled": false,
+    "evidence": false,
+    "state_projection": false,
+    "action_loop": false,
+    "verification": false
+  },
+  "freshness": {
+    "generated_at": "2026-06-12T00:22:05.665953+08:00",
+    "event_count": 1,
+    "latest_event_at": "2026-06-12T00:13:54.619366+08:00",
+    "unknown_date_count": 0,
+    "window_truncated": false
+  },
+  "overview": {
+    "today_done": 1,
+    "recent_three_done": 1,
+    "attempt_count": 1,
+    "today_unique_questions": 1,
+    "recent_three_unique_questions": 1,
+    "unique_question_count": 1,
+    "daily_target": 30,
+    "streak_days": 1,
+    "weak_node_count": 0,
+    "due_today_count": 0,
+    "focus_hint": "优先补强采分点遗漏",
+    "learner_level": "qa",
+    "study_tip": "",
+    "overall_mastery": 33
+  },
+  "progress_feedback": {
+    "summary": "近 3 天已累计完成 1 次练习，节奏刚刚建立起来，继续推进就会看到更稳的变化",
+    "insight": "这段时间你主要在补“施工临时用电”，已积累 1 条练习证据",
+    "cards": [
+      {
+        "label": "近 3 天完成",
+        "value": "1次",
+        "detail": "刚开始形成连续输出",
+        "tone_class": "tone-good"
+      },
+      {
+        "label": "连续学习",
+        "value": "1天",
+        "detail": "还在建立连续性",
+        "tone_class": "tone-accent"
+      },
+      {
+        "label": "主攻主题",
+        "value": "1条证据",
+        "detail": "最近在补“施工临时用电”",
+        "tone_class": "tone-accent"
+      },
+      {
+        "label": "复习压力",
+        "value": "0项",
+        "detail": "当前复习压力可控",
+        "tone_class": "tone-good"
+      }
+    ],
+    "milestones": [
+      {
+        "title": "最近 3 天保持输出",
+        "detail": "累计已完成 1 次练习，节奏没有断开",
+        "tone_class": "tone-accent"
+      },
+      {
+        "title": "主攻章节开始沉淀",
+        "detail": "“施工临时用电”已积累 1 条练习证据，已经有持续推进的迹象",
+        "tone_class": "tone-accent"
+      },
+      {
+        "title": "今日学习已经启动",
+        "detail": "今天已完成 1/30 次练习，把当天目标打满会更容易看到正向反馈",
+        "tone_class": "tone-accent"
+      }
+    ]
+  },
+  "mastery": {
+    "overall_mastery": {
+      "score": 33,
+      "confidence": 0.33,
+      "status": "insufficient_evidence",
+      "sample_count": 1,
+      "coverage_ratio": 0.2,
+      "last_practiced_at": "2026-06-12T00:13:54.619366+08:00",
+      "level": "observed",
+      "forgetting_risk": 0.6,
+      "needs_revalidation": true,
+      "decay_profile_days": 14
+    },
+    "groups": [
+      {
+        "name": "练习证据",
+        "avg_mastery": 33,
+        "avg_status": "weak",
+        "avg_class": "avg-low",
+        "chapters": [
+          {
+            "textbook_chapter_no": 6,
+            "textbook_chapter_name": "第6章 建筑工程企业资质与施工组织",
+            "textbook_section_name": "施工临时用电",
+            "taxonomy_path": [
+              "施工临时用电"
+            ],
+            "parent_name": "施工临时用电",
+            "name": "施工临时用电",
+            "mastery": 33,
+            "status": "weak",
+            "color": "#f87171",
+            "done": 1,
+            "correct": 0,
+            "last_activity_at": "2026-06-12T00:13:54.619366+08:00",
+            "source": "learning_evidence"
+          }
+        ]
+      }
+    ],
+    "hotspots": [
+      {
+        "textbook_chapter_no": 6,
+        "textbook_chapter_name": "第6章 建筑工程企业资质与施工组织",
+        "textbook_section_name": "施工临时用电",
+        "taxonomy_path": [
+          "施工临时用电"
+        ],
+        "parent_name": "施工临时用电",
+        "name": "施工临时用电",
+        "mastery": 33,
+        "status": "weak",
+        "color": "#f87171",
+        "done": 1,
+        "correct": 0,
+        "last_activity_at": "2026-06-12T00:13:54.619366+08:00",
+        "source": "learning_evidence"
+      }
+    ],
+    "knowledge_summary": {
+      "total_nodes": 3735,
+      "coded_nodes": 3733,
+      "leaf_nodes": 2786,
+      "unique_codes": 1284,
+      "duplicate_code_rows": 2449,
+      "total_textbook_chapters": 13,
+      "evaluated_topics": 1,
+      "evaluated_leaf_points": 0,
+      "mastered_topics": 0,
+      "developing_topics": 0,
+      "weak_topics": 1,
+      "unmeasured_leaf_points": 2786,
+      "textbook_chapters": [
+        {
+          "chapter_no": 1,
+          "chapter_name": "第1章 建筑工程设计技术",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 2,
+          "chapter_name": "第2章 主要建筑工程材料的性能与应用",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 3,
+          "chapter_name": "第3章 建筑工程施工技术",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 4,
+          "chapter_name": "第4章 相关法规",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 5,
+          "chapter_name": "第5章 相关标准",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 6,
+          "chapter_name": "第6章 建筑工程企业资质与施工组织",
+          "section_count": 0,
+          "evaluated_topics": 1,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 1,
+          "top_topics": [
+            "施工临时用电"
+          ],
+          "status": "weak"
+        },
+        {
+          "chapter_no": 7,
+          "chapter_name": "第7章 工程招标投标与合同管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 8,
+          "chapter_name": "第8章 施工进度管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 9,
+          "chapter_name": "第9章 施工质量管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 10,
+          "chapter_name": "第10章 施工成本管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 11,
+          "chapter_name": "第11章 施工安全管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 12,
+          "chapter_name": "第12章 绿色建造及施工现场环境管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        },
+        {
+          "chapter_no": 13,
+          "chapter_name": "第13章 施工资源管理",
+          "section_count": 0,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        }
+      ]
+    },
+    "review_summary": {
+      "total_due": 0
+    },
+    "dimensions": [
+      {
+        "name": "施工临时用电",
+        "score": 33,
+        "confidence": 0.33,
+        "status": "insufficient_evidence",
+        "sample_count": 1,
+        "coverage_ratio": 0.2,
+        "last_practiced_at": "2026-06-12T00:13:54.619366+08:00",
+        "level": "observed",
+        "forgetting_risk": 0.6,
+        "needs_revalidation": true,
+        "decay_profile_days": 14
+      }
+    ]
+  },
+  "radar_dimensions": [
+    {
+      "name": "施工临时用电",
+      "value": 0.33,
+      "score": 33,
+      "rate_text": "33%",
+      "status": "weak",
+      "level": "weak",
+      "color": "#f87171",
+      "taxonomy_path": [
+        "施工临时用电"
+      ],
+      "parent_name": "施工临时用电",
+      "textbook_chapter_no": 6,
+      "textbook_chapter_name": "第6章 建筑工程企业资质与施工组织",
+      "textbook_section_name": "施工临时用电"
+    }
+  ],
+  "study_plan": {
+    "focus_topic": "施工临时用电",
+    "priority_task": "先做 3 道“施工临时用电”专项题",
+    "study_method": "先辨清条件边界，再说出判断抓手，换场景练一次，最后用验证题闭环",
+    "time_budget": "约 8 分钟",
+    "coach_note": "最近 1 次作答暴露“采分点遗漏”，先围绕“施工临时用电”修正判断抓手。",
+    "source": "training_prescription"
+  },
+  "learning_brain": {
+    "ok": true,
+    "projection_subject": "construction_exam_learning_truth",
+    "schema_version": 2,
+    "output_projection_hash": "sha256:200ec99d8d6f0c0f2a196c49e08fb9cf57a33f6db2019c2146ed48f05664a746",
+    "synthesis_run": {
+      "output_projection_hash": "sha256:200ec99d8d6f0c0f2a196c49e08fb9cf57a33f6db2019c2146ed48f05664a746",
+      "status": "dry_run_ok",
+      "input_event_count": 1
+    },
+    "weak_points": [],
+    "visible_sections": {
+      "current_truth": [
+        {
+          "key": "truth-0",
+          "current_truth": "施工临时用电 上出现 采分点遗漏 错因",
+          "evidence_level": "L0_observed",
+          "evidence_level_label": "单次观察",
+          "memory_lifecycle_stage": "short_term_learning_memory",
+          "memory_lifecycle_label": "短期观察",
+          "confidence": 0.45,
+          "display_title": "施工临时用电 上出现 采分点遗漏 错因",
+          "display_meta": "错因：施工临时用电 / 采分点遗漏",
+          "supporting_event_labels": [
+            "最近一次批改"
+          ]
+        }
+      ],
+      "evidence_flow": [
+        {
+          "key": "evidence-0",
+          "display_label": "错因",
+          "display_title": "施工临时用电 上出现 采分点遗漏 错因",
+          "display_path": "施工临时用电 上出现 采分点遗漏 错因",
+          "tone": ""
+        }
+      ],
+      "next_training": []
+    },
+    "graph_chain": {
+      "has_training_uses_question": false,
+      "has_training_improved_error": false,
+      "has_training_not_improved_error": false,
+      "training_uses_question": [],
+      "training_improved_error": [],
+      "training_not_improved_error": []
+    },
+    "event_count": 1,
+    "created_claim_count": 0,
+    "typed_graph_edge_count": 10
+  },
+  "learner_facing": {
+    "summary": {
+      "title": "今日学习复盘",
+      "headline": "最近 1 次练习里，重点关注 施工临时用电。",
+      "today_done": 1,
+      "recent_three_done": 1,
+      "primary_focus": "施工临时用电",
+      "weak_count": 1
+    },
+    "recent_attempts": [
+      {
+        "key": "attempt-44782115d8a7",
+        "attempt_ref": "eyJlIjoiMjkzNmRhY2NlOGUzNDY4NjhkZTIxN2UzOTc1NTM4OWQiLCJrIjoidjEiLCJxIjoiY2FzZS1wNC13cy1yZWFkYmFjayIsInUiOiJxYV9wNF93c19yZWFkYmFjayIsInYiOjF9LjJiZjliNDMzYzNiYjhkOGI3MWI0OGY0NA",
+        "subject_id": "construction_exam_1",
+        "bot_id": "construction-exam",
+        "time_label": "今天 00:13",
+        "title": "临时用电",
+        "question_text": "临时用电",
+        "options": [],
+        "concept": "施工临时用电",
+        "result_label": "答错",
+        "tone": "wrong",
+        "answer_line": "你选：共用一个开关箱不妥，应采用专用开关箱",
+        "diagnosis": "采分点遗漏",
+        "diagnosis_detail": "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+        "explanation": "先回看本题条件和选项边界：漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+        "evidence_label": "最近一次批改",
+        "collectable": true,
+        "is_bookmarked": false,
+        "bookmark_label": "",
+        "detail_lines": [
+          "你选：共用一个开关箱不妥，应采用专用开关箱",
+          "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+          "先回看本题条件和选项边界：漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案"
+        ],
+        "quality": {
+          "degraded_reason": "解析暂缺；题干暂缺",
+          "detail_ready": false,
+          "evidence_cap_reasons": [
+            "missing_rag_evidence"
+          ],
+          "evidence_level": "L0_observed",
+          "missing_fields": [
+            "explanation",
+            "concept_label",
+            "question_stem"
+          ],
+          "progress_countable": true,
+          "stable_truth_eligible": false,
+          "truth_eligible": false,
+          "writeback_eligible": true
+        }
+      }
+    ],
+    "diagnoses": [
+      {
+        "key": "施工临时用电::采分点遗漏",
+        "level_label": "需要重点补",
+        "title": "施工临时用电：采分点遗漏",
+        "concept": "施工临时用电",
+        "error": "采分点遗漏",
+        "meta": "最近出现 2 次",
+        "detail": "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+        "action": "先做 3 道施工临时用电相关辨析题",
+        "count": 2,
+        "evidence_refs": [
+          "evidence-44782115d8a7"
+        ],
+        "topic_candidates": [
+          "临时用电"
+        ]
+      }
+    ],
+    "evidence_timeline": [
+      {
+        "key": "timeline-0",
+        "time_label": "今天 00:13",
+        "title": "临时用电",
+        "line": "答错；你选：共用一个开关箱不妥，应采用专用开关箱；采分点遗漏",
+        "tone": "wrong"
+      }
+    ],
+    "training_loops": [
+      {
+        "key": "loop-0",
+        "title": "采分点遗漏",
+        "from": "错因：施工临时用电 / 采分点遗漏",
+        "training": "训练：先做 3 道施工临时用电相关辨析题",
+        "outcome": "变化：仍需通过下一轮训练验证",
+        "tone": "not-improved"
+      }
+    ],
+    "next_action": {
+      "title": "先做 3 道“施工临时用电”专项题",
+      "subtitle": "目标：把“采分点遗漏”这一类错误拉回主线",
+      "concept": "施工临时用电",
+      "error": "采分点遗漏",
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_5dd856050df09bf7",
+        "concept_id": "",
+        "concept_label": "施工临时用电",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-44782115d8a7"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.667
+      },
+      "cta": "开始训练",
+      "estimated_minutes": 8,
+      "action_id": "nba_1_lti_5dd856050df09bf7",
+      "training_intent_id": "lti_5dd856050df09bf7",
+      "source": "training_intent",
+      "prescription_authority": "training_intent",
+      "why_this_now": "该训练意图有 1 条学习证据支持。",
+      "evidence_refs": [
+        "evidence-44782115d8a7"
+      ]
+    }
+  },
+  "truth_sections": {
+    "stable_truths": [],
+    "recent_observations": [
+      {
+        "label": "施工临时用电：采分点遗漏",
+        "concept": "施工临时用电",
+        "error": "采分点遗漏",
+        "count": 1,
+        "stable_count": 1,
+        "latest_at": "2026-06-12T00:13:54.619366+08:00",
+        "conversation_only": false,
+        "level_label": "刚发现"
+      }
+    ],
+    "needs_confirmation": []
+  },
+  "personalization_context": {
+    "schema_version": 1,
+    "user_id": "qa_p4_ws_readback",
+    "source": "PersonalizationContextPack",
+    "authority": {
+      "claims": "learning_synthesis",
+      "evidence": "learner_memory_events.learning_evidence",
+      "prescription": "training_intent"
+    },
+    "top_claims": [
+      {
+        "claim_id": "1A431050:E02",
+        "object_type": "error",
+        "claim_status": "observed",
+        "decay_state": "active",
+        "trend_state": "first_observation",
+        "concept_id": "",
+        "label": "施工临时用电 上出现 采分点遗漏 错因",
+        "confidence": 0.45,
+        "evidence_refs": [
+          "2936dacce8e346868de217e39755389d"
+        ],
+        "occurrence_count": 1,
+        "occurrence_timeline": [
+          {
+            "event_id": "2936dacce8e346868de217e39755389d",
+            "observed_at": "",
+            "question_id": "",
+            "turn_id": ""
+          }
+        ]
+      }
+    ],
+    "recent_improvement_signals": [],
+    "recent_evidence_refs": [
+      "2936dacce8e346868de217e39755389d"
+    ],
+    "active_training_intent": {
+      "source": "learning_report",
+      "prescription_authority": "training_intent",
+      "training_intent_id": "lti_5dd856050df09bf7",
+      "concept_id": "",
+      "concept_label": "施工临时用电",
+      "error_code": "",
+      "error_label": "采分点遗漏",
+      "training_mode": "mixed_review",
+      "attempt_refs": [],
+      "question_count": 4,
+      "reason": "最近出现 2 次",
+      "intent_version": 2,
+      "status": "active",
+      "ability_dimension": "",
+      "behavior_state": "",
+      "evidence_refs": [
+        "evidence-44782115d8a7"
+      ],
+      "prescription_steps": [
+        {
+          "phase": "repair_root",
+          "question_count": 1
+        },
+        {
+          "phase": "expression_drill",
+          "question_count": 1
+        },
+        {
+          "phase": "transfer_case",
+          "question_count": 1
+        },
+        {
+          "phase": "verification_probe",
+          "question_count": 1
+        }
+      ],
+      "success_criteria": {
+        "requires_revalidation": true,
+        "min_correct_probe_count": 1,
+        "max_repeat_error_count": 0
+      },
+      "priority": 0.667
+    },
+    "next_best_action_candidates": [
+      {
+        "action_id": "nba_1_lti_5dd856050df09bf7",
+        "training_intent_id": "lti_5dd856050df09bf7",
+        "source": "dry_run_fallback",
+        "prescription_authority": "training_intent",
+        "status": "degraded",
+        "title": "先补一题可诊断练习",
+        "action_type": "retest_or_targeted_practice",
+        "target": "施工临时用电 · 采分点遗漏",
+        "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+        "materials": [
+          "教材：施工临时用电相关章节",
+          "相似真题",
+          "错因清单：采分点遗漏"
+        ],
+        "success_measure": "复测命中目标采分点，且不再重复该错误",
+        "evidence_refs": [],
+        "intent": {
+          "source": "learning_report",
+          "prescription_authority": "training_intent",
+          "training_intent_id": "lti_5dd856050df09bf7",
+          "concept_id": "",
+          "concept_label": "施工临时用电",
+          "error_code": "",
+          "error_label": "采分点遗漏",
+          "training_mode": "mixed_review",
+          "attempt_refs": [],
+          "question_count": 4,
+          "reason": "最近出现 2 次",
+          "intent_version": 2,
+          "status": "active",
+          "ability_dimension": "",
+          "behavior_state": "",
+          "evidence_refs": [
+            "evidence-44782115d8a7"
+          ],
+          "prescription_steps": [
+            {
+              "phase": "repair_root",
+              "question_count": 1
+            },
+            {
+              "phase": "expression_drill",
+              "question_count": 1
+            },
+            {
+              "phase": "transfer_case",
+              "question_count": 1
+            },
+            {
+              "phase": "verification_probe",
+              "question_count": 1
+            }
+          ],
+          "success_criteria": {
+            "requires_revalidation": true,
+            "min_correct_probe_count": 1,
+            "max_repeat_error_count": 0
+          },
+          "priority": 0.667
+        },
+        "degraded": true
+      }
+    ],
+    "feedback_guidance": {
+      "authority": "PersonalizationContextPack_read_only",
+      "grading_tone": "scaffolded_first_observation",
+      "explanation_depth": "concept_and_required_term",
+      "prior_claim_label": "施工临时用电 上出现 采分点遗漏 错因",
+      "next_action_hint": "下一题：施工临时用电 · 采分点遗漏"
+    },
+    "gaps": []
+  },
+  "next_best_actions": [
+    {
+      "action_id": "nba_1_lti_5dd856050df09bf7",
+      "training_intent_id": "lti_5dd856050df09bf7",
+      "source": "dry_run_fallback",
+      "prescription_authority": "training_intent",
+      "status": "degraded",
+      "title": "先补一题可诊断练习",
+      "action_type": "retest_or_targeted_practice",
+      "target": "施工临时用电 · 采分点遗漏",
+      "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+      "materials": [
+        "教材：施工临时用电相关章节",
+        "相似真题",
+        "错因清单：采分点遗漏"
+      ],
+      "success_measure": "复测命中目标采分点，且不再重复该错误",
+      "evidence_refs": [],
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_5dd856050df09bf7",
+        "concept_id": "",
+        "concept_label": "施工临时用电",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-44782115d8a7"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.667
+      },
+      "degraded": true
+    }
+  ],
+  "next_training": [
+    {
+      "title": "先做 3 道“施工临时用电”专项题",
+      "reason": "目标：把“采分点遗漏”这一类错误拉回主线",
+      "estimated_minutes": 8,
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_5dd856050df09bf7",
+        "concept_id": "",
+        "concept_label": "施工临时用电",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-44782115d8a7"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.667
+      }
+    }
+  ],
+  "training_prescription": {
+    "status": "active",
+    "source": "training_intent",
+    "title": "围绕“施工临时用电”完成闭环训练",
+    "priority_task": "先做 3 道“施工临时用电”专项题",
+    "subtitle": "先修“采分点遗漏”，再用新题验证",
+    "display_topic": "施工临时用电",
+    "error_label": "采分点遗漏",
+    "why_this": "最近 1 次作答暴露“采分点遗漏”，先围绕“施工临时用电”修正判断抓手。",
+    "evidence_count": 1,
+    "evidence_refs": [
+      "evidence-44782115d8a7"
+    ],
+    "estimated_minutes": 8,
+    "question_plan": [
+      {
+        "phase": "repair_root",
+        "phase_label": "补根因",
+        "label": "先辨清施工临时用电的条件边界",
+        "question_count": 1
+      },
+      {
+        "phase": "expression_drill",
+        "phase_label": "表达训练",
+        "label": "说清施工临时用电的判断抓手",
+        "question_count": 1
+      },
+      {
+        "phase": "transfer_case",
+        "phase_label": "迁移练习",
+        "label": "换一个场景判断施工临时用电",
+        "question_count": 1
+      },
+      {
+        "phase": "verification_probe",
+        "phase_label": "验证题",
+        "label": "用 1 题验证不再采分点遗漏",
+        "question_count": 1
+      }
+    ],
+    "success_criteria": {
+      "requires_revalidation": true,
+      "min_correct_probe_count": 1,
+      "max_repeat_error_count": 0
+    },
+    "training_intent_id": "lti_5dd856050df09bf7"
+  },
+  "note_assets": {
+    "items": [],
+    "count": 0,
+    "source_status": {
+      "ok": true,
+      "authority": "learner_notebook_cards",
+      "generated_at": "2026-06-12T00:22:05.665042+08:00"
+    }
+  },
+  "today_tasks": [],
+  "scoring_point_map": {
+    "items": [],
+    "empty_state": "rubric_pending",
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence",
+      "model": "rule_based_v1",
+      "degraded": true,
+      "blocked_reason": "feature_flag_off"
+    }
+  },
+  "prescription_outcomes": [],
+  "revalidation_queue": {
+    "items": [],
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
+      "model": "rule_based_arrs_v1",
+      "daily_capacity": 1,
+      "candidate_count": 0,
+      "due_count": 0,
+      "blocked_reasons": [
+        "feature_flag_off"
+      ]
+    }
+  },
+  "learning_state": {
+    "knowledge_state": [],
+    "ability_state": [],
+    "behavior_state": [],
+    "source_status": {
+      "authority": "learner_memory_events.learning_evidence",
+      "model": "rule_based_v1",
+      "degraded": true,
+      "blocked_reason": "feature_flag_off"
+    }
+  },
+  "long_term_analytics": {
+    "recurrent_errors": [],
+    "progression_summary": {
+      "trend_direction": "improving",
+      "active_weak_count": 0,
+      "recurrent_error_count": 0
+    }
+  },
+  "legacy_compat": {
+    "today_progress": {
+      "today_done": 0,
+      "daily_target": 30,
+      "streak_days": 0
+    },
+    "home_dashboard": {
+      "review": {
+        "due_today": 0,
+        "overdue": 0
+      },
+      "mastery": {
+        "weak_nodes": []
+      },
+      "today": {
+        "hint": "优先补强采分点遗漏"
+      },
+      "recommended_prompts": []
+    },
+    "assessment_profile": {
+      "level": "qa",
+      "chapter_mastery": {}
+    },
+    "mastery_dashboard": {
+      "overall_mastery": 0,
+      "groups": [],
+      "hotspots": [],
+      "review_summary": {
+        "total_due": 0
+      }
+    }
+  },
+  "grading_to_brain_loop": {
+    "status": "action_ready",
+    "next_required_action": "start_next_action",
+    "evidence_refs": [
+      "attempt-44782115d8a7",
+      "timeline-0"
+    ],
+    "current_action": {
+      "title": "先补一题可诊断练习",
+      "action_type": "retest_or_targeted_practice",
+      "prescription_authority": "training_intent"
+    },
+    "latest_outcome": {
+      "training_intent_id": "",
+      "status": "",
+      "score_ratio": null,
+      "verified_at": ""
+    },
+    "stages": [
+      {
+        "key": "grading_result",
+        "label": "本次批改",
+        "status": "ready",
+        "evidence_count": 1,
+        "authority": "learner_memory_events.learning_evidence"
+      },
+      {
+        "key": "learning_evidence",
+        "label": "学习证据",
+        "status": "ready",
+        "evidence_refs": [
+          "attempt-44782115d8a7",
+          "timeline-0"
+        ],
+        "authority": "learner_memory_events.learning_evidence"
+      },
+      {
+        "key": "learner_claim",
+        "label": "长期画像",
+        "status": "ready",
+        "claim_count": 1,
+        "authority": "LearningBrainReadModel"
+      },
+      {
+        "key": "personalization_context",
+        "label": "个性化上下文",
+        "status": "ready",
+        "authority": "PersonalizationContextPack"
+      },
+      {
+        "key": "next_action",
+        "label": "下一步动作",
+        "status": "ready",
+        "action_type": "retest_or_targeted_practice",
+        "authority": "training_intent"
+      },
+      {
+        "key": "retest",
+        "label": "复测结果",
+        "status": "pending",
+        "next_required_action": "start_next_action",
+        "authority": "prescription_outcomes"
+      }
+    ],
+    "authority": {
+      "grading_evidence": "learner_memory_events.learning_evidence",
+      "learner_model": "LearningBrainReadModel",
+      "personalization": "PersonalizationContextPack",
+      "action": "training_intent",
+      "retest": "prescription_outcomes"
+    },
+    "source_status": {
+      "degraded": false,
+      "learning_brain_degraded": true
+    }
+  },
+  "recent_attempts": [
+    {
+      "key": "attempt-44782115d8a7",
+      "attempt_ref": "eyJlIjoiMjkzNmRhY2NlOGUzNDY4NjhkZTIxN2UzOTc1NTM4OWQiLCJrIjoidjEiLCJxIjoiY2FzZS1wNC13cy1yZWFkYmFjayIsInUiOiJxYV9wNF93c19yZWFkYmFjayIsInYiOjF9LjJiZjliNDMzYzNiYjhkOGI3MWI0OGY0NA",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:13",
+      "title": "临时用电",
+      "question_text": "临时用电",
+      "options": [],
+      "concept": "施工临时用电",
+      "result_label": "答错",
+      "tone": "wrong",
+      "answer_line": "你选：共用一个开关箱不妥，应采用专用开关箱",
+      "diagnosis": "采分点遗漏",
+      "diagnosis_detail": "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+      "explanation": "先回看本题条件和选项边界：漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+      "evidence_label": "最近一次批改",
+      "collectable": true,
+      "is_bookmarked": false,
+      "bookmark_label": "",
+      "detail_lines": [
+        "你选：共用一个开关箱不妥，应采用专用开关箱",
+        "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+        "先回看本题条件和选项边界：漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案"
+      ],
+      "quality": {
+        "degraded_reason": "解析暂缺；题干暂缺",
+        "detail_ready": false,
+        "evidence_cap_reasons": [
+          "missing_rag_evidence"
+        ],
+        "evidence_level": "L0_observed",
+        "missing_fields": [
+          "explanation",
+          "concept_label",
+          "question_stem"
+        ],
+        "progress_countable": true,
+        "stable_truth_eligible": false,
+        "truth_eligible": false,
+        "writeback_eligible": true
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "key": "timeline-0",
+      "time_label": "今天 00:13",
+      "title": "临时用电",
+      "line": "答错；你选：共用一个开关箱不妥，应采用专用开关箱；采分点遗漏",
+      "tone": "wrong"
+    }
+  ],
+  "training_loop_cards": [
+    {
+      "key": "loop-0",
+      "title": "采分点遗漏",
+      "from": "错因：施工临时用电 / 采分点遗漏",
+      "training": "训练：先做 3 道施工临时用电相关辨析题",
+      "outcome": "变化：仍需通过下一轮训练验证",
+      "tone": "not-improved"
+    }
+  ],
+  "attempts": [
+    {
+      "attempt_key": "attempt-44782115d8a7",
+      "attempt_ref": "eyJlIjoiMjkzNmRhY2NlOGUzNDY4NjhkZTIxN2UzOTc1NTM4OWQiLCJrIjoidjEiLCJxIjoiY2FzZS1wNC13cy1yZWFkYmFjayIsInUiOiJxYV9wNF93c19yZWFkYmFjayIsInYiOjF9LjJiZjliNDMzYzNiYjhkOGI3MWI0OGY0NA",
+      "subject_id": "construction_exam_1",
+      "bot_id": "construction-exam",
+      "time_label": "今天 00:13",
+      "question_title": "临时用电",
+      "question_preview": "临时用电",
+      "result_label": "答错",
+      "answer_line": "你选：共用一个开关箱不妥，应采用专用开关箱",
+      "diagnosis": "采分点遗漏",
+      "why_it_matters": "漏写采分点：未编制临时用电施工组织设计；应编制单项施工用电方案",
+      "is_bookmarked": false,
+      "actions": {
+        "detail": true,
+        "bookmark": true,
+        "retry": true
+      }
+    }
+  ],
+  "hero": {
+    "stage_label": "qa",
+    "headline": "当前最该补：施工临时用电",
+    "subline": "最近 1 次练习里，重点关注 施工临时用电。",
+    "primary_cta": {
+      "label": "开始训练",
+      "intent": {
+        "source": "learning_report",
+        "prescription_authority": "training_intent",
+        "training_intent_id": "lti_5dd856050df09bf7",
+        "concept_id": "",
+        "concept_label": "施工临时用电",
+        "error_code": "",
+        "error_label": "采分点遗漏",
+        "training_mode": "mixed_review",
+        "attempt_refs": [],
+        "question_count": 4,
+        "reason": "最近出现 2 次",
+        "intent_version": 2,
+        "status": "active",
+        "ability_dimension": "",
+        "behavior_state": "",
+        "evidence_refs": [
+          "evidence-44782115d8a7"
+        ],
+        "prescription_steps": [
+          {
+            "phase": "repair_root",
+            "question_count": 1
+          },
+          {
+            "phase": "expression_drill",
+            "question_count": 1
+          },
+          {
+            "phase": "transfer_case",
+            "question_count": 1
+          },
+          {
+            "phase": "verification_probe",
+            "question_count": 1
+          }
+        ],
+        "success_criteria": {
+          "requires_revalidation": true,
+          "min_correct_probe_count": 1,
+          "max_repeat_error_count": 0
+        },
+        "priority": 0.667
+      }
+    }
+  },
+  "home_personalization": {
+    "focus_ref": "home_dashboard.today_focus",
+    "recommended_prompt_count": 0,
+    "latest_conversation_signal": "",
+    "source_status": {}
+  },
+  "today_prescription": {
+    "title": "围绕“施工临时用电”完成闭环训练",
+    "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
+    "evidence_refs": [
+      "evidence-44782115d8a7"
+    ],
+    "source": "dry_run_fallback",
+    "prescription_authority": "training_intent",
+    "degraded": true,
+    "primary_action": {
+      "type": "starter_action",
+      "intent_id": "lti_5dd856050df09bf7",
+      "prescription_authority": "training_intent"
+    }
+  },
+  "mistake_book": {
+    "count": 0,
+    "recent_items": [],
+    "etag": "",
+    "generated_at": "",
+    "source_status": {
+      "ok": true
+    }
+  },
+  "i18n_keys": {
+    "locale": "zh-CN",
+    "hero.headline": "learning_report.hero.headline",
+    "attempt.result": "learning_report.attempt.result",
+    "next_training.title": "learning_report.next_training.title"
+  }
+}

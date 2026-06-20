@@ -1,0 +1,672 @@
+{
+  "authority": "luban_general_knowledge_context",
+  "calibration_cases": [
+    {
+      "classified_leaf": "1A411011-01-a",
+      "confidence": {
+        "intent": "concept",
+        "negative_evidence": [],
+        "path_hits": [
+          "住宅",
+          "建筑高度",
+          "高层",
+          "高层住宅",
+          "高度"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "建筑高度",
+          "高度",
+          "高层住宅",
+          "高层",
+          "住宅"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.96,
+        "source_category_count": 2,
+        "source_hits": [
+          "住宅",
+          "建筑高度",
+          "高度"
+        ],
+        "source_item_count": 9,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "建筑工程技术 > 建筑设计与构造 > 建筑设计 > 建筑物分类与构成 > 按建筑高度分类 > 高层住宅判定标准",
+      "passed": true,
+      "path_terms": [
+        "高层住宅"
+      ],
+      "question": "高层住宅的建筑高度是怎么界定的？"
+    },
+    {
+      "classified_leaf": "1A413022-07-e",
+      "confidence": {
+        "intent": "construction_method",
+        "negative_evidence": [],
+        "path_hits": [
+          "临时用电",
+          "用电",
+          "配电"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "三级配电",
+          "配电",
+          "临时用电",
+          "用电"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.96,
+        "source_category_count": 3,
+        "source_hits": [
+          "三级配电",
+          "用电",
+          "配电"
+        ],
+        "source_item_count": 9,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "土石方工程施工 > 基坑支护工程施工 > 临时用电组织设计 > 配电箱与开关箱设置",
+      "passed": true,
+      "path_terms": [
+        "临时用电"
+      ],
+      "question": "施工现场临时用电三级配电是什么意思？"
+    },
+    {
+      "classified_leaf": "1A413041-04-d",
+      "confidence": {
+        "intent": "construction_method",
+        "negative_evidence": [],
+        "path_hits": [
+          "施工缝"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "施工缝",
+          "混凝土施",
+          "凝土施工",
+          "土施工缝",
+          "施工缝应",
+          "工缝应该",
+          "缝应该怎",
+          "应该怎么"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.79,
+        "source_category_count": 2,
+        "source_hits": [
+          "凝土施工",
+          "土施工缝",
+          "施工缝",
+          "施工缝应",
+          "混凝土施"
+        ],
+        "source_item_count": 8,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土连续浇筑与施工缝 > 垂直施工缝留设规定",
+      "passed": true,
+      "path_terms": [
+        "施工缝"
+      ],
+      "question": "混凝土施工缝应该怎么留置？"
+    },
+    {
+      "classified_leaf": "1A413021-04",
+      "confidence": {
+        "intent": "construction_method",
+        "negative_evidence": [],
+        "path_hits": [
+          "回填",
+          "土方回填"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "土方回填",
+          "回填",
+          "压实系数"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.96,
+        "source_category_count": 3,
+        "source_hits": [
+          "压实系数",
+          "回填",
+          "土方回填"
+        ],
+        "source_item_count": 8,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "土石方工程施工 > 岩土的分类和工程性能 > 土方回填施工要求",
+      "passed": true,
+      "path_terms": [
+        "土方回填"
+      ],
+      "question": "土方回填压实系数怎么控制？"
+    },
+    {
+      "classified_leaf": "1A413031-01-d",
+      "confidence": {
+        "intent": "concept",
+        "negative_evidence": [],
+        "path_hits": [
+          "泥浆护壁",
+          "灌注桩"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "泥浆护壁",
+          "灌注桩"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.89,
+        "source_category_count": 4,
+        "source_hits": [
+          "灌注桩"
+        ],
+        "source_item_count": 24,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理常见通病防治 > 泥浆护壁灌注桩坍孔防治",
+      "passed": true,
+      "path_terms": [
+        "灌注桩"
+      ],
+      "question": "泥浆护壁灌注桩常见质量问题有哪些？"
+    },
+    {
+      "classified_leaf": "1A413000-06-b",
+      "confidence": {
+        "intent": "case_judgment",
+        "negative_evidence": [],
+        "path_hits": [
+          "索赔"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "合同索赔",
+          "索赔",
+          "施工合同",
+          "合同"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.74,
+        "source_category_count": 2,
+        "source_hits": [
+          "合同",
+          "施工合同",
+          "索赔"
+        ],
+        "source_item_count": 10,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "智能建造新技术 > 工程变更、新增工程与索赔 > 工程索赔类型与条件",
+      "passed": true,
+      "path_terms": [
+        "索赔"
+      ],
+      "question": "施工合同索赔成立条件是什么？"
+    },
+    {
+      "classified_leaf": "1A413046-02-b",
+      "confidence": {
+        "intent": "construction_method",
+        "negative_evidence": [],
+        "path_hits": [
+          "脚手架",
+          "连墙件"
+        ],
+        "policy": "query_path_source_alignment_v1",
+        "query_terms": [
+          "脚手架",
+          "连墙件"
+        ],
+        "reason": "query_plan_path_source_rerank",
+        "score": 0.87,
+        "source_category_count": 3,
+        "source_hits": [
+          "脚手架"
+        ],
+        "source_item_count": 7,
+        "status": "high"
+      },
+      "expected": "hit",
+      "hit": true,
+      "leaf_name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架搭设与拆除要求 > 连墙件设置要求",
+      "passed": true,
+      "path_terms": [
+        "连墙件"
+      ],
+      "question": "脚手架连墙件设置有什么要求？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "hit",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": false,
+      "path_terms": [
+        "屋面",
+        "防水"
+      ],
+      "question": "屋面防水等级怎么区分？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "建筑防火分区面积怎么理解？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "建筑耐火等级怎么划分？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "双代号网络计划总时差怎么算？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "砌体结构拉结筋有什么要求？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "模板起拱什么时候需要？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "临边洞口防护怎么做？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "高强螺栓摩擦面处理要点是什么？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "抹灰空鼓开裂怎么预防？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "外墙保温施工有哪些质量控制点？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "分部工程质量验收谁组织？"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "今天天气怎么样随便聊聊"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "帮我写一首关于咖啡的诗"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "NBA昨天谁赢了"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "Python列表怎么排序"
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "expected": "open",
+      "hit": false,
+      "leaf_name_path": "",
+      "passed": true,
+      "path_terms": [],
+      "question": "上海明天会不会下雨"
+    }
+  ],
+  "calibration_pass_rate": 0.9565217391304348,
+  "calibration_passed": 22,
+  "calibration_total": 23,
+  "compiler_source_work_order_count": 52,
+  "low_confidence_on_syllabus_cases": [
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "建筑防火分区面积怎么理解？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "建筑耐火等级怎么划分？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "双代号网络计划总时差怎么算？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "砌体结构拉结筋有什么要求？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "模板起拱什么时候需要？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "confidence": null,
+      "fall_open": true,
+      "question": "临边洞口防护怎么做？",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    }
+  ],
+  "low_confidence_on_syllabus_fall_open": 6,
+  "low_confidence_on_syllabus_fall_open_rate": 1.0,
+  "low_confidence_on_syllabus_total": 6,
+  "off_syllabus_cases": [
+    {
+      "classified_leaf": null,
+      "fall_open": true,
+      "question": "今天天气怎么样随便聊聊",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "fall_open": true,
+      "question": "帮我写一首关于咖啡的诗",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "fall_open": true,
+      "question": "NBA昨天谁赢了",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "fall_open": true,
+      "question": "Python列表怎么排序",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    },
+    {
+      "classified_leaf": null,
+      "fall_open": true,
+      "question": "上海明天会不会下雨",
+      "resolved_anchor": null,
+      "wrong_chapter_attribution": false
+    }
+  ],
+  "off_syllabus_fall_open": 5,
+  "off_syllabus_fall_open_rate": 1.0,
+  "off_syllabus_total": 5,
+  "on_syllabus_cases": [
+    {
+      "classified_leaf": "1A411011-01-a",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "高层住宅的建筑高度是怎么界定的？",
+      "resolved_anchor": "1A411011-01-a",
+      "selected_counts": {
+        "lecture": 0,
+        "question": 5,
+        "standard": 0,
+        "textbook": 4
+      },
+      "source_categories_present": [
+        "question",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413022-07-e",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "施工现场临时用电三级配电是什么意思？",
+      "resolved_anchor": "1A413022-07-e",
+      "selected_counts": {
+        "lecture": 2,
+        "question": 2,
+        "standard": 0,
+        "textbook": 5
+      },
+      "source_categories_present": [
+        "lecture",
+        "question",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413041-04-d",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "混凝土施工缝应该怎么留置？",
+      "resolved_anchor": "1A413041-04-d",
+      "selected_counts": {
+        "lecture": 6,
+        "question": 2,
+        "standard": 0,
+        "textbook": 0
+      },
+      "source_categories_present": [
+        "lecture",
+        "question"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413021-04",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "土方回填压实系数怎么控制？",
+      "resolved_anchor": "1A413021-04",
+      "selected_counts": {
+        "lecture": 1,
+        "question": 6,
+        "standard": 0,
+        "textbook": 1
+      },
+      "source_categories_present": [
+        "lecture",
+        "question",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413031-01-d",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "泥浆护壁灌注桩常见质量问题有哪些？",
+      "resolved_anchor": "1A413031-01",
+      "selected_counts": {
+        "lecture": 6,
+        "question": 6,
+        "standard": 6,
+        "textbook": 6
+      },
+      "source_categories_present": [
+        "lecture",
+        "question",
+        "standard",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413000-06-b",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "施工合同索赔成立条件是什么？",
+      "resolved_anchor": "1A413000-06-b",
+      "selected_counts": {
+        "lecture": 6,
+        "question": 0,
+        "standard": 0,
+        "textbook": 4
+      },
+      "source_categories_present": [
+        "lecture",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": "1A413046-02-b",
+      "hit": true,
+      "llm_may_decide_correctness": false,
+      "official_score_allowed": false,
+      "question": "脚手架连墙件设置有什么要求？",
+      "resolved_anchor": "1A413046-02",
+      "selected_counts": {
+        "lecture": 1,
+        "question": 3,
+        "standard": 0,
+        "textbook": 3
+      },
+      "source_categories_present": [
+        "lecture",
+        "question",
+        "textbook"
+      ],
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "classified_leaf": null,
+      "hit": false,
+      "llm_may_decide_correctness": null,
+      "official_score_allowed": null,
+      "question": "屋面防水等级怎么区分？",
+      "resolved_anchor": null,
+      "selected_counts": null,
+      "source_categories_present": [],
+      "tier": null
+    }
+  ],
+  "on_syllabus_hits": 7,
+  "on_syllabus_total": 8,
+  "teaching_context_hit_rate": 0.875,
+  "threshold": 0.8
+}

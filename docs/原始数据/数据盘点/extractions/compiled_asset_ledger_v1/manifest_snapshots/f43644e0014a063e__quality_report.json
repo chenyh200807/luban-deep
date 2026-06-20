@@ -1,0 +1,30 @@
+{
+  "anchor_source_counts": {
+    "calculation": 1,
+    "textbook": 2
+  },
+  "asset_count": 3,
+  "chunk_count": 2,
+  "compiled_at": "2026-06-13T10:49:18Z",
+  "content_type_counts": {
+    "normative_rule": 1,
+    "rule_numeric": 1
+  },
+  "discarded_candidates": {},
+  "failed_batches": [],
+  "invalid_textbook_anchor_count": 0,
+  "loose_anchor_violation_count": 0,
+  "node_count": 1,
+  "point_type_counts": {
+    "calculation": 1,
+    "text_term": 2
+  },
+  "quality_gate": "pass",
+  "schema_version": "luban_scoring_point_assets.v0.1",
+  "seed_hit": 1,
+  "seed_hit_rate": 1.0,
+  "seed_miss": 0,
+  "seed_total": 1,
+  "textbook_anchor_rate_for_text_assets": 1.0,
+  "version_id": "pytest-scoring-point-assets"
+}

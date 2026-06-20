@@ -1,0 +1,42 @@
+{
+  "scenario_count": 5,
+  "configs": [
+    {
+      "config": "v0_registry_only",
+      "refusal_rate": 1.0,
+      "official_score_emitted": false,
+      "quality_proxy": 0.0,
+      "avg_latency_ms_hermetic": 0.004,
+      "token_cost": "live_blocker:no_model_creds",
+      "satisfaction_proxy": 0.0
+    },
+    {
+      "config": "old_rag_kbv5_context",
+      "refusal_rate": 0.0,
+      "official_score_emitted": false,
+      "quality_proxy": 0.55,
+      "avg_latency_ms_hermetic": 0.004,
+      "token_cost": "live_blocker:no_model_creds",
+      "satisfaction_proxy": 0.55
+    },
+    {
+      "config": "v1_official_mode",
+      "refusal_rate": 0.0,
+      "official_score_emitted": true,
+      "quality_proxy": 0.85,
+      "avg_latency_ms_hermetic": 0.004,
+      "token_cost": "live_blocker:no_model_creds",
+      "satisfaction_proxy": 0.85
+    },
+    {
+      "config": "v1_open_world_diagnostic",
+      "refusal_rate": 0.0,
+      "official_score_emitted": false,
+      "quality_proxy": 1.0,
+      "avg_latency_ms_hermetic": 0.004,
+      "token_cost": "live_blocker:no_model_creds",
+      "satisfaction_proxy": 1.0
+    }
+  ],
+  "live_blocker": "token/cost and live model quality require DASHSCOPE_API_KEY/DeepSeek; hermetic run reports structural quality proxies only."
+}

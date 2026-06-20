@@ -1,0 +1,12 @@
+{
+  "flag_off_legacy_byte_identical": true,
+  "non_cohort_real_student_legacy_only": true,
+  "objective_hit_append_only_legacy_untouched": true,
+  "tamper_fail_closed_legacy_intact": true,
+  "not_in_bank_fail_open_open_world": true,
+  "case_lane_regression": 0,
+  "regression_suite": "pytest tests/core/test_deep_question_luban_runtime_shadow.py tests/services/construction_grading/ = 224 passed",
+  "m25b_new_tests": "pytest objective_grader + objective_runtime_adapter + deep_question_objective_candidate + (M25-A) = 59 passed",
+  "safety_invariants_20_submissions": {"false_positive": 0, "answer_key_override": 0, "LLM_changed_key": 0, "production_write_count": 0, "canonical_truth_written": false},
+  "candidate_never_official": "status=candidate_unverified / needs_review; not_production_grade=true; writeback_performed=false; release_authority=null"
+}

@@ -1,0 +1,104 @@
+{
+  "all_lectures_selected": true,
+  "answer_unit_count": 524,
+  "content_hash": "dd20fccefb06da0255c097fdd46678837968469aa0839a3480887ee56ada60c1",
+  "namespace": "lecture_answer_skill_pack",
+  "official_score_allowed": false,
+  "pilot_lectures": [],
+  "producer": "scripts/run_luban_lecture_answer_skill_pack_compile.py",
+  "published": false,
+  "rollback_pointer": "none; first lecture-answer-method release_candidate",
+  "schema_version": "luban_lecture_answer_skill_pack.v1",
+  "scope": "all_lecture_release_candidate",
+  "selected_lectures": [
+    "流水施工&网络计划",
+    "招投标及合同管理",
+    "费用控制（成本＋造价）",
+    "第三章",
+    "专业技术",
+    "防水&节能&装修工程",
+    "专业管理",
+    "主体结构"
+  ],
+  "shard_count": 8,
+  "shards": [
+    {
+      "content_hash": "1e2cec2ca67c0ad0106a17ea2b2f38dd08f960153ca9477b838a82ffec158336",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.chapter-3",
+      "path": "shards/chapter-3.json",
+      "record_count": 89,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "chapter-3"
+    },
+    {
+      "content_hash": "4ae67b82b89dd918a732d69cddf9f83a2084c0bfcb38e950cfd387c06ec962e9",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.cost-control",
+      "path": "shards/cost-control.json",
+      "record_count": 35,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "cost-control"
+    },
+    {
+      "content_hash": "9eb9c79c09ac7bd94a54db8211fbd58cce3f136dfcc9ddd31793204d3cf4f921",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.main-structure",
+      "path": "shards/main-structure.json",
+      "record_count": 76,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "main-structure"
+    },
+    {
+      "content_hash": "71381cdc2b26ea10abdf444483c5223faf6293cd8bfa8781e621b4ab5ef89496",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.professional-management",
+      "path": "shards/professional-management.json",
+      "record_count": 79,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "professional-management"
+    },
+    {
+      "content_hash": "2606b66aa3ec217527c3ed1e89ff6194acc187f34994e750b35c08079cb9f008",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.professional-technology",
+      "path": "shards/professional-technology.json",
+      "record_count": 99,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "professional-technology"
+    },
+    {
+      "content_hash": "577b4f9fc41566d62851428373f262ed2fb9a17385b491efac0781f57a8ecbe4",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.schedule-network",
+      "path": "shards/schedule-network.json",
+      "record_count": 46,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "schedule-network"
+    },
+    {
+      "content_hash": "6fd4b7dd2ae6f77d86a1c795097d7424a54432661b9b6621c4ab75482aa5ef3e",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.tender-contract",
+      "path": "shards/tender-contract.json",
+      "record_count": 60,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "tender-contract"
+    },
+    {
+      "content_hash": "1e390e10aee97d2d9c2498620e6652bf671f6cbddb0ac2ce00977759a65f4c4f",
+      "lane": "lecture_answer_methods",
+      "namespace": "lecture_answer_method.waterproof-energy-decoration",
+      "path": "shards/waterproof-energy-decoration.json",
+      "record_count": 40,
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "waterproof-energy-decoration"
+    }
+  ],
+  "signature": "7aa6d96f7f4b42378cdd6ce84c2da6e6f2175fc65e9ca8a4ff97c87c62a3d704",
+  "source_inventory_hash": "496638e8370c5c99db920efc35faa4f8db877ddfc827e00d12efa1ece362f55e",
+  "source_lecture_count": 8,
+  "status": "release_candidate",
+  "tier": "teaching_answer_method_not_answer_key",
+  "version": "2026-06-14-all8"
+}

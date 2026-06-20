@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-06-06T06:24:13+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload_nr025_034_after_fix",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_case",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-nr025-034-after-fix",
+  "rounds": 3,
+  "conversation_ids": {
+    "waterproof_concrete_fix": "tb_8075b90228584d60903b2a17",
+    "roof_conflict_fix": "tb_c7a3141233f04623a7d83e28"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-025-FIX",
+      "conversation_id": "tb_8075b90228584d60903b2a17",
+      "turn_id": "turn_1780698190303_f7d5070982",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：ABE（A. 连续性浇筑，少留施工缝、B. 宜采用高频机械分层振捣密实、E. 冬期施工入模温度不应低于5℃）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应\n留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应\n采用机械振捣，避免漏振、欠振和超振。防水混凝土冬期施工时，"
+    },
+    {
+      "round_id": "QA30-NR-026-FIX",
+      "conversation_id": "tb_8075b90228584d60903b2a17",
+      "turn_id": "turn_1780698211979_58cb893f5b",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（连续性浇筑，少留施工缝）、B（宜采用高频机械分层振捣密实）、E（冬期施工入模温度不应低于5℃）：【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应 留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应 采用机械振捣，避免漏振、欠振和超振。防水混凝土冬期施工时，其入模温度不应低于5℃。防水混凝土 养护时间不得少于14d。"
+    },
+    {
+      "round_id": "QA30-NR-034-FIX",
+      "conversation_id": "tb_c7a3141233f04623a7d83e28",
+      "turn_id": "turn_1780698219866_cd234efb24",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：A（A. 5%）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n屋面最小坡度：压型金属板：5%。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 A，不要把 B. 1%、C. 2%、D. 3% 误并入答案。 |\n\n## 🎯 核心要点\n- ✅ 命中：A. 5%是本题题库标准答案。\n- ❌ 遗漏：不要把B. 1%、C. "
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

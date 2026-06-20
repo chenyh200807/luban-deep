@@ -1,0 +1,27 @@
+{
+  "answer_count": 100,
+  "question_count": 20,
+  "label_authority_counts": {
+    "generated_self_label": 100
+  },
+  "sample_bucket_counts": {
+    "hit": 20,
+    "partial": 10,
+    "miss": 10,
+    "wrong_content": 10,
+    "near_synonym_not_exact": 10,
+    "list_incomplete": 10,
+    "calculation": 10,
+    "stem_fact": 10,
+    "external_source_required": 5,
+    "off_path": 5
+  },
+  "missing_bucket_minimums": {},
+  "missing_contract_answer_ids": [],
+  "verdict_ceiling": "SHAPE_ONLY",
+  "quality_claim_allowed": false,
+  "poc_go_allowed": false,
+  "ai_governed_gold_allowed": false,
+  "weak_go_allowed": false,
+  "spot_check_required": false
+}

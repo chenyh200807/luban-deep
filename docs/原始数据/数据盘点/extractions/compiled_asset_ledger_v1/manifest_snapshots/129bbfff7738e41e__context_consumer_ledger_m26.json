@@ -1,0 +1,11 @@
+{
+  "surfaces": {
+    "tutorbot_deep_question": "luban_context_pack.v1",
+    "runtime_grading_objective": "luban_context_pack.v1",
+    "learning_brain_evidence": "luban_context_pack.v1"
+  },
+  "single_schema": true,
+  "schema_version": "luban_context_pack.v1",
+  "learning_brain_preview_only": true,
+  "learning_brain_pack_hash": "dda98a82984d0a76"
+}

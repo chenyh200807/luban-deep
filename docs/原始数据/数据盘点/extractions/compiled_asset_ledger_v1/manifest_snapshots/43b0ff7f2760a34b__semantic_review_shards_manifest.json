@@ -1,0 +1,88 @@
+{
+  "classification": {
+    "candidate_only": true,
+    "decisions_recorded": false,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "decision_output_schema": {
+    "allowed_decisions": [
+      "accept_source_ref_candidate",
+      "reject_wrong_leaf_source",
+      "needs_external_source",
+      "needs_leaf_split_or_retaxonomy"
+    ],
+    "confidence_values": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "release_truth_claimed": false,
+    "required_fields": [
+      "audit_item_id",
+      "decision",
+      "reviewer_role",
+      "reviewer_id",
+      "rationale",
+      "confidence"
+    ],
+    "runtime_install_allowed": false,
+    "schema": "luban_rich_leaf_semantic_audit_decisions.v1"
+  },
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_semantic_review_shards.v1",
+  "semantic_queue_schema": "luban_rich_leaf_semantic_audit_queue.v1",
+  "shards": [
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_000.json",
+      "shard_id": "semantic_review_shard_000"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_001.json",
+      "shard_id": "semantic_review_shard_001"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_002.json",
+      "shard_id": "semantic_review_shard_002"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_003.json",
+      "shard_id": "semantic_review_shard_003"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_004.json",
+      "shard_id": "semantic_review_shard_004"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_005.json",
+      "shard_id": "semantic_review_shard_005"
+    },
+    {
+      "audit_item_count": 25,
+      "path": "semantic_review_shard_006.json",
+      "shard_id": "semantic_review_shard_006"
+    },
+    {
+      "audit_item_count": 11,
+      "path": "semantic_review_shard_007.json",
+      "shard_id": "semantic_review_shard_007"
+    }
+  ],
+  "summary": {
+    "audit_item_count": 186,
+    "shard_count": 8,
+    "shard_size": 25
+  }
+}

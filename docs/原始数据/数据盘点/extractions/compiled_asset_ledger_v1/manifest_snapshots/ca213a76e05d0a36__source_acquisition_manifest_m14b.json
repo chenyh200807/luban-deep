@@ -1,0 +1,25 @@
+{
+  "covered_work_order_count": 9,
+  "formal_registry_emitted": false,
+  "input_work_order_count": 9,
+  "input_work_order_file": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/case_event_text_backfill_m13b_20260604/pending_case_text_work_orders_m13b.jsonl",
+  "live_llm_used": false,
+  "local_question_bank_root": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库",
+  "m12a_question_stem_fact_count": 9,
+  "model_calls": "none",
+  "production_auto_count": 0,
+  "runtime_changed": false,
+  "task": "M14B Full Case-Stem Source Acquisition & Import Pack",
+  "tmp_pdf_roots": [
+    "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/tmp/pdfs/yousen-2026"
+  ],
+  "web_search_used_for_provenance_only": true,
+  "workflow_patterns": {
+    "adversarial_verification": "laundering counters must remain zero",
+    "classify_and_act": "each M13B work order gets one final disposition",
+    "fanout_and_synthesize": "local JSON/PDF/web surfaces recorded; no model source authority",
+    "generate_and_filter": "candidate stems generated then answer/explanation/AI candidates rejected",
+    "loop_until_done": "all 9 work orders have disposition and next material request when needed",
+    "tournament": "local original question-bank stem outranks web/public snippets"
+  }
+}
