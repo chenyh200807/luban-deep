@@ -20,7 +20,12 @@ import json_repair
 from deeptutor.services.llm.openai_http_client import make_openai_client
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.observability.provider_reconciliation import fingerprint_secret
-from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from deeptutor.tutorbot.providers.base import (
+    LLMProvider,
+    LLMResponse,
+    ToolCallRequest,
+    _first_token_timeout_seconds,
+)
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.providers.registry import ProviderSpec
@@ -640,6 +645,13 @@ class OpenAICompatProvider(LLMProvider):
         kwargs["stream"] = True
         kwargs["stream_options"] = {"include_usage": True}
         idle_timeout_s = 90
+        # Bound the wait for the FIRST token separately from the inter-chunk idle:
+        # a provider that accepts the stream but never emits a first token (off-domain
+        # refusal / long upstream queue) must fail fast into the existing retry+terminal
+        # path, instead of leaving the user staring at a blank turn for the full 90s
+        # idle window. Inter-chunk idle stays at idle_timeout_s so a turn already
+        # streaming is never cut mid-answer.
+        first_token_timeout_s = _first_token_timeout_seconds(idle_timeout_s)
         model_name = str(kwargs.get("model") or model or self.default_model)
         provider_metadata = self._provider_metadata(streaming=True, model=model_name)
         provider_name = str(provider_metadata.get("provider_name") or "").strip()
@@ -685,7 +697,11 @@ class OpenAICompatProvider(LLMProvider):
                         try:
                             chunk = await asyncio.wait_for(
                                 stream_iter.__anext__(),
-                                timeout=idle_timeout_s,
+                                timeout=(
+                                    first_token_timeout_s
+                                    if stream_chunk_count == 0
+                                    else idle_timeout_s
+                                ),
                             )
                         except StopAsyncIteration:
                             break
@@ -712,14 +728,18 @@ class OpenAICompatProvider(LLMProvider):
                 parsed = self._parse_chunks(chunks)
                 parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:
+                stalled_seconds = (
+                    first_token_timeout_s if stream_chunk_count == 0 else idle_timeout_s
+                )
+                stall_phase = "first token" if stream_chunk_count == 0 else "stream"
                 observability.update_observation(
                     observation,
                     metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
-                    status_message=f"stream stalled for more than {idle_timeout_s} seconds",
+                    status_message=f"{stall_phase} stalled for more than {stalled_seconds} seconds",
                 )
                 return LLMResponse(
-                    content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
+                    content=f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds",
                     finish_reason="error",
                     telemetry=_stream_telemetry(),
                 )
