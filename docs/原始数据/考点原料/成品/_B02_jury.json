@@ -1,0 +1,130 @@
+[
+  {
+    "issue": "论断“监测对象=基坑及支护结构变形+周边环境变形”所挂kc:1A413000_072_0139:0仅涉及哪些对象须监测，未直接支持“周边环境变形”",
+    "location": "L1表格#17/22（监测对象）与 §1 #18/R2-5",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "更换为直接支持的锚点（如{2024,第8题} analysis），或降级为待验证（蓝）并补充锚链"
+  },
+  {
+    "issue": "R2不变量“支护按安全等级选型”被表述为封闭规则，但安全等级仅为初步筛选条件，并不足以封闭所有选型场景",
+    "location": "L3第2条 / §3 R2-2 / §4 R4-B",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为“安全等级作为第一层筛选条件”，不称封闭选型，降级为蓝或调整表述"
+  },
+  {
+    "issue": "误区“只有深基坑才监测”标记为E02(采分点遗漏)不贴切，其错误心智为“浅坑不需监测”，属于概念混淆或误判条件缺失",
+    "location": "L6误区M6",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将error_code改为E07(概念混淆)、E08(误判条件缺失)或M05，匹配registry按主观/客观的分工"
+  },
+  {
+    "issue": "报警条件枚举（位移突增、流沙管涌、支撑断裂等）的quote可能未完整覆盖所列全部条件",
+    "location": "L1#19 报警条件",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "提供直读snapshot验证quote完整性，或降级为🟡待验证"
+  },
+  {
+    "issue": "关键数值“坡比不宜大于1:0.2”的quote支持未验证",
+    "location": "L1表格第7行",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核对kc:1A413000_078_0149:0 quote是否明确支持该比值，若无则降级为蓝"
+  },
+  {
+    "issue": "关键数值“渗透系数 >1×10⁻⁶ cm/s”的quote支持未验证",
+    "location": "L1表格第10行",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核对kc:1A413000_083_0156:0 quote是否明确支持该数值，若无则降级为蓝"
+  },
+  {
+    "issue": "关键数值“帷幕渗透系数宜 <1.0×10⁻⁶ cm/s”的quote支持未验证",
+    "location": "L1表格第14行",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核对kc:1A413000_083_0156:1 quote是否明确支持该数值，若无则降级为蓝"
+  },
+  {
+    "issue": "误区“坑底突涌用集水明排/井点回灌处理”的error_code E07不贴切，可能更适合E10(规范适用错误)",
+    "location": "L6误区M5",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "评估是否改为E10，匹配“错误排水防突涌”心智模型"
+  },
+  {
+    "issue": "论断“开挖深度≥5m须专家论证”所挂kc:1A431000_008_0008:0仅支持专项方案八大内容，不支持深度阈值与专家论证要求",
+    "location": "L1#20 或 §1 #20",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将“≥5m专家论证”部分换挂法规或真题锚，缺失教材锚时降级为蓝"
+  },
+  {
+    "issue": "论断“分层≤3m、严禁超挖、不得损坏支护/降水设施”混合一体，所挂kc仅支持分层≤3m，严禁超挖等无明确锚点",
+    "location": "L1表格#20附近（开挖分层）",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分：分层≤3m保留绿；严禁超挖限土钉墙语境并换锚；不得损坏设施待证，降红或补充"
+  },
+  {
+    "issue": "“混凝土支撑达90%强度方下挖”将逆作法梁板混凝土条件推广到一般混凝土支撑，语境写宽",
+    "location": "L6误区M4 / §8 C4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "明确限定为逆作法梁板混凝土（两墙合一），区分锚杆强度条件，改写或标注红"
+  },
+  {
+    "issue": "报警流程中“暂停/分析/恢复”超出所挂报警quote，仅支持“报警并采取应急措施”",
+    "location": "监测闭环流程描述（可能L2或R2）",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留报警+应急为绿，暂停/分析/恢复作为扩展处置链降为蓝"
+  },
+  {
+    "issue": "降水选型声称“可机械裁决、封闭对照表”过强，源料要求综合地质、水文、环境等因素",
+    "location": "R4-A 降水选型封闭性自检",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为“高频判别表/首轮筛选表”，取消封闭规则声称，降级为蓝"
+  },
+  {
+    "issue": "误区“全部完成后才抽查抗拔力”统一归E10(规范适用错误)不贴切，更接近程序顺序错误",
+    "location": "L6误区M3",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分为：超挖/原则适用保留E10，全部完成后抽查用E06或客观题M替代"
+  },
+  {
+    "issue": "一个误区M7同时包含板桩接头超50%（数字混淆）和灌注桩连续成桩（顺序错误）两种错因，未拆分",
+    "location": "L6误区M7",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆成两行：板桩接头为M08，连续成桩为E06/M10"
+  },
+  {
+    "issue": "多个客观题锚导出的误区统一使用E系，未按registry区分E(案例)与M(客观题)，导致整体映射贴切性不足",
+    "location": "R8整体 error_code 映射",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "增加双码输出（案例输出E，客观题输出M），或整体降蓝并调整映射表"
+  }
+]

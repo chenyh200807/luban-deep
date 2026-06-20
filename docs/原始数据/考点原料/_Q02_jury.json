@@ -1,0 +1,170 @@
+[
+  {
+    "issue": "W4误区“拆保温只看够7d”的错误心智模型编码E06不贴切",
+    "location": "§6 R8表行W4",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "应改为E10(规范适用错误)或E07(概念混淆)，移除E06"
+  },
+  {
+    "issue": "温控施工要点(40m/14d/50℃/25℃/2.0℃/d/20℃等)的关键数值原quote截断，无法完整支撑",
+    "location": "§1 #6-#8 / §5 C1-C2/D1-D5",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全源料完整quote或改用能覆盖各数值的正确point_id，重点补拆保温≤20℃的正确锚点"
+  },
+  {
+    "issue": "R2不变量覆盖声明过度：场景(承台/转换梁等)缺规范依据；养护≥14d非所有大体积绝对不变量；主线表述不完整",
+    "location": "§3 R2不变量",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "场景声明限定为已证基础底板；养护≥14d附条件；主线改为'控制温度应力并提高抗裂能力'"
+  },
+  {
+    "issue": "W8误区“不分层不跳仓”错误映射为E06",
+    "location": "§6 R8表行W8",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为E10(规范适用错误)或E02(采分点遗漏)，不贴E06"
+  },
+  {
+    "issue": "§1行2“厚大体积宜选四类水泥且水化热小”的锚点支持不足：quote为比选表，未直接断言水化热小",
+    "location": "§1表行2",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充水化热小的直接源料锚点，或标明依据为比选表非独立条文并降级为🔵"
+  },
+  {
+    "issue": "§1行1“大体积禁选硅酸盐/普硅水泥”的point_id无直证或quote缺禁选表述",
+    "location": "§1表行1",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "查找正确的禁选直锚point_id，或降级为🔵并注明为间接推论"
+  },
+  {
+    "issue": "测温频次(每轴≥4点/每昼夜≥4次/每台班≥2次)原quote不支持",
+    "location": "§1 #11 / §5 D7",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充包含完整测温频次要求的quote，否则降级"
+  },
+  {
+    "issue": "入模温度下限5℃未在quote中明确体现",
+    "location": "§1表行9 / §5 C3",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核源料确认5℃下限出处，若无则降级或改为仅标上限"
+  },
+  {
+    "issue": "配合比全指标(如170kg/m³、180mm、矿渣粉40%)部分quote不支持",
+    "location": "§1 #5 / §5 B2-B3",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "分拆指标，已证部分保留，未证部分补quote或降级"
+  },
+  {
+    "issue": "用“收缩裂缝”chunk支撑大体积温度裂缝形态(温升期表面/降温期贯穿)过度外推",
+    "location": "§1 #15 / §2",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "寻找本体的温度裂缝源料，或标注为旁证并降级"
+  },
+  {
+    "issue": "examiner_intent关于“184桶频头部子点”的表述偏强，与数据不一致",
+    "location": "§4 examiner_intent",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为“桶级高频、真题多次命中”"
+  },
+  {
+    "issue": "设计龄期60d/90d从防水大体积外推到普通大体积，条件不清",
+    "location": "§5 B4 / R6",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "明确限定为防水/设计许可时适用"
+  },
+  {
+    "issue": "W5误区“测温点只布表层/中心、间距随意”贴E05审题错误不稳",
+    "location": "§6 R8表行W5",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "建议改为E02/E10"
+  },
+  {
+    "issue": "W7误区映射到E10和E07边界不明确",
+    "location": "§6 R8表行W7",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "逐条核真题选项，明确归入E10或E07"
+  },
+  {
+    "issue": "早强剂的quote未涵盖“不宜用于大体积/蒸养混凝土”的限制",
+    "location": "§1 #3 / §5 A3",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全早强剂适用限制的完整quote"
+  },
+  {
+    "issue": "缓凝剂的quote未涵盖“适用于大体积/长距离运输/≥5℃”",
+    "location": "§1 #4 / §5 A4",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全缓凝剂适用场景的完整quote"
+  },
+  {
+    "issue": "R4变量规则中temp_layers与thickness换算系数源料未给固定公式",
+    "location": "§4 R4变量规则",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "标注待核或寻找官方换算依据"
+  },
+  {
+    "issue": "§1#14法规章重申中“严禁加水”和“内外温差控制”混在同一个point且引用不干净",
+    "location": "§1 #14",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆成两条，分别锚定正确的point_id"
+  },
+  {
+    "issue": "§5.1采分点B5“含泥量过大”属于骨料质量控制，应从大体积温控配合比组剔除",
+    "location": "§5.1 采分点B5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "移入邻接的“材料质量控制”考点"
+  },
+  {
+    "issue": "W1误区映射到E10和E07边界不明确",
+    "location": "§6 R8表行W1",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "逐条核真题选项，明确归入E10或E07"
+  },
+  {
+    "issue": "W3误区映射到E07的边界不明确",
+    "location": "§6 R8表行W3",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "逐条核真题选项，明确归入E07"
+  }
+]

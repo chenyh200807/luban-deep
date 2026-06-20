@@ -1,0 +1,122 @@
+[
+  {
+    "issue": "误区M5的error_code使用不当，E07（概念混淆）与E10（规范适用错误）同时使用未明确区分，核心错误是类别混用，E10贴切度弱。",
+    "location": "§6 R8 误区M5",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "M5仅保留E07，删除E10或降为备选码；若有严禁行为/违章作业码则优先使用。"
+  },
+  {
+    "issue": "误区M4将“≥500mm只用盖板”直接判定为误区，与pack映射表（500~1500盖板或栏杆）冲突，可能导致读者误以为≥500mm一律不可单用盖板。",
+    "location": "§6 R8 误区M4 / §4规则B 洞口尺寸映射",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "在M4中限定为“≥1500mm只用盖板不设栏杆+安全平网”，500~1500区间单独说明“盖板或栏杆二选一可接受”，消除语义矛盾。"
+  },
+  {
+    "issue": "洞口分尺寸防护中‘<500封堵’及500~1500、≥1500分档缺少quote支撑，推断无锚，pack将三档全标🟢不可靠。",
+    "location": "§1 L1-#3 洞口分尺寸防护",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将<500封堵降级为讲解性补充并注明quote截断限制；仅保留原文明确呈现的三个区间映射为🟢。补完整quote后再升级。"
+  },
+  {
+    "issue": "防护栏杆构造数字（上杆1.2m、立杆≤2m、挡脚板≥180mm、1kN、密目网）被整组标🟢，但供核quote未出现这些数字。",
+    "location": "§1#4 / §5#4 / §7 防护栏杆构造数字",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补完整quote后再升🟢；1.2m可在洞口临边语境单独🟢。"
+  },
+  {
+    "issue": "攀登作业‘>3m宜设护笼’‘>8m必设梯间平台’无quote支撑，这两个高度档不应标🟢。",
+    "location": "§1#5 / §4规则D 攀登作业",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "未出现的两个高度档🟢→🔴；已有quote支持的项保留🟢。"
+  },
+  {
+    "issue": "悬空作业‘模板/钢筋/浇筑等悬空作业≥2m必设操作平台’覆盖面偏宽，供核quote仅支持构件吊装和钢筋作业。",
+    "location": "§1#6 / §3场景5 / §5#7 悬空作业",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为“按已引quote覆盖的构件吊装/钢筋作业需设操作平台”，泛化部分🟢→🔵或🔴。"
+  },
+  {
+    "issue": "严禁行为中‘座板式单人吊具/自制吊篮’未被给定quote支持。",
+    "location": "§1#8 / §5#8 严禁行为",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "钢筋骨架项🟢保留；吊具/吊篮项🟢→🔴。"
+  },
+  {
+    "issue": "交叉作业坠落半径5m/6m、防护棚3m/4m、双层700mm、50mm等关键数字无供核quote。",
+    "location": "§1#9-10 / §4规则E / §7 交叉作业",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "数字项🟢→🔴；“半径外/隔离措施”可保留🟢。"
+  },
+  {
+    "issue": "操作平台参数混挂，悬挑式、落地式平台参数无quote支撑，供核quote仅支持移动式。",
+    "location": "§1#13 操作平台参数",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "移动式参数保留🟢；悬挑/落地参数🟢→🔴。"
+  },
+  {
+    "issue": "高处作业吊篮教材锚语境不符，且纳入S06本体偏宽。",
+    "location": "§1#17 / §4 S7 高处作业吊篮",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "教材锚🟢→🔴；如真题锚另能支持，则标“真题MCQ扩展”🔵。"
+  },
+  {
+    "issue": "高处作业十大隐患‘含临边无防护/洞口无防护’未被供核quote支持。",
+    "location": "§1#14 高处作业十大隐患",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补完整隐患列表quote后再升🟢。"
+  },
+  {
+    "issue": "R2不变量‘不考工艺本身’表述过满，后文却纳入了吊篮做法、操作平台参数、防护棚构造参数等。",
+    "location": "§3 R2 / §4 examiner_intent",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "修改为“核心不考主体工艺，考高处作业安全措施与参数”。"
+  },
+  {
+    "issue": "误区M8‘空泛加强管理’挂E12表达冗余不够贴切，核心是口号化不可判分。",
+    "location": "§6 M8",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "E12降为secondary，主码保留E04。"
+  },
+  {
+    "issue": "‘建筑业12类事故/事故等级题’作为S06本体偏宽，可做事故复盘外延，不宜当临边洞口防护采分眼。",
+    "location": "§0 / §1#15 事故类别",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "🟢事实保留，S06本体标签→🔵外延。"
+  },
+  {
+    "issue": "R2不变量中钢梁水平通道纠错存在规则外溢嫌疑，该论断更接近钢结构施工专项，未在S06本体规则中直接出现。",
+    "location": "§3 R2 不变量·6场景印证#3 钢梁水平通道纠错",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将该条印证从R2不变量中降级为🔵工程通识旁注，或补充溯源钢梁安全绳的独立point_id后再放回🟢。"
+  }
+]
