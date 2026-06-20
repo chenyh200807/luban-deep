@@ -217,6 +217,13 @@ function rawRequest(opts) {
           return;
         }
 
+        if (res.statusCode === 503) {
+          var e503 = new Error("FEATURE_DISABLED");
+          e503.code = "FEATURE_DISABLED";
+          reject(e503);
+          return;
+        }
+
         if (
           !opts.url.startsWith("http") &&
           res.statusCode >= 500 &&
@@ -239,13 +246,6 @@ function rawRequest(opts) {
           )
             .then(resolve)
             .catch(reject);
-          return;
-        }
-
-        if (res.statusCode === 503) {
-          var e503 = new Error("FEATURE_DISABLED");
-          e503.code = "FEATURE_DISABLED";
-          reject(e503);
           return;
         }
 
