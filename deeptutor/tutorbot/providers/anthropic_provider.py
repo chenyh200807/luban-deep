@@ -17,7 +17,12 @@ from typing import Any
 import json_repair
 
 from deeptutor.services.observability import get_langfuse_observability
-from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from deeptutor.tutorbot.providers.base import (
+    LLMProvider,
+    LLMResponse,
+    ToolCallRequest,
+    _first_token_timeout_seconds,
+)
 
 _ALNUM = string.ascii_letters + string.digits
 observability = get_langfuse_observability()
@@ -496,6 +501,9 @@ class AnthropicProvider(LLMProvider):
             reasoning_effort, tool_choice,
         )
         idle_timeout_s = 90
+        # Bound the first-token wait separately from inter-chunk idle (see base.py):
+        # fail a never-starting stream fast into retry+terminal instead of a 90s blank.
+        first_token_timeout_s = _first_token_timeout_seconds(idle_timeout_s)
         model_name = str(kwargs.get("model") or model or self.default_model)
         call_started_at = time.perf_counter()
         stage_timings_ms: dict[str, float] = {}
@@ -540,7 +548,11 @@ class AnthropicProvider(LLMProvider):
                                 try:
                                     text = await asyncio.wait_for(
                                         stream_iter.__anext__(),
-                                        timeout=idle_timeout_s,
+                                        timeout=(
+                                            first_token_timeout_s
+                                            if stream_chunk_count == 0
+                                            else idle_timeout_s
+                                        ),
                                     )
                                 except StopAsyncIteration:
                                     break
@@ -567,14 +579,18 @@ class AnthropicProvider(LLMProvider):
                 parsed = self._parse_response(response)
                 parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:
+                stalled_seconds = (
+                    first_token_timeout_s if stream_chunk_count == 0 else idle_timeout_s
+                )
+                stall_phase = "first token" if stream_chunk_count == 0 else "stream"
                 observability.update_observation(
                     observation,
                     metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
-                    status_message=f"stream stalled for more than {idle_timeout_s} seconds",
+                    status_message=f"{stall_phase} stalled for more than {stalled_seconds} seconds",
                 )
                 return LLMResponse(
-                    content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
+                    content=f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds",
                     finish_reason="error",
                     telemetry=_stream_telemetry(),
                 )
