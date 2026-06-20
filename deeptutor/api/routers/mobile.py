@@ -31,6 +31,8 @@ from deeptutor.services.learner_state.learning_report_read_model import build_le
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.notebook_card.service import get_notebook_card_service
 from deeptutor.services.internal_qa import (
+    EVAL_BILLING_BYPASS_HEADER,
+    eval_billing_bypass_signature_valid,
     internal_qa_billing_bypass_allowed,
     internal_qa_billing_bypass_enabled,
 )
@@ -777,6 +779,38 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     )
 
 
+def _eval_bypass_identity_candidates(*user_ids: str) -> list[str]:
+    """Resolve identities (incl. usernames) for the eval-bypass cohort check.
+
+    Unlike _internal_qa_member_identity_candidates this is not gated on the
+    non-production QA flag: eval bypass is production-capable, so the username
+    must be resolvable in production to enforce the qa_/test_/operator_ cohort
+    scope. Profile reads are best-effort; the uuid is always included.
+    """
+
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for user_id in user_ids:
+        _append(user_id)
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            continue
+        try:
+            profile = member_service.get_profile(normalized_user_id)
+        except Exception:
+            continue
+        if not isinstance(profile, dict):
+            continue
+        for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+            _append(profile.get(key))
+    return candidates
+
+
 def _internal_qa_member_identity_candidates(*user_ids: str) -> list[str]:
     if not internal_qa_billing_bypass_enabled():
         return []
@@ -807,8 +841,18 @@ def _assert_billing_quota_available(
     *,
     wallet_user_id: str,
     authenticated_user_id: str = "",
+    eval_bypass_verified: bool = False,
 ) -> None:
     if not is_billing_enforcement_enabled():
+        return
+    if eval_bypass_verified:
+        # Key-gated eval bypass already verified at the request boundary against a
+        # QA-cohort identity. Audit every grant so abuse of a leaked key is visible.
+        logger.warning(
+            "eval billing bypass granted at start-turn gate: user_id=%s wallet_user_id=%s",
+            _log_safe_id(authenticated_user_id),
+            _log_safe_id(wallet_user_id),
+        )
         return
     identity_candidates = [
         authenticated_user_id,
@@ -1863,6 +1907,7 @@ def _build_mobile_turn_payload(
     authenticated_user_id: str,
     wallet_user_id: str,
     query: str,
+    eval_bypass_verified: bool = False,
 ) -> dict[str, Any]:
     requested_tools = [
         str(item).strip()
@@ -1902,6 +1947,10 @@ def _build_mobile_turn_payload(
             "user_id": authenticated_user_id,
             "wallet_user_id": wallet_user_id or authenticated_user_id,
             "learning_user_id": authenticated_user_id,
+            # Server-authored only; the client cannot inject billing_context, so
+            # this verified marker safely carries the eval-bypass decision to the
+            # post-turn capture path.
+            **({"eval_bypass": "verified"} if eval_bypass_verified else {}),
         },
         "interaction_profile": interaction_profile,
     }
@@ -3124,6 +3173,7 @@ async def upload_chat_feedback_attachment(
 async def mobile_chat_start_turn(
     body: MobileStartTurnRequest,
     authorization: str | None = Header(default=None),
+    eval_bypass: str | None = Header(default=None, alias=EVAL_BILLING_BYPASS_HEADER),
 ) -> dict[str, Any]:
     query = str(body.query or "").strip()
     if not query:
@@ -3131,10 +3181,19 @@ async def mobile_chat_start_turn(
 
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     resolved_wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
+    eval_bypass_verified = False
+    if eval_bypass:
+        # Always run the validator when a header is present; it fast-returns False
+        # when no key is configured, so this does not leak key-presence via timing.
+        eval_bypass_verified = eval_billing_bypass_signature_valid(
+            eval_bypass,
+            *_eval_bypass_identity_candidates(resolved_user_id, resolved_wallet_user_id),
+        )
     _assert_billing_quota_available(
         authorization,
         wallet_user_id=resolved_wallet_user_id,
         authenticated_user_id=resolved_user_id,
+        eval_bypass_verified=eval_bypass_verified,
     )
     runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
         body.conversation_id,
@@ -3145,6 +3204,7 @@ async def mobile_chat_start_turn(
         authenticated_user_id=resolved_user_id,
         wallet_user_id=resolved_wallet_user_id,
         query=query,
+        eval_bypass_verified=eval_bypass_verified,
     )
     if runtime_session_id:
         payload["session_id"] = runtime_session_id

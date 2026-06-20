@@ -2177,6 +2177,12 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
         normalized["wallet_user_id"] = wallet_user_id
     if learning_user_id:
         normalized["learning_user_id"] = learning_user_id
+    # Preserve the server-authored eval-bypass marker (only the exact verified
+    # value). This marker is stamped by the mobile start-turn endpoint AFTER the
+    # eval signature has been verified for a QA-cohort identity, and the client
+    # cannot author billing_context, so honouring it downstream is safe.
+    if str(raw.get("eval_bypass", "") or "").strip().lower() == "verified":
+        normalized["eval_bypass"] = "verified"
     return normalized
 
 
@@ -3026,6 +3032,20 @@ class TurnRuntimeManager:
             return {
                 "status": "bypassed",
                 "reason": "internal_qa_billing_bypass",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
+        # Eval-mode bypass: the marker is only ever set server-side after the
+        # start-turn endpoint verified the eval signature for a QA-cohort
+        # identity, so a real paying user can never carry it. Skip the debit.
+        if str(billing_context.get("eval_bypass") or "").strip().lower() == "verified":
+            logger.info(
+                "eval billing bypass: skipping mini-program capture turn_id=%s",
+                str(turn_id or "").strip(),
+            )
+            return {
+                "status": "bypassed",
+                "reason": "eval_billing_bypass",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
             }
@@ -4151,7 +4171,11 @@ class TurnRuntimeManager:
             ),
             **({"capability": capability} if capability else {}),
             **({"llm_selection": payload.get("llm_selection")} if payload.get("llm_selection") else {}),
-            **(billing_context or {}),
+            # The eval-bypass marker is a per-turn decision verified at the request
+            # boundary; it must NEVER be persisted to session preferences, or the
+            # preferences fallback would re-grant a free turn on every later turn
+            # without a fresh signature. Strip it before persisting.
+            **{k: v for k, v in (billing_context or {}).items() if k != "eval_bypass"},
         }
         if explicit_exam_track:
             preference_updates["exam_track"] = explicit_exam_track
