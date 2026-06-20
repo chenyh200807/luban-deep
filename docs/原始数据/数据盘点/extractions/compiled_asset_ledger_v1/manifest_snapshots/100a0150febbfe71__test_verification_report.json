@@ -1,0 +1,26 @@
+{
+  "milestone": "pre-landing test verification",
+  "date": "2026-06-06",
+  "runner": "pytest -p no:cacheprovider (isolation-safe, separate invocations to avoid the F5 pre-existing ordering bug)",
+  "suites": {
+    "laundering_guard": {"cmd": "tests/services/construction_grading/test_deep_question_adapter.py", "result": "3 passed"},
+    "m26_focused": {"cmd": "test_compiled_context.py + test_compiled_context_consumers.py + test_compiler_feedback.py + test_objective_governed_registry_extractor.py + test_luban_compiled_context_open_world_m26.py", "result": "30 passed"},
+    "m27_open_world": {"cmd": "test_open_world_diagnostic.py + test_luban_m27_open_world_ws_integration.py", "result": "10 passed"},
+    "construction_grading_regression": {"cmd": "tests/services/construction_grading/", "result": "271 passed"},
+    "learner_state_learning_brain": {"cmd": "tests/services/learner_state/", "result": "337 passed"}
+  },
+  "adversarial_verification": {
+    "naive_client_answer_key_laundering_real_ws": {"release_truth": false, "registry_status": "unresolved", "official_score_laundering": 0, "verdict": "CLOSED"},
+    "injected_registry_status_direct_adapter": {"release_truth": true, "official_score_allowed": true, "verdict": "BYPASS (F1) — direct/un-normalized caller"},
+    "injected_registry_status_real_ws": {"normalize_strips_registry_status": true, "release_truth": false, "live_exploitable": false, "verdict": "live-safe via normalization; adapter hardening still required (F1)"}
+  },
+  "test_isolation_fragility_F5": {
+    "reproduced_working_tree": true,
+    "reproduced_clean_HEAD_worktree": true,
+    "conclusion": "PRE-EXISTING (not introduced by this work); each test passes in isolation",
+    "failing_pair": "tests/integration/test_luban_m16_legacy_append_only.py -> tests/core/test_deep_question_submission_grading.py::test_deep_question_writes_grading_errors_to_learner_state"
+  },
+  "all_required_suites_green_isolated": true,
+  "blocks_landing": false,
+  "note": "Green in isolation; F1/F2 are correctness/hardening findings on the laundering guard, not test failures."
+}

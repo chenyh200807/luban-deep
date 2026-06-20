@@ -1,0 +1,12 @@
+{
+  "aligned_points": 24,
+  "blocked_candidates": 2,
+  "candidates": 5,
+  "evidence_records": 1048,
+  "point_alignment_rate": 0.75,
+  "points": 32,
+  "publishable_candidates": 3,
+  "publishable_rate": 0.6,
+  "review_required_candidates": 0,
+  "skipped_evidence_sources": 0
+}

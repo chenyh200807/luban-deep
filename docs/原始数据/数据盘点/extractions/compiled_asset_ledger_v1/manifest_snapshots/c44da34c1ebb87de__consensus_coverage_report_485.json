@@ -1,0 +1,12 @@
+{
+  "total_target_points": 485,
+  "gold_points": 422,
+  "tiers": {
+    "full_consensus_3of3": 327,
+    "strong_consensus_2of3": 95
+  },
+  "frontier_points": 63,
+  "consensus_coverage": 0.8701,
+  "deepseek_self_vote_in_gold": 0,
+  "unsupported_positive_into_gold": 0
+}

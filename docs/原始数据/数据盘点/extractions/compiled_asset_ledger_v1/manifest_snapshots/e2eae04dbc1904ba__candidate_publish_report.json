@@ -1,0 +1,28 @@
+{
+  "auto_certifiable_point_count": 25,
+  "blocked_from_auto_certification_point_count": 125,
+  "case_grading_skill_kernel_touched": false,
+  "database_touched": false,
+  "formal_registry_emitted": false,
+  "m5_counts_match_exactly": true,
+  "m5_input_gate_status": "pass",
+  "m7_verdict": "WEAK-GO for M7 jury/PO/QA dry-run; NO-GO for formal Registry v1 publish/runtime connection",
+  "next_task": "M7 should run PO/jury/QA dry-run on the candidate package, repair weak official/rewrite points, then re-enter M6. Do not wire candidate output to production runtime.",
+  "package_status": "candidate_dry_run",
+  "point_decision_counts": {
+    "auto_certifiable": 25,
+    "review_required_official_weak": 112,
+    "rewrite_needed": 13
+  },
+  "production_runtime_connected": false,
+  "question_status_counts": {
+    "candidate_dry_run": 1,
+    "draft_review": 5,
+    "po_review_required": 28
+  },
+  "rag_used_as_authority": false,
+  "simulation_only": true,
+  "total_questions": 34,
+  "total_scoring_points": 150,
+  "version_id": "qga_v1_candidate_dry_run_m6_20260604"
+}

@@ -1,0 +1,46 @@
+{
+  "schema": "luban_quarantine_source_acquisition_council.v1",
+  "classification": {
+    "candidate_only": true,
+    "review_only": true
+  },
+  "safety": {
+    "production_write_count": 0
+  },
+  "total_units": 24,
+  "unique_leaves": 14,
+  "verdict_distribution": {
+    "evidence_found": 24
+  },
+  "lane_hits_units": {
+    "textbook": 21,
+    "lecture": 1,
+    "standard": 2
+  },
+  "lane_hits_leaves": {
+    "textbook": 12,
+    "standard": 1,
+    "lecture": 1
+  },
+  "confidence_distribution_units": {
+    "medium": 6,
+    "high": 18
+  },
+  "gap_type_distribution": {},
+  "standard_lane_rescued": {
+    "leaves": [
+      "1A413030-B009"
+    ],
+    "units": [
+      "rtp22_10b500edd2e2dc5d",
+      "rtp23_ad49b91d7bf59466"
+    ]
+  },
+  "hallucinated_leaves_confirmed": [],
+  "notes": [
+    "24 个 quarantined unit 归并到 14 个唯一 leaf，14 个 leaf 全部在语料中找到语义依据，无 confirmed_gap、无幻觉叶",
+    "确定性 relink 失败的根因：(a) v22 unit 的 compiled_context 与 leaf 错绑（leaf=地基作业条件 而内容=轻质隔墙；leaf=圈梁构造 而内容=填充墙）导致 keyword overlap 失效；(b) leaf 名是教材小节的同义改写（遵循技术经济原则↔合理技术措施+经济效益）；(c) 实体内容散落在其它章节 chunk（施工保证措施→基坑专项方案章 1A431000_008_0008；砌体材料堆放→安全管理章 1A436000_118_0192）",
+    "1A438000-B067(混凝土工程) leaf 父级名“施工资源管理”与冬期施工内容存在挂载歧义，confidence=medium，建议人工复核 leaf 在新树的挂载位置",
+    "1A413030-B009(地基与基础工程施工>作业条件要求) 为唯一标准文件 lane 救回项：GB 51004-2015 第3.0.2条"
+  ]
+}

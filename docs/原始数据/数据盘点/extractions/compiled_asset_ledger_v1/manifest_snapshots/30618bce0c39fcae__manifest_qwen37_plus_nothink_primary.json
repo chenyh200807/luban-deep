@@ -1,0 +1,12 @@
+{
+  "arm": "qwen37_plus_nothink_primary",
+  "model": "qwen3.7-plus",
+  "samples_done": 55,
+  "points": 284,
+  "calls": 1,
+  "retries": 0,
+  "failed_samples": [],
+  "avg_latency_s": 21.738,
+  "p95_latency_s": 21.738,
+  "avg_completion_tokens": 1113.0
+}

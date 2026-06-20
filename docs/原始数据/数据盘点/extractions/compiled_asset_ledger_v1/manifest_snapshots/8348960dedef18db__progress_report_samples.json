@@ -1,0 +1,44 @@
+{
+  "samples": [
+    {
+      "question_id": "M2-2015-30-01",
+      "point_id": "P2",
+      "where_wrong": "该采分点仍需在 alpha_shadow 中复核，不作为正式扣分。",
+      "why": "教材证据来自 2026 教材逐字命中；official_answer 不作为 source。",
+      "next_practice": "复练该教材术语所在章节，并用完整关键词重答。",
+      "evidence_status": "textbook_exact_match"
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P1",
+      "where_wrong": "该采分点仍需在 alpha_shadow 中复核，不作为正式扣分。",
+      "why": "教材证据来自 2026 教材逐字命中；official_answer 不作为 source。",
+      "next_practice": "复练该教材术语所在章节，并用完整关键词重答。",
+      "evidence_status": "textbook_exact_match"
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P2",
+      "where_wrong": "该采分点仍需在 alpha_shadow 中复核，不作为正式扣分。",
+      "why": "教材证据来自 2026 教材逐字命中；official_answer 不作为 source。",
+      "next_practice": "复练该教材术语所在章节，并用完整关键词重答。",
+      "evidence_status": "textbook_exact_match"
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "point_id": "P3",
+      "where_wrong": "该采分点仍需在 alpha_shadow 中复核，不作为正式扣分。",
+      "why": "教材证据来自 2026 教材逐字命中；official_answer 不作为 source。",
+      "next_practice": "复练该教材术语所在章节，并用完整关键词重答。",
+      "evidence_status": "textbook_exact_match"
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "point_id": "P1",
+      "where_wrong": "该采分点仍需在 alpha_shadow 中复核，不作为正式扣分。",
+      "why": "教材证据来自 2026 教材逐字命中；official_answer 不作为 source。",
+      "next_practice": "复练该教材术语所在章节，并用完整关键词重答。",
+      "evidence_status": "textbook_exact_match"
+    }
+  ]
+}

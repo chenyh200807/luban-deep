@@ -1,0 +1,359 @@
+{
+  "formal_registry_emitted": false,
+  "package_status": "candidate_dry_run",
+  "questions": {
+    "M2-2015-30-00": {
+      "artifact_id": "M2-2015-30-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "aa2d9a8dc0a2f377eaf3a4c709fe5dbf04a12fb0b1f1f5fa6d522f7ad2620854",
+      "question_authority_status": "draft_review_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "draft_review",
+      "status_reason": "m5_draft_review_candidate_requires_review_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-30-01": {
+      "artifact_id": "M2-2015-30-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "853e856348bcae40ec0645d60f48801f035255ffad9094cdaba44ade582aab55",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-30-02": {
+      "artifact_id": "M2-2015-30-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "3352c75c6e648e3584f5dcfb0f42b1a18d04ff7b306aafdf19d5ec5154b42338",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2015-30-03": {
+      "artifact_id": "M2-2015-30-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "fb02b53b51de9ae305c4a82f4aae9b290cd8df99c5a18d567679f28033d1f9b5",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 5
+    },
+    "M2-2015-31-00": {
+      "artifact_id": "M2-2015-31-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "3d9aed27d2366084e10c6d57b2787860831e9965f105e45bf828bcefaf98ce7b",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2015-31-01": {
+      "artifact_id": "M2-2015-31-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "ae7d9d0c22f03a0c9d9b784e560b1b87b708f2f00ddb28b349f3760116efd2b4",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 6
+    },
+    "M2-2015-31-02": {
+      "artifact_id": "M2-2015-31-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "121d2bd58b3ba8dad8d888c2b95c123c05bfcdb253b54dc9ea00d21190d7dff7",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2015-31-03": {
+      "artifact_id": "M2-2015-31-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "c27f0f99c116c2644c65f2884c48bdf05d92aa91bfb52ca182bde2420612437d",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 7
+    },
+    "M2-2015-32-00": {
+      "artifact_id": "M2-2015-32-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "958e996126ae65a2b2da643d8d16340cc6752420f9d36e8cc30b6f1739c4e512",
+      "question_authority_status": "publish_ready_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "candidate_dry_run",
+      "status_reason": "m5_publish_ready_candidate_but_formal_registry_forbidden",
+      "total_scoring_points": 1
+    },
+    "M2-2015-32-01": {
+      "artifact_id": "M2-2015-32-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "1e54d9419978216130e1888730e8e13153d8a672b1eea8ac190ba1951dba3d59",
+      "question_authority_status": "draft_review_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "draft_review",
+      "status_reason": "m5_draft_review_candidate_requires_review_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-32-02": {
+      "artifact_id": "M2-2015-32-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "29932292d4e3efbc32e0ac8df4e783db8d0f2f8889ed942eca45ae08a29bcd4a",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2015-32-03": {
+      "artifact_id": "M2-2015-32-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "34ec233eb51c57b252864136d380f89ead67fed85c0d36cb8818d67d3da88607",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2015-33-00": {
+      "artifact_id": "M2-2015-33-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "bcbd7bae9f0ec69afa69b57d75954b23d355f1ab4d71b8a2051f24af64bbcd30",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-33-01": {
+      "artifact_id": "M2-2015-33-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 2,
+      "content_hash": "2ba07b5a9158b490acf005fd4e291ebdfa76dba5d13d86ae4278ed2802da2c95",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 7
+    },
+    "M2-2015-33-02": {
+      "artifact_id": "M2-2015-33-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "4ffd37ecdf8a78e21668ed5bc8b953fcf29274a492af76ca31f64fa7ee584be7",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2015-33-03": {
+      "artifact_id": "M2-2015-33-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "a8008402dfcb428f4b27391a5ffef98a3b598ba9c22f97f091c6541ae9a73b71",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-33-04": {
+      "artifact_id": "M2-2015-33-04::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "33b6b077805b5236aa81a2a80435508e8fab2d0fa8873f4c977af4148e482334",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 5
+    },
+    "M2-2015-34-00": {
+      "artifact_id": "M2-2015-34-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "674eed058662c2b5957e1ba0901fd3242737e4e96f310152c7227a56853805ec",
+      "question_authority_status": "draft_review_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "draft_review",
+      "status_reason": "m5_draft_review_candidate_requires_review_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2015-34-01": {
+      "artifact_id": "M2-2015-34-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 4,
+      "content_hash": "7ae1290ffa7772c4b59a10f8c11bc69a41070154aed9e97a6c85006541b7e0c7",
+      "question_authority_status": "draft_review_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "draft_review",
+      "status_reason": "m5_draft_review_candidate_requires_review_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2015-34-02": {
+      "artifact_id": "M2-2015-34-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "d554186a6c9bb8e0179042a7eecb057f9334487c87d6352517cd71c191be24db",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2015-34-03": {
+      "artifact_id": "M2-2015-34-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "ed4998972f7987db2fd012399e42110a44655d8be98a7fa396e36c1396a70a70",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 1
+    },
+    "M2-2015-34-04": {
+      "artifact_id": "M2-2015-34-04::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "05ed1a10614ec849d849de386892dfb56cf8f914eece1bfb7141f3b2e0b50a33",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 7
+    },
+    "M2-2015-EXAM_XW2015_CASE_1-01": {
+      "artifact_id": "M2-2015-EXAM_XW2015_CASE_1-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "de0de384ab5a21628d80daa2e0cc7b75372534f88a39d33218aaac0e107fae16",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2016-30-00": {
+      "artifact_id": "M2-2016-30-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "3e94a1546131e74548269a392b9b3f5b3e7da7e3e957f5e10af568109e909232",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 4
+    },
+    "M2-2016-30-01": {
+      "artifact_id": "M2-2016-30-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "b0d735b844f95921635c090840a6e1b534f0f7e5d33903b9763f2fd4ccfa5ead",
+      "question_authority_status": "draft_review_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "draft_review",
+      "status_reason": "m5_draft_review_candidate_requires_review_before_publish",
+      "total_scoring_points": 6
+    },
+    "M2-2016-30-02": {
+      "artifact_id": "M2-2016-30-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "6657d627065e28e7eec58eab5f3cad4f31bff242987b74ca6a41e5965117e01f",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 2
+    },
+    "M2-2016-30-03": {
+      "artifact_id": "M2-2016-30-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "61acc2a5c4b9b84cf99a54ab500c5614d89a7c26d520a9f9922ac7804f133456",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 4
+    },
+    "M2-2016-31-00": {
+      "artifact_id": "M2-2016-31-00::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "7902dcfcb96c67fa6e89f6db8a4e6a619b7daa6c0ea08456effbc33fa1179e57",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 6
+    },
+    "M2-2016-31-01": {
+      "artifact_id": "M2-2016-31-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "a0de0d213c858006cc852ebf13898348920f23ae439c0ba283587a761fe50e15",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 7
+    },
+    "M2-2016-31-02": {
+      "artifact_id": "M2-2016-31-02::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 1,
+      "content_hash": "c95dec86f0d27923aafb8c24f99695164d9dfcb904f43dcab3f6512e4c67b5e9",
+      "question_authority_status": "publish_ready_candidate",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_publish_ready_but_m5r_jury_not_cleared_po_review",
+      "total_scoring_points": 1
+    },
+    "M2-2016-31-03": {
+      "artifact_id": "M2-2016-31-03::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 3,
+      "content_hash": "f9b9ec910a8bdc8b5ffc52ffd4f0bbe64c8e6c09fd3b7912618212f9ece49bd6",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 8
+    },
+    "M2-2016-EXAM_XW2016_CASE_1-01": {
+      "artifact_id": "M2-2016-EXAM_XW2016_CASE_1-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "46a56b169c10cea54497c0fd5650f14ee0898c018a2ddb95b65c95fa416e4e4d",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2020-EXAM_1A434020_P0009_01-01": {
+      "artifact_id": "M2-2020-EXAM_1A434020_P0009_01-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "ba2d6f0e9d9efeb8b7d9e9c59572436aeaf9c66e8dfb9b9e42f24d45b86165e7",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    },
+    "M2-2023-EXAM_1A434000_P0010_02-01": {
+      "artifact_id": "M2-2023-EXAM_1A434000_P0010_02-01::qga_v1_candidate_dry_run_m6_20260604",
+      "auto_certifiable_point_count": 0,
+      "content_hash": "84bc7771f95ade314ae40738f90259f7a3fb8427962788446f0c0dfd2715d861",
+      "question_authority_status": "po_review_required",
+      "runtime_auto_certification_allowed": false,
+      "status": "po_review_required",
+      "status_reason": "m5_po_review_required_before_publish",
+      "total_scoring_points": 3
+    }
+  },
+  "schema_version": "question_grading_registry.v1_candidate_dry_run",
+  "simulation_only": true,
+  "summary": {
+    "auto_certifiable_point_count": 25,
+    "question_status_counts": {
+      "candidate_dry_run": 1,
+      "draft_review": 5,
+      "po_review_required": 28
+    },
+    "total_questions": 34,
+    "total_scoring_points": 150
+  },
+  "version_id": "qga_v1_candidate_dry_run_m6_20260604"
+}

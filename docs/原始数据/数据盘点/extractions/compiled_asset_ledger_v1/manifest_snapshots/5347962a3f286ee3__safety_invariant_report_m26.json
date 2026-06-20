@@ -1,0 +1,31 @@
+{
+  "unknown_not_in_bank_refusal_rate": 0.0,
+  "official_score_laundering": 0,
+  "answer_key_override": 0,
+  "source_laundering": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "rag_chunk_as_answer_key": 0,
+  "candidate_used_as_release_truth": 0,
+  "list_partial_auto": 0,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false,
+  "shadow_or_candidate_promoted_to_mastery": 0,
+  "open_world_all_labeled": true,
+  "open_world_no_formal_score": true,
+  "high_value_work_order_rate": 1.0,
+  "tamper_fail_closed": true,
+  "objective_candidate_not_production_grade": true,
+  "not_in_bank_fail_open": true,
+  "three_surface_single_schema": true,
+  "learning_brain_evidence_coverage": 1.0,
+  "kbv5": {
+    "provider_registered": true,
+    "read_only": true,
+    "source_table": "kb_v5.chunks",
+    "live_available": false,
+    "live_blocker": "KBV5_DB_URL absent; hermetic pipeline test only (tests/services/rag/test_kbv5_pipeline.py). Live retrieval needs KBV5_DB_URL + DASHSCOPE_API_KEY."
+  }
+}

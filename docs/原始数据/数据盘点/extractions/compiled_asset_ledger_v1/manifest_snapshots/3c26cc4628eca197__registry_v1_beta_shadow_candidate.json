@@ -1,0 +1,23 @@
+{
+  "version_id": "luban_v1_beta_shadow_candidate_m9_20260604",
+  "status": "beta_shadow_candidate",
+  "formal_registry_emitted": false,
+  "production_runtime_connected": false,
+  "v0_overwritten": false,
+  "human_reviewed": false,
+  "final_authority": "ai_expert_council_final",
+  "source_authority": "2026_textbook_verbatim_exact_match_only",
+  "backbone": {
+    "source": "registry_v0 (read-only reference)",
+    "v0_textbook_auto_points": 69,
+    "v0_overwritten": false
+  },
+  "expansion_track": {
+    "m7_reverified_auto": 6,
+    "m8_alpha_new": 12,
+    "m9_new_source_backed": 0,
+    "new_track_source_backed_total": 18
+  },
+  "beta_shadow_total_auto_preview": 87,
+  "not_production_grade": true
+}

@@ -1,0 +1,2594 @@
+{
+  "slice_id": "luban-human-v1-24-d23d3e98f5e2",
+  "status": "awaiting_human_labels",
+  "source_hashes": {
+    "fixture_sha256": "5651989c66ad7896eae2dcba246db1d542ba2a3e3a67b3bb29a18c5cc3a569e0",
+    "after_report_sha256": "cf235ac7a8095d9d997d0885f8e0c03d57f487342567a2cdba65b6abe502cbc5"
+  },
+  "selected_samples": [
+    {
+      "case_id": "Q14-1A430000",
+      "student_id": "S2",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "compiled_term_overmatch",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "半对(部分规范术语)",
+      "ledger_score": 2.55,
+      "artifact_score": 2.7,
+      "artifact_point_scores": {
+        "P1": 1.0,
+        "P3": 0.5,
+        "P4": 0.25,
+        "P5": 0.25,
+        "P6": 0.5,
+        "P7": 0.2,
+        "P8": 0.0,
+        "P9": 0.0,
+        "P10": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "混凝土固定泵/布料机/串筒/振捣棒/反铲挖掘机"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "溜管/溜槽"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "partial",
+          "max_score": 0.5,
+          "gold_score": 0.25,
+          "terms": [
+            "太阳能光伏发电照明",
+            "空气能热水"
+          ],
+          "matched_terms": [
+            "太阳能光伏发电照明"
+          ],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "partial",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [
+            "折算",
+            "汽油/柴油/燃气"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "施工工序能耗估算法"
+          ],
+          "matched_terms": [
+            "施工工序能耗估算法"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 0.4,
+          "gold_score": 0.4,
+          "terms": [
+            "从项目开工起",
+            "从垫层施工起"
+          ],
+          "matched_terms": [
+            "从项目开工起"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 0.4,
+          "gold_score": 0.4,
+          "terms": [
+            "区域外...不应计入",
+            "区域内外...应计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "miss",
+          "max_score": 0.4,
+          "gold_score": 0.0,
+          "terms": [
+            "现场制作的构件和部品...应计入",
+            "不计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E02"
+          ]
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "miss",
+          "max_score": 0.3,
+          "gold_score": 0.0,
+          "terms": [
+            "临时设施使用过程...应计入",
+            "不计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E02"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q14-1A430000",
+      "student_id": "S5",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "compiled_term_overmatch",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "误用规范/概念混淆",
+      "ledger_score": 0.7,
+      "artifact_score": 1.0,
+      "artifact_point_scores": {
+        "P1": 1.0,
+        "P3": 0.0,
+        "P4": 0.0,
+        "P5": 0.0,
+        "P6": 0.0,
+        "P7": 0.0,
+        "P8": 0.0,
+        "P9": 0.0,
+        "P10": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "混凝土固定泵/布料机/串筒/振捣棒/反铲挖掘机"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E06"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [
+            "溜管/溜槽"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [
+            "太阳能光伏发电照明",
+            "空气能热水"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [
+            "折算",
+            "汽油/柴油/燃气"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 0.5,
+          "gold_score": 0.0,
+          "terms": [
+            "施工工序能耗估算法"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E10",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "miss",
+          "max_score": 0.4,
+          "gold_score": 0.0,
+          "terms": [
+            "从项目开工起",
+            "从垫层施工起"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E05"
+          ]
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "miss",
+          "max_score": 0.4,
+          "gold_score": 0.0,
+          "terms": [
+            "区域外...不应计入",
+            "区域内外...应计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E05"
+          ]
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "hit",
+          "max_score": 0.4,
+          "gold_score": 0.4,
+          "terms": [
+            "现场制作的构件和部品...应计入",
+            "不计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "hit",
+          "max_score": 0.3,
+          "gold_score": 0.3,
+          "terms": [
+            "临时设施使用过程...应计入",
+            "不计入"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q2-1A436000-罚则",
+      "student_id": "S2",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "compiled_term_overmatch",
+      "case_group_tags": [
+        "specification"
+      ],
+      "archetype": "半对(部分规范术语)",
+      "ledger_score": 4.0,
+      "artifact_score": 4.3333,
+      "artifact_point_scores": {
+        "P1": 2.0,
+        "P2": 2.0,
+        "P3": 0.0,
+        "P4": 0.3333
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "操作平台"
+          ],
+          "matched_terms": [
+            "操作平台"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "防护栏杆/防护"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "连续的安全绳",
+            "钢丝绳"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "黑黄",
+            "红白",
+            "黄色或红色标示"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q2-1A436000-罚则",
+      "student_id": "S3",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "keyword_context_false_positive",
+      "case_group_tags": [
+        "specification"
+      ],
+      "archetype": "口号化空泛",
+      "ledger_score": 0.0,
+      "artifact_score": 2.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 2.0,
+        "P3": 0.0,
+        "P4": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "操作平台"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "防护栏杆/防护"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "连续的安全绳",
+            "钢丝绳"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "黑黄",
+            "红白",
+            "黄色或红色标示"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q20-1A413000",
+      "student_id": "S4",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "compiled_term_overmatch",
+      "case_group_tags": [
+        "calculation"
+      ],
+      "archetype": "漏关键条件",
+      "ledger_score": 4.0,
+      "artifact_score": 4.7,
+      "artifact_point_scores": {
+        "P1": 0.5,
+        "P2": 0.5,
+        "P3": 0.5,
+        "P4": 0.5,
+        "P5": 0.0,
+        "P6": 0.7,
+        "P7": 0.7,
+        "P8": 0.7,
+        "P9": 0.6
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "400kg"
+          ],
+          "matched_terms": [
+            "400kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "680kg"
+          ],
+          "matched_terms": [
+            "680kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "1120kg"
+          ],
+          "matched_terms": [
+            "1120kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 0.5,
+          "gold_score": 0.5,
+          "terms": [
+            "184kg"
+          ],
+          "matched_terms": [
+            "184kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "miss",
+          "max_score": 0.7,
+          "gold_score": 0.0,
+          "terms": [
+            "320kg"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E05",
+            "E08"
+          ]
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 0.7,
+          "gold_score": 0.0,
+          "terms": [
+            "80kg"
+          ],
+          "matched_terms": [
+            "80kg"
+          ],
+          "injected_error_codes": [
+            "E05",
+            "E08"
+          ]
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 0.7,
+          "gold_score": 0.7,
+          "terms": [
+            "707.2kg"
+          ],
+          "matched_terms": [
+            "707.2kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 0.7,
+          "gold_score": 0.7,
+          "terms": [
+            "1142.4kg"
+          ],
+          "matched_terms": [
+            "1142.4kg"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "hit",
+          "max_score": 0.6,
+          "gold_score": 0.6,
+          "terms": [
+            "143.36kg"
+          ],
+          "matched_terms": [
+            "143.36kg"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "student_id": "S3",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "keyword_context_false_positive",
+      "case_group_tags": [
+        "penalty_rule",
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "口号化空泛(近义大白话,不写规范术语)",
+      "ledger_score": 0.0,
+      "artifact_score": 1.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 1.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "见证人员"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 3.0,
+          "gold_score": 0.0,
+          "terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "matched_terms": [
+            "取样",
+            "送检"
+          ],
+          "injected_error_codes": [
+            "E04",
+            "E03"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "student_id": "S5",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "keyword_context_false_positive",
+      "case_group_tags": [
+        "penalty_rule",
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "误用规范/概念混淆",
+      "ledger_score": 0.0,
+      "artifact_score": 1.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 1.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "见证人员"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E10"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 3.0,
+          "gold_score": 0.0,
+          "terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "matched_terms": [
+            "取样",
+            "送检"
+          ],
+          "injected_error_codes": [
+            "E07",
+            "E03"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q6-1A413000-罚则",
+      "student_id": "S5",
+      "selection_reason": "positive_score_delta",
+      "weakness_category": "compiled_term_overmatch",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "误用规范/概念混淆",
+      "ledger_score": 0.375,
+      "artifact_score": 0.75,
+      "artifact_point_scores": {
+        "P1": 0.75,
+        "P2": 0.0,
+        "P3": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 3.0,
+          "gold_score": 0.375,
+          "terms": [
+            "把①胶结料耐热度偏低",
+            "③胶结料粘结层过厚误判为不妥",
+            "找平层分格缝",
+            "屋面板温度胀缩",
+            "搭接长度太小/小",
+            "找平层的分格缝设置不当",
+            "屋面板因温度变化产生胀缩",
+            "卷材搭接长度太小"
+          ],
+          "matched_terms": [
+            "卷材搭接长度太小"
+          ],
+          "injected_error_codes": [
+            "E07",
+            "E10",
+            "E02"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "300~450mm",
+            "三排",
+            "50mm长圆钉",
+            "灌胶结料"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E10"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "清除旧胶结料",
+            "重新浇灌",
+            "压实刮平"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07",
+            "E10"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "student_id": "S1",
+      "selection_reason": "penalty_rule_case",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "penalty_rule",
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 7.0,
+      "artifact_score": 3.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 3.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "见证人员"
+          ],
+          "matched_terms": [
+            "见证人员"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "matched_terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "matched_terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "student_id": "S2",
+      "selection_reason": "penalty_rule_case",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "penalty_rule",
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "半对(P1对、P2缺单独列支、P3写一半术语)",
+      "ledger_score": 5.0,
+      "artifact_score": 2.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 2.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "见证人员"
+          ],
+          "matched_terms": [
+            "见证人员"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.0,
+          "terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "matched_terms": [
+            "建设单位"
+          ],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 3.0,
+          "gold_score": 2.0,
+          "terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "matched_terms": [
+            "取样",
+            "标识",
+            "送检",
+            "现场检测"
+          ],
+          "injected_error_codes": [
+            "E02",
+            "E03"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "student_id": "S4",
+      "selection_reason": "penalty_rule_case",
+      "weakness_category": "",
+      "case_group_tags": [
+        "penalty_rule",
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "漏关键条件+触发多答罚则",
+      "ledger_score": 3.0,
+      "artifact_score": 3.0,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 3.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "见证人员"
+          ],
+          "matched_terms": [
+            "见证人员"
+          ],
+          "injected_error_codes": [
+            "E05"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "matched_terms": [
+            "建设单位",
+            "单独列支"
+          ],
+          "injected_error_codes": [
+            "E05"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "matched_terms": [
+            "取样",
+            "制样",
+            "标识",
+            "封志",
+            "送检",
+            "现场检测"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 25.0,
+      "artifact_score": 8.3333,
+      "artifact_point_scores": {
+        "P1": 3.0,
+        "P2": 2.0,
+        "P7": 3.3333
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "matched_terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "专业分包合同"
+          ],
+          "matched_terms": [
+            "专业分包合同"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 5.0,
+          "gold_score": 5.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 6.0,
+          "gold_score": 6.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [
+            "可选项:环境",
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "matched_terms": [
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "student_id": "S4",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "漏关键条件",
+      "ledger_score": 20.0,
+      "artifact_score": 8.3333,
+      "artifact_point_scores": {
+        "P1": 3.0,
+        "P2": 2.0,
+        "P7": 3.3333
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "matched_terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "专业分包合同"
+          ],
+          "matched_terms": [
+            "专业分包合同"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 5.0,
+          "gold_score": 5.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E05",
+            "E09"
+          ]
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 6.0,
+          "gold_score": 6.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 4.0,
+          "gold_score": 0.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E05",
+            "E09"
+          ]
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [
+            "可选项:环境",
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "matched_terms": [
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "student_id": "S2",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "半对",
+      "ledger_score": 17.5,
+      "artifact_score": 7.0,
+      "artifact_point_scores": {
+        "P1": 3.0,
+        "P2": 2.0,
+        "P7": 2.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "matched_terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "injected_error_codes": [
+            "E02"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "专业分包合同"
+          ],
+          "matched_terms": [
+            "专业分包合同"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "partial",
+          "max_score": 5.0,
+          "gold_score": 2.5,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E09",
+            "E08"
+          ]
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "partial",
+          "max_score": 6.0,
+          "gold_score": 3.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E02"
+          ]
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "partial",
+          "max_score": 4.0,
+          "gold_score": 2.0,
+          "terms": [
+            "可选项:环境",
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "matched_terms": [
+            "气候",
+            "地形",
+            "工程特点"
+          ],
+          "injected_error_codes": [
+            "E02"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "student_id": "S5",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "误用规范或概念混淆",
+      "ledger_score": 13.0,
+      "artifact_score": 4.0,
+      "artifact_point_scores": {
+        "P1": 2.0,
+        "P2": 0.0,
+        "P7": 2.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 3.0,
+          "gold_score": 2.0,
+          "terms": [
+            "勘察",
+            "设备采购",
+            "试运行"
+          ],
+          "matched_terms": [
+            "勘察",
+            "设备采购"
+          ],
+          "injected_error_codes": [
+            "E07",
+            "E06"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 2.0,
+          "gold_score": 0.0,
+          "terms": [
+            "专业分包合同"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E07"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "miss",
+          "max_score": 5.0,
+          "gold_score": 0.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E10",
+            "E09"
+          ]
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 6.0,
+          "gold_score": 6.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 4.0,
+          "gold_score": 0.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E09"
+          ]
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [
+            "可选项:环境",
+            "气候",
+            "地形",
+            "地质",
+            "工程特点",
+            "实施方案"
+          ],
+          "matched_terms": [
+            "气候",
+            "地形",
+            "地质"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q3-1A433000",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 20.0,
+      "artifact_score": 14.3571,
+      "artifact_point_scores": {
+        "P1": 2.8571,
+        "P2": 3.0,
+        "P3": 3.0,
+        "P4": 2.0,
+        "P5": 0.0,
+        "P6": 0.0,
+        "P7": 1.0,
+        "P8": 0.0,
+        "P9": 0.5,
+        "P10": 2.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 4.0,
+          "gold_score": 4.0,
+          "terms": [
+            "劳动力",
+            "计量测量检验仪器",
+            "资金",
+            "其中预制构件与加工品",
+            "计量仪器可合并理解",
+            "施工机械(机械设备)",
+            "计量(测量/检验)仪器"
+          ],
+          "matched_terms": [
+            "劳动力",
+            "计量测量检验仪器",
+            "资金"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "先压缩主体结构2天"
+          ],
+          "matched_terms": [
+            "先压缩主体结构2天"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "再压缩室内装修3天"
+          ],
+          "matched_terms": [
+            "再压缩室内装修3天"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "用自来水拌和不妥,应使用符合标准的(饮用)水"
+          ],
+          "matched_terms": [
+            "用自来水拌和不妥,应使用符合标准的(饮用)水"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "中砂含泥量不得大于3%不妥,应≤1%"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "用M5普通砂浆堵孔抹平不妥,应使用M5防水砂浆"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "一遍成型不妥,宜分层(多层)抹压",
+            "分层/多层抹压"
+          ],
+          "matched_terms": [
+            "一遍成型不妥,宜分层(多层)抹压"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "养护7天不妥,应≥14天(不少于14d)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "应在工程完工至少7d后、交付使用前进行检测",
+            "完工7d后、交付前"
+          ],
+          "matched_terms": [
+            "应在工程完工至少7d后、交付使用前进行检测"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "甲醛",
+            "'氨'",
+            "'苯'",
+            "'氡'"
+          ],
+          "matched_terms": [
+            "甲醛",
+            "'氨'",
+            "'苯'",
+            "'氡'"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 10.001,
+      "artifact_score": 4.706,
+      "artifact_point_scores": {
+        "P1": 2.353,
+        "P2": 0.0,
+        "P3": 1.765,
+        "P4": 0.0,
+        "P5": 0.0,
+        "P6": 0.588
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.353,
+          "gold_score": 2.353,
+          "terms": [
+            "工程概况牌",
+            "管理人员名单及监督电话牌",
+            "消防保卫牌",
+            "安全生产牌",
+            "文明施工环境保护牌"
+          ],
+          "matched_terms": [
+            "工程概况牌",
+            "管理人员名单及监督电话牌",
+            "消防保卫牌",
+            "安全生产牌",
+            "文明施工环境保护牌"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "无混凝土垫层,保护层厚度至少(不应小于)70mm"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "应每点扎牢(逐点绑扎)"
+          ],
+          "matched_terms": [
+            "应每点扎牢(逐点绑扎)"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "方向应不同,丝扣呈八字形(八字扣)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "不稳固,应采用马凳筋(铁马凳/支撑筋)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 0.588,
+          "gold_score": 0.588,
+          "terms": [
+            "一般事故"
+          ],
+          "matched_terms": [
+            "一般事故"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "student_id": "S2",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "半对(部分规范术语+部分缺失)",
+      "ledger_score": 6.8242,
+      "artifact_score": 1.5292,
+      "artifact_point_scores": {
+        "P1": 0.9412,
+        "P2": 0.0,
+        "P3": 0.0,
+        "P4": 0.0,
+        "P5": 0.0,
+        "P6": 0.588
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 2.353,
+          "gold_score": 0.9412,
+          "terms": [
+            "工程概况牌",
+            "管理人员名单及监督电话牌",
+            "消防保卫牌",
+            "安全生产牌",
+            "文明施工环境保护牌"
+          ],
+          "matched_terms": [
+            "工程概况牌",
+            "安全生产牌"
+          ],
+          "injected_error_codes": [
+            "E02",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "无混凝土垫层,保护层厚度至少(不应小于)70mm"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "应每点扎牢(逐点绑扎)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "miss",
+          "max_score": 1.765,
+          "gold_score": 0.0,
+          "terms": [
+            "方向应不同,丝扣呈八字形(八字扣)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "不稳固,应采用马凳筋(铁马凳/支撑筋)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 0.588,
+          "gold_score": 0.588,
+          "terms": [
+            "一般事故"
+          ],
+          "matched_terms": [
+            "一般事故"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q9-1A413040",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 5.0,
+      "artifact_score": 0.0,
+      "artifact_point_scores": {
+        "P1": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 5.0,
+          "gold_score": 5.0,
+          "terms": [
+            "近义不算"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q7-1A431000",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 5.5,
+      "artifact_score": 0.75,
+      "artifact_point_scores": {
+        "P1": 0.0,
+        "P2": 0.0,
+        "P3": 0.75
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.5,
+          "gold_score": 2.5,
+          "terms": [
+            "每个0.25分"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "每条0.25分"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "如'宣传栏'",
+            "'标语'",
+            "'广播'",
+            "'宣传手册'"
+          ],
+          "matched_terms": [
+            "'标语'",
+            "'广播'",
+            "'宣传手册'"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q11-1A434020",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 6.0,
+      "artifact_score": 1.5,
+      "artifact_point_scores": {
+        "P1": 1.5,
+        "P2": 0.0,
+        "P3": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "每项1分",
+            "四区"
+          ],
+          "matched_terms": [
+            "四区"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5,
+          "terms": [
+            "每项0.5分"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.5,
+          "gold_score": 1.5,
+          "terms": [
+            "每项0.5分"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q15-NA",
+      "student_id": "S1",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "完整满分",
+      "ledger_score": 5.0,
+      "artifact_score": 1.0,
+      "artifact_point_scores": {
+        "P1": 1.0,
+        "P3": 0.0
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "增加虚工作",
+            "虚箭线/虚活动/虚工序"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "总工期25个月"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        }
+      ]
+    },
+    {
+      "case_id": "Q3-1A433000",
+      "student_id": "S2",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "calculation",
+        "specification"
+      ],
+      "archetype": "半对(列举型写一半+部分改正缺失)",
+      "ledger_score": 13.6429,
+      "artifact_score": 9.7143,
+      "artifact_point_scores": {
+        "P1": 1.7143,
+        "P2": 3.0,
+        "P3": 3.0,
+        "P4": 0.0,
+        "P5": 0.0,
+        "P6": 0.0,
+        "P7": 0.5,
+        "P8": 0.0,
+        "P9": 0.0,
+        "P10": 1.5
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "partial",
+          "max_score": 4.0,
+          "gold_score": 1.1429,
+          "terms": [
+            "劳动力",
+            "计量测量检验仪器",
+            "资金",
+            "其中预制构件与加工品",
+            "计量仪器可合并理解",
+            "施工机械(机械设备)",
+            "计量(测量/检验)仪器"
+          ],
+          "matched_terms": [
+            "劳动力",
+            "资金"
+          ],
+          "injected_error_codes": [
+            "E02",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "先压缩主体结构2天"
+          ],
+          "matched_terms": [
+            "先压缩主体结构2天"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 3.0,
+          "gold_score": 3.0,
+          "terms": [
+            "再压缩室内装修3天"
+          ],
+          "matched_terms": [
+            "再压缩室内装修3天"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "用自来水拌和不妥,应使用符合标准的(饮用)水"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 2.0,
+          "gold_score": 2.0,
+          "terms": [
+            "中砂含泥量不得大于3%不妥,应≤1%"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "用M5普通砂浆堵孔抹平不妥,应使用M5防水砂浆"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E02",
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P7",
+          "ledger_hit": "hit",
+          "max_score": 1.0,
+          "gold_score": 1.0,
+          "terms": [
+            "一遍成型不妥,宜分层(多层)抹压",
+            "分层/多层抹压"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P8",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "养护7天不妥,应≥14天(不少于14d)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03"
+          ]
+        },
+        {
+          "point_id": "P9",
+          "ledger_hit": "miss",
+          "max_score": 1.0,
+          "gold_score": 0.0,
+          "terms": [
+            "应在工程完工至少7d后、交付使用前进行检测",
+            "完工7d后、交付前"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03",
+            "E10"
+          ]
+        },
+        {
+          "point_id": "P10",
+          "ledger_hit": "partial",
+          "max_score": 2.0,
+          "gold_score": 1.5,
+          "terms": [
+            "甲醛",
+            "'氨'",
+            "'苯'",
+            "'氡'"
+          ],
+          "matched_terms": [
+            "甲醛",
+            "'苯'",
+            "'氡'"
+          ],
+          "injected_error_codes": [
+            "E02"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "student_id": "S4",
+      "selection_reason": "largest_under_score_delta",
+      "weakness_category": "compiled_term_recall_gap",
+      "case_group_tags": [
+        "list_rule",
+        "specification"
+      ],
+      "archetype": "漏关键条件",
+      "ledger_score": 8.236,
+      "artifact_score": 4.706,
+      "artifact_point_scores": {
+        "P1": 2.353,
+        "P2": 0.0,
+        "P3": 1.765,
+        "P4": 0.0,
+        "P5": 0.0,
+        "P6": 0.588
+      },
+      "ledger_point_rows": [
+        {
+          "point_id": "P1",
+          "ledger_hit": "hit",
+          "max_score": 2.353,
+          "gold_score": 2.353,
+          "terms": [
+            "工程概况牌",
+            "管理人员名单及监督电话牌",
+            "消防保卫牌",
+            "安全生产牌",
+            "文明施工环境保护牌"
+          ],
+          "matched_terms": [
+            "工程概况牌",
+            "管理人员名单及监督电话牌",
+            "消防保卫牌",
+            "安全生产牌",
+            "文明施工环境保护牌"
+          ],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P2",
+          "ledger_hit": "miss",
+          "max_score": 1.765,
+          "gold_score": 0.0,
+          "terms": [
+            "无混凝土垫层,保护层厚度至少(不应小于)70mm"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": [
+            "E03",
+            "E08"
+          ]
+        },
+        {
+          "point_id": "P3",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "应每点扎牢(逐点绑扎)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P4",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "方向应不同,丝扣呈八字形(八字扣)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P5",
+          "ledger_hit": "hit",
+          "max_score": 1.765,
+          "gold_score": 1.765,
+          "terms": [
+            "不稳固,应采用马凳筋(铁马凳/支撑筋)"
+          ],
+          "matched_terms": [],
+          "injected_error_codes": []
+        },
+        {
+          "point_id": "P6",
+          "ledger_hit": "hit",
+          "max_score": 0.588,
+          "gold_score": 0.588,
+          "terms": [
+            "一般事故"
+          ],
+          "matched_terms": [
+            "一般事故"
+          ],
+          "injected_error_codes": []
+        }
+      ]
+    }
+  ],
+  "artifact_assets": [
+    {
+      "case_id": "Q14-1A430000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q14-1A430000:a7f5e887f2d1a74c",
+      "content_hash": "a7f5e887f2d1a74c75f5701ff83d044bd01dd7bc4f34d7d6af90a9845ce06af4",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 15,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q14-1A430000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q14-1A430000:a7f5e887f2d1a74c",
+      "content_hash": "a7f5e887f2d1a74c75f5701ff83d044bd01dd7bc4f34d7d6af90a9845ce06af4",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 15,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q2-1A436000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q2-1A436000-罚则:a2703f2cd1d0f7d9",
+      "content_hash": "a2703f2cd1d0f7d9fd65df24a56ef176e0f2e710910fa05e0495c34915f11d13",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 7,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q2-1A436000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q2-1A436000-罚则:a2703f2cd1d0f7d9",
+      "content_hash": "a2703f2cd1d0f7d9fd65df24a56ef176e0f2e710910fa05e0495c34915f11d13",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 7,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q20-1A413000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q20-1A413000:b22fe8d63b8d4a2d",
+      "content_hash": "b22fe8d63b8d4a2dbd007f67adfcb451e3c0373df379000f4a4d873a779c9bf1",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q4-1A434000-罚则:4049476a8b443a62",
+      "content_hash": "4049476a8b443a6217903fbd0893dfde310debdf6b56b8b95d1852b7594d0b26",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 1
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q4-1A434000-罚则:4049476a8b443a62",
+      "content_hash": "4049476a8b443a6217903fbd0893dfde310debdf6b56b8b95d1852b7594d0b26",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 1
+    },
+    {
+      "case_id": "Q6-1A413000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q6-1A413000-罚则:bc059e056475827d",
+      "content_hash": "bc059e056475827d9984bb4763f8481441228a0047f3c636013d9c09c7d6c362",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 15,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q4-1A434000-罚则:4049476a8b443a62",
+      "content_hash": "4049476a8b443a6217903fbd0893dfde310debdf6b56b8b95d1852b7594d0b26",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 1
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q4-1A434000-罚则:4049476a8b443a62",
+      "content_hash": "4049476a8b443a6217903fbd0893dfde310debdf6b56b8b95d1852b7594d0b26",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 1
+    },
+    {
+      "case_id": "Q4-1A434000-罚则",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q4-1A434000-罚则:4049476a8b443a62",
+      "content_hash": "4049476a8b443a6217903fbd0893dfde310debdf6b56b8b95d1852b7594d0b26",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 9,
+      "penalty_rule_count": 1
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q5-1A432000:ab41d862fe14b755",
+      "content_hash": "ab41d862fe14b755e0867ff17a0b278a98c59d3c2dfc40fd65fade14149d5647",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q5-1A432000:ab41d862fe14b755",
+      "content_hash": "ab41d862fe14b755e0867ff17a0b278a98c59d3c2dfc40fd65fade14149d5647",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q5-1A432000:ab41d862fe14b755",
+      "content_hash": "ab41d862fe14b755e0867ff17a0b278a98c59d3c2dfc40fd65fade14149d5647",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q5-1A432000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q5-1A432000:ab41d862fe14b755",
+      "content_hash": "ab41d862fe14b755e0867ff17a0b278a98c59d3c2dfc40fd65fade14149d5647",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q3-1A433000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q3-1A433000:8281e6851973b25a",
+      "content_hash": "8281e6851973b25adf38ce75beb4a0f7ac229c0926b853a42110effda2e65e12",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 21,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q16-1A436000:cf538d2de2bdcf1e",
+      "content_hash": "cf538d2de2bdcf1ec0def018c677e5163e1be7e5b390c6e064716fe67d63d795",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q16-1A436000:cf538d2de2bdcf1e",
+      "content_hash": "cf538d2de2bdcf1ec0def018c677e5163e1be7e5b390c6e064716fe67d63d795",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q9-1A413040",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q9-1A413040:ab9ef6acaba57532",
+      "content_hash": "ab9ef6acaba575328bb4a2676de69d471733f4c6715695b9671ff7ee76e3cbab",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 1,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q7-1A431000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q7-1A431000:78913763fff32bfe",
+      "content_hash": "78913763fff32bfee9e2cbdcc4ef4fe7a5c137f2e3bec2122afc0a15d968d217",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 6,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q11-1A434020",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q11-1A434020:7a218ea02d5e1573",
+      "content_hash": "7a218ea02d5e15732636634cf1ecf32ff81aeff8ef8be5808a345518cb036803",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 4,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q15-NA",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q15-NA:2c91de3f3c877655",
+      "content_hash": "2c91de3f3c87765541bb2d76a504c43b5ef39c10d1b8e51ccad6e94c4079234a",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 3,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q3-1A433000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q3-1A433000:8281e6851973b25a",
+      "content_hash": "8281e6851973b25adf38ce75beb4a0f7ac229c0926b853a42110effda2e65e12",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 21,
+      "penalty_rule_count": 0
+    },
+    {
+      "case_id": "Q16-1A436000",
+      "schema_version": "grading_artifact.v1",
+      "version_id": "Q16-1A436000:cf538d2de2bdcf1e",
+      "content_hash": "cf538d2de2bdcf1ec0def018c677e5163e1be7e5b390c6e064716fe67d63d795",
+      "source_authority": "golden.gold_scoring_points + golden.penalty_rule",
+      "compiled_scoring_point_count": 10,
+      "penalty_rule_count": 0
+    }
+  ]
+}

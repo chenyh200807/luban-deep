@@ -1,0 +1,671 @@
+{
+  "bundle_version": "v_rich_leaf_skeleton_candidate_20260611",
+  "safety": {
+    "canonical_truth_written": false,
+    "installed_runtime_supply": false,
+    "official_score_allowed": false,
+    "production_write_count": 0,
+    "release_truth_claimed": false
+  },
+  "schema": "luban_rich_leaf_skeleton_report.v1",
+  "source_registry_id": "canonical_unified_knowledge",
+  "summary": {
+    "artifact_count": 50,
+    "invalid_artifact_count": 0,
+    "missing_source_refs_count": 5,
+    "valid_artifact_count": 50,
+    "with_source_refs_count": 45
+  },
+  "validation_reports": [
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412031-02-b_5f98cdbf2d6b",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_bcdd17b089a0"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412031-02-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413000-04-a_4835155f34f9",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_1c0d2719d4d6"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413000-04-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A411012-01_1967d2123fc5",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_a10386d3f785"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A411012-01",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413022-01-e_b1bbf1fd8fe5",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_b9fe6d758ee4"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413022-01-e",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413021-02-b_0bbd1d1dd159",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_8d6f2fef88be"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413021-02-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412025-01_58998ebe775f",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_e6c28dbfcca6"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412025-01",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413041-04_4804d3b04aae",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_4f02c851a44f"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413041-04",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-08-a_0e4ef5528465",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_af009fa09906"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-08-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-03-a_af88838b801d",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_be2ff5045488"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-03-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-12-a_69608adba5a7",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_85ba5e4b2623"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-12-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A411011-02_badecc3a8cdf",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_1a144280bd0b"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A411011-02",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413046-02-b_203f84d3eb53",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_ecc2dc5b60ca"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413046-02-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413051-02-a_57f1ccd04fa4",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_ea268c5223e4"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413051-02-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413000-01-b_725a2fad9d3f",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_08421464e11b"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413000-01-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412025-03-b_843cb76c5840",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_94944932f86a"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412025-03-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-01-a_1a553d649d3c",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_85c32fa2665b"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-01-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413022-03-c_26a1a6475ef5",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_81d7d88197f8"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413022-03-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413032-02-c_2cc931e0c068",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_86ef9f013cc2"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413032-02-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412013-04_7f1fd15d5f33",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_15766b4d597a"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412013-04",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413044-01-a_86da51553f58",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_4e23dcaf4e88"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413044-01-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413033-01-b_43daee7f77ec",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_751fbaf218f9"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413033-01-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413062-01-b_d8d330e80646",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_b60e99072b26"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413062-01-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413062-01_33df8933ddf3",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_5f2c6a1936bb"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413062-01",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413033-03-b_145004d1e5bc",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_372976134b83"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413033-03-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-08_f7a9ea679ed8",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_a946a2cb0303"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-08",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A411013-04_cf6ecf0a4fe0",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_261c7657f476"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A411013-04",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413033-02-b_15a65464c8f2",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_bf7e0bbf7d8c"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413033-02-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A411013-04-d_531c195478ee",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_eede74eec9d4"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A411013-04-d",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-04-c_6b6ea461d4b3",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_8c025a841c91"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-04-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413031-02-b_e0940e1cf07c",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_533d2d171ffd"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413031-02-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413022-03-h_0b07d3e5a676",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_af40aad1da8f"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413022-03-h",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413046-06-b_08f0178e6a7e",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_a360d37af697"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413046-06-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413046-03-b_854c0e565df9",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_056d85758c3e"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413046-03-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412013-04-c_7c940ec28873",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_a228536a9d94"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412013-04-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413023-01-a_013555016d87",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_dd5b05856916"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413023-01-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412025-01-b_96b68abda452",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_d47aa27f4aed"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412025-01-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412012-02-e_731e5704041d",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_afd99e1fcfbb"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412012-02-e",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413000-06-c_67ec7cd5b6ea",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_b9fb6437d68b"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413000-06-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413000-04-b_1be96df0da71",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_507804bc0517"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413000-04-b",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413022-05-c_1173f9678c1f",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_0efb88020d30"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413022-05-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413061-07-a_ece7f4ab1582",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_410aa6c866c1"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413061-07-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413022-09-a_776d981cbe4a",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_9ee55f9765bd"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413022-09-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412031-05-a_8c2200002edf",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_e0bbad99e51a"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412031-05-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A412031-03_4b19932ce8be",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_5498884f3ea0"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A412031-03",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413051-03-f_132f88b5be1f",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_8cdcbe07e77e"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413051-03-f",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413051-06-a_8c245b0e60c7",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_20d3d6209f0a"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413051-06-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413043-11-c_654e6da74148",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_e37418ab7e43"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413043-11-c",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413000-05-a_07da89d83349",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_e94e329dcf4b"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413000-05-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413062-03_49d19ffbd7da",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_75f648a8c479"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413062-03",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    },
+    {
+      "artifact_id": "rich_leaf_skeleton_1A413041-03-a_f268cab77211",
+      "blockers": [],
+      "candidate_only_field_ids": [
+        "teaching_card_1d76b8207b52"
+      ],
+      "canonical_truth_written": false,
+      "leaf_id": "1A413041-03-a",
+      "official_score_allowed": false,
+      "ok": true,
+      "production_write_count": 0,
+      "warnings": []
+    }
+  ]
+}

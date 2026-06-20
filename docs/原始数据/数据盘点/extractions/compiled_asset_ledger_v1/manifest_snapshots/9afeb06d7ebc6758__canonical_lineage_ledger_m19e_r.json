@@ -1,0 +1,47 @@
+{
+  "classification_legend": [
+    "superseded",
+    "canonical",
+    "advisory",
+    "future_delta"
+  ],
+  "artifacts": {
+    "production_default_decision_synthesis_m19b_20260604": {
+      "role": "superseded",
+      "reason": "earlier parallel M19B draft; missing AI council + validator rollup + provider fallback drill; its raw GO is NOT a canonical release authority",
+      "retained": true
+    },
+    "production_default_decision_synthesis_m19b_20260605": {
+      "role": "canonical",
+      "reason": "corrected M19B canonical package (252 submissions, 5-axis verdict)"
+    },
+    "m19b_corrected_canonical_patch_20260605": {
+      "role": "canonical",
+      "reason": "固化 corrected risk semantics (rollback measurement bug + council bare-word veto policy); authoritative interpretation of the M19B verdict"
+    },
+    "limited_default_flip_m19c_20260605": {
+      "role": "canonical",
+      "reason": "user-authorized limited default ON (local, env-gated, not remote)"
+    },
+    "limited_default_soak_monitoring_m19d_20260605": {
+      "role": "canonical",
+      "reason": "300-submission soak GO; keep limited default ON = YES"
+    },
+    "llm_artifact_compiler_continuous_factory_m20_20260604": {
+      "role": "future_delta",
+      "reason": "next-version registry candidate input; MUST NOT enter current runtime"
+    },
+    "llm_artifact_compiler_live_delta_replay_m201_20260605": {
+      "role": "future_delta",
+      "reason": "live delta replay candidate; isolated from M19C/M19D runtime"
+    }
+  },
+  "current_runtime_authority": [
+    "m19c (limited default ON)",
+    "m19d (soak GO)"
+  ],
+  "interpretation_authority": [
+    "m19b_corrected_canonical_patch_20260605"
+  ],
+  "old_m19b_20260604_go_is_canonical_release_authority": false
+}

@@ -1,0 +1,18 @@
+{
+  "beta_shadow_total_auto_preview": 87,
+  "new_track_source_backed_total": 18,
+  "question_coverage_full100": 20,
+  "graded_samples_scanned": 100,
+  "kernel_shadow_auto_certified_points": 383,
+  "source_mismatch": 0,
+  "bad_certified": 0,
+  "unsupported_positive": 19,
+  "high_risk_review": 93,
+  "list_rule_partial_anchor_auto": 0,
+  "official_answer_as_textbook": 0,
+  "model_vote_as_source": 0,
+  "live_calls": 0,
+  "latency_cost_marker": "deterministic_no_live_calls",
+  "legacy_output_unchanged": true,
+  "residual_source_repair_queue": 383
+}

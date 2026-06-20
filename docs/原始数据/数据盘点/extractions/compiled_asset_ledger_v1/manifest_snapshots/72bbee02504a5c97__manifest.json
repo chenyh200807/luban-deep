@@ -1,0 +1,16 @@
+{
+  "api_base_url": "https://test2.yousenjiaoyu.com",
+  "auth_mode": "none",
+  "auth_state": "missing",
+  "canonical_truth_written": false,
+  "entry": "remote/prod-like /api/v1/ws QA-scoped turn",
+  "evidence_scope": "remote_or_production_ws_turn_preflight",
+  "mode": "r6-remote-or-production-ws-turn",
+  "production_db_write_performed": false,
+  "published_registry_written": false,
+  "remote_or_production_ws_turn_exercised": false,
+  "remote_write_performed": false,
+  "run_id": "r6_remote_ws_auth_missing_1781197227",
+  "scenario_id": "temporary-electricity-smoke",
+  "stage_chain": []
+}

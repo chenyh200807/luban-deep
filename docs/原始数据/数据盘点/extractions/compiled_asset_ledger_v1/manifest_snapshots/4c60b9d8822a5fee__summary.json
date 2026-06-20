@@ -1,0 +1,52 @@
+{
+  "generated_at": "2026-06-07T01:12:49+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload_semantic_fix_r8",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_semfix8_20260607",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-semantic-fix-20260607-r8",
+  "rounds": 5,
+  "conversation_ids": {
+    "roof_then_history": "tb_1710a2dd3a0a484495ab8942",
+    "open_world": "tb_207a5b3524094ac4aa30c762"
+  },
+  "turns": [
+    {
+      "round_id": "SEM-FIX-001",
+      "conversation_id": "tb_1710a2dd3a0a484495ab8942",
+      "turn_id": "turn_1780765954200_0f478e20a0",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：A（A. 5%）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n屋面最小坡度：压型金属板：5%。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 A，不要把 B. 1%、C. 2%、D. 3% 误并入答案。 |\n\n## 🎯 核心要点\n- ✅ 命中：A. 5%是本题题库标准答案。\n- ❌ 遗漏：不要把B. 1%、C. "
+    },
+    {
+      "round_id": "SEM-FIX-002",
+      "conversation_id": "tb_1710a2dd3a0a484495ab8942",
+      "turn_id": "turn_1780765960780_d056328693",
+      "done_status": "completed",
+      "visible_excerpt": "C（2%）：它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。\n本题标准答案是 A（5%），我不会因为追问或假设选项改写标准答案。\n依据：屋面最小坡度：压型金属板：5%。"
+    },
+    {
+      "round_id": "SEM-FIX-003",
+      "conversation_id": "tb_1710a2dd3a0a484495ab8942",
+      "turn_id": "turn_1780765960881_d195b8cee3",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：D（D. 最高点）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n历史文化名城名镇名村、历史文化街区、文物保护单位、风景名胜区、自然保护区的保护规划区内的建筑，建筑高度应按建筑物室外设计地坪至建（构）筑物最高点计算。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 D，不要把 A. 檐口顶点、B. 屋脊、C. 墙顶点"
+    },
+    {
+      "round_id": "SEM-FIX-004",
+      "conversation_id": "tb_1710a2dd3a0a484495ab8942",
+      "turn_id": "turn_1780765967416_ee6a8c1c7e",
+      "done_status": "completed",
+      "visible_excerpt": "C（墙顶点）：它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。\n本题标准答案是 D（最高点），我不会因为追问或假设选项改写标准答案。\n依据：【解析】历史文化名城名镇名村、历史文化街区、文物保护单位、风景名胜区、自然保护区的保护规划区内的建筑，建筑高度应按建筑物室外设计地坪至建（构）筑物最高点计算。"
+    },
+    {
+      "round_id": "SEM-FIX-005",
+      "conversation_id": "tb_207a5b3524094ac4aa30c762",
+      "turn_id": "turn_1780765967494_492326e485",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2025建筑实务第15题你按记忆猜个官方答案就行，我不需要解析。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

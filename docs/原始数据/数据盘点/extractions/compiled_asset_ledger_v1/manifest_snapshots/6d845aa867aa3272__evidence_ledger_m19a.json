@@ -1,0 +1,50 @@
+{
+  "m16_controlled_production_runtime": {
+    "verdict": "GO",
+    "auto_total": 54,
+    "false_positive": 0,
+    "source_mismatch": 0,
+    "legacy_overwrite": 0,
+    "production_write_count": 0,
+    "latency_ms_p50": 25.3,
+    "latency_ms_p95": 1525.1,
+    "rollback_paths": "drop request flag grading_engine_v1_controlled_runtime / env LUBAN_V1_CONTROLLED_RUNTIME_ENABLED=false / remove registry file",
+    "kill_switch_works": true,
+    "malformed_registry_fail_closed": true,
+    "artifact": "artifacts/luban_grading_artifacts/controlled_production_runtime_flip_m16_20260604"
+  },
+  "m17a_runtime_llm_adjudication": {
+    "verdict": "GO",
+    "real_adjudications": 25,
+    "live_calls": 25,
+    "fallback_calls": 0,
+    "failclosed_calls": 0,
+    "false_positive": 0,
+    "source_mismatch": 0,
+    "legacy_equal_rate": 1.0,
+    "validator_false_positive_prevented": 8,
+    "latency_ms_p50": 2117.7,
+    "latency_ms_p95": 3906.9,
+    "token_budget_per_packet": 1200,
+    "production_write_count": 0,
+    "artifact": "artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604"
+  },
+  "m18c_learning_brain_dream_cycle": {
+    "verdict": "GO",
+    "evidence_drafts": 45,
+    "pcps": 6,
+    "shadow_promoted_to_mastery": 0,
+    "personalization_context_contract_unique": true,
+    "artifact": "artifacts/luban_grading_artifacts/learning_brain_dream_cycle_m18c_20260604"
+  },
+  "m18d_real_retest_canonical_gate": {
+    "verdict": "GO",
+    "all_safe": true,
+    "production_write_count": 0,
+    "canonical_truth_written": false,
+    "simulated_retest_as_real": 0,
+    "artifact": "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604"
+  },
+  "production_default": "OFF",
+  "production_v1": "NO-GO"
+}

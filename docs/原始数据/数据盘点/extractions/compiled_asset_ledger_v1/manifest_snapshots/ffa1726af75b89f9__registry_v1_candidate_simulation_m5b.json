@@ -1,0 +1,16 @@
+{
+  "publish_ready_after_jury": 0,
+  "draft_after_jury": 0,
+  "needs_po_review": 30,
+  "rejected": 0,
+  "provider_blocked": 30,
+  "auto_certifiable_point_count": 43,
+  "review_required_point_count": 95,
+  "external_source_required_point_count": 95,
+  "formal_registry_emitted": false,
+  "carryover_m5a": {
+    "published_candidate": 11,
+    "draft_candidate": 12,
+    "needs_po_review": 7
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "langfuse_started": false,
+  "url": null,
+  "port": null,
+  "compose_file": "local_langfuse_compose_m24.yml",
+  "trace_ledger": "langfuse_trace_ledger.jsonl",
+  "trace_count": 20,
+  "key_status": "manual_setup_required",
+  "run_langfuse_flag": true,
+  "blocker": "docker daemon not reachable: Cannot connect to the Docker daemon at unix:///Users/yehongchen/.docker/run/docker.sock. Is the docker daemon running?. Docker Desktop launched (open -a Docker) but the Linux VM did not come up non-interactively (likely needs GUI login/terms accept). MANUAL STEPS: (1) open Docker Desktop GUI, finish login; (2) re-run: python -m scripts.run_luban_v0_v1_ab_benchmark_m24 --mode smoke --run-langfuse; (3) open http://localhost:<port>, sign up, create project, copy public/secret keys into env LANGFUSE_HOST/LANGFUSE_PUBLIC_KEY/LANGFUSE_SECRET_KEY, then re-run to push langfuse_trace_ledger.jsonl.",
+  "manual_key_steps": [
+    "open Docker Desktop GUI and complete login/terms",
+    "docker compose -f local_langfuse_compose_m24.yml -p luban_m24_langfuse up -d",
+    "open http://localhost:<port> -> sign up -> create project -> copy public+secret key",
+    "export LANGFUSE_HOST=http://localhost:<port>; LANGFUSE_PUBLIC_KEY=...; LANGFUSE_SECRET_KEY=...",
+    "re-run benchmark to push langfuse_trace_ledger.jsonl traces"
+  ]
+}

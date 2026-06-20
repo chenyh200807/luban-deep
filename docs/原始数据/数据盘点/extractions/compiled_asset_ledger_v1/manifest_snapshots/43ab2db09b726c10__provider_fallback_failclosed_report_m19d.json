@@ -1,0 +1,11 @@
+{
+  "deepseek_success_count": 256,
+  "failclosed_count": 8,
+  "failclosed_rate": 0.029197,
+  "fallback_rate": 0.036496,
+  "live_llm_calls_executed": false,
+  "provider_failure_fail_open": 0,
+  "provider_failure_failclosed_count": 8,
+  "provider_mode": "deterministic_in_process_provider_for_m19d_soak_monitoring",
+  "qwen_fallback_count": 10
+}

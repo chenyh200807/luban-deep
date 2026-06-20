@@ -1,0 +1,35 @@
+{
+  "stage": "M22 RAG-vs-Luban-v1 Quality Benchmark",
+  "lines": {
+    "A": "old RAG retrieval/answer baseline",
+    "B": "M16 deterministic controlled runtime",
+    "C": "M17/M19 runtime LLM adjudicator (/api/v1/ws)",
+    "D": "M20.2 delta projected candidate"
+  },
+  "real_entry_BC": "/api/v1/ws -> _maybe_attach_v1_controlled_runtime / _maybe_attach_v1_llm_adjudication",
+  "line_c_mode": "live",
+  "line_c_quality_axis": "real_llm",
+  "submissions_per_grading_line": 210,
+  "point_decisions_B": 550,
+  "point_decisions_C": 479,
+  "question_type_distribution": {
+    "教材知识": 160,
+    "综合review": 120,
+    "案例判断": 240,
+    "索赔工期费用计算": 30
+  },
+  "production_models": {
+    "primary": "deepseek_v4_flash",
+    "fallback": "qwen3.7_plus"
+  },
+  "red_lines": {
+    "production_default_flip": false,
+    "remote_write": false,
+    "db_write": false,
+    "canonical_truth_write": false,
+    "published_registry": false,
+    "m202_absorbed_into_runtime": false,
+    "model_or_council_vote_as_source": false
+  },
+  "verdict": "WEAK-GO"
+}

@@ -1,0 +1,22 @@
+{
+  "stage": "M24 v0 legacy vs v1 LLM-adjudication A/B benchmark",
+  "v0": "construction_grading_result (CaseGradingSkillKernel projected rubric)",
+  "v1": "luban_grading_engine_v1_llm_adjudication (/api/v1/ws)",
+  "v1_mode": "live",
+  "submissions": 134,
+  "rag_baseline": "KB v5 direct read-only adapter (KBV5_DB_URL -> search_chunks_v2); context only, not grader",
+  "langfuse": {
+    "local_docker": false,
+    "ledger_fallback": true
+  },
+  "red_lines": {
+    "production_default_flip": false,
+    "remote_write": false,
+    "supabase_write_or_grant": false,
+    "db_write": false,
+    "canonical_truth_write": false,
+    "m202_absorbed": false,
+    "kb_v5_adapter_is_grading_authority": false
+  },
+  "verdict": "GO"
+}

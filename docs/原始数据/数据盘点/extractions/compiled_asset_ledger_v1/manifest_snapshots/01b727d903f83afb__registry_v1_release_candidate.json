@@ -1,0 +1,552 @@
+{
+  "version_id": "qga_v1_release_candidate_m16_20260604",
+  "schema_version": "question_grading_registry.v1_release_candidate",
+  "status": "release_candidate",
+  "published": false,
+  "production_default": "off",
+  "supply_dir": "artifacts/luban_grading_artifacts/non_textbook_rubric_authority_factory_m10_20260604",
+  "supply_content_hash": "68b916cdf5bd82f76c6101ae29ec387387c3c9eae068fbb61224e9583d07ffb6",
+  "registry_content_hash": "83f794c699d504ecd207008a2c5aba9b2efbe3fa19d2ad4f3d1e39f0a746d669",
+  "rollback_pointer": {
+    "revert_to": "v0 + legacy CaseGradingSkillKernel",
+    "mechanism": "drop controlled_runtime flag / env=false / remove registry file",
+    "v0_dir": "artifacts/luban_grading_artifacts/registry_v0_20260604"
+  },
+  "counted_authority_backed_total": 70,
+  "by_authority_kind": {
+    "textbook_verbatim": 23,
+    "machine_checkable_logic": 30,
+    "machine_checkable_calc": 3,
+    "list_rule_full_coverage": 14
+  },
+  "question_stem_fact_excluded": true,
+  "official_answer_as_textbook": false,
+  "model_vote_as_source": false,
+  "council_vote_as_source": false,
+  "human_reviewed": false,
+  "points": [
+    {
+      "question_id": "M2-2015-30-00",
+      "point_id": "P1.s1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-00",
+      "point_id": "P1.s2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-01",
+      "point_id": "P2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "point_id": "P5",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P4",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P5",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-00",
+      "point_id": "P1.s1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-00",
+      "point_id": "P1.s2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-01",
+      "point_id": "P1.s1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "point_id": "P3",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-00",
+      "point_id": "P1.s1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "point_id": "P2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "point_id": "P3",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "point_id": "P5",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-01",
+      "point_id": "P7",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-02",
+      "point_id": "P1.s2",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "point_id": "P1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-01",
+      "point_id": "P3",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-01",
+      "point_id": "P4",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-00",
+      "point_id": "P5",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-02",
+      "point_id": "P1.s1",
+      "authority_kind": "textbook_verbatim",
+      "source_provenance": "2026_textbook_verbatim_exact_match",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-02",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-02",
+      "point_id": "P7",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-03",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_calc",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_range",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P5",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P7",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P8",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P6",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-01",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "point_id": "P5",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-03",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-02",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_calc",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_formula",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-02",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_calc",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_formula",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-04",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-04",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-04",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-04",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-02",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-04",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-03",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-30-03",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-00",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-01",
+      "point_id": "P2",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-01",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-03",
+      "point_id": "P4",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-03",
+      "point_id": "P7",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "numeric_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-EXAM_XW2016_CASE_1-01",
+      "point_id": "P1",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-EXAM_XW2016_CASE_1-01",
+      "point_id": "P3",
+      "authority_kind": "machine_checkable_logic",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "spec_kind": "boolean_judgment",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-00",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-30-03",
+      "point_id": "P2",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "point_id": "P2",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "point_id": "P4",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-00",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-32-01",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-02",
+      "point_id": "P8",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-33-03",
+      "point_id": "P2",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-00",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-00",
+      "point_id": "P2",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-02",
+      "point_id": "P3",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2015-34-03",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2016-31-02",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    },
+    {
+      "question_id": "M2-2020-EXAM_1A434020_P0009_01-01",
+      "point_id": "P1",
+      "authority_kind": "list_rule_full_coverage",
+      "source_provenance": "case_rubric_seed_official_answer_not_textbook",
+      "auto_eligible": true
+    }
+  ]
+}

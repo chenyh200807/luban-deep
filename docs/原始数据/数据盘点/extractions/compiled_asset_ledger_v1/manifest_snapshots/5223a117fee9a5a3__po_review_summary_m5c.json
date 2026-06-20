@@ -1,0 +1,16 @@
+{
+  "total_questions": 30,
+  "jury_reviewed": 11,
+  "jury_verdicts": {
+    "needs_po_review": 9,
+    "draft_candidate": 2
+  },
+  "source_anchor_disputes": 9,
+  "by_recommended_action": {
+    "rewrite_point_or_require_external_source": 16,
+    "keep_draft": 14
+  },
+  "publish_ready": 0,
+  "formal_registry_emitted": false,
+  "po_authority": "human PO decides; jury + deterministic anchors are evidence only"
+}

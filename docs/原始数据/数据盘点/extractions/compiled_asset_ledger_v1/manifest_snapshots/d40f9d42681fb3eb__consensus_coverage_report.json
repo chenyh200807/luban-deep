@@ -1,0 +1,10 @@
+{
+  "schema_version": "luban-consensus-coverage.v0.1",
+  "total_points": 175,
+  "full_consensus_gold": 136,
+  "strong_plus_adjudicated_gold": 27,
+  "consensus_gold_total": 163,
+  "frontier_policy_queue": 12,
+  "auto_gold_coverage": 0.9314,
+  "unsupported_positive_into_gold": 0
+}

@@ -1,0 +1,37 @@
+{
+  "classification": {
+    "candidate_only": true,
+    "production_default": false,
+    "release_truth_claimed": false,
+    "review_only": true,
+    "runtime_install_allowed": false
+  },
+  "investigation": {
+    "date": "2026-06-12",
+    "method": "manual root-cause trace of v2.3 live residual work orders back to canonical book chunks",
+    "shared_failure_shape": "leaf linking authority drift via non-discriminative keyword match"
+  },
+  "repair_candidates": [
+    {
+      "chunk_file": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "chunk_id": "1A412010_051_0092",
+      "investigation_note": "原 unit 被 deterministic_dedup_margin 路径错链到 GB55003-2021 地基基础通用规范；撞中的是 leaf keywords 中的非判别词（基础/耐久性/墙体）。教材 9-166 卷 p.51 chunk 1A412010_051_0092 为该 leaf 的权威正文，与 canonical taxonomy keywords（天然石材/抗压强度/耐久性/传热性/基础/勒脚/墙体/经济性）逐项对应。",
+      "leaf_id": "1A412014-02",
+      "leaf_name": "石材的性能与应用",
+      "source_relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "span_text": "砌体结构中，常用的天然石材为无明显风化的花岗石、砂石和石灰石等。石材的抗压强度高，耐久性好，多用于房屋基础、勒脚部位。在有开采加工能力的地区，也可用于房屋的墙体，但是石材传热性高，用于采暖房屋的墙壁时，厚度需要很大，经济性较差。",
+      "unit_id": "rtp22_c2ebccc15ec3e1de"
+    },
+    {
+      "chunk_file": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "chunk_id": "1A437000_131_0212",
+      "investigation_note": "原 unit 被 ai_shadow_review 路径错链到《招投标及合同管理》讲义 p.29（仲裁内容）；撞中的是 leaf keyword「合同管理」。教材 222-382 卷 p.131 第12章 chunk 1A437000_131_0212 明确定义项目管理信息系统的成本/进度/质量/材料设备/合同/安全/文档七个子系统，覆盖全部 5 个 taxonomy keywords。另：该 leaf code 1A413061-07-d 在 canonical taxonomy 中重复（同 code 另有「屋顶透光部分面积限制」），需 taxonomy owner 处理。",
+      "leaf_id": "1A413061-07-d",
+      "leaf_name": "项目管理信息系统子系统",
+      "source_relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "span_text": "**3）项目管理信息系统**\n根据工程项目管理的主要内容，项目管理信息系统通常包括：成本管理、进度管理、质量管理、材料及机械设备管理、合同管理、安全管理、文档资料管理等子系统。其功能与内容主要有：\n\n（1）成本管理子系统。功能包括：资金计划；业主资金到位计划；分包付款；借款支付；资金到位记录及资金使用与资金计划分析等。\n\n（2）进度管理子系统。以网络计划技术为核心，实现施工计划的制订与控制。对工程的重要计划节点实行人、材、物、机械、资金等资源平衡，实现理想的工程工期。\n\n（3）质量管理子系统。主要功能包括：建立质量标准数据库；制订关键节点质量计划；汇总产生所承包范围内的整套质量管理资料；查看和审批分包商的质量报告和质量控制意见；建立质量通病及纠正预防措施信息库。\n\n（4）材料及机械设备管理子系统。主要功能包括：编制与管理采购进度计划、资金使用计划、设备制造计划、设备安装计划、设备调试及试车计划。\n\n（5）合同管理子系统。主要功能包括合同制作、合同管理、合同查询等，最终将合同文件提交档案管理系统进行统一备案保存。",
+      "unit_id": "rtp22_a66aef358d8dc35a"
+    }
+  ],
+  "schema": "luban_rich_leaf_v23_residual_repair_manifest.v1"
+}

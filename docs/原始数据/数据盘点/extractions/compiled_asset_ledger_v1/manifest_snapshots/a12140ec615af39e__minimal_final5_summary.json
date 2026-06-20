@@ -1,0 +1,11 @@
+{
+  "run_id": "minimal_final5",
+  "created_at": "2026-06-06T04:01:03.941908+08:00",
+  "conversation_id": "tb_3db0c4321c9744e4ba75b7e7",
+  "artifact": "artifacts/qa/wechat-tutorbot-authority-option-challenge-fix-20260606",
+  "entry_surface": "backend_harness_wechat_shape",
+  "rounds": 3,
+  "passed": 1,
+  "failed": 2,
+  "note": "Local backend /api/v1/chat/start-turn + /api/v1/ws using WeChat-shaped payload; not real DevTools evidence."
+}

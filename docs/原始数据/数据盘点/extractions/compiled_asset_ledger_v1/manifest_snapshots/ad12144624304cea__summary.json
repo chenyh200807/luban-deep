@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-06-06T11:57:09+0800",
+  "entry_surface": "near_real_http_ws_r4_after_env_fix",
+  "api_base_url": "http://127.0.0.1:8012",
+  "ws_url": "ws://127.0.0.1:8012/api/v1/ws",
+  "username": "qa_tutorbot_r4_env_fix_2",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-r4-after-env-fix",
+  "rounds": 8,
+  "conversation_ids": {
+    "equipment_lighting": "tb_c8fee988e43e459ba6a719c8",
+    "tile_sequence": "tb_e444c41797f342a4a5e70791",
+    "good_house_multiselect": "tb_3832e9e22a814a5895f9ce56",
+    "generated_no_reveal": "tb_e9d8d179abd7459ca80a5744"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-R4-001",
+      "conversation_id": "tb_c8fee988e43e459ba6a719c8",
+      "turn_id": "turn_1780718016119_852f954430",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 A（A. 强电系统），题库解析依据是：设备体系通常包括给水排水系统、供电系统和供热通风系统。其中供电系统分为强电系统和弱电系统两部分，强电系统指供电、照明等，弱电系统指通信、信息、探测、报警等；给水系统为建筑物内的使用人群提供饮用水和生活用水，排水系统排走建筑物内的污水；供热通风系统为建筑物内的使用人群提供舒适的环境。"
+    },
+    {
+      "round_id": "QA30-R4-002",
+      "conversation_id": "tb_c8fee988e43e459ba6a719c8",
+      "turn_id": "turn_1780718043295_1be0812f2c",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（强电系统）：设备体系通常包括给水排水系统、供电系统和供热通风系统。其中供电系统分为强电系统和弱电系统两部分，强电系统指供电、照明等，弱电系统指通信、信息、探测、报警等；给水系统为建筑物内的使用人群提供饮用水和生活用水，排水系统排走建筑物内的污水；供热通风系统为建筑物内的使用人群提供舒适的环境。"
+    },
+    {
+      "round_id": "QA30-R4-003",
+      "conversation_id": "tb_e444c41797f342a4a5e70791",
+      "turn_id": "turn_1780718050581_5b103793ca",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：B（B. ①②④③⑤）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n解析：瓷砖面层施工，工艺流程：基底处理→放线→浸砖→铺设结合层砂浆→铺砖→养护→勾缝。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 B，不要把 A. ①②③④⑤、C. ①③②④⑤、D. ①②④⑤③ 误并入答案。 |\n\n## 🎯 核心要点\n- ✅"
+    },
+    {
+      "round_id": "QA30-R4-004",
+      "conversation_id": "tb_e444c41797f342a4a5e70791",
+      "turn_id": "turn_1780718094416_bb1e79c00c",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 B（①②④③⑤）：解析：瓷砖面层施工，工艺流程：基底处理→放线→浸砖→铺设结合层砂浆→铺砖→养护→勾缝。"
+    },
+    {
+      "round_id": "QA30-R4-007",
+      "conversation_id": "tb_3832e9e22a814a5895f9ce56",
+      "turn_id": "turn_1780718101733_369bf627e6",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：ABCD（A. 安全、B. 舒适、C. 绿色、D. 智慧）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n《住宅项目规范》GB55038－2025的有关规定住宅项目建设应以安全、舒适、绿色、智慧为目标准。遵循的原则是：经济合理，安全耐久；以人为本，健康舒适；因地制宜，绿色低碳；科技赋能，智慧便利。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案"
+    },
+    {
+      "round_id": "QA30-R4-008",
+      "conversation_id": "tb_3832e9e22a814a5895f9ce56",
+      "turn_id": "turn_1780718145383_6ea1fbd866",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（安全）、B（舒适）、C（绿色）、D（智慧）：【解析】《住宅项目规范》GB55038－2025的有关规定住宅项目建设应以安全、舒适、绿色、智慧为目标准。遵循的原则是：经济合理，安全耐久；以人为本，健康舒适；因地制宜，绿色低碳；科技赋能，智慧便利。"
+    },
+    {
+      "round_id": "QA30-R4-009",
+      "conversation_id": "tb_e9d8d179abd7459ca80a5744",
+      "turn_id": "turn_1780718152609_7cdcff5a04",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n根据2025年一建《建筑实务》分值统计，下列哪个版块的选择题分值最高？\n- A. 专业技术\n- B. 专业管理\n- C. 通用管理\n- D. 工程材料\n\n### 第 2 题\n\n根据2025年一建《建筑实务》分值统计，案例题总分最高的版块是？\n- A. 专业技术\n- B. 专业管理\n- C. 通用管理\n- D. 节能工程"
+    },
+    {
+      "round_id": "QA30-R4-010",
+      "conversation_id": "tb_e9d8d179abd7459ca80a5744",
+      "turn_id": "turn_1780718198934_b8aaa53321",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n这道题你答错了，得0分（满分1分）。诊断类型为“概念混淆”。你选了B.专业管理，但正确答案是A.专业技术。说明你对《建筑实务》各版块选择题分值分布的记忆不准确，容易把案例题的高分版块误当作选择题的高分版块。\n\n### 正确答案\n**A. 专业技术**\n\n### 为什么错\n你出现了“概念混淆”的归因错误。具体来说，你混淆了“选择题高分版块”和“案例题高分版块”。根据2025年分值统计，“专业管理”版块在案例题中总分高达53分，是案例题的重中之重，但它的选择题分"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

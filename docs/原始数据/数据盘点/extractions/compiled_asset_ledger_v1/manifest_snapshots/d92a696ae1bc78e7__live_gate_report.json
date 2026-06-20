@@ -1,0 +1,123 @@
+{
+  "schema_version": "luban_m35_ai_governed_gold_labeling.v1",
+  "labeling_run": true,
+  "live": {
+    "cli_flag": true,
+    "env_flag": true,
+    "api_key_envs_present": [],
+    "status": "live_labeling_completed"
+  },
+  "answers_path": "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/student_answers.jsonl",
+  "manifest_path": "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+  "manifest_summary": {
+    "row_count": 162,
+    "gold_row_count": 8,
+    "downgraded_row_count": 154,
+    "downgrade_reason_counts": {
+      "mutation_test_failed": 2,
+      "insufficient_independent_blind_accepts": 62,
+      "adversarial_prosecutor_abstained": 90,
+      "unadjudicated_point_due_to_abstention": 7
+    },
+    "fleiss_kappa": -0.028571,
+    "kappa_item_count": 24,
+    "kappa_items_excluded_for_abstention": 274,
+    "mutation_pass_rate": 0.95,
+    "mutation_case_count": 60,
+    "stop_condition_triggered": true,
+    "stop_condition": {
+      "triggered": true,
+      "reasons": [
+        "fleiss_kappa_below_threshold"
+      ],
+      "fleiss_kappa_threshold": 0.6,
+      "mutation_pass_rate_threshold": 0.8
+    },
+    "model_roles": {
+      "blind_panel": [
+        "deepseek-chat",
+        "fable",
+        "qwen-max"
+      ],
+      "arbiter": "deepseek-reasoner",
+      "adversarial_prosecutor": "opus"
+    }
+  },
+  "model_stats": {
+    "deepseek-chat": {
+      "calls": 433,
+      "cached_hits": 207,
+      "abstains": 0,
+      "prompt_tokens": 189878,
+      "completion_tokens": 10401,
+      "total_tokens": 200279,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": 0.057534,
+      "pricing_basis": "deepseek list price, cache-miss"
+    },
+    "qwen-max": {
+      "calls": 433,
+      "cached_hits": 207,
+      "abstains": 0,
+      "prompt_tokens": 212909,
+      "completion_tokens": 13155,
+      "total_tokens": 226064,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": 0.087625,
+      "pricing_basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"
+    },
+    "fable": {
+      "calls": 433,
+      "cached_hits": 63,
+      "abstains": 278,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {
+        "unparseable_output": 6,
+        "claude_exit_1: ": 272
+      },
+      "abstain_rate": 0.642032,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    },
+    "opus": {
+      "calls": 162,
+      "cached_hits": 0,
+      "abstains": 139,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {
+        "claude_exit_1: ": 139
+      },
+      "abstain_rate": 0.858025,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    },
+    "deepseek-reasoner": {
+      "calls": 276,
+      "cached_hits": 110,
+      "abstains": 52,
+      "prompt_tokens": 137132,
+      "completion_tokens": 43355,
+      "total_tokens": 180487,
+      "abstain_reasons": {
+        "unparseable_output": 50,
+        "TimeoutError: The read operation timed out": 2
+      },
+      "abstain_rate": 0.188406,
+      "estimated_cost_usd": 0.056606,
+      "pricing_basis": "deepseek list price, cache-miss"
+    }
+  },
+  "estimated_cost_usd_metered_models": 0.201765,
+  "self_check": {
+    "passed": true,
+    "gold_rows_validated": 8,
+    "downgraded_rows_without_protocol_block": 154,
+    "violations": []
+  }
+}

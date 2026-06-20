@@ -1,0 +1,19 @@
+{
+  "mode": "smoke",
+  "run_live": false,
+  "primary_model": "deepseek_v4_flash",
+  "fallback_model": "qwen3.7_plus",
+  "forced_fallback_drills": 20,
+  "fallback_used_count": 20,
+  "fallback_failclosed": 0,
+  "failclosed_drill": {
+    "failclosed": true,
+    "shadow_status": null
+  },
+  "fallback_rate": 0.0,
+  "failclosed_rate": 0.0,
+  "timeout_rate": 0.0,
+  "deepseek_key_present": true,
+  "qwen_key_present": true,
+  "note": "hermetic forced-fallback proves real adjudicate() fallback control flow without live LLM"
+}

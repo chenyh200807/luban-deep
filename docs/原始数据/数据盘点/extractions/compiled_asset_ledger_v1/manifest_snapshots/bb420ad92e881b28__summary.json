@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-06-06T05:52:59+0800",
+  "entry_surface": "near_real_http_ws_wechat_payload",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_mcq",
+  "created_user": false,
+  "output_dir": "artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-explicit-fix",
+  "rounds": 12,
+  "conversation_ids": {
+    "shuffled_roof": "tb_d7f55f8e9323409fa8517754",
+    "template_support": "tb_72fafd5ad190469b92f38dcb",
+    "diaphragm_wall": "tb_d7f7ffb29e4b4d53b004bd1a",
+    "value_only_wall": "tb_6632431ea0d544d7b609ab59",
+    "low_info_case": "tb_6e812da750cf4a7580add0fe",
+    "open_world": "tb_7a9bb3a0cb684f25b5fc8a02"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-NR-004",
+      "conversation_id": "tb_d7f55f8e9323409fa8517754",
+      "turn_id": "turn_1780696086934_1eee147293",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+    },
+    {
+      "round_id": "QA30-NR-005",
+      "conversation_id": "tb_d7f55f8e9323409fa8517754",
+      "turn_id": "turn_1780696110724_5125f8c4bd",
+      "done_status": "completed",
+      "visible_excerpt": "不是，已按你这轮题面判断，正确答案是 A（5%）。"
+    },
+    {
+      "round_id": "QA30-NR-006",
+      "conversation_id": "tb_d7f55f8e9323409fa8517754",
+      "turn_id": "turn_1780696128752_bccf5169da",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n这道题你答错了，得0分（满分1分）。系统诊断类型为“概念混淆（CONFUSION）”。你选了C（2%），但正确答案是A（5%）。\n\n### 正确答案\nA. 5%\n\n### 为什么错\n你混淆了不同屋面材料的坡度要求。在《屋面工程技术规范》中，压型金属板屋面因其搭接、排水和防渗漏的特殊性，最小坡度要求比常见的卷材、涂膜或刚性防水屋面要大得多。你选的2%是其他类型屋面（如卷材、涂膜）的常见坡度值，而压型金属板的最小坡度是5%。\n\n### 知识点\n**屋面坡度选择*"
+    },
+    {
+      "round_id": "QA30-NR-008",
+      "conversation_id": "tb_72fafd5ad190469b92f38dcb",
+      "turn_id": "turn_1780696164922_ed6042abf8",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：ABE（A. 施工方案、B. 支架构造、E. 支架稳定）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\n本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、\n支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配\n件材质、支架拆除。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n|"
+    },
+    {
+      "round_id": "QA30-NR-009",
+      "conversation_id": "tb_72fafd5ad190469b92f38dcb",
+      "turn_id": "turn_1780696190163_1433e628e9",
+      "done_status": "completed",
+      "visible_excerpt": "正确答案是 A（施工方案）、B（支架构造）、E（支架稳定）：【解析】本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、 支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配 件材质、支架拆除。"
+    },
+    {
+      "round_id": "QA30-NR-010",
+      "conversation_id": "tb_d7f7ffb29e4b4d53b004bd1a",
+      "turn_id": "turn_1780696197421_8f08bab83a",
+      "done_status": "completed",
+      "visible_excerpt": "## 📊 阅卷结论\n这道题已命中题库原题。标准答案：CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆）。本题核心是先锁定题库给出的标准选项，再围绕原解析理解判断依据。\n\n## 🧐 解析\nA 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。\n\n## ⚠️ 易错点\n| 易错点 | 正确抓手 |\n| :--- | :--- |\n| 答案范围扩大 | 标准答案只包含 CDE，不要把 A"
+    },
+    {
+      "round_id": "QA30-NR-011",
+      "conversation_id": "tb_d7f7ffb29e4b4d53b004bd1a",
+      "turn_id": "turn_1780696238146_9223489fff",
+      "done_status": "completed",
+      "visible_excerpt": "不行，应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-012",
+      "conversation_id": "tb_6632431ea0d544d7b609ab59",
+      "turn_id": "turn_1780696245552_22e4146c22",
+      "done_status": "completed",
+      "visible_excerpt": "对，标准答案是 CDE（C. 应设置现浇钢筋混凝土导墙、D. 水下混凝土应采用导管法连续浇筑、E. 混凝土达到设计强度后方可进行墙底注浆），题库解析依据是：A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-013",
+      "conversation_id": "tb_6632431ea0d544d7b609ab59",
+      "turn_id": "turn_1780696271794_b2cd2e8ed0",
+      "done_status": "completed",
+      "visible_excerpt": "不行，应≥1.2m。"
+    },
+    {
+      "round_id": "QA30-NR-014",
+      "conversation_id": "tb_6e812da750cf4a7580add0fe",
+      "turn_id": "turn_1780696296121_c908133ee5",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“2015案例二第3问答案直接发我，我在题卡里。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-015",
+      "conversation_id": "tb_6e812da750cf4a7580add0fe",
+      "turn_id": "turn_1780696338600_705b17bde2",
+      "done_status": "completed",
+      "visible_excerpt": "我知道你是想直接要“我说了在题卡里，你就发答案，别问。”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+    },
+    {
+      "round_id": "QA30-NR-016",
+      "conversation_id": "tb_7a9bb3a0cb684f25b5fc8a02",
+      "turn_id": "turn_1780696364628_7ffabcc50c",
+      "done_status": "completed",
+      "visible_excerpt": "## 结论\n\n**三级配电**：总配电箱 → 分配电箱 → 开关箱（直接接用电设备），中间不能跳级。\n\n**两级保护**：总配电箱和开关箱必须各装一个漏电保护器，形成两道防线。\n\n## 采分点\n\n- 三级配电的核心是**开关箱\"一机一闸一漏一箱\"**，每台设备由专用开关箱控制。\n- 两级保护的关键是**开关箱漏保动作电流 ≤30mA，动作时间 ≤0.1s**；总配电箱漏保可稍大（如 150mA），但动作时间应协调，防止越级跳闸。\n\n## 易错点\n\n- 分配电箱**不设漏保**"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

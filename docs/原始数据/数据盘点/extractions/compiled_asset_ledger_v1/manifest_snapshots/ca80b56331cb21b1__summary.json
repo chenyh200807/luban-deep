@@ -1,0 +1,90 @@
+{
+  "run_id": "real-package-batch-r2-1780760877860",
+  "generated_at": "2026-06-06T15:49:09.456Z",
+  "entry_surface": "real_wechat_package",
+  "rows": 7,
+  "pass_count": 7,
+  "fail_count": 0,
+  "rounds": [
+    {
+      "round_id": "REAL-WX-R2-001",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760885260_af96368ed9",
+      "resolved_authority": "tutorbot_exact_fast_path",
+      "question_id": "historical:cf366dd4c395fffa",
+      "official_answer": "A",
+      "learner_answer": "C"
+    },
+    {
+      "round_id": "REAL-WX-R2-002",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760892040_19e55259ba",
+      "resolved_authority": "deep_question_grading",
+      "question_id": "historical:cf366dd4c395fffa",
+      "official_answer": "A",
+      "learner_answer": "第1题：C"
+    },
+    {
+      "round_id": "REAL-WX-R2-003",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760908441_96c4241cc3",
+      "resolved_authority": "deep_question_grading",
+      "question_id": "historical:cf366dd4c395fffa",
+      "official_answer": "A",
+      "learner_answer": "第1题：A"
+    },
+    {
+      "round_id": "REAL-WX-R2-004",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760910562_70667c9922",
+      "resolved_authority": "tutorbot_exact_fast_path",
+      "question_id": "historical:53cbdad71ba26c1c",
+      "official_answer": "D",
+      "learner_answer": "C"
+    },
+    {
+      "round_id": "REAL-WX-R2-005",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760925020_8db6b16118",
+      "resolved_authority": "tutorbot_lifecycle_clarification",
+      "question_id": "",
+      "official_answer": "",
+      "learner_answer": ""
+    },
+    {
+      "round_id": "REAL-WX-R2-006",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760929517_bc6d37ac16",
+      "resolved_authority": "tutorbot_kb_first_full_agent_policy",
+      "question_id": "",
+      "official_answer": "",
+      "learner_answer": ""
+    },
+    {
+      "round_id": "REAL-WX-R2-007",
+      "pass": true,
+      "conversation_id": "unified_1780760885257_fa054593",
+      "turn_id": "turn_1780760945897_3322ccd72d",
+      "resolved_authority": "tutorbot_lifecycle_clarification",
+      "question_id": "",
+      "official_answer": "",
+      "learner_answer": ""
+    }
+  ],
+  "trace_ids_corrected_at": "2026-06-06T23:56:00+08:00",
+  "trace_ids": {
+    "REAL-WX-R2-001": "fcf7ae1d6d498d15b57e10b5999a39fb",
+    "REAL-WX-R2-002": "0fe7953229a4dbbc7080dcf4c927539f",
+    "REAL-WX-R2-003": "a1e8c102e1da584ee38831666e574233",
+    "REAL-WX-R2-004": "4a92f59538190af20ea06c4032834052",
+    "REAL-WX-R2-005": "4d00f32f386cefdf5c43ef5a59e87eba",
+    "REAL-WX-R2-006": "1d5b8490ad1dd4418b2c6a1fbac0cdbc",
+    "REAL-WX-R2-007": "db73e42ace6bb8d0672741d10c42b6ec"
+  }
+}

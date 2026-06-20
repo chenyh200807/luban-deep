@@ -1,0 +1,133 @@
+{
+  "schema_version": "luban-multimodel-jury-gold.v0.1",
+  "arms": [
+    "deepseek",
+    "gpt",
+    "opus",
+    "qwen37"
+  ],
+  "target_arm": "deepseek",
+  "summary": {
+    "total_points": 175,
+    "full_consensus_points": 136,
+    "frontier_points": 39,
+    "unsupported_positive_points": 0,
+    "full_consensus_rate": 0.7771
+  },
+  "pairwise_agreement": [
+    {
+      "left": "deepseek",
+      "right": "gpt",
+      "compared": 175,
+      "hit_agreement": 0.9543,
+      "hit_score_agreement": 0.9143
+    },
+    {
+      "left": "deepseek",
+      "right": "opus",
+      "compared": 175,
+      "hit_agreement": 0.9429,
+      "hit_score_agreement": 0.8971
+    },
+    {
+      "left": "deepseek",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8971,
+      "hit_score_agreement": 0.8114
+    },
+    {
+      "left": "gpt",
+      "right": "opus",
+      "compared": 175,
+      "hit_agreement": 0.9257,
+      "hit_score_agreement": 0.9029
+    },
+    {
+      "left": "gpt",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8914,
+      "hit_score_agreement": 0.84
+    },
+    {
+      "left": "opus",
+      "right": "qwen37",
+      "compared": 175,
+      "hit_agreement": 0.8971,
+      "hit_score_agreement": 0.8686
+    }
+  ],
+  "target_vs_jury": {
+    "target_arm": "deepseek",
+    "jury_point_count": 142,
+    "point_hit_agreement": 0.993,
+    "mean_abs_point_score_delta": 0.0054,
+    "disagreement_count": 6,
+    "disagreements": [
+      {
+        "case_id": "Q1-NA",
+        "student_id": "S2",
+        "point_id": "P1",
+        "target_hit": "partial",
+        "target_score": 3.33,
+        "jury_hit": "partial",
+        "jury_score": 3.3,
+        "target_rationale": "学生答案命中了2项应得分项：'施工总进度计划表(图)'和'分期分批实施工程的开、竣工日期及工期一览表'，缺少'资源需要量及供应平衡表'。根据list_rule，应得分项为3项，满分5分，命中2/3，得分=2/3*5≈3.33。编制说明已存在不重复给分。"
+      },
+      {
+        "case_id": "Q1-NA",
+        "student_id": "S4",
+        "point_id": "P1",
+        "target_hit": "partial",
+        "target_score": 1.67,
+        "jury_hit": "partial",
+        "jury_score": 1.7,
+        "target_rationale": "学生只写出一项应补充内容'资源需要量及供应平衡表'，缺少'施工总进度计划表(图)'和'分期(分批)实施工程的开竣工日期及工期一览表'，且'编制说明'已存在不重复计分。按list_rule规则，有效应得分项为3项，命中1项，得分5*(1/3)≈1.67。"
+      },
+      {
+        "case_id": "Q10-1A422000",
+        "student_id": "S2",
+        "point_id": "P4",
+        "target_hit": "partial",
+        "target_score": 0.5,
+        "jury_hit": "miss",
+        "jury_score": 0.0,
+        "target_rationale": "学生只写了一半（普通钢筋调直机），缺少'数控钢筋调直切断机'"
+      },
+      {
+        "case_id": "Q13-1A421000",
+        "student_id": "S2",
+        "point_id": "P3",
+        "target_hit": "partial",
+        "target_score": 0.6,
+        "jury_hit": "partial",
+        "jury_score": 0.75,
+        "target_rationale": "学生列出了3个参建单位（建设单位、监理单位、施工总承包单位），未达到4项满分标准，按list_rule公式得分3/5*1=0.6。"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S2",
+        "point_id": "P5",
+        "target_hit": "partial",
+        "target_score": 1.33,
+        "jury_hit": "partial",
+        "jury_score": 1.3,
+        "target_rationale": "命中2项（材料、施工工艺），缺设备类别，按比例得分(2/3)*2≈1.33"
+      },
+      {
+        "case_id": "Q18-1A434000",
+        "student_id": "S2",
+        "point_id": "P6",
+        "target_hit": "partial",
+        "target_score": 1.33,
+        "jury_hit": "partial",
+        "jury_score": 1.3,
+        "target_rationale": "命中2项（施工段、变形缝），缺工程量，按比例得分(2/3)*2≈1.33"
+      }
+    ]
+  },
+  "human_checks": {
+    "jury_vs_human": null
+  }
+}

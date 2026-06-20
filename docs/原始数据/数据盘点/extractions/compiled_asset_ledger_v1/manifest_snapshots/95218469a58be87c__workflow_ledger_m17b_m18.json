@@ -1,0 +1,34 @@
+{
+  "classify_and_act": {
+    "buckets": {
+      "textbook": 23,
+      "machine_logic": 30,
+      "machine_calc": 3,
+      "list_rule": 14
+    },
+    "frontier": 40,
+    "downgrades": 31
+  },
+  "fanout_and_synthesize": "4 council roles (Runtime Evaluator≈agreement metrics, Rubric Architect≈GPT5.5, Strict Prosecutor≈DeepSeek, Semantics≈Qwen, Workflow Judge≈Opus)",
+  "generate_and_filter": "3 packet variants (compact/evidence_rich/learner_context)",
+  "tournament": "evidence_rich selected",
+  "adversarial_verification": [
+    "hit",
+    "miss",
+    "partial",
+    "contradiction",
+    "off_by_one",
+    "denominator_mismatch",
+    "near_synonym",
+    "source_laundering",
+    "irrelevant",
+    "high_risk_overclaim"
+  ],
+  "loop_until_done": {
+    "submissions": 130,
+    "point_decisions": 347,
+    "verdict": "GO"
+  },
+  "workflow_tool_used": false,
+  "workflow_tool_rationale": "core evidence = real DeepSeek/Qwen runtime + council via factory/Codex; Claude subagents cannot make those provider calls, so 6 patterns implemented in-script; Opus seat fulfilled in-session (honest, non-human)"
+}

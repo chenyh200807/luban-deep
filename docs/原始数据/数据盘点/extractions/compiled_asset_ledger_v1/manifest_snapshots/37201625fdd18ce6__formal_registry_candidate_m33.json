@@ -1,0 +1,48 @@
+{
+  "schema_version": "luban_v1_canonical_promotion_registry.m33",
+  "registry_status": "formal_candidate",
+  "formal_registry_emitted": true,
+  "promotion_arm": "v1_canonical_teacher_final_real_retest",
+  "single_authority": {
+    "writer": "LearnerStateService.append_memory_event",
+    "canonical_store": "LearnerStateService.COMPILED_TRUTH",
+    "reader": "LearnerStateService.read_compiled_learning_truth",
+    "projection_builder": "LearnerStateService.synthesize_learning_truth"
+  },
+  "writes_where": [
+    "MEMORY_EVENTS.jsonl",
+    "COMPILED_TRUTH.json"
+  ],
+  "reads_where": [
+    "Learning Brain read model",
+    "learning report read model",
+    "PersonalizationContextPack next action"
+  ],
+  "rollback": {
+    "strategy": "disable_default_and_restore_previous_compiled_truth",
+    "kill_switch_env": "LUBAN_V1_BETA_SHADOW_ENABLED",
+    "restore_files": [
+      "COMPILED_TRUTH.json"
+    ]
+  },
+  "allowed_traffic": {
+    "default": [
+      "qa_",
+      "operator_"
+    ],
+    "canonical_write": [
+      "qa_",
+      "operator_"
+    ],
+    "blocked": [
+      "real_student_",
+      "guest_"
+    ]
+  },
+  "evidence_refs": [
+    "teacher-final canonical write readback",
+    "real retest improvement readback",
+    "M19C limited default",
+    "M19D soak"
+  ]
+}

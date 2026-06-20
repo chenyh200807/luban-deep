@@ -1,0 +1,87 @@
+{
+  "schema": "luban_compiled_asset_authority_map_manifest.v1",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "authority_status": "compiled_asset_authority_map_only",
+  "runtime_guard": {
+    "release_stage": "compiled_asset_authority_map_only",
+    "runtime_consumable": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_paths": {
+    "compiled_ledger_manifest": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
+    "asset_groups": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/asset_groups.json",
+    "files": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/files.jsonl",
+    "runtime_supply_root": "deeptutor/services/construction_grading/runtime_supply"
+  },
+  "compiled_ledger_counts": {
+    "files": 5059,
+    "total_bytes": 740257453,
+    "asset_groups": 21,
+    "manifest_like_files": 552,
+    "manifest_refs_copied": 545,
+    "by_extension": {
+      ".json": 3024,
+      ".md": 859,
+      ".jsonl": 446,
+      ".png": 303,
+      ".txt": 83,
+      ".csv": 76,
+      ".py": 71,
+      ".html": 40,
+      ".log": 29,
+      ".db": 26,
+      ".db-shm": 26,
+      ".db-wal": 26,
+      ".mp3": 13,
+      ".mjs": 9,
+      ".tsx": 5,
+      ".mp4": 4,
+      ".js": 4,
+      ".sql": 3,
+      ".yml": 3,
+      ".lock": 2,
+      ".tsv": 1,
+      ".css": 1,
+      ".pdf": 1,
+      ".psd": 1,
+      ".svg": 1,
+      "[no_ext]": 1,
+      ".ts": 1
+    }
+  },
+  "outputs": {
+    "group_authority": "group_authority.json",
+    "runtime_pointers": "runtime_pointers.jsonl",
+    "consumer_policy": "consumer_policy.json",
+    "summary": "summary.md"
+  },
+  "counts": {
+    "asset_groups": 21,
+    "runtime_pointer_records": 15,
+    "published_runtime_pointers": 4,
+    "blocked_or_candidate_runtime_pointers": 11,
+    "direct_artifact_runtime_reads_allowed": 0,
+    "by_authority_class": {
+      "candidate_compiler_workbench_read_only": 7,
+      "review_or_audit_evidence_read_only": 6,
+      "multimedia_or_product_candidate_read_only": 4,
+      "auxiliary_artifact_or_report_read_only": 3,
+      "runtime_supply_pointer_gated": 1
+    },
+    "by_runtime_pointer_status": {
+      "release_candidate_not_runtime_default": 10,
+      "published_runtime_supply_hash_gated": 4,
+      "candidate_manifest_no_publish_flag": 1
+    }
+  },
+  "guardrails": [
+    "authority map only; not runtime install",
+    "artifacts direct runtime read count must remain zero",
+    "runtime supply requires per-pointer published/hash/schema gate",
+    "official score remains false"
+  ]
+}

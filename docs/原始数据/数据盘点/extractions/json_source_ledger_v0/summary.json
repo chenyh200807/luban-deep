@@ -1,0 +1,151 @@
+{
+  "schema": "luban_json_source_ledger_summary.v0",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "source_root": "docs/原始数据/2026_副本",
+  "json_sources": 383,
+  "bucket_counts": {
+    "exam_cleaned_json": 11,
+    "lecture_cleaned_json": 335,
+    "practice_qiantizan_json": 1,
+    "practice_zl500_json": 1,
+    "standard_cleaned_json": 8,
+    "taxonomy_backup_json": 8,
+    "taxonomy_cleaned_json": 1,
+    "textbook_cleaned_json": 6,
+    "textbook_core_json": 3,
+    "textbook_enrichment_json": 6,
+    "textbook_index_json": 3
+  },
+  "largest_sources": [
+    {
+      "source_id": "json_src_60a68f46dda75bbf",
+      "source_path": "docs/原始数据/2026_副本/标准文件/15、GB+51004-2015建筑地基基础工程施工规范.json",
+      "bucket": "standard_cleaned_json",
+      "bytes": 21130702
+    },
+    {
+      "source_id": "json_src_14464d6b637fd791",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "bucket": "textbook_cleaned_json",
+      "bytes": 13178055
+    },
+    {
+      "source_id": "json_src_25a823c0a136cf0e",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/v3_production_enrichment_v2-9-166.json",
+      "bucket": "textbook_enrichment_json",
+      "bytes": 11251275
+    },
+    {
+      "source_id": "json_src_2a3332c9c32ce814",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/v3_production_enrichment9-166.json",
+      "bucket": "textbook_enrichment_json",
+      "bytes": 10953241
+    },
+    {
+      "source_id": "json_src_af7c56b79476a408",
+      "source_path": "docs/原始数据/2026_副本/标准文件/19、GB50210-2018建筑装饰装修工程质量验收标准.json",
+      "bucket": "standard_cleaned_json",
+      "bytes": 10188488
+    },
+    {
+      "source_id": "json_src_547febd2ea512a9a",
+      "source_path": "docs/原始数据/2026_副本/标准文件/1、GB50352-2019民用建筑设计统一标准.json",
+      "bucket": "standard_cleaned_json",
+      "bytes": 5630180
+    },
+    {
+      "source_id": "json_src_49b841b818f74cad",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "bucket": "textbook_cleaned_json",
+      "bytes": 4260424
+    },
+    {
+      "source_id": "json_src_ff109b6e2e6d4c1d",
+      "source_path": "docs/原始数据/2026_副本/标准文件/16、JGJ120-2012《建筑基坑支护技术规程》.json",
+      "bucket": "standard_cleaned_json",
+      "bytes": 2936051
+    },
+    {
+      "source_id": "json_src_a6c35550c705c64d",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/v3_production_enrichment_v2_222-382.json",
+      "bucket": "textbook_enrichment_json",
+      "bytes": 2911233
+    },
+    {
+      "source_id": "json_src_97f6f9479f5c554d",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/v3_production_enrichment_222-382.json",
+      "bucket": "textbook_enrichment_json",
+      "bytes": 2725004
+    },
+    {
+      "source_id": "json_src_265741fec550b549",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-9-166.json",
+      "bucket": "textbook_cleaned_json",
+      "bytes": 2089251
+    },
+    {
+      "source_id": "json_src_91954cd83dad5bf7",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/FINAL_CLEANED_BOOK2026-167-221v3_fixed.json",
+      "bucket": "textbook_cleaned_json",
+      "bytes": 1930728
+    },
+    {
+      "source_id": "json_src_d903f65126fb735c",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第一次清洗/FINAL_CLEANED_BOOK2026-222-382.json",
+      "bucket": "textbook_cleaned_json",
+      "bytes": 1781413
+    },
+    {
+      "source_id": "json_src_4863b0c3cc078a9d",
+      "source_path": "docs/原始数据/2026_副本/标准文件/18、GB+50207-2012屋面工程质量验收规范（清晰版）.json",
+      "bucket": "standard_cleaned_json",
+      "bytes": 1726691
+    },
+    {
+      "source_id": "json_src_fdff66b216e48bbd",
+      "source_path": "docs/原始数据/2026_副本/2026教材/第二次加强/v3_production_enrichment_v2_167-221.json",
+      "bucket": "textbook_enrichment_json",
+      "bytes": 1479429
+    },
+    {
+      "source_id": "json_src_84ca8b11e6b05ec3",
+      "source_path": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026_pre_skeleton_repair_backup_20260612.json",
+      "bucket": "taxonomy_backup_json",
+      "bytes": 1456998
+    },
+    {
+      "source_id": "json_src_2c67522f2c6d3689",
+      "source_path": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026_pre_structural_leaf_prune_backup_20260612.json",
+      "bucket": "taxonomy_backup_json",
+      "bytes": 1450947
+    },
+    {
+      "source_id": "json_src_94d036134c3f1523",
+      "source_path": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026_pre_book_derived_backup_20260612.json",
+      "bucket": "taxonomy_backup_json",
+      "bytes": 1425802
+    },
+    {
+      "source_id": "json_src_4f976e6d70f014ef",
+      "source_path": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+      "bucket": "taxonomy_cleaned_json",
+      "bytes": 1422358
+    },
+    {
+      "source_id": "json_src_abb21208010d6ec2",
+      "source_path": "docs/原始数据/2026_副本/taxonomy/FINAL_CLEANED_TAXONOMY2026_pre_council_apply_backup_20260612.json",
+      "bucket": "taxonomy_backup_json",
+      "bytes": 1420896
+    }
+  ],
+  "runtime_guard": {
+    "release_stage": "raw_source_ledger",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  }
+}

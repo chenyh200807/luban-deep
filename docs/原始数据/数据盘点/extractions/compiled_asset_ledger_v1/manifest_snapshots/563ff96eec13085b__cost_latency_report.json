@@ -1,0 +1,63 @@
+{
+  "schema_version": "luban-latency-bench.v0.1",
+  "status": "directional_shadow",
+  "sample_tasks": [
+    [
+      "Q1-NA",
+      "S1"
+    ],
+    [
+      "Q1-NA",
+      "S2"
+    ],
+    [
+      "Q1-NA",
+      "S3"
+    ],
+    [
+      "Q1-NA",
+      "S4"
+    ],
+    [
+      "Q1-NA",
+      "S5"
+    ],
+    [
+      "Q8-1A413030",
+      "S1"
+    ]
+  ],
+  "deepseek_v4_flash": {
+    "model": "deepseek-v4-flash",
+    "n": 6,
+    "avg_latency_s": 5.007,
+    "p95_latency_s": 7.845,
+    "parse_success_rate": 0.8333,
+    "avg_completion_tokens_proxy": 583.0,
+    "latencies_s": [
+      3.629,
+      7.845,
+      3.249,
+      5.311,
+      5.669,
+      4.34
+    ]
+  },
+  "qwen37plus_nothink": {
+    "model": "qwen3.7-plus",
+    "n": 6,
+    "avg_latency_s": 7.343,
+    "p95_latency_s": 21.252,
+    "parse_success_rate": 1.0,
+    "avg_completion_tokens_proxy": 373.0,
+    "latencies_s": [
+      4.117,
+      5.109,
+      21.252,
+      4.077,
+      5.77,
+      3.73
+    ]
+  },
+  "note": "engineering metrics only; accuracy from unified jury run. token proxy = completion_tokens if available else char count."
+}

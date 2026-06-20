@@ -1,0 +1,10 @@
+{
+  "schema_version": "luban_m35_gold_patched.v1",
+  "base": "m35_gold_labeling_full (162)",
+  "patch_source": "m35_gold_labeling_full_v2",
+  "replaced_rows": 7,
+  "work_order": "WO_GOLD_READJ_20260611",
+  "is_release_truth": false,
+  "official_score_allowed": false,
+  "label_note": "replaced rows remain ai_council_directional unless v2 marked gold; patch only repairs unadjudicated-as-zero damage"
+}

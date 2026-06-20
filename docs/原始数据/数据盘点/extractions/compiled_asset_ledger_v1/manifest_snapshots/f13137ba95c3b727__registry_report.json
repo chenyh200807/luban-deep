@@ -1,0 +1,269 @@
+{
+  "questions": [
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 1,
+      "question_id": "Q1-NA",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 1
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 4,
+      "question_id": "Q2-1A436000-罚则",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 4
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 2,
+      "missing_policy_points": [],
+      "published_point_count": 8,
+      "question_id": "Q3-1A433000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P2",
+        "P3"
+      ],
+      "status": "published",
+      "total_scoring_points": 10
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 3,
+      "question_id": "Q4-1A434000-罚则",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 3,
+      "missing_policy_points": [],
+      "published_point_count": 4,
+      "question_id": "Q5-1A432000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P3",
+        "P4",
+        "P6"
+      ],
+      "status": "published",
+      "total_scoring_points": 7
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 3,
+      "question_id": "Q6-1A413000-罚则",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 1,
+      "missing_policy_points": [],
+      "published_point_count": 2,
+      "question_id": "Q7-1A431000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P1"
+      ],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 1,
+      "question_id": "Q8-1A413030",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 1
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 1,
+      "question_id": "Q9-1A413040",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 1
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 7,
+      "question_id": "Q10-1A422000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 7
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 1,
+      "missing_policy_points": [],
+      "published_point_count": 2,
+      "question_id": "Q11-1A434020",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P2"
+      ],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 1,
+      "missing_policy_points": [],
+      "published_point_count": 2,
+      "question_id": "Q12-1A412000-罚则",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P3"
+      ],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 3,
+      "question_id": "Q13-1A421000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 2,
+      "missing_policy_points": [],
+      "published_point_count": 8,
+      "question_id": "Q14-1A430000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P1",
+        "P2"
+      ],
+      "status": "published",
+      "total_scoring_points": 10
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 3,
+      "missing_policy_points": [],
+      "published_point_count": 0,
+      "question_id": "Q15-NA",
+      "reason": "zero_auto_certifiable_with_high_risk",
+      "source_weak_points": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "status": "blocked",
+      "total_scoring_points": 3
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 0,
+      "missing_policy_points": [],
+      "published_point_count": 6,
+      "question_id": "Q16-1A436000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [],
+      "status": "published",
+      "total_scoring_points": 6
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 3,
+      "missing_policy_points": [],
+      "published_point_count": 2,
+      "question_id": "Q17-1A433000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "status": "published",
+      "total_scoring_points": 5
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 1,
+      "missing_policy_points": [],
+      "published_point_count": 10,
+      "question_id": "Q18-1A434000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P11"
+      ],
+      "status": "published",
+      "total_scoring_points": 11
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 2,
+      "missing_policy_points": [],
+      "published_point_count": 2,
+      "question_id": "Q19-1A432000",
+      "reason": "has_auto_certifiable_points",
+      "source_weak_points": [
+        "P1",
+        "P3"
+      ],
+      "status": "published",
+      "total_scoring_points": 4
+    },
+    {
+      "blocked_point_count": 0,
+      "draft_point_count": 9,
+      "missing_policy_points": [],
+      "published_point_count": 0,
+      "question_id": "Q20-1A413000",
+      "reason": "no_auto_certifiable_points",
+      "source_weak_points": [
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8",
+        "P9"
+      ],
+      "status": "draft",
+      "total_scoring_points": 9
+    }
+  ],
+  "summary": {
+    "blocked_count": 1,
+    "draft_count": 1,
+    "published_count": 18
+  },
+  "version_id": "qga_v0_20260604"
+}

@@ -1,0 +1,20 @@
+{
+  "simulation_only": true,
+  "formal_registry_emitted": false,
+  "publish_ready_candidate_count": 2,
+  "draft_review_candidate_count": 5,
+  "po_review_required_count": 27,
+  "blocked_candidate_count": 0,
+  "auto_certifiable_point_count": 25,
+  "review_required_point_count": 112,
+  "external_source_required_point_count": 0,
+  "rejected_point_count": 0,
+  "rewrite_needed_point_count": 13,
+  "delta_vs_m4": {
+    "m4_auto_certifiable_points": 36,
+    "m5_auto_certifiable_points": 25,
+    "auto_certifiable_delta": -11,
+    "m4_published_candidate_not_final": 20,
+    "m5_publish_ready_candidate": 2
+  }
+}

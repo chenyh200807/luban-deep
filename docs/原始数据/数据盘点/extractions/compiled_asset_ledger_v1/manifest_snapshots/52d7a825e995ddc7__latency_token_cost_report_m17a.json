@@ -1,0 +1,15 @@
+{
+  "live_calls": 25,
+  "fallback_calls": 0,
+  "failclosed_calls": 0,
+  "fallback_rate": 0.0,
+  "latency_ms_p50": 2117.7,
+  "latency_ms_p95": 3906.9,
+  "latency_ms_max": 4400.3,
+  "token_budget_per_packet": 1200,
+  "token_efficiency_note": "scoped packet = only this question's counted points + policy slices",
+  "production_models": [
+    "deepseek_v4_flash",
+    "qwen3.7_plus"
+  ]
+}

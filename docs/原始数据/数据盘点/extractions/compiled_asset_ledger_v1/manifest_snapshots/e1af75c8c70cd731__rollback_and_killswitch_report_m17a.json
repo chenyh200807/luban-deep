@@ -1,0 +1,7 @@
+{
+  "kill_switch_env": "LUBAN_V1_LLM_ADJUDICATOR_ENABLED",
+  "kill_switch_works": true,
+  "rollback_mechanism": "drop flag grading_engine_v1_llm_adjudication / env false / fail-closed to controlled or legacy",
+  "production_default": "off",
+  "rollback_to_legacy_only": true
+}

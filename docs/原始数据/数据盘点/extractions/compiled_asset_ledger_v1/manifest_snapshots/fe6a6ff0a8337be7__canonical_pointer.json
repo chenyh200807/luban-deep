@@ -1,0 +1,9 @@
+{
+  "namespace": "kb_v5_chunks_full",
+  "status": "release_candidate",
+  "published": true,
+  "chunk_count": 3596,
+  "content_hash": "478fa856b2fe46189d966aaa8532ec608047fd7fc77305b51654ad776da65050",
+  "bundle_file": "kb_v5_chunks_full.json",
+  "published_date": "2026-06-08"
+}

@@ -1,0 +1,46 @@
+{
+  "classify_and_act": {
+    "evidence_file": "m18c_claim_inventory_m18d.json",
+    "buckets": [
+      "claim_candidate",
+      "needs_retest",
+      "review_candidate",
+      "shadow_only"
+    ]
+  },
+  "fanout_and_synthesize": {
+    "evidence_file": "retest_plan_generation_m18d.jsonl",
+    "pairs": "weak_answer + improved_answer + expected proof contract"
+  },
+  "generate_and_filter": {
+    "filters": [
+      "fabricated_improvement",
+      "source_overreach",
+      "untriggerable_grading"
+    ]
+  },
+  "tournament": {
+    "rule": "claims with deterministically-matchable points; strongest improvement first"
+  },
+  "adversarial_verification": {
+    "evidence_file": "safety_attack_results_m18d.json",
+    "attacks": [
+      "simulated_as_real",
+      "shadow_to_mastery",
+      "cross_user_leak",
+      "subject_leak",
+      "teacher_only_leak",
+      "unsupported_promoted",
+      "regression_promoted"
+    ]
+  },
+  "loop_until_done": {
+    "finals": [
+      "canonical_write_dryrun_candidate",
+      "needs_more_retest",
+      "council_rejected",
+      "blocked_low_confidence",
+      "insufficient_evidence"
+    ]
+  }
+}

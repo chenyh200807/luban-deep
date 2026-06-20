@@ -1,0 +1,39 @@
+{
+  "total_candidates": 131,
+  "action_counts": {
+    "split_into_multiple_points": 12,
+    "drop_point": 12,
+    "keep_draft_unstructured": 54,
+    "require_external_source": 6,
+    "normalized_ready_for_source_hunt": 47
+  },
+  "category_counts": {
+    "official_answer_blob_needs_split": 12,
+    "drop_point_candidate": 12,
+    "rewrite_needed": 14,
+    "external_source_needed": 6,
+    "figure_label_not_runtime_safe": 1,
+    "calculation_missing_formula": 19,
+    "exact_required_missing_terms": 37,
+    "semantic_allowed_not_runtime_safe": 20,
+    "list_rule_missing_denominator": 10
+  },
+  "required_terms": {
+    "exact_required_total": 51,
+    "exact_required_with_required_terms": 49,
+    "coverage": 0.9608
+  },
+  "list_rule": {
+    "list_rule_total": 18,
+    "with_denominator_and_item_set": 14,
+    "coverage": 0.7778
+  },
+  "calculation_spec": {
+    "calculation_total": 22,
+    "with_machine_checkable_spec": 3,
+    "coverage": 0.1364
+  },
+  "split_candidates_created": 22,
+  "official_answer_blob_remaining_count": 2,
+  "generic_required_terms_flags": 0
+}

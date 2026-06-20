@@ -1,0 +1,10 @@
+{
+  "stage": "M17B/M18 AI-Council Calibrated Scaleout",
+  "real_entry": "/api/v1/ws -> _maybe_attach_v1_llm_adjudication",
+  "production_models": [
+    "deepseek_v4_flash",
+    "qwen3.7_plus"
+  ],
+  "verdict": "GO",
+  "production_v1": "NO-GO"
+}

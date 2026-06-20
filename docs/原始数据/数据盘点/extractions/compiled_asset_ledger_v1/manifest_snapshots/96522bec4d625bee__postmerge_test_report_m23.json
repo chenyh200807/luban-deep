@@ -1,0 +1,38 @@
+{
+  "task": "M23 post-merge minimal release smoke",
+  "generated": "2026-06-05",
+  "ci_on_pr_head_1cce2b17": {
+    "Contract Guard": "SUCCESS",
+    "Security Scan": "SUCCESS",
+    "Import Check (Python 3.11)": "SUCCESS",
+    "Import Check (Python 3.12)": "SUCCESS",
+    "Frontend Checks": "SUCCESS",
+    "WX Checks": "SUCCESS",
+    "Yousen Checks": "SUCCESS",
+    "Smoke Tests (Python 3.11)": "SUCCESS",
+    "Test Summary": "SUCCESS"
+  },
+  "local_post_merge_smoke_on_main_3021932d": {
+    "command": "pytest --import-mode=importlib (loader + adjudicator + ws-guard + luban-shadow)",
+    "files": [
+      "tests/services/construction_grading/test_runtime_supply_bundle_m21s.py",
+      "tests/services/construction_grading/test_runtime_shadow_adapter.py",
+      "tests/services/construction_grading/test_runtime_shadow_integration.py",
+      "tests/api/test_unified_ws_turn_runtime.py",
+      "tests/api/test_luban_ws_runtime_shadow_turn_smoke.py",
+      "tests/api/test_luban_runtime_shadow_live_route.py",
+      "tests/core/test_deep_question_luban_runtime_shadow.py"
+    ],
+    "result": "154 passed, 0 failed",
+    "duration_s": 158.99
+  },
+  "pre_merge_reconciliation_verification": {
+    "regression_pair_and_shadow": "281 passed (test_unified_ws_turn_runtime + test_learning_report_read_model + test_mobile_router + deep_question shadow + runtime_shadow_integration)",
+    "remaining_luban_shadow": "12 passed (test_luban_runtime_shadow_live_route + test_luban_ws_runtime_shadow_turn_smoke)",
+    "supply_bundle_integrity": "7 passed (test_runtime_supply_bundle_m21s, manifest content_hash verified)",
+    "smoke_dirs_collection": "953 tests collected, 0 ImportError"
+  },
+  "supply_loader_hash_verified": true,
+  "ws_unique_entry_guard": "/api/v1/ws (+ /api/v1/knowledge/{kb_name}/progress/ws); websocket-allowlist-guard SUCCESS",
+  "overall": "PASS"
+}

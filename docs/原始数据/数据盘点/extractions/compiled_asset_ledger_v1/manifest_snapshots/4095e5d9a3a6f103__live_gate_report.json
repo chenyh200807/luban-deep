@@ -1,0 +1,115 @@
+{
+  "schema_version": "luban_m35_ai_governed_gold_labeling.v1",
+  "labeling_run": true,
+  "live": {
+    "cli_flag": true,
+    "env_flag": true,
+    "api_key_envs_present": [
+      "DEEPSEEK_API_KEY",
+      "DASHSCOPE_API_KEY"
+    ],
+    "status": "live_labeling_completed"
+  },
+  "answers_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/.claude/worktrees/agent-a71e4b215107b932b/tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/student_answers.jsonl",
+  "manifest_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/.claude/worktrees/agent-a71e4b215107b932b/tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+  "manifest_summary": {
+    "row_count": 21,
+    "gold_row_count": 13,
+    "downgraded_row_count": 8,
+    "downgrade_reason_counts": {
+      "mutation_test_failed": 8
+    },
+    "fleiss_kappa": 1.0,
+    "kappa_item_count": 27,
+    "kappa_items_excluded_for_abstention": 1,
+    "mutation_pass_rate": 0.904762,
+    "mutation_case_count": 126,
+    "stop_condition_triggered": false,
+    "stop_condition": {
+      "triggered": false,
+      "reasons": [],
+      "fleiss_kappa_threshold": 0.6,
+      "mutation_pass_rate_threshold": 0.8
+    },
+    "model_roles": {
+      "blind_panel": [
+        "deepseek-chat",
+        "fable",
+        "gpt-codex"
+      ],
+      "arbiter": "opus",
+      "adversarial_prosecutor": "qwen-max"
+    }
+  },
+  "model_stats": {
+    "deepseek-chat": {
+      "calls": 189,
+      "cached_hits": 144,
+      "abstains": 0,
+      "prompt_tokens": 32613,
+      "completion_tokens": 2759,
+      "total_tokens": 35372,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": 0.01029,
+      "pricing_basis": "deepseek list price, cache-miss"
+    },
+    "fable": {
+      "calls": 189,
+      "cached_hits": 132,
+      "abstains": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    },
+    "gpt-codex": {
+      "calls": 189,
+      "cached_hits": 79,
+      "abstains": 92,
+      "prompt_tokens": 483355,
+      "completion_tokens": 5209,
+      "total_tokens": 488564,
+      "abstain_reasons": {
+        "codex_exit_1: Reading additional input from stdin...\n": 92
+      },
+      "abstain_rate": 0.486772,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    },
+    "qwen-max": {
+      "calls": 28,
+      "cached_hits": 19,
+      "abstains": 0,
+      "prompt_tokens": 7036,
+      "completion_tokens": 624,
+      "total_tokens": 7660,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": 0.003146,
+      "pricing_basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"
+    },
+    "opus": {
+      "calls": 1,
+      "cached_hits": 0,
+      "abstains": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_tokens": 0,
+      "abstain_reasons": {},
+      "abstain_rate": 0.0,
+      "estimated_cost_usd": null,
+      "pricing_basis": "subscription_unmetered"
+    }
+  },
+  "estimated_cost_usd_metered_models": 0.013436,
+  "self_check": {
+    "passed": true,
+    "gold_rows_validated": 13,
+    "downgraded_rows_without_protocol_block": 8,
+    "violations": []
+  }
+}

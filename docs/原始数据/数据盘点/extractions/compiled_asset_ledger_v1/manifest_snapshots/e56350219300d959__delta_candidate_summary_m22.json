@@ -1,0 +1,25 @@
+{
+  "line": "D_m202_delta_candidate",
+  "delta_entry_count": 69,
+  "classification_counts": {
+    "list_delta": 7,
+    "rubric_delta": 4,
+    "machine_spec_delta": 8,
+    "packet_compression_delta": 34,
+    "learning_brain_claim_mapping_delta": 16
+  },
+  "runtime_effect_all": "candidate_context_only (NONE executable; NOT absorbed into runtime)",
+  "measurable_now": "projected packet-compression token/byte reduction on packet_compression_delta targets",
+  "packet_bytes_current_total": 15153,
+  "packet_bytes_delta_total": 12396,
+  "packet_bytes_saved_total": 2757,
+  "packet_bytes_saved_pct": 18.2,
+  "packet_tokens_current_total": 7066,
+  "packet_tokens_delta_total": 5691,
+  "packet_tokens_saved_pct": 19.5,
+  "grading_workorders_pending_not_executable": 19,
+  "lb_claim_mappings_no_grading_effect": 16,
+  "latency_projection": "neutral-to-slightly-better (smaller LLM packet); no disposition change measurable yet",
+  "grading_quality_delta": "NOT measurable as runtime grading — deltas stop at candidate_delta_or_work_order; compilation into a registry is a future milestone, not M22",
+  "absorbed_into_runtime": false
+}

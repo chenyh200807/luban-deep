@@ -1,0 +1,166 @@
+{
+  "schema": "luban_pgo_stage5_canary_gate.v1",
+  "status": "qa_operator_canary_go",
+  "blockers": [],
+  "canary_scope": "qa_operator_only",
+  "production_default_flip_allowed": false,
+  "canonical_write_allowed": false,
+  "remote_write_allowed": false,
+  "actual_worker_restarted": false,
+  "worker_restart_instruction": "Live workers must be restarted after setting LUBAN_CASE_RUBRIC_BANK_SLOT=pgo; this gate verifies a fresh-process load only.",
+  "cohort_gate": {
+    "allowed": true,
+    "allowed_prefixes": [
+      "qa_",
+      "operator_"
+    ],
+    "cohort_ids": [
+      "qa_stage5_pgo_canary",
+      "operator_stage5_pgo_canary"
+    ],
+    "invalid_cohort_ids": []
+  },
+  "worker_restart_probe": {
+    "fresh_process_verifier": {
+      "schema": "luban_pgo_runtime_supply_verification.v1",
+      "status": "ok",
+      "slot_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo",
+      "bank_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/case_rubric_scored_pgo.json",
+      "pointer_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/canonical_pointer.json",
+      "blockers": [],
+      "checks": {
+        "content_hash_match": true,
+        "canonical_pointer_match": true,
+        "production_default_off": true,
+        "published_false": true,
+        "namespace_match": true,
+        "source_provenance_present": true,
+        "factory_provenance_present": true,
+        "no_minted_scores": true
+      },
+      "manifest": {
+        "namespace": "case_rubric_scored_pgo",
+        "status": "release_candidate",
+        "published": false,
+        "production_default": "off",
+        "question_count": 179,
+        "scoring_point_count": 1384,
+        "content_hash": "1d48bf1aebb621b7a7f25eabbed01dc4989d746194f027f5294bffed62589aff",
+        "source_schemas": [
+          "luban_per_question_grading_object.v1"
+        ],
+        "factory_resolution_lanes": [
+          "A_consensus",
+          "B_deterministic_tiebreak",
+          "C_opus_arbiter"
+        ]
+      }
+    },
+    "runtime_loader": {
+      "status": "ok",
+      "slot": "pgo",
+      "question_count": 179,
+      "scoring_point_count": 1384
+    }
+  },
+  "runtime_supply": {
+    "schema": "luban_pgo_runtime_supply_verification.v1",
+    "status": "ok",
+    "slot_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo",
+    "bank_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/case_rubric_scored_pgo.json",
+    "pointer_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo/canonical_pointer.json",
+    "blockers": [],
+    "checks": {
+      "content_hash_match": true,
+      "canonical_pointer_match": true,
+      "production_default_off": true,
+      "published_false": true,
+      "namespace_match": true,
+      "source_provenance_present": true,
+      "factory_provenance_present": true,
+      "no_minted_scores": true
+    },
+    "manifest": {
+      "namespace": "case_rubric_scored_pgo",
+      "status": "release_candidate",
+      "published": false,
+      "production_default": "off",
+      "question_count": 179,
+      "scoring_point_count": 1384,
+      "content_hash": "1d48bf1aebb621b7a7f25eabbed01dc4989d746194f027f5294bffed62589aff",
+      "source_schemas": [
+        "luban_per_question_grading_object.v1"
+      ],
+      "factory_resolution_lanes": [
+        "A_consensus",
+        "B_deterministic_tiebreak",
+        "C_opus_arbiter"
+      ]
+    }
+  },
+  "shadow_delta": {
+    "sample_count": 80,
+    "mean_abs_new_legacy_delta": 0.7852,
+    "mean_signed_new_legacy_delta": 0.2364,
+    "max_abs_new_legacy_delta": 5.0,
+    "scaled_gate": {
+      "n_pairs": 80,
+      "MAE_new": 0.1867,
+      "MAE_legacy": 0.8936,
+      "as_pct": {
+        "new": 2.2,
+        "legacy": 10.7
+      },
+      "gate_MAE_new_le_legacy": true,
+      "double_gate_pass": true,
+      "honest_boundary": "16 non-ambiguous cases / ~80 pairs; legacy minimally replicated; synthetic student answers; not production sign-off (needs PO stratified human spot-check)."
+    }
+  },
+  "over_credit": {
+    "scaled_gate_new": 2,
+    "scaled_gate_legacy": 7,
+    "gate_overcredit_new_le_legacy": true,
+    "human_boundary": {
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/multi_ai_anchored_grading_20260614/phase5_factory/legacy_arm_regression.json",
+      "gold": "po_slice 131 HUMAN labels (non-circular)",
+      "new": 2,
+      "legacy": 0,
+      "broad_flip_blocker": true,
+      "honest_boundary": "12 cases/24 pairs directional; legacy minimally replicated (judge required_terms→sum hit scores); not production sign-off (needs scaled human gold)."
+    }
+  },
+  "score_distribution": {
+    "new": {
+      "count": 80,
+      "mean": 4.5153,
+      "median": 3.333,
+      "min": 0.0,
+      "max": 25.0,
+      "zero_count": 17,
+      "full_score_count": 16
+    },
+    "legacy": {
+      "count": 80,
+      "mean": 4.2789,
+      "median": 3.2,
+      "min": 0.0,
+      "max": 25.0,
+      "zero_count": 16,
+      "full_score_count": 15
+    },
+    "gold": {
+      "count": 80,
+      "mean": 4.4813,
+      "median": 3.2915,
+      "min": 0.0,
+      "max": 25.0,
+      "zero_count": 20,
+      "full_score_count": 16
+    }
+  },
+  "inputs": {
+    "slot_dir": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/deeptutor/services/construction_grading/runtime_supply/v_case_rubric_scored_pgo",
+    "scaled_double_gate_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/multi_ai_anchored_grading_20260614/scaled_gold/scaled_double_gate.json",
+    "human_boundary_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_grading_artifacts/multi_ai_anchored_grading_20260614/phase5_factory/legacy_arm_regression.json"
+  }
+}

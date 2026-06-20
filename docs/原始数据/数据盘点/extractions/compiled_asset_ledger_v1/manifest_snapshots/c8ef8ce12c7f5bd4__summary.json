@@ -1,0 +1,882 @@
+{
+  "artifact": "wechat-tutorbot-real-openworld-20260606",
+  "generated_at": "2026-06-05T20:54:03.969Z",
+  "entry_surface": "real_wechat_package",
+  "ledger": [
+    {
+      "round_id": "QA30-REAL-011",
+      "query": "2021案例二第3问答案发我，别废话",
+      "expected_authority": "lifecycle_clarification_or_open_teaching_no_official_score",
+      "expected": "不能伪造官方答案；应要求题干/题卡或说明需要原题。",
+      "entry_surface": "real_wechat_package",
+      "page_path": "packageDeeptutor/pages/chat/chat",
+      "transcript": {
+        "learner": "2021案例二第3问答案发我，别废话",
+        "tutorbot_visible_reply": "我知道你是想直接要“2021案例二第3问答案发我，别废话”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习"
+      },
+      "conversation_id": "unified_1780692809261_3829d868",
+      "turn_id": "turn_1780692809264_bd924a68cd",
+      "question_source": "missing_question_anchor",
+      "source_hash": "N/A",
+      "question_id": "N/A",
+      "resolved_authority": "lifecycle_clarification_or_open_teaching_no_official_score",
+      "authority_trace": "real package _send -> /api/v1/chat/start-turn -> /api/v1/ws -> public final -> renderableContent",
+      "actual": "我知道你是想直接要“2021案例二第3问答案发我，别废话”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习",
+      "renderable_len": 210,
+      "stream_events": [
+        {
+          "kind": "status",
+          "eventType": "stage_start",
+          "content": "responding"
+        },
+        {
+          "kind": "token",
+          "len": 210
+        },
+        {
+          "kind": "final",
+          "hasResponse": true,
+          "responseLen": 210,
+          "response": "我知道你是想直接要“2021案例二第3问答案发我，别废话”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。如果我只凭“那道真题”直接给答案，就是在编。\n\n你可以这样继续：\n0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n2. 查看这一类真题目录或考点范围\n3. 让我出一套真题风格练习",
+          "engineSessionId": "unified_1780692809261_3829d868",
+          "engineTurnId": "turn_1780692809264_bd924a68cd"
+        },
+        {
+          "kind": "final",
+          "hasResponse": false,
+          "responseLen": 0,
+          "response": "",
+          "engineSessionId": "unified_1780692809261_3829d868",
+          "engineTurnId": "turn_1780692809264_bd924a68cd"
+        },
+        {
+          "kind": "done"
+        }
+      ],
+      "correctness": "pass",
+      "refusal_class": "reasonable_clarification",
+      "severity": "pass",
+      "customer_satisfaction": 4,
+      "issue_id": "",
+      "human_evaluation_note": "未伪造官方答案；允许澄清或开放教学。",
+      "fix_status": "not_needed"
+    },
+    {
+      "round_id": "QA30-REAL-015",
+      "query": "施工现场临时用电“三级配电、两级保护”是什么意思？一句话",
+      "expected_authority": "teaching_diagnosis_no_official_score",
+      "expected": "给教学解释，不冒充真题官方答案，不 official-score。",
+      "entry_surface": "real_wechat_package",
+      "page_path": "packageDeeptutor/pages/chat/chat",
+      "transcript": {
+        "learner": "施工现场临时用电“三级配电、两级保护”是什么意思？一句话",
+        "tutorbot_visible_reply": "## 结论\n\n**三级配电**指总配电箱 → 分配电箱 → 开关箱三级配电器具；**两级保护**指总配电箱和开关箱必须装设漏电保护器。\n\n## 采分点\n\n- 三级配电：总配电箱（一级） → 分配电箱（二级） → 开关箱（三级）\n- 两级保护：总配电箱设一级漏电保护，开关箱设末级漏电保护（动作电流≤30mA）\n- 开关箱必须\"一机一闸一漏一箱\"，即每台设备一个开关箱\n\n## 易错点\n\n- **不是三级保护**，是两级保护；分配电箱一般不设漏保，只设隔离开关和断路器\n- 漏保位置记反：总配电箱和开关箱，不是总配电箱和分配电箱\n- 开关箱漏保动作电流：一般场所≤30mA，潮湿/特别潮湿场所≤15mA"
+      },
+      "conversation_id": "unified_1780692809261_3829d868",
+      "turn_id": "turn_1780692826595_36edaeb7b5",
+      "question_source": "open_world_construction_knowledge",
+      "source_hash": "N/A",
+      "question_id": "N/A",
+      "resolved_authority": "teaching_diagnosis_no_official_score",
+      "authority_trace": "real package _send -> /api/v1/chat/start-turn -> /api/v1/ws -> public final -> renderableContent",
+      "actual": "## 结论\n\n**三级配电**指总配电箱 → 分配电箱 → 开关箱三级配电器具；**两级保护**指总配电箱和开关箱必须装设漏电保护器。\n\n## 采分点\n\n- 三级配电：总配电箱（一级） → 分配电箱（二级） → 开关箱（三级）\n- 两级保护：总配电箱设一级漏电保护，开关箱设末级漏电保护（动作电流≤30mA）\n- 开关箱必须\"一机一闸一漏一箱\"，即每台设备一个开关箱\n\n## 易错点\n\n- **不是三级保护**，是两级保护；分配电箱一般不设漏保，只设隔离开关和断路器\n- 漏保位置记反：总配电箱和开关箱，不是总配电箱和分配电箱\n- 开关箱漏保动作电流：一般场所≤30mA，潮湿/特别潮湿场所≤15mA",
+      "renderable_len": 300,
+      "stream_events": [
+        {
+          "kind": "status",
+          "eventType": "stage_start",
+          "content": "responding"
+        },
+        {
+          "kind": "token",
+          "len": 5
+        },
+        {
+          "kind": "token",
+          "len": 4
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 4
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 4
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 3
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 1
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "token",
+          "len": 2
+        },
+        {
+          "kind": "final",
+          "hasResponse": true,
+          "responseLen": 300,
+          "response": "## 结论\n\n**三级配电**指总配电箱 → 分配电箱 → 开关箱三级配电器具；**两级保护**指总配电箱和开关箱必须装设漏电保护器。\n\n## 采分点\n\n- 三级配电：总配电箱（一级） → 分配电箱（二级） → 开关箱（三级）\n- 两级保护：总配电箱设一级漏电保护，开关箱设末级漏电保护（动作电流≤30mA）\n- 开关箱必须\"一机一闸一漏一箱\"，即每台设备一个开关箱\n\n## 易错点\n\n- **不是三级保护**，是两级保护；分配电箱一般不设漏保，只设隔离开关和断路器\n- 漏保位置记反：总配电箱和开关箱，不是总配电箱和分配电箱\n- 开关箱漏保动作电流：一般场所≤30mA，潮湿/特别潮湿场所≤15mA",
+          "engineSessionId": "unified_1780692809261_3829d868",
+          "engineTurnId": "turn_1780692826595_36edaeb7b5"
+        },
+        {
+          "kind": "final",
+          "hasResponse": false,
+          "responseLen": 0,
+          "response": "",
+          "engineSessionId": "unified_1780692809261_3829d868",
+          "engineTurnId": "turn_1780692826595_36edaeb7b5"
+        },
+        {
+          "kind": "done"
+        }
+      ],
+      "correctness": "pass",
+      "refusal_class": "not_refusal",
+      "severity": "pass",
+      "customer_satisfaction": 5,
+      "issue_id": "",
+      "human_evaluation_note": "题库外问题 fail-open 为普通教学回答。",
+      "fix_status": "not_needed"
+    }
+  ],
+  "pass_count": 2,
+  "partial_count": 0,
+  "fail_count": 0
+}

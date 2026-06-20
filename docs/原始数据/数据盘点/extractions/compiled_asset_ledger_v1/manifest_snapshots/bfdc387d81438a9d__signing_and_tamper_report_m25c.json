@@ -1,0 +1,11 @@
+{
+  "schema_valid": true,
+  "signature_valid": true,
+  "answer_key_count": 62,
+  "tamper_record_failclosed": true,
+  "tamper_status_failclosed": true,
+  "content_hash": "1cec421ce7f3aad4",
+  "source_hash_exam_quality_bank": "4fd0146e710f1410",
+  "published": false,
+  "release_authority": null
+}

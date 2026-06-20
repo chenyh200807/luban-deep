@@ -1,0 +1,57 @@
+{
+  "schema": "luban_compiled_asset_consumer_policy.v1",
+  "principle": "LLMs maintain candidate knowledge organization; deterministic gates sign releases and protect authority.",
+  "consumers": [
+    {
+      "consumer": "asset_inventory_agent",
+      "can_read": [
+        "group_authority.json",
+        "runtime_pointers.jsonl",
+        "ledger indexes",
+        "manifest snapshots"
+      ],
+      "cannot_write": [
+        "runtime_supply",
+        "LearnerState",
+        "GBrain",
+        "production_registry",
+        "official_score"
+      ]
+    },
+    {
+      "consumer": "llm_compiler_worker",
+      "can_read": [
+        "candidate workbench artifacts",
+        "review evidence",
+        "raw source ledgers"
+      ],
+      "can_write": [
+        "candidate artifacts only"
+      ],
+      "must_not_write": [
+        "release artifacts",
+        "runtime defaults",
+        "canonical learner truth"
+      ]
+    },
+    {
+      "consumer": "runtime_consumer",
+      "can_read": [
+        "published runtime pointer rows with runtime_read_allowed=true after hash/schema gate"
+      ],
+      "must_not_read": [
+        "artifacts/* workbench payloads directly",
+        "unpublished runtime_supply candidates"
+      ]
+    },
+    {
+      "consumer": "official_score_or_learner_truth_writer",
+      "can_read": [],
+      "must_wait_for": [
+        "signed release artifact",
+        "domain-specific gate",
+        "explicit owner authorization"
+      ]
+    }
+  ]
+}

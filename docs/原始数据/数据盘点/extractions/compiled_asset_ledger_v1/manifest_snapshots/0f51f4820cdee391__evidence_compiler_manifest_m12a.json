@@ -1,0 +1,25 @@
+{
+  "evidence_compilers": {
+    "textbook_verbatim": "verbatim exact-match vs 2026 textbook",
+    "question_stem_fact": "question-stem span exact-match (shadow_only, never production-auto)",
+    "machine_checkable_calculation": "spec + 7-vector false-positive attack",
+    "machine_checkable_logic": "boolean spec + contradiction attack",
+    "list_rule_full_coverage": "denominator==len(item_set) & coverage==1.0",
+    "external_standard_source": "work order only",
+    "ai_expert_council_review": "review packet only",
+    "teacher_review_or_operator_override": "review packet only",
+    "drop_or_keep_draft": "no evidence"
+  },
+  "spec_attack_vectors": [
+    "exact_hit",
+    "partial",
+    "contradiction",
+    "near_synonym",
+    "irrelevant",
+    "numeric_off_by_one",
+    "denominator_mismatch"
+  ],
+  "specs_attacked": 59,
+  "spec_false_positive_total": 0,
+  "all_specs_pass_attack": true
+}

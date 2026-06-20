@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-06T07:48:22+0800",
+  "entry_surface": "near_real_http_ws_generated_hidden_authority",
+  "api_base_url": "http://127.0.0.1:8001",
+  "ws_url": "ws://127.0.0.1:8001/api/v1/ws",
+  "username": "qa_tutorbot_hidden_authority_20260606",
+  "created_user": true,
+  "output_dir": "artifacts/qa/wechat-tutorbot-generated-hidden-authority-20260606",
+  "rounds": 2,
+  "conversation_ids": {
+    "generated_question_hidden_authority": "tb_6903aa5df3364343a6757fc6"
+  },
+  "turns": [
+    {
+      "round_id": "QA30-HIDDEN-001",
+      "conversation_id": "tb_6903aa5df3364343a6757fc6",
+      "turn_id": "turn_1780703255658_11231f11f6",
+      "done_status": "completed",
+      "visible_excerpt": "### 第 1 题\n\n根据《建设工程工程量清单计价规范》，以下关于工程量清单的说法，正确的是？\n- A. 工程量清单应由招标人自行编制\n- B. 工程量清单必须由具有相应资质的工程造价咨询人编制\n- C. 工程量清单是招标文件的组成部分\n- D. 工程量清单一经公布不得修改\n\n### 第 2 题\n\n关于建设工程项目总进度目标论证，下列哪项工作属于其核心任务？\n- A. 确定项目总投资\n- B. 编制项目总进度计划\n- C. 论证总进度目标实现的可能性\n- D. 分析各分项工程"
+    },
+    {
+      "round_id": "QA30-HIDDEN-002",
+      "conversation_id": "tb_6903aa5df3364343a6757fc6",
+      "turn_id": "turn_1780703281889_2620c0a7cf",
+      "done_status": "completed",
+      "visible_excerpt": "### 阅卷结论\n你答错了，本题得 0/1 分。你选择了 B，但正确答案是 C。诊断类型：概念混淆（CONFUSION），你对工程量清单的编制主体和文件属性的记忆出现了混淆。\n\n### 正确答案\nC. 工程量清单是招标文件的组成部分\n\n### 为什么错\n你选择了 B“工程量清单必须由具有相应资质的工程造价咨询人编制”，但《建设工程工程量清单计价规范》规定，工程量清单可由招标人自行编制，也可委托具有相应资质的工程造价咨询人编制，因此“必须由”的说法过于绝对。你混淆了“可以委托”"
+    }
+  ],
+  "note": "Near-real HTTP+WS with WeChat-shaped payload; not DevTools container evidence."
+}

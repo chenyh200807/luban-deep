@@ -1,0 +1,37 @@
+{
+  "schema_version": "luban_compiled_knowledge_registry.v2",
+  "status": "release_candidate",
+  "published": false,
+  "components": {
+    "objective_answer_key": {
+      "status": "release_candidate",
+      "count": 2639,
+      "signature": "b8a07b7bd229f4495997434fa5a43ea45fea0c4a8f8b7fc5e97bc1f92abac010"
+    },
+    "source_context": {
+      "status": "release_candidate",
+      "kb_v5_live": "pending"
+    },
+    "case_rubric": {
+      "status": "release_candidate_structural",
+      "llm_采分点": "pending"
+    },
+    "m20_delta": {
+      "status": "classified_no_runtime_impact"
+    }
+  },
+  "unified_context_blocks": [
+    "question_context",
+    "source_context",
+    "rubric_context",
+    "learner_context",
+    "diagnostic_policy",
+    "budget_policy",
+    "provenance"
+  ],
+  "rollback_pointer": {
+    "prior_release": "m26_live_closure_20260606 (600-sample)",
+    "supersedes": "600-sample with full extraction"
+  },
+  "registry_content_hash": "36fcaacedfc52c19"
+}

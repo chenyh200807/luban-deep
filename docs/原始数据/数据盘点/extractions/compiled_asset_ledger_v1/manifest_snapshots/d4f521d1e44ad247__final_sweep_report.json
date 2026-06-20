@@ -1,0 +1,184 @@
+{
+  "sweep_id": "luban_taxonomy_final_sweep_20260612",
+  "generated_at": "2026-06-12T18:34:44.951349",
+  "valid_code_baseline": {
+    "file": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json",
+    "snapshot_note": "mid-revision file (book_derived_rebuild_20260612 + skeleton_repair); 2010 codes incl -Rxx leaves; 5-char section prefixes present: 1A410-413, 1A421/422/425, 1A431-438. Chapters 1A414/1A415/1A416/1A423/1A424/1A426 absent at scan time — if the sixth revision re-adds them, several findings below downgrade automatically.",
+    "codes": 2010
+  },
+  "stale_definition": "1A4\\d{5} not in valid set, not chapter-prefix resolvable (rstrip('0') >=4 chars prefixes a valid base; 1A400000 root treated exempt), not embedded provenance (EXAM_*, chunk_id like 1A432001_026_0032, table numbers 1A412011-1, point_ids 1A411011-01-a)",
+  "findings": [
+    {
+      "id": "F1",
+      "surface": "supabase_bsaa_kb_v5",
+      "location": "bsaa kb_v5.concepts.concept_id / kb_v5.chunks.concept_id",
+      "stale_sample": [
+        "TAX:1A411001",
+        "TAX:1A414010",
+        "TAX:1A415041",
+        "TAX:1A432001",
+        "TAX:N/A",
+        "TAX:UNKNOWN"
+      ],
+      "counts": "48/122 TAX: concepts stale (44 old-axis codes + 4 placeholders META_INFO/N-A/RESOURCE/UNKNOWN); 119/3596 chunks anchored to stale concepts; concept_edges empty",
+      "severity": "high",
+      "live_path": true,
+      "note": "SUPABASE_RAG_ENABLED=true, kb v5 is the active RAG lane (deeptutor/services/rag/pipelines/kbv5.py, search_chunks_v2 RPC). Concept axis partially old.",
+      "action": "remap 44 TAX: concept_ids to new axis (or re-anchor 119 chunks), decide policy for 4 placeholder concepts"
+    },
+    {
+      "id": "F2",
+      "surface": "supabase_zgup_teaching_read_models",
+      "location": "zgup teaching_cards.node_code + evidence_refs (1A411040, 1/12 rows); question_intelligence.prerequisite_nodes (1A413002)",
+      "severity": "high",
+      "live_path": true,
+      "action": "regenerate the stale teaching_card and question_intelligence rows against new axis"
+    },
+    {
+      "id": "F3",
+      "surface": "supabase_zgup_question_supply",
+      "location": "zgup questions_bank.node_code",
+      "counts": "55 distinct stale codes, 418/4379 coded rows; also old codes inside analysis text",
+      "severity": "high",
+      "live_path": true,
+      "action": "backfill node_code via canonical_resolution bridge or re-tag; analysis text cosmetic"
+    },
+    {
+      "id": "F4",
+      "surface": "supabase_zgup_kb_chunks",
+      "location": "zgup kb_chunks.node_code (v2 KB lane)",
+      "counts": "69 distinct stale, 155/1504 coded rows (15424 total)",
+      "severity": "medium",
+      "live_path": "needs_verification — confirm whether zgup kb_chunks v2 lane is still read now that kb v5 (bsaa) is primary",
+      "action": "if v2 lane retired: ignore/archive; else backfill node_code"
+    },
+    {
+      "id": "F5",
+      "surface": "supabase_zgup_learner_state",
+      "location": "zgup user_mastery.target_id (16 distinct stale, 37/87 rows); learner_summaries.summary_md+structured; learner_wikis.trajectory+confusion_map; learner_mistake_book_items.concept_label; user_mistakes.node_code+ai_diagnosis; user_stats.knowledge_map; bot_learner_overlays(+events); daily_paths.items; practice_sessions.weak_nodes_before; assessment_forms.items_json; assessment_sessions.*; active_questions.grading_payload",
+      "severity": "high",
+      "live_path": true,
+      "note": "exemption 'learner 66 行' covered learner_memory_events node fields only; these sibling learner read/write models were NOT migrated. ALSO learner_memory_events.payload_json itself still contains bare old codes in full scan (needs_verification vs the 66-row fix scope).",
+      "action": "decide cohort policy: backfill vs lazy-resolve at read via canonical_resolution; verify learner_memory_events payload_json residue against the 66-row migration record"
+    },
+    {
+      "id": "F6",
+      "surface": "runtime_supply_predicted_node",
+      "location": "deeptutor/services/construction_grading/runtime_supply/v_canonical_unified_knowledge/canonical_unified_knowledge.json (42 bare stale, e.g. provenance.predicted_node='1A411001'); v_topic_waterproof/topic_waterproof.json (2: 1A411020, 1A414010)",
+      "severity": "medium",
+      "live_path": true,
+      "note": "predicted_node is NOT dead provenance: deeptutor/services/source_compiler/question_compiler.py:47 and answer_rubric_extractor.py:45 fall back to record.get('predicted_node') as node_code. canonical_resolution bridge may absorb it at resolve time — verify.",
+      "action": "either remap predicted_node values or confirm every consumer routes through canonical_resolution before use"
+    },
+    {
+      "id": "F7",
+      "surface": "benchmark_fixture_exam_quality_bank",
+      "location": "deeptutor/services/benchmark/fixtures/exam_quality_bank.json — 39 stale codes as bare taxonomy_node_code (1A411001...)",
+      "severity": "medium",
+      "live_path": "semi — consumed by benchmark runner/exam_quality_eval and objective_real_source_extractor",
+      "action": "re-tag fixture nodes or accept as frozen benchmark with documented old-axis labels"
+    },
+    {
+      "id": "F8",
+      "surface": "golden_fixtures",
+      "location": "luban_case_grading_golden_no_human_v1_5.json (node_code 1A432001/1A432002, case ids Q13-1A421000/Q14-1A430000 — those two are prefix-resolvable); runtime_supply/v1_limited_default/golden_typed_policy.jsonl; tests/fixtures/luban_m35_case_scoring/manifest.json",
+      "severity": "low",
+      "live_path": "frozen golden/eval artifacts",
+      "action": "leave frozen; note old-axis labels in any future regeneration"
+    },
+    {
+      "id": "F9",
+      "surface": "deeptutor_tests",
+      "location": "~20 test files with old-axis fixture codes: tests/services/assessment/* (1A414010,1A411002,1A426001), tests/services/learner_state/* (1A415041,1A415000), tests/services/member_console/test_service.py, tests/services/taxonomy/test_construction_taxonomy.py (asserts labels for 1A432019/1A438999 via nearest-parent fallback), tests/services/rag/, tests/services/citations/, tests/capabilities/, tests/tutorbot/, tests/services/test_question_followup.py, tests/scripts/test_luban_agentic_grading_harness.py",
+      "severity": "low",
+      "live_path": false,
+      "note": "tests pass because resolution falls back by prefix; they do not exercise new-axis codes",
+      "action": "opportunistic: refresh fixture codes when touching each test"
+    },
+    {
+      "id": "F10",
+      "surface": "wx_miniprogram",
+      "location": "wx_miniprogram/tests/test_report_view_model.js (1A415041,1A420000), wx_miniprogram/tests/test_ws_stream_pure_contract.js (1A415000). No taxonomy refs in non-test miniprogram code.",
+      "severity": "low",
+      "live_path": false,
+      "action": "refresh test fixtures opportunistically"
+    },
+    {
+      "id": "F11",
+      "surface": "deeptutor_docs",
+      "location": "docs/plan/学习脑.../gbrain-absorption-prd.md (1A424000), docs/plan/题目生命周期.../error-map plan (1A415000,1A424000), docs/plan/知识编译.../textbook-verbatim-lane (1A432001 narrative), docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md",
+      "severity": "low",
+      "live_path": false,
+      "action": "historical docs — no action; do not edit"
+    },
+    {
+      "id": "F12",
+      "surface": "fastapi_active_services",
+      "location": "FastAPI20251222 services/practice/learning_insights_producer.py, services/tools/query_*_tool.py, services/tools/vfs_tools.py, services/vfs/vfs_sync.py, skills/vfs-workpad/*",
+      "severity": "low",
+      "live_path": true,
+      "note": "old codes appear ONLY as docstring / LLM tool-description examples ('例如 1A414021'); no hardcoded routing. Could nudge LLM to emit old-style codes.",
+      "action": "swap example codes to new axis in tool descriptions when convenient"
+    },
+    {
+      "id": "F13",
+      "surface": "fastapi_one_off_scripts",
+      "location": "FastAPI20251222 scripts/import_hx500.py, import_smr_qtz.py, import_ww_qcbl.py, patch_json_missing_questions.py, extract_grading_keywords_from_hq.py, scripts/kb_rebuild/insert_*.py (7 files) — hardcoded old-axis code maps",
+      "severity": "low",
+      "live_path": false,
+      "note": "one-time historical importers; rerunning them would re-inject old codes (this likely explains zgup questions_bank/kb_chunks stale rows)",
+      "action": "do not rerun without re-tagging; optionally mark deprecated in headers"
+    },
+    {
+      "id": "F14",
+      "surface": "fastapi_eval_and_question_bank_sources",
+      "location": "eval/sets/*.jsonl (golden_v4 39 stale, comprehensive_benchmark_500 17, lite_v4 6, recheck_7_failed 1); docs/2026/题库/FINAL_CLEANED_EXAM_V2021-2025.json (20-42 stale codes each as exam-native 考点号)",
+      "severity": "low",
+      "live_path": "exam files feed compile lane via predicted_node (see F6); eval sets frozen",
+      "note": "exam-source codes are native old-syllabus numbering = provenance at source; the issue is only where they leak into node_code unbridged (F6)",
+      "action": "no in-place edit; ensure compile lane bridges via canonical_resolution"
+    },
+    {
+      "id": "F15",
+      "surface": "fastapi_taxonomy_derivatives",
+      "location": "FastAPI20251222 docs/2026/_kmap_mockups.html, _kmap_prototype.html, _syllabus_graph.html — built from pre_book_derived axis (617 old point-id leaves, matches pre_book_derived backup)",
+      "severity": "low",
+      "live_path": false,
+      "action": "regenerate visualizations after sixth revision lands, or mark as stale snapshots"
+    },
+    {
+      "id": "F16",
+      "surface": "compiled_backup",
+      "location": "deeptutor/services/taxonomy/compiled/construction_2026_taxonomy.compiled.pre_book_derived_backup_20260612.json (602 old point-id leaves) and FastAPI taxonomy *_backup_20260612.json files",
+      "severity": "info",
+      "live_path": false,
+      "action": "intentional backups — keep"
+    }
+  ],
+  "lru_cache_restart_required": [
+    "deeptutor/services/taxonomy/taxonomy_authority.py (4 @lru_cache(maxsize=1) loaders)",
+    "deeptutor/services/taxonomy/learning_topic_resolver.py:378",
+    "deeptutor/services/taxonomy/textbook_directory.py:213",
+    "deeptutor/services/construction_grading/canonical_knowledge_runtime.py:36,76,93",
+    "deeptutor/services/construction_grading/question_grading_registry.py:237",
+    "deeptutor/services/construction_grading/textbook_knowledge_runtime.py:33",
+    "deeptutor/services/construction_grading/canonical_resolution.py (_registry/_index @lru_cache)"
+  ],
+  "clean_surfaces": [
+    "deeptutor source code (deeptutor/services + deeptutor/api): all bare codes valid (learning_brain.py, canonical_taxonomy.py, concept_registry.py, rubric_grader_v1.py, member_console/service.py, construction_learning_graph.py, taxonomy_authority.py, curriculum_prerequisites.json)",
+    "deeptutor contracts/ + deeptutor/contracts/: no taxonomy codes at all",
+    "deeptutor scripts/: no stale (only prefix-resolvable chapter codes)",
+    "compiled axis: construction_2026_taxonomy.compiled.json (2006 valid, 0 stale)",
+    "runtime_supply already-migrated bundles verified clean of BARE stale: v_concept_registry (full 2010), v_canonical_taxonomy_index, v_canonical_knowledge_graph, v_standard_clauses, v_lecture_teaching_cards, v_slice_case_rubric, registry_v1; v_kb_v5_chunks_full / v_case_rubric_scored / v_textbook_knowledge_full / objective_answer_key_m31 contain old codes ONLY embedded in chunk_id/EXAM_ question_id (provenance-exempt)",
+    "FINAL_CLEANED_TAXONOMY2026.json itself: only chunk_id provenance, no stale node codes",
+    "FastAPI docs/2026/scripts/: merge_qiantizan_batches.py, merge_zl500_batches.py all valid; taxonomy readers (guardrails/taxonomy_index.py, practice_taxonomy_resolver.py, taxonomy_backfill.py) load FINAL_CLEANED_TAXONOMY dynamically",
+    "Supabase zgup: luban_canonical_taxonomy (1959 rows), luban_canonical_knowledge_catalog, syllabus_tree, evidence_cache(node fields) — 0 bare stale; luban_canonical_knowledge_edges / knowledge_graph_edges / knowledge_question_links old codes only embedded in chunk ids (exempt)"
+  ],
+  "needs_verification": [
+    "learner_memory_events.payload_json still shows bare old codes in full scan despite 'learner 66 行已处理' exemption — confirm migration scope was node_code-level only",
+    "zgup kb_chunks v2 lane liveness (is it still read after kb v5 cutover?)",
+    "whether question_compiler/answer_rubric_extractor consumers always pass predicted_node through canonical_resolution (F6)",
+    "chapters 1A414/1A415/1A416/1A423/1A424/1A426 absence in canonical file may be temporary (sixth revision in flight) — re-run this sweep after it lands; many F5 codes would become valid/resolvable if those chapters return",
+    "bsaa REST surface exposes only rpc/search_chunks_v2; bsaa scan was done via KBV5_DB_URL read-only direct connection instead (REST had no table surface)"
+  ]
+}

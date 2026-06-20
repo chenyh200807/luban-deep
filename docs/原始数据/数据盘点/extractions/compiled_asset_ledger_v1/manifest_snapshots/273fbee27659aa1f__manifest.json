@@ -1,0 +1,46 @@
+{
+  "schema_version": "luban_m35_ai_governed_gold_labeling.v1",
+  "protocol_version": "m35_ai_governed_gold.v1",
+  "label_authority": "ai_governed_gold",
+  "source_answers_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/.claude/worktrees/agent-a71e4b215107b932b/tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/student_answers.jsonl",
+  "source_manifest_path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/.claude/worktrees/agent-a71e4b215107b932b/tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json",
+  "model_roles": {
+    "blind_panel": [
+      "deepseek-chat",
+      "fable",
+      "gpt-codex"
+    ],
+    "arbiter": "opus",
+    "adversarial_prosecutor": "qwen-max"
+  },
+  "row_count": 21,
+  "gold_row_count": 13,
+  "downgraded_row_count": 8,
+  "skipped_no_scoring_points": [],
+  "label_authority_counts": {
+    "ai_council_directional": 8,
+    "ai_governed_gold": 13
+  },
+  "downgrade_reason_counts": {
+    "mutation_test_failed": 8
+  },
+  "fleiss_kappa": 1.0,
+  "kappa_item_count": 27,
+  "kappa_items_excluded_for_abstention": 1,
+  "mutation_pass_rate": 0.904762,
+  "mutation_case_count": 126,
+  "stop_condition_triggered": false,
+  "stop_condition": {
+    "triggered": false,
+    "reasons": [],
+    "fleiss_kappa_threshold": 0.6,
+    "mutation_pass_rate_threshold": 0.8
+  },
+  "official_score_allowed": false,
+  "is_release_truth": false,
+  "safety": {
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "provider_call_count": 222
+  }
+}

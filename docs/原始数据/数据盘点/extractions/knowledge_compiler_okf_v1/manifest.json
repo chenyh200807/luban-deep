@@ -1,0 +1,59 @@
+{
+  "schema": "luban_knowledge_compiler_okf_manifest.v1",
+  "generated_at": "2026-06-20T00:00:00+08:00",
+  "authority_status": "knowledge_compiler_workbench_inventory_only",
+  "runtime_guard": {
+    "release_stage": "knowledge_compiler_okf_inventory_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_roots": {
+    "knowledge_compiler": "artifacts/knowledge_compiler/2026"
+  },
+  "copy_policy": {
+    "payloads_copied": false,
+    "reason": "OKF cards route to compiler artifacts without duplicating workbench payloads"
+  },
+  "artifact_refs": {
+    "compiler_runs": "compiler_runs.jsonl",
+    "file_index": "file_index.jsonl",
+    "summary": "summary.md"
+  },
+  "counts": {
+    "runs": 14,
+    "files": 189,
+    "total_bytes": 50729003,
+    "manifest_like_files": 31,
+    "by_stage": {
+      "candidate": 10,
+      "fixture": 4
+    },
+    "by_kind": {
+      "test_fixture": 4,
+      "scoring_point_recall_calibration": 3,
+      "rubric_ab_eval": 2,
+      "rubric_artifact_candidate": 2,
+      "lecture_compile": 1,
+      "answer_rubric_candidate": 1,
+      "scoring_point_candidate_assets": 1
+    },
+    "by_extension": {
+      ".jsonl": 50,
+      ".json": 49,
+      ".png": 38,
+      ".txt": 38,
+      ".md": 14
+    }
+  },
+  "guardrails": [
+    "knowledge compiler workbench inventory only",
+    "candidate artifacts are not signed release truth",
+    "fixture artifacts are not production runtime supply",
+    "no official score claim"
+  ]
+}

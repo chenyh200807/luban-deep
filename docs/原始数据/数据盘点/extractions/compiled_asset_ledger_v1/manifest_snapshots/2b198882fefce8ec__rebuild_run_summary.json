@@ -1,0 +1,25 @@
+{
+  "spine_recompile": {
+    "process": {
+      "input": 174,
+      "aggregate_skipped": 0,
+      "valid_direct": 173,
+      "rescued_by_normalize": 1,
+      "unsalvageable": 0
+    },
+    "signed_questions": 174,
+    "signed_points": 1221,
+    "by_policy": {
+      "boolean_judgment": 197,
+      "exact_required": 256,
+      "qualitative": 83,
+      "calc": 126,
+      "list": 559
+    },
+    "rejected": 0
+  },
+  "refs_remapped": 0,
+  "refs_unresolved": {},
+  "records": 1221,
+  "questions": 174
+}

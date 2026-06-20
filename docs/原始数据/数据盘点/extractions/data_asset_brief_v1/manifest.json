@@ -1,0 +1,261 @@
+{
+  "schema": "luban_data_asset_brief_manifest.v1",
+  "generated_at": "2026-06-19T00:00:00+08:00",
+  "authority_status": "asset_inventory_only",
+  "runtime_guard": {
+    "release_stage": "asset_inventory_only",
+    "runtime_consumable": false,
+    "installed_runtime_supply": false,
+    "canonical_write_allowed": false,
+    "learner_truth_write_allowed": false,
+    "gbrain_write_allowed": false,
+    "production_registry_write_allowed": false,
+    "official_score_allowed": false
+  },
+  "source_paths": {
+    "raw_profile": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+    "json_source_ledger": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/manifest.json",
+    "pdf_source_ledger": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/manifest.json",
+    "compiled_asset_ledger": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
+    "okf_candidate_scope": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/manifest.json"
+  },
+  "artifact_refs": {
+    "asset_buckets": "asset_buckets.json",
+    "ai_brief": "ai_brief.md"
+  },
+  "totals": {
+    "raw_asset_files": 1107,
+    "raw_asset_bytes": 4746166407,
+    "cleaned_json_sources": 383,
+    "pdf_files": 95,
+    "image_files": 615,
+    "exam_exercises": 555,
+    "exam_choice_questions": 337,
+    "exam_case_questions": 218,
+    "practice_exercises": 1033,
+    "textbook_content_blocks": 650,
+    "taxonomy_nodes": 2116,
+    "standard_nodes": 5077,
+    "lecture_page_json": 327,
+    "candidate_cases": 25,
+    "candidate_rubrics": 117,
+    "candidate_scoring_points": 431,
+    "compiled_asset_files": 5059,
+    "compiled_asset_bytes": 740257453,
+    "compiled_asset_groups": 21,
+    "compiled_manifest_refs_copied": 545
+  },
+  "pdf_compilation_status": {
+    "status": "partially_structured_not_fully_pdf_compiled",
+    "raw_pdf_files": 95,
+    "raw_pdf_bytes": 4386216862,
+    "raw_pdf_by_subdir": {
+      "一建建筑实务（智能体资料）_副本": 46,
+      "行业标准文件": 21,
+      "建筑实务11.20_副本": 12,
+      "讲义": 9,
+      "真题": 6,
+      "教材": 1
+    },
+    "what_is_done": [
+      {
+        "asset": "教材 PDF 派生结构化内容",
+        "structured_artifact": "2026 教材 fixed JSON",
+        "count": 650,
+        "unit": "content_block",
+        "status": "structured_json_available"
+      },
+      {
+        "asset": "真题 PDF 派生结构化题库",
+        "structured_artifact": "2015-2025 FINAL_CLEANED_EXAM_V*.json",
+        "count": 555,
+        "unit": "exercise",
+        "status": "structured_json_available"
+      },
+      {
+        "asset": "章节题 PDF 派生结构化题库",
+        "structured_artifact": "ZL500 + QIANTIZAN JSON",
+        "count": 1033,
+        "unit": "exercise",
+        "status": "structured_json_available"
+      },
+      {
+        "asset": "讲义 PDF 派生 page JSON",
+        "structured_artifact": "讲义 page_*.json",
+        "count": 327,
+        "unit": "page_json",
+        "status": "structured_json_available"
+      },
+      {
+        "asset": "标准/规范 PDF 派生结构化 JSON",
+        "structured_artifact": "标准文件/*.json",
+        "count": 5077,
+        "unit": "standard_node",
+        "status": "structured_json_available_for_8_standard_files"
+      }
+    ],
+    "what_is_not_done": [
+      "95 个 PDF 没有逐文件生成统一 full_text/chunk manifest。",
+      "PDF 与 JSON 派生物之间还没有逐文件一对一 provenance map。",
+      "未对全部 PDF 做 OCR 质量评分、页码级 hash、图片/表格抽取覆盖率统计。",
+      "任何 PDF 派生内容都还不能直接升级为 runtime supply 或 official scoring authority。"
+    ],
+    "recommended_next_artifact": "pdf_source_ledger_v1",
+    "runtime_guard": {
+      "release_stage": "asset_inventory_only",
+      "runtime_consumable": false,
+      "installed_runtime_supply": false,
+      "canonical_write_allowed": false,
+      "learner_truth_write_allowed": false,
+      "gbrain_write_allowed": false,
+      "production_registry_write_allowed": false,
+      "official_score_allowed": false
+    },
+    "pdf_source_ledger": {
+      "path": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/manifest.json",
+      "counts": {
+        "pdf_sources": 95,
+        "total_bytes": 4386216862,
+        "candidate_structured_derivative_refs_available": 39,
+        "needs_compilation_or_mapping": 56,
+        "by_category": {
+          "supplement_pdf": 28,
+          "standard_pdf": 21,
+          "exam_pdf": 17,
+          "textbook_pdf": 11,
+          "lecture_pdf": 9,
+          "practice_pdf": 7,
+          "formula_pdf": 2
+        },
+        "by_compilation_status": {
+          "candidate_structured_derivative_refs_available": 39,
+          "raw_indexed_review_later": 28,
+          "raw_indexed_needs_standard_json_backfill": 13,
+          "raw_indexed_needs_textbook_chunking_or_mapping": 6,
+          "raw_indexed_needs_practice_mapping_or_backfill": 5,
+          "raw_indexed_needs_formula_mapping_or_backfill": 2,
+          "raw_indexed_needs_lecture_chunking_or_mapping": 1,
+          "raw_indexed_needs_exam_mapping_or_backfill": 1
+        },
+        "by_priority": {
+          "P2_verify_provenance": 39,
+          "P3_review_if_product_needs": 27,
+          "P1_compile_or_map": 21,
+          "P2_compile_if_needed": 7,
+          "P3_archive_or_dedupe": 1
+        }
+      },
+      "authority_status": "raw_pdf_evidence_ledger"
+    }
+  },
+  "ai_entrypoints": [
+    {
+      "path": "docs/原始数据/数据盘点/extractions/data_asset_brief_v1/ai_brief.md",
+      "why": "最快读懂全资产规模、边界和下一步路由"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/data_asset_brief_v1/manifest.json",
+      "why": "机器可读 totals、guardrails、entrypoints"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/json_source_ledger_v0/sources.jsonl",
+      "why": "逐个清洗 JSON source 的路径、bucket、sha256 和 shape"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/pdf_source_ledger_v1/pdf_sources.jsonl",
+      "why": "逐个 PDF 的 hash、分类、结构化派生状态和下一步动作"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/manifest.json",
+      "why": "编译资产、artifacts、runtime_supply 的总入口和边界"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/compiled_asset_ledger_v1/files.jsonl",
+      "why": "逐个编译资产文件的路径、hash、分组和 authority 状态"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/2026-06-18-raw-data-current-profile.json",
+      "why": "全目录原始资产深度统计"
+    },
+    {
+      "path": "docs/原始数据/数据盘点/extractions/okf_candidate_scope_v0/manifest.json",
+      "why": "案例题候选 rubric / scoring point source-layer 范围"
+    }
+  ],
+  "top_takeaways": [
+    "优先目标是全数据资产总账，而不是先接 production runtime consumer。",
+    "结构化 JSON 已有 383 个，足够让 AI 快速知道教材、真题、讲义、标准、taxonomy 的入口。",
+    "真题层有 555 道练习，其中案例题 218、选择题 337。",
+    "章节练习有 1,033 道，适合客观题闭环和错因解释。",
+    "PDF 有 95 个；逐 PDF ledger 已生成，仍需对未映射 PDF 做 chunking 或 provenance backfill。",
+    "编译资产 ledger 已收录 5,059 个 artifacts/runtime 文件，复制 545 个小型 manifest-like 快照；payload 原地保留。",
+    "OKF-like 候选评分工件已覆盖 25 cases / 117 rubrics / 431 scoring points，但仍是 candidate-only。"
+  ],
+  "guardrails": [
+    {
+      "note": "本产物只回答资产规模、入口、可用性和边界，不签发 production truth。",
+      "runtime_guard": {
+        "release_stage": "asset_inventory_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "note": "PDF 原件库不等于已 OCR/已结构化/已可检索知识库。",
+      "runtime_guard": {
+        "release_stage": "asset_inventory_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "note": "artifacts/workbench 编译产物不等于 runtime truth；runtime_supply 也必须逐 pointer 检查 published/status。",
+      "runtime_guard": {
+        "release_stage": "asset_inventory_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "note": "案例题 correct_answer / 候选 scoring point 不等于 official scoring authority。",
+      "runtime_guard": {
+        "release_stage": "asset_inventory_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    },
+    {
+      "note": "任何 runtime default、LearnerState、GBrain、official score 写入都必须走后续独立 gate。",
+      "runtime_guard": {
+        "release_stage": "asset_inventory_only",
+        "runtime_consumable": false,
+        "installed_runtime_supply": false,
+        "canonical_write_allowed": false,
+        "learner_truth_write_allowed": false,
+        "gbrain_write_allowed": false,
+        "production_registry_write_allowed": false,
+        "official_score_allowed": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "namespace": "case_rubric_full",
+  "status": "release_candidate",
+  "published": true,
+  "expected_content_hash": "61dad410ba249183972c54c0fe4f37b6c092711bd4405a1abf19fa59bd2dd0db",
+  "signed_point_count": 18,
+  "coverage": "m2_machine_spec_slice",
+  "published_date": "2026-06-08"
+}

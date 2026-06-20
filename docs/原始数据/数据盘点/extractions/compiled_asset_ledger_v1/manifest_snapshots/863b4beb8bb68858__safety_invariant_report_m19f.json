@@ -1,0 +1,16 @@
+{
+  "task": "M19F safety invariants (dry-run)",
+  "generated": "2026-06-05",
+  "remote_write_executed": false,
+  "wrote_only_root_deeptutor": "N/A — no remote write performed",
+  "broad_production_default_opened": false,
+  "production_db_written": false,
+  "canonical_truth_written": false,
+  "published_registry_emitted": false,
+  "non_cohort_leak": "N/A — not deployed; static cohort gate (deep_question.py:1700-1710) blocks non qa_/operator_ ids",
+  "fail_open": false,
+  "kill_switch_path_design": "LUBAN_V1_LLM_ADJUDICATOR_ENABLED in (false/0/off/no) -> kill active (sub-second)",
+  "production_default_in_shipped_manifest": "off",
+  "invariants_intact": true,
+  "note": "All safety invariants trivially hold because no remote action was taken; the shipped commit keeps production_default=off and cohort-gated limited default."
+}

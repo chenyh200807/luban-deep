@@ -1,0 +1,35 @@
+{
+  "v0_legacy": {
+    "latency_p50_standalone_ms": 14.4,
+    "latency_p95_standalone_ms": 33.0,
+    "model_cost_usd": 0.0,
+    "latency_measurement": "standalone v0 = LLM-free turn (flag-off / hermetic proxy): construction_grading_result is deterministic projected-rubric, sub-50ms, no model call",
+    "latency_in_shared_turn_ms": 2175.2,
+    "note": "CORRECTION: in the live A/B both authorities compute in ONE /api/v1/ws turn, so the per-turn latency (2175ms) is v1-LLM-dominated and is NOT v0's cost. v0's standalone deterministic grading is sub-50ms / $0 (measured via the LLM-free turn)."
+  },
+  "v1_llm": {
+    "latency_p50": 2155.3,
+    "latency_p95": 3473.0,
+    "latency_p99": 4072.2,
+    "mode": "live",
+    "live_calls": 134,
+    "fallback_used": 0,
+    "failclosed": 0,
+    "est_tokens_total": 116994,
+    "est_cost_usd": 0.0663,
+    "est_cost_per_submission": 0.000495
+  },
+  "rag_baseline_kb_v5": {
+    "retrieval_latency_p50": 3602.8,
+    "retrieval_latency_p95": 3684.4,
+    "note": "read-only context retrieval; not a grader"
+  },
+  "delta": {
+    "v1_vs_v0_latency_x_standalone": 150.0,
+    "v1_latency_p50_ms": 2155.3,
+    "v0_latency_p50_ms": 14.4,
+    "v1_cost_per_submission_usd": 0.000495,
+    "v0_cost_per_submission_usd": 0.0,
+    "interpretation": "v1 ~150x slower than standalone v0 and ~$0.0005/submission; v0 is free + sub-50ms"
+  }
+}

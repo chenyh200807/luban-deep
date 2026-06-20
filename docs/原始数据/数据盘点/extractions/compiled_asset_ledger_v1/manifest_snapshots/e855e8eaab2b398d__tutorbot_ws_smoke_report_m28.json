@@ -1,0 +1,40 @@
+{
+  "milestone": "M28 TutorBot / /api/v1/ws smoke coverage audit",
+  "date": "2026-06-06",
+  "honesty_note": "Reviewer did NOT run a fresh dedicated 5-scenario live WS smoke this round. The dedicated oracle scripts/run_luban_m26_acceptance_oracle_pack.py (--run-ws) is CHURNING under a parallel agent; running it now risks flaky/false results. Coverage below = reviewer-reproduced existing tests (real TestClient/WS where noted) + reconciled runner artifacts. No direct-function-call is counted as a real WS pass.",
+  "scenarios": [
+    {
+      "type": "in_bank_objective_mcq",
+      "coverage": "hermetic regression (construction_grading 269 passed) + M26 live ws_qa ledger (runner-reported)",
+      "real_ws_reproduced_by_reviewer": false,
+      "evidence_grade": "hermetic + runner_live_reported"
+    },
+    {
+      "type": "case_question",
+      "coverage": "construction_grading regression + M26 live_llm_adjudication_report (DeepSeek/Qwen, runner-reported)",
+      "real_ws_reproduced_by_reviewer": false,
+      "evidence_grade": "hermetic + runner_live_reported"
+    },
+    {
+      "type": "historical_exam",
+      "coverage": "M27 live_route_trace (historical->governed_grading_authority) + decision ledger (runner-reported)",
+      "real_ws_reproduced_by_reviewer": false,
+      "evidence_grade": "runner_live_reported"
+    },
+    {
+      "type": "out_of_bank_construction_open_world",
+      "coverage": "tests/integration/test_luban_m27_open_world_ws_integration.py REAL TestClient -> /api/v1/ws (reviewer-reproduced PASS)",
+      "real_ws_reproduced_by_reviewer": true,
+      "evidence_grade": "real_ws_testclient",
+      "asserts": ["diagnostic_status=unverified_diagnostic", "formal_score_allowed=false", "official_answer_claimed=false", "is_construction_refusal=false", "compiled_context schema=luban_context_pack.v1", "response present (no refusal)"]
+    },
+    {
+      "type": "followup_on_resolved",
+      "coverage": "same M27 integration test (resolved followup attaches compiled_context but NOT open_world block) (reviewer-reproduced PASS)",
+      "real_ws_reproduced_by_reviewer": true,
+      "evidence_grade": "real_ws_testclient"
+    }
+  ],
+  "refusal_rate_open_world": 0.0,
+  "verdict": "open-world + resolved-followup covered by REAL /api/v1/ws TestClient (reviewer-reproduced). objective/case/historical real-WS coverage relies on runner-reported M26/M27 artifacts (not reviewer-reproduced live; no creds). Recommend the parallel-agent-owned oracle's --run-ws 5-scenario pass be re-run once tree is stable and ownership is clear."
+}

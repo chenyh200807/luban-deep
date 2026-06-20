@@ -1,0 +1,19 @@
+{
+  "schema_version": "luban_topic_shard.v1",
+  "topic_id": "waterproof",
+  "namespace": "topic_waterproof",
+  "status": "release_candidate",
+  "published": false,
+  "official_score_allowed": false,
+  "content_hash": "615f644337100cebc2ef24a5f77ad65a2a665daaf2fd813b6aad58f51bd6518d",
+  "signature": "40d098186c7d74226b29db30f0c685491e71fc0e550987ac4d1356e2c683c411",
+  "node_count": 44,
+  "canonical_pointer": "deeptutor/services/construction_grading/runtime_supply/v_topic_waterproof/topic_waterproof.json",
+  "source_refs": [
+    {
+      "point_id": "waterproof_exact_required_001",
+      "required_term": "聚合物水泥防水砂浆",
+      "knowledge_point": "防水施工规范术语"
+    }
+  ]
+}

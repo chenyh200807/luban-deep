@@ -1,0 +1,41 @@
+{
+  "anchor_source_counts": {
+    "calculation": 264,
+    "textbook": 5870
+  },
+  "asset_count": 6134,
+  "chunk_count": 650,
+  "compiled_at": "2026-06-02T02:20:39Z",
+  "content_type_counts": {
+    "causal_principle": 5,
+    "definition": 26,
+    "normative_rule": 206,
+    "process_flow": 9,
+    "rule_numeric": 277,
+    "table_data": 67,
+    "text_concept": 60
+  },
+  "discarded_candidates": {
+    "calculation_without_numeric_value": 13,
+    "not_in_content_markdown": 4,
+    "short_common_unexpanded": 2
+  },
+  "failed_batches": [],
+  "invalid_textbook_anchor_count": 0,
+  "loose_anchor_violation_count": 0,
+  "node_count": 20,
+  "point_type_counts": {
+    "calculation": 264,
+    "process_step": 115,
+    "table_term": 931,
+    "text_term": 4824
+  },
+  "quality_gate": "pass",
+  "schema_version": "luban_scoring_point_assets.v0.1",
+  "seed_hit": 1556,
+  "seed_hit_rate": 0.812532637075718,
+  "seed_miss": 359,
+  "seed_total": 1915,
+  "textbook_anchor_rate_for_text_assets": 1.0,
+  "version_id": "scoring-point-assets-20260602"
+}

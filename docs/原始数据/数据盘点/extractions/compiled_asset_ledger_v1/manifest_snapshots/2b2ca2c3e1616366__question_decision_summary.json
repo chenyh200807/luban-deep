@@ -1,0 +1,182 @@
+{
+  "M2-2015-30-00": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-30-01": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-30-02": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-30-03": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-31-00": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-31-01": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-31-02": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-31-03": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-32-00": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-32-01": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-32-02": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-32-03": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-33-00": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-33-01": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-33-02": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-33-03": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-33-04": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-34-00": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-34-01": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-34-02": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-34-03": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2015-34-04": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-30-00": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-30-01": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-30-02": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-30-03": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-31-00": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-31-01": {
+    "m5a_status": "draft_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-31-02": {
+    "m5a_status": "published_candidate",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  },
+  "M2-2016-31-03": {
+    "m5a_status": "needs_po_review",
+    "m5b_status": "provider_blocked",
+    "question_decision": "needs_po_review",
+    "jury_votes": 0
+  }
+}

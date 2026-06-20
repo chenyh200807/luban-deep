@@ -1,0 +1,85 @@
+{
+  "schema_version": "compiled_knowledge_registry.v2",
+  "status": "release_candidate",
+  "published": false,
+  "production_default_connected": false,
+  "canonical_truth_written": false,
+  "lanes": {
+    "objective": {
+      "schema_version": "luban_full_knowledge_compiler.m30",
+      "namespace": "objective_answer_key_full",
+      "lane": "objective",
+      "status": "release_candidate",
+      "published": false,
+      "count": 2640,
+      "rejected_count": 14,
+      "conflict_count": 1,
+      "content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+      "signature": "4db4e025aab6afcdc13d5faab9b58a1950fcc9d13f88d8a0140df0f634786798",
+      "official_answer_as_source": 0,
+      "answer_key_override": 0,
+      "model_vote_as_source": 0,
+      "rag_chunk_as_answer_key": 0,
+      "rollback_pointer": "legacy (bundle missing / hash mismatch -> fail-closed; objective lane absent)",
+      "separate_namespace": true
+    },
+    "source": {
+      "schema_version": "luban_full_knowledge_compiler.m30",
+      "namespace": "source_context_kb_v5",
+      "lane": "source",
+      "status": "release_candidate",
+      "published": false,
+      "count": 30,
+      "content_hash": "9324463a2cf90b4af14616cf9db9186304d51b32e3c4cb6edd771d5ecad3b23f",
+      "signature": "ecf02ddc9828e438c2ed4379c427cf675e23674ba50668d7b5be740e25c645e3",
+      "rag_chunk_as_answer_key": 0,
+      "source_laundering": 0,
+      "rollback_pointer": "legacy (no source_context -> retrieval falls back to RAGService live path)"
+    },
+    "case_rubric": {
+      "schema_version": "luban_full_knowledge_compiler.m30",
+      "namespace": "case_rubric_full",
+      "lane": "case_rubric",
+      "status": "release_candidate",
+      "published": false,
+      "signed_count": 70,
+      "work_order_count": 0,
+      "dropped_count": 0,
+      "by_bucket": {
+        "textbook": 23,
+        "question_stem": 0,
+        "calc": 3,
+        "logic": 30,
+        "list_full": 14,
+        "external": 0,
+        "review_only": 0,
+        "drop": 0
+      },
+      "content_hash": "6c591bcf707e5620a24fb8eb70b02a8ff1594ff8908093875b9b91b2946beb74",
+      "signature": "d94f8e3f3baea50d8845fec7e2b7c1792a4933947fa02f9a84f5b3519fc1b8b1",
+      "list_partial_auto": 0,
+      "validator_failed_count": 0,
+      "external_or_reviewonly_auto_signed": 0,
+      "rollback_pointer": "legacy (no case_rubric_full -> existing release_candidate registry stays authority)"
+    },
+    "m20_delta": {
+      "namespace": "m20_delta_absorbed",
+      "status": "release_candidate",
+      "published": false,
+      "content_hash": "8c9e420add07aaca7ec06379e2d784f2347579f8c960637ebd021cc3c7cb9a7a",
+      "signature": "47879064935030d8e74e5c6c9c92b9d75eb2c2770478078b17ac74f81a589df4"
+    }
+  },
+  "blocks_for_runtime_packet": [
+    "question_context",
+    "source_context",
+    "rubric_context",
+    "learner_context",
+    "diagnostic_policy",
+    "budget_policy",
+    "provenance"
+  ],
+  "registry_content_hash": "9395cacc060fe480e80f81e5effbf68690b94803ff7f4afb8e0848995a7bebc3",
+  "registry_signature": "01305466bb366b10bc3a5f1b65f79055f45710c37a3d6872ced7d49d20e741eb",
+  "rollback_pointer": "legacy compiled_context.v1 + existing release_candidate registries"
+}

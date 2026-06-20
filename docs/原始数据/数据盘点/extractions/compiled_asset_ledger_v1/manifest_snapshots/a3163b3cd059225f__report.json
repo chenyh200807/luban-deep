@@ -1,0 +1,187 @@
+{
+  "schema_version": "luban_m35_mcq_official_key_quality.v1",
+  "runner": "scripts/run_luban_m35_mcq_official_key_quality.py",
+  "generated_at": "2026-06-10T06:17:42.855888+00:00",
+  "authority_basis": "official_mcq_answer_key",
+  "quality_claim_allowed": true,
+  "rule_source": "fixture_scoring_protocol",
+  "scoring_rules": {
+    "single_choice": "exact_match_full_score_else_zero",
+    "multiple_choice_wrong_selection": "zero_score_if_any_wrong_option_selected",
+    "multiple_choice_underselection": "partial_credit_per_selected_correct_option",
+    "blank_answer": "zero_score"
+  },
+  "fixture": {
+    "manifest_path": "tests/fixtures/luban_m35_fastapi_mcq_20q_100a/manifest.json",
+    "answers_path": "tests/fixtures/luban_m35_fastapi_mcq_20q_100a/student_answers.jsonl",
+    "manifest_label_authority": "generated_from_official_mcq_key",
+    "manifest_question_count": 20,
+    "manifest_answer_count": 100
+  },
+  "metrics": {
+    "accuracy": 0.84,
+    "score_mae": 0.06166666666666664,
+    "answer_count": 100,
+    "question_count": 20,
+    "per_question_accuracy": {
+      "MCQ-2015-EXAM_XW2015_MU_21-001": 1.0,
+      "MCQ-2015-EXAM_XW2015_MU_22-002": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_23-003": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_24-004": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_25-005": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_26-006": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_27-007": 1.0,
+      "MCQ-2015-EXAM_XW2015_MU_28-008": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_29-009": 0.8,
+      "MCQ-2015-EXAM_XW2015_MU_30-010": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_21-001": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_22-002": 1.0,
+      "MCQ-2016-EXAM_XW2016_MU_23-003": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_24-004": 1.0,
+      "MCQ-2016-EXAM_XW2016_MU_25-005": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_26-006": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_27-007": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_28-008": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_29-009": 0.8,
+      "MCQ-2016-EXAM_XW2016_MU_30-010": 0.8
+    }
+  },
+  "label_authority_counts": {
+    "generated_from_official_mcq_key": 100
+  },
+  "gold_score_mismatch": {
+    "mismatch_count": 16,
+    "mismatched_answer_ids": [
+      "MCQ-2015-EXAM_XW2015_MU_22-002__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_23-003__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_24-004__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_25-005__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_26-006__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_28-008__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_29-009__missing_one",
+      "MCQ-2015-EXAM_XW2015_MU_30-010__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_21-001__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_23-003__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_25-005__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_26-006__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_27-007__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_28-008__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_29-009__missing_one",
+      "MCQ-2016-EXAM_XW2016_MU_30-010__missing_one"
+    ],
+    "details": [
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_22-002__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_22-002",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_23-003__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_23-003",
+        "official_key_score": 1.5,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_24-004__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_24-004",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_25-005__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_25-005",
+        "official_key_score": 1.5,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_26-006__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_26-006",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_28-008__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_28-008",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_29-009__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_29-009",
+        "official_key_score": 1.5,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2015-EXAM_XW2015_MU_30-010__missing_one",
+        "question_id": "MCQ-2015-EXAM_XW2015_MU_30-010",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_21-001__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_21-001",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_23-003__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_23-003",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_25-005__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_25-005",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_26-006__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_26-006",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_27-007__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_27-007",
+        "official_key_score": 1.5,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_28-008__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_28-008",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_29-009__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_29-009",
+        "official_key_score": 1.3333333333333333,
+        "fixture_gold_score": 1.0
+      },
+      {
+        "answer_id": "MCQ-2016-EXAM_XW2016_MU_30-010__missing_one",
+        "question_id": "MCQ-2016-EXAM_XW2016_MU_30-010",
+        "official_key_score": 1.5,
+        "fixture_gold_score": 1.0
+      }
+    ]
+  },
+  "safety": {
+    "production_write_count": 0,
+    "canonical_truth_written": false,
+    "rag_chunk_as_answer_key": 0,
+    "candidate_used_as_release_truth": 0,
+    "client_status_promoted_to_release_truth": 0,
+    "shadow_changed_legacy_result": 0,
+    "db_write_count": 0,
+    "remote_write_count": 0,
+    "provider_call_count": 0
+  },
+  "notes": [
+    "deterministic official-key rescoring; no LLM, DB, RAG, remote, or network calls",
+    "official yijian MCQ rule: wrong selection scores zero; underselection earns proportional credit per selected correct option",
+    "gold_score mismatches are reported verbatim on both sides; the runner never silently adopts either the fixture gold or the recomputed score"
+  ]
+}

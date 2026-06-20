@@ -1,0 +1,22 @@
+{
+  "source_laundering": 0,
+  "answer_key_override": 0,
+  "model_vote_as_source": 0,
+  "rag_chunk_as_answer_key": 0,
+  "official_answer_as_source": 0,
+  "candidate_used_as_release_truth": 0,
+  "list_partial_auto": 0,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "tamper_fail_closed": true,
+  "rollback_pointer_present": true,
+  "production_write_count": 0,
+  "db_writes": 0,
+  "published_registry": false,
+  "production_default_connected": false,
+  "canonical_truth_written": false,
+  "f1_laundering_guard_fixed": true,
+  "objective_full_count": 2659,
+  "objective_signed_count": 2639,
+  "objective_count_meets_2650plus": true
+}
