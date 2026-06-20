@@ -58,6 +58,7 @@ Page({
   },
 
   onLoad() {
+    this._mounted = true;
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
     this.setData({
@@ -65,6 +66,10 @@ Page({
       navHeight,
       isDark: helpers.isDark(),
     });
+  },
+
+  onUnload() {
+    this._mounted = false;
   },
 
   onShow() {
@@ -82,16 +87,19 @@ Page({
   async _loadProgress() {
     try {
       const raw = await api.getTodayProgress();
+      if (!this._mounted) return;
       const data = api.unwrapResponse(raw);
       const done = data.today_done || 0;
       const target = data.daily_target || 30;
       this.setData({
         todayDone: done,
         dailyTarget: target,
-        progressPct: Math.min(100, Math.round((done / target) * 100)),
+        progressPct:
+          target > 0 ? Math.min(100, Math.round((done / target) * 100)) : 0,
         streakDays: data.streak_days || 0,
       });
     } catch (e) {
+      if (!this._mounted) return;
       wx.showToast({ title: "数据加载失败", icon: "none", duration: 2000 });
     }
   },
@@ -99,6 +107,7 @@ Page({
   async _loadChapters() {
     try {
       const raw = await api.getChapterProgress();
+      if (!this._mounted) return;
       const data = api.unwrapResponse(raw);
       const chapterColors = [
         "#3b82f6",
@@ -120,6 +129,7 @@ Page({
       }));
       this.setData({ chapters, chaptersLoading: false, chaptersError: false });
     } catch (e) {
+      if (!this._mounted) return;
       wx.showToast({ title: "数据加载失败", icon: "none", duration: 2000 });
       this.setData({
         chaptersLoading: false,

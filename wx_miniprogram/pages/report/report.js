@@ -43,7 +43,12 @@ function buildRadarDimensionsFromAssessment(data) {
         (typeof item === "object" ? item.name : key) || key,
       ),
       value: normalizedScore / 100,
-      status: normalizedScore >= 70 ? "strong" : normalizedScore > 0 ? "normal" : "weak",
+      status:
+        normalizedScore >= 70
+          ? "strong"
+          : normalizedScore > 0
+            ? "normal"
+            : "weak",
     };
   });
 }
@@ -94,7 +99,12 @@ function asNumber(value, fallback) {
 }
 
 function hasExplicitNumericValue(value) {
-  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  return (
+    value !== undefined &&
+    value !== null &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function mistakeBookPayloadFromCard(card) {
@@ -262,7 +272,10 @@ function learningBrainObjectLabel(rawId, rawType) {
 function humanizeLearningBrainText(value) {
   var text = String(value || "").trim();
   if (!text) return "";
-  text = text.replace(/我想练习(.+?)相关的题目\s*请严格围绕.*?当前学习锚点出题/g, "$1");
+  text = text.replace(
+    /我想练习(.+?)相关的题目\s*请严格围绕.*?当前学习锚点出题/g,
+    "$1",
+  );
   text = text.replace(/concept:/g, "知识点：");
   text = text.replace(/rubric_item:/g, "采分点：");
   text = text.replace(/question:/g, "案例题：");
@@ -465,7 +478,9 @@ function normalizeLearnerFacingPayload(body, learnerFacing) {
     chains: chains.slice(0, 3),
     nextAction: training[0] || {},
     stats: {
-      eventCount: Number(freshness.event_count || summary.recent_three_done || 0),
+      eventCount: Number(
+        freshness.event_count || summary.recent_three_done || 0,
+      ),
       createdClaimCount: diagnoses.length,
       typedGraphEdgeCount: 0,
       projectionSubject: "",
@@ -587,7 +602,9 @@ function normalizeLearningBrainPayload(raw) {
           flow.display_path || flow.path || flow.display_meta || "",
         ),
         eventId: "",
-        eventLabel: flow.event_label || (hasEvidence ? learningBrainEvidenceLabel(index) : ""),
+        eventLabel:
+          flow.event_label ||
+          (hasEvidence ? learningBrainEvidenceLabel(index) : ""),
       };
     })
     .filter(function (item) {
@@ -608,7 +625,9 @@ function normalizeLearningBrainPayload(raw) {
             humanizeLearningBrainText(edge.display_title) ||
             edge.display_label ||
             learningBrainEdgeLabel(edge.edge_type),
-          path: humanizeLearningBrainText(edge.display_path || learningBrainEdgePath(edge)),
+          path: humanizeLearningBrainText(
+            edge.display_path || learningBrainEdgePath(edge),
+          ),
           eventId: "",
           eventLabel: hasEvidence ? learningBrainEvidenceLabel(index) : "",
         };
@@ -625,7 +644,9 @@ function normalizeLearningBrainPayload(raw) {
         title: humanizeLearningBrainText(
           plan.display_title || plan.claim || "下一步训练",
         ),
-        meta: humanizeLearningBrainText(plan.display_meta || plan.display_label || ""),
+        meta: humanizeLearningBrainText(
+          plan.display_meta || plan.display_label || "",
+        ),
       };
     })
     .filter(function (item) {
@@ -753,15 +774,15 @@ function normalizeRadarState(dims) {
       )
     : 0;
   var dimList = normalized.map(function (d, i) {
-      var pct = Math.round((d.value || 0) * 100);
-      return {
-        rank: i + 1,
-        name: d.name,
-        pct: pct,
-        cls: d.status || "",
-        color: d.color || "",
-      };
-    });
+    var pct = Math.round((d.value || 0) * 100);
+    return {
+      rank: i + 1,
+      name: d.name,
+      pct: pct,
+      cls: d.status || "",
+      color: d.color || "",
+    };
+  });
   return {
     dims: normalized,
     strong: strong,
@@ -908,12 +929,17 @@ Page({
   },
 
   onLoad() {
+    this._mounted = true;
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
     });
+  },
+
+  onUnload() {
+    this._mounted = false;
   },
 
   onShow() {
@@ -984,23 +1010,28 @@ Page({
       var sharedPageData = reportViewModel.toReportPageData(sharedReport);
       var degradedSources = learningReportDegradedSources(body);
       var degraded = Boolean(body.degraded) || degradedSources.length > 0;
-      this.setData(Object.assign({}, sharedPageData, {
-        radarLoading: false,
-        radarError: false,
-        masteryLoading: false,
-        masteryError: false,
-        learningBrainLoading: false,
-        learningBrainError: false,
-        degradedHint: degraded ? buildDegradedHint(degradedSources) : "",
-        degradedSources: degraded ? degradedSources : [],
-        prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
-        prescriptionEvidenceLabels: sharedPageData.prescriptionEvidenceRefs || [],
-        reportFallbackActive: false,
-      }));
+      if (!this._mounted) return;
+      this.setData(
+        Object.assign({}, sharedPageData, {
+          radarLoading: false,
+          radarError: false,
+          masteryLoading: false,
+          masteryError: false,
+          learningBrainLoading: false,
+          learningBrainError: false,
+          degradedHint: degraded ? buildDegradedHint(degradedSources) : "",
+          degradedSources: degraded ? degradedSources : [],
+          prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
+          prescriptionEvidenceLabels:
+            sharedPageData.prescriptionEvidenceRefs || [],
+          reportFallbackActive: false,
+        }),
+      );
       if (this._canvasReady && sharedPageData.radarDimensions.length) {
         this._drawRadar(sharedPageData.radarDimensions);
       }
     } catch (e) {
+      if (!this._mounted) return;
       // unified payload 不可用（5xx / payload contract 断裂 / 网络异常）→ 暴露 degraded fallback 标记
       this.setData({
         radarLoading: false,
@@ -1024,10 +1055,12 @@ Page({
 
   toggleMasteryGroup(e) {
     var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
-    var groups = (this.data.masteryGroups || []).map(function (group, groupIndex) {
-      if (groupIndex !== index) return group;
-      return Object.assign({}, group, { expanded: !group.expanded });
-    });
+    var groups = (this.data.masteryGroups || []).map(
+      function (group, groupIndex) {
+        if (groupIndex !== index) return group;
+        return Object.assign({}, group, { expanded: !group.expanded });
+      },
+    );
     helpers.vibrate("light");
     this.setData({ masteryGroups: groups });
   },
@@ -1418,9 +1451,11 @@ Page({
 
         // 转为图片，解决 canvas 不跟随 scroll-view 滚动的问题
         setTimeout(() => {
+          if (!this._mounted) return;
           wx.canvasToTempFilePath({
             canvas: canvas,
             success: (result) => {
+              if (!this._mounted) return;
               this.setData({ radarImage: result.tempFilePath });
             },
             fail: () => {},
@@ -1443,7 +1478,9 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    var cacheKey =
+      "learning_attempt_detail_preview:" +
+      String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
     if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       try {
         wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
@@ -1451,8 +1488,11 @@ Page({
     }
     if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
       var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
-      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
-      wx.navigateTo({ url: "/pages/attempt-detail/attempt-detail?" + params.join("&") });
+      if (card.attemptRef)
+        params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({
+        url: "/pages/attempt-detail/attempt-detail?" + params.join("&"),
+      });
     }
   },
 
@@ -1464,9 +1504,18 @@ Page({
     var card = (this.data.learningAttemptCards || []).find(function (item) {
       return item.key === key;
     });
-    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+    if (
+      !card ||
+      !card.attemptRef ||
+      !card.subjectId ||
+      !api.saveMistakeBookItem
+    ) {
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+        wx.showToast({
+          title: "这条作答暂不能收藏",
+          icon: "none",
+          duration: 1800,
+        });
       }
       return;
     }
@@ -1479,14 +1528,22 @@ Page({
     try {
       await api.saveMistakeBookItem(mistakeBookPayloadFromCard(card));
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+        wx.showToast({
+          title: "已收藏到云端错题集",
+          icon: "success",
+          duration: 1600,
+        });
       }
       if (typeof this._loadLearningReport === "function") {
         this._loadLearningReport();
       }
     } catch (_err) {
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+        wx.showToast({
+          title: "收藏失败，请稍后重试",
+          icon: "none",
+          duration: 1800,
+        });
       }
     }
   },
