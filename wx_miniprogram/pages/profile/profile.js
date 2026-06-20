@@ -198,6 +198,7 @@ Page({
   },
 
   onLoad: function () {
+    this._mounted = true;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -233,9 +234,11 @@ Page({
       }),
     ])
       .then(function (results) {
+        if (!self._mounted) return;
         self.setData(_normalizeWalletUsage(results[0], results[1], results[2]));
       })
       .catch(function () {
+        if (!self._mounted) return;
         self.setData({
           usageLoading: false,
           usageRows: [],
@@ -258,6 +261,7 @@ Page({
     api
       .getUserInfo()
       .then(function (info) {
+        if (!self._mounted) return;
         var name = info.display_name || info.username || "用户";
         var update = {
           username: name,
@@ -288,6 +292,7 @@ Page({
     api
       .getBadges()
       .then(function (raw) {
+        if (!self._mounted) return;
         var data = api.unwrapResponse
           ? api.unwrapResponse(raw) || raw || {}
           : raw || {};
@@ -300,6 +305,7 @@ Page({
         });
       })
       .catch(function () {
+        if (!self._mounted) return;
         self.setData({
           badges: _normalizeBadges(null, fallbackEarnedIds, self.data.badges),
         });
@@ -466,6 +472,7 @@ Page({
   },
 
   onUnload: function () {
+    this._mounted = false;
     clearTimeout(this._saveTimer);
   },
 

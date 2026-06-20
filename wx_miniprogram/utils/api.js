@@ -6,7 +6,7 @@ const endpoints = require("./endpoints");
 var MAX_RETRIES = 2; // 最大重试次数
 var RETRY_BASE_DELAY = 1000; // 首次重试延迟 ms
 var REQUEST_TIMEOUT = 15000; // 请求超时 ms
-var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true }; // 幂等方法才重试
+var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true, PATCH: true }; // 幂等方法才重试
 var TOKEN_REFRESH_MARGIN_SECONDS = 60 * 60 * 24; // 仅在 token 临期 24 小时内续期
 var IN_FLIGHT_REFRESH = null;
 

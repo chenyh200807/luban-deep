@@ -13,7 +13,11 @@ function buildEventId() {
 }
 
 function track(eventName, payload) {
-  if (!eventName || typeof wx === "undefined" || typeof wx.request !== "function") {
+  if (
+    !eventName ||
+    typeof wx === "undefined" ||
+    typeof wx.request !== "function"
+  ) {
     return;
   }
   var baseUrl = endpoints.getPrimaryBaseUrl(false);
@@ -54,8 +58,10 @@ function trackOnce(uniqueKey, eventName, payload) {
     track(eventName, payload);
     return;
   }
-  if (sentEventKeys[key]) return;
-  sentEventKeys[key] = true;
+  var visitId = getOrCreateVisitId();
+  var scopedKey = visitId + "::" + key;
+  if (sentEventKeys[scopedKey]) return;
+  sentEventKeys[scopedKey] = true;
   track(eventName, payload);
 }
 

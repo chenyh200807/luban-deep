@@ -4,14 +4,62 @@ var api = require("../../utils/api");
 var helpers = require("../../utils/helpers");
 
 var PROBLEM_TYPES = [
-  { key: "chat", mark: "对话", label: "对话答疑", desc: "回复、追问、流式输出", tag: "对话答疑" },
-  { key: "learning_report", mark: "学情", label: "学情模块", desc: "今日处方、掌握趋势、证据", tag: "学情模块" },
-  { key: "assessment", mark: "摸底", label: "摸底测试", desc: "出题、提交、结果生成", tag: "摸底测试" },
-  { key: "diagnostic_report", mark: "报告", label: "摸底报告", desc: "诊断结论、错因、建议", tag: "摸底报告" },
-  { key: "history", mark: "历史", label: "历史记录", desc: "记录丢失、打不开、同步", tag: "历史记录" },
-  { key: "billing", mark: "会员", label: "权益充值", desc: "余额、充值、权益、订单", tag: "权益充值" },
-  { key: "profile", mark: "我的", label: "我的/登录", desc: "登录、资料、设置、反馈", tag: "我的登录" },
-  { key: "content", mark: "题目", label: "题目/答案", desc: "题干、解析、依据、答案", tag: "题目答案" },
+  {
+    key: "chat",
+    mark: "对话",
+    label: "对话答疑",
+    desc: "回复、追问、流式输出",
+    tag: "对话答疑",
+  },
+  {
+    key: "learning_report",
+    mark: "学情",
+    label: "学情模块",
+    desc: "今日处方、掌握趋势、证据",
+    tag: "学情模块",
+  },
+  {
+    key: "assessment",
+    mark: "摸底",
+    label: "摸底测试",
+    desc: "出题、提交、结果生成",
+    tag: "摸底测试",
+  },
+  {
+    key: "diagnostic_report",
+    mark: "报告",
+    label: "摸底报告",
+    desc: "诊断结论、错因、建议",
+    tag: "摸底报告",
+  },
+  {
+    key: "history",
+    mark: "历史",
+    label: "历史记录",
+    desc: "记录丢失、打不开、同步",
+    tag: "历史记录",
+  },
+  {
+    key: "billing",
+    mark: "会员",
+    label: "权益充值",
+    desc: "余额、充值、权益、订单",
+    tag: "权益充值",
+  },
+  {
+    key: "profile",
+    mark: "我的",
+    label: "我的/登录",
+    desc: "登录、资料、设置、反馈",
+    tag: "我的登录",
+  },
+  {
+    key: "content",
+    mark: "题目",
+    label: "题目/答案",
+    desc: "题干、解析、依据、答案",
+    tag: "题目答案",
+  },
 ];
 
 var ISSUE_OPTIONS = {
@@ -92,7 +140,8 @@ function syncIssueOptions(moduleKey, selectedKeys) {
 function getCurrentRoute() {
   try {
     var pages = getCurrentPages();
-    var previous = pages && pages.length > 1 ? pages[pages.length - 2] : pages && pages[0];
+    var previous =
+      pages && pages.length > 1 ? pages[pages.length - 2] : pages && pages[0];
     return (previous && previous.route) || "pages/feedback/feedback";
   } catch (_) {
     return "pages/feedback/feedback";
@@ -143,7 +192,8 @@ Page({
   onLoad: function (query) {
     var win = helpers.getWindowInfo ? helpers.getWindowInfo() : {};
     var device = getDeviceInfo();
-    var source = String((query && query.source) || "profile").trim() || "profile";
+    var source =
+      String((query && query.source) || "profile").trim() || "profile";
     var snapshot = {
       route: getCurrentRoute(),
       network_type: "",
@@ -250,7 +300,9 @@ Page({
   },
 
   _buildPayload: function () {
-    var problem = findByKey(PROBLEM_TYPES, this.data.selectedProblemType) || PROBLEM_TYPES[0];
+    var problem =
+      findByKey(PROBLEM_TYPES, this.data.selectedProblemType) ||
+      PROBLEM_TYPES[0];
     var issueOptions = this.data.issueOptions || [];
     var symptomLabels = this.data.selectedSymptoms
       .map(function (key) {
@@ -292,7 +344,11 @@ Page({
   onSubmitFeedback: function () {
     if (this.data.submitting) return;
     var payload = this._buildPayload();
-    if (!payload.comment && !payload.symptom_tags.length && !payload.attachments.length) {
+    if (
+      !payload.comment &&
+      !payload.symptom_tags.length &&
+      !payload.attachments.length
+    ) {
       wx.showToast({ title: "请选择问题或补充说明", icon: "none" });
       return;
     }
@@ -301,11 +357,16 @@ Page({
     this.setData({ submitting: true });
     this._uploadAttachments(payload.attachments)
       .then(function (attachments) {
-        return api.submitFeedback(Object.assign({}, payload, { attachments: attachments }));
+        return api.submitFeedback(
+          Object.assign({}, payload, { attachments: attachments }),
+        );
       })
       .then(function () {
         wx.showToast({ title: "反馈已提交", icon: "success" });
         self.setData({ submitting: false });
+        setTimeout(function () {
+          wx.navigateBack({ delta: 1, fail: function () {} });
+        }, 1500);
       })
       .catch(function () {
         wx.showToast({ title: "附件或反馈提交失败", icon: "none" });
