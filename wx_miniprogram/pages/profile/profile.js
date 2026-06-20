@@ -370,6 +370,7 @@ Page({
         wx.getFileSystemManager().saveFile({
           tempFilePath: tempPath,
           success: function (saveRes) {
+            if (!self._mounted) return;
             var savedPath = saveRes.savedFilePath;
             wx.setStorageSync("local_avatar_path", savedPath);
             self.setData({ avatarUrl: savedPath });
@@ -377,6 +378,7 @@ Page({
             wx.showToast({ title: "头像已更新", icon: "success" });
           },
           fail: function () {
+            if (!self._mounted) return;
             // saveFile 失败时直接用临时路径（仅本次会话有效）
             wx.setStorageSync("local_avatar_path", tempPath);
             self.setData({ avatarUrl: tempPath });
@@ -428,6 +430,7 @@ Page({
     var self = this;
     if (this._saveTimer) clearTimeout(this._saveTimer);
     this._saveTimer = setTimeout(function () {
+      if (!self._mounted) return;
       var merged = self._pendingPatch;
       self._pendingPatch = {};
       self._saveTimer = null;
