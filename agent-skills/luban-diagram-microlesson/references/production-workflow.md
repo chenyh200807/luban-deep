@@ -32,8 +32,9 @@
       约束:claim:true beat 必 anchor 回卡;selector 必须 data-id;复杂构造坐标只能落在受 schema 约束的 visual_library,不得自由 HTML 画像素
  P1.5 Pre-render Gate(validate_animation_ir_contract.mjs / action schema):先审 IR,证明 scene/action/visual/data-id/Remotion 同源合法,不过不渲染
  P2 渲染(确定性 renderer 吃 lesson/master/animation_ir → journey/rendered.html / preview.html / practice.html)
- P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→cdp_shot)
+ P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→cdp_shot)
       animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
+      independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开
  P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
  过关? NO→ P5 结构化反馈喂回 → 回 P1 改 IR(只改表现,anchor 不动) / YES→ P6 学员门(KPI 正确率)
 ```
@@ -52,8 +53,9 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - 审查必须前置一层:LLM judge/人审前,先跑 pre-render gate。常见失败如 unsupported primitive、visual node 没 backing、action target 不存在、Remotion wrapper 没导入当前 IR,都不应该进入视觉评审。
 
 ## 5. 门/judge/人审三分(anti-patterns 15 条)
-- **~9 条全自动机器门**:schema / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / timing sync / data-id selector 命中 / 视觉快照。
+- **~10 条全自动机器门**:schema / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / practice 可读性 / timing sync / data-id selector 命中 / 视觉快照。
 - animation_ir preview 的真实视口门是量产准入,不是 F16 特例:360/390/430 竖屏、844/932 横屏、播放器遮挡、触控 44px、字幕 live、闯关解锁、非累计 seek、student-safe 都必须 fail-closed。
+- 闯关页真实视口门同样是量产准入,不是附属检查:`validate_challenge_theater_practice.mjs` 或同级 gate 必须证明题图/流程图标签不挤压、题干/学生答/选项不裁切、导航不覆盖、目标视口截图存在。用户反馈过的视口必须补入下一轮 gate 或截图墙。
 - **LLM judge**:镜头是否筛注意力、叙事一线贯穿、错觉真实。
 - **3 类纯人审**(教学品味):镜头调度、箭头层级、采分表达质量。
 - **已落地三道硬门**:`validate_animation_ir_contract.mjs`(渲染前 IR scene/action/visual/Remotion 同源合同)、
@@ -120,5 +122,6 @@ F16 起鼓割补已补齐 OpenMAIC-style 新引擎的最小闭环:
 3. **采分词逐词有 SP anchor**:念出的每个采分词都要有对应 scoring_point anchor(踩过:念四词只锚 SP_scale,漏 SP_conclusion);必要时拆 beat 分锚。
 4. **数量/前向引用对齐**:"等下给你四道题"这类数量声明要么软化、要么与实际变题/练习数对齐(踩过:说"四道题"但母题有 5 变题)。
 5. **表现层 anti-patterns**:hook/main_exam_action/运镜/采分表达/收尾(见 §5 + 反例总表)。
+6. **可读性二次确认**:机器门只能证明 DOM/图元边界,judge/人审必须看目标截图墙,确认图示、题干、选项、反馈在实际视觉上不拥挤。若截图暴露问题但 gate 绿,先补 gate 再修图。
 
 **结论**:闭环机制成立——生成层放开发挥、judge 层用上述必查项出结构化反馈(`{axis,anti_pattern,beat,fix,severity}`)、生成层定向改、2 轮收敛。fan out 到 60 卡即每卡跑此 loop-until-pass。**外部产线(Codex 端 skills)接法 = 当生成层,产物回这套 judge + 门;不复制 skill。**

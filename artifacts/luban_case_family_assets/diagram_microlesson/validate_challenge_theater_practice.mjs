@@ -18,6 +18,7 @@ const viewports = [
   { name: "portrait_390", width: 390, height: 844 },
   { name: "portrait_360", width: 360, height: 740 },
   { name: "landscape_844", width: 844, height: 390 },
+  { name: "desktop_landscape_1432", width: 1432, height: 900, mobile: false },
 ];
 const results = [];
 const add = (level, check, message) => results.push({ level, check, message });
@@ -85,8 +86,8 @@ async function withChrome(viewport, fn) {
     await send("Emulation.setDeviceMetricsOverride", {
       width: viewport.width,
       height: viewport.height,
-      deviceScaleFactor: 2,
-      mobile: true,
+      deviceScaleFactor: viewport.mobile === false ? 1 : 2,
+      mobile: viewport.mobile !== false,
     });
     await send("Page.navigate", { url: "file://" + resolve(input) });
     for (let i = 0; i < 60; i++) {
@@ -110,9 +111,11 @@ function checkMetric(viewport, metric) {
   metric.horizontalOverflow <= 1
     ? pass("horizontal_overflow", `${pfx}: no horizontal overflow`)
     : fail("horizontal_overflow", `${pfx}: overflow ${metric.horizontalOverflow}px`);
-  metric.visualRatio >= (viewport.width > viewport.height ? 0.54 : 0.38)
+  const visualMin = viewport.width > viewport.height ? 0.54 : 0.30;
+  const visualMax = viewport.width > viewport.height ? 0.72 : 0.42;
+  metric.visualRatio >= visualMin && metric.visualRatio <= visualMax
     ? pass("visual_ratio", `${pfx}: diagram ratio ${(metric.visualRatio * 100).toFixed(1)}%`)
-    : fail("visual_ratio", `${pfx}: diagram too small ${(metric.visualRatio * 100).toFixed(1)}%`);
+    : fail("visual_ratio", `${pfx}: diagram ratio ${(metric.visualRatio * 100).toFixed(1)}% outside ${(visualMin * 100).toFixed(0)}-${(visualMax * 100).toFixed(0)}%`);
   metric.promptChars <= 42
     ? pass("short_prompt", `${pfx}: prompt ${metric.promptChars} chars`)
     : fail("short_prompt", `${pfx}: prompt too long ${metric.promptChars} chars`);
@@ -131,6 +134,15 @@ function checkMetric(viewport, metric) {
   metric.nextDisabled
     ? pass("answer_gate", `${pfx}: next disabled before answer`)
     : fail("answer_gate", `${pfx}: next not disabled before answer`);
+  metric.navPosition !== "fixed" && metric.navPosition !== "sticky"
+    ? pass("nav_not_overlay", `${pfx}: nav is in document flow`)
+    : fail("nav_not_overlay", `${pfx}: nav uses ${metric.navPosition} overlay`);
+  metric.clippedTextCount === 0
+    ? pass("text_not_clipped", `${pfx}: visible text wraps without clipping`)
+    : fail("text_not_clipped", `${pfx}: ${metric.clippedTextCount} visible text blocks overflow`);
+  metric.svgStepOverflows === 0
+    ? pass("svg_step_labels_fit", `${pfx}: SVG step labels fit their nodes`)
+    : fail("svg_step_labels_fit", `${pfx}: ${metric.svgStepOverflows} SVG step labels overflow nodes`);
 }
 
 for (const viewport of viewports) {
@@ -146,6 +158,22 @@ for (const viewport of viewports) {
       };
       const options = [...active.querySelectorAll('.option')].filter(visible);
       const controls = [...document.querySelectorAll('button,a,input,summary')].filter(visible);
+      const textBlocks = [...active.querySelectorAll('.student-answer p, h2, .option span, .feedback.show, .option-drawer summary')].filter(visible);
+      const clippedTextCount = textBlocks.filter((node) => node.scrollWidth > node.clientWidth + 1).length;
+      const svgStepOverflows = [...active.querySelectorAll('svg .step')].filter((group) => {
+        const label = group.querySelector('text');
+        const shape = group.querySelector('rect,circle');
+        if (!label || !shape || !label.getBBox) return false;
+        const box = label.getBBox();
+        const tag = shape.tagName.toLowerCase();
+        if (tag === 'rect') {
+          const width = Number(shape.getAttribute('width') || 0);
+          const height = Number(shape.getAttribute('height') || 0);
+          return box.width > width - 8 || box.height > height - 4;
+        }
+        const radius = Number(shape.getAttribute('r') || 0);
+        return box.width > radius * 2 - 8 || box.height > radius * 2 - 4;
+      }).length;
       const minTouch = Math.min(...controls.map((node) => Math.min(rect(node).height, rect(node).width)).filter(Boolean));
       const diagram = rect(active.querySelector('.diagram'));
       const prompt = active.querySelector('h2')?.innerText || '';
@@ -159,6 +187,9 @@ for (const viewport of viewports) {
         drawerOpen: !!active.querySelector('details[open]'),
         touchMin: Number.isFinite(minTouch) ? Math.floor(minTouch) : 0,
         nextDisabled: !!document.getElementById('nextQ')?.disabled,
+        navPosition: getComputedStyle(document.querySelector('nav')).position,
+        clippedTextCount,
+        svgStepOverflows,
       };
     })()`;
     const metric = await send("Runtime.evaluate", { expression, returnByValue: true });

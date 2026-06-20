@@ -9,7 +9,7 @@ description: Use when authoring, rendering, redesigning, or reviewing 鲁班 dia
 > **实现物料**全部在 `artifacts/luban_case_family_assets/diagram_microlesson/`(渲染器/脚本/样板卡/母题),本 skill 只装"怎么造"的规则,物料是 thin wrapper。
 > **唯一目录**:`artifacts/luban_case_family_assets/diagram_microlesson/`。不新建第二套目录 / 第二个 schema_version / 第二份 skill。
 >
-> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`F16_qigu.animation_ir.v0.json` + `render_animation_ir_preview.py` + `remotion_demo/src/AnimationIrRenderer.tsx` + `remotion_demo/src/F16AnimationIrPreview.tsx`(**OpenMAIC-style animation_ir.v0 新引擎样板:通用 renderer + F16 thin wrapper**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_animation_ir_contract.mjs`(**渲染前 IR contract 门:scene/action/visual_library/Remotion 同源**)、`validate_animation_ir_preview.mjs`(**渲染后 IR→HTML 等价/真实视口/遮挡/触控/闯关解锁门**)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first/IR 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
+> 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`F16_qigu.animation_ir.v0.json` + `render_animation_ir_preview.py` + `remotion_demo/src/AnimationIrRenderer.tsx` + `remotion_demo/src/F16AnimationIrPreview.tsx`(**OpenMAIC-style animation_ir.v0 新引擎样板:通用 renderer + F16 thin wrapper**)、`validate_schema_drafts.py`(schema 校验门)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_animation_ir_contract.mjs`(**渲染前 IR contract 门:scene/action/visual_library/Remotion 同源**)、`validate_animation_ir_preview.mjs`(**渲染后 IR→HTML 等价/真实视口/遮挡/触控/闯关解锁门**)、`validate_challenge_theater_practice.mjs`(**独立闯关页真实视口/文字可读/图元标签适配门**)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first/IR 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
 > references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
 
 ## 这套 skill 解决什么
@@ -72,7 +72,9 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 7. **前面先审**:IR 生成后、任何 renderer 运行前先跑 `validate_animation_ir_contract.mjs`。它必须证明 scene 时间不重叠、visible_nodes 有 visual_library backing、action kind/target/timing 合法、student-safe 文本无内部 token、Remotion wrapper 导入当前 IR 并委托通用 `AnimationIrRenderer`。没过不要渲染,更不要调 CSS。
 8. post-render gate 至少覆盖:IR schema/必填字段、scene 不重叠、IR→HTML preview data 等价、当前屏最大可见信息数、keycard 不累积、字幕存在、字幕 live region、theater 默认隐藏控制层且点击浮出、theater 有闯关入口、无 `reached-*`、student-safe、真实 DOM 只有一个 active scene、scene 中段至少有一个节点经 action/progressive reveal 可见。
 9. 手机 preview gate 必须跑真实视口矩阵:360/390/430 竖屏 + 844/932 横屏;断言播放器不遮挡 `.visual`/字幕/教练卡/CTA、控件命中盒 >=44px、无横向 overflow、闯关 CTA 在采分句前 locked、采分句后 enabled、seek 到旧时间不残留 off-scene 节点。
-10. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+10. **练习页也必须是 runtime 产品面,不是附属 HTML**:独立闯关页必须跑 `validate_challenge_theater_practice.mjs` 或同级 gate,覆盖 360/390 竖屏、844 横屏和至少一个宽屏/桌面视口;检查文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据默认渐进展开、触控 >=44px。没有这道门,不得说 practice 合格。
+11. **截图证据是验收的一部分**:机器门 PASS 后还要用 `cdp_shot.mjs` 截目标视口。若用户反馈来自某个截图/设备比例,该比例必须加入下一轮 gate 或截图证据。禁止只看 390x844 或只看 DOM 指标就判合格。
+12. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
 
 60 张卡量产的核心目标:每次 F16/N01/S01/A01 暴露的问题,都要优先沉淀到 `animation_ir.v0`、renderer、gate 或本 skill,而不是只修单卡 CSS。单卡能看只是样例;可复用 workflow 才是交付物。
 如果某次修复选择只改 card CSS,必须在复盘中写明为什么不是 stage shell / renderer / gate 问题;否则默认返工。
@@ -121,7 +123,7 @@ Phase 3  旁白预生成(do-once,见 references/narration-spec.md):node artifact
          生产换云 TTS 只改配音一环;运行时不实时合成。先 --print 校稿再配音
 Phase 4  渲染:render_<原型>_card.py → 自动接同名 timing → 有声交互卡(旁白播放器 + <audio> + 时间轴同步:
          播到某段高亮/reveal 对应锚点 why/item/scoring/wrap)。数据驱动型参数→自动 SVG;构造/工序型用图元/手作 SVG
-Phase 5  验收门:validate_schema_drafts.py 过 + video-first 静态预览合同门(validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html)+ 学习舞台运行时门(validate_learning_stage_runtime.mjs <topic>.rendered.html,覆盖 390 竖屏/横屏/宽屏/theater)+ 手机 390px 无横滚(cdp_shot.mjs 截图)+ student-safe(不漏
+Phase 5  验收门:validate_schema_drafts.py 过 + video-first 静态预览合同门(validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html)+ 学习舞台运行时门(validate_learning_stage_runtime.mjs <topic>.rendered.html,覆盖 390 竖屏/横屏/宽屏/theater)+ 闯关页运行时门(validate_challenge_theater_practice.mjs <topic>.practice.html,覆盖文字不裁切/SVG 标签不挤压/底栏不覆盖)+ 目标视口截图(cdp_shot.mjs,至少 390 竖屏 + 844 横屏 + 用户反馈视口)+ student-safe(不漏
          source_ref/E-code/采分点 id/schema/candidate)+ 采分点绑定对 + 不文生图 + 旁白派生自白名单字段
 Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_microlesson/F16_qigu_product_validation_plan.md,KPI=同类题正确率提升;不过不铺量
 ```
@@ -166,9 +168,10 @@ Phase 6  学员验证门:复用 artifacts/luban_case_family_assets/diagram_micro
 22. **视频必须有自然收尾**:最后 8-15 秒要回扣本卡主线、总结采分动作、桥接闯关。不能在答疑后直接结束,不能只靠页面 CTA 代替旁白收束。
 23. **学习舞台比例必须先对,但不能锁死 9:16**:普通窗口采用 `orientation-adaptive / responsive learning stage`,根据手机竖屏、手机横屏、桌面宽屏和小程序 web-view 容器自适应。竖屏手机可优先接近 9:16/4:5,但横屏和宽屏必须扩大有效教学画面,不能把内容缩成小竖片。全屏只显示学习内容,不是网页缩放;点击屏幕才浮出播放/暂停/静音/退出、可拖动进度和章节跳转;控制层必须避开字幕/讲解卡,并考虑 `safe-area`。
 24. **章节节点必须有语义标签**:不要只给 1/2/3/8。节点应是"先学/错觉/读图/顺推/逆推/时差/线路/采分"这类学习阶段,让学生知道点它会去哪。
-25. **重新生成媒体后必须破缓存**:本地/小程序 web-view 容易缓存同名 mp4/poster/mp3;HTML 引用要带 mtime/hash 版本参数,否则手机端可能仍在看旧片。
-26. **预览评审不重新生成 MP4**:如果只是给用户看 UI/UX、排版、文案、交互或学习卡效果,优先改 HTML/CSS/数据并用 Remotion still、CDP/Playwright 手机截图验收;可以复用已有 MP4 做播放源,但不要每次 full render 新 MP4。只有音画同步成片验收、媒体内容变化、正式候选/发布、缓存验证,或用户明确要视频文件时,才执行 `remotion render` + `ffprobe`。
-27. **默认声纹只作为离线 TTS 生成参数,不能和现有音频脱节**:新生成/重配音时,老师/旁白默认 `longanhuan_v3`(龙安欢 V3),学生模拟默认 `Ethan`(晨煦)。已有音频未重新生成时,不要只改 metadata 造成"标的声音"和 mp3 实际声音不一致。
+25. **练习页可读性是硬门,不是美术建议**:所有题图/流程图/判断图的文字必须在图元内可读,不得把 4 字以上标签硬塞进小圆/窄框;题干、学生答、选项、反馈在竖屏/横屏/宽屏都必须 wrap 而不是裁切。发现这类问题要改 renderer 图元/布局/gate,不要只调当前卡 CSS。
+26. **重新生成媒体后必须破缓存**:本地/小程序 web-view 容易缓存同名 mp4/poster/mp3;HTML 引用要带 mtime/hash 版本参数,否则手机端可能仍在看旧片。
+27. **预览评审不重新生成 MP4**:如果只是给用户看 UI/UX、排版、文案、交互或学习卡效果,优先改 HTML/CSS/数据并用 Remotion still、CDP/Playwright 手机截图验收;可以复用已有 MP4 做播放源,但不要每次 full render 新 MP4。只有音画同步成片验收、媒体内容变化、正式候选/发布、缓存验证,或用户明确要视频文件时,才执行 `remotion render` + `ffprobe`。
+28. **默认声纹只作为离线 TTS 生成参数,不能和现有音频脱节**:新生成/重配音时,老师/旁白默认 `longanhuan_v3`(龙安欢 V3),学生模拟默认 `Ethan`(晨煦)。已有音频未重新生成时,不要只改 metadata 造成"标的声音"和 mp3 实际声音不一致。
 
 ## 元规律(为什么这套成立)
 

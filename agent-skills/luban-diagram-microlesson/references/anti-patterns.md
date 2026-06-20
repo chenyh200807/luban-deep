@@ -20,6 +20,8 @@
 | 练习混在讲解页 | 学生一边看视频一边被题干干扰 | 没拆“看懂”和“练会”两个任务 | 讲解页只承载 video;练习页独立 | preview gate 检查 practice link |
 | 练习题没图 | 选择题像普通刷题,没有深母题迁移 | 没把变题视觉化 | 每题配原图/变化图/诊断图/答题纸 | preview gate 检查 question SVG |
 | 选项短词化 | 点对了但不会写主观题答案 | 选项只服务选择,不服务采分表达 | 选项写“对象/路径 + 结果 + 判断依据”;末题做采分句输出 | practice review |
+| 题图文字挤压 | 流程节点/判断节点里字挤成一团,学生看不清 | 图元尺寸和标签长度没有合同,只测外层不溢出 | 改 renderer 图元语法:长标签用 pill/多行/缩写+图例,不要硬塞小圆;把标签适配纳入 runtime gate | `validate_challenge_theater_practice.mjs` 的 SVG label fit |
+| 右栏文字被裁 | 横屏/宽屏时学生答或题干只显示半句 | grid 列宽/overflow 只测页面横滚,没测文本块 scrollWidth | 右栏设 min-width/minmax,文本 `overflow-wrap:anywhere`;gate 查 visible text block 不裁切 | `text_not_clipped` + 宽屏截图 |
 | 只套 N01 外形 | 构造题也像网络图,判断题也像白板节点 | 把样板 UI 当 authority | 先按 6+1 选原型,再选该原型视觉语法 | pressure tests |
 | 学生端泄漏内部词 | 页面出现 `candidate` / `source_ref` / `P10` / `E03` | renderer 没做 student-safe package gate | 学生包禁止内部 token;制作侧追溯放在源 JSON/后台 | preview gate fail-closed |
 | 无母题数据也标深母题 | 画面漂亮但题和采分句不可追溯 | 表现层越权造内容 | 缺 master/card/variants/source 时只叫视觉小样 | skill 红线 + schema gate |
@@ -44,6 +46,8 @@
 - 你在 Remotion topic 文件里写 `if (scene.id === "...")` 或硬编码某张卡的 SVG。
 - 你只跑了静态 HTML gate,但没有跑 `validate_learning_stage_runtime.mjs` 的真实视口矩阵。
 - 你只看 390x844,但没有看 360 窄竖屏、844/932 横屏和 theater 控制层。
+- 你说 practice 合格,但没跑闯关页 runtime gate,没看目标视口截图,也没查 SVG 标签是否挤压。
+- 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
 - 你发现问题后只改某张卡 CSS,却没有说明为什么不该沉淀到 renderer/gate/skill。
 - 用户说“不满意”,你的第一反应是换视觉风格,而不是检查 hook、主线、节奏、练习闭环。
 

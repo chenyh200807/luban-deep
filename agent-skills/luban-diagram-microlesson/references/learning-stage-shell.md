@@ -116,6 +116,23 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 - 字幕必须是独立 live region,不要挂进 `.visual` 跟着 camera transform。
 - 闯关 CTA 必须由 timing/scene 派生 unlock;采分句前 locked,采分句后 enabled。
 - seek 回旧 scene 时,旧 scene 节点不得继续可见。
+
+独立练习页也必须走真实视口 gate,不能只被 `validate_video_first_preview.mjs`
+静态扫过。默认命令:
+
+```bash
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_theater_practice.mjs \
+  artifacts/luban_case_family_assets/diagram_microlesson/<topic>.practice.html
+```
+
+该 gate 至少检查:
+
+- 360/390 竖屏、844 横屏、以及一个宽屏/桌面视口。
+- 题图/SVG 内部标签适配图元,不得把文字挤进过小节点。
+- 题干、学生答、选项、反馈不裁切;长文必须换行或进入渐进展开。
+- 导航/底栏在文档流或有明确让位,不得覆盖选项和反馈。
+- 可见交互命中盒不小于 44px。
+- 机器门 PASS 后必须补目标视口截图;若用户反馈来自某个特殊视口,该视口加入下一轮 gate 或截图证据。
 - 章节不是纯数字。
 - 可见按钮文字不明显溢出。
 
@@ -152,6 +169,7 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 - 首屏能让学生知道为什么学、先做什么。
 - 普通竖屏、横屏/宽屏、theater 三种布局都过 runtime gate。
 - 练习页独立且题目有图。
+- 练习页文字和图元标签通过 runtime 可读性 gate。
 - preview 阶段不重新生成 MP4。
 - 截图人工看过,没有明显小片化、遮挡、文本挤压和无意义空白。
 

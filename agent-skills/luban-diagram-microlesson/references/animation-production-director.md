@@ -417,13 +417,15 @@ node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_st
 - [ ] 至少一道采分句/答案输出题。
 - [ ] 未答不能下一题,答后即时反馈。
 - [ ] 结果页有暖反馈和回看入口。
+- [ ] 题图/流程图/判断图标签在真实视口内可读,无文字挤压、裁切或被导航覆盖。
 
 ### 技术验证
 
 - [ ] `npx remotion compositions` 通过。
 - [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html` 通过。
 - [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_stage_runtime.mjs <topic>.rendered.html` 通过。
-- [ ] 预览评审档:至少检查 hook/误区/主推演/采分句 still 或已有 poster,再用 CDP/Playwright 检查 390px 竖屏普通页、横屏/宽屏普通页、theater/fullscreen、closing、练习页;不默认生成 MP4。
+- [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_theater_practice.mjs <topic>.practice.html` 通过。
+- [ ] 预览评审档:至少检查 hook/误区/主推演/采分句 still 或已有 poster,再用 CDP/Playwright 检查 390px 竖屏普通页、844px 横屏、用户反馈视口、theater/fullscreen、closing、练习页;不默认生成 MP4。
 - [ ] 成片验收档:mp4 有 video+audio,时长合理。
 - [ ] 成片验收档:timing/mp3/mp4 总时长一致,关键 segment 有对应画面状态。
 - [ ] HTML 引用 poster/mp4/practice。
@@ -512,8 +514,10 @@ npx remotion compositions
 npx remotion still <composition-id> <poster.png> --frame=<hook-frame>
 node artifacts/luban_case_family_assets/diagram_microlesson/validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html
 node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_stage_runtime.mjs <topic>.rendered.html
-node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.rendered.html --width=390
-node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html --width=390
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_theater_practice.mjs <topic>.practice.html
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.rendered.html <topic>.rendered.390.png 390x844
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html <topic>.practice.390.png 390x844
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html <topic>.practice.844.png 844x390
 ```
 
 只有成片验收档才生成 MP4:
