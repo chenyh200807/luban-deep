@@ -3660,19 +3660,21 @@ class DeepQuestionCapability(BaseCapability):
         # harness only covers the matrix, not all live paths). Records a trace flag + warns;
         # the existing fallback still runs, so routing/grading is unchanged.
         if self._canonical_turn_decision_missing(context.metadata):
+            _md = context.metadata if isinstance(context.metadata, dict) else {}
             if isinstance(context.metadata, dict):
                 context.metadata.setdefault("trace_metadata", {})
                 if isinstance(context.metadata["trace_metadata"], dict):
                     context.metadata["trace_metadata"][
                         "deep_question_canonical_decision_missing"
                     ] = True
+            # loguru uses {key}-style formatting; enrich with identifying context so the
+            # observation window can pin which upstream path bypassed the canonical decision.
             logger.warning(
                 "deep_question reached without canonical turn_semantic_decision; "
                 "fabricating fallback (Context-Continuity task#12 step2 observation) "
-                "scene=%s",
-                context.metadata.get("question_lifecycle_scene")
-                if isinstance(context.metadata, dict)
-                else None,
+                "scene={scene} active_object={active_object} suspended={suspended} "
+                "turn_id={turn_id} client_turn_id={client_turn_id}",
+                **self._fabrication_observation_fields(_md),
             )
         followup_question_context = question_context_from_active_object(active_object) or (
             context.metadata.get("question_followup_context", {}) or {}
@@ -5023,6 +5025,22 @@ class DeepQuestionCapability(BaseCapability):
         if not isinstance(metadata, dict):
             return False
         return not normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+
+    @staticmethod
+    def _fabrication_observation_fields(metadata: Any) -> dict[str, Any]:
+        """Identifying context logged when deep_question falls back to a fabricated
+        turn_semantic_decision (task #12 step 2 observation), so the observation window can
+        pin which upstream path bypassed the canonical decision."""
+
+        md = metadata if isinstance(metadata, dict) else {}
+        stack = md.get("suspended_object_stack")
+        return {
+            "scene": md.get("question_lifecycle_scene"),
+            "active_object": bool(md.get("active_object")),
+            "suspended": len(stack) if isinstance(stack, list) else 0,
+            "turn_id": md.get("turn_id"),
+            "client_turn_id": md.get("client_turn_id"),
+        }
 
     @staticmethod
     def _default_turn_semantic_decision(
