@@ -303,6 +303,7 @@ Page({
   },
 
   onLoad: function () {
+    this._pageUnloaded = false;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
