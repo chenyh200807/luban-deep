@@ -52,3 +52,29 @@ def test_canonical_turn_decision_missing_predicate() -> None:
         )
         is False  # canonical decision present
     )
+
+
+def test_fabrication_observation_fields_extracts_identifying_context() -> None:
+    # task #12 step 2: the fabrication-fallback observation log must carry enough context
+    # to pin the upstream path. loguru uses {key} formatting; these are the bound fields.
+    fields = DeepQuestionCapability._fabrication_observation_fields(
+        {
+            "question_lifecycle_scene": "practice_generation",
+            "active_object": {"object_type": "question_set"},
+            "suspended_object_stack": [{"object_type": "open_chat_topic"}],
+            "turn_id": "turn_abc",
+            "client_turn_id": "c_xyz",
+        }
+    )
+    assert fields == {
+        "scene": "practice_generation",
+        "active_object": True,
+        "suspended": 1,
+        "turn_id": "turn_abc",
+        "client_turn_id": "c_xyz",
+    }
+    # non-dict / empty → safe defaults
+    assert DeepQuestionCapability._fabrication_observation_fields(None) == {
+        "scene": None, "active_object": False, "suspended": 0,
+        "turn_id": None, "client_turn_id": None,
+    }
