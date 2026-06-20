@@ -43,6 +43,7 @@ from deeptutor.services.question_followup import (
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -52,7 +53,6 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
-from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
@@ -3651,6 +3651,29 @@ class DeepQuestionCapability(BaseCapability):
         turn_semantic_decision = normalize_turn_semantic_decision(
             context.metadata.get("turn_semantic_decision")
         ) or {}
+        # Context-Continuity 真闭包 task #12 step 2 (observability-first, ZERO behavior
+        # change): deep_question should READ the orchestrator's canonical
+        # turn_semantic_decision. When it is absent here, deep_question fabricates a
+        # fallback (_default_turn_semantic_decision) — a second-authority path the
+        # migration will remove. Before removing it we OBSERVE in production whether any
+        # live path actually reaches deep_question without the canonical decision (the
+        # harness only covers the matrix, not all live paths). Records a trace flag + warns;
+        # the existing fallback still runs, so routing/grading is unchanged.
+        if self._canonical_turn_decision_missing(context.metadata):
+            if isinstance(context.metadata, dict):
+                context.metadata.setdefault("trace_metadata", {})
+                if isinstance(context.metadata["trace_metadata"], dict):
+                    context.metadata["trace_metadata"][
+                        "deep_question_canonical_decision_missing"
+                    ] = True
+            logger.warning(
+                "deep_question reached without canonical turn_semantic_decision; "
+                "fabricating fallback (Context-Continuity task#12 step2 observation) "
+                "scene=%s",
+                context.metadata.get("question_lifecycle_scene")
+                if isinstance(context.metadata, dict)
+                else None,
+            )
         followup_question_context = question_context_from_active_object(active_object) or (
             context.metadata.get("question_followup_context", {}) or {}
         )
@@ -4984,6 +5007,22 @@ class DeepQuestionCapability(BaseCapability):
                 stage="generation",
                 emit_content_when_enabled=True,
             )
+
+    @staticmethod
+    def _canonical_turn_decision_missing(metadata: Any) -> bool:
+        """True when deep_question is reached WITHOUT the orchestrator's canonical
+        ``turn_semantic_decision`` and must fall back to fabricating one.
+
+        Context-Continuity 真闭包 task #12 step 2 observation predicate. The canonical
+        single authority is ``semantic_router.build_turn_semantic_decision`` surfaced in
+        ``metadata['turn_semantic_decision']`` (contracts/turn.md §硬约束 24). A True here
+        marks a path that bypassed it — the second-authority fabrication the migration
+        removes once production traces confirm which (if any) paths trip it.
+        """
+
+        if not isinstance(metadata, dict):
+            return False
+        return not normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
 
     @staticmethod
     def _default_turn_semantic_decision(
