@@ -2481,6 +2481,14 @@ def _summarize_pgo_query_result(result: Any) -> dict[str, Any]:
     scoring_points = result.get("scoring_points")
     if isinstance(scoring_points, list):
         summary["scoring_point_count"] = len(scoring_points)
+        # Consume the C3 `scorable` signal: only score-bearing points may enter
+        # the grade channel, so the gradable denominator excludes supporting /
+        # unsourced points instead of counting every projected point.
+        scorable_count = sum(
+            1 for point in scoring_points if isinstance(point, dict) and point.get("scorable") is True
+        )
+        summary["scorable_point_count"] = scorable_count
+        summary["has_unscorable_points"] = scorable_count < len(scoring_points)
     summary.update(
         {
             "runtime_consumed": True,
