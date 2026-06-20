@@ -288,6 +288,7 @@ domains:
       - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
+      - tests/capabilities/test_deep_question_mcq_full_submission.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py

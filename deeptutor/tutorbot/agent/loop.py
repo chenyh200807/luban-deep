@@ -2505,6 +2505,23 @@ class AgentLoop:
             else None
         )
         if isinstance(exact_candidate, dict):
+            # Project a bank MCQ exact_question onto the LEARNER's pasted option surface
+            # before it becomes the grading authority. The bank may store the correct
+            # value under a different letter (5% = D in the bank, but the learner pasted
+            # 5% as A); grading on the bank letter marks a correct answer wrong. Reuse
+            # the single deterministic projection authority; it is fail-safe (leaves the
+            # candidate unchanged when option values don't correspond / not MCQ).
+            try:
+                from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+
+                exact_candidate = (
+                    SupabasePipeline._project_mcq_exact_question_to_query_surface(
+                        exact_candidate, current_message
+                    )
+                    or exact_candidate
+                )
+            except Exception:
+                pass
             runtime_metadata["_prefetched_exact_question"] = exact_candidate
             if self._prefetched_exact_authority_candidate(
                 runtime_metadata,
