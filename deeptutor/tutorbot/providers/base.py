@@ -10,6 +10,27 @@ from typing import Any
 from loguru import logger
 from deeptutor.services.llm.traffic_control import get_provider_traffic_controller
 
+# Bounded wait for the FIRST streamed token, separate from the inter-chunk idle
+# timeout. Single value authority = the env var below; both providers read it here.
+_FIRST_TOKEN_TIMEOUT_ENV = "DEEPTUTOR_LLM_FIRST_TOKEN_TIMEOUT_SECONDS"
+_FIRST_TOKEN_TIMEOUT_DEFAULT = 35.0
+
+
+def _first_token_timeout_seconds(idle_timeout_s: float) -> float:
+    """First-token wait bound, clamped to [5s, idle_timeout_s].
+
+    Never exceeds the inter-chunk idle so a first-byte stall always fails at least
+    as fast as a mid-stream stall would.
+    """
+    from deeptutor.services.config.env_store import get_env_store
+
+    raw = str(get_env_store().get(_FIRST_TOKEN_TIMEOUT_ENV, "") or "").strip()
+    try:
+        value = float(raw) if raw else _FIRST_TOKEN_TIMEOUT_DEFAULT
+    except ValueError:
+        value = _FIRST_TOKEN_TIMEOUT_DEFAULT
+    return max(5.0, min(float(idle_timeout_s), value))
+
 
 @dataclass
 class ToolCallRequest:
