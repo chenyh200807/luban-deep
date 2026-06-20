@@ -148,6 +148,9 @@ const auth = {
         expiresAt.expires_at || expiresAt.expiresAt || expiresAt.exp,
       );
     }
+    if (!normalizedExpiry) {
+      normalizedExpiry = parseTokenExpiry(token);
+    }
     if (normalizedExpiry) {
       wx.setStorageSync(TOKEN_EXP_KEY, normalizedExpiry);
     } else {

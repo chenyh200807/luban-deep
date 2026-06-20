@@ -562,7 +562,10 @@ Page({
     helpers.vibrate("medium");
     self.setData({ stage: "loading", submitting: true });
 
-    var timeSpent = Math.round((Date.now() - self._startTime) / 1000);
+    var timeSpent =
+      self._startTime > 0
+        ? Math.round((Date.now() - self._startTime) / 1000)
+        : 0;
     var answers = {};
     var keys = self.data.selectedKeys;
     Object.keys(keys).forEach(function (qId) {

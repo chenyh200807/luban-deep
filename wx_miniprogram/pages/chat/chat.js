@@ -553,6 +553,9 @@ Page({
             self._recoveringTurn = false;
           }
         },
+        function () {
+          self._pendingRecoveryActive = false;
+        },
       );
     }
     // ensurePhone = checkAuth + 手机号强制检查，缺手机号会跳回登录页
@@ -846,6 +849,7 @@ Page({
   },
 
   _applyHydratedConversationMessages: function (rawMsgs, conversationMeta) {
+    if (this._destroyed) return;
     var self = this;
     var hydrated = this._hydrateConversationMessages(rawMsgs || []);
     var restoredMode = resolveConversationAnswerMode(conversationMeta);
@@ -875,6 +879,7 @@ Page({
   },
 
   _finishPendingTurnRecovery: function (serverMessages) {
+    if (this._destroyed) return;
     var hasServerMessages = Array.isArray(serverMessages);
     this._recoveringTurn = false;
     this._clearPendingTurn();
@@ -1256,12 +1261,17 @@ Page({
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
-      this._recoverTurnFromHistory().then(function (recovered) {
-        recoverySelf._pendingRecoveryActive = false;
-        if (!recovered) {
-          recoverySelf._recoveringTurn = false;
-        }
-      });
+      this._recoverTurnFromHistory().then(
+        function (recovered) {
+          recoverySelf._pendingRecoveryActive = false;
+          if (!recovered) {
+            recoverySelf._recoveringTurn = false;
+          }
+        },
+        function () {
+          recoverySelf._pendingRecoveryActive = false;
+        },
+      );
       return;
     }
     this._recoveringTurn = false;
@@ -1288,6 +1298,7 @@ Page({
     }
 
     this._recoverTurnFromHistory().then(function (recovered) {
+      if (self._destroyed) return;
       if (recovered) {
         wx.showToast({ title: "已恢复本轮回答", icon: "none" });
         return;
@@ -1956,6 +1967,7 @@ Page({
     api
       .getRuntimeCapabilities()
       .then(function (res) {
+        if (self._destroyed) return;
         var body = unwrap(res) || {};
         var tools =
           body.tools && typeof body.tools === "object" ? body.tools : {};
@@ -1977,6 +1989,7 @@ Page({
         }
       })
       .catch(function () {
+        if (self._destroyed) return;
         self.setData({
           webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
           enableWebSearch: false,
@@ -3145,6 +3158,7 @@ Page({
       this.data.feedbackComment,
     );
     var finishSuccess = function () {
+      if (self._destroyed) return;
       wx.showToast({ title: "感谢反馈", icon: "success", duration: 1500 });
       self.setData({
         feedbackMsgId: "",
@@ -3154,6 +3168,7 @@ Page({
       });
     };
     var finishFailure = function () {
+      if (self._destroyed) return;
       wx.showToast({
         title: "提交失败，请稍后重试",
         icon: "none",

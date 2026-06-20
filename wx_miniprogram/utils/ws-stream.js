@@ -47,10 +47,10 @@ function streamChat(opts, callbacks) {
   }
 
   var app = getApp();
-  var token = auth.getToken();
   var aborted = false;
   var doneReceived = false;
   var firstTokenReceived = false;
+  var finalFired = false;
   var idleTimer = null;
   var slowTimer = null;
   var reconnectTimer = null;
@@ -286,7 +286,8 @@ function streamChat(opts, callbacks) {
         cb.onPresentation(presentationEvent);
       }
       var finalResponseEvent = buildFinalResponseEvent(eventMetadata);
-      if (finalResponseEvent && cb.onFinal) {
+      if (finalResponseEvent && cb.onFinal && !finalFired) {
+        finalFired = true;
         if (!finalResponseEvent.api_base) {
           finalResponseEvent.api_base =
             connectedApiBase || endpoints.getPrimaryBaseUrl(false);
@@ -326,7 +327,8 @@ function streamChat(opts, callbacks) {
       doneReceived = true;
       clearIdleTimer();
       clearSlowTimer();
-      if (cb.onFinal) {
+      if (cb.onFinal && !finalFired) {
+        finalFired = true;
         cb.onFinal({
           type: "final",
           engine: "tutorbot",
@@ -359,7 +361,8 @@ function streamChat(opts, callbacks) {
     var headers = {
       "ngrok-skip-browser-warning": "true",
     };
-    if (token) headers.Authorization = "Bearer " + token;
+    var freshToken = auth.getToken();
+    if (freshToken) headers.Authorization = "Bearer " + freshToken;
     if (app && app.globalData && app.globalData.chatEngine) {
       headers["x-ai-engine"] = String(app.globalData.chatEngine || "").trim();
     }
