@@ -1086,14 +1086,17 @@ class SupabasePipeline:
 
         all_plans = [*exact_text_plans, *primary_plan, *second_pass_plan, *final_compiled_truth_plan]
         stage_started = time.perf_counter()
-        exact_question = self._augment_case_exact_question_with_query(
-            self._extract_exact_question_payload(
-                all_plans,
-                original_query=query,
-                exact_probe=exact_probe,
+        exact_question = self._project_mcq_exact_question_to_query_surface(
+            self._augment_case_exact_question_with_query(
+                self._extract_exact_question_payload(
+                    all_plans,
+                    original_query=query,
+                    exact_probe=exact_probe,
+                ),
+                query=query,
+                query_shape=query_shape,
             ),
-            query=query,
-            query_shape=query_shape,
+            query,
         )
         fused = dedupe_ranked_results(fused, max_items=config.fetch_count * 2)
         record_stage("dedupe_and_exact", stage_started)
@@ -2479,6 +2482,67 @@ class SupabasePipeline:
             payload["coverage_state"] = case_bundle.get("coverage_state") or ""
             payload["covered_indexes"] = case_bundle.get("covered_indexes") or []
         return payload
+
+    @staticmethod
+    def _project_mcq_exact_question_to_query_surface(
+        exact_question: dict[str, Any] | None,
+        query: str,
+    ) -> dict[str, Any] | None:
+        """Grade on the surface the learner actually saw.
+
+        The bank stores its own option order (e.g. D=5%); a learner who pasted
+        "A.5% B.2% ... 我选A" answered on THEIR surface. Without this, grading
+        compares the learner's letter (A) against the bank letter (D) and marks a
+        correct answer wrong. Reuse the single projection authority
+        (_project_to_query_option_surface) to remap the bank correct-answer by VALUE
+        onto the learner's option surface. MCQ-only; fail-safe: if the values do not
+        correspond (rewritten/missing options, value-only surface) the projection
+        keeps the bank surface and we leave the payload unchanged.
+        """
+        if not isinstance(exact_question, dict):
+            return exact_question
+        if str(exact_question.get("answer_kind") or "").strip().lower() != "mcq":
+            return exact_question
+
+        import json as _json
+
+        from deeptutor.services.rag.historical_questions import (
+            _normalize_options,
+            _project_to_query_option_surface,
+        )
+
+        raw_options = exact_question.get("options")
+        if isinstance(raw_options, str):
+            try:
+                raw_options = _json.loads(raw_options)
+            except (ValueError, TypeError):
+                return exact_question
+        candidate_options = _normalize_options(raw_options)
+        if len(candidate_options) < 2:
+            return exact_question
+
+        projected = _project_to_query_option_surface(
+            {**exact_question, "options": candidate_options},
+            query,
+        )
+        if (projected.get("metadata") or {}).get("option_surface") != "query":
+            # Values did not map cleanly onto the learner's surface — keep bank surface.
+            return exact_question
+
+        result = dict(exact_question)
+        result["correct_answer"] = projected.get("correct_answer")
+        result["options"] = {
+            str(opt.get("key") or "").strip().upper(): str(opt.get("value") or "").strip()
+            for opt in (projected.get("options") or [])
+            if isinstance(opt, dict) and str(opt.get("key") or "").strip()
+        }
+        metadata = dict(result.get("metadata") or {})
+        metadata["canonical_correct_answer"] = (projected.get("metadata") or {}).get(
+            "canonical_correct_answer"
+        ) or str(exact_question.get("correct_answer") or "").strip()
+        metadata["option_surface"] = "query"
+        result["metadata"] = metadata
+        return result
 
     def _select_case_matched_question_bank_rows(
         self,
