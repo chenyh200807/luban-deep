@@ -22,7 +22,18 @@
 
 ## 2. Review Packet
 
-每轮 P3/P4/P5 必须产出或更新一个 review packet。可以先写在报告 markdown,也可以后续机器化成 JSON。最小字段如下:
+每轮 P3/P4/P5 必须产出或更新一个 review packet。当前可用脚本:
+
+```bash
+node artifacts/luban_case_family_assets/diagram_microlesson/build_workflow_review_packet.mjs \
+  --card-id <topic> \
+  --gate validate_animation_ir_preview=PASS:0 \
+  --gate validate_challenge_theater_practice=PASS:0 \
+  --screenshot 390x844=artifacts/luban_case_family_assets/diagram_microlesson/<topic>.390.png \
+  --out artifacts/luban_case_family_assets/diagram_microlesson/<topic>.workflow_review_packet.json
+```
+
+packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段如下:
 
 ```json
 {
@@ -128,6 +139,6 @@ LLM judge 只评表现和学习体验,不重写事实。输出必须是结构化
 
 - 相关 gate 已跑,并记录 PASS/WARN。
 - 用户反馈视口或等价视口已进截图墙。
-- review packet 写明 root-cause triage。
+- `build_workflow_review_packet.mjs` 已生成 review packet;若存在 issue,packet 必须写明 root-cause triage。
 - 若修了视觉问题,至少新增一个 gate、anti-pattern、renderer primitive 合同或 skill 红线。
 - 没有把母题事实、采分点、错因 authority 混进表现层回炉。

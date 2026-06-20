@@ -70,7 +70,7 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - **MVP(先 1 卡,不 fan out)**:选已有母题卡(J01/④ 或 F16/①),手工跑完整 loop。**验收 = "改表现字段三轮内从红到绿"**(证闭环收敛),不追 60 张。
 - **扩到 60**:复用 learning stage 合同 + 6 `fixture/golden` → 每原型各 1 张样板验证 → fan out 60。
 - **量产 gated on retention**:先用 MVP 那张过 P6 学员留存,再铺量。
-- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、J01 `gate.sh`、`workflow-review-loop.md` 已落地;
+- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、`build_workflow_review_packet.mjs`、J01 `gate.sh`、`workflow-review-loop.md` 已落地;
   judge 自动执行器和批量截图墙仍是后续补齐项。
 
 ## 6.1 J01 确定性切片(2026-06-19)
