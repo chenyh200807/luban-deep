@@ -18,6 +18,13 @@ function canShowDebugCode() {
   );
 }
 
+function isPrivacyAuthInterruption(detail) {
+  var msg = String(
+    (detail && (detail.errMsg || detail.err_msg || detail.message)) || "",
+  ).toLowerCase();
+  return msg.indexOf("privacy") >= 0 || msg.indexOf("隐私") >= 0;
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -89,6 +96,7 @@ Page({
         });
       return;
     }
+    this._primePrivacyAuthorization();
   },
   onShow: function () {
     if (this._orbScene && !this._orbTimer) this._startOrbMotion();
@@ -107,6 +115,45 @@ Page({
   },
   onPasswordInput: function (e) {
     this.setData({ password: e.detail.value, errorMsg: "" });
+  },
+  _requestPrivacyAuthorization: function () {
+    var self = this;
+    if (typeof wx.requirePrivacyAuthorize !== "function") {
+      return Promise.resolve(true);
+    }
+    if (this._privacyAuthorizationRequest) {
+      return this._privacyAuthorizationRequest;
+    }
+    this._privacyAuthorizationRequest = new Promise(function (resolve) {
+      wx.requirePrivacyAuthorize({
+        success: function () {
+          resolve(true);
+        },
+        fail: function () {
+          resolve(false);
+        },
+        complete: function () {
+          self._privacyAuthorizationRequest = null;
+        },
+      });
+    });
+    return this._privacyAuthorizationRequest;
+  },
+  _primePrivacyAuthorization: function () {
+    if (this._privacyAuthorizationPrimed) return;
+    this._privacyAuthorizationPrimed = true;
+    this._requestPrivacyAuthorization();
+  },
+  _handlePrivacyAuthInterruption: function () {
+    var self = this;
+    self.setData({ errorMsg: "请先同意隐私保护指引，再完成手机号授权" });
+    self._requestPrivacyAuthorization().then(function (ok) {
+      self.setData({
+        errorMsg: ok
+          ? "已同意隐私保护，请继续点击快速登录完成手机号授权"
+          : "需同意隐私保护指引后才能手机号快速登录",
+      });
+    });
   },
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
@@ -311,6 +358,10 @@ Page({
     var phoneCode =
       e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
+      if (isPrivacyAuthInterruption(e && e.detail)) {
+        self._handlePrivacyAuthInterruption();
+        return;
+      }
       self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }

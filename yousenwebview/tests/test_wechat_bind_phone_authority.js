@@ -33,7 +33,11 @@ function flushPromises() {
 
 function createAuthMock() {
   return {
+    isLoggedIn: function () {
+      return false;
+    },
     setToken: function () {},
+    clearToken: function () {},
   };
 }
 
@@ -249,6 +253,74 @@ function createSandbox(sourcePath, apiMock, extras) {
         cases[i].path + " should not mint a token before phone binding",
       );
     }
+  });
+
+  await run("login page should prime privacy authorization before phone quick-login", async function () {
+    var privacyRequests = 0;
+    var page = createSandbox(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
+      {
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+      },
+      {
+        requirePrivacyAuthorize: function (options) {
+          privacyRequests++;
+          options.success({});
+          if (options.complete) options.complete({});
+        },
+      },
+    );
+
+    page.onLoad({});
+    await flushPromises();
+
+    assert(privacyRequests === 1, "login page should request privacy authorization on entry");
+  });
+
+  await run("privacy gate interruption should not be reported as phone verification failure", async function () {
+    var loginCalls = [];
+    var privacyRequests = 0;
+    var page = createSandbox(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
+      {
+        wxLoginWithPhone: function () {
+          loginCalls.push(true);
+          return Promise.resolve({ token: "token_1" });
+        },
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+        shouldRetryWechatLogin: function () {
+          return false;
+        },
+      },
+      {
+        requirePrivacyAuthorize: function (options) {
+          privacyRequests++;
+          options.success({});
+          if (options.complete) options.complete({});
+        },
+      },
+    );
+
+    page.handleWechatPhoneNumber({
+      detail: { errMsg: "getPhoneNumber:fail privacy permission is not authorized" },
+    });
+    await flushPromises();
+    await flushPromises();
+
+    assert(loginCalls.length === 0, "privacy interruption must not call phone login backend");
+    assert(privacyRequests === 1, "privacy interruption should retry privacy authorization");
+    assert(
+      page.data.errorMsg.indexOf("未完成手机号验证") === -1,
+      "privacy interruption should not be shown as phone verification failure",
+    );
+    assert(
+      page.data.errorMsg.indexOf("隐私") >= 0,
+      "privacy interruption should explain the privacy authorization step",
+    );
   });
 
   if (fail) {
