@@ -31,7 +31,11 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from deeptutor.services.construction_grading.rich_leaf_artifacts import source_span_hash  # noqa: E402
-from scripts.run_luban_rich_leaf_v23_residual_source_repair import _compile_context  # noqa: E402
+from scripts.luban_rich_leaf_subsection import leaf_name_core  # noqa: E402
+from scripts.run_luban_rich_leaf_v23_residual_source_repair import (  # noqa: E402
+    _compile_context,
+    compile_context_for_leaf,
+)
 
 SCHEMA = "luban_rich_leaf_frozen_full_compile.v1"
 RUNTIME_SCHEMA = "luban_rich_leaf_runtime_token_pack.v2.3"
@@ -234,6 +238,94 @@ def _compiled_unit_common(leaf: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# Suffixes the frozen taxonomy uses for over-subdivided abstract nodes (E rules,
+# G groupings, R derived requirements) that have no atomic textbook source span.
+_ABSTRACT_CODE_RE = re.compile(r"-(?:E\d+|G\d+|R\d+)$")
+
+
+def _quarantine_bucket(leaf_code: str, leaf_name: str, chunk_markdown: str) -> str:
+    """Classify a leaf that could NOT be sliced into a deterministic subsection.
+
+    - ``over_subdivided`` (C): the leaf code is an abstract -Exx/-Gxx/-Rxx node
+      that has no atomic source span (taxonomy over-subdivision, not a compile bug).
+    - ``mislink`` (A): the leaf name's discriminative core does not appear in the
+      chunk markdown at all — the chunk_id points at the wrong content.
+    - ``unsliceable`` (B-residual): the core IS in the chunk but no distinct
+      subsection boundary could be drawn deterministically (ambiguous / no heading).
+    All three quarantine -> ``needs_source`` work order; NONE are auto-relinked
+    (a wrong relink is a new pollution — the expert-1 red line)."""
+    core = leaf_name_core(leaf_name)
+    if _ABSTRACT_CODE_RE.search(leaf_code):
+        return "over_subdivided"
+    if core and core not in str(chunk_markdown or ""):
+        return "mislink"
+    return "unsliceable"
+
+
+def _context_fingerprint(compiled_context: dict[str, Any]) -> str:
+    """Deterministic fingerprint over the COMPLETE compiled_context payload.
+
+    v1 fingerprinted only the first 600 chars, so two leaves whose payloads shared
+    a 600-char prefix (e.g. identical ``concepts`` head but different trailing
+    ``rules``/``teaching_cards``) collided spuriously, while two leaves that
+    differed only AFTER char 600 (different concepts but identical shared cards)
+    escaped detection. Hashing the whole payload closes both holes: the gate now
+    blocks exactly the leaves whose ENTIRE compiled content is byte-identical."""
+    text = json.dumps(compiled_context, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]  # noqa: S324 — non-crypto fingerprint
+
+
+def enforce_no_intra_chunk_pollution(units: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Fail-closed structural gate (单一汇点, replaces blocklist patching).
+
+    Invariant: under one ``source_ref.chunk_id``, no two leaves may carry the
+    SAME complete compiled_context payload. A collision means leaves were handed
+    content that does not distinguish them — the exact pollution shape. Because the
+    slicer already guarantees each leaf its OWN span, a surviving full-payload
+    collision means the seam genuinely could not tell the leaves apart; there is no
+    trustworthy owner. So ALL units in a colliding group are BLOCKED (no
+    presumptive owner kept) and returned as quarantine rows, so re-pollution can
+    never enter the clean bundle. Returns ``(clean_units, blocked)``.
+
+    A kept owner would require positive ownership proof; lacking that, blocking the
+    whole group is the only fail-closed choice. The gate is idempotent and
+    order-stable (leaf_id-sorted block rows)."""
+    by_chunk: dict[str, list[dict[str, Any]]] = {}
+    for unit in units:
+        cid = str((unit.get("source_ref") or {}).get("chunk_id") or "")
+        by_chunk.setdefault(cid, []).append(unit)
+    clean: list[dict[str, Any]] = []
+    blocked: list[dict[str, Any]] = []
+    for cid, group in by_chunk.items():
+        if not cid or len(group) < 2:
+            clean.extend(group)
+            continue
+        by_fp: dict[str, list[dict[str, Any]]] = {}
+        for unit in group:
+            fp = _context_fingerprint(unit.get("compiled_context") or {})
+            by_fp.setdefault(fp, []).append(unit)
+        for fp, shared in by_fp.items():
+            ordered = sorted(shared, key=lambda u: str(u.get("leaf_id") or ""))
+            if len(ordered) < 2:
+                clean.extend(ordered)
+                continue
+            # collision with no trustworthy owner: block the WHOLE group.
+            colliding_ids = [u.get("leaf_id") for u in ordered]
+            for unit in ordered:
+                blocked.append(
+                    {
+                        "leaf_id": unit.get("leaf_id"),
+                        "unit_id": unit.get("unit_id"),
+                        "chunk_id": cid,
+                        "fingerprint": fp,
+                        "status": "blocked_intra_chunk_pollution",
+                        "quarantine_bucket": "fail_closed_collision",
+                        "colliding_leaf_ids": colliding_ids,
+                    }
+                )
+    return clean, blocked
+
+
 def build_frozen_full_compile(
     *,
     taxonomy: dict[str, Any],
@@ -260,6 +352,33 @@ def build_frozen_full_compile(
     units: list[dict[str, Any]] = []
     lane_counts: dict[str, int] = {"textbook": 0, "lecture_page": 0, "lecture_unit_carryover": 0}
     unresolved: list[dict[str, Any]] = []
+    quarantine: list[dict[str, Any]] = []
+
+    # How many evidence leaves point at each textbook chunk_id, and their names.
+    # A chunk hosting >1 leaf is where pollution lives: every co-located leaf must
+    # get its OWN subsection (positive+negative-checked against the other leaves'
+    # cores) or be quarantined — never the whole shared chunk.
+    chunk_leaf_count: dict[str, int] = {}
+    chunk_leaf_names: dict[str, list[str]] = {}
+    for leaf in leaves:
+        ev = leaf["evidence"] if isinstance(leaf["evidence"], dict) else {}
+        if str(ev.get("source_lane") or "") != "lecture":
+            cid = str(ev.get("chunk_id") or "")
+            if cid:
+                chunk_leaf_count[cid] = chunk_leaf_count.get(cid, 0) + 1
+                chunk_leaf_names.setdefault(cid, []).append(leaf["name"])
+
+    def _sibling_cores(chunk_id: str, leaf_name: str) -> tuple[str, ...]:
+        """Discriminative cores of the OTHER leaves co-located under ``chunk_id``."""
+        own = leaf_name_core(leaf_name)
+        cores: list[str] = []
+        for other in chunk_leaf_names.get(chunk_id, ()):  # pragma: no branch
+            if other == leaf_name:
+                continue
+            oc = leaf_name_core(other)
+            if oc and oc != own and oc not in cores:
+                cores.append(oc)
+        return tuple(cores)
 
     if not blockers:
         for leaf in leaves:
@@ -276,11 +395,34 @@ def build_frozen_full_compile(
                     rows.append({**row_base, "status": "evidence_chunk_missing", "chunk_id": chunk_id})
                     continue
                 chunk = entry["chunk"]
-                span_text = str(chunk.get("content_markdown") or "")
+                markdown = str(chunk.get("content_markdown") or "")
+                hosts_multiple = chunk_leaf_count.get(chunk_id, 0) > 1
+                compiled = compile_context_for_leaf(
+                    chunk=chunk,
+                    chunk_id=chunk_id,
+                    leaf_name=leaf["name"],
+                    chunk_hosts_multiple_leaves=hosts_multiple,
+                    sibling_cores=_sibling_cores(chunk_id, leaf["name"]),
+                )
+                if compiled is None:
+                    bucket = _quarantine_bucket(leaf["code"], leaf["name"], markdown)
+                    q = {
+                        **row_base,
+                        "status": "needs_source",
+                        "chunk_id": chunk_id,
+                        "quarantine_bucket": bucket,
+                        "leaf_name": leaf["name"],
+                    }
+                    quarantine.append(q)
+                    rows.append({**row_base, "status": "quarantined", "chunk_id": chunk_id, "quarantine_bucket": bucket})
+                    continue
+                # Per-leaf span hash so two co-located leaves carry distinct provenance:
+                # derive the hash from THIS leaf's sliced concepts, not the whole chunk.
+                span_text = "\n".join(compiled.get("concepts") or []) or markdown
                 units.append(
                     {
                         **_compiled_unit_common(leaf),
-                        "compiled_context": _compile_context(span_text, chunk, chunk_id),
+                        "compiled_context": compiled,
                         "source_ref": {
                             "record_id": f"{entry['relative_path']}#chunk:{chunk_id}",
                             "source_path": entry["relative_path"],
@@ -292,7 +434,7 @@ def build_frozen_full_compile(
                         },
                         "relative_path": entry["relative_path"],
                         "source_lane": "source_truth",
-                        "review_source": "frozen_v1_full_compile",
+                        "review_source": "frozen_v1_full_compile_per_leaf",
                     }
                 )
                 lane_counts["textbook"] += 1
@@ -333,11 +475,36 @@ def build_frozen_full_compile(
                 continue
             chunk = entry["chunk"]
             chunk_id = str(chunk["chunk_id"])
-            span_text = str(chunk.get("content_markdown") or "")
+            markdown = str(chunk.get("content_markdown") or "")
+            # Single rule for every lane: slice the leaf's OWN subsection or
+            # quarantine. NO whole-chunk fallback (that was the second, looser
+            # rule — handing a lecture leaf the whole best-match chunk is the same
+            # pollution shape the textbook lane forbids). A lecture chunk is chosen
+            # 1:1 per leaf, so it carries no co-located siblings.
+            compiled = compile_context_for_leaf(
+                chunk=chunk,
+                chunk_id=chunk_id,
+                leaf_name=leaf["name"],
+                chunk_hosts_multiple_leaves=False,
+            )
+            if compiled is None:
+                bucket = _quarantine_bucket(leaf["code"], leaf["name"], markdown)
+                quarantine.append(
+                    {
+                        **row_base,
+                        "status": "needs_source",
+                        "chunk_id": chunk_id,
+                        "quarantine_bucket": bucket,
+                        "leaf_name": leaf["name"],
+                    }
+                )
+                rows.append({**row_base, "status": "quarantined", "chunk_id": chunk_id, "quarantine_bucket": bucket})
+                continue
+            span_text = "\n".join(compiled.get("concepts") or []) or markdown
             units.append(
                 {
                     **_compiled_unit_common(leaf),
-                    "compiled_context": _compile_context(span_text, chunk, chunk_id),
+                    "compiled_context": compiled,
                     "source_ref": {
                         "record_id": f"{entry['relative_path']}#chunk:{chunk_id}",
                         "source_path": entry["relative_path"],
@@ -355,6 +522,20 @@ def build_frozen_full_compile(
             lane_counts["lecture_page"] += 1
             rows.append({**row_base, "status": "compiled_lecture_page", "chunk_id": chunk_id})
 
+    # Fail-closed structural gate (单一汇点): any leaf that still collides with a
+    # co-located leaf's compiled_context is BLOCKED out of the clean unit set and
+    # routed to quarantine. This makes re-pollution structurally impossible in the
+    # clean bundle, replacing the per-leaf blocklist patch.
+    gate_blocked: list[dict[str, Any]] = []
+    if not blockers and units:
+        units, gate_blocked = enforce_no_intra_chunk_pollution(units)
+        quarantine.extend(gate_blocked)
+
+    quarantine_buckets: dict[str, int] = {}
+    for q in quarantine:
+        b = str(q.get("quarantine_bucket") or "unspecified")
+        quarantine_buckets[b] = quarantine_buckets.get(b, 0) + 1
+
     pack: dict[str, Any] | None = None
     if not blockers and units:
         pack = {
@@ -368,12 +549,23 @@ def build_frozen_full_compile(
             },
             "runtime_token_pack_units": units,
             "non_runtime_accounted_items": unresolved,
+            "quarantine": {
+                "quarantine_candidate_unit_ids": sorted(
+                    {str(q.get("unit_id")) for q in quarantine if q.get("unit_id")}
+                ),
+                "quarantine_rows": quarantine,
+                "quarantine_buckets": dict(quarantine_buckets),
+                "fail_closed_gate": "enforce_no_intra_chunk_pollution",
+            },
             "classification": dict(CLASSIFICATION),
             "safety": dict(SAFETY),
             "summary": {
                 "unit_count": len(units),
                 "evidence_leaf_count": len(leaves),
                 "unresolved_count": len(unresolved),
+                "quarantine_count": len(quarantine),
+                "quarantine_buckets": dict(quarantine_buckets),
+                "gate_blocked_count": len(gate_blocked),
                 "lane_counts": dict(lane_counts),
                 "production_write_count": 0,
             },
@@ -388,11 +580,15 @@ def build_frozen_full_compile(
         "blockers": blockers,
         "rows": rows,
         "unresolved": unresolved,
+        "quarantine": quarantine,
         "runtime_token_pack": pack,
         "summary": {
             "evidence_leaf_count": len(leaves),
             "compiled_unit_count": len(units),
             "unresolved_count": len(unresolved),
+            "quarantine_count": len(quarantine),
+            "quarantine_buckets": dict(quarantine_buckets),
+            "gate_blocked_count": len(gate_blocked),
             "lane_counts": dict(lane_counts),
             "blocker_count": len(blockers),
             "production_write_count": 0,
