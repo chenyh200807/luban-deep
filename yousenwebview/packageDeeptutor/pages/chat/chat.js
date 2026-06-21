@@ -150,7 +150,15 @@ function readCachedHomeDashboard() {
     var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
     if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
-    return cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+    var dashboard =
+      cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+    if (
+      dashboard &&
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return null;
+    return dashboard;
   } catch (_) {
     return null;
   }
@@ -160,6 +168,11 @@ function writeCachedHomeDashboard(dashboard) {
   try {
     if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
     if (!dashboard || typeof dashboard !== "object") return;
+    if (
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return;
     wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
       cachedAt: Date.now(),
       dashboard: dashboard,

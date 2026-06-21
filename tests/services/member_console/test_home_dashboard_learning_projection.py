@@ -688,6 +688,39 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
     assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度计划编制与控制"
     assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用 3 道题训练施工进度计划编制与控制"
     assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+    assert (
+        dashboard["home_projection"]["source_status"]["home_projection_contract"]
+        == "canonical_taxonomy_v1"
+    )
+
+
+def test_home_projection_marks_recovered_payload_with_canonical_contract() -> None:
+    latest_event = SimpleNamespace(
+        event_id="evt_contract_marker",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-contract-marker",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=None,
+        conversation_events=[latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        dashboard["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
 
 
 def test_dashboard_recovers_projection_from_assessment_learning_evidence(

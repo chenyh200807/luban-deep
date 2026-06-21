@@ -21,6 +21,8 @@ from deeptutor.services.taxonomy.textbook_directory import resolve_canonical_opt
 _TZ = timezone(timedelta(hours=8))
 _PROJECTION_TTL = timedelta(hours=6)
 _SEED_ROOT = Path(__file__).resolve().parents[3] / "data" / "seed"
+_HOME_PROJECTION_CONTRACT = "canonical_taxonomy_v1"
+_HOME_PROJECTION_TOPIC_AUTHORITY = "learner_state.home_personalization.canonical_taxonomy"
 _SIX_ACTION_PROMPT_TYPES = {
     "practice_prompt",
     "mistake_review",
@@ -158,7 +160,9 @@ def build_home_personalization_projection_from_learning_signal(
         ]
     return {
         "generated_at": current_time.isoformat(),
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_projection_source_status(
+            {"fallback_used": False, "learning_report": "projection"}
+        ),
         "today_focus": {
             "title": f"今日焦点：{prompt_concept}",
             "meta": "来自 learner_state.home_personalization",
@@ -198,7 +202,7 @@ def _normalize_projection(projection: dict[str, Any] | None) -> dict[str, Any]:
     source_status = dict(payload.get("source_status") or {})
     source_status.setdefault("fallback_used", False)
     source_status.setdefault("learning_report", "projection")
-    payload["source_status"] = source_status
+    payload["source_status"] = _canonical_projection_source_status(source_status)
     return payload
 
 
@@ -275,6 +279,7 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
     source_status.setdefault("fallback_used", False)
     source_status.setdefault("learning_report", "projection")
     source_status["upgraded_from"] = "legacy_home_projection"
+    source_status = _canonical_projection_source_status(source_status)
     return {
         "generated_at": generated_at.isoformat(),
         "source_status": source_status,
@@ -462,11 +467,13 @@ def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, 
     focus["prompt"] = prompts[0]["text"]
     focus["intent"] = prompts[0]["intent"]
     return {
-        "source_status": {
-            "fallback_used": True,
-            "fallback_reason": fallback_reason,
-            "learning_report": "stale",
-        },
+        "source_status": _canonical_projection_source_status(
+            {
+                "fallback_used": True,
+                "fallback_reason": fallback_reason,
+                "learning_report": "stale",
+            }
+        ),
         "today_focus": focus,
         "recommended_prompts": prompts,
     }
@@ -567,6 +574,13 @@ def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -
             "topic_confidence": str(intent.get("topic_confidence") or "").strip(),
         },
     }
+
+
+def _canonical_projection_source_status(value: dict[str, Any] | None = None) -> dict[str, Any]:
+    source_status = dict(value or {})
+    source_status["home_projection_contract"] = _HOME_PROJECTION_CONTRACT
+    source_status["topic_authority"] = _HOME_PROJECTION_TOPIC_AUTHORITY
+    return source_status
 
 
 def _assessment_retest_prompt(*, text: str, intent: dict[str, Any]) -> dict[str, Any]:
