@@ -1,18 +1,18 @@
 {
   "manifest": {
     "canonical_truth_written": false,
-    "content_hash": "9afcd7f0f97e3d01ba10804a45092f9b71662a9f3b282616b1087e9392633114",
+    "content_hash": "cbb2f77c9f55ab365c5e23c38ec2efa963cb30fc3f9c0d04f5d0e955e60d1abb",
     "llm_may_decide_correctness": false,
     "namespace": "rich_leaf_context",
     "official_score_allowed": false,
     "published": false,
     "quarantine_excluded_count": 0,
-    "record_count": 1454,
+    "record_count": 1466,
     "rollback_pointer": "legacy (no rich_leaf_context -> runtime keeps existing four-source chain)",
     "schema": "luban_rich_leaf_context_bundle.v1",
-    "signature": "dd12086d7709fa61fd8983d53cb19417d111df0fe61d36c91050c9b6dfd03468",
+    "signature": "1563c8948739344dedb01eb711d1313d23b7a562796dfac33ef617fae6b46cab",
     "source_pack_schema": "luban_rich_leaf_runtime_token_pack.v2.3",
-    "source_pack_unit_count": 1454,
+    "source_pack_unit_count": 1466,
     "source_pack_version": "v3.0_frozen_v1_full_compile",
     "status": "release_candidate",
     "tier": "teaching_context_not_answer_key"
@@ -8765,6 +8765,188 @@
     {
       "compiled_context": {
         "concepts": [
+          "#### ① 一类土：松软土\n主要包括砂土、粉土、冲积砂土层、疏松的种植土、淤泥（泥炭）等，坚实系数为 0.5～0.6，采用锹、锄头挖掘，少许用脚蹬。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B001",
+      "leaf_name_path": "建筑工程施工技术 > 一类土（松软土）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "30343d9d8e6396f2d61fccf1d6a5ffd869b4b83acb56a88a310d693934641c68"
+      },
+      "unit_id": "rtpf1_f646c8336725869f"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ② 二类土：普通土\n主要包括粉质黏土，潮湿的黄土，夹有碎石、卵石的砂，粉土混卵（碎）石，种植土、填土等，坚实系数为 0.6～0.8，用锹、锄头挖掘，少许用镐翻松。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B002",
+      "leaf_name_path": "建筑工程施工技术 > 二类土（普通土）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "ecd0121d8198c0e4db1334632533f4d6d18d1728fe271e804d9ecf3942cd7da3"
+      },
+      "unit_id": "rtpf1_32b6250c60f94782"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ③ 三类土：坚土\n主要包括软及中等密实黏土，重粉质黏土、砾石土，干黄土、含有碎石卵石的黄土、粉质黏土，压实的填土等，坚实系数为 0.8～1.0，主要用镐，少许用锹、锄头挖掘，部分用撬棍。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B003",
+      "leaf_name_path": "建筑工程施工技术 > 三类土（坚土）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "9f19e938b2ba1726f882f44a561a2584378829be428472eec419bb82960e2739"
+      },
+      "unit_id": "rtpf1_35b56b1de5dce923"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ④ 四类土：砂砾坚土\n主要包括坚硬密实的黏性土或黄土，含碎石卵石的中等密实的黏性土或黄土，粗卵石，天然级配砂石，软泥灰岩等，坚实系数为 1.0～1.5，整个先用镐、撬棍，后用锹挖掘，部分使用楔子及大锤。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B004",
+      "leaf_name_path": "建筑工程施工技术 > 四类土（砂砾坚土）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "3d4e2102b610aad91741ca19b02002b5d7b81f0909ba4b9e8f96795c67fddea4"
+      },
+      "unit_id": "rtpf1_ec78cbb1ea91fcc6"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ⑤ 五类土：软石\n主要包括硬质黏土，中密的页岩、泥灰岩、白垩土，胶结不紧的砾岩，软石灰及贝壳石灰石等，坚实系数为 1.5～4.0，用镐或撬棍、大锤挖掘，部分使用爆破方法。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B005",
+      "leaf_name_path": "建筑工程施工技术 > 五类土（软石）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "bcebc11b3ac366d9757553fd76eb1c6225657f8a9115f580ffccaf8b87a4539d"
+      },
+      "unit_id": "rtpf1_a68bbfb5a6c2e0b9"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ⑥ 六类土：次坚石\n主要包括泥岩、砂岩、砾岩，坚实的页岩、泥灰岩，密实的石灰岩，风化花岗岩、片麻岩及正长岩等，坚实系数为 4.0～10.0，用爆破方法开挖，部分用风镐。"
+        ],
+        "exam_patterns": [
+          "{\"id\": \"EP1\", \"description\": \"下列哪种土属于六类土？\", \"grading_keywords\": [\"次坚石\", \"坚实系数4.0～10.0\", \"爆破方法\"], \"source_refs\": [\"1A413000_075_0143\"]}"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B006",
+      "leaf_name_path": "建筑工程施工技术 > 六类土（次坚石）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "5b6de51ad429c9d3748362710603f654d314fee866d715b95e7da8d6f6981f01"
+      },
+      "unit_id": "rtpf1_4c8e5326e123833b"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ⑦ 七类土：坚石\n主要包括大理石，辉绿岩，玢岩，粗、中粒花岗岩，坚实的白云石、砂岩、砾岩、片麻岩、石灰岩，微风化安山岩，玄武岩等，坚实系数为 10.0～18.0，用爆破方法开挖。"
+        ],
+        "exam_patterns": [
+          "{\"id\": \"EP1\", \"description\": \"下列哪种土属于六类土？\", \"grading_keywords\": [\"次坚石\", \"坚实系数4.0～10.0\", \"爆破方法\"], \"source_refs\": [\"1A413000_075_0143\"]}"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B007",
+      "leaf_name_path": "建筑工程施工技术 > 七类土（坚石）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "a1fcdc3c69ab1b704adf97484d48c5538dc725c8acb8d5d0a88282a786299b9d"
+      },
+      "unit_id": "rtpf1_2562e496cbb2f5c2"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### ⑧ 八类土：特坚石\n主要包括安山岩，玄武岩，花岗片麻岩，坚实的细粒花岗岩、闪长岩、石英岩、辉长岩、辉绿岩、玢岩、角闪岩等，坚实系数为 18.0～25.0 以上，用爆破方法开挖。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B008",
+      "leaf_name_path": "建筑工程施工技术 > 八类土（特坚石）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "2bc0e56570b839b9d0442d26407dbb673407249b4e56646c3526d3ff1d42b642"
+      },
+      "unit_id": "rtpf1_58a863c7296d13b8"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
           "### （10）与主体结构相结合（两墙合一）的基坑支护\n\n两墙合一围护结构宜采用地下连续墙。",
           "采用逆作法施工时的要求有：\n\n- 应按柱距和层高合理选择土石方作业机械。",
           "- 宜采用专用的自动提土机垂直运输土石方，运输轨道宜设置在永久结构上，并经设计同意。",
@@ -9621,6 +9803,28 @@
         "span_hash": "42ecc1fa6531379858b500848fc8f25b57a72e66a4a632ecc7c84020ab5cae62"
       },
       "unit_id": "rtpf1_6b908d097912f925"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "### 岩土分类（按开挖难易程度）\n\n根据土方开挖的难易程度不同，可将土石分为八类，以便选择施工方法和确定劳动量，为计算劳动力、机具及工程费用提供依据。"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A413000-B042",
+      "leaf_name_path": "建筑工程施工技术 > 岩土分类（按开挖难易程度）",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A413000_075_0143",
+        "file_sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+        "page_num": 75,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json#chunk:1A413000_075_0143",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-9-166v3_fixed.json",
+        "span_hash": "481c525db60e0ffbc7f522af88f452d5b336659ee786e25088796f3f32cdffa6"
+      },
+      "unit_id": "rtpf1_926ad5b9d5c4d9e4"
     },
     {
       "compiled_context": {
@@ -28455,6 +28659,37 @@
     {
       "compiled_context": {
         "concepts": [
+          "### 3）异节奏流水施工\n\n同一施工过程在各施工段上的流水节拍相等，而不同施工过程之间的流水节拍不尽相等的流水施工。",
+          "在组织异节奏流水施工时，又可以采用等步距和异步距两种方式。"
+        ],
+        "rules": [
+          "{\"id\": \"R1\", \"description\": \"异节奏流水施工分为等步距和异步距两种。前者要求不同施工过程的节拍成倍数关系，后者则无此限制。\", \"severity\": \"informative\", \"source_refs\": [\"1A433000_053_0078\"]}",
+          "{\"id\": \"R2\", \"description\": \"（1）节拍成倍数关系；（2）流水步距=最大公约数；（3）专业队数>施工过程数；（4）连续作业，无空闲。\", \"severity\": \"informative\", \"source_refs\": [\"1A433000_053_0078\"]}"
+        ],
+        "teaching_cards": [
+          "{\"id\": \"TC1\", \"title\": \"异节奏流水施工分类\", \"content\": \"异节奏流水施工分为等步距和异步距两种。前者要求不同施工过程的节拍成倍数关系，后者则无此限制。\", \"source_refs\": [\"1A433000_053_0078\"]}",
+          "{\"id\": \"TC2\", \"title\": \"等步距异节奏流水施工特点\", \"content\": \"（1）节拍成倍数关系；（2）流水步距=最大公约数；（3）专业队数>施工过程数；（4）连续作业，无空闲。\", \"source_refs\": [\"1A433000_053_0078\"]}"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A433000-B013",
+      "leaf_name_path": "施工进度管理 > 异节奏流水施工",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A433000_053_0078",
+        "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+        "page_num": 53,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A433000_053_0078",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+        "span_hash": "56b9dff8ec64f653390959ed8e82ab6978e68417af8e6ff96cdbe7700640dec2"
+      },
+      "unit_id": "rtpf1_d53fe8670ddb1d05"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
           "### 异节奏流水施工分析与计算\n\n#### 问题：\n（1）上述五个专业工作队的流水施工属于何种形式的流水施工？绘制其流水施工进度计划图，并计算总工期。",
           "（2）根据本工程的特点，宜采用何种形式的流水施工形式？并简述理由。",
           "（3）如果采用第二问的方式，重新绘制流水施工进度计划，并计算总工期。",
@@ -28792,11 +29027,7 @@
       "compiled_context": {
         "concepts": [
           "#### 1）无节奏流水施工\n\n无节奏流水施工是指在组织流水施工时，全部或部分施工过程在各个施工段上流水节拍不相等的流水施工。",
-          "这种施工是流水施工中最常见的一种。",
-          "**无节奏流水施工特点：**\n\n（1）各施工过程在各施工段的流水节拍不全相等；\n\n（2）相邻施工过程的流水步距不尽相等；\n\n（3）专业工作队数等于施工过程数；\n\n（4）各专业工作队能够在各施工段上连续作业，但有的施工过程间可能有间隔时间。"
-        ],
-        "exam_patterns": [
-          "{\"id\": \"EP1\", \"description\": \"下列哪项不是无节奏流水施工的特点？\", \"grading_keywords\": [\"节拍不全相等\", \"步距不尽相等\", \"专业队数=过程数\", \"可能有间隔\"], \"source_refs\": [\"1A433000_052_0076\"]}"
+          "这种施工是流水施工中最常见的一种。"
         ],
         "rules": [
           "{\"id\": \"R1\", \"description\": \"（1）各施工过程在各施工段的流水节拍不全相等；（2）相邻施工过程的流水步距不尽相等；（3）专业工作队数等于施工过程数；（4）各专业工作队能够连续作业，但施工过程间可能有间隔。\", \"severity\": \"informative\", \"source_refs\": [\"1A433000_052_0076\"]}"
@@ -28817,7 +29048,7 @@
         "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A433000_052_0076",
         "source_lane": "textbook",
         "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
-        "span_hash": "bc23de207fcc6a303f1d68e12331ae82921d608bba99a624dd998734f37eefeb"
+        "span_hash": "cec29996ca95e5c042e15ff47ac1c3a1105fe20ff58a680ca4f5a5d50c78baef"
       },
       "unit_id": "rtpf1_007ad45cba4c6f21"
     },
@@ -29073,6 +29304,34 @@
         "span_hash": "e0d420e4cc7ccdff8e9f2db402911c818c339269a8891b61321b496ff9b5a410"
       },
       "unit_id": "rtpf1_73792af5014ac88c"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "#### 2）等节奏流水施工\n\n等节奏流水施工是指在有节奏流水施工中，各施工过程的流水节拍都相等的流水施工，也称为固定节拍流水施工或全等节拍流水施工。"
+        ],
+        "rules": [
+          "{\"id\": \"R1\", \"description\": \"（1）所有施工过程在各施工段上的流水节拍均相等；（2）相邻施工过程的流水步距相等，且等于流水节拍；（3）专业工作队数等于施工过程数；（4）各专业工作队连续作业，无空闲时间。\", \"severity\": \"informative\", \"source_refs\": [\"1A433000_052_0077\"]}"
+        ],
+        "teaching_cards": [
+          "{\"id\": \"TC1\", \"title\": \"等节奏流水施工特点\", \"content\": \"（1）所有施工过程在各施工段上的流水节拍均相等；（2）相邻施工过程的流水步距相等，且等于流水节拍；（3）专业工作队数等于施工过程数；（4）各专业工作队连续作业，无空闲时间。\", \"source_refs\": [\"1A433000_052_0077\"]}"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A433000-B037",
+      "leaf_name_path": "施工进度管理 > 等节奏流水施工",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A433000_052_0077",
+        "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+        "page_num": 52,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A433000_052_0077",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+        "span_hash": "251d8ffa2c94adfc612ee3f563778afef31a2ac236c902659c7f6e5cf4bd68e4"
+      },
+      "unit_id": "rtpf1_ec5e59767c9454ea"
     },
     {
       "compiled_context": {
@@ -36713,6 +36972,31 @@
         "span_hash": "9c12e0ee802098b50348d837428734b8709ad7e03b269a1ef63c8ae2154fbbd7"
       },
       "unit_id": "rtpf1_719cc384605757fd"
+    },
+    {
+      "compiled_context": {
+        "concepts": [
+          "##### 脚手架计算书：\n1. 落地脚手架计算书：\n   - 受弯构件的强度和连接扣件的抗滑移、立杆稳定性、连墙件的强度、稳定性和连接强度；\n   - 落地架立杆地基承载力；\n   - 悬挑架钢梁挠度；\n2. 附着式脚手架计算书：\n   - 架体结构的稳定计算（厂家提供）；\n   - 支撑结构穿墙螺栓及螺栓孔混凝土局部承压计算；\n   - 连接节点计算；\n3. 吊篮计算：\n   - 吊篮基础支撑结构承载力核算；\n   - 抗倾覆验算；\n   - 加高支架稳定性验算。"
+        ],
+        "exam_patterns": [
+          "{\"id\": \"EP1\", \"description\": \"下列哪项不属于脚手架施工必须编制的计算书？\", \"grading_keywords\": [\"落地脚手架\", \"附着式脚手架\", \"吊篮\", \"计算书\", \"抗倾覆\", \"稳定性\"], \"source_refs\": [\"1A436000_010_0010\"]}"
+        ]
+      },
+      "confidence": "high",
+      "leaf_id": "1A436000-B145",
+      "leaf_name_path": "施工安全管理 > 脚手架计算书",
+      "relative_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+      "source_lane": "source_truth",
+      "source_ref": {
+        "chunk_id": "1A436000_010_0010",
+        "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+        "page_num": 10,
+        "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A436000_010_0010",
+        "source_lane": "textbook",
+        "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+        "span_hash": "4f2b61f6e9718332a1fe34fe2831f21f372325a1b4cc2f51a13c4d99e81f519d"
+      },
+      "unit_id": "rtpf1_99d8737ec8c6789c"
     },
     {
       "compiled_context": {
