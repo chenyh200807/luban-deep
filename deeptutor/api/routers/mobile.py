@@ -2081,6 +2081,11 @@ class PasswordResetRequest(BaseModel):
     password: str
 
 
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -2241,6 +2246,29 @@ async def auth_reset_password(body: PasswordResetRequest) -> dict[str, Any]:
             body.phone,
             body.code,
             body.password,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/auth/change-password",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_change_password", default_max_requests=5, default_window_seconds=60.0))
+    ],
+)
+async def auth_change_password(
+    body: ChangePasswordRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        # bcrypt verify + re-hash — threadpool, same rationale as auth_login.
+        return await run_in_threadpool(
+            member_service.change_password,
+            user_id,
+            body.old_password,
+            body.new_password,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

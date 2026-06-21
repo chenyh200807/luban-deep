@@ -56,6 +56,7 @@ import { BiInviteTestTab, type InviteTestFilterState } from './_components/BiInv
 import { BiLubanFeedbackTab, type LubanFeedbackFilterState } from './_components/BiLubanFeedbackTab'
 import { BiLaunchReadinessTab } from './_components/BiLaunchReadinessTab'
 import { BiMember360Panel } from './_components/BiMember360Panel'
+import { BiMemberAccountPanel } from './_components/BiMemberAccountPanel'
 import { BiMemberOpsTab } from './_components/BiMemberOpsTab'
 import { BiOverviewTab } from './_components/BiOverviewTab'
 import {
@@ -1186,28 +1187,31 @@ export default function BiPageClient() {
           />
         ) : activeTab === 'member-ops' ? (
           biReadOnly ? null : (
-            <BiMemberOpsTab
-              loading={memberLoading}
-              memberItems={memberItems}
-              selectedIds={selectedIds}
-              selectedMember={selectedMember}
-              detailLoading={detailLoading}
-              detailError={detailError || memberError}
-              actionLoading={actionLoading}
-              totalCount={memberTotal}
-              onToggleMember={toggleSelectedMember}
-              onOpenMember={openMember360}
-              onBatchGrant={() => void handleBatchAction('grant')}
-              onBatchRevoke={() => void handleBatchAction('revoke')}
-              onGrantSingle={() => void handleSingleGrant()}
-              onExtendSingle={() => void handleSingleExtend()}
-              onRevokeSingle={() => void handleSingleRevoke()}
-              onAddNote={content => void handleAddNote(content)}
-              onRecordOpsAction={handleRecordOpsAction}
-              onRecordConversationView={handleRecordConversationView}
-              onToggleHeartbeat={job => void handleHeartbeatJobAction(job)}
-              onApplyOverlay={overlay => void handleApplyOverlayPromotions(overlay)}
-            />
+            <div className="space-y-6">
+              <BiMemberAccountPanel />
+              <BiMemberOpsTab
+                loading={memberLoading}
+                memberItems={memberItems}
+                selectedIds={selectedIds}
+                selectedMember={selectedMember}
+                detailLoading={detailLoading}
+                detailError={detailError || memberError}
+                actionLoading={actionLoading}
+                totalCount={memberTotal}
+                onToggleMember={toggleSelectedMember}
+                onOpenMember={openMember360}
+                onBatchGrant={() => void handleBatchAction('grant')}
+                onBatchRevoke={() => void handleBatchAction('revoke')}
+                onGrantSingle={() => void handleSingleGrant()}
+                onExtendSingle={() => void handleSingleExtend()}
+                onRevokeSingle={() => void handleSingleRevoke()}
+                onAddNote={content => void handleAddNote(content)}
+                onRecordOpsAction={handleRecordOpsAction}
+                onRecordConversationView={handleRecordConversationView}
+                onToggleHeartbeat={job => void handleHeartbeatJobAction(job)}
+                onApplyOverlay={overlay => void handleApplyOverlayPromotions(overlay)}
+              />
+            </div>
           )
         ) : activeTab === 'launch-readiness' ? (
           biReadOnly ? null : (

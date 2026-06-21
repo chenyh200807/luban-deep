@@ -3148,6 +3148,89 @@ def test_auth_reset_password_maps_validation_error_to_400(
     assert response.json()["detail"] == "账号或手机号不匹配"
 
 
+def test_auth_change_password_calls_member_service_for_current_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _resolve_user(authorization: str | None) -> str:
+        captured["authorization"] = str(authorization)
+        return "student_demo"
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", _resolve_user)
+
+    def _change_password(user_id: str, old_password: str, new_password: str) -> dict[str, object]:
+        captured.update(
+            {
+                "user_id": user_id,
+                "old_password": old_password,
+                "new_password": new_password,
+            }
+        )
+        return {"success": True, "message": "密码已修改，请使用新密码重新登录"}
+
+    monkeypatch.setattr(mobile_module.member_service, "change_password", _change_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/change-password",
+            headers={"Authorization": "Bearer member-token"},
+            json={"old_password": "OldPass123", "new_password": "NewPass123"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "message": "密码已修改，请使用新密码重新登录"}
+    assert captured == {
+        "authorization": "Bearer member-token",
+        "user_id": "student_demo",
+        "old_password": "OldPass123",  # pragma: allowlist secret
+        "new_password": "NewPass123",  # pragma: allowlist secret
+    }
+
+
+def test_auth_change_password_requires_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_auth(_authorization: str | None) -> str:
+        raise mobile_module.HTTPException(status_code=401, detail="Authentication required")
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", _raise_auth)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/change-password",
+            json={"old_password": "OldPass123", "new_password": "NewPass123"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+
+def test_auth_change_password_maps_validation_error_to_400(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda _authorization: "student_demo",
+    )
+
+    def _change_password(_user_id: str, _old_password: str, _new_password: str) -> dict[str, object]:
+        raise ValueError("用户名或密码错误")
+
+    monkeypatch.setattr(mobile_module.member_service, "change_password", _change_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/change-password",
+            headers={"Authorization": "Bearer member-token"},
+            json={"old_password": "bad", "new_password": "NewPass123"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "用户名或密码错误"
+
+
 def test_auth_send_code_uses_password_reset_authority_when_username_is_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
