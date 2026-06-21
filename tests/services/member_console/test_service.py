@@ -1732,7 +1732,7 @@ def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
 
         def load_persisted_form_bank(self, blueprint):
             if blueprint.version == "topic_waterproof_v1":
-                raise AssessmentBlueprintUnavailable("duplicate source ids")
+                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
             raise AssertionError("catalog should not validate topics below the open floor")
 
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _InvalidFormProvider)
@@ -4217,6 +4217,40 @@ def test_list_members_searches_account_alias_and_normalized_phone(tmp_path: Path
     assert service.list_members(search="13800138000")["items"][0]["user_id"] == "legacy_member_1"
 
 
+def test_bi_member_read_model_starts_on_launch_day(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    now = datetime(2026, 6, 22, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _seed(data: dict[str, object]) -> None:
+        pre_launch = service._build_default_member("pre_launch_member")
+        pre_launch["phone"] = "15558866501"
+        pre_launch["created_at"] = "2026-06-21T23:59:59+08:00"
+        pre_launch["last_active_at"] = now.isoformat()
+        launch_member = service._build_default_member("launch_member")
+        launch_member["phone"] = "15558866502"
+        launch_member["created_at"] = "2026-06-22T00:00:00+08:00"
+        launch_member["last_active_at"] = now.isoformat()
+        data["members"] = [pre_launch, launch_member]
+
+    service._mutate(_seed)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["user_id"] == "launch_member"
+    assert payload["authority"]["operational_start_at"] == "2026-06-22T00:00:00+08:00"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["authority"]["operational_start_at"] == "2026-06-22T00:00:00+08:00"
+    assert service.get_member_360("pre_launch_member")["user_id"] == "pre_launch_member"
+
+
 def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -4291,7 +4325,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4311,7 +4345,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-21T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-23T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
@@ -4357,7 +4391,7 @@ def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-26T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4377,7 +4411,7 @@ def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-21T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-27T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
@@ -4445,7 +4479,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-26T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4463,7 +4497,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
     def _seed_local_member(data: dict[str, object]) -> None:
         member = service._build_default_member("local_missing_from_directory")
         member["phone"] = "15558866509"
-        member["created_at"] = "2026-04-21T10:00:00+08:00"
+        member["created_at"] = "2026-06-22T10:00:00+08:00"
         member["last_active_at"] = "2026-05-20T10:00:00+08:00"
         data["members"].append(member)
 
@@ -4501,7 +4535,7 @@ def test_dashboard_counts_recent_registered_member_windows(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    now = datetime(2026, 6, 9, 12, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
     monkeypatch.setattr(member_service_module, "_now", lambda: now)
 
     def _member(
@@ -4534,7 +4568,7 @@ def test_dashboard_counts_recent_registered_member_windows(
         [
             _member("member_today", days_ago=0),
             _member("member_3d", days_ago=3, phone="15558866509"),
-            _member("member_20d", days_ago=20, phone="15558866510"),
+            _member("member_8d", days_ago=8, phone="15558866510"),
             _member("member_40d", days_ago=40, phone="15558866511"),
             _member("internal_no_phone", days_ago=0, phone=""),
             _member("invalid_created_at", days_ago=0, phone="15558866512", created_at="not-a-time"),
@@ -4546,7 +4580,7 @@ def test_dashboard_counts_recent_registered_member_windows(
 
     dashboard = service.get_dashboard()
 
-    assert dashboard["total_count"] == 6
+    assert dashboard["total_count"] == 4
     assert dashboard["new_today_count"] == 1
     assert dashboard["new_7d_count"] == 2
     assert dashboard["new_30d_count"] == 3
@@ -4566,7 +4600,7 @@ def test_member_directory_merges_member_console_overlay_without_owning_member_po
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,

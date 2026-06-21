@@ -60,7 +60,7 @@ class _RegisteredMemberService(_QuietMemberService):
                     "status": "active",
                     "risk_level": "low",
                     "auto_renew": False,
-                    "created_at": "2026-04-20T10:00:00+08:00",
+                    "created_at": "2026-06-22T10:00:00+08:00",
                     "expire_at": "2026-05-20T10:00:00+08:00",
                     "last_active_at": "2026-04-22T10:00:00+08:00",
                     "chapter_mastery": {
@@ -77,7 +77,7 @@ class _RegisteredMemberService(_QuietMemberService):
                     "status": "active",
                     "risk_level": "high",
                     "auto_renew": False,
-                    "created_at": "2026-04-20T10:00:00+08:00",
+                    "created_at": "2026-06-22T10:00:00+08:00",
                     "expire_at": "2026-05-20T10:00:00+08:00",
                     "last_active_at": "2026-04-22T10:00:00+08:00",
                     "chapter_mastery": {
@@ -104,7 +104,7 @@ class _BiProjectionMemberService(_QuietMemberService):
                 "status": "active",
                 "risk_level": "low",
                 "auto_renew": True,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "expire_at": "2026-05-20T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "chapter_mastery": {
@@ -120,7 +120,7 @@ class _BiProjectionMemberService(_QuietMemberService):
                 "status": "active",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "expire_at": "2026-05-20T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
             },
@@ -132,7 +132,7 @@ class _BiProjectionMemberService(_QuietMemberService):
 
 class _RecentMemberProjectionService(_QuietMemberService):
     def list_members_for_bi(self) -> list[dict[str, object]]:
-        now = datetime.now().astimezone()
+        now = datetime(2026, 8, 1, 12, 0, tzinfo=timezone(timedelta(hours=8)))
 
         def _member(user_id: str, *, days_ago: int, phone: str = "15558866508") -> dict[str, object]:
             return {
@@ -170,7 +170,7 @@ class _CommerceMemberService(_QuietMemberService):
                 "status": "active",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "expire_at": "2026-05-20T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "points_balance": 120,
@@ -179,7 +179,7 @@ class _CommerceMemberService(_QuietMemberService):
                         "id": "legacy_signup_bonus",
                         "delta": 120,
                         "reason": "signup_bonus",
-                        "created_at": "2026-04-20T10:00:00+08:00",
+                        "created_at": "2026-06-22T10:00:00+08:00",
                     }
                 ],
             }
@@ -240,7 +240,7 @@ class _SignupBonusWalletService:
                 reference_id="legacy_member_1",
                 idempotency_key="signup_bonus:legacy_member_1:member_console_bootstrap",
                 metadata={"source": "member_console_auth_bootstrap"},
-                created_at="2026-04-20T10:00:00+08:00",
+                created_at="2026-06-22T10:00:00+08:00",
             ),
             SimpleNamespace(
                 id="wallet_usage",
@@ -253,7 +253,7 @@ class _SignupBonusWalletService:
                 reference_id="turn_1",
                 idempotency_key="usage:turn_1",
                 metadata={"capability": "deep_question"},
-                created_at="2026-04-20T11:00:00+08:00",
+                created_at="2026-06-22T11:00:00+08:00",
             ),
         ]
         return rows[offset : offset + limit]
@@ -270,7 +270,7 @@ class _ManualMembershipRevenueWalletService:
     is_configured = True
 
     def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
-        now = datetime.now().astimezone()
+        now = datetime(2026, 6, 25, 12, 0, tzinfo=timezone(timedelta(hours=8)))
         rows = [
             SimpleNamespace(
                 id="ledger_manual_membership_today",
@@ -369,7 +369,15 @@ def test_commerce_does_not_count_wallet_signup_bonus_as_recharge(store: SQLiteSe
 
 def test_commerce_summarizes_manual_membership_revenue_from_wallet_ledger(
     store: SQLiteSessionStore,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    class _FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = datetime(2026, 6, 25, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+            return value.astimezone(tz) if tz else value
+
+    monkeypatch.setattr(bi_service_module, "datetime", _FixedDatetime)
     service = BIService(
         session_store=store,
         member_service=_CommerceMemberService(),
@@ -387,6 +395,60 @@ def test_commerce_summarizes_manual_membership_revenue_from_wallet_ledger(
     assert payload["summary"]["latest_revenue_member_id"] == "member_paid_today"
     assert payload["summary"]["latest_revenue_at"]
     assert payload["summary"]["revenue_count"] == 2
+
+
+def test_commerce_excludes_pre_launch_wallet_ledger_rows(
+    store: SQLiteSessionStore,
+) -> None:
+    class _LaunchBoundaryWalletService:
+        is_configured = True
+
+        def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
+            rows = [
+                SimpleNamespace(
+                    id="ledger_pre_launch_purchase",
+                    user_id="legacy_member_1",
+                    event_type="grant",
+                    delta_micros=50_000_000_000,
+                    balance_after_micros=50_000_000_000,
+                    frozen_after_micros=0,
+                    reference_type="purchase",
+                    reference_id="manual_membership_pre_launch",
+                    idempotency_key="purchase:manual_membership:pre_launch",
+                    metadata={"channel": "manual_membership", "amount_cny": 998},
+                    created_at="2026-06-21T23:59:59+08:00",
+                ),
+                SimpleNamespace(
+                    id="ledger_launch_purchase",
+                    user_id="legacy_member_1",
+                    event_type="grant",
+                    delta_micros=9_000_000_000,
+                    balance_after_micros=59_000_000_000,
+                    frozen_after_micros=0,
+                    reference_type="purchase",
+                    reference_id="manual_membership_launch",
+                    idempotency_key="purchase:manual_membership:launch",
+                    metadata={"channel": "manual_membership", "amount_cny": 198},
+                    created_at="2026-06-22T00:00:00+08:00",
+                ),
+            ]
+            return rows[offset : offset + limit]
+
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_LaunchBoundaryWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["summary"]["operational_start_at"] == "2026-06-22T00:00:00+08:00"
+    assert payload["summary"]["ledger_count"] == 1
+    assert payload["summary"]["recharge_count"] == 1
+    assert payload["summary"]["revenue_cny"] == 198
+    assert payload["summary"]["latest_revenue_amount_cny"] == 198
+    assert [row["id"] for row in payload["ledger"]] == ["ledger_launch_purchase"]
+    assert [row["ledger_event_id"] for row in payload["recharge_records"]] == ["ledger_launch_purchase"]
 
 
 def test_commerce_today_revenue_uses_china_business_day() -> None:
@@ -797,7 +859,15 @@ def test_member_stats_uses_lightweight_bi_projection_not_member_360(
 
 def test_member_stats_counts_recent_registered_members_by_created_window(
     store: SQLiteSessionStore,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    class _FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = datetime(2026, 8, 1, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+            return value.astimezone(tz) if tz else value
+
+    monkeypatch.setattr(bi_service_module, "datetime", _FixedDatetime)
     service = BIService(session_store=store, member_service=_RecentMemberProjectionService())
 
     stats = asyncio.run(service.get_member_stats(days=30))
