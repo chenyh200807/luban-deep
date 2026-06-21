@@ -19,6 +19,7 @@ bi_router_module = importlib.import_module("deeptutor.api.routers.bi")
 bi_router = bi_router_module.router
 
 from deeptutor.services.bi_service import BIService
+from deeptutor.services.config import env_store as env_store_module
 from deeptutor.services.feedback_service import build_mobile_feedback_row
 from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.service import get_member_console_service
@@ -204,6 +205,16 @@ def _build_app(service: BIService) -> FastAPI:
     app.include_router(bi_router, prefix="/api/v1/bi")
     app.dependency_overrides = {}
     return app
+
+
+def _set_metrics_env_store(monkeypatch, tmp_path: Path, token: str) -> None:
+    env_file = tmp_path / "metrics.env"
+    env_file.write_text(f"DEEPTUTOR_METRICS_TOKEN={token}\n", encoding="utf-8")
+    monkeypatch.setattr(
+        env_store_module,
+        "_env_store",
+        env_store_module.EnvStore(path=env_file, fallback_paths=()),
+    )
 
 
 def _assert_non_empty_list(value: object, field_name: str) -> list[object]:
@@ -784,6 +795,9 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         def can_manage_permissions(self, *_args, **_kwargs) -> bool:
             return True
 
+        def record_ops_action_result(self, *args, **kwargs):
+            return service._member_service.record_ops_action_result(*args, **kwargs)  # noqa: SLF001
+
     monkeypatch.setattr(
         "deeptutor.api.routers.bi.get_member_console_service",
         lambda: _FullAccessMemberService(),
@@ -1088,8 +1102,9 @@ def test_bi_router_honors_explicit_public_flag_in_production(
 def test_bi_router_allows_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1104,8 +1119,9 @@ def test_bi_router_allows_metrics_token_in_production(
 def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1120,8 +1136,9 @@ def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
 def test_bi_router_metrics_token_does_not_expose_commerce(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1136,8 +1153,9 @@ def test_bi_router_metrics_token_does_not_expose_commerce(
 def test_bi_router_metrics_token_does_not_expose_invite_test_stats(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1565,8 +1583,9 @@ def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService, tmp_
 def test_bi_router_rejects_invalid_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
