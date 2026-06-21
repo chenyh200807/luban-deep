@@ -136,3 +136,99 @@ async def test_floating_followup_does_not_resume_suspended_without_back_referenc
     ), f"延伸知识问被误提升为切题拒答签名: {decision}"
     if routing.active_object is not None:
         assert routing.active_object.get("object_id") != "q_prev_scaffold", "延伸知识问不应把挂起题设为新active"
+
+
+@pytest.mark.asyncio
+async def test_cached_explanation_action_re_resolves_with_history_to_other_question() -> None:
+    """Stage C activation (2026-06-21): an explanation turn that references a DIFFERENT
+    historical question ("回到我最开始做错的那道题").
+
+    The followup action is resolved upstream (turn_runtime) BEFORE conversation history
+    is built, so it only saw the active set → ask_followup (binds to the stale active
+    object). Where the canonical history IS available (this router), a cached
+    NON-submission action must be DROPPED and re-resolved with history so the relation
+    authority can upgrade to ask_other_question → unresolved-switch → context-continuous
+    main LLM. Submissions keep their deterministic cache (never re-routed to main LLM).
+    """
+    from deeptutor.services.semantic_router import is_unresolved_switch_followup
+
+    active_object = _question_active_object("q_current", "结构找坡题", "C")
+
+    calls = {"n": 0}
+
+    # NOTE: history reaches the classifier via the production lambda closure
+    # (semantic_router.py — history_context=history_context); that wiring is covered by
+    # test_resolve_turn_semantic_decision_maps_llm_answer_to_grading. Here we inject the
+    # callable directly to assert the cache-drop + re-resolution behavior.
+    async def fake_interpret(_message, question_context, *, history_context=""):
+        calls["n"] += 1
+        return {
+            "intent": "ask_other_question",
+            "confidence": 0.9,
+            "preserve_other_answers": False,
+            "answers": [],
+            "reason": "用户回指对话更早的另一道题，不是当前 active。",
+        }
+
+    routing = await resolve_question_semantic_routing(
+        user_message="回到我最开始做错的那道题，正确答案为什么是那个",
+        metadata={
+            "active_object": active_object,
+            # cached upstream (no-history) explanation action that binds to active:
+            "question_followup_action": {
+                "intent": "ask_followup",
+                "confidence": 0.8,
+                "answers": [],
+                "reason": "stale no-history cache",
+            },
+        },
+        history_context=(
+            "Assistant: 第1题 种植平屋面坡度不应小于（2%）\n"
+            "Assistant: 第2题 结构找坡最小坡度（3%）"
+        ),
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=resolve_submission_attempt,
+        looks_like_question_followup=looks_like_question_followup,
+        looks_like_practice_generation_request=looks_like_practice_generation_request,
+    )
+
+    assert calls["n"] >= 1, "non-submission cache must be dropped and re-resolved with history"
+    decision = routing.turn_semantic_decision
+    assert decision["relation_to_active_object"] == "switch_to_new_object"
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert is_unresolved_switch_followup(decision)
+
+
+@pytest.mark.asyncio
+async def test_cached_submission_action_is_not_dropped_or_rerouted() -> None:
+    """Negative guard: a cached SUBMISSION (grading) action must NOT be dropped/re-resolved
+    — grading stays on the structured deterministic path and is never sent to the main LLM."""
+    active_object = _question_active_object("q_current", "结构找坡题", "C")
+
+    calls = {"n": 0}
+
+    async def fake_interpret(_message, question_context, *, history_context=""):
+        calls["n"] += 1
+        return {"intent": "ask_other_question", "confidence": 0.9, "answers": [], "reason": "should-not-run"}
+
+    routing = await resolve_question_semantic_routing(
+        user_message="我选B",
+        metadata={
+            "active_object": active_object,
+            "question_followup_action": {
+                "intent": "answer_questions",
+                "confidence": 0.95,
+                "answers": [{"index": 1, "question_id": "q_current", "user_answer": "B"}],
+                "reason": "submission",
+            },
+        },
+        history_context="Assistant: 第1题...\nAssistant: 第2题...",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=resolve_submission_attempt,
+        looks_like_question_followup=looks_like_question_followup,
+        looks_like_practice_generation_request=looks_like_practice_generation_request,
+    )
+
+    assert calls["n"] == 0, "cached submission action must NOT be dropped/re-resolved"
+    decision = routing.turn_semantic_decision
+    assert decision["next_action"] == "route_to_grading"
