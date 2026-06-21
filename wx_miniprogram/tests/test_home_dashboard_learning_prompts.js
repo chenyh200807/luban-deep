@@ -15,6 +15,13 @@ var wsSourcePath = path.join(__dirname, "../utils/ws-stream.js");
 
 var wxVm = require(wxVmPath);
 var yousenVm = require(yousenVmPath);
+var canonicalMembers = require(path.join(__dirname, "../utils/canonical-taxonomy-members.js"));
+
+assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("防水工程"), true);
+assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("屋面与防水工程施工"), true);
+assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("出三道屋面防水的"), false);
+assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("今日推进"), false);
+assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("直接练题才能把"), false);
 
 function trustedHomeProjection(payload) {
   var projection = Object.assign({}, payload);
@@ -248,13 +255,13 @@ var trustedProjectionModel = wxVm.buildLearningHomeViewModel(trustedHomeProjecti
     title: "今日焦点：主体结构工程施工",
     meta: "来自 learner_state.home_personalization",
     prompt: "用 3 道题训练主体结构工程施工",
-    intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+    intent: canonicalIntent("主体结构工程施工"),
   },
   recommended_prompts: [
     {
       text: "用 3 道题训练主体结构工程施工",
       prompt_type: "practice_prompt",
-      intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+      intent: canonicalIntent("主体结构工程施工"),
     },
   ],
 }));
@@ -273,7 +280,7 @@ var badFocusWithGoodPromptModel = wxVm.buildLearningHomeViewModel(trustedHomePro
     {
       text: "用 3 道题训练主体结构工程施工",
       prompt_type: "practice_prompt",
-      intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+      intent: canonicalIntent("主体结构工程施工"),
     },
   ],
 }));
@@ -292,13 +299,13 @@ var stringFallbackModel = wxVm.buildLearningHomeViewModel({
     today_focus: {
       title: "今日焦点：主体结构工程施工",
       prompt: "用 3 道题训练主体结构工程施工",
-      intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+      intent: canonicalIntent("主体结构工程施工"),
     },
     recommended_prompts: [
       {
         text: "用 3 道题训练主体结构工程施工",
         prompt_type: "practice_prompt",
-        intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+        intent: canonicalIntent("主体结构工程施工"),
       },
     ],
   },

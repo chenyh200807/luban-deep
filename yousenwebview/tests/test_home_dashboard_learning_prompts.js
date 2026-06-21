@@ -107,17 +107,17 @@ var legacyThreePromptModel = vm.buildLearningHomeViewModel(trustedHomeProjection
     {
       text: "用 3 道题训练项目质量计划管理",
       prompt_type: "practice_prompt",
-      intent: { concept_label: "项目质量计划管理" },
+      intent: canonicalIntent("项目质量计划管理"),
     },
     {
       text: "复盘项目质量计划管理里的错因",
       prompt_type: "mistake_review",
-      intent: { concept_label: "项目质量计划管理" },
+      intent: canonicalIntent("项目质量计划管理"),
     },
     {
       text: "讲清楚项目质量计划管理的关键判断",
       prompt_type: "concept_explain",
-      intent: { concept_label: "项目质量计划管理" },
+      intent: canonicalIntent("项目质量计划管理"),
     },
   ],
 }));
