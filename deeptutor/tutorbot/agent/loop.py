@@ -11,7 +11,7 @@ from contextlib import AsyncExitStack
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, NamedTuple
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from loguru import logger
 
@@ -508,85 +508,6 @@ class AgentLoop:
             return None
         return re.sub(r"<think>[\s\S]*?</think>", "", text).strip() or None
 
-    # Substantive teaching signals a REAL learner-facing answer carries. The
-    # process-only judgment is structural ("short AND no teaching content AND
-    # self-narration form"), NOT an enumeration of leak phrases — so paraphrased
-    # or English meta-leaks are caught (they carry none of these), while
-    # legitimate teaching is released (it carries at least one, or is long
-    # enough to be real content).
-    _SUBSTANTIVE_TEACHING_MARKERS: tuple[str, ...] = (
-        "采分点",
-        "易错点",
-        "核心考点",
-        "考点",
-        "自查",
-        "答案",
-        "判断",
-        "结论",
-        "正确",
-        "规范",
-        "教材",
-        "条文",
-        "口诀",
-        "题眼",
-        "抓手",
-        "因为",
-        "所以",
-        "由于",
-        "因此",
-    )
-    # First-person process / self-correction / retry-preamble form. Applied ONLY
-    # together with the "short + no substantive signal" structure (see
-    # _looks_like_process_only_answer), so a long or content-bearing answer is
-    # never blocked by this regex.
-    # NOTE: matched against ``source`` which has had whitespace AND common
-    # punctuation stripped, so English markers are written WITHOUT spaces
-    # ("letme", "ineed").
-    # Structure: a first-person / self-reference subject, then up to a few
-    # filler chars (which MAY include retry adverbs like 再/重新/先), then a
-    # PROCESS-ACTION verb. The action verb is REQUIRED — bare adverbs like "再"
-    # never match alone, so legitimate teaching ("我再讲评" / "我再补充说明")
-    # is released while self-narration / retry-preamble ("我再核对一下" /
-    # "我需要重新检索" / "这个回答跑偏了") is blocked.
-    _PROCESS_FORM_RE = re.compile(
-        r"(?:我|让我|咱|这个回答|刚才|上面|稍等|等一下|letme|ineed|iwill|ishould|i'?ll)"
-        r".{0,16}?"
-        r"(?:核对|核实|对比|确认|看看|看一下|看下|瞅瞅|检索|搜索|搜一下|查询|查一下|查下|查找|查阅|"
-        r"捋一下|捋下|捋|梳理|想一想|想想|重新想|思考|再确认|纠正|跑偏|搞错|弄错|偏题|"
-        r"search|retry|re-?check|recheck|reconsider|rethink|verify)",
-        re.IGNORECASE,
-    )
-    # Answer-ASSERTION form: a verdict / answer being DELIVERED, not narrated as a
-    # process. This always wins over process-form — "正确答案是A，因为…" /
-    # "选A" / "答案：A" / "A 选项 2% 正确" is real teaching even if it also
-    # contains a first-person clause. Required so the process-form check (which
-    # now precedes the bare-noun exemption) cannot block a delivered answer.
-    # NOTE: matched against ``source`` which has had whitespace AND common
-    # punctuation (incl. ：:) stripped, so connectors are optional and "答案：A"
-    # arrives as "答案A".
-    _ANSWER_ASSERTION_RE = re.compile(
-        r"(?:正确答案|标准答案|答案)(?:是|为|应该是|应为)?[A-Da-d0-9]"
-        r"|(?<![A-Za-z])选[A-Da-d](?![A-Za-z])"
-        r"|(?<![A-Za-z])[A-D](?![A-Za-z]).{0,12}?(?:正确|对的|是对的|没错)"
-    )
-
-    @classmethod
-    def _has_substantive_teaching_signal(cls, source: str) -> bool:
-        if any(marker in source for marker in cls._SUBSTANTIVE_TEACHING_MARKERS):
-            return True
-        # A standalone option letter (A-D not embedded in an ASCII word) or a
-        # numeric value / percentage is real answer content.
-        if re.search(r"(?<![A-Za-z])[A-D](?![A-Za-z])", source):
-            return True
-        if re.search(r"\d", source):
-            return True
-        # 对 / 错 as a verdict is teaching content, but only in verdict shapes —
-        # NOT inside process compounds like "核对" / "对比" (those carry no
-        # teaching content and must not be released as substantive).
-        if re.search(r"(正确|错误|答对|做对|选对|判对|判错|答错|做错|对的|错的)", source):
-            return True
-        return False
-
     @classmethod
     def _looks_like_process_only_answer(cls, text: str | None) -> bool:
         source = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
@@ -595,22 +516,9 @@ class AgentLoop:
             return False
         if any(marker in lower_source for marker in ("dsml", "tool_calls", "function_call")):
             return True
-        # Guardrail 1: long answers are real content, never process-only.
         if len(source) > 180:
             return False
-        # Guardrail 2 (precedence): a DELIVERED answer assertion always wins over
-        # the process-form check below, so "正确答案是A，因为…" is never blocked.
-        if cls._ANSWER_ASSERTION_RE.search(source):
-            return False
-        # Guardrail 3 (Codex复对抗): judge process-FORM BEFORE the bare-noun
-        # exemption — a first-person process / self-correction / retry clause is
-        # process-only even if it mentions bare nouns like 答案/规范/教材/条文
-        # ("我先核对正确答案" / "我先查一下规范条文"). Word-agnostic: paraphrase
-        # or English meta-leaks match the same structure.
-        if cls._PROCESS_FORM_RE.search(source):
-            return True
-        # Guardrail 4: any other substantive teaching signal means real content.
-        if cls._has_substantive_teaching_signal(source):
+        if any(marker in source for marker in ("采分点", "易错点", "核心考点", "自查", "答案", "判断")):
             return False
         if (
             any(marker in lower_source for marker in ("skill", "reference"))
@@ -628,70 +536,6 @@ class AgentLoop:
         if not clean:
             return False
         return not cls._looks_like_process_only_answer(clean)
-
-    class _GuardedStreamResult(NamedTuple):
-        blocked: bool
-        emitted_len: int
-
-    # Minimum accumulated prefix (chars, after stripping whitespace/punctuation)
-    # before the FIRST emit may classify-and-release. Below this, with nothing
-    # emitted yet, the prefix is held — so a meta-leak split as ["我","再核对一下"]
-    # cannot stream its "我" head out before the clause is classifiable. Cost is a
-    # one-clause delay on the opening of a real answer (acceptable: teaching is not
-    # a per-character typewriter). Bounded buffer (a few chars), NOT full-answer.
-    _MIN_CLASSIFIABLE_PREFIX = 14
-
-    @classmethod
-    def _prefix_is_classifiable(cls, visible: str) -> bool:
-        """The opening prefix is classifiable once it is long enough OR the first
-        clause has closed (sentence-ending punctuation seen). Used ONLY to gate
-        the FIRST emit; once anything has been released the stream flows normally.
-        """
-        compact = re.sub(r"[\s，,。.!！?？：:；;、]+", "", visible)
-        if len(compact) >= cls._MIN_CLASSIFIABLE_PREFIX:
-            return True
-        return bool(re.search(r"[。.!！?？\n]", visible))
-
-    @classmethod
-    async def _guarded_stream_emit(
-        cls,
-        *,
-        accumulated_visible: str,
-        already_emitted_len: int,
-        on_content_delta: Callable[[str], Awaitable[None]] | None,
-    ) -> "AgentLoop._GuardedStreamResult":
-        """Single quality gate for EVERY streaming delta path.
-
-        Both fast-policy and the agent loop accumulate a visible prefix and emit
-        the incremental tail. This one helper runs the SAME output guard +
-        process-only judgment on the ACCUMULATED prefix (not the tiny chunk, so a
-        leak split across chunks can't slip through), and only emits the new
-        suffix when the prefix is safe. A blocked prefix stops all further emits
-        for this stream — a meta-leak never streams out, no matter the path.
-
-        Hold-prefix (Codex复对抗 P1): before anything has been emitted, the opening
-        prefix is HELD until it is classifiable (see ``_prefix_is_classifiable``),
-        so the leading "我" of "我"+"再核对一下" never streams before the clause can
-        be judged. Once the first emit happens, later chunks flow normally.
-        """
-
-        if on_content_delta is None:
-            return cls._GuardedStreamResult(blocked=False, emitted_len=already_emitted_len)
-        visible = str(accumulated_visible or "")
-        if not visible:
-            return cls._GuardedStreamResult(blocked=False, emitted_len=already_emitted_len)
-        if guard_tutorbot_output(visible).blocked or cls._looks_like_process_only_answer(visible):
-            return cls._GuardedStreamResult(blocked=True, emitted_len=already_emitted_len)
-        # Hold the opening prefix until it is classifiable — best-effort window
-        # compression, not a full buffer.
-        if already_emitted_len == 0 and not cls._prefix_is_classifiable(visible):
-            return cls._GuardedStreamResult(blocked=False, emitted_len=already_emitted_len)
-        if len(visible) <= already_emitted_len:
-            return cls._GuardedStreamResult(blocked=False, emitted_len=already_emitted_len)
-        delta = visible[already_emitted_len:]
-        if delta:
-            await on_content_delta(delta)
-        return cls._GuardedStreamResult(blocked=False, emitted_len=len(visible))
 
     @classmethod
     def _visible_answer_repair_prompt(cls, attempt_index: int) -> str:
@@ -727,11 +571,6 @@ class AgentLoop:
             return
         visible_text = str(guarded_output.content or text or "")
         if not visible_text:
-            return
-        # Single gate: this whole-text outlet (repair / score-first / final) must
-        # also pass the SAME process-only judgment as the streaming paths, so a
-        # meta-leak (split or whole) never reaches the client from any outlet.
-        if cls._looks_like_process_only_answer(visible_text):
             return
         chunks = cls._chunk_visible_text_for_stream(visible_text)
         for index, chunk in enumerate(chunks):
@@ -1968,7 +1807,6 @@ class AgentLoop:
         blocked_exact_tool_retry = False
         raw_stream_buffer = ""
         emitted_stream_len = 0
-        stream_blocked = False
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
             runtime_metadata.get("exact_question_blocked_reason") or ""
@@ -1983,22 +1821,17 @@ class AgentLoop:
             return visible
 
         async def _stream_delta(delta: str) -> None:
-            nonlocal raw_stream_buffer, emitted_stream_len, stream_blocked
-            if not on_content_delta or not delta or stream_blocked:
+            nonlocal raw_stream_buffer, emitted_stream_len
+            if not on_content_delta or not delta:
                 return
             raw_stream_buffer += delta
-            # Same quality gate as the fast-policy stream (single helper): a
-            # process-only / meta-leak prefix is blocked here too, so it never
-            # streams out from the agent-loop path either.
-            guarded = await self._guarded_stream_emit(
-                accumulated_visible=_visible_stream_text(raw_stream_buffer),
-                already_emitted_len=emitted_stream_len,
-                on_content_delta=on_content_delta,
-            )
-            if guarded.blocked:
-                stream_blocked = True
+            visible = _visible_stream_text(raw_stream_buffer)
+            if len(visible) <= emitted_stream_len:
                 return
-            emitted_stream_len = guarded.emitted_len
+            chunk = visible[emitted_stream_len:]
+            emitted_stream_len = len(visible)
+            if chunk:
+                await on_content_delta(chunk)
 
         while iteration < self.max_iterations:
             iteration += 1
@@ -2203,10 +2036,8 @@ class AgentLoop:
                         final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
                     else:
                         final_content = clean
-                        # Route the repair-retry emit through the single gated
-                        # outlet (NOT a raw on_content_delta) so it gets the same
-                        # output-guard + process-only check as every other path.
-                        await self._emit_visible_text_deltas(final_content, on_content_delta)
+                        if on_content_delta and final_content:
+                            await on_content_delta(final_content)
                     messages = self.context.add_assistant_message(
                         messages,
                         final_content,
@@ -2893,20 +2724,15 @@ class AgentLoop:
                     if not self._should_stream_fast_policy_prefix(visible):
                         return
                     attempt_stream_started = True
-                before = attempt_streamed_len
-                # Same quality gate as the agent-loop stream (single helper):
-                # output guard + process-only judgment on the accumulated prefix.
-                guarded = await self._guarded_stream_emit(
-                    accumulated_visible=visible,
-                    already_emitted_len=attempt_streamed_len,
-                    on_content_delta=on_content_delta,
-                )
-                if guarded.blocked:
+                if guard_tutorbot_output(visible).blocked or self._looks_like_process_only_answer(visible):
                     attempt_stream_blocked = True
                     return
-                attempt_streamed_len = guarded.emitted_len
-                if attempt_streamed_len > before:
-                    public_streamed_text += visible[before:attempt_streamed_len]
+                delta = visible[attempt_streamed_len:]
+                if not delta:
+                    return
+                attempt_streamed_len = len(visible)
+                public_streamed_text += delta
+                await on_content_delta(delta)
 
             response = await self.provider.chat_with_retry(
                 messages=call_messages,

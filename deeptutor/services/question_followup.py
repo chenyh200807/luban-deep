@@ -1021,65 +1021,6 @@ def should_reveal_reference_material(
     return False
 
 
-# Single source of the "needs展开推理" vs "just wants the answer value" split.
-# This is the SAME marker authority as ``should_reveal_reference_material`` above
-# (which decides whether to reveal at all); this narrower predicate decides
-# whether a reveal needs per-option reasoning (route to the FollowupAgent LLM)
-# rather than the flat deterministic reference template (a thin "answer + one
-# line" reply that does not walk B/C/D). Pure answer-value asks ("标准答案是什么",
-# "选什么", "答案是多少") carry none of these markers and therefore stay
-# deterministic, by design.
-_ELABORATION_MARKERS = (
-    "为什么",
-    "为啥",
-    "为何",
-    "逐项",
-    "逐个",
-    "逐条",
-    "每个选项",
-    "每一项",
-    "区别",
-    "对比",
-    "详细解析",
-    "详细讲",
-    "讲透",
-    "讲清",
-    "讲明白",
-    "都不对",
-    "都错",
-    "其它选项",
-    "其他选项",
-    "别的选项",
-    # Per-item walk-through phrasings (Codex P2): real "逐项" intent that names no
-    # specific letter and is not a brevity ask. These need展开推理 across options.
-    "逐一",
-    "逐个",
-    "各项",
-    "每项",
-    "每个选项",
-    "排除干扰项",
-    "怎么排除",
-    "干扰项",
-    "挨个",
-)
-
-# Per-item patterns that need a regex (not a flat substring) but still carry the
-# same "needs展开推理" intent, e.g. "剩下两个怎么选" / "剩下的怎么排".
-_ELABORATION_PATTERNS = (re.compile(r"剩下.{0,6}怎么"),)
-
-
-def wants_per_option_explanation(message: str) -> bool:
-    """True when the follow-up needs展开推理 (per-option / why / contrast), so a
-    flat deterministic reference reply would be a thin answer and the request
-    should be routed to the FollowupAgent LLM instead."""
-    text = str(message or "").strip().lower()
-    if not text:
-        return False
-    if any(marker in text for marker in _ELABORATION_MARKERS):
-        return True
-    return any(pattern.search(text) for pattern in _ELABORATION_PATTERNS)
-
-
 def should_block_unanswered_reference_reveal(
     message: str,
     question_context: dict[str, Any] | None,
