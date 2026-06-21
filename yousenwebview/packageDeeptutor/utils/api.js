@@ -321,7 +321,8 @@ function rawRequest(opts) {
             return;
           }
           if (opts.suppressAuthRedirect) {
-            reject(createHttpError(401, res.data));
+            auth.clearToken();
+            reject(new Error("AUTH_EXPIRED"));
             return;
           }
           if (opts.skipAuthRefresh) {
