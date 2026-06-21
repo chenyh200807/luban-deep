@@ -31,7 +31,7 @@ assert(
 );
 assert(
   appJson.__usePrivacyCheck__ === true,
-  "real yousenwebview project root must keep WeChat privacy checks enabled",
+  "real yousenwebview project root must keep WeChat privacy checks enabled while avoiding custom clipboard permission gates",
 );
 assert(
   wxml.indexOf("selectable") < 0,
