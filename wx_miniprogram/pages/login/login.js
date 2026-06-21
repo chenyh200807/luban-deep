@@ -179,6 +179,13 @@ Page({
       });
     });
   },
+  handlePrivacyAgreementAuthorized: function () {
+    this.setData({
+      privacyChecked: true,
+      privacyNeedAuthorization: false,
+      errorMsg: "",
+    });
+  },
   handlePrivacyRequiredTap: function () {
     this.setData({ errorMsg: "请先勾选同意用户隐私保护指引后继续" });
   },

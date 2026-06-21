@@ -176,6 +176,14 @@ function createSandbox(sourcePath, apiMock, extras) {
         wxmlPaths[i] + " should block unchecked privacy consent before getPhoneNumber",
       );
       assert(
+        loginWxml.indexOf('open-type="agreePrivacyAuthorization"') >= 0,
+        wxmlPaths[i] + " privacy checkbox should use WeChat native privacy authorization",
+      );
+      assert(
+        loginWxml.indexOf('bindagreeprivacyauthorization="handlePrivacyAgreementAuthorized"') >= 0,
+        wxmlPaths[i] + " privacy checkbox should handle native agreement callback",
+      );
+      assert(
         loginWxml.indexOf('wx:if="{{privacyChecked}}"') >= 0,
         wxmlPaths[i] + " getPhoneNumber button should render only after privacy consent",
       );
@@ -208,6 +216,10 @@ function createSandbox(sourcePath, apiMock, extras) {
       assert(
         loginWxss.indexOf("margin: 14rpx 0 0") >= 0,
         wxssPaths[i] + " should attach privacy copy below the primary button",
+      );
+      assert(
+        loginWxss.indexOf(".privacy-consent-button::after") >= 0,
+        wxssPaths[i] + " should remove the native button border from privacy checkbox",
       );
     }
   });
@@ -363,6 +375,29 @@ function createSandbox(sourcePath, apiMock, extras) {
     assert(privacyRequests === 1, "privacy checkbox should call WeChat privacy authorization");
     assert(page.data.privacyChecked === true, "privacy checkbox should enable phone login after consent");
     assert(page.data.errorMsg === "", "privacy checkbox success should clear stale errors");
+  });
+
+  await run("native privacy agreement callback should enable phone login", async function () {
+    var page = createSandbox(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
+      {
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+      },
+      {},
+    );
+
+    page.setData({
+      privacyChecked: false,
+      privacyNeedAuthorization: true,
+      errorMsg: "请先勾选同意用户隐私保护指引后继续",
+    });
+    page.handlePrivacyAgreementAuthorized({});
+
+    assert(page.data.privacyChecked === true, "native privacy callback should check consent");
+    assert(page.data.privacyNeedAuthorization === false, "native privacy callback should clear authorization need");
+    assert(page.data.errorMsg === "", "native privacy callback should clear the blocking error");
   });
 
   await run("unchecked privacy consent should block quick login before getPhoneNumber", async function () {

@@ -80,11 +80,31 @@
             <text class="btn-wechat-primary-txt">快速登录</text>
           </button>
         </view>
-        <view class="privacy-consent-row" bindtap="handlePrivacyCheckboxTap" aria-role="checkbox" aria-label="同意用户隐私保护指引">
-          <view class="privacy-checkbox {{privacyChecked ? 'checked' : ''}}">
-            <text class="privacy-checkmark" wx:if="{{privacyChecked}}">✓</text>
+        <view class="privacy-consent-row" aria-label="同意用户隐私保护指引">
+          <button
+            wx:if="{{!privacyChecked}}"
+            class="privacy-consent-button"
+            open-type="agreePrivacyAuthorization"
+            bindagreeprivacyauthorization="handlePrivacyAgreementAuthorized"
+            disabled="{{wechatLoading || loading}}"
+            aria-role="checkbox"
+            aria-label="勾选同意用户隐私保护指引"
+          >
+            <view class="privacy-checkbox"></view>
+            <text class="privacy-copy">我已阅读并同意</text>
+          </button>
+          <view
+            wx:else
+            class="privacy-consent-toggle"
+            bindtap="handlePrivacyCheckboxTap"
+            aria-role="checkbox"
+            aria-label="取消同意用户隐私保护指引"
+          >
+            <view class="privacy-checkbox checked">
+              <text class="privacy-checkmark" wx:if="{{privacyChecked}}">✓</text>
+            </view>
+            <text class="privacy-copy">我已阅读并同意</text>
           </view>
-          <text class="privacy-copy">我已阅读并同意</text>
           <text class="privacy-link" catchtap="openPrivacyGuide">{{privacyContractName}}</text>
         </view>
         <view class="link-row">
