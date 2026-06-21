@@ -167,6 +167,11 @@ function createSandbox(sourcePath, apiMock, extras) {
         wxmlPaths[i] + " should show an explicit privacy consent row",
       );
       assert(
+        loginWxml.indexOf("privacy-consent-row") >
+          loginWxml.indexOf('class="btn-wechat-stack"'),
+        wxmlPaths[i] + " should place privacy consent below the primary button to avoid hero text overlap",
+      );
+      assert(
         loginWxml.indexOf('bindtap="handlePrivacyRequiredTap"') >= 0,
         wxmlPaths[i] + " should block unchecked privacy consent before getPhoneNumber",
       );
@@ -185,6 +190,24 @@ function createSandbox(sourcePath, apiMock, extras) {
       assert(
         loginWxml.indexOf('bindtap="handleWechatLogin"') === -1,
         wxmlPaths[i] + " primary quick-login button must not call plain wx.login handler",
+      );
+    }
+  });
+
+  await run("privacy consent row should wrap instead of overlapping nearby copy", async function () {
+    var wxssPaths = [
+      "yousenwebview/packageDeeptutor/pages/login/login.wxss",
+      "wx_miniprogram/pages/login/login.wxss",
+    ];
+    for (var i = 0; i < wxssPaths.length; i++) {
+      var loginWxss = fs.readFileSync(path.join(repoRoot, wxssPaths[i]), "utf8");
+      assert(
+        loginWxss.indexOf("flex-wrap: wrap") >= 0,
+        wxssPaths[i] + " should allow long privacy copy to wrap",
+      );
+      assert(
+        loginWxss.indexOf("margin: 14rpx 0 0") >= 0,
+        wxssPaths[i] + " should attach privacy copy below the primary button",
       );
     }
   });
