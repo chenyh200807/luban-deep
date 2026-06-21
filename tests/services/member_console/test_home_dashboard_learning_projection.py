@@ -148,8 +148,61 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
-def test_home_focus_topic_alias_helper_keeps_free_text_on_textbook_section() -> None:
-    assert canonical_home_focus_topic_label("防水工程") == "屋面与防水工程施工"
+def test_home_focus_topic_helper_accepts_only_canonical_members() -> None:
+    assert canonical_home_focus_topic_label("防水工程") == "防水工程"
+    assert canonical_home_focus_topic_label("屋面与防水工程施工") == "屋面与防水工程施工"
+    assert canonical_home_focus_topic_label("出三道屋面防水的") == ""
+    assert canonical_home_focus_topic_label("今日推进") == ""
+    assert canonical_home_focus_topic_label("直接练题才能把") == ""
+
+
+def test_learning_signal_projection_rejects_free_text_practice_request_topic() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "event_type": "learning_evidence",
+            "concept": {"label": "出三道屋面防水的"},
+            "next_training_signal": {"focus": "出三道屋面防水的"},
+            "event_id": "evt-home-free-text-topic",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+        llm_topic_inferer=lambda payload, candidates: "",
+    )
+
+    assert projection is None
+
+
+def test_recent_learning_event_recovery_rejects_free_text_practice_request_topic(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        home_personalization_module,
+        "infer_learning_topic_with_llm",
+        lambda payload, candidates: "",
+    )
+    event = SimpleNamespace(
+        event_id="evt_free_text_recovery",
+        memory_kind="learning_evidence",
+        source_feature="conversation_learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "concept": {"label": "出三道屋面防水的"},
+            "next_training_signal": {"focus": "出三道屋面防水的"},
+            "event_id": "evt_free_text_recovery",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=None,
+        conversation_events=[event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    rendered = json.dumps(dashboard, ensure_ascii=False)
+    assert "出三道屋面防水的" not in rendered
+    assert dashboard["source_status"]["fallback_used"] is True
+    assert "home_projection_contract" not in dashboard["source_status"]
 
 
 def test_learning_signal_projection_rejects_deictic_focus_labels() -> None:
@@ -1039,8 +1092,8 @@ def test_member_console_today_focus_skips_deictic_topics() -> None:
         study_plan={"focus_topic": "这题"},
     )
 
-    assert focus["topic"] == "屋面与防水工程施工"
-    assert focus["title"] == "推进屋面与防水工程施工下一步学习"
+    assert focus["topic"] == "防水工程"
+    assert focus["title"] == "推进防水工程下一步学习"
     assert "这题" not in json.dumps(focus, ensure_ascii=False)
 
 

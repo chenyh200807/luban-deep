@@ -10,7 +10,6 @@ from deeptutor.services.learner_state.training_intent import build_learning_trai
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     ResolvedLearningTopic,
     TopicInferer,
-    canonical_learning_topic_label,
     infer_learning_topic_with_llm,
     normalize_learning_topic_text,
     resolve_learning_topic_from_payload,
@@ -83,13 +82,12 @@ def build_home_personalization_projection_from_learning_signal(
     )
     explicit_label = _explicit_concept_label(payload)
     fallback_label = _fallback_concept_label_from_payload(payload)
-    if topic is None:
-        concept_label = explicit_label or fallback_label
-        topic_fields: dict[str, str] = {}
-    else:
-        concept_label = explicit_label if explicit_label and topic.confidence == "low" else topic.label
-        topic_fields = topic.intent_fields()
-    concept_label = _canonicalize_projection_topic_label(concept_label, topic=topic) or concept_label
+    concept_label = topic.label if topic is not None else explicit_label or fallback_label
+    canonical_topic = _resolve_canonical_home_topic(concept_label, topic=topic)
+    if canonical_topic is None:
+        return None
+    concept_label = canonical_topic.label
+    topic_fields = canonical_topic.intent_fields()
     error_label = _first_focus_topic_label(
         error.get("label"),
         _first_error_label(payload),
@@ -217,9 +215,14 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
     )
     if not concept_label:
         return None
+    canonical_topic = _resolve_canonical_home_topic(concept_label)
+    if canonical_topic is None:
+        return None
+    concept_label = canonical_topic.label
 
     generated_at = _parse_time(str(projection.get("generated_at") or "")) or datetime.now(tz=_TZ)
     base_intent = {
+        **canonical_topic.intent_fields(),
         "concept_label": concept_label,
         "error_label": error_label or "薄弱点",
         "subject_id": _projection_intent_value(prompts + [focus], "subject_id"),
@@ -227,11 +230,6 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
         "evidence_refs": _projection_evidence_refs(prompts + [focus]),
         "learning_state_ref": _projection_intent_value(prompts + [focus], "learning_state_ref"),
         "suggested_mode": _projection_intent_value(prompts + [focus], "suggested_mode"),
-        "taxonomy_code": _projection_intent_value(prompts + [focus], "taxonomy_code"),
-        "taxonomy_id": _projection_intent_value(prompts + [focus], "taxonomy_id"),
-        "topic_id": _projection_intent_value(prompts + [focus], "topic_id"),
-        "topic_source": _projection_intent_value(prompts + [focus], "topic_source"),
-        "topic_confidence": _projection_intent_value(prompts + [focus], "topic_confidence"),
     }
     upgraded_prompts = [
         _projection_prompt(
@@ -318,8 +316,9 @@ def _fallback_concept_label_from_payload(payload: dict[str, Any]) -> str:
         *list(payload.get("knowledge_points") or [])[:3],
     ):
         text = _first_focus_topic_label(value)
-        if text:
-            return canonical_home_focus_topic_label(text) or text
+        canonical_text = canonical_home_focus_topic_label(text)
+        if canonical_text:
+            return canonical_text
     return ""
 
 
@@ -364,16 +363,15 @@ def _valid_focus(value: Any) -> bool:
     if not title:
         return False
     topic = _topic_from_focus_title(title)
-    if not topic or not normalize_home_focus_topic_label(topic):
+    canonical_focus_topic = _resolve_canonical_home_topic(topic)
+    if canonical_focus_topic is None:
         return False
-    canonical_topic = canonical_learning_topic_label(topic)
-    if not canonical_topic:
-        return False
+    canonical_topic = canonical_focus_topic.label
     intent = value.get("intent") if isinstance(value.get("intent"), dict) else {}
     concept_label = str(intent.get("concept_label") or "").strip()
     if concept_label:
-        intent_topic = canonical_learning_topic_label(concept_label)
-        if intent_topic != canonical_topic:
+        intent_topic = _resolve_canonical_home_topic(concept_label)
+        if intent_topic is None or intent_topic.label != canonical_topic:
             return False
     return True
 
@@ -390,14 +388,14 @@ def _valid_prompts(value: Any) -> bool:
         concept_label = str(intent.get("concept_label") or "").strip()
         if not concept_label:
             return False
-        canonical_topic = canonical_learning_topic_label(concept_label)
-        if not canonical_topic:
+        canonical_topic = _resolve_canonical_home_topic(concept_label)
+        if canonical_topic is None:
             return False
         prompt_type = str(item.get("prompt_type") or "").strip()
         if not _valid_prompt_text_for_topic(
             prompt_type=prompt_type,
             text=str(item.get("text") or "").strip(),
-            topic=canonical_topic,
+            topic=canonical_topic.label,
         ):
             return False
     return True
@@ -509,7 +507,7 @@ def _projection_from_recent_learning_events(
             payload,
             generated_at=generated_at,
         )
-        if projection:
+        if is_canonical_home_personalization_projection(projection):
             return projection
     return None
 
@@ -668,21 +666,46 @@ def canonical_home_focus_topic_label(value: Any) -> str:
     text = normalize_home_focus_topic_label(value)
     if not text:
         return ""
+    topic = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
+    if topic:
+        return topic.label
     option = resolve_canonical_option(text)
     if option:
         return str(option.get("name") or "").strip()
-    return canonical_learning_topic_label(text)
+    return ""
 
 
-def _canonicalize_projection_topic_label(
+def _resolve_canonical_home_topic(
     value: Any, *, topic: ResolvedLearningTopic | None = None
-) -> str:
+) -> ResolvedLearningTopic | None:
     text = normalize_home_focus_topic_label(value)
     if not text:
-        return ""
-    if topic and topic.source == "taxonomy_label" and topic.taxonomy_id:
-        return text
-    return canonical_home_focus_topic_label(text)
+        return None
+    if topic is not None:
+        label = canonical_home_focus_topic_label(topic.label)
+        if label:
+            return ResolvedLearningTopic(
+                label=label,
+                source=topic.source,
+                confidence=topic.confidence,
+                taxonomy_code=topic.taxonomy_code,
+                taxonomy_id=topic.taxonomy_id,
+                topic_id=topic.topic_id,
+            )
+    resolved = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
+    if resolved:
+        return resolved
+    option = resolve_canonical_option(text)
+    if option:
+        code = str(option.get("code") or "").strip()
+        return ResolvedLearningTopic(
+            label=str(option.get("name") or "").strip(),
+            source="canonical_option",
+            confidence="high",
+            taxonomy_code=code,
+            taxonomy_id=code,
+        )
+    return None
 
 
 def _first_text(*values: Any) -> str:

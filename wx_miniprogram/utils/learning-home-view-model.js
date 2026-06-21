@@ -1,3 +1,5 @@
+var taxonomy = require("./taxonomy");
+
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value
@@ -64,7 +66,13 @@ function canonicalHomeProjectionBody(dashboard) {
 function isTrustedHomeDashboardPayload(dashboard) {
   var body = asObject(dashboard);
   if (!hasHomeProjectionSurface(body)) return true;
-  return hasHomeProjectionContent(canonicalHomeProjectionBody(body));
+  if (!hasHomeProjectionContent(canonicalHomeProjectionBody(body))) return false;
+  var model = buildLearningHomeViewModel(body);
+  return Boolean(
+    model.focusActionType === "assessment" ||
+      model.focusTitle ||
+      model.recommendedPrompts.length,
+  );
 }
 
 function isStarterFocusTitle(value) {
@@ -179,6 +187,24 @@ function getPromptTopic(source, text) {
   return compactText(intent.concept_label || source.concept_label);
 }
 
+function hasCanonicalPromptTopicAuthority(source, topic) {
+  var intent = asObject(source.intent || source.prompt_intent);
+  var taxonomyCode = compactText(intent.taxonomy_code || intent.taxonomyCode);
+  var taxonomyId = compactText(intent.taxonomy_id || intent.taxonomyId);
+  if (taxonomy.resolveTextbookTopic(topic)) return true;
+  if ((taxonomyCode || taxonomyId) && isCanonicalTopicDisplayLabel(topic)) return true;
+  return false;
+}
+
+function isCanonicalTopicDisplayLabel(topic) {
+  var text = compactText(topic);
+  if (!text || taxonomy.isNonTopicLabel(text)) return false;
+  if (text.length > 28) return false;
+  if (/^(?:今日|直接|继续|先|请|帮|给|来|出|做|练|刷|问|讲|解释|复盘|推进)/.test(text)) return false;
+  if (/(?:题|题目|练习|真题|错题|模拟|测试|测评|训练|推进|才能|把|一下|一些)/.test(text)) return false;
+  return true;
+}
+
 function isCanonicalPromptTextForTopic(promptType, text, topic) {
   if (!text || !topic) return false;
   if (promptType === "practice_prompt" || promptType === "learning_prompt")
@@ -210,6 +236,7 @@ function normalizePrompt(item, index) {
     source.prompt_type || source.type || "learning_prompt",
   );
   var topic = getPromptTopic(source, text);
+  if (!hasCanonicalPromptTopicAuthority(source, topic)) return null;
   if (!isCanonicalPromptTextForTopic(promptType, text, topic)) return null;
   var visual = getPromptVisual(promptType, index);
   var displayDesc = topic;
