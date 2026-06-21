@@ -66,12 +66,24 @@ def _member_row(index: int, *, phone: str = "") -> dict[str, Any]:
     }
 
 
-def _phone_alias(index: int, *, source: str = "phone_backfill", phone: str | None = None) -> dict[str, Any]:
-    return {
+def _phone_alias(
+    index: int,
+    *,
+    source: str = "phone_backfill",
+    phone: str | None = None,
+    created_at: str = "",
+    verified_at: str = "",
+) -> dict[str, Any]:
+    row = {
         "user_id": f"user-{index:04d}",
         "alias_value": phone or f"1555886{index:04d}",
         "source": source,
     }
+    if created_at:
+        row["created_at"] = created_at
+    if verified_at:
+        row["verified_at"] = verified_at
+    return row
 
 
 def _directory(client: _PagedClient) -> SupabaseMemberDirectoryReadModel:
@@ -141,3 +153,43 @@ def test_member_directory_uses_phone_alias_when_member_view_has_no_row() -> None
     assert members[0]["user_id"] == "user-0001"
     assert members[0]["phone"] == "15558860001"
     assert members[0]["member_directory_source"] == "supabase.phone_identity_aliases+v_members"
+
+
+def test_member_directory_uses_verified_phone_alias_time_as_registration_time() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[
+            _phone_alias(
+                1,
+                source="phone_verification",
+                phone="15558860001",
+                created_at="2026-06-21T09:00:00+00:00",
+                verified_at="2026-06-21T09:01:00+00:00",
+            )
+        ],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert len(members) == 1
+    assert members[0]["created_at"] == "2026-06-21T09:01:00+00:00"
+
+
+def test_member_directory_does_not_count_backfill_alias_created_at_as_registration_time() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[
+            _phone_alias(
+                1,
+                source="phone_backfill",
+                phone="15558860001",
+                created_at="2026-06-21T09:00:00+00:00",
+                verified_at="2026-06-21T09:01:00+00:00",
+            )
+        ],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert len(members) == 1
+    assert members[0]["created_at"] == "1970-01-01T00:00:00+00:00"
