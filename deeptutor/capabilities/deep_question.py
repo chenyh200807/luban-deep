@@ -41,6 +41,7 @@ from deeptutor.services.question_followup import (
     resolve_submission_attempt,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
+    wants_per_option_explanation,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tool_access import filter_end_user_tools
@@ -1383,10 +1384,41 @@ def _reference_explanation(question_context: dict[str, Any]) -> str:
     return "\n".join(lines).strip()
 
 
+def _per_option_explanation_yields_to_llm(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    """A per-option / why / contrast request that names NO specific letter and is
+    NOT a brevity ask needs展开推理 across B/C/D — the flat deterministic template
+    is a thin answer there, so it must route to the FollowupAgent LLM.
+
+    Targeted shortcuts still win: a named letter ("为什么B不对"), an explicit
+    brevity ask ("一句话"), or a missing-selection check stay deterministic.
+    The "needs展开推理" decision reuses the single marker source in
+    ``question_followup.wants_per_option_explanation`` — no second regex here.
+    """
+
+    if not wants_per_option_explanation(user_message):
+        return False
+    if looks_like_explicit_brevity_request(user_message):
+        return False
+    if _looks_like_missing_selection_check(user_message):
+        return False
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        # Multi-item / no-item sets keep the existing deterministic behaviour.
+        return False
+    if _named_option_letters_from_item(user_message, items[0]):
+        return False
+    return True
+
+
 def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
+    if _per_option_explanation_yields_to_llm(user_message, question_context):
+        return False
     return bool(
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
@@ -1653,6 +1685,10 @@ def _render_deterministic_reference_feedback(
     *,
     user_message: str = "",
 ) -> str:
+    # A per-option "why" request with no named letter / no brevity needs展开推理;
+    # the deterministic layer returns empty so the caller hands it to the LLM.
+    if _per_option_explanation_yields_to_llm(user_message, question_context):
+        return ""
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief

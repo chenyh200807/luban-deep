@@ -734,19 +734,16 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _looks_like_internal_process_delta(text: str) -> bool:
-        compact = re.sub(r"[\s，,。.!！?？：:；;]+", "", str(text or "").strip())
-        lower = compact.lower()
-        if not compact or len(compact) > 220:
-            return False
-        if any(marker in compact for marker in ("采分点", "易错点", "核心考点", "自查", "答案", "判断", "第1题", "第2题")):
-            return False
-        if any(marker in lower for marker in ("skill", "reference", "agents.md", "soul.md")):
-            return True
-        return bool(
-            re.match(r"^(好的|好|可以)?(我)?先(看|看看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", compact)
-            or re.match(r"^(好的|好|可以)?我(先|来)(看|查看|检索|查询|结合|梳理|分析|加载|读取|调取)", compact)
-            or re.match(r"^正在(查看|检索|查询|加载|读取|调取|分析)", compact)
-        )
+        # Single source of the process-only judgment lives in the agent loop. This
+        # outer capability-stream wrapper delegates to it instead of carrying a
+        # second (and weaker / stale) copy — so the wrapper can never be more
+        # permissive than the inner gate. Imported function-locally to avoid an
+        # import cycle (loop ↔ capabilities). The 220-char wrapper-only ceiling is
+        # kept as an EXTRA release for very long deltas (the loop's own 180 ceiling
+        # already releases those too).
+        from deeptutor.tutorbot.agent.loop import AgentLoop
+
+        return AgentLoop._looks_like_process_only_answer(text)
 
     @staticmethod
     def _bot_id(context: UnifiedContext) -> str:

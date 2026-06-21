@@ -9,6 +9,7 @@ extracts the case reference from covered_subquestions[].authoritative_answer, an
 from __future__ import annotations
 
 import asyncio
+import re
 import threading
 
 import pytest
@@ -1062,3 +1063,206 @@ def test_prefetch_grounded_rag_projects_bank_grounding_to_learner_surface() -> N
     # bank answer D rewritten to the learner's A (whose value is the correct 5%).
     assert "【答案】A" in grounding
     assert "【答案】D" not in grounding
+
+
+# --- Bug Y: process-only / meta-leak structural detection (single delta gate) ---
+
+
+def test_process_only_blocks_meta_leak_variants_without_word_enumeration() -> None:
+    """Self-narration / retry-preamble / self-correction leaks are short and carry
+    no substantive teaching signal, so the STRUCTURAL judgment must block them
+    regardless of exact wording (incl. English / paraphrase)."""
+    blocked = [
+        "这个回答跑偏了。我需要重新检索屋面坡度相关的变体题",
+        "我再核对一下",
+        "Let me search again",
+        "稍等我捋下",
+    ]
+    for text in blocked:
+        assert AgentLoop._looks_like_process_only_answer(text) is True, text
+        assert AgentLoop._is_user_visible_final_answer(text) is False, text
+
+
+def test_process_only_allows_substantive_teaching_answers() -> None:
+    """Legitimate teaching must never be mistaken for process-only: it either
+    carries a substantive signal or is long enough to be real content."""
+    allowed = [
+        "建议你再分析一下题干哪个词是题眼",
+        (
+            "我们来逐项分析：A 选项 2% 是种植屋面的最小排水坡度，"
+            "B 选项 3% 才是上人屋面常见取值，本题选 A。"
+        ),
+        "本题采分点是排水坡度，易错点在于把种植屋面和上人屋面混淆。",
+    ]
+    for text in allowed:
+        assert AgentLoop._looks_like_process_only_answer(text) is False, text
+
+
+def test_process_only_keeps_long_answer_guardrail() -> None:
+    long_answer = "这个回答" + "屋面坡度变体题的解析与采分要点逐条展开" * 12
+    assert len(re.sub(r"[\s，,。.!！?？：:；;]+", "", long_answer)) > 180
+    assert AgentLoop._looks_like_process_only_answer(long_answer) is False
+
+
+def test_agent_loop_stream_delta_blocks_process_only_meta_leak() -> None:
+    """The agent-loop streaming path must pass deltas through the SAME process-only
+    gate as fast-policy, so a meta-leak never streams out mid-iteration."""
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    loop = _loop()
+    guarded = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible="这个回答跑偏了。我需要重新检索屋面坡度相关的变体题",
+            already_emitted_len=0,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    assert emitted == []
+    assert guarded.blocked is True
+
+
+def test_agent_loop_stream_delta_passes_real_teaching() -> None:
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    loop = _loop()
+    real = "本题选 A，采分点是排水坡度，易错点是把种植屋面和上人屋面混淆。"
+    guarded = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible=real,
+            already_emitted_len=0,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    assert "".join(emitted) == real
+    assert guarded.blocked is False
+
+
+# --- Hardening 1: bare-noun process-leaks must NOT be exempted by substantive nouns ---
+
+
+def test_process_only_blocks_bare_noun_process_leaks() -> None:
+    """Codex复对抗: 裸名词(答案/规范/教材/条文)出现在第一人称过程句里
+    不构成实质豁免 —— process-form判定优先于裸名词豁免。"""
+    blocked = [
+        "我先核对正确答案",
+        "我先查一下规范条文",
+        "我再对比一下",
+        "我先看看教材里的条文",
+        "我先确认一下答案",
+    ]
+    for text in blocked:
+        assert AgentLoop._looks_like_process_only_answer(text) is True, text
+        assert AgentLoop._is_user_visible_final_answer(text) is False, text
+
+
+def test_process_only_releases_answer_assertion_forms() -> None:
+    """答案断言形态(正确答案是X / 选X / 答案：X / 选项+数值)是真实讲解，
+    即使含第一人称也必须放行 —— 它不是过程句。"""
+    allowed = [
+        "正确答案是A，因为种植屋面坡度≥2%",
+        "A 选项 2% 正确，是种植屋面的最小排水坡度",
+        "答案：A。种植屋面最小排水坡度是2%",
+        "我认为正确答案是A，因为坡度要求≥2%",
+        "选A，因为种植屋面坡度≥2%",
+    ]
+    for text in allowed:
+        assert AgentLoop._looks_like_process_only_answer(text) is False, text
+
+
+# --- Hardening 3: hold the opening prefix until classifiable ---
+
+
+def test_guarded_stream_holds_prefix_until_classifiable_then_blocks() -> None:
+    """Provider把"我"+"再核对一下"拆两块时,第一块"我"必须 hold 不发(未达可分类
+    长度),累积到可判定时整体被 blocked,泄漏窗口接近0。"""
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    loop = _loop()
+    # chunk 1: just "我" — too short to classify, must be held.
+    r1 = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible="我",
+            already_emitted_len=0,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    assert emitted == [], "opening prefix must be held until classifiable"
+    assert r1.blocked is False
+    # chunk 2: "我再核对一下" — now classifiable and process-only → blocked.
+    r2 = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible="我再核对一下答案",
+            already_emitted_len=r1.emitted_len,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    assert emitted == [], "process-only prefix must never stream out"
+    assert r2.blocked is True
+
+
+def test_guarded_stream_holds_then_releases_real_teaching() -> None:
+    """正常讲解:短前缀先 hold,达到可分类阈值后一次性放行已 hold 的前缀+后续直发,
+    不破坏流式体验(整体内容最终全部发出)。"""
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    loop = _loop()
+    r1 = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible="本题",
+            already_emitted_len=0,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    # may or may not have crossed threshold yet; nothing wrong has leaked.
+    r2 = asyncio.run(
+        loop._guarded_stream_emit(
+            accumulated_visible="本题选A，采分点是排水坡度，易错点是混淆屋面类型。",
+            already_emitted_len=r1.emitted_len,
+            on_content_delta=_on_content_delta,
+        )
+    )
+    assert r2.blocked is False
+    assert "".join(emitted) == "本题选A，采分点是排水坡度，易错点是混淆屋面类型。"
+
+
+# --- Hardening 2: every public delta outlet routes through the single gate ---
+
+
+def test_emit_visible_text_deltas_blocks_process_only_leak() -> None:
+    """_emit_visible_text_deltas (repair/score/final outlets) 也必须过统一门:
+    process-only meta-leak 不外泄。"""
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    asyncio.run(
+        AgentLoop._emit_visible_text_deltas(
+            "这个回答跑偏了。我需要重新检索屋面坡度相关的变体题",
+            _on_content_delta,
+        )
+    )
+    assert emitted == []
+
+
+def test_emit_visible_text_deltas_passes_real_teaching() -> None:
+    emitted: list[str] = []
+
+    async def _on_content_delta(chunk: str) -> None:
+        emitted.append(chunk)
+
+    real = "本题选A，采分点是排水坡度，易错点是混淆屋面类型，最小坡度2%。"
+    asyncio.run(AgentLoop._emit_visible_text_deltas(real, _on_content_delta))
+    assert "".join(emitted) == real

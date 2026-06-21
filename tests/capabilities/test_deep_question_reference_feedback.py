@@ -193,3 +193,67 @@ def test_reference_feedback_targets_indexed_question_set_item() -> None:
 
     assert "验收合格可参照合同支付" in response
     assert "主体结构不得分包" not in response
+
+
+# --- Bug X: per-option "why" explanation must route to LLM, not the flat template ---
+
+from deeptutor.capabilities.deep_question import (
+    _should_render_deterministic_reference_feedback,
+)
+
+
+def test_per_option_why_request_yields_to_llm() -> None:
+    """A learner who answered and asks "为什么其它选项不对" (no named letter, no
+    brevity) needs per-option reasoning — the deterministic flat template is a
+    thin answer, so the gate must yield to the FollowupAgent LLM."""
+    context = _wall_context()
+    assert (
+        _should_render_deterministic_reference_feedback("为什么其它选项不对", context)
+        is False
+    )
+    assert (
+        _render_deterministic_reference_feedback(context, user_message="为什么其它选项不对")
+        == ""
+    )
+
+
+def test_answer_value_request_stays_deterministic() -> None:
+    """"标准答案是什么" only asks for the answer value; the deterministic template
+    is correct for that — don't break it."""
+    context = _wall_context()
+    assert (
+        _should_render_deterministic_reference_feedback("标准答案是什么", context) is True
+    )
+    rendered = _render_deterministic_reference_feedback(context, user_message="标准答案是什么")
+    assert rendered
+    assert "正确答案" in rendered
+    assert "现浇钢筋混凝土导墙" in rendered
+
+
+def test_named_letter_why_request_stays_targeted_deterministic() -> None:
+    """"为什么B不对" names a specific letter → targeted deterministic feedback."""
+    context = _wall_context()
+    assert (
+        _should_render_deterministic_reference_feedback("为什么B不对", context) is True
+    )
+    rendered = _render_deterministic_reference_feedback(context, user_message="为什么B不对")
+    assert rendered
+    assert "B" in rendered
+
+
+def test_per_option_why_unanswered_stays_fail_closed() -> None:
+    """Unanswered practice must NOT leak the answer even for a per-option why —
+    fail-closed happens before the deterministic-vs-LLM gate."""
+    from deeptutor.services.question_followup import (
+        should_block_unanswered_reference_reveal,
+    )
+
+    unanswered = _wall_context(
+        user_answer="",
+        is_correct=None,
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+    assert (
+        should_block_unanswered_reference_reveal("为什么其它选项不对", unanswered) is True
+    )
