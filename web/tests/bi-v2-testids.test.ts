@@ -71,6 +71,24 @@ test('member ops exposes member search by phone or account', async () => {
   assert.ok(api.includes('/api/v1/member/list?'))
 })
 
+test('member ops exposes member account lifecycle panel', async () => {
+  const page = await readWeb('app/(workspace)/bi/BiPageClient.tsx')
+  const panel = await readWeb('app/(workspace)/bi/_components/BiMemberAccountPanel.tsx')
+  const api = await readWeb('lib/member-account-api.ts')
+
+  assert.ok(page.includes('BiMemberAccountPanel'))
+  assert.ok(panel.includes('会员账号系统'))
+  assert.ok(panel.includes('真实登录 / 注册 / 找回密码 / 修改密码'))
+  assert.ok(panel.includes('loginMemberAccount'))
+  assert.ok(panel.includes('registerMemberAccount'))
+  assert.ok(panel.includes('resetMemberPassword'))
+  assert.ok(panel.includes('changeMemberPassword(session.token'))
+  assert.ok(api.includes('/api/v1/auth/login'))
+  assert.ok(api.includes('/api/v1/auth/register'))
+  assert.ok(api.includes('/api/v1/auth/reset-password'))
+  assert.ok(api.includes('/api/v1/auth/change-password'))
+})
+
 test('member ops exposes membership settings as the visible row action', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')

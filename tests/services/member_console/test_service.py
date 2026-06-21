@@ -3679,6 +3679,43 @@ def test_reset_password_with_phone_code_updates_external_auth_password(
         service.verify_phone_code("13955556666", code)
 
 
+def test_change_password_updates_current_member_external_auth_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    login = service.register_with_external_auth(
+        "change_student",
+        "OldPass123",
+        "13955556666",
+    )
+
+    result = service.change_password(str(login["user_id"]), "OldPass123", "NewPass123")
+
+    assert result["success"] is True
+    assert result["message"] == "密码已修改，请使用新密码重新登录"
+    assert external_auth_module.verify_external_auth_user("change_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("change_student", "NewPass123") is not None
+
+
+def test_change_password_requires_username_password_bound_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("wechat_only_user")
+
+    with pytest.raises(ValueError, match="当前账号未绑定用户名密码登录"):
+        service.change_password("wechat_only_user", "OldPass123", "NewPass123")
+
+
 def test_send_password_reset_code_requires_matching_account_phone(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

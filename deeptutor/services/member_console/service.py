@@ -80,6 +80,7 @@ from deeptutor.services.learner_state.study_plan import (
 from deeptutor.services.learner_state.home_personalization import canonical_home_focus_topic_label
 from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
+    change_external_auth_password,
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
@@ -7753,6 +7754,18 @@ class MemberConsoleService:
             "success": True,
             "message": "密码已重置，请使用新密码登录",
             "sessions_invalidated": int(reset_result.get("sessions_invalidated") or 0),
+        }
+
+    def change_password(self, user_id: str, old_password: str, new_password: str) -> dict[str, Any]:
+        member = self._load_member_snapshot(user_id)["member"]
+        username = str(member.get("auth_username") or "").strip()
+        if not username:
+            raise ValueError("当前账号未绑定用户名密码登录")
+        result = change_external_auth_password(username, old_password, new_password)
+        return {
+            "success": True,
+            "message": "密码已修改，请使用新密码重新登录",
+            "sessions_invalidated": int(result.get("sessions_invalidated") or 0),
         }
 
     def create_demo_token(self, user_id: str) -> str:
