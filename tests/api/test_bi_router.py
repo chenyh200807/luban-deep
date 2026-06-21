@@ -57,7 +57,7 @@ class _FakeMemberService:
                 "risk_level": "low",
                 "auto_renew": True,
                 "expire_at": "2026-05-01T00:00:00+08:00",
-                "created_at": "2026-04-01T00:00:00+08:00",
+                "created_at": "2026-06-22T00:00:00+08:00",
                 "last_active_at": "2026-04-14T08:00:00+08:00",
                 "points_balance": 500,
                 "review_due": 2,
@@ -72,7 +72,7 @@ class _FakeMemberService:
                 "risk_level": "high",
                 "auto_renew": False,
                 "expire_at": "2026-04-16T00:00:00+08:00",
-                "created_at": "2026-04-10T00:00:00+08:00",
+                "created_at": "2026-06-22T00:00:00+08:00",
                 "last_active_at": "2026-04-12T00:00:00+08:00",
                 "points_balance": 40,
                 "review_due": 6,
@@ -181,7 +181,7 @@ class _FakeWalletService:
                 reference_id="ord_real_1",
                 idempotency_key="order:ord_real_1",
                 metadata={"channel": "wechat", "amount_cny": 99},
-                created_at="2026-04-15T10:00:00+08:00",
+                created_at="2026-06-22T10:00:00+08:00",
             ),
             SimpleNamespace(
                 id="ledger_real_2",
@@ -194,7 +194,7 @@ class _FakeWalletService:
                 reference_id="session_1",
                 idempotency_key="usage:session_1",
                 metadata={"capability": "deep_solve"},
-                created_at="2026-04-15T11:00:00+08:00",
+                created_at="2026-06-22T11:00:00+08:00",
             ),
         ]
         return rows[offset : offset + limit]

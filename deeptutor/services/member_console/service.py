@@ -110,6 +110,7 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -166,6 +167,19 @@ def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> b
         created_at = created_at.replace(tzinfo=_TZ)
     age = now - created_at.astimezone(_TZ)
     return timedelta(0) <= age <= timedelta(days=days)
+
+
+def is_bi_operational_at(value: Any) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_TZ)
+    return parsed.astimezone(_TZ) >= BI_OPERATION_START_AT
 
 
 def _slugify_phone(value: str) -> str:
@@ -2699,7 +2713,7 @@ class MemberConsoleService:
         ).digest()
         return f"dtm.{payload_part}.{self._b64url_encode(signature)}"
 
-    def _verify_access_token(self, token: str) -> dict[str, Any] | None:
+    def _verify_access_token(self, token: str, *, verify_exp: bool = True) -> dict[str, Any] | None:
         raw = str(token or "").strip()
         if not raw:
             return None
@@ -2735,7 +2749,7 @@ class MemberConsoleService:
         except (TypeError, ValueError):
             return None
         now = int(_now().timestamp())
-        if exp <= now:
+        if verify_exp and exp <= now:
             return None
         return payload
 
@@ -3365,7 +3379,7 @@ class MemberConsoleService:
 
     def refresh_access_token(self, auth_header: str | None = None) -> dict[str, Any]:
         token = self._extract_access_token(auth_header)
-        claims = self.verify_access_token(token)
+        claims = self._verify_access_token(token, verify_exp=False)
         user_id = str((claims or {}).get("canonical_uid") or (claims or {}).get("uid") or "").strip()
         if not claims or not user_id:
             raise ValueError("Invalid or expired token")
@@ -3376,6 +3390,8 @@ class MemberConsoleService:
         max_session_exp = orig_iat + self._access_token_max_session_age_seconds()
         if now >= max_session_exp:
             raise ValueError("Session refresh window expired")
+        if int(claims.get("exp") or 0) <= now:
+            raise ValueError("Invalid or expired token")
         auth_identity = self._auth_identity_for_member(user_id)
         refreshed_token = self._issue_access_token(
             user_id=auth_identity["user_id"] or user_id,
@@ -3585,10 +3601,20 @@ class MemberConsoleService:
                 for user_id in user_ids
             }
 
+    @staticmethod
+    def _filter_bi_operational_members(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            member
+            for member in members
+            if is_bi_operational_at(member.get("created_at"))
+        ]
+
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = self._merge_session_activity_for_member_list(
-            self._load_member_directory_members_for_bi(data)
+        members = self._filter_bi_operational_members(
+            self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(data)
+            )
         )
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
@@ -3667,6 +3693,7 @@ class MemberConsoleService:
                 "members": self._member_directory_authority(),
                 "member_overlay": "member_console",
                 "behavior": "product_behavior_events",
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
             "tier_breakdown": [
                 {"tier": tier, "count": count}
@@ -3711,10 +3738,12 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = self._merge_session_activity_for_member_list(
-            self._load_member_directory_members_for_bi(
-                data,
-                include_session_activity_supplements=True,
+        members = self._filter_bi_operational_members(
+            self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(
+                    data,
+                    include_session_activity_supplements=True,
+                )
             )
         )
         search_text = str(search or "").strip().lower()
@@ -3829,6 +3858,7 @@ class MemberConsoleService:
                 "members": self._member_directory_authority(),
                 "member_overlay": "member_console",
                 "behavior": "product_behavior_events",
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
         }
 
@@ -3872,9 +3902,11 @@ class MemberConsoleService:
     def list_members_for_bi(self) -> list[dict[str, Any]]:
         data = self._load()
         return deepcopy(
-            self._load_member_directory_members_for_bi(
-                data,
-                include_session_activity_supplements=True,
+            self._filter_bi_operational_members(
+                self._load_member_directory_members_for_bi(
+                    data,
+                    include_session_activity_supplements=True,
+                )
             )
         )
 

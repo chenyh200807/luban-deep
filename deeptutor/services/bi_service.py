@@ -22,7 +22,11 @@ from deeptutor.services.feedback_service import (
 )
 from deeptutor.services.invite_test_applications import InviteTestApplicationStore
 from deeptutor.services.luban_feedback_store import LubanFeedbackStore
-from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.member_console import (
+    BI_OPERATION_START_AT,
+    get_member_console_service,
+    is_bi_operational_at,
+)
 from deeptutor.services.observability import (
     get_bailian_billing_client,
     get_bailian_telemetry_client,
@@ -1158,12 +1162,24 @@ class BIService:
     def _load_all_members(self) -> list[dict[str, Any]]:
         list_members_for_bi = getattr(self._member_service, "list_members_for_bi", None)
         if callable(list_members_for_bi):
-            return list(list_members_for_bi())
+            return [
+                item
+                for item in list_members_for_bi()
+                if is_bi_operational_at(item.get("created_at"))
+            ]
         first_page = self._member_service.list_members(page=1, page_size=200)
-        items = list(first_page["items"])
+        items = [
+            item
+            for item in first_page["items"]
+            if is_bi_operational_at(item.get("created_at"))
+        ]
         for page in range(2, int(first_page.get("pages") or 1) + 1):
             current = self._member_service.list_members(page=page, page_size=200)
-            items.extend(current["items"])
+            items.extend(
+                item
+                for item in current["items"]
+                if is_bi_operational_at(item.get("created_at"))
+            )
         return items
 
     @staticmethod
@@ -3218,6 +3234,10 @@ class BIService:
         return parsed
 
     @staticmethod
+    def _is_operational_commerce_row(row: dict[str, Any]) -> bool:
+        return is_bi_operational_at(row.get("effective_at") or row.get("created_at"))
+
+    @staticmethod
     def _commerce_revenue_cny(row: dict[str, Any]) -> float:
         metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
         if BIService._is_commerce_recharge_row(row):
@@ -3359,7 +3379,12 @@ class BIService:
             )
             if key not in deduped or deduped[key].get("authority") != "wallet_ledger":
                 deduped[key] = row
-        ledger_rows = sorted(deduped.values(), key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
+        operational_rows = [
+            row
+            for row in deduped.values()
+            if self._is_operational_commerce_row(row)
+        ]
+        ledger_rows = sorted(operational_rows, key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
         recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
         recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
         revenue_event_rows = [row for row in ledger_rows if self._commerce_revenue_cny(row) != 0][:safe_limit]
@@ -3406,6 +3431,7 @@ class BIService:
                 "anomaly_count": len(anomalies),
                 "credit_points": _round(credit_points, 2),
                 "debit_points": _round(debit_points, 2),
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
                 **revenue_summary,
             },
             "authority": {
@@ -3414,6 +3440,7 @@ class BIService:
                 "wallet_ledger": ledger_authority,
                 "orders": "pending_payment_order_authority",
                 "anomalies": "bi_service.commerce_rules",
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
             "packages": packages,
             "recharge_records": recharge_records,

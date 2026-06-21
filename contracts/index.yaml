@@ -87,6 +87,14 @@ http_routes:
   - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
 
 member_console_controls:
+  bi_operational_start:
+    path: /api/v1/bi/members + /api/v1/bi/commerce
+    authority: MemberConsoleService.BI_OPERATION_START_AT
+    semantics:
+      - BI operational member and commerce read models start at 2026-06-22T00:00:00+08:00.
+      - Members created before the operational start must not count in BI member totals, new-member windows, BI member lists, or BI aggregate member projections.
+      - Wallet/member-console ledger rows effective before the operational start must not count in BI commerce ledger, recharge records, revenue summaries, or latest revenue.
+      - The operational filter is read-model only; it must not delete, mutate, or reverse canonical member records, wallet balances, wallet_ledger rows, audit logs, or member 360 drilldown data.
   manual_membership_reversal:
     path: /api/v1/member/manual-purchase/reverse
     authority: MemberConsoleService -> wallet_ledger
