@@ -25,6 +25,7 @@ from deeptutor.runtime.registry.capability_registry import get_capability_regist
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
+    batch_answer_action_for_numbered_single,
     detect_answer_reveal_preference,
     detect_requested_question_type,
     followup_action_route,
@@ -837,30 +838,15 @@ class ChatOrchestrator:
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
         if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
-        # object-continuity (E8 SEV-1, 2026-06-21): a numbered single submission against
-        # a batch set ("第2题我选B") must be graded WITHIN the full set so the other
-        # questions survive — collapsing to the narrowed single item drops Q1/Q3, and a
-        # later "第1题" then resolves against the 1-item set and grades the wrong question.
-        qctx_items = qctx.get("items") if isinstance(qctx, dict) else None
-        numbered_single_in_batch = (
-            submission.get("kind") == "single"
-            and isinstance(qctx_items, list)
-            and len(qctx_items) > 1
-            and submission.get("index")
-        )
-        if numbered_single_in_batch:
+        # object-continuity (E8 SEV-1, 2026-06-21): grade a numbered single submission
+        # WITHIN the full batch set so the other questions survive (single chokepoint =
+        # `batch_answer_action_for_numbered_single`; the primary fix is at turn-start in
+        # turn_runtime, this is the deep_question-path defense-in-depth on the same helper).
+        # Returns None for single-question contexts / out-of-range → keep existing path.
+        batch_action = batch_answer_action_for_numbered_single(submission, qctx)
+        if batch_action is not None:
             grade_target = qctx
-            fallback_action = {
-                "intent": "answer_questions",
-                "answers": [
-                    {
-                        "index": int(submission["index"]),
-                        "question_id": str(target_context.get("question_id") or "").strip(),
-                        "user_answer": str(submission.get("answer") or "").strip(),
-                    }
-                ],
-                "preserve_other_answers": True,
-            }
+            fallback_action = batch_action
         else:
             grade_target = target_context
             fallback_action = {
