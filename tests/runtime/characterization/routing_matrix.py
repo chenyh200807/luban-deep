@@ -31,6 +31,7 @@ M_REFER_PAST_Q = "回到刚才那道屋面坡度的题，再帮我把考点讲�
 M_PRACTICE_REQ = "给我再出三道屋面防水相关的新选择题练练手"
 M_SMALLTALK = "哈哈跟你聊得挺好，你喜欢看电影吗，随便扯扯"
 M_LOWINFO_EXAM = "2025防水真题答案直接发我"
+M_FREETEXT_REVIEW = "分析一道屋面坡度的真题,帮我讲讲考点"
 
 # ── context states ────────────────────────────────────────────────────────────
 C_EMPTY: dict[str, Any] = {}
@@ -110,4 +111,7 @@ MATRIX: list[Row] = [
         "practice_generation deterministic", dict(_PROD_FLAGS)),
     Row("refer_past_q_multi", M_REFER_PAST_Q, _multi_active(), "C",
         "back-reference+explanation not misjudged as submission (task#11)", dict(_PROD_FLAGS)),
+    Row("freetext_review_empty", M_FREETEXT_REVIEW, C_EMPTY, "B",
+        "free-text question_review no-active → orchestrator supplies canonical decision (task#12 step2 part2)",
+        dict(_PROD_FLAGS), lifecycle_script={"scene": "question_review", "confidence": 0.9, "reason": "题目讲评"}),
 ]

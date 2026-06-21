@@ -2787,3 +2787,44 @@ async def test_orchestrator_routes_unresolved_switch_to_context_continuous_main_
         or "unresolved_switch_to_context_continuity"
         in str(context.metadata.get("semantic_router_mode_reason"))
     )
+
+
+@pytest.mark.asyncio
+async def test_question_review_no_active_supplies_canonical_decision_matching_fabrication() -> None:
+    """task #12 step 2 part 2: the no-active-object free-text question_review path must
+    supply the canonical turn_semantic_decision at the orchestrator (the routing
+    authority) so deep_question READS it instead of fabricating a second-authority one.
+    Behavior-preserving: the decision-bearing fields match what deep_question's
+    _default_turn_semantic_decision produced for this path; deep_question no longer
+    fabricates (observation predicate now False)."""
+    from deeptutor.capabilities.deep_question import DeepQuestionCapability
+
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _FakeRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-qr-no-active",
+        user_message="分析一道屋面坡度的真题，帮我讲讲考点",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={"question_lifecycle_scene": "question_review"},  # pre-stamped, no active object
+        language="zh",
+    )
+
+    cap = await orchestrator._select_capability(context)
+    assert cap == "deep_question"
+
+    supplied = context.metadata.get("turn_semantic_decision")
+    assert isinstance(supplied, dict) and supplied, "orchestrator must supply a canonical decision"
+
+    # decision-bearing parity with deep_question's former fabrication for this path
+    fabricated = DeepQuestionCapability._default_turn_semantic_decision(
+        next_action="route_to_followup_explainer",
+        active_object=context.metadata.get("active_object"),
+        question_context=context.metadata.get("question_followup_context"),
+        user_message=context.user_message,
+    )
+    for field in ("relation_to_active_object", "next_action", "allowed_patch"):
+        assert supplied.get(field) == fabricated.get(field), f"{field} drifted"
+
+    # deep_question now reads the canonical decision → no fabrication, no observation flag
+    assert DeepQuestionCapability._canonical_turn_decision_missing(context.metadata) is False

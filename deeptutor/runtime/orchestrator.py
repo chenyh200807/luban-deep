@@ -13,9 +13,9 @@ import contextlib
 import logging
 import os
 import re
-import uuid
 from types import SimpleNamespace
 from typing import Any, AsyncIterator
+import uuid
 
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
@@ -30,8 +30,8 @@ from deeptutor.services.question_followup import (
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
-    resolve_submission_attempt,
     reset_question_submission_state,
+    resolve_submission_attempt,
 )
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_context,
@@ -39,15 +39,16 @@ from deeptutor.services.question_lifecycle_skills import (
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
+from deeptutor.services.runtime_env import env_flag
 from deeptutor.services.semantic_router import (
     build_active_object_from_question_context,
+    build_turn_semantic_decision,
     is_unresolved_switch_followup,
     normalize_active_object,
     question_context_from_active_object,
     resolve_question_semantic_routing,
     turn_semantic_decision_route,
 )
-from deeptutor.services.runtime_env import env_flag
 from deeptutor.tutorbot.teaching_modes import (
     classify_practice_strategy,
     looks_like_practice_generation_request,
@@ -255,6 +256,25 @@ class ChatOrchestrator:
             ):
                 self._suspend_active_lifecycle_context(context)
             self._prepare_free_text_question_review_context(context, routing_user_message)
+            # Context-Continuity 真闭包 task #12 step 2 part 2: the no-active-object free-text
+            # question_review path routes to deep_question WITHOUT a canonical
+            # turn_semantic_decision, so deep_question used to fabricate one
+            # (_default_turn_semantic_decision) — a second-authority bypass the step-2
+            # observation caught in production. Supply the canonical decision here (the
+            # routing authority) instead. The decision-bearing fields match what
+            # deep_question fabricated for this path (relation=ask_about_active_object,
+            # next_action=route_to_followup_explainer, allowed_patch=no_state_change), so
+            # behavior is preserved; deep_question now READS it and no longer fabricates.
+            if not context.metadata.get("turn_semantic_decision"):
+                context.metadata["turn_semantic_decision"] = build_turn_semantic_decision(
+                    relation_to_active_object="ask_about_active_object",
+                    next_action="route_to_followup_explainer",
+                    allowed_patch="no_state_change",
+                    confidence=1.0,
+                    reason="orchestrator question_review(无 active object)分支提供 canonical "
+                    "decision,避免 deep_question 伪造兜底(turn.md §硬约束 24)。",
+                    active_object=context.metadata.get("active_object"),
+                )
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
                 f"{lifecycle_decision.source}_question_review"

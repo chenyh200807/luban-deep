@@ -65,6 +65,33 @@
       "relation_to_active_object": "out_of_scope_chat"
     }
   },
+  "freetext_review_empty": {
+    "_capability": "deep_question",
+    "active_object": null,
+    "business_gate_result": "passed",
+    "decision_source": "deterministic",
+    "followup_action_intent": null,
+    "needs_clarification": false,
+    "question_lifecycle_scene": "question_review",
+    "question_lifecycle_scene_source": "deterministic",
+    "question_lifecycle_skill_names": [
+      "construction-exam-tutor",
+      "construction-question-review"
+    ],
+    "required_anchor_status": "satisfied",
+    "semantic_router_mode": "question_lifecycle",
+    "semantic_router_mode_reason": "deterministic_question_review",
+    "semantic_router_selected_capability": "deep_question",
+    "semantic_router_shadow_route": "",
+    "suspended_object_stack": [],
+    "turn_semantic_decision": {
+      "allowed_patch": [
+        "no_state_change"
+      ],
+      "next_action": "route_to_followup_explainer",
+      "relation_to_active_object": "ask_about_active_object"
+    }
+  },
   "full_mcq_empty": {
     "_capability": "chat",
     "active_object": null,
