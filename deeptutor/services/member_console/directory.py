@@ -89,8 +89,8 @@ class SupabaseMemberDirectoryReadModel:
         if not self.is_configured:
             return []
         requested_limit = max(1, min(int(limit), _MAX_MEMBER_DIRECTORY_ROWS))
-        eligible_phones = self._eligible_phone_aliases(limit=requested_limit)
-        if not eligible_phones:
+        eligible_phone_aliases = self._eligible_phone_aliases(limit=requested_limit)
+        if not eligible_phone_aliases:
             return []
         rows = self._select_rows_paginated(
             table="v_members",
@@ -107,9 +107,12 @@ class SupabaseMemberDirectoryReadModel:
         )
         rows_by_user_id = {_normalize_text(row.get("user_id")): row for row in rows}
         eligible_rows: list[dict[str, Any]] = []
-        for user_id, phone in eligible_phones.items():
+        for user_id, phone_alias in eligible_phone_aliases.items():
             row = dict(rows_by_user_id.get(user_id) or {"user_id": user_id, "identifier": user_id})
-            row["phone"] = phone
+            row["phone"] = phone_alias["phone"]
+            row["phone_alias_source"] = phone_alias["source"]
+            row["phone_alias_created_at"] = phone_alias["created_at"]
+            row["phone_verified_at"] = phone_alias["verified_at"]
             eligible_rows.append(row)
         members = [self._member_from_row(row) for row in eligible_rows]
         return [member for member in members if member.get("user_id")]
@@ -168,16 +171,16 @@ class SupabaseMemberDirectoryReadModel:
             offset += batch_limit
         return rows
 
-    def _eligible_phone_aliases(self, *, limit: int) -> dict[str, str]:
+    def _eligible_phone_aliases(self, *, limit: int) -> dict[str, dict[str, str]]:
         rows = self._select_rows_paginated(
             table="user_identity_aliases",
             params={
-                "select": "user_id,alias_value,source",
+                "select": "user_id,alias_value,source,created_at,verified_at",
                 "alias_type": "eq.phone",
             },
             limit=min(limit * 4, _MAX_MEMBER_DIRECTORY_ROWS),
         )
-        aliases: dict[str, str] = {}
+        aliases: dict[str, dict[str, str]] = {}
         for row in rows:
             user_id = _normalize_text(row.get("user_id"))
             source = _normalize_text(row.get("source"))
@@ -188,7 +191,15 @@ class SupabaseMemberDirectoryReadModel:
                 or not _is_cn_mainland_mobile(phone)
             ):
                 continue
-            aliases.setdefault(user_id, phone)
+            aliases.setdefault(
+                user_id,
+                {
+                    "phone": phone,
+                    "source": source,
+                    "created_at": _normalize_text(row.get("created_at")),
+                    "verified_at": _normalize_text(row.get("verified_at")),
+                },
+            )
             if len(aliases) >= limit:
                 break
         return aliases
@@ -199,11 +210,17 @@ class SupabaseMemberDirectoryReadModel:
         identifier = _normalize_text(row.get("identifier"))
         plan_id = _normalize_text(row.get("plan_id"))
         phone = _normalize_text(row.get("phone"))
+        phone_alias_source = _normalize_text(row.get("phone_alias_source"))
+        phone_alias_created_at = _normalize_text(row.get("phone_alias_created_at"))
+        phone_verified_at = _normalize_text(row.get("phone_verified_at"))
         wallet_created_at = _normalize_text(row.get("wallet_created_at"))
         first_chat_at = _normalize_text(row.get("first_chat_at"))
         wallet_updated_at = _normalize_text(row.get("wallet_updated_at"))
         last_chat_at = _normalize_text(row.get("last_chat_at"))
-        created_at = wallet_created_at or first_chat_at or _UNKNOWN_CREATED_AT
+        phone_registered_at = ""
+        if phone_alias_source == "phone_verification":
+            phone_registered_at = phone_verified_at or phone_alias_created_at
+        created_at = phone_registered_at or wallet_created_at or first_chat_at or _UNKNOWN_CREATED_AT
         last_active_at = last_chat_at or wallet_updated_at or first_chat_at or wallet_created_at or _UNKNOWN_CREATED_AT
         aliases = sorted({value for value in (user_id, identifier) if value})
         has_user_record = _coerce_bool(row.get("has_user_record"))
