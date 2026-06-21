@@ -2894,3 +2894,26 @@ def test_prepare_submission_keeps_batch_set_after_numbered_single_grade() -> Non
         (context.metadata.get("active_object") or {}).get("state_snapshot") or {}
     ).get("items") or []
     assert len(active_items) == 3
+
+
+def test_prepare_submission_uses_shared_batch_continuity_helper() -> None:
+    """[capability domain] The orchestrator's numbered-single-in-batch grading prep is
+    consolidated onto the single shared chokepoint
+    `question_followup.batch_answer_action_for_numbered_single` (same authority as the
+    turn-start fix), so tutorbot and deep_question grading paths preserve the batch set
+    identically. Negative guard: single-question context returns None (untouched).
+    """
+    from deeptutor.services.question_followup import batch_answer_action_for_numbered_single
+
+    sub = {"kind": "single", "answer": "B", "question_id": "q2", "index": 2}
+    batch_ctx = {"items": [{"question_id": "q1"}, {"question_id": "q2"}, {"question_id": "q3"}]}
+    action = batch_answer_action_for_numbered_single(sub, batch_ctx)
+    assert action is not None
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+    # single-question context (len<=1) → None → orchestrator keeps its existing path
+    assert batch_answer_action_for_numbered_single(
+        {"kind": "single", "answer": "B", "question_id": "q", "index": 1},
+        {"items": [{"question_id": "q"}]},
+    ) is None

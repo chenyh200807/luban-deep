@@ -844,6 +844,44 @@ def resolve_submission_attempt(
     }
 
 
+def batch_answer_action_for_numbered_single(
+    submission: dict[str, Any] | None,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Single chokepoint for object-continuity of batch question sets (E8 SEV-1).
+
+    When the learner answers ONE numbered item of a multi-item question set
+    ("第2题我选B"), `resolve_submission_attempt` narrows `target_context` to that single
+    item. Building the active object from that narrowed context COLLAPSES the set to a
+    single question, so a later "第1题" resolves against a 1-item set and grades the
+    wrong question. This helper turns a numbered-single submission into a batch-style
+    answer action that grades the referenced item WITHIN the full set (preserving the
+    other items), so callers can apply it to the FULL context and keep the set intact.
+
+    Returns None when not a numbered-single-in-batch (caller keeps its existing path):
+    single-question contexts and out-of-range indices are untouched.
+    """
+    if not isinstance(submission, dict) or submission.get("kind") != "single":
+        return None
+    index = submission.get("index")
+    items = (question_context or {}).get("items") if isinstance(question_context, dict) else None
+    if not index or not isinstance(items, list) or len(items) <= 1:
+        return None
+    return {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [
+            {
+                "index": int(index),
+                "question_id": str(submission.get("question_id") or "").strip(),
+                "user_answer": str(submission.get("answer") or "").strip(),
+            }
+        ],
+        "preserve_other_answers": True,
+        "reason": "用户对题组内某一道作答，需在整组内判该题并保留其余题（object continuity）。",
+    }
+
+
 def resolve_submission(
     message: str,
     question_context: dict[str, Any] | None,

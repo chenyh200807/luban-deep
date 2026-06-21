@@ -52,6 +52,7 @@ from deeptutor.services.observability.identity_bridge import enrich_trace_metada
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
+    batch_answer_action_for_numbered_single,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
@@ -1370,6 +1371,14 @@ def _submission_action_for_user_message(
             "answers": submission.get("answers") or [],
             "reason": "用户消息包含当前题组的可解析答案，优先进入批改。",
         }
+    # object-continuity (E8 SEV-1): a numbered single answer to ONE item of a multi-item
+    # set must be graded WITHIN the full set so the other items survive — returning the
+    # narrowed single context here collapses the set at turn-start (before any capability
+    # runs), so a later "第1题" binds to the 1-item set and grades the wrong question.
+    # This is the single chokepoint above both tutorbot and deep_question grading paths.
+    batch_action = batch_answer_action_for_numbered_single(submission, normalized_context)
+    if batch_action is not None:
+        return normalized_context, batch_action
     return target_context, {
         "intent": "answer_questions",
         "confidence": 0.92,
