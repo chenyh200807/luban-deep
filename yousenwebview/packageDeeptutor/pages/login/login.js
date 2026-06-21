@@ -70,6 +70,9 @@ Page({
     entrySource: "",
     returnTo: "",
     guestWaveActive: false,
+    privacyChecked: false,
+    privacyNeedAuthorization: false,
+    privacyContractName: "《用户隐私保护指引》",
     heroMessages: [
       {
         line1: "抓不住重点、越学越乱？",
@@ -101,7 +104,7 @@ Page({
       this._reLaunchAfterAuth();
       return;
     }
-    this._primePrivacyAuthorization();
+    this._refreshPrivacySetting();
   },
   onShow: function () {
     if (this._orbScene && !this._orbTimer) this._startOrbMotion();
@@ -155,6 +158,27 @@ Page({
     }
     return api.describeRequestError(err, fallbackMsg, options || {});
   },
+  _refreshPrivacySetting: function () {
+    var self = this;
+    if (typeof wx.getPrivacySetting !== "function") {
+      self.setData({
+        privacyChecked: true,
+        privacyNeedAuthorization: false,
+      });
+      return;
+    }
+    wx.getPrivacySetting({
+      success: function (res) {
+        var needAuthorization = !!(res && res.needAuthorization);
+        self.setData({
+          privacyChecked: !needAuthorization,
+          privacyNeedAuthorization: needAuthorization,
+          privacyContractName:
+            (res && res.privacyContractName) || "《用户隐私保护指引》",
+        });
+      },
+    });
+  },
   _requestPrivacyAuthorization: function () {
     var self = this;
     if (typeof wx.requirePrivacyAuthorize !== "function") {
@@ -178,21 +202,34 @@ Page({
     });
     return this._privacyAuthorizationRequest;
   },
-  _primePrivacyAuthorization: function () {
-    if (this._privacyAuthorizationPrimed) return;
-    this._privacyAuthorizationPrimed = true;
-    this._requestPrivacyAuthorization();
-  },
-  _handlePrivacyAuthInterruption: function () {
+  handlePrivacyCheckboxTap: function () {
     var self = this;
-    self.setData({ errorMsg: "请先同意隐私保护指引，再完成手机号授权" });
+    if (self.data.wechatLoading || self.data.loading) return;
+    if (self.data.privacyChecked) {
+      self.setData({ privacyChecked: false });
+      return;
+    }
     self._requestPrivacyAuthorization().then(function (ok) {
+      if (ok) {
+        self.setData({
+          privacyChecked: true,
+          privacyNeedAuthorization: false,
+          errorMsg: "",
+        });
+        return;
+      }
       self.setData({
-        errorMsg: ok
-          ? "已同意隐私保护，请继续点击快速登录完成手机号授权"
-          : "需同意隐私保护指引后才能手机号快速登录",
+        privacyChecked: false,
+        privacyNeedAuthorization: true,
+        errorMsg: "请先勾选同意用户隐私保护指引后继续",
       });
     });
+  },
+  handlePrivacyRequiredTap: function () {
+    this.setData({ errorMsg: "请先勾选同意用户隐私保护指引后继续" });
+  },
+  openPrivacyGuide: function () {
+    wx.navigateTo({ url: route.terms() });
   },
   _requestWechatPhoneSession: function (phoneCode, attempt) {
     var self = this;
@@ -473,13 +510,22 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
+    if (!self.data.privacyChecked) {
+      self.handlePrivacyRequiredTap();
+      return;
+    }
     var phoneCode =
       e &&
       e.detail &&
       (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
       if (isPrivacyAuthInterruption(e && e.detail)) {
-        self._handlePrivacyAuthInterruption();
+        self.setData({
+          privacyChecked: false,
+          privacyNeedAuthorization: true,
+          errorMsg: "请先勾选同意用户隐私保护指引后继续",
+        });
+        self._refreshPrivacySetting();
         return;
       }
       self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });

@@ -148,25 +148,45 @@ function createSandbox(sourcePath, apiMock, extras) {
       normalHandler: "handleWechatRegister",
       explicitHandler: "handleWechatPhoneNumber",
     },
+    {
+      path: path.join(repoRoot, "wx_miniprogram/pages/login/login.js"),
+      normalHandler: "handleWechatLogin",
+      explicitHandler: "handleWechatPhoneNumber",
+    },
   ];
 
   await run("primary quick-login button must request phone authorization", async function () {
-    var loginWxml = fs.readFileSync(
-      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.wxml"),
-      "utf8",
-    );
-    assert(
-      loginWxml.indexOf('open-type="getPhoneNumber"') >= 0,
-      "primary quick-login button should use getPhoneNumber",
-    );
-    assert(
-      loginWxml.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') >= 0,
-      "primary quick-login button should bind handleWechatPhoneNumber",
-    );
-    assert(
-      loginWxml.indexOf('bindtap="handleWechatLogin"') === -1,
-      "primary quick-login button must not call plain wx.login handler",
-    );
+    var wxmlPaths = [
+      "yousenwebview/packageDeeptutor/pages/login/login.wxml",
+      "wx_miniprogram/pages/login/login.wxml",
+    ];
+    for (var i = 0; i < wxmlPaths.length; i++) {
+      var loginWxml = fs.readFileSync(path.join(repoRoot, wxmlPaths[i]), "utf8");
+      assert(
+        loginWxml.indexOf("privacy-consent-row") >= 0,
+        wxmlPaths[i] + " should show an explicit privacy consent row",
+      );
+      assert(
+        loginWxml.indexOf('bindtap="handlePrivacyRequiredTap"') >= 0,
+        wxmlPaths[i] + " should block unchecked privacy consent before getPhoneNumber",
+      );
+      assert(
+        loginWxml.indexOf('wx:if="{{privacyChecked}}"') >= 0,
+        wxmlPaths[i] + " getPhoneNumber button should render only after privacy consent",
+      );
+      assert(
+        loginWxml.indexOf('open-type="getPhoneNumber"') >= 0,
+        wxmlPaths[i] + " primary quick-login button should use getPhoneNumber",
+      );
+      assert(
+        loginWxml.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') >= 0,
+        wxmlPaths[i] + " primary quick-login button should bind handleWechatPhoneNumber",
+      );
+      assert(
+        loginWxml.indexOf('bindtap="handleWechatLogin"') === -1,
+        wxmlPaths[i] + " primary quick-login button must not call plain wx.login handler",
+      );
+    }
   });
 
   await run("plain wechat login/register handlers should not issue tokens", async function () {
@@ -237,6 +257,7 @@ function createSandbox(sourcePath, apiMock, extras) {
         },
       };
       var page = createSandbox(cases[i].path, apiMock, {});
+      page.setData({ privacyChecked: true });
       page[cases[i].explicitHandler]({
         detail: { code: "phone_code_123" },
       });
@@ -255,7 +276,46 @@ function createSandbox(sourcePath, apiMock, extras) {
     }
   });
 
-  await run("login page should prime privacy authorization before phone quick-login", async function () {
+  await run("login page should query privacy status without prompting on entry", async function () {
+    var privacyRequests = 0;
+    var privacySettingRequests = 0;
+    var page = createSandbox(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
+      {
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+      },
+      {
+        getPrivacySetting: function (options) {
+          privacySettingRequests++;
+          options.success({
+            needAuthorization: true,
+            privacyContractName: "《鲁班智考用户隐私保护指引》",
+          });
+          if (options.complete) options.complete({});
+        },
+        requirePrivacyAuthorize: function (options) {
+          privacyRequests++;
+          options.success({});
+          if (options.complete) options.complete({});
+        },
+      },
+    );
+
+    page.onLoad({});
+    await flushPromises();
+
+    assert(privacySettingRequests === 1, "login page should query privacy setting on entry");
+    assert(privacyRequests === 0, "login page must not prompt privacy authorization on entry");
+    assert(page.data.privacyChecked === false, "login page should keep privacy unchecked when authorization is needed");
+    assert(
+      page.data.privacyContractName === "《鲁班智考用户隐私保护指引》",
+      "login page should show WeChat privacy contract name",
+    );
+  });
+
+  await run("privacy checkbox should authorize privacy before enabling phone login", async function () {
     var privacyRequests = 0;
     var page = createSandbox(
       path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
@@ -273,10 +333,33 @@ function createSandbox(sourcePath, apiMock, extras) {
       },
     );
 
-    page.onLoad({});
+    page.setData({ privacyChecked: false, privacyNeedAuthorization: true });
+    page.handlePrivacyCheckboxTap();
     await flushPromises();
 
-    assert(privacyRequests === 1, "login page should request privacy authorization on entry");
+    assert(privacyRequests === 1, "privacy checkbox should call WeChat privacy authorization");
+    assert(page.data.privacyChecked === true, "privacy checkbox should enable phone login after consent");
+    assert(page.data.errorMsg === "", "privacy checkbox success should clear stale errors");
+  });
+
+  await run("unchecked privacy consent should block quick login before getPhoneNumber", async function () {
+    var page = createSandbox(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.js"),
+      {
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+      },
+      {},
+    );
+
+    page.setData({ privacyChecked: false });
+    page.handlePrivacyRequiredTap();
+
+    assert(
+      page.data.errorMsg.indexOf("勾选") >= 0,
+      "unchecked quick login should tell users to check the privacy agreement first",
+    );
   });
 
   await run("privacy gate interruption should not be reported as phone verification failure", async function () {
@@ -312,14 +395,14 @@ function createSandbox(sourcePath, apiMock, extras) {
     await flushPromises();
 
     assert(loginCalls.length === 0, "privacy interruption must not call phone login backend");
-    assert(privacyRequests === 1, "privacy interruption should retry privacy authorization");
+    assert(privacyRequests === 0, "privacy interruption must not prompt privacy authorization after getPhoneNumber");
     assert(
       page.data.errorMsg.indexOf("未完成手机号验证") === -1,
       "privacy interruption should not be shown as phone verification failure",
     );
     assert(
-      page.data.errorMsg.indexOf("隐私") >= 0,
-      "privacy interruption should explain the privacy authorization step",
+      page.data.errorMsg.indexOf("勾选") >= 0,
+      "privacy interruption should send users back to the explicit checkbox consent step",
     );
   });
 

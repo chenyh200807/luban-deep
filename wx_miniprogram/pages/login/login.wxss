@@ -267,6 +267,55 @@
   letter-spacing: 0.4rpx;
 }
 
+.privacy-consent-row {
+  width: 100%;
+  min-height: 44rpx;
+  margin: 0 0 18rpx;
+  padding: 0 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  box-sizing: border-box;
+}
+
+.privacy-checkbox {
+  width: 28rpx;
+  height: 28rpx;
+  flex: 0 0 28rpx;
+  border-radius: 6rpx;
+  border: 2rpx solid rgba(226, 232, 240, 0.46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.privacy-checkbox.checked {
+  border-color: rgba(103, 183, 255, 0.92);
+  background: #4198ff;
+}
+
+.privacy-checkmark {
+  color: #ffffff;
+  font-size: 20rpx;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.privacy-copy,
+.privacy-link {
+  font-size: 22rpx;
+  line-height: 1.35;
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.privacy-link {
+  color: #8fc7ff;
+  font-weight: 620;
+}
+
 .link-row {
   width: 100%;
   margin-top: 22rpx;
