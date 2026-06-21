@@ -1051,7 +1051,7 @@ export function BiV2MemberOpsPanel({
           selectedMember?.user_id ?? 'none',
           selectedDetail?.tier ?? '',
           selectedDetail?.expire_at ?? '',
-          membershipPackages.map(pkg => pkg.id).join('|'),
+          membershipPackages.map(pkg => `${pkg.id}:${pkg.priceCny}:${pkg.status}`).join('|'),
         ].join(':')}
         open={drawer === 'membershipSettings'}
         member={selectedMember}
@@ -1141,17 +1141,6 @@ function MembershipSettingsPanel({
     setPendingAction(null)
     setActionNotice('')
   }
-
-  useEffect(() => {
-    setPackageId(initialPackage?.id ?? '')
-    setExpireAt(toDateInputValue(detail?.expire_at))
-    setAmountCny(initialPackage ? String(initialPackage.priceCny || '') : '')
-    setDays('365')
-    setReason('BI 会员设置')
-    setFormError('')
-    setActionNotice('')
-    setPendingAction(null)
-  }, [detail?.expire_at, initialPackage?.id, initialPackage?.priceCny, member?.user_id])
 
   if (!member) return null
   const activeMember = member
