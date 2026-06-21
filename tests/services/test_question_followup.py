@@ -1106,6 +1106,7 @@ def test_resolve_submission_attempt_accepts_q_number_single_submission() -> None
         "kind": "single",
         "answer": "C",
         "question_id": "q_2",
+        "index": 2,
     }
 
 
@@ -1198,6 +1199,7 @@ def test_resolve_submission_attempt_keeps_single_numbered_case_answer_unsplit() 
         "kind": "single",
         "answer": "施工缝未按规范处理，需要返工整改",
         "question_id": "case_q2",
+        "index": 2,
     }
 
 

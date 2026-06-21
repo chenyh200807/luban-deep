@@ -837,22 +837,48 @@ class ChatOrchestrator:
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
         if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
-        fallback_action = {
-            "intent": "answer_questions",
-            "answers": (
-                submission.get("answers")
-                if submission.get("kind") == "batch"
-                else [
+        # object-continuity (E8 SEV-1, 2026-06-21): a numbered single submission against
+        # a batch set ("第2题我选B") must be graded WITHIN the full set so the other
+        # questions survive — collapsing to the narrowed single item drops Q1/Q3, and a
+        # later "第1题" then resolves against the 1-item set and grades the wrong question.
+        qctx_items = qctx.get("items") if isinstance(qctx, dict) else None
+        numbered_single_in_batch = (
+            submission.get("kind") == "single"
+            and isinstance(qctx_items, list)
+            and len(qctx_items) > 1
+            and submission.get("index")
+        )
+        if numbered_single_in_batch:
+            grade_target = qctx
+            fallback_action = {
+                "intent": "answer_questions",
+                "answers": [
                     {
-                        "index": 1,
+                        "index": int(submission["index"]),
                         "question_id": str(target_context.get("question_id") or "").strip(),
                         "user_answer": str(submission.get("answer") or "").strip(),
                     }
-                ]
-            ),
-            "preserve_other_answers": False,
-        }
-        fallback_context = apply_followup_action_to_context(target_context, fallback_action)
+                ],
+                "preserve_other_answers": True,
+            }
+        else:
+            grade_target = target_context
+            fallback_action = {
+                "intent": "answer_questions",
+                "answers": (
+                    submission.get("answers")
+                    if submission.get("kind") == "batch"
+                    else [
+                        {
+                            "index": 1,
+                            "question_id": str(target_context.get("question_id") or "").strip(),
+                            "user_answer": str(submission.get("answer") or "").strip(),
+                        }
+                    ]
+                ),
+                "preserve_other_answers": False,
+            }
+        fallback_context = apply_followup_action_to_context(grade_target, fallback_action)
         if fallback_context:
             context.metadata["question_followup_context"] = fallback_context
             active_object = build_active_object_from_question_context(
