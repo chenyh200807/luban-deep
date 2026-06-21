@@ -3886,12 +3886,34 @@ def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
                 "review": {"due_today": 1},
                 "mastery": {"weak_nodes": []},
                 "today": {"hint": "优先补主体结构"},
+                "home_projection": {
+                    "source_status": {
+                        "fallback_used": False,
+                        "learning_report": "projection",
+                        "home_projection_contract": "canonical_taxonomy_v1",
+                        "topic_authority": "learner_state.home_personalization.canonical_taxonomy",
+                    },
+                    "today_focus": {"title": "今日焦点：主体结构工程施工"},
+                    "recommended_prompts": [
+                        {
+                            "prompt_type": "practice_prompt",
+                            "text": "用 3 道题训练主体结构工程施工",
+                            "intent": {
+                                "source": "learner_state.home_personalization",
+                                "concept_label": "主体结构工程施工",
+                            },
+                        }
+                    ],
+                },
                 "today_focus": {"title": "今日焦点：主体结构"},
                 "recommended_prompts": [
                     {
                         "prompt_type": "practice_prompt",
-                        "text": "练 3 道主体结构题",
-                        "intent": {"source": "home_dashboard"},
+                        "text": "用 3 道题训练主体结构工程施工",
+                        "intent": {
+                            "source": "learner_state.home_personalization",
+                            "concept_label": "主体结构工程施工",
+                        },
                     }
                 ],
             }
@@ -3930,7 +3952,80 @@ def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
     assert body["training_loop_cards"] == body["learner_facing"]["training_loops"]
     assert body["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
     assert body["home_personalization"]["recommended_prompt_count"] == 1
+    assert (
+        body["home_personalization"]["source_status"]["home_projection_contract"]
+        == "canonical_taxonomy_v1"
+    )
     assert isinstance(body["mastery"]["overall_mastery"], dict)
+
+
+def test_mobile_learning_report_v2_ignores_fallback_home_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {
+                "review": {"due_today": 1},
+                "mastery": {"weak_nodes": []},
+                "home_projection": {
+                    "source_status": {
+                        "fallback_used": True,
+                        "fallback_reason": "missing",
+                        "learning_report": "stale",
+                    },
+                    "recommended_prompts": [
+                        {
+                            "prompt_type": "practice_prompt",
+                            "text": "用 3 道题训练主体结构工程施工",
+                            "intent": {
+                                "source": "learner_state.home_personalization",
+                                "concept_label": "主体结构工程施工",
+                            },
+                        }
+                    ],
+                },
+                "recommended_prompts": [
+                    {
+                        "prompt_type": "practice_prompt",
+                        "text": "用 3 道题训练主体结构工程施工",
+                        "intent": {
+                            "source": "learner_state.home_personalization",
+                            "concept_label": "主体结构工程施工",
+                        },
+                    }
+                ],
+            }
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?schema_version=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["home_personalization"]["recommended_prompt_count"] == 0
+    assert body["home_personalization"]["source_status"] == {}
 
 
 def test_mobile_learning_report_accept_header_negotiates_v2(

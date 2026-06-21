@@ -407,6 +407,19 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- `home_personalization` projection 的 canonical marker 必须位于 projection 本体的
+  `source_status`：`home_projection_contract="canonical_taxonomy_v1"` 且
+  `topic_authority="learner_state.home_personalization.canonical_taxonomy"`。外层
+  dashboard 上挂一个空 `home_projection.source_status` 不能授权顶层 legacy
+  `today_focus` / `recommended_prompts`。`fallback_used=true`、markerless payload、
+  malformed payload、API failure fallback、guest preview、旧缓存和 member-console
+  legacy focus 都不得被应用为“今日焦点”或“根据你的学情”自动推荐；它们只能降级为空态 /
+  静态示例 / starter fallback，不得伪装成 canonical personalized recommendation。
+- `write_home_personalization_projection()` 是 durable home personalization projection
+  的写入门；它必须 fail-closed 拒绝 markerless 或非 canonical topic/prompt 的 payload，
+  不得因为 shape 看起来合法就自动补 canonical marker。`MemberConsoleService` 与
+  mobile / WeChat read model 只能读取并呈现通过同一 canonical validator 的 projection
+  本体，不能从顶层 dashboard、旧缓存、`today.hint` 或 prompt 文案二次解释出推荐。
 - 学情 / 首页展示 topic、Home dashboard 用户可见的 `today_focus` 与 recommended prompt
   topic 必须来自同一 learner-state / taxonomy authority 的 canonical label，并经
   taxonomy canonical resolver 对齐到教材目录 canonical 章/节名称。学情、每日任务、

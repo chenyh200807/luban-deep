@@ -77,7 +77,10 @@ from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
-from deeptutor.services.learner_state.home_personalization import canonical_home_focus_topic_label
+from deeptutor.services.learner_state.home_personalization import (
+    canonical_home_focus_topic_label,
+    is_canonical_home_personalization_projection,
+)
 from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     change_external_auth_password,
@@ -5719,13 +5722,14 @@ class MemberConsoleService:
         }
         if env_flag(_HOME_PERSONALIZATION_ENABLED):
             home_projection = self._build_home_learning_projection(snapshot=snapshot, member=member)
-            dashboard["home_projection"] = home_projection
-            self._apply_home_learning_projection(dashboard, home_projection)
+            if is_canonical_home_personalization_projection(home_projection):
+                dashboard["home_projection"] = home_projection
+                self._apply_home_learning_projection(dashboard, home_projection)
         return dashboard
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:
-        if not isinstance(projection, dict):
+        if not is_canonical_home_personalization_projection(projection):
             return
         today_focus = projection.get("today_focus")
         if isinstance(today_focus, dict) and today_focus:
