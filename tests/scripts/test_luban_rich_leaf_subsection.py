@@ -208,6 +208,71 @@ def test_lecture_lane_with_heading_still_slices() -> None:
     assert "膨胀倍率" in sub.text
 
 
+# ---------------------------------------------------------------------------
+# mislink-A 收口: 标点/书写形式归一化 (heading 一类土：松软土 vs leaf 一类土（松软土）)
+# ---------------------------------------------------------------------------
+
+_EIGHT_SOIL_MD = """### 岩土分类（按开挖难易程度）
+
+根据土方开挖的难易程度不同，可将土石分为八类。
+
+#### ① 一类土：松软土
+主要包括砂土、粉土等，坚实系数为 0.5～0.6。
+
+#### ② 二类土：普通土
+主要包括粉质黏土等，坚实系数为 0.6～0.8。
+
+#### ③ 三类土：坚土
+主要包括软及中等密实黏土等，坚实系数为 0.8～1.0。
+"""
+
+_EIGHT_SOIL_LEAVES = ("一类土（松软土）", "二类土（普通土）", "三类土（坚土）")
+
+
+def test_separator_variant_heading_matches_leaf_core() -> None:
+    """mislink-A 根因: heading ``一类土：松软土`` 与 leaf 核 ``一类土（松软土）`` 判别词完全
+    相同, 只差分隔符 (``：`` vs ``（）``)。标点归一化后必须切出本段, 且不串到 sibling。"""
+    for name in _EIGHT_SOIL_LEAVES:
+        sibs = tuple(s for s in _EIGHT_SOIL_LEAVES if s != name)
+        sub = slice_leaf_subsection(
+            _EIGHT_SOIL_MD, name, chunk_hosts_multiple_leaves=True, sibling_cores=sibs
+        )
+        assert sub is not None, name
+    # 一类土 段拿到自己的 0.5～0.6, 不含 sibling 的系数。
+    first = slice_leaf_subsection(
+        _EIGHT_SOIL_MD, "一类土（松软土）", chunk_hosts_multiple_leaves=True,
+        sibling_cores=("二类土（普通土）", "三类土（坚土）"),
+    )
+    assert first is not None
+    assert "0.5～0.6" in first.text
+    assert "0.6～0.8" not in first.text  # 二类土 not bled in
+    assert "0.8～1.0" not in first.text  # 三类土 not bled in
+
+
+def test_separator_normalization_does_not_collide_distinct_topics() -> None:
+    """窄实现红线: 标点归一化只去分隔符, 不做语义放宽。两个判别词不同的相邻 leaf
+    (一类土 vs 二类土) 不能因归一化互相误切。"""
+    md = (
+        "#### 一类土：松软土\n\n（1）一类土坚实系数 0.5～0.6。\n\n"
+        "#### 二类土：普通土\n\n（1）二类土坚实系数 0.6～0.8。\n"
+    )
+    one = slice_leaf_subsection(
+        md, "一类土（松软土）", chunk_hosts_multiple_leaves=True,
+        sibling_cores=("二类土（普通土）",),
+    )
+    assert one is not None
+    assert "0.5～0.6" in one.text
+    assert "二类土坚实系数" not in one.text
+
+
+def test_separator_normalization_does_not_relax_unsafe_reverse() -> None:
+    """窄实现红线: 归一化只参与 EXACT/FORWARD, 不放宽 unsafe reverse。
+    heading ``窗`` 不能 reverse 命中 leaf 核 ``天窗`` (即便去掉分隔符)。"""
+    from scripts.luban_rich_leaf_subsection import _title_matches_core
+
+    assert _title_matches_core("窗", "天窗") == 0
+
+
 def test_bold_heading_anchor_is_sliceable() -> None:
     """无 ATX 标题、只有加粗小标题的 chunk 也能被切 (放宽: bold 作为 heading 候选)。"""
     md = (

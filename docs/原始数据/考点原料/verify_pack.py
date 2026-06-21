@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """考点 pack 机器闸 (Layer-1 确定性质检, fail-closed).
 
-用法: python verify_pack.py <pack.md> [<source.json>]
+用法: python verify_pack.py <pack.md> [<source.json>] [--semantic-audit]
+
 若不给 source.json, 按同目录 _<PACKID>_compiled_source.json 推导。
 
 机械验 3 件硬事 (任一不过 = FAIL):
@@ -9,7 +10,11 @@
   2. 引用的 error_code (E/M码) 是否真在 ERROR_CODE_REGISTRY
   3. 三色标注是否存在且 🟢 项不为零
 另出软报告 (warning, 不判 FAIL): 🟢 占比、疑似🟢无source行、真题年份引用。
-不做语义判断 (那是 Layer-2 独立judge / Layer-3 人审的事)。
+
+机器闸只验 point_id **存在**, 不验 **语义** (heading 名实是否相符是 Codex 指出的边界):
+point_id 真在源料 ≠ 该 point 的 quote/statement 真讲这个考点。``--semantic-audit``
+是**可选报告**, 为每个被引用的 point_id 打印其 quote/statement 供人工核名实, **不改判定**
+(pass/fail 逻辑完全不动) —— 仍是 Layer-2 独立judge / Layer-3 人审的输入, 不替代它们。
 """
 import sys, re, json, os, glob
 
@@ -31,14 +36,39 @@ def load_source_point_ids(src_path):
                 ids.add(pid.rsplit(":", 1)[0])  # 去掉尾部 :idx 的基id
     return ids
 
+
+def load_source_point_records(src_path):
+    """point_id (含去尾 :idx 的基id) -> 该 point 的名实证据 (leaf 名 + quote + statement).
+
+    供 --semantic-audit 报告人工核 "名实是否相符"。只读, 不参与判定。"""
+    d = json.load(open(src_path, encoding="utf-8"))
+    recs = {}
+    for u in d.get("units", []):
+        leaf = u.get("leaf_name_path") or u.get("leaf_id") or ""
+        for sp in u.get("scoring_points", []):
+            pid = sp.get("point_id")
+            if not pid:
+                continue
+            rec = {
+                "leaf": leaf,
+                "statement": sp.get("statement") or "",
+                "quote": sp.get("quote") or "",
+            }
+            recs[pid] = rec
+            recs.setdefault(pid.rsplit(":", 1)[0], rec)
+    return recs
+
 def main():
-    if len(sys.argv) < 2:
-        print("用法: python verify_pack.py <pack.md> [<source.json>]"); sys.exit(2)
-    pack = sys.argv[1]
+    args = sys.argv[1:]
+    semantic_audit = "--semantic-audit" in args
+    args = [a for a in args if a != "--semantic-audit"]
+    if not args:
+        print("用法: python verify_pack.py <pack.md> [<source.json>] [--semantic-audit]"); sys.exit(2)
+    pack = args[0]
     text = open(pack, encoding="utf-8").read()
     # 推导 source
-    if len(sys.argv) >= 3:
-        src = sys.argv[2]
+    if len(args) >= 2:
+        src = args[1]
     else:
         m = re.match(r"([A-Z]\d+)", os.path.basename(pack))
         pid = m.group(1) if m else ""
@@ -94,6 +124,26 @@ def main():
     print(f"[软警告] 疑似🟢无source行: {len(sus)} 行 {('(行号 '+str(sus[:8])+'…)') if sus else ''} — 需Layer2/3核")
     yrs = sorted(set(re.findall(r"真题\s?(20\d\d)", text)))
     print(f"[软报告] 引用真题年份: {yrs}")
+
+    # --- 可选: 语义审计报告 (只读, 不判 FAIL) ---
+    if semantic_audit:
+        print("─"*50)
+        print("[语义审计] point_id 名实核对 (人工判定 quote/statement 是否真讲该考点; 不参与 PASS/FAIL):")
+        if not src or not os.path.exists(src):
+            print("  ⚠ 无源料, 无法输出语义证据")
+        else:
+            recs = load_source_point_records(src)
+            shown = sorted(p for p in cited_pids if p in recs or p.rsplit(":",1)[0] in recs)
+            if not shown:
+                print("  (无可解析的被引用 point_id)")
+            for p in shown:
+                rec = recs.get(p) or recs.get(p.rsplit(":",1)[0]) or {}
+                print(f"  • {p}")
+                print(f"      leaf : {rec.get('leaf','')}")
+                print(f"      quote: {rec.get('quote','')}")
+                stmt = rec.get("statement", "")
+                if stmt and stmt != rec.get("quote", ""):
+                    print(f"      stmt : {stmt}")
 
     print("─"*50)
     if fails:

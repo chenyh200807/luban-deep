@@ -1,9 +1,9 @@
 {
-  "expected_content_hash": "9afcd7f0f97e3d01ba10804a45092f9b71662a9f3b282616b1087e9392633114",
+  "expected_content_hash": "cbb2f77c9f55ab365c5e23c38ec2efa963cb30fc3f9c0d04f5d0e955e60d1abb",
   "namespace": "rich_leaf_context",
   "published": false,
   "quarantine_excluded_count": 0,
-  "record_count": 1454,
+  "record_count": 1466,
   "source_pack_version": "v3.0_frozen_v1_full_compile",
   "status": "release_candidate"
 }
