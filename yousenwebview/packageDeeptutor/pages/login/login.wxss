@@ -250,12 +250,13 @@
 
 .privacy-consent-row {
   width: 100%;
-  min-height: 44rpx;
-  margin: 0 0 18rpx;
-  padding: 0 12rpx;
+  min-height: 36rpx;
+  margin: 14rpx 0 0;
+  padding: 0 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 8rpx;
   box-sizing: border-box;
 }
@@ -290,6 +291,7 @@
   font-size: 22rpx;
   line-height: 1.35;
   color: rgba(226, 232, 240, 0.68);
+  white-space: normal;
 }
 
 .privacy-link {

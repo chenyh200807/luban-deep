@@ -59,13 +59,6 @@
 
       <!-- 正常登录 UI -->
       <view wx:else>
-        <view class="privacy-consent-row" bindtap="handlePrivacyCheckboxTap" aria-role="checkbox" aria-label="同意用户隐私保护指引">
-          <view class="privacy-checkbox {{privacyChecked ? 'checked' : ''}}">
-            <text class="privacy-checkmark" wx:if="{{privacyChecked}}">✓</text>
-          </view>
-          <text class="privacy-copy">我已阅读并同意</text>
-          <text class="privacy-link" catchtap="openPrivacyGuide">{{privacyContractName}}</text>
-        </view>
         <view class="btn-wechat-stack">
           <!-- 微信登录走 plain wx.login（与 yousenwebview canonical 一致）；
                显式手机号绑定改由 register 流程的 getPhoneNumber 承载 -->
@@ -86,6 +79,13 @@
           >
             <text class="btn-wechat-primary-txt">快速登录</text>
           </button>
+        </view>
+        <view class="privacy-consent-row" bindtap="handlePrivacyCheckboxTap" aria-role="checkbox" aria-label="同意用户隐私保护指引">
+          <view class="privacy-checkbox {{privacyChecked ? 'checked' : ''}}">
+            <text class="privacy-checkmark" wx:if="{{privacyChecked}}">✓</text>
+          </view>
+          <text class="privacy-copy">我已阅读并同意</text>
+          <text class="privacy-link" catchtap="openPrivacyGuide">{{privacyContractName}}</text>
         </view>
         <view class="link-row">
           <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
