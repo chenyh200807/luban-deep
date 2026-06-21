@@ -22,7 +22,22 @@ assert.strictEqual(
 );
 
 var vm = require(yousenVmPath);
-var model = vm.buildLearningHomeViewModel({
+
+function trustedHomeProjection(payload) {
+  return Object.assign(
+    {
+      home_projection: {
+        source_status: {
+          home_projection_contract: "canonical_taxonomy_v1",
+          topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+        },
+      },
+    },
+    payload,
+  );
+}
+
+var model = vm.buildLearningHomeViewModel(trustedHomeProjection({
   review: { overdue: 0, due_today: 1 },
   today: { hint: "按当前状态推进建筑实务" },
   recommended_prompts: [
@@ -32,33 +47,33 @@ var model = vm.buildLearningHomeViewModel({
       intent: { source: "home_dashboard", learning_signal_type: "home_prompt_clicked" },
     },
   ],
-});
+}));
 assert.strictEqual(model.focusTitle, "按当前状态推进建筑实务");
 assert.strictEqual(model.recommendedPrompts[0].text, "练 3 道主体结构题");
 assert.strictEqual(model.focusQuery, "");
 assert.strictEqual(model.focusActionType, "");
 
-var assessmentModel = vm.buildLearningHomeViewModel({
+var assessmentModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
   today_focus: { title: "一题，给系统第一份学习证据" },
   recommended_prompts: [
     { text: "先做一次模拟测评", prompt_type: "discovery_probe" },
   ],
-});
+}));
 assert.strictEqual(assessmentModel.focusActionType, "assessment");
 assert.strictEqual(assessmentModel.focusTitle, "先做 1 题摸底");
 assert.strictEqual(assessmentModel.focusMeta, "生成学情基线");
 assert.strictEqual(assessmentModel.focusQuery, "");
 assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
 
-var assessmentLessonModel = vm.buildLearningHomeViewModel({
+var assessmentLessonModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
   recommended_prompts: [
     { text: "讲一下阶段测评后应该怎么复盘", prompt_type: "concept_explain" },
   ],
-});
+}));
 assert.strictEqual(assessmentLessonModel.focusActionType, "");
 assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
-var legacyThreePromptModel = vm.buildLearningHomeViewModel({
+var legacyThreePromptModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
   recommended_prompts: [
     {
       text: "用 3 道题训练项目质量计划管理",
@@ -76,7 +91,7 @@ var legacyThreePromptModel = vm.buildLearningHomeViewModel({
       intent: { concept_label: "项目质量计划管理" },
     },
   ],
-});
+}));
 assert.deepStrictEqual(
   legacyThreePromptModel.recommendedPrompts.map(function (item) { return item.promptType; }),
   [
@@ -90,7 +105,7 @@ assert.deepStrictEqual(
   ["专项训练", "错题复盘", "关键判断"],
 );
 
-var sixPromptModel = vm.buildLearningHomeViewModel({
+var sixPromptModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
   recommended_prompts: [
     { text: "用 3 道题训练项目质量计划管理", prompt_type: "practice_prompt" },
     { text: "复盘项目质量计划管理里的错因", prompt_type: "mistake_review" },
@@ -100,7 +115,7 @@ var sixPromptModel = vm.buildLearningHomeViewModel({
     { text: "用 1 个小问题验证项目质量计划管理是否真会了", prompt_type: "quick_check" },
     { text: "第七条不应该展示", prompt_type: "learning_prompt" },
   ],
-});
+}));
 assert.strictEqual(sixPromptModel.recommendedPrompts.length, 6);
 assert.deepStrictEqual(
   sixPromptModel.recommendedPrompts.map(function (item) { return item.displayTitle; }),
