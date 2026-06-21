@@ -11269,3 +11269,38 @@ def test_volatile_question_context_cache_is_bounded(tmp_path) -> None:
     runtime._set_volatile_question_context(f"session-{cap + 6}", {"question_id": "fresh"})
     assert len(contexts) == cap
     assert contexts[f"session-{cap + 6}"] == {"question_id": "fresh"}
+
+
+def test_turn_start_preserves_batch_set_for_numbered_single_answer() -> None:
+    """[turn domain] SEV-1 root chokepoint (E8, 2026-06-21): batch question-set
+    object-continuity. A numbered single answer to one item of a batch must be resolved
+    against the FULL set at turn-start (`_submission_action_for_user_message`), not the
+    narrowed single item — collapsing the set here (before any capability runs) makes a
+    later "第1题" bind to a 1-item set and grade the wrong question.
+    """
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    batch_ctx = {
+        "question_id": "set-1",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q1", "question": "Q1", "question_type": "single_choice",
+             "options": {"A": "a1", "B": "b1", "C": "c1", "D": "d1"}, "correct_answer": "D"},
+            {"question_id": "q2", "question": "Q2", "question_type": "single_choice",
+             "options": {"A": "a2", "B": "b2", "C": "c2", "D": "d2"}, "correct_answer": "B"},
+            {"question_id": "q3", "question": "Q3", "question_type": "single_choice",
+             "options": {"A": "a3", "B": "b3", "C": "c3", "D": "d3"}, "correct_answer": "C"},
+        ],
+    }
+    ctx, action = _submission_action_for_user_message("第2题我选B", batch_ctx)
+    assert ctx is not None and len(ctx.get("items") or []) == 3, "batch set collapsed at turn-start"
+    assert action is not None
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+    # negative guard: single-question context is untouched (no batch index/preserve)
+    single_ctx = {"question_id": "solo", "question": "s", "question_type": "single_choice",
+                  "options": {"A": "a", "B": "b"}, "correct_answer": "B"}
+    _c, single_action = _submission_action_for_user_message("我选B", single_ctx)
+    assert single_action is not None and single_action["answers"] == [{"question_id": "solo", "answer": "B"}]
+    assert "preserve_other_answers" not in single_action

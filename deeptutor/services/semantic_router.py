@@ -737,6 +737,22 @@ async def resolve_question_semantic_routing(
             )
 
     llm_action: dict[str, Any] | None = followup_action
+    # Stage C activation (2026-06-21): the cached followup action is resolved upstream
+    # (turn_runtime) BEFORE conversation history is built, so it only ever sees the
+    # active question set — it cannot detect that an EXPLANATION turn references a
+    # DIFFERENT historical question ("最开始做错的那道"/"刚才第3题"). Here, where the
+    # canonical conversation_context_text IS available, drop a cached NON-submission
+    # action so the history-aware classifier below re-resolves and can upgrade to
+    # ask_other_question (→ switch_to_new_object → context-continuous main LLM).
+    # Submission/grading and practice-generation actions keep their deterministic cache
+    # and are NEVER re-routed to the main LLM (structured grading authority is preserved).
+    if (
+        question_context is not None
+        and isinstance(llm_action, dict)
+        and history_context.strip()
+        and followup_action_route(llm_action) not in {"submission", "practice_generation"}
+    ):
+        llm_action = None
     if question_context is not None and llm_action is None:
         llm_action = await interpret_followup_action(user_message, question_context)
 
@@ -855,6 +871,23 @@ def _decision_from_followup_action(
     route = followup_action_route(action)
     confidence = _normalize_confidence(action.get("confidence"), default=0.0)
     reason = str(action.get("reason") or "").strip()
+    if str(action.get("intent") or "").strip() == "ask_other_question":
+        # The learner references a question that is NOT the current active object
+        # (by ordinal/position/attribute — "最开始做错的那道"/"第3题"超出当前题组).
+        # This is an explanation request about a DIFFERENT object the runtime cannot
+        # pin to a structured active object → emit the unresolved-switch signature so
+        # the turn routes to the context-continuous main LLM (which has the question in
+        # conversation_context_text) instead of binding to / fabricating a followup on
+        # the stale active object. NOT a grading/submission route (those stay structured).
+        return build_turn_semantic_decision(
+            relation_to_active_object="switch_to_new_object",
+            next_action="route_to_followup_explainer",
+            allowed_patch="no_state_change",
+            confidence=confidence or 0.9,
+            reason=reason
+            or "用户回指对话历史里非当前 active 的另一道题（序数/位置/属性），需落上下文连续主 LLM 从历史定位讲解。",
+            active_object=active_object,
+        )
     if route == "submission":
         relation: SemanticRelation = (
             "revise_answer_on_active_object"

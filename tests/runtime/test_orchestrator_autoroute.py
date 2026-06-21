@@ -2828,3 +2828,92 @@ async def test_question_review_no_active_supplies_canonical_decision_matching_fa
 
     # deep_question now reads the canonical decision → no fabrication, no observation flag
     assert DeepQuestionCapability._canonical_turn_decision_missing(context.metadata) is False
+
+
+def _batch_three_question_active_object() -> dict[str, Any]:
+    """A batch question_set with 3 distinct MCQ items (E8 repro shape)."""
+    items = [
+        {
+            "question_id": "qb-1",
+            "question": "屋面防水施工基本要求正确的是（  ）。",
+            "question_type": "choice",
+            "options": {"A": "以排为主", "B": "结构找坡2%", "C": "找坡层15mm", "D": "设计年限20年"},
+            "correct_answer": "D",
+        },
+        {
+            "question_id": "qb-2",
+            "question": "材料找坡时找坡层最薄处厚度不宜小于（ ）mm。",
+            "question_type": "choice",
+            "options": {"A": "10", "B": "15", "C": "20", "D": "25"},
+            "correct_answer": "C",
+        },
+        {
+            "question_id": "qb-3",
+            "question": "结构找坡时屋面坡度不应小于（ ）。",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "C",
+        },
+    ]
+    snapshot = {"question_type": "choice", "items": items}
+    return {
+        "object_type": "question_set",
+        "state_snapshot": snapshot,
+    }
+
+
+def test_prepare_submission_keeps_batch_set_after_numbered_single_grade() -> None:
+    """SEV-1 regression (E8, 2026-06-21): grading one numbered item of a batch must
+    NOT collapse the active set to that single item.
+
+    Production: 出三道题 → 「第2题我选B」判分后 active set 塌成单题 [Q2] →
+    后续「第1题我选A」按塌缩集 items[0]=Q2 判分 → 把第1题判成了第2题（判错题）。
+    The batch set (Q1/Q2/Q3) must survive so a later 「第1题」 resolves to Q1.
+    """
+    orchestrator = ChatOrchestrator()
+    context = UnifiedContext(
+        session_id="s-batch-continuity",
+        user_message="第2题我选B",
+        config_overrides={},
+        metadata={"active_object": _batch_three_question_active_object()},
+        language="zh",
+    )
+
+    orchestrator._prepare_question_submission_context(context, action=None)
+
+    qfc = context.metadata.get("question_followup_context") or {}
+    items = qfc.get("items") or []
+    assert len(items) == 3, f"batch set collapsed to {len(items)} item(s) — Q1/Q3 lost"
+    # The graded item (#2) carries the user answer; the others stay unanswered.
+    assert str(items[1].get("user_answer") or "").upper() == "B"
+    assert not str(items[0].get("user_answer") or "").strip()
+    assert not str(items[2].get("user_answer") or "").strip()
+
+    # The active object must remain a 3-item set so a later 「第1题」 resolves to Q1.
+    active_items = (
+        (context.metadata.get("active_object") or {}).get("state_snapshot") or {}
+    ).get("items") or []
+    assert len(active_items) == 3
+
+
+def test_prepare_submission_uses_shared_batch_continuity_helper() -> None:
+    """[capability domain] The orchestrator's numbered-single-in-batch grading prep is
+    consolidated onto the single shared chokepoint
+    `question_followup.batch_answer_action_for_numbered_single` (same authority as the
+    turn-start fix), so tutorbot and deep_question grading paths preserve the batch set
+    identically. Negative guard: single-question context returns None (untouched).
+    """
+    from deeptutor.services.question_followup import batch_answer_action_for_numbered_single
+
+    sub = {"kind": "single", "answer": "B", "question_id": "q2", "index": 2}
+    batch_ctx = {"items": [{"question_id": "q1"}, {"question_id": "q2"}, {"question_id": "q3"}]}
+    action = batch_answer_action_for_numbered_single(sub, batch_ctx)
+    assert action is not None
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+    # single-question context (len<=1) → None → orchestrator keeps its existing path
+    assert batch_answer_action_for_numbered_single(
+        {"kind": "single", "answer": "B", "question_id": "q", "index": 1},
+        {"items": [{"question_id": "q"}]},
+    ) is None
