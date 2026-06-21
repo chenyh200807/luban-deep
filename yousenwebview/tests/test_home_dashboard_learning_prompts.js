@@ -40,10 +40,21 @@ function trustedHomeProjection(payload) {
   };
 }
 
+var TOPIC_CODES = {
+  主体结构工程施工: "1A413040",
+  项目质量计划管理: "1A434",
+  防水工程: "1A413000-C24",
+  屋面与防水工程施工: "1A413050",
+};
+
 function canonicalIntent(topic) {
   return {
     source: "learner_state.home_personalization",
     concept_label: topic,
+    taxonomy_code: TOPIC_CODES[topic] || "",
+    taxonomy_id: TOPIC_CODES[topic] || "",
+    topic_source: TOPIC_CODES[topic] ? "taxonomy_label" : "",
+    topic_confidence: TOPIC_CODES[topic] ? "high" : "",
   };
 }
 
@@ -137,6 +148,79 @@ assert.strictEqual(badFocusWithGoodPromptModel.focusTitle, "");
 assert.strictEqual(badFocusWithGoodPromptModel.focusQuery, "");
 assert.strictEqual(badFocusWithGoodPromptModel.focusActionType, "");
 assert.strictEqual(badFocusWithGoodPromptModel.recommendedPrompts.length, 1);
+
+var markedFreeTextProjectionModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
+  today_focus: {
+    title: "今日焦点：出三道屋面防水的",
+    prompt: "用 3 道题训练出三道屋面防水的",
+    intent: canonicalIntent("出三道屋面防水的"),
+  },
+  recommended_prompts: [
+    canonicalPrompt("用 3 道题训练出三道屋面防水的", "practice_prompt", "出三道屋面防水的"),
+  ],
+}));
+assert.strictEqual(markedFreeTextProjectionModel.focusTitle, "");
+assert.strictEqual(markedFreeTextProjectionModel.focusQuery, "");
+assert.strictEqual(markedFreeTextProjectionModel.focusActionType, "");
+assert.strictEqual(markedFreeTextProjectionModel.recommendedPrompts.length, 0);
+assert.strictEqual(vm.isTrustedHomeDashboardPayload(trustedHomeProjection({
+  today_focus: {
+    title: "今日焦点：出三道屋面防水的",
+    prompt: "用 3 道题训练出三道屋面防水的",
+    intent: canonicalIntent("出三道屋面防水的"),
+  },
+  recommended_prompts: [
+    canonicalPrompt("用 3 道题训练出三道屋面防水的", "practice_prompt", "出三道屋面防水的"),
+  ],
+})), false);
+
+var forgedCodeFreeTextIntent = Object.assign(canonicalIntent("出三道屋面防水的"), {
+  taxonomy_code: "1A413050",
+  taxonomy_id: "1A413050",
+  topic_source: "taxonomy_label",
+  topic_confidence: "high",
+});
+var forgedCodeFreeTextModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
+  today_focus: {
+    title: "今日焦点：出三道屋面防水的",
+    prompt: "用 3 道题训练出三道屋面防水的",
+    intent: forgedCodeFreeTextIntent,
+  },
+  recommended_prompts: [
+    {
+      text: "用 3 道题训练出三道屋面防水的",
+      prompt_type: "practice_prompt",
+      intent: forgedCodeFreeTextIntent,
+    },
+  ],
+}));
+assert.strictEqual(forgedCodeFreeTextModel.focusTitle, "");
+assert.strictEqual(forgedCodeFreeTextModel.recommendedPrompts.length, 0);
+
+["今日推进", "直接练题才能把"].forEach(function (badTopic) {
+  var badIntent = Object.assign(canonicalIntent(badTopic), {
+    taxonomy_code: "1A413050",
+    taxonomy_id: "1A413050",
+    topic_source: "taxonomy_label",
+    topic_confidence: "high",
+  });
+  var badModel = vm.buildLearningHomeViewModel(trustedHomeProjection({
+    today_focus: {
+      title: "今日焦点：" + badTopic,
+      prompt: "用 3 道题训练" + badTopic,
+      intent: badIntent,
+    },
+    recommended_prompts: [
+      {
+        text: "用 3 道题训练" + badTopic,
+        prompt_type: "practice_prompt",
+        intent: badIntent,
+      },
+    ],
+  }));
+  assert.strictEqual(badModel.focusTitle, "");
+  assert.strictEqual(badModel.recommendedPrompts.length, 0);
+});
 
 var stringFallbackModel = vm.buildLearningHomeViewModel({
   home_projection: {
