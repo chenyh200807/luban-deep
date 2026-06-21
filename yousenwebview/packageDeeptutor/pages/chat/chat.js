@@ -129,10 +129,11 @@ function buildFocusDisplayTitle(focus, title) {
     .replace(/^今日焦点[:：]\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
+  if (!text) return "";
   if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text)) return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
   if (text && text !== "保持节奏，继续推进" && text !== "按当前状态推进建筑实务") return text;
-  return "今日推进";
+  return "";
 }
 
 function buildFocusDisplayMeta(focus, meta) {
@@ -571,9 +572,9 @@ Page({
         userName: "同学",
         avatarChar: "L",
         focusTone: "plan",
-        focusTitle: "先看看鲁班智考能怎么帮你提分",
-        focusMeta: "发送真实问题时再登录，付费能力会在动作前提示",
-        focusText: "先看看鲁班智考能怎么帮你提分",
+        focusTitle: "",
+        focusMeta: "",
+        focusText: "",
         focusQuery: "",
         focusActionType: "",
         focusPromptIntent: null,
@@ -2047,12 +2048,12 @@ Page({
       .catch(function (err) {
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
         if (cachedDashboard) return;
-        // 降级：仍显示默认焦点条
+        // No trusted canonical focus: keep only static examples.
         self.setData({
           focusTone: "plan",
-          focusTitle: "今日推进",
+          focusTitle: "",
           focusMeta: "",
-          focusText: "今日推进",
+          focusText: "",
           focusPromptIntent: null,
           focusActionType: "",
           recommendedPrompts: [],

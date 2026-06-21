@@ -18,14 +18,6 @@ var HOME_PROJECTION_CONTRACT = "canonical_taxonomy_v1";
 var HOME_PROJECTION_TOPIC_AUTHORITY =
   "learner_state.home_personalization.canonical_taxonomy";
 
-function homeProjectionSourceStatus(body) {
-  return asObject(
-    body.source_status ||
-      asObject(body.home_projection).source_status ||
-      asObject(body.projection).source_status,
-  );
-}
-
 function hasHomeProjectionSurface(body) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return false;
   return Boolean(
@@ -37,14 +29,42 @@ function hasHomeProjectionSurface(body) {
   );
 }
 
+function hasHomeProjectionContent(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+  return Boolean(body.today_focus || body.recommended_prompts || asObject(body.today).focus);
+}
+
+function hasCanonicalHomeProjectionStatus(body) {
+  var sourceStatus = asObject(asObject(body).source_status);
+  return (
+    sourceStatus.home_projection_contract === HOME_PROJECTION_CONTRACT &&
+    sourceStatus.topic_authority === HOME_PROJECTION_TOPIC_AUTHORITY &&
+    (sourceStatus.fallback_used === undefined || sourceStatus.fallback_used === false)
+  );
+}
+
+function canonicalHomeProjectionBody(dashboard) {
+  var body = asObject(dashboard);
+  var homeProjection = asObject(body.home_projection);
+  if (
+    hasHomeProjectionContent(homeProjection) &&
+    hasCanonicalHomeProjectionStatus(homeProjection)
+  )
+    return homeProjection;
+  var projection = asObject(body.projection);
+  if (
+    hasHomeProjectionContent(projection) &&
+    hasCanonicalHomeProjectionStatus(projection)
+  )
+    return projection;
+  if (hasCanonicalHomeProjectionStatus(body)) return body;
+  return {};
+}
+
 function isTrustedHomeDashboardPayload(dashboard) {
   var body = asObject(dashboard);
   if (!hasHomeProjectionSurface(body)) return true;
-  var sourceStatus = homeProjectionSourceStatus(body);
-  return (
-    sourceStatus.home_projection_contract === HOME_PROJECTION_CONTRACT &&
-    sourceStatus.topic_authority === HOME_PROJECTION_TOPIC_AUTHORITY
-  );
+  return hasHomeProjectionContent(canonicalHomeProjectionBody(body));
 }
 
 function isStarterFocusTitle(value) {
@@ -159,6 +179,26 @@ function getPromptTopic(source, text) {
   return compactText(intent.concept_label || source.concept_label);
 }
 
+function isCanonicalPromptTextForTopic(promptType, text, topic) {
+  if (!text || !topic) return false;
+  if (promptType === "practice_prompt" || promptType === "learning_prompt")
+    return text === "用 3 道题训练" + topic;
+  if (promptType === "concept_explain")
+    return text === "讲清楚" + topic + "的关键判断";
+  if (promptType === "exam_transfer")
+    return text === "用一道真题场景理解" + topic;
+  if (promptType === "knowledge_map")
+    return text === "梳理" + topic + "的高频考点";
+  if (promptType === "quick_check")
+    return text === "用 1 个小问题验证" + topic + "是否真会了";
+  if (promptType === "assessment") return text === "再测一次" + topic;
+  if (promptType === "mistake_review") {
+    var prefix = "复盘" + topic + "里的";
+    return text.indexOf(prefix) === 0 && Boolean(compactText(text.slice(prefix.length)));
+  }
+  return false;
+}
+
 function normalizePrompt(item, index) {
   var source = asObject(item);
   var text = compactText(
@@ -169,8 +209,10 @@ function normalizePrompt(item, index) {
   var promptType = compactText(
     source.prompt_type || source.type || "learning_prompt",
   );
+  var topic = getPromptTopic(source, text);
+  if (!isCanonicalPromptTextForTopic(promptType, text, topic)) return null;
   var visual = getPromptVisual(promptType, index);
-  var displayDesc = getPromptTopic(source, text) || "学情推荐";
+  var displayDesc = topic;
   return {
     key: compactText(source.key || promptType + "-" + index),
     text: text,
@@ -194,10 +236,9 @@ function normalizePrompt(item, index) {
 
 function buildLearningHomeViewModel(dashboard) {
   var body = asObject(dashboard);
-  if (hasHomeProjectionSurface(body) && !isTrustedHomeDashboardPayload(body)) {
-    body = {};
-  }
-  var review = asObject(body.review);
+  var rootBody = body;
+  if (hasHomeProjectionSurface(body)) body = canonicalHomeProjectionBody(body);
+  var review = asObject(rootBody.review);
   var today = asObject(body.today);
   var focus = asObject(body.today_focus || today.focus);
   var rawPrompts = asList(body.recommended_prompts);
@@ -205,11 +246,18 @@ function buildLearningHomeViewModel(dashboard) {
   var assessmentAction = rawPrompts.some(function (item) {
     return isAssessmentPrompt(item);
   });
-  var rawFocusTitle = compactText(focus.title || today.hint || "今日推进");
+  var rawFocusTitle = compactText(focus.title || today.hint || "");
   var focusTitle = normalizeFocusTitle(rawFocusTitle, assessmentAction);
+  var firstPrompt = prompts[0] || null;
+  var focusPrompt = compactText(focus.query || focus.prompt);
+  var focusMatchesFirstPrompt =
+    firstPrompt && focusPrompt && focusPrompt === firstPrompt.text;
+  if (!assessmentAction && !focusMatchesFirstPrompt) focusTitle = "";
   var focusQuery = assessmentAction
     ? ""
-    : compactText(focus.query || focus.prompt);
+    : focusMatchesFirstPrompt
+      ? focusPrompt
+      : "";
   return {
     reviewCount: Number(review.overdue || 0) + Number(review.due_today || 0),
     focusLabel: compactText(focus.label || "今日焦点"),
@@ -227,7 +275,7 @@ function buildLearningHomeViewModel(dashboard) {
       : focusQuery
         ? "prompt"
         : "",
-    focusPromptIntent: asObject(focus.prompt_intent || focus.intent),
+    focusPromptIntent: focusMatchesFirstPrompt ? firstPrompt.promptIntent : {},
     recommendedPrompts: prompts,
   };
 }

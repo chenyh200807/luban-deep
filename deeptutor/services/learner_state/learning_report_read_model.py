@@ -19,6 +19,9 @@ from deeptutor.services.learner_state.learning_brain_read_model import (
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
+from deeptutor.services.learner_state.home_personalization import (
+    is_canonical_home_personalization_projection,
+)
 from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
 from deeptutor.services.learner_state.next_best_action import build_next_best_actions
 from deeptutor.services.learner_state.personalization_context import (
@@ -824,7 +827,13 @@ def _learning_report_v2(
     overview = _safe_dict(payload.get("overview"))
     mastery = _safe_dict(payload.get("mastery"))
     home_dashboard = _safe_dict(_safe_dict(payload.get("legacy_compat")).get("home_dashboard"))
-    home_prompts = _safe_list(home_dashboard.get("recommended_prompts"))
+    home_projection = _safe_dict(home_dashboard.get("home_projection") or home_dashboard.get("projection"))
+    if is_canonical_home_personalization_projection(home_projection):
+        home_source_status = _safe_dict(home_projection.get("source_status"))
+        home_prompts = _safe_list(home_projection.get("recommended_prompts"))
+    else:
+        home_source_status = {}
+        home_prompts = []
     summary = _safe_dict(learner_facing.get("summary"))
     primary_focus = (
         str(next_action.get("concept") or "").strip()
@@ -863,7 +872,7 @@ def _learning_report_v2(
         "focus_ref": "home_dashboard.today_focus",
         "recommended_prompt_count": len(home_prompts),
         "latest_conversation_signal": "",
-        "source_status": _safe_dict(home_dashboard.get("source_status")),
+        "source_status": home_source_status,
     }
     payload["today_prescription"] = _today_prescription_v2(
         training_prescription=_safe_dict(payload.get("training_prescription")),

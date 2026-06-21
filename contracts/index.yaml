@@ -493,6 +493,7 @@ domains:
       - tests/services/learner_state/heartbeat/test_scheduler.py
       - tests/services/learner_state/heartbeat/test_arbitration.py
       # Member console service participates in learner/member authority gates.
+      - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_admin_store.py

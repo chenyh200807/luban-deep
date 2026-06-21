@@ -114,6 +114,7 @@ function buildFocusDisplayTitle(focus, title) {
     .replace(/^今日焦点[:：]\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
+  if (!text) return "";
   if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text))
     return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
@@ -123,7 +124,7 @@ function buildFocusDisplayTitle(focus, title) {
     text !== "按当前状态推进建筑实务"
   )
     return text;
-  return "今日推进";
+  return "";
 }
 
 function buildFocusDisplayMeta(focus, meta) {
@@ -1812,12 +1813,12 @@ Page({
         if (self._destroyed) return;
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
         if (cachedDashboard) return;
-        // 降级：仍显示默认焦点条
+        // No trusted canonical focus: keep only static examples.
         self.setData({
           focusTone: "plan",
-          focusTitle: "今日推进",
+          focusTitle: "",
           focusMeta: "",
-          focusText: "今日推进",
+          focusText: "",
           focusPromptIntent: null,
           focusActionType: "",
           recommendedPrompts: [],

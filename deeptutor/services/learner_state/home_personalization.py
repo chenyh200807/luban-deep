@@ -61,16 +61,7 @@ def build_home_dashboard_learning_projection(
 
 
 def _is_fresh_projection(projection: dict[str, Any] | None, *, now: datetime) -> bool:
-    if not isinstance(projection, dict):
-        return False
-    if not _valid_focus(projection.get("today_focus")):
-        return False
-    if not _valid_prompts(projection.get("recommended_prompts")):
-        return False
-    if not _valid_focus_prompt_link(
-        projection.get("today_focus"),
-        projection.get("recommended_prompts"),
-    ):
+    if not is_canonical_home_personalization_projection(projection):
         return False
     generated_at = _parse_time(str(projection.get("generated_at") or ""))
     if generated_at is None:
@@ -181,21 +172,20 @@ def write_home_personalization_projection(
 ) -> bool:
     if not isinstance(projection, dict):
         return False
-    if not _valid_focus(projection.get("today_focus")) or not _valid_prompts(
-        projection.get("recommended_prompts")
-    ):
-        return False
-    if not _valid_focus_prompt_link(projection.get("today_focus"), projection.get("recommended_prompts")):
+    normalized_projection = _normalize_projection(projection)
+    if not is_canonical_home_personalization_projection(normalized_projection):
         return False
     merger = getattr(learner_state_service, "merge_progress", None)
     if not callable(merger):
         return False
-    merger(str(user_id or "").strip(), {"home_personalization": projection})
+    merger(str(user_id or "").strip(), {"home_personalization": normalized_projection})
     return True
 
 
 def _normalize_projection(projection: dict[str, Any] | None) -> dict[str, Any]:
     payload = deepcopy(projection or {})
+    if not _has_canonical_projection_source_status(payload.get("source_status")):
+        return {}
     upgraded = _upgrade_legacy_home_projection(payload)
     if upgraded is not None:
         payload = upgraded
@@ -467,13 +457,11 @@ def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, 
     focus["prompt"] = prompts[0]["text"]
     focus["intent"] = prompts[0]["intent"]
     return {
-        "source_status": _canonical_projection_source_status(
-            {
-                "fallback_used": True,
-                "fallback_reason": fallback_reason,
-                "learning_report": "stale",
-            }
-        ),
+        "source_status": {
+            "fallback_used": True,
+            "fallback_reason": fallback_reason,
+            "learning_report": "stale",
+        },
         "today_focus": focus,
         "recommended_prompts": prompts,
     }
@@ -581,6 +569,27 @@ def _canonical_projection_source_status(value: dict[str, Any] | None = None) -> 
     source_status["home_projection_contract"] = _HOME_PROJECTION_CONTRACT
     source_status["topic_authority"] = _HOME_PROJECTION_TOPIC_AUTHORITY
     return source_status
+
+
+def _has_canonical_projection_source_status(value: Any) -> bool:
+    source_status = value if isinstance(value, dict) else {}
+    return (
+        source_status.get("home_projection_contract") == _HOME_PROJECTION_CONTRACT
+        and source_status.get("topic_authority") == _HOME_PROJECTION_TOPIC_AUTHORITY
+    )
+
+
+def is_canonical_home_personalization_projection(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    source_status = value.get("source_status") if isinstance(value.get("source_status"), dict) else {}
+    if not _has_canonical_projection_source_status(source_status):
+        return False
+    if source_status.get("fallback_used") is not False:
+        return False
+    if not _valid_focus(value.get("today_focus")) or not _valid_prompts(value.get("recommended_prompts")):
+        return False
+    return _valid_focus_prompt_link(value.get("today_focus"), value.get("recommended_prompts"))
 
 
 def _assessment_retest_prompt(*, text: str, intent: dict[str, Any]) -> dict[str, Any]:
@@ -700,6 +709,7 @@ __all__ = [
     "build_home_dashboard_learning_projection",
     "build_home_personalization_projection_from_learning_signal",
     "canonical_home_focus_topic_label",
+    "is_canonical_home_personalization_projection",
     "normalize_home_focus_topic_label",
     "write_home_personalization_projection",
 ]
