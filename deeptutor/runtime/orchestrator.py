@@ -25,6 +25,7 @@ from deeptutor.runtime.registry.capability_registry import get_capability_regist
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
+    batch_answer_action_for_numbered_single,
     detect_answer_reveal_preference,
     detect_requested_question_type,
     followup_action_route,
@@ -837,22 +838,33 @@ class ChatOrchestrator:
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
         if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
-        fallback_action = {
-            "intent": "answer_questions",
-            "answers": (
-                submission.get("answers")
-                if submission.get("kind") == "batch"
-                else [
-                    {
-                        "index": 1,
-                        "question_id": str(target_context.get("question_id") or "").strip(),
-                        "user_answer": str(submission.get("answer") or "").strip(),
-                    }
-                ]
-            ),
-            "preserve_other_answers": False,
-        }
-        fallback_context = apply_followup_action_to_context(target_context, fallback_action)
+        # object-continuity (E8 SEV-1, 2026-06-21): grade a numbered single submission
+        # WITHIN the full batch set so the other questions survive (single chokepoint =
+        # `batch_answer_action_for_numbered_single`; the primary fix is at turn-start in
+        # turn_runtime, this is the deep_question-path defense-in-depth on the same helper).
+        # Returns None for single-question contexts / out-of-range → keep existing path.
+        batch_action = batch_answer_action_for_numbered_single(submission, qctx)
+        if batch_action is not None:
+            grade_target = qctx
+            fallback_action = batch_action
+        else:
+            grade_target = target_context
+            fallback_action = {
+                "intent": "answer_questions",
+                "answers": (
+                    submission.get("answers")
+                    if submission.get("kind") == "batch"
+                    else [
+                        {
+                            "index": 1,
+                            "question_id": str(target_context.get("question_id") or "").strip(),
+                            "user_answer": str(submission.get("answer") or "").strip(),
+                        }
+                    ]
+                ),
+                "preserve_other_answers": False,
+            }
+        fallback_context = apply_followup_action_to_context(grade_target, fallback_action)
         if fallback_context:
             context.metadata["question_followup_context"] = fallback_context
             active_object = build_active_object_from_question_context(

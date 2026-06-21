@@ -14,6 +14,39 @@ function compactText(value) {
     .trim();
 }
 
+var HOME_PROJECTION_CONTRACT = "canonical_taxonomy_v1";
+var HOME_PROJECTION_TOPIC_AUTHORITY =
+  "learner_state.home_personalization.canonical_taxonomy";
+
+function homeProjectionSourceStatus(body) {
+  return asObject(
+    body.source_status ||
+      asObject(body.home_projection).source_status ||
+      asObject(body.projection).source_status,
+  );
+}
+
+function hasHomeProjectionSurface(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return false;
+  return Boolean(
+    body.home_projection ||
+      body.projection ||
+      body.today_focus ||
+      body.recommended_prompts ||
+      asObject(body.today).focus,
+  );
+}
+
+function isTrustedHomeDashboardPayload(dashboard) {
+  var body = asObject(dashboard);
+  if (!hasHomeProjectionSurface(body)) return true;
+  var sourceStatus = homeProjectionSourceStatus(body);
+  return (
+    sourceStatus.home_projection_contract === HOME_PROJECTION_CONTRACT &&
+    sourceStatus.topic_authority === HOME_PROJECTION_TOPIC_AUTHORITY
+  );
+}
+
 function isStarterFocusTitle(value) {
   var text = compactText(value);
   return /第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text);
@@ -161,6 +194,9 @@ function normalizePrompt(item, index) {
 
 function buildLearningHomeViewModel(dashboard) {
   var body = asObject(dashboard);
+  if (hasHomeProjectionSurface(body) && !isTrustedHomeDashboardPayload(body)) {
+    body = {};
+  }
   var review = asObject(body.review);
   var today = asObject(body.today);
   var focus = asObject(body.today_focus || today.focus);
@@ -198,4 +234,5 @@ function buildLearningHomeViewModel(dashboard) {
 
 module.exports = {
   buildLearningHomeViewModel: buildLearningHomeViewModel,
+  isTrustedHomeDashboardPayload: isTrustedHomeDashboardPayload,
 };

@@ -16,6 +16,12 @@ var wsSourcePath = path.join(__dirname, "../utils/ws-stream.js");
 var wxVm = require(wxVmPath);
 var yousenVm = require(yousenVmPath);
 var dashboard = {
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
   review: { overdue: 1, due_today: 2 },
   today_focus: {
     label: "今日焦点",
@@ -56,6 +62,12 @@ assert.strictEqual(model.recommendedPrompts[0].learningStateRef, "knowledge:1A43
 assert.strictEqual(model.recommendedPrompts[0].suggestedMode, "deep");
 
 var assessmentModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
   today_focus: {
     label: "今日焦点",
     title: "一题，给系统第一份学习证据",
@@ -75,6 +87,12 @@ assert.strictEqual(assessmentModel.focusQuery, "");
 assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
 
 var assessmentLessonModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
   recommended_prompts: [
     {
       text: "讲一下阶段测评后应该怎么复盘",
@@ -96,7 +114,53 @@ var promptOnlyModel = wxVm.buildLearningHomeViewModel({
 });
 assert.strictEqual(promptOnlyModel.focusQuery, "");
 assert.strictEqual(promptOnlyModel.focusActionType, "");
-assert.strictEqual(promptOnlyModel.recommendedPrompts.length, 1);
+assert.strictEqual(promptOnlyModel.recommendedPrompts.length, 0);
+
+var untrustedProjectionModel = wxVm.buildLearningHomeViewModel({
+  today_focus: {
+    label: "今日焦点",
+    title: "今日焦点：直接练题才能把",
+    meta: "来自 learner_state.home_personalization",
+    prompt: "用 3 道题训练直接练题才能把",
+    intent: { source: "learner_state.home_personalization", concept_label: "直接练题才能把" },
+  },
+  recommended_prompts: [
+    {
+      text: "用 3 道题训练直接练题才能把",
+      prompt_type: "practice_prompt",
+      intent: { source: "learner_state.home_personalization", concept_label: "直接练题才能把" },
+    },
+  ],
+});
+assert.strictEqual(untrustedProjectionModel.focusTitle, "今日推进");
+assert.strictEqual(untrustedProjectionModel.focusQuery, "");
+assert.strictEqual(untrustedProjectionModel.focusActionType, "");
+assert.strictEqual(untrustedProjectionModel.recommendedPrompts.length, 0);
+
+var trustedProjectionModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
+  today_focus: {
+    label: "今日焦点",
+    title: "今日焦点：主体结构工程施工",
+    meta: "来自 learner_state.home_personalization",
+    prompt: "用 3 道题训练主体结构工程施工",
+    intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+  },
+  recommended_prompts: [
+    {
+      text: "用 3 道题训练主体结构工程施工",
+      prompt_type: "practice_prompt",
+      intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
+    },
+  ],
+});
+assert.strictEqual(trustedProjectionModel.focusTitle, "主体结构工程施工");
+assert.strictEqual(trustedProjectionModel.recommendedPrompts[0].displayDesc, "主体结构工程施工");
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
@@ -231,6 +295,12 @@ function flushPromises() {
   ]);
 
   var cachedDashboard = {
+    home_projection: {
+      source_status: {
+        home_projection_contract: "canonical_taxonomy_v1",
+        topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+      },
+    },
     today_focus: { label: "今日焦点", title: "缓存专题", meta: "来自学情更新" },
     recommended_prompts: [
       {
@@ -241,6 +311,12 @@ function flushPromises() {
     ],
   };
   var freshDashboard = {
+    home_projection: {
+      source_status: {
+        home_projection_contract: "canonical_taxonomy_v1",
+        topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+      },
+    },
     today_focus: { label: "今日焦点", title: "新专题", meta: "来自学情更新" },
     recommended_prompts: [
       {
@@ -273,9 +349,48 @@ function flushPromises() {
   assert.strictEqual(cached.page.data.focusTitle, "新专题");
   assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "新回包里的推荐");
 
+  var unsafeCachedDefinition = loadChatPage(
+    function () {
+      return Promise.reject(new Error("network down"));
+    },
+    {
+      "deeptutor.chat.homeDashboard.v2": {
+        cachedAt: Date.now(),
+        dashboard: {
+          today_focus: {
+            label: "今日焦点",
+            title: "今日焦点：直接练题才能把",
+            meta: "来自 learner_state.home_personalization",
+          },
+          recommended_prompts: [
+            {
+              text: "用 3 道题训练直接练题才能把",
+              prompt_type: "practice_prompt",
+              intent: {
+                source: "learner_state.home_personalization",
+                concept_label: "直接练题才能把",
+              },
+            },
+          ],
+        },
+      },
+    },
+  );
+  var unsafeCached = instantiatePage(unsafeCachedDefinition);
+  await unsafeCached.page._loadDashboard();
+  assert.strictEqual(unsafeCached.page.data.focusTitle, "今日推进");
+  assert.strictEqual(unsafeCached.page.data.recommendedPrompts.length, 0);
+  assert.strictEqual(unsafeCached.page.data.showStaticExamples, true);
+
   var assessmentDefinition = loadChatPage(function () {
     return Promise.resolve({
       data: {
+        home_projection: {
+          source_status: {
+            home_projection_contract: "canonical_taxonomy_v1",
+            topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+          },
+        },
         today_focus: { title: "一题，给系统第一份学习证据" },
         recommended_prompts: [
           { text: "先做一次模拟测评", prompt_type: "discovery_probe" },

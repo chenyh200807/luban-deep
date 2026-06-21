@@ -1106,6 +1106,7 @@ def test_resolve_submission_attempt_accepts_q_number_single_submission() -> None
         "kind": "single",
         "answer": "C",
         "question_id": "q_2",
+        "index": 2,
     }
 
 
@@ -1198,6 +1199,7 @@ def test_resolve_submission_attempt_keeps_single_numbered_case_answer_unsplit() 
         "kind": "single",
         "answer": "施工缝未按规范处理，需要返工整改",
         "question_id": "case_q2",
+        "index": 2,
     }
 
 
@@ -2244,3 +2246,57 @@ def test_backreference_guard_exempts_answer_led_and_plain_submissions() -> None:
     assert _guard("我选A") is False
     assert _guard("B，刚才那题再讲讲") is False  # answer-led keeps priority
     assert _guard("刚才那道屋面题") is False  # back-ref without explanation isn't suppressed
+
+
+def test_turn_start_keeps_batch_set_for_numbered_single_answer() -> None:
+    """SEV-1 root chokepoint (E8, 2026-06-21): the COLLAPSE happens at turn-start
+    resolution (`_submission_action_for_user_message`), BEFORE any capability runs —
+    so a capability-layer fix (orchestrator) can't reach it. A numbered single answer
+    to one item of a batch must return the FULL set context + a batch-style action that
+    grades that item within the set, not the narrowed single item (which collapses the
+    set so a later "第1题" grades the wrong question).
+    """
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    batch_ctx = {
+        "question_id": "set-1",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q1", "question": "Q1", "question_type": "single_choice",
+             "options": {"A": "a1", "B": "b1", "C": "c1", "D": "d1"}, "correct_answer": "D"},
+            {"question_id": "q2", "question": "Q2", "question_type": "single_choice",
+             "options": {"A": "a2", "B": "b2", "C": "c2", "D": "d2"}, "correct_answer": "B"},
+            {"question_id": "q3", "question": "Q3", "question_type": "single_choice",
+             "options": {"A": "a3", "B": "b3", "C": "c3", "D": "d3"}, "correct_answer": "C"},
+        ],
+    }
+
+    ctx, action = _submission_action_for_user_message("第2题我选B", batch_ctx)
+
+    # The returned context must remain the FULL 3-item set (not narrowed to q2).
+    assert ctx is not None
+    assert len(ctx.get("items") or []) == 3, "batch set collapsed at turn-start"
+    # The action grades item 2 within the set and preserves the others.
+    assert action is not None and action["intent"] == "answer_questions"
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+
+def test_turn_start_single_question_answer_unaffected() -> None:
+    """Negative guard: a single-question context ("我选B") must be untouched by the
+    batch-continuity path (no index / len<=1 → narrowed single, as before)."""
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    single_ctx = {
+        "question_id": "q-solo",
+        "question": "solo",
+        "question_type": "single_choice",
+        "options": {"A": "a", "B": "b"},
+        "correct_answer": "B",
+    }
+    ctx, action = _submission_action_for_user_message("我选B", single_ctx)
+    assert ctx is not None
+    assert action is not None and action["intent"] == "answer_questions"
+    # single path keeps the {question_id, answer} shape (no batch index/preserve)
+    assert action["answers"] == [{"question_id": "q-solo", "answer": "B"}]
+    assert "preserve_other_answers" not in action
