@@ -1,0 +1,138 @@
+[
+  {
+    "issue": "洞口分尺寸防护的多个尺寸段(<500mm封堵、20~40cm刚性盖板、40~150cm脚手架满铺板等)无完整教材quote支撑，不应全标🟢",
+    "location": "§1 洞口防护规则 / #11",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全各尺寸段的完整教材原文quote，无quote区间暂降🔴或🟡，仅保留已有quote明确的区间为🟢"
+  },
+  {
+    "issue": "防护栏杆构造数字(上杆1.2m、立杆间距≤2m、挡脚板≥180mm、承1kN等)整组无教材quote支撑，pack标🟢属编造嫌疑",
+    "location": "§1#4, §5#4, §7",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充包含这些数字的完整教材quote，否则整体降🔴，1.2m可在洞口临边语境独立保留🟢"
+  },
+  {
+    "issue": "攀登作业“>3m宜设护笼”“>8m必设梯间平台”两个高度档无教材quote支撑",
+    "location": "§1#5, §4规则D",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全quote，未补充前将这两个高度档降🔴，已由quote支撑的梯子作业项保留🟢"
+  },
+  {
+    "issue": "严禁行为中“座板式单人吊具/自制吊篮”未被给定教材quote支持",
+    "location": "§1#8, §5#8",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "吊具/吊篮项降🔴，钢筋骨架攀登项保留🟢，若有其他quote支撑再恢复"
+  },
+  {
+    "issue": "交叉作业/防护棚关键数字(坠落半径5m/6m、非机动≥3m/机动≥4m、双层间距≥700mm、木板厚≥50mm等)无教材quote支撑",
+    "location": "§1#9-10, §4规则E, §7",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充完整quote，否则将具体数字项降🔴，保留“设防护棚/隔离措施”等描述性语句为🟢"
+  },
+  {
+    "issue": "高处作业吊篮教材锚语境严重不符(引用了脚手架检查评分表内容)，且吊篮纳入S06本体过宽",
+    "location": "§1#17, §4 S7",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "撤换/修正教材锚；吊篮做法标注🔵外延，明确为MCQ扩展，不作为判分核心本体"
+  },
+  {
+    "issue": "R2不变量表述“不考工艺本身”过满，与后文纳入的操作平台参数、防护棚构造等冲突",
+    "location": "§3 R2 / §4 examiner_intent",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为“核心不考主体施工工艺，但会考安全防护的构造参数与尺寸门槛”"
+  },
+  {
+    "issue": "误区M8“空泛加强管理”挂E12表达冗余不够贴切，核心是口号化不可判分",
+    "location": "§6 M8 error_code",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "保留E04口号化为主码，E12降为secondary或删除"
+  },
+  {
+    "issue": "建筑业12类事故/事故等级被标为S06本体，实为事故复盘外延，不宜作为采分核心",
+    "location": "§0 / §1#15",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "保持事实🟢，将S06本体标签改为🔵外延"
+  },
+  {
+    "issue": "R2不变量“钢梁水平通道纠错”中安全绳规则缺少S06本体直接point_id支撑，有钢结构专项外溢嫌疑",
+    "location": "§3 场景3",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将该条从R2不变量核心降级为🔵工程通识旁注，或补充独立point_id后恢复"
+  },
+  {
+    "issue": "误区M4“≥500mm洞口只盖板覆盖”与pack自身规则B“500~1500mm盖板或栏杆”矛盾",
+    "location": "§6 M4",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将M4修正为约束≥1500mm才适用，避免与规则B冲突"
+  },
+  {
+    "issue": "误区M5 error_code同时挂E07和E10冗余，核心是概念混淆",
+    "location": "§6 M5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "精简为E07为主码，E10删除或降为备选"
+  },
+  {
+    "issue": "误区M6 error_code E05审题错误不贴切，核心是记忆偏差/背景提取失败",
+    "location": "§6 M6",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留E08背景提取失败为主码，删除E05"
+  },
+  {
+    "issue": "屋面作业“密目网全封闭”无教材quote支撑，不应标🟢",
+    "location": "§1#7",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全quote或将该点降🔴"
+  },
+  {
+    "issue": "悬空作业“模板/钢筋/浇筑等≥2m必设操作平台”覆盖面偏宽，供核quote仅支持构件吊装和钢筋作业",
+    "location": "§1#6, §3场景5, §5#7",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "收紧为“按已引quote覆盖的构件吊装/钢筋作业需设操作平台”，泛化部分降🔵或🔴"
+  },
+  {
+    "issue": "高处作业十大隐患列表无教材quote支撑",
+    "location": "§1#14",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充完整隐患列表quote后再升标🟢"
+  },
+  {
+    "issue": "操作平台参数中悬挑式、落地式平台参数无教材quote支撑，供核quote仅支持移动式",
+    "location": "§1#13",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "移动式参数保留🟢，悬挑/落地参数降🔴"
+  }
+]

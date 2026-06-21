@@ -1,0 +1,186 @@
+[
+  {
+    "issue": "工期优化三原则锚点支撑不足，优先顺序及三原则完整内容未得到quote完整支持",
+    "location": "§1跨章全景表·工期优化选择三原则",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "补全教材完整原文quote以覆盖三原则及优先级顺序，或降级为通识推导"
+  },
+  {
+    "issue": "优先压缩口诀锚点仅支持“成本低”，未支持“不影响后续工作”及给分规则",
+    "location": "§1跨章全景表·优先压缩口诀",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "成本低可保留🟢，其余教学规则需找真题答案或教材原文支撑，否则降级为教学经验🔵"
+  },
+  {
+    "issue": "成倍节拍流水作为R2不变量场景7，逻辑基础与R2核心“关键线路+时差”不符",
+    "location": "§3 R2不变量·场景7成倍节拍流水",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "从R2不变量印证中移出，降为🔵邻接计算变体，纳入其它计算规则单独管理"
+  },
+  {
+    "issue": "不可抗力索赔责任被归为邻接噪声，与pack自身将“责任方”列为索赔成立必要维度冲突",
+    "location": "§1跨章全景表·不可抗力索赔责任",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "重新归类为“合同责任邻接核心”或本体，确保与R2、R4及claim_validity逻辑自洽"
+  },
+  {
+    "issue": "R2不变量宣称“唯一判据”过强，未考虑责任方与合同指令等因素",
+    "location": "§3 R2不变量",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "删除“唯一判据”说法，改为关键线路/时差是工期影响主判据，索赔/费用另受责任方与合同指令约束"
+  },
+  {
+    "issue": "赶工费用承担锚点未完整区分发包人要求提前竣工与承包人自行赶工两种情形",
+    "location": "§1跨章全景表·赶工费用承担",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充完整条文quote，明确区分两种情形并分别绑定证据"
+  },
+  {
+    "issue": "误区7解药锚点不含“风险评估”内容，不应标为🟢",
+    "location": "§6误区解析·误区7解药列",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "保持🔴，或重新寻找含‘风险评估与应对’的教材原文锚定"
+  },
+  {
+    "issue": "R4封闭性声明“穷举合法取值、无开放枝”过强",
+    "location": "§4 R4变量规则·封闭性声明",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为“本pack样本域/常见真题域封闭”，避免绝对化"
+  },
+  {
+    "issue": "crash_choice按crash_rate升序贪心规则过于绝对，未必总成本最低",
+    "location": "§4 R4变量规则·crash_choice",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为先筛有效压缩，再比较满足目标的组合成本，避免贪心绝对化"
+  },
+  {
+    "issue": "采分点5错因码E06仅覆盖压缩顺序错误，遗漏缺工作名/天数/费用依据等情形",
+    "location": "§5.1采分点5错因码E06",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "E06仅保留压缩顺序错误子场景，补充E02/E03/E09等错因码覆盖遗漏情形"
+  },
+  {
+    "issue": "§5全表error_code尚未完成与ERROR_CODE_REGISTRY对账，不应作为最终权威",
+    "location": "§5全表error_code列",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "所有错因码标为候选，待与注册表对账后再落地为最终authority"
+  },
+  {
+    "issue": "索赔意向通知28天被判为噪声偏低，实际会影响合同索赔权利",
+    "location": "§1跨章全景表·索赔意向通知28天",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为🟡“合同程序邻接，不属网络计算本体”，而非简单噪声"
+  },
+  {
+    "issue": "网络计划优化三大类的锚点quote不包含分类信息",
+    "location": "§1跨章全景表·网络计划优化三大类",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改锚到kc:1A433000_056_0085:3，或补充分类所在的正确quote"
+  },
+  {
+    "issue": "不可抗力索赔责任细分项缺少锚点quote支撑",
+    "location": "§1跨章全景表·不可抗力索赔责任",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "找到包含责任分摊清单的教材原文重新锚定"
+  },
+  {
+    "issue": "成倍节拍流水派生公式锚点quote未包含相关计算规则",
+    "location": "§1跨章全景表·成倍节拍流水派生",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充教材或真题答案全文quote以支持公式"
+  },
+  {
+    "issue": "工期索赔计算规则锚点仅支持“非关键线路无索赔”，未完整支持全赔与差值规则",
+    "location": "§1跨章全景表·工期索赔计算规则",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充完整索赔计算原文quote，或标注当前仅该句为证据"
+  },
+  {
+    "issue": "施工段划分劳动量差异≤15%的锚点quote未见该数值",
+    "location": "§1跨章全景表·施工段划分",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全支持15%数值的规范原文"
+  },
+  {
+    "issue": "外墙节能抽样及墙体复验项目清单锚点quote未包含完整项目和抽样数量要求",
+    "location": "§1跨章全景表·外墙节能抽样/墙体复验",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充完整规范条文quote，含不少于3处/种、每30000m²等数值"
+  },
+  {
+    "issue": "关键工作/关键线路判定锚点quote截断，核心论断“总时差最小=关键工作”未完整",
+    "location": "§1跨章全景表·关键工作/关键线路判定",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全point后文quote或降级为通识推导"
+  },
+  {
+    "issue": "进度计划监测内容锚点quote未直接对应论断",
+    "location": "§1跨章全景表·进度计划监测内容",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充教材归纳性原文，或降级为通识"
+  },
+  {
+    "issue": "易错部分E04错因码未给出明确说明或定义",
+    "location": "§2第1环·成因：进度滞后的来源",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充E04错因码定义或链接到错因码注册表"
+  },
+  {
+    "issue": "M07“重大逻辑遗漏”不宜作为坍缩目标，用于案例题可能越权",
+    "location": "§2第5环M07 / §8 C5",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "改为待注册表对账的逻辑遗漏类码占位"
+  },
+  {
+    "issue": "§9注册表对齐“codes_resolve”易被误读为错因码已resolve",
+    "location": "§9 注册表对齐 codes_resolve",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "加注说明此resolve仅taxonomy，不代表错因码resolve"
+  }
+]

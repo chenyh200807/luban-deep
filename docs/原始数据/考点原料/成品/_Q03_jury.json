@@ -1,0 +1,48 @@
+[
+  {
+    "issue": "组A中A2、A3成因拆分将麻面、蜂窝、孔洞等与模板、振捣不实/离析、配筋过密一一对应缺乏原文逐项支持，quote只列通用原因",
+    "location": "组A A2、A3",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将一对一成因对应降为🔵逻辑推理，保留表面缺陷总类通用原因为🟢，并注明教材原文归纳"
+  },
+  {
+    "issue": "组F F4防治措施（伸缩缝、水泥基粘结材料、界面剂+背砂等）引用kc:1A434000_078_0123:0标🟢，但quote仅包含原因分析，无防治内容",
+    "location": "组F F4",
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "换锚至包含防治措施的教材位置，或将其降为🔵工程通识"
+  },
+  {
+    "issue": "R2不变量断言任何通病都必须四件套答题，过强且不能覆盖纯识别/列举题，与pack意图存在冲突",
+    "location": "R2不变量",
+    "flagged_by": [
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将R2从🟢不变量降为🔵答题框架，并增加‘以题问为准’的灵活说明"
+  },
+  {
+    "issue": "组D D3中‘初凝前二次抹压’作为收缩裂缝防治措施未在引用quote中出现，不能标为🟢逐字锚定",
+    "location": "组D D3",
+    "flagged_by": [
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "降级为🔵或补充包含‘二次抹压’表述的教材引用"
+  }
+]
