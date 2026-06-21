@@ -18,9 +18,7 @@ Page({
     packages: [],
     selectedPackageId: "vip",
     selectedPackage: null,
-    checkoutVisible: false,
-    checkoutLoading: false,
-    checkoutMessage: "",
+    contactSalesVisible: false,
   },
 
   onLoad() {
@@ -81,52 +79,19 @@ Page({
     this.setData({
       selectedPackageId: packageId,
       selectedPackage: _selectPackage(this.data.packages, packageId),
-      checkoutMessage: "",
     });
   },
 
   openCheckout() {
     if (!this.data.selectedPackage) return;
-    this.setData({ checkoutVisible: true, checkoutMessage: "" });
+    this.setData({ contactSalesVisible: true });
   },
 
-  closeCheckout() {
-    if (this.data.checkoutLoading) return;
-    this.setData({ checkoutVisible: false, checkoutMessage: "" });
+  closeContactSales() {
+    this.setData({ contactSalesVisible: false });
   },
 
   noop() {},
-
-  async submitCheckout() {
-    var selected = this.data.selectedPackage;
-    if (!selected || this.data.checkoutLoading) return;
-    this.setData({ checkoutLoading: true, checkoutMessage: "" });
-    try {
-      var raw = await api.createBillingCheckout({
-        package_id: selected.id,
-        channel: "wechat",
-      });
-      var checkout = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
-      var payment = checkout.payment && typeof checkout.payment === "object" ? checkout.payment : {};
-      if (checkout.status === "payment_config_missing" || !payment.params) {
-        this.setData({
-          checkoutMessage: "支付通道还未配置。这版先验证权益门和开通流程，不会伪造支付成功。",
-        });
-        return;
-      }
-      await _requestPayment(payment.params);
-      wx.showToast({ title: "支付完成，正在同步权益", icon: "none" });
-      this.setData({ checkoutVisible: false });
-      this._loadUsage();
-    } catch (err) {
-      var msg = api.describeRequestError
-        ? api.describeRequestError(err, "下单失败，请稍后重试")
-        : "下单失败，请稍后重试";
-      this.setData({ checkoutMessage: msg });
-    } finally {
-      this.setData({ checkoutLoading: false });
-    }
-  },
 });
 
 function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
@@ -246,19 +211,6 @@ function _selectPackage(packages, packageId) {
     if (String(list[i].id || "") === target) return list[i];
   }
   return list[0] || null;
-}
-
-function _requestPayment(params) {
-  return new Promise(function (resolve, reject) {
-    if (!wx || typeof wx.requestPayment !== "function") {
-      reject(new Error("当前微信版本暂不支持支付"));
-      return;
-    }
-    wx.requestPayment(Object.assign({}, params || {}, {
-      success: resolve,
-      fail: reject,
-    }));
-  });
 }
 
 function _degradedUsageState(display) {

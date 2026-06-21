@@ -169,18 +169,20 @@ assert(
 );
 assert(
   billingWxml.indexOf("开通学习权益") >= 0 &&
-    billingWxml.indexOf("小程序支付") >= 0,
-  "billing page should expose a mini-program-native entitlement package flow",
+    billingWxml.indexOf("联系销售开通") >= 0 &&
+    billingWxml.indexOf("sales-contact-qr.png") >= 0,
+  "billing page should expose a sales-contact entitlement package flow",
 );
 assert(
-  billingJs.indexOf("api.createBillingCheckout") >= 0 &&
-    billingJs.indexOf('channel: "wechat"') >= 0,
-  "billing checkout should use the backend checkout authority with a WeChat channel",
+  billingJs.indexOf("contactSalesVisible") >= 0 &&
+    billingJs.indexOf("api.createBillingCheckout") < 0 &&
+    billingJs.indexOf("requestPayment") < 0,
+  "billing open action should show contact-sales QR before any direct payment path",
 );
 assert(
-  billingJs.indexOf("payment_config_missing") >= 0 &&
-    billingJs.indexOf("不会伪造支付成功") >= 0,
-  "billing checkout should fail closed when payment config is missing",
+  billingWxml.indexOf("长按识别二维码") >= 0 &&
+    billingWxml.indexOf("添加销售顾问") >= 0,
+  "billing contact sheet should tell learners to add the sales advisor",
 );
 [
   {
