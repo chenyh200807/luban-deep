@@ -21,6 +21,10 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
 }
 
+function exists(relativePath) {
+  return fs.existsSync(path.join(__dirname, "..", relativePath));
+}
+
 var loginWxml = read("packageDeeptutor/pages/login/login.wxml");
 var loginJs = read("packageDeeptutor/pages/login/login.js");
 var appJson = read("app.json");
@@ -227,6 +231,7 @@ assert(
 
 // 2026-06-14 轻点/滑动加速 + 「下次不再显示导学」契约
 var freeCourseJs = read("pages/freeCourse/freeCourse.js");
+var freeCourseWxml = read("pages/freeCourse/freeCourse.wxml");
 assert(
   onboardingJs.indexOf("skipSceneRest") >= 0 &&
     onboardingJs.indexOf("onTapAccelerate") >= 0 &&
@@ -244,6 +249,16 @@ assert(
     freeCourseJs.indexOf("getStorageSync") >= 0 &&
     freeCourseJs.indexOf("openDeeptutorLogin") >= 0,
   "首页入口读同一标记，已 dismiss 时跳过动效直接走原登录桥接",
+);
+assert(
+  freeCourseJs.indexOf("/images/icon/play_icon_02") === -1 &&
+    freeCourseWxml.indexOf('src="{{imageUrl}}"') === -1,
+  "首页切换方向控件不应继续引用缺失的 /images/icon/play_icon_02 本地资源",
+);
+assert(
+  exists("pages/images/yousen-cover.jpg") &&
+    exists("pages/images/yousen-brand-white-full.png"),
+  "宿主首页保留的本地图片资源必须真实存在",
 );
 
 if (fail) {

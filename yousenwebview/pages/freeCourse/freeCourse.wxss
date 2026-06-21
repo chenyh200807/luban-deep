@@ -227,10 +227,20 @@ page {
 .direction-picker-icon {
   width: 36rpx;
   height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rotate-image {
   transition: transform 0.25s ease;
+}
+
+.direction-picker-icon-text {
+  font-size: 28rpx;
+  line-height: 1;
+  color: rgba(16, 35, 60, 0.72);
+  font-weight: 700;
 }
 
 .course-section {
