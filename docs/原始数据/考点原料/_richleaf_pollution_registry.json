@@ -1,0 +1,3299 @@
+{
+ "_schema": "richleaf_pollution_registry.v0",
+ "_status": "确定性检测·只读·不改 bundle(改 bundle = construction_grading 判分生产依赖, 属专门 RichLeaf 治理战役)",
+ "_method": "同 chunk 内 context 指纹相同但 leaf_name 末段不同, 且名义主题词不在 context = 名实不符污染",
+ "_impact": "影响生产判分召回: 判分按 leaf 取 compiled_context 会取到错主题内容(如屋面防水 leaf 取到焊缝夹渣)",
+ "_root_cause": "RichLeaf 编译时一个 chunk 仅取首个子主题 context, 挂给该 chunk 下所有 leaf, 其余 leaf 拿到错内容",
+ "_confidence": "iron=簇内>=3 leaf 共享同一内容(几乎确凿) / suspect=2 leaf(含中文无词边界假阳, 需语义复核)",
+ "_use": "1) RichLeaf 治理战役工单(重编译 bundle 时按 chunk 拆分子主题 context) 2) 未来 mine 范式 blocklist(自动跳过 iron leaf)",
+ "bundle_total_leaf": 1595,
+ "pollution_clusters": 167,
+ "polluted_leaf_count": 345,
+ "iron_pollution_count": 175,
+ "iron_pollution_leaf_ids": [
+  "1A411000-E01",
+  "1A411010-R03",
+  "1A411010-R07",
+  "1A411010-R37",
+  "1A411010-R38",
+  "1A411010-R44",
+  "1A411020-R17",
+  "1A411020-R20",
+  "1A411020-R26",
+  "1A411020-R28",
+  "1A411020-R34",
+  "1A411020-R35",
+  "1A411020-R36",
+  "1A411020-R39",
+  "1A411020-R41",
+  "1A411020-R42",
+  "1A411021-E01",
+  "1A411030-R08",
+  "1A411030-R14",
+  "1A411030-R19",
+  "1A411030-R21",
+  "1A411030-R22",
+  "1A411030-R23",
+  "1A411030-R25",
+  "1A411030-R32",
+  "1A411030-R35",
+  "1A411030-R45",
+  "1A411030-R46",
+  "1A411040-R05",
+  "1A411040-R07",
+  "1A412010-B022",
+  "1A412010-B023",
+  "1A412010-B064",
+  "1A412010-B066",
+  "1A412010-B068",
+  "1A412010-B092",
+  "1A412010-B093",
+  "1A412010-B094",
+  "1A412010-B134",
+  "1A412012-E01",
+  "1A412031-E01",
+  "1A413000-B027",
+  "1A413000-B036",
+  "1A413000-B039",
+  "1A413000-B046",
+  "1A413000-B056",
+  "1A413000-B059",
+  "1A413000-B060",
+  "1A413000-B069",
+  "1A413000-B071",
+  "1A413000-B082",
+  "1A413000-C05",
+  "1A413000-C06",
+  "1A413000-C07",
+  "1A413000-C08",
+  "1A413000-C10",
+  "1A413000-C12",
+  "1A413000-C14",
+  "1A413000-C15",
+  "1A413000-C18",
+  "1A413000-C20",
+  "1A413000-C22",
+  "1A413000-C27",
+  "1A413000-G01",
+  "1A413031-R01",
+  "1A413031-R08",
+  "1A413033-R01",
+  "1A413033-R19",
+  "1A413033-R21",
+  "1A413033-R22",
+  "1A413040-R06",
+  "1A413040-R12",
+  "1A413040-R33",
+  "1A413040-R37",
+  "1A413040-R41",
+  "1A413040-R42",
+  "1A413061-R01",
+  "1A413061-R02",
+  "1A413061-R03",
+  "1A413061-R07",
+  "1A413061-R10",
+  "1A413065-R03",
+  "1A413065-R05",
+  "1A414000-E01",
+  "1A414010-E04",
+  "1A414010-E06",
+  "1A415024-E01",
+  "1A415043-E01",
+  "1A422000-B014",
+  "1A422000-B044",
+  "1A422000-B045",
+  "1A422000-B050",
+  "1A422000-B059",
+  "1A422000-B060",
+  "1A422000-B061",
+  "1A422000-B080",
+  "1A422000-B081",
+  "1A422000-B082",
+  "1A422000-B095",
+  "1A422000-B101",
+  "1A422000-B102",
+  "1A422000-B112",
+  "1A422000-B117",
+  "1A422000-B123",
+  "1A422000-B126",
+  "1A422000-B130",
+  "1A422000-B140",
+  "1A422000-B141",
+  "1A422000-B150",
+  "1A422000-B153",
+  "1A422000-B155",
+  "1A422000-B160",
+  "1A422000-B161",
+  "1A422000-B168",
+  "1A422000-G01",
+  "1A431010-C11",
+  "1A431010-C12",
+  "1A431011-B019",
+  "1A432000-B005",
+  "1A432000-B009",
+  "1A432000-B011",
+  "1A432000-B040",
+  "1A432000-B059",
+  "1A432000-B060",
+  "1A432000-C23",
+  "1A432000-C26",
+  "1A432000-C28",
+  "1A432010-G02",
+  "1A433000-B004",
+  "1A433000-B011",
+  "1A433000-B016",
+  "1A433000-B020",
+  "1A433000-B022",
+  "1A433000-B030",
+  "1A433000-B035",
+  "1A434000-B004",
+  "1A434000-B005",
+  "1A434000-B013",
+  "1A434000-B016",
+  "1A434000-B046",
+  "1A434000-B067",
+  "1A434010-E01",
+  "1A434012-E01",
+  "1A434040-E01",
+  "1A435000-B019",
+  "1A435000-B020",
+  "1A435000-B036",
+  "1A435000-B040",
+  "1A435000-B041",
+  "1A435000-B043",
+  "1A435000-G01",
+  "1A436000-B019",
+  "1A436000-B029",
+  "1A436000-B034",
+  "1A436000-B041",
+  "1A436000-B064",
+  "1A436000-B101",
+  "1A436000-B105",
+  "1A436000-B111",
+  "1A436000-B132",
+  "1A436000-B139",
+  "1A436000-B163",
+  "1A436000-B164",
+  "1A436000-B178",
+  "1A437000-B015",
+  "1A437000-B032",
+  "1A437000-B038",
+  "1A437000-B047",
+  "1A437000-B053",
+  "1A437000-B054",
+  "1A437000-B078",
+  "1A437000-B092",
+  "1A437000-B106",
+  "1A437000-B108",
+  "1A437000-B109"
+ ],
+ "polluted_leaf_ids": [
+  "1A411000-E01",
+  "1A411002-E01",
+  "1A411002-E02",
+  "1A411003-E01",
+  "1A411003-E02",
+  "1A411004-E01",
+  "1A411004-E02",
+  "1A411010-R03",
+  "1A411010-R07",
+  "1A411010-R09",
+  "1A411010-R12",
+  "1A411010-R18",
+  "1A411010-R27",
+  "1A411010-R30",
+  "1A411010-R37",
+  "1A411010-R38",
+  "1A411010-R44",
+  "1A411020-R15",
+  "1A411020-R17",
+  "1A411020-R20",
+  "1A411020-R26",
+  "1A411020-R28",
+  "1A411020-R34",
+  "1A411020-R35",
+  "1A411020-R36",
+  "1A411020-R39",
+  "1A411020-R41",
+  "1A411020-R42",
+  "1A411021-E01",
+  "1A411030-R07",
+  "1A411030-R08",
+  "1A411030-R10",
+  "1A411030-R14",
+  "1A411030-R19",
+  "1A411030-R21",
+  "1A411030-R22",
+  "1A411030-R23",
+  "1A411030-R25",
+  "1A411030-R31",
+  "1A411030-R32",
+  "1A411030-R35",
+  "1A411030-R39",
+  "1A411030-R42",
+  "1A411030-R45",
+  "1A411030-R46",
+  "1A411040-R05",
+  "1A411040-R07",
+  "1A411050-R01",
+  "1A411050-R05",
+  "1A412000-B002",
+  "1A412000-B013",
+  "1A412001-E03",
+  "1A412010-B022",
+  "1A412010-B023",
+  "1A412010-B024",
+  "1A412010-B027",
+  "1A412010-B028",
+  "1A412010-B036",
+  "1A412010-B042",
+  "1A412010-B061",
+  "1A412010-B064",
+  "1A412010-B066",
+  "1A412010-B068",
+  "1A412010-B070",
+  "1A412010-B074",
+  "1A412010-B092",
+  "1A412010-B093",
+  "1A412010-B094",
+  "1A412010-B117",
+  "1A412010-B123",
+  "1A412010-B124",
+  "1A412010-B134",
+  "1A412010-B143",
+  "1A412010-B146",
+  "1A412010-B149",
+  "1A412010-B150",
+  "1A412010-B156",
+  "1A412012-E01",
+  "1A412031-E01",
+  "1A412032-E01",
+  "1A413000-B004",
+  "1A413000-B005",
+  "1A413000-B016",
+  "1A413000-B026",
+  "1A413000-B027",
+  "1A413000-B029",
+  "1A413000-B030",
+  "1A413000-B034",
+  "1A413000-B036",
+  "1A413000-B039",
+  "1A413000-B046",
+  "1A413000-B047",
+  "1A413000-B052",
+  "1A413000-B056",
+  "1A413000-B059",
+  "1A413000-B060",
+  "1A413000-B064",
+  "1A413000-B069",
+  "1A413000-B071",
+  "1A413000-B072",
+  "1A413000-B082",
+  "1A413000-C05",
+  "1A413000-C06",
+  "1A413000-C07",
+  "1A413000-C08",
+  "1A413000-C10",
+  "1A413000-C12",
+  "1A413000-C14",
+  "1A413000-C15",
+  "1A413000-C18",
+  "1A413000-C20",
+  "1A413000-C22",
+  "1A413000-C27",
+  "1A413000-G01",
+  "1A413000-G03",
+  "1A413003-E01",
+  "1A413010-E01",
+  "1A413030-G01",
+  "1A413031-R01",
+  "1A413031-R03",
+  "1A413031-R07",
+  "1A413031-R08",
+  "1A413033-R01",
+  "1A413033-R19",
+  "1A413033-R21",
+  "1A413033-R22",
+  "1A413040-R06",
+  "1A413040-R12",
+  "1A413040-R23",
+  "1A413040-R26",
+  "1A413040-R33",
+  "1A413040-R35",
+  "1A413040-R37",
+  "1A413040-R38",
+  "1A413040-R41",
+  "1A413040-R42",
+  "1A413040-R56",
+  "1A413040-R57",
+  "1A413042-R03",
+  "1A413042-R16",
+  "1A413046-R04",
+  "1A413046-R05",
+  "1A413050-R06",
+  "1A413050-R30",
+  "1A413051-R10",
+  "1A413061-R01",
+  "1A413061-R02",
+  "1A413061-R03",
+  "1A413061-R07",
+  "1A413061-R10",
+  "1A413064-R09",
+  "1A413064-R12",
+  "1A413065-R03",
+  "1A413065-R05",
+  "1A414000-E01",
+  "1A414010-E02",
+  "1A414010-E04",
+  "1A414010-E06",
+  "1A414012-E01",
+  "1A414020-E02",
+  "1A414020-E04",
+  "1A415010-E01",
+  "1A415022-E01",
+  "1A415024-E01",
+  "1A415032-E01",
+  "1A415033-E01",
+  "1A415041-E01",
+  "1A415043-E01",
+  "1A415044-E01",
+  "1A415045-E01",
+  "1A415065-E01",
+  "1A420000-E01",
+  "1A421000-E01",
+  "1A421010-B004",
+  "1A421010-B012",
+  "1A421010-B021",
+  "1A422000-B007",
+  "1A422000-B014",
+  "1A422000-B025",
+  "1A422000-B034",
+  "1A422000-B044",
+  "1A422000-B045",
+  "1A422000-B050",
+  "1A422000-B053",
+  "1A422000-B059",
+  "1A422000-B060",
+  "1A422000-B061",
+  "1A422000-B074",
+  "1A422000-B080",
+  "1A422000-B081",
+  "1A422000-B082",
+  "1A422000-B089",
+  "1A422000-B095",
+  "1A422000-B101",
+  "1A422000-B102",
+  "1A422000-B107",
+  "1A422000-B112",
+  "1A422000-B114",
+  "1A422000-B115",
+  "1A422000-B117",
+  "1A422000-B119",
+  "1A422000-B123",
+  "1A422000-B126",
+  "1A422000-B127",
+  "1A422000-B128",
+  "1A422000-B130",
+  "1A422000-B140",
+  "1A422000-B141",
+  "1A422000-B150",
+  "1A422000-B153",
+  "1A422000-B155",
+  "1A422000-B160",
+  "1A422000-B161",
+  "1A422000-B168",
+  "1A422000-G01",
+  "1A422000-G02",
+  "1A430000-E01",
+  "1A430000-E02",
+  "1A431000-B005",
+  "1A431000-B012",
+  "1A431000-B019",
+  "1A431000-B021",
+  "1A431000-B028",
+  "1A431010-C04",
+  "1A431010-C07",
+  "1A431010-C11",
+  "1A431010-C12",
+  "1A431010-C25",
+  "1A431010-C33",
+  "1A431011-B019",
+  "1A432000-B005",
+  "1A432000-B008",
+  "1A432000-B009",
+  "1A432000-B011",
+  "1A432000-B020",
+  "1A432000-B026",
+  "1A432000-B040",
+  "1A432000-B043",
+  "1A432000-B059",
+  "1A432000-B060",
+  "1A432000-C11",
+  "1A432000-C13",
+  "1A432000-C15",
+  "1A432000-C17",
+  "1A432000-C23",
+  "1A432000-C26",
+  "1A432000-C28",
+  "1A432010-G02",
+  "1A432020-G01",
+  "1A433000-B004",
+  "1A433000-B011",
+  "1A433000-B016",
+  "1A433000-B020",
+  "1A433000-B022",
+  "1A433000-B030",
+  "1A433000-B031",
+  "1A433000-B035",
+  "1A433000-B042",
+  "1A433000-B043",
+  "1A433000-B052",
+  "1A433000-B057",
+  "1A433000-G01",
+  "1A433000-G02",
+  "1A434000-B004",
+  "1A434000-B005",
+  "1A434000-B012",
+  "1A434000-B013",
+  "1A434000-B016",
+  "1A434000-B024",
+  "1A434000-B041",
+  "1A434000-B044",
+  "1A434000-B046",
+  "1A434000-B055",
+  "1A434000-B067",
+  "1A434000-B071",
+  "1A434000-B082",
+  "1A434001-E01",
+  "1A434010-E01",
+  "1A434012-E01",
+  "1A434020-B016",
+  "1A434040-E01",
+  "1A435000-B019",
+  "1A435000-B020",
+  "1A435000-B036",
+  "1A435000-B040",
+  "1A435000-B041",
+  "1A435000-B043",
+  "1A435000-B049",
+  "1A435000-B051",
+  "1A435000-G01",
+  "1A435020-B011",
+  "1A435020-B021",
+  "1A436000-B017",
+  "1A436000-B019",
+  "1A436000-B029",
+  "1A436000-B033",
+  "1A436000-B034",
+  "1A436000-B041",
+  "1A436000-B047",
+  "1A436000-B051",
+  "1A436000-B058",
+  "1A436000-B059",
+  "1A436000-B060",
+  "1A436000-B064",
+  "1A436000-B066",
+  "1A436000-B070",
+  "1A436000-B071",
+  "1A436000-B074",
+  "1A436000-B087",
+  "1A436000-B091",
+  "1A436000-B100",
+  "1A436000-B101",
+  "1A436000-B105",
+  "1A436000-B107",
+  "1A436000-B111",
+  "1A436000-B132",
+  "1A436000-B139",
+  "1A436000-B147",
+  "1A436000-B163",
+  "1A436000-B164",
+  "1A436000-B170",
+  "1A436000-B177",
+  "1A436000-B178",
+  "1A436000-B179",
+  "1A437000-B001",
+  "1A437000-B015",
+  "1A437000-B020",
+  "1A437000-B032",
+  "1A437000-B038",
+  "1A437000-B047",
+  "1A437000-B053",
+  "1A437000-B054",
+  "1A437000-B069",
+  "1A437000-B073",
+  "1A437000-B078",
+  "1A437000-B080",
+  "1A437000-B092",
+  "1A437000-B106",
+  "1A437000-B108",
+  "1A437000-B109",
+  "1A438000-B055",
+  "1A438000-B058",
+  "1A438000-B060",
+  "1A438000-B062",
+  "1A438000-B077"
+ ],
+ "detail": [
+  {
+   "leaf_id": "1A411000-E01",
+   "claimed_topic": "建筑设计与构造",
+   "actual_content_topic": "偶然作用",
+   "chunk_id": "1A411011_030_0054",
+   "fingerprint": "0d9cdf946dcd",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411010-R03",
+   "claimed_topic": "从严控制建筑高度",
+   "actual_content_topic": "建筑设计要求",
+   "chunk_id": "1A411011_004_0009",
+   "fingerprint": "26145ea4243c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411010-R07",
+   "claimed_topic": "建筑设计经济效益要求",
+   "actual_content_topic": "建筑设计要求",
+   "chunk_id": "1A411011_004_0009",
+   "fingerprint": "26145ea4243c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411010-R37",
+   "claimed_topic": "总体规划符合性要求",
+   "actual_content_topic": "建筑设计要求",
+   "chunk_id": "1A411011_004_0009",
+   "fingerprint": "26145ea4243c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411010-R38",
+   "claimed_topic": "考虑建筑美观要求",
+   "actual_content_topic": "建筑设计要求",
+   "chunk_id": "1A411011_004_0009",
+   "fingerprint": "26145ea4243c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411010-R44",
+   "claimed_topic": "技术措施合理性要求",
+   "actual_content_topic": "建筑设计要求",
+   "chunk_id": "1A411011_004_0009",
+   "fingerprint": "26145ea4243c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R17",
+   "claimed_topic": "天窗的设置规定",
+   "actual_content_topic": "门和窗基本构造要求",
+   "chunk_id": "1A411011_019_0037",
+   "fingerprint": "bf7627a5611c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R20",
+   "claimed_topic": "门的设置规定",
+   "actual_content_topic": "门和窗基本构造要求",
+   "chunk_id": "1A411011_019_0037",
+   "fingerprint": "bf7627a5611c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R26",
+   "claimed_topic": "地面装修构造",
+   "actual_content_topic": "外墙饰面砖工程",
+   "chunk_id": "1A411011_022_0043",
+   "fingerprint": "2a27575bcd08",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R28",
+   "claimed_topic": "墙体裱糊工程",
+   "actual_content_topic": "外墙饰面砖工程",
+   "chunk_id": "1A411011_022_0043",
+   "fingerprint": "2a27575bcd08",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R34",
+   "claimed_topic": "涂饰工程",
+   "actual_content_topic": "外墙饰面砖工程",
+   "chunk_id": "1A411011_022_0043",
+   "fingerprint": "2a27575bcd08",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R35",
+   "claimed_topic": "织物软包工程",
+   "actual_content_topic": "外墙饰面砖工程",
+   "chunk_id": "1A411011_022_0043",
+   "fingerprint": "2a27575bcd08",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R36",
+   "claimed_topic": "饰面板工程",
+   "actual_content_topic": "外墙饰面砖工程",
+   "chunk_id": "1A411011_022_0043",
+   "fingerprint": "2a27575bcd08",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R39",
+   "claimed_topic": "变形缝的设计、选用原则",
+   "actual_content_topic": "变形缝构造要求",
+   "chunk_id": "1A411011_023_0044",
+   "fingerprint": "609d0ce7cfbb",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R41",
+   "claimed_topic": "按照变形缝两侧结构特点分类",
+   "actual_content_topic": "变形缝构造要求",
+   "chunk_id": "1A411011_023_0044",
+   "fingerprint": "609d0ce7cfbb",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411020-R42",
+   "claimed_topic": "按照变形缝装置使用特点分类",
+   "actual_content_topic": "变形缝构造要求",
+   "chunk_id": "1A411011_023_0044",
+   "fingerprint": "609d0ce7cfbb",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411021-E01",
+   "claimed_topic": "建筑构造设计要求",
+   "actual_content_topic": "门和窗基本构造要求",
+   "chunk_id": "1A411011_019_0037",
+   "fingerprint": "bf7627a5611c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R08",
+   "claimed_topic": "混凝土结构的裂缝控制",
+   "actual_content_topic": "杆件刚度与梁的位移计算",
+   "chunk_id": "1A411011_025_0047",
+   "fingerprint": "c7335962f596",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R14",
+   "claimed_topic": "建筑美观要求",
+   "actual_content_topic": "杆件刚度与梁的位移计算",
+   "chunk_id": "1A411011_025_0047",
+   "fingerprint": "c7335962f596",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R19",
+   "claimed_topic": "工程结构设计要求",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R21",
+   "claimed_topic": "悬索结构",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R22",
+   "claimed_topic": "拱式结构",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R23",
+   "claimed_topic": "桁架结构",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R25",
+   "claimed_topic": "框架－剪力墙结构",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R32",
+   "claimed_topic": "网架结构",
+   "actual_content_topic": "剪力墙结构",
+   "chunk_id": "1A411011_028_0051",
+   "fingerprint": "39d938ddc1ec",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R35",
+   "claimed_topic": "楼面和屋面活荷载",
+   "actual_content_topic": "偶然作用",
+   "chunk_id": "1A411011_030_0054",
+   "fingerprint": "0d9cdf946dcd",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R45",
+   "claimed_topic": "雪荷载和覆冰荷载",
+   "actual_content_topic": "偶然作用",
+   "chunk_id": "1A411011_030_0054",
+   "fingerprint": "0d9cdf946dcd",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411030-R46",
+   "claimed_topic": "风荷载",
+   "actual_content_topic": "偶然作用",
+   "chunk_id": "1A411011_030_0054",
+   "fingerprint": "0d9cdf946dcd",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411040-R05",
+   "claimed_topic": "当梁跨度大于或等于下列数值时",
+   "actual_content_topic": "结构设计——圈梁",
+   "chunk_id": "1A411011_033_0060",
+   "fingerprint": "84077e4726d2",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411040-R07",
+   "claimed_topic": "混凝土砌块房屋",
+   "actual_content_topic": "结构设计——圈梁",
+   "chunk_id": "1A411011_033_0060",
+   "fingerprint": "84077e4726d2",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B022",
+   "claimed_topic": "壁纸性能指标",
+   "actual_content_topic": "壁纸原、辅料要求",
+   "chunk_id": "1A412010_061_0119",
+   "fingerprint": "9b8c9319256d",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B023",
+   "claimed_topic": "壁纸的分类",
+   "actual_content_topic": "壁纸原、辅料要求",
+   "chunk_id": "1A412010_061_0119",
+   "fingerprint": "9b8c9319256d",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B064",
+   "claimed_topic": "影响混凝土强度的因素",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B066",
+   "claimed_topic": "抗侵蚀性",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B068",
+   "claimed_topic": "抗水渗透性",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B092",
+   "claimed_topic": "混凝土的抗拉强度",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B093",
+   "claimed_topic": "混凝土的轴心抗压强度",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B094",
+   "claimed_topic": "混凝土的长期性能和耐久性",
+   "actual_content_topic": "混凝土立方体抗压标准强度与强度等级",
+   "chunk_id": "1A412010_047_0082",
+   "fingerprint": "02f223aa438e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412010-B134",
+   "claimed_topic": "裱糊用壁纸",
+   "actual_content_topic": "壁纸原、辅料要求",
+   "chunk_id": "1A412010_061_0119",
+   "fingerprint": "9b8c9319256d",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412012-E01",
+   "claimed_topic": "结构工程的适用性",
+   "actual_content_topic": "杆件刚度与梁的位移计算",
+   "chunk_id": "1A411011_025_0047",
+   "fingerprint": "c7335962f596",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A412031-E01",
+   "claimed_topic": "结构构造设计要求",
+   "actual_content_topic": "结构设计——圈梁",
+   "chunk_id": "1A411011_033_0060",
+   "fingerprint": "84077e4726d2",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B027",
+   "claimed_topic": "地下水位以下挖土要求",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B036",
+   "claimed_topic": "基坑开挖过程中的测量与监测",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B039",
+   "claimed_topic": "基坑验槽要求",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B046",
+   "claimed_topic": "岩石基坑开挖",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B056",
+   "claimed_topic": "施工控制网的建立",
+   "actual_content_topic": "全站仪",
+   "chunk_id": "1A413000_070_0136",
+   "fingerprint": "347d3f4776da",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B059",
+   "claimed_topic": "施工测量的内容",
+   "actual_content_topic": "全站仪",
+   "chunk_id": "1A413000_070_0136",
+   "fingerprint": "347d3f4776da",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B060",
+   "claimed_topic": "施工测量的基本工作",
+   "actual_content_topic": "全站仪",
+   "chunk_id": "1A413000_070_0136",
+   "fingerprint": "347d3f4776da",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B069",
+   "claimed_topic": "深基坑开挖方法",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B071",
+   "claimed_topic": "深基坑的土方开挖",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-B082",
+   "claimed_topic": "雨期施工基坑开挖注意事项",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C05",
+   "claimed_topic": "冬期混凝土搅拌前原材料预热规定",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C06",
+   "claimed_topic": "冬期混凝土水泥选用",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C07",
+   "claimed_topic": "冬期混凝土配合比确定",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C08",
+   "claimed_topic": "冬期砌筑高度限制",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C10",
+   "claimed_topic": "混凝土养护期间温度测量规定",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C12",
+   "claimed_topic": "混凝土工程",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C14",
+   "claimed_topic": "混凝土浇筑后的保温措施",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C15",
+   "claimed_topic": "电渣压力焊试焊要求",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C18",
+   "claimed_topic": "砌筑时温差控制",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C20",
+   "claimed_topic": "钢筋工程",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C22",
+   "claimed_topic": "钢筋负温闪光对焊工艺控制",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-C27",
+   "claimed_topic": "雪天或风速超三级风焊接防护",
+   "actual_content_topic": "混凝土出机与入模温度",
+   "chunk_id": "1A438000_153_0299",
+   "fingerprint": "c5d26be90f89",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413000-G01",
+   "claimed_topic": "全站仪测量",
+   "actual_content_topic": "全站仪",
+   "chunk_id": "1A413000_070_0136",
+   "fingerprint": "347d3f4776da",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413031-R01",
+   "claimed_topic": "复合地基",
+   "actual_content_topic": "夯实地基",
+   "chunk_id": "1A413030_088_0163",
+   "fingerprint": "57ca0a7a13f9",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413031-R08",
+   "claimed_topic": "水泥粉煤灰碎石桩复合地基",
+   "actual_content_topic": "夯实地基",
+   "chunk_id": "1A413030_088_0163",
+   "fingerprint": "57ca0a7a13f9",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413033-R01",
+   "claimed_topic": "单桩竖向抗压承载力特征值取值",
+   "actual_content_topic": "声波透射法",
+   "chunk_id": "1A413030_093_0174",
+   "fingerprint": "f8c1eef1935e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413033-R19",
+   "claimed_topic": "钢筋工程施工作业要求",
+   "actual_content_topic": "声波透射法",
+   "chunk_id": "1A413030_093_0174",
+   "fingerprint": "f8c1eef1935e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413033-R21",
+   "claimed_topic": "验收检测的受检桩选择条件",
+   "actual_content_topic": "声波透射法",
+   "chunk_id": "1A413030_093_0174",
+   "fingerprint": "f8c1eef1935e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413033-R22",
+   "claimed_topic": "验收检测顺序",
+   "actual_content_topic": "声波透射法",
+   "chunk_id": "1A413030_093_0174",
+   "fingerprint": "f8c1eef1935e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R06",
+   "claimed_topic": "受弯叠合构件装配施工要求",
+   "actual_content_topic": "低温型灌浆料及封浆料使用规定",
+   "chunk_id": "1A413030_118_0226",
+   "fingerprint": "b9fd2687112e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R12",
+   "claimed_topic": "外墙板接缝防水施工要求",
+   "actual_content_topic": "低温型灌浆料及封浆料使用规定",
+   "chunk_id": "1A413030_118_0226",
+   "fingerprint": "b9fd2687112e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R33",
+   "claimed_topic": "焊接或螺栓连接施工要求",
+   "actual_content_topic": "低温型灌浆料及封浆料使用规定",
+   "chunk_id": "1A413030_118_0226",
+   "fingerprint": "b9fd2687112e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R37",
+   "claimed_topic": "连通腔灌浆施工要求",
+   "actual_content_topic": "低温型灌浆料及封浆料使用规定",
+   "chunk_id": "1A413030_118_0226",
+   "fingerprint": "b9fd2687112e",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R41",
+   "claimed_topic": "钢筋加工",
+   "actual_content_topic": "钢筋连接",
+   "chunk_id": "1A413030_100_0190",
+   "fingerprint": "733c829c0d95",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413040-R42",
+   "claimed_topic": "钢筋安装",
+   "actual_content_topic": "钢筋连接",
+   "chunk_id": "1A413030_100_0190",
+   "fingerprint": "733c829c0d95",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413061-R01",
+   "claimed_topic": "墙体隔声措施",
+   "actual_content_topic": "安装填充材料（岩棉）",
+   "chunk_id": "1A413030_136_0261",
+   "fingerprint": "38ca4b9da108",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413061-R02",
+   "claimed_topic": "安装一侧罩面板",
+   "actual_content_topic": "安装填充材料（岩棉）",
+   "chunk_id": "1A413030_136_0261",
+   "fingerprint": "38ca4b9da108",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413061-R03",
+   "claimed_topic": "安装另一侧罩面板",
+   "actual_content_topic": "安装填充材料（岩棉）",
+   "chunk_id": "1A413030_136_0261",
+   "fingerprint": "38ca4b9da108",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413061-R07",
+   "claimed_topic": "横撑龙骨安装",
+   "actual_content_topic": "安装填充材料（岩棉）",
+   "chunk_id": "1A413030_136_0261",
+   "fingerprint": "38ca4b9da108",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413061-R10",
+   "claimed_topic": "门窗洞口安装",
+   "actual_content_topic": "安装填充材料（岩棉）",
+   "chunk_id": "1A413030_136_0261",
+   "fingerprint": "38ca4b9da108",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413065-R03",
+   "claimed_topic": "单元式玻璃幕墙",
+   "actual_content_topic": "幕墙安装要点",
+   "chunk_id": "1A413030_146_0283",
+   "fingerprint": "d10225b972c7",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A413065-R05",
+   "claimed_topic": "幕墙横梁安装",
+   "actual_content_topic": "幕墙安装要点",
+   "chunk_id": "1A413030_146_0283",
+   "fingerprint": "d10225b972c7",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A414000-E01",
+   "claimed_topic": "装饰装修——幕墙工程",
+   "actual_content_topic": "幕墙安装要点",
+   "chunk_id": "1A413030_146_0283",
+   "fingerprint": "d10225b972c7",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A414010-E04",
+   "claimed_topic": "装配式混凝土结构",
+   "actual_content_topic": "专业企业生产的预制构件进场时",
+   "chunk_id": "1A422000_039_0063",
+   "fingerprint": "6d9b4a48d92c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A414010-E06",
+   "claimed_topic": "钢筋工程",
+   "actual_content_topic": "钢筋连接",
+   "chunk_id": "1A413030_100_0190",
+   "fingerprint": "733c829c0d95",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A415024-E01",
+   "claimed_topic": "土石方开挖施工",
+   "actual_content_topic": "基坑开挖对地基扰动的防护措施",
+   "chunk_id": "1A413000_084_0157",
+   "fingerprint": "9da3410bd151",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A415043-E01",
+   "claimed_topic": "钢结构工程施工",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B014",
+   "claimed_topic": "中埋式止水带施工的规定",
+   "actual_content_topic": "寒冷地区抗冻设防等级",
+   "chunk_id": "1A422000_029_0049",
+   "fingerprint": "976ae97261b8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B044",
+   "claimed_topic": "外围护系统质量检查与验收",
+   "actual_content_topic": "专业企业生产的预制构件进场时",
+   "chunk_id": "1A422000_039_0063",
+   "fingerprint": "6d9b4a48d92c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B045",
+   "claimed_topic": "外围护部品隐蔽项目的现场验收",
+   "actual_content_topic": "专业企业生产的预制构件进场时",
+   "chunk_id": "1A422000_039_0063",
+   "fingerprint": "6d9b4a48d92c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B050",
+   "claimed_topic": "对以上规定中不做结构性能检验的预制构件",
+   "actual_content_topic": "专业企业生产的预制构件进场时",
+   "chunk_id": "1A422000_039_0063",
+   "fingerprint": "6d9b4a48d92c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B059",
+   "claimed_topic": "应对土钉的抗拔承载力进行检测",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A422000_033_0055",
+   "fingerprint": "9c0f7a4ec43f",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B060",
+   "claimed_topic": "应进行抽样检验的材料",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B061",
+   "claimed_topic": "应进行见证取样检验的进场材料",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B080",
+   "claimed_topic": "当地下水位高于基坑底面时",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A422000_033_0055",
+   "fingerprint": "9c0f7a4ec43f",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B081",
+   "claimed_topic": "抽水系统使用期要求",
+   "actual_content_topic": "管井滤管构造要求",
+   "chunk_id": "1A422000_034_0056",
+   "fingerprint": "5ebbc527490a",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B082",
+   "claimed_topic": "抽水系统维护要求",
+   "actual_content_topic": "管井滤管构造要求",
+   "chunk_id": "1A422000_034_0056",
+   "fingerprint": "5ebbc527490a",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B095",
+   "claimed_topic": "施工过程质量检测试样",
+   "actual_content_topic": "屋面工程",
+   "chunk_id": "1A422000_021_0029",
+   "fingerprint": "725a98e18cfe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B101",
+   "claimed_topic": "木质材料子分部装修工程",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B102",
+   "claimed_topic": "材料抽样检验",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B112",
+   "claimed_topic": "混凝土预制构件安装与连接的主控项目",
+   "actual_content_topic": "专业企业生产的预制构件进场时",
+   "chunk_id": "1A422000_039_0063",
+   "fingerprint": "6d9b4a48d92c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B117",
+   "claimed_topic": "真空井点构造要求",
+   "actual_content_topic": "管井滤管构造要求",
+   "chunk_id": "1A422000_034_0056",
+   "fingerprint": "5ebbc527490a",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B123",
+   "claimed_topic": "禁止验收情形",
+   "actual_content_topic": "屋面工程",
+   "chunk_id": "1A422000_021_0029",
+   "fingerprint": "725a98e18cfe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B126",
+   "claimed_topic": "管井构造要求",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A422000_033_0055",
+   "fingerprint": "9c0f7a4ec43f",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B130",
+   "claimed_topic": "纺织物子分部装修工程",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B140",
+   "claimed_topic": "表5.1-3 民用建筑工程室内环境污染物浓度限量",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A422000_025_0040",
+   "fingerprint": "e07030ab9913",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B141",
+   "claimed_topic": "表5.1-4 室内环境污染物浓度检测点数设置",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A422000_025_0040",
+   "fingerprint": "e07030ab9913",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B150",
+   "claimed_topic": "进场应进行见证取样检验的材料",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B153",
+   "claimed_topic": "钢结构支撑要求",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A422000_033_0055",
+   "fingerprint": "9c0f7a4ec43f",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B155",
+   "claimed_topic": "锚杆布置规定",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A422000_033_0055",
+   "fingerprint": "9c0f7a4ec43f",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B160",
+   "claimed_topic": "防水层施工应采取绿色施工措施的规定",
+   "actual_content_topic": "寒冷地区抗冻设防等级",
+   "chunk_id": "1A422000_029_0049",
+   "fingerprint": "976ae97261b8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B161",
+   "claimed_topic": "防水涂料施工的规定",
+   "actual_content_topic": "寒冷地区抗冻设防等级",
+   "chunk_id": "1A422000_029_0049",
+   "fingerprint": "976ae97261b8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-B168",
+   "claimed_topic": "高分子合成材料子分部装修工程",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A422000-G01",
+   "claimed_topic": "检验批划分与屋面工程质量验收",
+   "actual_content_topic": "屋面工程",
+   "chunk_id": "1A422000_021_0029",
+   "fingerprint": "725a98e18cfe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A431010-C11",
+   "claimed_topic": "布置临时房屋",
+   "actual_content_topic": "布置仓库、堆场",
+   "chunk_id": "1A431011_012_0013",
+   "fingerprint": "adb6c31e92c0",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A431010-C12",
+   "claimed_topic": "布置临时水、电管网和其他动力设施",
+   "actual_content_topic": "布置仓库、堆场",
+   "chunk_id": "1A431011_012_0013",
+   "fingerprint": "adb6c31e92c0",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A431011-B019",
+   "claimed_topic": "施工总平面图应按绘图规则、比例、规定代号和规",
+   "actual_content_topic": "布置仓库、堆场",
+   "chunk_id": "1A431011_012_0013",
+   "fingerprint": "adb6c31e92c0",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B005",
+   "claimed_topic": "专业分包合同",
+   "actual_content_topic": "分包合同管理",
+   "chunk_id": "1A432002_032_0042",
+   "fingerprint": "4ea967a45acc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B009",
+   "claimed_topic": "公示中标候选人",
+   "actual_content_topic": "开标",
+   "chunk_id": "1A432001_024_0028",
+   "fingerprint": "bd158dd9b2f5",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B011",
+   "claimed_topic": "分包商合同义务",
+   "actual_content_topic": "分包合同管理",
+   "chunk_id": "1A432002_032_0042",
+   "fingerprint": "4ea967a45acc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B040",
+   "claimed_topic": "总承包商合同义务",
+   "actual_content_topic": "分包合同管理",
+   "chunk_id": "1A432002_032_0042",
+   "fingerprint": "4ea967a45acc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B059",
+   "claimed_topic": "组建评标委员会",
+   "actual_content_topic": "开标",
+   "chunk_id": "1A432001_024_0028",
+   "fingerprint": "bd158dd9b2f5",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-B060",
+   "claimed_topic": "编制投标文件",
+   "actual_content_topic": "开标",
+   "chunk_id": "1A432001_024_0028",
+   "fingerprint": "bd158dd9b2f5",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-C23",
+   "claimed_topic": "建筑工程费计算",
+   "actual_content_topic": "建筑工程费构成与计算",
+   "chunk_id": "1A435000_038_0050",
+   "fingerprint": "58a5671a05a8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-C26",
+   "claimed_topic": "按造价形成划分",
+   "actual_content_topic": "建筑工程费构成与计算",
+   "chunk_id": "1A435000_038_0050",
+   "fingerprint": "58a5671a05a8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432000-C28",
+   "claimed_topic": "税前工程造价",
+   "actual_content_topic": "建筑工程费构成与计算",
+   "chunk_id": "1A435000_038_0050",
+   "fingerprint": "58a5671a05a8",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A432010-G02",
+   "claimed_topic": "评标委员会组成要求",
+   "actual_content_topic": "开标",
+   "chunk_id": "1A432001_024_0028",
+   "fingerprint": "bd158dd9b2f5",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B004",
+   "claimed_topic": "单位工程进度计划的内容",
+   "actual_content_topic": "施工总进度计划的内容",
+   "chunk_id": "1A433000_059_0089",
+   "fingerprint": "984f0a8f2dbe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B011",
+   "claimed_topic": "工艺参数",
+   "actual_content_topic": "施工组织方式",
+   "chunk_id": "1A433000_051_0074",
+   "fingerprint": "bdb900f9f738",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B016",
+   "claimed_topic": "施工总进度计划的编制步骤",
+   "actual_content_topic": "施工总进度计划的内容",
+   "chunk_id": "1A433000_059_0089",
+   "fingerprint": "984f0a8f2dbe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B020",
+   "claimed_topic": "施工进度计划的内容",
+   "actual_content_topic": "施工总进度计划的内容",
+   "chunk_id": "1A433000_059_0089",
+   "fingerprint": "984f0a8f2dbe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B022",
+   "claimed_topic": "施工进度计划的编制步骤",
+   "actual_content_topic": "施工总进度计划的内容",
+   "chunk_id": "1A433000_059_0089",
+   "fingerprint": "984f0a8f2dbe",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B030",
+   "claimed_topic": "流水施工参数",
+   "actual_content_topic": "施工组织方式",
+   "chunk_id": "1A433000_051_0074",
+   "fingerprint": "bdb900f9f738",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A433000-B035",
+   "claimed_topic": "空间参数",
+   "actual_content_topic": "施工组织方式",
+   "chunk_id": "1A433000_051_0074",
+   "fingerprint": "bdb900f9f738",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B004",
+   "claimed_topic": "地下防水工程质量问题防治",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B005",
+   "claimed_topic": "地基不均匀下沉引起的墙体裂缝",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B013",
+   "claimed_topic": "填充墙砌筑不当",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B016",
+   "claimed_topic": "屋面与防水工程质量通病防治",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B046",
+   "claimed_topic": "砌体工程中主要质量问题防治",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434000-B067",
+   "claimed_topic": "防水混凝土施工缝渗漏水",
+   "actual_content_topic": "焊缝夹渣",
+   "chunk_id": "1A434000_074_0116",
+   "fingerprint": "3de38cc9c76c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434010-E01",
+   "claimed_topic": "地基处理技术",
+   "actual_content_topic": "夯实地基",
+   "chunk_id": "1A413030_088_0163",
+   "fingerprint": "57ca0a7a13f9",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434012-E01",
+   "claimed_topic": "装修工程——室内环境质量检测",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A422000_025_0040",
+   "fingerprint": "e07030ab9913",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A434040-E01",
+   "claimed_topic": "建筑内部装饰装修防火设计——应用场景",
+   "actual_content_topic": "工程质量验收",
+   "chunk_id": "1A422000_045_0071",
+   "fingerprint": "8a67ed4c32f4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B019",
+   "claimed_topic": "工程各阶段的成本控制工作",
+   "actual_content_topic": "施工成本控制",
+   "chunk_id": "1A435000_093_0154",
+   "fingerprint": "81b0dc7fb7cf",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B020",
+   "claimed_topic": "工程投标阶段的成本控制",
+   "actual_content_topic": "施工成本控制",
+   "chunk_id": "1A435000_093_0154",
+   "fingerprint": "81b0dc7fb7cf",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B036",
+   "claimed_topic": "施工准备阶段的成本控制",
+   "actual_content_topic": "施工成本控制",
+   "chunk_id": "1A435000_093_0154",
+   "fingerprint": "81b0dc7fb7cf",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B040",
+   "claimed_topic": "施工成本计划编制",
+   "actual_content_topic": "施工项目成本",
+   "chunk_id": "1A435000_089_0147",
+   "fingerprint": "be21a6d5a057",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B041",
+   "claimed_topic": "施工成本预测",
+   "actual_content_topic": "施工项目成本",
+   "chunk_id": "1A435000_089_0147",
+   "fingerprint": "be21a6d5a057",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-B043",
+   "claimed_topic": "施工项目成本计划",
+   "actual_content_topic": "施工项目成本",
+   "chunk_id": "1A435000_089_0147",
+   "fingerprint": "be21a6d5a057",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A435000-G01",
+   "claimed_topic": "施工成本管理环节",
+   "actual_content_topic": "施工项目成本",
+   "chunk_id": "1A435000_089_0147",
+   "fingerprint": "be21a6d5a057",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B019",
+   "claimed_topic": "事故应急救援预案",
+   "actual_content_topic": "重大危险源控制",
+   "chunk_id": "1A436000_103_0169",
+   "fingerprint": "d6acb8862934",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B029",
+   "claimed_topic": "危大工程范围",
+   "actual_content_topic": "相关法规——安全管理",
+   "chunk_id": "1A436000_008_0011",
+   "fingerprint": "2800379116d4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B034",
+   "claimed_topic": "吊装区安全要求",
+   "actual_content_topic": "吊装安全作业要求",
+   "chunk_id": "1A436000_119_0193",
+   "fingerprint": "9bcda904c0dc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B041",
+   "claimed_topic": "基坑支护、降水工程",
+   "actual_content_topic": "相关法规——安全管理",
+   "chunk_id": "1A436000_008_0011",
+   "fingerprint": "2800379116d4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B064",
+   "claimed_topic": "应急处置措施",
+   "actual_content_topic": "施工保证措施",
+   "chunk_id": "1A436000_010_0010",
+   "fingerprint": "19deebb4d068",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B101",
+   "claimed_topic": "施工管理及作业人员配备和分工",
+   "actual_content_topic": "施工保证措施",
+   "chunk_id": "1A436000_010_0010",
+   "fingerprint": "19deebb4d068",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B105",
+   "claimed_topic": "构件吊装安全要求",
+   "actual_content_topic": "吊装安全作业要求",
+   "chunk_id": "1A436000_119_0193",
+   "fingerprint": "9bcda904c0dc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B111",
+   "claimed_topic": "模板工程及支撑体系",
+   "actual_content_topic": "相关法规——安全管理",
+   "chunk_id": "1A436000_008_0011",
+   "fingerprint": "2800379116d4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B132",
+   "claimed_topic": "相关设计图纸",
+   "actual_content_topic": "施工保证措施",
+   "chunk_id": "1A436000_010_0010",
+   "fingerprint": "19deebb4d068",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B139",
+   "claimed_topic": "脚手架工程",
+   "actual_content_topic": "相关法规——安全管理",
+   "chunk_id": "1A436000_008_0011",
+   "fingerprint": "2800379116d4",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B163",
+   "claimed_topic": "重大危险源的安全报告",
+   "actual_content_topic": "重大危险源控制",
+   "chunk_id": "1A436000_103_0169",
+   "fingerprint": "d6acb8862934",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B164",
+   "claimed_topic": "重大危险源的管理",
+   "actual_content_topic": "重大危险源控制",
+   "chunk_id": "1A436000_103_0169",
+   "fingerprint": "d6acb8862934",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A436000-B178",
+   "claimed_topic": "高处作业安全管理要点",
+   "actual_content_topic": "吊装安全作业要求",
+   "chunk_id": "1A436000_119_0193",
+   "fingerprint": "9bcda904c0dc",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B015",
+   "claimed_topic": "劳务工人信息管理技术",
+   "actual_content_topic": "智慧工地信息技术",
+   "chunk_id": "1A437000_151_0297",
+   "fingerprint": "e3cd0f6c464c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B032",
+   "claimed_topic": "建立防火制度",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_144_0230",
+   "fingerprint": "831eb20fa2db",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B038",
+   "claimed_topic": "建筑工程施工作业职业健康管理",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_142_0227",
+   "fingerprint": "a9a3ece2d803",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B047",
+   "claimed_topic": "施工现场动火等级的划分",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_144_0230",
+   "fingerprint": "831eb20fa2db",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B053",
+   "claimed_topic": "施工现场防火要求",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_144_0230",
+   "fingerprint": "831eb20fa2db",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B054",
+   "claimed_topic": "施工生产职业病防治管理措施",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_142_0227",
+   "fingerprint": "a9a3ece2d803",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B078",
+   "claimed_topic": "电子商务采购技术",
+   "actual_content_topic": "智慧工地信息技术",
+   "chunk_id": "1A437000_151_0297",
+   "fingerprint": "e3cd0f6c464c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B092",
+   "claimed_topic": "职业病类型",
+   "actual_content_topic": "(无明确正主)",
+   "chunk_id": "1A437000_142_0227",
+   "fingerprint": "a9a3ece2d803",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B106",
+   "claimed_topic": "项目成本分析与控制信息技术",
+   "actual_content_topic": "智慧工地信息技术",
+   "chunk_id": "1A437000_151_0297",
+   "fingerprint": "e3cd0f6c464c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B108",
+   "claimed_topic": "项目机械设备协同管理技术",
+   "actual_content_topic": "智慧工地信息技术",
+   "chunk_id": "1A437000_151_0297",
+   "fingerprint": "e3cd0f6c464c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A437000-B109",
+   "claimed_topic": "项目物资全过程监管技术",
+   "actual_content_topic": "智慧工地信息技术",
+   "chunk_id": "1A437000_151_0297",
+   "fingerprint": "e3cd0f6c464c",
+   "confidence": "iron"
+  },
+  {
+   "leaf_id": "1A411002-E01",
+   "claimed_topic": "建筑构造设计要求",
+   "actual_content_topic": "墙体基本构造要求",
+   "chunk_id": "1A411011_016_0029",
+   "fingerprint": "da1fd32f059e",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411002-E02",
+   "claimed_topic": "建筑设计——楼梯构造要求",
+   "actual_content_topic": "楼梯和电梯基本构造要求",
+   "chunk_id": "1A411011_017_0032",
+   "fingerprint": "a992097b7f1d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411003-E01",
+   "claimed_topic": "建筑设计——地面构造要求",
+   "actual_content_topic": "地面构造",
+   "chunk_id": "1A411011_016_0028",
+   "fingerprint": "556b79d6bbdc",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411003-E02",
+   "claimed_topic": "建筑设计——设计类别",
+   "actual_content_topic": "种植坡屋面绝热层施工方式",
+   "chunk_id": "1A413030_127_0240",
+   "fingerprint": "aea06703c11f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411004-E01",
+   "claimed_topic": "建筑设计——室内物理环境",
+   "actual_content_topic": "自然通风与遮阳设计",
+   "chunk_id": "1A411011_009_0017",
+   "fingerprint": "7b602d9d752b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411004-E02",
+   "claimed_topic": "建筑设计——龙骨构造要求",
+   "actual_content_topic": "吊顶的装修构造及施工要求",
+   "chunk_id": "1A411011_021_0041",
+   "fingerprint": "5bc6e986afd3",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411010-R09",
+   "claimed_topic": "各类设防标准规定",
+   "actual_content_topic": "抗震设防分类和设防标准",
+   "chunk_id": "1A411011_010_0020",
+   "fingerprint": "bd9733f28fb8",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411010-R12",
+   "claimed_topic": "地下室外墙热阻、地面层热阻的计算只计入结构层",
+   "actual_content_topic": "严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝",
+   "chunk_id": "1A411011_008_0014",
+   "fingerprint": "023802cac821",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411010-R18",
+   "claimed_topic": "屋面隔热可采取的措施",
+   "actual_content_topic": "围护结构隔热设计",
+   "chunk_id": "1A411011_008_0015",
+   "fingerprint": "3ff701b23992",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411010-R27",
+   "claimed_topic": "按建筑物的层数或高度分类",
+   "actual_content_topic": "建筑设计——建筑物的类别",
+   "chunk_id": "1A411011_001_0001",
+   "fingerprint": "d8b966e546c8",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411010-R30",
+   "claimed_topic": "有保温要求的门窗、玻璃幕墙、采光顶采用的玻璃",
+   "actual_content_topic": "严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝",
+   "chunk_id": "1A411011_008_0014",
+   "fingerprint": "023802cac821",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411020-R15",
+   "claimed_topic": "表 1.2-1 室内疏散楼梯的最小净宽度（m）",
+   "actual_content_topic": "楼梯和电梯基本构造要求",
+   "chunk_id": "1A411011_017_0032",
+   "fingerprint": "a992097b7f1d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411030-R07",
+   "claimed_topic": "混凝土结构环境作用等级",
+   "actual_content_topic": "混凝土最低强度等级",
+   "chunk_id": "1A411011_026_0048",
+   "fingerprint": "b4e70dd1fd41",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411030-R10",
+   "claimed_topic": "混凝土结构耐久性的要求",
+   "actual_content_topic": "混凝土最低强度等级",
+   "chunk_id": "1A411011_026_0048",
+   "fingerprint": "b4e70dd1fd41",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411030-R31",
+   "claimed_topic": "结构设计的基本内容",
+   "actual_content_topic": "正常使用极限状态",
+   "chunk_id": "1A411011_029_0052",
+   "fingerprint": "a12c43f4fed7",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411030-R39",
+   "claimed_topic": "混凝土结构构造",
+   "actual_content_topic": "混凝土结构体系",
+   "chunk_id": "1A411011_031_0055",
+   "fingerprint": "c9c3c355d214",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411030-R42",
+   "claimed_topic": "结构混凝土",
+   "actual_content_topic": "混凝土结构体系",
+   "chunk_id": "1A411011_031_0055",
+   "fingerprint": "c9c3c355d214",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411050-R01",
+   "claimed_topic": "剪力墙结构设计要求",
+   "actual_content_topic": "基本设计规定",
+   "chunk_id": "1A411011_035_0062",
+   "fingerprint": "5fb4d1052243",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A411050-R05",
+   "claimed_topic": "结构设计",
+   "actual_content_topic": "装配式钢结构建筑设计基本要求",
+   "chunk_id": "1A411011_036_0064",
+   "fingerprint": "2d88e46c9351",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412000-B002",
+   "claimed_topic": "常用的建筑钢材",
+   "actual_content_topic": "建筑钢材的主要钢种",
+   "chunk_id": "1A412000_038_0066",
+   "fingerprint": "924003e4642b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412000-B013",
+   "claimed_topic": "钢筋混凝土结构用钢管",
+   "actual_content_topic": "建筑钢材的主要钢种",
+   "chunk_id": "1A412000_038_0066",
+   "fingerprint": "924003e4642b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412001-E03",
+   "claimed_topic": "结构设计——建筑物的类别",
+   "actual_content_topic": "常用建筑结构体系和应用",
+   "chunk_id": "1A411011_027_0050",
+   "fingerprint": "c726371cc0b1",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B024",
+   "claimed_topic": "处于环境3～5类",
+   "actual_content_topic": "地面以下或防潮层以下的砌体、潮湿房间的墙所用",
+   "chunk_id": "1A412010_052_0097",
+   "fingerprint": "3ff55af66513",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B027",
+   "claimed_topic": "外加剂的应用",
+   "actual_content_topic": "外加剂的分类",
+   "chunk_id": "1A412010_048_0083",
+   "fingerprint": "31a4d1174192",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B028",
+   "claimed_topic": "外加剂的选择",
+   "actual_content_topic": "外加剂的分类",
+   "chunk_id": "1A412010_048_0083",
+   "fingerprint": "31a4d1174192",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B036",
+   "claimed_topic": "安全玻璃",
+   "actual_content_topic": "冰花玻璃",
+   "chunk_id": "1A412010_057_0113",
+   "fingerprint": "109074ae7241",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B042",
+   "claimed_topic": "常用保温隔热材料",
+   "actual_content_topic": "建筑防水——影响保温材料导热系数的因素",
+   "chunk_id": "1A412010_067_0131",
+   "fingerprint": "458a43d0811f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B061",
+   "claimed_topic": "彩色平板玻璃",
+   "actual_content_topic": "冰花玻璃",
+   "chunk_id": "1A412010_057_0113",
+   "fingerprint": "109074ae7241",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B070",
+   "claimed_topic": "改性酚醛泡沫塑料",
+   "actual_content_topic": "建筑防水——影响保温材料导热系数的因素",
+   "chunk_id": "1A412010_067_0131",
+   "fingerprint": "458a43d0811f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B074",
+   "claimed_topic": "有害杂质和针、片状颗粒",
+   "actual_content_topic": "强度和坚固性",
+   "chunk_id": "1A412010_045_0078",
+   "fingerprint": "2cacf1cdb9c2",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B117",
+   "claimed_topic": "细骨料",
+   "actual_content_topic": "坚固性",
+   "chunk_id": "1A412010_044_0077",
+   "fingerprint": "cfbfad0df531",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B123",
+   "claimed_topic": "节能装饰型玻璃",
+   "actual_content_topic": "夹层玻璃",
+   "chunk_id": "1A412010_058_0114",
+   "fingerprint": "fe79610f80db",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B124",
+   "claimed_topic": "花岗石板材应用",
+   "actual_content_topic": "分类、等级及技术要求",
+   "chunk_id": "1A412010_052_0098",
+   "fingerprint": "64930eb1b587",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B143",
+   "claimed_topic": "铝及铝合金穿孔吸声板",
+   "actual_content_topic": "花纹板",
+   "chunk_id": "1A412010_063_0124",
+   "fingerprint": "b6f26aed705a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B146",
+   "claimed_topic": "铝质波纹板和压型板",
+   "actual_content_topic": "花纹板",
+   "chunk_id": "1A412010_063_0124",
+   "fingerprint": "b6f26aed705a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B149",
+   "claimed_topic": "防水卷材的主要性能",
+   "actual_content_topic": "建筑防水材料的特性与应用",
+   "chunk_id": "1A412010_064_0125",
+   "fingerprint": "47fe05876403",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B150",
+   "claimed_topic": "防水卷材的分类",
+   "actual_content_topic": "建筑防水材料的特性与应用",
+   "chunk_id": "1A412010_064_0125",
+   "fingerprint": "47fe05876403",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412010-B156",
+   "claimed_topic": "颗粒级配及粗细程度",
+   "actual_content_topic": "坚固性",
+   "chunk_id": "1A412010_044_0077",
+   "fingerprint": "cfbfad0df531",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A412032-E01",
+   "claimed_topic": "结构抗震设计构造要求",
+   "actual_content_topic": "各类建筑与市政工程结构的抗震设计的规定",
+   "chunk_id": "1A411011_011_0021",
+   "fingerprint": "67caaf54ab0c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B004",
+   "claimed_topic": "四类土（砂砾坚土）",
+   "actual_content_topic": "一类土（松软土）",
+   "chunk_id": "1A413000_075_0143",
+   "fingerprint": "58c9bcc49b20",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B005",
+   "claimed_topic": "五类土（软石）",
+   "actual_content_topic": "一类土（松软土）",
+   "chunk_id": "1A413000_075_0143",
+   "fingerprint": "58c9bcc49b20",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B016",
+   "claimed_topic": "咬合桩围护墙",
+   "actual_content_topic": "土钉墙施工要求",
+   "chunk_id": "1A413000_079_0150",
+   "fingerprint": "688732f319c3",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B026",
+   "claimed_topic": "施工期间变形监测对象",
+   "actual_content_topic": "建筑施工期间的变形测量",
+   "chunk_id": "1A413000_072_0139",
+   "fingerprint": "a8e9b241f32b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B029",
+   "claimed_topic": "地下连续墙支护",
+   "actual_content_topic": "叠袋式挡墙支护",
+   "chunk_id": "1A413000_077_0148",
+   "fingerprint": "84a0df28dc5e",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B030",
+   "claimed_topic": "地基处理工程验槽",
+   "actual_content_topic": "天然地基验槽",
+   "chunk_id": "1A413000_086_0159",
+   "fingerprint": "bd53571d536a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B034",
+   "claimed_topic": "基坑开挖前水泥土搅拌桩桩身强度检验",
+   "actual_content_topic": "与主体结构相结合（两墙合一）的基坑支护",
+   "chunk_id": "1A413000_080_0151",
+   "fingerprint": "935a3cd5dc50",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B047",
+   "claimed_topic": "已知角度的测设",
+   "actual_content_topic": "已知长度的测设",
+   "chunk_id": "1A413000_071_0137",
+   "fingerprint": "0f427430de41",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B052",
+   "claimed_topic": "建筑物细部点平面位置的测设",
+   "actual_content_topic": "已知长度的测设",
+   "chunk_id": "1A413000_071_0137",
+   "fingerprint": "0f427430de41",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B064",
+   "claimed_topic": "桩基工程验槽",
+   "actual_content_topic": "天然地基验槽",
+   "chunk_id": "1A413000_086_0159",
+   "fingerprint": "bd53571d536a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-B072",
+   "claimed_topic": "墙底注浆的混凝土强度条件",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A413000_078_0149",
+   "fingerprint": "a1d5db762bcc",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413000-G03",
+   "claimed_topic": "复合土钉墙构造与施工",
+   "actual_content_topic": "土钉墙",
+   "chunk_id": "1A413000_078_0149",
+   "fingerprint": "a1d5db762bcc",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413003-E01",
+   "claimed_topic": "装配式装饰装修模块化设计",
+   "actual_content_topic": "装配式装饰装修设计基本要求",
+   "chunk_id": "1A411011_037_0065",
+   "fingerprint": "234040495b93",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413010-E01",
+   "claimed_topic": "工程测量技术",
+   "actual_content_topic": "常用工程测量仪器的性能与应用",
+   "chunk_id": "1A413000_069_0135",
+   "fingerprint": "4365ae5b241c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413030-G01",
+   "claimed_topic": "砌体墙临时施工洞口留置规定",
+   "actual_content_topic": "临时施工洞口设置规定",
+   "chunk_id": "1A413030_106_0208",
+   "fingerprint": "9233c1fec7d9",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413031-R03",
+   "claimed_topic": "夯实水泥土桩复合地基",
+   "actual_content_topic": "振冲碎石桩和沉管砂石桩复合地基",
+   "chunk_id": "1A413030_089_0164",
+   "fingerprint": "1e6382b0a897",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413031-R07",
+   "claimed_topic": "水泥土搅拌桩复合地基",
+   "actual_content_topic": "振冲碎石桩和沉管砂石桩复合地基",
+   "chunk_id": "1A413030_089_0164",
+   "fingerprint": "1e6382b0a897",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R23",
+   "claimed_topic": "模板工程安装要点",
+   "actual_content_topic": "模板工程设计",
+   "chunk_id": "1A413030_098_0184",
+   "fingerprint": "d78ec1f391b9",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R26",
+   "claimed_topic": "模板拆除要点",
+   "actual_content_topic": "模板工程设计",
+   "chunk_id": "1A413030_098_0184",
+   "fingerprint": "d78ec1f391b9",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R35",
+   "claimed_topic": "紧固件连接",
+   "actual_content_topic": "钢结构焊接要求",
+   "chunk_id": "1A413030_110_0217",
+   "fingerprint": "131724176c56",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R38",
+   "claimed_topic": "防止预制构件断裂滑脱的吊运要求",
+   "actual_content_topic": "后张法预应力施工",
+   "chunk_id": "1A413030_105_0201",
+   "fingerprint": "2a2e26ad4656",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R56",
+   "claimed_topic": "预制构件连接",
+   "actual_content_topic": "预制剪力墙板安装要求",
+   "chunk_id": "1A413030_117_0225",
+   "fingerprint": "cc419d4eb454",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413040-R57",
+   "claimed_topic": "预制柱安装要求",
+   "actual_content_topic": "预制构件安装",
+   "chunk_id": "1A413030_116_0224",
+   "fingerprint": "724a16173d4c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413042-R03",
+   "claimed_topic": "填充墙砌体工程",
+   "actual_content_topic": "多孔砖墙",
+   "chunk_id": "1A413030_108_0211",
+   "fingerprint": "0ebe7aa8b97a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413042-R16",
+   "claimed_topic": "砖柱和带壁柱墙砌筑的规定",
+   "actual_content_topic": "烧结砖砌体",
+   "chunk_id": "1A413030_107_0210",
+   "fingerprint": "fe75ef5e7557",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413046-R04",
+   "claimed_topic": "施工脚手架设计",
+   "actual_content_topic": "常用施工脚手架",
+   "chunk_id": "1A413030_120_0228",
+   "fingerprint": "b3b9c854fb8c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413046-R05",
+   "claimed_topic": "表 3.4-4 脚手架的安全等级",
+   "actual_content_topic": "常用施工脚手架",
+   "chunk_id": "1A413030_120_0228",
+   "fingerprint": "b3b9c854fb8c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413050-R06",
+   "claimed_topic": "倒置式屋面保温层要求",
+   "actual_content_topic": "保温层施工环境温度要求",
+   "chunk_id": "1A413030_126_0239",
+   "fingerprint": "0f9e3c33293e",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413050-R30",
+   "claimed_topic": "种植屋面保温层要求",
+   "actual_content_topic": "保温层施工环境温度要求",
+   "chunk_id": "1A413030_126_0239",
+   "fingerprint": "0f9e3c33293e",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413051-R10",
+   "claimed_topic": "热粘法铺贴",
+   "actual_content_topic": "屋面卷材防水层施工",
+   "chunk_id": "1A413030_123_0234",
+   "fingerprint": "2dc70793d505",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413064-R09",
+   "claimed_topic": "美术漆施工",
+   "actual_content_topic": "乳胶漆施工",
+   "chunk_id": "1A413030_142_0277",
+   "fingerprint": "593315354ecd",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A413064-R12",
+   "claimed_topic": "软包饰面施工",
+   "actual_content_topic": "壁纸及软包的分类",
+   "chunk_id": "1A413030_143_0278",
+   "fingerprint": "39fabc40440e",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A414010-E02",
+   "claimed_topic": "室内防水——防水砂浆施工",
+   "actual_content_topic": "水泥砂浆防水层施工",
+   "chunk_id": "1A413030_131_0251",
+   "fingerprint": "a90634d0faa4",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A414012-E01",
+   "claimed_topic": "建筑钢材的性能和应用",
+   "actual_content_topic": "冲击性能",
+   "chunk_id": "1A412000_040_0068",
+   "fingerprint": "3909aee558d0",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A414020-E02",
+   "claimed_topic": "建筑装饰装修材料",
+   "actual_content_topic": "实木地板",
+   "chunk_id": "1A412010_055_0110",
+   "fingerprint": "082336a9ad9a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A414020-E04",
+   "claimed_topic": "装修工程——幕墙安装",
+   "actual_content_topic": "全玻璃幕墙",
+   "chunk_id": "1A413030_147_0284",
+   "fingerprint": "692425749a2b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415010-E01",
+   "claimed_topic": "防水工程——地下防水",
+   "actual_content_topic": "水泥砂浆防水层施工",
+   "chunk_id": "1A413030_131_0251",
+   "fingerprint": "a90634d0faa4",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415022-E01",
+   "claimed_topic": "基坑支护施工",
+   "actual_content_topic": "土钉墙施工要求",
+   "chunk_id": "1A413000_079_0150",
+   "fingerprint": "688732f319c3",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415032-E01",
+   "claimed_topic": "桩基础施工",
+   "actual_content_topic": "桩基检测技术",
+   "chunk_id": "1A413030_092_0173",
+   "fingerprint": "3ed9cba33562",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415033-E01",
+   "claimed_topic": "混凝土基础施工",
+   "actual_content_topic": "大体积混凝土施工要求",
+   "chunk_id": "1A413030_096_0181",
+   "fingerprint": "a210516e1d58",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415041-E01",
+   "claimed_topic": "混凝土结构工程施工",
+   "actual_content_topic": "施工缝和后浇带",
+   "chunk_id": "1A413030_103_0196",
+   "fingerprint": "51be548ffc73",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415044-E01",
+   "claimed_topic": "装配式混凝土结构工程施工",
+   "actual_content_topic": "预制构件安装",
+   "chunk_id": "1A413030_116_0224",
+   "fingerprint": "724a16173d4c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415045-E01",
+   "claimed_topic": "钢-混凝土组合结构工程施工",
+   "actual_content_topic": "钢-混凝土组合结构施工",
+   "chunk_id": "1A413030_119_0227",
+   "fingerprint": "a8673e58400c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A415065-E01",
+   "claimed_topic": "涂饰、裱糊等工程施工",
+   "actual_content_topic": "乳胶漆施工",
+   "chunk_id": "1A413030_142_0277",
+   "fingerprint": "593315354ecd",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A420000-E01",
+   "claimed_topic": "建筑工程项目施工管理",
+   "actual_content_topic": "施工组织设计管理",
+   "chunk_id": "1A431000_006_0006",
+   "fingerprint": "6459757e6af2",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A421000-E01",
+   "claimed_topic": "相关法规",
+   "actual_content_topic": "民用建筑工程室内环境污染控制管理有关规定",
+   "chunk_id": "1A422000_022_0031",
+   "fingerprint": "24fd0bf6ba7d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A421010-B004",
+   "claimed_topic": "城市地下管线管理与建筑工程施工相关的规定",
+   "actual_content_topic": "城市道路、地下水与建筑施工管理规定",
+   "chunk_id": "1A421000_001_0001",
+   "fingerprint": "b8edb7320177",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A421010-B012",
+   "claimed_topic": "建筑工程施工许可的相关管理规定",
+   "actual_content_topic": "施工许可管理规定",
+   "chunk_id": "1A421000_003_0003",
+   "fingerprint": "a4fba3a93422",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A421010-B021",
+   "claimed_topic": "限制使用的施工工艺",
+   "actual_content_topic": "《国务院关于调整完善工业产品生产许可证管理目",
+   "chunk_id": "1A421000_014_0020",
+   "fingerprint": "5cd04304053b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B007",
+   "claimed_topic": "《建筑环境通用规范》有关规定",
+   "actual_content_topic": "变形缝设置",
+   "chunk_id": "1A422000_017_0023",
+   "fingerprint": "b630b9096a5c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B025",
+   "claimed_topic": "土和灰土挤密桩复合地基",
+   "actual_content_topic": "水泥粉煤灰碎石桩（CFG）复合地基",
+   "chunk_id": "1A422000_031_0051",
+   "fingerprint": "12a94483de63",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B034",
+   "claimed_topic": "地面节能工程隐蔽验收要求",
+   "actual_content_topic": "屋面节能工程隐蔽验收要求",
+   "chunk_id": "1A422000_049_0075",
+   "fingerprint": "12227463946d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B053",
+   "claimed_topic": "屋面工程施工有关规定",
+   "actual_content_topic": "保温与隔热工程",
+   "chunk_id": "1A422000_040_0064",
+   "fingerprint": "142bbdc9fb31",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B074",
+   "claimed_topic": "建筑通用空间",
+   "actual_content_topic": "《民用建筑通用规范》GB 55031—202",
+   "chunk_id": "1A422000_016_0022",
+   "fingerprint": "5764fa2f1b45",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B089",
+   "claimed_topic": "施工、调试及验收",
+   "actual_content_topic": "《建筑节能与可再生能源利用通用规范》有关规定",
+   "chunk_id": "1A422000_046_0072",
+   "fingerprint": "c649a017e5a5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B107",
+   "claimed_topic": "水泥土搅拌桩地基",
+   "actual_content_topic": "水泥粉煤灰碎石桩（CFG）复合地基",
+   "chunk_id": "1A422000_031_0051",
+   "fingerprint": "12a94483de63",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B114",
+   "claimed_topic": "特殊建设工程的消防设计审查",
+   "actual_content_topic": "建设工程消防设计审查验收有关规定",
+   "chunk_id": "1A422000_022_0030",
+   "fingerprint": "3a6552422753",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B115",
+   "claimed_topic": "特殊建设工程的消防验收",
+   "actual_content_topic": "建设工程消防设计审查验收有关规定",
+   "chunk_id": "1A422000_022_0030",
+   "fingerprint": "3a6552422753",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B119",
+   "claimed_topic": "砂和砂石地基",
+   "actual_content_topic": "强夯地基",
+   "chunk_id": "1A422000_030_0050",
+   "fingerprint": "d488035271db",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B127",
+   "claimed_topic": "管道井、烟道和通风道",
+   "actual_content_topic": "变形缝设置",
+   "chunk_id": "1A422000_017_0023",
+   "fingerprint": "b630b9096a5c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-B128",
+   "claimed_topic": "粉煤灰地基",
+   "actual_content_topic": "强夯地基",
+   "chunk_id": "1A422000_030_0050",
+   "fingerprint": "d488035271db",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A422000-G02",
+   "claimed_topic": "室内环境污染物验收",
+   "actual_content_topic": "民用建筑工程室内环境污染控制管理有关规定",
+   "chunk_id": "1A422000_022_0031",
+   "fingerprint": "24fd0bf6ba7d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A430000-E01",
+   "claimed_topic": "项目管理实务",
+   "actual_content_topic": "施工现场动火审批程序",
+   "chunk_id": "1A437000_145_0231",
+   "fingerprint": "a13646c75cff",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A430000-E02",
+   "claimed_topic": "项目管理实务——绿色施工",
+   "actual_content_topic": "建材生产与运输",
+   "chunk_id": "1A422000_055_0081",
+   "fingerprint": "896f8c26e4fd",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431000-B005",
+   "claimed_topic": "单位工程施工作业组织设计编制要求",
+   "actual_content_topic": "总体施工部署与施工准备",
+   "chunk_id": "1A431000_007_0007",
+   "fingerprint": "7864f157e18a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431000-B012",
+   "claimed_topic": "建筑工程施工总承包资质承接工程范围",
+   "actual_content_topic": "一级资质",
+   "chunk_id": "1A431000_002_0002",
+   "fingerprint": "dbe1888982f5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431000-B019",
+   "claimed_topic": "施工方案编写要求",
+   "actual_content_topic": "总体施工部署与施工准备",
+   "chunk_id": "1A431000_007_0007",
+   "fingerprint": "7864f157e18a",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431000-B021",
+   "claimed_topic": "施工组织总设计编制要求",
+   "actual_content_topic": "施工组织设计管理",
+   "chunk_id": "1A431000_006_0006",
+   "fingerprint": "6459757e6af2",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431000-B028",
+   "claimed_topic": "特级资质",
+   "actual_content_topic": "一级资质",
+   "chunk_id": "1A431000_002_0002",
+   "fingerprint": "dbe1888982f5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431010-C04",
+   "claimed_topic": "临时用电管理",
+   "actual_content_topic": "临时用电线路设置",
+   "chunk_id": "1A431011_014_0015",
+   "fingerprint": "5c5143291917",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431010-C07",
+   "claimed_topic": "室内配线要求",
+   "actual_content_topic": "临时用电线路设置",
+   "chunk_id": "1A431011_014_0015",
+   "fingerprint": "5c5143291917",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431010-C25",
+   "claimed_topic": "施工过程质量检测试验内容",
+   "actual_content_topic": "施工检测试验计划",
+   "chunk_id": "1A431011_017_0018",
+   "fingerprint": "5bde35c08591",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A431010-C33",
+   "claimed_topic": "规范场容与环境保护",
+   "actual_content_topic": "场地围护与出入口",
+   "chunk_id": "1A431011_013_0014",
+   "fingerprint": "c14bf8ea8ba4",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-B008",
+   "claimed_topic": "主要招标程序",
+   "actual_content_topic": "招标方式",
+   "chunk_id": "1A432001_023_0027",
+   "fingerprint": "5ea411b98803",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-B020",
+   "claimed_topic": "合同文件管理要求",
+   "actual_content_topic": "合同变更管理程序",
+   "chunk_id": "1A432002_031_0041",
+   "fingerprint": "da221e0ca5a5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-B026",
+   "claimed_topic": "履约索赔处理规定",
+   "actual_content_topic": "合同变更管理程序",
+   "chunk_id": "1A432002_031_0041",
+   "fingerprint": "da221e0ca5a5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-B043",
+   "claimed_topic": "投标报价澄清或说明",
+   "actual_content_topic": "合同选择与要求",
+   "chunk_id": "1A432002_036_0047",
+   "fingerprint": "6db1d645ab37",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-C11",
+   "claimed_topic": "安全生产措施费的支付",
+   "actual_content_topic": "合同价款期中支付",
+   "chunk_id": "1A435000_041_0055",
+   "fingerprint": "14f6c0988813",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-C13",
+   "claimed_topic": "履约事件的索赔",
+   "actual_content_topic": "工程变更",
+   "chunk_id": "1A435000_046_0066",
+   "fingerprint": "4b9324cb4e8f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-C15",
+   "claimed_topic": "工程索赔",
+   "actual_content_topic": "工程变更",
+   "chunk_id": "1A435000_046_0066",
+   "fingerprint": "4b9324cb4e8f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432000-C17",
+   "claimed_topic": "工程进度款的支付",
+   "actual_content_topic": "合同价款期中支付",
+   "chunk_id": "1A435000_041_0055",
+   "fingerprint": "14f6c0988813",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A432020-G01",
+   "claimed_topic": "合同通用条款与专用条款",
+   "actual_content_topic": "工程总承包合同",
+   "chunk_id": "1A432002_028_0036",
+   "fingerprint": "0271a4141110",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-B031",
+   "claimed_topic": "流水施工的组织形式",
+   "actual_content_topic": "时间参数",
+   "chunk_id": "1A433000_052_0075",
+   "fingerprint": "a4e39a3649de",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-B042",
+   "claimed_topic": "网络计划的优化",
+   "actual_content_topic": "工期优化",
+   "chunk_id": "1A433000_056_0085",
+   "fingerprint": "4ba1619737da",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-B043",
+   "claimed_topic": "网络计划的分类",
+   "actual_content_topic": "工期优化",
+   "chunk_id": "1A433000_056_0085",
+   "fingerprint": "4ba1619737da",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-B052",
+   "claimed_topic": "进度事后控制内容",
+   "actual_content_topic": "单位工程进度计划的编制步骤",
+   "chunk_id": "1A433000_060_0090",
+   "fingerprint": "a58530032d42",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-B057",
+   "claimed_topic": "项目进度计划监测后",
+   "actual_content_topic": "施工进度计划监测的内容",
+   "chunk_id": "1A433000_061_0091",
+   "fingerprint": "aee9b8c8fb2d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-G01",
+   "claimed_topic": "工期费用优化与赶工费计算",
+   "actual_content_topic": "费用优化",
+   "chunk_id": "1A433000_057_0086",
+   "fingerprint": "0ce2295d4aa1",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A433000-G02",
+   "claimed_topic": "实际进度前锋线比较法",
+   "actual_content_topic": "单位工程进度计划的编制步骤",
+   "chunk_id": "1A433000_060_0090",
+   "fingerprint": "a58530032d42",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B012",
+   "claimed_topic": "填充墙砌体工程主控项目",
+   "actual_content_topic": "砌体结构工程质量检验与标准",
+   "chunk_id": "1A434000_067_0100",
+   "fingerprint": "99ee0fb3a1af",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B024",
+   "claimed_topic": "强夯地基工程",
+   "actual_content_topic": "地基与基础工程质量检验与标准",
+   "chunk_id": "1A434000_064_0095",
+   "fingerprint": "21954dcd704d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B041",
+   "claimed_topic": "灰土、砂和砂石地基工程",
+   "actual_content_topic": "地基与基础工程质量检验与标准",
+   "chunk_id": "1A434000_064_0095",
+   "fingerprint": "21954dcd704d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B044",
+   "claimed_topic": "现场质量检查的方法",
+   "actual_content_topic": "施工质量检查检验方式与方法",
+   "chunk_id": "1A434000_063_0094",
+   "fingerprint": "c03e14c1a820",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B055",
+   "claimed_topic": "质量检查主控项目",
+   "actual_content_topic": "砌体结构工程质量检验与标准",
+   "chunk_id": "1A434000_067_0100",
+   "fingerprint": "99ee0fb3a1af",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B071",
+   "claimed_topic": "项目经理部质量计划的执行",
+   "actual_content_topic": "施工企业质量计划的监督检查",
+   "chunk_id": "1A434000_062_0093",
+   "fingerprint": "68998f174884",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434000-B082",
+   "claimed_topic": "高强度螺栓连接主控项目",
+   "actual_content_topic": "钢构件焊接工程主控项目",
+   "chunk_id": "1A434000_068_0102",
+   "fingerprint": "e96c28cb4a94",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434001-E01",
+   "claimed_topic": "装修工程——涂饰",
+   "actual_content_topic": "水溶性内墙涂料",
+   "chunk_id": "1A412010_060_0118",
+   "fingerprint": "fa03994bd3a5",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A434020-B016",
+   "claimed_topic": "建筑节能工程围护结构现场实体检验",
+   "actual_content_topic": "建筑节能工程质量验收",
+   "chunk_id": "1A434020_087_0144",
+   "fingerprint": "409d1a999681",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A435000-B049",
+   "claimed_topic": "竣工验收阶段的成本控制",
+   "actual_content_topic": "工程施工的成本控制",
+   "chunk_id": "1A435000_094_0155",
+   "fingerprint": "21631f6904cb",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A435000-B051",
+   "claimed_topic": "表 10.2-1 混凝土目标成本与实际成本对比表",
+   "actual_content_topic": "因素分析法",
+   "chunk_id": "1A435000_091_0149",
+   "fingerprint": "3e55d3e3ce6d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A435020-B011",
+   "claimed_topic": "挣值法的计算",
+   "actual_content_topic": "三个成本值",
+   "chunk_id": "1A435020_095_0156",
+   "fingerprint": "45575081063f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A435020-B021",
+   "claimed_topic": "项目成本考核内容",
+   "actual_content_topic": "施工成本管理绩效考核",
+   "chunk_id": "1A435020_098_0162",
+   "fingerprint": "e2baa830b497",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B017",
+   "claimed_topic": "主体工程施工主要安全隐患",
+   "actual_content_topic": "主体工程安全管理要点",
+   "chunk_id": "1A436000_113_0187",
+   "fingerprint": "6fcf8cc6e508",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B033",
+   "claimed_topic": "危险源的辨识",
+   "actual_content_topic": "危险源分类",
+   "chunk_id": "1A436000_102_0168",
+   "fingerprint": "3bde89892ef4",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B047",
+   "claimed_topic": "基础工程安全控制的主要内容",
+   "actual_content_topic": "基坑（槽）土方开挖与回填安全技术措施",
+   "chunk_id": "1A436000_109_0179",
+   "fingerprint": "57875ec0ccf8",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B051",
+   "claimed_topic": "外墙作业的规定",
+   "actual_content_topic": "悬空作业的安全防范措施",
+   "chunk_id": "1A436000_122_0196",
+   "fingerprint": "0333ee891c2f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B058",
+   "claimed_topic": "安全通道安全要求",
+   "actual_content_topic": "当高空作业的各项安全措施经检查不合格时",
+   "chunk_id": "1A436000_117_0191",
+   "fingerprint": "1e2a5d3ae485",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B059",
+   "claimed_topic": "屋面作业的规定",
+   "actual_content_topic": "悬空作业的安全防范措施",
+   "chunk_id": "1A436000_122_0196",
+   "fingerprint": "0333ee891c2f",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B060",
+   "claimed_topic": "常见施工安全事故类型",
+   "actual_content_topic": "手持电动工具的安全管理要点",
+   "chunk_id": "1A436000_128_0206",
+   "fingerprint": "3efc8dd3b943",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B066",
+   "claimed_topic": "建筑安全生产事故分类",
+   "actual_content_topic": "手持电动工具的安全管理要点",
+   "chunk_id": "1A436000_128_0206",
+   "fingerprint": "3efc8dd3b943",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B070",
+   "claimed_topic": "建筑施工安全技术管理",
+   "actual_content_topic": "建筑施工安全生产费用管理",
+   "chunk_id": "1A436000_100_0164",
+   "fingerprint": "966d68983450",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B071",
+   "claimed_topic": "建筑施工安全生产教育培训",
+   "actual_content_topic": "安全管理内容",
+   "chunk_id": "1A436000_099_0163",
+   "fingerprint": "e99b1e048b1d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B074",
+   "claimed_topic": "建筑施工安全管理组织体系与管理制度",
+   "actual_content_topic": "安全管理内容",
+   "chunk_id": "1A436000_099_0163",
+   "fingerprint": "e99b1e048b1d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B087",
+   "claimed_topic": "攀登作业的安全防范措施",
+   "actual_content_topic": "临边与洞口作业安全防范措施",
+   "chunk_id": "1A436000_121_0195",
+   "fingerprint": "0ed532af120b",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B091",
+   "claimed_topic": "施工临时用电方面",
+   "actual_content_topic": "危险性较大的分部分项工程未编制、未审核专项施",
+   "chunk_id": "1A436000_007_0010",
+   "fingerprint": "7a3d77682638",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B100",
+   "claimed_topic": "施工电梯的安全管理要点",
+   "actual_content_topic": "一般机械作业安全要求",
+   "chunk_id": "1A436000_126_0200",
+   "fingerprint": "d36aa381c88c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B107",
+   "claimed_topic": "桩工机械的安全管理要点",
+   "actual_content_topic": "一般机械作业安全要求",
+   "chunk_id": "1A436000_126_0200",
+   "fingerprint": "d36aa381c88c",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B147",
+   "claimed_topic": "落地式操作平台架体构造的规定",
+   "actual_content_topic": "悬挑式操作平台的规定",
+   "chunk_id": "1A436000_123_0197",
+   "fingerprint": "d051234729a6",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B170",
+   "claimed_topic": "钢管脚手架的拆除",
+   "actual_content_topic": "脚手架工程安全管理要点",
+   "chunk_id": "1A436000_112_0185",
+   "fingerprint": "89d629f27cd0",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B177",
+   "claimed_topic": "高处作业基本要求",
+   "actual_content_topic": "高处作业的主要安全隐患",
+   "chunk_id": "1A436000_120_0194",
+   "fingerprint": "9c4baf6bab45",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A436000-B179",
+   "claimed_topic": "高处作业有下列情形之一的",
+   "actual_content_topic": "危险性较大的分部分项工程未编制、未审核专项施",
+   "chunk_id": "1A436000_007_0010",
+   "fingerprint": "7a3d77682638",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A437000-B001",
+   "claimed_topic": "BIM的应用",
+   "actual_content_topic": "建筑信息模型（BIM）技术",
+   "chunk_id": "1A437000_150_0296",
+   "fingerprint": "05582ae6ea0d",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A437000-B020",
+   "claimed_topic": "垃圾管道垂直运输技术",
+   "actual_content_topic": "工具式定型化临时设施技术",
+   "chunk_id": "1A437000_150_0295",
+   "fingerprint": "778ad01d28ab",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A437000-B069",
+   "claimed_topic": "环境保护技术要点",
+   "actual_content_topic": "实施组织",
+   "chunk_id": "1A437000_139_0222",
+   "fingerprint": "d78310ca9234",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A437000-B073",
+   "claimed_topic": "现场文明施工管理的控制要点",
+   "actual_content_topic": "文明施工",
+   "chunk_id": "1A437000_143_0229",
+   "fingerprint": "c80979c64bde",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A437000-B080",
+   "claimed_topic": "空气能热水技术",
+   "actual_content_topic": "太阳能热水应用技术",
+   "chunk_id": "1A437000_149_0292",
+   "fingerprint": "3456c8fe6a65",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A438000-B055",
+   "claimed_topic": "材料复试取样原则",
+   "actual_content_topic": "建筑材料检测",
+   "chunk_id": "1A438000_151_0243",
+   "fingerprint": "65468921ecd6",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A438000-B058",
+   "claimed_topic": "材料计划的调整",
+   "actual_content_topic": "材料计划的分类",
+   "chunk_id": "1A438000_149_0240",
+   "fingerprint": "2aff9bc2a5ac",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A438000-B060",
+   "claimed_topic": "材料进场的验收与保管",
+   "actual_content_topic": "不合格材料与半成品退场",
+   "chunk_id": "1A438000_150_0241",
+   "fingerprint": "fe3c0eccdb13",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A438000-B062",
+   "claimed_topic": "材料采购计划的编制",
+   "actual_content_topic": "材料计划的分类",
+   "chunk_id": "1A438000_149_0240",
+   "fingerprint": "2aff9bc2a5ac",
+   "confidence": "suspect"
+  },
+  {
+   "leaf_id": "1A438000-B077",
+   "claimed_topic": "确定劳动力投入量",
+   "actual_content_topic": "劳动力需求计划",
+   "chunk_id": "1A438000_157_0257",
+   "fingerprint": "67c1641ec8a5",
+   "confidence": "suspect"
+  }
+ ]
+}

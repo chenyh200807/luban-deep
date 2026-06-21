@@ -142,10 +142,58 @@ def _keyword_overlap(keywords: list[str], evidence_text: str) -> tuple[float, li
     return len(hit) / len(keywords), hit
 
 
-def _compile_context(span_text: str, chunk: dict[str, Any], chunk_id: str) -> dict[str, list[str]]:
+def _text_overlaps_span(text: str, span_text: str) -> bool:
+    """Character-bigram overlap of ``text`` against ``span_text`` (>= 0.6). The
+    primitive both card and exam-pattern attribution share."""
+    content = str(text or "")
+    if len(content) < 4 or not span_text:
+        return False
+    grams = {content[i : i + 2] for i in range(len(content) - 1)}
+    if not grams:
+        return False
+    span_grams = {span_text[i : i + 2] for i in range(len(span_text) - 1)}
+    overlap = len(grams & span_grams) / len(grams)
+    return overlap >= 0.6
+
+
+def _card_overlaps_span(card: dict[str, Any], span_text: str) -> bool:
+    """Deterministic per-leaf attribution: does a knowledge card belong to THIS
+    leaf's span? Cards are condensed paraphrases, so we test character-bigram
+    overlap (robust to light rewording) against a conservative threshold. A card
+    that does not clearly overlap the span is DROPPED — carrying the whole chunk's
+    cards to every co-located leaf is a silent pollution channel (a 天窗 leaf must
+    not inherit the 门 leaf's teaching cards). When in doubt, drop (abstain).
+
+    Attribution considers BOTH ``card_title`` and ``card_content``: a card belongs
+    to the span if EITHER overlaps it. A heavily-reworded card whose CONTENT drifts
+    from the source prose can still be correctly attributed by its title (which is
+    typically the verbatim subsection topic), reducing over-dropping of legitimate
+    paraphrase cards. A foreign card's title will not match this leaf's span, so the
+    fail-closed direction (reject the 门 card from a 天窗 leaf) is preserved."""
+    title = str(card.get("card_title") or "")
+    content = str(card.get("card_content") or "")
+    return _text_overlaps_span(title, span_text) or _text_overlaps_span(content, span_text)
+
+
+def _compile_context(
+    span_text: str, chunk: dict[str, Any], chunk_id: str, *, span_scoped: bool = False
+) -> dict[str, list[str]]:
     sentences = [s.strip() + "。" for s in span_text.split("。") if s.strip()]
     cards = [c for c in chunk.get("knowledge_cards") or [] if isinstance(c, dict)]
     assessment = chunk.get("assessment") if isinstance(chunk.get("assessment"), dict) else {}
+
+    # When the leaf is a true sub-section of a larger chunk, chunk-level cards /
+    # assessment are restricted to those whose content overlaps THIS leaf's span,
+    # so co-located leaves carry distinct annotations (not the whole chunk's).
+    if span_scoped:
+        cards = [c for c in cards if _card_overlaps_span(c, span_text)]
+        # Attribute the exam pattern by its question OR its grading_keywords: a
+        # question reworded away from the span prose can still be anchored by its
+        # keywords (often the verbatim采分点 terms), reducing over-dropping.
+        q_text = str(assessment.get("generated_question") or "")
+        kw_text = " ".join(str(k) for k in (assessment.get("grading_keywords") or []))
+        if not (_text_overlaps_span(q_text, span_text) or _text_overlaps_span(kw_text, span_text)):
+            assessment = {}
 
     rules = [
         json.dumps(
@@ -194,6 +242,46 @@ def _compile_context(span_text: str, chunk: dict[str, Any], chunk_id: str) -> di
     if exam_patterns:
         context["exam_patterns"] = exam_patterns
     return context
+
+
+def compile_context_for_leaf(
+    *,
+    chunk: dict[str, Any],
+    chunk_id: str,
+    leaf_name: str,
+    chunk_hosts_multiple_leaves: bool,
+    sibling_cores: tuple[str, ...] = (),
+) -> dict[str, list[str]] | None:
+    """Per-leaf compile entry: 编译单位 = 召回单位 = leaf.
+
+    Slices the leaf's OWN subsection out of the chunk markdown (heading match on
+    the leaf name, guarded by a positive+negative check against ``sibling_cores``)
+    and compiles compiled_context from that span only — so two leaves under one
+    chunk get distinct content. Returns ``None`` when no distinct subsection can be
+    deterministically located; the caller MUST quarantine (never fall back to the
+    whole chunk, which is the original pollution).
+
+    This is the single fix for the root cause that ``_compile_context`` ignored
+    ``leaf_name`` and handed the whole chunk to every co-located leaf.
+    """
+    from scripts.luban_rich_leaf_subsection import slice_leaf_subsection
+
+    markdown = str(chunk.get("content_markdown") or "")
+    sub = slice_leaf_subsection(
+        markdown,
+        leaf_name,
+        chunk_hosts_multiple_leaves=chunk_hosts_multiple_leaves,
+        sibling_cores=sibling_cores,
+    )
+    if sub is None:
+        return None
+    # When the leaf is a true sub-section of a larger chunk, only the prose
+    # (``concepts``) is sliced per-leaf; ``rules``/``teaching_cards``/
+    # ``exam_patterns`` are chunk-level annotations. Restrict those to the ones
+    # whose content actually overlaps THIS leaf's span, so co-located leaves do
+    # not all carry the whole chunk's cards (a second, silent pollution channel).
+    span_scoped = sub.text.strip() != markdown.strip()
+    return _compile_context(sub.text, chunk, chunk_id, span_scoped=span_scoped)
 
 
 def build_v23_residual_source_repair(

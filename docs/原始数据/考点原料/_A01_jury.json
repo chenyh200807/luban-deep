@@ -1,0 +1,11 @@
+[
+ {"issue":"检查方法优先级条文缺规范锚","location":"§5方法","flagged_by":["GPT"],"count":1,"confidence":"存疑","fix":"补GB50204方法优先级条文"},
+ {"issue":"R8-5直接回弹/钻芯一律定E06偏窄,未区分方法适用条件题型","location":"§6 R8-5","flagged_by":["GPT"],"count":1,"confidence":"存疑","fix":"按题型分流E06或E10"},
+ {"issue":"R8-7见证取样凭感觉标E05不稳,更似规范判断替代","location":"§6 R8-7","flagged_by":["GPT"],"count":1,"confidence":"存疑","fix":"可能适用E10或M10"},
+ {"issue":"C5-2地基/主体分部答案与解析有轻微张力","location":"§5.1 C5-2","flagged_by":["Qwen"],"count":1,"confidence":"存疑","fix":"核实原卷消矛盾"},
+ {"issue":"检验批合格判定(2017案例二问4)临界取舍歧义需教研确认","location":"§4 examiner_intent","flagged_by":["Qwen"],"count":1,"confidence":"存疑","fix":"教研核原卷明确临界判定"},
+ {"issue":"一般项目合格率≥80%采分点标注与未独立成题统计矛盾","location":"§5.1 C2-2","flagged_by":["Qwen"],"count":1,"confidence":"存疑","fix":"调🔴或注明仅作案例采分弹药"},
+ {"issue":"外墙1000㎡一批锚点quote缺逐字原文支撑","location":"L10表格","flagged_by":["DeepSeek"],"count":1,"confidence":"存疑","fix":"系真题则引题号否则降🔵/🔴"},
+ {"issue":"检查方法(目测/实测)定位🟢本体不当,实为邻接检查工具","location":"L13表格","flagged_by":["DeepSeek"],"count":1,"confidence":"存疑","fix":"标注邻接-检查工具移出本体表"},
+ {"issue":"防火章/材料侧邻接证据被升格为验收核心本体普适规则","location":"多个引用","flagged_by":["GPT"],"count":1,"confidence":"存疑","fix":"非验收程序本体的降🟡或🔵"}
+]

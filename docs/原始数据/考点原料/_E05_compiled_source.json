@@ -1,0 +1,221 @@
+{
+ "考点": "E05 挣值法/偏差分析",
+ "keywords": "挣值|挣值法|赢得值|已完工作预算费用|BCWP|计划工作预算费用|BCWS|已完工作实际费用|ACWP|费用偏差|进度偏差|费用绩效指数|进度绩效指数|CV|SV|CPI|SPI|偏差分析|成本偏差|进度偏差分析|三个基本参数|四个评价指标|超支|节支|拖延|提前",
+ "命中单元": 4,
+ "去重采分点": 11,
+ "注册表对齐状态": "direct (slot 39, primary 1A435020-B010 应用挣值法控制成本 + 1A435020-B011 挣值法的计算 resolve✅·名实相符; supporting 1A435020-B017 赢得值法(挣值法)核心概念 resolve✅·名实相符. E05题面'挣值法/偏差分析'完全落在 1A435020 施工成本分析与控制同一叶族(三个基本参数 BCWP/BCWS/ACWP + 四个评价指标 CV/SV/CPI/SPI + 偏差方向判读), 不横跨多章, 故 direct 非 composite; 教学卡锚挂同叶族 1A435020_095_0156/097_0160/096_0157/096_0158 扁平 record)",
+ "编译库覆盖说明": "E05 本体判分眼(三个基本参数: BCWP=已完成工程量×预算单价/BCWS=计划工程量×预算单价/ACWP=已完成工程量×实际单价; 四个评价指标: CV=BCWP-ACWP[CV>0节支/CV<0超支]·SV=BCWP-BCWS[SV>0提前/SV<0延误]·CPI=BCWP/ACWP[CPI>1节支/CPI<1超支]·SPI=BCWP/BCWS[SPI>1提前/SPI<1延误]) 集中在 chunk 095_0156(三大成本值+偏差判断+绩效指数·primary B009/B010/B011)/097_0160(核心概念+四公式·support B016/B017)/096_0157(SPI判别·B018)/096_0158(三要素定义·B015), 名实相符. ⚠️ 真题侧: 2015–2025 建筑实务真题中【无任何真实挣值法/赢得值法计算题】(确定性核验: 'BCWP|挣值|赢得值|已完工作预算' 在 11 年真题 0 命中); 挣值法为建筑实务低频考点(项目管理科目高频), 故 E05 真题锚为空, 🟢 全部来自教材锚(编译源 point_id), 无 🟢 真题锚. 详见 _E05_exam_evidence.json. 邻接绕开: 成本考核指标(劳动生产率/降低率 098_0161 B013·098_0162 考核内容)·成本分析方法(因素分析法/差额计算法/比率法 1A435000_091/092)·进度计划监测调整(横道/前锋线/S曲线 1A433000_061·同字不同考)·价值工程(1A435000-G02). 详见 pack §8.",
+ "污染绕开chunk": {
+  "1A435020_098_0161(劳动生产率/材料成本降低率/成本降低率 B013)": "成本考核绩效指标(劳动生产率=承包价/实际工日·材料成本降低率·成本降低率)=【成本考核】territory, 同叶族但非挣值法偏差分析判分眼(挣值法考CV/SV/CPI/SPI, 不考降低率); 标🔵邻接绕开",
+  "1A435020_098_0162(项目成本考核主要指标/考核内容六项 B012/B021/B022)": "项目成本管理绩效考核内容=【成本考核】territory, 同叶族但属考核制度非挣值偏差计算; 标🔵邻接绕开",
+  "1A435000_091_0149/092_0150/092_0151(因素分析法/差额计算法/比率法/比较法)": "成本分析方法学(因素分析法连环替代/差额计算/比率法/比较法)=【成本分析方法】territory, 与挣值法并列但判分眼不同(挣值法≠因素分析法); 标🔵邻接绕开",
+  "1A433000_061_0091/0092(进度计划监测/调整 B023/B024/B047/B048)": "施工进度计划监测(横道比较/前锋线/S曲线)与调整=【进度管理】territory, 虽含'进度偏差'字样但是图示比较法非挣值SV进度偏差(同字不同考·名实不符); 标🔵邻接绕开",
+  "1A435000-G02(价值工程原理)": "价值工程(功能/成本比)=【价值工程】territory, 与挣值法无关; NOISE剔"
+ },
+ "units": [
+  {
+   "leaf_id": "1A435020-B009",
+   "leaf_name_path": "施工成本管理 > 施工成本分析与控制 > 三个成本值",
+   "source_ref": {
+    "chunk_id": "1A435020_095_0156",
+    "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+    "page_num": 95,
+    "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A435020_095_0156",
+    "source_lane": "textbook",
+    "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+    "span_hash": "1cf862d15370c4f107ff384422df7a082a6c2188afb3d5e6ece07cdde226e88e"
+   },
+   "note": "本体·挣值法三个基本参数+四个评价指标(primary 1A435020-B010 应用挣值法控制成本/B011 挣值法的计算 territory): 三个基本参数 BCWP=已完成工程量×预算单价 / BCWS=计划工程量×预算单价 / ACWP=已完成工程量×实际单价; 费用(成本)偏差 CV=BCWP-ACWP(CV>0节支/CV<0超支); 进度偏差 SV=BCWP-BCWS(SV>0提前/SV<0延误); 费用绩效指数 CPI=BCWP/ACWP(CPI>1节支/CPI<1超支); 进度绩效指数 SPI=BCWP/BCWS(SPI>1提前/SPI<1延误). 公式+偏差方向判读=E05判分核心眼(R5采分眼=公式正确+方向判读). 逐项核真",
+   "tier": "full",
+   "scoring_points": [
+    {
+     "statement": "挣值法三大核心成本值：BCWP = 已完成工程量 × 预算单价\nBCWS = 计划工程量 × 预算单价\nACWP = 已完成工程量 × 实际单价",
+     "required_terms": [
+      "1A435020_095_0156"
+     ],
+     "point_id": "kc:1A435020_095_0156:0",
+     "quote": "BCWP = 已完成工程量 × 预算单价\nBCWS = 计划工程量 × 预算单价\nACWP = 已完成工程量 × 实际单价",
+     "chunk": "1A435020_095_0156",
+     "tier": "full"
+    },
+    {
+     "statement": "成本与进度偏差判断规则：CV = BCWP - ACWP\n- CV > 0：成本节支\n- CV < 0：成本超支\n\nSV = BCWP - BCWS\n- SV > 0：进度提前\n- SV < 0：进度延误",
+     "required_terms": [
+      "1A435020_095_0156"
+     ],
+     "point_id": "kc:1A435020_095_0156:1",
+     "quote": "CV = BCWP - ACWP\n- CV > 0：成本节支\n- CV < 0：成本超支\n\nSV = BCWP - BCWS\n- SV > 0：进度提前\n- SV < 0：进度延误",
+     "chunk": "1A435020_095_0156",
+     "tier": "full"
+    },
+    {
+     "statement": "成本与进度绩效指数：CPI = BCWP / ACWP\n- CPI > 1：节支\n- CPI < 1：超支\n\nSPI = BCWP / BCWS\n- SPI > 1：提前\n- SPI < 1：延误",
+     "required_terms": [
+      "1A435020_095_0156"
+     ],
+     "point_id": "kc:1A435020_095_0156:2",
+     "quote": "CPI = BCWP / ACWP\n- CPI > 1：节支\n- CPI < 1：超支\n\nSPI = BCWP / BCWS\n- SPI > 1：提前\n- SPI < 1：延误",
+     "chunk": "1A435020_095_0156",
+     "tier": "full"
+    },
+    {
+     "statement": "某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。",
+     "required_terms": [
+      "BCWP",
+      "BCWS",
+      "ACWP",
+      "CV",
+      "SV",
+      "CPI",
+      "SPI",
+      "正负值判断",
+      "节支/超支",
+      "提前/延误"
+     ],
+     "point_id": "ca:1A435020_095_0156",
+     "quote": "某项目在第20周末，已完工程量对应的预算成本为6370万元，实际成本为6240万元，计划成本为5340万元，请计算其成本偏差CV、进度偏差SV、成本绩效指数CPI和进度绩效指数SPI，并分析成本与进度状况。 | grading_keywords=BCWP,BCWS,ACWP,CV,SV,CPI,SPI,正负值判断,节支/超支,提前/延误",
+     "chunk": "1A435020_095_0156",
+     "tier": "full"
+    }
+   ]
+  },
+  {
+   "leaf_id": "1A435020-B016",
+   "leaf_name_path": "施工成本管理 > 施工成本分析与控制 > 表 10.2-6 计算结果",
+   "source_ref": {
+    "chunk_id": "1A435020_097_0160",
+    "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+    "page_num": 97,
+    "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A435020_097_0160",
+    "source_lane": "textbook",
+    "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+    "span_hash": "70f962f32136ddd7a9ec0c1b502bdde5670d8ace2e897fa1556871cac2d4cbe8"
+   },
+   "note": "本体·support 1A435020-B017 赢得值法(挣值法)核心概念(名实相符): 三个基本成本值=已完成工作预算成本(BCWP)/计划完成工作预算成本(BCWS)/已完成工作实际成本(ACWP); 四个评价指标 CV=BCWP-ACWP / SV=BCWP-BCWS / CPI=BCWP/ACWP / SPI=BCWP/BCWS. 赢得值法核心概念=E05本体. EP含某工程第20周末BCWP6370/ACWP6240/BCWS5340计算CV/SV/CPI/SPI. 逐项核真",
+   "tier": "full",
+   "scoring_points": [
+    {
+     "statement": "赢得值法三大核心值：赢得值法的三个基本成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。",
+     "required_terms": [
+      "1A435020_097_0160"
+     ],
+     "point_id": "kc:1A435020_097_0160:0",
+     "quote": "赢得值法的三个基本成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。",
+     "chunk": "1A435020_097_0160",
+     "tier": "full"
+    },
+    {
+     "statement": "成本与进度偏差计算：CV = BCWP - ACWP；SV = BCWP - BCWS；CPI = BCWP / ACWP；SPI = BCWP / BCWS",
+     "required_terms": [
+      "1A435020_097_0160"
+     ],
+     "point_id": "kc:1A435020_097_0160:1",
+     "quote": "CV = BCWP - ACWP；SV = BCWP - BCWS；CPI = BCWP / ACWP；SPI = BCWP / BCWS",
+     "chunk": "1A435020_097_0160",
+     "tier": "full"
+    },
+    {
+     "statement": "某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。",
+     "required_terms": [
+      "CV",
+      "SV",
+      "CPI",
+      "SPI",
+      "成本节约",
+      "进度提前"
+     ],
+     "point_id": "ca:1A435020_097_0160",
+     "quote": "某工程第 20 周末，BCWP 为 6370 万元，ACWP 为 6240 万元，BCWS 为 5340 万元，请计算 CV、SV、CPI 和 SPI，并判断成本与进度状态。 | grading_keywords=CV,SV,CPI,SPI,成本节约,进度提前",
+     "chunk": "1A435020_097_0160",
+     "tier": "full"
+    }
+   ]
+  },
+  {
+   "leaf_id": "1A435020-B018",
+   "leaf_name_path": "施工成本管理 > 施工成本分析与控制 > 进度绩效指数 SPI",
+   "source_ref": {
+    "chunk_id": "1A435020_096_0157",
+    "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+    "page_num": 96,
+    "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A435020_096_0157",
+    "source_lane": "textbook",
+    "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+    "span_hash": "9ebb43dcf69feff1483f1c50fa6049e087d13ecb12262dfa4eceffc8eade091d"
+   },
+   "note": "本体·进度绩效指数 SPI(1A435020-B018): SPI=BCWP/BCWS; SPI>1进度提前 / SPI<1进度滞后. SPI判别=E05四个评价指标之一(进度方向判读). 逐项核真",
+   "tier": "full",
+   "scoring_points": [
+    {
+     "statement": "SPI 计算公式与判别标准：SPI = BCWP / BCWS。当 SPI > 1 时，进度提前；当 SPI < 1 时，进度滞后。",
+     "required_terms": [
+      "1A435020_096_0157"
+     ],
+     "point_id": "kc:1A435020_096_0157:0",
+     "quote": "SPI = BCWP / BCWS。当 SPI > 1 时，进度提前；当 SPI < 1 时，进度滞后。",
+     "chunk": "1A435020_096_0157",
+     "tier": "full"
+    },
+    {
+     "statement": "已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。",
+     "required_terms": [
+      "SPI",
+      "BCWP",
+      "BCWS",
+      "进度提前",
+      "1.19"
+     ],
+     "point_id": "ca:1A435020_096_0157",
+     "quote": "已知某工程 BCWP=6370 万元，BCWS=5340 万元，求其 SPI 值，并判断进度状态。 | grading_keywords=SPI,BCWP,BCWS,进度提前,1.19",
+     "chunk": "1A435020_096_0157",
+     "tier": "full"
+    }
+   ]
+  },
+  {
+   "leaf_id": "1A435020-B015",
+   "leaf_name_path": "施工成本管理 > 施工成本分析与控制 > 表 10.2-5 检查记录表",
+   "source_ref": {
+    "chunk_id": "1A435020_096_0158",
+    "file_sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+    "page_num": 96,
+    "record_id": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json#chunk:1A435020_096_0158",
+    "source_lane": "textbook",
+    "source_path": "2026教材/第二次加强/FINAL_CLEANED_BOOK2026-222-382_fixed.json",
+    "span_hash": "2f501b484431b1457f97548ad312a41520cb7ab564f845fd9de333417c6acdff"
+   },
+   "note": "本体·赢得值法三要素(1A435020-B015): 赢得值法使用三项成本值=已完成工作预算成本(BCWP)/计划完成工作预算成本(BCWS)/已完成工作实际成本(ACWP). 三个基本参数定义=E05本体. 逐项核真",
+   "tier": "full",
+   "scoring_points": [
+    {
+     "statement": "赢得值法三要素：赢得值法使用三项成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。",
+     "required_terms": [
+      "1A435020_096_0158"
+     ],
+     "point_id": "kc:1A435020_096_0158:0",
+     "quote": "赢得值法使用三项成本值：已完成工作预算成本（BCWP）、计划完成工作预算成本（BCWS）、已完成工作实际成本（ACWP）。",
+     "chunk": "1A435020_096_0158",
+     "tier": "full"
+    },
+    {
+     "statement": "根据表 10.2-5，计算各项工作的 BCWP 并分析项目整体成本与进度状态。",
+     "required_terms": [
+      "BCWP",
+      "ACWP",
+      "BCWS",
+      "CV",
+      "SV",
+      "CPI",
+      "SPI",
+      "节约",
+      "提前"
+     ],
+     "point_id": "ca:1A435020_096_0158",
+     "quote": "根据表 10.2-5，计算各项工作的 BCWP 并分析项目整体成本与进度状态。 | grading_keywords=BCWP,ACWP,BCWS,CV,SV,CPI,SPI,节约,提前",
+     "chunk": "1A435020_096_0158",
+     "tier": "full"
+    }
+   ]
+  }
+ ]
+}

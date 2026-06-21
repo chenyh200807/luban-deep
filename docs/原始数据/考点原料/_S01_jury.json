@@ -1,0 +1,146 @@
+[
+  {
+    "issue": "悬挑式操作平台参数关联的point_id `kc:1A436000_123_0197:0` 的quote实为移动式平台内容，不支持悬挑≤5m、5.5 kN/m²等参数",
+    "location": "§1.2行32, §4.3-E, §5.1 4.6",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将悬挑式操作平台关联的point_id修正为包含悬挑参数的逐字quote，或新增悬挑式专属逐字quote，解除移动式内容误贴"
+  },
+  {
+    "issue": "`kc:1A436000_009_0012:0` 的quote截断，未逐字支撑模板8m/18m、脚手架50m等危大论证具体阈值",
+    "location": "§1.2行15, §4.3-A, §7.1-A2, §8.1等",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将该point_id的quote扩展至包含具体数值阈值，或对缺少逐字支撑的数值项降级为🟡并补充定性说明"
+  },
+  {
+    "issue": "模板拆除强度75%/100%分档表所引 `kc:1A436000_115_0189:1` 的quote仅为定性引子，未逐字列出具体百分比数值",
+    "location": "§4.2-D, §4.3-D, §5.1组4",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充包含75%/100%等数值的逐字quote，或将对应🟢降级为🟡并标明定性引用"
+  },
+  {
+    "issue": "梁底模最小起拱1/1000~3/1000的教材point_id在源料46单元中无独立chunk，被视为不存在",
+    "location": "§6",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核实教材源料是否存在独立的起拱chunk；如不存在，应降级为🔴或移除该教材锚"
+  },
+  {
+    "issue": "安全等级判定所使用的 `kc:1A413030_120_0228:0` quote不包含8m/15kN/m²/7kN/20kN/m等具体阈值",
+    "location": "§1.2 #1 / §2 F1",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充包含这些阈值的逐字quote，或将关联数值项降级为🟡"
+  },
+  {
+    "issue": "可调底座/托撑的200mm/500mm数值仅有定性引子截断，quote未逐字支撑",
+    "location": "§1.2 #3 / §5.1 1.5",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充quote至包含200mm/500mm具体数值，或对缺失部分降级为🟡"
+  },
+  {
+    "issue": "连墙件3跨/3步/4m间距的quote被截断，未逐字支撑这些关键数值",
+    "location": "§1.2 #4 / §2 F2 / §5.1 2.1",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "扩展quote至包含3跨/3步/4m等间距数值，或降级为🟡"
+  },
+  {
+    "issue": "危大编案门引用的 `kc:1A436000_008_0011:0` quote为管理总述，不包含3m/5m/10kN/24m等具体判定数值",
+    "location": "§1.2 #14 / §4.1",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "替换为包含具体阈值的逐字quote，或将数值项降级为🟡"
+  },
+  {
+    "issue": "落地式操作平台的15m/3:1/2.0kN/m²关键参数无逐字quote支撑，仅4m连墙件部分可支撑",
+    "location": "§1.2 #34 / §4.3-E",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全落地式操作平台各参数的逐字quote，对当前无支撑参数降级为🟡"
+  },
+  {
+    "issue": "设备/材料限禁用项的25m/15m/8m/10m等限高数值无逐字quote支撑",
+    "location": "§1.2 #38 / §4.3-F",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充对应的逐字quote，或将数值项降级为🟡"
+  },
+  {
+    "issue": "单位格式误写成 `15kN·m²`/`5.5kN·m²` 等，与源料 `kN/m²`、`kN/m` 不一致，可能导致面荷载/线荷载混淆",
+    "location": "§5.1 4.2等",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将荷载单位统一修正为 `kN/m²` 或 `kN/m`，匹配源料规范写法"
+  },
+  {
+    "issue": "R2不变量总结为“每一个安全结论都是取数→比阈值→二值”过于绝对，拆除顺序/刚性连墙件等均非数值阈值判定",
+    "location": "§3",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "修改为“主导不变量之一”等更兼容定性规则的表述"
+  },
+  {
+    "issue": "深基坑被当成S01决策树主分支，与S01所有权聚焦脚手架/模板支架的边界声明不一致",
+    "location": "§4.3-A / §7.1",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将深基坑判定移出S01主场景，归入J01或标注为邻接干扰项"
+  },
+  {
+    "issue": "R3-F“设备/材料限禁用”作为封闭场景偏宽，且真题命中待取证",
+    "location": "§4.2 R3-F",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "收缩场景范围或明确为候选，补充真题取证实据"
+  },
+  {
+    "issue": "骨架F的quote `kc:1A436000_006_0007:0` 不支撑完整拆除口诀（自上而下、先外后内、严禁交叉）",
+    "location": "§5.2 骨架F",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充包含完整口诀的逐字quote，或对未支撑部分降级为🟡"
+  },
+  {
+    "issue": "R8-3现象证据使用2025第18题客观题，却映射为案例/主观系列的E06，与pack的E/M题型分工规则冲突",
+    "location": "§6 R8-3",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "若为客观题应改用M系列编码（如M03/M01），或增补注册E版顺序错编码"
+  },
+  {
+    "issue": "R8-6对应2020案例一问4为案例语境，却使用MCQ系列的M10，与E/M分工冲突",
+    "location": "§6 R8-6",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "为案例语境创建E版相应错因码（如E10或新增），将当前M10改为🟡"
+  },
+  {
+    "issue": "R8-8中“用柔性钢筋替刚性连墙件”映射为E01（漏知识）不够贴切，更可能属于概念混淆(E07)或规范适用错误(E10)",
+    "location": "§6 R8-8",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "根据具体误用性质调整为E07或E10，或保留E01并补充说明适用场景"
+  }
+]

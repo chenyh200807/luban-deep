@@ -1,0 +1,122 @@
+[
+  {
+    "issue": "侧模1N/mm²数值quote缺失",
+    "location": "1·侧模/墙体大模板 / 1·跨章知识点全景",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "补全quote包含“1N/mm²”数值，或标注为工程通识🔵"
+  },
+  {
+    "issue": "程序门槛0190:0/:1 quote相同且归属重叠",
+    "location": "3·R2不变量 / 8.2 C2",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "核实point_id的statement分段，补充差异quote；明确顺序原则是否独立于程序门槛"
+  },
+  {
+    "issue": "后张法预应力强度/龄期quote不完整且本体边界偏宽",
+    "location": "1·后张法预应力强度/龄期 / R4 V5 / ME06",
+    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全0201:0后续段落quote以覆盖75%/7d/5d等数值；重新评估本体边界，必要时降为邻接🔵"
+  },
+  {
+    "issue": "钢-混组合结构本体/邻接标记不一致",
+    "location": "1·钢-混组合结构 / R3 S8",
+    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "统一为🔵邻接，或补全深度后明确为🟢本体延伸条件"
+  },
+  {
+    "issue": "ME04 error_code映射不当",
+    "location": "6·ME04",
+    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为ERR_NUMERIC_TABLE_MISMATCH或新增专用码"
+  },
+  {
+    "issue": "ME06错误心智模型锚定支持和映射准确性质疑",
+    "location": "6·ME06",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "核验ME06的错因映射是否匹配ERR_CONDITION_EXTRACTION_INCOMPLETE；补充预应力拆底模前置条件quote"
+  },
+  {
+    "issue": "底模拆除强度表关键数值quote未展开",
+    "location": "1·底模拆除强度表 / R4 V1 / R5采分点2",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补完整0185:0表格行quote"
+  },
+  {
+    "issue": "快拆体系规范点（立杆≤2m等）quote不足",
+    "location": "1/2/4/5/6/7·快拆体系",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补0187:0快拆完整条文"
+  },
+  {
+    "issue": "作业安全条款0190:2/:3 quote缺失",
+    "location": "1/R4 V6/6 ME08/7旁白锚·0190:2/:3",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充0190:2/:3原文"
+  },
+  {
+    "issue": "R2不变量缺作业安全门槛",
+    "location": "3·R2不变量",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "建议增加作业安全门槛，如警戒线、禁人、禁大片塌落"
+  },
+  {
+    "issue": "examiner_intent覆盖不足（缺拆除顺序、拆模程序/作业安全）",
+    "location": "4·examiner_intent",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充第4/5鉴别点"
+  },
+  {
+    "issue": "ME01语义噪声“夹渣/麻面/蜂窝”",
+    "location": "6·ME01",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "删除或降级为🔵邻接后果"
+  },
+  {
+    "issue": "ME05 error_code映射偏弱",
+    "location": "6·ME05",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "优先挂ERR_CONDITION_EXTRACTION_INCOMPLETE或并挂ERR_SAFETY_OPERATION"
+  },
+  {
+    "issue": "形态E「填表A/B/C」无真题命中",
+    "location": "4·examiner_intent + R3场景 + R4封闭变量集",
+    "flagged_by": ["Qwen"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降级为🔵练习构造或提供真题支撑"
+  },
+  {
+    "issue": "动画分镜旁白锚与内容不完全匹配",
+    "location": "7·动画分镜",
+    "flagged_by": ["Qwen"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "调整旁白锚或动画内容以确保一致"
+  }
+]
