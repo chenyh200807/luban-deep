@@ -68,7 +68,7 @@ test('member ops exposes member search by phone or account', async () => {
   assert.ok(panel.includes('submitMemberSearchValue(event.currentTarget.value)'))
   assert.ok(panel.includes('search: globalQuery.trim() || undefined'))
   assert.ok(surface.includes('onSubmitSearch={submitGlobalSearch}'))
-  assert.ok(api.includes('/api/v1/member/list?'))
+  assert.ok(api.includes('/api/v1/bi/member/list?'))
 })
 
 test('member ops exposes member account lifecycle panel', async () => {
@@ -120,6 +120,8 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('至尊SVIP'))
   assert.ok(panel.includes('套餐是唯一选择；等级、点数、次数和默认收入都从套餐派生。'))
   assert.ok(panel.includes('不改金额时按套餐价入账；填 0 即 0 元开通，填其他数字即按人工实收金额入账。'))
+  assert.ok(panel.includes('只冲销下方展示的原始购买流水'))
+  assert.ok(panel.includes('reversible_supreme_purchase'))
   assert.ok(panel.includes('有效期'))
   assert.ok(panel.includes('付费开通并入账'))
   assert.ok(panel.includes('收款开通'))
@@ -129,7 +131,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('改为0元'))
   assert.ok(panel.includes('convertSupremeMembershipToFree'))
   assert.ok(panel.includes('manual_membership_reversal'))
-  assert.ok(api.includes('/api/v1/member/manual-purchase/reverse'))
+  assert.ok(api.includes('/api/v1/bi/member/manual-purchase/reverse'))
   assert.ok(api.includes('reverseManualMembershipPurchase'))
   assert.equal(panel.includes('aria-label="选择会员等级"'), false)
   assert.equal(panel.includes('运营授予权益'), false)

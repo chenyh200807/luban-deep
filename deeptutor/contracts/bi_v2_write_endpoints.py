@@ -54,7 +54,7 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
     WriteEndpoint(
         key="member.conversation.view_full",
         method="POST",
-        path_template="/api/v1/member/{user_id}/conversations/{session_id}/view-audit",
+        path_template="/api/v1/bi/member/{user_id}/conversations/{session_id}/view-audit",
         requires_idempotency=True,
         description=(
             "Privacy audit: admin requests full chat replay for a member. "
@@ -119,7 +119,7 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
     WriteEndpoint(
         key="member.ops_action.record",
         method="POST",
-        path_template="/api/v1/bi/member/{user_id}/ops-action",
+        path_template="/api/v1/bi/member/{user_id}/ops-actions",
         requires_idempotency=True,
         description=(
             "Member low-risk ops action: mark contacted, add an ops note, or "

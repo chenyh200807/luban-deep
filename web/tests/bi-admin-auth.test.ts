@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { ApiError } from "../lib/api-errors";
-import { getMemberDashboard } from "../lib/member-api";
-import { clearStoredBiAdminSession, getStoredBiAdminSession } from "../lib/api";
+import { ApiError } from "../lib/api-errors.ts";
+import { getMemberDashboard } from "../lib/member-api.ts";
+import { clearStoredBiAdminSession, getStoredBiAdminSession } from "../lib/api.ts";
 import {
   loginBiAdmin,
   restoreBiAdminSession,
   type RestoreBiAdminSessionResult,
-} from "../lib/bi-admin-auth";
+} from "../lib/bi-admin-auth.ts";
 
 type MockResponseInit = {
   ok: boolean;
@@ -41,6 +41,9 @@ function installWindow() {
     value: {
       location: { origin: "https://test2.yousenjiaoyu.com" },
       localStorage,
+      dispatchEvent() {
+        return true;
+      },
     },
   });
   return localStorage;
@@ -82,12 +85,28 @@ function assertRestoreResult(
   assert.deepEqual(actual, expected);
 }
 
-test("loginBiAdmin establishes admin session from auth login only", async () => {
+test("loginBiAdmin establishes BI session from auth login plus RBAC role", async () => {
   installWindow();
   const calls: string[] = [];
 
   const session = await withMockFetch(async (input) => {
-    calls.push(String(input));
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith("/api/v1/bi/rbac/me")) {
+      return mockJsonResponse({
+        ok: true,
+        status: 200,
+        json: {
+          user_id: "admin_demo",
+          role: "admin",
+          role_label: "管理员",
+          can_manage_permissions: true,
+          is_full_admin: true,
+          accessible_tabs: ["overview", "member_ops", "commerce", "feedback", "ops"],
+          matrix: { member_ops: ["view", "write", "high_risk"] },
+        },
+      });
+    }
     return mockJsonResponse({
       ok: true,
       status: 200,
@@ -105,23 +124,89 @@ test("loginBiAdmin establishes admin session from auth login only", async () => 
     });
   }, () => loginBiAdmin("admin_demo", "good-password"));
 
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
   assert.match(calls[0], /\/api\/v1\/auth\/login$/);
+  assert.match(calls[1], /\/api\/v1\/bi\/rbac\/me$/);
   assert.equal(session.userId, "admin_demo");
   assert.equal(session.displayName, "管理员");
   assert.equal(session.isAdmin, true);
+  assert.equal(session.biRole, "admin");
+  assert.deepEqual(session.accessibleTabs?.includes("member_ops"), true);
   assert.equal(getStoredBiAdminSession()?.token, "token-1");
   clearStoredBiAdminSession();
 });
 
-test("loginBiAdmin rejects non-admin accounts", async () => {
+test("loginBiAdmin allows non-full-admin BI operator role", async () => {
+  installWindow();
+
+  const session = await withMockFetch(
+    async (input) => {
+      const url = String(input);
+      if (url.endsWith("/api/v1/bi/rbac/me")) {
+        return mockJsonResponse({
+          ok: true,
+          status: 200,
+          json: {
+            user_id: "operator_demo",
+            role: "operator",
+            role_label: "运营",
+            can_manage_permissions: false,
+            is_full_admin: false,
+            accessible_tabs: ["member_ops", "feedback"],
+            matrix: { member_ops: ["view", "write", "high_risk"], feedback: ["view", "write"] },
+          },
+        });
+      }
+      return mockJsonResponse({
+        ok: true,
+        status: 200,
+        json: {
+          user_id: "operator_demo",
+          token: "token-operator",
+          expires_at: 9999999999,
+          is_admin: false,
+          user: {
+            user_id: "operator_demo",
+            display_name: "运营",
+            is_admin: false,
+          },
+        },
+      });
+    },
+    () => loginBiAdmin("operator_demo", "good-password"),
+  );
+
+  assert.equal(session.userId, "operator_demo");
+  assert.equal(session.isAdmin, false);
+  assert.equal(session.biRole, "operator");
+  assert.deepEqual(session.accessibleTabs, ["member_ops", "feedback"]);
+  clearStoredBiAdminSession();
+});
+
+test("loginBiAdmin rejects accounts without BI role", async () => {
   installWindow();
 
   await assert.rejects(
     () =>
       withMockFetch(
-        async () =>
-          mockJsonResponse({
+        async (input) => {
+          const url = String(input);
+          if (url.endsWith("/api/v1/bi/rbac/me")) {
+            return mockJsonResponse({
+              ok: true,
+              status: 200,
+              json: {
+                user_id: "student_demo",
+                role: null,
+                role_label: "",
+                can_manage_permissions: false,
+                is_full_admin: false,
+                accessible_tabs: [],
+                matrix: {},
+              },
+            });
+          }
+          return mockJsonResponse({
             ok: true,
             status: 200,
             json: {
@@ -135,7 +220,8 @@ test("loginBiAdmin rejects non-admin accounts", async () => {
                 is_admin: false,
               },
             },
-          }),
+          });
+        },
         () => loginBiAdmin("student_demo", "good-password"),
       ),
     (error: unknown) => error instanceof ApiError && error.status === 403,
@@ -149,6 +235,11 @@ test("restoreBiAdminSession preserves stored session on transient upstream failu
     userId: "admin_demo",
     displayName: "管理员",
     isAdmin: true,
+    biRole: "admin",
+    biRoleLabel: "管理员",
+    canManagePermissions: true,
+    accessibleTabs: ["overview", "member_ops", "commerce", "feedback", "ops"],
+    biMatrix: { member_ops: ["view", "write", "high_risk"] },
     expiresAt: 9999999999,
   };
 
@@ -173,6 +264,11 @@ test("restoreBiAdminSession clears stored session on auth failure", async () => 
     userId: "admin_demo",
     displayName: "管理员",
     isAdmin: true,
+    biRole: "admin",
+    biRoleLabel: "管理员",
+    canManagePermissions: true,
+    accessibleTabs: ["overview", "member_ops", "commerce", "feedback", "ops"],
+    biMatrix: { member_ops: ["view", "write", "high_risk"] },
     expiresAt: 9999999999,
   };
 
@@ -200,6 +296,11 @@ test("member api attaches Authorization header from stored admin session", async
       userId: "admin_demo",
       displayName: "管理员",
       isAdmin: true,
+      biRole: "admin",
+      biRoleLabel: "管理员",
+      canManagePermissions: true,
+      accessibleTabs: ["overview", "member_ops"],
+      biMatrix: { member_ops: ["view", "write", "high_risk"] },
       expiresAt: 9999999999,
     }),
   );
@@ -231,4 +332,22 @@ test("member api attaches Authorization header from stored admin session", async
   });
 
   assert.equal(capturedAuthorization, "Bearer token-1");
+});
+
+test("legacy admin-only session is not accepted as BI RBAC session", () => {
+  installWindow();
+  const localStorage = window.localStorage;
+  localStorage.setItem(
+    "deeptutor.bi.admin.session",
+    JSON.stringify({
+      token: "token-legacy",
+      userId: "admin_demo",
+      displayName: "管理员",
+      isAdmin: true,
+      expiresAt: 9999999999,
+    }),
+  );
+
+  assert.equal(getStoredBiAdminSession(), null);
+  assert.equal(localStorage.getItem("deeptutor.bi.admin.session"), null);
 });

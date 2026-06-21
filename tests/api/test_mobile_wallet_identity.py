@@ -242,7 +242,7 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
     assert captured["ledger_offset"] == 0
 
 
-def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_billing_usage_returns_membership_balance_percent(monkeypatch: pytest.MonkeyPatch) -> None:
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     now = datetime(2026, 4, 21, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
 
@@ -252,8 +252,6 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
             return now if tz is None else now.astimezone(tz)
 
     monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "1")
-    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "100")
-    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "200")
     monkeypatch.setattr(mobile_module, "datetime", _FixedDateTime)
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(
@@ -313,14 +311,14 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
                     created_at=(now - timedelta(hours=2)).isoformat(),
                 ),
                 _FakeLedgerEntry(
-                    id="usage_weekly_only",
+                    id="usage_older",
                     user_id=user_id,
                     event_type="usage",
                     delta_micros=-10_000_000,
                     balance_after_micros=200_000_000,
                     reference_type="ai_usage",
-                    reference_id="turn_weekly",
-                    idempotency_key="capture:weekly",
+                    reference_id="turn_older",
+                    idempotency_key="capture:older",
                     created_at=(now - timedelta(hours=6)).isoformat(),
                 ),
                 _FakeLedgerEntry(
@@ -343,13 +341,9 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
 
     assert response.status_code == 200
     body = response.json()
-    rows = {item["key"]: item for item in body["quota"]["rows"]}
-    assert body["display"]["primary_label"] == "剩余 70%"
-    assert body["display"]["limited_by"] == "weekly"
-    assert rows["five_hour"]["remaining_percent"] == 50
-    assert rows["weekly"]["remaining_percent"] == 70
-    assert rows["five_hour"]["reset_at"]
-    assert "limit_points" not in rows["five_hour"]
+    assert body["display"]["primary_label"] == "剩余 40%"
+    assert body["display"]["limited_by"] == "membership_balance"
+    assert body["quota"]["rows"] == []
 
 
 def test_billing_ledger_merges_legacy_capture_history(monkeypatch: pytest.MonkeyPatch) -> None:

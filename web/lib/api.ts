@@ -12,7 +12,13 @@ export type BiAdminSession = {
   token: string;
   userId: string;
   displayName: string;
+  /** Legacy full-admin flag. BI workspace access is determined by biRole/access. */
   isAdmin: boolean;
+  biRole?: string;
+  biRoleLabel?: string;
+  canManagePermissions?: boolean;
+  accessibleTabs?: string[];
+  biMatrix?: Record<string, string[]>;
   expiresAt: number;
 };
 
@@ -22,11 +28,17 @@ function isBiAdminSession(value: unknown): value is BiAdminSession {
   }
 
   const record = value as Record<string, unknown>;
+  const accessibleTabs = record.accessibleTabs;
   return (
     typeof record.token === "string" &&
     typeof record.userId === "string" &&
     typeof record.displayName === "string" &&
     typeof record.isAdmin === "boolean" &&
+    typeof record.biRole === "string" &&
+    record.biRole.trim().length > 0 &&
+    Array.isArray(accessibleTabs) &&
+    accessibleTabs.length > 0 &&
+    accessibleTabs.every(tab => typeof tab === "string" && tab.trim().length > 0) &&
     typeof record.expiresAt === "number"
   );
 }

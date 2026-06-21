@@ -6,6 +6,17 @@ from typing import Any
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
 
 from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
+from deeptutor.api.routers.member import (
+    BatchActionRequest,
+    ManualPurchaseRequest,
+    ManualPurchaseReversalRequest,
+    MembershipPackageRequest,
+    NoteCreateRequest,
+    NoteUpdateRequest,
+    OpsActionResultRequest,
+    RevokeRequest,
+    UpdateRequest,
+)
 from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
 from deeptutor.services.member_console.service import get_member_console_service
@@ -325,19 +336,48 @@ async def bi_feedback_triage(
 @router.post("/member/{user_id}/ops-action")
 async def bi_member_ops_action(
     user_id: str,
-    payload: dict[str, Any] | None = Body(default=None),
+    body: OpsActionResultRequest,
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
-):
+) -> dict[str, Any]:
+    return _record_bi_member_ops_action(
+        user_id=user_id,
+        body=body,
+        idempotency_key=idempotency_key,
+        auth=auth,
+    )
+
+
+@router.post("/member/{user_id}/ops-actions")
+async def bi_member_ops_actions(
+    user_id: str,
+    body: OpsActionResultRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    return _record_bi_member_ops_action(
+        user_id=user_id,
+        body=body,
+        idempotency_key=idempotency_key,
+        auth=auth,
+    )
+
+
+def _record_bi_member_ops_action(
+    *,
+    user_id: str,
+    body: OpsActionResultRequest,
+    idempotency_key: str | None,
+    auth: AuthContext,
+) -> dict[str, Any]:
     key = _validate_idempotency_key(idempotency_key)
-    body = payload or {}
     try:
-        return await get_bi_service().record_member_ops_action(
-            user_id=user_id,
-            status=str(body.get("status") or ""),
-            result=str(body.get("result") or ""),
-            action_title=str(body.get("action_title") or ""),
-            next_follow_up_at=str(body.get("next_follow_up_at") or ""),
+        return get_member_console_service().record_ops_action_result(
+            user_id,
+            status=body.status,
+            result=body.result,
+            action_title=body.action_title,
+            next_follow_up_at=body.next_follow_up_at,
             operator=auth.user_id,
             idempotency_key=key,
         )
@@ -347,6 +387,507 @@ async def bi_member_ops_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.get("/member/dashboard")
+async def bi_member_dashboard(
+    days: int = Query(30, ge=1, le=3650),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    return get_member_console_service().get_dashboard(days=days)
+
+
+@router.get("/member/list")
+async def bi_member_list(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=200),
+    sort: str = Query("expire_at"),
+    order: str = Query("asc"),
+    status_filter: str | None = Query(None, alias="status"),
+    tier: str | None = Query(None),
+    search: str | None = Query(None),
+    segment: str | None = Query(None),
+    risk_level: str | None = Query(None),
+    auto_renew: bool | None = Query(None),
+    expire_within_days: int | None = Query(default=None, ge=0, le=3650),
+    active_within_days: int | None = Query(default=None, ge=0, le=3650),
+    has_heartbeat_job: bool | None = None,
+    has_overlay_candidates: bool | None = None,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    return get_member_console_service().list_members(
+        page=page,
+        page_size=page_size,
+        sort=sort,
+        order=order,
+        status=status_filter,
+        tier=tier,
+        search=search,
+        segment=segment,
+        risk_level=risk_level,
+        auto_renew=auto_renew,
+        expire_within_days=expire_within_days,
+        active_within_days=active_within_days,
+        has_heartbeat_job=has_heartbeat_job,
+        has_overlay_candidates=has_overlay_candidates,
+    )
+
+
+@router.get("/member/packages")
+async def bi_list_membership_packages(
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    return {
+        "items": get_member_console_service().list_membership_packages(),
+        "operator": auth.user_id,
+    }
+
+
+@router.put("/member/packages/{package_id}")
+async def bi_upsert_membership_package(
+    package_id: str,
+    body: MembershipPackageRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return get_member_console_service().upsert_membership_package(
+            package_id=package_id,
+            label=body.label,
+            tier=body.tier,
+            points=body.points,
+            turns=body.turns,
+            price=body.price,
+            original_price=body.original_price,
+            badge=body.badge,
+            per=body.per,
+            desc=body.desc,
+            status=body.status,
+            operator=auth.user_id,
+            reason=body.reason,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.delete("/member/packages/{package_id}")
+async def bi_delete_membership_package(
+    package_id: str,
+    reason: str = Query(default="", max_length=200),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return get_member_console_service().remove_membership_package(
+            package_id,
+            operator=auth.user_id,
+            reason=reason,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/360")
+async def bi_member_360(
+    user_id: str,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().get_member_360(user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/conversations")
+async def bi_member_conversations(
+    user_id: str,
+    limit: int = Query(default=20, ge=1, le=100),
+    message_limit: int = Query(default=12, ge=1, le=50),
+    q: str = Query(default=""),
+    source: str = Query(default=""),
+    capability: str = Query(default=""),
+    sort: str = Query(default="updated_at"),
+    order: str = Query(default="desc"),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().list_member_conversations(
+            user_id,
+            limit=limit,
+            message_limit=message_limit,
+            q=q,
+            source=source,
+            capability=capability,
+            sort=sort,
+            order=order,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/conversations/{session_id}/view-audit")
+async def bi_member_conversation_view_audit(
+    user_id: str,
+    session_id: str,
+    reason: str | None = Query(default=None),
+    body: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    body_reason = body.get("reason") if isinstance(body, dict) else None
+    effective_reason = reason if reason else body_reason
+    if isinstance(effective_reason, str):
+        effective_reason = effective_reason.replace("\n", " ").replace("\r", " ")
+    try:
+        return get_member_console_service().record_conversation_view(
+            user_id,
+            session_id,
+            operator=auth.user_id,
+            reason=effective_reason,
+            idempotency_key=key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/learner-state")
+async def bi_member_learner_state(
+    user_id: str,
+    limit: int = Query(default=20, ge=1, le=200),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().get_member_learner_state_panel(user_id, limit=limit)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/heartbeat-jobs")
+async def bi_member_heartbeat_jobs(
+    user_id: str,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().list_member_heartbeat_jobs(user_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/heartbeat-jobs/{job_id}/pause")
+async def bi_pause_member_heartbeat_job(
+    user_id: str,
+    job_id: str,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().pause_member_heartbeat_job(
+            user_id, job_id, operator=auth.user_id
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/heartbeat-jobs/{job_id}/resume")
+async def bi_resume_member_heartbeat_job(
+    user_id: str,
+    job_id: str,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().resume_member_heartbeat_job(
+            user_id, job_id, operator=auth.user_id
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/overlays/{bot_id}")
+async def bi_member_overlay(
+    user_id: str,
+    bot_id: str,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().get_member_overlay(user_id, bot_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/overlays/{bot_id}/events")
+async def bi_member_overlay_events(
+    user_id: str,
+    bot_id: str,
+    limit: int = Query(default=20, ge=1, le=200),
+    event_type: str | None = None,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().get_member_overlay_events(
+            user_id, bot_id, limit=limit, event_type=event_type
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/member/{user_id}/overlays/{bot_id}/audit")
+async def bi_member_overlay_audit(
+    user_id: str,
+    bot_id: str,
+    limit: int = Query(default=20, ge=1, le=200),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().get_member_overlay_audit(user_id, bot_id, limit=limit)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.patch("/member/{user_id}/overlays/{bot_id}")
+async def bi_patch_member_overlay(
+    user_id: str,
+    bot_id: str,
+    body: Any = Body(...),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().patch_member_overlay(
+            user_id,
+            bot_id,
+            list(getattr(body, "operations", None) or body.get("operations") or []),
+            operator=auth.user_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/overlays/{bot_id}/promotions/apply")
+async def bi_apply_member_overlay_promotions(
+    user_id: str,
+    bot_id: str,
+    body: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    payload = body or {}
+    try:
+        return get_member_console_service().apply_member_overlay_promotions(
+            user_id,
+            bot_id,
+            operator=auth.user_id,
+            min_confidence=payload.get("min_confidence"),
+            max_candidates=payload.get("max_candidates"),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/notes")
+async def bi_create_member_note(
+    user_id: str,
+    body: NoteCreateRequest,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().add_note(
+            user_id,
+            body.content,
+            channel=body.channel,
+            pinned=body.pinned,
+            operator=auth.user_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.patch("/member/notes/{note_id}")
+async def bi_update_member_note(
+    note_id: str,
+    body: NoteUpdateRequest,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    try:
+        return get_member_console_service().update_note(
+            note_id,
+            content=body.content,
+            pinned=body.pinned,
+            operator=auth.user_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.delete("/member/notes/{note_id}")
+async def bi_delete_member_note(
+    note_id: str,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    deleted = get_member_console_service().delete_note(note_id, operator=auth.user_id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown note")
+    return {"deleted": True}
+
+
+@router.get("/member/audit-log")
+async def bi_member_audit_log(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    target_user: str | None = None,
+    operator: str | None = None,
+    action: str | None = None,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+) -> dict[str, Any]:
+    return get_member_console_service().get_audit_log(
+        page=page,
+        page_size=page_size,
+        target_user=target_user,
+        operator=operator,
+        action=action,
+    )
+
+
+@router.get("/member/export")
+async def bi_member_export(
+    status_filter: str | None = Query(None, alias="status"),
+    tier: str | None = None,
+    search: str | None = None,
+    segment: str | None = None,
+    risk_level: str | None = None,
+    auto_renew: bool | None = None,
+    expire_within_days: int | None = Query(default=None, ge=0, le=3650),
+    active_within_days: int | None = Query(default=None, ge=0, le=3650),
+    has_heartbeat_job: bool | None = None,
+    has_overlay_candidates: bool | None = None,
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "export")),
+):
+    from fastapi import Response
+
+    export = get_member_console_service().export_members_csv(
+        status=status_filter,
+        tier=tier,
+        search=search,
+        segment=segment,
+        risk_level=risk_level,
+        auto_renew=auto_renew,
+        expire_within_days=expire_within_days,
+        active_within_days=active_within_days,
+        has_heartbeat_job=has_heartbeat_job,
+        has_overlay_candidates=has_overlay_candidates,
+    )
+    return Response(
+        content=export["content"],
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{export["filename"]}"'},
+    )
+
+
+@router.post("/member/batch")
+async def bi_member_batch_action(
+    body: BatchActionRequest,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    if body.action == "grant":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Batch tier grant is no longer supported; use package-based manual purchase.",
+        )
+    return get_member_console_service().batch_update_members(
+        user_ids=body.user_ids,
+        action=body.action,
+        days=body.days,
+        tier=body.tier,
+        expire_at=body.expire_at,
+        auto_renew=body.auto_renew,
+        reason=body.reason,
+        operator=auth.user_id,
+    )
+
+
+@router.post("/member/manual-purchase")
+async def bi_manual_purchase_membership(
+    body: ManualPurchaseRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return get_member_console_service().manual_membership_purchase(
+            user_id=body.user_id,
+            package_id=body.package_id,
+            days=body.days,
+            operator=auth.user_id,
+            reason=body.reason,
+            idempotency_key=key,
+            phone=body.phone,
+            display_name=body.display_name,
+            amount_cny=body.amount_cny,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.post("/member/manual-purchase/reverse")
+async def bi_reverse_manual_purchase_membership(
+    body: ManualPurchaseReversalRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    if not body.purchase_id.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="purchase_id is required for BI membership reversal",
+        )
+    try:
+        return get_member_console_service().reverse_manual_membership_purchase(
+            user_id=body.user_id,
+            purchase_id=body.purchase_id,
+            amount_cny=None,
+            operator=auth.user_id,
+            reason=body.reason,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.post("/member/update")
+async def bi_update_membership(
+    body: UpdateRequest,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+) -> dict[str, Any]:
+    return get_member_console_service().update_subscription(
+        body.user_id,
+        tier=body.tier,
+        days=body.days,
+        expire_at=body.expire_at,
+        auto_renew=body.auto_renew,
+        reason=body.reason,
+        operator=auth.user_id,
+    )
+
+
+@router.post("/member/revoke")
+async def bi_revoke_membership(
+    body: RevokeRequest,
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    return get_member_console_service().revoke_subscription(
+        body.user_id,
+        reason=body.reason,
+        operator=auth.user_id,
+    )
 
 
 @router.post("/export-jobs")

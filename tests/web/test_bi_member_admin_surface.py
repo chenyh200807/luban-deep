@@ -13,12 +13,12 @@ def test_bi_page_client_exposes_four_admin_tabs() -> None:
     ).read_text(encoding="utf-8")
 
     assert "BI_PRIMARY_TABS" in source
-    assert '"boss-workbench"' in shared_source
-    assert '"member-ops"' in shared_source
-    assert '"launch-readiness"' in shared_source
-    assert '"invite-test"' in shared_source
-    assert '"learner-360"' in shared_source
-    assert '"audit"' in shared_source
+    assert "key: 'boss-workbench'" in shared_source
+    assert "key: 'member-ops'" in shared_source
+    assert "key: 'launch-readiness'" in shared_source
+    assert "key: 'invite-test'" in shared_source
+    assert "key: 'learner-360'" in shared_source
+    assert "key: 'audit'" in shared_source
 
 
 def test_member_page_reuses_bi_admin_workspace() -> None:
@@ -285,7 +285,7 @@ def test_bi_invite_test_admin_surface_is_protected_and_mounted() -> None:
     ).read_text(encoding="utf-8")
     api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
 
-    assert '"invite-test"' in shared_source
+    assert "key: 'invite-test'" in shared_source
     assert "activeTab === 'invite-test'" in client_source
     assert "getBiInviteTestApplications" in client_source
     assert "getBiInviteTestStats" in client_source
@@ -303,7 +303,7 @@ def test_bi_launch_readiness_surface_consumes_single_backend_authority() -> None
     ).read_text(encoding="utf-8")
     api_source = (REPO_ROOT / "web" / "lib" / "bi-api.ts").read_text(encoding="utf-8")
 
-    assert '"launch-readiness"' in shared_source
+    assert "key: 'launch-readiness'" in shared_source
     assert "getBiLaunchReadiness" in client_source
     assert "BiLaunchReadinessTab" in client_source
     assert "/api/v1/observability/launch-readiness" in api_source
@@ -410,7 +410,7 @@ def test_v2_require_bi_admin_boundary_present() -> None:
 
     assert "<RequireBiAdmin>" in surface, "BiV2Surface must wrap panels with RequireBiAdmin"
     assert "useBiAdminIdentity" in require, "RequireBiAdmin must read identity hook"
-    assert "isAdmin" in require, "RequireBiAdmin must gate on isAdmin"
+    assert "hasBiAccess" in require, "RequireBiAdmin must gate on BI RBAC access"
 
 
 def test_v2_audited_action_hook_injects_idempotency_and_admin_auth() -> None:

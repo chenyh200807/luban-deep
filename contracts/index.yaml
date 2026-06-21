@@ -93,6 +93,7 @@ member_console_controls:
     semantics:
       - Manual membership reversal is append-only; it must not delete or mutate the original purchase ledger row.
       - Only supreme_svip manual membership purchases can be reversed through this control.
+      - purchase_id is required; the original purchase audit is the only amount authority and request amount_cny is ignored.
       - The reversal writes a wallet refund ledger event with negative metadata.amount_cny so BI commerce revenue is netted by wallet_ledger.
       - The control is an audited admin write and requires X-Idempotency-Key.
 
@@ -102,16 +103,16 @@ mobile_http_read_models:
     authority: wallet_snapshot + wallet_ledger_or_member_usage_meter
     semantics:
       - Wallet snapshot read failure returns status=degraded and no quota rows.
+      - The read model exposes remaining percent summary only; it must not expose five-hour or weekly quota rows.
       - When billing enforcement is enabled, wallet ledger is the canonical commerce
         usage authority; ledger read failure must not make the whole usage read model
         unavailable, and the adapter returns status=ok with empty usage entries and
         the snapshot plan.
       - When billing enforcement is disabled for internal beta, MemberUsageMeter may
         provide the non-financial usage display source with charging_status=metered_not_charged;
-        it must not mutate wallet balance or wallet ledger. The temporary default display
-        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS;
-        public display labels remain percentage-based rather than exposing remaining turn counts.
-      - Usage windows are display read models only; they are not capability routing,
+        it must not mutate wallet balance or wallet ledger. Public display labels remain
+        percentage-based and must not expose remaining turn counts.
+      - Usage percentages are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
 
 mobile_http_auth_controls:

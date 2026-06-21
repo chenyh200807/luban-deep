@@ -127,7 +127,7 @@ function loadBillingPage(walletPayload, ledgerPayload, usagePayload) {
     balance: 0,
   }, { entries: [] }, {
     status: "degraded",
-    display: { primary_label: "额度暂不可用", primary_percent: 100 },
+    display: { primary_label: "权益暂不可用", primary_percent: 100 },
     quota: { rows: [] },
   });
   await degraded.page._loadUsage();

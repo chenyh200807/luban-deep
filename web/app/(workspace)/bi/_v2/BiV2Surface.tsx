@@ -79,10 +79,36 @@ function isSectionEnabled(section: BiV2Section, flags: BiFlagSnapshot) {
   return flags.BI_SYSTEM_OPS_V2_ENABLED
 }
 
+const BACKEND_TAB_TO_SECTION: Record<string, BiV2Section> = {
+  overview: 'overview',
+  member_ops: 'member-ops',
+  commerce: 'commerce',
+  feedback: 'feedback',
+  ops: 'ops',
+}
+
+const FEEDBACK_PANELS = new Set(['invite-test', 'luban-feedback'])
+
+function accessibleSections(identity: BiAdminIdentity): Set<BiV2Section> {
+  const sections = new Set<BiV2Section>()
+  for (const tab of identity.accessibleTabs ?? []) {
+    const normalized = BACKEND_TAB_TO_SECTION[tab] ?? (tab as BiV2Section)
+    if (SECTIONS.some(item => item.key === normalized)) sections.add(normalized)
+  }
+  if (identity.canManagePermissions) sections.add('permissions')
+  return sections
+}
+
+function isSectionAllowed(section: BiV2Section, flags: BiFlagSnapshot, allowed: Set<BiV2Section>) {
+  return isSectionEnabled(section, flags) && allowed.has(section)
+}
+
 function readSectionFromUrl(): BiV2Section {
   if (typeof window === 'undefined') return 'overview'
   const search = new URLSearchParams(window.location.search)
   const tab = search.get('tab') ?? search.get('section') ?? ''
+  const panel = search.get('panel') ?? search.get('feedback') ?? ''
+  if (FEEDBACK_PANELS.has(panel)) return 'feedback'
   if (tab) {
     if (tab === 'invite-test') return 'feedback'
     const match = SECTIONS.find(s => s.key === tab)
@@ -92,12 +118,41 @@ function readSectionFromUrl(): BiV2Section {
   return SECTIONS.find(s => s.key === raw)?.key ?? 'overview'
 }
 
-function firstEnabledSection(flags: BiFlagSnapshot): BiV2Section {
-  return SECTIONS.find(item => isSectionEnabled(item.key, flags))?.key ?? 'overview'
+function firstEnabledSection(flags: BiFlagSnapshot, allowed: Set<BiV2Section>): BiV2Section {
+  return SECTIONS.find(item => isSectionAllowed(item.key, flags, allowed))?.key ?? 'overview'
 }
 
-function resolveEnabledSection(section: BiV2Section, flags: BiFlagSnapshot): BiV2Section {
-  return isSectionEnabled(section, flags) ? section : firstEnabledSection(flags)
+function resolveEnabledSection(
+  section: BiV2Section,
+  flags: BiFlagSnapshot,
+  allowed: Set<BiV2Section>
+): BiV2Section {
+  return isSectionAllowed(section, flags, allowed) ? section : firstEnabledSection(flags, allowed)
+}
+
+function canonicalizeBiUrl(section: BiV2Section) {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  let changed = false
+  const originalTab = url.searchParams.get('tab') ?? url.searchParams.get('section') ?? ''
+  if (url.searchParams.get('tab') !== section) {
+    url.searchParams.set('tab', section)
+    changed = true
+  }
+  if (section === 'feedback' && originalTab === 'invite-test' && !url.searchParams.has('panel')) {
+    url.searchParams.set('panel', 'invite-test')
+    changed = true
+  }
+  if (section !== 'feedback' && (url.searchParams.has('panel') || url.searchParams.has('feedback'))) {
+    url.searchParams.delete('panel')
+    url.searchParams.delete('feedback')
+    changed = true
+  }
+  if (url.hash) {
+    url.hash = ''
+    changed = true
+  }
+  if (changed) window.history.replaceState(null, '', url)
 }
 
 export type BiV2SurfaceProps = {
@@ -122,27 +177,29 @@ function BiV2AuthenticatedSurface({
   identity,
 }: {
   flags: BiFlagSnapshot
-  identity: BiAdminIdentity & { authenticated: true; isAdmin: true }
+  identity: BiAdminIdentity & { authenticated: true; hasBiAccess: true }
 }) {
   const [section, setSection] = useState<BiV2Section>('overview')
   const [submittedQuery, setSubmittedQuery] = useState('')
+  const allowedSections = useMemo(() => accessibleSections(identity), [identity])
   const navItems = useMemo(
     () =>
-      SECTIONS.map(item => {
-        const enabled = isSectionEnabled(item.key, flags)
+      SECTIONS.filter(item => allowedSections.has(item.key)).map(item => {
+        const enabled = isSectionAllowed(item.key, flags, allowedSections)
         return {
           ...item,
           disabled: !enabled,
           statusLabel: enabled ? '可用' : '待接入',
         }
       }),
-    [flags]
+    [allowedSections, flags]
   )
 
   useEffect(() => {
     const sync = () => {
       setSection(prev => {
-        const next = resolveEnabledSection(readSectionFromUrl(), flags)
+        const next = resolveEnabledSection(readSectionFromUrl(), flags, allowedSections)
+        canonicalizeBiUrl(next)
         return prev === next ? prev : next
       })
     }
@@ -153,20 +210,24 @@ function BiV2AuthenticatedSurface({
       window.removeEventListener('hashchange', sync)
       window.removeEventListener('popstate', sync)
     }
-  }, [flags])
+  }, [allowedSections, flags])
 
   const go = useCallback(
     (target: BiV2Section) => {
-      if (!isSectionEnabled(target, flags)) return
+      if (!isSectionAllowed(target, flags, allowedSections)) return
       setSection(target)
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href)
         url.searchParams.set('tab', target)
+        if (target !== 'feedback') {
+          url.searchParams.delete('panel')
+          url.searchParams.delete('feedback')
+        }
         url.hash = ''
         window.history.replaceState(null, '', url)
       }
     },
-    [flags]
+    [allowedSections, flags]
   )
 
   const searchFlagSnapshot = useMemo(
@@ -236,7 +297,7 @@ function BiV2AuthenticatedSurface({
                 <span className="hidden text-slate-100 sm:inline">会员经营后台</span>
               </>
             }
-            actor={currentSearchActor ?? `actor: ${identity.displayName} · admin`}
+            actor={currentSearchActor ?? `actor: ${identity.displayName} · ${identity.biRoleLabel || 'BI'}`}
             onSubmitSearch={submitGlobalSearch}
           />
         )}
