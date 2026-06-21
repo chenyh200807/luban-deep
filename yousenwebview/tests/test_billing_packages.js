@@ -24,6 +24,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var toastCalls = [];
   var modalCalls = [];
   var paymentCalls = [];
+  var previewImageCalls = [];
   var checkoutCalls = [];
   var sandbox = {
     console: console,
@@ -44,7 +45,9 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
         if (payload && typeof payload.success === "function")
           payload.success({});
       },
-      previewImage: function () {},
+      previewImage: function (payload) {
+        previewImageCalls.push(payload || {});
+      },
       navigateBack: function () {},
       reLaunch: function () {},
     },
@@ -159,6 +162,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     toastCalls: toastCalls,
     modalCalls: modalCalls,
     paymentCalls: paymentCalls,
+    previewImageCalls: previewImageCalls,
     checkoutCalls: checkoutCalls,
   };
 }
@@ -191,11 +195,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     assert(
       typeof page.openCheckout === "function",
-      "billing page should expose openCheckout for initiating payment",
+      "billing page should expose openCheckout for contacting sales",
     );
     assert(
-      typeof page.submitCheckout === "function",
-      "billing page should expose submitCheckout for confirming payment",
+      !("submitCheckout" in page),
+      "billing page should not expose direct checkout submission before sales contact",
     );
     var billingWxml = fs.readFileSync(
       path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
@@ -218,15 +222,15 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing package cards should render original price",
     );
     assert(
-      billingWxml.indexOf("selectedPackage.originalPrice") >= 0,
-      "billing checkout summary should render selected package original price",
+      billingWxml.indexOf("sales-contact-qr.png") >= 0 &&
+        fs.existsSync(path.join(__dirname, "../packageDeeptutor/images/sales-contact-qr.png")),
+      "billing contact sheet should render the sales contact QR asset",
     );
     assert(
       billingWxml.indexOf("item.turns") >= 0 &&
         billingWxml.indexOf("{{item.points}}") === -1 &&
-        billingWxml.indexOf("selectedPackage.turns") >= 0 &&
         billingWxml.indexOf("selectedPackage.points") === -1,
-      "billing package cards and checkout should expose promised usage counts, not internal points",
+      "billing package cards and contact sheet should expose promised usage counts, not internal points",
     );
     var staleWeeklyCopy =
       billingWxml + billingJs + profileWxml + profileJs;
@@ -304,10 +308,31 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
       "billing fallback prices should match launch pricing",
     );
-    await page.submitCheckout();
+    page.openCheckout();
     assert(
-      loaded.checkoutCalls[0] && loaded.checkoutCalls[0].package_id === "vip",
-      "billing checkout should submit the selected launch package id",
+      page.data.contactSalesVisible === true,
+      "billing open action should show the sales contact QR sheet first",
+    );
+    assert(
+      loaded.checkoutCalls.length === 0,
+      "billing open action should not create a checkout order before sales contact",
+    );
+    assert(
+      loaded.paymentCalls.length === 0,
+      "billing open action should not invoke WeChat payment before sales contact",
+    );
+    assert(
+      loaded.previewImageCalls.length === 0,
+      "billing open action should keep the QR visible in-page instead of jumping to preview",
+    );
+    page.closeContactSales();
+    assert(
+      page.data.contactSalesVisible === false,
+      "billing contact sheet should be closable",
+    );
+    assert(
+      loaded.checkoutCalls.length === 0,
+      "billing contact-first flow should not submit a launch package id directly",
     );
     var staleWallet = loadBillingPage(null, {
       balance: 0,
