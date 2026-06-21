@@ -22,7 +22,7 @@ export const WRITE_ENDPOINTS = {
   ["member.conversation.view_full"]: {
     key: "member.conversation.view_full",
     method: "POST",
-    path_template: "/api/v1/member/{user_id}/conversations/{session_id}/view-audit",
+    path_template: "/api/v1/bi/member/{user_id}/conversations/{session_id}/view-audit",
     requires_idempotency: true,
     description: "Privacy audit: admin requests full chat replay for a member. Body must include reason (≥ 4 chars or one of the 5 whitelisted reason codes). Backend appends to audit_log + dedupes by (action, X-Idempotency-Key).",
     audit_action: "conversation_view",
@@ -62,7 +62,7 @@ export const WRITE_ENDPOINTS = {
   ["member.ops_action.record"]: {
     key: "member.ops_action.record",
     method: "POST",
-    path_template: "/api/v1/bi/member/{user_id}/ops-action",
+    path_template: "/api/v1/bi/member/{user_id}/ops-actions",
     requires_idempotency: true,
     description: "Member low-risk ops action: mark contacted, add an ops note, or join follow-up queue. Backend writes an ops_action note and ops_action_result audit with idempotency dedup.",
     audit_action: "ops_action_result",
@@ -95,7 +95,7 @@ export const WRITE_ENDPOINT_LIST: readonly BiV2WriteEndpoint[] = [
   {
     key: "member.conversation.view_full",
     method: "POST",
-    path_template: "/api/v1/member/{user_id}/conversations/{session_id}/view-audit",
+    path_template: "/api/v1/bi/member/{user_id}/conversations/{session_id}/view-audit",
     requires_idempotency: true,
     description: "Privacy audit: admin requests full chat replay for a member. Body must include reason (≥ 4 chars or one of the 5 whitelisted reason codes). Backend appends to audit_log + dedupes by (action, X-Idempotency-Key).",
     audit_action: "conversation_view",
@@ -135,7 +135,7 @@ export const WRITE_ENDPOINT_LIST: readonly BiV2WriteEndpoint[] = [
   {
     key: "member.ops_action.record",
     method: "POST",
-    path_template: "/api/v1/bi/member/{user_id}/ops-action",
+    path_template: "/api/v1/bi/member/{user_id}/ops-actions",
     requires_idempotency: true,
     description: "Member low-risk ops action: mark contacted, add an ops note, or join follow-up queue. Backend writes an ops_action note and ops_action_result audit with idempotency dedup.",
     audit_action: "ops_action_result",

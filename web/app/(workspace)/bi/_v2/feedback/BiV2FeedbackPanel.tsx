@@ -970,7 +970,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             </p>
             <p className="mt-1 text-[11px] text-slate-400">
               authority: session store · view-audit endpoint:
-              /api/v1/member/&lt;user_id&gt;/conversations/&lt;session_id&gt;/view-audit
+              /api/v1/bi/member/&lt;user_id&gt;/conversations/&lt;session_id&gt;/view-audit
             </p>
           </aside>
         </>

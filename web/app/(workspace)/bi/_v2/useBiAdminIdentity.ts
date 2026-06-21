@@ -11,7 +11,13 @@ export type BiAdminIdentity = {
   authenticated: boolean;
   actorId: string;
   displayName: string;
+  hasBiAccess: boolean;
   isAdmin: boolean;
+  biRole: string;
+  biRoleLabel: string;
+  canManagePermissions: boolean;
+  accessibleTabs: string[];
+  matrix: Record<string, string[]>;
   session: BiAdminSession | null;
 };
 
@@ -19,7 +25,13 @@ const UNAUTHENTICATED: BiAdminIdentity = {
   authenticated: false,
   actorId: "unauthenticated",
   displayName: "未登录",
+  hasBiAccess: false,
   isAdmin: false,
+  biRole: "",
+  biRoleLabel: "",
+  canManagePermissions: false,
+  accessibleTabs: [],
+  matrix: {},
   session: null,
 };
 
@@ -29,7 +41,13 @@ function buildIdentity(session: BiAdminSession | null): BiAdminIdentity {
     authenticated: true,
     actorId: session.userId,
     displayName: session.displayName || session.userId,
+    hasBiAccess: Boolean(session.biRole && session.accessibleTabs?.length),
     isAdmin: session.isAdmin,
+    biRole: session.biRole || "",
+    biRoleLabel: session.biRoleLabel || session.biRole || "",
+    canManagePermissions: Boolean(session.canManagePermissions),
+    accessibleTabs: Array.isArray(session.accessibleTabs) ? session.accessibleTabs : [],
+    matrix: session.biMatrix ?? {},
     session,
   };
 }
@@ -50,7 +68,9 @@ let cachedSessionKey: string | null = null;
 function getClientSnapshot(): BiAdminIdentity {
   if (typeof window === "undefined") return UNAUTHENTICATED;
   const session = getStoredBiAdminSession();
-  const key = session ? `${session.userId}:${session.expiresAt}` : "";
+  const key = session
+    ? `${session.userId}:${session.expiresAt}:${session.biRole}:${(session.accessibleTabs ?? []).join(",")}`
+    : "";
   if (key === cachedSessionKey && cachedIdentity) {
     return cachedIdentity;
   }

@@ -289,13 +289,19 @@ def test_member_router_exposes_batch_and_audit_endpoints(monkeypatch: pytest.Mon
     )
 
     with TestClient(app) as client:
-        batch = client.post(
+        legacy_grant = client.post(
             "/api/v1/member/batch",
             json={"user_ids": ["u1", "u2"], "action": "grant", "days": 30, "tier": "vip", "reason": "batch"},
+        )
+        batch = client.post(
+            "/api/v1/member/batch",
+            json={"user_ids": ["u1", "u2"], "action": "revoke", "reason": "batch"},
         )
         audit = client.get("/api/v1/member/audit-log?page=1&page_size=20&action=grant")
         exported = client.get("/api/v1/member/export?status=active&tier=vip")
 
+    assert legacy_grant.status_code == 400
+    assert "manual membership purchase" in legacy_grant.json()["detail"]
     assert batch.status_code == 200
     assert batch.json()["success_count"] == 2
     assert audit.status_code == 200
@@ -416,7 +422,7 @@ def test_member_router_manual_purchase_reversal_requires_idempotency_and_forward
         {
             "user_id": "u1",
             "purchase_id": "manual_membership_1",
-            "amount_cny": 998,
+            "amount_cny": None,
             "operator": "admin_demo",
             "reason": "本应 0 元开通，冲销误录 998 元",
             "idempotency_key": "manual-reverse-1",
@@ -540,7 +546,7 @@ def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch
     )
 
     with TestClient(app) as client:
-        response = client.post(
+        missing_key = client.post(
             "/api/v1/member/student_demo/ops-actions",
             json={
                 "status": "done",
@@ -549,7 +555,18 @@ def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch
                 "next_follow_up_at": "2026-04-26",
             },
         )
+        response = client.post(
+            "/api/v1/member/student_demo/ops-actions",
+            headers={"X-Idempotency-Key": "ops-action-legacy-1"},
+            json={
+                "status": "done",
+                "result": "已回访，确认续费",
+                "action_title": "即将到期会员",
+                "next_follow_up_at": "2026-04-26",
+            },
+        )
 
+    assert missing_key.status_code == 400
     assert response.status_code == 200
     assert response.json()["note"]["channel"] == "ops_action"
     assert calls == [
@@ -560,6 +577,7 @@ def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch
             "action_title": "即将到期会员",
             "next_follow_up_at": "2026-04-26",
             "operator": "admin_demo",
+            "idempotency_key": "ops-action-legacy-1",
         }
     ]
 

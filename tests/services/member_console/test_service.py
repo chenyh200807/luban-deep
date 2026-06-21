@@ -4197,6 +4197,26 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
     assert result["filters"]["expire_within_days"] == 7
 
 
+def test_list_members_searches_account_alias_and_normalized_phone(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["display_name"] = "账号搜索会员"
+        member["phone"] = "138-0013-8000"
+        member["auth_username"] = "chenyh2008"
+        member["external_auth_user_id"] = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+        member["alias_user_ids"] = ["wx_member_1", "legacy_member_1"]
+        data["members"] = [member]
+
+    service._mutate(_seed)
+
+    assert service.list_members(search="chenyh2008")["items"][0]["user_id"] == "legacy_member_1"
+    assert service.list_members(search="wx_member_1")["items"][0]["user_id"] == "legacy_member_1"
+    assert service.list_members(search="13800138000")["items"][0]["user_id"] == "legacy_member_1"
+
+
 def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -4784,7 +4804,7 @@ def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
     result = service.reverse_manual_membership_purchase(
         user_id="manual_user_supreme",
         purchase_id=purchase["purchase_id"],
-        amount_cny=998,
+        amount_cny=1,
         operator="admin_demo",
         reason="本应 0 元开通，冲销误录 998 元",
         idempotency_key="reverse-supreme-1",
@@ -4826,6 +4846,41 @@ def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
     audit = service.get_audit_log(action="manual_membership_reversal")["items"][0]
     assert audit["target_user"] == "manual_user_supreme"
     assert audit["after"]["reversal_of_purchase_id"] == purchase["purchase_id"]
+
+
+def test_member_360_exposes_only_unreversed_supreme_purchase_for_reversal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_supreme",
+        package_id="supreme_svip",
+        days=365,
+        operator="admin_demo",
+        reason="误点套餐价",
+        idempotency_key="manual-supreme-1",
+    )
+
+    detail = service.get_member_360("manual_user_supreme")
+    reversible = detail["membership_billing"]["reversible_supreme_purchase"]
+    assert reversible["purchase_id"] == purchase["purchase_id"]
+    assert reversible["amount_cny"] == 998
+    assert reversible["points"] == 50000
+
+    service.reverse_manual_membership_purchase(
+        user_id="manual_user_supreme",
+        purchase_id=purchase["purchase_id"],
+        operator="admin_demo",
+        reason="撤回误录",
+        idempotency_key="reverse-supreme-1",
+    )
+
+    after = service.get_member_360("manual_user_supreme")
+    assert after["membership_billing"]["reversible_supreme_purchase"] is None
 
 
 def test_non_supreme_membership_purchase_cannot_be_reversed(

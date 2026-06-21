@@ -25,7 +25,6 @@ type BiMemberOpsTabProps = {
   totalCount: number;
   onToggleMember: (userId: string) => void;
   onOpenMember: (userId: string) => void;
-  onBatchGrant: () => void;
   onBatchRevoke: () => void;
   onGrantSingle: () => void;
   onExtendSingle: () => void;
@@ -53,7 +52,6 @@ export function BiMemberOpsTab({
   totalCount,
   onToggleMember,
   onOpenMember,
-  onBatchGrant,
   onBatchRevoke,
   onGrantSingle,
   onExtendSingle,
@@ -68,7 +66,7 @@ export function BiMemberOpsTab({
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard title="当前列表" value={memberItems.length} hint={`总会员 ${totalCount}`} tone="neutral" icon={ClipboardList} />
-        <MetricCard title="批量勾选" value={selectedIds.length} hint="用于批量开通 / 撤销" tone="neutral" icon={Layers3} />
+        <MetricCard title="批量勾选" value={selectedIds.length} hint="用于批量撤销" tone="neutral" icon={Layers3} />
         <MetricCard title="当前详情" value={selectedMember?.display_name ?? "--"} hint={selectedMember?.user_id ?? "未选择会员"} tone="neutral" icon={UserRound} />
         <MetricCard title="工作区状态" value={loading ? "加载中" : "就绪"} hint="会员运营后台主工作区" tone="neutral" icon={ShieldAlert} />
       </section>
@@ -77,14 +75,6 @@ export function BiMemberOpsTab({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionHeader title="会员运营" extra="高密列表 + 学员 360 + 批量动作" />
           <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={onBatchGrant}
-              disabled={selectedIds.length === 0 || actionLoading}
-              className="rounded-full bg-[var(--foreground)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-            >
-              批量开通 30 天 VIP
-            </button>
             <button
               type="button"
               onClick={onBatchRevoke}

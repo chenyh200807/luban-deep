@@ -2970,7 +2970,7 @@ class MemberConsoleService:
                 continue
             name = str(member.get("display_name") or member.get("identifier") or "")
             phone = str(member.get("phone") or "")
-            if query and query not in f"{uid} {name} {phone}".lower():
+            if query and query not in self._member_search_haystack(member):
                 continue
             masked = (phone[:3] + "****" + phone[-4:]) if len(phone) >= 7 else phone
             results.append(
@@ -3749,9 +3749,7 @@ class MemberConsoleService:
             if auto_renew is not None and bool(item.get("auto_renew")) != auto_renew:
                 continue
             if search_text:
-                haystack = " ".join(
-                    [item["user_id"], item["display_name"], item["phone"]]
-                ).lower()
+                haystack = self._member_search_haystack(item)
                 if search_text not in haystack:
                     continue
             if expire_within_days is not None:
@@ -3830,6 +3828,43 @@ class MemberConsoleService:
                 "behavior": "product_behavior_events",
             },
         }
+
+    @staticmethod
+    def _member_search_haystack(member: dict[str, Any]) -> str:
+        """Canonical member search terms shared by BI tables and admin picker.
+
+        Operators search by what they actually see or receive from students:
+        phone, account/login name, canonical uid, legacy user_id, and alias ids.
+        Keeping the haystack in one service helper avoids one UI saying "账号"
+        while another backend path only searches display name.
+        """
+        values: list[str] = []
+        for key in (
+            "user_id",
+            "canonical_user_id",
+            "canonical_uid",
+            "external_auth_user_id",
+            "auth_username",
+            "display_name",
+            "identifier",
+            "phone",
+            "wx_openid",
+            "openid",
+            "wx_unionid",
+            "unionid",
+        ):
+            value = str(member.get(key) or "").strip()
+            if value:
+                values.append(value)
+                if key == "phone":
+                    digits = re.sub(r"\D+", "", value)
+                    if digits:
+                        values.append(digits)
+        for value in list(member.get("alias_user_ids") or []):
+            normalized = str(value or "").strip()
+            if normalized:
+                values.append(normalized)
+        return " ".join(values).lower()
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
         data = self._load()
@@ -3922,6 +3957,12 @@ class MemberConsoleService:
             member["bot_overlays"] = []
         member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
         member["behavior"] = self._load_member_behavior_payload_for_member(member)
+        member["membership_billing"] = {
+            "reversible_supreme_purchase": self._latest_reversible_manual_membership_purchase(
+                data,
+                user_id=str(member.get("user_id") or user_id).strip(),
+            )
+        }
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:
@@ -5135,6 +5176,32 @@ class MemberConsoleService:
                 return True
         return False
 
+    def _latest_reversible_manual_membership_purchase(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+    ) -> dict[str, Any] | None:
+        audit = self._find_latest_manual_membership_purchase_audit(data, user_id=user_id)
+        if audit is None:
+            return None
+        after = audit.get("after") if isinstance(audit.get("after"), dict) else {}
+        purchase_id = str(after.get("purchase_id") or "").strip()
+        if not purchase_id or str(after.get("package_id") or "").strip() != "supreme_svip":
+            return None
+        if self._has_manual_membership_reversal(data, user_id=user_id, purchase_id=purchase_id):
+            return None
+        return {
+            "purchase_id": purchase_id,
+            "package_id": "supreme_svip",
+            "amount_cny": self._package_amount_cny({"price": after.get("amount_cny", 0)}),
+            "points": int(after.get("points") or 0),
+            "days": int(after.get("days") or 0),
+            "created_at": str(audit.get("created_at") or ""),
+            "ledger_event_id": str(after.get("ledger_event_id") or ""),
+            "audit_id": str(audit.get("id") or ""),
+        }
+
     def reverse_manual_membership_purchase(
         self,
         *,
@@ -5148,8 +5215,11 @@ class MemberConsoleService:
         normalized_user_id = str(user_id or "").strip()
         normalized_operator = str(operator or "").strip() or "admin"
         normalized_key = str(idempotency_key or "").strip()
+        normalized_purchase_id = str(purchase_id or "").strip()
         if not normalized_user_id:
             raise ValueError("user_id is required")
+        if not normalized_purchase_id:
+            raise ValueError("purchase_id is required for manual membership reversal")
         if not normalized_key:
             raise ValueError("idempotency_key is required")
 
@@ -5164,7 +5234,7 @@ class MemberConsoleService:
             purchase_audit = self._find_latest_manual_membership_purchase_audit(
                 data,
                 user_id=normalized_user_id,
-                purchase_id=purchase_id,
+                purchase_id=normalized_purchase_id,
             )
             if purchase_audit is None:
                 raise ValueError("manual membership purchase was not found")
@@ -5193,12 +5263,12 @@ class MemberConsoleService:
 
         reversal_inputs = self._mutate(_load_reversal_inputs)
         purchase_after = dict(reversal_inputs["purchase_after"])
-        resolved_purchase_id = str(purchase_after.get("purchase_id") or purchase_id or "").strip()
+        resolved_purchase_id = str(purchase_after.get("purchase_id") or normalized_purchase_id or "").strip()
         package_id = str(purchase_after.get("package_id") or "").strip()
         if package_id != "supreme_svip":
             raise ValueError("Only supreme_svip manual membership purchases can be reversed")
         if reversal_inputs.get("deduped"):
-            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)}, amount_cny)
+            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)})
             return {
                 "member": reversal_inputs["member"],
                 "amount_cny": -abs(original_amount),
@@ -5223,7 +5293,9 @@ class MemberConsoleService:
         points = abs(int(purchase_after.get("points") or package.get("points") or 0))
         if points <= 0:
             raise ValueError("reversal points must be positive")
-        original_amount = self._package_amount_cny(package, amount_cny if amount_cny is not None else purchase_after.get("amount_cny"))
+        # The original purchase audit is the only amount authority. Legacy
+        # callers may still send amount_cny, but it must not alter reconciliation.
+        original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)})
         if original_amount <= 0:
             raise ValueError("reversal amount_cny must be positive")
         reversal_amount = -abs(original_amount)

@@ -361,7 +361,7 @@ export function ConversationReviewDrawer({
           <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.035] p-6 text-xs text-slate-400">
             <div className="text-sm font-black text-slate-100">暂无匹配会话</div>
             <p className="mt-2 leading-5">
-              已读取 <code className="font-mono">/api/v1/member/{member.user_id}/conversations</code>。
+              已读取 <code className="font-mono">/api/v1/bi/member/{member.user_id}/conversations</code>。
               可能原因：当前筛选过窄、该会员没有 session_store 会话、或真实登录身份未写入
               canonical_user_id / alias_user_ids。
             </p>

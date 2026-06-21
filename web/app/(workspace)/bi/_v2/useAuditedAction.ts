@@ -10,9 +10,11 @@ import { resolveWritePath, type BiV2WriteEndpointKey } from '@/lib/bi-v2-write-e
 //   2. etag/version (optional, surfaced when backend returns one)
 //   3. undo_window for dangerous actions (returned by backend as undo_token)
 //
-// All BI v2 mutations MUST go through useAuditedAction. UI must NEVER call
-// fetch() directly for write paths, nor fabricate a local audit log to imply
-// a write happened. The hook guarantees:
+// BI v2 panels must not build raw write fetches inline. Panel-owned write
+// paths go through useAuditedAction; member-console writes go through the
+// tested member-api.ts helper authority, which binds BI RBAC + idempotency at
+// the backend route. UI must NEVER fabricate a local audit log to imply a
+// write happened. This hook guarantees:
 //   - actor = identity.actorId (caller can't override; comes from session)
 //   - X-Idempotency-Key = generated UUID per execute() call
 //   - If-Match = etag prop when supplied

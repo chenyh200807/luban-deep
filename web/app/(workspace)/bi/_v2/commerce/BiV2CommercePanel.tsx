@@ -803,6 +803,7 @@ function PackageManagementPanel({
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState('')
   const [formError, setFormError] = useState('')
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   function patchForm<K extends keyof PackageFormState>(key: K, value: PackageFormState[K]) {
     setForm(current => ({ ...current, [key]: value }))
@@ -810,6 +811,7 @@ function PackageManagementPanel({
 
   function openCreate() {
     setEditingPackageId(null)
+    setPendingDeleteId(null)
     setForm({ ...EMPTY_PACKAGE_FORM })
     setFormError('')
     setNotice('')
@@ -818,6 +820,7 @@ function PackageManagementPanel({
 
   function openEdit(pkg: BiCommercePackage) {
     setEditingPackageId(pkg.id)
+    setPendingDeleteId(null)
     setForm({
       id: pkg.id,
       label: pkg.name,
@@ -878,13 +881,19 @@ function PackageManagementPanel({
   }
 
   async function removePackage(pkg: BiCommercePackage) {
-    if (!window.confirm(`删除套餐 ${pkg.name}？历史收入流水不会删除。`)) return
+    if (pendingDeleteId !== pkg.id) {
+      setPendingDeleteId(pkg.id)
+      setNotice(`再次点击「确认删除」将下架 ${pkg.name}，历史收入流水不会删除。`)
+      setFormError('')
+      return
+    }
     setSubmitting(true)
     setFormError('')
     setNotice('')
     try {
       await deleteMembershipPackage(pkg.id, '删除套餐')
       setNotice('套餐已删除')
+      setPendingDeleteId(null)
       if (editingPackageId === pkg.id) setEditorOpen(false)
       await Promise.resolve(onChanged())
     } catch (exc) {
@@ -1069,85 +1078,88 @@ function PackageManagementPanel({
       ) : null}
 
       <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {packages.map(pkg => (
-          <li
-            key={pkg.id}
-            className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-black text-white">{pkg.name}</h3>
-                  {pkg.badge ? (
-                    <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[10px] font-bold text-amber-100">
-                      {pkg.badge}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  {pkg.id} · {pkg.tier.toUpperCase()}
-                </p>
-              </div>
-              <BiStatusPill
-                tone={STATUS_TONE[pkg.status] ?? 'slate'}
-                label={pkg.status || 'active'}
-              />
-            </div>
-            <div className="mt-2 flex items-baseline justify-between">
-              <BiMoneyCell
-                amount={pkg.points}
-                currency="POINT"
-                align="left"
-                trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
-              />
-              <BiMoneyCell
-                amount={pkg.priceCny}
-                currency="CNY"
-                align="right"
-                trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
-              />
-            </div>
-            <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-400">
-              <span>{pkg.turns || 0} 次</span>
-              {pkg.originalPriceCny ? <span>原价 ¥{pkg.originalPriceCny}</span> : null}
-              {pkg.per ? <span>{pkg.per}</span> : null}
-            </div>
-            <ul className="mt-2 space-y-0.5 text-[11px] text-slate-300">
-              {(pkg.features.length ? pkg.features : pkg.desc ? [pkg.desc] : []).map((feature, index) => (
-                <li key={`${pkg.id}-${index}`}>· {feature}</li>
-              ))}
-            </ul>
-            <div className="mt-3 flex items-center gap-2">
-              <BiButton
-                onClick={() => openEdit(pkg)}
-                variant="secondary"
-                size="xs"
-                aria-label={`编辑套餐 ${pkg.name}`}
-                title="编辑套餐"
-              >
-                <Pencil className="h-3 w-3" aria-hidden />
-                编辑
-              </BiButton>
-              <BiButton
-                onClick={() => void removePackage(pkg)}
-                variant="ghost"
-                size="xs"
-                disabled={submitting}
-                aria-label={`删除套餐 ${pkg.name}`}
-                title="删除套餐"
-              >
-                <Trash2 className="h-3 w-3" aria-hidden />
-                删除
-              </BiButton>
-            </div>
-            <p
-              className="mt-2 truncate text-[10px] text-slate-400"
-              title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'}`}
+        {packages.map(pkg => {
+          const confirmingDelete = pendingDeleteId === pkg.id
+          return (
+            <li
+              key={pkg.id}
+              className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15"
             >
-              authority: {pkg.authority || '--'} · trust {pkg.trust || '--'}
-            </p>
-          </li>
-        ))}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-black text-white">{pkg.name}</h3>
+                    {pkg.badge ? (
+                      <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-[10px] font-bold text-amber-100">
+                        {pkg.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    {pkg.id} · {pkg.tier.toUpperCase()}
+                  </p>
+                </div>
+                <BiStatusPill
+                  tone={STATUS_TONE[pkg.status] ?? 'slate'}
+                  label={pkg.status || 'active'}
+                />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between">
+                <BiMoneyCell
+                  amount={pkg.points}
+                  currency="POINT"
+                  align="left"
+                  trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+                />
+                <BiMoneyCell
+                  amount={pkg.priceCny}
+                  currency="CNY"
+                  align="right"
+                  trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+                />
+              </div>
+              <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-400">
+                <span>{pkg.turns || 0} 次</span>
+                {pkg.originalPriceCny ? <span>原价 ¥{pkg.originalPriceCny}</span> : null}
+                {pkg.per ? <span>{pkg.per}</span> : null}
+              </div>
+              <ul className="mt-2 space-y-0.5 text-[11px] text-slate-300">
+                {(pkg.features.length ? pkg.features : pkg.desc ? [pkg.desc] : []).map((feature, index) => (
+                  <li key={`${pkg.id}-${index}`}>· {feature}</li>
+                ))}
+              </ul>
+              <div className="mt-3 flex items-center gap-2">
+                <BiButton
+                  onClick={() => openEdit(pkg)}
+                  variant="secondary"
+                  size="xs"
+                  aria-label={`编辑套餐 ${pkg.name}`}
+                  title="编辑套餐"
+                >
+                  <Pencil className="h-3 w-3" aria-hidden />
+                  编辑
+                </BiButton>
+                <BiButton
+                  onClick={() => void removePackage(pkg)}
+                  variant={confirmingDelete ? 'danger' : 'ghost'}
+                  size="xs"
+                  disabled={submitting}
+                  aria-label={confirmingDelete ? `确认删除套餐 ${pkg.name}` : `删除套餐 ${pkg.name}`}
+                  title={confirmingDelete ? '再次点击确认删除，历史收入流水不会删除' : '删除套餐'}
+                >
+                  <Trash2 className="h-3 w-3" aria-hidden />
+                  {confirmingDelete ? '确认删除' : '删除'}
+                </BiButton>
+              </div>
+              <p
+                className="mt-2 truncate text-[10px] text-slate-400"
+                title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'}`}
+              >
+                authority: {pkg.authority || '--'} · trust {pkg.trust || '--'}
+              </p>
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

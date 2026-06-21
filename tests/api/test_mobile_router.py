@@ -1080,7 +1080,7 @@ def test_mobile_chat_start_turn_requires_authentication() -> None:
     assert response.json()["detail"] == "Authentication required"
 
 
-def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mobile_chat_start_turn_does_not_block_on_removed_usage_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
     class FakeTurnRuntime:
@@ -1124,8 +1124,6 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
             ]
 
     monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
-    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "20")
-    monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "20")
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
     monkeypatch.setattr(mobile_module, "wallet_service", FakeWalletService())
     monkeypatch.setattr(
@@ -1146,22 +1144,14 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
             headers={"Authorization": "Bearer test-token"},
         )
 
-    assert response.status_code == 429
-    detail = response.json()["detail"]
-    assert detail["code"] == "billing_quota_exceeded"
-    assert detail["message"] == "Usage quota exceeded."
-    assert detail["limited_by"] in {"five_hour", "weekly"}
-    assert isinstance(detail["quota"], list)
+    assert response.status_code == 200
     assert captured["wallet_user_id"] == "wallet_demo"
     assert captured["limit"] == mobile_module._BILLING_USAGE_LEDGER_WINDOW
     assert captured["offset"] == 0
-    assert "started" not in captured
+    assert captured["started"] is True
 
 
-def test_billing_usage_defaults_follow_launch_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", raising=False)
-    monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", raising=False)
-
+def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pytest.MonkeyPatch) -> None:
     vip = mobile_module._build_billing_usage_payload([], plan_id="vip")
     svip = mobile_module._build_billing_usage_payload([], plan_id="svip")
     supreme = mobile_module._build_billing_usage_payload([], plan_id="supreme_svip")
@@ -1173,17 +1163,16 @@ def test_billing_usage_defaults_follow_launch_plan_quota(monkeypatch: pytest.Mon
     assert supreme["display"]["plan_id"] == "supreme_svip"
     assert legacy_advance["display"]["plan_id"] == "vip"
     assert legacy_sprint["display"]["plan_id"] == "svip"
-    assert [row["label"] for row in vip["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
-
-    vip_rows = {row["key"]: row for row in vip["quota"]["rows"]}
-    svip_rows = {row["key"]: row for row in svip["quota"]["rows"]}
-    assert vip_rows["five_hour"]["remaining_percent"] == 100
-    assert svip_rows["five_hour"]["remaining_percent"] == 100
-    assert mobile_module._billing_usage_limit_for_plan("vip", "weekly") == 9000
-    assert mobile_module._billing_usage_limit_for_plan("svip", "weekly") == 28000
-    assert mobile_module._billing_usage_limit_for_plan("supreme_svip", "weekly") == 50000
-    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 9000
-    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 28000
+    assert vip["display"]["primary_label"] == "剩余 100%"
+    assert vip["display"]["limited_by"] == "membership_balance"
+    assert vip["quota"]["rows"] == []
+    assert svip["quota"]["rows"] == []
+    assert supreme["quota"]["rows"] == []
+    assert mobile_module._billing_usage_reference_points_for_plan("vip") == 9000
+    assert mobile_module._billing_usage_reference_points_for_plan("svip") == 28000
+    assert mobile_module._billing_usage_reference_points_for_plan("supreme_svip") == 50000
+    assert mobile_module._billing_usage_reference_points_for_plan("advance") == 9000
+    assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 28000
 
 
 def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailable(
@@ -1287,7 +1276,8 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     assert body["status"] == "ok"
     assert body["display"]["primary_label"] == "剩余 100%"
     assert body["display"]["plan_id"] == "vip"
-    assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
+    assert body["display"]["limited_by"] == "membership_balance"
+    assert body["quota"]["rows"] == []
 
 
 def test_billing_usage_requires_authentication(
@@ -1371,8 +1361,8 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    assert body["display"]["primary_label"] == "剩余 90%"
-    assert body["display"]["primary_percent"] == 90
+    assert body["display"]["primary_label"] == "剩余 97%"
+    assert body["display"]["primary_percent"] == 97
     assert "primary_used_uses" not in body["display"]
     assert "primary_limit_uses" not in body["display"]
     assert "primary_remaining_uses" not in body["display"]
@@ -1414,7 +1404,7 @@ def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "degraded"
-    assert body["display"]["primary_label"] == "额度暂不可用"
+    assert body["display"]["primary_label"] == "权益暂不可用"
     assert body["quota"]["rows"] == []
 
 
