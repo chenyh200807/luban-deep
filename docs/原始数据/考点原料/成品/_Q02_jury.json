@@ -1,0 +1,98 @@
+[
+  {
+    "issue": "含泥量过大应从大体积温控采分点剔除，属邻接材料质量控制",
+    "location": "§5 B5",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将含泥量相关项从大体积温控配合比组移出，归入邻接“材料质量控制”考点"
+  },
+  {
+    "issue": "R8 W1 错误码E10/E07边界模糊，且源料锚间接性未同步降级",
+    "location": "§6 R8表行W1",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "默认主标E10，E07作为二级解释/条件触发；锚定栏补充“🔵间接锚”标注"
+  },
+  {
+    "issue": "R8 W5 错误码E05审题错误不贴切，本质为采分点遗漏或规范适用错误",
+    "location": "§6 R8表行W5",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "改为E02或E10，按题型确定主码"
+  },
+  {
+    "issue": "R8 W8 错误码E06不贴切/不宜唯一化，应区分题型",
+    "location": "§6 R8表行W8",
+    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "方案找错题用E10，简答题漏项用E02，按题型拆解"
+  },
+  {
+    "issue": "R8 W7 错误码E10/E07边界不明确",
+    "location": "§6 R8表行W7",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "默认E10，仅当学生理由为“早强=好”时触发E07"
+  },
+  {
+    "issue": "厚大体积宜选四类水泥且水化热小，quote仅为比选表，不支持直接论断",
+    "location": "§1表行2",
+    "flagged_by": ["DeepSeek", "Qwen"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "降级🔵，注明依据为比选表间接推论而非独立规范条文"
+  },
+  {
+    "issue": "大体积禁选硅酸盐/普硅水泥，quote缺禁选表述，证据不足",
+    "location": "§1表行1",
+    "flagged_by": ["DeepSeek", "Qwen"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "降级🔵，补充明确禁选表述或标注为间接推论"
+  },
+  {
+    "issue": "测温频次（每轴≥4点/每昼夜≥4次/每台班≥2次）原quote未完整支持",
+    "location": "§1表行11 / §5 D7",
+    "flagged_by": ["DeepSeek", "Qwen"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全包含频次要求的完整quote，或保留🔵待核"
+  },
+  {
+    "issue": "R2核心不变量场景声明过度，非基础底板场景未证实绝对适用",
+    "location": "§3 R2",
+    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "限定场景至基础底板/筏基，其余场景降级🔵并分层标色"
+  },
+  {
+    "issue": "入模温度下限5℃未在原quote中明确体现",
+    "location": "§1#9 / §5 C3",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充下限5℃的规范原文，或标注仅上限30℃有直锚"
+  },
+  {
+    "issue": "设计龄期60d/90d从防水大体积外推到普通大体积，条件不清",
+    "location": "§5 B4 / R6",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "限定为防水大体积或设计许可时适用，普通大体积降为条件项🔵"
+  },
+  {
+    "issue": "用收缩裂缝材料支撑大体积温度裂缝形态过度外推",
+    "location": "§1表行15 / §2",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "温度裂缝结论降级🔵，收缩裂缝列为旁证，勿作直接证据"
+  }
+]

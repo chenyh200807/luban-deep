@@ -1,0 +1,146 @@
+[
+  {
+    "issue": "悬挑式操作平台参数错误关联到移动式操作平台的point_id",
+    "location": "§1.2行32, §4.3-E, §5.1 4.6",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将关联修正为正确的悬挑式point_id，或降级为🔴待取证"
+  },
+  {
+    "issue": "安全等级Ⅰ级判定数值(8m/15kN/m²等)缺乏quote逐字支撑",
+    "location": "§1.2行1, §2 F1, §4.1",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充逐字锚定数值的quote，或将🟢阈值部分降级为🟡"
+  },
+  {
+    "issue": "可调底座/托撑螺杆伸出≤200mm/≤500mm的数值无quote逐字支撑",
+    "location": "§1.2行3, §5.1 1.5",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充包含200mm/500mm伸出限值的完整quote，或将数值部分降级为🟡"
+  },
+  {
+    "issue": "连墙件间距≤3跨/≤3步/4m的quote被截断，未逐字支撑关键数值",
+    "location": "§1.2行4, §2 F2, §5.1 2.1",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充间距要求的完整逐字quote，或将3跨/3步/4m部分降级为🟡"
+  },
+  {
+    "issue": "危大工程判定阈值(基坑3m/模板5m/吊装10kN/脚手架24m)所引quote仅为管理总述，不含具体数值",
+    "location": "§1.2行14, §4.1, §5.1 4.1",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "更换为包含具体阈值的point_id，或将阈值部分降级为🟡"
+  },
+  {
+    "issue": "kc:1A436000_009_0012:0的quote截断，模板支撑8m/18m/15kN/m²/20kN/m等🟢阈值缺乏逐字支撑",
+    "location": "§1.2行15, §4.1, §7.1 A2, §8.1等",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充完整quote或将这些🟢阈值降级为🟡，与50m标注逻辑一致"
+  },
+  {
+    "issue": "落地式操作平台关键参数(高≤15m/高宽比≤3:1/荷载≤2.0kN/m²)无逐字quote支撑",
+    "location": "§1.2行34, §4.3-E",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充包含这些参数的完整quote，或将参数部分降级为🟡"
+  },
+  {
+    "issue": "限禁用设备限高数值(轮扣15m/8m、龙门架25m、卸料平台10m等)无逐字quote支撑",
+    "location": "§1.2行38, §4.3-F",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充对应限高标准的逐字quote，或将🟢数值降级为🟡"
+  },
+  {
+    "issue": "荷载单位格式误写为kN·m²、kN·m，与源料kN/m²、kN/m不一致",
+    "location": "§5.1 4.2等全文多处",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将全文荷载单位统一修正为kN/m²或kN/m，匹配规范源料"
+  },
+  {
+    "issue": "R2不变量‘每一个安全结论都是取数→比阈值→二值’过于绝对，拆除顺序、刚性连墙件等定性规则无法覆盖",
+    "location": "§3",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "修正R2表述为‘主导不变量之一’或兼容定性规则的泛化描述"
+  },
+  {
+    "issue": "R8-3使用客观单选题(2025第18题)作为证据，却映射为案例/主观系列E06，与E/M题型分工冲突",
+    "location": "§6 R8-3",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将错误码修正为M系列(如M03)，或更换为案例语境证据"
+  },
+  {
+    "issue": "R8-6使用案例题(2020案例一问4)证据，却映射为MCQ系列M10，与E/M分工冲突",
+    "location": "§6 R8-6",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将错误码修正为E系列(如E10)，或保留M10但修改证据为客观题"
+  },
+  {
+    "issue": "R8-8将‘用柔性钢筋替刚性连墙件’映射为E01(知识点缺失)不够贴切，更宜归为E07(概念混淆)或E10(规范适用错误)",
+    "location": "§6 R8-8",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将错误码调整为E07，或在学生现象描述中增强‘完全缺失’场景以贴合E01"
+  },
+  {
+    "issue": "S01决策树将‘深基坑’列为与脚手架/模板支架并列的主分支，与S01本体聚焦声明冲突",
+    "location": "§4.3-A, §7.1 决策树",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将深基坑分支从主干中移除，或改为虚线‘邻接参见’"
+  },
+  {
+    "issue": "R3-F‘设备/材料限禁用与限高判定’作为S01封闭固定场景，但状态为🔴真题命中待取证，封闭性声明矛盾",
+    "location": "§4.2 R3-F",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将R3-F从‘封闭场景’降级为‘候选场景’，待真题取证完成后再封闭"
+  },
+  {
+    "issue": "模板拆除强度75%/100%分档表所引quote仅为定性引子，未逐字列出具体数值",
+    "location": "§4.2-D, §4.3-D, §5.1 组4",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充逐字数值quote，或将🟢数值部分降级为🟡"
+  },
+  {
+    "issue": "梁底模最小起拱1/1000~3/1000的教材point_id在源料中无独立chunk，视为不存在",
+    "location": "§6",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "查找正确point_id，或降级为🔴待取证"
+  },
+  {
+    "issue": "骨架F的quote不支撑完整拆除口诀(自上而下、先外后内、严禁交叉)",
+    "location": "§5.2 骨架F",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "更换能覆盖完整拆除口诀的quote，或将缺失部分降级为🟡"
+  }
+]

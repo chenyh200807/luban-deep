@@ -1,0 +1,82 @@
+[
+  {
+    "issue": "防火章验收quote被用作普适合格标准和容差规则的证据，语境偏离，支撑不足",
+    "location": "§2.1主因果链“主控项目100%/一般项目≥80%”论断及§2.3一句话压缩引用",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将该quote降级为🟡，补GB50300通用规则锚或注明语境仅限于防火章"
+  },
+  {
+    "issue": "隐蔽验收前置quote仅锁定单项工序的时间刚性，无法充分支撑逐级合格前提和完整验收程序顺序",
+    "location": "§2.1主因果链中隐蔽验收前置及验收顺序论断",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充GB50300 §3.0.x通用规则锚，或将当前证据限定为单向约束并降级🟡"
+  },
+  {
+    "issue": "让步接收/返工/返修三分支流程缺乏源料和真题支撑，R2不变量未覆盖不合格后处理场景",
+    "location": "§2.1第6点、§2.2表格及§3 R2不变量",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "明确标注该分支为🔴真缺口，扩展R2包容不合格处置分支，或限定不变量于合格线以上"
+  },
+  {
+    "issue": "四级层级逐级合格判定阶梯缺乏独立源料/真题支撑，仅有锚定但完整文字定义未standalone证实",
+    "location": "§2.1主因果链第1点和§3 R2不变量",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充GB50300通用规则锚，或给不变量降为🔵并明示规范缺口"
+  },
+  {
+    "issue": "结构实体检验88%/80%判定数值仅源于真题，源料采分点未独立列示，证据链不完整",
+    "location": "§2.1主因果链第5点",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "检索源料是否可补独立采分点，或标注数值依赖真题并降级🟡"
+  },
+  {
+    "issue": "R8-2“验收顺序倒装”标E06，缺乏独立排序题真题支撑，适用性存疑",
+    "location": "§6 R8-2",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "标注真题支撑缺失，E06适用待验证"
+  },
+  {
+    "issue": "R8-5“直接回弹钻芯”标E06，该错误更接近方法优先级违反，E06工序顺序颠倒的贴合度不足",
+    "location": "§6 R8-5",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "考虑E10+E06双码或单标E10"
+  },
+  {
+    "issue": "R8-7“见证取样凭感觉”标E05，E05审题错误与该误区根源（规范知识缺乏）不符",
+    "location": "§6 R8-7",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "降低E05，保留M10或加E10"
+  },
+  {
+    "issue": "§1表格L10“外墙1000㎡一批”缺失m35:Q18源quote文本，证据真实性无法核验",
+    "location": "§1 表格 L10",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补quote锚或降级🔵"
+  },
+  {
+    "issue": "§1表格L13“检查方法（目测/实测）”属检验实施手段，非验收程序/层级本体直接组成",
+    "location": "§1 表格 L13",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "移出本体表或降为🟡邻接"
+  }
+]
