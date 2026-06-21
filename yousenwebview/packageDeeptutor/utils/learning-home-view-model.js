@@ -1,4 +1,5 @@
 var taxonomy = require("./taxonomy");
+var canonicalTaxonomy = require("./canonical-taxonomy-members");
 
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -191,18 +192,8 @@ function hasCanonicalPromptTopicAuthority(source, topic) {
   var intent = asObject(source.intent || source.prompt_intent);
   var taxonomyCode = compactText(intent.taxonomy_code || intent.taxonomyCode);
   var taxonomyId = compactText(intent.taxonomy_id || intent.taxonomyId);
-  if (taxonomy.resolveTextbookTopic(topic)) return true;
-  if ((taxonomyCode || taxonomyId) && isCanonicalTopicDisplayLabel(topic)) return true;
-  return false;
-}
-
-function isCanonicalTopicDisplayLabel(topic) {
-  var text = compactText(topic);
-  if (!text || taxonomy.isNonTopicLabel(text)) return false;
-  if (text.length > 28) return false;
-  if (/^(?:今日|直接|继续|先|请|帮|给|来|出|做|练|刷|问|讲|解释|复盘|推进)/.test(text)) return false;
-  if (/(?:题|题目|练习|真题|错题|模拟|测试|测评|训练|推进|才能|把|一下|一些)/.test(text)) return false;
-  return true;
+  if (!taxonomyCode && !taxonomyId) return false;
+  return canonicalTaxonomy.isCanonicalTopicLabel(topic);
 }
 
 function isCanonicalPromptTextForTopic(promptType, text, topic) {
