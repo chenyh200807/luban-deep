@@ -35,6 +35,7 @@ EXCLUDES=(
     ".git.broken*"
     ".env*"
     ".secrets*"
+    "*.tsbuildinfo"
     "artifacts"
     "playwright-report"
     "playwright-report*"
@@ -148,6 +149,7 @@ excluded_patterns = (
     ".git.disabled*",
     ".git.broken*",
     ".secrets*",
+    "*.tsbuildinfo",
     "playwright-report*",
     "test-results*",
     "*.log",
@@ -434,6 +436,8 @@ targets = (
 )
 
 glob_patterns = (
+    '*.tsbuildinfo',
+    'web/*.tsbuildinfo',
     'test-results*',
     'web/test-results*',
 )
