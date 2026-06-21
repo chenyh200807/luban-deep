@@ -19,6 +19,8 @@ description: Use when batch-producing Luban 教研测一体 learning packs, high
 | **教** | 讲懂动画:hook → 判据/工序逐点 → 结论 → 采分词;PPT 板书 + 运镜 | 旁白事实 anchor 回母题/卡字段;表现层 LLM 放开 |
 | **测** | 闯关:同工程换数值分档 + 换工程迁移;看穿:真懂 vs 背过 + 暖反馈 | 变题=`variants`;看穿判定只读 `mastery_discrimination` signal,不另造 |
 
+**"测"两模态**:【识别/判断】= 闯关分档 + 看穿(上表);【写作答】= 案例题作答训练(写完整答案 → 按采分点批改 → 作答错因 → 间隔复测),造法调 `luban-case-answer-layer`(agent-skills/),本 skill 不重复。**一建实务案例题(5 道写完整答案)走作答模态**——把 pack 的 R5/R6 可写化+训练化成作答能力,依附已 signed pack 加层、不造第二 authority。
+
 **不是"知识点单卡题库"**:学习单元是考点(~55-60 高频,P0~20),不是 1976 个 taxonomy 叶,也不是整章。前台不卖"覆盖率",按盲点驱动。
 
 ## 1. 核心范式(高效高质量的来源,MVP 已验证两轮红到绿)

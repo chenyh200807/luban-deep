@@ -97,6 +97,10 @@ skills:
     path: agent-skills/luban-learning-pack-factory/SKILL.md
     lane: luban
     expected_use: conditional
+  - name: luban-case-answer-layer
+    path: agent-skills/luban-case-answer-layer/SKILL.md
+    lane: luban
+    expected_use: conditional
   - name: luban-okf-context
     path: agent-skills/luban-okf-context/SKILL.md
     lane: luban
