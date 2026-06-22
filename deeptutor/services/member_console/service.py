@@ -1687,6 +1687,9 @@ class MemberConsoleService:
         )
         test_markers = (
             "test",
+            "qa_",
+            "qa-",
+            "qa.",
             "casefix",
             "codex",
             "probe",
@@ -1695,10 +1698,13 @@ class MemberConsoleService:
             "prelaunchsmoke",
             "preflight",
             "smoke",
+            "soak",
             "debug",
             "mock",
             "dummy",
             "fake",
+            "compiled_shadow",
+            "synthetic",
             "测试",
         )
         demo_member_ids = {
