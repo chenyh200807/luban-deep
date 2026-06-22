@@ -11492,3 +11492,80 @@ def test_t14_message_references_stored_question_set_item_keeps_set_active():
     assert refs("换个话题聊聊", set_ctx) is False                  # not an ordinal ref → demote ok
     assert refs("第1题讲讲", single_ctx) is False                  # single (len<2) → demote ok
     assert refs("刚才第3题讲讲", None) is False
+
+
+@pytest.mark.asyncio
+async def test_subscribe_turn_tails_shared_store_when_turn_runs_on_sibling_worker(tmp_path) -> None:
+    """INFRA-1 (cross-worker WS streaming death) regression.
+
+    With UVICORN_WORKERS>1 a turn frequently runs on a SIBLING worker, so it is
+    absent from THIS worker's in-memory ``_executions`` even while alive. The
+    shared SQLite store is the single authoritative event log, so ``subscribe_turn``
+    must tail it to the terminal ``done`` — not return backlog-only with no live
+    events / no terminal event (the death observed live in eval) — and must NOT
+    mark the sibling's live turn ``failed`` via orphan recovery.
+    """
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(session_id="tb_xworker")
+    turn = await store.create_turn(session["id"], "chat")
+    tid = turn["id"]
+
+    # What the sibling worker has emitted to the shared store by subscribe time.
+    await store.append_turn_event(tid, {"type": "session", "content": ""})
+    await store.append_turn_event(tid, {"type": "progress", "content": "已收到，正在理解问题。"})
+
+    runtime = TurnRuntimeManager(store)
+    # Simulates: the turn is alive on a sibling worker, not in THIS worker's map.
+    assert tid not in runtime._executions
+
+    gen = runtime.subscribe_turn(tid, after_seq=0)
+    e1 = await gen.__anext__()
+    e2 = await gen.__anext__()
+    assert e1["type"] == "session"
+    assert e2["type"] == "progress"
+
+    # Sibling worker finishes AFTER we subscribed: live content + terminal done.
+    await store.append_turn_event(tid, {"type": "content", "content": "答案正文"})
+    await store.append_turn_event(
+        tid, {"type": "done", "content": "", "metadata": {"status": "completed"}}
+    )
+
+    e3 = await gen.__anext__()
+    e4 = await gen.__anext__()
+    assert e3["type"] == "content"
+    assert e3["content"] == "答案正文"
+    assert e4["type"] == "done"
+    with pytest.raises(StopAsyncIteration):
+        await gen.__anext__()
+
+    # The sibling's live turn must NOT have been flipped to 'failed' by the old
+    # orphan-recovery-on-subscribe behaviour.
+    final = await store.get_turn(tid)
+    assert final is not None
+    assert final["status"] != "failed"
+
+
+@pytest.mark.asyncio
+async def test_subscribe_turn_completed_turn_on_other_worker_returns_backlog_without_hang(
+    tmp_path,
+) -> None:
+    """A turn already completed on a sibling worker (status terminal in the store)
+    must deliver its full backlog (incl. done) and return immediately — never enter
+    the cross-worker tail wait."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(session_id="tb_xworker_done")
+    turn = await store.create_turn(session["id"], "chat")
+    tid = turn["id"]
+    await store.append_turn_event(tid, {"type": "session", "content": ""})
+    await store.append_turn_event(tid, {"type": "content", "content": "完整答案"})
+    await store.append_turn_event(
+        tid, {"type": "done", "content": "", "metadata": {"status": "completed"}}
+    )
+    await store.update_turn_status(tid, "completed")
+
+    runtime = TurnRuntimeManager(store)
+    assert tid not in runtime._executions
+
+    events = [evt async for evt in runtime.subscribe_turn(tid, after_seq=0)]
+    types = [e["type"] for e in events]
+    assert types == ["session", "content", "done"]
