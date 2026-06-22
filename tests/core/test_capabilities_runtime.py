@@ -4352,7 +4352,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
                     tool_calls=[
                         ToolCallRequest(
                             id="call_1",
-                            name="dummy_tool",
+                            name="rag",
                             arguments={"topic": "alias-value"},
                         )
                     ],
@@ -4371,7 +4371,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
 
         @property
         def name(self) -> str:
-            return "dummy_tool"
+            return "rag"
 
         @property
         def description(self) -> str:
@@ -4410,6 +4410,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
         [{"role": "user", "content": "帮我查一下"}],
+        runtime_metadata={"default_tools": ["rag"]},
         on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
@@ -4417,18 +4418,15 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
     )
 
     assert final_content == "工具已经执行完成"
-    assert tools_used == ["dummy_tool"]
-    assert captured["tool_calls"] == [("dummy_tool", {"topic": "normalized-topic"})]
-    assert captured["tool_results"] == [
-        (
-            "dummy_tool",
-            "executed:alias-value",
-            {
-                "sources": [{"chunk_id": "chunk-1", "source_type": "standard"}],
-                "authority_applied": False,
-            },
-        )
-    ]
+    assert tools_used == ["rag"]
+    assert captured["tool_calls"] == [("rag", {"topic": "normalized-topic"})]
+    assert len(captured["tool_results"]) == 1
+    tool_name, result_text, metadata = captured["tool_results"][0]
+    assert tool_name == "rag"
+    assert result_text == "executed:alias-value"
+    assert metadata["sources"] == [{"chunk_id": "chunk-1", "source_type": "standard"}]
+    assert metadata["authority_applied"] is False
+    assert metadata["rag_round"]["round_index"] == 1
 
 
 @pytest.mark.asyncio
@@ -4852,6 +4850,7 @@ async def test_tutorbot_agent_loop_disables_further_rag_after_high_overlap_satur
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
         [{"role": "user", "content": "帮我解释建筑构造"}],
+        runtime_metadata={"default_tools": ["rag", "web_search"]},
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
         ),

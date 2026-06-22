@@ -1854,12 +1854,7 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
-    result_events = [event for event in events if event.get("type") == "result"]
-    assert result_events
-    assert result_events[-1]["metadata"]["response"] == "这是一次会扣分的回复。"
-    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
-    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert any(event["type"] == "progress" for event in events)
     assert events[-1]["metadata"]["status"] == "completed"
 
@@ -4670,12 +4665,7 @@ async def test_turn_runtime_bootstraps_question_followup_context_once(
     if runtime._background_tasks:
         await asyncio.gather(*list(runtime._background_tasks))
 
-    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
-    result_events = [event for event in events if event.get("type") == "result"]
-    assert result_events
-    assert result_events[-1]["metadata"]["response"] == "这是一次不会扣分的回复。"
-    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
-    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["system", "user", "assistant"]
@@ -7084,12 +7074,7 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
-    result_events = [event for event in events if event.get("type") == "result"]
-    assert result_events
-    assert result_events[-1]["metadata"]["response"] == "这是一次会扣分的回复。"
-    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
-    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
@@ -7175,12 +7160,7 @@ async def test_turn_runtime_allows_m35_artifact_shadow_flags_as_runtime_only_con
 
     events = await asyncio.wait_for(_collect_events(), timeout=5)
 
-    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
-    result_events = [event for event in events if event.get("type") == "result"]
-    assert result_events
-    assert result_events[-1]["metadata"]["response"] == "这是一次不会扣分的回复。"
-    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
-    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     config = captured["config_overrides"]
     assert config["grading_engine_m35_artifact_shadow"] is True
     assert config["grading_engine_m35_artifact_shadow_judge"] is True
@@ -7269,12 +7249,7 @@ async def test_turn_runtime_preserves_current_info_hint_for_mode_selection(
     assert metadata["interaction_hints"]["current_info_required"] is True
     assert metadata["selected_mode"] == "deep"
     assert metadata["response_mode_selection_reason"] == "current_info_required"
-    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
-    result_events = [event for event in events if event.get("type") == "result"]
-    assert result_events
-    assert result_events[-1]["metadata"]["response"] == "这是一次会扣分的回复。"
-    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
-    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
