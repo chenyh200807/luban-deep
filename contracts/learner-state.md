@@ -186,6 +186,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   微信手机号快速登录或注册去重时，必须先通过可信 `phone` alias 解析到 canonical UUID，再绑定或
   合并 member identity。`member_console` 本地 `member.phone` 只能作为兼容读模型和低风险补充，
   不得绕过 `public.user_identity_aliases` 另建第二个手机号账号 authority。
+- 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
+  资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
+  长期绕过手机号 canonical identity。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment

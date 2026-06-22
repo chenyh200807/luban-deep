@@ -121,6 +121,7 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
         "phone_verification",
     }
 )
+_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
 
 
 def _assessment_writeback_worker_count() -> int:
@@ -2671,6 +2672,25 @@ class MemberConsoleService:
             max_session_age = 60 * 60 * 24 * 90
         return max(self._access_token_ttl_seconds(), max_session_age)
 
+    def _wechat_phone_auth_required_after_ts(self) -> int:
+        raw = str(os.getenv("DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS") or "").strip()
+        try:
+            return max(0, int(raw)) if raw else _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS
+        except (TypeError, ValueError):
+            return _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS
+
+    def _wechat_token_requires_phone_reauth(self, payload: dict[str, Any]) -> bool:
+        if str(payload.get("provider") or "").strip() != "wechat_mp":
+            return False
+        min_iat = self._wechat_phone_auth_required_after_ts()
+        if min_iat <= 0:
+            return False
+        try:
+            issued_at = int(payload.get("orig_iat") or payload.get("iat") or 0)
+        except (TypeError, ValueError):
+            return True
+        return issued_at < min_iat
+
     def _issue_access_token(
         self,
         *,
@@ -2750,6 +2770,8 @@ class MemberConsoleService:
             return None
         now = int(_now().timestamp())
         if verify_exp and exp <= now:
+            return None
+        if self._wechat_token_requires_phone_reauth(payload):
             return None
         return payload
 
