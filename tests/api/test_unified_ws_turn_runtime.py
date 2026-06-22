@@ -11304,3 +11304,68 @@ def test_turn_start_preserves_batch_set_for_numbered_single_answer() -> None:
     _c, single_action = _submission_action_for_user_message("我选B", single_ctx)
     assert single_action is not None and single_action["answers"] == [{"question_id": "solo", "answer": "B"}]
     assert "preserve_other_answers" not in single_action
+
+
+def test_turn_end_merge_preserves_batch_set_through_single_item_grading() -> None:
+    """[turn domain] Single-authority object-continuity (E8/E1, 2026-06-22): turn-END
+    must NOT collapse a batch question_set when a grading turn judges ONE item. The
+    capability emits a single graded question; turn-END merges it back into the prior
+    set (by question_id) and keeps the SET as active_object — so a later '第1题' /
+    '回到最开始' still sees all items. A genuine switch (new question not in the set)
+    still replaces.
+    """
+    import asyncio
+    from types import SimpleNamespace
+    from deeptutor.services.session.turn_runtime import TurnRuntimeManager
+    from deeptutor.services.session.sqlite_store import build_active_object_from_question_context
+
+    def _q(qid, q, correct, ua="", ic=None):
+        d = {"question_id": qid, "question": q, "question_type": "single_choice",
+             "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": correct}
+        if ua:
+            d["user_answer"] = ua
+        if ic is not None:
+            d["is_correct"] = ic
+        return d
+
+    async def _run(prior_ao, result_ao, metadata):
+        async def fake_get(_sid):
+            return prior_ao
+
+        async def fake_safe(execution, op, fn, *a, default=None, **k):
+            return await fn(*a, **k)
+
+        fake_self = SimpleNamespace(
+            store=SimpleNamespace(get_active_object=fake_get),
+            _safe_store_call=fake_safe,
+        )
+        execution = SimpleNamespace(session_id="s1")
+        return await TurnRuntimeManager._merge_grading_result_into_active_set(
+            fake_self, execution, result_ao, metadata
+        )
+
+    items = [_q("q1", "Q1基本要求", "D"), _q("q2", "Q2找坡层厚度", "C"), _q("q3", "Q3结构坡度", "C")]
+    prior = build_active_object_from_question_context(
+        {"question": "三道屋面防水题", "question_type": "choice", "items": items}, source_turn_id="t0"
+    )
+    assert prior["object_type"] == "question_set" and len(prior["state_snapshot"]["items"]) == 3
+
+    # capability grades ONE item (q2) and emits a single-question active_object
+    result_single = build_active_object_from_question_context(
+        _q("q2", "Q2找坡层厚度", "C", ua="B", ic=False), source_turn_id="t1"
+    )
+    merged = asyncio.run(_run(prior, result_single, {"turn_semantic_decision": {"next_action": "route_to_grading"}}))
+
+    # batch set preserved, q2 merged with the judging fields
+    assert merged["object_type"] == "question_set", "batch set collapsed at turn-END"
+    snap_items = merged["state_snapshot"]["items"]
+    assert len(snap_items) == 3, f"set collapsed to {len(snap_items)} items"
+    q2 = [it for it in snap_items if it["question_id"] == "q2"][0]
+    assert q2.get("user_answer") == "B" and q2.get("is_correct") is False
+    # q1/q3 still present and unanswered
+    assert {it["question_id"] for it in snap_items} == {"q1", "q2", "q3"}
+
+    # negative: a genuine switch (new generated question not in the set) still replaces
+    new_q = build_active_object_from_question_context(_q("qNEW", "新生成的题", "A"), source_turn_id="t2")
+    switched = asyncio.run(_run(prior, new_q, {"turn_semantic_decision": {"next_action": "route_to_generation"}}))
+    assert str(switched["state_snapshot"].get("question_id") or "") == "qNEW", "real switch was wrongly merged/blocked"

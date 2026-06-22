@@ -5999,6 +5999,80 @@ class TurnRuntimeManager:
                         _offer_to_subscriber(subscriber.queue, None)
                     self._executions.pop(turn_id, None)
 
+    async def _merge_grading_result_into_active_set(
+        self,
+        execution: Any,
+        result_active_object: dict[str, Any],
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Keep a batch question_set alive across a single-item grading turn.
+
+        A grading turn judges ONE item; the capability emits a single-question
+        active_object. If the prior canonical active_object is a multi-item set and
+        this result is a single question that BELONGS to that set, merge the judged
+        item back into the set (by question_id) and keep the SET as active_object —
+        do not let turn-END collapse the set to the lone judged item. A genuine
+        switch (the result question is not part of the prior set, e.g. a freshly
+        generated question) passes through unchanged so real transitions still work.
+
+        Single-authority: the only active_object identity writer is turn-START; this
+        keeps turn-END from acting as a second, set-destroying writer.
+        """
+        result_ao = normalize_active_object(result_active_object)
+        if result_ao is None:
+            return result_active_object
+        result_ctx = extract_question_context_from_active_object(result_ao)
+        if result_ctx is None:
+            return result_active_object
+        result_items = result_ctx.get("items") or []
+        # Only single-item results can collapse a set; a result that is itself a set
+        # is either a fresh generated set (switch) or already whole — leave it.
+        if len(result_items) > 1:
+            return result_active_object
+        result_single = result_items[0] if result_items else result_ctx
+        result_qid = str(result_single.get("question_id") or "").strip()
+
+        prior_ao = await self._safe_store_call(
+            execution,
+            "get_active_object_for_grading_merge",
+            self.store.get_active_object,
+            execution.session_id,
+            default=None,
+        )
+        prior_ctx = extract_question_context_from_active_object(prior_ao)
+        prior_items = list((prior_ctx or {}).get("items") or [])
+        if len(prior_items) <= 1:
+            # Prior was not a batch set → nothing to preserve, behave as before.
+            return result_active_object
+
+        prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
+        decision = metadata.get("turn_semantic_decision")
+        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
+
+        if result_qid and result_qid in prior_qids:
+            # Grading-of-set-item: merge the judged version back into the set.
+            merged_items = [
+                dict(result_single) if qid == result_qid else it
+                for it, qid in zip(prior_items, prior_qids)
+            ]
+        elif next_action == "route_to_grading":
+            # Grading turn but the result id does not line up with the set (id not
+            # preserved through grading). Never collapse on a grading turn: keep the
+            # prior set intact (the judging is already surfaced in the response).
+            merged_items = prior_items
+        else:
+            # Genuine switch (new object not in the prior set) → let it replace.
+            return result_active_object
+
+        merged_ctx = dict(prior_ctx)
+        merged_ctx["items"] = merged_items
+        merged_ao = build_active_object_from_question_context(
+            merged_ctx,
+            previous_active_object=prior_ao,
+            source_turn_id=str(metadata.get("turn_id") or "").strip() or None,
+        )
+        return merged_ao or result_active_object
+
     async def _persist_and_publish(
         self,
         execution: _TurnExecution,
@@ -6034,6 +6108,18 @@ class TurnRuntimeManager:
                 metadata["execution_path"] = execution_path
             active_object = _result_active_object(metadata)
             suspended_object_stack = _result_suspended_object_stack(metadata)
+            # object-continuity single-authority (E8/E1, 2026-06-22): turn-END is NOT a
+            # second active_object writer. A grading turn judges ONE item of a batch set;
+            # capabilities (tutorbot kb_first / deep_question) emit a single-question
+            # active_object. Persisting it here UNCONDITIONALLY collapses the turn-start
+            # full set → a later "第1题"/"回到最开始" then binds to the lone surviving
+            # (most-recent) question (SEV-1 mis-grade / wrong recall). Merge the judged
+            # item back into the prior set instead of overwriting identity; only a genuine
+            # switch (new object not in the prior set) replaces it.
+            if active_object is not None:
+                active_object = await self._merge_grading_result_into_active_set(
+                    execution, active_object, metadata
+                )
             if active_object is not None:
                 metadata["active_object"] = dict(active_object)
             metadata["suspended_object_stack"] = list(suspended_object_stack)
