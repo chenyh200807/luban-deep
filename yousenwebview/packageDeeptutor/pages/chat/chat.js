@@ -1685,6 +1685,9 @@ Page({
         updates["messages[" + idx + "].citations"] =
           citationFormat.formatCitations(d.citations);
       }
+      if (d.next_best_action && d.next_best_action.title) {
+        updates["messages[" + idx + "].nextBestAction"] = d.next_best_action;
+      }
       if (d.engine) {
         updates["messages[" + idx + "].engine"] = d.engine;
       }
@@ -2135,6 +2138,22 @@ Page({
       return;
     }
     this._send(prompt.text, { promptIntent: prompt.promptIntent });
+  },
+
+  onNextBestActionTap: function (e) {
+    if (this.data.isStreaming) return;
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var nba = this.data.messages[idx] && this.data.messages[idx].nextBestAction;
+    if (!nba || !nba.title) return;
+    helpers.vibrate("light");
+    var query = String(nba.query || "").trim();
+    if (!query) {
+      var target = String(nba.target || nba.title || "").slice(0, 80);
+      if (!target) return;
+      query = "针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。";
+    }
+    this._send(query);
   },
 
   // ── Hero 弹性拖拽 + 震动 ───────────────────────

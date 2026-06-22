@@ -2,9 +2,9 @@
 // Run: node wx_miniprogram/tests/test_chat_next_best_action_contract.js
 //
 // 钉住三件事（防回退）：
-//   1) chat.js 存在 onNextBestActionTap，且经既有 _send 管线发定向练题请求
+//   1) chat.js 存在 onNextBestActionTap，且经既有 _send 管线发服务端投影的 query
 //      （端上不出题、不造第二处方权威）；
-//   2) 注入面收口：组装进消息的 target 必须截长（slice(0, 80)），流式中禁点；
+//   2) 旧 payload 兜底注入面收口：组装进消息的 target 必须截长（slice(0, 80)），流式中禁点；
 //   3) chat.wxml 卡片绑定 bindtap="onNextBestActionTap" 并携带 data-msgid。
 
 var fs = require("fs");
@@ -39,14 +39,18 @@ assert(
   "[handler] 必须经既有 _send 管线发送（不得新建发送通道）",
 );
 assert(
-  handler.indexOf("针对我的薄弱点出一道练习题") !== -1,
-  "[handler] 定向练题文案前缀不得丢失",
+  handler.indexOf("nba.query") !== -1,
+  "[handler] 必须优先发送服务端 nextBestAction.query（端上不得重建主处方）",
 );
 
 // 2) 注入面与状态守卫
 assert(
+  handler.indexOf("针对我的薄弱点出一道练习题") !== -1,
+  "[fallback] 旧 payload 仍需保留 bounded practice request 兜底",
+);
+assert(
   handler.indexOf(".slice(0, 80)") !== -1,
-  "[guard] 组装进消息的 target 必须截长 80",
+  "[guard] 旧 payload 兜底组装进消息的 target 必须截长 80",
 );
 assert(
   handler.indexOf("isStreaming") !== -1,

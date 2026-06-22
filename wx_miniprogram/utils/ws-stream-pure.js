@@ -70,7 +70,7 @@ function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
   }
 }
 
-// Grading-to-Brain：next_best_action 的端上投影。只投影展示字段；
+// Grading-to-Brain：next_best_action 的端上投影。只投影展示/动作字段；
 // 内部权威数据（intent / evidence_refs / training_intent_id）不出端，
 // 处方权威保持在服务端 training_intent。缺 title 视为不可渲染 → null。
 function buildNextBestActionView(resultMetadata) {
@@ -105,6 +105,7 @@ function buildNextBestActionView(resultMetadata) {
   return {
     title: title,
     target: cleanDisplayText(raw.target, 80),
+    query: cleanDisplayText(raw.query, 240),
     whyThisNow: cleanDisplayText(raw.why_this_now, 160),
     materials: materials,
     successMeasure: cleanDisplayText(raw.success_measure, 120),

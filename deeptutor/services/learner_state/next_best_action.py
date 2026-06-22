@@ -33,6 +33,7 @@ def _action_from_intent(intent: dict[str, Any], *, graph: dict[str, Any], index:
     why = _why_this_now(intent, graph=graph, evidence_refs=evidence_refs)
     success_criteria = intent.get("success_criteria") if isinstance(intent.get("success_criteria"), dict) else {}
     requires_revalidation = bool(success_criteria.get("requires_revalidation"))
+    target = _target(intent)
     return {
         "action_id": f"nba_{index + 1}_{str(intent.get('training_intent_id') or '').strip()}",
         "training_intent_id": str(intent.get("training_intent_id") or "").strip(),
@@ -43,7 +44,8 @@ def _action_from_intent(intent: dict[str, Any], *, graph: dict[str, Any], index:
         # M32 Task 5: product-facing view fields. They EXPLAIN the prescription (which stays the
         # single authority in training_intent); they never become a second prescription source.
         "action_type": "retest_or_targeted_practice" if requires_revalidation else "diagnostic_probe",
-        "target": _target(intent),
+        "target": target,
+        "query": _query(target),
         "why_this_now": why,
         "materials": _materials(intent),
         "success_measure": _success_measure(requires_revalidation),
@@ -55,6 +57,13 @@ def _action_from_intent(intent: dict[str, Any], *, graph: dict[str, Any], index:
 def _target(intent: dict[str, Any]) -> str:
     parts = [_display_concept(intent), str(intent.get("error_label") or "").strip()]
     return " · ".join(part for part in parts if part) or "诊断练习"
+
+
+def _query(target: str) -> str:
+    text = str(target or "").strip()[:80]
+    if not text:
+        return ""
+    return f"针对我的薄弱点出一道练习题：{text}。出题后等我作答再批改。"
 
 
 def _materials(intent: dict[str, Any]) -> list[str]:
