@@ -1897,6 +1897,34 @@ class MemberConsoleService:
                     overlays[key] = raw_member
         return overlays
 
+    def _member_console_merged_aliases(
+        self,
+        data: dict[str, Any],
+        overlay_index: dict[str, dict[str, Any]],
+    ) -> dict[str, set[str]]:
+        aliases_by_user_id: dict[str, set[str]] = {}
+        for raw_member in data.get("members") or []:
+            if not isinstance(raw_member, dict):
+                continue
+            resolved = self._resolve_member_console_overlay(overlay_index, raw_member)
+            if not isinstance(resolved, dict) or resolved is raw_member:
+                continue
+            resolved_user_id = str(resolved.get("user_id") or "").strip()
+            if not resolved_user_id:
+                continue
+            aliases_by_user_id.setdefault(resolved_user_id, set()).update(
+                self._member_search_alias_values(raw_member)
+            )
+        return aliases_by_user_id
+
+    @staticmethod
+    def _member_alias_user_id_values(values: set[str]) -> set[str]:
+        return {
+            value
+            for value in values
+            if is_uuid_like(value) or value.startswith("auth_")
+        }
+
     def _is_better_member_console_overlay(
         self,
         candidate: dict[str, Any],
@@ -2074,6 +2102,7 @@ class MemberConsoleService:
             logger.warning("Failed to load Supabase member directory read model", exc_info=True)
             return []
         overlay_index = self._member_console_overlay_index(data)
+        merged_aliases = self._member_console_merged_aliases(data, overlay_index)
         merged_members: list[dict[str, Any]] = []
         for member in members:
             if not isinstance(member, dict) or not self._is_registered_member_for_bi(member):
@@ -2091,6 +2120,22 @@ class MemberConsoleService:
             )
             if not self._is_registered_member_for_bi(normalized):
                 continue
+            canonical_user_id = str(normalized.get("user_id") or "").strip()
+            extra_aliases = merged_aliases.get(canonical_user_id) or set()
+            if extra_aliases:
+                normalized["search_aliases"] = sorted(
+                    self._member_search_alias_values(normalized) | extra_aliases
+                )
+                normalized["alias_user_ids"] = sorted(
+                    {
+                        str(value or "").strip()
+                        for value in [
+                            *list(normalized.get("alias_user_ids") or []),
+                            *self._member_alias_user_id_values(extra_aliases),
+                        ]
+                        if str(value or "").strip()
+                    }
+                )
             normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
             merged_members.append(normalized)
         members_by_user_id: dict[str, dict[str, Any]] = {}

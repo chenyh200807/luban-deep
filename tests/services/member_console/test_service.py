@@ -5077,6 +5077,7 @@ def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: 
     target_auth_user_id = "auth_047b7b7f83164f958bf77197"
     merged_account_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     merged_auth_user_id = "auth_2d9eac155d264e93941b9ec6"
+    quick_login_user_id = "0c4b582c-5937-4ae1-86a2-d68f07702731"
     directory = _FakeMemberDirectory(
         [
             {
@@ -5178,17 +5179,33 @@ def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: 
                 "merged_into": merged_account_user_id,
             }
         )
-        data["members"].extend([target_auth, source_auth, target, source])
+        quick_login = service._build_default_member(quick_login_user_id)
+        quick_login.update(
+            {
+                "display_name": "H",
+                "phone": "12240059568",
+                "tier": "trial",
+                "status": "merged",
+                "points_balance": 0,
+                "external_auth_user_id": quick_login_user_id,
+                "merged_into": target_user_id,
+            }
+        )
+        data["members"].extend([target_auth, source_auth, target, source, quick_login])
 
     service._mutate(_seed_auth_wrappers)
 
     by_phone = service.list_members(search="15558866508", page=1, page_size=20)
     by_account = service.list_members(search="chenyh2008", page=1, page_size=20)
     by_auth_id = service.list_members(search=merged_auth_user_id, page=1, page_size=20)
+    by_quick_login_id = service.list_members(search=quick_login_user_id, page=1, page_size=20)
+    by_quick_login_phone = service.list_members(search="12240059568", page=1, page_size=20)
 
     assert by_phone["total"] == 1
     assert by_account["total"] == 1
     assert by_auth_id["total"] == 1
+    assert by_quick_login_id["total"] == 1
+    assert by_quick_login_phone["total"] == 1
     item = by_account["items"][0]
     assert item["user_id"] == target_user_id
     assert item["tier"] == "supreme_svip"
@@ -5200,7 +5217,10 @@ def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: 
         target_auth_user_id,
         merged_account_user_id,
         merged_auth_user_id,
+        quick_login_user_id,
     }
+    assert by_quick_login_id["items"][0]["user_id"] == target_user_id
+    assert by_quick_login_phone["items"][0]["user_id"] == target_user_id
 
 
 def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:

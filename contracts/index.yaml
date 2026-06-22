@@ -520,7 +520,8 @@ domains:
       # Member console service participates in learner/member authority gates,
       # including launch-day BI zeroing, explicit member lookup, and confirmed
       # account identity merge / entitlement consolidation with canonical BI
-      # directory search aliases, including synthetic auth_* wrapper ids.
+      # directory search aliases, including synthetic auth_* wrapper ids and
+      # local merged sources that have no directory row.
       - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
