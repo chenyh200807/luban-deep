@@ -90,6 +90,7 @@ function buildNextBestActionView(resultMetadata) {
   return {
     title: title,
     target: cleanDisplayText(raw.target, 80),
+    query: cleanDisplayText(raw.query, 240),
     whyThisNow: cleanDisplayText(raw.why_this_now, 160),
     materials: materials,
     successMeasure: cleanDisplayText(raw.success_measure, 120),

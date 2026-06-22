@@ -38,12 +38,16 @@ assert(
   "[handler] next_best_action tap must reuse the existing _send pipeline",
 );
 assert(
-  handler.indexOf("针对我的薄弱点出一道练习题") !== -1,
-  "[handler] directed practice prompt prefix must stay stable",
+  handler.indexOf("nba.query") !== -1,
+  "[handler] next_best_action tap must prefer the server-projected query",
 );
 assert(
   handler.indexOf(".slice(0, 80)") !== -1,
-  "[guard] target text composed into a prompt must be bounded",
+  "[guard] legacy target text composed into a fallback prompt must be bounded",
+);
+assert(
+  handler.indexOf("针对我的薄弱点出一道练习题") !== -1,
+  "[fallback] legacy next_best_action payloads still need a bounded practice prompt",
 );
 assert(
   handler.indexOf("isStreaming") !== -1,

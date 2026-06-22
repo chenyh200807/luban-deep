@@ -328,6 +328,7 @@ function loadWsStream(config) {
         next_best_action: {
           title: "先补一题可诊断练习",
           target: "屋面防水\n薄弱点",
+          query: "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
           why_this_now: "刚刚错在构造层级。",
           materials: ["教材第 5 章", "", "错题本"],
           success_measure: "能独立说出 2 个设防层级",
@@ -359,8 +360,14 @@ function loadWsStream(config) {
       "next_best_action materials should drop blank entries",
     );
     assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.query ===
+          "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
+      "next_best_action query should be projected for the page action",
+    );
+    assert(
       Object.keys(finals[0].next_best_action).sort().join(",") ===
-        "materials,successMeasure,target,title,whyThisNow",
+        "materials,query,successMeasure,target,title,whyThisNow",
       "next_best_action should expose only page display fields",
     );
     assert(

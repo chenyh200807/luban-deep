@@ -2108,9 +2108,13 @@ Page({
     var nba = this.data.messages[idx] && this.data.messages[idx].nextBestAction;
     if (!nba || !nba.title) return;
     helpers.vibrate("light");
-    var target = String(nba.target || nba.title || "").slice(0, 80);
-    if (!target) return;
-    this._send("针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。");
+    var query = String(nba.query || "").trim();
+    if (!query) {
+      var target = String(nba.target || nba.title || "").slice(0, 80);
+      if (!target) return;
+      query = "针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。";
+    }
+    this._send(query);
   },
 
   // ── Hero 弹性拖拽 + 震动 ───────────────────────
