@@ -230,7 +230,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
     monkeypatch.setattr(
         member_service_module,
         "ensure_external_auth_user_for_phone",
-        lambda phone: {"id": canonical_uid, "username": "user_1499", "phone": phone},
+        lambda phone, **_kwargs: {"id": canonical_uid, "username": "user_1499", "phone": phone},
     )
     service._mutate(_seed)
 
@@ -1458,6 +1458,8 @@ def test_register_with_external_auth_rejects_existing_verified_phone_alias(
     monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     class _FakeAliasStore:
         is_configured = True
@@ -4130,6 +4132,84 @@ def test_reset_password_with_phone_code_accepts_verified_alias_without_external_
         service.verify_phone_code("13955556666", code)
 
 
+def test_reset_password_with_phone_code_sets_first_password_for_phone_backed_quick_login(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "wx_openid_9012")
+        member["display_name"] = "H"
+        member["phone"] = "13955556666"
+
+    service._mutate(_seed)
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("", "13955556666", code, "NewPass123")
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
+    data = service._load()
+    member = service._find_member(data, "wx_openid_9012")
+
+    assert result["success"] is True
+    assert external_user is not None
+    assert external_auth_module.verify_external_auth_user(external_user["username"], "NewPass123") is not None
+    assert member["auth_username"] == external_user["username"]
+    assert member["display_name"] == "H"
+    assert member["phone"] == "13955556666"
+
+
+def test_reset_password_with_phone_code_uses_verified_alias_canonical_uid_for_quick_login(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, canonical_uid)
+        member["display_name"] = "手机号账号"
+        member["phone"] = "13955556666"
+        member["external_auth_user_id"] = canonical_uid
+
+    service._mutate(_seed)
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("", "13955556666", code, "NewPass123")
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
+    data = service._load()
+    member = service._find_member(data, canonical_uid)
+
+    assert result["success"] is True
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
+    assert external_auth_module.verify_external_auth_user(external_user["username"], "NewPass123") is not None
+    assert member["auth_username"] == external_user["username"]
+    assert member["external_auth_user_id"] == canonical_uid
+
+
 def test_reset_password_rejects_weak_password_without_consuming_code(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -4238,6 +4318,8 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -4251,6 +4333,11 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     assert result["bound"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["phone"] == "13911112222"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert external_user is not None
+    assert member["auth_username"] == external_user["username"]
 
 
 @pytest.mark.asyncio
@@ -4258,8 +4345,12 @@ async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
@@ -4283,12 +4374,16 @@ async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
 
     claims = service.verify_access_token(result["token"])
     assert claims is not None
-    assert claims["sub"] == result["user_id"]
 
     data = service._load()
     member = service._find_member(data, result["user_id"])
     assert member["wx_openid"] == "openid_123456789012"
     assert member["phone"] == "13911112222"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert claims["sub"] == external_user["id"]
+    assert claims["canonical_uid"] == external_user["id"]
+    assert member["auth_username"] == external_user["username"]
 
 
 @pytest.mark.asyncio
@@ -4296,8 +4391,12 @@ async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_lo
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
 
     class _FakeAliasStore:
@@ -4340,6 +4439,10 @@ async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_lo
     assert canonical["phone"] == "13911112222"
     assert canonical["wx_openid"] == "openid_123456789012"
     assert canonical["wx_unionid"] == "unionid_abcdef"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
+    assert canonical["auth_username"] == external_user["username"]
     assert current["merged_into"] == canonical_uid
     assert current["wx_openid"] == ""
     assert current["wx_unionid"] == ""
@@ -4347,10 +4450,15 @@ async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_lo
 
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_accepts_normalized_phone_for_legacy_clients(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     result = await service.bind_phone_for_wechat("student_demo", "13911112222")
 
@@ -4385,7 +4493,7 @@ async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone
     monkeypatch.setattr(
         member_service_module,
         "ensure_external_auth_user_for_phone",
-        lambda phone: {"id": canonical_uid, "username": "user_0002", "phone": phone},
+        lambda phone, **_kwargs: {"id": canonical_uid, "username": "user_0002", "phone": phone},
     )
 
     first_login = await service.login_with_wechat_code("wx-code")
