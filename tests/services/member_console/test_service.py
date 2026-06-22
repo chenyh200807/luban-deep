@@ -4966,6 +4966,112 @@ def test_member_directory_merges_member_console_overlay_without_owning_member_po
     assert detail["recent_notes"][0]["content"] == "需要回访"
 
 
+def test_member_directory_resolves_merged_accounts_to_canonical_member(tmp_path: Path) -> None:
+    target_user_id = "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    merged_account_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": target_user_id,
+                "canonical_user_id": target_user_id,
+                "alias_user_ids": [target_user_id],
+                "display_name": "user_6508",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-22T10:00:00+08:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 1_196_321,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": merged_account_user_id,
+                "canonical_user_id": merged_account_user_id,
+                "alias_user_ids": [merged_account_user_id],
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "13911112222",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-21T10:00:00+08:00",
+                "last_active_at": "2026-06-21T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_merged_accounts(data: dict[str, object]) -> None:
+        target = service._build_default_member(target_user_id)
+        target.update(
+            {
+                "canonical_user_id": target_user_id,
+                "alias_user_ids": [target_user_id, "0c4b582c-5937-4ae1-86a2-d68f07702731"],
+                "display_name": "user_6508",
+                "phone": "15558866508",
+                "tier": "supreme_svip",
+                "status": "active",
+                "expire_at": "2027-06-15T09:13:15+08:00",
+                "points_balance": 1_197_161,
+                "external_auth_user_id": target_user_id,
+                "wx_openid": "wx-openid-h",
+            }
+        )
+        source = service._build_default_member(merged_account_user_id)
+        source.update(
+            {
+                "canonical_user_id": merged_account_user_id,
+                "alias_user_ids": [merged_account_user_id],
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "13911112222",
+                "tier": "trial",
+                "status": "merged",
+                "merged_into": target_user_id,
+                "points_balance": 0,
+                "external_auth_user_id": merged_account_user_id,
+            }
+        )
+        data["members"].extend([target, source])
+
+    service._mutate(_seed_merged_accounts)
+
+    by_account = service.list_members(search="chenyh2008", page=1, page_size=20)
+    by_old_phone = service.list_members(search="13911112222", page=1, page_size=20)
+    by_target_phone = service.list_members(search="15558866508", page=1, page_size=20)
+    admin_picker = service.search_members_for_admin(q="chenyh2008")
+
+    assert by_account["total"] == 1
+    assert by_old_phone["total"] == 1
+    assert by_target_phone["total"] == 1
+    item = by_account["items"][0]
+    assert item["user_id"] == target_user_id
+    assert item["tier"] == "supreme_svip"
+    assert item["status"] == "active"
+    assert item["expire_at"] == "2027-06-15T09:13:15+08:00"
+    assert item["points_balance"] == 1_196_321
+    assert set(item["alias_user_ids"]) >= {
+        target_user_id,
+        merged_account_user_id,
+        "0c4b582c-5937-4ae1-86a2-d68f07702731",
+    }
+    assert by_old_phone["items"][0]["user_id"] == target_user_id
+    assert by_target_phone["items"][0]["user_id"] == target_user_id
+    assert [item["user_id"] for item in admin_picker] == [target_user_id]
+
+
 def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
     class ErrorDirectory:
         is_configured = True
