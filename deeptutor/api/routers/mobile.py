@@ -2108,6 +2108,10 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -2291,6 +2295,28 @@ async def auth_change_password(
             user_id,
             body.old_password,
             body.new_password,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/auth/delete-account",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_delete_account", default_max_requests=3, default_window_seconds=60.0))
+    ],
+)
+async def auth_delete_account(
+    body: DeleteAccountRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        # bcrypt verify and credential deletion live in the member authority.
+        return await run_in_threadpool(
+            member_service.cancel_own_account,
+            user_id,
+            password=body.password,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

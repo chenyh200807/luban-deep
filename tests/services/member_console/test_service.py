@@ -3949,6 +3949,101 @@ def test_change_password_requires_username_password_bound_member(
         service.change_password("wechat_only_user", "OldPass123", "NewPass123")
 
 
+def test_delete_member_account_removes_credentials_and_hides_member_from_default_list(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    sessions_file = tmp_path / "sessions.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", str(sessions_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    login = service.register_with_external_auth(
+        "delete_student",
+        "OldPass123",
+        "13955556666",
+    )
+    user_id = str(login["user_id"])
+    external_user = external_auth_module.get_external_auth_user("delete_student")
+    assert external_user is not None
+    sessions_file.write_text(
+        json.dumps(
+            {
+                "token-1": {"id": external_user["id"], "username": "delete_student"},
+                "token-2": {"id": "someone_else"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = service.delete_member_account(
+        user_id,
+        operator="admin_demo",
+        reason="BI 删除测试账号",
+        idempotency_key="delete-account-1",
+    )
+
+    assert result["success"] is True
+    assert result["user_id"] == user_id
+    assert result["status"] == "deleted"
+    assert result["credentials_deleted"] is True
+    assert result["sessions_invalidated"] == 1
+    assert external_auth_module.get_external_auth_user("delete_student") is None
+    assert external_auth_module.verify_external_auth_user("delete_student", "OldPass123") is None
+    assert json.loads(sessions_file.read_text(encoding="utf-8")) == {
+        "token-2": {"id": "someone_else"}
+    }
+    assert service.list_members()["total"] == 0
+    deleted = service.list_members(status="deleted")
+    assert deleted["total"] == 1
+    assert deleted["items"][0]["status"] == "deleted"
+    audit = service._load()["audit_log"][0]
+    assert audit["action"] == "member_account_delete"
+    assert audit["operator"] == "admin_demo"
+    assert audit["target_user"] == user_id
+
+    retry = service.delete_member_account(
+        user_id,
+        operator="admin_demo",
+        reason="BI 删除测试账号",
+        idempotency_key="delete-account-1",
+    )
+    assert retry["deduped"] is True
+    assert retry["audit_id"] == result["audit_id"]
+
+
+def test_cancel_own_account_requires_password_and_uses_self_operator(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    login = service.register_with_external_auth(
+        "cancel_student",
+        "OldPass123",
+        "13955556666",
+    )
+    user_id = str(login["user_id"])
+
+    with pytest.raises(ValueError, match="用户名或密码错误"):
+        service.cancel_own_account(user_id, password="WrongPass123")
+
+    result = service.cancel_own_account(user_id, password="OldPass123")
+
+    assert result["success"] is True
+    assert result["status"] == "deleted"
+    assert result["operator"] == user_id
+    assert external_auth_module.get_external_auth_user("cancel_student") is None
+    member = next(item for item in service._load()["members"] if item["user_id"] == user_id)
+    assert member["account_deleted_by"] == user_id
+    assert member["account_deletion_type"] == "self_cancelled"
+
+
 def test_send_password_reset_code_requires_matching_account_phone(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

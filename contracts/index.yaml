@@ -107,6 +107,21 @@ member_console_controls:
       - purchase_id is required; the original purchase audit is the only amount authority and request amount_cny is ignored.
       - The reversal writes a wallet refund ledger event with negative metadata.amount_cny so BI commerce revenue is netted by wallet_ledger.
       - The control is an audited admin write and requires X-Idempotency-Key.
+  account_deletion:
+    path: /api/v1/bi/member/{user_id}/account
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - BI account deletion is a high-risk member-ops control, not a membership
+        benefit update and not a learner data erasure path.
+      - The endpoint must require member_ops/high_risk permission and an
+        idempotency key before deleting external auth credentials.
+      - MemberConsoleService is the single authority for deleting credentials,
+        invalidating external auth sessions, marking member status deleted, and
+        writing audit.
+      - Default BI member lists hide deleted accounts, while explicit
+        status=deleted queries may surface them for audit.
+      - Historical audit, wallet, billing, learning, and conversation records
+        must be retained for traceability.
 
 mobile_http_read_models:
   billing_usage:
@@ -127,20 +142,6 @@ mobile_http_read_models:
         request config, learner-state, or turn authority.
 
 mobile_http_auth_controls:
-  password_change:
-    path: /api/v1/auth/change-password
-    authority: MemberConsoleService -> external_auth
-    semantics:
-      - Password change is an authenticated member HTTP auth adapter, not a
-        turn/session/capability entrypoint.
-      - Request must carry the current member bearer token and prove the old
-        password before changing the external auth password.
-      - The HTTP route is rate-limited and delegates password verification,
-        hashing, and session invalidation to MemberConsoleService -> external_auth.
-      - Successful change invalidates existing external auth sessions, returns
-        no replacement token, and requires the member to log in again.
-      - Change must not write learner summaries, learner memory events, profile,
-        progress, goals, wallet, capability route state, or turn/session state.
   password_reset:
     path: /api/v1/auth/reset-password
     authority: MemberConsoleService -> external_auth
@@ -160,7 +161,7 @@ mobile_http_auth_controls:
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
         progress, goals, wallet, capability route state, or turn/session state.
-  change_password:
+  password_change:
     path: /api/v1/auth/change-password
     authority: MemberConsoleService -> external_auth
     semantics:
@@ -174,6 +175,21 @@ mobile_http_auth_controls:
       - Change password must not write learner summaries, learner memory events,
         profile, progress, goals, wallet, capability route state, or
         turn/session state.
+  delete_account:
+    path: /api/v1/auth/delete-account
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account deletion is an authenticated, rate-limited HTTP auth adapter,
+        not a turn/session/capability entrypoint.
+      - Request must prove the current signed-in member and current password
+        before deleting external auth credentials.
+      - The route delegates credential deletion, session invalidation, member
+        status marking, and audit writing to MemberConsoleService -> external_auth.
+      - Successful deletion returns no token, invalidates external auth sessions,
+        and marks the member account deleted so default BI member lists hide it.
+      - Deletion must retain audit, wallet, billing, learning, and conversation
+        history for operational traceability; it must not erase learner-state,
+        wallet ledger, capability route state, or turn/session records.
   wechat_phone_login:
     path: /api/v1/wechat/mp/login
     authority: MemberConsoleService.login_with_wechat_phone

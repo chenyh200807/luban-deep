@@ -85,6 +85,8 @@ from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     change_external_auth_password,
     create_external_auth_user,
+    delete_external_auth_sessions,
+    delete_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
     get_external_auth_user_by_phone,
@@ -4025,6 +4027,8 @@ class MemberConsoleService:
                 overlay_candidate_user_ids = set()
         filtered = []
         for item in members:
+            if (not status or status == "all") and str(item.get("status") or "").strip() == "deleted":
+                continue
             if status and status != "all" and item["status"] != status:
                 continue
             if tier and tier != "all" and item["tier"] != tier:
@@ -7758,6 +7762,8 @@ class MemberConsoleService:
         normalized_phone = _slugify_phone(phone) if phone else ""
         normalized_external_user_id = str(external_user_id or "").strip()
         for member in data["members"]:
+            if str(member.get("status") or "").strip() == "deleted":
+                continue
             if str(member.get("auth_username") or "").strip() == normalized_username:
                 return member
             if normalized_external_user_id and str(member.get("external_auth_user_id") or "").strip() == normalized_external_user_id:
@@ -7893,6 +7899,8 @@ class MemberConsoleService:
         data = self._load()
         for member in data.get("members") or []:
             if not isinstance(member, dict):
+                continue
+            if str(member.get("status") or "").strip() == "deleted":
                 continue
             if _slugify_phone(str(member.get("phone") or "")) != normalized_phone:
                 continue
@@ -8534,6 +8542,110 @@ class MemberConsoleService:
             "message": "密码已修改，请使用新密码重新登录",
             "sessions_invalidated": int(result.get("sessions_invalidated") or 0),
         }
+
+    def delete_member_account(
+        self,
+        user_id: str,
+        *,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str | None = None,
+        deletion_type: str = "admin_deleted",
+        password: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_operator = str(operator or "admin").strip() or "admin"
+        normalized_reason = str(reason or "").strip()
+        normalized_key = str(idempotency_key or "").strip()
+        action = "member_account_delete"
+
+        snapshot = self._load_member_snapshot(normalized_user_id)["member"]
+        username = str(snapshot.get("auth_username") or "").strip()
+        external_user_id = str(snapshot.get("external_auth_user_id") or "").strip()
+        credentials_deleted = False
+        sessions_invalidated = 0
+        if username:
+            result = delete_external_auth_user(username, password=password)
+            credentials_deleted = bool(result.get("deleted"))
+            sessions_invalidated += int(result.get("sessions_invalidated") or 0)
+        elif external_user_id:
+            sessions_invalidated += delete_external_auth_sessions(external_user_id)
+        else:
+            raise ValueError("当前会员账号没有可删除的登录凭证")
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            if normalized_key:
+                existing_audit_id = self._find_audit_id_by_idempotency_key(
+                    data,
+                    action,
+                    normalized_key,
+                    operator=normalized_operator,
+                )
+                if existing_audit_id:
+                    return {
+                        "success": True,
+                        "user_id": normalized_user_id,
+                        "operator": normalized_operator,
+                        "status": "deleted",
+                        "message": "会员账号已删除",
+                        "credentials_deleted": credentials_deleted,
+                        "sessions_invalidated": sessions_invalidated,
+                        "audit_id": existing_audit_id,
+                        "deduped": True,
+                    }
+            member = self._find_member(data, normalized_user_id)
+            before = deepcopy(member)
+            if str(member.get("status") or "").strip() != "deleted":
+                now = _iso()
+                member["status"] = "deleted"
+                member["account_status"] = "deleted"
+                member["account_deleted_at"] = now
+                member["account_deleted_by"] = normalized_operator
+                member["account_deletion_type"] = str(deletion_type or "admin_deleted").strip()
+                member["account_deletion_reason"] = normalized_reason
+                member["auto_renew"] = False
+                member["expire_at"] = now
+                member["last_active_at"] = member.get("last_active_at") or now
+            audit = self._append_audit(
+                data,
+                action=action,
+                target_user=normalized_user_id,
+                operator=normalized_operator,
+                reason=normalized_reason or str(deletion_type or "admin_deleted"),
+                before=before,
+                after=deepcopy(member),
+            )
+            if normalized_key:
+                self._remember_idempotency_key(
+                    data,
+                    action,
+                    normalized_key,
+                    audit["id"],
+                    operator=normalized_operator,
+                )
+            return {
+                "success": True,
+                "user_id": normalized_user_id,
+                "operator": normalized_operator,
+                "status": "deleted",
+                "message": "会员账号已删除",
+                "credentials_deleted": credentials_deleted,
+                "sessions_invalidated": sessions_invalidated,
+                "audit_id": audit["id"],
+                "deduped": False,
+            }
+
+        return self._mutate(_apply)
+
+    def cancel_own_account(self, user_id: str, *, password: str) -> dict[str, Any]:
+        result = self.delete_member_account(
+            user_id,
+            operator=user_id,
+            reason="self_cancelled",
+            deletion_type="self_cancelled",
+            password=password,
+        )
+        return {**result, "message": "账号已注销"}
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

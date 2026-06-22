@@ -11,6 +11,7 @@ import {
   Search,
   Settings2,
   ShieldOff,
+  Trash2,
   UserCog,
 } from 'lucide-react'
 import {
@@ -40,6 +41,7 @@ import {
   getMemberDashboard,
   getMemberDetail,
   listMembers,
+  deleteMemberAccount,
   manualPurchaseMembership,
   reverseManualMembershipPurchase,
   revokeMembership,
@@ -709,6 +711,28 @@ export function BiV2MemberOpsPanel({
     )
   }
 
+  async function deleteAccount(member: MemberRow, reason: string) {
+    if (!flagEnabled || membershipActionWriting) return
+    setOpsActionNotice('')
+    setMembershipActionError('')
+    try {
+      setMembershipActionWriting(true)
+      const result = await deleteMemberAccount({
+        user_id: member.user_id,
+        reason,
+      })
+      setOpsActionNotice(result.message || `已删除 ${member.phone_masked} 会员账号`)
+      setSelectedDetail(null)
+      setSelectedMember(null)
+      setDrawer('none')
+      await loadMembers()
+    } catch (err) {
+      setMembershipActionError(err instanceof Error ? err.message : '会员账号删除失败')
+    } finally {
+      setMembershipActionWriting(false)
+    }
+  }
+
   async function reverseSupremeMembership(
     member: MemberRow,
     payload: { purchaseId: string; reason: string }
@@ -1064,6 +1088,7 @@ export function BiV2MemberOpsPanel({
         onPaidOpen={paidOpenMembership}
         onUpdate={saveMembershipSettings}
         onRevoke={cancelMembership}
+        onDeleteAccount={deleteAccount}
         onReverseSupreme={reverseSupremeMembership}
         onConvertSupremeToFree={convertSupremeMembershipToFree}
       />
@@ -1089,6 +1114,7 @@ function MembershipSettingsPanel({
   onPaidOpen,
   onUpdate,
   onRevoke,
+  onDeleteAccount,
   onReverseSupreme,
   onConvertSupremeToFree,
 }: {
@@ -1109,6 +1135,7 @@ function MembershipSettingsPanel({
     payload: { days?: number; expireAt?: string; reason: string }
   ) => Promise<void> | void
   onRevoke: (member: MemberRow, reason: string) => Promise<void> | void
+  onDeleteAccount: (member: MemberRow, reason: string) => Promise<void> | void
   onReverseSupreme: (
     member: MemberRow,
     payload: { purchaseId: string; reason: string }
@@ -1234,6 +1261,18 @@ function MembershipSettingsPanel({
     await onRevoke(activeMember, reason.trim() || 'BI 会员设置：取消会员')
   }
 
+  async function submitDeleteAccount() {
+    if (
+      !window.confirm(
+        `删除 ${activeMember.phone_masked} 的会员账号？账号将无法登录，历史审计、账务与学习记录会保留。`
+      )
+    ) {
+      return
+    }
+    setFormError('')
+    await onDeleteAccount(activeMember, reason.trim() || 'BI 会员设置：删除会员账号')
+  }
+
   async function submitSupremeReversal() {
     if (!canReverseSupreme) {
       setFormError('只有当前为至尊SVIP且存在可冲销原始购买流水时才可以撤回')
@@ -1304,6 +1343,18 @@ function MembershipSettingsPanel({
             >
               <ShieldOff className="h-3.5 w-3.5" aria-hidden />
               {pendingAction === 'revoke' ? '确认取消' : '取消会员'}
+            </BiButton>
+            <BiButton
+              onClick={() => void submitDeleteAccount()}
+              disabled={writing}
+              variant="danger"
+              size="sm"
+              className="min-w-[5.5rem] whitespace-nowrap"
+              aria-label="删除会员账号"
+              title="删除会员账号登录凭证；保留历史审计、账务与学习记录"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              删除账号
             </BiButton>
             {canReverseSupreme ? (
               <>

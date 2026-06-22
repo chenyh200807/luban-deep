@@ -3391,6 +3391,87 @@ def test_auth_change_password_maps_validation_error_to_400(
     assert response.json()["detail"] == "用户名或密码错误"
 
 
+def test_auth_delete_account_calls_member_service_for_current_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _resolve_user(authorization: str | None) -> str:
+        captured["authorization"] = str(authorization)
+        return "student_demo"
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", _resolve_user)
+
+    def _cancel_own_account(user_id: str, *, password: str) -> dict[str, object]:
+        captured.update({"user_id": user_id, "password": password})
+        return {
+            "success": True,
+            "user_id": user_id,
+            "status": "deleted",
+            "message": "账号已注销",
+        }
+
+    monkeypatch.setattr(mobile_module.member_service, "cancel_own_account", _cancel_own_account)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/delete-account",
+            headers={"Authorization": "Bearer member-token"},
+            json={"password": "OldPass123"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "deleted"
+    assert captured == {
+        "authorization": "Bearer member-token",
+        "user_id": "student_demo",
+        "password": "OldPass123",  # pragma: allowlist secret
+    }
+
+
+def test_auth_delete_account_requires_authentication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise_auth(_authorization: str | None) -> str:
+        raise mobile_module.HTTPException(status_code=401, detail="Authentication required")
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", _raise_auth)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/delete-account",
+            json={"password": "OldPass123"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication required"
+
+
+def test_auth_delete_account_maps_validation_error_to_400(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda _authorization: "student_demo",
+    )
+
+    def _cancel_own_account(_user_id: str, *, password: str) -> dict[str, object]:
+        raise ValueError("用户名或密码错误")
+
+    monkeypatch.setattr(mobile_module.member_service, "cancel_own_account", _cancel_own_account)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/delete-account",
+            headers={"Authorization": "Bearer member-token"},
+            json={"password": "bad"},  # pragma: allowlist secret
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "用户名或密码错误"
+
+
 def test_auth_send_code_uses_password_reset_authority_when_username_is_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

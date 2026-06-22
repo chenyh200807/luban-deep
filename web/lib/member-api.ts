@@ -595,6 +595,34 @@ export async function revokeMembership(payload: {
   return expectJson<MemberDetail>(response)
 }
 
+export interface MemberAccountDeletionResult {
+  success: boolean
+  status: string
+  message?: string
+  credentials_deleted?: boolean
+  sessions_invalidated?: number
+  audit_id?: string
+  deduped?: boolean
+}
+
+export async function deleteMemberAccount(payload: {
+  user_id: string
+  reason?: string
+}): Promise<MemberAccountDeletionResult> {
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`),
+    {
+      method: 'DELETE',
+      headers: adminHeaders({
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+      body: JSON.stringify({ reason: payload.reason ?? '' }),
+    }
+  )
+  return expectJson<MemberAccountDeletionResult>(response)
+}
+
 export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
   const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/pause`), {
     method: 'POST',

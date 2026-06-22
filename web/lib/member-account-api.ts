@@ -124,3 +124,20 @@ export async function changeMemberPassword(
   })
   return expectJson<MemberAccountActionResult>(response)
 }
+
+export async function deleteMemberAccount(
+  token: string,
+  payload: {
+    password: string
+  }
+): Promise<MemberAccountActionResult> {
+  const response = await fetch(apiUrl('/api/v1/auth/delete-account'), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  return expectJson<MemberAccountActionResult>(response)
+}

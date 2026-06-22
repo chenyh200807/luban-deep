@@ -2,9 +2,10 @@
 'use client'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { KeyRound, LogIn, RotateCcw, ShieldCheck, UserPlus } from 'lucide-react'
+import { LogIn, RotateCcw, ShieldCheck, Trash2, UserPlus } from 'lucide-react'
 import {
   changeMemberPassword,
+  deleteMemberAccount,
   loginMemberAccount,
   registerMemberAccount,
   resetMemberPassword,
@@ -13,7 +14,7 @@ import {
 } from '@/lib/member-account-api'
 import { SectionHeader } from './BiShared'
 
-type AccountMode = 'login' | 'register' | 'reset' | 'change'
+type AccountMode = 'login' | 'register' | 'reset' | 'change' | 'delete'
 
 const MEMBER_ACCOUNT_SESSION_STORAGE_KEY = 'deeptutor.bi.member.account.session'
 
@@ -22,6 +23,7 @@ const ACCOUNT_MODES: Array<{ key: AccountMode; label: string }> = [
   { key: 'register', label: '注册' },
   { key: 'reset', label: '找回密码' },
   { key: 'change', label: '修改密码' },
+  { key: 'delete', label: '注销账号' },
 ]
 
 function loadStoredMemberSession(): MemberAccountSession | null {
@@ -143,7 +145,19 @@ export function BiMemberAccountPanel() {
         return
       }
       if (!session?.token) {
-        setError('请先在本面板登录会员账号，再修改该账号密码。')
+        setError(
+          mode === 'delete'
+            ? '请先在本面板登录会员账号，再注销该账号。'
+            : '请先在本面板登录会员账号，再修改该账号密码。'
+        )
+        return
+      }
+      if (mode === 'delete') {
+        if (!window.confirm('确认注销当前会员账号？注销后该账号将无法再登录。')) return
+        const result = await deleteMemberAccount(session.token, { password })
+        applySession(null)
+        setPassword('')
+        setMessage(result.message || '账号已注销。')
         return
       }
       const result = await changeMemberPassword(session.token, {
@@ -205,10 +219,10 @@ export function BiMemberAccountPanel() {
               </p>
             </div>
             <div className="rounded-2xl bg-white/80 p-3">
-              <KeyRound className="h-4 w-4 text-[var(--primary)]" />
-              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">密码闭环</p>
+              <Trash2 className="h-4 w-4 text-[var(--primary)]" />
+              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">注销账号</p>
               <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-                找回密码走短信码；修改密码只改当前登录账号。
+                注销后该会员账号将无法登录，BI 仍保留审计、账务与学习历史。
               </p>
             </div>
           </div>
@@ -237,7 +251,7 @@ export function BiMemberAccountPanel() {
           </div>
 
           <div className="mt-4 grid gap-3">
-            {mode !== 'change' ? (
+            {mode !== 'change' && mode !== 'delete' ? (
               <Field label="账号">
                 <input
                   value={username}
@@ -316,6 +330,29 @@ export function BiMemberAccountPanel() {
                   />
                 </Field>
               </>
+            ) : mode === 'delete' ? (
+              <>
+                <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                  {session ? (
+                    <span className="inline-flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      当前会员账号：{session.displayName || session.userId}
+                    </span>
+                  ) : (
+                    '尚未登录会员账号；请先在本面板完成会员登录。'
+                  )}
+                </div>
+                <Field label="当前密码">
+                  <input
+                    value={password}
+                    onChange={event => setPassword(event.target.value)}
+                    placeholder="输入当前密码确认注销"
+                    type="password"
+                    autoComplete="current-password"
+                    className={inputClass}
+                  />
+                </Field>
+              </>
             ) : (
               <Field label={mode === 'reset' ? '新密码' : '密码'}>
                 <input
@@ -333,7 +370,7 @@ export function BiMemberAccountPanel() {
               <button
                 type="button"
                 onClick={() => void submit()}
-                disabled={submitting || (mode === 'change' && !session)}
+                disabled={submitting || ((mode === 'change' || mode === 'delete') && !session)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--foreground)] px-4 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
               >
                 {mode === 'reset' ? <RotateCcw className="h-4 w-4" /> : null}
