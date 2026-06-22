@@ -39,6 +39,7 @@ function loadChatPage(overrides) {
   var authState = {
     setTokenCalls: [],
   };
+  var redirectCalls = [];
   var apiMock = Object.assign(
     {
       unwrapResponse: function (raw) {
@@ -95,6 +96,10 @@ function loadChatPage(overrides) {
     checkAuth: function (cb) {
       cb();
     },
+    redirectToLogin: function (returnTo) {
+      redirectCalls.push(returnTo || "");
+      return true;
+    },
     consumeGoHomeFlag: function () {
       return false;
     },
@@ -111,6 +116,11 @@ function loadChatPage(overrides) {
     },
     isFeatureEnabled: function () {
       return true;
+    },
+  };
+  var routeMock = {
+    chat: function () {
+      return "/packageDeeptutor/pages/chat/chat";
     },
   };
   var sandbox = {
@@ -133,7 +143,7 @@ function loadChatPage(overrides) {
         return { track: function () {}, trackOnce: function () {} };
       }
       if (request === "../../utils/runtime") return runtimeMock;
-      if (request === "../../utils/route") return {};
+      if (request === "../../utils/route") return routeMock;
       if (request === "../../utils/flags") return flagsMock;
       if (request === "../../utils/analytics") return { track: function () {} };
       if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
@@ -182,6 +192,7 @@ function loadChatPage(overrides) {
   return {
     page: page,
     authState: authState,
+    redirectCalls: redirectCalls,
   };
 }
 
@@ -197,6 +208,30 @@ function loadChatPage(overrides) {
     assert(
       loaded.authState.setTokenCalls.length === 0,
       "chat bootstrap must not call auth.setToken after getUserInfo succeeds",
+    );
+  });
+
+  await run("chat bootstrap should require phone-bound auth profile", async function () {
+    var loaded = loadChatPage({
+      api: {
+        getUserInfo: function () {
+          return Promise.resolve({ id: "wx_user_bootstrap", username: "student", phone: "" });
+        },
+      },
+    });
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.redirectCalls.length === 1,
+      "chat bootstrap should redirect old no-phone tokens back to phone binding",
+    );
+    assert(
+      loaded.redirectCalls[0] === "/packageDeeptutor/pages/chat/chat",
+      "chat bootstrap should preserve chat as returnTo when phone binding is required",
     );
   });
 
