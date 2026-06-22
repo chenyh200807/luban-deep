@@ -1658,6 +1658,41 @@ def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
     return ""
 
 
+def _mobile_message_identity(message: dict[str, Any] | None, keys: tuple[str, ...]) -> str:
+    if isinstance(message, dict):
+        for key in keys:
+            direct = str(message.get(key) or "").strip()
+            if direct:
+                return direct
+        for metadata in _iter_mobile_message_metadata(message):
+            for key in keys:
+                candidate = str(metadata.get(key) or "").strip()
+                if candidate:
+                    return candidate
+    for event in reversed(_message_events(message)):
+        for key in keys:
+            candidate = _event_identity(event, key)
+            if candidate:
+                return candidate
+    return ""
+
+
+def _assistant_message_display_content(message: dict[str, Any]) -> str:
+    content = str(message.get("content") or "")
+    if content.strip() or str(message.get("role") or "") != "assistant":
+        return content
+    for key in ("response", "assistant_content", "content"):
+        direct = str(message.get(key) or "").strip()
+        if direct:
+            return str(message.get(key) or "")
+    for metadata in _iter_mobile_message_metadata(message):
+        for key in ("response", "assistant_content", "content"):
+            candidate = str(metadata.get(key) or "").strip()
+            if candidate:
+                return str(metadata.get(key) or "")
+    return content
+
+
 def _assistant_message_trace_id(message: dict[str, Any] | None) -> str:
     for event in reversed(_message_events(message)):
         for key in ("trace_id", "langfuse_trace_id"):
@@ -1970,14 +2005,27 @@ def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | Non
 
 def _serialize_mobile_message(message: dict[str, Any]) -> dict[str, Any]:
     presentation = _build_presentation_payload(message)
-    return {
+    turn_id = _mobile_message_identity(
+        message,
+        ("turn_id", "engine_turn_id", "turnId", "engineTurnId"),
+    )
+    client_turn_id = _mobile_message_identity(
+        message,
+        ("client_turn_id", "clientTurnId"),
+    )
+    serialized = {
         "id": str(message.get("id") or ""),
         "role": str(message.get("role") or ""),
-        "content": str(message.get("content") or ""),
+        "content": _assistant_message_display_content(message),
         "created_at": _ts_to_iso(message.get("created_at")),
         "engine_turn_id": _assistant_message_turn_id(message),
         "presentation": presentation,
     }
+    if turn_id:
+        serialized["turn_id"] = turn_id
+    if client_turn_id:
+        serialized["client_turn_id"] = client_turn_id
+    return serialized
 
 
 def _build_tutorbot_start_response(

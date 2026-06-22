@@ -51,6 +51,63 @@ def test_serialize_mobile_message_projects_engine_turn_id_from_message_metadata(
     assert serialized["engine_turn_id"] == "turn_resume_1"
 
 
+def test_serialize_mobile_message_projects_recovery_identity_fields() -> None:
+    user_message = mobile_module._serialize_mobile_message(
+        {
+            "id": "message_user",
+            "role": "user",
+            "content": "案例题批改",
+            "created_at": 1_700_000_000.0,
+            "metadata": {
+                "turn_id": "turn_recovery_1",
+                "client_turn_id": "client_recovery_1",
+            },
+            "events": [],
+        }
+    )
+    assistant_message = mobile_module._serialize_mobile_message(
+        {
+            "id": "message_assistant",
+            "role": "assistant",
+            "content": "批改结果",
+            "created_at": 1_700_000_001.0,
+            "metadata": {
+                "turn_id": "turn_recovery_1",
+                "engine_turn_id": "turn_recovery_1",
+                "client_turn_id": "client_recovery_1",
+            },
+            "events": [],
+        }
+    )
+
+    assert user_message["turn_id"] == "turn_recovery_1"
+    assert user_message["client_turn_id"] == "client_recovery_1"
+    assert assistant_message["turn_id"] == "turn_recovery_1"
+    assert assistant_message["engine_turn_id"] == "turn_recovery_1"
+    assert assistant_message["client_turn_id"] == "client_recovery_1"
+
+
+def test_serialize_mobile_message_projects_metadata_response_for_empty_assistant_content() -> None:
+    serialized = mobile_module._serialize_mobile_message(
+        {
+            "id": "message_assistant",
+            "role": "assistant",
+            "content": "",
+            "created_at": 1_700_000_001.0,
+            "metadata": {
+                "turn_id": "turn_metadata_response",
+                "client_turn_id": "client_metadata_response",
+                "assistant_content": "metadata 中的最终回答",
+            },
+            "events": [],
+        }
+    )
+
+    assert serialized["content"] == "metadata 中的最终回答"
+    assert serialized["turn_id"] == "turn_metadata_response"
+    assert serialized["client_turn_id"] == "client_metadata_response"
+
+
 @pytest.fixture(autouse=True)
 def _clear_rate_limit_state(monkeypatch: pytest.MonkeyPatch) -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
