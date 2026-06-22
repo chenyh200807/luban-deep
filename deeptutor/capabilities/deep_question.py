@@ -39,7 +39,6 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     requested_question_item_index,
     resolve_submission_attempt,
-    should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
@@ -4866,12 +4865,16 @@ class DeepQuestionCapability(BaseCapability):
         force_default_decision: bool = False,
     ) -> None:
         async with stream.stage("generation", source=self.name):
-            if should_block_unanswered_reference_reveal(
-                raw_user_message,
-                followup_question_context,
-            ):
-                answer = "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
-            elif _should_render_deterministic_reference_feedback(
+            # A1 (2026-06-22, 治④死循环): 不再对"未作答 followup"硬 block 成
+            # "练习阶段不公开答案;你先作答"。旧硬 block 对**任何**未作答 followup 都 fire,
+            # 把"讲解钻芯法/讲讲这题考点"这类合法知识/讲解请求也挡成墙,造成 live eval 的
+            # p10 死循环(且与 should_reveal_reference_material 重复)。答案隐藏的单一权威是
+            # should_reveal_reference_material:未作答时它返回 False →
+            # _should_render_deterministic_reference_feedback 不 fire、FollowupAgent 渲染
+            # **不含** reference answer/explanation(prompt 层无答案,无从泄露),且 followup
+            # 渲染额外指示"答案隐藏时不得陈述/猜测正确答案"(防幻觉)。因此这里只按"是否揭示
+            # 参考材料"分流,不再整轮拒答。
+            if _should_render_deterministic_reference_feedback(
                 raw_user_message,
                 followup_question_context,
             ):

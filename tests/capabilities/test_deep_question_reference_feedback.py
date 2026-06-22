@@ -193,3 +193,45 @@ def test_reference_feedback_targets_indexed_question_set_item() -> None:
 
     assert "验收合格可参照合同支付" in response
     assert "主体结构不得分包" not in response
+
+
+def _unanswered_wall_context(**overrides):
+    ctx = _wall_context(
+        user_answer="",
+        is_correct=None,
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+    ctx.update(overrides)
+    return ctx
+
+
+def test_unanswered_knowledge_followup_withholds_answer_and_routes_to_followup_agent() -> None:
+    """A1 (治④死循环): 未作答题 + 知识/讲解 followup(如"讲讲考点")必须不揭示答案,
+    且不触发 deterministic reference-feedback(那条会带答案)——改走 FollowupAgent
+    (在答案隐藏下解释),而非旧的"练习阶段不公开答案;你先作答"硬 block。"""
+    from deeptutor.capabilities.deep_question import (
+        _should_render_deterministic_reference_feedback,
+    )
+    from deeptutor.services.question_followup import should_reveal_reference_material
+
+    ctx = _unanswered_wall_context()
+    msg = "讲讲这道题的考点和易错点"
+    # 答案隐藏的单一权威 = should_reveal_reference_material
+    assert should_reveal_reference_material(msg, ctx) is False
+    # 非 deterministic-with-answer 路径 → 落 FollowupAgent
+    assert _should_render_deterministic_reference_feedback(msg, ctx) is False
+
+
+def test_unanswered_explicit_answer_request_still_withholds_answer() -> None:
+    """未作答题上即便明确"答案是什么"也必须隐藏参考答案(不泄露);改走 FollowupAgent,
+    由其渲染层(reveal=False)拿不到答案 + 被指示不得陈述/猜测,而非硬 block。"""
+    from deeptutor.capabilities.deep_question import (
+        _should_render_deterministic_reference_feedback,
+    )
+    from deeptutor.services.question_followup import should_reveal_reference_material
+
+    ctx = _unanswered_wall_context()
+    msg = "直接告诉我答案是什么"
+    assert should_reveal_reference_material(msg, ctx) is False
+    assert _should_render_deterministic_reference_feedback(msg, ctx) is False

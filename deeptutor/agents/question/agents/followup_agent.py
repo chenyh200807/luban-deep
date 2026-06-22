@@ -140,6 +140,20 @@ class FollowupAgent(BaseAgent):
                     str(question_context.get("explanation", "") or "(none)"),
                 ]
             )
+        else:
+            # A1 (2026-06-22): the reference answer/explanation is intentionally withheld
+            # (e.g. the learner has not answered yet). The answer is NOT in this context,
+            # so do not let the model fabricate one — help the learner reason instead.
+            lines.extend(
+                [
+                    "",
+                    "IMPORTANT: The reference answer and explanation are intentionally "
+                    "withheld here. Do NOT state, hint at, or guess the correct "
+                    "option/answer. Help the learner understand the question and the "
+                    "underlying concept; if they have not answered yet, gently encourage "
+                    "them to attempt an answer first.",
+                ]
+            )
         items = question_context.get("items") or []
         if isinstance(items, list) and items:
             lines.extend(["", "Question set items:"])
