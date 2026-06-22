@@ -179,6 +179,53 @@ run("can recover by client turn id when server turn id is not projected after re
   assertEqual(found.assistantIndex, 1, "client turn id fallback should bind to the same user turn");
 });
 
+run("recovers assistant answers stored in metadata-only projections", function () {
+  var messages = [
+    { role: "user", content: "案例题批改", metadata: { client_turn_id: "client_meta_1" } },
+    {
+      role: "assistant",
+      content: "",
+      metadata: { assistant_content: "这是 metadata.assistant_content 的批改结果" },
+    },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "案例题批改",
+    clientTurnId: "client_meta_1",
+  });
+
+  assert(!!found, "metadata-only assistant answer should recover the pending turn");
+  assertEqual(
+    recovery.getAssistantDisplayText(found.assistantMessage),
+    "这是 metadata.assistant_content 的批改结果",
+    "metadata-only assistant answer should expose user-visible display text",
+  );
+});
+
+run("does not treat ambiguous metadata content as recovered assistant answer", function () {
+  var messages = [
+    { role: "user", content: "案例题批改", metadata: { client_turn_id: "client_meta_2" } },
+    {
+      role: "assistant",
+      content: "",
+      metadata: {
+        content: "metadata.content 可能是非终态内容",
+        metadata: { content: "nested metadata.content 也不能当答案" },
+      },
+    },
+  ];
+
+  assert(
+    !recovery.findRecoveredAssistant(messages, {
+      baselineCount: 100,
+      query: "案例题批改",
+      clientTurnId: "client_meta_2",
+    }),
+    "ambiguous metadata.content should not satisfy assistant recovery",
+  );
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

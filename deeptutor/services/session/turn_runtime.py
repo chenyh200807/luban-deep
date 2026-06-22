@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -263,6 +263,59 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
         if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
             return str(event.content or "").strip()
     return ""
+
+
+def _is_mobile_surface_turn_config(
+    config: Mapping[str, Any] | None,
+    billing_context: Mapping[str, Any] | None = None,
+) -> bool:
+    if not isinstance(config, Mapping):
+        config = {}
+    config_billing_context = config.get("billing_context")
+    billing_source = ""
+    if isinstance(billing_context, Mapping):
+        billing_source = str(billing_context.get("source") or "").strip()
+    if not billing_source and isinstance(config_billing_context, Mapping):
+        billing_source = str(config_billing_context.get("source") or "").strip()
+    source = str(config.get("source") or "").strip()
+    product_surface = str(config.get("product_surface") or "").strip()
+    interaction_hints = config.get("interaction_hints")
+    hint_product_surface = (
+        str(interaction_hints.get("product_surface") or "").strip()
+        if isinstance(interaction_hints, Mapping)
+        else ""
+    )
+    mobile_surface_values = {"wx_miniprogram", "wechat_miniprogram"}
+    return bool(
+        mobile_surface_values
+        & {
+            billing_source.lower(),
+            source.lower(),
+            product_surface.lower(),
+            hint_product_surface.lower(),
+        }
+    )
+
+
+def _build_synthetic_result_from_final_content(
+    *,
+    content: str,
+    source: str,
+) -> StreamEvent | None:
+    response = normalize_markdown_for_tutorbot(coerce_user_visible_answer(content))
+    if not response.strip():
+        return None
+    return StreamEvent(
+        type=StreamEventType.RESULT,
+        source=source or "turn_runtime",
+        metadata={
+            "response": response,
+            "assistant_content": response,
+            "terminal_normalization": "mobile_result_before_done",
+            "synthesized_from": "final_content",
+        },
+        visibility=_PUBLIC_VISIBILITY,
+    )
 
 
 def _clip_text(value: str, limit: int = 4000) -> str:
@@ -5566,6 +5619,11 @@ class TurnRuntimeManager:
                 capability_stream_started_at = time.perf_counter()
                 capability_stream_stage_timings = _TurnLatencyStages()
                 capability_stream_event_counts: dict[str, int] = {}
+                public_result_response_seen = False
+                synthesize_mobile_result_before_done = _is_mobile_surface_turn_config(
+                    request_config,
+                    billing_context,
+                )
 
                 def _record_capability_stream_since_once(stage: str) -> None:
                     if capability_stream_stage_timings.has_stage(stage):
@@ -5623,6 +5681,34 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                        if (
+                            _event_visibility(event) == _PUBLIC_VISIBILITY
+                            and _result_response_text(event.metadata or {})
+                        ):
+                            public_result_response_seen = True
+                    if (
+                        event.type == StreamEventType.DONE
+                        and synthesize_mobile_result_before_done
+                        and not public_result_response_seen
+                        and authoritative_assistant_content
+                    ):
+                        synthetic_result = _build_synthetic_result_from_final_content(
+                            content=authoritative_assistant_content,
+                            source=str(event.source or "").strip() or capability_name or "turn_runtime",
+                        )
+                        if synthetic_result is not None:
+                            synthetic_persist_started_at = time.perf_counter()
+                            synthetic_payload_event = await self._persist_and_publish(
+                                execution,
+                                synthetic_result,
+                            )
+                            capability_stream_stage_timings.add_duration(
+                                "event_persist_total",
+                                (time.perf_counter() - synthetic_persist_started_at) * 1000.0,
+                            )
+                            if _event_visibility(synthetic_payload_event) == _PUBLIC_VISIBILITY:
+                                assistant_events.append(synthetic_payload_event)
+                            public_result_response_seen = True
                     event_persist_started_at = time.perf_counter()
                     payload_event = await self._persist_and_publish(execution, event)
                     capability_stream_stage_timings.add_duration(

@@ -31,6 +31,28 @@ function _messageMetadata(message) {
     : {};
 }
 
+function getAssistantDisplayText(message) {
+  if (!message || typeof message !== "object") return "";
+  var metadata = _messageMetadata(message);
+  var nested =
+    metadata.metadata && typeof metadata.metadata === "object"
+      ? metadata.metadata
+      : {};
+  var candidates = [
+    message.content,
+    message.response,
+    message.assistant_content,
+    metadata.response,
+    metadata.assistant_content,
+    nested.response,
+    nested.assistant_content,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    if (normalizeMessageText(candidates[i])) return String(candidates[i] || "");
+  }
+  return "";
+}
+
 function _messageTurnId(message) {
   var metadata = _messageMetadata(message);
   return String(
@@ -70,7 +92,7 @@ function _findByClientTurnIdentity(messages, pending) {
       var next = messages[k];
       if (!next) continue;
       var role = String(next.role || "");
-      if (role === "assistant" && normalizeMessageText(next.content)) {
+      if (role === "assistant" && normalizeMessageText(getAssistantDisplayText(next))) {
         return _result(j, k, messages);
       }
       if (role === "user") break;
@@ -86,7 +108,7 @@ function _findByTurnIdentity(messages, pending) {
       if (
         candidate &&
         String(candidate.role || "") === "assistant" &&
-        normalizeMessageText(candidate.content) &&
+        normalizeMessageText(getAssistantDisplayText(candidate)) &&
         _messageTurnId(candidate) === pending.turnId
       ) {
         var userIndex = -1;
@@ -126,7 +148,7 @@ function findRecoveredAssistant(messages, baselineCount, query) {
       var candidate = messages[j];
       if (!candidate) continue;
       var role = String(candidate.role || "");
-      if (role === "assistant" && normalizeMessageText(candidate.content)) {
+      if (role === "assistant" && normalizeMessageText(getAssistantDisplayText(candidate))) {
         return _result(i, j, messages);
       }
       if (role === "user") {
@@ -144,6 +166,7 @@ function hasRecoveredAssistant(messages, baselineCount, query) {
 
 module.exports = {
   normalizeMessageText: normalizeMessageText,
+  getAssistantDisplayText: getAssistantDisplayText,
   findRecoveredAssistant: findRecoveredAssistant,
   hasRecoveredAssistant: hasRecoveredAssistant,
 };

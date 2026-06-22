@@ -43,6 +43,7 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
+var PENDING_TURN_FOREGROUND_MAX_ATTEMPTS = 4;
 var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v2";
 var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
@@ -892,18 +893,25 @@ Page({
     }, 50);
   },
 
-  _finishPendingTurnRecovery: function (serverMessages) {
+  _finishPendingTurnRecovery: function (serverMessages, options) {
     if (this._destroyed) return;
     var hasServerMessages = Array.isArray(serverMessages);
+    var keepPending = !!(options && options.keepPending);
+    var shouldHydrate = !(options && options.hydrate === false);
     this._recoveringTurn = false;
-    this._clearPendingTurn();
-    if (hasServerMessages) {
+    if (keepPending) {
+      this._pendingRecoveryActive = false;
+    } else {
+      this._clearPendingTurn();
+    }
+    if (hasServerMessages && shouldHydrate) {
       this._applyHydratedConversationMessages(serverMessages);
       return;
     }
     this.setData({
       hasMessages: !!(this.data.messages && this.data.messages.length),
       isStreaming: false,
+      canStopStream: false,
       chatScrollWithAnimation: false,
     });
   },
@@ -1008,6 +1016,35 @@ Page({
     return this.debugReplaceMessagesWithStructuredSample(sample);
   },
 
+  _continuePendingTurnRecoveryInBackground: function () {
+    var self = this;
+    if (
+      this._recoveryAborted ||
+      !this._loadPendingTurn() ||
+      this._pendingRecoveryActive
+    ) {
+      return;
+    }
+    this._pendingRecoveryActive = true;
+    this._recoverTurnFromHistory({
+      longPoll: true,
+      unlockOnExhausted: true,
+      keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
+    }).then(
+      function (recovered) {
+        self._pendingRecoveryActive = false;
+        if (!recovered) {
+          self._recoveringTurn = false;
+        }
+      },
+      function () {
+        self._pendingRecoveryActive = false;
+        self._recoveringTurn = false;
+      },
+    );
+  },
+
   _recoverTurnFromHistory: function (options) {
     var self = this;
     var opts = options || {};
@@ -1021,7 +1058,7 @@ Page({
       return Promise.resolve(false);
     }
 
-    var maxAttempts = opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3;
+    var maxAttempts = opts.maxAttempts || (opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3);
     var attempt = 0;
 
     function tryFetch() {
@@ -1055,7 +1092,11 @@ Page({
             }
             if (!self._recoveryAborted) {
               self._finishPendingTurnRecovery(
-                opts.longPoll ? serverMessages : null,
+                opts.longPoll || opts.unlockOnExhausted ? serverMessages : null,
+                {
+                  keepPending: !!opts.keepPendingOnExhausted,
+                  hydrate: opts.hydrateOnExhausted !== false,
+                },
               );
             }
             return false;
@@ -1098,7 +1139,10 @@ Page({
               );
             });
           }
-          self._finishPendingTurnRecovery();
+          self._finishPendingTurnRecovery(null, {
+            keepPending: !!opts.keepPendingOnExhausted,
+            hydrate: opts.hydrateOnExhausted !== false,
+          });
           return false;
         });
     }
@@ -1223,6 +1267,7 @@ Page({
         u["messages[" + idx + "].thinkingTone"] = "";
       }
       u.isStreaming = false;
+      u.canStopStream = false;
       if (this._autoScrollEnabled) {
         u.scrollToId = "msg-bottom";
         u.chatScrollWithAnimation = false;
@@ -1259,7 +1304,7 @@ Page({
         }, 80);
       }
     } else {
-      this.setData({ isStreaming: false });
+      this.setData({ isStreaming: false, canStopStream: false });
     }
     this._streamId = null;
     this._abort = null;
@@ -1275,15 +1320,23 @@ Page({
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
-      this._recoverTurnFromHistory().then(
+      this._recoverTurnFromHistory({
+        maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
+        unlockOnExhausted: true,
+        keepPendingOnExhausted: true,
+        hydrateOnExhausted: false,
+      }).then(
         function (recovered) {
           recoverySelf._pendingRecoveryActive = false;
           if (!recovered) {
             recoverySelf._recoveringTurn = false;
+            recoverySelf._continuePendingTurnRecoveryInBackground();
           }
         },
         function () {
           recoverySelf._pendingRecoveryActive = false;
+          recoverySelf._recoveringTurn = false;
+          recoverySelf._continuePendingTurnRecoveryInBackground();
         },
       );
       return;

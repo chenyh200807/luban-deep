@@ -786,11 +786,37 @@ Page({
       maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
       unlockOnExhausted: true,
       keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
+    }).then(function (recovered) {
+      self._pendingRecoveryActive = false;
+      if (!recovered) {
+        self._recoveringTurn = false;
+        self._continuePendingTurnRecoveryInBackground();
+      }
+    }, function () {
+      self._pendingRecoveryActive = false;
+      self._recoveringTurn = false;
+      self._continuePendingTurnRecoveryInBackground();
+    });
+  },
+
+  _continuePendingTurnRecoveryInBackground: function () {
+    var self = this;
+    if (!this._isPendingTurnCurrent(this._pendingTurn || this._loadPendingTurn()) || this._pendingRecoveryActive) return;
+    this._pendingRecoveryActive = true;
+    this._recoverTurnFromHistory({
+      longPoll: true,
+      unlockOnExhausted: true,
+      keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
     }).then(function (recovered) {
       self._pendingRecoveryActive = false;
       if (!recovered) {
         self._recoveringTurn = false;
       }
+    }, function () {
+      self._pendingRecoveryActive = false;
+      self._recoveringTurn = false;
     });
   },
 
@@ -927,13 +953,14 @@ Page({
   _finishPendingTurnRecovery: function (serverMessages, options) {
     var hasServerMessages = Array.isArray(serverMessages);
     var keepPending = !!(options && options.keepPending);
+    var shouldHydrate = !(options && options.hydrate === false);
     this._recoveringTurn = false;
     if (keepPending) {
       this._pendingRecoveryActive = false;
     } else {
       this._clearPendingTurn();
     }
-    if (hasServerMessages) {
+    if (hasServerMessages && shouldHydrate) {
       this._applyHydratedConversationMessages(serverMessages);
       return;
     }
@@ -1088,7 +1115,10 @@ Page({
             }
             self._finishPendingTurnRecovery(
               opts.longPoll || opts.unlockOnExhausted ? serverMessages : null,
-              { keepPending: !!opts.keepPendingOnExhausted },
+              {
+                keepPending: !!opts.keepPendingOnExhausted,
+                hydrate: opts.hydrateOnExhausted !== false,
+              },
             );
             return false;
           }
@@ -1121,6 +1151,7 @@ Page({
           }
           self._finishPendingTurnRecovery(null, {
             keepPending: !!opts.keepPendingOnExhausted,
+            hydrate: opts.hydrateOnExhausted !== false,
           });
           return false;
         });
@@ -1475,13 +1506,20 @@ Page({
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
       this._recoverTurnFromHistory({
-        maxAttempts: 4,
+        maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
         unlockOnExhausted: true,
+        keepPendingOnExhausted: true,
+        hydrateOnExhausted: false,
       }).then(function (recovered) {
         recoverySelf._pendingRecoveryActive = false;
         if (!recovered) {
           recoverySelf._recoveringTurn = false;
+          recoverySelf._continuePendingTurnRecoveryInBackground();
         }
+      }, function () {
+        recoverySelf._pendingRecoveryActive = false;
+        recoverySelf._recoveringTurn = false;
+        recoverySelf._continuePendingTurnRecoveryInBackground();
       });
       return;
     }

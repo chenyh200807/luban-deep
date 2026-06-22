@@ -29,6 +29,7 @@ from deeptutor.services.session.turn_runtime import (
     _billing_capture_amount_from_usage_summary,
     _build_turn_semantic_decision,
     _enrich_result_question_authority_from_trace,
+    _is_mobile_surface_turn_config,
     _learning_prompt_intent_trace_metadata,
     _LiveSubscriber,
     _normalize_turn_user_content,
@@ -7627,6 +7628,96 @@ async def test_turn_runtime_preserves_auto_capability_selection_when_unspecified
 
 
 @pytest.mark.asyncio
+async def test_mobile_surface_turn_synthesizes_public_result_response_from_final_content_before_done(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="generation",
+                content="### Question 1\n流水施工中，流水步距反映什么？",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "考我一道流水施工的题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                }
+            },
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "### Question 1\n流水施工中，流水步距反映什么？"
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["content"] == "### Question 1\n流水施工中，流水步距反映什么？"
+
+
+def test_mobile_surface_turn_config_accepts_interaction_hint_product_surface() -> None:
+    assert _is_mobile_surface_turn_config(
+        {"interaction_hints": {"product_surface": "wechat_miniprogram"}},
+        None,
+    )
+    assert _is_mobile_surface_turn_config(
+        {"product_surface": "wx_miniprogram"},
+        None,
+    )
+    assert not _is_mobile_surface_turn_config(
+        {"interaction_hints": {"product_surface": "web"}},
+        None,
+    )
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_marks_explicit_chat_mode_in_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -8285,7 +8376,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
     assert captured == {
         "wallet_user_id": "wallet_demo",
         "amount_points": 20,
@@ -8533,7 +8624,7 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
     assert captured == {
         "learning_user_id": "learner_demo",
         "learning_query": "继续解释这道题",
