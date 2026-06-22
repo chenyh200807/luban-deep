@@ -167,6 +167,17 @@ def _normalize_username(username: str) -> str:
     return value
 
 
+def _normalize_optional_user_id(user_id: str | None) -> str:
+    value = str(user_id or "").strip()
+    if not value:
+        return ""
+    try:
+        uuid.UUID(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("用户身份格式不正确") from exc
+    return value
+
+
 def _validate_password(password: str) -> None:
     if len(password) > _PASSWORD_MAX_LENGTH:
         raise ValueError(f"密码不能超过 {_PASSWORD_MAX_LENGTH} 个字符")
@@ -336,33 +347,61 @@ def _generate_auto_password() -> str:
     return "Aa" + secrets.token_hex(8) + "9"
 
 
-def ensure_external_auth_user_for_phone(phone: str) -> dict[str, Any]:
+def ensure_external_auth_user_for_phone(phone: str, *, user_id: str | None = None) -> dict[str, Any]:
     normalized_phone = normalize_external_phone(phone)
+    desired_user_id = _normalize_optional_user_id(user_id)
     users_file = _resolve_users_file_for_write()
+    invalidate_user_id = ""
+    result: dict[str, Any] | None = None
 
     with _STORE_LOCK:
         users = _load_json_mapping(users_file)
+        if desired_user_id:
+            for username, user_data in users.items():
+                if not isinstance(user_data, dict):
+                    continue
+                if str(user_data.get("id") or "").strip() != desired_user_id:
+                    continue
+                if _normalize_existing_phone(str(user_data.get("phone") or "")) != normalized_phone:
+                    raise ValueError("该手机号已被注册，请更换手机号或直接登录。")
+
         for username, user_data in users.items():
             if not isinstance(user_data, dict):
                 continue
             if _normalize_existing_phone(str(user_data.get("phone") or "")) == normalized_phone:
-                return _merge_user(username, user_data)
+                existing_id = str(user_data.get("id") or "").strip()
+                if desired_user_id and existing_id != desired_user_id:
+                    if existing_id:
+                        invalidate_user_id = existing_id
+                    user_data = dict(user_data)
+                    user_data["id"] = desired_user_id
+                    user_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+                    users[username] = user_data
+                    _write_json_mapping(users_file, users)
+                result = _merge_user(username, user_data)
+                break
 
-        base_username = f"user_{normalized_phone[-4:]}"
-        candidate = base_username
-        while candidate in users:
-            candidate = f"{base_username}_{secrets.token_hex(2)}"
-        payload = {
-            "id": str(uuid.uuid4()),
-            "username": candidate,
-            "password_hash": _hash_password(_generate_auto_password()),
-            "phone": normalized_phone,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        users[candidate] = payload
-        _write_json_mapping(users_file, users)
+        if result is None:
+            base_username = f"user_{normalized_phone[-4:]}"
+            candidate = base_username
+            while candidate in users:
+                candidate = f"{base_username}_{secrets.token_hex(2)}"
+            payload = {
+                "id": desired_user_id or str(uuid.uuid4()),
+                "username": candidate,
+                "password_hash": _hash_password(_generate_auto_password()),
+                "phone": normalized_phone,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            users[candidate] = payload
+            _write_json_mapping(users_file, users)
+            result = _merge_user(candidate, payload)
 
-    return _merge_user(candidate, payload)
+    if invalidate_user_id:
+        delete_external_auth_sessions(invalidate_user_id)
+    if result is None:
+        raise RuntimeError("phone-backed external auth bootstrap failed")
+    return result
 
 
 def change_external_auth_password(username: str, old_password: str, new_password: str) -> dict[str, Any]:

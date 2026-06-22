@@ -3247,6 +3247,44 @@ def test_auth_reset_password_calls_member_service_without_issuing_token(
     }
 
 
+def test_auth_reset_password_allows_phone_only_first_password_setup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _reset_password(username: str, phone: str, code: str, password: str) -> dict[str, object]:
+        captured.update(
+            {
+                "username": username,
+                "phone": phone,
+                "code": code,
+                "password": password,
+            }
+        )
+        return {"success": True, "message": "密码已重置，请使用新密码登录"}
+
+    monkeypatch.setattr(mobile_module.member_service, "reset_password_with_phone_code", _reset_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "phone": "13955556666",
+                "code": "123456",
+                "password": "NewPass123",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "message": "密码已重置，请使用新密码登录"}
+    assert captured == {
+        "username": "",
+        "phone": "13955556666",
+        "code": "123456",
+        "password": "NewPass123",
+    }
+
+
 def test_auth_reset_password_maps_validation_error_to_400(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
