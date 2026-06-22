@@ -734,3 +734,26 @@ def test_lightweight_parallel_fallback_counters_match_real_calls(
     assert fake_gen.call_count == 2
     assert counters.get("llm_calls") == fake_gen.batch_call_count + fake_gen.call_count == 3
     assert counters.get("lightweight_batch_fallback") == "parallel"
+
+
+def test_looks_like_non_exam_garbage_blocks_garbage_not_real_questions():
+    """阶段2 止血(B 出题管线):明显非一建考试题(拼音/字形/英文/语用/通识)必须被拦,
+    绝不 emit 给学生;真实建筑/市政工程题不可误伤(误判→漏判防回归)。"""
+    from deeptutor.capabilities.deep_question import _looks_like_non_exam_garbage
+
+    for garbage in [
+        "### 第1题 '出'字的正确读音是? A.chū B.cū C.chù D.qū",
+        "### 第1题 '来'的字形结构属于? A.左右结构 B.上下结构",
+        "Which is a characteristic of a 莫名其妙的题? A. xxx B. yyy",
+        "法国的首都是哪里? A.巴黎 B.伦敦 C.柏林",
+        "'行行行你说得对'这句话最常用来表达什么? A.真诚赞同 B.讽刺认同",
+    ]:
+        assert _looks_like_non_exam_garbage(garbage), f"未拦垃圾题: {garbage[:30]}"
+
+    for real in [
+        "### 第1题 危大工程中需组织专家论证的是? A.开挖深度4m基坑 B.跨度16m模板支撑",
+        "热拌沥青混合料初压温度应控制在多少摄氏度? A.110 B.135 C.150 D.170",
+        "施工总平面布置中,易燃易爆库房应布置在? A.下风向 B.上风向 C.主导风向上风侧",
+        "地下连续墙单元槽段长度宜为多少? A.4~6m B.8~10m C.12~15m",
+    ]:
+        assert not _looks_like_non_exam_garbage(real), f"误伤真题: {real[:30]}"

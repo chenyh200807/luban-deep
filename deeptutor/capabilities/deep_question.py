@@ -1818,6 +1818,26 @@ def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
     return promoted
 
 
+_NON_EXAM_GARBAGE_RES = (
+    re.compile(r"(正确读音|的拼音|拼音是|字形结构|笔画|偏旁|部首|这个字的|字的结构)"),
+    re.compile(r"这句话[^。\n]{0,8}表达(什么|的是|了)"),
+    re.compile(r"(首都|哪颗行星|红色星球|几大洲|地球有几大)"),
+    re.compile(r"\b(Which|What|How|Why|Where)\b[^。\n]{0,40}\b(is|are|of|the)\b", re.IGNORECASE),
+)
+
+
+def _looks_like_non_exam_garbage(text: str) -> bool:
+    """止血(2026-06-22, B 出题管线):检测明显非一建考试题的垃圾生成——拼音/字形/英文/
+    语用/地理通识题。LLM 在 topic 被污染(字面"出"、填充语"行行行")或被点名科目无考点
+    地图时,会裸生成这类与一建实务完全无关的题(Langfuse 实证 SEV1)。这些标记在真实
+    建筑/市政工程题里近乎不出现,误伤率极低。**这不是闭包**(真闭环=补 6 门考点地图,内容
+    真相病另案),只防最离谱的跑题题被 emit 给学生。"""
+    t = str(text or "")
+    if not t.strip():
+        return False
+    return any(rx.search(t) for rx in _NON_EXAM_GARBAGE_RES)
+
+
 def _render_missing_question_review_feedback(topic: str) -> str:
     focus = str(topic or "").strip() or "这道题"
     return (
@@ -4240,6 +4260,43 @@ class DeepQuestionCapability(BaseCapability):
             reveal_explanations=reveal_explanations,
             review_mode=question_review_mode,
         )
+        # 止血(B 出题管线,2026-06-22):LLM 在 topic 被污染或被点名科目无考点地图时,会
+        # 裸生成拼音/字形/英文/语用/通识等明显非一建考试题(Langfuse SEV1)。宁可诚实澄清,
+        # 也绝不把跑题垃圾题 emit 给学生。真闭环=补 6 门考点地图(内容真相病,另案工单);
+        # 此处只拦最离谱跑题,误伤率极低。
+        if not question_review_mode and content and _looks_like_non_exam_garbage(content):
+            logger.warning(
+                "practice generation produced non-exam garbage; refusing to emit (topic=%s)",
+                str(topic)[:80],
+            )
+            if isinstance(context.metadata, dict):
+                _tm = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(_tm, dict):
+                    _tm["practice_generation.refused_non_exam_garbage"] = True
+            content = (
+                "这道题我没生成好(跑题了),先不给你这道,免得耽误你。\n\n"
+                "你告诉我具体想练哪个考点就行;如果练建筑工程(建筑实务),我这边题库最全——"
+                "直接说\"建筑实务\"我就给你出一道靠谱的。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(content, source=self.name, stage="generation")
+            await self._emit_result_with_citations(
+                stream,
+                {
+                    "response": content,
+                    "mode": mode,
+                    "question_followup_context": {},
+                    "active_object": {},
+                    "turn_semantic_decision": self._default_turn_semantic_decision(
+                        next_action="route_to_followup_explainer",
+                        active_object=active_object,
+                        question_context=None,
+                        user_message=context.user_message,
+                    ),
+                    "metadata": {"practice_generation": {"refused_non_exam_garbage": True}},
+                },
+            )
+            return
         generation_citation_enabled = answer_citations_enabled()
         if content and not generation_citation_enabled:
             await stream.content(content, source=self.name, stage="generation")
