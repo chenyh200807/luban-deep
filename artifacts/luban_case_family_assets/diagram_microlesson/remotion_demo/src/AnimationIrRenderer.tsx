@@ -28,6 +28,7 @@ type VisualNode = {
   base_y?: number;
   text?: string;
   subtext?: string;
+  labels?: string[];
   value?: number;
 };
 
@@ -58,6 +59,10 @@ type TimingSegment = {
 
 export type AnimationIr = {
   card_id: string;
+  display?: {
+    kicker?: string;
+    title?: string;
+  };
   main_exam_action: string;
   render_contract: { max_visible_nodes: number };
   scenes: Scene[];
@@ -72,8 +77,8 @@ type AnimationTiming = {
 export type AnimationIrRendererProps = {
   ir: AnimationIr;
   timing?: AnimationTiming;
-  title: string;
-  kicker: string;
+  title?: string;
+  kicker?: string;
 };
 
 const colors = {
@@ -168,6 +173,9 @@ const fitFontSize = (text: string | undefined, width: number, base: number, mini
   const estimated = Math.floor((Math.max(width - 20, 24) / Math.max(longest, 1)) * 1.08);
   return Math.max(minimum, Math.min(base, estimated));
 };
+
+const labelsWithDefaults = (node: VisualNode, defaults: string[], limit: number) =>
+  [...(node.labels || []).filter((label): label is string => label != null), ...defaults].slice(0, limit);
 
 const LabelBadge: React.FC<{
   text?: string;
@@ -330,6 +338,155 @@ const Primitive: React.FC<{
       </g>
     );
   }
+  if (node.kind === "process_flow") {
+    const labels = labelsWithDefaults(node, ["先判", "再做", "复核", "写分"], 4);
+    const stepGap = w / Math.max(labels.length, 1);
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "按顺序 reveal"} x={x + w / 2} y={y + 30} size={15} fill={t.text} />
+        <path d={`M${x + 34} ${y + 88} H${x + w - 34}`} stroke="#cbd5e1" strokeWidth={8} strokeLinecap="round" />
+        {labels.map((label, index) => {
+          const cx = x + stepGap * index + stepGap / 2;
+          const circleTone = toneOf(["blue", "success", "amber", "neutral"][index % 4]);
+          const size = fitFontSize(label, 68, 13, 10);
+          return (
+            <g key={`${label}-${index}`}>
+              <circle cx={cx} cy={y + 88} r={31} fill={circleTone.fill} stroke={circleTone.stroke} strokeWidth={4} />
+              <TextLines text={label} x={cx} y={y + 93} size={size} fill={circleTone.text} />
+              <TextLines text={`第${index + 1}步`} x={cx} y={y + 142} size={12} fill="#64748b" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
+  if (node.kind === "layer_stack") {
+    const labels = labelsWithDefaults(node, ["面层", "防水层", "找平层", "基层"], 4);
+    const fills = ["#60a5fa", "#10b981", "#c5b78f", "#87919d"];
+    const startY = y + 70;
+    const layerH = 28;
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "剖面分层"} x={x + w / 2} y={y + 36} size={16} fill={t.text} />
+        <rect x={x + 28} y={startY - 12} width={w - 56} height={labels.length * layerH + 8} rx={18} fill="none" stroke="#eadfcb" strokeWidth={3} />
+        {labels.map((label, index) => {
+          const yy = startY + index * layerH;
+          return (
+            <g key={`${label}-${index}`}>
+              <rect x={x + 38} y={yy} width={w - 76} height={layerH - 4} rx={6} fill={fills[index % fills.length]} opacity={0.88} />
+              <TextLines text={label} x={x + 18} y={yy + 18} size={12} fill="#334155" anchor="start" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
+  if (node.kind === "network_graph") {
+    const labels = labelsWithDefaults(node, ["A", "B", "C", "D"], 4);
+    const coords: Array<[number, number]> = [[x + 36, y + 118], [x + 112, y + 72], [x + 112, y + 164], [x + 206, y + 118], [x + 282, y + 118]];
+    const nodeLabels = ["始", labels[0], labels[1], labels[2], "终"];
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "图上推演"} x={x + w / 2} y={y + 32} size={16} fill={t.text} />
+        <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 116} ${x + 72} ${y + 76} ${coords[1][0] - 24} ${coords[1][1]}`} stroke="#94a3b8" strokeWidth={5} fill="none" />
+        <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 120} ${x + 72} ${y + 164} ${coords[2][0] - 24} ${coords[2][1]}`} stroke="#cbd5e1" strokeWidth={5} fill="none" />
+        <path d={`M${coords[1][0] + 24} ${coords[1][1]} H${coords[3][0] - 24} M${coords[2][0] + 24} ${coords[2][1]} C${x + 164} ${y + 164} ${x + 166} ${y + 122} ${coords[3][0] - 24} ${coords[3][1]}`} stroke={colors.blue} strokeWidth={5} fill="none" />
+        <path d={`M${coords[3][0] + 24} ${coords[3][1]} H${coords[4][0] - 24}`} stroke={colors.teal} strokeWidth={5} fill="none" />
+        {coords.map(([cx, cy], index) => (
+          <g key={index}>
+            <rect x={cx - 25} y={cy - 20} width={50} height={40} rx={12} fill={index === 0 || index === 4 ? "#fff7ed" : "#eff6ff"} stroke={index === 0 || index === 4 ? "#f97316" : colors.blue} strokeWidth={3} />
+            <TextLines text={nodeLabels[index]} x={cx} y={cy + 5} size={13} fill="#172033" />
+          </g>
+        ))}
+      </g>
+    );
+  }
+  if (node.kind === "formula_chain") {
+    const labels = labelsWithDefaults(node, ["口径", "数量", "单价", "扣减"], 4);
+    const expr = labels.join(" → ");
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "计算口径"} x={x + w / 2} y={y + 44} size={16} fill={t.text} />
+        <rect x={x + 22} y={y + 76} width={w - 44} height={64} rx={18} fill="#fff7ed" stroke="#f59e0b" strokeWidth={4} />
+        <TextLines text={expr} x={x + w / 2} y={y + 115} size={fitFontSize(expr, w - 62, 16, 11)} fill="#b45309" />
+        <path d={`M${x + 56} ${y + 170} H${x + w - 56}`} stroke="#f97316" strokeWidth={6} strokeLinecap="round" />
+      </g>
+    );
+  }
+  if (node.kind === "decision_tree") {
+    const labels = labelsWithDefaults(node, ["对象", "条件", "阈值", "结论"], 4);
+    const gateY = y + 100;
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "判断树"} x={x + w / 2} y={y + 20} size={16} fill={t.text} />
+        <rect x={x + 66} y={y + 30} width={w - 132} height={38} rx={13} fill="#ecfdf5" stroke={colors.teal} strokeWidth={3} />
+        <TextLines text={labels[0]} x={x + w / 2} y={y + 55} size={13} fill="#047857" />
+        {labels.slice(1, 4).map((label, index) => {
+          const cx = x + 50 + index * ((w - 100) / 2);
+          return (
+            <g key={`${label}-${index}`}>
+              <path d={`M${x + w / 2} ${y + 68} V${gateY - 16} H${cx}`} stroke="#94a3b8" strokeWidth={3} fill="none" />
+              <rect x={cx - 38} y={gateY} width={76} height={42} rx={12} fill="#f8fafc" stroke="#cbd5e1" strokeWidth={3} />
+              <TextLines text={label} x={cx} y={gateY + 27} size={fitFontSize(label, 76, 12, 10)} fill="#334155" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
+  if (node.kind === "contrast_pair") {
+    const labels = labelsWithDefaults(node, ["错误做法", "正确做法", "错因", "采分"], 4);
+    const left = labels[0] || "错误做法";
+    const right = labels[1] || "正确做法";
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "左右对照"} x={x + w / 2} y={y + 28} size={16} fill={t.text} />
+        <rect x={x + 20} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#fff7ed" stroke="#f97316" strokeWidth={4} />
+        <rect x={x + w / 2 + 10} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#ecfdf5" stroke={colors.teal} strokeWidth={4} />
+        <TextLines text="错" x={x + 42} y={y + 88} size={18} fill="#9a3412" />
+        <TextLines text="对" x={x + w / 2 + 32} y={y + 88} size={18} fill="#047857" />
+        <TextLines text={left} x={x + 20 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(left, w / 2 - 46, 14, 10)} fill="#9a3412" />
+        <TextLines text={right} x={x + w / 2 + 10 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(right, w / 2 - 46, 14, 10)} fill="#047857" />
+      </g>
+    );
+  }
+  if (node.kind === "answer_scan") {
+    const labels = labelsWithDefaults(node, ["对象", "条件", "依据", "采分句"], 4);
+    const states = [["#ecfdf5", colors.teal, "hit"], ["#fffbeb", "#f59e0b", "partial"], ["#fef2f2", colors.red, "miss"], ["#eff6ff", colors.blue, "fix"]];
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "答案逐句扫描"} x={x + w / 2} y={y + 34} size={16} fill={t.text} />
+        {labels.map((label, index) => {
+          const yy = y + 62 + index * 38;
+          const [fill, stroke, tag] = states[index % states.length];
+          return (
+            <g key={`${label}-${index}`}>
+              <rect x={x + 30} y={yy} width={w - 60} height={28} rx={9} fill={fill} stroke={stroke} strokeWidth={2} />
+              <TextLines text={label} x={x + 44} y={yy + 19} size={12} fill="#172033" anchor="start" />
+              <TextLines text={tag} x={x + w - 46} y={yy + 19} size={11} fill="#64748b" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
+  if (node.kind === "memory_table") {
+    const labels = labelsWithDefaults(node, ["数值", "条件", "例外", "记忆钩子"], 4);
+    return (
+      <g style={common}>
+        <TextLines text={node.text || "参数辨析"} x={x + w / 2} y={y + 32} size={16} fill={t.text} />
+        {labels.map((label, index) => {
+          const yy = y + 58 + index * 36;
+          return (
+            <g key={`${label}-${index}`}>
+              <rect x={x + 38} y={yy} width={w - 76} height={28} rx={8} fill="#f8fafc" stroke="#cbd5e1" strokeWidth={2} />
+              <TextLines text={label} x={x + 56} y={yy + 19} size={12} fill="#334155" anchor="start" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
   if (node.kind === "answer_box" || node.kind === "dialogue_box" || node.kind === "note") {
     const rx = node.kind === "note" ? 10 : 11;
     return (
@@ -436,6 +593,8 @@ export const AnimationIrRenderer: React.FC<AnimationIrRendererProps> = ({
   const progress = clamp((second - scene.start_sec) / duration);
   const visual = ir.visual_library?.[scene.id] || { nodes: [] };
   const segment = activeSegmentAt(timing?.segments, second);
+  const displayTitle = title || ir.display?.title || ir.card_id;
+  const displayKicker = kicker || ir.display?.kicker || "鲁班深母题";
   const cameraAction = (scene.actions || []).find((action) => action.kind === "camera");
   const cameraProgress = ease((progress - (cameraAction?.start || 0)) / Math.max(0.04, (cameraAction?.end || 0.32) - (cameraAction?.start || 0)));
   const cameraVerb = cameraAction?.verb || scene.camera?.verb || "spotlight";
@@ -463,8 +622,8 @@ export const AnimationIrRenderer: React.FC<AnimationIrRendererProps> = ({
         }}
       >
         <div>
-          <div style={{ color: colors.amber, fontSize: 30, fontWeight: 900 }}>{kicker}</div>
-          <div style={{ fontSize: 70, fontWeight: 950, lineHeight: 1.08, marginTop: 14 }}>{title}</div>
+          <div style={{ color: colors.amber, fontSize: 30, fontWeight: 900 }}>{displayKicker}</div>
+          <div style={{ fontSize: 70, fontWeight: 950, lineHeight: 1.08, marginTop: 14 }}>{displayTitle}</div>
           <div style={{ color: "#9fb0c2", fontSize: 31, fontWeight: 850, lineHeight: 1.45, marginTop: 20 }}>
             {ir.main_exam_action}
           </div>

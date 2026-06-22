@@ -34,6 +34,8 @@
 | 只用 opacity 隐藏 | 元素看不见但还被 gate/点击层当作可见或遮挡 | 视觉隐藏和布局/命中语义混用 | 临时退出用 `display:none` 或明确 `aria-hidden/pointer-events`,不要只调透明度 | hit-test / occlusion gate |
 | 先渲染后救火 | 页面出来才发现比例、叠层、Remotion 没吃同源 IR | 缺 pre-render contract gate,把 schema 问题拖到 UI 评审 | IR 生成后先跑 `validate_animation_ir_contract.mjs`;不过不渲染、不调 CSS | pre-render IR gate |
 | Remotion 单卡另写一套 | HTML preview 变好了,正式成片又偏;或 topic TSX 里硬编码 F16 SVG | Remotion 成了第二份 storyboard/renderer truth | topic wrapper 只导入 IR/timing;通用 `AnimationIrRenderer` 消费 `visual_library/actions` | contract gate 查 wrapper 导入当前 IR + 委托通用 renderer |
+| HTML/Remotion 图元表不对称 | 某些卡在 Remotion 是图,HTML 预览却静默变成文字框;机器门还绿 | 只检查一侧 renderer 覆盖,另一侧有 catch-all fallback | contract gate 同时查 HTML renderer 和 Remotion renderer;未知图元渲染时直接 fail,不能降级为文本卡 | `html_primitive_coverage` + `remotion_primitive_coverage` |
+| 文字卡伪图示 | 40 pack 看起来全是解释框,没有构造、流程、判断树、网络图等认知结构 | 只把 6+1 原型当标签,没有把 archetype 转成必需 visual primitive | `render_contract.archetype_visual_required` 必填;每个 archetype 至少出现对应非文本图元;文本容器不能冒充图解 | `archetype_visual_present` + `archetype_not_text_only` |
 | 机器绿但无评审包 | gate PASS 后仍反复被用户截图指出拥挤/错位/没动画 | 没把截图墙和人审发现回写成 root-cause triage,下一轮 agent 又只看命令绿灯 | 按 `workflow-review-loop.md` 形成 review packet;人眼发现的问题必须补 gate/anti-pattern 或标 needs_human_review | review packet + screenshot wall |
 
 ## 2. 快速判定

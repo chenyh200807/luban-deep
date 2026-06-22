@@ -10,6 +10,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 DATA_ID_GATE = ROOT / "artifacts/luban_case_family_assets/diagram_microlesson/validate_data_id_targets.mjs"
 TIMING_GATE = ROOT / "artifacts/luban_case_family_assets/diagram_microlesson/validate_timing_sync.mjs"
+CONTRACT_GATE = ROOT / "artifacts/luban_case_family_assets/diagram_microlesson/validate_animation_ir_contract.mjs"
 
 
 def run_node(script: Path, *args: Path | str) -> subprocess.CompletedProcess[str]:
@@ -23,6 +24,107 @@ def run_node(script: Path, *args: Path | str) -> subprocess.CompletedProcess[str
         capture_output=True,
         check=False,
     )
+
+
+def write_animation_ir_contract_fixture(
+    tmp_path: Path,
+    *,
+    visual_kind: str,
+    required: list[str] | None,
+    renderer_handles: list[str] | None = None,
+    html_handles: list[str] | None = None,
+) -> Path:
+    src = tmp_path / "remotion_demo" / "src"
+    src.mkdir(parents=True)
+    ir_path = tmp_path / "card.animation_ir.v0.json"
+    wrapper = src / "CardAnimationIrPreview.tsx"
+    wrapper.write_text(
+        """import React from "react";
+import ir from "../../card.animation_ir.v0.json";
+import {AnimationIrRenderer} from "./AnimationIrRenderer";
+export const CardAnimationIrPreview: React.FC = () => <AnimationIrRenderer ir={ir as any} />;
+""",
+        encoding="utf-8",
+    )
+    handled = renderer_handles or [visual_kind]
+    branches = "\n".join(f'if (node.kind === "{kind}") return null;' for kind in handled)
+    (src / "AnimationIrRenderer.tsx").write_text(
+        f"""export const AnimationIrRenderer = () => null;
+function Primitive(node: {{kind: string}}) {{
+  {branches}
+  return null;
+}}
+""",
+        encoding="utf-8",
+    )
+    html_branches = "\n".join(f'    if kind == "{kind}":\n        return ""' for kind in (html_handles or [visual_kind]))
+    (tmp_path / "render_animation_ir_preview.py").write_text(
+        f"""def _primitive_svg(node):
+    kind = node.get("kind")
+{html_branches}
+    raise ValueError(kind)
+""",
+        encoding="utf-8",
+    )
+    scenes = []
+    visual_library = {}
+    for index, scene_id in enumerate(["hook", "map", "rule", "trap", "score", "closing_challenge"]):
+        start = index * 10
+        node_id = f"{scene_id}_visual"
+        scenes.append(
+            {
+                "id": scene_id,
+                "label": scene_id,
+                "start_sec": start,
+                "end_sec": start + 10,
+                "scene": f"calculation_structure_{scene_id}",
+                "focus": node_id,
+                "enter": ["scene.fade_in"],
+                "hold": [f"{node_id}.spotlight"],
+                "exit": ["scene.fade_out"],
+                "layout": {"portrait": "centered_board"},
+                "camera": {"verb": "push-in", "target": node_id, "duration_sec": 0.4},
+                "visible_nodes": [node_id],
+                "actions": [
+                    {"kind": "camera", "target": node_id, "start": 0, "end": 0.2},
+                    {"kind": "reveal", "target": node_id, "start": 0.1, "end": 0.3},
+                ],
+                "keycard": "看图",
+                "coach": "按图推演",
+            }
+        )
+        visual_library[scene_id] = {
+            "board": "warm_grid",
+            "nodes": [{"id": node_id, "kind": visual_kind, "text": "图示", "x": 40, "y": 40, "w": 260, "h": 160}],
+        }
+    render_contract = {
+        "html_preview": "card.animation_ir_preview.html",
+        "remotion_renderer": "remotion_demo/src/CardAnimationIrPreview.tsx",
+        "remotion_composition": "CardAnimationIrPreview",
+        "max_visible_nodes": 4,
+        "challenge_unlock_sec": 40,
+    }
+    if required is not None:
+        render_contract["archetype_visual_required"] = required
+    ir_path.write_text(
+        __import__("json").dumps(
+            {
+                "schema_version": "luban_animation_ir.v0",
+                "ir_id": "card",
+                "card_id": "card",
+                "display": {"title": "测试卡"},
+                "main_exam_action": "把图写成采分句",
+                "teaching_spine": {"archetype": "calculation_structure"},
+                "render_contract": render_contract,
+                "chapters": [{"id": scene["id"], "label": scene["label"], "start_sec": scene["start_sec"]} for scene in scenes],
+                "scenes": scenes,
+                "visual_library": visual_library,
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    return ir_path
 
 
 def write_lesson(tmp_path: Path) -> Path:
@@ -157,3 +259,47 @@ def test_timing_gate_passes_when_sync_keyword_hits_segment_text(tmp_path: Path) 
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "且命中对应 timing 文本" in result.stdout
+
+
+def test_animation_ir_contract_rejects_text_only_archetype_visual(tmp_path: Path) -> None:
+    ir_path = write_animation_ir_contract_fixture(tmp_path, visual_kind="pill", required=None)
+
+    result = run_node(CONTRACT_GATE, ir_path)
+
+    assert result.returncode == 1
+    output = result.stdout + result.stderr
+    assert "archetype_visual_required_canonical" in output
+    assert "archetype_not_text_only" in output
+
+
+def test_animation_ir_contract_rejects_missing_remotion_primitive_branch(tmp_path: Path) -> None:
+    ir_path = write_animation_ir_contract_fixture(
+        tmp_path,
+        visual_kind="network_graph",
+        required=["network_graph", "formula_chain"],
+        renderer_handles=["pill"],
+    )
+
+    result = run_node(CONTRACT_GATE, ir_path)
+
+    assert result.returncode == 1
+    output = result.stdout + result.stderr
+    assert "remotion_primitive_coverage" in output
+    assert "network_graph" in output
+
+
+def test_animation_ir_contract_rejects_missing_html_primitive_branch(tmp_path: Path) -> None:
+    ir_path = write_animation_ir_contract_fixture(
+        tmp_path,
+        visual_kind="network_graph",
+        required=["network_graph", "formula_chain"],
+        renderer_handles=["network_graph"],
+        html_handles=["pill"],
+    )
+
+    result = run_node(CONTRACT_GATE, ir_path)
+
+    assert result.returncode == 1
+    output = result.stdout + result.stderr
+    assert "html_primitive_coverage" in output
+    assert "network_graph" in output

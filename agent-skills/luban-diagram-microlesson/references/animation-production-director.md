@@ -79,6 +79,7 @@
 - Remotion/HTML 渲染源:只读 lesson/master/card 数据。
 - `*.practice.html` 或 journey 练习幕:题目来自 variants/quiz。
 - 截图/验收记录:首屏、关键运镜、练习、结果页。
+- `validate_animation_ir_contract.mjs` 输出:证明 archetype 已映射到必需非文本图元,且 HTML preview renderer 与 Remotion renderer 都覆盖 IR 中出现的每一种 primitive。
 - `validate_video_first_preview.mjs` 输出:证明普通态 responsive learning stage、横屏/宽屏适配、全屏/theater、章节、拖动进度、独立练习、student-safe 和练习闭环没有明显破约。
 - `validate_learning_stage_runtime.mjs` 输出:用真实浏览器视口证明竖屏首屏、竖屏播放、横屏播放、桌面宽屏和 theater 控制层没有塌陷、遮挡、窄竖条或横向溢出。
 
@@ -247,6 +248,7 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 - `validate_animation_ir_contract.mjs` 是渲染前硬门:scene/action/visual_library/data-id/Remotion 同源先过,再允许 HTML preview 或 Remotion still。前置 gate 的目的就是把 unsupported primitive、selector 漂移、Remotion 没吃 IR 这类问题挡在肉眼 UI 评审之前。
 - gate 不能只查页面存在。至少抽样 scene 中段,证明当前 scene 有节点被 action/progressive reveal 显示、字幕非空、keycard 不累积、theater 控制层默认隐藏且点击浮出。
 - gate 还必须查真实手机壳:360/390/430 竖屏 + 844/932 横屏、播放器不遮挡主图/字幕/教练卡/CTA、触控 >=44px、字幕 `aria-live`、按钮 `aria-pressed`、采分句前 CTA locked、采分句后 CTA enabled、seek 回旧 scene 时不残留旧节点。
+- gate 必须查 **archetype visual coverage**:6+1 原型不能只变成标题、旁白或 `pill` 文字卡。`render_contract.archetype_visual_required` 是渲染前硬合同;缺字段、字段不等于 canonical primitive 集合、或 `visual_library` 未命中对应 primitive,都必须 FAIL。HTML renderer 和 Remotion 通用 renderer 还必须同时支持 IR 用到的每个 primitive;任一侧缺分支都 FAIL,未知 primitive 不能 fallback 成文本框,否则禁止把 HTML 预览 PASS 当成正式同源。
 
 这条是 60 卡量产底线:任何"画面乱/叠加/比例一变就坏/像翻页/字幕丢失/控制条占屏"的问题,优先升级 IR、renderer、gate 或本导演手册;不要只改某一张卡的 CSS。
 

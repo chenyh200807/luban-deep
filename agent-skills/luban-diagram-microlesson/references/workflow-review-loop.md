@@ -52,6 +52,12 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
   ],
   "judge": {
     "verdict": "FAIL",
+    "panel": [
+      {"slot": "codex_gpt5_5", "status": "PASS|FAIL|BLOCKED", "note": "主审:实现和 gate 对齐"},
+      {"slot": "claude_opus_or_cli", "status": "PASS|FAIL|BLOCKED", "note": "辅助审:用 opus4.8;不可用时用 claude -p 读取输出"},
+      {"slot": "deepseek_v4_pro", "status": "PASS|FAIL|BLOCKED", "note": "待接入 judge slot;未接入不得伪造已评"},
+      {"slot": "qwen3_7_max", "status": "PASS|FAIL|BLOCKED", "note": "待接入 judge slot;未接入不得伪造已评"}
+    ],
     "issues": [
       {
         "axis": "practice_readability",
@@ -91,6 +97,7 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
 | 音画不同步 | timing + narration + preview/remotion gate | sync_keyword 和关键帧 |
 | 题目无图或选项不像采分句 | practice generator + mother data binding | variants/source/scoring 追溯 |
 | 人眼发现但机器绿 | gate + anti-pattern | 先补 gate/anti-pattern,再修页面 |
+| 图元只在一侧 renderer 可用 | contract gate + renderer | HTML/Remotion primitive coverage 双绿 |
 | 只影响一张卡的极小视觉瑕疵 | card CSS 可例外 | 写明为什么不是 shared shell/renderer/gate 问题 |
 
 ## 4. Judge Prompt 骨架
@@ -132,6 +139,7 @@ LLM judge 只评表现和学习体验,不重写事实。输出必须是结构化
 - `fix_layer=card-css` 默认有罪推定。除非 review packet 写清楚为什么不是 shared failure,否则返工到 renderer/gate。
 - 同一 anti-pattern 第二次出现,必须升级 gate 或 skill;第三次出现,必须停下来重审 workflow,不能继续批量生产。
 - 人眼截图墙发现的问题,优先补机器门;补不了的标 `needs_human_review`,不要伪装成全自动 PASS。
+- 四模型评审是 panel 槽位,不是口头背书。当前环境能调用哪个模型就写哪个为 `PASS/FAIL`;DeepSeek/Qwen 等未接入时必须写 `BLOCKED: tool unavailable`,不能把未运行的模型写成已参与。
 
 ## 6. Done
 

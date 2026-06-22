@@ -78,6 +78,7 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 12. **截图证据是验收的一部分**:机器门 PASS 后还要用 `cdp_shot.mjs` 截目标视口。若用户反馈来自某个截图/设备比例,该比例必须加入下一轮 gate 或截图证据。禁止只看 390x844 或只看 DOM 指标就判合格。
 13. **机器门之后必须形成 review packet**:按 `workflow-review-loop.md` 记录 gate 输出、目标截图墙、judge/human 发现、root-cause triage、修复层级和回炉字段。若人眼发现问题但没有新增 gate/anti-pattern/triage,不得把本轮标为 workflow improvement。
 14. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
+15. **6+1 原型必须落成图示 primitive,不能只落成文案分类**:生成器识别 `process_step_reveal / section_or_spatial_reveal / calculation_structure / decision_branch_reveal / contrast_reveal / scoring_diagnosis_reveal / value_memory_card` 后,必须写入 `render_contract.archetype_visual_required` 并在 `visual_library` 至少命中对应 primitive(`process_flow / layer_stack|roof_section / network_graph|formula_chain / decision_tree / contrast_pair / answer_scan / memory_table`)。`pill / answer_box / dialogue_box / note / flow_arrow / threshold_meter` 只能辅助 hook/qa/score,不得作为主教学图示。contract gate 必须 fail-closed 拦截 text-container-only IR。
 
 60 张卡量产的核心目标:每次 F16/N01/S01/A01 暴露的问题,都要优先沉淀到 `animation_ir.v0`、renderer、gate 或本 skill,而不是只修单卡 CSS。单卡能看只是样例;可复用 workflow 才是交付物。
 如果某次修复选择只改 card CSS,必须在复盘中写明为什么不是 stage shell / renderer / gate 问题;否则默认返工。

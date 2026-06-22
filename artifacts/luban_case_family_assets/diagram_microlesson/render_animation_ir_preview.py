@@ -68,6 +68,11 @@ def _fit_font_size(text: object, width: float, base: int, *, minimum: int = 10) 
     return max(minimum, min(base, estimated))
 
 
+def _labels(node: dict[str, Any], defaults: list[str], limit: int) -> list[str]:
+    raw = [str(item) for item in node.get("labels", []) if item is not None]
+    return (raw + defaults)[:limit]
+
+
 def _label_badge(text: object, cx: float, cy: float, *, tone: dict[str, str], width: float | None = None, size: int = 12) -> str:
     label = str(text or "")
     if not label:
@@ -197,6 +202,101 @@ def _primitive_svg(node: dict[str, Any]) -> str:
             node,
             f'<circle cx="{x}" cy="{y}" r="24" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/><text x="{x}" y="{y + 9}" text-anchor="middle" font-size="28" font-weight="900" fill="#047857">✓</text>',
         )
+    if kind == "process_flow":
+        labels = _labels(node, ["先判", "再做", "复核", "写分"], 4)
+        step_gap = w / max(len(labels), 1)
+        parts = [f'<path d="M{x + 34} {y + 88} H{x + w - 34}" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>']
+        for index, label in enumerate(labels):
+            cx = x + step_gap * index + step_gap / 2
+            circle_tone = _tone(["blue", "success", "amber", "neutral"][index % 4])
+            size = _fit_font_size(label, 68, 13, minimum=10)
+            parts.append(
+                f'<circle cx="{cx}" cy="{y + 88}" r="31" fill="{circle_tone["fill"]}" stroke="{circle_tone["stroke"]}" stroke-width="4"/>'
+                f'<text x="{cx}" y="{y + 93}" text-anchor="middle" font-size="{size}" font-weight="900" fill="{circle_tone["text"]}">{esc(label)}</text>'
+                f'<text x="{cx}" y="{y + 142}" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第{index + 1}步</text>'
+            )
+        return _visual_group(node, "".join(parts) + _svg_text(text or "按顺序 reveal", x + w / 2, y + 30, size=15, fill=tone["text"]))
+    if kind == "layer_stack":
+        labels = _labels(node, ["面层", "防水层", "找平层", "基层"], 4)
+        colors = ["#60a5fa", "#10b981", "#c5b78f", "#87919d"]
+        parts = []
+        layer_h = 28
+        start_y = y + 70
+        for index, label in enumerate(labels):
+            yy = start_y + index * layer_h
+            parts.append(
+                f'<rect x="{x + 38}" y="{yy}" width="{w - 76}" height="{layer_h - 4}" rx="6" fill="{colors[index % len(colors)]}" opacity=".88"/>'
+                f'<text x="{x + 18}" y="{yy + 18}" text-anchor="start" font-size="12" font-weight="900" fill="#334155">{esc(label)}</text>'
+            )
+        parts.append(f'<rect x="{x + 28}" y="{start_y - 12}" width="{w - 56}" height="{len(labels) * layer_h + 8}" rx="18" fill="none" stroke="#eadfcb" stroke-width="3"/>')
+        return _visual_group(node, _svg_text(text or "剖面分层", x + w / 2, y + 36, size=16, fill=tone["text"]) + "".join(parts))
+    if kind == "network_graph":
+        labels = _labels(node, ["A", "B", "C", "D"], 4)
+        coords = [(x + 36, y + 118), (x + 112, y + 72), (x + 112, y + 164), (x + 206, y + 118), (x + 282, y + 118)]
+        parts = [
+            f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 116} {x + 72} {y + 76} {coords[1][0] - 24} {coords[1][1]}" stroke="#94a3b8" stroke-width="5" fill="none"/>',
+            f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 120} {x + 72} {y + 164} {coords[2][0] - 24} {coords[2][1]}" stroke="#cbd5e1" stroke-width="5" fill="none"/>',
+            f'<path d="M{coords[1][0] + 24} {coords[1][1]} H{coords[3][0] - 24} M{coords[2][0] + 24} {coords[2][1]} C{x + 164} {y + 164} {x + 166} {y + 122} {coords[3][0] - 24} {coords[3][1]}" stroke="#60a5fa" stroke-width="5" fill="none"/>',
+            f'<path d="M{coords[3][0] + 24} {coords[3][1]} H{coords[4][0] - 24}" stroke="#10b981" stroke-width="5" fill="none"/>',
+        ]
+        node_labels = ["始", labels[0], labels[1], labels[2], "终"]
+        for index, (cx, cy) in enumerate(coords):
+            fill = "#fff7ed" if index in [0, 4] else "#eff6ff"
+            stroke = "#f97316" if index in [0, 4] else "#60a5fa"
+            parts.append(f'<rect x="{cx - 25}" y="{cy - 20}" width="50" height="40" rx="12" fill="{fill}" stroke="{stroke}" stroke-width="3"/><text x="{cx}" y="{cy + 5}" text-anchor="middle" font-size="13" font-weight="900" fill="#172033">{esc(node_labels[index])}</text>')
+        return _visual_group(node, _svg_text(text or "图上推演", x + w / 2, y + 32, size=16, fill=tone["text"]) + "".join(parts))
+    if kind == "formula_chain":
+        labels = _labels(node, ["口径", "数量", "单价", "扣减"], 4)
+        expr = " → ".join(labels[:4])
+        return _visual_group(
+            node,
+            f'<rect x="{x + 22}" y="{y + 76}" width="{w - 44}" height="64" rx="18" fill="#fff7ed" stroke="#f59e0b" stroke-width="4"/>'
+            + _svg_text(text or "计算口径", x + w / 2, y + 44, size=16, fill=tone["text"])
+            + _svg_text(expr, x + w / 2, y + 115, size=_fit_font_size(expr, w - 62, 16, minimum=11), fill="#b45309")
+            + f'<path d="M{x + 56} {y + 170} H{x + w - 56}" stroke="#f97316" stroke-width="6" stroke-linecap="round"/>',
+        )
+    if kind == "decision_tree":
+        labels = _labels(node, ["对象", "条件", "阈值", "结论"], 4)
+        parts = [
+            f'<rect x="{x + 66}" y="{y + 30}" width="{w - 132}" height="38" rx="13" fill="#ecfdf5" stroke="#10b981" stroke-width="3"/>'
+            + _svg_text(labels[0], x + w / 2, y + 55, size=13, fill="#047857")
+        ]
+        gate_y = y + 100
+        for index, label in enumerate(labels[1:4]):
+            cx = x + 50 + index * ((w - 100) / 2)
+            parts.append(f'<path d="M{x + w / 2} {y + 68} V{gate_y - 16} H{cx}" stroke="#94a3b8" stroke-width="3" fill="none"/>')
+            parts.append(f'<rect x="{cx - 38}" y="{gate_y}" width="76" height="42" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><text x="{cx}" y="{gate_y + 27}" text-anchor="middle" font-size="{_fit_font_size(label, 76, 12, minimum=10)}" font-weight="900" fill="#334155">{esc(label)}</text>')
+        return _visual_group(node, _svg_text(text or "判断树", x + w / 2, y + 20, size=16, fill=tone["text"]) + "".join(parts))
+    if kind == "contrast_pair":
+        labels = _labels(node, ["错误做法", "正确做法", "错因", "采分"], 4)
+        left = labels[0]
+        right = labels[1] if len(labels) > 1 else "正确做法"
+        return _visual_group(
+            node,
+            _svg_text(text or "左右对照", x + w / 2, y + 28, size=16, fill=tone["text"])
+            + f'<rect x="{x + 20}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#fff7ed" stroke="#f97316" stroke-width="4"/>'
+            + f'<rect x="{x + w / 2 + 10}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/>'
+            + _svg_text("错", x + 42, y + 88, size=18, fill="#9a3412")
+            + _svg_text("对", x + w / 2 + 32, y + 88, size=18, fill="#047857")
+            + _svg_text(left, x + 20 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(left, w / 2 - 46, 14, minimum=10), fill="#9a3412")
+            + _svg_text(right, x + w / 2 + 10 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(right, w / 2 - 46, 14, minimum=10), fill="#047857"),
+        )
+    if kind == "answer_scan":
+        labels = _labels(node, ["对象", "条件", "依据", "采分句"], 4)
+        states = [("#ecfdf5", "#10b981", "hit"), ("#fffbeb", "#f59e0b", "partial"), ("#fef2f2", "#ef4444", "miss"), ("#eff6ff", "#60a5fa", "fix")]
+        parts = [_svg_text(text or "答案逐句扫描", x + w / 2, y + 34, size=16, fill=tone["text"])]
+        for index, label in enumerate(labels):
+            yy = y + 62 + index * 38
+            fill, stroke, tag = states[index % len(states)]
+            parts.append(f'<rect x="{x + 30}" y="{yy}" width="{w - 60}" height="28" rx="9" fill="{fill}" stroke="{stroke}" stroke-width="2"/><text x="{x + 44}" y="{yy + 19}" text-anchor="start" font-size="12" font-weight="900" fill="#172033">{esc(label)}</text><text x="{x + w - 46}" y="{yy + 19}" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">{tag}</text>')
+        return _visual_group(node, "".join(parts))
+    if kind == "memory_table":
+        labels = _labels(node, ["数值", "条件", "例外", "记忆钩子"], 4)
+        parts = [_svg_text(text or "参数辨析", x + w / 2, y + 32, size=16, fill=tone["text"])]
+        for index, label in enumerate(labels):
+            yy = y + 58 + index * 36
+            parts.append(f'<rect x="{x + 38}" y="{yy}" width="{w - 76}" height="28" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><text x="{x + 56}" y="{yy + 19}" text-anchor="start" font-size="12" font-weight="900" fill="#334155">{esc(label)}</text>')
+        return _visual_group(node, "".join(parts))
     if kind == "answer_box":
         return _visual_group(
             node,
@@ -246,11 +346,7 @@ def _primitive_svg(node: dict[str, Any]) -> str:
             f'<path d="M{marker} {y - 8} V{y + 30}" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>'
             + _svg_text(text, x + w / 2, y + 48, size=13, fill=tone["text"]),
         )
-    return _visual_group(
-        node,
-        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2"/>'
-        + _svg_text(text, x + w / 2, y + h / 2 + 5, size=13, fill=tone["text"]),
-    )
+    raise ValueError(f"unsupported visual primitive kind: {kind}")
 
 
 def _visual_svg(scene: dict[str, Any], visual_library: dict[str, Any]) -> str | None:
@@ -405,6 +501,7 @@ def render(ir_path: Path) -> str:
         "safeSummary": ir.get("ai_context", {}).get("safe_summary", ir.get("teaching_spine", {}).get("warm_correction", "")),
         "keyPoints": ir.get("ai_context", {}).get("key_points", []),
         "handoffMode": ir.get("ai_context", {}).get("handoff_mode", "context_id_plus_current_scene"),
+        "apiBase": ir.get("ai_context", {}).get("api_base", ""),
     }
 
     scenes = ir["scenes"]
@@ -633,7 +730,8 @@ function openAskPanel(){{pauseForAsk();const context=currentAskContext();askCurr
 function closeAskPanel(){{askPanel.hidden=true;askStatus.textContent='';askAnswer.hidden=true;askAnswer.textContent='';stage.focus();}}
 async function copyAskContext(){{const context=currentAskContext();const text=askTextPayload(context);try{{await navigator.clipboard.writeText(text);askStatus.textContent='已复制当前画面上下文，可以粘贴给答疑。';}}catch{{askStatus.textContent='复制失败，请长按选中文本后手动复制。';}}}}
 function previewAskAnswer(context){{const points=(context.keyPoints||[]).slice(0,3).map(point=>'• '+point).join('\\n');const question=askInput.value.trim()||'我现在最容易卡在哪里？';return `预览答疑：你问「${{question}}」\\n\\n先看当前画面：${{context.currentScene.label}}。这一幕抓的是「${{context.currentScene.keycard}}」。\\n${{context.currentScene.coach}}\\n\\n答题主线：${{context.mainExamAction}}\\n${{points?'\\n可带走的依据：\\n'+points:''}}\\n\\n正式小程序里，这个入口会把 contextId、当前画面和问题发给 TutorBot，由后端读取母题数据继续追问。`;}}
-function sendAskContext(){{const payload=currentAskContext();payload.question=askInput.value.trim();const message={{type:'luban_ai_ask',payload}};try{{window.wx?.miniProgram?.postMessage({{data:message}});}}catch{{}}try{{window.parent?.postMessage(message,'*');}}catch{{}}askAnswer.textContent=previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent=payload.question?'预览模式已给出上下文答疑；正式版会发送给小程序 TutorBot。':'可以先看预览答疑，也可以补一句更具体的问题。';}}
+function askApiUrl(){{const base=String(DATA.aiContext?.apiBase||'').replace(/\/$/,'');return base?base+'/api/v1/luban-preview/ai-ask':'/api/v1/luban-preview/ai-ask';}}
+async function sendAskContext(){{const payload=currentAskContext();payload.question=askInput.value.trim();const message={{type:'luban_ai_ask',payload}};try{{window.wx?.miniProgram?.postMessage({{data:message}});}}catch{{}}try{{window.parent?.postMessage(message,'*');}}catch{{}}askSend.disabled=true;askStatus.textContent='正在带着当前画面问 AI...';askAnswer.hidden=true;try{{const res=await fetch(askApiUrl(),{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(payload)}});const data=await res.json().catch(()=>({{}}));if(!res.ok)throw new Error(data.detail||'AI 答疑暂时不可用');askAnswer.textContent=data.answer||previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent=data.source==='tutorbot_runtime'?'已接入 TutorBot 实时答疑。':'实时 AI 暂时降级，先给你本卡答疑。';}}catch(err){{askAnswer.textContent=previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent='实时 AI 暂不可用，先显示本卡预览答疑。';}}finally{{askSend.disabled=false;}}}}
 play.addEventListener('click',toggle);centerPlay.addEventListener('click',playAudio);au.addEventListener('timeupdate',paint);au.addEventListener('play',()=>setPlayState(true));au.addEventListener('pause',()=>setPlayState(false));au.addEventListener('ended',()=>{{setPlayState(false);seek(DATA.totalSec);setControls(true,false);}});
 scrubber.addEventListener('input',()=>seek(scrubber.value));chapters.forEach(btn=>btn.addEventListener('click',()=>{{seek(btn.dataset.t);playAudio();}}));
 stage.addEventListener('click',e=>{{if(e.target===centerPlay)return;if(lesson.classList.contains('theater'))setControls(true);}});

@@ -1,0 +1,77 @@
+{
+  "audio": "",
+  "totalSec": 138.0,
+  "segments": [
+    {
+      "startSec": 0.05,
+      "durSec": 19.613999999999997,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "注意哈，这类题别先背答案，先判它要哪条采分链。"
+    },
+    {
+      "startSec": 19.764,
+      "durSec": 19.615000000000002,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "先把它画成图：对象、上下层开口间实…、依据、同一幕墙玻璃单…。"
+    },
+    {
+      "startSec": 39.479,
+      "durSec": 19.613999999999997,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"
+    },
+    {
+      "startSec": 59.193,
+      "durSec": 19.613999999999997,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "只写结果、不写依据，最容易漏采分点。"
+    },
+    {
+      "startSec": 78.907,
+      "durSec": 19.613999999999997,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "答题纸按三段写：对象、上下层开口间实…、依据。"
+    },
+    {
+      "startSec": 98.621,
+      "durSec": 19.615000000000002,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "学生常问三个问题：先写哪个、少一句扣不扣分、能不能只写结论。都回到采分链。"
+    },
+    {
+      "startSec": 102.371,
+      "durSec": 2.4,
+      "speaker": "S",
+      "kind": "qa",
+      "text": "老师，先写哪个动作？"
+    },
+    {
+      "startSec": 105.371,
+      "durSec": 2.4,
+      "speaker": "S",
+      "kind": "qa",
+      "text": "少一个判断依据会丢分吗？"
+    },
+    {
+      "startSec": 108.371,
+      "durSec": 2.4,
+      "speaker": "S",
+      "kind": "qa",
+      "text": "我能不能只写结论？"
+    },
+    {
+      "startSec": 118.336,
+      "durSec": 19.613999999999997,
+      "speaker": "T",
+      "kind": "coach",
+      "text": "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"
+    }
+  ],
+  "generated_from": "P40_D13.animation_ir.v0.json"
+}

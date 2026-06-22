@@ -1,0 +1,711 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_C04_animation_ir_v0",
+  "card_id": "P40_C04",
+  "display": {
+    "kicker": "鲁班深母题 · Slot 11",
+    "title": "模板拆除顺序与条件"
+  },
+  "main_exam_action": "把「模板拆除顺序与条件」写成采分链：先判对象，再判条件，最后写判断依据。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/C04_模板拆除顺序与条件.md",
+    "archetype": "process_step_reveal",
+    "warm_correction": "模板拆除顺序与条件 不是背散点，而是把题干转成可得分的判断链。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/C04_模板拆除顺序与条件.md",
+    "timing": "P40_C04.lesson.timing.json"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_C04.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_C04AnimationIrPreview.tsx",
+    "remotion_composition": "P40_C04AnimationIrPreview",
+    "practice_href": "P40_C04.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "process_flow"
+    ],
+    "challenge_unlock_sec": 78.857,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 11,
+    "pack_id": "C04",
+    "status": "direct",
+    "canonical_taxonomy_refs": [
+      "1A413040-R25",
+      "1A413040-R26",
+      "1A413040-R27",
+      "1A436000-B114"
+    ],
+    "note": "拆除要求、要点、顺序和安全控制"
+  },
+  "ai_context": {
+    "context_id": "P40_C04",
+    "title": "模板拆除顺序与条件",
+    "main_exam_action": "把「模板拆除顺序与条件」写成采分链：先判对象，再判条件，最后写判断依据。",
+    "safe_summary": "模板拆除顺序与条件 的学习重点是：## 1 · 跨章知识点全景（本体 / 邻接噪声 ）; ## 3 · R2 不变量（一句话，）; 程序门槛：（修正自 lens B 的 :0）+ {20…; 1. {2015,第10题} 8m板快拆 → 强度门槛…。",
+    "key_points": [
+      "## 1 · 跨章知识点全景（本体 / 邻接噪声 ）",
+      "## 3 · R2 不变量（一句话，）",
+      "程序门槛：（修正自 lens B 的 :0）+ {20…",
+      "1. {2015,第10题} 8m板快拆 → 强度门槛…"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0.0
+    },
+    {
+      "id": "map",
+      "label": "看结构",
+      "start_sec": 19.714
+    },
+    {
+      "id": "rule",
+      "label": "判边界",
+      "start_sec": 39.429
+    },
+    {
+      "id": "trap",
+      "label": "错法",
+      "start_sec": 59.143
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 78.857
+    },
+    {
+      "id": "qa",
+      "label": "三问",
+      "start_sec": 98.571
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 118.286
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0.0,
+      "end_sec": 19.714,
+      "scene": "process_step_reveal_hook",
+      "focus": "wrong_start",
+      "enter": [
+        "scene.fade_in",
+        "wrong_start.reveal"
+      ],
+      "hold": [
+        "wrong_start.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "wrong_start",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "wrong_start",
+        "score_goal"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "wrong_start",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_start",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "score_goal",
+          "start": 0.19,
+          "end": 0.35
+        },
+        {
+          "kind": "highlight",
+          "target": "wrong_start",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "考场先别急着写术语",
+      "coach": "注意哈，这类题别先背答案，先判它要哪条采分链。"
+    },
+    {
+      "id": "map",
+      "label": "看结构",
+      "start_sec": 19.714,
+      "end_sec": 39.429,
+      "scene": "process_step_reveal_map",
+      "focus": "prototype_map",
+      "enter": [
+        "scene.fade_in",
+        "prototype_map.reveal"
+      ],
+      "hold": [
+        "prototype_map.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "prototype_map",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "prototype_map"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "prototype_map",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "prototype_map",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "prototype_map",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "先看它属于哪类图",
+      "coach": "先把它画成图：## 1 ·…、## 3 ·…、程序门槛、采分。"
+    },
+    {
+      "id": "rule",
+      "label": "判边界",
+      "start_sec": 39.429,
+      "end_sec": 59.143,
+      "scene": "process_step_reveal_rule",
+      "focus": "rule_model",
+      "enter": [
+        "scene.fade_in",
+        "rule_model.reveal"
+      ],
+      "hold": [
+        "rule_model.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "rule_model",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "rule_model"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "rule_model",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "rule_model",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "rule_model",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "用图走一遍判断动作",
+      "coach": "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"
+    },
+    {
+      "id": "trap",
+      "label": "错法",
+      "start_sec": 59.143,
+      "end_sec": 78.857,
+      "scene": "process_step_reveal_trap",
+      "focus": "trap_visual",
+      "enter": [
+        "scene.fade_in",
+        "trap_visual.reveal"
+      ],
+      "hold": [
+        "trap_visual.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "trap_visual",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "trap_visual"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "trap_visual",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "trap_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "trap_visual",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "先拆常见错法",
+      "coach": "只写结果、不写依据，最容易漏采分点。"
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 78.857,
+      "end_sec": 98.571,
+      "scene": "process_step_reveal_score",
+      "focus": "score_1",
+      "enter": [
+        "scene.fade_in",
+        "score_1.reveal"
+      ],
+      "hold": [
+        "score_1.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "score_1",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "score_1",
+        "score_2",
+        "score_3"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "score_1",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "score_1",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "score_2",
+          "start": 0.19,
+          "end": 0.35
+        },
+        {
+          "kind": "reveal",
+          "target": "score_3",
+          "start": 0.34,
+          "end": 0.5
+        },
+        {
+          "kind": "highlight",
+          "target": "score_1",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "把答案写成采分句",
+      "coach": "答题纸按三段写：## 1 ·…、## 3 ·…、程序门槛。"
+    },
+    {
+      "id": "qa",
+      "label": "三问",
+      "start_sec": 98.571,
+      "end_sec": 118.286,
+      "scene": "process_step_reveal_qa",
+      "focus": "student_q1",
+      "enter": [
+        "scene.fade_in",
+        "student_q1.reveal"
+      ],
+      "hold": [
+        "student_q1.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "student_q1",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "student_q1",
+        "student_q2",
+        "teacher_a"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "student_q1",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "student_q1",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "student_q2",
+          "start": 0.19,
+          "end": 0.35
+        },
+        {
+          "kind": "reveal",
+          "target": "teacher_a",
+          "start": 0.34,
+          "end": 0.5
+        },
+        {
+          "kind": "highlight",
+          "target": "student_q1",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "三问集中放后面",
+      "coach": "学生常问三个问题：先写哪个、少一句扣不扣分、能不能只写结论。都回到采分链。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 118.286,
+      "end_sec": 138.0,
+      "scene": "process_step_reveal_closing_challenge",
+      "focus": "closing_sentence",
+      "enter": [
+        "scene.fade_in",
+        "closing_sentence.reveal"
+      ],
+      "hold": [
+        "closing_sentence.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "closing_sentence",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "closing_sentence",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.19,
+          "end": 0.35
+        },
+        {
+          "kind": "highlight",
+          "target": "closing_sentence",
+          "start": 0.3,
+          "end": 0.9
+        }
+      ],
+      "keycard": "收束到闯关",
+      "coach": "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "wrong_start",
+          "kind": "pill",
+          "text": "错觉:先背答案",
+          "x": 54,
+          "y": 68,
+          "w": 252,
+          "h": 48,
+          "tone": "danger"
+        },
+        {
+          "id": "score_goal",
+          "kind": "pill",
+          "text": "目标:写成采分闭环",
+          "x": 58,
+          "y": 142,
+          "w": 244,
+          "h": 56,
+          "tone": "success",
+          "subtext": "对象 → 条件 → 依据"
+        }
+      ]
+    },
+    "map": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "prototype_map",
+          "kind": "process_flow",
+          "text": "流程先后",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "success",
+          "labels": [
+            "## 1 ·…",
+            "## 3 ·…",
+            "程序门槛",
+            "采分",
+            "错因",
+            "结论"
+          ]
+        }
+      ]
+    },
+    "rule": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "rule_model",
+          "kind": "process_flow",
+          "text": "不能跳步",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "amber",
+          "labels": [
+            "## 1 ·…",
+            "## 3 ·…",
+            "程序门槛",
+            "采分",
+            "错因",
+            "结论"
+          ]
+        }
+      ]
+    },
+    "trap": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "trap_visual",
+          "kind": "process_flow",
+          "text": "错步会返工",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "danger",
+          "labels": [
+            "采分",
+            "程序门槛",
+            "## 3 ·…",
+            "## 1 ·…"
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "score_1",
+          "kind": "answer_box",
+          "text": "## 1 ·…",
+          "x": 54,
+          "y": 94,
+          "w": 252,
+          "h": 38,
+          "tone": "success"
+        },
+        {
+          "id": "score_2",
+          "kind": "answer_box",
+          "text": "## 3 ·…",
+          "x": 54,
+          "y": 142,
+          "w": 252,
+          "h": 38,
+          "tone": "blue"
+        },
+        {
+          "id": "score_3",
+          "kind": "answer_box",
+          "text": "程序门槛",
+          "x": 54,
+          "y": 190,
+          "w": 252,
+          "h": 38,
+          "tone": "amber"
+        }
+      ]
+    },
+    "qa": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "student_q1",
+          "kind": "dialogue_box",
+          "text": "学生问:先写哪个?",
+          "x": 42,
+          "y": 58,
+          "w": 276,
+          "h": 44,
+          "tone": "blue"
+        },
+        {
+          "id": "student_q2",
+          "kind": "dialogue_box",
+          "text": "学生问:少一句扣分吗?",
+          "x": 42,
+          "y": 114,
+          "w": 276,
+          "h": 44,
+          "tone": "amber"
+        },
+        {
+          "id": "teacher_a",
+          "kind": "dialogue_box",
+          "text": "老师:按采分链补齐",
+          "x": 42,
+          "y": 170,
+          "w": 276,
+          "h": 46,
+          "tone": "success"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "带走一句话",
+          "x": 0,
+          "y": 0,
+          "w": 176,
+          "h": 46,
+          "tone": "success",
+          "subtext": "模板拆除顺序与条件: 对象→条件→依据"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关",
+          "x": 90,
+          "y": 166,
+          "w": 180,
+          "h": 44,
+          "tone": "amber"
+        }
+      ]
+    }
+  }
+}
