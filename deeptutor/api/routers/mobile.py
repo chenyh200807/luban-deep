@@ -2097,10 +2097,10 @@ class VerifyCodeRequest(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-    username: str
     phone: str
     code: str
     password: str
+    username: str = ""
 
 
 class ChangePasswordRequest(BaseModel):
