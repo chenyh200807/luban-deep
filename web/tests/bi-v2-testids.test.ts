@@ -108,7 +108,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const api = await readWeb('lib/member-api.ts')
 
-  assert.ok(panel.includes('getBiCommerce'))
+  assert.ok(panel.includes('listMembershipPackages'))
   assert.ok(panel.includes('manualPurchaseMembership'))
   assert.ok(panel.includes('reverseManualMembershipPurchase'))
   assert.ok(panel.includes('updateMembership'))
@@ -135,6 +135,8 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('convertSupremeMembershipToFree'))
   assert.ok(panel.includes('manual_membership_reversal'))
   assert.ok(api.includes('/api/v1/bi/member/manual-purchase/reverse'))
+  assert.ok(api.includes('/api/v1/bi/member/packages'))
+  assert.ok(api.includes('listMembershipPackages'))
   assert.ok(api.includes('reverseManualMembershipPurchase'))
   assert.ok(api.includes('/api/v1/bi/member/'))
   assert.ok(api.includes('deleteMemberAccount'))

@@ -41,6 +41,7 @@ import {
   getMemberDashboard,
   getMemberDetail,
   listMembers,
+  listMembershipPackages,
   deleteMemberAccount,
   manualPurchaseMembership,
   reverseManualMembershipPurchase,
@@ -49,6 +50,7 @@ import {
   type MemberDashboard,
   type MemberDetail,
   type MemberListItem,
+  type MembershipPackageResult,
 } from '@/lib/member-api'
 import { getBiCommerce, type BiCommercePackage } from '@/lib/bi-api'
 import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
@@ -270,6 +272,25 @@ function findPackageForTier(
   return packages.find(pkg => isActivePackage(pkg) && normalizeMembershipTier(pkg.tier) === tier)
 }
 
+function toCommercePackage(pkg: MembershipPackageResult): BiCommercePackage {
+  return {
+    id: pkg.id,
+    name: pkg.label || pkg.id,
+    tier: pkg.tier,
+    points: Number(pkg.points || 0),
+    turns: Number(pkg.turns || 0),
+    priceCny: Number(pkg.price || 0),
+    originalPriceCny: Number(pkg.original_price || 0),
+    badge: pkg.badge || '',
+    per: pkg.per || '',
+    desc: pkg.desc || '',
+    features: [],
+    status: pkg.status || 'active',
+    authority: 'member_console.packages',
+    trust: 'A',
+  }
+}
+
 function statusLabel(status: string): string {
   if (status === 'active') return '有效'
   if (status === 'expiring') return '即将到期'
@@ -356,7 +377,7 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list, commerce] = await Promise.all([
+      const [nextDashboard, list, packages, commerce] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -369,15 +390,17 @@ export function BiV2MemberOpsPanel({
           expire_within_days: filters.expiringDays || undefined,
           risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
         }),
+        listMembershipPackages(),
         getBiCommerce({ limit: 50 }).catch(() => null),
       ])
       const nextRows = list.items.map(toMemberRow)
       setDashboard(nextDashboard)
-      if (commerce) {
-        setMembershipPackages(
-          commerce.packages.filter(pkg => (pkg.status || 'active') !== 'archived')
-        )
-      }
+      const memberOpsPackages = packages.map(toCommercePackage)
+      setMembershipPackages(
+        memberOpsPackages.length > 0
+          ? memberOpsPackages.filter(pkg => (pkg.status || 'active') !== 'archived')
+          : (commerce?.packages ?? []).filter(pkg => (pkg.status || 'active') !== 'archived')
+      )
       setLiveRows(nextRows)
       setTotalRows(list.total)
       setSelectedRows(

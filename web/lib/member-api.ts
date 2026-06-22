@@ -212,6 +212,11 @@ export interface MembershipPackageResult {
   reason?: string
 }
 
+export interface MembershipPackageListResponse {
+  items: MembershipPackageResult[]
+  operator?: string
+}
+
 export interface MemberAuditLogItem {
   id: string
   operator?: string
@@ -533,6 +538,14 @@ export async function reverseManualMembershipPurchase(payload: {
     body: JSON.stringify(payload),
   })
   return expectJson<ManualMembershipReversalResult>(response)
+}
+
+export async function listMembershipPackages(): Promise<MembershipPackageResult[]> {
+  const response = await fetch(apiUrl('/api/v1/bi/member/packages'), {
+    headers: adminHeaders(),
+  })
+  const payload = await expectJson<MembershipPackageListResponse>(response)
+  return Array.isArray(payload.items) ? payload.items : []
 }
 
 export async function upsertMembershipPackage(
