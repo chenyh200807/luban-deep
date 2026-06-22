@@ -90,6 +90,7 @@ feature_flags:
   - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
+  - {name: DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS, default: "1782097380", kind: config}
   - {name: DEEPTUTOR_SEMANTIC_ROUTER_ENABLED, default: true, kind: killswitch}
   - {name: DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE, default: false, kind: shadow}
   - {name: DISABLE_SSL_VERIFY, default: false, kind: killswitch}  # security: on = disable TLS verify
@@ -272,6 +273,7 @@ grandfathered_envs:
   - DEEPTUTOR_CORS_ALLOW_ORIGINS
   - DEEPTUTOR_DEBUG_ERRORS
   - DEEPTUTOR_DEMO_TOKENS_ENABLED
+  - DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS
   - DEEPTUTOR_ENABLE_API_DOCS
   - DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA
   - DEEPTUTOR_ENABLE_LEGACY_ROUTERS

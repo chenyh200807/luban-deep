@@ -429,6 +429,40 @@ def test_verify_access_token_rejects_signed_token_without_exp(tmp_path: Path) ->
     assert service.resolve_user_id(f"Bearer {token}") == ""
 
 
+def test_verify_access_token_rejects_legacy_wechat_token_before_phone_auth_cutover(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    token = service._issue_access_token(
+        user_id="wx_legacy",
+        openid="openid_legacy",
+        orig_iat=member_service_module._WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS - 1,
+    )
+
+    assert service.verify_access_token(token) is None
+    assert service.resolve_user_id(f"Bearer {token}") == ""
+    with pytest.raises(ValueError, match="Invalid or expired token"):
+        service.refresh_access_token(f"Bearer {token}")
+
+
+def test_verify_access_token_keeps_legacy_local_token_before_wechat_phone_cutover(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    token = service._issue_access_token(
+        user_id="student_demo",
+        orig_iat=member_service_module._WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS - 1,
+    )
+
+    claims = service.verify_access_token(token)
+
+    assert claims is not None
+    assert claims["uid"] == "student_demo"
+    assert claims["provider"] == "local"
+
+
 def test_issue_access_token_uses_configured_ttl(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
