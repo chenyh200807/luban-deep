@@ -272,6 +272,84 @@ function loadWsStream(config) {
     );
   });
 
+  await run("public result should project next_best_action display fields only", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "继续", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        response: "已完成批改。",
+        next_best_action: {
+          title: "先补一题可诊断练习",
+          target: "屋面防水\n薄弱点",
+          query: "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
+          why_this_now: "刚刚错在构造层级。",
+          materials: ["教材第 5 章", "", "错题本"],
+          success_measure: "能独立说出 2 个设防层级",
+          action_type: "practice",
+          intent: { internal: true },
+          evidence_refs: ["hidden"],
+          training_intent_id: "secret",
+        },
+      },
+      turn_id: "turn_1",
+      session_id: "conv_1",
+    });
+    await flushPromises();
+
+    assert(finals.length === 1, "result event should emit one final payload");
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.title === "先补一题可诊断练习",
+      "next_best_action title should be projected for display",
+    );
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.target.indexOf("\n") === -1,
+      "next_best_action target should be sanitized before reaching the page",
+    );
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.materials.length === 2,
+      "next_best_action materials should drop blank entries",
+    );
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.query ===
+          "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
+      "next_best_action query should be projected for the page action",
+    );
+    assert(
+      Object.keys(finals[0].next_best_action).sort().join(",") ===
+        "materials,query,successMeasure,target,title,whyThisNow",
+      "next_best_action should expose only page display fields",
+    );
+    assert(
+      finals[0].next_best_action &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "intent") &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "evidence_refs") &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "training_intent_id"),
+      "next_best_action must not expose internal training authority fields",
+    );
+  });
+
   await run("ws reconnect should re-read fresh token instead of reusing stale snapshot", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1", "fresh-token-2"],

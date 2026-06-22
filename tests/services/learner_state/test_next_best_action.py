@@ -40,6 +40,9 @@ def test_next_best_actions_are_views_over_training_intent() -> None:
     assert action["prescription_authority"] == "training_intent"
     assert action["evidence_refs"] == ["evt1", "evt2"]
     assert action["why_this_now"]
+    assert action["query"] == (
+        "针对我的薄弱点出一道练习题：工程招标投标与合同管理 · 采分点遗漏。出题后等我作答再批改。"
+    )
 
 
 def test_next_best_action_uses_only_real_learning_graph_edge_types() -> None:
@@ -63,6 +66,7 @@ def test_next_best_action_treats_string_evidence_ref_as_single_ref() -> None:
     # book-derived axis: "防水工程" resolves to its own canonical node
     assert action["title"] == "先练防水工程"
     assert action["target"] == "防水工程"
+    assert action["query"] == "针对我的薄弱点出一道练习题：防水工程。出题后等我作答再批改。"
     assert action["materials"][0] == "教材：防水工程相关章节"
 
 
@@ -81,4 +85,6 @@ def test_next_best_action_does_not_surface_unmapped_raw_concept_label() -> None:
 
     assert action["title"] == "先补一题可诊断练习"
     assert action["target"] == "诊断练习"
+    assert action["query"] == "针对我的薄弱点出一道练习题：诊断练习。出题后等我作答再批改。"
     assert "专家论证程序" not in str(action["materials"])
+    assert "专家论证程序" not in action["query"]

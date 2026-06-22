@@ -762,6 +762,30 @@ async def resolve_question_semantic_routing(
         user_message=user_message,
         question_context=question_context,
     )
+    # Deterministic reliability for explicit historical back-references (E1, 2026-06-22):
+    # "回到我最开始做错的那道题" / "最早那道" / "第一道" must NOT be bound to the current
+    # active question just because the LLM relation classifier flakily returned a plain
+    # followup (ask_about_active_object). When such an explicit historical back-reference
+    # is classified as a followup/ask on the ACTIVE object, upgrade it to the unresolved-
+    # switch signature so it routes to the context-continuous main LLM, which recalls the
+    # referenced question from shared history (the proven-correct path). The regex only
+    # DETECTS the back-reference; it never decides WHICH question (the main LLM does).
+    # Grading/submission relations are untouched (a back-referenced answer is different).
+    if (
+        question_context is not None
+        and isinstance(llm_decision, dict)
+        and str(llm_decision.get("relation_to_active_object") or "").strip()
+        == "ask_about_active_object"
+        and _message_is_historical_question_backreference(user_message)
+    ):
+        llm_decision = build_turn_semantic_decision(
+            relation_to_active_object="switch_to_new_object",
+            next_action="route_to_followup_explainer",
+            allowed_patch="no_state_change",
+            confidence=float(llm_decision.get("confidence") or 0.0) or 0.9,
+            reason="显式回指更早/其它历史题（确定性检测），落上下文连续主 LLM 从共享历史召回，不绑当前 active 题。",
+            active_object=active_object,
+        )
     if llm_decision is None and _is_guide_active_object(active_object):
         llm_decision = _decision_from_active_learning_object(
             user_message=user_message,
@@ -1483,6 +1507,31 @@ def _message_prefers_previous_object(message: str) -> bool:
     return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS) or bool(
         _PREVIOUS_OBJECT_REFERENCE_RE.search(text)
     )
+
+
+# Explicit reference back to an EARLIER / different question by position / ordinal /
+# attribute ("回到我最开始做错的那道题" / "最早那道" / "第一道" / "上一道" / "我刚才做错的那道").
+# This is a STABLE linguistic back-reference signal — it only DETECTS that the learner
+# means a historical (non-active) question; WHICH question is still resolved by the
+# context-continuous main LLM from shared history (is_unresolved_switch route). It must
+# NOT match a reference to the CURRENT active question ("这道题再讲讲").
+_HISTORICAL_QUESTION_BACKREF_RE = re.compile(
+    r"(最开始|最早|一开始|开头|最先)(那)?(道|题|一道|一题)"
+    r"|第[一1](道|题)"
+    r"|上(一|上)?(道|题)"
+    r"|(回到|回去|返回).{0,10}(最开始|最早|开头|第[一1]|上一|之前|刚才|前面|做错|答错|错的|那道|那题)"
+    r"|(我)?(刚才|之前|先前|最先|一开始)?(做错|答错|选错)(的)?(那)?(道|题|一道|一题)"
+)
+_ACTIVE_QUESTION_SELF_REF_MARKERS = ("这道", "这题", "这一道", "这一题", "当前这", "本题")
+
+
+def _message_is_historical_question_backreference(message: str) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+    if any(marker in text for marker in _ACTIVE_QUESTION_SELF_REF_MARKERS):
+        return False
+    return bool(_HISTORICAL_QUESTION_BACKREF_RE.search(text))
 
 
 def _is_guide_active_object(active_object: dict[str, Any] | None) -> bool:
