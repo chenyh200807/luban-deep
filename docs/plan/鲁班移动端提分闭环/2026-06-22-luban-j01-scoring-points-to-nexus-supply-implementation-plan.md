@@ -1,9 +1,34 @@
 # J01 采分点 → Nexus/rich_leaf 供给 实施计划
 
-> **状态**: candidate 计划 (待 owner 批准 schema 决策后执行)
+> **状态**: ⛔ **原 schema 决策(§1)与"新建供给"前提已作废** — 见下方「2026-06-22 调查更正」。本文 §0-§10 保留为调查前的初始设想(思考痕迹), 当前权威结论以更正块为准。
 > **上游规范**: `2026-06-21-luban-l0-topic-routing-card-design.md`(深 pack→Nexus grain 分级供给 v2)
-> **目标**: 把 J01 深 pack 的 signed R5 采分点编译成 Nexus 可确定性取的供给, 端到端验证"40 pack 走 Nexus", 为铺 40 立可复用模板。
-> **范围**: 仅 J01 一个考点端到端 (先证闭环再扩量, gated on retention 同理)。
+
+---
+
+## ⛔ 2026-06-22 调查更正 (当前权威结论, 覆盖 §0-§10)
+
+Gate 1 的 register-before-use 防撞名查证 + 只读调查 (Explore agent) 发现: **采分点 → 判分供给的完整架构早已存在, 原计划"新建 scoring 供给"会制造第二套真值**。本块为当前结论。
+
+### 真相 (代码级证据)
+1. **采分点判分真值的唯一源 = 已有 `scoring_point_compile` 管道**: `scripts/run_luban_rich_leaf_scoring_point_compile.py` 产 `luban_rich_leaf_scoring_point_compile.v1`(三 lane: m35_artifact / chunk_assessment / knowledge_card, 按 chunk_id 迁移, 无溯源不造点), 经 `grading_object_adapters.py::map_rich_leaf_unit` 收敛到 `luban_grading_object.v1`(KnowQL pillar① 两 divergent schema 之一, 测试钉死 "no second adapter is minted")。
+2. **J01 接入形态 = (a) 已覆盖**: J01 的 7 个 leaf/chunk 与已有 rich-leaf token pack **完全同体系**(chunk_id 天然主键, 零对齐); J01 核心采分点(`kc:`/`ca:`/`m35:`)已在 `artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json`(1612 units / 5705 点)里; **J01 文件的 `kc:`/`ca:` 就是从该 v3.2 产物逐字抄的**。
+3. **`docs/原始数据/考点原料/_J01_compiled_source.json` 是采分点真值的第二副本(⚠️单一权威风险)**: 抄了管道产物 + 漏收 2 条 m35 golden 点 + 私加 11 个 `cc:` 逐句引用点(三 lane 都不产, 绕过 quote_verified / required_term verbatim 溯源硬门)。目前**无任何 .py 引用(孤儿数据)** → 趁现在**不得让它进入判分链做真值**。
+
+### 修正后的真问题 (不是"编译 J01 采分点", 是"promotion")
+- 真正卡住"40 pack 走 Nexus 判分"的是: **v3.2 候选产物(`candidate_only=true / runtime_install_allowed=false / canonical_truth_written=false`) → runtime 真值的 promotion gate** — 谁、什么门禁、A/B。本调查**未覆盖**此 promotion 路径, 是下一步要查的。
+- **最小改动**: 不新建编译器 / 不新建 schema / 不喂 `_J01_compiled_source.json`; 把已有 v3.2 候选按既定 promotion 流程提升, J01 leaf 随管道一并覆盖, 判分走现成 `map_rich_leaf_unit`。
+
+### 作废原 §1 的 schema 决策
+- 原推荐"选项 A 新建 `luban_rich_leaf_scoring_bundle.v1`" = **制造第三个 divergent schema, 违反单一权威, 作废**。选项 B/C 同废(前提"无现成供给"被推翻)。
+
+### 需 owner 决策 (下一步)
+1. **`cc:` 11 个逐句引用点去留**: 倾向丢弃(非采分点形态, 是教材原句); 若有判分价值, 让编译器某条 lane 带溯源重新生成, 不原样灌入真值。
+2. **m35 漏收**: promotion 必须走编译器 v3.2 产物(非 J01 文件), 否则丢 `Q13-1A421000:P2` / `Q2-1A436000-罚则:P1` 两条 golden。
+3. **v3.2 候选 → runtime 真值的 promotion 路径/门禁**: 本调查未覆盖, 是 (a) 的实际工作量所在, 需先查清再写修正计划。
+4. **`_J01_compiled_source.json` 定位**: 应定为一次性人工 review / 选 leaf 清单, **不得作真值源**; 是否有非代码消费者(shell/notebook)未穷尽。
+
+### 单一权威铁律 (本次教训)
+采分点 ground truth **唯一** = 编译器 v3.2 产物(promotion 后的 runtime 真值) → `map_rich_leaf_unit` → `luban_grading_object.v1`。深 pack **只引用不拥有评分**(产品战略既定); `_J01_compiled_source.json` 是引用副本非真值。**造新供给/复制采分点的任何倾向 = 红线。**
 
 ---
 

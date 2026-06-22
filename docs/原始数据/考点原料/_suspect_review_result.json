@@ -1,0 +1,4038 @@
+{
+ "_status": "只读复核产物·不改生产",
+ "_method": "chunk-heading 确定性 harness, 复核 detector suspect 170",
+ "suspect_total": 170,
+ "bucket_counts": {
+  "real_pollution": 132,
+  "false_positive": 21,
+  "needs_relink": 17,
+  "missing_rec": 0
+ },
+ "results": [
+  {
+   "leaf_id": "1A411002-E01",
+   "chunk_id": "1A411011_016_0029",
+   "claimed": "建筑构造设计要求",
+   "actual": "墙体基本构造要求",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "建筑构造设计要求"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "墙体基本构造要求",
+    "1. 墙体建筑构造"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411002-E02",
+   "chunk_id": "1A411011_017_0032",
+   "claimed": "建筑设计——楼梯构造要求",
+   "actual": "楼梯和电梯基本构造要求",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['楼梯'], 同域父子(措辞差异)",
+   "cwords": [
+    "楼梯构造要求"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "楼梯和电梯基本构造要求",
+    "1. 楼梯的建筑构造",
+    "1）防火、防烟、疏散的要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "楼梯"
+   ]
+  },
+  {
+   "leaf_id": "1A411003-E01",
+   "chunk_id": "1A411011_016_0028",
+   "claimed": "建筑设计——地面构造要求",
+   "actual": "地面构造",
+   "verdict": "false_positive",
+   "reason": "claimed 与 actual 同主题(父子/别名/同段措辞)",
+   "cwords": [
+    "地面构造要求"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "地面构造"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "地面"
+   ]
+  },
+  {
+   "leaf_id": "1A411003-E02",
+   "chunk_id": "1A413030_127_0240",
+   "claimed": "建筑设计——设计类别",
+   "actual": "种植坡屋面绝热层施工方式",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "设计类别"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "耐根穿刺防水材料厚度要求",
+    "种植屋面构造层次",
+    "种植屋面排水坡度要求",
+    "种植坡屋面绝热层施工方式"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411004-E01",
+   "chunk_id": "1A411011_009_0017",
+   "claimed": "建筑设计——室内物理环境",
+   "actual": "自然通风与遮阳设计",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "室内物理环境"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "自然通风与遮阳设计",
+    "5）遮阳设计",
+    "6）防结露"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411004-E02",
+   "chunk_id": "1A411011_021_0041",
+   "claimed": "建筑设计——龙骨构造要求",
+   "actual": "吊顶的装修构造及施工要求",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "龙骨构造要求"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "吊顶的装修构造及施工要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411010-R09",
+   "chunk_id": "1A411011_010_0020",
+   "claimed": "各类设防标准规定",
+   "actual": "抗震设防分类和设防标准",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[各类设防标准规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "各类设防标准规定"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "抗震设防分类和设防标准",
+    "抗震设防类别",
+    "各类设防标准规定"
+   ],
+   "head_hit": "各类设防标准规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "标准",
+    "类设",
+    "设防",
+    "防标"
+   ]
+  },
+  {
+   "leaf_id": "1A411010-R12",
+   "chunk_id": "1A411011_008_0014",
+   "claimed": "地下室外墙热阻、地面层热阻的计算只计入结构层",
+   "actual": "严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（4）地下室外墙热阻、地面层热阻的计算只计入结构], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "地下室外墙热阻",
+    "地面层热阻",
+    "计算只计入结构层"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "围护结构保温设计",
+    "（1）提高墙体热阻值可采取的措施：",
+    "（2）严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝木复合门窗、铝塑复合门窗、钢塑复合门窗和断热铝合金门窗等保温性能好的门窗。严寒地区建筑采用断热金属门窗时宜采用双层窗。",
+    "（3）有保温要求的门窗、玻璃幕墙、采光顶采用的玻璃系统应为中空玻璃、Low-E 中空玻璃、充惰性气体 Low-E 中空玻璃等保温性能良好的玻璃，保温要求高时还可采用三玻两腔、真空玻璃等。传热系数较低的中空玻璃宜采用“暖边”中空玻璃间隔条。",
+    "（4）地下室外墙热阻、地面层热阻的计算只计入结构层、保温层和面层。地面保温材料应选用吸水率小、抗压强度高、不易变形的材料。"
+   ],
+   "head_hit": "（4）地下室外墙热阻、地面层热阻的计算只计入结构层、保温层和面层。地面保温材料应选用吸水率小、抗压强度高、不易变形的材料。",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411010-R18",
+   "chunk_id": "1A411011_008_0015",
+   "claimed": "屋面隔热可采取的措施",
+   "actual": "围护结构隔热设计",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（1）外墙隔热可采取的措施：], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "屋面隔热可采取",
+    "措施"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "围护结构隔热设计",
+    "（1）外墙隔热可采取的措施：",
+    "（2）屋面隔热可采取的措施："
+   ],
+   "head_hit": "（1）外墙隔热可采取的措施：",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "隔热"
+   ]
+  },
+  {
+   "leaf_id": "1A411010-R27",
+   "chunk_id": "1A411011_001_0001",
+   "claimed": "按建筑物的层数或高度分类",
+   "actual": "建筑设计——建筑物的类别",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(3 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "按建筑物",
+    "层数或高度分类"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "1.1 建筑物的构成与设计要求",
+    "1.1.1 建筑物分类与构成",
+    "1. 建筑物的分类"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411010-R30",
+   "chunk_id": "1A411011_008_0014",
+   "claimed": "有保温要求的门窗、玻璃幕墙、采光顶采用的玻璃",
+   "actual": "严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）严寒地区、寒冷地区建筑应采用木窗、塑料窗、], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "有保温要求",
+    "门窗",
+    "玻璃幕墙",
+    "采光顶采用",
+    "玻璃"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "围护结构保温设计",
+    "（1）提高墙体热阻值可采取的措施：",
+    "（2）严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝木复合门窗、铝塑复合门窗、钢塑复合门窗和断热铝合金门窗等保温性能好的门窗。严寒地区建筑采用断热金属门窗时宜采用双层窗。",
+    "（3）有保温要求的门窗、玻璃幕墙、采光顶采用的玻璃系统应为中空玻璃、Low-E 中空玻璃、充惰性气体 Low-E 中空玻璃等保温性能良好的玻璃，保温要求高时还可采用三玻两腔、真空玻璃等。传热系数较低的中空玻璃宜采用“暖边”中空玻璃间隔条。",
+    "（4）地下室外墙热阻、地面层热阻的计算只计入结构层、保温层和面层。地面保温材料应选用吸水率小、抗压强度高、不易变形的材料。"
+   ],
+   "head_hit": "（2）严寒地区、寒冷地区建筑应采用木窗、塑料窗、铝木复合门窗、铝塑复合门窗、钢塑复合门窗和断热铝合金门窗等保温性能好的门窗。严寒地区建筑采用断热金属门窗时宜采用双层窗。",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "采用"
+   ]
+  },
+  {
+   "leaf_id": "1A411020-R15",
+   "chunk_id": "1A411011_017_0032",
+   "claimed": "表 1.2-1 室内疏散楼梯的最小净宽度（m）",
+   "actual": "楼梯和电梯基本构造要求",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(3 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "1.2-1",
+    "室内疏散楼梯",
+    "最小净宽度"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "楼梯和电梯基本构造要求",
+    "1. 楼梯的建筑构造",
+    "1）防火、防烟、疏散的要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": [
+    "楼梯"
+   ]
+  },
+  {
+   "leaf_id": "1A411030-R07",
+   "chunk_id": "1A411011_026_0048",
+   "claimed": "混凝土结构环境作用等级",
+   "actual": "混凝土最低强度等级",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3）混凝土结构环境作用等级], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "混凝土结构环境作用等级"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "3. 结构工程的耐久性",
+    "1）耐久性要求",
+    "2）混凝土结构耐久性的环境类别",
+    "3）混凝土结构环境作用等级",
+    "4）混凝土结构耐久性的要求",
+    "（1）混凝土最低强度等级"
+   ],
+   "head_hit": "3）混凝土结构环境作用等级",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "凝土",
+    "混凝",
+    "等级"
+   ]
+  },
+  {
+   "leaf_id": "1A411030-R10",
+   "chunk_id": "1A411011_026_0048",
+   "claimed": "混凝土结构耐久性的要求",
+   "actual": "混凝土最低强度等级",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）混凝土结构耐久性的环境类别], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "混凝土结构耐久性"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "3. 结构工程的耐久性",
+    "1）耐久性要求",
+    "2）混凝土结构耐久性的环境类别",
+    "3）混凝土结构环境作用等级",
+    "4）混凝土结构耐久性的要求",
+    "（1）混凝土最低强度等级"
+   ],
+   "head_hit": "2）混凝土结构耐久性的环境类别",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "凝土",
+    "混凝"
+   ]
+  },
+  {
+   "leaf_id": "1A411030-R31",
+   "chunk_id": "1A411011_029_0052",
+   "claimed": "结构设计的基本内容",
+   "actual": "正常使用极限状态",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[结构设计的基本内容], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "结构设计",
+    "基本内容"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "结构构件的承载能力极限状态",
+    "正常使用极限状态",
+    "结构设计的基本内容"
+   ],
+   "head_hit": "结构设计的基本内容",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411030-R39",
+   "chunk_id": "1A411011_031_0055",
+   "claimed": "混凝土结构构造",
+   "actual": "混凝土结构体系",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 混凝土结构构造], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "混凝土结构构造"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "1. 混凝土结构体系",
+    "2. 混凝土结构构造",
+    "3. 结构混凝土"
+   ],
+   "head_hit": "2. 混凝土结构构造",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "凝土",
+    "土结",
+    "混凝",
+    "结构"
+   ]
+  },
+  {
+   "leaf_id": "1A411030-R42",
+   "chunk_id": "1A411011_031_0055",
+   "claimed": "结构混凝土",
+   "actual": "混凝土结构体系",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 结构混凝土], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "结构混凝土"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "1. 混凝土结构体系",
+    "2. 混凝土结构构造",
+    "3. 结构混凝土"
+   ],
+   "head_hit": "3. 结构混凝土",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "凝土",
+    "混凝",
+    "结构"
+   ]
+  },
+  {
+   "leaf_id": "1A411050-R01",
+   "chunk_id": "1A411011_035_0062",
+   "claimed": "剪力墙结构设计要求",
+   "actual": "基本设计规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 剪力墙结构设计要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "剪力墙结构设计要求"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "1.5 装配式建筑设计基本要求",
+    "1.5.1 装配式混凝土建筑设计基本要求",
+    "1. 基本设计规定",
+    "2. 剪力墙结构设计要求"
+   ],
+   "head_hit": "2. 剪力墙结构设计要求",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A411050-R05",
+   "chunk_id": "1A411011_036_0064",
+   "claimed": "结构设计",
+   "actual": "装配式钢结构建筑设计基本要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 结构设计], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "结构设计"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "装配式钢结构建筑设计基本要求",
+    "1. 一般规定",
+    "2. 结构设计"
+   ],
+   "head_hit": "2. 结构设计",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "结构"
+   ]
+  },
+  {
+   "leaf_id": "1A412000-B002",
+   "chunk_id": "1A412000_038_0066",
+   "claimed": "常用的建筑钢材",
+   "actual": "建筑钢材的主要钢种",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2.1.1 建筑钢材的性能与应用], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "常用",
+    "建筑钢材"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "第2章 主要建筑工程材料的性能与应用",
+    "2.1 结构工程材料",
+    "2.1.1 建筑钢材的性能与应用",
+    "1. 建筑钢材的主要钢种",
+    "2. 常用的建筑钢材"
+   ],
+   "head_hit": "2.1.1 建筑钢材的性能与应用",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "钢材"
+   ]
+  },
+  {
+   "leaf_id": "1A412000-B013",
+   "chunk_id": "1A412000_038_0066",
+   "claimed": "钢筋混凝土结构用钢管",
+   "actual": "建筑钢材的主要钢种",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(5 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "钢筋混凝土结构用钢管"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "第2章 主要建筑工程材料的性能与应用",
+    "2.1 结构工程材料",
+    "2.1.1 建筑钢材的性能与应用",
+    "1. 建筑钢材的主要钢种",
+    "2. 常用的建筑钢材"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412001-E03",
+   "chunk_id": "1A411011_027_0050",
+   "claimed": "结构设计——建筑物的类别",
+   "actual": "常用建筑结构体系和应用",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "建筑物",
+    "类别"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "1.3.2 常用建筑结构体系和应用",
+    "1. 结构体系与应用",
+    "1）混合结构"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B024",
+   "chunk_id": "1A412010_052_0097",
+   "claimed": "处于环境3～5类",
+   "actual": "地面以下或防潮层以下的砌体、潮湿房间的墙所用",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）处于环境3～5类，有侵蚀性介质的砌体材料应], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "处于环境3～5类"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "砌体结构材料的应用",
+    "（1）地面以下或防潮层以下的砌体、潮湿房间的墙所用材料的最低强度等级应符合表2.1-7的规定。",
+    "（2）处于环境3～5类，有侵蚀性介质的砌体材料应符合下列规定："
+   ],
+   "head_hit": "（2）处于环境3～5类，有侵蚀性介质的砌体材料应符合下列规定：",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B027",
+   "chunk_id": "1A412010_048_0083",
+   "claimed": "外加剂的应用",
+   "actual": "外加剂的分类",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[混凝土外加剂的功能、种类与应用], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "外加剂",
+    "应用"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "混凝土外加剂的功能、种类与应用",
+    "1) 外加剂的分类",
+    "2) 外加剂的选择",
+    "3) 外加剂的应用"
+   ],
+   "head_hit": "混凝土外加剂的功能、种类与应用",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "加剂",
+    "外加"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B028",
+   "chunk_id": "1A412010_048_0083",
+   "claimed": "外加剂的选择",
+   "actual": "外加剂的分类",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[混凝土外加剂的功能、种类与应用], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "外加剂",
+    "选择"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "混凝土外加剂的功能、种类与应用",
+    "1) 外加剂的分类",
+    "2) 外加剂的选择",
+    "3) 外加剂的应用"
+   ],
+   "head_hit": "混凝土外加剂的功能、种类与应用",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "加剂",
+    "外加"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B036",
+   "chunk_id": "1A412010_057_0113",
+   "claimed": "安全玻璃",
+   "actual": "冰花玻璃",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 安全玻璃], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "安全玻璃"
+   ],
+   "n_headings": 8,
+   "headings": [
+    "2.2.3 建筑玻璃的特性与应用",
+    "1. 平板玻璃",
+    "2. 装饰玻璃",
+    "1）彩色平板玻璃",
+    "2）釉面玻璃",
+    "3）冰花玻璃",
+    "3. 安全玻璃",
+    "1）钢化玻璃"
+   ],
+   "head_hit": "3. 安全玻璃",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "玻璃"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B042",
+   "chunk_id": "1A412010_067_0131",
+   "claimed": "常用保温隔热材料",
+   "actual": "建筑防水——影响保温材料导热系数的因素",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 常用保温隔热材料], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "常用保温隔热材料"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "1. 保温隔热材料分类",
+    "2. 影响保温隔热材料导热系数的因素",
+    "3. 常用保温隔热材料",
+    "1）聚氨酯泡沫塑料",
+    "2）改性酚醛泡沫塑料",
+    "3）聚苯乙烯泡沫塑料"
+   ],
+   "head_hit": "3. 常用保温隔热材料",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "保温",
+    "材料"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B061",
+   "chunk_id": "1A412010_057_0113",
+   "claimed": "彩色平板玻璃",
+   "actual": "冰花玻璃",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1）彩色平板玻璃], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "彩色平板玻璃"
+   ],
+   "n_headings": 8,
+   "headings": [
+    "2.2.3 建筑玻璃的特性与应用",
+    "1. 平板玻璃",
+    "2. 装饰玻璃",
+    "1）彩色平板玻璃",
+    "2）釉面玻璃",
+    "3）冰花玻璃",
+    "3. 安全玻璃",
+    "1）钢化玻璃"
+   ],
+   "head_hit": "1）彩色平板玻璃",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "玻璃"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B070",
+   "chunk_id": "1A412010_067_0131",
+   "claimed": "改性酚醛泡沫塑料",
+   "actual": "建筑防水——影响保温材料导热系数的因素",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）改性酚醛泡沫塑料], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "改性酚醛泡沫塑料"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "1. 保温隔热材料分类",
+    "2. 影响保温隔热材料导热系数的因素",
+    "3. 常用保温隔热材料",
+    "1）聚氨酯泡沫塑料",
+    "2）改性酚醛泡沫塑料",
+    "3）聚苯乙烯泡沫塑料"
+   ],
+   "head_hit": "2）改性酚醛泡沫塑料",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B074",
+   "chunk_id": "1A412010_045_0078",
+   "claimed": "有害杂质和针、片状颗粒",
+   "actual": "强度和坚固性",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（3）有害杂质和针、片状颗粒], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "有害杂质",
+    "片状颗粒"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "粗骨料",
+    "（1）颗粒级配及最大粒径",
+    "（2）强度和坚固性",
+    "（3）有害杂质和针、片状颗粒",
+    "（4）水"
+   ],
+   "head_hit": "（3）有害杂质和针、片状颗粒",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B117",
+   "chunk_id": "1A412010_044_0077",
+   "claimed": "细骨料",
+   "actual": "坚固性",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）细骨料], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "细骨料"
+   ],
+   "n_headings": 7,
+   "headings": [
+    "2.1.3 混凝土及组成材料的性能与应用",
+    "1. 混凝土组成材料的技术要求",
+    "（1）水泥",
+    "（2）细骨料",
+    "（1）颗粒级配及粗细程度",
+    "（2）有害杂质和碱活性",
+    "（3）坚固性"
+   ],
+   "head_hit": "（2）细骨料",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B123",
+   "chunk_id": "1A412010_058_0114",
+   "claimed": "节能装饰型玻璃",
+   "actual": "夹层玻璃",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[节能装饰型玻璃], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "节能装饰型玻璃"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "钢化玻璃自爆原因及均质处理",
+    "防火玻璃",
+    "夹层玻璃",
+    "节能装饰型玻璃"
+   ],
+   "head_hit": "节能装饰型玻璃",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "玻璃"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B124",
+   "chunk_id": "1A412010_052_0098",
+   "claimed": "花岗石板材应用",
+   "actual": "分类、等级及技术要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（4）花岗石板材应用], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "花岗石板材应用"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2.2 装饰装修工程材料",
+    "2.2.1 饰面板材（砖）和建筑陶瓷的特性与应用",
+    "1. 饰面石材",
+    "（1）天然花岗石",
+    "（2）分类、等级及技术要求",
+    "（4）花岗石板材应用"
+   ],
+   "head_hit": "（4）花岗石板材应用",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B143",
+   "chunk_id": "1A412010_063_0124",
+   "claimed": "铝及铝合金穿孔吸声板",
+   "actual": "花纹板",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3）铝及铝合金穿孔吸声板], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "铝合金穿孔吸声板"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2. 装饰装修用铝合金",
+    "1）花纹板",
+    "2）铝质波纹板和压型板",
+    "3）铝及铝合金穿孔吸声板",
+    "4）蜂窝芯铝合金复合板",
+    "5）铝合金龙骨"
+   ],
+   "head_hit": "3）铝及铝合金穿孔吸声板",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412010-B146",
+   "chunk_id": "1A412010_063_0124",
+   "claimed": "铝质波纹板和压型板",
+   "actual": "花纹板",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）铝质波纹板和压型板], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "铝质波纹板",
+    "压型板"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2. 装饰装修用铝合金",
+    "1）花纹板",
+    "2）铝质波纹板和压型板",
+    "3）铝及铝合金穿孔吸声板",
+    "4）蜂窝芯铝合金复合板",
+    "5）铝合金龙骨"
+   ],
+   "head_hit": "2）铝质波纹板和压型板",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "纹板"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B149",
+   "chunk_id": "1A412010_064_0125",
+   "claimed": "防水卷材的主要性能",
+   "actual": "建筑防水材料的特性与应用",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1. 防水卷材], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "防水卷材",
+    "主要性能"
+   ],
+   "n_headings": 9,
+   "headings": [
+    "6) 铝合金门窗",
+    "2.3 建筑功能材料",
+    "2.3.1 建筑防水材料的特性与应用",
+    "1. 防水卷材",
+    "1) 防水卷材的分类",
+    "2) 改性沥青防水卷材",
+    "3) 高分子防水卷材",
+    "4) 防水卷材的主要性能"
+   ],
+   "head_hit": "1. 防水卷材",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "防水"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B150",
+   "chunk_id": "1A412010_064_0125",
+   "claimed": "防水卷材的分类",
+   "actual": "建筑防水材料的特性与应用",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1. 防水卷材], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "防水卷材",
+    "分类"
+   ],
+   "n_headings": 9,
+   "headings": [
+    "6) 铝合金门窗",
+    "2.3 建筑功能材料",
+    "2.3.1 建筑防水材料的特性与应用",
+    "1. 防水卷材",
+    "1) 防水卷材的分类",
+    "2) 改性沥青防水卷材",
+    "3) 高分子防水卷材",
+    "4) 防水卷材的主要性能"
+   ],
+   "head_hit": "1. 防水卷材",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "防水"
+   ]
+  },
+  {
+   "leaf_id": "1A412010-B156",
+   "chunk_id": "1A412010_044_0077",
+   "claimed": "颗粒级配及粗细程度",
+   "actual": "坚固性",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（1）颗粒级配及粗细程度], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "颗粒级配",
+    "粗细程度"
+   ],
+   "n_headings": 7,
+   "headings": [
+    "2.1.3 混凝土及组成材料的性能与应用",
+    "1. 混凝土组成材料的技术要求",
+    "（1）水泥",
+    "（2）细骨料",
+    "（1）颗粒级配及粗细程度",
+    "（2）有害杂质和碱活性",
+    "（3）坚固性"
+   ],
+   "head_hit": "（1）颗粒级配及粗细程度",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A412032-E01",
+   "chunk_id": "1A411011_011_0021",
+   "claimed": "结构抗震设计构造要求",
+   "actual": "各类建筑与市政工程结构的抗震设计的规定",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['抗震', '构抗', '结构'], 同域父子(措辞差异)",
+   "cwords": [
+    "结构抗震设计构造要求"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "各类建筑与市政工程结构的抗震设计的规定",
+    "抗震措施",
+    "1）一般规定",
+    "2）混凝土结构房屋"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "抗震",
+    "构抗",
+    "结构"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B004",
+   "chunk_id": "1A413000_075_0143",
+   "claimed": "四类土（砂砾坚土）",
+   "actual": "一类土（松软土）",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[④ 四类土：砂砾坚土], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "四类土",
+    "砂砾坚土"
+   ],
+   "n_headings": 9,
+   "headings": [
+    "岩土分类（按开挖难易程度）",
+    "① 一类土：松软土",
+    "② 二类土：普通土",
+    "③ 三类土：坚土",
+    "④ 四类土：砂砾坚土",
+    "⑤ 五类土：软石",
+    "⑥ 六类土：次坚石",
+    "⑦ 七类土：坚石"
+   ],
+   "head_hit": "④ 四类土：砂砾坚土",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "类土"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B005",
+   "chunk_id": "1A413000_075_0143",
+   "claimed": "五类土（软石）",
+   "actual": "一类土（松软土）",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[⑤ 五类土：软石], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "五类土",
+    "软石"
+   ],
+   "n_headings": 9,
+   "headings": [
+    "岩土分类（按开挖难易程度）",
+    "① 一类土：松软土",
+    "② 二类土：普通土",
+    "③ 三类土：坚土",
+    "④ 四类土：砂砾坚土",
+    "⑤ 五类土：软石",
+    "⑥ 六类土：次坚石",
+    "⑦ 七类土：坚石"
+   ],
+   "head_hit": "⑤ 五类土：软石",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "类土"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B016",
+   "chunk_id": "1A413000_079_0150",
+   "claimed": "咬合桩围护墙",
+   "actual": "土钉墙施工要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[咬合桩围护墙], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "咬合桩围护墙"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "土钉墙施工要求",
+    "咬合桩围护墙",
+    "型钢水泥土搅拌墙"
+   ],
+   "head_hit": "咬合桩围护墙",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413000-B026",
+   "chunk_id": "1A413000_072_0139",
+   "claimed": "施工期间变形监测对象",
+   "actual": "建筑施工期间的变形测量",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['变形', '期间', '间变'], 同域父子(措辞差异)",
+   "cwords": [
+    "施工期间变形监测对象"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "4. 建筑施工期间的变形测量",
+    "（1）在施工期间应对以下对象进行变形监测："
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "变形",
+    "期间",
+    "间变"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B029",
+   "chunk_id": "1A413000_077_0148",
+   "claimed": "地下连续墙支护",
+   "actual": "叠袋式挡墙支护",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）地下连续墙支护], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "地下连续墙支护"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "叠袋式挡墙支护",
+    "深基坑支护",
+    "1）灌注桩排桩支护",
+    "2）地下连续墙支护"
+   ],
+   "head_hit": "2）地下连续墙支护",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "墙支",
+    "支护"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B030",
+   "chunk_id": "1A413000_086_0159",
+   "claimed": "地基处理工程验槽",
+   "actual": "天然地基验槽",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 地基处理工程验槽], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "地基处理工程验槽"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "1. 验槽具备的资料和条件",
+    "2. 天然地基验槽",
+    "3. 地基处理工程验槽",
+    "4. 桩基工程验槽",
+    "5. 验槽方法",
+    "1）观察法"
+   ],
+   "head_hit": "3. 地基处理工程验槽",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基",
+    "验槽"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B034",
+   "chunk_id": "1A413000_080_0151",
+   "claimed": "基坑开挖前水泥土搅拌桩桩身强度检验",
+   "actual": "与主体结构相结合（两墙合一）的基坑支护",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['基坑'], 同域父子(措辞差异)",
+   "cwords": [
+    "基坑开挖前水泥土搅拌桩桩身强度检验"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "（3）基坑开挖前应检验水泥土搅拌桩的桩身强度",
+    "（6）板桩围护墙",
+    "（7）水泥土重力式围护墙",
+    "（8）内支撑",
+    "（9）锚杆（索）",
+    "（10）与主体结构相结合（两墙合一）的基坑支护"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "基坑"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B047",
+   "chunk_id": "1A413000_071_0137",
+   "claimed": "已知角度的测设",
+   "actual": "已知长度的测设",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1）已知长度的测设], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "已知角度",
+    "测设"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "3）竣工图的绘制",
+    "3. 施工测量的方法",
+    "1）已知长度的测设",
+    "2）已知角度的测设",
+    "3）建筑物细部点平面位置的测设"
+   ],
+   "head_hit": "1）已知长度的测设",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "已知",
+    "度测",
+    "测设"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B052",
+   "chunk_id": "1A413000_071_0137",
+   "claimed": "建筑物细部点平面位置的测设",
+   "actual": "已知长度的测设",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1）已知长度的测设], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑物细部点平面位置",
+    "测设"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "3）竣工图的绘制",
+    "3. 施工测量的方法",
+    "1）已知长度的测设",
+    "2）已知角度的测设",
+    "3）建筑物细部点平面位置的测设"
+   ],
+   "head_hit": "1）已知长度的测设",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "测设"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B064",
+   "chunk_id": "1A413000_086_0159",
+   "claimed": "桩基工程验槽",
+   "actual": "天然地基验槽",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4. 桩基工程验槽], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "桩基工程验槽"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "1. 验槽具备的资料和条件",
+    "2. 天然地基验槽",
+    "3. 地基处理工程验槽",
+    "4. 桩基工程验槽",
+    "5. 验槽方法",
+    "1）观察法"
+   ],
+   "head_hit": "4. 桩基工程验槽",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "基验",
+    "验槽"
+   ]
+  },
+  {
+   "leaf_id": "1A413000-B072",
+   "chunk_id": "1A413000_078_0149",
+   "claimed": "墙底注浆的混凝土强度条件",
+   "actual": "土钉墙",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（4）混凝土达到设计强度后方可进行墙底注浆], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "墙底注浆",
+    "混凝土强度条件"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "土钉墙",
+    "（4）混凝土达到设计强度后方可进行墙底注浆",
+    "（5）土钉墙的构造要求"
+   ],
+   "head_hit": "（4）混凝土达到设计强度后方可进行墙底注浆",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413000-G03",
+   "chunk_id": "1A413000_078_0149",
+   "claimed": "复合土钉墙构造与施工",
+   "actual": "土钉墙",
+   "verdict": "false_positive",
+   "reason": "claimed 与 actual 同主题(父子/别名/同段措辞)",
+   "cwords": [
+    "复合土钉墙构造"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "土钉墙",
+    "（4）混凝土达到设计强度后方可进行墙底注浆",
+    "（5）土钉墙的构造要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "土钉",
+    "钉墙"
+   ]
+  },
+  {
+   "leaf_id": "1A413003-E01",
+   "chunk_id": "1A411011_037_0065",
+   "claimed": "装配式装饰装修模块化设计",
+   "actual": "装配式装饰装修设计基本要求",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['式装', '装修', '装配', '装饰', '配式', '饰装'], 同域父子(措辞差异)",
+   "cwords": [
+    "装配式装饰装修模块化设计"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "1.5.3 装配式装饰装修设计基本要求",
+    "1. 一般规定",
+    "2. 集成设计与部品选型要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "式装",
+    "装修",
+    "装配",
+    "装饰",
+    "配式",
+    "饰装"
+   ]
+  },
+  {
+   "leaf_id": "1A413010-E01",
+   "chunk_id": "1A413000_069_0135",
+   "claimed": "工程测量技术",
+   "actual": "常用工程测量仪器的性能与应用",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['测量'], 同域父子(措辞差异)",
+   "cwords": [
+    "工程测量技术"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3.1 施工测量",
+    "3.1.1 常用工程测量仪器的性能与应用",
+    "1. 水准仪",
+    "2. 经纬仪"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "测量"
+   ]
+  },
+  {
+   "leaf_id": "1A413030-G01",
+   "chunk_id": "1A413030_106_0208",
+   "claimed": "砌体墙临时施工洞口留置规定",
+   "actual": "临时施工洞口设置规定",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['临时', '时洞', '洞口', '置规', '规定'], 同域父子(措辞差异)",
+   "cwords": [
+    "砌体墙临时施工洞口留置规定"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "临时施工洞口设置规定"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "临时",
+    "时洞",
+    "洞口",
+    "置规",
+    "规定"
+   ]
+  },
+  {
+   "leaf_id": "1A413031-R03",
+   "chunk_id": "1A413030_089_0164",
+   "claimed": "夯实水泥土桩复合地基",
+   "actual": "振冲碎石桩和沉管砂石桩复合地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4）夯实水泥土桩复合地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "夯实水泥土桩复合地基"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2）灰土挤密桩复合地基",
+    "3）振冲碎石桩和沉管砂石桩复合地基",
+    "4）夯实水泥土桩复合地基",
+    "5）水泥土搅拌桩复合地基",
+    "6）旋喷桩复合地基",
+    "4. 注浆加固"
+   ],
+   "head_hit": "4）夯实水泥土桩复合地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "合地",
+    "地基",
+    "复合",
+    "桩复"
+   ]
+  },
+  {
+   "leaf_id": "1A413031-R07",
+   "chunk_id": "1A413030_089_0164",
+   "claimed": "水泥土搅拌桩复合地基",
+   "actual": "振冲碎石桩和沉管砂石桩复合地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[5）水泥土搅拌桩复合地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "水泥土搅拌桩复合地基"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2）灰土挤密桩复合地基",
+    "3）振冲碎石桩和沉管砂石桩复合地基",
+    "4）夯实水泥土桩复合地基",
+    "5）水泥土搅拌桩复合地基",
+    "6）旋喷桩复合地基",
+    "4. 注浆加固"
+   ],
+   "head_hit": "5）水泥土搅拌桩复合地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "合地",
+    "地基",
+    "复合",
+    "桩复"
+   ]
+  },
+  {
+   "leaf_id": "1A413040-R23",
+   "chunk_id": "1A413030_098_0184",
+   "claimed": "模板工程安装要点",
+   "actual": "模板工程设计",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[模板工程安装要点], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "模板工程安装要点"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "模板工程设计",
+    "模板工程安装要点",
+    "模板拆除要点"
+   ],
+   "head_hit": "模板工程安装要点",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "模板"
+   ]
+  },
+  {
+   "leaf_id": "1A413040-R26",
+   "chunk_id": "1A413030_098_0184",
+   "claimed": "模板拆除要点",
+   "actual": "模板工程设计",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[模板拆除要点], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "模板拆除要点"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "模板工程设计",
+    "模板工程安装要点",
+    "模板拆除要点"
+   ],
+   "head_hit": "模板拆除要点",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "模板"
+   ]
+  },
+  {
+   "leaf_id": "1A413040-R35",
+   "chunk_id": "1A413030_110_0217",
+   "claimed": "紧固件连接",
+   "actual": "钢结构焊接要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[紧固件连接], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "紧固件连接"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "钢结构焊接要求",
+    "紧固件连接"
+   ],
+   "head_hit": "紧固件连接",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413040-R38",
+   "chunk_id": "1A413030_105_0201",
+   "claimed": "防止预制构件断裂滑脱的吊运要求",
+   "actual": "后张法预应力施工",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "防止预制构件断裂滑脱",
+    "吊运要求"
+   ],
+   "n_headings": 7,
+   "headings": [
+    "后张法预应力施工",
+    "（1）成孔材料",
+    "（2）施加预应力时混凝土强度要求",
+    "（3）预应力筋张拉顺序",
+    "（4）预应力筋张拉方式",
+    "（5）避免断裂或滑脱",
+    "（6）孔道灌浆"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413040-R56",
+   "chunk_id": "1A413030_117_0225",
+   "claimed": "预制构件连接",
+   "actual": "预制剪力墙板安装要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[预制构件连接], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "预制构件连接"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "预制剪力墙板安装要求",
+    "预制梁和叠合梁、板安装要求",
+    "预制构件连接"
+   ],
+   "head_hit": "预制构件连接",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "预制"
+   ]
+  },
+  {
+   "leaf_id": "1A413040-R57",
+   "chunk_id": "1A413030_116_0224",
+   "claimed": "预制柱安装要求",
+   "actual": "预制构件安装",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）预制柱安装要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "预制柱安装要求"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3）存放要求",
+    "3. 预制构件安装",
+    "1）一般要求",
+    "2）预制柱安装要求"
+   ],
+   "head_hit": "2）预制柱安装要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安装",
+    "预制"
+   ]
+  },
+  {
+   "leaf_id": "1A413042-R03",
+   "chunk_id": "1A413030_108_0211",
+   "claimed": "填充墙砌体工程",
+   "actual": "多孔砖墙",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[填充墙砌体工程], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "填充墙砌体工程"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "多孔砖墙",
+    "混凝土小型空心砌块砌体工程",
+    "填充墙砌体工程",
+    "一般规定"
+   ],
+   "head_hit": "填充墙砌体工程",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413042-R16",
+   "chunk_id": "1A413030_107_0210",
+   "claimed": "砖柱和带壁柱墙砌筑的规定",
+   "actual": "烧结砖砌体",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）砖柱和带壁柱墙砌筑的规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "砖柱",
+    "带壁柱墙砌筑",
+    "规定"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "2. 砌体工程",
+    "1）烧结砖砌体",
+    "2）砖柱和带壁柱墙砌筑的规定"
+   ],
+   "head_hit": "2）砖柱和带壁柱墙砌筑的规定",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413046-R04",
+   "chunk_id": "1A413030_120_0228",
+   "claimed": "施工脚手架设计",
+   "actual": "常用施工脚手架",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 施工脚手架设计], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "施工脚手架设计"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3.4.6 常用施工脚手架",
+    "1. 常用施工脚手架分类",
+    "表 3.4-4 脚手架的安全等级",
+    "2. 施工脚手架设计"
+   ],
+   "head_hit": "2. 施工脚手架设计",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "手架",
+    "脚手"
+   ]
+  },
+  {
+   "leaf_id": "1A413046-R05",
+   "chunk_id": "1A413030_120_0228",
+   "claimed": "表 3.4-4 脚手架的安全等级",
+   "actual": "常用施工脚手架",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3.4.6 常用施工脚手架], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "3.4-4",
+    "脚手架",
+    "安全等级"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3.4.6 常用施工脚手架",
+    "1. 常用施工脚手架分类",
+    "表 3.4-4 脚手架的安全等级",
+    "2. 施工脚手架设计"
+   ],
+   "head_hit": "3.4.6 常用施工脚手架",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "手架",
+    "脚手"
+   ]
+  },
+  {
+   "leaf_id": "1A413050-R06",
+   "chunk_id": "1A413030_126_0239",
+   "claimed": "倒置式屋面保温层要求",
+   "actual": "保温层施工环境温度要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（7）倒置式屋面保温层要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "倒置式屋面保温层要求"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "（3）纤维材料保温层施工时",
+    "（4）喷涂硬泡聚氨酯保温层施工时",
+    "（5）现浇泡沫混凝土保温层施工时",
+    "（6）保温层施工环境温度要求",
+    "（7）倒置式屋面保温层要求",
+    "（8）种植屋面保温层要求"
+   ],
+   "head_hit": "（7）倒置式屋面保温层要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "保温",
+    "温层"
+   ]
+  },
+  {
+   "leaf_id": "1A413050-R30",
+   "chunk_id": "1A413030_126_0239",
+   "claimed": "种植屋面保温层要求",
+   "actual": "保温层施工环境温度要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（8）种植屋面保温层要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "种植屋面保温层要求"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "（3）纤维材料保温层施工时",
+    "（4）喷涂硬泡聚氨酯保温层施工时",
+    "（5）现浇泡沫混凝土保温层施工时",
+    "（6）保温层施工环境温度要求",
+    "（7）倒置式屋面保温层要求",
+    "（8）种植屋面保温层要求"
+   ],
+   "head_hit": "（8）种植屋面保温层要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "保温",
+    "温层"
+   ]
+  },
+  {
+   "leaf_id": "1A413051-R10",
+   "chunk_id": "1A413030_123_0234",
+   "claimed": "热粘法铺贴",
+   "actual": "屋面卷材防水层施工",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[(5) 热粘法铺贴], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "热粘法铺贴"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "4. 屋面卷材防水层施工",
+    "(1) 铺贴顺序与方向",
+    "(2) 立面或大坡面铺贴",
+    "(3) 搭接缝规定",
+    "(4) 冷粘法铺贴",
+    "(5) 热粘法铺贴"
+   ],
+   "head_hit": "(5) 热粘法铺贴",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413064-R09",
+   "chunk_id": "1A413030_142_0277",
+   "claimed": "美术漆施工",
+   "actual": "乳胶漆施工",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）美术漆施工], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "美术漆施工"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "材料技术要求",
+    "施工要点",
+    "（1）乳胶漆施工",
+    "（2）美术漆施工",
+    "（3）氟碳漆施工"
+   ],
+   "head_hit": "（2）美术漆施工",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A413064-R12",
+   "chunk_id": "1A413030_143_0278",
+   "claimed": "软包饰面施工",
+   "actual": "壁纸及软包的分类",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）软包饰面施工], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "软包饰面施工"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "裱糊及软包工程",
+    "1) 壁纸及软包的分类",
+    "2) 施工环境要求",
+    "3) 施工要点",
+    "（1）裱糊施工",
+    "（2）软包饰面施工"
+   ],
+   "head_hit": "（2）软包饰面施工",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "软包"
+   ]
+  },
+  {
+   "leaf_id": "1A414010-E02",
+   "chunk_id": "1A413030_131_0251",
+   "claimed": "室内防水——防水砂浆施工",
+   "actual": "水泥砂浆防水层施工",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['砂浆', '防水'], 同域父子(措辞差异)",
+   "cwords": [
+    "防水砂浆施工"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "水泥砂浆防水层施工"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "砂浆",
+    "防水"
+   ]
+  },
+  {
+   "leaf_id": "1A414012-E01",
+   "chunk_id": "1A412000_040_0068",
+   "claimed": "建筑钢材的性能和应用",
+   "actual": "冲击性能",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[建筑钢材的力学性能], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑钢材",
+    "性能",
+    "应用"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "建筑钢材的力学性能",
+    "1）拉伸性能",
+    "2）冲击性能",
+    "3）疲劳性能",
+    "钢材化学成分及其对钢材性能的影响"
+   ],
+   "head_hit": "建筑钢材的力学性能",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "性能"
+   ]
+  },
+  {
+   "leaf_id": "1A414020-E02",
+   "chunk_id": "1A412010_055_0110",
+   "claimed": "建筑装饰装修材料",
+   "actual": "实木地板",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "建筑装饰装修材料"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "木制品的特性与应用",
+    "1）实木地板"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A414020-E04",
+   "chunk_id": "1A413030_147_0284",
+   "claimed": "装修工程——幕墙安装",
+   "actual": "全玻璃幕墙",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['幕墙'], 同域父子(措辞差异)",
+   "cwords": [
+    "幕墙安装"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "全玻璃幕墙",
+    "点支承玻璃幕墙",
+    "石材幕墙",
+    "金属幕墙"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "幕墙"
+   ]
+  },
+  {
+   "leaf_id": "1A415010-E01",
+   "chunk_id": "1A413030_131_0251",
+   "claimed": "防水工程——地下防水",
+   "actual": "水泥砂浆防水层施工",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['防水'], 同域父子(措辞差异)",
+   "cwords": [
+    "地下防水"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "水泥砂浆防水层施工"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "防水"
+   ]
+  },
+  {
+   "leaf_id": "1A415022-E01",
+   "chunk_id": "1A413000_079_0150",
+   "claimed": "基坑支护施工",
+   "actual": "土钉墙施工要求",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "基坑支护施工"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "土钉墙施工要求",
+    "咬合桩围护墙",
+    "型钢水泥土搅拌墙"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A415032-E01",
+   "chunk_id": "1A413030_092_0173",
+   "claimed": "桩基础施工",
+   "actual": "桩基检测技术",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['桩基'], 同域父子(措辞差异)",
+   "cwords": [
+    "桩基础施工"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "桩基检测技术"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "桩基"
+   ]
+  },
+  {
+   "leaf_id": "1A415033-E01",
+   "chunk_id": "1A413030_096_0181",
+   "claimed": "混凝土基础施工",
+   "actual": "大体积混凝土施工要求",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['凝土', '混凝'], 同域父子(措辞差异)",
+   "cwords": [
+    "混凝土基础施工"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "大体积混凝土施工要求",
+    "大体积混凝土温度监测与控制"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "凝土",
+    "混凝"
+   ]
+  },
+  {
+   "leaf_id": "1A415041-E01",
+   "chunk_id": "1A413030_103_0196",
+   "claimed": "混凝土结构工程施工",
+   "actual": "施工缝和后浇带",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "混凝土结构工程施工"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "混凝土施工缝和后浇带",
+    "施工缝和后浇带"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A415044-E01",
+   "chunk_id": "1A413030_116_0224",
+   "claimed": "装配式混凝土结构工程施工",
+   "actual": "预制构件安装",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "装配式混凝土结构工程施工"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3）存放要求",
+    "3. 预制构件安装",
+    "1）一般要求",
+    "2）预制柱安装要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A415045-E01",
+   "chunk_id": "1A413030_119_0227",
+   "claimed": "钢-混凝土组合结构工程施工",
+   "actual": "钢-混凝土组合结构施工",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['凝土', '合结', '土组', '混凝', '组合', '结构', '钢混'], 同域父子(措辞差异)",
+   "cwords": [
+    "钢-混凝土组合结构工程施工"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "3.4.5 钢－混凝土组合结构工程施工",
+    "1. 钢-混凝土组合结构设计",
+    "2. 钢-混凝土组合结构施工"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "凝土",
+    "合结",
+    "土组",
+    "混凝",
+    "组合",
+    "结构",
+    "钢混"
+   ]
+  },
+  {
+   "leaf_id": "1A415065-E01",
+   "chunk_id": "1A413030_142_0277",
+   "claimed": "涂饰、裱糊等工程施工",
+   "actual": "乳胶漆施工",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "涂饰",
+    "裱糊等工程施工"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "材料技术要求",
+    "施工要点",
+    "（1）乳胶漆施工",
+    "（2）美术漆施工",
+    "（3）氟碳漆施工"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A420000-E01",
+   "chunk_id": "1A431000_006_0006",
+   "claimed": "建筑工程项目施工管理",
+   "actual": "施工组织设计管理",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "建筑工程项目施工管理"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "6.3 施工组织设计",
+    "6.3.1 施工组织设计编制与管理",
+    "1. 施工组织设计管理",
+    "2. 施工组织总设计编制要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A421000-E01",
+   "chunk_id": "1A422000_022_0031",
+   "claimed": "相关法规",
+   "actual": "民用建筑工程室内环境污染控制管理有关规定",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "相关法规"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "5.1.5 民用建筑工程室内环境污染控制管理有关规定",
+    "1. 分类"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A421010-B004",
+   "chunk_id": "1A421000_001_0001",
+   "claimed": "城市地下管线管理与建筑工程施工相关的规定",
+   "actual": "城市道路、地下水与建筑施工管理规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4.1 建筑工程建设相关规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "城市地下管线管理",
+    "建筑工程施工相关",
+    "规定"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "4.1 建筑工程建设相关规定",
+    "4.1.1 城市道路、地下水与建筑施工管理规定",
+    "1. 城市道路管理与建筑工程施工的相关规定",
+    "2. 城市地下管线管理与建筑工程施工相关的规定"
+   ],
+   "head_hit": "4.1 建筑工程建设相关规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地下",
+    "城市",
+    "规定"
+   ]
+  },
+  {
+   "leaf_id": "1A421010-B012",
+   "chunk_id": "1A421000_003_0003",
+   "claimed": "建筑工程施工许可的相关管理规定",
+   "actual": "施工许可管理规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 建筑工程施工作可的相关管理规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑工程施工许可",
+    "相关管理规定"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "4.1.3 施工许可管理规定",
+    "1. 申请领取施工许可证应当具备的条件",
+    "2. 建筑工程施工作可的相关管理规定"
+   ],
+   "head_hit": "2. 建筑工程施工作可的相关管理规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "规定",
+    "许可"
+   ]
+  },
+  {
+   "leaf_id": "1A421010-B021",
+   "chunk_id": "1A421000_014_0020",
+   "claimed": "限制使用的施工工艺",
+   "actual": "《国务院关于调整完善工业产品生产许可证管理目",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 《房屋建筑和市政基础设施工程危及生产安全施], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "限制使用",
+    "施工工艺"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "4.2.5 国家主管部门近年来安全生产及施工现场管理的有关规定",
+    "1. 《国务院关于调整完善工业产品生产许可证管理目录的决定》的规定",
+    "表 4.2-3 实施工业产品生产许可证管理的部分产品目录",
+    "2. 《房屋建筑和市政基础设施工程危及生产安全施工工艺、设备和材料淘汰目录（第一批、第二批）》的规定",
+    "（1）禁止使用的施工工艺",
+    "（2）限制使用的施工工艺"
+   ],
+   "head_hit": "2. 《房屋建筑和市政基础设施工程危及生产安全施工工艺、设备和材料淘汰目录（第一批、第二批）》的规定",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A422000-B007",
+   "chunk_id": "1A422000_017_0023",
+   "claimed": "《建筑环境通用规范》有关规定",
+   "actual": "变形缝设置",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[5.1.2 《建筑环境通用规范》有关规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "《建筑环境通用规范》有关规定"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "建筑构造与通用规范要求",
+    "5. 建筑部件与构造",
+    "1）栏杆、栏板",
+    "2）管道井、烟道和通风道",
+    "3）变形缝设置",
+    "5.1.2 《建筑环境通用规范》有关规定"
+   ],
+   "head_hit": "5.1.2 《建筑环境通用规范》有关规定",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A422000-B025",
+   "chunk_id": "1A422000_031_0051",
+   "claimed": "土和灰土挤密桩复合地基",
+   "actual": "水泥粉煤灰碎石桩（CFG）复合地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[8. 土和灰土挤密桩复合地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "灰土挤密桩复合地基"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "6. 高压喷射注浆地基",
+    "7. 水泥土搅拌桩地基",
+    "8. 土和灰土挤密桩复合地基",
+    "9. 水泥粉煤灰碎石桩（CFG）复合地基"
+   ],
+   "head_hit": "8. 土和灰土挤密桩复合地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "合地",
+    "地基",
+    "复合"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B034",
+   "chunk_id": "1A422000_049_0075",
+   "claimed": "地面节能工程隐蔽验收要求",
+   "actual": "屋面节能工程隐蔽验收要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[地面节能工程隐蔽验收要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "地面节能工程隐蔽验收要求"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "取样检验",
+    "屋面节能工程隐蔽验收要求",
+    "地面节能工程隐蔽验收要求",
+    "现场检验抽样规定"
+   ],
+   "head_hit": "地面节能工程隐蔽验收要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "能隐",
+    "节能",
+    "蔽验",
+    "隐蔽",
+    "面节",
+    "验收"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B053",
+   "chunk_id": "1A422000_040_0064",
+   "claimed": "屋面工程施工有关规定",
+   "actual": "保温与隔热工程",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "屋面工程施工有关规定"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "5.4 装饰装修与屋面工程相关规定",
+    "5.4.1 屋面工程施工作有关规定",
+    "1. 基本规定",
+    "2. 基层与保护工程",
+    "3. 保温与隔热工程"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A422000-B074",
+   "chunk_id": "1A422000_016_0022",
+   "claimed": "建筑通用空间",
+   "actual": "《民用建筑通用规范》GB 55031—202",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4. 建筑通用空间], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑通用空间"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "5.1 建筑设计及质量控制相关规定",
+    "5.1.1 《民用建筑通用规范》GB 55031—2022 有关规定",
+    "1. 基本规定",
+    "2. 建筑面积",
+    "3. 建筑室外场地",
+    "4. 建筑通用空间"
+   ],
+   "head_hit": "4. 建筑通用空间",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "通用"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B089",
+   "chunk_id": "1A422000_046_0072",
+   "claimed": "施工、调试及验收",
+   "actual": "《建筑节能与可再生能源利用通用规范》有关规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 施工、调试及验收], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "调试",
+    "验收"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "5.5 绿色建造的相关规定",
+    "5.5.1 《建筑节能与可再生能源利用通用规范》有关规定",
+    "1. 基本规定",
+    "2. 新建建筑节能设计",
+    "3. 施工、调试及验收"
+   ],
+   "head_hit": "3. 施工、调试及验收",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A422000-B107",
+   "chunk_id": "1A422000_031_0051",
+   "claimed": "水泥土搅拌桩地基",
+   "actual": "水泥粉煤灰碎石桩（CFG）复合地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[7. 水泥土搅拌桩地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "水泥土搅拌桩地基"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "6. 高压喷射注浆地基",
+    "7. 水泥土搅拌桩地基",
+    "8. 土和灰土挤密桩复合地基",
+    "9. 水泥粉煤灰碎石桩（CFG）复合地基"
+   ],
+   "head_hit": "7. 水泥土搅拌桩地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基",
+    "水泥"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B114",
+   "chunk_id": "1A422000_022_0030",
+   "claimed": "特殊建设工程的消防设计审查",
+   "actual": "建设工程消防设计审查验收有关规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[5.1.4 建设工程消防设计审查验收有关规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "特殊建设工程",
+    "消防设计审查"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "5.1.4 建设工程消防设计审查验收有关规定",
+    "1. 有关单位的消防设计、施工质量责任与义务",
+    "2. 特殊建设工程的消防设计审查",
+    "3. 特殊建设工程的消防验收"
+   ],
+   "head_hit": "5.1.4 建设工程消防设计审查验收有关规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "审查",
+    "建设",
+    "消防",
+    "设消",
+    "防审"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B115",
+   "chunk_id": "1A422000_022_0030",
+   "claimed": "特殊建设工程的消防验收",
+   "actual": "建设工程消防设计审查验收有关规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 特殊建设工程的消防设计审查], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "特殊建设工程",
+    "消防验收"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "5.1.4 建设工程消防设计审查验收有关规定",
+    "1. 有关单位的消防设计、施工质量责任与义务",
+    "2. 特殊建设工程的消防设计审查",
+    "3. 特殊建设工程的消防验收"
+   ],
+   "head_hit": "2. 特殊建设工程的消防设计审查",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "建设",
+    "消防",
+    "设消",
+    "验收"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B119",
+   "chunk_id": "1A422000_030_0050",
+   "claimed": "砂和砂石地基",
+   "actual": "强夯地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 砂和砂石地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "砂石地基"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "1. 一般规定",
+    "2. 素土、灰土地基",
+    "3. 砂和砂石地基",
+    "4. 粉煤灰地基",
+    "5. 强夯地基"
+   ],
+   "head_hit": "3. 砂和砂石地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-B127",
+   "chunk_id": "1A422000_017_0023",
+   "claimed": "管道井、烟道和通风道",
+   "actual": "变形缝设置",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）管道井、烟道和通风道], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "管道井",
+    "烟道",
+    "通风道"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "建筑构造与通用规范要求",
+    "5. 建筑部件与构造",
+    "1）栏杆、栏板",
+    "2）管道井、烟道和通风道",
+    "3）变形缝设置",
+    "5.1.2 《建筑环境通用规范》有关规定"
+   ],
+   "head_hit": "2）管道井、烟道和通风道",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A422000-B128",
+   "chunk_id": "1A422000_030_0050",
+   "claimed": "粉煤灰地基",
+   "actual": "强夯地基",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4. 粉煤灰地基], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "粉煤灰地基"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "1. 一般规定",
+    "2. 素土、灰土地基",
+    "3. 砂和砂石地基",
+    "4. 粉煤灰地基",
+    "5. 强夯地基"
+   ],
+   "head_hit": "4. 粉煤灰地基",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基"
+   ]
+  },
+  {
+   "leaf_id": "1A422000-G02",
+   "chunk_id": "1A422000_022_0031",
+   "claimed": "室内环境污染物验收",
+   "actual": "民用建筑工程室内环境污染控制管理有关规定",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['内环', '境污', '室内', '污染', '环境'], 同域父子(措辞差异)",
+   "cwords": [
+    "室内环境污染物验收"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "5.1.5 民用建筑工程室内环境污染控制管理有关规定",
+    "1. 分类"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "内环",
+    "境污",
+    "室内",
+    "污染",
+    "环境"
+   ]
+  },
+  {
+   "leaf_id": "1A430000-E01",
+   "chunk_id": "1A437000_145_0231",
+   "claimed": "项目管理实务",
+   "actual": "施工现场动火审批程序",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "项目管理实务"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "3. 施工现场动火审批程序",
+    "4. 施工现场防火要求"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A430000-E02",
+   "chunk_id": "1A422000_055_0081",
+   "claimed": "项目管理实务——绿色施工",
+   "actual": "建材生产与运输",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "绿色施工"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "2. 运行阶段",
+    "3. 建造与拆除阶段",
+    "4. 建材生产与运输"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A431000-B005",
+   "chunk_id": "1A431000_007_0007",
+   "claimed": "单位工程施工作业组织设计编制要求",
+   "actual": "总体施工部署与施工准备",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[单位工程施工作业组织设计编制要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "单位工程施工作业组织设计编制要求"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "总体施工部署与施工准备",
+    "单位工程施工作业组织设计编制要求",
+    "施工方案编写要求"
+   ],
+   "head_hit": "单位工程施工作业组织设计编制要求",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A431000-B012",
+   "chunk_id": "1A431000_002_0002",
+   "claimed": "建筑工程施工总承包资质承接工程范围",
+   "actual": "一级资质",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 建筑工程施工总承包资质承接工程范围], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑工程施工总承包资质承接工程范围"
+   ],
+   "n_headings": 8,
+   "headings": [
+    "6.1.2 施工企业资质",
+    "1. 资质等级",
+    "2. 建筑工程施工总承包资质承接工程范围",
+    "1）特级资质",
+    "2）一级资质",
+    "3）二级资质",
+    "4）三级资质",
+    "3. 建筑工程"
+   ],
+   "head_hit": "2. 建筑工程施工总承包资质承接工程范围",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "资质"
+   ]
+  },
+  {
+   "leaf_id": "1A431000-B019",
+   "chunk_id": "1A431000_007_0007",
+   "claimed": "施工方案编写要求",
+   "actual": "总体施工部署与施工准备",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[施工方案编写要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "施工方案编写要求"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "总体施工部署与施工准备",
+    "单位工程施工作业组织设计编制要求",
+    "施工方案编写要求"
+   ],
+   "head_hit": "施工方案编写要求",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A431000-B021",
+   "chunk_id": "1A431000_006_0006",
+   "claimed": "施工组织总设计编制要求",
+   "actual": "施工组织设计管理",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 施工组织总设计编制要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "施工组织总设计编制要求"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "6.3 施工组织设计",
+    "6.3.1 施工组织设计编制与管理",
+    "1. 施工组织设计管理",
+    "2. 施工组织总设计编制要求"
+   ],
+   "head_hit": "2. 施工组织总设计编制要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "组织"
+   ]
+  },
+  {
+   "leaf_id": "1A431000-B028",
+   "chunk_id": "1A431000_002_0002",
+   "claimed": "特级资质",
+   "actual": "一级资质",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1）特级资质], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "特级资质"
+   ],
+   "n_headings": 8,
+   "headings": [
+    "6.1.2 施工企业资质",
+    "1. 资质等级",
+    "2. 建筑工程施工总承包资质承接工程范围",
+    "1）特级资质",
+    "2）一级资质",
+    "3）二级资质",
+    "4）三级资质",
+    "3. 建筑工程"
+   ],
+   "head_hit": "1）特级资质",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "级资",
+    "资质"
+   ]
+  },
+  {
+   "leaf_id": "1A431010-C04",
+   "chunk_id": "1A431011_014_0015",
+   "claimed": "临时用电管理",
+   "actual": "临时用电线路设置",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[6.5.2 临时用电管理], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "临时用电管理"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "6.5.1 临时用电线路设置",
+    "3. 电缆线路敷设基本要求",
+    "4. 室内配线要求",
+    "5. 配电箱与开关箱的设置",
+    "6.5.2 临时用电管理",
+    "1. 电工及用电人员"
+   ],
+   "head_hit": "6.5.2 临时用电管理",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "临时",
+    "时用",
+    "用电"
+   ]
+  },
+  {
+   "leaf_id": "1A431010-C07",
+   "chunk_id": "1A431011_014_0015",
+   "claimed": "室内配线要求",
+   "actual": "临时用电线路设置",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4. 室内配线要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "室内配线要求"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "6.5.1 临时用电线路设置",
+    "3. 电缆线路敷设基本要求",
+    "4. 室内配线要求",
+    "5. 配电箱与开关箱的设置",
+    "6.5.2 临时用电管理",
+    "1. 电工及用电人员"
+   ],
+   "head_hit": "4. 室内配线要求",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A431010-C25",
+   "chunk_id": "1A431011_017_0018",
+   "claimed": "施工过程质量检测试验内容",
+   "actual": "施工检测试验计划",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(2 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "施工过程质量检测试验内容"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "6.7 施工检验与试验",
+    "6.7.1 检验与试验计划"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": [
+    "检测",
+    "测试",
+    "试验"
+   ]
+  },
+  {
+   "leaf_id": "1A431010-C33",
+   "chunk_id": "1A431011_013_0014",
+   "claimed": "规范场容与环境保护",
+   "actual": "场地围护与出入口",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 规范场容与环境保护], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "规范场容",
+    "环境保护"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "2. 场地围护与出入口",
+    "3. 规范场容与环境保护"
+   ],
+   "head_hit": "3. 规范场容与环境保护",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A432000-B008",
+   "chunk_id": "1A432001_023_0027",
+   "claimed": "主要招标程序",
+   "actual": "招标方式",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 主要招标程序], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "主要招标程序"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "7.1 工程招标投标",
+    "7.1.1 招标方式与程序",
+    "1. 招标方式",
+    "2. 主要招标程序"
+   ],
+   "head_hit": "2. 主要招标程序",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "招标"
+   ]
+  },
+  {
+   "leaf_id": "1A432000-B020",
+   "chunk_id": "1A432002_031_0041",
+   "claimed": "合同文件管理要求",
+   "actual": "合同变更管理程序",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[5）合同文件管理要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "合同文件管理要求"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2. 项目合同管理",
+    "1）合同管理原则",
+    "2）合同变更管理程序",
+    "3）合同争议处理",
+    "4）履约索赔处理规定",
+    "5）合同文件管理要求"
+   ],
+   "head_hit": "5）合同文件管理要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "合同"
+   ]
+  },
+  {
+   "leaf_id": "1A432000-B026",
+   "chunk_id": "1A432002_031_0041",
+   "claimed": "履约索赔处理规定",
+   "actual": "合同变更管理程序",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[4）履约索赔处理规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "履约索赔处理规定"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "2. 项目合同管理",
+    "1）合同管理原则",
+    "2）合同变更管理程序",
+    "3）合同争议处理",
+    "4）履约索赔处理规定",
+    "5）合同文件管理要求"
+   ],
+   "head_hit": "4）履约索赔处理规定",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A432000-B043",
+   "chunk_id": "1A432002_036_0047",
+   "claimed": "投标报价澄清或说明",
+   "actual": "合同选择与要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[5）投标报价澄清或说明], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "投标报价澄清或说明"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "3）计价风险",
+    "4）合同选择与要求",
+    "5）投标报价澄清或说明"
+   ],
+   "head_hit": "5）投标报价澄清或说明",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A432000-C11",
+   "chunk_id": "1A435000_041_0055",
+   "claimed": "安全生产措施费的支付",
+   "actual": "合同价款期中支付",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（1）合同价款期中支付], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "安全生产措施费",
+    "支付"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "合同价款计算与调整",
+    "（1）合同价款期中支付",
+    "工程预付款的支付：",
+    "安全生产措施费的支付：",
+    "工程进度款的支付："
+   ],
+   "head_hit": "（1）合同价款期中支付",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "支付"
+   ]
+  },
+  {
+   "leaf_id": "1A432000-C13",
+   "chunk_id": "1A435000_046_0066",
+   "claimed": "履约事件的索赔",
+   "actual": "工程变更",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3) 工程索赔], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "履约事件",
+    "索赔"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "1) 工程变更",
+    "2) 新增工程",
+    "3) 工程索赔",
+    "（1）履约事件的索赔"
+   ],
+   "head_hit": "3) 工程索赔",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A432000-C15",
+   "chunk_id": "1A435000_046_0066",
+   "claimed": "工程索赔",
+   "actual": "工程变更",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3) 工程索赔], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "工程索赔"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "1) 工程变更",
+    "2) 新增工程",
+    "3) 工程索赔",
+    "（1）履约事件的索赔"
+   ],
+   "head_hit": "3) 工程索赔",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A432000-C17",
+   "chunk_id": "1A435000_041_0055",
+   "claimed": "工程进度款的支付",
+   "actual": "合同价款期中支付",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（1）合同价款期中支付], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "工程进度款",
+    "支付"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "合同价款计算与调整",
+    "（1）合同价款期中支付",
+    "工程预付款的支付：",
+    "安全生产措施费的支付：",
+    "工程进度款的支付："
+   ],
+   "head_hit": "（1）合同价款期中支付",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "支付"
+   ]
+  },
+  {
+   "leaf_id": "1A432020-G01",
+   "chunk_id": "1A432002_028_0036",
+   "claimed": "合同通用条款与专用条款",
+   "actual": "工程总承包合同",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['合同'], 同域父子(措辞差异)",
+   "cwords": [
+    "合同通用条款",
+    "专用条款"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "工程总承包合同"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "合同"
+   ]
+  },
+  {
+   "leaf_id": "1A433000-B031",
+   "chunk_id": "1A433000_052_0075",
+   "claimed": "流水施工的组织形式",
+   "actual": "时间参数",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[流水施工的组织形式], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "流水施工",
+    "组织形式"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "时间参数",
+    "（1）流水节拍",
+    "（2）流水步距",
+    "（3）工期",
+    "流水施工的组织形式"
+   ],
+   "head_hit": "流水施工的组织形式",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A433000-B042",
+   "chunk_id": "1A433000_056_0085",
+   "claimed": "网络计划的优化",
+   "actual": "工期优化",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[网络计划的编制流程], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "网络计划",
+    "优化"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "网络计划的编制流程",
+    "网络计划的分类",
+    "网络计划时差、关键工作与关键线路",
+    "网络计划的优化",
+    "1）工期优化"
+   ],
+   "head_hit": "网络计划的编制流程",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "优化"
+   ]
+  },
+  {
+   "leaf_id": "1A433000-B043",
+   "chunk_id": "1A433000_056_0085",
+   "claimed": "网络计划的分类",
+   "actual": "工期优化",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[网络计划的编制流程], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "网络计划",
+    "分类"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "网络计划的编制流程",
+    "网络计划的分类",
+    "网络计划时差、关键工作与关键线路",
+    "网络计划的优化",
+    "1）工期优化"
+   ],
+   "head_hit": "网络计划的编制流程",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A433000-B052",
+   "chunk_id": "1A433000_060_0090",
+   "claimed": "进度事后控制内容",
+   "actual": "单位工程进度计划的编制步骤",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3）进度事后控制内容], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "进度事后控制内容"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "单位工程进度计划的编制步骤",
+    "施工进度控制内容",
+    "1）进度事前控制内容",
+    "2）进度事中控制内容",
+    "3）进度事后控制内容",
+    "进度计划的实施与监测"
+   ],
+   "head_hit": "3）进度事后控制内容",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "进度"
+   ]
+  },
+  {
+   "leaf_id": "1A433000-B057",
+   "chunk_id": "1A433000_061_0091",
+   "claimed": "项目进度计划监测后",
+   "actual": "施工进度计划监测的内容",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[(3) 项目进度计划监测后，应形成书面进度报告。], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "项目进度计划监测后"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "(2) 施工进度计划监测的内容：",
+    "(3) 项目进度计划监测后，应形成书面进度报告。"
+   ],
+   "head_hit": "(3) 项目进度计划监测后，应形成书面进度报告。",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "划监",
+    "度计",
+    "监测",
+    "计划",
+    "进度"
+   ]
+  },
+  {
+   "leaf_id": "1A433000-G01",
+   "chunk_id": "1A433000_057_0086",
+   "claimed": "工期费用优化与赶工费计算",
+   "actual": "费用优化",
+   "verdict": "false_positive",
+   "reason": "claimed 与 actual 同主题(父子/别名/同段措辞)",
+   "cwords": [
+    "工期费用优化",
+    "赶工费计算"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "费用优化"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "优化",
+    "用优",
+    "费用"
+   ]
+  },
+  {
+   "leaf_id": "1A433000-G02",
+   "chunk_id": "1A433000_060_0090",
+   "claimed": "实际进度前锋线比较法",
+   "actual": "单位工程进度计划的编制步骤",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['进度'], 同域父子(措辞差异)",
+   "cwords": [
+    "实际进度前锋线比较法"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "单位工程进度计划的编制步骤",
+    "施工进度控制内容",
+    "1）进度事前控制内容",
+    "2）进度事中控制内容",
+    "3）进度事后控制内容",
+    "进度计划的实施与监测"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "进度"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B012",
+   "chunk_id": "1A434000_067_0100",
+   "claimed": "填充墙砌体工程主控项目",
+   "actual": "砌体结构工程质量检验与标准",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(3 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "填充墙砌体工程主控项目"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "9.2.4 砌体结构工程质量检验与标准",
+    "1. 质量检查内容",
+    "2. 质量检查主控项目"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": [
+    "砌体"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B024",
+   "chunk_id": "1A434000_064_0095",
+   "claimed": "强夯地基工程",
+   "actual": "地基与基础工程质量检验与标准",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 强夯地基工程], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "强夯地基工程"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "9.2.2 地基与基础工程质量检验与标准",
+    "1. 土方工程",
+    "2. 灰土、砂和砂石地基工程",
+    "3. 强夯地基工程"
+   ],
+   "head_hit": "3. 强夯地基工程",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B041",
+   "chunk_id": "1A434000_064_0095",
+   "claimed": "灰土、砂和砂石地基工程",
+   "actual": "地基与基础工程质量检验与标准",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 灰土、砂和砂石地基工程], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "灰土",
+    "砂石地基工程"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "9.2.2 地基与基础工程质量检验与标准",
+    "1. 土方工程",
+    "2. 灰土、砂和砂石地基工程",
+    "3. 强夯地基工程"
+   ],
+   "head_hit": "2. 灰土、砂和砂石地基工程",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "地基"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B044",
+   "chunk_id": "1A434000_063_0094",
+   "claimed": "现场质量检查的方法",
+   "actual": "施工质量检查检验方式与方法",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[9.2.1 施工质量检查检验方式与方法], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "现场质量检查",
+    "方法"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "9.2 项目施工质量检查与检验",
+    "9.2.1 施工质量检查检验方式与方法",
+    "1. 现场质量检查内容",
+    "2. 现场质量检查的方法"
+   ],
+   "head_hit": "9.2.1 施工质量检查检验方式与方法",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "方法",
+    "检查"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B055",
+   "chunk_id": "1A434000_067_0100",
+   "claimed": "质量检查主控项目",
+   "actual": "砌体结构工程质量检验与标准",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 质量检查主控项目], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "质量检查主控项目"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "9.2.4 砌体结构工程质量检验与标准",
+    "1. 质量检查内容",
+    "2. 质量检查主控项目"
+   ],
+   "head_hit": "2. 质量检查主控项目",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A434000-B071",
+   "chunk_id": "1A434000_062_0093",
+   "claimed": "项目经理部质量计划的执行",
+   "actual": "施工企业质量计划的监督检查",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(3 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "项目经理部质量计划",
+    "执行"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "9.1 项目质量计划管理",
+    "9.1.1 项目质量计划编制",
+    "9.1.2 项目质量计划应用"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": [
+    "计划"
+   ]
+  },
+  {
+   "leaf_id": "1A434000-B082",
+   "chunk_id": "1A434000_068_0102",
+   "claimed": "高强度螺栓连接主控项目",
+   "actual": "钢构件焊接工程主控项目",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[高强度螺栓连接主控项目], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "高强度螺栓连接主控项目"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "钢构件焊接工程主控项目",
+    "高强度螺栓连接主控项目"
+   ],
+   "head_hit": "高强度螺栓连接主控项目",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "主控",
+    "接主",
+    "控项",
+    "项目"
+   ]
+  },
+  {
+   "leaf_id": "1A434001-E01",
+   "chunk_id": "1A412010_060_0118",
+   "claimed": "装修工程——涂饰",
+   "actual": "水溶性内墙涂料",
+   "verdict": "needs_relink",
+   "reason": "claimed 与 actual 主题不相干, claimed 名义无源(C)",
+   "cwords": [
+    "涂饰"
+   ],
+   "n_headings": 1,
+   "headings": [
+    "2）水溶性内墙涂料"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A434020-B016",
+   "chunk_id": "1A434020_087_0144",
+   "claimed": "建筑节能工程围护结构现场实体检验",
+   "actual": "建筑节能工程质量验收",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[建筑节能工程围护结构现场实体检验], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑节能工程围护结构现场实体检验"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "建筑节能工程质量验收",
+    "建筑节能工程围护结构现场实体检验"
+   ],
+   "head_hit": "建筑节能工程围护结构现场实体检验",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "节能"
+   ]
+  },
+  {
+   "leaf_id": "1A435000-B049",
+   "chunk_id": "1A435000_094_0155",
+   "claimed": "竣工验收阶段的成本控制",
+   "actual": "工程施工的成本控制",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[工程施工的成本控制], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "竣工验收阶段",
+    "成本控制"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "工程施工的成本控制",
+    "竣工验收阶段的成本控制"
+   ],
+   "head_hit": "工程施工的成本控制",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "成本",
+    "控制",
+    "本控"
+   ]
+  },
+  {
+   "leaf_id": "1A435000-B051",
+   "chunk_id": "1A435000_091_0149",
+   "claimed": "表 10.2-1 混凝土目标成本与实际成本对比表",
+   "actual": "因素分析法",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[【案例 10.2-1】], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "10.2-1",
+    "混凝土目标成本",
+    "实际成本对比表"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "基本分析方法的应用",
+    "1）比较法",
+    "2）因素分析法",
+    "【案例 10.2-1】"
+   ],
+   "head_hit": "【案例 10.2-1】",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A435020-B011",
+   "chunk_id": "1A435020_095_0156",
+   "claimed": "挣值法的计算",
+   "actual": "三个成本值",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[应用挣值法控制成本], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "挣值法",
+    "计算"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "应用挣值法控制成本",
+    "（1）三个成本值",
+    "（2）挣值法的计算"
+   ],
+   "head_hit": "应用挣值法控制成本",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A435020-B021",
+   "chunk_id": "1A435020_098_0162",
+   "claimed": "项目成本考核内容",
+   "actual": "施工成本管理绩效考核",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 项目成本考核内容], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "项目成本考核内容"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "10.3.2 施工成本管理绩效考核",
+    "1. 项目成本考核要求",
+    "2. 项目成本考核内容"
+   ],
+   "head_hit": "2. 项目成本考核内容",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "成本",
+    "考核"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B017",
+   "chunk_id": "1A436000_113_0187",
+   "claimed": "主体工程施工主要安全隐患",
+   "actual": "主体工程安全管理要点",
+   "verdict": "false_positive",
+   "reason": "claimed 词面不在 chunk 但与 actual 共享核心词['主体', '安全'], 同域父子(措辞差异)",
+   "cwords": [
+    "主体工程施工主要安全隐患"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "11.3.3 主体工程安全管理要点",
+    "1. 主体工程施主要安全隐患",
+    "（1）现浇混凝土模板与支撑系统",
+    "（2）混凝土浇筑"
+   ],
+   "head_hit": null,
+   "claimed_appears": false,
+   "topic_overlap": [
+    "主体",
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B033",
+   "chunk_id": "1A436000_102_0168",
+   "claimed": "危险源的辨识",
+   "actual": "危险源分类",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[11.1.2 常见施工安全危险源管理], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "危险源",
+    "辨识"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "11.1.2 常见施工安全危险源管理",
+    "1. 危险源分类",
+    "2. 危险源的辨识"
+   ],
+   "head_hit": "11.1.2 常见施工安全危险源管理",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "危险",
+    "险源"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B047",
+   "chunk_id": "1A436000_109_0179",
+   "claimed": "基础工程安全控制的主要内容",
+   "actual": "基坑（槽）土方开挖与回填安全技术措施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[基础工程安全控制的主要内容], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "基础工程安全控制",
+    "主要内容"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "基础工程施工作业安全控制要点",
+    "基础工程安全控制的主要内容",
+    "基坑（槽）施工安全控制要点",
+    "1）基坑（槽）开挖前的勘察内容",
+    "2）基坑（槽）土方开挖与回填安全技术措施"
+   ],
+   "head_hit": "基础工程安全控制的主要内容",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B051",
+   "chunk_id": "1A436000_122_0196",
+   "claimed": "外墙作业的规定",
+   "actual": "悬空作业的安全防范措施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1) 构件吊装悬空作业规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "外墙作业",
+    "规定"
+   ],
+   "n_headings": 7,
+   "headings": [
+    "悬空作业的安全防范措施",
+    "1) 构件吊装悬空作业规定",
+    "2) 模板支撑搭设和拆卸悬空作业规定",
+    "3) 绑扎钢筋和预应力张拉的悬空作业应符合的规定",
+    "4) 混凝土浇筑与结构施工的悬空作业应符合的规定",
+    "5) 屋面作业的规定",
+    "6) 外墙作业的规定"
+   ],
+   "head_hit": "1) 构件吊装悬空作业规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "作业"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B058",
+   "chunk_id": "1A436000_117_0191",
+   "claimed": "安全通道安全要求",
+   "actual": "当高空作业的各项安全措施经检查不合格时",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（4）安全通道安全要求：], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "安全通道安全要求"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "钢结构工程的安全控制要点",
+    "（1）施工时，作业人员按照规定使用合格劳动保护用品。",
+    "（2）当高空作业的各项安全措施经检查不合格时，严禁高空作业。",
+    "（3）登高作业安全要求：",
+    "（4）安全通道安全要求：",
+    "（5）洞口和临边防护："
+   ],
+   "head_hit": "（4）安全通道安全要求：",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B059",
+   "chunk_id": "1A436000_122_0196",
+   "claimed": "屋面作业的规定",
+   "actual": "悬空作业的安全防范措施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1) 构件吊装悬空作业规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "屋面作业",
+    "规定"
+   ],
+   "n_headings": 7,
+   "headings": [
+    "悬空作业的安全防范措施",
+    "1) 构件吊装悬空作业规定",
+    "2) 模板支撑搭设和拆卸悬空作业规定",
+    "3) 绑扎钢筋和预应力张拉的悬空作业应符合的规定",
+    "4) 混凝土浇筑与结构施工的悬空作业应符合的规定",
+    "5) 屋面作业的规定",
+    "6) 外墙作业的规定"
+   ],
+   "head_hit": "1) 构件吊装悬空作业规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "作业"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B060",
+   "chunk_id": "1A436000_128_0206",
+   "claimed": "常见施工安全事故类型",
+   "actual": "手持电动工具的安全管理要点",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[11.4.1 常见施工安全事故类型], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "常见施工安全事故类型"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "手持电动工具的安全管理要点",
+    "常见施工生产安全事故及预防",
+    "11.4.1 常见施工安全事故类型",
+    "1. 建筑安全生产事故分类",
+    "1）按事故的原因及性质分类"
+   ],
+   "head_hit": "11.4.1 常见施工安全事故类型",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B066",
+   "chunk_id": "1A436000_128_0206",
+   "claimed": "建筑安全生产事故分类",
+   "actual": "手持电动工具的安全管理要点",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1. 建筑安全生产事故分类], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑安全生产事故分类"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "手持电动工具的安全管理要点",
+    "常见施工生产安全事故及预防",
+    "11.4.1 常见施工安全事故类型",
+    "1. 建筑安全生产事故分类",
+    "1）按事故的原因及性质分类"
+   ],
+   "head_hit": "1. 建筑安全生产事故分类",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B070",
+   "chunk_id": "1A436000_100_0164",
+   "claimed": "建筑施工安全技术管理",
+   "actual": "建筑施工安全生产费用管理",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[建筑施工安全技术管理], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑施工安全技术管理"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "特殊工种作业人员资格要求",
+    "新上岗操作人员岗前教育培训内容",
+    "每年安全生产继续教育内容",
+    "建筑施工安全生产费用管理",
+    "建筑施工安全技术管理"
+   ],
+   "head_hit": "建筑施工安全技术管理",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B071",
+   "chunk_id": "1A436000_099_0163",
+   "claimed": "建筑施工安全生产教育培训",
+   "actual": "安全管理内容",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3）建筑施工安全生产教育培训], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑施工安全生产教育培训"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "第11章 施工安全管理",
+    "11.1 施工安全生产管理计划",
+    "1. 安全管理内容",
+    "1）建筑施工安全管理的目标",
+    "2）建筑施工安全管理组织体系与管理制度",
+    "3）建筑施工安全生产教育培训"
+   ],
+   "head_hit": "3）建筑施工安全生产教育培训",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B074",
+   "chunk_id": "1A436000_099_0163",
+   "claimed": "建筑施工安全管理组织体系与管理制度",
+   "actual": "安全管理内容",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2）建筑施工安全管理组织体系与管理制度], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "建筑施工安全管理组织体系",
+    "管理制度"
+   ],
+   "n_headings": 6,
+   "headings": [
+    "第11章 施工安全管理",
+    "11.1 施工安全生产管理计划",
+    "1. 安全管理内容",
+    "1）建筑施工安全管理的目标",
+    "2）建筑施工安全管理组织体系与管理制度",
+    "3）建筑施工安全生产教育培训"
+   ],
+   "head_hit": "2）建筑施工安全管理组织体系与管理制度",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B087",
+   "chunk_id": "1A436000_121_0195",
+   "claimed": "攀登作业的安全防范措施",
+   "actual": "临边与洞口作业安全防范措施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 临边与洞口作业安全防范措施], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "攀登作业",
+    "安全防范措施"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "3. 临边与洞口作业安全防范措施",
+    "1）临边作业",
+    "2）洞口作业",
+    "3）防护栏杆",
+    "4. 攀登作业的安全防范措施"
+   ],
+   "head_hit": "3. 临边与洞口作业安全防范措施",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "业安",
+    "作业",
+    "全防",
+    "安全",
+    "措施",
+    "范措",
+    "防范"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B091",
+   "chunk_id": "1A436000_007_0010",
+   "claimed": "施工临时用电方面",
+   "actual": "危险性较大的分部分项工程未编制、未审核专项施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（7）施工临时用电方面，特殊作业环境（通风不畅、], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "施工临时用电方面"
+   ],
+   "n_headings": 12,
+   "headings": [
+    "重大事故隐患判定标准",
+    "（1）建筑施工企业未取得安全生产许可证擅自从事建筑施工活动或超（无）资质承揽工程；",
+    "（2）建筑施工企业未按照规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书从事相关工作；",
+    "（3）建筑施工特种作业人员未取得特种作业人员操作资格证书上岗作业；",
+    "（4）危险性较大的分部分项工程未编制、未审核专项施工方案，或专项施工方案存在严重缺陷的，或未按规定要求对专项施工方案组织专家论证。",
+    "（2）基坑工程有下列情形之一的，应判定为重大事故隐患：",
+    "（3）模板工程及支撑体系有下列情形之一的，应判定为重大事故隐患：",
+    "（4）脚手架工程有下列情形之一的，应判定为重大事故隐患："
+   ],
+   "head_hit": "（7）施工临时用电方面，特殊作业环境（通风不畅、高温、有导电灰尘、相对湿度长期超过 75%、泥泞、存在积水或其他导电液体等不利作业环境）照明未按规定使用安全电压的，应判定为重大事故隐患。",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A436000-B100",
+   "chunk_id": "1A436000_126_0200",
+   "claimed": "施工电梯的安全管理要点",
+   "actual": "一般机械作业安全要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[常见施工机械的安全管理要点], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "施工电梯",
+    "安全管理要点"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "常见施工机械的安全管理要点",
+    "1. 一般机械作业安全要求",
+    "2. 施工电梯的安全管理要点",
+    "3. 桩工机械的安全管理要点"
+   ],
+   "head_hit": "常见施工机械的安全管理要点",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B107",
+   "chunk_id": "1A436000_126_0200",
+   "claimed": "桩工机械的安全管理要点",
+   "actual": "一般机械作业安全要求",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[常见施工机械的安全管理要点], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "桩工机械",
+    "安全管理要点"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "常见施工机械的安全管理要点",
+    "1. 一般机械作业安全要求",
+    "2. 施工电梯的安全管理要点",
+    "3. 桩工机械的安全管理要点"
+   ],
+   "head_hit": "常见施工机械的安全管理要点",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "安全",
+    "机械"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B147",
+   "chunk_id": "1A436000_123_0197",
+   "claimed": "落地式操作平台架体构造的规定",
+   "actual": "悬挑式操作平台的规定",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1）移动式操作平台的规定], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "落地式操作平台架体构造",
+    "规定"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "6. 操作平台的安全防范措施",
+    "1）移动式操作平台的规定",
+    "2）落地式操作平台架体构造的规定",
+    "3）悬挑式操作平台的规定"
+   ],
+   "head_hit": "1）移动式操作平台的规定",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "作平",
+    "平台",
+    "式操",
+    "操作",
+    "规定"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B170",
+   "chunk_id": "1A436000_112_0185",
+   "claimed": "钢管脚手架的拆除",
+   "actual": "脚手架工程安全管理要点",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[1. 钢管脚手架施工准备工作], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "钢管脚手架",
+    "拆除"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "11.3.2 脚手架工程安全管理要点",
+    "1. 钢管脚手架施工准备工作",
+    "2. 钢管脚手架的地基",
+    "3. 钢管脚手架的搭设",
+    "4. 钢管脚手架的拆除"
+   ],
+   "head_hit": "1. 钢管脚手架施工准备工作",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "手架",
+    "脚手"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B177",
+   "chunk_id": "1A436000_120_0194",
+   "claimed": "高处作业基本要求",
+   "actual": "高处作业的主要安全隐患",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 高处作业基本要求], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "高处作业基本要求"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "1. 高处作业的主要安全隐患",
+    "2. 高处作业基本要求"
+   ],
+   "head_hit": "2. 高处作业基本要求",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "作业",
+    "处作",
+    "高处"
+   ]
+  },
+  {
+   "leaf_id": "1A436000-B179",
+   "chunk_id": "1A436000_007_0010",
+   "claimed": "高处作业有下列情形之一的",
+   "actual": "危险性较大的分部分项工程未编制、未审核专项施",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（6）高处作业有下列情形之一的，应判定为重大事故], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "高处作业有下列情形之一"
+   ],
+   "n_headings": 12,
+   "headings": [
+    "重大事故隐患判定标准",
+    "（1）建筑施工企业未取得安全生产许可证擅自从事建筑施工活动或超（无）资质承揽工程；",
+    "（2）建筑施工企业未按照规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书从事相关工作；",
+    "（3）建筑施工特种作业人员未取得特种作业人员操作资格证书上岗作业；",
+    "（4）危险性较大的分部分项工程未编制、未审核专项施工方案，或专项施工方案存在严重缺陷的，或未按规定要求对专项施工方案组织专家论证。",
+    "（2）基坑工程有下列情形之一的，应判定为重大事故隐患：",
+    "（3）模板工程及支撑体系有下列情形之一的，应判定为重大事故隐患：",
+    "（4）脚手架工程有下列情形之一的，应判定为重大事故隐患："
+   ],
+   "head_hit": "（6）高处作业有下列情形之一的，应判定为重大事故隐患：",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A437000-B001",
+   "chunk_id": "1A437000_150_0296",
+   "claimed": "BIM的应用",
+   "actual": "建筑信息模型（BIM）技术",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3.7.2 建筑信息模型（BIM）技术], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "BIM",
+    "应用"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "3.7.2 建筑信息模型（BIM）技术",
+    "1. 建筑信息模型（BIM）软件",
+    "2. BIM的应用"
+   ],
+   "head_hit": "3.7.2 建筑信息模型（BIM）技术",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "BI",
+    "IM"
+   ]
+  },
+  {
+   "leaf_id": "1A437000-B020",
+   "chunk_id": "1A437000_150_0295",
+   "claimed": "垃圾管道垂直运输技术",
+   "actual": "工具式定型化临时设施技术",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[7. 垃圾管道垂直运输技术], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "垃圾管道垂直运输技术"
+   ],
+   "n_headings": 2,
+   "headings": [
+    "6. 工具式定型化临时设施技术",
+    "7. 垃圾管道垂直运输技术"
+   ],
+   "head_hit": "7. 垃圾管道垂直运输技术",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A437000-B069",
+   "chunk_id": "1A437000_139_0222",
+   "claimed": "环境保护技术要点",
+   "actual": "实施组织",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 环境保护技术要点], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "环境保护技术要点"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "12.2 绿色施工及环境保护",
+    "12.2.1 绿色施工及环境保护要求",
+    "1. 组织与管理",
+    "2. 环境保护技术要点"
+   ],
+   "head_hit": "2. 环境保护技术要点",
+   "claimed_appears": true,
+   "topic_overlap": []
+  },
+  {
+   "leaf_id": "1A437000-B073",
+   "chunk_id": "1A437000_143_0229",
+   "claimed": "现场文明施工管理的控制要点",
+   "actual": "文明施工",
+   "verdict": "false_positive",
+   "reason": "claimed 与 actual 同主题(父子/别名/同段措辞)",
+   "cwords": [
+    "现场文明施工管理",
+    "控制要点"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "12.2.3 施工现场文明施工及成品保护",
+    "1. 文明施工",
+    "（1）现场文明施工管理的主要内容",
+    "（2）现场文明施工管理的基本要求",
+    "（3）现场文明施工管理的控制要点"
+   ],
+   "head_hit": "（1）现场文明施工管理的主要内容",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "文明"
+   ]
+  },
+  {
+   "leaf_id": "1A437000-B080",
+   "chunk_id": "1A437000_149_0292",
+   "claimed": "空气能热水技术",
+   "actual": "太阳能热水应用技术",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3）空气能热水技术], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "空气能热水技术"
+   ],
+   "n_headings": 4,
+   "headings": [
+    "3. 施工现场太阳能、空气能利用技术",
+    "1）施工现场太阳能光伏发电照明技术",
+    "2）太阳能热水应用技术",
+    "3）空气能热水技术"
+   ],
+   "head_hit": "3）空气能热水技术",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "热水",
+    "能热"
+   ]
+  },
+  {
+   "leaf_id": "1A438000-B055",
+   "chunk_id": "1A438000_151_0243",
+   "claimed": "材料复试取样原则",
+   "actual": "建筑材料检测",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[2. 材料复试取样原则], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "材料复试取样原则"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "13.1.3 建筑材料检测",
+    "1. 材料检验要求",
+    "2. 材料复试取样原则"
+   ],
+   "head_hit": "2. 材料复试取样原则",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "材料"
+   ]
+  },
+  {
+   "leaf_id": "1A438000-B058",
+   "chunk_id": "1A438000_149_0240",
+   "claimed": "材料计划的调整",
+   "actual": "材料计划的分类",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[13.1.1 项目材料计划], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "材料计划",
+    "调整"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "第13章 施工资源管理",
+    "13.1 材料与半成品管理",
+    "13.1.1 项目材料计划"
+   ],
+   "head_hit": "13.1.1 项目材料计划",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "料计",
+    "材料",
+    "计划"
+   ]
+  },
+  {
+   "leaf_id": "1A438000-B060",
+   "chunk_id": "1A438000_150_0241",
+   "claimed": "材料进场的验收与保管",
+   "actual": "不合格材料与半成品退场",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[3. 材料进场的验收与保管], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "材料进场",
+    "验收",
+    "保管"
+   ],
+   "n_headings": 5,
+   "headings": [
+    "13.1.2 现场材料与半成品管理",
+    "1. 材料采购的要求",
+    "2. 周转物资供应方式",
+    "3. 材料进场的验收与保管",
+    "4. 不合格材料与半成品退场"
+   ],
+   "head_hit": "3. 材料进场的验收与保管",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "材料"
+   ]
+  },
+  {
+   "leaf_id": "1A438000-B062",
+   "chunk_id": "1A438000_149_0240",
+   "claimed": "材料采购计划的编制",
+   "actual": "材料计划的分类",
+   "verdict": "real_pollution",
+   "reason": "chunk 多子主题(3 标题), context 只填了 actual, claimed 词另在他处",
+   "cwords": [
+    "材料采购计划",
+    "编制"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "第13章 施工资源管理",
+    "13.1 材料与半成品管理",
+    "13.1.1 项目材料计划"
+   ],
+   "head_hit": null,
+   "claimed_appears": true,
+   "topic_overlap": [
+    "材料",
+    "计划"
+   ]
+  },
+  {
+   "leaf_id": "1A438000-B077",
+   "chunk_id": "1A438000_157_0257",
+   "claimed": "确定劳动力投入量",
+   "actual": "劳动力需求计划",
+   "verdict": "real_pollution",
+   "reason": "claimed 词落在独立子标题[（2）确定劳动力投入量], 与 actual 不同子段, 可 per-leaf 切",
+   "cwords": [
+    "确定劳动力投入量"
+   ],
+   "n_headings": 3,
+   "headings": [
+    "劳动力需求计划",
+    "（1）确定劳动效率",
+    "（2）确定劳动力投入量"
+   ],
+   "head_hit": "（2）确定劳动力投入量",
+   "claimed_appears": true,
+   "topic_overlap": [
+    "动力",
+    "劳动"
+   ]
+  }
+ ]
+}
