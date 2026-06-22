@@ -928,6 +928,20 @@ class AgentLoop:
 
         return self.tools.get_definitions(ordered_names)
 
+    def _resolve_max_tool_rounds(self, runtime_metadata: dict[str, Any] | None) -> int:
+        if not isinstance(runtime_metadata, dict):
+            return self.max_iterations
+        policy = runtime_metadata.get("mode_execution_policy")
+        if not isinstance(policy, dict):
+            return self.max_iterations
+        try:
+            configured = int(policy.get("max_tool_rounds"))
+        except (TypeError, ValueError):
+            return self.max_iterations
+        if configured <= 0:
+            return self.max_iterations
+        return max(1, min(configured, self.max_iterations))
+
     @classmethod
     def _rag_stop_enabled(cls, runtime_metadata: dict[str, Any] | None) -> bool:
         if not isinstance(runtime_metadata, dict):
@@ -1808,6 +1822,10 @@ class AgentLoop:
         raw_stream_buffer = ""
         emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
+        effective_max_iterations = self._resolve_max_tool_rounds(runtime_metadata)
+        runtime_metadata["effective_max_tool_rounds"] = effective_max_iterations
+        if external_runtime_metadata is not None:
+            external_runtime_metadata["effective_max_tool_rounds"] = effective_max_iterations
         exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
             runtime_metadata.get("exact_question_blocked_reason") or ""
         ).strip() and not self._is_question_review_scene(runtime_metadata)
@@ -1833,7 +1851,7 @@ class AgentLoop:
             if chunk:
                 await on_content_delta(chunk)
 
-        while iteration < self.max_iterations:
+        while iteration < effective_max_iterations:
             iteration += 1
 
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
@@ -2052,10 +2070,10 @@ class AgentLoop:
                 final_content = clean
                 break
 
-        if final_content is None and iteration >= self.max_iterations:
-            logger.warning("Max iterations ({}) reached", self.max_iterations)
+        if final_content is None and iteration >= effective_max_iterations:
+            logger.warning("Max iterations ({}) reached", effective_max_iterations)
             final_content = (
-                f"I reached the maximum number of tool call iterations ({self.max_iterations}) "
+                f"I reached the maximum number of tool call iterations ({effective_max_iterations}) "
                 "without completing the task. You can try breaking the task into smaller steps."
             )
 

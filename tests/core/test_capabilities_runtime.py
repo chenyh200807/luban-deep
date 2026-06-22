@@ -94,6 +94,54 @@ def test_end_user_tool_policy_filters_code_execution_aliases() -> None:
     ) == ["rag", "web_search"]
 
 
+@pytest.mark.asyncio
+async def test_agentic_pipeline_rejects_unadvertised_tool_alias_at_execution_boundary() -> None:
+    from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+    from deeptutor.core.tool_protocol import BaseTool, ToolDefinition, ToolParameter, ToolResult
+    from deeptutor.runtime.registry.tool_registry import ToolRegistry
+
+    calls: list[dict[str, Any]] = []
+
+    class DummyCodeTool(BaseTool):
+        def get_definition(self) -> ToolDefinition:
+            return ToolDefinition(
+                name="code_execution",
+                description="dummy code execution",
+                parameters=[ToolParameter(name="intent", type="string")],
+            )
+
+        async def execute(self, **kwargs: Any) -> ToolResult:
+            calls.append(kwargs)
+            return ToolResult(content="executed")
+
+    pipeline = AgenticChatPipeline()
+    registry = ToolRegistry()
+    registry.register(DummyCodeTool())
+    pipeline.registry = registry
+
+    result = await pipeline._execute_tool_call(
+        "run_code",
+        {"query": "print(1)"},
+        allowed_tools=["rag"],
+    )
+
+    assert result["success"] is False
+    assert result["metadata"]["error"] == "unauthorized_tool"
+    assert result["metadata"]["resolved_tool_name"] == "code_execution"
+    assert calls == []
+
+    result = await pipeline._execute_tool_call(
+        "code_execution",
+        {"code": "print(1)"},
+        allowed_tools=["code_execution"],
+    )
+
+    assert result["success"] is False
+    assert result["metadata"]["error"] == "unauthorized_tool"
+    assert result["metadata"]["resolved_tool_name"] == "code_execution"
+    assert calls == []
+
+
 @pytest.mark.parametrize(
     "capability",
     [
@@ -4304,7 +4352,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
                     tool_calls=[
                         ToolCallRequest(
                             id="call_1",
-                            name="dummy_tool",
+                            name="rag",
                             arguments={"topic": "alias-value"},
                         )
                     ],
@@ -4323,7 +4371,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
 
         @property
         def name(self) -> str:
-            return "dummy_tool"
+            return "rag"
 
         @property
         def description(self) -> str:
@@ -4362,6 +4410,7 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
         [{"role": "user", "content": "帮我查一下"}],
+        runtime_metadata={"default_tools": ["rag"]},
         on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
@@ -4369,18 +4418,122 @@ async def test_tutorbot_agent_loop_executes_tool_calls_with_registry_get(
     )
 
     assert final_content == "工具已经执行完成"
-    assert tools_used == ["dummy_tool"]
-    assert captured["tool_calls"] == [("dummy_tool", {"topic": "normalized-topic"})]
-    assert captured["tool_results"] == [
-        (
-            "dummy_tool",
-            "executed:alias-value",
-            {
-                "sources": [{"chunk_id": "chunk-1", "source_type": "standard"}],
-                "authority_applied": False,
-            },
-        )
-    ]
+    assert tools_used == ["rag"]
+    assert captured["tool_calls"] == [("rag", {"topic": "normalized-topic"})]
+    assert len(captured["tool_results"]) == 1
+    tool_name, result_text, metadata = captured["tool_results"][0]
+    assert tool_name == "rag"
+    assert result_text == "executed:alias-value"
+    assert metadata["sources"] == [{"chunk_id": "chunk-1", "source_type": "standard"}]
+    assert metadata["authority_applied"] is False
+    assert metadata["rag_round"]["round_index"] == 1
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class LoopingProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            return LLMResponse(
+                content="继续调用工具",
+                tool_calls=[
+                    ToolCallRequest(
+                        id=f"call_{self.calls}",
+                        name="rag",
+                        arguments={"topic": f"round-{self.calls}"},
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "dummy tool"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            self.calls.append(dict(kwargs))
+            return f"executed:{kwargs['topic']}"
+
+    provider = LoopingProvider()
+    tool = DummyTool()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        max_iterations=5,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(tool)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 2
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert metadata["effective_max_tool_rounds"] == 2
+    assert "maximum number of tool call iterations (2)" in (final_content or "")
 
 
 @pytest.mark.asyncio
@@ -4697,6 +4850,7 @@ async def test_tutorbot_agent_loop_disables_further_rag_after_high_overlap_satur
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
         [{"role": "user", "content": "帮我解释建筑构造"}],
+        runtime_metadata={"default_tools": ["rag", "web_search"]},
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
         ),

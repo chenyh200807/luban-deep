@@ -105,17 +105,11 @@ function buildFinalResponseEvent(resultMetadata) {
   if (typeof response !== "string" || !response.trim()) {
     response = resultMetadata.assistant_content;
   }
-  if (typeof response !== "string" || !response.trim()) {
-    response = resultMetadata.content;
-  }
   if ((typeof response !== "string" || !response.trim()) && nested) {
     response = nested.response;
   }
   if (typeof response !== "string" || !response.trim()) {
     response = nested.assistant_content;
-  }
-  if (typeof response !== "string" || !response.trim()) {
-    response = nested.content;
   }
   if (typeof response !== "string" || !response.trim()) return null;
   var finalEvent = {

@@ -16,7 +16,10 @@ they are deterministic and do not touch any parallel WIP source files.
 
 from __future__ import annotations
 
+import yaml
+
 from scripts.check_db_registry import (
+    REGISTRY_PATH,
     collect_connect_usages,
     collect_env_usages,
     collect_write_usages,
@@ -49,6 +52,22 @@ def test_registry_loads_databases_facts_and_grandfathered_sites() -> None:
         "public.luban_canonical_knowledge_edges",
     ):
         assert table in registry["registered_tables"]
+
+
+def test_canonical_projection_tables_require_rls_in_registry() -> None:
+    payload = yaml.safe_load(REGISTRY_PATH.read_text(encoding="utf-8")) or {}
+    tables = {
+        str(item.get("name")): item
+        for item in (payload.get("tables") or [])
+        if isinstance(item, dict) and item.get("name")
+    }
+
+    for table in (
+        "public.luban_canonical_taxonomy",
+        "public.luban_canonical_knowledge_catalog",
+        "public.luban_canonical_knowledge_edges",
+    ):
+        assert tables[table]["rls_required"] is True
 
 
 # ── FAIL RULE (a): unregistered raw connection (止血 — new ad-hoc) ────────────

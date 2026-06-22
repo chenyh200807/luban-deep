@@ -172,17 +172,17 @@ tables:
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: public.luban_canonical_knowledge_catalog
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: public.luban_canonical_knowledge_edges
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: concept_taxonomy_registry
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog

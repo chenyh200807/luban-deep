@@ -189,6 +189,178 @@ async def test_native_tool_loop_executes_parallel_tool_calls(monkeypatch: pytest
     assert acting_thinking_events == []
 
 
+@pytest.mark.asyncio
+async def test_native_tool_loop_rejects_blocked_tool_before_streaming_tool_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, dict[str, Any]]] = []
+
+        def build_openai_schemas(self, _enabled_tools):
+            return [{"type": "function", "function": {"name": "rag"}}]
+
+        def build_prompt_text(self, enabled_tools, **_kwargs):
+            return "\n".join(enabled_tools)
+
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def resolve_name(self, name: str) -> str:
+            return {"run_code": "code_execution", "code_execute": "code_execution"}.get(name, name)
+
+        async def execute(self, name: str, **kwargs):
+            self.calls.append((name, kwargs))
+            raise AssertionError("blocked tool must not execute")
+
+    class FakeObservability:
+        def estimate_usage_details(self, **_kwargs):
+            return {"input": 0.0, "output": 0.0, "total": 0.0}
+
+        def estimate_cost_details(self, **_kwargs):
+            return {"input": 0.0, "output": 0.0, "total": 0.0}
+
+        def start_observation(self, **_kwargs):
+            class _Manager:
+                def __enter__(self_inner):
+                    return object()
+
+                def __exit__(self_inner, exc_type, exc, tb):
+                    return False
+
+            return _Manager()
+
+        def update_observation(self, _observation, **_kwargs):
+            return None
+
+    registry = FakeRegistry()
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: registry)
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.observability", FakeObservability())
+
+    async def fake_create(**_kwargs):
+        return SimpleNamespace(
+            usage=SimpleNamespace(prompt_tokens=10, completion_tokens=4, total_tokens=14),
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content="",
+                        tool_calls=[
+                            SimpleNamespace(
+                                id="tool-call-unsafe",
+                                function=SimpleNamespace(
+                                    name="code_execution",
+                                    arguments='{"code":"print(1)"}',
+                                ),
+                            )
+                        ],
+                    )
+                )
+            ],
+        )
+
+    pipeline = AgenticChatPipeline(language="en")
+    pipeline.registry = registry
+    monkeypatch.setattr(
+        pipeline,
+        "_build_openai_client",
+        lambda: SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=fake_create))),
+    )
+
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-unsafe",
+        user_message="run Python",
+        enabled_tools=["rag", "code_execution"],
+        language="en",
+        metadata={"turn_id": "turn-unsafe"},
+    )
+
+    traces = await pipeline._run_native_tool_loop(
+        context=context,
+        enabled_tools=["rag"],
+        thinking_text="Need a tool.",
+        stream=bus,
+    )
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    assert registry.calls == []
+    assert [(trace.name, trace.success) for trace in traces] == [("code_execution", False)]
+    assert traces[0].metadata["error"] == "unauthorized_tool"
+    assert not any(event.type == StreamEventType.TOOL_CALL for event in events)
+    assert any(event.type == StreamEventType.ERROR for event in events)
+
+
+@pytest.mark.asyncio
+async def test_react_fallback_rejects_blocked_tool_before_streaming_model_json(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="anthropic", model="claude-test", api_key="k", base_url="u", api_version=None),
+    )
+
+    class FakeRegistry:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, dict[str, Any]]] = []
+
+        def build_prompt_text(self, enabled_tools, **_kwargs):
+            return "\n".join(enabled_tools)
+
+        def get_enabled(self, selected):
+            return [SimpleNamespace(name=name) for name in selected]
+
+        def resolve_name(self, name: str) -> str:
+            return {"run_code": "code_execution", "code_execute": "code_execution"}.get(name, name)
+
+        async def execute(self, name: str, **kwargs):
+            self.calls.append((name, kwargs))
+            raise AssertionError("blocked tool must not execute")
+
+    async def _stream_wrapper():
+        yield '{"action":"run_code","action_input":{"query":"print(1)"}}'
+
+    registry = FakeRegistry()
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: registry)
+    monkeypatch.setattr("deeptutor.agents.chat.agentic_pipeline.llm_stream", lambda **_kwargs: _stream_wrapper())
+
+    pipeline = AgenticChatPipeline(language="en")
+    pipeline.registry = registry
+    bus = StreamBus()
+    events, consumer = await _collect_bus_events(bus)
+    context = UnifiedContext(
+        session_id="session-react-unsafe",
+        user_message="run Python",
+        enabled_tools=["rag", "run_code"],
+        language="en",
+        metadata={"turn_id": "turn-react-unsafe"},
+    )
+
+    traces = await pipeline._run_react_fallback(
+        context=context,
+        enabled_tools=["rag"],
+        thinking_text="Need a tool.",
+        stream=bus,
+    )
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+
+    assert registry.calls == []
+    assert [(trace.name, trace.success) for trace in traces] == [("run_code", False)]
+    assert traces[0].metadata["resolved_tool_name"] == "code_execution"
+    assert not any(event.type == StreamEventType.TOOL_CALL for event in events)
+    assert not any(event.type == StreamEventType.THINKING and event.content for event in events)
+    assert any(event.type == StreamEventType.ERROR for event in events)
+
+
 def test_agentic_pipeline_keeps_runtime_extra_headers(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
@@ -341,11 +513,11 @@ async def test_native_tool_loop_rejects_unadvertised_code_execution(
     assert registry.calls == []
     assert [trace.name for trace in traces] == ["code_execution"]
     assert traces[0].success is False
-    assert traces[0].metadata["error"] == "tool_not_enabled"
+    assert traces[0].metadata["error"] == "unauthorized_tool"
     assert any(
-        event.type == StreamEventType.TOOL_RESULT
+        event.type == StreamEventType.ERROR
         and event.metadata.get("tool_name") == "code_execution"
-        and event.metadata.get("error") == "tool_not_enabled"
+        and event.metadata.get("error") == "unauthorized_tool"
         for event in events
     )
 
@@ -408,7 +580,7 @@ async def test_react_fallback_rejects_unadvertised_code_execution(
     assert registry.calls == []
     assert [trace.name for trace in traces] == ["code_execution"]
     assert traces[0].success is False
-    assert traces[0].metadata["error"] == "tool_not_enabled"
+    assert traces[0].metadata["error"] == "unauthorized_tool"
 
 
 def test_fast_mode_tool_resolution_stays_inside_agentic_pipeline(monkeypatch: pytest.MonkeyPatch) -> None:

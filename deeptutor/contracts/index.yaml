@@ -71,6 +71,7 @@ http_routes:
   - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
   - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
+  - {prefix: /api/v1/luban-preview, reason: "Luban preview AI ask adapter; production REST surface must stay explicitly governed and rate-limited."}
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}
   - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
@@ -150,6 +151,20 @@ mobile_http_auth_controls:
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
         progress, goals, wallet, capability route state, or turn/session state.
+  change_password:
+    path: /api/v1/auth/change-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Password change is an authenticated, rate-limited HTTP auth adapter, not
+        a turn/session/capability entrypoint.
+      - Request must prove the current signed-in member and old password before
+        changing the external auth password to the new password.
+      - The route delegates password verification, hashing, and session
+        invalidation to MemberConsoleService -> external_auth.
+      - Successful change returns no token and never auto-logs in.
+      - Change password must not write learner summaries, learner memory events,
+        profile, progress, goals, wallet, capability route state, or
+        turn/session state.
   wechat_phone_login:
     path: /api/v1/wechat/mp/login
     authority: MemberConsoleService.login_with_wechat_phone

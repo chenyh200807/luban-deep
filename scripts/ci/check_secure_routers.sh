@@ -45,7 +45,20 @@ if [ -n "$bad" ]; then
         while IFS= read -r line; do
             [ -z "$line" ] && continue
             key=$(echo "$line" | grep -oE "${ROUTERS_DIR}/[^:]+:[0-9]+" || true)
-            if [ -n "$key" ] && ! grep -qxF "$key" "$BASELINE_FILE"; then
+            file=$(echo "$line" | grep -oE "${ROUTERS_DIR}/[^:]+" || true)
+            baseline_file_count=0
+            current_file_count=0
+            if [ -n "$file" ]; then
+                baseline_file_count=$(awk -v file="$file" '($0 == file || index($0, file ":") == 1) { n++ } END { print n + 0 }' "$BASELINE_FILE")
+                current_file_count=$(printf '%s\n' "$bad" | awk -v file="$file" 'index($0, file ":") == 1 { n++ } END { print n + 0 }')
+            fi
+            # The baseline is a drift-prevention gate, not a line-number trap:
+            # line numbers are useful for reports, but imports moving around should
+            # not make an already-grandfathered bare router look new. Count by file
+            # so a second bare APIRouter in the same file still fails.
+            if [ -n "$key" ] \
+                && ! grep -qxF "$key" "$BASELINE_FILE" \
+                && [ "$current_file_count" -gt "$baseline_file_count" ]; then
                 new_bad="${new_bad}${line}"$'\n'
                 new_count=$((new_count + 1))
             fi

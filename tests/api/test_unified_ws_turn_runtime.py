@@ -8377,6 +8377,11 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
         events.append(event)
 
     assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "这是一次会扣分的回复。"
+    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
+    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
     assert captured == {
         "wallet_user_id": "wallet_demo",
         "amount_points": 20,
@@ -8625,6 +8630,11 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
         events.append(event)
 
     assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "这是一次不会扣分的回复。"
+    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
+    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
     assert captured == {
         "learning_user_id": "learner_demo",
         "learning_query": "继续解释这道题",

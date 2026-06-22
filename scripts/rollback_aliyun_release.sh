@@ -23,6 +23,9 @@ import shutil
 import subprocess
 
 remote_dir = Path(os.environ['REMOTE_DIR']).resolve()
+remote_root = remote_dir
+if remote_root != Path('/root/deeptutor'):
+    raise SystemExit(f'REMOTE_DIR 必须解析到 /root/deeptutor: {remote_root}')
 release_dir = remote_dir / 'data' / 'releases' / 'code'
 if not release_dir.exists():
     raise SystemExit(f'缺少代码快照目录: {release_dir}')
@@ -42,8 +45,8 @@ snapshot = snapshot.resolve()
 if release_dir not in snapshot.parents:
     raise SystemExit(f'代码快照必须位于 {release_dir} 内: {snapshot}')
 
-staging_root = (remote_dir / 'tmp' / 'release_restore').resolve()
-tmp_dir = (staging_root / f"restore_{os.getpid()}").resolve()
+staging_root = (remote_dir / 'data' / 'releases' / 'restore_tmp').resolve()
+tmp_dir = (staging_root / ('restore_{}'.format(os.getpid()))).resolve()
 if remote_dir not in tmp_dir.parents:
     raise SystemExit(f'回滚 staging 目录必须位于 {remote_dir} 内: {tmp_dir}')
 if staging_root not in tmp_dir.parents:

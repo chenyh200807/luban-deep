@@ -666,12 +666,12 @@ def canonical_home_focus_topic_label(value: Any) -> str:
     text = normalize_home_focus_topic_label(value)
     if not text:
         return ""
-    topic = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
-    if topic:
-        return topic.label
     option = resolve_canonical_option(text)
     if option:
         return str(option.get("name") or "").strip()
+    topic = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
+    if topic:
+        return topic.label
     return ""
 
 
@@ -682,7 +682,7 @@ def _resolve_canonical_home_topic(
     if not text:
         return None
     if topic is not None:
-        label = canonical_home_focus_topic_label(topic.label)
+        label = normalize_home_focus_topic_label(topic.label)
         if label:
             return ResolvedLearningTopic(
                 label=label,

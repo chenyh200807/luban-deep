@@ -177,8 +177,10 @@ credentials:
   - {name: LANGFUSE_SECRET_KEY, owner: langfuse}
   - {name: DEEPTUTOR_ATTEMPT_REF_SECRET, owner: deeptutor_core}      # already guarded by check_secret_envs.py
   - {name: DEEPTUTOR_AUTH_SECRET, owner: deeptutor_core}
+  - {name: DEEPTUTOR_EVAL_BYPASS_KEY, owner: qa}
   - {name: MEMBER_CONSOLE_AUTH_SECRET, owner: member_console}
   - {name: DEEPTUTOR_METRICS_TOKEN, owner: deeptutor_core}
+  - {name: DEEPTUTOR_QA_PASSWORD, owner: qa}
   - {name: DEEPTUTOR_WS_SMOKE_TOKEN, owner: ops_smoke}
   - {name: DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN, owner: ops_smoke}
   - {name: DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN, owner: test2_cohort}
@@ -278,6 +280,7 @@ grandfathered_envs:
   - DEEPTUTOR_ENV
   - DEEPTUTOR_ENV_FILE
   - DEEPTUTOR_ENV_PATH
+  - DEEPTUTOR_EVAL_KEY_FILE
   - DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT
   - DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE
   - DEEPTUTOR_FILE_LOG_LEVEL
@@ -300,6 +303,8 @@ grandfathered_envs:
   - DEEPTUTOR_OBSERVABILITY_STORE_DIR
   - DEEPTUTOR_OBSERVER_EVENT_DIR
   - DEEPTUTOR_OPENAI_API_KEY
+  - DEEPTUTOR_QA_BASE_URL
+  - DEEPTUTOR_QA_USERNAME
   - DEEPTUTOR_RATE_LIMIT_BACKEND
   - DEEPTUTOR_RATE_LIMIT_DB_PATH
   - DEEPTUTOR_RATE_LIMIT_NAMESPACE
@@ -428,6 +433,8 @@ grandfathered_envs:
   - QWEN_MODEL
   - RAG_PROVIDER
   - REDIS_URL
+  - RELEASE_ID
+  - REMOTE_DIR
   - SEARCH_API_KEY
   - SEARCH_BASE_URL
   - SEARCH_PROVIDER
