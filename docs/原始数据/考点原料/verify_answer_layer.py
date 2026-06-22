@@ -53,8 +53,11 @@ def audit(md_path):
     in_scoring_table = False  # 只审 §1 采分点可写化表, 不审 §2 句式/§3 批改/§4 实测表
     for raw in txt.splitlines():
         line = raw.strip()
-        # 表头行 (含"采分点"+"必写关键词"两词) = 进入采分点表; 任何非表格行 = 离开
-        if "采分点" in line and "必写关键词" in line and _is_table_row(line):
+        # 采分点定义表 = 四件套表, 判别特征 = 表头含"采分点"+"必写关键词"+("标准表达"|"版本状态")
+        # (拆题示例表 `采分点|必写关键词|五维` 无标准表达/版本状态列, 回指已签采分点标签 → 排除;
+        #  用"标准表达"兜底因 J01 漏了版本状态列[J01 自身四件套不合规, 已记返修], 仍须审其采分点)
+        if ("采分点" in line and "必写关键词" in line
+                and ("标准表达" in line or "版本状态" in line) and _is_table_row(line)):
             in_scoring_table = True
             continue
         if not _is_table_row(line):
