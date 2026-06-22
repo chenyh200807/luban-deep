@@ -48,6 +48,17 @@ class _FakeMemberConsole:
             "deduped": False,
         }
 
+    def merge_member_accounts(self, **kwargs: object) -> dict[str, object]:
+        self.calls.append({"fn": "merge_member_accounts", **kwargs})
+        return {
+            "member": {"user_id": kwargs["target_user_id"], "tier": "supreme_svip"},
+            "merged_source_ids": kwargs["source_user_ids"],
+            "points_transferred": 730,
+            "audit_id": "audit_merge_1",
+            "deduped": False,
+            "admin_role_after": "super_admin",
+        }
+
     def record_ops_action_result(self, user_id: str, **kwargs: object) -> dict[str, object]:
         self.calls.append({"fn": "record_ops_action_result", "user_id": user_id, **kwargs})
         return {
@@ -159,6 +170,59 @@ def test_bi_member_reversal_requires_high_risk_purchase_id_and_uses_original_amo
             "idempotency_key": "reverse-2",
         }
     ]
+
+
+def test_bi_member_merge_accounts_requires_high_risk_and_idempotency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    svc = _FakeMemberConsole({("u-op", "member_ops", "high_risk")})
+    app = _build_app(monkeypatch, svc)
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/bi/member/merge-accounts",
+            json={"target_user_id": "u_target", "source_user_ids": ["u_wx", "u_account"]},
+        )
+        merged = client.post(
+            "/api/v1/bi/member/merge-accounts",
+            headers={"X-Idempotency-Key": "merge-accounts-1"},
+            json={
+                "target_user_id": "u_target",
+                "source_user_ids": ["u_wx", "u_account"],
+                "reason": "confirmed_same_owner",
+            },
+        )
+
+    assert missing_key.status_code == 400
+    assert merged.status_code == 200
+    assert merged.json()["points_transferred"] == 730
+    assert svc.calls == [
+        {
+            "fn": "merge_member_accounts",
+            "target_user_id": "u_target",
+            "source_user_ids": ["u_wx", "u_account"],
+            "operator": "u-op",
+            "reason": "confirmed_same_owner",
+            "idempotency_key": "merge-accounts-1",
+        }
+    ]
+
+
+def test_bi_member_merge_accounts_denies_without_high_risk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    svc = _FakeMemberConsole({("u-op", "member_ops", "write")})
+    app = _build_app(monkeypatch, svc)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/bi/member/merge-accounts",
+            headers={"X-Idempotency-Key": "merge-accounts-1"},
+            json={"target_user_id": "u_target", "source_user_ids": ["u_wx"]},
+        )
+
+    assert response.status_code == 403
+    assert svc.calls == []
 
 
 def test_bi_member_ops_actions_uses_member_console_authority_and_idempotency(

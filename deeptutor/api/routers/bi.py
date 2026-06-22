@@ -7,6 +7,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, stat
 
 from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
 from deeptutor.api.routers.member import (
+    AccountMergeRequest,
     BatchActionRequest,
     ManualPurchaseRequest,
     ManualPurchaseReversalRequest,
@@ -860,6 +861,27 @@ async def bi_reverse_manual_purchase_membership(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.post("/member/merge-accounts")
+async def bi_merge_member_accounts(
+    body: AccountMergeRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return get_member_console_service().merge_member_accounts(
+            target_user_id=body.target_user_id,
+            source_user_ids=body.source_user_ids,
+            operator=auth.user_id,
+            reason=body.reason,
+            idempotency_key=key,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.post("/member/update")
