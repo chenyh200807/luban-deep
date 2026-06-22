@@ -30,7 +30,11 @@ assertContains(
 );
 assertContains(
   "self._persistPendingTurn({",
-  "sending a question should persist the pending turn immediately, not wait for page teardown",
+  "existing package conversations should persist the pending turn immediately, not wait for page teardown",
+);
+assert(
+  /onStarted:\s*function\s*\(payload\)[\s\S]*?self\._persistPendingTurn\(\s*Object\.assign\(\{\},\s*pendingDraft,\s*\{[\s\S]*?conversationId:\s*startedSessionId,[\s\S]*?turnId:\s*startedTurnId/.test(source),
+  "new package conversations must persist pending identity as soon as start-turn returns canonical conversation and turn ids",
 );
 assertContains(
   "clientTurnId: _turnId",
@@ -60,9 +64,21 @@ assertContains(
   "PENDING_TURN_FOREGROUND_MAX_ATTEMPTS",
   "package cold-start recovery should use a short foreground window instead of locking the chat for long polling",
 );
+assert(
+  /_onDone:\s*function[\s\S]*?_recoverTurnFromHistory\(\{\s*maxAttempts:\s*PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,/.test(source),
+  "package done-event recovery should use the shared foreground attempt budget",
+);
 assertContains(
   "opts.longPoll || opts.unlockOnExhausted ? serverMessages : null",
   "package unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
+);
+assertContains(
+  "hydrateOnExhausted: false",
+  "package empty done recovery exhaustion must not replace the local turn with incomplete server history",
+);
+assert(
+  /_startPendingTurnBackgroundRecovery:\s*function[\s\S]*?keepPendingOnExhausted:\s*true,\s*hydrateOnExhausted:\s*false,/.test(source),
+  "package foreground/background recovery must not hydrate incomplete server history over local pending UI",
 );
 assertContains(
   "self._finishPendingTurnRecovery();",

@@ -46,12 +46,28 @@ assertContains(
   "recovery should poll long enough for slow answers instead of only checking a few times",
 );
 assertContains(
-  "_finishPendingTurnRecovery: function (serverMessages)",
+  "PENDING_TURN_FOREGROUND_MAX_ATTEMPTS",
+  "foreground recovery should use a short bounded window instead of treating empty done as terminal success",
+);
+assertContains(
+  "_finishPendingTurnRecovery: function (serverMessages, options)",
   "pending turn recovery should have an explicit terminal path for unrecovered cold starts",
 );
 assert(
-  /self\._finishPendingTurnRecovery\(\s*opts\.longPoll\s*\?\s*serverMessages\s*:\s*null\s*,?\s*\);/.test(source),
-  "unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
+  /self\._finishPendingTurnRecovery\(\s*opts\.longPoll \|\| opts\.unlockOnExhausted\s*\?\s*serverMessages\s*:\s*null,\s*\{\s*keepPending:\s*!!opts\.keepPendingOnExhausted,\s*hydrate:\s*opts\.hydrateOnExhausted !== false/.test(source),
+  "unrecovered empty-done responses should unlock without erasing pending identity or hydrating incomplete history",
+);
+assertContains(
+  "keepPendingOnExhausted: true",
+  "empty done and foreground recovery should preserve pending identity while canonical history catches up",
+);
+assertContains(
+  "hydrateOnExhausted: false",
+  "empty done recovery exhaustion must not replace the local turn with incomplete server history",
+);
+assert(
+  /_startPendingTurnBackgroundRecovery:\s*function[\s\S]*?keepPendingOnExhausted:\s*true,\s*hydrateOnExhausted:\s*false,/.test(source),
+  "foreground/background pending recovery must not hydrate incomplete server history over local pending UI",
 );
 assertContains(
   "self._finishPendingTurnRecovery();",

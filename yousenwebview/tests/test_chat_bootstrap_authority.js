@@ -134,7 +134,13 @@ function loadChatPage(overrides) {
   var sandbox = {
     console: console,
     Date: Date,
-    setTimeout: setTimeout,
+    setTimeout:
+      overrides && overrides.immediateTimers
+        ? function (fn) {
+            if (typeof fn === "function") fn();
+            return 1;
+          }
+        : setTimeout,
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/auth") {
@@ -793,6 +799,82 @@ function loadChatPage(overrides) {
         loaded.page._pendingTurn &&
           loaded.page._pendingTurn.conversationId === "conv_pending",
         "background recovery must not erase the durable pending turn before terminal recovery",
+      );
+    },
+  );
+
+  await run(
+    "cold-start pending turn recovery should not hydrate incomplete server history",
+    async function () {
+      var hydratedCalls = 0;
+      var loaded = loadChatPage({
+        immediateTimers: true,
+        storage: {
+          chat_pending_turn_v1: {
+            conversationId: "conv_pending_incomplete",
+            baselineCount: 0,
+            query: "上一轮较慢的问题",
+            clientTurnId: "client_pending_incomplete",
+            turnId: "turn_pending_incomplete",
+            createdAt: Date.now(),
+          },
+        },
+        api: {
+          getConversationMessages: function (id) {
+            loaded.apiState.getConversationMessagesCalls.push(id);
+            return Promise.resolve({
+              messages: [
+                {
+                  role: "user",
+                  content: "上一轮较慢的问题",
+                  client_turn_id: "client_pending_incomplete",
+                },
+              ],
+            });
+          },
+        },
+        chatTurnRecovery: {
+          hasRecoveredAssistant: function () {
+            return false;
+          },
+        },
+      });
+
+      loaded.page._applyHydratedConversationMessages = function () {
+        hydratedCalls += 1;
+        this.setData({
+          messages: [{ id: "server", role: "user", content: "不完整历史" }],
+          hasMessages: true,
+        });
+      };
+      loaded.page.setData({
+        messages: [
+          { id: "u0", role: "user", content: "上一轮较慢的问题" },
+          { id: "a0", role: "ai", content: "本地仍在等待服务端结果", streaming: true },
+        ],
+        hasMessages: true,
+        isStreaming: false,
+        canStopStream: false,
+      });
+
+      loaded.page._startPendingTurnBackgroundRecovery();
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        hydratedCalls === 0,
+        "background recovery exhaustion should not hydrate incomplete canonical history",
+      );
+      assert(
+        loaded.page.data.messages.length === 2 &&
+          loaded.page.data.messages[1].content === "本地仍在等待服务端结果",
+        "background recovery exhaustion should keep the local pending UI intact",
+      );
+      assert(
+        loaded.page._pendingTurn &&
+          loaded.page._pendingTurn.clientTurnId === "client_pending_incomplete",
+        "background recovery exhaustion should preserve pending identity",
       );
     },
   );

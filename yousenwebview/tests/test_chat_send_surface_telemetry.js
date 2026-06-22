@@ -61,6 +61,9 @@ function loadChatPage() {
           unwrapResponse: function (raw) {
             return raw;
           },
+          getConversationMessages: function () {
+            return Promise.resolve({ messages: [] });
+          },
         };
       }
       if (request === "../../utils/ai-message-state") return {};
@@ -262,6 +265,72 @@ function loadChatPage() {
     );
   });
 
+  await run("final next_best_action should attach to the visible AI message", async function () {
+    var loaded = loadChatPage();
+    loaded.page._streamId = "a0";
+    loaded.page._find = function (id) {
+      return id === "a0" ? 0 : -1;
+    };
+    loaded.page.setData({
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          content: "已完成批改",
+          renderableContent: "已完成批改",
+          blocks: [],
+          streaming: false,
+        },
+      ],
+    });
+
+    loaded.page._onFinal({
+      next_best_action: {
+        title: "先补一题可诊断练习",
+        target: "屋面防水薄弱点",
+      },
+    });
+
+    assert(
+      loaded.page.data["messages[0].nextBestAction"] &&
+        loaded.page.data["messages[0].nextBestAction"].title === "先补一题可诊断练习",
+      "final next_best_action should be attached to the current visible AI message",
+    );
+  });
+
+  await run("next_best_action tap should reuse existing send pipeline", async function () {
+    var loaded = loadChatPage();
+    var sentQuery = "";
+    loaded.page._find = function (id) {
+      return id === "a0" ? 0 : -1;
+    };
+    loaded.page._send = function (query) {
+      sentQuery = query;
+    };
+    loaded.page.setData({
+      isStreaming: false,
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          nextBestAction: {
+            title: "先补一题可诊断练习",
+            target: "屋面防水薄弱点",
+          },
+        },
+      ],
+    });
+
+    loaded.page.onNextBestActionTap({
+      currentTarget: { dataset: { msgid: "a0" } },
+    });
+
+    assert(
+      sentQuery === "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
+      "next_best_action tap should enter the existing _send pipeline with a bounded practice request",
+    );
+  });
+
   await run("first _doSend should not send a local draft session as conversation_id", async function () {
     var loaded = loadChatPage();
     loaded.page._sid = "s_1780445194569";
@@ -441,6 +510,65 @@ function loadChatPage() {
       "empty terminal recovery should keep pending identity until recovery finishes",
     );
     assert(!cleared, "empty terminal recovery should not clear pending synchronously");
+  });
+
+  await run("empty terminal recovery exhaustion should keep pending identity", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_done_slow_history",
+      baselineCount: 0,
+      query: "案例题批改",
+      clientTurnId: "client_done_slow_history_1",
+      turnId: "turn_done_slow_history_1",
+      createdAt: Date.now(),
+    };
+    var cleared = false;
+    var hydrated = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-empty-slow-history";
+    loaded.page._find = function (id) {
+      return id === "a-empty-slow-history" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page._applyHydratedConversationMessages = function () {
+      hydrated = true;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-empty-slow-history", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+    await flushPromises();
+
+    assert(!cleared, "empty terminal recovery exhaustion must not clear pending identity");
+    assert(!hydrated, "empty terminal recovery exhaustion must not hydrate incomplete history");
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_done_slow_history_1",
+      "empty terminal recovery exhaustion should preserve durable pending identity",
+    );
+    assert(
+      loaded.page.data.isStreaming === false &&
+        loaded.page.data.canStopStream === false,
+      "empty terminal recovery exhaustion should unlock the composer",
+    );
   });
 
   await run("error recovery exhaustion should not start a second terminal recovery", async function () {

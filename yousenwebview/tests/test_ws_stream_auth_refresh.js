@@ -111,6 +111,7 @@ function loadWsStream(config) {
           },
           ensureFreshAuthToken: function () {
             ensureTokenCalls += 1;
+            if (config.tokenError) return Promise.reject(config.tokenError);
             return Promise.resolve(tokenQueue.shift() || "");
           },
         };
@@ -235,6 +236,34 @@ function loadWsStream(config) {
     );
   });
 
+  await run("fresh-token failure should fail before opening a socket", async function () {
+    var loaded = loadWsStream({
+      tokenError: new Error("AUTH_EXPIRED"),
+    });
+    var errors = [];
+    var doneCount = 0;
+
+    loaded.wsStream.streamChat(
+      { query: "继续", sessionId: "conv_1" },
+      {
+        onError: function (message) {
+          errors.push(message);
+        },
+        onDone: function () {
+          doneCount += 1;
+        },
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(loaded.getEnsureTokenCalls() === 1, "token refresh should be attempted once");
+    assert(loaded.connects.length === 0, "socket must not open when fresh auth token cannot be resolved");
+    assert(errors[0] === "登录已失效，请重新登录", "auth refresh failure should use unified auth error copy");
+    assert(doneCount === 1, "auth refresh failure should finish the local stream once");
+  });
+
   await run("first-turn stream should let start-turn create the conversation", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],
@@ -269,6 +298,77 @@ function loadWsStream(config) {
     assert(
       loaded.sent[0].type === "subscribe_turn" && loaded.sent[0].turn_id === "turn_1",
       "socket should subscribe to the authoritative turn returned by start-turn",
+    );
+  });
+
+  await run("public result should project next_best_action display fields only", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "继续", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        response: "已完成批改。",
+        next_best_action: {
+          title: "先补一题可诊断练习",
+          target: "屋面防水\n薄弱点",
+          why_this_now: "刚刚错在构造层级。",
+          materials: ["教材第 5 章", "", "错题本"],
+          success_measure: "能独立说出 2 个设防层级",
+          action_type: "practice",
+          intent: { internal: true },
+          evidence_refs: ["hidden"],
+          training_intent_id: "secret",
+        },
+      },
+      turn_id: "turn_1",
+      session_id: "conv_1",
+    });
+    await flushPromises();
+
+    assert(finals.length === 1, "result event should emit one final payload");
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.title === "先补一题可诊断练习",
+      "next_best_action title should be projected for display",
+    );
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.target.indexOf("\n") === -1,
+      "next_best_action target should be sanitized before reaching the page",
+    );
+    assert(
+      finals[0].next_best_action &&
+        finals[0].next_best_action.materials.length === 2,
+      "next_best_action materials should drop blank entries",
+    );
+    assert(
+      Object.keys(finals[0].next_best_action).sort().join(",") ===
+        "materials,successMeasure,target,title,whyThisNow",
+      "next_best_action should expose only page display fields",
+    );
+    assert(
+      finals[0].next_best_action &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "intent") &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "evidence_refs") &&
+        !Object.prototype.hasOwnProperty.call(finals[0].next_best_action, "training_intent_id"),
+      "next_best_action must not expose internal training authority fields",
     );
   });
 
@@ -608,6 +708,40 @@ function loadWsStream(config) {
     assert(
       finals.some(function (item) { return item.response === "这是当前轮的最终批改答案"; }),
       "current page should render result.metadata.assistant_content without waiting for history recovery",
+    );
+  });
+
+  await run("public result must not use metadata.content as final response", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请批改案例题", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        content: "不应作为最终答案的内部内容",
+        metadata: { content: "嵌套内部内容也不应作为最终答案" },
+      },
+    });
+
+    assert(
+      finals.length === 0,
+      "metadata.content must not become a final answer projection",
     );
   });
 

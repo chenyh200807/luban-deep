@@ -43,6 +43,7 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
+var PENDING_TURN_FOREGROUND_MAX_ATTEMPTS = 4;
 var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v2";
 var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
@@ -148,9 +149,17 @@ function readCachedHomeDashboard() {
       HOME_DASHBOARD_CACHE_MAX_AGE_MS
     )
       return null;
-    return cached.dashboard && typeof cached.dashboard === "object"
-      ? cached.dashboard
-      : null;
+    var dashboard =
+      cached.dashboard && typeof cached.dashboard === "object"
+        ? cached.dashboard
+        : null;
+    if (
+      dashboard &&
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return null;
+    return dashboard;
   } catch (_) {
     return null;
   }
@@ -161,6 +170,11 @@ function writeCachedHomeDashboard(dashboard) {
     if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
       return;
     if (!dashboard || typeof dashboard !== "object") return;
+    if (
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return;
     wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
       cachedAt: Date.now(),
       dashboard: dashboard,
@@ -537,16 +551,7 @@ Page({
       self._restoreConversation(this._convId);
     }
     if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
-      this._pendingRecoveryActive = true;
-      this.setData({ hasMessages: true, isStreaming: true });
-      this._recoverTurnFromHistory({ longPoll: true }).then(
-        function (recovered) {
-          self._pendingRecoveryActive = false;
-          if (!recovered) {
-            self._recoveringTurn = false;
-          }
-        },
-      );
+      this._startPendingTurnBackgroundRecovery();
     }
     // ensurePhone = checkAuth + 手机号强制检查，缺手机号会跳回登录页
     app.ensurePhone(function () {
@@ -757,13 +762,59 @@ Page({
     } catch (_) {}
   },
 
+  _isPendingTurnCurrent: function (pending) {
+    var current = this._pendingTurn;
+    if (!current || !pending) return false;
+    return (
+      current.conversationId === pending.conversationId &&
+      current.clientTurnId === pending.clientTurnId &&
+      Number(current.createdAt || 0) === Number(pending.createdAt || 0)
+    );
+  },
+
+  _releaseStalePendingRecoveryForManualSend: function () {
+    if (!this.data.isStreaming || !this._pendingRecoveryActive || this._abort) {
+      return false;
+    }
+    this._recoveringTurn = false;
+    this._clearPendingTurn();
+    this.setData({
+      hasMessages: !!(this.data.messages && this.data.messages.length),
+      isStreaming: false,
+      canStopStream: false,
+      chatScrollWithAnimation: false,
+    });
+    return true;
+  },
+
+  _startPendingTurnBackgroundRecovery: function () {
+    var self = this;
+    if (!this._loadPendingTurn() || this._pendingRecoveryActive) return;
+    this._pendingRecoveryActive = true;
+    this._recoveringTurn = true;
+    this.setData({ hasMessages: true, isStreaming: false, canStopStream: false });
+    this._recoverTurnFromHistory({
+      maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
+      unlockOnExhausted: true,
+      keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
+    }).then(function (recovered) {
+      self._pendingRecoveryActive = false;
+      if (!recovered) {
+        self._recoveringTurn = false;
+      }
+    });
+  },
+
   _hydrateConversationMessages: function (rawMsgs) {
     var counter = 0;
     var msgs = (rawMsgs || []).map(function (m) {
       var role = m.role === "assistant" ? "ai" : m.role;
-      var visibleContent = aiMessageState.coerceUserVisibleContent(
-        m.content || "",
-      );
+      var sourceContent =
+        role === "ai" && typeof chatTurnRecovery.getAssistantDisplayText === "function"
+          ? chatTurnRecovery.getAssistantDisplayText(m)
+          : m.content || "";
+      var visibleContent = aiMessageState.coerceUserVisibleContent(sourceContent || "");
       var visiblePresentation = aiMessageState.sanitizePresentationForState
         ? aiMessageState.sanitizePresentationForState(m.presentation)
         : m.presentation && typeof m.presentation === "object"
@@ -806,7 +857,7 @@ Page({
         billing: null,
         feedback: "",
       };
-      if (role === "ai" && (m.content || msg.presentation)) {
+      if (role === "ai" && (visibleContent || msg.presentation)) {
         var derived = aiMessageState.deriveAiMessageRenderState({
           content: visibleContent,
           presentation: msg.presentation,
@@ -858,17 +909,24 @@ Page({
     }, 50);
   },
 
-  _finishPendingTurnRecovery: function (serverMessages) {
+  _finishPendingTurnRecovery: function (serverMessages, options) {
     var hasServerMessages = Array.isArray(serverMessages);
+    var keepPending = !!(options && options.keepPending);
+    var shouldHydrate = !(options && options.hydrate === false);
     this._recoveringTurn = false;
-    this._clearPendingTurn();
-    if (hasServerMessages) {
+    if (keepPending) {
+      this._pendingRecoveryActive = false;
+    } else {
+      this._clearPendingTurn();
+    }
+    if (hasServerMessages && shouldHydrate) {
       this._applyHydratedConversationMessages(serverMessages);
       return;
     }
     this.setData({
       hasMessages: !!(this.data.messages && this.data.messages.length),
       isStreaming: false,
+      canStopStream: false,
       chatScrollWithAnimation: false,
     });
   },
@@ -984,14 +1042,20 @@ Page({
       return Promise.resolve(false);
     }
 
-    var maxAttempts = opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3;
+    var maxAttempts = opts.maxAttempts || (opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3);
     var attempt = 0;
 
     function tryFetch() {
       attempt += 1;
+      if (!self._isPendingTurnCurrent(pending)) {
+        return Promise.resolve(false);
+      }
       return api
         .getConversationMessages(pending.conversationId)
         .then(function (raw) {
+          if (!self._isPendingTurnCurrent(pending)) {
+            return false;
+          }
           var data = api.unwrapResponse(raw) || {};
           var serverMessages = [];
           if (Array.isArray(data.messages)) {
@@ -1013,7 +1077,11 @@ Page({
               });
             }
             self._finishPendingTurnRecovery(
-              opts.longPoll ? serverMessages : null,
+              opts.longPoll || opts.unlockOnExhausted ? serverMessages : null,
+              {
+                keepPending: !!opts.keepPendingOnExhausted,
+                hydrate: opts.hydrateOnExhausted !== false,
+              },
             );
             return false;
           }
@@ -1027,6 +1095,9 @@ Page({
           return true;
         })
         .catch(function (err) {
+          if (!self._isPendingTurnCurrent(pending)) {
+            return false;
+          }
           if (err && err.statusCode === 404) {
             if (
               wx.getStorageSync("current_session_id") === pending.conversationId
@@ -1049,7 +1120,9 @@ Page({
               );
             });
           }
-          self._finishPendingTurnRecovery();
+          self._finishPendingTurnRecovery(null, {
+            keepPending: !!opts.keepPendingOnExhausted,
+          });
           return false;
         });
     }
@@ -1221,7 +1294,12 @@ Page({
       var recoverySelf = this;
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
-      this._recoverTurnFromHistory().then(function (recovered) {
+      this._recoverTurnFromHistory({
+        maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
+        unlockOnExhausted: true,
+        keepPendingOnExhausted: true,
+        hydrateOnExhausted: false,
+      }).then(function (recovered) {
         recoverySelf._pendingRecoveryActive = false;
         if (!recovered) {
           recoverySelf._recoveringTurn = false;
@@ -2075,6 +2153,7 @@ Page({
       wx.showToast({ title: "当前无网络连接", icon: "none", duration: 2000 });
       return;
     }
+    self._releaseStalePendingRecoveryForManualSend();
     if (self.data.isStreaming) return;
     self._stop();
 

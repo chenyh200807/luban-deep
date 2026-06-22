@@ -118,6 +118,24 @@ function loadApiModule(config) {
 }
 
 (async function main() {
+  await run("ensureFreshAuthToken should be exported and return the current valid token", async function () {
+    var loaded = loadApiModule({
+      initialToken: "valid-token",
+      shouldRefreshToken: false,
+      onRequest: function () {
+        throw new Error("fresh token path should not hit network");
+      },
+    });
+
+    assert(
+      typeof loaded.api.ensureFreshAuthToken === "function",
+      "api module should export ensureFreshAuthToken for websocket bootstrap",
+    );
+    var token = await loaded.api.ensureFreshAuthToken();
+    assert(token === "valid-token", "ensureFreshAuthToken should resolve the current valid token");
+    assert(loaded.state.requests.length === 0, "fresh token path should not issue refresh request");
+  });
+
   await run("createConversation should refresh near-expiry token before sending protected POST", async function () {
     var loaded = loadApiModule({
       initialToken: "old-token",

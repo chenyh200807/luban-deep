@@ -150,7 +150,15 @@ function readCachedHomeDashboard() {
     var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
     if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
-    return cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+    var dashboard =
+      cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+    if (
+      dashboard &&
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return null;
+    return dashboard;
   } catch (_) {
     return null;
   }
@@ -160,6 +168,11 @@ function writeCachedHomeDashboard(dashboard) {
   try {
     if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
     if (!dashboard || typeof dashboard !== "object") return;
+    if (
+      typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
+      !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
+    )
+      return;
     wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
       cachedAt: Date.now(),
       dashboard: dashboard,
@@ -765,6 +778,7 @@ Page({
       maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
       unlockOnExhausted: true,
       keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
     }).then(function (recovered) {
       self._pendingRecoveryActive = false;
       if (!recovered) {
@@ -906,13 +920,14 @@ Page({
   _finishPendingTurnRecovery: function (serverMessages, options) {
     var hasServerMessages = Array.isArray(serverMessages);
     var keepPending = !!(options && options.keepPending);
+    var shouldHydrate = !(options && options.hydrate === false);
     this._recoveringTurn = false;
     if (keepPending) {
       this._pendingRecoveryActive = false;
     } else {
       this._clearPendingTurn();
     }
-    if (hasServerMessages) {
+    if (hasServerMessages && shouldHydrate) {
       this._applyHydratedConversationMessages(serverMessages);
       return;
     }
@@ -1067,7 +1082,10 @@ Page({
             }
             self._finishPendingTurnRecovery(
               opts.longPoll || opts.unlockOnExhausted ? serverMessages : null,
-              { keepPending: !!opts.keepPendingOnExhausted },
+              {
+                keepPending: !!opts.keepPendingOnExhausted,
+                hydrate: opts.hydrateOnExhausted !== false,
+              },
             );
             return false;
           }
@@ -1454,8 +1472,10 @@ Page({
       this._recoveringTurn = true;
       this._pendingRecoveryActive = true;
       this._recoverTurnFromHistory({
-        maxAttempts: 4,
+        maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
         unlockOnExhausted: true,
+        keepPendingOnExhausted: true,
+        hydrateOnExhausted: false,
       }).then(function (recovered) {
         recoverySelf._pendingRecoveryActive = false;
         if (!recovered) {
@@ -1625,6 +1645,9 @@ Page({
       if (d.citations) {
         updates["messages[" + idx + "].citations"] =
           citationFormat.formatCitations(d.citations);
+      }
+      if (d.next_best_action && d.next_best_action.title) {
+        updates["messages[" + idx + "].nextBestAction"] = d.next_best_action;
       }
       if (d.engine) {
         updates["messages[" + idx + "].engine"] = d.engine;
@@ -2076,6 +2099,18 @@ Page({
       return;
     }
     this._send(prompt.text, { promptIntent: prompt.promptIntent });
+  },
+
+  onNextBestActionTap: function (e) {
+    if (this.data.isStreaming) return;
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var nba = this.data.messages[idx] && this.data.messages[idx].nextBestAction;
+    if (!nba || !nba.title) return;
+    helpers.vibrate("light");
+    var target = String(nba.target || nba.title || "").slice(0, 80);
+    if (!target) return;
+    this._send("针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。");
   },
 
   // ── Hero 弹性拖拽 + 震动 ───────────────────────
