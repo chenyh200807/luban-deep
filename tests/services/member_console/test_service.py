@@ -17,6 +17,7 @@ import httpx
 import pytest
 
 import deeptutor.services.member_console.service as member_service_module
+from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.member_console import external_auth as external_auth_module
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
@@ -57,7 +58,11 @@ class _FakeWalletBootstrapService:
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
         self.grants: list[dict[str, object]] = []
+        self.adjustments: list[dict[str, object]] = []
         self.snapshots: dict[str, SimpleNamespace] = {}
+
+    def get_wallet(self, user_id: str):
+        return self.snapshots.get(str(user_id))
 
     def ensure_wallet_seeded(self, **kwargs):
         self.calls.append(dict(kwargs))
@@ -106,6 +111,39 @@ class _FakeWalletBootstrapService:
             reference_type=str(kwargs["reference_type"]),
             reference_id=str(kwargs["reference_id"]),
             created_at="2026-06-14T10:05:00+08:00",
+        )
+
+    def admin_adjust_points(self, **kwargs):
+        self.adjustments.append(dict(kwargs))
+        user_id = str(kwargs["user_id"])
+        delta_micros = int(kwargs["delta_micros"])
+        snapshot = self.snapshots.get(user_id)
+        current = int(getattr(snapshot, "balance_micros", 0) or 0) if snapshot else 0
+        updated = max(0, current + delta_micros)
+        if snapshot is None:
+            snapshot = SimpleNamespace(
+                user_id=user_id,
+                balance_micros=updated,
+                frozen_micros=0,
+                plan_id="",
+                version=1,
+                created_at="2026-06-14T10:10:00+08:00",
+            )
+            self.snapshots[user_id] = snapshot
+        else:
+            snapshot.balance_micros = updated
+        return SimpleNamespace(
+            ledger_event_id=f"ledger_adjust_{len(self.adjustments)}",
+            user_id=user_id,
+            event_type="admin_adjust",
+            delta_micros=delta_micros,
+            balance_micros=updated,
+            frozen_micros=0,
+            version=1,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type="ticket",
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:10:00+08:00",
         )
 
 
@@ -2768,6 +2806,18 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
+    def _seed_merge_points(data: dict[str, object]) -> None:
+        members = data.get("members") or []
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            if member.get("user_id") == "student_demo":
+                member["points_balance"] = 123
+            if member.get("user_id") == "student_risk":
+                member["points_balance"] = 456
+
+    service._mutate(_seed_merge_points)
+
     async def _fake_exchange_phone_code(_phone_code: str) -> str:
         return "13800000002"
 
@@ -2782,6 +2832,156 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     assert result["merged"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["user"]["user_id"] == "student_risk"
+
+    data = service._load()
+    assert service._find_member(data, "student_demo")["points_balance"] == 0
+    assert service._ensure_member(data, "student_demo")["user_id"] == "student_risk"
+    assert service.get_wallet("student_risk")["balance"] == 579
+
+
+def test_merge_member_accounts_consolidates_entitlement_points_identity_and_admin_role(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._admin_user_ids = lambda: {"root_admin"}  # type: ignore[method-assign]
+    wallet_service = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet_service  # type: ignore[method-assign]
+
+    target_uid = "user_phone_6508"
+    wx_uid = "user_wx_h"
+    account_uid = "user_account_chenyh2008"
+    wallet_service.snapshots[target_uid] = SimpleNamespace(
+        user_id=target_uid,
+        balance_micros=200 * 1_000_000,
+        frozen_micros=0,
+        plan_id="svip",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+    wallet_service.snapshots[wx_uid] = SimpleNamespace(
+        user_id=wx_uid,
+        balance_micros=30 * 1_000_000,
+        frozen_micros=0,
+        plan_id="trial",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+    wallet_service.snapshots[account_uid] = SimpleNamespace(
+        user_id=account_uid,
+        balance_micros=700 * 1_000_000,
+        frozen_micros=0,
+        plan_id="supreme_svip",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        target = service._build_default_member(target_uid)
+        target.update(
+            {
+                "display_name": "user_6508",
+                "phone": "13800136508",
+                "tier": "svip",
+                "expire_at": "2026-08-01T00:00:00+08:00",
+                "points_balance": 200,
+                "auth_username": "user_6508",
+                "external_auth_user_id": target_uid,
+            }
+        )
+        wx_member = service._build_default_member(wx_uid)
+        wx_member.update(
+            {
+                "display_name": "H",
+                "phone": "12240059568",
+                "tier": "trial",
+                "expire_at": "2026-07-12T16:23:50+08:00",
+                "points_balance": 30,
+                "wx_openid": "wx_openid_merge_demo",
+                "wx_unionid": "wx_union_merge_demo",
+            }
+        )
+        account_member = service._build_default_member(account_uid)
+        account_member.update(
+            {
+                "display_name": "chenyh2008",
+                "phone": "52649394196",
+                "tier": "supreme_svip",
+                "expire_at": "2027-06-15T09:13:15+08:00",
+                "points_balance": 700,
+                "auth_username": "chenyh2008",
+                "external_auth_user_id": account_uid,
+            }
+        )
+        data["members"] = [target, wx_member, account_member]
+
+    service._mutate(_seed)
+    service.set_admin_role(
+        actor="root_admin",
+        user_id=target_uid,
+        role=rbac.ROLE_ADMIN,
+        display_name="user_6508",
+    )
+    service.set_admin_role(
+        actor="root_admin",
+        user_id=account_uid,
+        role=rbac.ROLE_SUPER_ADMIN,
+        display_name="chenyh2008",
+    )
+
+    result = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[wx_uid, account_uid],
+        operator="root_admin",
+        reason="confirmed_same_owner",
+        idempotency_key="merge-6508-once",
+    )
+
+    assert result["member"]["user_id"] == target_uid
+    assert result["member"]["tier"] == "supreme_svip"
+    assert result["member"]["expire_at"] == "2027-06-15T09:13:15+08:00"
+    assert result["member"]["points_balance"] == 930
+    assert result["member"]["wx_openid"] == "wx_openid_merge_demo"
+    assert result["points_transferred"] == 730
+    assert result["wallet_adjustments"] == [
+        {
+            "source_user_id": wx_uid,
+            "target_user_id": target_uid,
+            "points_transferred": 30,
+            "credit_ledger_event_id": "ledger_adjust_1",
+            "debit_ledger_event_id": "ledger_adjust_2",
+        },
+        {
+            "source_user_id": account_uid,
+            "target_user_id": target_uid,
+            "points_transferred": 700,
+            "credit_ledger_event_id": "ledger_adjust_3",
+            "debit_ledger_event_id": "ledger_adjust_4",
+        },
+    ]
+    assert service.get_admin_role(target_uid) == rbac.ROLE_SUPER_ADMIN
+    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
+    assert wallet_service.snapshots[wx_uid].balance_micros == 0
+    assert wallet_service.snapshots[account_uid].balance_micros == 0
+
+    data = service._load()
+    assert service._find_member(data, wx_uid)["merged_into"] == target_uid
+    assert service._find_member(data, account_uid)["merged_into"] == target_uid
+    assert service._find_member(data, wx_uid)["points_balance"] == 0
+    assert service._find_member(data, account_uid)["points_balance"] == 0
+    assert service._ensure_member(data, wx_uid)["user_id"] == target_uid
+    assert service._ensure_member(data, account_uid)["user_id"] == target_uid
+
+    repeated = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[wx_uid, account_uid],
+        operator="root_admin",
+        reason="confirmed_same_owner",
+        idempotency_key="merge-6508-once",
+    )
+    assert repeated["deduped"] is True
+    assert service.get_wallet(target_uid)["balance"] == 930
+    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
 
 
 def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path: Path) -> None:
