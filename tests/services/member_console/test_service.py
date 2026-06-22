@@ -3737,10 +3737,12 @@ def test_verify_phone_code_locks_out_after_max_attempts(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", real_code)
 
 
-def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_auto_external_user(
+def test_verify_phone_code_uses_verified_phone_alias_as_external_auth_canonical_uid(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
@@ -3754,26 +3756,21 @@ def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_au
                 return {"user_id": canonical_uid, "source": "phone_verification"}
             return None
 
-    def _unexpected_auto_external_user(_phone: str) -> dict[str, object]:
-        raise AssertionError("phone login should use existing canonical phone alias")
-
     monkeypatch.setattr(
         "deeptutor.services.wallet.identity.get_wallet_identity_store",
         lambda: _FakeAliasStore(),
     )
-    monkeypatch.setattr(
-        member_service_module,
-        "ensure_external_auth_user_for_phone",
-        _unexpected_auto_external_user,
-    )
 
     service.send_phone_code("13955556666")
     result = service.verify_phone_code("13955556666", _active_otp(service))
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
 
     claims = service.verify_access_token(result["token"])
     assert claims is not None
     assert claims["canonical_uid"] == canonical_uid
     assert result["user_id"] == canonical_uid
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
 
 
 def test_verify_phone_code_rejects_conflicting_phone_aliases_without_consuming_code(
@@ -4416,7 +4413,6 @@ async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_lo
     def _seed(data: dict[str, object]) -> None:
         canonical = service._ensure_member(data, canonical_uid)
         canonical["phone"] = ""
-        canonical["external_auth_user_id"] = canonical_uid
         canonical["display_name"] = "手机号账号"
         current = service._ensure_member(data, "wx_openid_9012")
         current["wx_openid"] = "openid_123456789012"
