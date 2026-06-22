@@ -4539,6 +4539,99 @@ def test_bi_member_read_model_starts_on_launch_day(
     assert service.get_member_360("pre_launch_member")["user_id"] == "pre_launch_member"
 
 
+def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(user_id: str, *, display_name: str, phone: str) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id, f"auth_{user_id.replace('-', '')[:24]}"],
+            "display_name": display_name,
+            "auth_username": display_name,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": now.isoformat(),
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member(
+                "d0ee1218-4323-4273-842a-69dec55067f7",
+                display_name="qa_wechat_1780932635",
+                phone="19213428637",
+            ),
+            _member(
+                "3c08282e-d2a4-4bfe-a6d2-c6d5ed4d0788",
+                display_name="qa_pool_11_1782108255519",
+                phone="13908255519",
+            ),
+            _member(
+                "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                display_name="真实快速登录会员",
+                phone="15558866508",
+            ),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["user_id"] == "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["new_7d_count"] == 1
+    assert dashboard["new_30d_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_quick_login_counts_as_new_bi_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_quick_login_123",
+            "unionid": "unionid_quick_login_123",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "15558866508"
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.login_with_wechat_phone("wx-code", "phone-code-123")
+    dashboard = service.get_dashboard()
+
+    assert result["bound"] is True
+    assert result["phone"] == "15558866508"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+
+
 def test_member_search_can_find_pre_launch_member_without_counting_operationally(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [
