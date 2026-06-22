@@ -188,9 +188,13 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
     result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
     assert result_events
     result_payload = result_events[-1].metadata
-    assert "2025真题" in result_payload["response"]
-    assert "没有拿到小程序里的题卡对象" in result_payload["response"]
-    assert "查看这一类真题目录" in result_payload["response"]
+    # 去毒(2026-06-22 meta-leak 修复):low_info 澄清不再逐字回显学生原句、不再泄露内部机制
+    assert "2025真题" not in result_payload["response"]
+    assert "题卡" not in result_payload["response"]
+    assert "传给 TutorBot" not in result_payload["response"]
+    assert "就是在编" not in result_payload["response"]
+    # 仍是可继续的澄清:引导学生给题干/选项
+    assert "题干" in result_payload["response"] and "选项" in result_payload["response"]
     assert "标准答案" not in result_payload["response"]
     assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"
     assert result_payload["exact_fast_path_hit"] is False
@@ -198,7 +202,7 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_low_information_clarification_uses_raw_user_message(
+async def test_tutorbot_low_information_clarification_does_not_echo_raw_user_message(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     manager = _FakeTutorBotManager()
@@ -246,7 +250,11 @@ async def test_tutorbot_low_information_clarification_uses_raw_user_message(
     result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
     assert result_events
     result_payload = result_events[-1].metadata
-    assert raw_message in result_payload["response"]
+    # 去毒(2026-06-22 meta-leak 修复):澄清绝不逐字回显学生原句(旧行为=把整句当 {topic}
+    # 嵌入"我知道你是想直接要…"=meta 泄露主源),也不泄露增强证据/内部机制。
+    assert raw_message not in result_payload["response"]
+    assert "答案发我" not in result_payload["response"]
+    assert "题卡" not in result_payload["response"]
     assert "参考证据" not in result_payload["response"]
     assert "局部工作记忆投影" not in result_payload["response"]
     assert manager.sent_messages == 0
