@@ -139,6 +139,44 @@ def test_historical_question_resolver_remaps_answer_to_current_option_surface(tm
     assert response == "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
 
 
+def test_grounding_text_projection_remaps_bank_answer_to_query_option_surface() -> None:
+    from deeptutor.services.rag.historical_questions import project_grounding_text_to_query_surface
+
+    grounding = (
+        "题库原题\n"
+        "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+        "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+        "【答案】D\n"
+        "【解析】屋面最小坡度：压型金属板：5%。"
+    )
+    query = (
+        "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+        "A.5% B.1% C.2% D.3%，我选A，对吗？"
+    )
+
+    projected = project_grounding_text_to_query_surface(grounding, query)
+    options_match = re.search(r"【选项】(?P<options>\[.*?\])\s*\n【答案】(?P<answer>[A-E])", projected)
+
+    assert options_match is not None
+    assert options_match.group("answer") == "A"
+    options = json.loads(options_match.group("options"))
+    assert options[0] == {"key": "A", "value": "5%"}
+    assert "【答案】D" not in projected
+
+
+def test_grounding_text_projection_fails_open_when_query_surface_does_not_match() -> None:
+    from deeptutor.services.rag.historical_questions import project_grounding_text_to_query_surface
+
+    grounding = (
+        "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+        "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+        "【答案】D"
+    )
+    query = "某工程屋面坡度最小值是多少？我选A。"
+
+    assert project_grounding_text_to_query_surface(grounding, query) == grounding
+
+
 def test_historical_question_resolver_matches_natural_stem_variant_with_option_surface(tmp_path) -> None:
     from deeptutor.services.rag.historical_questions import resolve_historical_question
 

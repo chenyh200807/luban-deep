@@ -132,6 +132,8 @@ mobile_http_auth_controls:
         turn/session/capability entrypoint.
       - Request must carry the current member bearer token and prove the old
         password before changing the external auth password.
+      - The HTTP route is rate-limited and delegates password verification,
+        hashing, and session invalidation to MemberConsoleService -> external_auth.
       - Successful change invalidates existing external auth sessions, returns
         no replacement token, and requires the member to log in again.
       - Change must not write learner summaries, learner memory events, profile,

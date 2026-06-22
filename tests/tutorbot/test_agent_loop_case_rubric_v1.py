@@ -9,6 +9,8 @@ extracts the case reference from covered_subquestions[].authoritative_answer, an
 from __future__ import annotations
 
 import asyncio
+import json
+import re
 import threading
 
 import pytest
@@ -59,7 +61,21 @@ class _FakeContext:
         return [{"role": "system", "content": ""}, *history, {"role": "user", "content": current_message}]
 
     def add_assistant_message(self, messages, content, **_kwargs):
-        return [*messages, {"role": "assistant", "content": content}]
+        item = {"role": "assistant", "content": content}
+        if _kwargs.get("tool_calls") is not None:
+            item["tool_calls"] = _kwargs["tool_calls"]
+        return [*messages, item]
+
+    def add_tool_result(self, messages, tool_call_id, tool_name, result):
+        return [
+            *messages,
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "name": tool_name,
+                "content": result,
+            },
+        ]
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
@@ -1062,3 +1078,64 @@ def test_prefetch_grounded_rag_projects_bank_grounding_to_learner_surface() -> N
     # bank answer D rewritten to the learner's A (whose value is the correct 5%).
     assert "【答案】A" in grounding
     assert "【答案】D" not in grounding
+
+
+@pytest.mark.asyncio
+async def test_prefetched_rag_grounding_projects_answer_to_learner_option_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakeRagTool:
+        def preview_args(self, params):
+            return dict(params)
+
+        def consume_trace_metadata(self):
+            return {}
+
+    class _FakeTools:
+        def __init__(self) -> None:
+            self.rag_tool = _FakeRagTool()
+
+        def get(self, name):
+            return self.rag_tool if name == "rag" else None
+
+        async def execute(self, name, _args):
+            assert name == "rag"
+            return (
+                "题库原题\n"
+                "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+                "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+                "【答案】D\n"
+                "【解析】屋面最小坡度：压型金属板：5%。"
+            )
+
+    loop = _loop()
+    loop.tools = _FakeTools()
+    loop.context = _FakeContext()
+    monkeypatch.setattr(AgentLoop, "_should_prefetch_grounded_rag", classmethod(lambda cls, **_kwargs: True))
+
+    tool_results: list[str] = []
+
+    async def _on_tool_result(_tool_name, result, _metadata):
+        tool_results.append(result)
+
+    messages = await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "system", "content": ""}],
+        current_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，对吗？"
+        ),
+        runtime_metadata={},
+        on_tool_result=_on_tool_result,
+    )
+
+    tool_message = next(item for item in messages if item["role"] == "tool")
+    options_match = re.search(
+        r"【选项】(?P<options>\[.*?\])\s*\n【答案】(?P<answer>[A-E])",
+        tool_message["content"],
+    )
+    assert options_match is not None
+    assert options_match.group("answer") == "A"
+    options = json.loads(options_match.group("options"))
+    assert options[0] == {"key": "A", "value": "5%"}
+    assert "【答案】D" not in tool_message["content"]
+    assert tool_results == [tool_message["content"]]
