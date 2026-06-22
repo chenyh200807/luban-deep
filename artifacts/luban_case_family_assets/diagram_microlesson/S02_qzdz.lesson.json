@@ -1,0 +1,106 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "S02_qzdz",
+  "derived_from": "S02_qzdz.json",
+  "archetype_master_ref": "S02_qzdz.master.json",
+  "style": "teach_then_qa",
+  "title": "起重吊装安全 · 老师带你看穿三道闸",
+  "subtitle": "老师边讲边在塔吊失效链上画三道闸,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 S02(起重吊装安全·判断类)造成讲懂幕。舞台=塔吊失效链+三道闸示意(stage 外置:svg+states+css+banner 自带,引擎对原型通用,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 S02.md §7 分镜顺序(力矩失稳→风载放大→倾覆/脱钩失效→三道闸匹配规程→危大两层门槛+动词风红线→看穿收束)。beat 旁白事实/数值全部 anchor 回 S02_qzdz.json 真实字段(防漂移闸),数字回 §2/§5/§6 教材锚,不手写新数值;迁移铺垫 beat anchor master:R2_invariant。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值(10kN/100kN/300kN/200m/90%/200~500mm/6级/9.0m/s 等)以现行规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "起重吊装安全不是背 10kN、100kN、6级、9.0 几个数 → 是'认对哪道闸(危大/条件/规程)→比对那条被钉死的硬指标'同一条判读链。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "moment", "label": "力矩失稳"},
+      {"id": "wind", "label": "风载放大"},
+      {"id": "fail", "label": "倾覆脱钩"},
+      {"id": "gate", "label": "三道闸"},
+      {"id": "chain", "label": "判读链"}
+    ],
+    "css": ".s-base,.s-mast,.s-jib,.s-load,.s-momentarc,.s-wind,.s-fail,.s-gateset,.s-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-mast,.s-jib,.s-load{opacity:1} .s-momentarc{transform:scale(.7);transform-origin:120px 60px} .reached-moment .s-momentarc{opacity:1;transform:none} .s-wind{transform:translateX(-8px)} .reached-wind .s-wind{opacity:1;transform:none} .s-fail{transform:rotate(0deg);transform-origin:60px 150px} .reached-fail .s-fail{opacity:1} .reached-gate .s-gateset{opacity:1} .s-chain{transform:translateY(6px)} .reached-chain .s-chain{opacity:1;transform:none} .s-steel{fill:#5d6f86} .s-line{stroke:#8aa0ba} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.moment{fill:#ffb15a}.s-note.wind{fill:#7fc7ff}.s-note.fail{fill:#ff7a7a}.s-note.gate{fill:#7fe6ab}.s-note.chain{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-gtxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='起重吊装安全三道闸与失效链示意'><rect x='40' y='150' width='280' height='14' rx='2' class='s-steel' data-visual-node-id='ground.base'/><text class='s-lbl' x='44' y='246'>塔吊起重作业(力矩×风载失效链 + 三道闸)</text><g class='s-mast' data-visual-node-id='crane.mast'><rect x='56' y='70' width='8' height='80' fill='#7f93ad'/></g><g class='s-jib' data-visual-node-id='crane.jib'><line x1='60' y1='74' x2='210' y2='74' stroke='#7f93ad' stroke-width='4'/><line x1='60' y1='74' x2='44' y2='90' stroke='#7f93ad' stroke-width='3'/></g><g class='s-load' data-visual-node-id='crane.load'><line x1='190' y1='76' x2='190' y2='118' stroke='#8aa0ba' stroke-width='1.6' stroke-dasharray='4 3'/><rect x='180' y='118' width='20' height='14' rx='2' fill='#ffd27f'/><text class='s-lbl' x='190' y='112' text-anchor='middle'>单件重量×幅度</text></g><g class='s-momentarc' data-visual-node-id='moment.arc'><path d='M64 70 A 60 60 0 0 1 190 76' fill='none' stroke='#ff9b3a' stroke-width='2.2' stroke-dasharray='4 3'/><text class='s-note moment' x='118' y='40' text-anchor='middle'>S1 起重力矩=重量×幅度 → 超额定即倾覆</text></g><g class='s-wind' data-visual-node-id='wind.load'><path d='M214 92 H250 M214 100 H244 M214 108 H252' stroke='#7fc7ff' stroke-width='2.2'/><text class='s-note wind' x='244' y='84' text-anchor='middle'>S2 风载=放大器</text></g><g class='s-fail' data-visual-node-id='fail.path'><path d='M188 132 L186 178 M180 170 L186 180 L194 172' fill='none' stroke='#ff5a5a' stroke-width='2.4'/><text class='s-note fail' x='150' y='200' text-anchor='middle'>S3 倾覆 / 脱钩坠物</text></g><g class='s-gateset' data-visual-node-id='gate.three'><circle cx='264' cy='150' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='264' y='153' text-anchor='middle'>闸①危大</text><circle cx='296' cy='150' r='12' fill='#16321f' stroke='#ffd27f' stroke-width='1.6'/><text class='s-vtxt' x='296' y='153' text-anchor='middle' style='fill:#ffd27f'>闸②条件</text><circle cx='312' cy='178' r='12' fill='#16321f' stroke='#7fc7ff' stroke-width='1.6'/><text class='s-vtxt' x='312' y='181' text-anchor='middle' style='fill:#7fc7ff'>闸③规程</text><text class='s-note gate' x='290' y='130' text-anchor='middle'>S4 三道闸:该不该升级/条件达标/规程对错</text></g><g class='s-chain' data-visual-node-id='invariant.two_gate'><circle cx='96' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='96' y='43' text-anchor='middle'>认对闸</text><circle cx='200' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='200' y='43' text-anchor='middle'>比硬指标</text><path d='M109 40 H187' stroke='#7fe6ab' stroke-width='2'/><text class='s-note chain' x='250' y='43' text-anchor='middle'>十进危大·百论证</text><text class='s-note chain' x='150' y='66' text-anchor='middle'>S5 判读链 = 认对闸 → 比那条被钉死的硬指标</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": false,
+       "keycard": {"text": "起重吊装安全,丢分在只背数字不认闸", "tone": "q"},
+       "sync_keyword": "三道闸",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:ground.base"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "narration": "起重吊装安全,很多人背下数字就上场,一换荷载就懵。今天学认闸。"},
+      {"id": "moment", "stage": "moment", "claim": true, "anchor": "causal_chain.s1_moment.claim",
+       "keycard": {"text": "S1 起重力矩=重量×幅度,超额定即倾覆", "tone": "a"},
+       "sync_keyword": "起重力矩",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:moment.arc"},
+         {"type": "highlight", "target": "data-id:crane.load"},
+         {"type": "keycard", "target": "data-id:keycard.moment"}
+       ],
+       "narration": "先看根因。起重力矩等于重量乘以幅度,幅度越大、吊得越重力矩越大,一超额定就倾覆。"},
+      {"id": "wind", "stage": "wind", "claim": true, "anchor": "causal_chain.s2_wind_amplifier.claim",
+       "keycard": {"text": "S2 风载=放大器:坏天气强作业推过红线", "tone": "a"},
+       "sync_keyword": "风载",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:wind.load"},
+         {"type": "keycard", "target": "data-id:keycard.wind"}
+       ],
+       "narration": "风是力矩的放大器,迎风面积乘风压就是额外倾覆力矩。坏天气硬干,把临界点往红线外推,所以气象是道硬闸。"},
+      {"id": "fail", "stage": "fail", "claim": true, "anchor": "causal_chain.s3_failure.claim",
+       "keycard": {"text": "S3 结果=倾覆或脱钩坠物;把每条阀焊死", "tone": "a"},
+       "sync_keyword": "失效链",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:fail.path"},
+         {"type": "keycard", "target": "data-id:keycard.fail"}
+       ],
+       "narration": "失效无非两类:整机倾覆,或索具失效、斜吊脱钩坠物。每条规程,都是焊在失效链上的一个阀。"},
+      {"id": "gate", "stage": "gate", "claim": true, "anchor": "causal_chain.s4_three_gates.claim",
+       "keycard": {"text": "S4 三道闸:危大判定 / 作业前条件 / 作业中规程", "tone": "a"},
+       "sync_keyword": "三道闸",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:gate.three"},
+         {"type": "highlight", "target": "data-id:keycard.gate"}
+       ],
+       "narration": "规程归三道闸:闸一危大判定,该不该升级专项方案或专家论证;闸二作业前条件,地基气象吊索具吊点;闸三作业中规程,超载禁令、装置不可替代、先试吊。题目每次只问一道闸。"},
+      {"id": "score", "stage": "gate", "claim": true, "anchor": "scoring_points[0].keywords",
+       "keycard": {"text": "采分词:危大两层门槛·作业6级/安拆9.0·90%先吊离·严禁限位代替", "tone": "score"},
+       "sync_keyword": "采分",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:score.keywords"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "narration": "采分盯这几组词:单件十千牛属危大、非常规一百千牛才论证;作业看六级风、安拆看九点零;达九成先吊离两百到五百毫米;严禁限位代替操作机构。"},
+      {"id": "transfer", "stage": "chain", "claim": true, "anchor": "master:R2_invariant",
+       "keycard": {"text": "迁移:判读链通用,阈值随动词/场景变", "tone": "concl"},
+       "sync_keyword": "判读链",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:invariant.two_gate"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"},
+         {"type": "camera", "target": "data-id:stage.conclude"}
+       ],
+       "narration": "记住判读链:先认对哪道闸,再比那条被钉死的硬指标。危大记两层,十进危大、百论证;风看动词。换荷载换动作链都成立,阈值随场景。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,起重吊装加个大数字,直接判要专家论证不行吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why",
+           "sync_keyword": "两层门槛",
+           "text": "危大是两层门槛:单件十千牛就属危大、要专项方案;要专家论证,得非常规且单件一百千牛、总重三百千牛或高度两百米。两条线分开比,别压成一层。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那风速九点零的红线,作业和安拆一样用吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "动词",
+           "text": "看动词。露天吊装作业看六级及以上停;安拆更危险,看风速九点零加低能见度停。题干是作业还是安拆,决定调哪条。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "起吊到九成额定,我答'加强检查'够不够?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "先吊离",
+           "text": "差个关键动作。一动作加四查:先吊离地面两百到五百毫米,再查机械、制动、重物平稳、绑扎牢固。漏了先吊离就没踩全。"}}
+  ]
+}

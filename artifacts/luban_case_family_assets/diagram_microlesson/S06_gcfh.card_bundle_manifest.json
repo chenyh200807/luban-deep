@@ -1,0 +1,66 @@
+{
+  "schema_version": "luban_card_bundle_manifest.v0",
+  "pack_id": "S06_gcfh",
+  "generated_at": "2026-06-20T11:01:08.422784+00:00",
+  "official_score_allowed": false,
+  "runtime_canonical": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "assets": [
+    {
+      "role": "master",
+      "path": "S06_gcfh.master.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 20070,
+      "sha256": "9643644c01240853d59a1486803e21081035ecca427506b2947e06d8db6b5ead"
+    },
+    {
+      "role": "lesson",
+      "path": "S06_gcfh.lesson.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 12513,
+      "sha256": "a76647bfc731efd6f4563b65d66c81b9c41aaefbf9461a8cee05b1a0aceb3cd4"
+    },
+    {
+      "role": "timing",
+      "path": "S06_gcfh.lesson.timing.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 6498,
+      "sha256": "6de060362bf53dab53dd80671a7fd98956180a7ecbb69a70426d63decfafeaf3"
+    },
+    {
+      "role": "rendered_html",
+      "path": "S06_gcfh.journey.html",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 48352,
+      "sha256": "13db2ad8f9c6ee257eda543e538253023c453ac83ff2676a91db94667fed89a6"
+    },
+    {
+      "role": "practice_html",
+      "path": "S06_gcfh.practice.html",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 34460,
+      "sha256": "c8960cb98c1976f52790bdc7e2c585fe0317b7fa9143df80373c62ae3993a377"
+    },
+    {
+      "role": "audio",
+      "path": "S06_gcfh.lesson.mp3",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 1472344,
+      "sha256": "88e629ef46149070d1e018615e1c6bfa028b5f49d5e524f65f81dd91549093a7"
+    }
+  ],
+  "blocking_failures": []
+}

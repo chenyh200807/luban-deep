@@ -110,6 +110,11 @@ _EXTRA_CSS = """
 .mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
 .scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
 .dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
 	.lesson.theater{max-width:none;padding:0;background:#0f1722}
 .lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
 .lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,

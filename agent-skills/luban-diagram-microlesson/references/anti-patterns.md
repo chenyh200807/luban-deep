@@ -13,6 +13,7 @@
 | 预览每次都生成 MP4 | 迭代慢,缓存和成片误差混在一起 | 没区分预览评审和成片验收 | UI/UX/文案/练习/播放器只改 HTML/CSS/数据,复用已有媒体;成片变更才 render | 评审记录必须写明预览档或成片档 |
 | 开头直接讲知识 | 新生跟不上,不知道为什么要看 | 缺 opening hook 和考试动作主线 | 首帧先讲考试场景、丢分点、学完能写什么 | storyboard 必填 `opening_hook` |
 | 前言和正片断开 | 像几段拼起来的讲稿 | 没有统一的 `main_exam_action` | hook、trap、worked、score、closing 都回扣同一个考试动作 | storyboard 必填 `main_exam_action` / `closing_echo` |
+| 学生问答书面化或方言化 | 学生声纹是东北男孩,但句子像审稿提纲;或反过来满屏口头禅像段子 | 只设置 voice,没有把人物口吻写进 lesson/gate;把声纹当表演而不是学习问题 | 学生 QA 放后置 `qa[]`;每问是真卡点,只加 1-2 个口语钩子如“老师/这块/那我/能拿分不/整明白了”;对象、依据、采分边界必须清楚 | `build_aliyun_lesson_narration.mjs` / `build_lesson_narration.mjs` narration structure gate |
 | 画面像翻页 | 有动画但只是慢慢变大/淡入,没有注意力管理 | Remotion 只做转场,没做镜头调度 | 每 6-10 秒有教学相关 visual state;用 push/spotlight/dim/trace/freeze | still 检查 hook/trap/worked/score/closing |
 | 大箭头硬指 | 箭头抢主体,显得粗糙 | 用装饰替代视觉层级 | 讲到哪个点,就让该对象高亮/放大/周边降噪;箭头只作轻量辅助 | 视觉复审 |
 | 音画错位 | 旁白讲完了,画面才慢慢强调 | timing 不是从关键词设计 | 每段填 `sync_keyword` 和 `visual_state`;关键视觉略早 0.1-0.3s | 成片档 ffprobe + 关键帧截图 |
@@ -20,8 +21,12 @@
 | 练习混在讲解页 | 学生一边看视频一边被题干干扰 | 没拆“看懂”和“练会”两个任务 | 讲解页只承载 video;练习页独立 | preview gate 检查 practice link |
 | 练习题没图 | 选择题像普通刷题,没有深母题迁移 | 没把变题视觉化 | 每题配原图/变化图/诊断图/答题纸 | preview gate 检查 question SVG |
 | 选项短词化 | 点对了但不会写主观题答案 | 选项只服务选择,不服务采分表达 | 选项写“对象/路径 + 结果 + 判断依据”;末题做采分句输出 | practice review |
+| 题面泄答案/标签题 | 学生不用理解题干,看左上角或题图高亮就知道选哪个;选项只是 key point 标签 | practice generator 把 `ai_context.key_points` 直接当选项和题图 focus,没有从母题 R3/R4/采分点派生场景缺口 | 题目改成“学生答案/现场场景/题干数据”的缺口诊断;答前不高亮正确点,答后再 reveal;选项必须是完整采分动作,不得等于 key point 标签 | `validate_practice_interactions.mjs` 检查 no keypoint label answers + no pre-answer answer leak |
+| 解析说黑话 | 学生答错后仍看不懂错在哪里,只看到“口径/散点/采分链”等抽象词 | 反馈复述内部概念,没有解释“这个错项为什么诱人、为什么扣分、正确答案补哪一句” | 每个错误选项都有专属反馈:先承认错项的诱因,再指出扣分点,最后给能写到答题纸上的补法 | `validate_practice_interactions.mjs` 检查 per-option feedback + readable explanations |
+| 结果页很完整但题目很怪 | 学生做完有分数、分析、问鲁班按钮,但做题时看不懂题干和选项 | 先做交互壳和结果页,没有先从成品 MD 提炼 `practice_blueprint` | 每题先写 `scene_gap`、学生错误答案、正确采分动作、错项诱因;结果页只做诊断和追问,不能替代题目质量 | `practice_blueprint` review + `validate_practice_interactions.mjs` |
+| 手机链接给 localhost | 电脑能打开,手机/小程序扫码打不开 `127.0.0.1` | 忘了 localhost 作用域只在当前设备 | 服务监听 LAN,交付 `http://<局域网IP>:8800/<file>`;换 Wi-Fi 后重取 IP | preview handoff check |
 | 题图文字挤压 | 流程节点/判断节点里字挤成一团,学生看不清 | 图元尺寸和标签长度没有合同,只测外层不溢出 | 改 renderer 图元语法:长标签用 pill/多行/缩写+图例,不要硬塞小圆;把标签适配纳入 runtime gate | `validate_challenge_theater_practice.mjs` 的 SVG label fit |
-| SVG 标签压线/跑边 | 标签贴着箭头、压住卡片边框,或跑出白板 | 把标注当坐标文本,没有图元级安全布局;gate 只查外层 overflow,不查 text/text 或 text/path | flow_arrow 等 primitive 必须自带 label badge/line offset;renderer 负责避让,IR 不手调;gate 在 scene 后段检查 SVG text collision 和 arrow label clearance | `validate_animation_ir_preview.mjs` 的 `runtime_svg_text_collision` |
+| SVG 标签压线/跑边 | 标签贴着箭头、压住卡片边框,跑出白板,或贴到白板外的深色背景上 | 把标注当坐标文本,没有图元级安全布局;gate 只查外层 overflow,不查 text/text、text/path 或 text 是否仍在主画板内 | flow_arrow/threshold_meter 等 primitive 必须自带 label badge/line offset 和上下安全位;renderer 负责避让,IR 不手调;gate 在 scene 后段检查 SVG text collision、arrow label clearance 和 primary-board containment | `validate_animation_ir_preview.mjs` 的 `runtime_svg_text_collision` + `runtime_svg_text_in_board` |
 | 右栏文字被裁 | 横屏/宽屏时学生答或题干只显示半句 | grid 列宽/overflow 只测页面横滚,没测文本块 scrollWidth | 右栏设 min-width/minmax,文本 `overflow-wrap:anywhere`;gate 查 visible text block 不裁切 | `text_not_clipped` + 宽屏截图 |
 | 只套 N01 外形 | 构造题也像网络图,判断题也像白板节点 | 把样板 UI 当 authority | 先按 6+1 选原型,再选该原型视觉语法 | pressure tests |
 | 学生端泄漏内部词 | 页面出现 `candidate` / `source_ref` / `P10` / `E03` | renderer 没做 student-safe package gate | 学生包禁止内部 token;制作侧追溯放在源 JSON/后台 | preview gate fail-closed |
@@ -35,7 +40,12 @@
 | 先渲染后救火 | 页面出来才发现比例、叠层、Remotion 没吃同源 IR | 缺 pre-render contract gate,把 schema 问题拖到 UI 评审 | IR 生成后先跑 `validate_animation_ir_contract.mjs`;不过不渲染、不调 CSS | pre-render IR gate |
 | Remotion 单卡另写一套 | HTML preview 变好了,正式成片又偏;或 topic TSX 里硬编码 F16 SVG | Remotion 成了第二份 storyboard/renderer truth | topic wrapper 只导入 IR/timing;通用 `AnimationIrRenderer` 消费 `visual_library/actions` | contract gate 查 wrapper 导入当前 IR + 委托通用 renderer |
 | HTML/Remotion 图元表不对称 | 某些卡在 Remotion 是图,HTML 预览却静默变成文字框;机器门还绿 | 只检查一侧 renderer 覆盖,另一侧有 catch-all fallback | contract gate 同时查 HTML renderer 和 Remotion renderer;未知图元渲染时直接 fail,不能降级为文本卡 | `html_primitive_coverage` + `remotion_primitive_coverage` |
-| 文字卡伪图示 | 40 pack 看起来全是解释框,没有构造、流程、判断树、网络图等认知结构 | 只把 6+1 原型当标签,没有把 archetype 转成必需 visual primitive | `render_contract.archetype_visual_required` 必填;每个 archetype 至少出现对应非文本图元;文本容器不能冒充图解 | `archetype_visual_present` + `archetype_not_text_only` |
+| 跳过视觉原型闸 | 卡从成品 MD 直接生成文字讲稿/文字框 IR,没有先回答“这个知识点该画成什么” | workflow 把 6+1 当后置标签,没有在 P0 阶段冻结 `visual_archetype_decision` | 先产 `visual_archetype_decision`:primary/secondary archetype、primitive、motion_grammar、why_not_text;不过不进 IR | `visual_archetype_decision_required` |
+| 纯文字例外滥用 | 安全/合同/管理类考点被说成“本来就是文字”,结果满屏解释框 | 把“抽象”误判成“不可视化”;没有把资金链、判断树、现场平面、失稳链这些认知结构画出来 | ①–⑥ 默认不允许 `pure_text_allowed=true`;只有(七)数值/记忆才可走 memory_table/flashcard | `pure_text_exception_scope` |
+| 文字卡伪图示 | 40 pack 看起来全是解释框,没有构造、流程、判断树、网络图等认知结构 | 只把 6+1 原型当标签,或只放了一个图元,但 hook/map/rule/trap/score 仍靠文字框解释 | `render_contract.archetype_visual_required` 必填;主讲 teaching scenes 必须图示驱动;score 必须是答题纸/诊断图,不能退回三条文字框 | `archetype_visual_present` + `diagrammatic_teaching_scene` + `score_scene_diagrammatic` |
+| 图示只当背景 | 白板里有图,但旁白和字幕仍在解释文字概念;图没有分层、分支、路径、生长、扫描动作 | primitive 没有内部 motion grammar,renderer 只做外层 fade/zoom | 每个 primitive 必须绑定动作:流程 trace、剖面 explode、判断 branch、公式 chain、对照 flip、答题 scan | `primitive_motion_grammar_present` |
+| 批量 PASS 冒充精品 | 39/39 gate 通过,但手机上仍像文字解释卡,文字多、图示弱、学员看不出动作 | 把结构门当质量门,把 Markdown 抽词套图元当动画教案 | 批量脚本只能标 `coarse_draft_requires_single_card_review`;精品卡必须逐张过手机截图墙和“第一眼是图示动作”人工/LLM review | manifest/report 标 `student_ready=false` + 单卡截图证据 |
+| 静态图伪动画 | 页面有流程图/剖面/网络图,但只是整块淡入或整页切换;学生仍感觉是在听文字解释 | 图元只有外层 reveal/highlight,没有把工序、层次、路径、分支、扫描这些知识动作做进 primitive 内部 | 6+1 primitive 必须有内部 step/trace/scan:工序逐步、剖面逐层、网络路径生长、判断分支展开、正误先后对照、答案逐句扫描;HTML/Remotion 共用同一套内部 step 语法 | `html_internal_animation` + `remotion_internal_animation` |
 | 机器绿但无评审包 | gate PASS 后仍反复被用户截图指出拥挤/错位/没动画 | 没把截图墙和人审发现回写成 root-cause triage,下一轮 agent 又只看命令绿灯 | 按 `workflow-review-loop.md` 形成 review packet;人眼发现的问题必须补 gate/anti-pattern 或标 needs_human_review | review packet + screenshot wall |
 
 ## 2. 快速判定
@@ -46,12 +56,17 @@
 - 你正在改 Remotion 动画,但没有 `sync_keyword`。
 - 你正在写练习题,但不知道它来自哪个 variant / basis_ref。
 - 你正在加文案,但这句话没有 anchor 或只是老师自由发挥的考点事实。
+- 你还没写 `visual_archetype_decision`,就已经开始生成 `animation_ir.v0`。
+- 你把安全、合同、管理考点说成“只能文字讲”,但没试过判断树、资金链、现场平面、失稳链、答题纸扫描。
 - 你正在做全屏,但普通态竖屏截图里内容仍是小片,或横屏/宽屏截图里仍被锁成窄竖条。
 - 你还没跑 `validate_animation_ir_contract.mjs`,就已经开始看 HTML 或改 CSS。
 - 你在 Remotion topic 文件里写 `if (scene.id === "...")` 或硬编码某张卡的 SVG。
 - 你只跑了静态 HTML gate,但没有跑 `validate_learning_stage_runtime.mjs` 的真实视口矩阵。
 - 你只看 390x844,但没有看 360 窄竖屏、844/932 横屏和 theater 控制层。
 - 你说 practice 合格,但没跑闯关页 runtime gate,没看目标视口截图,也没查 SVG 标签是否挤压。
+- 你正在写 practice,但没有先写 `practice_blueprint[]`,或题目不是从 R3/R4/R6/R8/scoring group 派生。
+- 你在优化结果页、AI 追问或补练按钮,但第一题题干仍让人读不懂。
+- 你给用户手机链接时还在用 `127.0.0.1` 或 `localhost`。
 - 你说 workflow 改好了,但没有 review packet,没有 root-cause triage,也没有说明新增了哪个 gate/anti-pattern。
 - 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
 - 你发现 SVG 文字贴箭头/压边,但只调当前卡 x/y,没有把 flow_arrow/note/pill primitive 变成自带安全区的图元。

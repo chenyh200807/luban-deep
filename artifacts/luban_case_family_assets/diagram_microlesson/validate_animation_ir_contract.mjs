@@ -39,6 +39,7 @@ const VISUAL_KINDS = new Set([
   "challenge_button",
   "flow_arrow",
   "threshold_meter",
+  "scaffold_frame",
   "process_flow",
   "layer_stack",
   "network_graph",
@@ -59,6 +60,18 @@ const TEXT_CONTAINER_KINDS = new Set([
   "flow_arrow",
   "threshold_meter",
 ]);
+const ANIMATED_PRIMITIVE_KINDS = new Set([
+  "roof_section",
+  "scaffold_frame",
+  "process_flow",
+  "layer_stack",
+  "network_graph",
+  "formula_chain",
+  "decision_tree",
+  "contrast_pair",
+  "answer_scan",
+]);
+const DEFAULT_TEACHING_SCENE_IDS = ["hook", "map", "rule", "trap", "score"];
 const REQUIRED_BY_ARCHETYPE = {
   process_step_reveal: ["process_flow"],
   section_or_spatial_reveal: ["layer_stack", "roof_section"],
@@ -181,9 +194,36 @@ if (ir) {
   textOnlyKinds.length === allVisualKinds.size
     ? fail("archetype_not_text_only", `visual library is text-container-only: ${[...allVisualKinds].join(",")}`)
     : pass("archetype_not_text_only", `non-text primitives present: ${[...allVisualKinds].filter((kind) => !TEXT_CONTAINER_KINDS.has(kind)).join(",")}`);
+  const teachingSceneIds = Array.isArray(contract.teaching_scene_ids) && contract.teaching_scene_ids.length
+    ? contract.teaching_scene_ids
+    : DEFAULT_TEACHING_SCENE_IDS;
+  const minDiagrammaticTeachingScenes = Number(contract.min_diagrammatic_teaching_scenes ?? teachingSceneIds.length);
+  let diagrammaticTeachingSceneCount = 0;
+  for (const sceneId of teachingSceneIds) {
+    const visual = visualLibrary[sceneId];
+    const kinds = visual && Array.isArray(visual.nodes) ? visual.nodes.map((node) => node.kind).filter(Boolean) : [];
+    const diagramKinds = kinds.filter((kind) => !TEXT_CONTAINER_KINDS.has(kind));
+    if (!visual) {
+      fail("diagrammatic_teaching_scene", `${sceneId}: missing visual_library entry`);
+    } else if (diagramKinds.length) {
+      diagrammaticTeachingSceneCount += 1;
+      pass("diagrammatic_teaching_scene", `${sceneId}: ${diagramKinds.join(",")}`);
+    } else {
+      fail("diagrammatic_teaching_scene", `${sceneId}: text-container-only teaching scene (${kinds.join(",") || "none"})`);
+    }
+  }
+  diagrammaticTeachingSceneCount >= minDiagrammaticTeachingScenes
+    ? pass("diagrammatic_teaching_scene_count", `${diagrammaticTeachingSceneCount}/${teachingSceneIds.length} >= ${minDiagrammaticTeachingScenes}`)
+    : fail("diagrammatic_teaching_scene_count", `${diagrammaticTeachingSceneCount}/${teachingSceneIds.length} < ${minDiagrammaticTeachingScenes}`);
+  const scoreKinds = visualLibrary.score && Array.isArray(visualLibrary.score.nodes) ? visualLibrary.score.nodes.map((node) => node.kind).filter(Boolean) : [];
+  const scoreDiagramKinds = scoreKinds.filter((kind) => !TEXT_CONTAINER_KINDS.has(kind));
+  scoreDiagramKinds.length
+    ? pass("score_scene_diagrammatic", `score uses ${scoreDiagramKinds.join(",")}`)
+    : fail("score_scene_diagrammatic", `score scene must use answer-paper/diagnosis primitive, got ${scoreKinds.join(",") || "none"}`);
   const genericRendererPath = join(root, "remotion_demo/src/AnimationIrRenderer.tsx");
+  let genericRendererText = "";
   if (existsSync(genericRendererPath)) {
-    const genericRendererText = readFileSync(genericRendererPath, "utf8");
+    genericRendererText = readFileSync(genericRendererPath, "utf8");
     for (const kind of allVisualKinds) {
       const hasBranch = rendererHasPrimitiveBranch(genericRendererText, kind);
       hasBranch
@@ -194,8 +234,9 @@ if (ir) {
     fail("remotion_primitive_coverage", `missing generic renderer ${genericRendererPath}`);
   }
   const htmlRendererPath = join(root, "render_animation_ir_preview.py");
+  let htmlRendererText = "";
   if (existsSync(htmlRendererPath)) {
-    const htmlRendererText = readFileSync(htmlRendererPath, "utf8");
+    htmlRendererText = readFileSync(htmlRendererPath, "utf8");
     for (const kind of allVisualKinds) {
       const hasBranch = rendererHasPrimitiveBranch(htmlRendererText, kind);
       hasBranch
@@ -204,6 +245,17 @@ if (ir) {
     }
   } else {
     fail("html_primitive_coverage", `missing HTML preview renderer ${htmlRendererPath}`);
+  }
+  const animatedKindsUsed = [...allVisualKinds].filter((kind) => ANIMATED_PRIMITIVE_KINDS.has(kind));
+  if (animatedKindsUsed.length) {
+    htmlRendererText.includes("data-primitive-step")
+      ? pass("html_internal_animation", `HTML renderer has primitive-internal steps for ${animatedKindsUsed.join(",")}`)
+      : fail("html_internal_animation", `animated primitives require internal steps, used ${animatedKindsUsed.join(",")}`);
+    /PrimitiveStep/.test(genericRendererText)
+      ? pass("remotion_internal_animation", `Remotion renderer has PrimitiveStep for ${animatedKindsUsed.join(",")}`)
+      : fail("remotion_internal_animation", `animated primitives require Remotion PrimitiveStep, used ${animatedKindsUsed.join(",")}`);
+  } else {
+    pass("primitive_internal_animation", "no animated primitive kinds in IR");
   }
 
   const sceneIds = new Set();

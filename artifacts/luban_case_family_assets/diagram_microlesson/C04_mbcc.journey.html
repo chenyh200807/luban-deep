@@ -1,0 +1,438 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>模板拆除顺序与条件 · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.s-floor,.s-curve,.s-side,.s-bottom,.s-table,.s-fast,.s-order,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-curve{transform:translateY(6px)} .reached-curve .s-curve{opacity:1;transform:none} .s-side,.s-bottom{transform:translateY(-4px)} .reached-role .s-side{opacity:1;transform:none} .reached-role .s-bottom{opacity:1;transform:none} .reached-table .s-table{opacity:1} .s-fast{transform:translateY(6px)} .reached-fast .s-fast{opacity:1;transform:none} .s-order{transform:translateY(6px)} .reached-order .s-order{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-floorfill{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.curve{fill:#ffd27f}.s-note.role{fill:#7fc7ff}.s-note.table{fill:#7fe6ab}.s-note.fast{fill:#ffb15a}.s-note.order{fill:#bff0d4}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="C04_mbcc" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>模板拆除顺序与条件</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">先判模板类型</button><button class="" type="button">侧模看表面棱角</button><button class="" type="button">墙体大模板1N/mm²</button><button class="" type="button">底模看百分率表</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边在拆模剖面上画&#x27;强度→顺序→程序&#x27;三道门,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='模板拆除顺序与条件工序剖面'><rect x='24' y='150' width='312' height='14' rx='2' class='s-floorfill' data-visual-node-id='floor.section'/><text class='s-lbl' x='28' y='246'>混凝土板/梁 + 底模及支架剖面(拆模工序)</text><g class='s-curve' data-visual-node-id='strength.curve'><path d='M40 138 Q70 100 110 92 T180 88' fill='none' stroke='#ffd27f' stroke-width='2.4'/><line x1='40' y1='138' x2='40' y2='80' stroke='#5d6f86' stroke-width='1'/><line x1='40' y1='138' x2='185' y2='138' stroke='#5d6f86' stroke-width='1'/><text class='s-ttxt' x='44' y='86'>强度%</text><text class='s-note curve' x='112' y='74' text-anchor='middle'>C1 强度成长曲线:看百分率不看小时</text></g><g class='s-side' data-visual-node-id='side.form'><rect x='214' y='118' width='5' height='32' fill='#7fc7ff'/><text class='s-ttxt' x='216' y='112' text-anchor='middle'>侧模</text><text class='s-note role' x='250' y='110' text-anchor='middle'>C2 侧模受'胀':看表面棱角</text></g><g class='s-bottom' data-visual-node-id='bottom.form'><rect x='250' y='164' width='70' height='5' fill='#7fe6ab'/><line x1='258' y1='169' x2='258' y2='150' stroke='#7fe6ab' stroke-width='2'/><line x1='312' y1='169' x2='312' y2='150' stroke='#7fe6ab' stroke-width='2'/><text class='s-ttxt' x='285' y='182' text-anchor='middle'>底模+支架(真吃劲)</text></g><g class='s-table' data-visual-node-id='strength.table'><rect x='30' y='176' width='150' height='62' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1'/><text class='s-vtxt' x='38' y='190'>板 ≤2m→50% / 2~8m→75% / >8m→100%</text><text class='s-vtxt' x='38' y='206'>梁拱壳 ≤8m→75% / >8m→100%</text><text class='s-vtxt' x='38' y='222'>悬臂 → 100%</text><text class='s-note table' x='105' y='236' text-anchor='middle'>C3 底模按构件×跨度分档</text></g><g class='s-fast' data-visual-node-id='fast.strip'><line x1='250' y1='150' x2='250' y2='130' stroke='#ffb15a' stroke-width='2.4'/><line x1='270' y1='150' x2='270' y2='130' stroke='#ffb15a' stroke-width='2.4'/><line x1='290' y1='150' x2='290' y2='130' stroke='#ffb15a' stroke-width='2.4'/><rect x='246' y='126' width='48' height='4' fill='#ffb15a'/><text class='s-ttxt' x='270' y='122' text-anchor='middle'>保留立杆顶托·≤2m</text><text class='s-note fast' x='270' y='200' text-anchor='middle'>C4 快拆切跨度:8m→等效2m→50%(=15MPa)</text></g><g class='s-order' data-visual-node-id='order.pair'><path d='M40 56 H150' stroke='#bff0d4' stroke-width='2'/><text class='s-vtxt' x='95' y='52' text-anchor='middle'>非承重先拆 → 承重后拆</text><text class='s-note order' x='95' y='70' text-anchor='middle'>C5 顺序倒装:后支先拆、先支后拆</text></g><g class='s-gates' data-visual-node-id='gate.three'><circle cx='205' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='205' y='47' text-anchor='middle'>强度门</text><circle cx='260' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='260' y='47' text-anchor='middle'>顺序门</text><circle cx='315' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='315' y='47' text-anchor='middle'>程序门</text><path d='M219 44 H246' stroke='#7fe6ab' stroke-width='2'/><path d='M274 44 H301' stroke='#7fe6ab' stroke-width='2'/><text class='s-note gates' x='260' y='74' text-anchor='middle'>C6 三道门同时过 = 合法拆模</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">先判模板类型</span><span data-visual-node-id="score.atom.2">侧模看表面棱角</span><span data-visual-node-id="score.atom.3">墙体大模板1N/mm²</span><span data-visual-node-id="score.atom.4">底模看百分率表</span><span data-visual-node-id="score.atom.5">板≤2m→50%</span><span data-visual-node-id="score.atom.6">板2~8m→75%</span><span data-visual-node-id="score.atom.7">板&gt;8m→100%</span><span data-visual-node-id="score.atom.8">梁拱壳≤8m→75%</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">拆模不是&#x27;硬了就拆&#x27; → 是&#x27;强度门槛→顺序门槛→程序门槛&#x27;三道门同时过,缺一即过早/违章拆除。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">拆模丢分,在只背&#x27;后支先拆&#x27;口诀,漏中间条件</div>
+<div class="kc kc-a" data-start="10.509" data-seg-idx="1" data-beat-id="curve" data-action-id="curve.keycard" data-visual-node-id="keycard.curve">C1 强度成长曲线:拆模看百分率,不看固定小时</div>
+<div class="kc kc-a" data-start="20.107" data-seg-idx="2" data-beat-id="role" data-action-id="role.keycard" data-visual-node-id="keycard.role">C2 侧模受&#x27;胀&#x27;看棱角 / 底模受&#x27;压&#x27;看强度表</div>
+<div class="kc kc-a" data-start="33.489" data-seg-idx="3" data-beat-id="table" data-action-id="table.keycard" data-visual-node-id="keycard.table">C3 底模分档:板2/8m=50/75/100·梁拱壳8m=75/100·悬臂100</div>
+<div class="kc kc-a" data-start="47.721" data-seg-idx="4" data-beat-id="fast" data-action-id="fast.keycard" data-visual-node-id="keycard.fast">C4 快拆切跨度:立杆≤2m+保留顶托→等效2m取50%</div>
+<div class="kc kc-a" data-start="62.498" data-seg-idx="5" data-beat-id="order" data-action-id="order.keycard" data-visual-node-id="keycard.order">C5 顺序倒装:后支先拆、先支后拆;非承重先拆、承重后拆</div>
+<div class="kc kc-score" data-start="77.192" data-seg-idx="6" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:顺序成对句·底模分档·快拆保留顶托·技术负责人批准</div>
+<div class="kc kc-concl" data-start="90.788" data-seg-idx="7" data-beat-id="gates" data-action-id="gates.keycard" data-visual-node-id="keycard.gates">工序链:强度门→顺序门→程序门,三门同时过才合法</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,答&#x27;强度达设计值就能拆底模&#x27;为啥不得分?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">底模是按&#x27;构件类型乘跨度&#x27;查表达百分率,不是&#x27;达设计值就行&#x27;,只写&#x27;达设计值&#x27;把分档整段漏了。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那侧模也查百分率表行不行?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">不行,这是串台。侧模看表面棱角、墙体大模板一牛每平方毫米就拆,不套底模那张表——两套判据别混。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">强度顺序都对,生产经理口头说拆行不行?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">不行,还差程序门:填申请、试块达标、技术负责人批准。口头、生产经理批都不算数,漏了照样违章丢分。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="C04_mbcc.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_miss_middle"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 中间环节漏写(最易丢分)·关键鉴别</p><p class="qstem">学生答:&quot;拆模时后支的先拆、先支的后拆;非承重的先拆、承重的后拆,按方案拆完即可。&quot; 这份答案在【底模/快拆】这一块最可能漏掉哪类关键表达?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 漏写拆除顺序成对句</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 漏写施工单位的安全责任</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 漏写底模强度条件(按构件类型×跨度达对应百分率)和快拆&#x27;保留立杆顶托&#x27;这层中间条件</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_order_wrong"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 顺序档(写反)</p><p class="qstem">现场拆模工长说:&quot;先把承重的底模和支架拆掉,腾出地方,再回头拆非承重的侧模,省事。&quot; 这个顺序对吗?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 对,先拆大件腾地方效率高</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 不对:顺序反了,应当先拆非承重(侧模)、后拆承重(底模及支架);后支先拆、先支后拆</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 无所谓,只要强度达标先拆哪个都行</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_transfer_side"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 迁移档(换部位·判据切换)·关键鉴别</p><p class="qstem">换个部位:这次要拆的是墙体大模板(侧模),不是板底模。判据应该怎么用?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 一样查强度百分率表,达 75% 才能拆</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 侧模换一套判据:看表面、棱角不因拆模受损,墙体大模板常温达 1N/mm² 即可拆,不套底模那张百分率表</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 换了部位拆模就没条件了,随时可拆</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_proc_closure"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 检验闭环(程序收尾)·关键鉴别梯度</p><p class="qstem">底模强度、拆除顺序都没问题了,现场生产经理口头说一句&#x27;可以拆了&#x27;,就直接拆。这样合规吗?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 合规,强度和顺序对了就行,谁说拆都一样</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 不合规:还差程序这道门——须填拆模申请、同条件试块达标、经技术负责人批准,口头/生产经理批不算数</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 不合规,必须把整层模板一次性全拆才规范</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;拆模强度百分率(50/75/100)、断点(2m/8m)、快拆立杆≤2m、侧模 1N/mm² 等数值与判分口径以现行规范、教材和你的考试大纲为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="150.722" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="curve" data-t="10.509">强度成长</button><button class="dot beat-dot" data-state="role" data-t="20.107">侧/底角色</button><button class="dot beat-dot" data-state="table" data-t="33.489">强度分档</button><button class="dot beat-dot" data-state="fast" data-t="47.721">快拆切跨</button><button class="dot beat-dot" data-state="order" data-t="62.498">顺序倒装</button><button class="dot beat-dot" data-state="gates" data-t="77.192">三道门</button><a class="dot practice-dot" href="C04_mbcc.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="C04_mbcc.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 150.722, "teachEndSec": 103.641, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "拆模这题,很多人背下'后支先拆'口诀就上场,一问强度、程序就漏。今天沿工序链走清三道门。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "curve", "qaIndex": null, "text": "先看强度。拆模看的是'达设计强度标准值的百分率',不是养护满几个小时,这是强度门槛的根。", "startSec": 10.509}, {"idx": 2, "kind": "teach", "state": "role", "qaIndex": null, "text": "先分角色。侧模受'胀'不受'压',只看表面棱角不受损,墙体大模板到一牛每平方毫米就拆。底模支架真吃劲,看强度百分率表。", "startSec": 20.107}, {"idx": 3, "kind": "teach", "state": "table", "qaIndex": null, "text": "底模按'构件乘跨度'查表:板,不到两米五十、两到八米七十五、超八米一百;梁拱壳,八米以内七十五、超八米一百;悬臂一律一百。", "startSec": 33.489}, {"idx": 4, "kind": "teach", "state": "fast", "qaIndex": null, "text": "快拆反常识:立杆不大于两米、保留立杆顶托,把八米大跨切成两米小跨,强度只取两米的五十。八米板 C三十快拆最低十五兆帕。", "startSec": 47.721}, {"idx": 5, "kind": "teach", "state": "order", "qaIndex": null, "text": "顺序一句成对句:后支先拆、先支后拆;非承重先拆、承重后拆。底模支撑是竖向力最后防线,根基最后撤,写反就是先抽根基。", "startSec": 62.498}, {"idx": 6, "kind": "teach", "state": "gates", "qaIndex": null, "text": "采分盯这几组词:顺序成对句、底模按构件跨度分档、快拆'立杆不大于两米加保留顶托'、程序'申请加试块达标加技术负责人批准'。", "startSec": 77.192}, {"idx": 7, "kind": "teach", "state": "gates", "qaIndex": null, "text": "收成工序链:强度门、顺序门、程序门,三门同时过才合法,缺一即违章。换构件、换侧模,判据切换、链不变。", "startSec": 90.788}, {"idx": 8, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,答'强度达设计值就能拆底模'为啥不得分?", "startSec": 104.041}, {"idx": 9, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "底模是按'构件类型乘跨度'查表达百分率,不是'达设计值就行',只写'达设计值'把分档整段漏了。", "startSec": 109.348}, {"idx": 10, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "那侧模也查百分率表行不行?", "startSec": 118.716}, {"idx": 11, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "不行,这是串台。侧模看表面棱角、墙体大模板一牛每平方毫米就拆,不套底模那张表——两套判据别混。", "startSec": 121.864}, {"idx": 12, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "强度顺序都对,生产经理口头说拆行不行?", "startSec": 133.108}, {"idx": 13, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "不行,还差程序门:填申请、试块达标、技术负责人批准。口头、生产经理批都不算数,漏了照样违章丢分。", "startSec": 137.998}], "variants": [{"id": "V1_miss_middle", "answer": "C", "feedback": "对:它顺序写对了,但拆模真正的得分在中间那层——底模要按'构件类型×跨度'达到对应强度百分率才能拆;碰到快拆体系还得写'立杆不大于两米、保留立杆顶托'。只写'按方案拆完'等于把强度门槛整段漏了。", "basis": "答案有顺序成对句,但只写'按方案拆完即可',漏了底模真正的得分点:强度门槛(按构件类型×跨度查表达百分率)与快拆体系'立杆≤2m+保留立杆顶托'这层中间条件——这正是工序类最易丢分的中间环节", "tier": "中间环节漏写(最易丢分)·关键鉴别"}, {"id": "V2_order_wrong", "answer": "B", "feedback": "对:顺序正好反了。侧模这种非承重的先溜不动骨架,先拆;底模和支架是把整块板托住的最后防线,必须最后拆。口诀就一句:后支先拆、先支后拆;非承重先拆、承重后拆。", "basis": "拆除顺序成对句是金标且方向不可变:非承重先拆、承重后拆;后支先拆、先支后拆。承重底模及支架是竖向力传递最后防线,必须最后撤——先拆承重就是把根基先抽了,典型顺序错", "tier": "顺序档(写反)"}, {"id": "V3_transfer_side", "answer": "B", "feedback": "对:换到侧模,工序链还是那条,但判据换了一套——侧模看表面棱角不受损,墙体大模板常温到 1N/mm² 就能拆,不用查底模那张百分率表。能分清侧模、底模两套判据,才是真会迁移,不是把一套数硬套到底。", "basis": "工序判读链(强度→顺序→程序)不变,但判据随部位切换:侧模主要受'胀'不受'压',不套底模的百分率表,看表面棱角不受损、墙体大模板常温 1N/mm² 即可拆。把百分率表套到侧模(A)、或以为换部位就没条件(C)都丢了'侧模/底模两套判据'这个鉴别点", "tier": "迁移档(换部位·判据切换)·关键鉴别"}, {"id": "V4_proc_closure", "answer": "B", "feedback": "对:强度和顺序对了,还差最后一道程序门。拆模前要填拆模申请、同条件试块达标、再由技术负责人批准才能动手。口头说一句、生产经理点头都不算数,漏了这一句照样违章、照样丢分。", "basis": "合法拆模 = 强度 AND 顺序 AND 程序,缺一不可。程序门槛=填拆模申请+同条件试块达标+技术负责人批准;口头申请、生产经理批准都不妥(pack §4 陷阱5、ME07)。强度顺序都对但漏了程序批准,仍是违章拆除——这是工序类收尾最易漏的检验/程序闭环", "tier": "检验闭环(程序收尾)·关键鉴别梯度"}], "keyIdx": [0, 2], "warm": {"all_correct": "你是真的把拆模这条工序链走通了——强度门槛、拆除顺序、程序批准一个不落,碰到快拆知道保留立杆顶托、换到侧模会切换判据(看棱角不是查表)、收尾不忘技术负责人批准。这类题稳,换什么构件、什么部位你都不慌。", "partial": "顺序你拆得对,就差中间和收尾那两层:底模要按'构件类型×跨度'达百分率、快拆得保留立杆顶托,这层最容易漏;换到侧模别再套百分率表,看表面棱角就行;最后还有一道程序门——技术负责人批准。把这几处补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'后支先拆、先支后拆'这句口诀和 50/75/100 几个数。记这条工序链:先过强度门(底模按构件×跨度查表、快拆保留立杆顶托按2m取50%、侧模看表面棱角)→ 再走顺序门(非承重先拆、承重后拆)→ 最后过程序门(申请+试块达标+技术负责人批准)。三道门走顺了,换板换梁换侧模、碰快拆碰预应力,你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "C04_mbcc", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:floor.section", "target_id": "floor.section"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "curve", "stage": "curve", "actions": [{"id": "curve.reveal.0", "type": "reveal", "target": "data-id:strength.curve", "target_id": "strength.curve"}, {"id": "curve.keycard.1", "type": "keycard", "target": "data-id:keycard.curve", "target_id": "keycard.curve"}]}, {"id": "role", "stage": "role", "actions": [{"id": "role.reveal.0", "type": "reveal", "target": "data-id:side.form", "target_id": "side.form"}, {"id": "role.reveal.1", "type": "reveal", "target": "data-id:bottom.form", "target_id": "bottom.form"}, {"id": "role.keycard.2", "type": "keycard", "target": "data-id:keycard.role", "target_id": "keycard.role"}]}, {"id": "table", "stage": "table", "actions": [{"id": "table.reveal.0", "type": "reveal", "target": "data-id:strength.table", "target_id": "strength.table"}, {"id": "table.keycard.1", "type": "keycard", "target": "data-id:keycard.table", "target_id": "keycard.table"}]}, {"id": "fast", "stage": "fast", "actions": [{"id": "fast.reveal.0", "type": "reveal", "target": "data-id:fast.strip", "target_id": "fast.strip"}, {"id": "fast.keycard.1", "type": "keycard", "target": "data-id:keycard.fast", "target_id": "keycard.fast"}]}, {"id": "order", "stage": "order", "actions": [{"id": "order.reveal.0", "type": "reveal", "target": "data-id:order.pair", "target_id": "order.pair"}, {"id": "order.keycard.1", "type": "keycard", "target": "data-id:keycard.order", "target_id": "keycard.order"}]}, {"id": "score", "stage": "gates", "actions": [{"id": "score.highlight.0", "type": "highlight", "target": "data-id:score.keywords", "target_id": "score.keywords"}, {"id": "score.keycard.1", "type": "keycard", "target": "data-id:keycard.score", "target_id": "keycard.score"}]}, {"id": "gates", "stage": "gates", "actions": [{"id": "gates.reveal.0", "type": "reveal", "target": "data-id:gate.three", "target_id": "gate.three"}, {"id": "gates.keycard.1", "type": "keycard", "target": "data-id:keycard.gates", "target_id": "keycard.gates"}, {"id": "gates.camera.2", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}]}]};
+	const ORDER=["intro", "curve", "role", "table", "fast", "order", "gates"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

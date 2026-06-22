@@ -1,0 +1,293 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "C04_mbcc",
+  "derived_from": "C04_mbcc.json",
+  "archetype_master_ref": "C04_mbcc.master.json",
+  "style": "teach_then_qa",
+  "title": "模板拆除顺序与条件 · 老师带你看懂",
+  "subtitle": "老师边讲边在拆模剖面上画'强度→顺序→程序'三道门,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 C04(工序/顺序类)造成讲懂幕。舞台=拆模剖面工序图(stage 外置:svg+states+css+banner 自带,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 C04.md §7 Reveal 顺序(强度成长条→侧/底受力角色→底模强度表分档→快拆切跨度→顺序倒装→程序/安全)。beat 旁白事实/数值全部 anchor 回 C04_mbcc.json 真实字段(防漂移闸),数字回 §2/§5 教材锚,不手写新数值。先讲后问双人答疑;迁移铺垫 beat anchor master:R2_invariant。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值(50/75/100、2m/8m、1N/mm²、立杆≤2m 等)以现行规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {
+      "name": "鲁班老师",
+      "role": "主讲",
+      "voice": "Tingting",
+      "side": "right"
+    },
+    "S": {
+      "name": "小问",
+      "role": "模拟学生",
+      "voice": "Meijia",
+      "side": "left"
+    }
+  },
+  "stage": {
+    "banner": "拆模不是'硬了就拆' → 是'强度门槛→顺序门槛→程序门槛'三道门同时过,缺一即过早/违章拆除。",
+    "states": [
+      {
+        "id": "intro",
+        "label": "起因"
+      },
+      {
+        "id": "curve",
+        "label": "强度成长"
+      },
+      {
+        "id": "role",
+        "label": "侧/底角色"
+      },
+      {
+        "id": "table",
+        "label": "强度分档"
+      },
+      {
+        "id": "fast",
+        "label": "快拆切跨"
+      },
+      {
+        "id": "order",
+        "label": "顺序倒装"
+      },
+      {
+        "id": "gates",
+        "label": "三道门"
+      }
+    ],
+    "css": ".s-floor,.s-curve,.s-side,.s-bottom,.s-table,.s-fast,.s-order,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-curve{transform:translateY(6px)} .reached-curve .s-curve{opacity:1;transform:none} .s-side,.s-bottom{transform:translateY(-4px)} .reached-role .s-side{opacity:1;transform:none} .reached-role .s-bottom{opacity:1;transform:none} .reached-table .s-table{opacity:1} .s-fast{transform:translateY(6px)} .reached-fast .s-fast{opacity:1;transform:none} .s-order{transform:translateY(6px)} .reached-order .s-order{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-floorfill{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.curve{fill:#ffd27f}.s-note.role{fill:#7fc7ff}.s-note.table{fill:#7fe6ab}.s-note.fast{fill:#ffb15a}.s-note.order{fill:#bff0d4}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='模板拆除顺序与条件工序剖面'><rect x='24' y='150' width='312' height='14' rx='2' class='s-floorfill' data-visual-node-id='floor.section'/><text class='s-lbl' x='28' y='246'>混凝土板/梁 + 底模及支架剖面(拆模工序)</text><g class='s-curve' data-visual-node-id='strength.curve'><path d='M40 138 Q70 100 110 92 T180 88' fill='none' stroke='#ffd27f' stroke-width='2.4'/><line x1='40' y1='138' x2='40' y2='80' stroke='#5d6f86' stroke-width='1'/><line x1='40' y1='138' x2='185' y2='138' stroke='#5d6f86' stroke-width='1'/><text class='s-ttxt' x='44' y='86'>强度%</text><text class='s-note curve' x='112' y='74' text-anchor='middle'>C1 强度成长曲线:看百分率不看小时</text></g><g class='s-side' data-visual-node-id='side.form'><rect x='214' y='118' width='5' height='32' fill='#7fc7ff'/><text class='s-ttxt' x='216' y='112' text-anchor='middle'>侧模</text><text class='s-note role' x='250' y='110' text-anchor='middle'>C2 侧模受'胀':看表面棱角</text></g><g class='s-bottom' data-visual-node-id='bottom.form'><rect x='250' y='164' width='70' height='5' fill='#7fe6ab'/><line x1='258' y1='169' x2='258' y2='150' stroke='#7fe6ab' stroke-width='2'/><line x1='312' y1='169' x2='312' y2='150' stroke='#7fe6ab' stroke-width='2'/><text class='s-ttxt' x='285' y='182' text-anchor='middle'>底模+支架(真吃劲)</text></g><g class='s-table' data-visual-node-id='strength.table'><rect x='30' y='176' width='150' height='62' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1'/><text class='s-vtxt' x='38' y='190'>板 ≤2m→50% / 2~8m→75% / >8m→100%</text><text class='s-vtxt' x='38' y='206'>梁拱壳 ≤8m→75% / >8m→100%</text><text class='s-vtxt' x='38' y='222'>悬臂 → 100%</text><text class='s-note table' x='105' y='236' text-anchor='middle'>C3 底模按构件×跨度分档</text></g><g class='s-fast' data-visual-node-id='fast.strip'><line x1='250' y1='150' x2='250' y2='130' stroke='#ffb15a' stroke-width='2.4'/><line x1='270' y1='150' x2='270' y2='130' stroke='#ffb15a' stroke-width='2.4'/><line x1='290' y1='150' x2='290' y2='130' stroke='#ffb15a' stroke-width='2.4'/><rect x='246' y='126' width='48' height='4' fill='#ffb15a'/><text class='s-ttxt' x='270' y='122' text-anchor='middle'>保留立杆顶托·≤2m</text><text class='s-note fast' x='270' y='200' text-anchor='middle'>C4 快拆切跨度:8m→等效2m→50%(=15MPa)</text></g><g class='s-order' data-visual-node-id='order.pair'><path d='M40 56 H150' stroke='#bff0d4' stroke-width='2'/><text class='s-vtxt' x='95' y='52' text-anchor='middle'>非承重先拆 → 承重后拆</text><text class='s-note order' x='95' y='70' text-anchor='middle'>C5 顺序倒装:后支先拆、先支后拆</text></g><g class='s-gates' data-visual-node-id='gate.three'><circle cx='205' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='205' y='47' text-anchor='middle'>强度门</text><circle cx='260' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='260' y='47' text-anchor='middle'>顺序门</text><circle cx='315' cy='44' r='14' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='315' y='47' text-anchor='middle'>程序门</text><path d='M219 44 H246' stroke='#7fe6ab' stroke-width='2'/><path d='M274 44 H301' stroke='#7fe6ab' stroke-width='2'/><text class='s-note gates' x='260' y='74' text-anchor='middle'>C6 三道门同时过 = 合法拆模</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {
+        "id": "intro",
+        "stage": "intro",
+        "claim": false,
+        "keycard": {
+          "text": "拆模丢分,在只背'后支先拆'口诀,漏中间条件",
+          "tone": "q"
+        },
+        "sync_keyword": "三道门",
+        "animation_action": [
+          {
+            "type": "camera",
+            "target": "data-id:floor.section"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.intro"
+          }
+        ],
+        "narration": "拆模这题,很多人背下'后支先拆'口诀就上场,一问强度、程序就漏。今天沿工序链走清三道门。"
+      },
+      {
+        "id": "curve",
+        "stage": "curve",
+        "claim": true,
+        "anchor": "causal_chain.c1_strength_curve.claim",
+        "keycard": {
+          "text": "C1 强度成长曲线:拆模看百分率,不看固定小时",
+          "tone": "a"
+        },
+        "sync_keyword": "百分率",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:strength.curve"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.curve"
+          }
+        ],
+        "narration": "先看强度。拆模看的是'达设计强度标准值的百分率',不是养护满几个小时,这是强度门槛的根。"
+      },
+      {
+        "id": "role",
+        "stage": "role",
+        "claim": true,
+        "anchor": "causal_chain.c2_role_split.claim",
+        "keycard": {
+          "text": "C2 侧模受'胀'看棱角 / 底模受'压'看强度表",
+          "tone": "a"
+        },
+        "sync_keyword": "角色",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:side.form"
+          },
+          {
+            "type": "reveal",
+            "target": "data-id:bottom.form"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.role"
+          }
+        ],
+        "narration": "先分角色。侧模受'胀'不受'压',只看表面棱角不受损,墙体大模板到一牛每平方毫米就拆。底模支架真吃劲,看强度百分率表。"
+      },
+      {
+        "id": "table",
+        "stage": "table",
+        "claim": true,
+        "anchor": "key_params.plate_2_8m.value",
+        "keycard": {
+          "text": "C3 底模分档:板2/8m=50/75/100·梁拱壳8m=75/100·悬臂100",
+          "tone": "a"
+        },
+        "sync_keyword": "查表",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:strength.table"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.table"
+          }
+        ],
+        "narration": "底模按'构件乘跨度'查表:板,不到两米五十、两到八米七十五、超八米一百;梁拱壳,八米以内七十五、超八米一百;悬臂一律一百。"
+      },
+      {
+        "id": "fast",
+        "stage": "fast",
+        "claim": true,
+        "anchor": "key_params.fast_post.value",
+        "keycard": {
+          "text": "C4 快拆切跨度:立杆≤2m+保留顶托→等效2m取50%",
+          "tone": "a"
+        },
+        "sync_keyword": "保留立杆顶托",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:fast.strip"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.fast"
+          }
+        ],
+        "narration": "快拆反常识:立杆不大于两米、保留立杆顶托,把八米大跨切成两米小跨,强度只取两米的五十。八米板 C三十快拆最低十五兆帕。"
+      },
+      {
+        "id": "order",
+        "stage": "order",
+        "claim": true,
+        "anchor": "causal_chain.c5_sequence.claim",
+        "keycard": {
+          "text": "C5 顺序倒装:后支先拆、先支后拆;非承重先拆、承重后拆",
+          "tone": "a"
+        },
+        "sync_keyword": "成对句",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:order.pair"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.order"
+          }
+        ],
+        "narration": "顺序一句成对句:后支先拆、先支后拆;非承重先拆、承重后拆。底模支撑是竖向力最后防线,根基最后撤,写反就是先抽根基。"
+      },
+      {
+        "id": "score",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "scoring_points[2].keywords",
+        "keycard": {
+          "text": "采分词:顺序成对句·底模分档·快拆保留顶托·技术负责人批准",
+          "tone": "score"
+        },
+        "sync_keyword": "采分",
+        "animation_action": [
+          {
+            "type": "highlight",
+            "target": "data-id:score.keywords"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.score"
+          }
+        ],
+        "narration": "采分盯这几组词:顺序成对句、底模按构件跨度分档、快拆'立杆不大于两米加保留顶托'、程序'申请加试块达标加技术负责人批准'。"
+      },
+      {
+        "id": "gates",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "master:R2_invariant",
+        "keycard": {
+          "text": "工序链:强度门→顺序门→程序门,三门同时过才合法",
+          "tone": "concl"
+        },
+        "sync_keyword": "工序链",
+        "animation_action": [
+          {
+            "type": "reveal",
+            "target": "data-id:gate.three"
+          },
+          {
+            "type": "keycard",
+            "target": "data-id:keycard.gates"
+          },
+          {
+            "type": "camera",
+            "target": "data-id:stage.conclude"
+          }
+        ],
+        "narration": "收成工序链:强度门、顺序门、程序门,三门同时过才合法,缺一即违章。换构件、换侧模,判据切换、链不变。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师,答'强度达设计值就能拆底模'为啥不得分?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[0].why",
+        "sync_keyword": "构件类型乘跨度",
+        "text": "底模是按'构件类型乘跨度'查表达百分率,不是'达设计值就行',只写'达设计值'把分档整段漏了。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那侧模也查百分率表行不行?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[1].why",
+        "sync_keyword": "两套判据",
+        "text": "不行,这是串台。侧模看表面棱角、墙体大模板一牛每平方毫米就拆,不套底模那张表——两套判据别混。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "强度顺序都对,生产经理口头说拆行不行?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[3].why",
+        "sync_keyword": "技术负责人批准",
+        "text": "不行,还差程序门:填申请、试块达标、技术负责人批准。口头、生产经理批都不算数,漏了照样违章丢分。"
+      }
+    }
+  ]
+}

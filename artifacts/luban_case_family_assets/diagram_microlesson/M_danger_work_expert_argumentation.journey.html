@@ -105,9 +105,10 @@ svg{width:100%;height:auto;display:block}
 .step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
 .step.done{color:#3fd39a;border-color:#26513c}
 .keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.kc{opacity:0;transform:translateX(-12px);transition:opacity .4s,transform .4s;
-  background:#16202d;border-left:3px solid #3a4a60;border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
-.kc.in{opacity:1;transform:none}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
 .kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
 .kc-a{border-left-color:#3fd39a;color:#cdeedd}
 .kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
@@ -157,14 +158,23 @@ svg{width:100%;height:auto;display:block}
 .cta.ghost{background:#1a2533;color:#cfe0f0}
 .mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
 .scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
 	.lesson.theater{max-width:none;padding:0;background:#0f1722}
 .lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
 .lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
 .lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
 .lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
 	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
 	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
-	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
 	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
 	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
 	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
@@ -256,20 +266,22 @@ svg{width:100%;height:auto;display:block}
     <circle class="markdot" cx="180" cy="309.0" r="7"/>
     <text class="marktxt" x="180" y="331.0" text-anchor="middle">本题 5.5m</text>
   </g>
+  <!-- 结论档:两道闸不变量 + 论证结论(transfer/concl beat 的 data-id 目标,无额外视觉) -->
+  <g data-visual-node-id="invariant.two_gates conclusion.need_argumentation" aria-hidden="true"></g>
 </svg>
 	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">基坑开挖深度</span><span data-visual-node-id="score.atom.2">≥3m</span><span data-visual-node-id="score.atom.3">危大工程</span><span data-visual-node-id="score.atom.4">开挖深度≥5m</span><span data-visual-node-id="score.atom.5">超过一定规模</span><span data-visual-node-id="score.atom.6">专项施工方案</span><span data-visual-node-id="score.atom.7">专家论证</span></div>
-      <div class="banner" data-visual-node-id="invariant.two_gates stage.conclude"><span data-visual-node-id="conclusion.need_argumentation">两道闸全过 → 这个专项施工方案应当组织专家论证。</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">两道闸全过 → 这个专项施工方案应当组织专家论证。</span></div>
       <button class="center-play" id="centerPlay" type="button">播放讲解</button>
     </div>
-    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">常考:这个工程要不要专家论证?</div>
-<div class="kc kc-q" data-start="10.067" data-beat-id="case" data-action-id="case.keycard" data-visual-node-id="keycard.case">本题:基坑开挖 5.5m,方案已编</div>
-<div class="kc kc-a" data-start="20.235" data-beat-id="gate3_crit" data-action-id="gate3_crit.keycard" data-visual-node-id="keycard.gate3_crit">判据①  开挖 ≥ 3m(或虽 &lt;3m 但地质/周边复杂)= 危大</div>
-<div class="kc kc-a" data-start="36.604" data-beat-id="gate3_act" data-action-id="gate3_act.keycard" data-visual-node-id="keycard.gate3_act">→ 危大就必须编专项施工方案</div>
-<div class="kc kc-a" data-start="43.829" data-beat-id="gate5_crit" data-action-id="gate5_crit.keycard" data-visual-node-id="keycard.gate5_crit">判据②  开挖 ≥ 5m = 超过一定规模</div>
-<div class="kc kc-a" data-start="51.06" data-beat-id="gate5_act" data-action-id="gate5_act.keycard" data-visual-node-id="keycard.gate5_act">→ 超规模还要组织专家论证</div>
-<div class="kc kc-a" data-start="58.709" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">判据链通用:换工程换数值,两道判据不变(阈值随工程查)</div>
-<div class="kc kc-concl" data-start="75.206" data-beat-id="concl" data-action-id="concl.keycard" data-visual-node-id="keycard.concl">结论:应组织专家论证</div>
-<div class="kc kc-score" data-start="82.321" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:≥5m · 超过一定规模 · 专项方案 · 专家论证</div></div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">常考:这个工程要不要专家论证?</div>
+<div class="kc kc-q" data-start="10.067" data-seg-idx="1" data-beat-id="case" data-action-id="case.keycard" data-visual-node-id="keycard.case">本题:基坑开挖 5.5m,方案已编</div>
+<div class="kc kc-a" data-start="20.235" data-seg-idx="2" data-beat-id="gate3_crit" data-action-id="gate3_crit.keycard" data-visual-node-id="keycard.gate3_crit">判据①  开挖 ≥ 3m(或虽 &lt;3m 但地质/周边复杂)= 危大</div>
+<div class="kc kc-a" data-start="36.604" data-seg-idx="3" data-beat-id="gate3_act" data-action-id="gate3_act.keycard" data-visual-node-id="keycard.gate3_act">→ 危大就必须编专项施工方案</div>
+<div class="kc kc-a" data-start="43.829" data-seg-idx="4" data-beat-id="gate5_crit" data-action-id="gate5_crit.keycard" data-visual-node-id="keycard.gate5_crit">判据②  开挖 ≥ 5m = 超过一定规模</div>
+<div class="kc kc-a" data-start="51.06" data-seg-idx="5" data-beat-id="gate5_act" data-action-id="gate5_act.keycard" data-visual-node-id="keycard.gate5_act">→ 超规模还要组织专家论证</div>
+<div class="kc kc-a" data-start="58.709" data-seg-idx="6" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">判据链通用:换工程换数值,两道判据不变(阈值随工程查)</div>
+<div class="kc kc-concl" data-start="75.206" data-seg-idx="7" data-beat-id="concl" data-action-id="concl.keycard" data-visual-node-id="keycard.concl">结论:应组织专家论证</div>
+<div class="kc kc-score" data-start="82.321" data-seg-idx="8" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:≥5m · 超过一定规模 · 专项方案 · 专家论证</div></div>
   </div>
 	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
 	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,我要是只写&#x27;需要专家论证&#x27;,不写判据,能拿分吗?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。</div></div>
@@ -285,11 +297,11 @@ svg{width:100%;height:auto;display:block}
   </div>
 
   <!-- ② 闯关(逐题自动浮现) -->
-  <div class="qblock seg" data-qi="0" data-practice-id="V1_pit_upper"><p class="qlabel">闯关 · 第 <b>1</b>/5 题 · 用两道判据给新工程分档</p><p class="qstem">某工程基坑开挖深度 5.5m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="0"></div></div>
-<div class="qblock seg" data-qi="1" data-practice-id="V2_pit_mid"><p class="qlabel">闯关 · 第 <b>2</b>/5 题 · 用两道判据给新工程分档</p><p class="qstem">某工程基坑开挖深度 4m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="1"></div></div>
-<div class="qblock seg" data-qi="2" data-practice-id="V3_pit_low"><p class="qlabel">闯关 · 第 <b>3</b>/5 题 · 用两道判据给新工程分档</p><p class="qstem">某工程基坑开挖深度 2.5m,地质简单、周边空旷。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 属危大须编方案</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="2"></div></div>
-<div class="qblock seg" data-qi="3" data-practice-id="V4_formwork"><p class="qlabel">闯关 · 第 <b>4</b>/5 题 · 用两道判据给新工程分档</p><p class="qstem">换个工程:某混凝土模板支撑工程搭设高度 6m(该工程:搭设高度≥5m 属危大、≥8m 属超过一定规模)。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="3"></div></div>
-<div class="qblock seg" data-qi="4" data-practice-id="V5_scaffold"><p class="qlabel">闯关 · 第 <b>5</b>/5 题 · 用两道判据给新工程分档</p><p class="qstem">再换个工程:某落地式钢管脚手架搭设高度 55m(该工程:搭设高度≥24m 属危大、≥50m 属超过一定规模)。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="4" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="4" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="4" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="4"></div></div>
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_pit_upper"><p class="qlabel">闯关 · 第 <b>1</b>/5 题 · 上限档(需论证)</p><p class="qstem">某工程基坑开挖深度 5.5m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_pit_mid"><p class="qlabel">闯关 · 第 <b>2</b>/5 题 · 中间档(编方案不论证)·边界陷阱</p><p class="qstem">某工程基坑开挖深度 4m,地质与周边环境一般,已编制专项施工方案。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_pit_low"><p class="qlabel">闯关 · 第 <b>3</b>/5 题 · 下限档(非危大)</p><p class="qstem">某工程基坑开挖深度 2.5m,地质简单、周边空旷。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 属危大须编方案</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_formwork"><p class="qlabel">闯关 · 第 <b>4</b>/5 题 · 迁移档(换工程·危大不超规模)</p><p class="qstem">换个工程:某混凝土模板支撑工程搭设高度 6m(该工程:搭设高度≥5m 属危大、≥8m 属超过一定规模)。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="3"></div></div>
+<div class="qblock seg" data-qi="4" data-practice-id="V5_scaffold"><p class="qlabel">闯关 · 第 <b>5</b>/5 题 · 迁移档(换工程·超规模需论证)</p><p class="qstem">再换个工程:某落地式钢管脚手架搭设高度 55m(该工程:搭设高度≥24m 属危大、≥50m 属超过一定规模)。是否需组织专家论证?</p><div class="qopts"><button class="qopt" data-qi="4" data-oid="A"><b>A.</b> 非危大,无需专项方案</button><button class="qopt" data-qi="4" data-oid="B"><b>B.</b> 属危大须编方案,但无需专家论证</button><button class="qopt" data-qi="4" data-oid="C"><b>C.</b> 危大且超过一定规模,需专家论证</button></div><div class="qfb" data-qi="4"></div></div>
 
   <!-- ③ 看穿(4 题完自动浮现) -->
   <div class="seg" id="verdictSec">
@@ -316,7 +328,7 @@ svg{width:100%;height:auto;display:block}
         <input class="scrubber" id="scrubber" type="range" min="0" max="150.022" value="0" step="0.05" aria-label="拖动播放进度">
       </div>
     </div>
-    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">引入</button><button class="dot beat-dot" data-state="dig" data-t="10.067">挖深</button><button class="dot beat-dot" data-state="gate3" data-t="20.235">3米</button><button class="dot beat-dot" data-state="gate5" data-t="43.829">5米</button><button class="dot beat-dot" data-state="conclude" data-t="58.709">结论</button></div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">引入</button><button class="dot beat-dot" data-state="dig" data-t="10.067">挖深</button><button class="dot beat-dot" data-state="gate3" data-t="20.235">3米</button><button class="dot beat-dot" data-state="gate5" data-t="43.829">5米</button><button class="dot beat-dot" data-state="conclude" data-t="58.709">结论</button><a class="dot practice-dot" href="M_danger_work_expert_argumentation.practice.html">闯关</a></div>
   </div>
 </div>
 <audio id="au" preload="metadata" src="J01_danger_work_expert_argumentation.lesson.mp3"></audio>
@@ -351,13 +363,14 @@ function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({
 	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
 const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
 const lesson=document.querySelector('.lesson');
-const dots=[...document.querySelectorAll('.dot')],kcs=[...document.querySelectorAll('.kc')];
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
 const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
 tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
 if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
 let curState=null;
 function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
-  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ');
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
   dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
 let qaShown=false;
 function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
@@ -369,6 +382,7 @@ function paint(){const t=au.currentTime;
   fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
   kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
   const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
   if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
   else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
   if(t>=DATA.teachEndSec-0.2)revealQA();}

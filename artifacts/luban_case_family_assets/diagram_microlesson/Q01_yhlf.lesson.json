@@ -1,0 +1,107 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "Q01_yhlf",
+  "derived_from": "Q01_yhlf.json",
+  "archetype_master_ref": "Q01_yhlf.master.json",
+  "style": "teach_then_qa",
+  "title": "混凝土养护与裂缝防治 · 老师带你认对养护语境",
+  "subtitle": "老师边讲边在裂缝成因链上拧三个旋钮,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 Q01(混凝土养护与裂缝防治·数值判断类)造成讲懂幕。舞台=裂缝成因链(收缩×温变→约束→拉应力)+ 三旋钮(时间/湿度/温差)+ 语境×阈值绑定示意(stage 外置:svg+states+css+banner 自带,引擎对原型通用,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 Q01.md §7 reveal 顺序(浇筑早龄期失水→拉应力跑赢抗拉强度→三旋钮登场→普通7d vs 抗渗14d/大体积25℃·2℃d/冬期20℃·3℃d/后浇带28d 语境绑定→看穿收束)。beat 旁白事实/数值全部 anchor 回 Q01_yhlf.json 真实字段(防漂移闸),数字回 §2/§4/§5/§6 教材锚,不手写新数值;迁移铺垫 beat anchor master:R2_invariant。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值(7d/14d/28d、25℃/20℃、2℃/d、3℃/d、12h、≥5℃ 等)以现行规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "混凝土养护不是背 7天、14天、25度、20度 几个数 → 是'认对哪个养护语境(普通/大体积/防水/冬期/后浇带)→比对那条被规范钉死的硬阈值'同一条判读链。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "shrink", "label": "收缩受约束"},
+      {"id": "stress", "label": "拉应力跑赢"},
+      {"id": "knobs", "label": "三旋钮"},
+      {"id": "context", "label": "语境绑阈值"},
+      {"id": "chain", "label": "判读链"}
+    ],
+    "css": ".c-base,.c-slab,.c-restraint,.c-shrink,.c-stress,.c-knobs,.c-ctx,.c-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .c-base,.c-slab{opacity:1} .c-restraint{transform:scaleX(.7);transform-origin:50px 132px} .reached-shrink .c-restraint{opacity:1;transform:none} .reached-shrink .c-shrink{opacity:1} .s-stressbar{transform:scaleY(.25);transform-origin:200px 150px} .reached-stress .c-stress{opacity:1} .reached-stress .s-stressbar{transform:none} .reached-knobs .c-knobs{opacity:1} .reached-context .c-ctx{opacity:1} .c-chain{transform:translateY(6px)} .reached-chain .c-chain{opacity:1;transform:none} .c-steel{fill:#5d6f86} .c-lbl{fill:#9fb0c2;font-size:10px} .c-note{font-size:11px;font-weight:700} .c-note.shrink{fill:#ffb15a}.c-note.stress{fill:#ff7a7a}.c-note.knobs{fill:#7fe6ab}.c-note.ctx{fill:#7fc7ff}.c-note.chain{fill:#bff0d4} .c-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .c-ktxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='混凝土养护裂缝成因链与三旋钮、语境阈值示意'><rect x='30' y='150' width='300' height='14' rx='2' class='c-steel' data-visual-node-id='ground.base'/><text class='c-lbl' x='34' y='246'>早龄期混凝土(收缩+温变→约束→拉应力)+ 三旋钮 + 语境绑阈值</text><g class='c-slab' data-visual-node-id='concrete.slab'><rect x='44' y='120' width='112' height='30' rx='2' fill='#8a99ad'/><text class='c-lbl' x='100' y='140' text-anchor='middle'>早龄期混凝土</text></g><g class='c-restraint' data-visual-node-id='restraint.grip'><path d='M40 122 L40 148 M44 135 L36 135' stroke='#bfae7a' stroke-width='3'/><path d='M160 122 L160 148 M156 135 L164 135' stroke='#bfae7a' stroke-width='3'/><text class='c-lbl' x='100' y='116' text-anchor='middle'>受约束</text></g><g class='c-shrink' data-visual-node-id='shrink.arrow'><path d='M70 135 H88 M82 131 L88 135 L82 139' stroke='#ff9b3a' stroke-width='2'/><path d='M130 135 H112 M118 131 L112 135 L118 139' stroke='#ff9b3a' stroke-width='2'/><text class='c-note shrink' x='100' y='168' text-anchor='middle'>S1 收缩+温变,受约束→拉应力</text></g><g class='c-stress' data-visual-node-id='stress.bar'><rect x='196' y='96' width='10' height='54' rx='2' class='s-stressbar' fill='#ff5a5a'/><line x1='190' y1='112' x2='216' y2='112' stroke='#7fe6ab' stroke-width='1.6' stroke-dasharray='3 3'/><text class='c-lbl' x='225' y='114' text-anchor='start' style='fill:#7fe6ab'>抗拉强度ftk</text><text class='c-note stress' x='235' y='150' text-anchor='middle'>S2 拉应力跑赢ftk 即裂</text></g><g class='c-knobs' data-visual-node-id='knobs.three'><circle cx='262' cy='60' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='262' y='63' text-anchor='middle'>时间</text><circle cx='292' cy='60' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='292' y='63' text-anchor='middle'>湿度</text><circle cx='322' cy='60' r='12' fill='#16321f' stroke='#7fc7ff' stroke-width='1.6'/><text class='c-vtxt' x='322' y='63' text-anchor='middle' style='fill:#7fc7ff'>温差</text><text class='c-note knobs' x='292' y='40' text-anchor='middle'>S3 三旋钮:让强度跑赢拉应力</text></g><g class='c-ctx' data-visual-node-id='context.threshold'><text class='c-ktxt' x='60' y='196' text-anchor='start'>普硅 7d · 抗渗/后浇带 14d</text><text class='c-ktxt' x='60' y='210' text-anchor='start'>大体积里表 25℃ · 降温 2℃/d</text><text class='c-ktxt' x='60' y='224' text-anchor='start'>冬期表面-大气 20℃ · 温降 3℃/d · 后浇带封闭 28d</text><text class='c-note ctx' x='250' y='196' text-anchor='middle'>S4 语境决定调哪组阈值</text></g><g class='c-chain' data-visual-node-id='invariant.read_chain'><circle cx='96' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='96' y='43' text-anchor='middle'>认对语境</text><circle cx='200' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='200' y='43' text-anchor='middle'>比硬阈值</text><path d='M109 40 H187' stroke='#7fe6ab' stroke-width='2'/><text class='c-note chain' x='150' y='66' text-anchor='middle'>S5 判读链 = 认对语境 → 比那条被钉死的硬阈值</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": false,
+       "keycard": {"text": "混凝土养护,丢分在只背天数不认语境", "tone": "q"},
+       "sync_keyword": "养护",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:ground.base"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "narration": "混凝土养护,很多人背下七天十四天就上场,一换语境就懵。今天学认语境。"},
+      {"id": "shrink", "stage": "shrink", "claim": true, "anchor": "causal_chain.s1_shrink.claim",
+       "keycard": {"text": "S1 收缩+温变,受约束就生拉应力", "tone": "a"},
+       "sync_keyword": "收缩",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:restraint.grip"},
+         {"type": "reveal", "target": "data-id:shrink.arrow"},
+         {"type": "keycard", "target": "data-id:keycard.shrink"}
+       ],
+       "narration": "先看根因。混凝土硬化必然收缩,温度一变又热胀冷缩,这些变形被约束住,就在构件里憋出拉应力。早龄期最脆弱,失水越快收缩越猛。"},
+      {"id": "stress", "stage": "stress", "claim": true, "anchor": "causal_chain.s2_stress_vs_strength.claim",
+       "keycard": {"text": "S2 拉应力跑赢抗拉强度ftk 就裂", "tone": "a"},
+       "sync_keyword": "抗拉强度",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:stress.bar"},
+         {"type": "highlight", "target": "data-id:concrete.slab"},
+         {"type": "keycard", "target": "data-id:keycard.stress"}
+       ],
+       "narration": "裂不裂看一场赛跑。早龄期强度还没长起来,拉应力一旦跑赢当时的抗拉强度,微裂就长成大裂缝。防治就是让强度跑赢拉应力。"},
+      {"id": "knobs", "stage": "knobs", "claim": true, "anchor": "causal_chain.s3_three_knobs.claim",
+       "keycard": {"text": "S3 三旋钮:时间×湿度管收缩、温差管温度应力", "tone": "a"},
+       "sync_keyword": "三旋钮",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:knobs.three"},
+         {"type": "keycard", "target": "data-id:keycard.knobs"}
+       ],
+       "narration": "养护就是拧三个旋钮:时间和湿度管失水收缩,够天数保湿就行;温差管温度拉应力。让强度赶在拉应力前面。"},
+      {"id": "context", "stage": "context", "claim": true, "anchor": "causal_chain.s4_context_threshold.claim",
+       "keycard": {"text": "S4 语境绑阈值:普硅7d/抗渗14d·大体积25℃·冬期20℃·封闭28d", "tone": "a"},
+       "sync_keyword": "语境",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:context.threshold"},
+         {"type": "highlight", "target": "data-id:knobs.three"}
+       ],
+       "narration": "关键在同一个动作、不同语境阈值不同。普通现浇养护七天,一旦有抗渗、高强或后浇带就跳到十四天;大体积看里表温差二十五度、每天降温两度;冬期看表面对大气二十度、温降每天三度。"},
+      {"id": "score", "stage": "context", "claim": true, "anchor": "scoring_points[0].keywords",
+       "keycard": {"text": "采分词:普硅7d/抗渗14d·大体积里表25℃降温2℃d·冬期20℃温降3℃d·后浇带封闭28d", "tone": "score"},
+       "sync_keyword": "采分",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:score.keywords"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "narration": "再补一个常错点:后浇带养护十四天,但封闭时机要二十八天。采分就盯这些数字,认对语境再报。"},
+      {"id": "transfer", "stage": "chain", "claim": true, "anchor": "master:R2_invariant",
+       "keycard": {"text": "迁移:判读链通用,阈值随语境/构件变", "tone": "concl"},
+       "sync_keyword": "判读链",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:invariant.read_chain"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"},
+         {"type": "camera", "target": "data-id:stage.conclude"}
+       ],
+       "narration": "记住判读链:先认对哪个养护语境,再比那条被钉死的硬阈值。天数记语境、温差记构件。换水泥品种换构件链都成立,阈值随语境。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,养护不就是七天吗?我一律写七天不行吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why",
+           "sync_keyword": "语境",
+           "text": "看语境。普通硅酸盐类七天,可有抗渗、高强或掺缓凝、后浇带,就得十四天。记'普通七天、抗渗加倍十四天'。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那大体积的二十五度和冬期的二十度,我老是写反,怎么记?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "温差",
+           "text": "看构件别写反。大体积管里表温差二十五度、每天降温两度;冬期管表面对大气二十度、温降每天三度。语境决定调哪组,方向不能反。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "后浇带我养护满十四天,是不是就能封闭了?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "封闭",
+           "text": "养护和封闭是两件事。后浇带养护十四天,但底板封闭要二十八天,还得用微膨胀混凝土。别把养护天数当封闭时机。"}}
+  ]
+}

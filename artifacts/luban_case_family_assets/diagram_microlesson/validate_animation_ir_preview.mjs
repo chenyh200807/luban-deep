@@ -429,6 +429,25 @@ async function checkRuntime(ir) {
             }
             return issues;
           })() : [];
+          const svgBoardIssues = active ? (() => {
+            const issues = [];
+            for (const svg of [...active.querySelectorAll(".visual svg")].filter(visible)) {
+              const svgRect = rect(svg);
+              const board = [...svg.querySelectorAll("rect")]
+                .map((el) => ({el, rect: rect(el)}))
+                .filter((item) => item.rect && item.rect.width > svgRect.width * 0.45 && item.rect.height > svgRect.height * 0.35)
+                .sort((a, b) => (b.rect.width * b.rect.height) - (a.rect.width * a.rect.height))[0]?.rect;
+              if (!board) continue;
+              for (const text of [...svg.querySelectorAll("[data-visible-node] text")].filter(visible)) {
+                const textRect = rect(text);
+                const label = (text.textContent || "").trim().slice(0, 18);
+                if (!label || !textRect) continue;
+                const inside = textRect.left >= board.left - 2 && textRect.right <= board.right + 2 && textRect.top >= board.top - 2 && textRect.bottom <= board.bottom + 2;
+                if (!inside) issues.push(label);
+              }
+            }
+            return issues;
+          })() : [];
           const protectedEls = [
             ...document.querySelectorAll(".scene.active .visual, .caption-line, .scene.active .coach-card, .challenge-inline")
           ].filter(visible);
@@ -447,6 +466,7 @@ async function checkRuntime(ir) {
 	          coachInViewport: inViewport(coachRect),
 	          pillLabelIssues,
 	          svgTextIssues,
+	          svgBoardIssues,
 	          challengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter(visible).length,
           enabledChallengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter((el) => visible(el) && el.getAttribute("aria-disabled") !== "true").length,
           playerBlocks,
@@ -473,6 +493,8 @@ async function checkRuntime(ir) {
         else pass("runtime_svg_label_fit", `${label}: pill labels have safe padding`);
         if (value.svgTextIssues.length) fail("runtime_svg_text_collision", `${label}: svg text collision/line crowding ${value.svgTextIssues.join(", ")}`);
         else pass("runtime_svg_text_collision", `${label}: svg text avoids other labels and arrows`);
+        if (value.svgBoardIssues.length) fail("runtime_svg_text_in_board", `${label}: svg text outside primary board ${value.svgBoardIssues.join(", ")}`);
+        else pass("runtime_svg_text_in_board", `${label}: svg text stays inside primary board`);
         if (value.playerBlocks.length) fail("runtime_player_occlusion", `${label}: player overlaps ${value.playerBlocks.join(", ")}`);
         else pass("runtime_player_occlusion", `${label}: player does not cover protected content`);
         if (value.captionCoachOverlap) fail("runtime_caption_coach_overlap", `${label}: caption overlaps coach card`);

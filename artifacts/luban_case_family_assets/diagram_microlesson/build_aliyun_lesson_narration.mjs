@@ -5,6 +5,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
+import { formatWorkflowResults, validateLessonWorkflow } from "./lesson_workflow_checks.mjs";
 
 const ENDPOINT = "https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer";
 const QWEN_TTS_ENDPOINT = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation";
@@ -71,9 +72,9 @@ function flatten(lessonDoc) {
   beats.forEach((b) => {
     if (b.state || b.stage) lastState = b.state || b.stage;
     segs.push({
-      kind: "teach",
+      kind: b.kind || "teach",
       state: lastState,
-      speaker: "T",
+      speaker: b.speaker || "T",
       anchor: b.anchor || null,
       claim: !!b.claim,
       keycard: b.keycard || null,
@@ -81,10 +82,11 @@ function flatten(lessonDoc) {
     });
   });
   (lessonDoc.qa || []).forEach((pair, i) => {
+    const state = pair.state || pair.stage || pair.q?.state || pair.a?.state || "conclude";
     segs.push({
       kind: "q",
       qaIndex: i,
-      state: "conclude",
+      state,
       speaker: pair.q.speaker || "S",
       anchor: pair.q.anchor || null,
       claim: !!pair.q.claim,
@@ -94,7 +96,7 @@ function flatten(lessonDoc) {
     segs.push({
       kind: "a",
       qaIndex: i,
-      state: "conclude",
+      state,
       speaker: pair.a.speaker || "T",
       anchor: pair.a.anchor || null,
       claim: !!pair.a.claim,
@@ -106,7 +108,7 @@ function flatten(lessonDoc) {
     segs.push({
       kind: "a",
       qaIndex: null,
-      state: "closing",
+      state: lessonDoc.closing.state || lessonDoc.closing.stage || "closing",
       speaker: lessonDoc.closing.speaker || "T",
       anchor: lessonDoc.closing.anchor || null,
       claim: !!lessonDoc.closing.claim,
@@ -115,6 +117,66 @@ function flatten(lessonDoc) {
     });
   }
   return segs;
+}
+
+function checkNarrationStructure(lessonDoc, segs) {
+  const problems = [];
+  const beats = lessonDoc.teach?.beats || lessonDoc.teach?.scenes || [];
+  beats.forEach((beat, i) => {
+    if (beat.speaker && beat.speaker !== "T") {
+      problems.push(`teach.beats[${i}] speaker=${beat.speaker}; student questions belong in top-level qa[]`);
+    }
+    if (["q", "a"].includes(String(beat.kind || "").toLowerCase())) {
+      problems.push(`teach.beats[${i}] kind=${beat.kind}; qa turns belong in top-level qa[]`);
+    }
+  });
+  if (Array.isArray(lessonDoc.qa) && lessonDoc.qa.length > 0 && lessonDoc.qa.length < 3) {
+    problems.push(`qa[] has ${lessonDoc.qa.length} pair(s); teaching animations should use at least 3 real boundary questions or omit qa[]`);
+  }
+  const teacherTexts = segs.filter((s) => s.speaker === "T").map((s) => s.text || "");
+  const fillerCount = teacherTexts.reduce((count, text) => {
+    const matches = String(text).match(/注意哈|别急哈|记住哈|这里[^，。；]*哈|哈[，。；]/g);
+    return count + (matches ? matches.length : 0);
+  }, 0);
+  if (fillerCount > 2) {
+    problems.push(`teacher filler appears ${fillerCount} times; keep dialect/filler to hook and closing, not every beat`);
+  }
+  const studentVoice = lessonDoc.speakers?.S?.voice || "";
+  const studentQuestions = segs.filter((s) => s.kind === "q" || s.speaker === "S");
+  if (studentVoice === "longlaotie_v3") {
+    const colloquialCue = /(老师|这块|那我|能拿分不|行不|整明白|是不是|要不要|得不|咋)/;
+    const denseDialectCue = /(老铁|嘎哈|贼|嗷|咋整|东北|整)/g;
+    studentQuestions.forEach((s, i) => {
+      const text = String(s.text || "");
+      if (!/[?？]/.test(text)) {
+        problems.push(`qa[${i}] student line should be a real question for longlaotie_v3 voice`);
+      }
+      if (!colloquialCue.test(text)) {
+        problems.push(`qa[${i}] student line is too written; add one natural spoken cue without losing the exam object/basis`);
+      }
+      const dense = text.match(denseDialectCue) || [];
+      if (dense.length > 2) {
+        problems.push(`qa[${i}] has ${dense.length} dialect markers; keep Northeastern flavor light, not a comedy bit`);
+      }
+    });
+  }
+  if (problems.length) {
+    console.error("narration structure check failed:\n  " + problems.join("\n  "));
+    process.exit(1);
+  }
+}
+
+function checkLessonWorkflowContract(lessonDoc) {
+  const result = validateLessonWorkflow({ lessonDoc, lessonPath });
+  if (!result.active) return;
+  if (result.warnings.length) {
+    console.warn(formatWorkflowResults({ ...result, problems: [] }));
+  }
+  if (result.problems.length) {
+    console.error("lesson workflow contract failed:\n" + formatWorkflowResults(result));
+    process.exit(1);
+  }
+  console.log(`lesson workflow ok: ${basename(result.cardPath || "")} anchored to ${basename(result.packPath || "")}`);
 }
 
 function resolveAnchor(card, path) {
@@ -243,7 +305,7 @@ async function synthesizeSegment({ key, segment, voice, outFile }) {
     rate: RATE,
     language_hints: ["zh"],
   };
-  const instruction = instructionForVoice(VOICE);
+  const instruction = instructionForVoice(voice);
   if (instruction) inputPayload.instruction = instruction;
 
   const response = await fetch(ENDPOINT, {
@@ -330,6 +392,8 @@ async function synthesizeQwenSegment({ key, segment, voice, outFile }) {
 }
 
 const segs = flatten(lesson);
+checkNarrationStructure(lesson, segs);
+checkLessonWorkflowContract(lesson);
 checkFaithfulness(lesson, segs);
 
 function voiceForSegment(segment) {

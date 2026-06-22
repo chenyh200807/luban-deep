@@ -52,6 +52,13 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
   ],
   "judge": {
     "verdict": "FAIL",
+    "visual_archetype_decision": {
+      "primary_archetype": "section_or_spatial_reveal",
+      "visual_primitive": "roof_section",
+      "motion_grammar": "layer_explode",
+      "pure_text_allowed": false,
+      "why_not_text": "学生需要看见卷材、基层、病灶和修补闭环"
+    },
     "panel": [
       {"slot": "codex_gpt5_5", "status": "PASS|FAIL|BLOCKED", "note": "主审:实现和 gate 对齐"},
       {"slot": "claude_opus_or_cli", "status": "PASS|FAIL|BLOCKED", "note": "辅助审:用 opus4.8;不可用时用 claude -p 读取输出"},
@@ -91,11 +98,16 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
 
 | 现象 | 默认 fix_layer | 必须补的证据 |
 |---|---|---|
+| 没有动画示意/图画类教学解释 | P0 visual_archetype_decision + IR + renderer | 6+1 原型选择、对应 primitive、motion grammar、截图中主视觉为图示动作 |
+| 安全/合同/管理卡退化成纯文字 | skill + P0 gate + judge | 证明它为何不能用判断树/资金链/site plan/失稳链;通常证明不了就必须改图示 |
 | 字挤、字裁、节点塞不下 | renderer + gate | 新图元规则 + label/text gate |
 | 全屏/横屏比例错 | learning-stage shell + runtime gate | 对应真实视口截图 |
 | 像翻页、没动作 | IR/actions + renderer | 每 scene 至少一个 action 可见变化 |
 | 音画不同步 | timing + narration + preview/remotion gate | sync_keyword 和关键帧 |
 | 题目无图或选项不像采分句 | practice generator + mother data binding | variants/source/scoring 追溯 |
+| 题面泄答案、选项是 key point 标签、解析读不懂 | practice generator + practice interaction gate + anti-pattern | 母题 R3/R4/采分点派生题;答前无正确高亮;错项专属反馈 |
+| 题干本身读不懂,但结果页/AI 入口很完整 | practice_blueprint + judge | 先修 scene_gap/学生答案/标准动作/错项诱因,结果页不能替代题目质量 |
+| 手机打不开 `127.0.0.1` 链接 | preview handoff | LAN IP URL + 端口监听证据,换 Wi-Fi 后重新取 IP |
 | 人眼发现但机器绿 | gate + anti-pattern | 先补 gate/anti-pattern,再修页面 |
 | 图元只在一侧 renderer 可用 | contract gate + renderer | HTML/Remotion primitive coverage 双绿 |
 | 只影响一张卡的极小视觉瑕疵 | card CSS 可例外 | 写明为什么不是 shared shell/renderer/gate 问题 |
@@ -109,13 +121,19 @@ LLM judge 只评表现和学习体验,不重写事实。输出必须是结构化
 不要改考点事实、采分点、错因或答案。只判断表现层是否帮助学生拿分。
 
 必查:
-1. hook/main_exam_action 是否一线贯穿
-2. 每个 beat 是否有可见 action,不是整页翻片
-3. 镜头是否筛注意力:focus 放大/高亮/暗化/退出是否服务当前句
-4. 字幕/coach 是否跟画面同步,不遮挡
-5. practice 是否独立、每题有图、选项可转化为采分表达
-6. 截图墙是否存在拥挤、裁切、小片化、控制条遮挡
-7. 发现问题时应归因到 IR、renderer、gate、skill 还是 card-css
+1. 是否有 `visual_archetype_decision`;primary archetype 是否按认知结构而不是文件名选择
+2. 主讲画面是不是图示动作在解释知识;纯文字只允许(七)数值/记忆类,且必须说明理由
+3. hook/main_exam_action 是否一线贯穿
+4. 每个 beat 是否有可见 action,不是整页翻片
+5. 镜头是否筛注意力:focus 放大/高亮/暗化/退出是否服务当前句
+6. 字幕/coach 是否跟画面同步,不遮挡
+7. practice 是否独立、每题有图、选项可转化为采分表达
+8. practice 题干是否像真实考场任务,不是内部标签;错项解析是否讲清“为什么会选、为什么扣分、正确动作怎么补”
+9. 结果页是否分析学员表现、给出补练/问鲁班入口,但没有掩盖题目本身不可读
+10. 手机预览是否给 LAN URL 而不是 localhost
+11. 后置 qa[] 是否至少三问三答;学生声纹为 longlaotie_v3 时,问题是否像真实东北男孩轻口语追问,而不是书面提纲或方言段子
+12. 截图墙是否存在拥挤、裁切、小片化、控制条遮挡
+13. 发现问题时应归因到 IR、renderer、gate、skill 还是 card-css
 
 返回 JSON:
 {

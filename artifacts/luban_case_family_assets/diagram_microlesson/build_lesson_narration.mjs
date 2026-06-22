@@ -7,7 +7,8 @@
 // 安全:全程 execFileSync 数组传参,不经 shell。
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
+import { formatWorkflowResults, validateLessonWorkflow } from "./lesson_workflow_checks.mjs";
 
 const input = process.argv[2];
 const PRINT = process.argv.includes("--print");
@@ -97,10 +98,67 @@ function checkFaithfulness(lesson, segs) {
   console.log(`✓ 防漂移闸通过:${segs.filter((s) => s.claim).length} 条事实段全部 anchor 到依据(讲懂卡 / master 不变量)`);
 }
 
+function checkNarrationStructure(lesson, segs) {
+  const problems = [];
+  const beats = lesson.teach?.beats || lesson.teach?.scenes || [];
+  beats.forEach((beat, i) => {
+    if (beat.speaker && beat.speaker !== "T") {
+      problems.push(`teach.beats[${i}] speaker=${beat.speaker}; 学生追问必须放顶层 qa[]`);
+    }
+    if (["q", "a"].includes(String(beat.kind || "").toLowerCase())) {
+      problems.push(`teach.beats[${i}] kind=${beat.kind}; qa turn 必须放顶层 qa[]`);
+    }
+  });
+  if (Array.isArray(lesson.qa) && lesson.qa.length > 0 && lesson.qa.length < 3) {
+    problems.push(`qa[] 只有 ${lesson.qa.length} 组; 教学动画默认至少三问三答,否则干脆省略 qa[]`);
+  }
+  const teacherFillerCount = segs
+    .filter((s) => s.speaker === "T")
+    .reduce((count, s) => {
+      const matches = String(s.text || "").match(/注意哈|别急哈|记住哈|这里[^，。；]*哈|哈[，。；]/g);
+      return count + (matches ? matches.length : 0);
+    }, 0);
+  if (teacherFillerCount > 2) {
+    problems.push(`老师口癖出现 ${teacherFillerCount} 次; 只保留 hook/closing 的自然语气`);
+  }
+  if (lesson.speakers?.S?.voice === "longlaotie_v3") {
+    const colloquialCue = /(老师|这块|那我|能拿分不|行不|整明白|是不是|要不要|得不|咋)/;
+    const denseDialectCue = /(老铁|嘎哈|贼|嗷|咋整|东北|整)/g;
+    segs
+      .filter((s) => s.kind === "q" || s.speaker === "S")
+      .forEach((s, i) => {
+        const text = String(s.text || "");
+        if (!/[?？]/.test(text)) problems.push(`qa[${i}] 学生段必须是真问题`);
+        if (!colloquialCue.test(text)) problems.push(`qa[${i}] 学生段太书面; 加一个自然口语钩子,但保留对象/依据/采分边界`);
+        const dense = text.match(denseDialectCue) || [];
+        if (dense.length > 2) problems.push(`qa[${i}] 东北口语过密(${dense.length}); 不要写成方言段子`);
+      });
+  }
+  if (problems.length) {
+    console.error("✗ 旁白结构闸失败:\n  " + problems.join("\n  "));
+    process.exit(1);
+  }
+}
+
+function checkLessonWorkflowContract(lessonDoc) {
+  const result = validateLessonWorkflow({ lessonDoc, lessonPath: resolve(input) });
+  if (!result.active) return;
+  if (result.warnings.length) {
+    console.warn(formatWorkflowResults({ ...result, problems: [] }));
+  }
+  if (result.problems.length) {
+    console.error("✗ lesson workflow contract failed:\n" + formatWorkflowResults(result));
+    process.exit(1);
+  }
+  console.log(`✓ lesson workflow ok:${basename(result.cardPath || "")} anchored to ${basename(result.packPath || "")}`);
+}
+
 const speechNorm = (t) =>
   String(t || "").replace(/\//g, "、").replace(/[（(]/g, ",").replace(/[）)]/g, ",").replace(/[，,]{2,}/g, ",");
 
 const segs = flatten(lesson);
+checkNarrationStructure(lesson, segs);
+checkLessonWorkflowContract(lesson);
 checkFaithfulness(lesson, segs);
 
 if (PRINT) {

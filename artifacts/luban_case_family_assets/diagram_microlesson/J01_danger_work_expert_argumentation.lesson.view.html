@@ -72,20 +72,24 @@ svg{width:100%;height:auto;display:block}
 .dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
 .boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
 .boundary b{color:#9fb0c2}
+
 </style></head><body>
 <div class="wrap">
   <p class="kicker">图解微课 · 老师带你看懂</p>
   <h1>危大工程要不要专家论证 · 老师带你看懂</h1>
-  <p class="subtitle">老师先用动画讲透两道判据,讲完再帮你答疑</p>
+  <p class="subtitle">老师边讲边在画面上逐点写,讲完再帮你答疑</p>
   <div class="stagebox">
     <div class="stage" id="stage">
       <svg viewBox="0 0 360 360" role="img" aria-label="基坑剖面教学动画">
+  <g data-visual-node-id="stage.intro"></g>
   <rect class="sky" x="0" y="0" width="360" height="56"/>
   <rect class="earth" x="0" y="56" width="360" height="304"/>
   <line class="ground" x1="0" y1="56" x2="360" y2="56"/>
   <!-- 基坑 -->
-  <rect class="pit-fill" x="108" y="56" width="144" height="253.0"/>
-  <path class="pit-out" d="M108 56 L108 309.0 L252 309.0 L252 56"/>
+  <g data-visual-node-id="stage.dig">
+    <rect class="pit-fill" x="108" y="56" width="144" height="253.0"/>
+    <path class="pit-out" d="M108 56 L108 309.0 L252 309.0 L252 56"/>
+  </g>
   <!-- 深度标尺 -->
   <line class="ruler" x1="64" y1="56" x2="64" y2="309.0"/>
   <line class="tick" x1="59" y1="56" x2="69" y2="56"/>
@@ -96,17 +100,21 @@ svg{width:100%;height:auto;display:block}
   <text class="ticklbl" x="55" y="290" text-anchor="end">5m</text>
   <text class="ticklbl lbl55" x="55" y="313.0" text-anchor="end">5.5m</text>
   <!-- 阈值线 3m -->
-  <line class="gline line3m" x1="64" y1="194" x2="320" y2="194"/>
-  <text class="glbl lbl3m" x="256" y="188">≥3m 危大</text>
-  <text class="glbl lbl3m" x="256" y="207" style="font-size:10.5px">编专项方案</text>
-  <text class="chk chk-danger" x="180" y="187" text-anchor="middle">✓ 过第一道闸</text>
+  <g data-visual-node-id="criterion.danger">
+    <line class="gline line3m" data-visual-node-id="threshold.3m" x1="64" y1="194" x2="320" y2="194"/>
+    <text class="glbl lbl3m" x="256" y="188">≥3m 危大</text>
+    <text class="glbl lbl3m" data-visual-node-id="action.special_plan" x="256" y="207" style="font-size:10.5px">编专项方案</text>
+    <text class="chk chk-danger" x="180" y="187" text-anchor="middle">✓ 过第一道闸</text>
+  </g>
   <!-- 阈值线 5m -->
-  <line class="gline line5m" x1="64" y1="286" x2="320" y2="286"/>
-  <text class="glbl lbl5m" x="256" y="280">≥5m 超规模</text>
-  <text class="glbl lbl5m" x="256" y="299" style="font-size:10.5px">还要专家论证</text>
-  <text class="chk chk-scale" x="180" y="279" text-anchor="middle">✓ 过第二道闸</text>
+  <g data-visual-node-id="criterion.overscale">
+    <line class="gline line5m" data-visual-node-id="threshold.5m" x1="64" y1="286" x2="320" y2="286"/>
+    <text class="glbl lbl5m" x="256" y="280">≥5m 超规模</text>
+    <text class="glbl lbl5m" data-visual-node-id="action.expert_argumentation" x="256" y="299" style="font-size:10.5px">还要专家论证</text>
+    <text class="chk chk-scale" x="180" y="279" text-anchor="middle">✓ 过第二道闸</text>
+  </g>
   <!-- 本题点 5.5m -->
-  <g class="mark">
+  <g class="mark" data-visual-node-id="pit.depth_5_5">
     <circle class="markdot" cx="180" cy="309.0" r="7"/>
     <text class="marktxt" x="180" y="331.0" text-anchor="middle">本题 5.5m</text>
   </g>
@@ -118,7 +126,7 @@ svg{width:100%;height:auto;display:block}
   <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
   <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,我要是只写&#x27;需要专家论证&#x27;,不写判据,能拿分吗?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。</div></div>
 <div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那反过来,要是只挖三米五呢?也得论证吗?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">好问题,这正是出题人埋的坑。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。</div></div>
-<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">那我怎么才能不混?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。</div></div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">那我怎么才能不混?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下用四道题试试你,看你是真会分档还是背过的。</div></div></div>
   <div class="boundary"><b>说明:</b>这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。<br>培训机构教研整理,非官方阅卷;判据为候选,未签发</div>
 </div>
 <div class="player">
@@ -132,12 +140,12 @@ svg{width:100%;height:auto;display:block}
         <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
       </div>
     </div>
-    <div class="dots" id="dots"><div class="dot" data-state="intro" data-t="0">引入</div><div class="dot" data-state="dig" data-t="13.376">挖深</div><div class="dot" data-state="gate3" data-t="22.982">3米</div><div class="dot" data-state="gate5" data-t="35.832">5米</div><div class="dot" data-state="conclude" data-t="49.275">结论</div></div>
+    <div class="dots" id="dots"><div class="dot" data-state="intro" data-t="0">引入</div><div class="dot" data-state="dig" data-t="10.067">挖深</div><div class="dot" data-state="gate3" data-t="20.235">3米</div><div class="dot" data-state="gate5" data-t="43.829">5米</div><div class="dot" data-state="conclude" data-t="58.709">结论</div></div>
   </div>
 </div>
 <audio id="au" preload="metadata" src="J01_danger_work_expert_argumentation.lesson.mp3"></audio>
 <script>
-const DATA={"totalSec": 116.973, "teachEndSec": 65.08, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "speaker": "T", "text": "案例题最常考'这个工程要不要专家论证'。丢分往往不是不知道有专项方案,而是分不清两档判据。咱们把基坑挖出来,边挖边看。", "startSec": 0, "durSec": 12.976}, {"idx": 1, "kind": "teach", "state": "dig", "qaIndex": null, "speaker": "T", "text": "这道题:基坑开挖深度五米五,方案已经编好,问要不要组织专家论证?顺着深度往下走。", "startSec": 13.376, "durSec": 9.205}, {"idx": 2, "kind": "teach", "state": "gate3", "qaIndex": null, "speaker": "T", "text": "第一道判据:基坑开挖深度大于等于三米,就属于危险性较大的分部分项工程,必须编专项施工方案。五米五,过了第一道闸。", "startSec": 22.982, "durSec": 12.451}, {"idx": 3, "kind": "teach", "state": "gate5", "qaIndex": null, "speaker": "T", "text": "第二道判据:开挖深度大于等于五米,就属于超过一定规模的危大工程,这时候专项方案还得组织专家论证。五米五,第二道闸也过了。", "startSec": 35.832, "durSec": 13.043}, {"idx": 4, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "两道闸全过,结论很干脆:这个专项方案应当组织专家论证。采分就盯这几组词:基坑开挖深度、大于等于五米、超过一定规模、专项方案、专家论证。", "startSec": 49.275, "durSec": 15.805}, {"idx": 5, "kind": "q", "state": "conclude", "qaIndex": 0, "speaker": "S", "text": "老师,我要是只写'需要专家论证',不写判据,能拿分吗?", "startSec": 65.48, "durSec": 5.685}, {"idx": 6, "kind": "a", "state": "conclude", "qaIndex": 0, "speaker": "T", "text": "这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。", "startSec": 71.565, "durSec": 15.66}, {"idx": 7, "kind": "q", "state": "conclude", "qaIndex": 1, "speaker": "S", "text": "那反过来,要是只挖三米五呢?也得论证吗?", "startSec": 87.626, "durSec": 4.153}, {"idx": 8, "kind": "a", "state": "conclude", "qaIndex": 1, "speaker": "T", "text": "好问题,这正是出题人埋的坑。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。", "startSec": 92.179, "durSec": 15.286}, {"idx": 9, "kind": "q", "state": "conclude", "qaIndex": 2, "speaker": "S", "text": "那我怎么才能不混?", "startSec": 107.865, "durSec": 1.61}, {"idx": 10, "kind": "a", "state": "conclude", "qaIndex": 2, "speaker": "T", "text": "记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。", "startSec": 109.875, "durSec": 6.298}], "teachDots": [{"state": "intro", "label": "引入", "startSec": 0}, {"state": "dig", "label": "挖深", "startSec": 13.376}, {"state": "gate3", "label": "3米", "startSec": 22.982}, {"state": "gate5", "label": "5米", "startSec": 35.832}, {"state": "conclude", "label": "结论", "startSec": 49.275}], "teacherName": "鲁班老师"};
+const DATA={"totalSec": 150.022, "teachEndSec": 93.009, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "speaker": "T", "text": "案例题最常考'这个工程要不要专家论证'。丢分往往不是不知道有专项方案,而是分不清两档判据。", "startSec": 0, "durSec": 9.667}, {"idx": 1, "kind": "teach", "state": "dig", "qaIndex": null, "speaker": "T", "text": "看这道题:基坑开挖深度五米五,方案已经编好,问要不要组织专家论证?咱们顺着深度往下走。", "startSec": 10.067, "durSec": 9.768}, {"idx": 2, "kind": "teach", "state": "gate3", "qaIndex": null, "speaker": "T", "text": "第一道判据:基坑开挖深度大于等于三米,就属于危险性较大的分部分项工程;注意,就算不到三米,但地质复杂、周边有建筑,同样算危大——危大不只看深度。", "startSec": 20.235, "durSec": 15.968}, {"idx": 3, "kind": "teach", "state": "gate3", "qaIndex": null, "speaker": "T", "text": "只要够上危大,就必须编专项施工方案。本题五米五,过了第一道闸。", "startSec": 36.604, "durSec": 6.825}, {"idx": 4, "kind": "teach", "state": "gate5", "qaIndex": null, "speaker": "T", "text": "第二道判据:开挖深度大于等于五米,就属于超过一定规模的危大工程。", "startSec": 43.829, "durSec": 6.831}, {"idx": 5, "kind": "teach", "state": "gate5", "qaIndex": null, "speaker": "T", "text": "到了这一档,专项方案还得再组织专家论证。本题五米五,第二道闸也过了。", "startSec": 51.06, "durSec": 7.249}, {"idx": 6, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "再记一点:这两道判据不只管基坑——换成模板支撑、脚手架,照样是先判危大、再判超规模这两道闸,只是每种工程的阈值数字不同。记结构,数字按工程查。", "startSec": 58.709, "durSec": 16.097}, {"idx": 7, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "两道闸全过,结论很干脆:这个专项施工方案应当组织专家论证。", "startSec": 75.206, "durSec": 6.715}, {"idx": 8, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "采分就盯这几组词:基坑开挖深度、大于等于五米、超过一定规模、专项方案、专家论证。写到了就稳。", "startSec": 82.321, "durSec": 10.688}, {"idx": 9, "kind": "q", "state": "conclude", "qaIndex": 0, "speaker": "S", "text": "老师,我要是只写'需要专家论证',不写判据,能拿分吗?", "startSec": 93.41, "durSec": 5.685}, {"idx": 10, "kind": "a", "state": "conclude", "qaIndex": 0, "speaker": "T", "text": "这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。", "startSec": 99.495, "durSec": 15.66}, {"idx": 11, "kind": "q", "state": "conclude", "qaIndex": 1, "speaker": "S", "text": "那反过来,要是只挖三米五呢?也得论证吗?", "startSec": 115.555, "durSec": 4.153}, {"idx": 12, "kind": "a", "state": "conclude", "qaIndex": 1, "speaker": "T", "text": "好问题,这正是出题人埋的坑。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。", "startSec": 120.108, "durSec": 15.286}, {"idx": 13, "kind": "q", "state": "conclude", "qaIndex": 2, "speaker": "S", "text": "那我怎么才能不混?", "startSec": 135.794, "durSec": 1.61}, {"idx": 14, "kind": "a", "state": "conclude", "qaIndex": 2, "speaker": "T", "text": "记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下用四道题试试你,看你是真会分档还是背过的。", "startSec": 137.805, "durSec": 11.418}], "teachDots": [{"state": "intro", "label": "引入", "startSec": 0}, {"state": "dig", "label": "挖深", "startSec": 10.067}, {"state": "gate3", "label": "3米", "startSec": 20.235}, {"state": "gate5", "label": "5米", "startSec": 43.829}, {"state": "conclude", "label": "结论", "startSec": 58.709}], "teacherName": "鲁班老师"};
 const ORDER=["intro", "dig", "gate3", "gate5", "conclude"];
 const au=document.getElementById('au'),play=document.getElementById('play'),replay=document.getElementById('replay');
 const fill=document.getElementById('fill'),bar=document.getElementById('bar'),divider=document.getElementById('divider');

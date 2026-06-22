@@ -70,6 +70,26 @@
 4. `variants` / `quiz`:读题目梯度和 basis_ref。
 5. `misconception` / common_errors:抽学生语言,做错法和干扰项。
 
+### 3.1.1 source_card 教学脊柱
+
+从成品 Deep Pack 到动画,中间必须有一层 `source_card` 教学脊柱,不能直接让 lesson 自由改写 MD。
+
+最小字段:
+
+- `source_refs.pack_markdown`:必须指向 `docs/原始数据/考点原料/成品/<ID>_*.md`。
+- `main_exam_action`:本卡最终训练的考试动作,如"取数分档 → 构造稳定 → 验收放行"。
+- `wrong_idea`:学生最常见的错误直觉。
+- `teaching_spine[]`:5-8 步,每步包含 `state`、`anchor_md`、`visual_fact`、`bridge_from_previous`、`answer_move`。
+
+`lesson.json` 只能围绕这条 spine 写 opening、beats、qa 和 closing。每个 beat 必须写:
+
+- `bridge`:它如何接住上一幕。
+- `exam_task`:这一幕在考场解决什么。
+- `visual_explanation`:画面要解释的对象/关系/动作。
+- `answer_move`:最后如何变成答题纸动作。
+
+这层合同由 `validate_lesson_source_workflow.mjs` 执行;不过门不配音、不生成 IR。
+
 ### 3.2 输出资产必须保留的 lineage
 
 每个动画项目至少生成或维护:
@@ -129,11 +149,14 @@
 ### 4.2 教师与学生声音
 
 - 老师:稳定、短句、像考前点拨,优先讲判断动作和采分句;可以自然加入"注意哈/这里别急哈/记住哈",但不能每句机械重复。
-- 学生:东北男孩追问口吻,只问真会卡的问题,不要捧哏、不要复述老师结论、不要打断主讲。
+- 学生:东北男孩追问口吻,只问真会卡的问题,不要捧哏、不要复述老师结论、不要打断主讲。句子要比书面问答更像真人临场追问,但不要变成方言表演。
 - TTS 推荐:老师 `longanhuan_v3`(龙安欢 V3);学生追问默认且优先用 `longlaotie_v3`(龙老铁)。除非用户明确指定,不要混用其他学生音色。音频离线生成,运行时只播放。
 - 每句旁白 8-18 秒为宜;超过 20 秒必须拆 beat。
+- 总时长以讲清楚为准,不是越短越好。复杂构造、判断链或计算链允许 2-5 分钟;5 分钟以内都可接受。压缩到 90-120 秒但学生听不懂,视为失败。
 - 结构红线:老师主讲必须先完整建立模型;学生问答集中放在后置 `qa[]`,至少三问三答,每问对应真实卡点。不要把学生问题塞进 `teach.beats[]`,否则主线会碎。
-- 口癖红线:口语词只用于开场抓人和结尾回扣,不是每个 beat 的句尾装饰。超过两处就会显得机械,应优先删。
+- 学生口语写法:优先用短句和真实困惑,如"老师,我这么写能拿分不?""那我直接这么干行不行?""这块是不是就卡在这个数上?""整明白了,但考试里要不要把依据也写上?"。每个问题只保留 1-2 个口语标记;对象、阈值、依据、采分边界必须清楚。
+- 学生口语禁区:不要密集堆"整/老铁/嘎哈/贼/嗷"等口头禅,不要把学生写成捧哏,不要用夸张方言替代考试表达,不要让口语盖过问题本身。
+- 口癖红线:口语词只用于开场抓人、结尾回扣或学生真实追问,不是每个 beat 的句尾装饰。超过两处就会显得机械,应优先删。
 
 ### 4.3 旁白红线
 
@@ -188,7 +211,7 @@
 - 75-105 秒:采分表达 + 边界/迁移。
 - 105 秒后:答疑桥接和进入闯关。
 
-不是所有视频都必须 120 秒;原则是"讲到能做题为止",不要为了完整讲义拖长。
+不是所有视频都必须 120 秒。原则是"讲到能做题为止":一个知识点如果需要 3-5 分钟才能把因果、图示和采分句讲清楚,就给足时间;但每 6-10 秒仍必须有清晰的视觉动作或镜头焦点变化,不能把长时长变成长口播。
 
 ### 5.4 顶流视觉判断
 
@@ -249,8 +272,33 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 - gate 不能只查页面存在。至少抽样 scene 中段,证明当前 scene 有节点被 action/progressive reveal 显示、字幕非空、keycard 不累积、theater 控制层默认隐藏且点击浮出。
 - gate 还必须查真实手机壳:360/390/430 竖屏 + 844/932 横屏、播放器不遮挡主图/字幕/教练卡/CTA、触控 >=44px、字幕 `aria-live`、按钮 `aria-pressed`、采分句前 CTA locked、采分句后 CTA enabled、seek 回旧 scene 时不残留旧节点。
 - gate 必须查 **archetype visual coverage**:6+1 原型不能只变成标题、旁白或 `pill` 文字卡。`render_contract.archetype_visual_required` 是渲染前硬合同;缺字段、字段不等于 canonical primitive 集合、或 `visual_library` 未命中对应 primitive,都必须 FAIL。HTML renderer 和 Remotion 通用 renderer 还必须同时支持 IR 用到的每个 primitive;任一侧缺分支都 FAIL,未知 primitive 不能 fallback 成文本框,否则禁止把 HTML 预览 PASS 当成正式同源。
+- gate 还必须查 **diagrammatic teaching scenes**:`hook / map / rule / trap / score` 这些主讲场景不能大部分是文字容器。量产默认 5/5 主讲场景都要有非文字图元;至少不得低于 `render_contract.min_diagrammatic_teaching_scenes`。`score` 不是文字总结页,必须是 answer-paper / answer_scan / 采分诊断图,把图示结果转成能写上答题纸的采分句。否则就是“有图元的文字卡”,必须在渲染前失败。
+- gate 还必须查 **primitive internal animation**:有图元不等于有动画。可动画 primitive 必须把知识动作做在图元内部,而不是整块图淡入。推荐语法:
+  - `process_flow`:路径线 trace 生长,节点按工序逐个 reveal。
+  - `layer_stack` / `roof_section`:基层、找平层、防水层、保护层逐层显现或爆炸。
+  - `network_graph` / `formula_chain`:依赖边/计算口径逐段 trace,节点/公式块随旁白进入。
+  - `decision_tree`:根条件先出现,分支逐个展开,淘汰分支降噪,命中分支高亮。
+  - `contrast_pair`:先展示错法,再引入正确做法,最后叠加错因/采分差异。
+  - `answer_scan`:答案行逐句扫光,hit/partial/miss 逐行出现。
+  - `memory_table`:属于(七)数值/记忆,默认少动或不动画化。
+  HTML preview 要输出 `data-primitive-step`;Remotion 通用 renderer 要用 `PrimitiveStep`;contract gate 看到上述 primitive 时必须检查两端内部动画能力。没有这层,就算 5/5 主讲场景都有图,也只是“静态图伪动画”。
 
 这条是 60 卡量产底线:任何"画面乱/叠加/比例一变就坏/像翻页/字幕丢失/控制条占屏"的问题,优先升级 IR、renderer、gate 或本导演手册;不要只改某一张卡的 CSS。
+
+### 6.1 单卡质量闭环优先
+
+批量生成器只允许做 internal coarse draft。它可以帮我们快速暴露缺数据、缺 primitive、renderer 分支不全、gate 漏洞,但不能承担“精品动画教案”的职责。原因很简单:从 Markdown 表格抽词再套通用图元,天然容易退化成文字解释卡;这种卡即使通过 `diagrammatic_teaching_scene` 也可能没有真正帮助学生看懂。
+
+精品卡默认按一张一张做:
+
+1. 先选一个考点,读母题数据和原始 MD,冻结事实与采分句。
+2. 先判断它属于 6+1 哪种认知结构,产出 `visual_archetype_decision` 后再选对应图示语法,不要从已有卡外形复制。`pure_text_allowed` 默认 false;除(七)数值/记忆外,安全/合同/组织/质量管理类也必须转成判断树、资金链、现场图、失稳链、诊断图或答题纸扫描。
+3. 写 teaching spine 和 5-8 个 beat,每个 beat 只允许一个主图示动作,一小句字幕/旁白,并写清上一屏哪些元素退出。
+4. IR 里主视觉必须用图示 primitive 解释动作:剖面、流程、判断树、网络、对照、答题纸扫描;文字框只做提示,不能当主讲。
+5. 跑 contract/preview gate 后,必须截手机 390 竖屏、至少一个横屏、用户反馈比例。人工看三件事:第一眼是不是当前对象,第二眼是不是依据,第三眼是不是答案动作。
+6. 未通过就只回炉当前卡和对应 primitive/gate,不要继续下一张;通过后再沉淀成可复用 fixture 或生成器规则。
+
+批量索引、manifest 或 report 必须显式标 `coarse_draft_requires_single_card_review` / `student_ready=false`。任何把批量 PASS 汇报成“40 张完成”的结论,都按 false progress 处理。
 
 F16 这类工序/构造型卡的默认拆法:
 

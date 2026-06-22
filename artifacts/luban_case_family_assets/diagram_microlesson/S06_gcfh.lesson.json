@@ -1,0 +1,115 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "S06_gcfh",
+  "derived_from": "S06_gcfh.json",
+  "archetype_master_ref": "S06_gcfh.master.json",
+  "style": "teach_then_qa",
+  "title": "高处作业临边洞口防护 · 老师带你看懂",
+  "subtitle": "老师边讲边在临边洞口剖面上画判读链,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 S06(临边洞口防护类)造成讲懂幕。舞台=临边/洞口/悬空剖面(stage 外置:svg+states+css+banner 自带,引擎对原型通用,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 S06.md §7 Reveal 顺序(势能危险源→缺屏障/坠落→临边栏杆→洞口分档→悬空操作平台→三步判读链)。beat 旁白事实/数值全部 anchor 回 S06_gcfh.json 真实字段(防漂移闸),数字回 §2/§5 教材锚,不手写新数值。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值(2m/1.2m/500mm/180mm 等)以现行规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "临边洞口防护不是背 2m、1.2m、500mm 几个数 → 是'识别坠落路径→匹配防护等级→校核关键参数'同一条三步判读链。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "energy", "label": "危险源"},
+      {"id": "fall", "label": "高处坠落"},
+      {"id": "edge", "label": "临边栏杆"},
+      {"id": "hole", "label": "洞口分档"},
+      {"id": "suspend", "label": "悬空平台"},
+      {"id": "chain", "label": "判读链"}
+    ],
+    "css": ".s-floor,.s-worker,.s-fallpath,.s-burst,.s-rail,.s-holeset,.s-platform,.s-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-worker{transform:translateY(-4px)} .reached-energy .s-worker{opacity:1;transform:none} .reached-energy .s-fallpath{opacity:.9} .s-burst{transform:scale(.6);transform-origin:center} .reached-fall .s-burst{opacity:1;transform:none} .s-rail{transform:translateY(6px)} .reached-edge .s-rail{opacity:1;transform:none} .reached-hole .s-holeset{opacity:1} .s-platform{transform:translateY(6px)} .reached-suspend .s-platform{opacity:1;transform:none} .s-chain{transform:translateY(6px)} .reached-chain .s-chain{opacity:1;transform:none} .s-floorfill{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.energy{fill:#ff7a7a}.s-note.fall{fill:#ffb15a}.s-note.edge{fill:#7fe6ab}.s-note.hole{fill:#7fc7ff}.s-note.suspend{fill:#ffd27f}.s-note.chain{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-htxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='高处作业临边洞口防护判读链剖面'><rect x='24' y='150' width='312' height='22' rx='2' class='s-floorfill' data-visual-node-id='floor.section'/><text class='s-lbl' x='28' y='246'>楼层临边/洞口剖面(高处作业面)</text><g class='s-worker' data-visual-node-id='worker.energy'><circle cx='70' cy='128' r='7' fill='#ffd27f'/><rect x='66' y='135' width='8' height='15' rx='3' fill='#ffd27f'/><text class='s-note energy' x='70' y='112' text-anchor='middle'>S1 人在临空面之上 · 势能(≥2m)</text></g><g class='s-fallpath' data-visual-node-id='fall.path'><line x1='70' y1='150' x2='70' y2='220' stroke='#ff5a5a' stroke-width='2.4' stroke-dasharray='5 4'/><path d='M66 214 L70 222 L74 214' fill='none' stroke='#ff5a5a' stroke-width='2'/><text class='s-note energy' x='70' y='236' text-anchor='middle'>坠落通道</text></g><g class='s-burst' data-visual-node-id='accident.burst'><path d='M70 188 l4 -7 l3 6 l7 -3 l-4 7 l6 3 l-7 2 l2 7 l-7 -4 l-4 6 l-1 -7 l-7 1 l5 -6 l-6 -4 l7 -1 Z' fill='#ff9b3a' opacity='.9'/><text class='s-note fall' x='118' y='200' text-anchor='middle'>S2 缺屏障 → S3 高处坠落</text></g><g class='s-rail' data-visual-node-id='edge.rail'><line x1='150' y1='118' x2='150' y2='150' stroke='#7fe6ab' stroke-width='3'/><line x1='180' y1='118' x2='180' y2='150' stroke='#7fe6ab' stroke-width='3'/><line x1='146' y1='121' x2='184' y2='121' stroke='#7fe6ab' stroke-width='3'/><rect x='146' y='144' width='38' height='5' fill='#3fd39a'/><text class='s-vtxt' x='165' y='113' text-anchor='middle'>1.2m栏杆</text><text class='s-note edge' x='165' y='168' text-anchor='middle'>S4a 临边:1.2m栏杆+挡脚板≥180mm+承1kN</text></g><g class='s-holeset' data-visual-node-id='hole.set'><rect x='214' y='150' width='14' height='4' fill='#9bb0c8'/><text class='s-htxt' x='221' y='146' text-anchor='middle'>盖板</text><rect x='244' y='148' width='20' height='6' fill='none' stroke='#7fc7ff' stroke-width='2'/><line x1='244' y1='140' x2='264' y2='140' stroke='#7fc7ff' stroke-width='2.4'/><text class='s-htxt' x='254' y='136' text-anchor='middle'>≥500栏杆</text><text class='s-note hole' x='248' y='186' text-anchor='middle'>S4b 洞口按尺寸分档:盖板 / 栏杆+封闭</text></g><g class='s-platform' data-visual-node-id='suspend.platform'><rect x='292' y='140' width='40' height='5' fill='#ffd27f'/><line x1='296' y1='118' x2='296' y2='140' stroke='#ffd27f' stroke-width='2.4'/><line x1='328' y1='118' x2='328' y2='140' stroke='#ffd27f' stroke-width='2.4'/><line x1='294' y1='121' x2='330' y2='121' stroke='#ffd27f' stroke-width='2.4'/><text class='s-note suspend' x='312' y='162' text-anchor='middle'>S4c 悬空:必设操作平台</text></g><g class='s-chain' data-visual-node-id='chain.three'><circle cx='90' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='90' y='43' text-anchor='middle'>识别路径</text><circle cx='180' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='180' y='43' text-anchor='middle'>匹配等级</text><circle cx='270' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='270' y='43' text-anchor='middle'>校核参数</text><path d='M103 40 H167' stroke='#7fe6ab' stroke-width='2'/><path d='M193 40 H257' stroke='#7fe6ab' stroke-width='2'/><text class='s-note chain' x='180' y='66' text-anchor='middle'>S5 三步判读链 = 该不该防 / 用什么防 / 防到什么参数</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": false,
+       "keycard": {"text": "临边洞口防护,丢分在只背数字不讲判读链", "tone": "q"},
+       "sync_keyword": "判读链",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:floor.section"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "narration": "临边洞口防护,很多人背下两米、一米二这些数字就上场,一换部位就懵。今天沿一条判读链走。"},
+      {"id": "energy", "stage": "energy", "claim": true, "anchor": "causal_chain.s1_energy_source.claim",
+       "keycard": {"text": "S1 危险源:人在临空面之上,势能(坠落高度≥2m)", "tone": "a"},
+       "sync_keyword": "势能",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:worker.energy"},
+         {"type": "highlight", "target": "data-id:fall.path"},
+         {"type": "keycard", "target": "data-id:keycard.energy"}
+       ],
+       "narration": "先看危险源。人在临空面之上、坠落高度两米及以上,重力势能就是第一类危险源,脚下是敞开的坠落通道。"},
+      {"id": "fall", "stage": "fall", "claim": true, "anchor": "causal_chain.s2_no_barrier.claim",
+       "keycard": {"text": "S2 缺屏障 → S3 高处坠落(12类事故之一)", "tone": "a"},
+       "sync_keyword": "屏障",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:accident.burst"},
+         {"type": "keycard", "target": "data-id:keycard.fall"}
+       ],
+       "narration": "坠落路径上缺了屏障,临边没防护、洞口没封堵,结果就是高处坠落。控制思路是消除优先、防护其次、警示兜底。"},
+      {"id": "edge", "stage": "edge", "claim": true, "anchor": "causal_chain.s4_match_protection.claim",
+       "keycard": {"text": "S4a 临边:1.2m栏杆+挡脚板≥180mm+承1kN+密目网", "tone": "a"},
+       "sync_keyword": "栏杆",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:edge.rail"},
+         {"type": "highlight", "target": "data-id:keycard.edge"}
+       ],
+       "narration": "措施按部位匹配。临边:临空侧立防护栏杆,上杆一米二、立杆间距不大于两米、挡脚板不低于一百八十毫米、承一千牛,再挂密目网封闭。"},
+      {"id": "hole", "stage": "hole", "claim": true, "anchor": "key_params.hole_500.value",
+       "keycard": {"text": "S4b 洞口按尺寸分档:盖板 / ≥500设栏杆+封闭", "tone": "a"},
+       "sync_keyword": "分档",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:hole.set"},
+         {"type": "keycard", "target": "data-id:keycard.hole"}
+       ],
+       "narration": "洞口按尺寸分档:二十五到五百毫米用承重盖板;短边五百毫米以上,光盖板不够,得设一米二栏杆加封闭加挡脚板。尺寸跨档,措施就跳档。"},
+      {"id": "suspend", "stage": "suspend", "claim": true, "anchor": "key_params.suspend_platform.value",
+       "keycard": {"text": "S4c 悬空:2m以上必设操作平台,超2m不用梯子", "tone": "a"},
+       "sync_keyword": "操作平台",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:suspend.platform"},
+         {"type": "keycard", "target": "data-id:keycard.suspend"}
+       ],
+       "narration": "悬空作业:两米及以上的模板、钢筋、浇筑,必须设操作平台,超两米不能用梯子替代,更不能站骨架上作业。"},
+      {"id": "score", "stage": "chain", "claim": true, "anchor": "scoring_points[0].keywords",
+       "keycard": {"text": "采分词:临边1.2m栏杆·立杆≤2m·挡脚板≥180mm·承1kN·密目网", "tone": "score"},
+       "sync_keyword": "采分",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:score.keywords"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "narration": "采分盯这几组词:临边一米二栏杆、立杆不大于两米、挡脚板一百八十、承一千牛、密目网;洞口分档;悬空设操作平台。"},
+      {"id": "transfer", "stage": "chain", "claim": true, "anchor": "master:R2_invariant",
+       "keycard": {"text": "迁移:判读链通用,阈值随部位变", "tone": "concl"},
+       "sync_keyword": "判读链不变",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:chain.three"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"},
+         {"type": "camera", "target": "data-id:stage.conclude"}
+       ],
+       "narration": "记住三步判读链:识别坠落路径、匹配防护等级、校核关键参数。换洞口、临边、悬空、交叉作业都成立,判读链不变,阈值随部位给。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,临边写'设警示牌'为啥不得分?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why",
+           "sync_keyword": "实体防护栏杆",
+           "text": "提示标识替代不了物理隔离。临边必须设实体防护栏杆加密目网封闭,光写警示牌采分点没踩到。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那栏杆高度我写 0.9 米行不行?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "楼梯扶手",
+           "text": "这是最常见的串台。零点九米是室内楼梯扶手;临边、洞口防护栏杆是一米二,不同章不同考,别串。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "洞口大点盖块厚盖板不就行了?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "按尺寸分档",
+           "text": "不能只盯盖板。洞口要按尺寸分档:短边五百毫米以上,必须设一米二栏杆加封闭加挡脚板,换厚盖板也不顶用。"}}
+  ]
+}

@@ -1,0 +1,189 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>检验批/分部分项工程质量验收程序 · 独立闯关</title><style>
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100dvh;padding:8px 10px 12px}header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:8px}header a{border:1px solid #cad8e5;border-radius:999px;padding:0 12px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:11px;font-weight:900}h1{font-size:17px;margin:2px 0 0;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.progress{height:5px;border-radius:999px;background:#d6e2ec;margin-bottom:9px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none}.q.active{display:flex;min-height:calc(100dvh - 152px);flex-direction:column;gap:10px}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.diagram{height:clamp(250px,36dvh,330px);background:#fffdf7;border:1px solid #eadfcb;border-radius:22px;display:grid;place-items:center;overflow:hidden;box-shadow:0 16px 36px rgba(31,41,55,.1)}.diagram svg{width:100%;height:100%}.gate rect,.step rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect,.step.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect,.step.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.prompt-card,.answer-zone{min-width:0;overflow-wrap:anywhere;word-break:break-word;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;padding:11px 12px;box-shadow:0 10px 24px rgba(31,41,55,.08)}.student-answer{border-left:4px solid #f97316;background:#fff7ed;border-radius:12px;padding:8px 10px;margin-bottom:8px}.student-answer span,.choice-label,.score-write span{display:block;font-size:12px;font-weight:900;color:#176b7a}.student-answer p{margin:3px 0 0;font-size:15px;line-height:1.45;font-weight:900;color:#24364b}.q h2{font-size:17px;line-height:1.32;margin:0}.stem-toggle{margin-top:8px;min-height:44px;border:0;background:transparent;color:#176b7a;font-weight:900;padding:0}.full-stem{display:none;margin:8px 0 0;color:#55677a;font-size:13px;line-height:1.5;font-weight:800}.q.show-stem .full-stem{display:block}.options{display:grid;gap:8px;margin-top:7px}.option{text-align:left;min-height:52px;border:1px solid #cfdae6;background:#fff;border-radius:15px;padding:8px 10px;color:#24364b;font-size:15px;font-weight:900;line-height:1.24;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:6px}.option b{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#eef4f8;color:#176b7a}.option.correct{border-color:#73c596;background:#ecf9f2}.option.correct b{background:#16a34a;color:#fff}.option.wrong{border-color:#fb923c;background:#fff3e9}.option.wrong b{background:#f97316;color:#fff}.option:disabled{opacity:1}.option-drawer{margin-top:8px;border-top:1px solid #e4edf5;padding-top:8px}.option-drawer summary{min-height:44px;color:#607287;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center}.option-drawer ol{margin:6px 0 0;padding-left:20px;color:#34465b;font-size:13px;line-height:1.55;font-weight:800}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:0;border-radius:15px;padding:12px;font-size:14px;font-weight:850;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{width:min(430px,calc(100% - 20px));display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px auto calc(10px + env(safe-area-inset-bottom));padding:10px;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;box-shadow:0 10px 28px rgba(31,41,55,.1)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}@media(max-height:720px){.diagram{height:clamp(230px,34dvh,300px)}.student-answer p{font-size:14px}.prompt-card,.answer-zone{padding:9px 10px}.option{min-height:48px}}@media(orientation:landscape){.practice{max-width:none;padding:8px 10px 12px}.q.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.76fr);grid-template-rows:auto 1fr auto;align-items:start}.qtop{grid-column:1/-1}.diagram{height:min(calc(100dvh - 154px),520px)}.prompt-card{grid-column:2}.answer-zone{grid-column:2}.feedback{grid-column:1/-1}nav{width:min(720px,calc(100% - 20px));grid-template-columns:180px 1fr}}
+</style></head>
+<body><main class="practice" data-practice-shell="challenge-theater">
+<header><a href="A01_jypc.journey.html">返回讲解</a><div><span>鲁班深母题 · 独立闯关</span><h1>检验批/分部分项工程质量验收程序</h1></div></header>
+<div class="progress"><div id="progressFill"></div></div>
+<section class="q" data-practice-id="q1" data-qid="q1">
+  <div class="qtop"><span>第 1/5 问</span><em>中间环节漏写(最易丢分)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="验收顺序与隐蔽节点(自检→监理→隐蔽覆盖前验收→下道)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">验收顺序与隐蔽节点(自检→监理→隐蔽覆盖前验收→下道) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">答案把四级层级背对了,但只讲&#x27;层层往上验&#x27;,漏了验收程序真正的得分点:每一级里施工方要先自检合格再报监理(责任在前)、看不见的隐蔽工程必须在被盖住前验收留记录(时间窗口一次性、错过不可逆)——这正是程序类最易丢分的中间环节</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>施工班组答:&quot;验收就是检验批合格了报分项、分项合格了报分部,一层?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">施工班组答:&quot;验收就是检验批合格了报分项、分项合格了报分部,一层层往上验,验到单位工程封顶。&quot; 这份&#x27;验收程序&#x27;在【现场操作】这一块最可能漏掉哪类关键环节?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>漏写四级层级的名称顺序</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>漏写单位工程的合格五条</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>漏写&#x27;施工方先自检合格再报监理&#x27;和&#x27;隐蔽工程覆…</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 漏写四级层级的名称顺序；错因：没有按本题不变量完整判断</li><li><b>B.</b> 漏写单位工程的合格五条；错因：没有按本题不变量完整判断</li><li><b>C.</b> 漏写&#x27;施工方先自检合格再报监理&#x27;和&#x27;隐蔽工程覆盖前必须验收、未经验收不得进下道&#x27;这层中间程序节点；判断依据：答案把四级层级背对了,但只讲&#x27;层层往上验&#x27;,漏了验收程序真正的得分点:每一级里施工方要先自检合格再报监理(责任在前)；看不见的隐蔽工程必须在被盖住前验收留记录(时间窗口一次性；错过不可逆)——这正是程序类最易丢分的中间环节</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q1"></div>
+</section><section class="q" data-practice-id="q2" data-qid="q2">
+  <div class="qtop"><span>第 2/5 问</span><em>顺序档(方向写反)</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="验收层级排序/划分条件(检验批→分项→分部→单位;划分依据列举)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">验收层级排序/划分条件(检验批→分项→分部→单位;划分依据列举) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">验收方向是金标且不可颠倒:质量是自下而上逐层累积的,检验批是最小可验收颗粒,下一级合格是上一级前置。先验分部就是把&#x27;合格&#x27;建立在未经核验的检验批上——authority 断裂、假合格被结构封存,典型顺序错(自上而下是按行政直觉的错心智模型)</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>现场技术员说:&quot;验收从大往小拆,先把分部工程验了,再回头验分项、?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">现场技术员说:&quot;验收从大往小拆,先把分部工程验了,再回头验分项、验检验批,效率高。&quot; 这个验收方向对吗?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>对,先验大的定调,再补小的细节</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>不对:方向反了</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>无所谓,只要每级都验到先验哪个都行</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 对,先验大的定调,再补小的细节；错因：没有按本题不变量完整判断</li><li><b>B.</b> 不对:方向反了。验收要自下而上逐级累积——检验批→分项→(子分部→)分部→单位,下一级全合格才是上一级的前置条件；判断依据：验收方向是金标且不可颠倒:质量是自下而上逐层累积的,检验批是最小可验收颗粒,下一级合格是上一级前置。先验分部就是把&#x27;合格&#x27;建立在未经核验的检验批上——authority 断裂；假合格被结构封存,典型顺序错(自上而下是按行政直觉的错心智模型)</li><li><b>C.</b> 无所谓,只要每级都验到先验哪个都行；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q2"></div>
+</section><section class="q" data-practice-id="q3" data-qid="q3">
+  <div class="qtop"><span>第 3/5 问</span><em>迁移档(换判定对象·判据切换)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="合格判定阈值(主控/一般项目 + 结构实体强度)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">合格判定阈值(主控/一般项目 + 结构实体强度) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">验收台阶不变,但判据随对象切换:主控项目直接决定结构安全/主要功能,缺陷不可补偿,所以是否决逻辑(全部合格);一般项目影响观感/次要功能,缺陷可控,所以是容差逻辑(合格率≥80%)。把80%套到主控(A)、或以为换对象就没判据(C)都丢了&#x27;主控/一般两套刚柔逻辑&#x27;这个鉴别点——A01 最深的命题考点</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>换个判定对象:这次不是算混凝土强度,是判一个检验批合格不合格。它?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">换个判定对象:这次不是算混凝土强度,是判一个检验批合格不合格。它的&#x27;主控项目&#x27;和&#x27;一般项目&#x27;判据一样吗?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>一样,主控和一般项目都按合格率≥80% 判</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>两套判据:主控项目是否决项,必须全部合格(一票…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>换了对象就没判据了,抽查到哪算哪</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 一样,主控和一般项目都按合格率≥80% 判；错因：没有按本题不变量完整判断</li><li><b>B.</b> 两套判据:主控项目是否决项,必须全部合格(一票否决·无百分比);只有一般项目才走合格率≥80% 的弹性门槛；判断依据：验收台阶不变,但判据随对象切换:主控项目直接决定结构安全/主要功能,缺陷不可补偿,所以是否决逻辑(全部合格);一般项目影响观感/次要功能,缺陷可控,所以是容差逻辑(合格率≥80%)。把80%套到主控(A)；或以为换对象就没判据(C)都丢了&#x27;主控/一般两套刚柔逻辑&#x27;这个鉴别点——A01 最深的命题考点</li><li><b>C.</b> 换了对象就没判据了,抽查到哪算哪；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q3"></div>
+</section><section class="q" data-practice-id="q4" data-qid="q4">
+  <div class="qtop"><span>第 4/5 问</span><em>检验闭环(独立复核·组织主体)·关键鉴别梯度</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="验收主体识别 + 不合格处理程序闭环判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">验收主体识别 + 不合格处理程序闭环 · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">前面四级验收是过程证据,结构实体检验是结果证据——用实测强度反向验证&#x27;过程合格&#x27;是否真合格,是层层把关最后一道独立校验闸。它的程序门要求&#x27;监理组织、施工实施、监理见证&#x27;,施工方自己组织自己复核就失去了独立性(谁施工谁验收的错心智模型)。强度顺序都对但组织主体张冠李戴,仍是程序不合规——这是程序类收尾最易漏的独立复核/程序闭环</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>检验批、分项、分部都一层层验合格了,施工单位说&#x27;我们自己把结构实?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">检验批、分项、分部都一层层验合格了,施工单位说&#x27;我们自己把结构实体检验也做了、强度也测了,验收齐活&#x27;。这样合规吗?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>合规,过程都验合格了,实体检验谁做都一样</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>不合规:结构实体检验是对&#x27;自检+验收&#x27;链路的独…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>不合规,实体检验必须由建设单位亲自动手做</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 合规,过程都验合格了,实体检验谁做都一样；错因：没有按本题不变量完整判断</li><li><b>B.</b> 不合规:结构实体检验是对&#x27;自检+验收&#x27;链路的独立复核,须由监理单位组织、施工单位实施、监理见证全过程,施工方不能自己组织自己复核；判断依据：前面四级验收是过程证据,结构实体检验是结果证据——用实测强度反向验证&#x27;过程合格&#x27;是否真合格,是层层把关最后一道独立校验闸。它的程序门要求&#x27;监理组织；施工实施；监理见证&#x27;,施工方自己组织自己复核就失去了独立性(谁施工谁验收的错心智模型)。强度顺序都对但组织主体张冠李戴,仍是程序不合规——这是程序类收尾最易漏的独立复核/程序闭环</li><li><b>C.</b> 不合规,实体检验必须由建设单位亲自动手做；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q4"></div>
+</section><section class="q" data-practice-id="q5" data-qid="q5">
+  <div class="qtop"><span>第 5/5 问</span><em>采分句输出</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="采分句答题纸">
+    <rect x="28" y="30" width="334" height="154" rx="18" fill="#fff" stroke="#d8e2ec" stroke-width="4"/>
+    <text x="58" y="72" fill="#176b7a" font-size="17" font-weight="900">答题纸三件套</text>
+    <text x="58" y="112" fill="#17202a" font-size="16" font-weight="900">对象/阈值 + 判断结果 + 处理结论</text>
+    <path d="M58 138h274" stroke="#f97316" stroke-width="7" stroke-linecap="round"/>
+  </svg></div>
+  <h2>把这类题写成一句能拿分的话。</h2>
+  <div class="score-write">
+    <label><span>对象/阈值</span><input data-field="field1" placeholder="如:基坑开挖深度5.5m"></label>
+<label><span>判断结果</span><input data-field="field2" placeholder="危大且超过一定规模"></label>
+<label><span>处理结论</span><input data-field="field3" placeholder="专项施工方案应组织专家论证"></label>
+    <button type="button" class="check-score" data-check-score="1">检查采分句</button>
+  </div>
+  <div class="feedback" id="fb-q5"></div>
+</section>
+<section class="done" id="done"><h2>看穿结果</h2><p id="scoreText"></p><div class="atoms" id="atoms"></div><a href="A01_jypc.journey.html">回看白板讲解</a></section>
+</main><nav><button type="button" id="prevQ">上一题</button><button type="button" id="nextQ">下一题</button></nav>
+<script type="application/json" id="practiceData">{"practice": [{"id": "q1", "answer": "C", "correct_feedback": "对:层级名它背对了,但验收真正的得分在中间那层——每一级要先施工方自检合格再报监理,顺序不能反;尤其钢筋、孔洞这些隐蔽工程,一旦被下道工序盖住就够不着了,必须在覆盖前验收、留文字和图像记录,未经验收不得进下道。只写'一层层往上验'等于把这层程序节点整段漏了。", "basis": "答案把四级层级背对了,但只讲'层层往上验',漏了验收程序真正的得分点:每一级里施工方要先自检合格再报监理(责任在前)、看不见的隐蔽工程必须在被盖住前验收留记录(时间窗口一次性、错过不可逆)——这正是程序类最易丢分的中间环节", "tier": "中间环节漏写(最易丢分)·关键鉴别", "options": [{"id": "A", "text": "漏写四级层级的名称顺序；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "漏写单位工程的合格五条；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "C", "text": "漏写'施工方先自检合格再报监理'和'隐蔽工程覆盖前必须验收、未经验收不得进下道'这层中间程序节点；判断依据：答案把四级层级背对了,但只讲'层层往上验',漏了验收程序真正的得分点:每一级里施工方要先自检合格再报监理(责任在前)；看不见的隐蔽工程必须在被盖住前验收留记录(时间窗口一次性；错过不可逆)——这正是程序类最易丢分的中间环节", "feedback": "对:层级名它背对了,但验收真正的得分在中间那层——每一级要先施工方自检合格再报监理,顺序不能反;尤其钢筋、孔洞这些隐蔽工程,一旦被下道工序盖住就够不着了,必须在覆盖前验收、留文字和图像记录,未经验收不得进下道。只写'一层层往上验'等于把这层程序节点整段漏了。"}]}, {"id": "q2", "answer": "B", "correct_feedback": "对:方向正好反了。验收不是从大往小拆,是自下而上一层层垒——先把最小的检验批验合格,才有资格谈分项;分项都合格,才能验分部;一直垒到单位工程封顶。先验分部等于屋顶悬空,下面没核验过,这级'合格'就是假的。口诀:检验批→分项→分部→单位,下合格才能上。", "basis": "验收方向是金标且不可颠倒:质量是自下而上逐层累积的,检验批是最小可验收颗粒,下一级合格是上一级前置。先验分部就是把'合格'建立在未经核验的检验批上——authority 断裂、假合格被结构封存,典型顺序错(自上而下是按行政直觉的错心智模型)", "tier": "顺序档(方向写反)", "options": [{"id": "A", "text": "对,先验大的定调,再补小的细节；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "不对:方向反了。验收要自下而上逐级累积——检验批→分项→(子分部→)分部→单位,下一级全合格才是上一级的前置条件；判断依据：验收方向是金标且不可颠倒:质量是自下而上逐层累积的,检验批是最小可验收颗粒,下一级合格是上一级前置。先验分部就是把'合格'建立在未经核验的检验批上——authority 断裂；假合格被结构封存,典型顺序错(自上而下是按行政直觉的错心智模型)", "feedback": "对:方向正好反了。验收不是从大往小拆,是自下而上一层层垒——先把最小的检验批验合格,才有资格谈分项;分项都合格,才能验分部;一直垒到单位工程封顶。先验分部等于屋顶悬空,下面没核验过,这级'合格'就是假的。口诀:检验批→分项→分部→单位,下合格才能上。"}, {"id": "C", "text": "无所谓,只要每级都验到先验哪个都行；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q3", "answer": "B", "correct_feedback": "对:换到合格判定,台阶还是那条,但判据是两套——主控项目管的是结构安全这类要命的事,一票否决、必须全部合格,没有百分比可商量;一般项目管观感这类次要的,才允许合格率到80%就行。能分清主控'全合格'和一般'≥80%'两套逻辑,才是真会迁移,不是把一个百分比套到所有项目上。", "basis": "验收台阶不变,但判据随对象切换:主控项目直接决定结构安全/主要功能,缺陷不可补偿,所以是否决逻辑(全部合格);一般项目影响观感/次要功能,缺陷可控,所以是容差逻辑(合格率≥80%)。把80%套到主控(A)、或以为换对象就没判据(C)都丢了'主控/一般两套刚柔逻辑'这个鉴别点——A01 最深的命题考点", "tier": "迁移档(换判定对象·判据切换)·关键鉴别", "options": [{"id": "A", "text": "一样,主控和一般项目都按合格率≥80% 判；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "两套判据:主控项目是否决项,必须全部合格(一票否决·无百分比);只有一般项目才走合格率≥80% 的弹性门槛；判断依据：验收台阶不变,但判据随对象切换:主控项目直接决定结构安全/主要功能,缺陷不可补偿,所以是否决逻辑(全部合格);一般项目影响观感/次要功能,缺陷可控,所以是容差逻辑(合格率≥80%)。把80%套到主控(A)；或以为换对象就没判据(C)都丢了'主控/一般两套刚柔逻辑'这个鉴别点——A01 最深的命题考点", "feedback": "对:换到合格判定,台阶还是那条,但判据是两套——主控项目管的是结构安全这类要命的事,一票否决、必须全部合格,没有百分比可商量;一般项目管观感这类次要的,才允许合格率到80%就行。能分清主控'全合格'和一般'≥80%'两套逻辑,才是真会迁移,不是把一个百分比套到所有项目上。"}, {"id": "C", "text": "换了对象就没判据了,抽查到哪算哪；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q4", "answer": "B", "correct_feedback": "对:过程都验合格了,还差最后一道独立复核门。结构实体检验是用实测强度回头校验'过程到底真不真合格',为了独立,必须监理单位组织、施工单位只负责实施、监理全程见证,施工方不能既当运动员又当裁判。组织主体一错(自己组织/建设单位动手),这道独立闸就废了,照样违规。", "basis": "前面四级验收是过程证据,结构实体检验是结果证据——用实测强度反向验证'过程合格'是否真合格,是层层把关最后一道独立校验闸。它的程序门要求'监理组织、施工实施、监理见证',施工方自己组织自己复核就失去了独立性(谁施工谁验收的错心智模型)。强度顺序都对但组织主体张冠李戴,仍是程序不合规——这是程序类收尾最易漏的独立复核/程序闭环", "tier": "检验闭环(独立复核·组织主体)·关键鉴别梯度", "options": [{"id": "A", "text": "合规,过程都验合格了,实体检验谁做都一样；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "不合规:结构实体检验是对'自检+验收'链路的独立复核,须由监理单位组织、施工单位实施、监理见证全过程,施工方不能自己组织自己复核；判断依据：前面四级验收是过程证据,结构实体检验是结果证据——用实测强度反向验证'过程合格'是否真合格,是层层把关最后一道独立校验闸。它的程序门要求'监理组织；施工实施；监理见证',施工方自己组织自己复核就失去了独立性(谁施工谁验收的错心智模型)。强度顺序都对但组织主体张冠李戴,仍是程序不合规——这是程序类收尾最易漏的独立复核/程序闭环", "feedback": "对:过程都验合格了,还差最后一道独立复核门。结构实体检验是用实测强度回头校验'过程到底真不真合格',为了独立,必须监理单位组织、施工单位只负责实施、监理全程见证,施工方不能既当运动员又当裁判。组织主体一错(自己组织/建设单位动手),这道独立闸就废了,照样违规。"}, {"id": "C", "text": "不合规,实体检验必须由建设单位亲自动手做；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}], "score_question_id": "q5", "score_terms": ["检验批→分项→分部→单位", "自下而上", "工程量/楼层/施工段/变形缝", "工种/材料/工艺/设备类别", "主控项目全部合格", "一般项目合格率≥80%", "技术资料完整", "见证取样满足设计", "施工方自检合格", "报监理", "隐蔽覆盖前验收记录", "未经验收不得进下道", "混凝土强度", "钢筋保护层", "尺寸偏差", "监理组织·施工实施·监理见证", "同条件养护优先", "88%/80%", "总监理工程师组织", "施工单位项目/技术负责人", "返工返修→重验", "返修加固仍不满足安全→严禁验收"], "sample_score_sentence": "检验批→分项→分部→单位、自下而上、工程量/楼层/施工段/变形缝、工种/材料/工艺/设备类别、主控项目全部合格、一般项目合格率≥80%", "warm_feedback": {"all_correct": "你是真的把验收这条台阶走通了——四级层级、自检→监理→隐蔽→下道的顺序、主控否决/一般≥80% 两套判据、结构实体检验监理组织独立复核,一个不落;碰到换层级会切换判据、收尾不忘谁组织谁参加。这类题稳,换什么楼层、什么专业、什么判定对象你都不慌。", "partial": "层级你背得对,就差中间和收尾那两层:每一级要先施工方自检合格再报监理、隐蔽工程覆盖前必须验收,这层最容易漏;换到合格判定别把80%套给主控,主控是一票否决、一般才≥80%;最后还有结构实体检验那道独立复核门——监理组织、施工实施、监理见证。把这几处补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'检验批→分项→分部→单位'这四个名词和80%、88%几个数。记这条验收台阶:先过层级门(自下而上、下合格才能上)→ 再过顺序门(自检→报监理→隐蔽覆盖前验收→下道,节点不可跨越)→ 再过阈值门(主控全合格一票否决、一般≥80%、实体88%/80%)→ 最后过程序门(谁组织/谁参加/不合格怎么处理、严禁验收红线)。四道门走顺了,换检验批换分部、换强度判定换合格率,你都不慌。"}}</script>
+<script>
+const DATA=JSON.parse(document.getElementById('practiceData').textContent);
+const qs=[...document.querySelectorAll('.q')], selected={}, progress=document.getElementById('progressFill');
+const prevBtn=document.getElementById('prevQ'), nextBtn=document.getElementById('nextQ');
+let current=0, score=0;
+const qById=Object.fromEntries(DATA.practice.map(q=>[q.id,q]));
+const clean=s=>String(s||'').replace(/\s+/g,'').replace(/[，。；、,.;]/g,'').toLowerCase();
+function el(tag, cls, text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node;}
+function showFeedback(box, ok, mainText, basisText){box.className='feedback show '+(ok?'correct':'wrong');box.replaceChildren(document.createTextNode((ok?'对。':'再看判据。')+' '+mainText), el('span','basis',basisText));}
+function done(i){const qid=qs[i].dataset.qid;return !!selected[qid];}
+function updateNav(){prevBtn.disabled=current===0;const ready=done(current);nextBtn.disabled=!ready;nextBtn.textContent=ready?(current===qs.length-1?'查看结果':'下一题'):'先作答';}
+function show(i){current=Math.max(0,Math.min(qs.length-1,i));qs.forEach((q,idx)=>q.classList.toggle('active',idx===current));progress.style.width=((current+1)/qs.length*100)+'%';updateNav();}
+function needAnswer(){const btn=document.getElementById('nextQ'),old=btn.textContent;btn.textContent='先独立作答';btn.classList.add('blocked');setTimeout(()=>{btn.textContent=old;btn.classList.remove('blocked');},900);}
+document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',()=>{
+  const qEl=btn.closest('.q'), qid=qEl.dataset.qid, q=qById[qid]; if(selected[qid])return;
+  const ok=btn.dataset.opt===q.answer; selected[qid]=btn.dataset.opt; if(ok)score++;
+  qEl.querySelectorAll('.option').forEach(o=>{o.disabled=true;if(o.dataset.opt===q.answer)o.classList.add('correct');else if(o===btn)o.classList.add('wrong');});
+	  const opt=(q.options||[]).find(o=>o.id===btn.dataset.opt)||{feedback:''};
+	  const fb=document.getElementById('fb-'+qid);
+	  showFeedback(fb, ok, ok?(q.correct_feedback||''):(opt.feedback||''), '判据:'+(q.basis||'')+(q.tier?' · '+q.tier:''));
+  updateNav();
+	}));
+document.querySelectorAll('[data-toggle-stem]').forEach(btn=>btn.addEventListener('click',()=>{
+  const q=btn.closest('.q'); q.classList.toggle('show-stem');
+  btn.textContent=q.classList.contains('show-stem')?'收起完整题干':'展开完整题干';
+}));
+document.querySelector('[data-check-score]').addEventListener('click',()=>{
+  const qEl=qs[qs.length-1], qid=qEl.dataset.qid, values=[...qEl.querySelectorAll('input')].map(i=>i.value).join('');
+  const terms=DATA.score_terms||[]; const hit=terms.filter(t=>clean(values).includes(clean(t))).length;
+  selected[qid]=true; if(hit>=3)score++;
+  qEl.querySelectorAll('input').forEach(i=>i.classList.toggle('ok',i.value.trim().length>0));
+	  const fb=document.getElementById('fb-'+qid);
+	  fb.className='feedback show '+(hit>=3?'correct':'wrong');
+	  fb.replaceChildren(document.createTextNode(hit>=3?'对。':'还不够像采分句。'), el('span','basis','可写:'+DATA.sample_score_sentence));
+  updateNav();
+	});
+prevBtn.addEventListener('click',()=>show(current-1));
+nextBtn.addEventListener('click',()=>{if(!done(current)){needAnswer();return;} if(current<qs.length-1)show(current+1);else showDone();});
+function showDone(){qs.forEach(q=>q.classList.remove('active'));document.getElementById('done').classList.add('show');document.querySelector('nav').style.display='none';progress.style.width='100%';const ratio=score+'/'+qs.length;document.getElementById('scoreText').textContent=ratio+'。'+((DATA.warm_feedback||{}).all_correct||'把判断链写成采分句,才算真正会拿分。');document.getElementById('atoms').replaceChildren(...(DATA.score_terms||[]).slice(0,6).map(t=>{const s=document.createElement('span');s.textContent=t;return s;}));}
+show(0);
+</script></body></html>

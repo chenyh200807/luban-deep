@@ -206,6 +206,41 @@ const LabelBadge: React.FC<{
   );
 };
 
+const ANIMATED_PRIMITIVE_KINDS = new Set([
+  "roof_section",
+  "scaffold_frame",
+  "process_flow",
+  "layer_stack",
+  "network_graph",
+  "formula_chain",
+  "decision_tree",
+  "contrast_pair",
+  "answer_scan",
+]);
+
+const PrimitiveStep: React.FC<{
+  index: number;
+  progress: number;
+  trace?: boolean;
+  children: React.ReactNode;
+}> = ({ index, progress, trace = false, children }) => {
+  const p = ease((progress - index * 0.16) / 0.24);
+  return (
+    <g
+      style={{
+        opacity: p,
+        transform: trace
+          ? `scaleX(${p})`
+          : `translateY(${interpolate(p, [0, 1], [7, 0])}px) scale(${interpolate(p, [0, 1], [0.97, 1])})`,
+        transformBox: "fill-box",
+        transformOrigin: trace ? "left center" : "center",
+      }}
+    >
+      {children}
+    </g>
+  );
+};
+
 const Primitive: React.FC<{
   node: VisualNode;
   opacity: number;
@@ -218,7 +253,8 @@ const Primitive: React.FC<{
   const h = node.h ?? (node.kind === "pill" ? 54 : node.kind === "dialogue_box" ? 42 : node.kind === "answer_box" ? 38 : 42);
   const transform = `translate(0 ${interpolate(opacity, [0, 1], [10, 0])}) scale(${interpolate(opacity, [0, 1], [0.97, highlighted ? 1.025 : 1])})`;
   const filter = highlighted ? "drop-shadow(0px 0px 8px rgba(255, 210, 127, 0.7))" : undefined;
-  const common = { opacity, transform, transformBox: "fill-box" as const, transformOrigin: "center", filter };
+  const hasInternalSteps = ANIMATED_PRIMITIVE_KINDS.has(node.kind);
+  const common = { opacity: hasInternalSteps ? (opacity > 0.01 ? 1 : 0) : opacity, transform, transformBox: "fill-box" as const, transformOrigin: "center", filter };
 
   if (node.kind === "pill") {
     const titleSize = fitFontSize(node.text, w, 16, 11);
@@ -236,11 +272,63 @@ const Primitive: React.FC<{
     const baseH = node.h ?? 58;
     return (
       <g style={common}>
-        <rect x={x} y={y + 28} width={w} height={baseH} rx={4} fill="#87919d" />
-        <rect x={x} y={y + 12} width={w} height={16} fill="#c5b78f" />
-        <rect x={x} y={y} width={w} height={12} fill="#34465b" />
-        <text x={x + 12} y={y + 9} fontSize={10} fontWeight={900} fill="#e2edf7">卷材</text>
-        <text x={x + 12} y={y + 45} fontSize={10} fontWeight={900} fill="#f8fafc">基层</text>
+        <PrimitiveStep index={0} progress={opacity}>
+          <rect x={x} y={y + 28} width={w} height={baseH} rx={4} fill="#87919d" />
+          <text x={x + 12} y={y + 45} fontSize={10} fontWeight={900} fill="#f8fafc">基层</text>
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity}>
+          <rect x={x} y={y + 12} width={w} height={16} fill="#c5b78f" />
+        </PrimitiveStep>
+        <PrimitiveStep index={2} progress={opacity}>
+          <rect x={x} y={y} width={w} height={12} fill="#34465b" />
+          <text x={x + 12} y={y + 9} fontSize={10} fontWeight={900} fill="#e2edf7">卷材</text>
+        </PrimitiveStep>
+      </g>
+    );
+  }
+  if (node.kind === "scaffold_frame") {
+    const labels = labelsWithDefaults(node, ["荷载先落架体", "立杆传到底座", "扫地杆锁底部", "连墙件防侧倒"], 4);
+    const postX = [x + w * 0.18, x + w * 0.38, x + w * 0.62, x + w * 0.82];
+    const topY = y + h * 0.22;
+    const midY = y + h * 0.48;
+    const lowY = y + h * 0.72;
+    const baseY = y + h * 0.88;
+    const bracePath = `M${postX[0]} ${baseY} L${postX[1]} ${topY} M${postX[1]} ${baseY} L${postX[2]} ${topY} M${postX[2]} ${baseY} L${postX[3]} ${topY}`;
+    return (
+      <g style={common}>
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "临时支撑系统"} x={x + w / 2} y={y + 10} size={16} fill="#176b7a" />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity}>
+          <rect x={x + 18} y={topY - 18} width={w - 36} height={14} rx={5} fill="#94a3b8" />
+          <path d={`M${x + 14} ${baseY + 8} H${x + w - 14}`} stroke="#8b8172" strokeWidth={7} strokeLinecap="round" />
+        </PrimitiveStep>
+        <PrimitiveStep index={2} progress={opacity} trace>
+          {postX.map((px) => (
+            <path key={px} d={`M${px} ${topY - 16} V${baseY}`} stroke="#334155" strokeWidth={5} strokeLinecap="round" />
+          ))}
+        </PrimitiveStep>
+        <PrimitiveStep index={3} progress={opacity} trace>
+          {[topY, midY, lowY].map((yy) => (
+            <path key={yy} d={`M${postX[0] - 22} ${yy} H${postX[postX.length - 1] + 22}`} stroke="#64748b" strokeWidth={4} strokeLinecap="round" />
+          ))}
+        </PrimitiveStep>
+        <PrimitiveStep index={4} progress={opacity} trace>
+          <path d={bracePath} stroke="#f59e0b" strokeWidth={4} strokeLinecap="round" opacity={0.92} />
+          <path d={`M${postX[postX.length - 1] + 8} ${midY} H${x + w + 10}`} stroke={colors.blue} strokeWidth={4} strokeLinecap="round" strokeDasharray="8 6" />
+        </PrimitiveStep>
+        <PrimitiveStep index={5} progress={opacity}>
+          <LabelBadge text={labels[0]} cx={x + w / 2} cy={topY - 34} tone={toneOf("blue")} width={122} size={11} />
+        </PrimitiveStep>
+        <PrimitiveStep index={6} progress={opacity}>
+          <LabelBadge text={labels[1]} cx={x + 68} cy={midY + 30} tone={toneOf("success")} width={116} size={10} />
+        </PrimitiveStep>
+        <PrimitiveStep index={7} progress={opacity}>
+          <LabelBadge text={labels[2]} cx={x + w - 70} cy={midY - 26} tone={toneOf("amber")} width={122} size={10} />
+        </PrimitiveStep>
+        <PrimitiveStep index={8} progress={opacity}>
+          <LabelBadge text={labels[3]} cx={x + w - 76} cy={topY + 30} tone={toneOf("blue")} width={116} size={10} />
+        </PrimitiveStep>
       </g>
     );
   }
@@ -343,18 +431,22 @@ const Primitive: React.FC<{
     const stepGap = w / Math.max(labels.length, 1);
     return (
       <g style={common}>
-        <TextLines text={node.text || "按顺序 reveal"} x={x + w / 2} y={y + 30} size={15} fill={t.text} />
-        <path d={`M${x + 34} ${y + 88} H${x + w - 34}`} stroke="#cbd5e1" strokeWidth={8} strokeLinecap="round" />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "按顺序 reveal"} x={x + w / 2} y={y + 30} size={15} fill={t.text} />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity} trace>
+          <path d={`M${x + 34} ${y + 88} H${x + w - 34}`} stroke="#cbd5e1" strokeWidth={8} strokeLinecap="round" />
+        </PrimitiveStep>
         {labels.map((label, index) => {
           const cx = x + stepGap * index + stepGap / 2;
           const circleTone = toneOf(["blue", "success", "amber", "neutral"][index % 4]);
           const size = fitFontSize(label, 68, 13, 10);
           return (
-            <g key={`${label}-${index}`}>
+            <PrimitiveStep key={`${label}-${index}`} index={index + 2} progress={opacity}>
               <circle cx={cx} cy={y + 88} r={31} fill={circleTone.fill} stroke={circleTone.stroke} strokeWidth={4} />
               <TextLines text={label} x={cx} y={y + 93} size={size} fill={circleTone.text} />
               <TextLines text={`第${index + 1}步`} x={cx} y={y + 142} size={12} fill="#64748b" />
-            </g>
+            </PrimitiveStep>
           );
         })}
       </g>
@@ -367,15 +459,19 @@ const Primitive: React.FC<{
     const layerH = 28;
     return (
       <g style={common}>
-        <TextLines text={node.text || "剖面分层"} x={x + w / 2} y={y + 36} size={16} fill={t.text} />
-        <rect x={x + 28} y={startY - 12} width={w - 56} height={labels.length * layerH + 8} rx={18} fill="none" stroke="#eadfcb" strokeWidth={3} />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "剖面分层"} x={x + w / 2} y={y + 36} size={16} fill={t.text} />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity}>
+          <rect x={x + 28} y={startY - 12} width={w - 56} height={labels.length * layerH + 8} rx={18} fill="none" stroke="#eadfcb" strokeWidth={3} />
+        </PrimitiveStep>
         {labels.map((label, index) => {
           const yy = startY + index * layerH;
           return (
-            <g key={`${label}-${index}`}>
+            <PrimitiveStep key={`${label}-${index}`} index={index + 2} progress={opacity}>
               <rect x={x + 38} y={yy} width={w - 76} height={layerH - 4} rx={6} fill={fills[index % fills.length]} opacity={0.88} />
               <TextLines text={label} x={x + 18} y={yy + 18} size={12} fill="#334155" anchor="start" />
-            </g>
+            </PrimitiveStep>
           );
         })}
       </g>
@@ -387,29 +483,52 @@ const Primitive: React.FC<{
     const nodeLabels = ["始", labels[0], labels[1], labels[2], "终"];
     return (
       <g style={common}>
-        <TextLines text={node.text || "图上推演"} x={x + w / 2} y={y + 32} size={16} fill={t.text} />
-        <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 116} ${x + 72} ${y + 76} ${coords[1][0] - 24} ${coords[1][1]}`} stroke="#94a3b8" strokeWidth={5} fill="none" />
-        <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 120} ${x + 72} ${y + 164} ${coords[2][0] - 24} ${coords[2][1]}`} stroke="#cbd5e1" strokeWidth={5} fill="none" />
-        <path d={`M${coords[1][0] + 24} ${coords[1][1]} H${coords[3][0] - 24} M${coords[2][0] + 24} ${coords[2][1]} C${x + 164} ${y + 164} ${x + 166} ${y + 122} ${coords[3][0] - 24} ${coords[3][1]}`} stroke={colors.blue} strokeWidth={5} fill="none" />
-        <path d={`M${coords[3][0] + 24} ${coords[3][1]} H${coords[4][0] - 24}`} stroke={colors.teal} strokeWidth={5} fill="none" />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "图上推演"} x={x + w / 2} y={y + 32} size={16} fill={t.text} />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity} trace>
+          <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 116} ${x + 72} ${y + 76} ${coords[1][0] - 24} ${coords[1][1]}`} stroke="#94a3b8" strokeWidth={5} fill="none" />
+        </PrimitiveStep>
+        <PrimitiveStep index={2} progress={opacity} trace>
+          <path d={`M${coords[0][0] + 24} ${coords[0][1]} C${x + 78} ${y + 120} ${x + 72} ${y + 164} ${coords[2][0] - 24} ${coords[2][1]}`} stroke="#cbd5e1" strokeWidth={5} fill="none" />
+        </PrimitiveStep>
+        <PrimitiveStep index={3} progress={opacity} trace>
+          <path d={`M${coords[1][0] + 24} ${coords[1][1]} H${coords[3][0] - 24} M${coords[2][0] + 24} ${coords[2][1]} C${x + 164} ${y + 164} ${x + 166} ${y + 122} ${coords[3][0] - 24} ${coords[3][1]}`} stroke={colors.blue} strokeWidth={5} fill="none" />
+        </PrimitiveStep>
+        <PrimitiveStep index={4} progress={opacity} trace>
+          <path d={`M${coords[3][0] + 24} ${coords[3][1]} H${coords[4][0] - 24}`} stroke={colors.teal} strokeWidth={5} fill="none" />
+        </PrimitiveStep>
         {coords.map(([cx, cy], index) => (
-          <g key={index}>
+          <PrimitiveStep key={index} index={index + 5} progress={opacity}>
             <rect x={cx - 25} y={cy - 20} width={50} height={40} rx={12} fill={index === 0 || index === 4 ? "#fff7ed" : "#eff6ff"} stroke={index === 0 || index === 4 ? "#f97316" : colors.blue} strokeWidth={3} />
             <TextLines text={nodeLabels[index]} x={cx} y={cy + 5} size={13} fill="#172033" />
-          </g>
+          </PrimitiveStep>
         ))}
       </g>
     );
   }
   if (node.kind === "formula_chain") {
     const labels = labelsWithDefaults(node, ["口径", "数量", "单价", "扣减"], 4);
-    const expr = labels.join(" → ");
+    const startX = x + 34;
+    const boxW = Math.max(48, (w - 92) / Math.max(labels.length, 1));
     return (
       <g style={common}>
-        <TextLines text={node.text || "计算口径"} x={x + w / 2} y={y + 44} size={16} fill={t.text} />
-        <rect x={x + 22} y={y + 76} width={w - 44} height={64} rx={18} fill="#fff7ed" stroke="#f59e0b" strokeWidth={4} />
-        <TextLines text={expr} x={x + w / 2} y={y + 115} size={fitFontSize(expr, w - 62, 16, 11)} fill="#b45309" />
-        <path d={`M${x + 56} ${y + 170} H${x + w - 56}`} stroke="#f97316" strokeWidth={6} strokeLinecap="round" />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "计算口径"} x={x + w / 2} y={y + 44} size={16} fill={t.text} />
+        </PrimitiveStep>
+        {labels.map((label, index) => {
+          const bx = startX + index * (boxW + 12);
+          return (
+            <PrimitiveStep key={`${label}-${index}`} index={index + 1} progress={opacity} trace={index < labels.length - 1}>
+              <rect x={bx} y={y + 82} width={boxW} height={48} rx={14} fill="#fff7ed" stroke="#f59e0b" strokeWidth={3} />
+              <TextLines text={label} x={bx + boxW / 2} y={y + 112} size={fitFontSize(label, boxW, 13, 10)} fill="#b45309" />
+              {index < labels.length - 1 ? <path d={`M${bx + boxW + 3} ${y + 106} H${bx + boxW + 13}`} stroke="#f97316" strokeWidth={4} strokeLinecap="round" /> : null}
+            </PrimitiveStep>
+          );
+        })}
+        <PrimitiveStep index={labels.length + 1} progress={opacity} trace>
+          <path d={`M${x + 56} ${y + 170} H${x + w - 56}`} stroke="#f97316" strokeWidth={6} strokeLinecap="round" />
+        </PrimitiveStep>
       </g>
     );
   }
@@ -418,17 +537,21 @@ const Primitive: React.FC<{
     const gateY = y + 100;
     return (
       <g style={common}>
-        <TextLines text={node.text || "判断树"} x={x + w / 2} y={y + 20} size={16} fill={t.text} />
-        <rect x={x + 66} y={y + 30} width={w - 132} height={38} rx={13} fill="#ecfdf5" stroke={colors.teal} strokeWidth={3} />
-        <TextLines text={labels[0]} x={x + w / 2} y={y + 55} size={13} fill="#047857" />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "判断树"} x={x + w / 2} y={y + 20} size={16} fill={t.text} />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity}>
+          <rect x={x + 66} y={y + 30} width={w - 132} height={38} rx={13} fill="#ecfdf5" stroke={colors.teal} strokeWidth={3} />
+          <TextLines text={labels[0]} x={x + w / 2} y={y + 55} size={13} fill="#047857" />
+        </PrimitiveStep>
         {labels.slice(1, 4).map((label, index) => {
           const cx = x + 50 + index * ((w - 100) / 2);
           return (
-            <g key={`${label}-${index}`}>
+            <PrimitiveStep key={`${label}-${index}`} index={index + 2} progress={opacity} trace>
               <path d={`M${x + w / 2} ${y + 68} V${gateY - 16} H${cx}`} stroke="#94a3b8" strokeWidth={3} fill="none" />
               <rect x={cx - 38} y={gateY} width={76} height={42} rx={12} fill="#f8fafc" stroke="#cbd5e1" strokeWidth={3} />
               <TextLines text={label} x={cx} y={gateY + 27} size={fitFontSize(label, 76, 12, 10)} fill="#334155" />
-            </g>
+            </PrimitiveStep>
           );
         })}
       </g>
@@ -440,31 +563,43 @@ const Primitive: React.FC<{
     const right = labels[1] || "正确做法";
     return (
       <g style={common}>
-        <TextLines text={node.text || "左右对照"} x={x + w / 2} y={y + 28} size={16} fill={t.text} />
-        <rect x={x + 20} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#fff7ed" stroke="#f97316" strokeWidth={4} />
-        <rect x={x + w / 2 + 10} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#ecfdf5" stroke={colors.teal} strokeWidth={4} />
-        <TextLines text="错" x={x + 42} y={y + 88} size={18} fill="#9a3412" />
-        <TextLines text="对" x={x + w / 2 + 32} y={y + 88} size={18} fill="#047857" />
-        <TextLines text={left} x={x + 20 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(left, w / 2 - 46, 14, 10)} fill="#9a3412" />
-        <TextLines text={right} x={x + w / 2 + 10 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(right, w / 2 - 46, 14, 10)} fill="#047857" />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "左右对照"} x={x + w / 2} y={y + 28} size={16} fill={t.text} />
+        </PrimitiveStep>
+        <PrimitiveStep index={1} progress={opacity}>
+          <rect x={x + 20} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#fff7ed" stroke="#f97316" strokeWidth={4} />
+          <TextLines text="错" x={x + 42} y={y + 88} size={18} fill="#9a3412" />
+          <TextLines text={left} x={x + 20 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(left, w / 2 - 46, 14, 10)} fill="#9a3412" />
+        </PrimitiveStep>
+        <PrimitiveStep index={2} progress={opacity}>
+          <rect x={x + w / 2 + 10} y={y + 62} width={w / 2 - 30} height={102} rx={16} fill="#ecfdf5" stroke={colors.teal} strokeWidth={4} />
+          <TextLines text="对" x={x + w / 2 + 32} y={y + 88} size={18} fill="#047857" />
+          <TextLines text={right} x={x + w / 2 + 10 + (w / 2 - 30) / 2} y={y + 125} size={fitFontSize(right, w / 2 - 46, 14, 10)} fill="#047857" />
+        </PrimitiveStep>
       </g>
     );
   }
   if (node.kind === "answer_scan") {
     const labels = labelsWithDefaults(node, ["对象", "条件", "依据", "采分句"], 4);
     const states = [["#ecfdf5", colors.teal, "hit"], ["#fffbeb", "#f59e0b", "partial"], ["#fef2f2", colors.red, "miss"], ["#eff6ff", colors.blue, "fix"]];
+    const rowTop = y + 62;
+    const rowH = 28;
+    const boardBottom = 240;
+    const rowGap = Math.min(38, Math.max(28, (boardBottom - rowTop - rowH) / Math.max(labels.length - 1, 1)));
     return (
       <g style={common}>
-        <TextLines text={node.text || "答案逐句扫描"} x={x + w / 2} y={y + 34} size={16} fill={t.text} />
+        <PrimitiveStep index={0} progress={opacity}>
+          <TextLines text={node.text || "答案逐句扫描"} x={x + w / 2} y={y + 34} size={16} fill={t.text} />
+        </PrimitiveStep>
         {labels.map((label, index) => {
-          const yy = y + 62 + index * 38;
+          const yy = rowTop + index * rowGap;
           const [fill, stroke, tag] = states[index % states.length];
           return (
-            <g key={`${label}-${index}`}>
+            <PrimitiveStep key={`${label}-${index}`} index={index + 1} progress={opacity}>
               <rect x={x + 30} y={yy} width={w - 60} height={28} rx={9} fill={fill} stroke={stroke} strokeWidth={2} />
               <TextLines text={label} x={x + 44} y={yy + 19} size={12} fill="#172033" anchor="start" />
               <TextLines text={tag} x={x + w - 46} y={yy + 19} size={11} fill="#64748b" />
-            </g>
+            </PrimitiveStep>
           );
         })}
       </g>
@@ -530,12 +665,14 @@ const Primitive: React.FC<{
   if (node.kind === "threshold_meter") {
     const value = Math.max(0, Math.min(1, node.value ?? 0.62));
     const marker = x + w * value;
+    const labelY = y + 52 > 244 ? y - 12 : y + 48;
+    const labelSize = fitFontSize(node.text, w, 13, 10);
     return (
       <g style={common}>
         <rect x={x} y={y} width={w} height={18} rx={9} fill="#e2e8f0" />
         <rect x={x} y={y} width={w * value} height={18} rx={9} fill={t.stroke} opacity={0.85} />
         <path d={`M${marker} ${y - 8} V${y + 30}`} stroke="#f97316" strokeWidth={4} strokeLinecap="round" />
-        <TextLines text={node.text} x={x + w / 2} y={y + 48} size={13} fill={t.text} />
+        <TextLines text={node.text} x={x + w / 2} y={labelY} size={labelSize} fill={t.text} />
       </g>
     );
   }

@@ -88,6 +88,11 @@ def _label_badge(text: object, cx: float, cy: float, *, tone: dict[str, str], wi
     )
 
 
+def _step_group(index: int, body: str, *, trace: bool = False) -> str:
+    trace_attr = ' data-trace="1"' if trace else ""
+    return f'<g data-primitive-step="{index}"{trace_attr}>{body}</g>'
+
+
 def _roof_section(node: dict[str, Any]) -> str:
     x = float(node.get("x", 32))
     y = float(node.get("y", 150))
@@ -95,13 +100,71 @@ def _roof_section(node: dict[str, Any]) -> str:
     base_h = float(node.get("base_h", 58))
     return _visual_group(
         node,
-        f"""
-        <rect x="{x}" y="{y + 28}" width="{w}" height="{base_h}" rx="4" fill="#87919d"/>
-        <rect x="{x}" y="{y + 12}" width="{w}" height="16" fill="#c5b78f"/>
-        <rect x="{x}" y="{y}" width="{w}" height="12" fill="#34465b"/>
-        <text x="{x + 12}" y="{y + 9}" font-size="10" font-weight="900" fill="#e2edf7">卷材</text>
-        <text x="{x + 12}" y="{y + 45}" font-size="10" font-weight="900" fill="#f8fafc">基层</text>
-        """,
+        _step_group(
+            0,
+            f'<rect x="{x}" y="{y + 28}" width="{w}" height="{base_h}" rx="4" fill="#87919d"/>'
+            f'<text x="{x + 12}" y="{y + 45}" font-size="10" font-weight="900" fill="#f8fafc">基层</text>',
+        )
+        + _step_group(1, f'<rect x="{x}" y="{y + 12}" width="{w}" height="16" fill="#c5b78f"/>')
+        + _step_group(
+            2,
+            f'<rect x="{x}" y="{y}" width="{w}" height="12" fill="#34465b"/>'
+            f'<text x="{x + 12}" y="{y + 9}" font-size="10" font-weight="900" fill="#e2edf7">卷材</text>',
+        ),
+    )
+
+
+def _scaffold_frame(node: dict[str, Any]) -> str:
+    x = float(node.get("x", 36))
+    y = float(node.get("y", 50))
+    w = float(node.get("w", 288))
+    h = float(node.get("h", 176))
+    labels = _labels(node, ["荷载先落架体", "立杆传到底座", "扫地杆锁底部", "连墙件防侧倒"], 4)
+    post_x = [x + w * 0.18, x + w * 0.38, x + w * 0.62, x + w * 0.82]
+    top_y = y + h * 0.22
+    mid_y = y + h * 0.48
+    low_y = y + h * 0.72
+    base_y = y + h * 0.88
+    brace_path = (
+        f"M{post_x[0]} {base_y} L{post_x[1]} {top_y} "
+        f"M{post_x[1]} {base_y} L{post_x[2]} {top_y} "
+        f"M{post_x[2]} {base_y} L{post_x[3]} {top_y}"
+    )
+    title = node.get("text") or "临时支撑系统"
+    return _visual_group(
+        node,
+        _step_group(0, _svg_text(title, x + w / 2, y + 10, size=16, fill="#176b7a"))
+        + _step_group(
+            1,
+            f'<rect x="{x + 18}" y="{top_y - 18}" width="{w - 36}" height="14" rx="5" fill="#94a3b8"/>'
+            f'<path d="M{x + 14} {base_y + 8} H{x + w - 14}" stroke="#8b8172" stroke-width="7" stroke-linecap="round"/>',
+        )
+        + _step_group(
+            2,
+            "".join(
+                f'<path d="M{px} {top_y - 16} V{base_y}" stroke="#334155" stroke-width="5" stroke-linecap="round"/>'
+                for px in post_x
+            ),
+            trace=True,
+        )
+        + _step_group(
+            3,
+            "".join(
+                f'<path d="M{post_x[0] - 22} {yy} H{post_x[-1] + 22}" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>'
+                for yy in [top_y, mid_y, low_y]
+            ),
+            trace=True,
+        )
+        + _step_group(
+            4,
+            f'<path d="{brace_path}" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" opacity=".92"/>'
+            f'<path d="M{post_x[-1] + 8} {mid_y} H{x + w + 10}" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 6"/>',
+            trace=True,
+        )
+        + _step_group(5, _label_badge(labels[0], x + w / 2, top_y - 34, tone=_tone("blue"), width=122, size=11))
+        + _step_group(6, _label_badge(labels[1], x + 68, mid_y + 30, tone=_tone("success"), width=116, size=10))
+        + _step_group(7, _label_badge(labels[2], x + w - 70, mid_y - 26, tone=_tone("amber"), width=122, size=10))
+        + _step_group(8, _label_badge(labels[3], x + w - 76, top_y + 30, tone=_tone("blue"), width=116, size=10)),
     )
 
 
@@ -127,6 +190,8 @@ def _primitive_svg(node: dict[str, Any]) -> str:
         )
     if kind == "roof_section":
         return _roof_section(node)
+    if kind == "scaffold_frame":
+        return _scaffold_frame(node)
     if kind == "bulge":
         cx = float(node.get("x", 180))
         by = float(node.get("base_y", 150))
@@ -205,90 +270,131 @@ def _primitive_svg(node: dict[str, Any]) -> str:
     if kind == "process_flow":
         labels = _labels(node, ["先判", "再做", "复核", "写分"], 4)
         step_gap = w / max(len(labels), 1)
-        parts = [f'<path d="M{x + 34} {y + 88} H{x + w - 34}" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>']
+        parts = [
+            _step_group(0, _svg_text(text or "按顺序 reveal", x + w / 2, y + 30, size=15, fill=tone["text"])),
+            _step_group(1, f'<path d="M{x + 34} {y + 88} H{x + w - 34}" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>', trace=True),
+        ]
         for index, label in enumerate(labels):
             cx = x + step_gap * index + step_gap / 2
             circle_tone = _tone(["blue", "success", "amber", "neutral"][index % 4])
             size = _fit_font_size(label, 68, 13, minimum=10)
             parts.append(
-                f'<circle cx="{cx}" cy="{y + 88}" r="31" fill="{circle_tone["fill"]}" stroke="{circle_tone["stroke"]}" stroke-width="4"/>'
-                f'<text x="{cx}" y="{y + 93}" text-anchor="middle" font-size="{size}" font-weight="900" fill="{circle_tone["text"]}">{esc(label)}</text>'
-                f'<text x="{cx}" y="{y + 142}" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第{index + 1}步</text>'
+                _step_group(
+                    index + 2,
+                    f'<circle cx="{cx}" cy="{y + 88}" r="31" fill="{circle_tone["fill"]}" stroke="{circle_tone["stroke"]}" stroke-width="4"/>'
+                    f'<text x="{cx}" y="{y + 93}" text-anchor="middle" font-size="{size}" font-weight="900" fill="{circle_tone["text"]}">{esc(label)}</text>'
+                    f'<text x="{cx}" y="{y + 142}" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第{index + 1}步</text>',
+                )
             )
-        return _visual_group(node, "".join(parts) + _svg_text(text or "按顺序 reveal", x + w / 2, y + 30, size=15, fill=tone["text"]))
+        return _visual_group(node, "".join(parts))
     if kind == "layer_stack":
         labels = _labels(node, ["面层", "防水层", "找平层", "基层"], 4)
         colors = ["#60a5fa", "#10b981", "#c5b78f", "#87919d"]
-        parts = []
+        parts = [_step_group(0, _svg_text(text or "剖面分层", x + w / 2, y + 36, size=16, fill=tone["text"]))]
         layer_h = 28
         start_y = y + 70
+        parts.append(_step_group(1, f'<rect x="{x + 28}" y="{start_y - 12}" width="{w - 56}" height="{len(labels) * layer_h + 8}" rx="18" fill="none" stroke="#eadfcb" stroke-width="3"/>'))
         for index, label in enumerate(labels):
             yy = start_y + index * layer_h
             parts.append(
-                f'<rect x="{x + 38}" y="{yy}" width="{w - 76}" height="{layer_h - 4}" rx="6" fill="{colors[index % len(colors)]}" opacity=".88"/>'
-                f'<text x="{x + 18}" y="{yy + 18}" text-anchor="start" font-size="12" font-weight="900" fill="#334155">{esc(label)}</text>'
+                _step_group(
+                    index + 2,
+                    f'<rect x="{x + 38}" y="{yy}" width="{w - 76}" height="{layer_h - 4}" rx="6" fill="{colors[index % len(colors)]}" opacity=".88"/>'
+                    f'<text x="{x + 18}" y="{yy + 18}" text-anchor="start" font-size="12" font-weight="900" fill="#334155">{esc(label)}</text>',
+                )
             )
-        parts.append(f'<rect x="{x + 28}" y="{start_y - 12}" width="{w - 56}" height="{len(labels) * layer_h + 8}" rx="18" fill="none" stroke="#eadfcb" stroke-width="3"/>')
-        return _visual_group(node, _svg_text(text or "剖面分层", x + w / 2, y + 36, size=16, fill=tone["text"]) + "".join(parts))
+        return _visual_group(node, "".join(parts))
     if kind == "network_graph":
         labels = _labels(node, ["A", "B", "C", "D"], 4)
         coords = [(x + 36, y + 118), (x + 112, y + 72), (x + 112, y + 164), (x + 206, y + 118), (x + 282, y + 118)]
         parts = [
-            f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 116} {x + 72} {y + 76} {coords[1][0] - 24} {coords[1][1]}" stroke="#94a3b8" stroke-width="5" fill="none"/>',
-            f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 120} {x + 72} {y + 164} {coords[2][0] - 24} {coords[2][1]}" stroke="#cbd5e1" stroke-width="5" fill="none"/>',
-            f'<path d="M{coords[1][0] + 24} {coords[1][1]} H{coords[3][0] - 24} M{coords[2][0] + 24} {coords[2][1]} C{x + 164} {y + 164} {x + 166} {y + 122} {coords[3][0] - 24} {coords[3][1]}" stroke="#60a5fa" stroke-width="5" fill="none"/>',
-            f'<path d="M{coords[3][0] + 24} {coords[3][1]} H{coords[4][0] - 24}" stroke="#10b981" stroke-width="5" fill="none"/>',
+            _step_group(0, _svg_text(text or "图上推演", x + w / 2, y + 32, size=16, fill=tone["text"])),
+            _step_group(1, f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 116} {x + 72} {y + 76} {coords[1][0] - 24} {coords[1][1]}" stroke="#94a3b8" stroke-width="5" fill="none"/>', trace=True),
+            _step_group(2, f'<path d="M{coords[0][0] + 24} {coords[0][1]} C{x + 78} {y + 120} {x + 72} {y + 164} {coords[2][0] - 24} {coords[2][1]}" stroke="#cbd5e1" stroke-width="5" fill="none"/>', trace=True),
+            _step_group(3, f'<path d="M{coords[1][0] + 24} {coords[1][1]} H{coords[3][0] - 24} M{coords[2][0] + 24} {coords[2][1]} C{x + 164} {y + 164} {x + 166} {y + 122} {coords[3][0] - 24} {coords[3][1]}" stroke="#60a5fa" stroke-width="5" fill="none"/>', trace=True),
+            _step_group(4, f'<path d="M{coords[3][0] + 24} {coords[3][1]} H{coords[4][0] - 24}" stroke="#10b981" stroke-width="5" fill="none"/>', trace=True),
         ]
         node_labels = ["始", labels[0], labels[1], labels[2], "终"]
         for index, (cx, cy) in enumerate(coords):
             fill = "#fff7ed" if index in [0, 4] else "#eff6ff"
             stroke = "#f97316" if index in [0, 4] else "#60a5fa"
-            parts.append(f'<rect x="{cx - 25}" y="{cy - 20}" width="50" height="40" rx="12" fill="{fill}" stroke="{stroke}" stroke-width="3"/><text x="{cx}" y="{cy + 5}" text-anchor="middle" font-size="13" font-weight="900" fill="#172033">{esc(node_labels[index])}</text>')
-        return _visual_group(node, _svg_text(text or "图上推演", x + w / 2, y + 32, size=16, fill=tone["text"]) + "".join(parts))
+            parts.append(_step_group(index + 5, f'<rect x="{cx - 25}" y="{cy - 20}" width="50" height="40" rx="12" fill="{fill}" stroke="{stroke}" stroke-width="3"/><text x="{cx}" y="{cy + 5}" text-anchor="middle" font-size="13" font-weight="900" fill="#172033">{esc(node_labels[index])}</text>'))
+        return _visual_group(node, "".join(parts))
     if kind == "formula_chain":
         labels = _labels(node, ["口径", "数量", "单价", "扣减"], 4)
-        expr = " → ".join(labels[:4])
+        start_x = x + 34
+        box_w = max(48, (w - 92) / max(len(labels), 1))
+        parts = [_step_group(0, _svg_text(text or "计算口径", x + w / 2, y + 44, size=16, fill=tone["text"]))]
+        for index, label in enumerate(labels):
+            bx = start_x + index * (box_w + 12)
+            parts.append(
+                _step_group(
+                    index + 1,
+                    f'<rect x="{bx}" y="{y + 82}" width="{box_w}" height="48" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/>'
+                    + _svg_text(label, bx + box_w / 2, y + 112, size=_fit_font_size(label, box_w, 13, minimum=10), fill="#b45309")
+                    + (f'<path d="M{bx + box_w + 3} {y + 106} H{bx + box_w + 13}" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>' if index < len(labels) - 1 else ""),
+                    trace=index < len(labels) - 1,
+                )
+            )
         return _visual_group(
             node,
-            f'<rect x="{x + 22}" y="{y + 76}" width="{w - 44}" height="64" rx="18" fill="#fff7ed" stroke="#f59e0b" stroke-width="4"/>'
-            + _svg_text(text or "计算口径", x + w / 2, y + 44, size=16, fill=tone["text"])
-            + _svg_text(expr, x + w / 2, y + 115, size=_fit_font_size(expr, w - 62, 16, minimum=11), fill="#b45309")
-            + f'<path d="M{x + 56} {y + 170} H{x + w - 56}" stroke="#f97316" stroke-width="6" stroke-linecap="round"/>',
+            "".join(parts) + _step_group(len(labels) + 1, f'<path d="M{x + 56} {y + 170} H{x + w - 56}" stroke="#f97316" stroke-width="6" stroke-linecap="round"/>', trace=True),
         )
     if kind == "decision_tree":
         labels = _labels(node, ["对象", "条件", "阈值", "结论"], 4)
         parts = [
-            f'<rect x="{x + 66}" y="{y + 30}" width="{w - 132}" height="38" rx="13" fill="#ecfdf5" stroke="#10b981" stroke-width="3"/>'
-            + _svg_text(labels[0], x + w / 2, y + 55, size=13, fill="#047857")
+            _step_group(0, _svg_text(text or "判断树", x + w / 2, y + 20, size=16, fill=tone["text"])),
+            _step_group(
+                1,
+                f'<rect x="{x + 66}" y="{y + 30}" width="{w - 132}" height="38" rx="13" fill="#ecfdf5" stroke="#10b981" stroke-width="3"/>'
+                + _svg_text(labels[0], x + w / 2, y + 55, size=13, fill="#047857"),
+            ),
         ]
         gate_y = y + 100
         for index, label in enumerate(labels[1:4]):
             cx = x + 50 + index * ((w - 100) / 2)
-            parts.append(f'<path d="M{x + w / 2} {y + 68} V{gate_y - 16} H{cx}" stroke="#94a3b8" stroke-width="3" fill="none"/>')
-            parts.append(f'<rect x="{cx - 38}" y="{gate_y}" width="76" height="42" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><text x="{cx}" y="{gate_y + 27}" text-anchor="middle" font-size="{_fit_font_size(label, 76, 12, minimum=10)}" font-weight="900" fill="#334155">{esc(label)}</text>')
-        return _visual_group(node, _svg_text(text or "判断树", x + w / 2, y + 20, size=16, fill=tone["text"]) + "".join(parts))
+            parts.append(
+                _step_group(
+                    index + 2,
+                    f'<path d="M{x + w / 2} {y + 68} V{gate_y - 16} H{cx}" stroke="#94a3b8" stroke-width="3" fill="none"/>'
+                    f'<rect x="{cx - 38}" y="{gate_y}" width="76" height="42" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/><text x="{cx}" y="{gate_y + 27}" text-anchor="middle" font-size="{_fit_font_size(label, 76, 12, minimum=10)}" font-weight="900" fill="#334155">{esc(label)}</text>',
+                    trace=True,
+                )
+            )
+        return _visual_group(node, "".join(parts))
     if kind == "contrast_pair":
         labels = _labels(node, ["错误做法", "正确做法", "错因", "采分"], 4)
         left = labels[0]
         right = labels[1] if len(labels) > 1 else "正确做法"
         return _visual_group(
             node,
-            _svg_text(text or "左右对照", x + w / 2, y + 28, size=16, fill=tone["text"])
-            + f'<rect x="{x + 20}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#fff7ed" stroke="#f97316" stroke-width="4"/>'
-            + f'<rect x="{x + w / 2 + 10}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/>'
-            + _svg_text("错", x + 42, y + 88, size=18, fill="#9a3412")
-            + _svg_text("对", x + w / 2 + 32, y + 88, size=18, fill="#047857")
-            + _svg_text(left, x + 20 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(left, w / 2 - 46, 14, minimum=10), fill="#9a3412")
-            + _svg_text(right, x + w / 2 + 10 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(right, w / 2 - 46, 14, minimum=10), fill="#047857"),
+            _step_group(0, _svg_text(text or "左右对照", x + w / 2, y + 28, size=16, fill=tone["text"]))
+            + _step_group(
+                1,
+                f'<rect x="{x + 20}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#fff7ed" stroke="#f97316" stroke-width="4"/>'
+                + _svg_text("错", x + 42, y + 88, size=18, fill="#9a3412")
+                + _svg_text(left, x + 20 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(left, w / 2 - 46, 14, minimum=10), fill="#9a3412"),
+            )
+            + _step_group(
+                2,
+                f'<rect x="{x + w / 2 + 10}" y="{y + 62}" width="{w / 2 - 30}" height="102" rx="16" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/>'
+                + _svg_text("对", x + w / 2 + 32, y + 88, size=18, fill="#047857")
+                + _svg_text(right, x + w / 2 + 10 + (w / 2 - 30) / 2, y + 125, size=_fit_font_size(right, w / 2 - 46, 14, minimum=10), fill="#047857"),
+            ),
         )
     if kind == "answer_scan":
         labels = _labels(node, ["对象", "条件", "依据", "采分句"], 4)
         states = [("#ecfdf5", "#10b981", "hit"), ("#fffbeb", "#f59e0b", "partial"), ("#fef2f2", "#ef4444", "miss"), ("#eff6ff", "#60a5fa", "fix")]
-        parts = [_svg_text(text or "答案逐句扫描", x + w / 2, y + 34, size=16, fill=tone["text"])]
+        row_top = y + 62
+        row_h = 28
+        board_bottom = 240
+        default_gap = 38
+        row_gap = float(node.get("row_gap", min(default_gap, max(28, (board_bottom - row_top - row_h) / max(len(labels) - 1, 1)))))
+        parts = [_step_group(0, _svg_text(text or "答案逐句扫描", x + w / 2, y + 34, size=16, fill=tone["text"]))]
         for index, label in enumerate(labels):
-            yy = y + 62 + index * 38
+            yy = row_top + index * row_gap
             fill, stroke, tag = states[index % len(states)]
-            parts.append(f'<rect x="{x + 30}" y="{yy}" width="{w - 60}" height="28" rx="9" fill="{fill}" stroke="{stroke}" stroke-width="2"/><text x="{x + 44}" y="{yy + 19}" text-anchor="start" font-size="12" font-weight="900" fill="#172033">{esc(label)}</text><text x="{x + w - 46}" y="{yy + 19}" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">{tag}</text>')
+            parts.append(_step_group(index + 1, f'<rect x="{x + 30}" y="{yy}" width="{w - 60}" height="28" rx="9" fill="{fill}" stroke="{stroke}" stroke-width="2"/><text x="{x + 44}" y="{yy + 19}" text-anchor="start" font-size="12" font-weight="900" fill="#172033">{esc(label)}</text><text x="{x + w - 46}" y="{yy + 19}" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">{tag}</text>'))
         return _visual_group(node, "".join(parts))
     if kind == "memory_table":
         labels = _labels(node, ["数值", "条件", "例外", "记忆钩子"], 4)
@@ -308,6 +414,13 @@ def _primitive_svg(node: dict[str, Any]) -> str:
             node,
             f'<rect x="{x}" y="{y}" width="{w}" height="42" rx="12" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2"/>'
             + _svg_text(text, x + w / 2, y + 26, size=13, fill=tone["text"]),
+        )
+    if kind == "note":
+        title_size = _fit_font_size(text, w, 13, minimum=10)
+        return _visual_group(
+            node,
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="{tone["fill"]}" stroke="{tone["stroke"]}" stroke-width="2" stroke-dasharray="7 5"/>'
+            + _svg_text(text, x + w / 2, y + h / 2 + title_size * 0.36, size=title_size, fill=tone["text"]),
         )
     if kind == "closing_text":
         return _visual_group(
@@ -339,12 +452,14 @@ def _primitive_svg(node: dict[str, Any]) -> str:
     if kind == "threshold_meter":
         value = max(0, min(1, float(node.get("value", 0.62))))
         marker = x + w * value
+        label_y = float(node.get("label_y", y - 12 if y + 52 > 244 else y + 48))
+        label_size = _fit_font_size(text, w, 13, minimum=10)
         return _visual_group(
             node,
             f'<rect x="{x}" y="{y}" width="{w}" height="18" rx="9" fill="#e2e8f0"/>'
             f'<rect x="{x}" y="{y}" width="{w * value}" height="18" rx="9" fill="{tone["stroke"]}" opacity=".85"/>'
             f'<path d="M{marker} {y - 8} V{y + 30}" stroke="#f97316" stroke-width="4" stroke-linecap="round"/>'
-            + _svg_text(text, x + w / 2, y + 48, size=13, fill=tone["text"]),
+            + _svg_text(text, x + w / 2, label_y, size=label_size, fill=tone["text"]),
         )
     raise ValueError(f"unsupported visual primitive kind: {kind}")
 
@@ -605,7 +720,7 @@ body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFo
 .bar{height:8px;border-radius:999px;background:#26344a;overflow:hidden}.fill{height:100%;width:0;background:#ffd27f}
 .scrubber{width:100%;height:44px;accent-color:#ffd27f;margin:0}
 .chapters{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:1px;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}
-.chapter{flex:0 0 auto;min-width:72px;border:1px solid #2b3b50;background:#172434;color:#9fb0c2;border-radius:12px;min-height:44px;padding:0 10px;font-weight:900}
+.chapter{flex:0 0 auto;min-width:64px;border:1px solid #2b3b50;background:#172434;color:#9fb0c2;border-radius:12px;min-height:44px;padding:0 9px;font-weight:900}
 .chapter.on{background:#ffd27f;color:#0f1722;border-color:#ffd27f}
 @keyframes sceneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .lesson.theater{max-width:none;padding:0;background:#0d1723}
@@ -715,7 +830,7 @@ function updateChallenge(t){{const ready=scoreReady(t);lesson.classList.toggle('
 function showHint(){{if(!lesson.classList.contains('theater'))return;clearTimeout(hintTimer);lesson.classList.add('show-hint');hintTimer=setTimeout(()=>lesson.classList.remove('show-hint'),1400);}}
 function setControls(visible=true,auto=true){{clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible)lesson.classList.remove('show-hint');else showHint();if(visible&&auto&&lesson.classList.contains('theater')&&!isPaused())hideTimer=setTimeout(()=>setControls(false,false),2600);}}
 function setPlayState(isPlaying){{play.textContent=isPlaying?'⏸':'▶';play.setAttribute('aria-label',isPlaying?'暂停讲解':'播放讲解');play.setAttribute('aria-pressed',isPlaying?'true':'false');}}
-function applyMotion(activeEl,active,t){{if(!activeEl)return;const dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur),nodes=[...activeEl.querySelectorAll('[data-visible-node]')],actions=active.actions||[];const cameraAction=actions.find(a=>a.kind==='camera')||{{verb:active.camera,start:0,end:.28}},cameraVerb=cameraAction.verb||active.camera;const cameraPush=cameraVerb==='push-in'||cameraVerb==='spotlight'||cameraVerb==='answer-paper'||cameraVerb==='trace';const cameraP=ease((p-(cameraAction.start||0))/Math.max(.05,(cameraAction.end||.28)-(cameraAction.start||0)));stage.style.setProperty('--camera-scale',String(1+(cameraPush?0.035*cameraP:0)));stage.style.setProperty('--camera-y',(cameraVerb==='pull-back'?String(-8*ease(p)):'0')+'px');nodes.forEach((node,i)=>{{const name=node.dataset.visibleNode||'';const reveal=actions.find(a=>a.kind==='reveal'&&a.target===name)||{{start:.04+i*.14,end:.22+i*.14}};const v=ease((p-reveal.start)/Math.max(.05,reveal.end-reveal.start));const highlighted=actions.some(a=>a.kind==='highlight'&&(a.target===name||name===a.target||name.includes(a.target))&&p>=a.start&&p<=a.end)||name===active.focus||name.includes(active.focus);node.style.opacity=String(v);node.style.transform=`translateY(${{(1-v)*10}}px) scale(${{0.96+v*0.04}})`;node.classList.toggle('node-focus',highlighted);}});if(active.id!==lastScene){{scenes.forEach(scene=>{{if(scene!==activeEl)scene.querySelectorAll('[data-visible-node]').forEach(node=>{{node.style.opacity='0';node.style.transform='translateY(10px) scale(.96)';node.classList.remove('node-focus');}});}});lastScene=active.id;}}}}
+function applyMotion(activeEl,active,t){{if(!activeEl)return;const dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur),nodes=[...activeEl.querySelectorAll('[data-visible-node]')],actions=active.actions||[];const cameraAction=actions.find(a=>a.kind==='camera')||{{verb:active.camera,start:0,end:.28}},cameraVerb=cameraAction.verb||active.camera;const cameraPush=cameraVerb==='push-in'||cameraVerb==='spotlight'||cameraVerb==='answer-paper'||cameraVerb==='trace';const cameraP=ease((p-(cameraAction.start||0))/Math.max(.05,(cameraAction.end||.28)-(cameraAction.start||0)));stage.style.setProperty('--camera-scale',String(1+(cameraPush?0.035*cameraP:0)));stage.style.setProperty('--camera-y',(cameraVerb==='pull-back'?String(-8*ease(p)):'0')+'px');nodes.forEach((node,i)=>{{const name=node.dataset.visibleNode||'';const reveal=actions.find(a=>a.kind==='reveal'&&a.target===name)||{{start:.04+i*.14,end:.22+i*.14}};const v=ease((p-reveal.start)/Math.max(.05,reveal.end-reveal.start));const highlighted=actions.some(a=>a.kind==='highlight'&&(a.target===name||name===a.target||name.includes(a.target))&&p>=a.start&&p<=a.end)||name===active.focus||name.includes(active.focus);const steps=[...node.querySelectorAll('[data-primitive-step]')];if(steps.length){{node.style.opacity=v>.01?'1':'0';node.style.transform=`translateY(${{(1-v)*8}}px) scale(${{0.98+v*0.02}})`;steps.forEach((step,si)=>{{const sv=ease((v-si*.16)/.24);step.style.opacity=String(sv);step.style.transformBox='fill-box';step.style.transformOrigin=step.dataset.trace==='1'?'left center':'center';step.style.transform=step.dataset.trace==='1'?`scaleX(${{sv}})`: `translateY(${{(1-sv)*7}}px) scale(${{0.97+sv*0.03}})`;}});}}else{{node.style.opacity=String(v);node.style.transform=`translateY(${{(1-v)*10}}px) scale(${{0.96+v*0.04}})`;}}node.classList.toggle('node-focus',highlighted);}});if(active.id!==lastScene){{scenes.forEach(scene=>{{if(scene!==activeEl)scene.querySelectorAll('[data-visible-node]').forEach(node=>{{node.style.opacity='0';node.style.transform='translateY(10px) scale(.96)';node.classList.remove('node-focus');node.querySelectorAll('[data-primitive-step]').forEach(step=>{{step.style.opacity='0';step.style.transform='translateY(7px) scale(.97)';}});}});}});lastScene=active.id;}}}}
 function paint(){{const t=Number(getTime()||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.toggle('paused',isPaused());lesson.classList.toggle('playing',!isPaused());let activeEl=null;scenes.forEach(el=>{{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;}});const coach=activeEl?.querySelector('.coach-card');if(activeEl&&coach&&captionLine.parentElement!==activeEl)activeEl.insertBefore(captionLine,coach);const motionT=!lesson.classList.contains('started')&&t<0.05?active.start+Math.max(1,(active.end-active.start)*0.55):t;applyMotion(activeEl,active,motionT);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);captionLine.hidden=!seg;captionLine.textContent=seg?.text||'';captionLine.dataset.speaker=seg?.speaker||'T';updateChallenge(t);syncPlayerHeight();}}
 function tickVirtualClock(){{if(!hasAudio&&virtualPlaying){{const now=performance.now();if(lastTick)virtualTime+=Math.max(0,(now-lastTick)/1000);lastTick=now;if(virtualTime>=DATA.totalSec){{virtualTime=DATA.totalSec;virtualPlaying=false;setPlayState(false);setControls(true,false);}}}}}}
 function loop(){{tickVirtualClock();paint();if(!isPaused())raf=requestAnimationFrame(loop);}}

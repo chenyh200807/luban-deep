@@ -74,6 +74,25 @@ _ENUM_PREFIX_RE = re.compile(
     r")\s*"
 )
 
+# Separator / structural punctuation that differs only in WRITING FORM between a
+# heading and a leaf name for the SAME topic (heading ``一类土：松软土`` vs leaf core
+# ``一类土（松软土）`` — identical discriminators 一类土/松软土, only the separator
+# differs: ``：`` vs ``（）``). Stripping these before EXACT/FORWARD comparison lets
+# the same topic match across punctuation variants. NARROW BY DESIGN: only
+# separators/brackets/spaces are removed — no synonym, edit-distance, or tokenized
+# fuzzing — so two genuinely different topics still cannot collide.
+_SEP_PUNCT_RE = re.compile(r"[：:（）()【】「」『』，,、；;／/\s·]+")
+
+
+def _normalize_separators(text: str) -> str:
+    """Drop separator/structural punctuation so the SAME topic written with
+    different separators compares equal (一类土：松软土 == 一类土（松软土）).
+
+    Only separators are removed — discriminative characters are untouched — so
+    this stays a writing-form normalization, never a semantic loosening."""
+    return _SEP_PUNCT_RE.sub("", str(text or ""))
+
+
 # Generic words that, alone, must NOT be treated as a discriminative match —
 # mirrors the detector's stop-word list so "建筑设计要求" can't match on 要求 only.
 _GENERIC_TOKENS = frozenset(
@@ -219,10 +238,18 @@ def _title_matches_core(title: str, core: str) -> int:
     """
     if not title or not core:
         return 0
-    if title == core:
-        return 3
-    if core in title:
-        return 2
+    # EXACT / FORWARD compare on separator-normalized forms so the SAME topic
+    # written with different separators still matches (一类土：松软土 vs
+    # 一类土（松软土）). NARROW: normalization is separators-only and is applied
+    # ONLY to these two safe tiers — it never reaches the reverse-prefix logic
+    # below, so the unsafe-substring-reverse guard (窗 ⊂ 天窗) is unchanged.
+    n_title = _normalize_separators(title)
+    n_core = _normalize_separators(core)
+    if n_title and n_core:
+        if n_title == n_core:
+            return 3
+        if n_core in n_title:
+            return 2
     if len(title) >= 2 and core.startswith(title):
         remainder = core[len(title):]
         if _QUALIFIER_TAIL_RE.match(remainder):

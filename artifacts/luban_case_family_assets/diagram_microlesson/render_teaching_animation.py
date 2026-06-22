@@ -160,6 +160,8 @@ def _svg() -> str:
     <circle class="markdot" cx="{PIT_X+PIT_W//2}" cy="{Y55}" r="7"/>
     <text class="marktxt" x="{PIT_X+PIT_W//2}" y="{Y55+22}" text-anchor="middle">本题 5.5m</text>
   </g>
+  <!-- 结论档:两道闸不变量 + 论证结论(transfer/concl beat 的 data-id 目标,无额外视觉) -->
+  <g data-visual-node-id="invariant.two_gates conclusion.need_argumentation" aria-hidden="true"></g>
 </svg>"""
 
 
@@ -180,6 +182,10 @@ def render(lesson_path: Path) -> str:
     lesson = json.loads(lesson_path.read_text(encoding="utf-8"))
     timing_path = lesson_path.with_suffix(".timing.json")
     timing = json.loads(timing_path.read_text(encoding="utf-8")) if timing_path.exists() else None
+
+    # 舞台外置:lesson 自带 stage(svg + states + css + banner)就用它,否则回退 J01 基坑。
+    # 让讲懂幕引擎从 'J01 专用' 变 '原型通用'(工序类/构造类/温控类各带自己的舞台)。
+    stage_svg, state_order, state_label, extra_css, banner = stage_spec(lesson)
 
     # 采分词 chips:从源卡 scoring_points keywords 取(student-safe:只取词,不取 id/source_ref)
     card_path = lesson_path.parent / lesson.get("derived_from", "")
@@ -216,10 +222,17 @@ def render(lesson_path: Path) -> str:
             "qaIndex": s.get("qaIndex"), "speaker": s["speaker"],
             "text": s["text"], "startSec": s["startSec"], "durSec": s["durSec"],
         })
-    teach_dots = [
-        {"state": s["state"], "label": STATE_LABEL.get(s["state"], s["state"]), "startSec": s["startSec"]}
-        for s in (timing["segments"] if timing else []) if s["kind"] == "teach"
-    ]
+    # dot 去重:teach 段可能多 beat 同一 state(画面不回退),分镜点按 state 首次出现取一个。
+    teach_dots = []
+    _seen_states: set[str] = set()
+    for s in (timing["segments"] if timing else []):
+        if s["kind"] != "teach":
+            continue
+        st = s["state"]
+        if st in _seen_states:
+            continue
+        _seen_states.add(st)
+        teach_dots.append({"state": st, "label": state_label.get(st, st), "startSec": s["startSec"]})
     payload = {
         "totalSec": timing["totalSec"] if timing else 0,
         "teachEndSec": timing.get("teachEndSec", 0) if timing else 0,
@@ -236,15 +249,16 @@ def render(lesson_path: Path) -> str:
 
     return f"""<!doctype html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>{esc(lesson["title"])}</title><style>{_CSS}</style></head><body>
+<title>{esc(lesson["title"])}</title><style>{_CSS}
+{extra_css}</style></head><body>
 <div class="wrap">
   <p class="kicker">图解微课 · 老师带你看懂</p>
   <h1>{esc(lesson["title"])}</h1>
   <p class="subtitle">{esc(lesson.get("subtitle", ""))}</p>
   <div class="stagebox">
     <div class="stage" id="stage">
-      {_svg()}
-      <div class="banner">两道闸全过 → 这个专项施工方案应当组织专家论证。</div>
+      {stage_svg}
+      <div class="banner">{esc(banner)}</div>
       <div class="chips"><span class="lbl">写到这几组采分词就稳:</span>{chips_html}</div>
     </div>
   </div>
@@ -269,7 +283,7 @@ def render(lesson_path: Path) -> str:
 <audio id="au" preload="metadata"{' src="' + esc(audio_src) + '"' if audio_src else ''}></audio>
 <script>
 const DATA={js_json(payload)};
-const ORDER={js_json(STATE_ORDER)};
+const ORDER={js_json(state_order)};
 const au=document.getElementById('au'),play=document.getElementById('play'),replay=document.getElementById('replay');
 const fill=document.getElementById('fill'),bar=document.getElementById('bar'),divider=document.getElementById('divider');
 const cur=document.getElementById('cur'),tot=document.getElementById('tot');

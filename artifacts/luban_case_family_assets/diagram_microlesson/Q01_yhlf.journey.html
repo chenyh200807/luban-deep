@@ -1,0 +1,437 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>混凝土养护与裂缝防治 · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.c-base,.c-slab,.c-restraint,.c-shrink,.c-stress,.c-knobs,.c-ctx,.c-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .c-base,.c-slab{opacity:1} .c-restraint{transform:scaleX(.7);transform-origin:50px 132px} .reached-shrink .c-restraint{opacity:1;transform:none} .reached-shrink .c-shrink{opacity:1} .s-stressbar{transform:scaleY(.25);transform-origin:200px 150px} .reached-stress .c-stress{opacity:1} .reached-stress .s-stressbar{transform:none} .reached-knobs .c-knobs{opacity:1} .reached-context .c-ctx{opacity:1} .c-chain{transform:translateY(6px)} .reached-chain .c-chain{opacity:1;transform:none} .c-steel{fill:#5d6f86} .c-lbl{fill:#9fb0c2;font-size:10px} .c-note{font-size:11px;font-weight:700} .c-note.shrink{fill:#ffb15a}.c-note.stress{fill:#ff7a7a}.c-note.knobs{fill:#7fe6ab}.c-note.ctx{fill:#7fc7ff}.c-note.chain{fill:#bff0d4} .c-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .c-ktxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="Q01_yhlf" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>混凝土养护与裂缝防治</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">普硅类养护≥7d</button><button class="" type="button">抗渗/C60+/掺缓凝/后浇带养护≥14d</button><button class="" type="button">大体积里表温差≤25℃</button><button class="" type="button">降温速率≤2.0℃/d</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边在裂缝成因链上拧三个旋钮,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='混凝土养护裂缝成因链与三旋钮、语境阈值示意'><rect x='30' y='150' width='300' height='14' rx='2' class='c-steel' data-visual-node-id='ground.base'/><text class='c-lbl' x='34' y='246'>早龄期混凝土(收缩+温变→约束→拉应力)+ 三旋钮 + 语境绑阈值</text><g class='c-slab' data-visual-node-id='concrete.slab'><rect x='44' y='120' width='112' height='30' rx='2' fill='#8a99ad'/><text class='c-lbl' x='100' y='140' text-anchor='middle'>早龄期混凝土</text></g><g class='c-restraint' data-visual-node-id='restraint.grip'><path d='M40 122 L40 148 M44 135 L36 135' stroke='#bfae7a' stroke-width='3'/><path d='M160 122 L160 148 M156 135 L164 135' stroke='#bfae7a' stroke-width='3'/><text class='c-lbl' x='100' y='116' text-anchor='middle'>受约束</text></g><g class='c-shrink' data-visual-node-id='shrink.arrow'><path d='M70 135 H88 M82 131 L88 135 L82 139' stroke='#ff9b3a' stroke-width='2'/><path d='M130 135 H112 M118 131 L112 135 L118 139' stroke='#ff9b3a' stroke-width='2'/><text class='c-note shrink' x='100' y='168' text-anchor='middle'>S1 收缩+温变,受约束→拉应力</text></g><g class='c-stress' data-visual-node-id='stress.bar'><rect x='196' y='96' width='10' height='54' rx='2' class='s-stressbar' fill='#ff5a5a'/><line x1='190' y1='112' x2='216' y2='112' stroke='#7fe6ab' stroke-width='1.6' stroke-dasharray='3 3'/><text class='c-lbl' x='225' y='114' text-anchor='start' style='fill:#7fe6ab'>抗拉强度ftk</text><text class='c-note stress' x='235' y='150' text-anchor='middle'>S2 拉应力跑赢ftk 即裂</text></g><g class='c-knobs' data-visual-node-id='knobs.three'><circle cx='262' cy='60' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='262' y='63' text-anchor='middle'>时间</text><circle cx='292' cy='60' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='292' y='63' text-anchor='middle'>湿度</text><circle cx='322' cy='60' r='12' fill='#16321f' stroke='#7fc7ff' stroke-width='1.6'/><text class='c-vtxt' x='322' y='63' text-anchor='middle' style='fill:#7fc7ff'>温差</text><text class='c-note knobs' x='292' y='40' text-anchor='middle'>S3 三旋钮:让强度跑赢拉应力</text></g><g class='c-ctx' data-visual-node-id='context.threshold'><text class='c-ktxt' x='60' y='196' text-anchor='start'>普硅 7d · 抗渗/后浇带 14d</text><text class='c-ktxt' x='60' y='210' text-anchor='start'>大体积里表 25℃ · 降温 2℃/d</text><text class='c-ktxt' x='60' y='224' text-anchor='start'>冬期表面-大气 20℃ · 温降 3℃/d · 后浇带封闭 28d</text><text class='c-note ctx' x='250' y='196' text-anchor='middle'>S4 语境决定调哪组阈值</text></g><g class='c-chain' data-visual-node-id='invariant.read_chain'><circle cx='96' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='96' y='43' text-anchor='middle'>认对语境</text><circle cx='200' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='c-vtxt' x='200' y='43' text-anchor='middle'>比硬阈值</text><path d='M109 40 H187' stroke='#7fe6ab' stroke-width='2'/><text class='c-note chain' x='150' y='66' text-anchor='middle'>S5 判读链 = 认对语境 → 比那条被钉死的硬阈值</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">普硅类养护≥7d</span><span data-visual-node-id="score.atom.2">抗渗/C60+/掺缓凝/后浇带养护≥14d</span><span data-visual-node-id="score.atom.3">大体积里表温差≤25℃</span><span data-visual-node-id="score.atom.4">降温速率≤2.0℃/d</span><span data-visual-node-id="score.atom.5">保湿养护≥14d</span><span data-visual-node-id="score.atom.6">冬期表面-大气温差≤20℃</span><span data-visual-node-id="score.atom.7">温降梯度≤3℃/d</span><span data-visual-node-id="score.atom.8">养护≥14d</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">混凝土养护不是背 7天、14天、25度、20度 几个数 → 是&#x27;认对哪个养护语境(普通/大体积/防水/冬期/后浇带)→比对那条被规范钉死的硬阈值&#x27;同一条判读链。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">混凝土养护,丢分在只背天数不认语境</div>
+<div class="kc kc-a" data-start="8.457" data-seg-idx="1" data-beat-id="shrink" data-action-id="shrink.keycard" data-visual-node-id="keycard.shrink">S1 收缩+温变,受约束就生拉应力</div>
+<div class="kc kc-a" data-start="23.384" data-seg-idx="2" data-beat-id="stress" data-action-id="stress.keycard" data-visual-node-id="keycard.stress">S2 拉应力跑赢抗拉强度ftk 就裂</div>
+<div class="kc kc-a" data-start="36.78" data-seg-idx="3" data-beat-id="knobs" data-action-id="knobs.keycard" data-visual-node-id="keycard.knobs">S3 三旋钮:时间×湿度管收缩、温差管温度应力</div>
+<div class="kc kc-a" data-start="48.713" data-seg-idx="4" data-beat-id="context" data-action-id="context.keycard" data-visual-node-id="keycard.context">S4 语境绑阈值:普硅7d/抗渗14d·大体积25℃·冬期20℃·封闭28d</div>
+<div class="kc kc-score" data-start="69.208" data-seg-idx="5" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:普硅7d/抗渗14d·大体积里表25℃降温2℃d·冬期20℃温降3℃d·后浇带封闭28d</div>
+<div class="kc kc-concl" data-start="79.603" data-seg-idx="6" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">迁移:判读链通用,阈值随语境/构件变</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,养护不就是七天吗?我一律写七天不行吗?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">看语境。普通硅酸盐类七天,可有抗渗、高强或掺缓凝、后浇带,就得十四天。记&#x27;普通七天、抗渗加倍十四天&#x27;。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那大体积的二十五度和冬期的二十度,我老是写反,怎么记?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">看构件别写反。大体积管里表温差二十五度、每天降温两度;冬期管表面对大气二十度、温降每天三度。语境决定调哪组,方向不能反。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">后浇带我养护满十四天,是不是就能封闭了?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">养护和封闭是两件事。后浇带养护十四天,但底板封闭要二十八天,还得用微膨胀混凝土。别把养护天数当封闭时机。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="Q01_yhlf.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_above_long"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 上限档(抗渗+缓凝·需更长养护)</p><p class="qstem">某地下室外墙混凝土明确有抗渗要求,且掺了缓凝型外加剂。问养护时间该怎么定?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 和普通现浇结构一样安排基础天数的养护就行</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 抗渗的更密实,反而可以比普通结构少养护几天</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 有抗渗要求又掺了缓凝外加剂,养护要明显比普通现浇更长、按加倍那一档安排</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_between_class"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 中间边界陷阱档(有抗渗要求卡在普通与加长两档之间)·关键鉴别</p><p class="qstem">另一段现浇墙,外形、强度等级看着都跟旁边普通现浇结构差不多,唯独图纸标注了&#x27;有抗渗要求&#x27;(题面只说&#x27;有这一条要求&#x27;,不给天数)。养护该按哪一档?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 长得跟普通现浇一样,就照普通现浇那一档基础天数养护</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 先看语境再定档:只要有抗渗要求,就要从普通那一档跳到更长养护那一档,不能按普通基础天数走</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 差不多就行,普通档和加长档之间随便挑一个都不算错</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_below_basic"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 下限档(普硅普通现浇·基础养护)</p><p class="qstem">同一工地一段普通现浇楼板,用的是普通硅酸盐水泥,没有抗渗要求、不是高强、也没掺缓凝外加剂(题面只说&#x27;就是最普通的现浇&#x27;)。养护怎么安排?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 就是最普通的现浇,按普通现浇那一档基础天数保湿养护到位即可</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 只要是混凝土都按最长那一档养护最保险,一律加倍</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 普通楼板不重要,养护可以随便糊弄两天</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_transfer_mass"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 迁移档(换语境·判读链不变,天数→温差)</p><p class="qstem">换个构件:不再是普通现浇墙板,而是大体积底板。养护重点从&#x27;养护多少天&#x27;变成了控制混凝土内部和表面的温差、以及每天的降温快慢。这时候该怎么判?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 都是混凝土,养护就盯天数,大体积也只看养护够不够天就行</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 判读链照走:先认这是大体积语境,匹配的硬阈值换成里表温差和降温速率(里表温差不超过25℃、降温每天不超过2℃),保湿天数也要够</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 换成大体积,养护那套判读就不适用了,凭经验浇水降温</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;养护数值(7d/14d/28d、25℃/20℃、2℃/d、3℃/d、12h、≥5℃ 等)与判分口径以现行规范、教材和你的考试大纲为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="148.961" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="shrink" data-t="8.457">收缩受约束</button><button class="dot beat-dot" data-state="stress" data-t="23.384">拉应力跑赢</button><button class="dot beat-dot" data-state="knobs" data-t="36.78">三旋钮</button><button class="dot beat-dot" data-state="context" data-t="48.713">语境绑阈值</button><button class="dot beat-dot" data-state="chain" data-t="79.603">判读链</button><a class="dot practice-dot" href="Q01_yhlf.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="Q01_yhlf.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 148.961, "teachEndSec": 93.389, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "混凝土养护,很多人背下七天十四天就上场,一换语境就懵。今天学认语境。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "shrink", "qaIndex": null, "text": "先看根因。混凝土硬化必然收缩,温度一变又热胀冷缩,这些变形被约束住,就在构件里憋出拉应力。早龄期最脆弱,失水越快收缩越猛。", "startSec": 8.457}, {"idx": 2, "kind": "teach", "state": "stress", "qaIndex": null, "text": "裂不裂看一场赛跑。早龄期强度还没长起来,拉应力一旦跑赢当时的抗拉强度,微裂就长成大裂缝。防治就是让强度跑赢拉应力。", "startSec": 23.384}, {"idx": 3, "kind": "teach", "state": "knobs", "qaIndex": null, "text": "养护就是拧三个旋钮:时间和湿度管失水收缩,够天数保湿就行;温差管温度拉应力。让强度赶在拉应力前面。", "startSec": 36.78}, {"idx": 4, "kind": "teach", "state": "context", "qaIndex": null, "text": "关键在同一个动作、不同语境阈值不同。普通现浇养护七天,一旦有抗渗、高强或后浇带就跳到十四天;大体积看里表温差二十五度、每天降温两度;冬期看表面对大气二十度、温降每天三度。", "startSec": 48.713}, {"idx": 5, "kind": "teach", "state": "context", "qaIndex": null, "text": "再补一个常错点:后浇带养护十四天,但封闭时机要二十八天。采分就盯这些数字,认对语境再报。", "startSec": 69.208}, {"idx": 6, "kind": "teach", "state": "chain", "qaIndex": null, "text": "记住判读链:先认对哪个养护语境,再比那条被钉死的硬阈值。天数记语境、温差记构件。换水泥品种换构件链都成立,阈值随语境。", "startSec": 79.603}, {"idx": 7, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,养护不就是七天吗?我一律写七天不行吗?", "startSec": 93.789}, {"idx": 8, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "看语境。普通硅酸盐类七天,可有抗渗、高强或掺缓凝、后浇带,就得十四天。记'普通七天、抗渗加倍十四天'。", "startSec": 98.736}, {"idx": 9, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "那大体积的二十五度和冬期的二十度,我老是写反,怎么记?", "startSec": 111.47}, {"idx": 10, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "看构件别写反。大体积管里表温差二十五度、每天降温两度;冬期管表面对大气二十度、温降每天三度。语境决定调哪组,方向不能反。", "startSec": 117.451}, {"idx": 11, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "后浇带我养护满十四天,是不是就能封闭了?", "startSec": 131.705}, {"idx": 12, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "养护和封闭是两件事。后浇带养护十四天,但底板封闭要二十八天,还得用微膨胀混凝土。别把养护天数当封闭时机。", "startSec": 136.35}], "variants": [{"id": "V1_above_long", "answer": "C", "feedback": "对:有抗渗要求又掺缓凝外加剂,养护语境直接升到'加倍'那一档——普通现浇够基础天数,抗渗这类要明显更长(规范≥14d)。判读是'先认语境、再给天数',抗渗/C60+/缓凝/后浇带都属于要加长那一档。", "basis": "抗渗要求与掺缓凝型外加剂两个条件都把养护语境从'普通现浇'升级到'需要更长养护'那一档——养护天数要明显加长(规范定为≥14d 一档,答后讲透)。既不能按普通基础天数走,更不能因为'密实'就缩短,语境一变阈值就升", "tier": "上限档(抗渗+缓凝·需更长养护)"}, {"id": "V2_between_class", "answer": "B", "feedback": "对:这段墙看着像普通,但图纸那一条'有抗渗要求'就把它从普通档拽到了加长档。最容易翻车的就是'看外形不看语境'——只要有抗渗要求,养护就得跳档,不能停在普通基础天数。按语境标注精确归档、不靠'差不多',是这道题的看穿点。", "basis": "'看着像普通、其实有抗渗要求'正是最易错配的中间边界:养护档位不看外形看语境标注——一旦有抗渗要求(或C60+/掺缓凝/后浇带),就必须从普通现浇那一档跳到更长养护那一档,不能因为'长得像普通'就停在基础天数,也不能'两档之间随便挑'。把语境×阈值绑定丢了即不妥", "tier": "中间边界陷阱档(有抗渗要求卡在普通与加长两档之间)·关键鉴别"}, {"id": "V3_below_basic", "answer": "A", "feedback": "对:没有抗渗、高强、缓凝任何一条升档条件,普通现浇按基础那一档养护到位就行(规范≥7d),不用无脑加倍。但'普通'不是'糊弄',保湿和连续性照做。两头别走偏:不是'都按最长档'、也不是'普通就不管'——按语境分档判才对。", "basis": "普通硅酸盐水泥、无抗渗/无高强/无缓凝,没有任何升档条件,养护按普通现浇基础那一档(规范≥7d)足够,不必无脑加倍;但'普通'不等于不养护,保湿养护、连续性仍要保证——'一律加倍'(B)和'随便糊弄'(C)都把语境分档判读丢了", "tier": "下限档(普硅普通现浇·基础养护)"}, {"id": "V4_transfer_mass", "answer": "B", "feedback": "对:换成大体积底板,判读链一模一样——先认语境、再比硬阈值;只是判据从'养护多少天'切到'温差和降温速率'(里表≤25℃、降温≤2℃/d)。换了构件,触发阈值随语境给,但'认对语境→比阈值'这条链不变,这才是真会迁移,不是只盯天数那几个数。", "basis": "大体积同属养护与裂缝防治,换构件只换外壳:照样'认对语境(大体积)→比对该语境硬阈值'。只是判据从'养护天数'切到'温差指标'——里表温差≤25℃、降温速率≤2.0℃/d(再加保湿≥14d)。判读链不变,阈值随语境给(R2 不变量),不是'大体积也只看天数'也不是'换构件就不管'", "tier": "迁移档(换语境·判读链不变,天数→温差)"}], "keyIdx": [1, 3], "warm": {"all_correct": "你是真的把养护这条判读链走通了——不管是定养护天数还是控大体积温差,都先'认对是哪个语境',再'比对那条被规范钉死的硬阈值',连'看着像普通现浇但有抗渗要求要先升档''换成大体积判据从天数切到温差'这种边界都分得清。这类题稳,换什么水泥品种、什么构件你都不慌。", "partial": "判读链你会走,就差最关键的那一下:看着跟普通现浇差不多、可一旦图纸标了'有抗渗要求',养护就要先从普通档跳到加长档再下结论,别看外形停在基础天数;换个构件(普通现浇→大体积),判据跟着语境改(看里表温差≤25℃、降温≤2℃/d,不是只盯天数)。把这两点补上就齐了——你离真懂只差一步。", "rote_leaning": "先别急着背'7d、14d、25℃、20℃'这几个数。记这条判读链:先认对这题是哪个养护语境(普通现浇 / 大体积 / 冬期 / 后浇带)→ 再比对那组硬阈值。天数记语境'普通七天、抗渗/缓凝/后浇带加倍十四天';温差记构件'大体积里表二十五、降温每天两度,冬期表面对大气二十、温降每天三度'。换品种、换构件这条链都成立,只是阈值随语境。走顺这条链,语境卡边界、换构件你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "Q01_yhlf", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:ground.base", "target_id": "ground.base"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "shrink", "stage": "shrink", "actions": [{"id": "shrink.reveal.0", "type": "reveal", "target": "data-id:restraint.grip", "target_id": "restraint.grip"}, {"id": "shrink.reveal.1", "type": "reveal", "target": "data-id:shrink.arrow", "target_id": "shrink.arrow"}, {"id": "shrink.keycard.2", "type": "keycard", "target": "data-id:keycard.shrink", "target_id": "keycard.shrink"}]}, {"id": "stress", "stage": "stress", "actions": [{"id": "stress.reveal.0", "type": "reveal", "target": "data-id:stress.bar", "target_id": "stress.bar"}, {"id": "stress.highlight.1", "type": "highlight", "target": "data-id:concrete.slab", "target_id": "concrete.slab"}, {"id": "stress.keycard.2", "type": "keycard", "target": "data-id:keycard.stress", "target_id": "keycard.stress"}]}, {"id": "knobs", "stage": "knobs", "actions": [{"id": "knobs.reveal.0", "type": "reveal", "target": "data-id:knobs.three", "target_id": "knobs.three"}, {"id": "knobs.keycard.1", "type": "keycard", "target": "data-id:keycard.knobs", "target_id": "keycard.knobs"}]}, {"id": "context", "stage": "context", "actions": [{"id": "context.reveal.0", "type": "reveal", "target": "data-id:context.threshold", "target_id": "context.threshold"}, {"id": "context.highlight.1", "type": "highlight", "target": "data-id:knobs.three", "target_id": "knobs.three"}]}, {"id": "score", "stage": "context", "actions": [{"id": "score.highlight.0", "type": "highlight", "target": "data-id:score.keywords", "target_id": "score.keywords"}, {"id": "score.keycard.1", "type": "keycard", "target": "data-id:keycard.score", "target_id": "keycard.score"}]}, {"id": "transfer", "stage": "chain", "actions": [{"id": "transfer.reveal.0", "type": "reveal", "target": "data-id:invariant.read_chain", "target_id": "invariant.read_chain"}, {"id": "transfer.keycard.1", "type": "keycard", "target": "data-id:keycard.transfer", "target_id": "keycard.transfer"}, {"id": "transfer.camera.2", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}]}]};
+	const ORDER=["intro", "shrink", "stress", "knobs", "context", "chain"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

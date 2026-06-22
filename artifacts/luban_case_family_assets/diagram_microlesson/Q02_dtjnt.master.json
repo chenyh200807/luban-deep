@@ -1,0 +1,101 @@
+{
+  "schema_version": "luban_deep_archetype_master.sample.v0",
+  "master_id": "Q02_dtjnt",
+  "_status_note": "深母题【完整闭环样板·判断类(数值阈值判读)】(围绕一个考点:大体积混凝土温度裂缝控制)。用 teaching-animation-journey skill 把 Q02 造成一镜到底闭环(讲懂→闯关→看穿),验证 skill 在【数值阈值判断类】上复用(参 M_danger_work_expert_argumentation)。对齐《深母题数据标准 v1.0》R1-R8 + 运行时铁律(只读/只发候选/不写结论)。sample 不冒充生产 case_family_structure.v1。讲懂卡=Q02_dtjnt.json(derived_from),讲懂脚本=Q02_dtjnt.lesson.json。数据源=docs/原始数据/考点原料/成品/Q02_大体积混凝土温控.md,R2/examiner_intent/变题/采分/错因全部锚回该 pack 的对应节,不凭空造。",
+  "exam_point": "大体积混凝土温度裂缝控制",
+  "taxonomy_ref": "1A413033-R07",
+  "_taxonomy_note": "主锚 1A413033-R07(大体积施工要求/温控指标,里表温差≤25℃/温升≤50℃/降温≤2.0℃/d/拆保温≤20℃);相关 1A413033-R08(测温)、1A413040-R28(养护)、1A422000-B111(法规重申内外温差控制)。均取自 pack §0 canonical_taxonomy_refs,未新建。",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "runtime_rule": "只读/只发候选/不写结论:misconception 是候选(终判归 ERROR_CODE_REGISTRY/error_codes.py)、scoring_point 只引用(终判归 grading artifact)、mastery 是鉴别候选(终判归 LearnerStateService)。",
+    "student_boundary": "这是培训机构教研的讲解,不是官方阅卷;温控限值与判分口径以现行 GB 50496 等规范、教材和你的考试大纲为准。"
+  },
+
+  "R1_source_refs": [
+    {"ref": "Q02 大体积混凝土温度裂缝控制 深度考点原料(佑森教研编译,31 单元/93 采分点,chunk 级 point_id 溯源)", "content_sha256": "(待补:编译时对教材/规范原文锚定)", "kind": "candidate"},
+    {"ref": "_Q02_compiled_source.json(主锚) + 教材温控施工要点 kc:1A413030_096_0181:0 / 测温 kc:1A413030_097_0182:0", "content_sha256": "(待补)", "kind": "candidate"}
+  ],
+
+  "R2_invariant": "温控判读结构恒定:① 抓主线——大体积裂缝控制的唯一目标是【控制温度应力并提高抗裂能力】,任何只答其一(尤其只答养护/只盯绝对温度)都偏;② 控的是【温度梯度(里表温差)】不是绝对温度,危险来自温差对收缩的不均匀约束;③ 据【实测 vs 控制限值】判该工序是否合规:≤限值=合格(等于上限也算合格),>限值=须干预(加保温/放缓散热)。换皮只换结构类型/季节/数值,这条'控温差→比限值→据档判'的判读链不变(已证基础底板;其余厚大体积结构控温物理一致,阈值随规范)。",
+  "_R2_note": "锚回 pack §3 R2 不变量原文(主线='控制温度应力并提高抗裂能力',养护≥14d 附条件,场景限定已证基础底板),pack §2.2 四象限收口('温差是总开关'),pack §3 换皮表(筏板/承台/大型设备基础同一不变量)。",
+
+  "examiner_intent": "考的不是背'温升50/温差25'四个数,是会不会用'控温差→比限值→判合规'的判读链给【具体结构+实测数值】定档;尤其会不会处理'恰好等于控制限值'的边界陷阱(≤即合格,易误判超限),以及把这条判读链迁移到别的厚大体积结构(筏板/大型设备基础)。锚回 pack §4.1 examiner_intent(桶级高频、真题多次命中 2017/2019/2021/2022/2023)。",
+
+  "teaching_card_ref": "Q02_dtjnt",
+  "teaching_lesson_ref": "Q02_dtjnt.lesson.json",
+  "_lesson_ref_note": "讲懂层=厚筏板剖面因果链 PPT 教学动画(S1 水化热→S2 里表温差→S3 温度应力→S4 裂缝→S5 四阀门)+ 先讲后问双人答疑 + 迁移铺垫 beat(温控逻辑通用、限值随结构,anchor master:R2_invariant)。render_archetype_journey.py 读本 master 组装一镜到底闭环。",
+
+  "R3_scenario_templates": [
+    {"id": "raft_base", "engineering": "基础底板(厚≥2m,真题原型)", "control_limits": "里表温差≤25℃ / 温升≤50℃ / 降温速率≤2.0℃·d⁻¹ / 拆保温温差≤20℃", "anchor": "pack §3 换皮表行1(真题 2019/2022 底板)+ kc:1A413030_096_0181:0"},
+    {"id": "mat_foundation", "engineering": "筏板基础", "control_limits": "同一组温控限值(里表温差≤25℃ 等)", "anchor": "pack §3 换皮表行2(厚大体积、散热慢)+ ca:1A412010_043_0075"},
+    {"id": "equipment_base", "engineering": "大型设备基础 / 承台", "control_limits": "同一组温控限值(里表温差≤25℃ 等)", "anchor": "pack §3 换皮表行3(大体量块体,水化热聚中心,控同一个里表温差/降温速率)"},
+    {"id": "thick_beam_slab", "engineering": "高层转换层厚梁 / 厚板", "control_limits": "同一组温控限值", "anchor": "pack §3 换皮表行4(截面大→水化热集中,温控指标不变)"}
+  ],
+  "_scenario_note": "阈值为教研整理·候选·未签发,编译时须对 GB 50496 原文逐条核;此处用于变题分档/迁移,不作官方判分。pack §3 明确大坝/桥墩超纲(跨规范阈值),不进变量空间。",
+
+  "R4_variable_rules": {
+    "can_vary": ["结构类型(R3_scenario_templates 之一,封闭枚举)", "实测温控数值相对限值的位置(超过/恰好等于/低于)", "季节(常温/冬期/高温)与具体指标(里表温差/温升/降温速率)"],
+    "must_not_vary": ["判读链结构(控温差→比控制限值→据档判合规)", "'≤限值=合格(含等于上限)、>限值=须干预'的判据方向", "控制限值的金标数值(里表≤25/温升≤50/降温≤2.0/拆保温≤20)——改一位即制造错题"],
+    "boundary": "LLM 只能在 R3_scenario_templates 的结构枚举 + 固定限值内换数值/换结构生成变题,不得自创隧道衬砌/大坝/桥墩,不得改判读链结构或判据方向(pack §4.3 变量空间硬约束)。"
+  },
+
+  "R5_scoring_point_refs": [
+    {"ref_id": "kong_four", "binds": "Q02_dtjnt.scoring_points[kong_four]", "pack_ref": "pack §5 组D D2-D5(温升≤50℃/里表≤25℃/降温≤2.0℃/d/拆保温≤20℃)", "note": "只引用温控四指标采分词,不复制评分规则;终判归 grading artifact"},
+    {"ref_id": "cure", "binds": "Q02_dtjnt.scoring_points[cure]", "pack_ref": "pack §5 组D D1(保湿养护≥14d)", "note": "只引用"},
+    {"ref_id": "monitor", "binds": "Q02_dtjnt.scoring_points[monitor]", "pack_ref": "pack §5 组D D6-D7(测点表/底/中心、间距≤500mm、每昼夜≥4次)", "note": "只引用"},
+    {"ref_id": "mix", "binds": "Q02_dtjnt.scoring_points[mix]", "pack_ref": "pack §5 组B B1-B2(水胶比≤0.45、低水化热水泥、掺粉煤灰/矿渣粉)", "note": "只引用"},
+    {"ref_id": "pour", "binds": "Q02_dtjnt.scoring_points[pour]", "pack_ref": "pack §5 组C C1-C2(整体分层/推移式、跳仓≤40m)", "note": "只引用"}
+  ],
+
+  "R6_answer_skeleton": "①抓主线:控温度应力、提高抗裂能力,危险来自里表温差(梯度)而非绝对温度;②比限值:温升≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温温差≤20℃,实测≤限值即合格;③据档判:超限须干预(加保温/放缓散热),含等于上限仍属合格。锚回 pack §5.2 R6 答案骨架(四组全覆盖+数字精确+因果可述)。",
+
+  "R7_boundary_answers": [
+    {"sample": "实测里表温差恰好等于控制限值,答'已超限,须停工'。", "verdict": "judged_miss(把'等于上限'误当超限;≤即合格)", "review": "pack §5.3 边界候选,待真人/专家裁决(全部 🔴 候选)"},
+    {"sample": "答'拆保温只要养护够 14d 就能拆',漏查表面与大气温差≤20℃。", "verdict": "judged_partial(混淆养护时间与拆保温温差两件事)", "review": "pack §5.3 边界 B2 候选,待裁决"},
+    {"sample": "换到筏板基础仍套'快点降温省事',漏'危险的是温差不是绝对温度'。", "verdict": "judged_miss(判读链未迁移)", "review": "待裁决"}
+  ],
+  "_boundary_note": "红线14:无人工/专家裁决的边界样本不得声称 scoring moat;pack §5.3/§8 自曝 R7 为当前最弱项(缺真实考生作答语料,满分/压线阈值无真人阅卷标定),全部标 🔴 候选。本 master 仅引用,不下结论。",
+
+  "R8_misconception": [
+    {"id": "MC_only_temp_rise", "name": "只盯温升,漏里表温差/降温速率", "signal": "答'控制温升、加强养护'就完事,不提三指标并列", "maps_error_code_candidate": "E02 采分点遗漏", "fix": "温控是三件套并列:温升≤50℃、里表温差≤25℃、降温速率≤2.0℃/d,缺一项就漏采分点", "pack_ref": "pack §6 W2(E02,expression)"},
+    {"id": "MC_absolute_not_gradient", "name": "盯绝对温度不盯温度梯度", "signal": "以为'快点降温拆模省事'安全,把里表温差误读成内外都降一样快", "maps_error_code_candidate": "E07 概念混淆", "fix": "危险的是里表温差(梯度)不是绝对温度;保温让表面慢冷、缩小梯度,降温≤2.0℃/d", "pack_ref": "pack §6 W3(E07,code_application)"},
+    {"id": "MC_strip_by_time_only", "name": "拆保温只看天数不查温差", "signal": "'够 7d/14d、强度到了'就拆,不查表面与大气温差", "maps_error_code_candidate": "E10 规范适用错误", "fix": "拆保温层须查表面与大气温差≤20℃才能拆,否则表面急冷开裂;养护≥14d 是另一条,别混", "pack_ref": "pack §6 W4(E10,transfer;autofix v2 由 E06 改 E10)"},
+    {"id": "MC_no_layer_no_jumpbox", "name": "一次整体浇到顶不分层不跳仓", "signal": "'连续浇完最省事',不懂分层/跳仓是切断约束、释放温度应力", "maps_error_code_candidate": "E10 规范适用错误", "fix": "宜整体分层或推移式连续浇筑;超限用跳仓法(分块≤40m)", "pack_ref": "pack §6 W8(E10,transfer;autofix v2 由 E06 改 E10)"}
+  ],
+
+  "_variants_design_note": "变题 = R3_scenario_templates × R4_variable_rules 合法派生,每个挂 basis_ref 可追溯依据(被质疑回依据验证·红线17)。两类都要:① 同工程(基础底板)换实测温控数值【分档】(上限/中间边界陷阱/下限)——考'会不会用控温差判读链判合规',分档题题干和选项【绝不出现阈值数字】(写'超过/恰好等于/远低于 控制限值',答后 feedback 才把阈值讲透·红线16);② 【换工程考判读链迁移】(筏板/大型设备基础)——换结构是 R4.can_vary 明文允许的,正是考'掌握不变量(控温判读链)'而非'背基础底板那几个数'的必要题;迁移题题干给【该结构】控温限值是合理的(pack §3 换皮表覆盖,讲懂幕已铺垫'控温逻辑通用、限值随结构')。",
+  "variants": [
+    {"id": "V1_rise_over", "scenario_id": "raft_base", "basis_ref": "R3.raft_base(里表温差/降温速率等控制限值)+ pack §6 W2/W3 + R2 判读链(实测>限值=须干预)",
+     "stem": "某基础底板大体积混凝土,现场测温发现里表温差已经超过控制限值,且还在继续上升。此刻最该做的是?",
+     "answer": "C", "options": [{"id":"A","text":"温度还没到危险绝对值,继续浇筑观察即可"},{"id":"B","text":"立刻拆掉保温层,让表面快点散热降下来"},{"id":"C","text":"温差已超控制限值,须加强保温/放缓散热,把里表温差压回限值内"}],
+     "judged_outcome": "intervene", "basis": "里表温差>控制限值(≤25℃)即须干预;危险的是温差梯度不是绝对温度,降温速率也不能超 2.0℃/d——拆保温反而拉大温差", "tier_tag": "上限档(超限须干预)", "feedback": "对:里表温差超过控制限值(教材是≤25℃)就要干预,而且要靠加保温让表面慢冷、缩小温差——绝不是拆保温让它快冷,那会把温差拉得更大、表面更容易裂。"},
+    {"id": "V2_at_limit", "scenario_id": "raft_base", "basis_ref": "R3.raft_base + R2 判据方向(≤限值=合格,含等于上限)+ pack §5.3 边界(≤即合格,易误判超限)",
+     "stem": "同一基础底板,这次实测里表温差恰好达到控制限值的上限值(不再上升)。这一步该怎么判?",
+     "answer": "B", "options": [{"id":"A","text":"已经触到上限就是超标,必须停工返工"},{"id":"B","text":"恰好等于上限仍属合格,可继续,但要盯住别再往上越线"},{"id":"C","text":"既然没超,后面就不用再测温了"}],
+     "judged_outcome": "ok_but_watch", "basis": "判据是'≤限值=合格',恰好等于上限值(教材里表温差≤25℃)仍在合格区,不必停工;但已到边界须持续测温防越线——这正是最易误判为超限的中间档", "tier_tag": "中间边界陷阱档(恰好等于上限=合格)·关键鉴别", "feedback": "对:控制限值是'≤'号——恰好等于上限值(教材里表温差≤25℃)还在合格区,不用停工返工;但你已经贴着红线了,必须继续测温盯住别再升。把'≤'看成'<'、一到上限就喊超标,是最常见的边界误判。"},
+    {"id": "V3_within", "scenario_id": "raft_base", "basis_ref": "R3.raft_base + R2 判据方向(实测<限值=正常推进)+ pack §5 组D 测温反馈",
+     "stem": "同一基础底板,各项温控指标(里表温差、温升、降温速率)实测都明显低于控制限值。该怎么办?",
+     "answer": "A", "options": [{"id":"A","text":"都在控制限值内,按方案正常养护、继续测温即可"},{"id":"B","text":"指标这么好,可以提前拆保温、停止测温"},{"id":"C","text":"温度低说明强度不够,要立刻升温催熟"}],
+     "judged_outcome": "normal", "basis": "各指标<控制限值=合格区,正常推进;但养护与测温要按方案做满(保湿养护≥14d、拆保温仍要查温差≤20℃),不能因'指标好'就提前停", "tier_tag": "下限档(均在限内·正常推进)", "feedback": "对:各项都在控制限值内,按方案正常养护、继续测温就好。注意别被'指标好'忽悠去提前拆保温或停测温——养护≥14d、拆保温查温差≤20℃这些动作还得做满。"},
+    {"id": "V4_transfer", "scenario_id": "equipment_base", "basis_ref": "R3.equipment_base(大型设备基础属厚大体积块体,控同一里表温差/降温速率)+ R2 不变量(换皮场景表)+ R4.can_vary(换结构)",
+     "stem": "换个结构:一座大型设备基础(同属大体积厚块,控制限值与底板同一组:里表温差≤25℃、降温速率≤2.0℃/d)。现场实测里表温差超过限值、且工人想'快点降温早点交工'。判读应是?",
+     "answer": "B", "options": [{"id":"A","text":"设备基础不是楼板,温度裂缝无所谓,可加快降温交工"},{"id":"B","text":"判读链照走:超限要干预,但靠保温缩小温差、降温≤2.0℃/d,不能快冷"},{"id":"C","text":"换了结构,基础底板那套温控限值就不适用了"}],
+     "judged_outcome": "intervene_transfer", "basis": "大型设备基础同属厚大体积,水化热聚中心,控的是同一个里表温差/降温速率;换结构只换外壳,'控温差→比限值→据档判、不能快冷'的判读链不变(R2 换皮场景表)", "tier_tag": "迁移档(换结构·判读链不变)", "feedback": "对:换成大型设备基础,判读链一模一样——超限要干预,但要靠保温让表面慢冷、缩小温差,降温每天不超过 2 度,绝不是'快点降温交工'。换了结构,限值随结构给,但'控温差不控绝对温度'这条逻辑不变,这才是真会迁移,不是背底板那几个数。"}
+  ],
+
+  "mastery_discrimination": {
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。题集=基础底板分档 + 换结构迁移,既考分档又考迁移。锚 pack §4 examiner_intent(会不会处理边界陷阱 + 会不会迁移判读链)。",
+    "key_discriminator_ids": ["V2_at_limit", "V4_transfer"],
+    "real_understanding_signal": "V1-V4 全对,尤其 V2(恰好等于上限=合格的边界陷阱)与 V4(换大型设备基础迁移)对 = 既懂'≤即合格'的判据方向、又能把控温判读链迁移到新结构,真掌握不变量,不是背基础底板那几个数。",
+    "rote_signal": "只 V1 对(温差超了要干预,直觉也对),V2(把等于上限误当超限)或 V4(换结构就以为限值不适用/可快冷交工)错 = 背了'温差25/降温2.0'几个数,不会判边界、不会迁移判读链。",
+    "discriminator_strength": "V2(边界陷阱:≤vs<)+ V4(换结构迁移)是关键鉴别题:背过的人最易在'恰好等于上限算不算超'和'换了结构限值还适不适用'两处翻车;V1(超限)、V3(下限)进一步佐证判据方向。",
+    "warm_feedback": {
+      "all_correct": "你是真的把温控判读链走通了——不管底板还是设备基础,都先看'控温差不是控绝对温度',再拿实测比控制限值,连'恰好等于上限算合格'这种边界都分得清。这类题稳,换什么结构你都不慌。",
+      "partial": "判读链你会走,就差最关键的那一下:'≤限值'里恰好等于上限也算合格,别一到红线就喊超标;换个厚大体积结构(筏板、设备基础),只要题目给了该结构限值,照样是'控温差→比限值'这条链。把这两点补上就齐了——你离真懂只差一步。",
+      "rote_leaning": "先别急着背'温差25、降温2.0'这几个数。记这条判读链:危险的是里表温差(梯度)不是绝对温度 → 实测拿去比控制限值,≤就是合格(等于上限也算)、超了才干预、而且要靠保温慢冷不是快冷 → 换什么厚大体积结构这条链都成立,只是限值随结构。走顺这条链,换底板、筏板、设备基础你都不慌。"
+    }
+  },
+
+  "_maps_to_production": "讲懂→teaching_card_ref(Q02_dtjnt);R2/R3/R4/examiner_intent→case_family_structure;R5→grading artifact 引用;R8→ERROR_CODE_REGISTRY 映射(E02/E07/E10);mastery_discrimination→retest_discriminator_candidate;落盘将来→artifacts/luban_case_family_assets/<case_family_id>/case_family.yaml(待 schema 登记)。数据全部锚回 docs/原始数据/考点原料/成品/Q02_大体积混凝土温控.md。"
+}

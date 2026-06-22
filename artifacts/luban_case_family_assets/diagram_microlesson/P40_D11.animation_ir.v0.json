@@ -26,6 +26,14 @@
     "archetype_visual_required": [
       "process_flow"
     ],
+    "teaching_scene_ids": [
+      "hook",
+      "map",
+      "rule",
+      "trap",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 5,
     "challenge_unlock_sec": 78.857,
     "one_active_scene": true,
     "one_active_keycard": true,
@@ -100,13 +108,13 @@
       "start_sec": 0.0,
       "end_sec": 19.714,
       "scene": "process_step_reveal_hook",
-      "focus": "wrong_start",
+      "focus": "hook_visual",
       "enter": [
         "scene.fade_in",
-        "wrong_start.reveal"
+        "hook_visual.reveal"
       ],
       "hold": [
-        "wrong_start.spotlight"
+        "hook_visual.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -118,42 +126,35 @@
       },
       "camera": {
         "verb": "push-in",
-        "target": "wrong_start",
+        "target": "hook_visual",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "wrong_start",
-        "score_goal"
+        "hook_visual"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "wrong_start",
+          "target": "hook_visual",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "wrong_start",
+          "target": "hook_visual",
           "start": 0.04,
           "end": 0.2
         },
         {
-          "kind": "reveal",
-          "target": "score_goal",
-          "start": 0.19,
-          "end": 0.35
-        },
-        {
           "kind": "highlight",
-          "target": "wrong_start",
+          "target": "hook_visual",
           "start": 0.3,
           "end": 0.9
         }
       ],
       "keycard": "考场先别急着写术语",
-      "coach": "注意哈，这类题别先背答案，先判它要哪条采分链。"
+      "coach": "注意哈，这类题别先背答案，先看图里藏着哪条采分链。"
     },
     {
       "id": "map",
@@ -323,13 +324,13 @@
       "start_sec": 78.857,
       "end_sec": 98.571,
       "scene": "process_step_reveal_score",
-      "focus": "score_1",
+      "focus": "score_sheet",
       "enter": [
         "scene.fade_in",
-        "score_1.reveal"
+        "score_sheet.reveal"
       ],
       "hold": [
-        "score_1.spotlight"
+        "score_sheet.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -341,43 +342,29 @@
       },
       "camera": {
         "verb": "push-in",
-        "target": "score_1",
+        "target": "score_sheet",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "score_1",
-        "score_2",
-        "score_3"
+        "score_sheet"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "score_1",
+          "target": "score_sheet",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "score_1",
+          "target": "score_sheet",
           "start": 0.04,
           "end": 0.2
         },
         {
-          "kind": "reveal",
-          "target": "score_2",
-          "start": 0.19,
-          "end": 0.35
-        },
-        {
-          "kind": "reveal",
-          "target": "score_3",
-          "start": 0.34,
-          "end": 0.5
-        },
-        {
           "kind": "highlight",
-          "target": "score_1",
+          "target": "score_sheet",
           "start": 0.3,
           "end": 0.9
         }
@@ -520,25 +507,22 @@
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "wrong_start",
-          "kind": "pill",
-          "text": "错觉:先背答案",
-          "x": 54,
-          "y": 68,
-          "w": 252,
-          "h": 48,
-          "tone": "danger"
-        },
-        {
-          "id": "score_goal",
-          "kind": "pill",
-          "text": "目标:写成采分闭环",
-          "x": 58,
-          "y": 142,
-          "w": 244,
-          "h": 56,
-          "tone": "success",
-          "subtext": "对象 → 条件 → 依据"
+          "id": "hook_visual",
+          "kind": "process_flow",
+          "text": "先看图再下笔",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "danger",
+          "labels": [
+            "抹灰总厚度≥3…",
+            "内墙普通抹灰层…",
+            "不同材料基体交…",
+            "加强网与各基体…",
+            "错因",
+            "结论"
+          ]
         }
       ]
     },
@@ -613,34 +597,20 @@
       "board": "paper",
       "nodes": [
         {
-          "id": "score_1",
-          "kind": "answer_box",
-          "text": "抹灰总厚度≥3…",
-          "x": 54,
-          "y": 94,
-          "w": 252,
-          "h": 38,
-          "tone": "success"
-        },
-        {
-          "id": "score_2",
-          "kind": "answer_box",
-          "text": "内墙普通抹灰层…",
-          "x": 54,
-          "y": 142,
-          "w": 252,
-          "h": 38,
-          "tone": "blue"
-        },
-        {
-          "id": "score_3",
-          "kind": "answer_box",
-          "text": "不同材料基体交…",
-          "x": 54,
-          "y": 190,
-          "w": 252,
-          "h": 38,
-          "tone": "amber"
+          "id": "score_sheet",
+          "kind": "answer_scan",
+          "text": "答题纸采分",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "success",
+          "labels": [
+            "抹灰总厚度≥3…",
+            "内墙普通抹灰层…",
+            "不同材料基体交…",
+            "闭环"
+          ]
         }
       ]
     },

@@ -1,0 +1,198 @@
+{
+  "audio": "S02_qzdz.lesson.mp3",
+  "totalSec": 150.533,
+  "teachEndSec": 91.519,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "起重吊装安全,丢分在只背数字不认闸",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "起重吊装安全,很多人背下数字就上场,一换荷载就懵。今天学认闸。",
+      "startSec": 0,
+      "durSec": 7.459
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "moment",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S1 起重力矩=重量×幅度,超额定即倾覆",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s1_moment.claim",
+      "claim": true,
+      "text": "先看根因。起重力矩等于重量乘以幅度,幅度越大、吊得越重力矩越大,一超额定就倾覆。",
+      "startSec": 7.859,
+      "durSec": 8.989
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "wind",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S2 风载=放大器:坏天气强作业推过红线",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s2_wind_amplifier.claim",
+      "claim": true,
+      "text": "风是力矩的放大器,迎风面积乘风压就是额外倾覆力矩。坏天气硬干,把临界点往红线外推,所以气象是道硬闸。",
+      "startSec": 17.248,
+      "durSec": 11.718
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "fail",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S3 结果=倾覆或脱钩坠物;把每条阀焊死",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s3_failure.claim",
+      "claim": true,
+      "text": "失效无非两类:整机倾覆,或索具失效、斜吊脱钩坠物。每条规程,都是焊在失效链上的一个阀。",
+      "startSec": 29.365,
+      "durSec": 10.346
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "gate",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S4 三道闸:危大判定 / 作业前条件 / 作业中规程",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s4_three_gates.claim",
+      "claim": true,
+      "text": "规程归三道闸:闸一危大判定,该不该升级专项方案或专家论证;闸二作业前条件,地基气象吊索具吊点;闸三作业中规程,超载禁令、装置不可替代、先试吊。题目每次只问一道闸。",
+      "startSec": 40.111,
+      "durSec": 19.504
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "gate",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:危大两层门槛·作业6级/安拆9.0·90%先吊离·严禁限位代替",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[0].keywords",
+      "claim": true,
+      "text": "采分盯这几组词:单件十千牛属危大、非常规一百千牛才论证;作业看六级风、安拆看九点零;达九成先吊离两百到五百毫米;严禁限位代替操作机构。",
+      "startSec": 60.015,
+      "durSec": 16.145
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "chain",
+      "qaIndex": null,
+      "keycard": {
+        "text": "迁移:判读链通用,阈值随动词/场景变",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "记住判读链:先认对哪道闸,再比那条被钉死的硬指标。危大记两层,十进危大、百论证;风看动词。换荷载换动作链都成立,阈值随场景。",
+      "startSec": 76.56,
+      "durSec": 14.959
+    },
+    {
+      "idx": 7,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,起重吊装加个大数字,直接判要专家论证不行吗?",
+      "startSec": 91.919,
+      "durSec": 5.743
+    },
+    {
+      "idx": 8,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "危大是两层门槛:单件十千牛就属危大、要专项方案;要专家论证,得非常规且单件一百千牛、总重三百千牛或高度两百米。两条线分开比,别压成一层。",
+      "startSec": 98.062,
+      "durSec": 16.617
+    },
+    {
+      "idx": 9,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那风速九点零的红线,作业和安拆一样用吗?",
+      "startSec": 115.079,
+      "durSec": 4.084
+    },
+    {
+      "idx": 10,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "看动词。露天吊装作业看六级及以上停;安拆更危险,看风速九点零加低能见度停。题干是作业还是安拆,决定调哪条。",
+      "startSec": 119.563,
+      "durSec": 12.612
+    },
+    {
+      "idx": 11,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "起吊到九成额定,我答'加强检查'够不够?",
+      "startSec": 132.575,
+      "durSec": 3.968
+    },
+    {
+      "idx": 12,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "差个关键动作。一动作加四查:先吊离地面两百到五百毫米,再查机械、制动、重物平稳、绑扎牢固。漏了先吊离就没踩全。",
+      "startSec": 136.943,
+      "durSec": 12.791
+    }
+  ]
+}

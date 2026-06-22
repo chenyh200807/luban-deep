@@ -26,15 +26,20 @@
 ```
 一次性建库:统一 learning stage 合同 + 6+1 fixture/golden + gate.sh 串门
 每卡 loop:
- P0 母题就绪(讲义_v8 选考点→归6+1→authority)  ← 事实层在此【冻结】
- P0.5 Director Gate(construction-whiteboard-director):teaching_spine + 5-8 beats + 每 beat 一个 visual action/一句字幕/退出项
+ P0 母题就绪(讲义_v8/成品 Deep Pack 选考点→归6+1→authority)  ← 事实层在此【冻结】
+ P0.2 Source Card Gate:从 `docs/原始数据/考点原料/成品/<ID>_*.md` 提炼 source_card,必须含 `source_refs.pack_markdown`、`main_exam_action`、`wrong_idea`、`teaching_spine[]`(state/anchor_md/visual_fact/bridge_from_previous/answer_move)
+ P0.25 Visual Archetype Gate:按 6+1 先产 `visual_archetype_decision`,明确 primary/secondary archetype、visual_primitive、motion_grammar、why_not_text、pure_text_allowed。①–⑥ 默认必须图示动画解释;只有(七)数值/记忆可走轻动画文字卡。此门不过,不许生成 IR。
+ P0.3 Practice Blueprint Gate:从成品 MD 的 R3/R4/R6/R8/scoring group 提炼 `practice_blueprint[]`,每题写 `scene_gap / visual_items / options / option_feedback / basis_anchor`;不得用 `key_points` 直接生成选项或题图答案
+ P0.5 Director Gate(construction-whiteboard-director):5-8 beats + 每 beat 一个 visual action/一句字幕/退出项;先保证"讲清楚一个知识点",5 分钟以内都可接受,不为压到 2 分钟牺牲解释链
  P1 LLM/agent 生成/修订 lesson beats 或 animation_ir.v0(scene/actions/visual_library)★表现放开★
       约束:claim:true beat 必 anchor 回卡;selector 必须 data-id;复杂构造坐标只能落在受 schema 约束的 visual_library,不得自由 HTML 画像素
+ P1.2 Lesson Source Gate(validate_lesson_source_workflow.mjs):先审 lesson 是否有 opening、beat bridge、exam_task、visual_explanation、answer_move,并证明 source_card 追溯到成品 MD;不过不配音、不生成 IR
  P1.5 Pre-render Gate(validate_animation_ir_contract.mjs / action schema):先审 IR,证明 scene/action/visual/data-id/Remotion 同源合法,不过不渲染
  P2 渲染(确定性 renderer 吃 lesson/master/animation_ir → journey/rendered.html / preview.html / practice.html)
- P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→cdp_shot)
+ P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→practice-interaction→cdp_shot)
       animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
-      independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开
+      independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开;`validate_practice_interactions.mjs` 必须证明可点击、未答不能下一题、无答前泄露、每个错项有可读专属反馈、结果页有表现分析/补练/问鲁班入口
+ P3.2 Mobile Preview Handoff:用户要手机看时,输出 LAN URL(`http://<ip>:8800/<file>`)而不是 `127.0.0.1`;换 Wi-Fi 后重新取 IP 并验证端口监听
  P3.5 Review Packet:记录 machine gates、目标截图墙、judge/human issue、root-cause triage、修复层级和允许回炉字段
  P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
  过关? NO→ P5 结构化反馈喂回 → 回 P1 改 IR(只改表现,anchor 不动) / YES→ P6 学员门(KPI 正确率)
@@ -55,10 +60,15 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - 审查必须前置一层:LLM judge/人审前,先跑 pre-render gate。常见失败如 unsupported primitive、visual node 没 backing、action target 不存在、Remotion wrapper 没导入当前 IR,都不应该进入视觉评审。
 
 ## 5. 门/judge/人审三分(anti-patterns 15 条)
-- **~10 条全自动机器门**:schema / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / practice 可读性 / timing sync / data-id selector 命中 / 视觉快照。
+- **~11 条全自动机器门**:schema / source→lesson workflow / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / practice 可读性 / timing sync / data-id selector 命中 / 视觉快照。
+- `validate_lesson_source_workflow.mjs` 必须在 TTS 和 IR 之前跑:它检查成品 MD 来源、source_card teaching_spine、lesson opening、beat bridge、exam_task、visual_explanation、answer_move。这个门专治"文案跳跃、讲不清、画面偏文字卡"。
+- `visual_archetype_decision` 必须在 IR 之前形成:它把成品 MD 的认知难点转成具体图示语法。默认规则是**动画解释知识,不是文字解释知识**。①工序=流程步进;②构造/空间=剖面/层叠/场布;③计算/图结构=网络/公式链/曲线;④判断=判断树/阈值门;⑤正误=左右对照/先错后对;⑥采分诊断=答题纸扫描;⑦数值记忆才允许 memory_table。没有这个字段,或 `pure_text_allowed=true` 但不是(七),只能产 `coarse_draft_requires_single_card_review`,不得标 student-ready。
+- `practice_blueprint` 必须在 practice renderer 之前形成:它把成品 MD 的真实场景、变量、采分骨架和误区转成题目蓝图。没有这层,practice renderer 只能退化成 `coarse_draft_requires_review`,不能标为精品卡。
 - animation_ir preview 的真实视口门是量产准入,不是 F16 特例:360/390/430 竖屏、844/932 横屏、播放器遮挡、触控 44px、字幕 live、闯关解锁、非累计 seek、student-safe 都必须 fail-closed。
 - 闯关页真实视口门同样是量产准入,不是附属检查:`validate_challenge_theater_practice.mjs` 或同级 gate 必须证明题图/流程图标签不挤压、题干/学生答/选项不裁切、导航不覆盖、目标视口截图存在。用户反馈过的视口必须补入下一轮 gate 或截图墙。
+- 闯关题交互门不是“按钮能点”而已:题目必须让学生读得懂任务、看不出答案、选错后知道为什么错、结束后知道该继续问鲁班还是补练。`validate_practice_interactions.mjs` 是底线,还需截图/人审确认题干和解析的教学质量。
 - **LLM judge**:镜头是否筛注意力、叙事一线贯穿、错觉真实。
+- **视觉原型 judge**:第一眼是不是图示动作在解释知识,而不是大段文字框在解释知识;若截图里主教学区没有对应原型 primitive,即使 gate 绿也必须 FAIL。
 - **3 类纯人审**(教学品味):镜头调度、箭头层级、采分表达质量。
 - **已落地三道硬门**:`validate_animation_ir_contract.mjs`(渲染前 IR scene/action/visual/Remotion 同源合同)、
   `validate_timing_sync.mjs`(总时长 + `sync_keyword` 命中对应 timing 文本/keycard)、

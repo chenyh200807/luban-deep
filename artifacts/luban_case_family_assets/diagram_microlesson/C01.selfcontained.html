@@ -71,9 +71,9 @@ h1{margin:0;font-size:clamp(22px,3.4vw,34px);line-height:1.2}
 .scoring-expr{margin-top:11px;border-radius:12px;background:#f3fbf7;border:1px solid var(--correct-line);border-left:4px solid var(--correct);padding:10px 12px}
 .scoring-expr small{display:block;color:var(--correct);font-weight:800;font-size:11.5px;margin-bottom:4px;letter-spacing:.02em}
 .scoring-expr span{font-size:14px;color:#15402f;font-weight:600;line-height:1.6}
-.veil{position:absolute;inset:0;border-radius:15px;background:rgba(232,247,240,.92);backdrop-filter:blur(2px);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--correct-line)}
+.veil{position:absolute;inset:0;border-radius:15px;background:rgba(232,247,240,.92);backdrop-filter:blur(2px);display:grid;place-items:center;cursor:pointer;border:1px dashed var(--correct-line);opacity:1;transition:opacity .18s ease}
 .veil b{color:var(--correct);font-weight:800;font-size:14px}
-.right-card.revealed .veil{display:none}
+.right-card.revealed .veil{opacity:0;pointer-events:none}
 .section{margin-top:20px}
 .section h2{font-size:18px;margin:0 0 4px}
 .section .hint{margin:0 0 12px;color:var(--sub);font-size:13px}
@@ -176,7 +176,6 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
 </svg>
 <p class="icon-cap">教学示意(非规范详图):梁的施工缝宜留在受剪力较小的跨中 1/3,避开支座附近。</p></div><div class="pair"><div class="card wrong-card"><span class="tag"><span class="badge">✗</span>常见错误做法</span><p>凭手感随意留,留在受剪力较大的支座附近或不便施工的部位,不看具体判据。</p><span class="loss-chip">易失分:位置判据缺失</span></div><div class="arrow" aria-hidden="true">→</div><div class="card right-card"><span class="tag"><span class="badge">✓</span>正确做法</span><p>施工缝留在结构受剪力较小且便于施工的部位(如柱留基础顶面、梁/牛腿下面;梁板留在跨中 1/3 范围内)。</p><div class="scoring-expr"><small>这样写才得分</small><span>施工缝应留设在结构受剪力较小且便于施工的部位。</span></div><div class="veil" role="button" tabindex="0"><b>点开看正确做法 ›</b></div></div></div></article><article class="crow" data-item="joint_treatment"><div class="crow-head"><span class="crow-no">2</span><h3>继续浇筑前怎么处理接缝</h3></div><div class="crow-icon"><svg viewBox="0 0 400 108" role="img" aria-label="接缝处理工序:清浮浆 凿毛 湿润 铺同配合比砂浆"><defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#9aa6b6"></path></marker></defs><circle cx="56" cy="44" r="25" fill="#9aa6b6"></circle><text x="56" y="51" text-anchor="middle" fill="#fff" font-size="17" font-weight="800">1</text><text x="56" y="96" text-anchor="middle" class="label" font-size="15">清浮浆</text><path d="M88 44 h32" stroke="#cdd6e2" stroke-width="2.5" marker-end="url(#ar)"></path><circle cx="152" cy="44" r="25" fill="#e08a1e"></circle><text x="152" y="51" text-anchor="middle" fill="#fff" font-size="17" font-weight="800">2</text><text x="152" y="96" text-anchor="middle" class="label" font-size="15">凿毛</text><path d="M184 44 h32" stroke="#cdd6e2" stroke-width="2.5" marker-end="url(#ar)"></path><circle cx="248" cy="44" r="25" fill="#2f6df0"></circle><text x="248" y="51" text-anchor="middle" fill="#fff" font-size="17" font-weight="800">3</text><text x="248" y="96" text-anchor="middle" class="label" font-size="15">湿润</text><path d="M280 44 h32" stroke="#cdd6e2" stroke-width="2.5" marker-end="url(#ar)"></path><circle cx="344" cy="44" r="25" fill="#1aa06d"></circle><text x="344" y="51" text-anchor="middle" fill="#fff" font-size="17" font-weight="800">4</text><text x="344" y="96" text-anchor="middle" class="label" font-size="15">铺浆</text></svg><p class="icon-cap">教学示意:继续浇筑前的接缝处理工序顺序。</p></div><div class="pair"><div class="card wrong-card"><span class="tag"><span class="badge">✗</span>常见错误做法</span><p>接着直接浇筑新混凝土,不处理已硬化的接缝面。</p><span class="loss-chip">易失分:漏接缝处理工序</span></div><div class="arrow" aria-hidden="true">→</div><div class="card right-card"><span class="tag"><span class="badge">✓</span>正确做法</span><p>继续浇筑前清除水泥薄膜和松动石子/软弱层,凿毛、冲洗并充分湿润(不积水),再铺同配合比水泥砂浆,振捣使新旧结合密实。</p><div class="scoring-expr"><small>这样写才得分</small><span>继续浇筑前清除浮浆和松动石子、凿毛、充分湿润,并铺设同配合比水泥砂浆后再浇筑。</span></div><div class="veil" role="button" tabindex="0"><b>点开看正确做法 ›</b></div></div></div></article>
   </section>
-  <div class="feedback correct" id="revealDone" style="display:none">✅ 两组都看完了——现在去下面练一题,把它变成你自己的。</div>
 
   <section class="section" aria-label="候选采分点">
     <div class="bar" data-anchor="scoring">
@@ -194,13 +193,13 @@ notes: 左右正误对照(OSHA do/don't);绿对红错;确定性 SVG 示意非规
     </div>
   </section>
 
-  <section class="practice" id="practice" aria-label="复测题">
+  <div class="feedback correct" id="revealDone" style="display:none">✅ 两组都看完了——现在练下面这题。</div>
+    <section class="practice" id="practice" aria-label="复测题">
     <span class="teacher-tag">先看懂对照,再练一题</span>
     <h2>复测题:判断施工缝处理</h2>
     <p class="stem">某柱混凝土施工缝留在基础顶面,继续浇筑前直接浇了新混凝土。下列哪项最准确?</p>
     <div class="option-grid"><button class="option" type="button" data-correct="false" data-feedback="位置对,但漏了接缝处理。" aria-pressed="false"><b>A.</b>做法正确,位置和处理都没问题。</button><button class="option" type="button" data-correct="true" data-feedback="对——位置在受剪力较小部位妥当,差的是接缝处理工序。" aria-pressed="false"><b>B.</b>位置妥当,但继续浇筑前应清浮浆、凿毛、湿润并铺同配合比砂浆。</button><button class="option" type="button" data-correct="false" data-feedback="柱施工缝留在基础顶面本就妥当,位置不是问题;真正缺的是接缝处理。" aria-pressed="false"><b>C.</b>位置不妥,应改留到别处。</button></div>
     <div class="feedback" id="practiceFeedback" role="status"></div>
-    <p class="next-action">再练 1 道&#x27;指出不妥之处并写正确做法&#x27;的施工缝案例小问。</p>
   </section>
 
   <div class="wrap-card" data-anchor="wrap">

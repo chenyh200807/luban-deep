@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Build OpenMAIC-style animation_ir.v0 previews from Deep Pack markdown.
+"""Build OpenMAIC-style animation_ir.v0 coarse drafts from Deep Pack markdown.
 
 This is intentionally a thin batch wrapper. Facts come from the pack markdown
 and the 60-slot registry; visual stability comes from render_animation_ir_preview.py
 and the animation_ir gates.
+
+This script does not author student-ready cards. A green structural gate only
+means the IR is renderable and safe for internal review. Student-ready output
+must still pass the one-card diagram-first quality loop with screenshots and
+human/LLM review.
 """
 from __future__ import annotations
 
@@ -17,12 +22,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from render_animation_ir_practice import render_practice
+
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKDIR = Path(__file__).resolve().parent
 REGISTRY = ROOT / "docs/plan/鲁班移动端提分闭环/2026-06-19-luban-animation-pack-taxonomy-alignment-registry.md"
 PACK_DIR = ROOT / "docs/原始数据/考点原料/成品"
 REMOTION_SRC = WORKDIR / "remotion_demo/src"
+BATCH_QUALITY_STATUS = "coarse_draft_requires_single_card_review"
 
 
 @dataclass(frozen=True)
@@ -212,6 +220,9 @@ ARCHETYPE_VISUAL_REQUIRED: dict[str, list[str]] = {
 }
 
 
+TEACHING_SCENE_IDS = ["hook", "map", "rule", "trap", "score"]
+
+
 def archetype_visual_required(archetype: str) -> list[str]:
     return ARCHETYPE_VISUAL_REQUIRED.get(archetype, ["answer_scan"])
 
@@ -221,6 +232,16 @@ def diagram_node(kind: str, node_id: str, *, text: str = "", labels: list[str] |
     if labels:
         item["labels"] = [short(label, 8) for label in labels[:6]]
     return item
+
+
+def retarget_diagram(item: dict[str, Any], node_id: str, *, text: str | None = None, tone: str | None = None) -> dict[str, Any]:
+    copied = dict(item)
+    copied["id"] = node_id
+    if text is not None:
+        copied["text"] = short(text, 24)
+    if tone is not None:
+        copied["tone"] = tone
+    return copied
 
 
 def archetype_map_node(labels: list[str], archetype: str) -> dict[str, Any]:
@@ -237,6 +258,10 @@ def archetype_map_node(labels: list[str], archetype: str) -> dict[str, Any]:
     if archetype == "value_memory_card":
         return diagram_node("memory_table", "prototype_map", text="数值辨析", labels=labels, tone="amber")
     return diagram_node("answer_scan", "prototype_map", text="采分诊断", labels=labels, tone="success")
+
+
+def archetype_hook_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    return retarget_diagram(archetype_map_node(labels, archetype), "hook_visual", text="先看图再下笔", tone="danger")
 
 
 def archetype_rule_node(labels: list[str], archetype: str) -> dict[str, Any]:
@@ -271,14 +296,35 @@ def archetype_trap_node(labels: list[str], archetype: str) -> dict[str, Any]:
     return diagram_node("answer_scan", "trap_visual", text="只写结论", labels=labels, tone="danger")
 
 
+def archetype_score_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    if archetype == "calculation_structure":
+        score_labels = labels[:3] + ["写依据"]
+    elif archetype == "process_step_reveal":
+        score_labels = labels[:3] + ["闭环"]
+    elif archetype == "section_or_spatial_reveal":
+        score_labels = labels[:3] + ["位置"]
+    else:
+        score_labels = labels[:3] + ["结论"]
+    return diagram_node("answer_scan", "score_sheet", text="答题纸采分", labels=score_labels, tone="success")
+
+
+def student_qa_lines(labels: list[str]) -> list[str]:
+    primary = labels[0] if labels else "对象"
+    secondary = labels[1] if len(labels) > 1 else "条件"
+    return [
+        f"老师,我先写{primary}能拿分不?",
+        f"这块是不是还得带上{secondary}?",
+        "整明白了,最后要不要把依据也写上?",
+    ]
+
+
 def visual_for_scene(scene_id: str, title: str, terms: list[str], archetype: str) -> dict[str, Any]:
     t = terms + ["判对象", "判条件", "写依据", "写采分句"]
     if scene_id == "hook":
         return {
             "board": "warm_grid",
             "nodes": [
-                node("pill", "wrong_start", "错觉:先背答案", x=54, y=68, w=252, h=48, tone="danger"),
-                node("pill", "score_goal", "目标:写成采分闭环", x=58, y=142, w=244, h=56, tone="success", subtext="对象 → 条件 → 依据"),
+                archetype_hook_node(t, archetype),
             ],
         }
     if scene_id == "map":
@@ -300,18 +346,17 @@ def visual_for_scene(scene_id: str, title: str, terms: list[str], archetype: str
         return {
             "board": "paper",
             "nodes": [
-                node("answer_box", "score_1", t[0], x=54, y=94, w=252, h=38, tone="success"),
-                node("answer_box", "score_2", t[1], x=54, y=142, w=252, h=38, tone="blue"),
-                node("answer_box", "score_3", t[2], x=54, y=190, w=252, h=38, tone="amber"),
+                archetype_score_node(t, archetype),
             ],
         }
     if scene_id == "qa":
+        q1, q2, q3 = student_qa_lines(t)
         return {
             "board": "warm_grid",
             "nodes": [
-                node("dialogue_box", "student_q1", "学生问:先写哪个?", x=42, y=58, w=276, h=44, tone="blue"),
-                node("dialogue_box", "student_q2", "学生问:少一句扣分吗?", x=42, y=114, w=276, h=44, tone="amber"),
-                node("dialogue_box", "teacher_a", "老师:按采分链补齐", x=42, y=170, w=276, h=46, tone="success"),
+                node("dialogue_box", "student_q1", q1, x=42, y=48, w=276, h=44, tone="blue"),
+                node("dialogue_box", "student_q2", q2, x=42, y=104, w=276, h=44, tone="amber"),
+                node("dialogue_box", "student_q3", q3, x=42, y=160, w=276, h=44, tone="success"),
             ],
         }
     return {
@@ -340,12 +385,12 @@ def build_ir(slot: RegistrySlot, md_path: Path, prefix: str) -> tuple[dict[str, 
     archetype = detect_archetype(title)
     card_id = student_safe_card_id(prefix, slot.pack_id)
     scene_specs = [
-        ("hook", "先避坑", "wrong_start", "考场先别急着写术语", f"注意哈，这类题别先背答案，先判它要哪条采分链。"),
+        ("hook", "先避坑", "hook_visual", "考场先别急着写术语", f"注意哈，这类题别先背答案，先看图里藏着哪条采分链。"),
         ("map", "看结构", "prototype_map", "先看它属于哪类图", f"先把它画成图：{labels[0]}、{labels[1]}、{labels[2]}、{labels[3]}。"),
         ("rule", "判边界", "rule_model", "用图走一遍判断动作", "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"),
         ("trap", "错法", "trap_visual", "先拆常见错法", "只写结果、不写依据，最容易漏采分点。"),
-        ("score", "采分", "score_1", "把答案写成采分句", f"答题纸按三段写：{labels[0]}、{labels[1]}、{labels[2]}。"),
-        ("qa", "三问", "student_q1", "三问集中放后面", "学生常问三个问题：先写哪个、少一句扣不扣分、能不能只写结论。都回到采分链。"),
+        ("score", "采分", "score_sheet", "把答案写成采分句", f"答题纸按三段写：{labels[0]}、{labels[1]}、{labels[2]}。"),
+        ("qa", "三问", "student_q1", "三问集中放后面", "学生三问集中放后面：能不能拿分、还要不要补条件、依据要不要写。都回到采分链。"),
         ("closing_challenge", "闯关", "closing_sentence", "收束到闯关", "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"),
     ]
     times = scene_times(len(scene_specs))
@@ -381,7 +426,7 @@ def build_ir(slot: RegistrySlot, md_path: Path, prefix: str) -> tuple[dict[str, 
         # generated, otherwise the card passes IR but fails mobile readability.
         segments.append({"startSec": start + 0.05, "durSec": max(1.0, end - start - 0.1), "speaker": "T", "kind": "coach", "text": coach})
         if scene_id == "qa":
-            for offset, q in enumerate(["老师，先写哪个动作？", "少一个判断依据会丢分吗？", "我能不能只写结论？"]):
+            for offset, q in enumerate(student_qa_lines(labels)):
                 segments.append({"startSec": start + 3.8 + offset * 3.0, "durSec": 2.4, "speaker": "S", "kind": "qa", "text": q})
     duration = times[-1][1]
     ir = {
@@ -396,16 +441,20 @@ def build_ir(slot: RegistrySlot, md_path: Path, prefix: str) -> tuple[dict[str, 
             "warm_correction": f"{title} 不是背散点，而是把题干转成可得分的判断链。",
         },
         "source_refs": {"pack_markdown": str(md_path.relative_to(ROOT)), "timing": f"{card_id}.lesson.timing.json"},
-            "render_contract": {
-                "renderer": "render_animation_ir_preview.py",
-                "html_preview": f"{card_id}.animation_ir_preview.html",
-                "remotion_renderer": f"remotion_demo/src/{card_id}AnimationIrPreview.tsx",
-                "remotion_composition": f"{card_id}AnimationIrPreview",
-                "practice_href": f"{card_id}.practice.html",
-                "max_visible_nodes": 4,
-                "archetype_visual_required": archetype_visual_required(archetype),
-                "challenge_unlock_sec": scenes[4]["start_sec"],
-                "one_active_scene": True,
+        "render_contract": {
+            "renderer": "render_animation_ir_preview.py",
+            "html_preview": f"{card_id}.animation_ir_preview.html",
+            "remotion_renderer": f"remotion_demo/src/{card_id}AnimationIrPreview.tsx",
+            "remotion_composition": f"{card_id}AnimationIrPreview",
+            "practice_href": f"{card_id}.practice.html",
+            "quality_status": BATCH_QUALITY_STATUS,
+            "student_ready": False,
+            "max_visible_nodes": 4,
+            "archetype_visual_required": archetype_visual_required(archetype),
+            "teaching_scene_ids": TEACHING_SCENE_IDS,
+            "min_diagrammatic_teaching_scenes": len(TEACHING_SCENE_IDS),
+            "challenge_unlock_sec": scenes[4]["start_sec"],
+            "one_active_scene": True,
             "one_active_keycard": True,
             "theater_requires_challenge_cta": True,
             "ai_ask_required": True,
@@ -441,20 +490,7 @@ def build_ir(slot: RegistrySlot, md_path: Path, prefix: str) -> tuple[dict[str, 
 
 
 def write_practice(card_id: str, slot: RegistrySlot, terms: list[str]) -> Path:
-    terms = terms + ["判断依据", "采分句"]
-    out = WORKDIR / f"{card_id}.practice.html"
-    title = html.escape(slot.student_title)
-    options = "\n".join(
-        f'<button class="option" type="button"><b>{html.escape(label)}</b><span>路径 + 判断依据</span></button>'
-        for label in terms[:4]
-    )
-    out.write_text(
-        f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>{title} · 闯关</title>
-<style>*{{box-sizing:border-box}}body{{margin:0;background:#eef5fb;color:#132033;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}}main{{max-width:520px;margin:0 auto;min-height:100dvh;padding:18px 14px 28px}}.top{{display:flex;justify-content:space-between;gap:12px;align-items:center}}a{{color:#176b7a;font-weight:900;text-decoration:none}}h1{{font-size:23px;line-height:1.2;margin:10px 0 12px}}.progress{{height:7px;border-radius:99px;background:#d8e5f0;overflow:hidden;margin:14px 0 18px}}.progress i{{display:block;width:20%;height:100%;background:#ff7a1a}}.card{{background:#fff;border:1px solid #cdddeb;border-radius:20px;padding:15px;box-shadow:0 16px 40px rgba(30,58,87,.12)}}.diagram{{background:#fffdf7;border:3px solid #eadfcb;border-radius:18px;padding:14px;margin-bottom:16px}}.flow{{display:flex;align-items:center;gap:8px;justify-content:space-between}}.dot{{flex:1;min-height:58px;border:3px solid #c9d9e8;border-radius:999px;display:grid;place-items:center;text-align:center;font-size:13px;font-weight:900;padding:8px;line-height:1.2}}.dot.hot{{border-color:#ff7a1a;color:#b45309;background:#fff7ed}}.stem{{font-size:18px;line-height:1.45;font-weight:900;margin:0 0 14px}}.options{{display:grid;gap:10px}}.option{{width:100%;min-height:58px;text-align:left;border:1px solid #d6e2ed;border-radius:14px;background:#fff;padding:10px 12px;color:#172437}}.option b{{display:block;font-size:16px;line-height:1.25}}.option span{{display:block;color:#60758c;font-size:12px;font-weight:800;margin-top:4px}}.bottom{{position:sticky;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 0;background:linear-gradient(180deg,rgba(238,245,251,0),#eef5fb 35%)}}.bottom button{{min-height:52px;border-radius:14px;border:1px solid #cdddeb;background:#fff;font-size:16px;font-weight:900;color:#6a7d91}}.bottom .primary{{background:#176b7a;color:white;border-color:#176b7a}}@media(orientation:landscape){{main{{max-width:920px}}.card{{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1fr);gap:18px;align-items:center}}.diagram{{margin-bottom:0}}}}</style></head>
-<body><main><div class="top"><a href="{card_id}.animation_ir_preview.html">返回讲解</a><b>鲁班深母题 · 独立闯关</b></div><h1>{title}</h1><div class="progress"><i></i></div><section class="card"><div class="diagram"><div class="flow"><div class="dot">{html.escape(terms[0])}</div><div class="dot hot">{html.escape(terms[1])}</div><div class="dot">{html.escape(terms[2])}</div></div></div><div><p class="stem">第 1/5 问：这份学生答最可能漏掉哪一段采分动作？</p><div class="options">{options}</div></div></section><div class="bottom"><button type="button">上一题</button><button class="primary" type="button">先作答</button></div></main></body></html>""",
-        encoding="utf-8",
-    )
-    return out
+    return render_practice(WORKDIR / f"{card_id}.animation_ir.v0.json")
 
 
 def write_remotion_wrapper(card_id: str) -> Path:
@@ -506,7 +542,7 @@ def write_index(generated: list[dict[str, Any]], prefix: str) -> Path:
     out = WORKDIR / f"{prefix}_index.html"
     out.write_text(
         f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{prefix} 动画量产索引</title>
-<style>body{{margin:0;background:#eef5fb;color:#152336;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}}main{{max-width:1100px;margin:0 auto;padding:24px 16px}}h1{{font-size:28px}}p{{color:#60758c;font-weight:800}}table{{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(30,58,87,.12)}}th,td{{padding:11px 12px;border-bottom:1px solid #e2edf5;text-align:left;vertical-align:top}}th{{background:#176b7a;color:white}}a{{color:#176b7a;font-weight:900}}</style></head><body><main><h1>{prefix} 教学动画量产索引</h1><p>OpenMAIC-style animation_ir.v0 首版批量预览；coarse_review 只作内部验证，不进学员默认入口。</p><table><thead><tr><th>Slot</th><th>Pack</th><th>标题</th><th>状态</th><th>入口</th><th>Gate</th></tr></thead><tbody>{rows}</tbody></table></main></body></html>""",
+<style>body{{margin:0;background:#eef5fb;color:#152336;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}}main{{max-width:1100px;margin:0 auto;padding:24px 16px}}h1{{font-size:28px}}p{{color:#60758c;font-weight:800}}table{{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(30,58,87,.12)}}th,td{{padding:11px 12px;border-bottom:1px solid #e2edf5;text-align:left;vertical-align:top}}th{{background:#176b7a;color:white}}a{{color:#176b7a;font-weight:900}}</style></head><body><main><h1>{prefix} 教学动画量产索引</h1><p>OpenMAIC-style animation_ir.v0 批量草稿；只用于内部发现选题和结构问题。Gate PASS 只代表可渲染/可审查，不代表学员可用；精品卡必须逐张进入单卡图示动画质量闭环。</p><table><thead><tr><th>Slot</th><th>Pack</th><th>标题</th><th>状态</th><th>入口</th><th>Gate</th></tr></thead><tbody>{rows}</tbody></table></main></body></html>""",
         encoding="utf-8",
     )
     return out
@@ -518,11 +554,20 @@ def main() -> int:
     parser.add_argument("--prefix", default="P40")
     parser.add_argument("--validate-contract", action="store_true")
     parser.add_argument("--validate-preview", action="store_true")
+    parser.add_argument("--validate-practice", action="store_true")
     args = parser.parse_args()
 
     start, end = [int(part) for part in args.slots.split("-", 1)]
     slots = [slot for slot in parse_registry() if start <= slot.slot <= end]
-    manifest: dict[str, Any] = {"schema_version": "luban_animation_ir_batch_manifest.v0", "prefix": args.prefix, "slots": args.slots, "generated": [], "blocked": []}
+    manifest: dict[str, Any] = {
+        "schema_version": "luban_animation_ir_batch_manifest.v0",
+        "prefix": args.prefix,
+        "slots": args.slots,
+        "quality_status": BATCH_QUALITY_STATUS,
+        "student_ready": False,
+        "generated": [],
+        "blocked": [],
+    }
     for slot in slots:
         md_path = pack_markdown(slot)
         if not md_path:
@@ -540,6 +585,10 @@ def main() -> int:
         render_result = render_preview(ir_path)
         gate_status = "rendered" if render_result.returncode == 0 else "render_failed"
         gates: dict[str, Any] = {"render": {"returncode": render_result.returncode, "stdout": render_result.stdout[-1000:], "stderr": render_result.stderr[-1000:]}}
+        if args.validate_practice or args.validate_preview:
+            gates["practice"] = run_gate(["node", str(WORKDIR / "validate_practice_interactions.mjs"), str(practice_path)])
+            if gates["practice"]["returncode"] != 0:
+                gate_status = "practice_failed"
         if args.validate_contract:
             gates["contract"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_contract.mjs"), str(ir_path)])
             if gates["contract"]["returncode"] != 0:
@@ -556,6 +605,8 @@ def main() -> int:
                 "title": slot.student_title,
                 "status": slot.status,
                 "prototype": ir["teaching_spine"]["archetype"],
+                "quality_status": BATCH_QUALITY_STATUS,
+                "student_ready": False,
                 "visual_required_kinds": ir["render_contract"]["archetype_visual_required"],
                 "source_pack": str(md_path.relative_to(ROOT)),
                 "source_sha256": source_hash,
