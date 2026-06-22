@@ -1758,11 +1758,14 @@ class MemberConsoleService:
         return score(source) > score(target)
 
     def _merge_canonical_member_for_bi(self, target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
+        target_points = int(target.get("points_balance") or 0)
+        source_points = int(source.get("points_balance") or 0)
         alias_user_ids = {
             str(item).strip()
             for item in list(target.get("alias_user_ids") or []) + list(source.get("alias_user_ids") or [])
             if str(item).strip()
         }
+        search_aliases = self._member_search_alias_values(target, source)
         for item in (target.get("user_id"), source.get("user_id")):
             if str(item or "").strip():
                 alias_user_ids.add(str(item).strip())
@@ -1776,6 +1779,8 @@ class MemberConsoleService:
             self._merge_member_identity_view(target, source)
 
         target["alias_user_ids"] = sorted(alias_user_ids)
+        target["search_aliases"] = sorted(search_aliases)
+        target["points_balance"] = max(target_points, source_points, int(target.get("points_balance") or 0))
         phone = self._registered_phone_for_bi(target) or self._registered_phone_for_bi(source)
         if phone:
             target["phone"] = phone
@@ -1846,6 +1851,41 @@ class MemberConsoleService:
             keys.add(f"phone:{phone}")
         return {key for key in keys if key}
 
+    @staticmethod
+    def _member_search_alias_values(*members: dict[str, Any] | None) -> set[str]:
+        values: set[str] = set()
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            for key in (
+                "user_id",
+                "canonical_user_id",
+                "canonical_uid",
+                "external_auth_user_id",
+                "auth_username",
+                "display_name",
+                "identifier",
+                "phone",
+                "wx_openid",
+                "openid",
+                "wx_unionid",
+                "unionid",
+            ):
+                value = str(member.get(key) or "").strip()
+                if not value:
+                    continue
+                values.add(value)
+                if key == "phone":
+                    digits = re.sub(r"\D+", "", value)
+                    if digits:
+                        values.add(digits)
+            for key in ("alias_user_ids", "search_aliases"):
+                for value in list(member.get(key) or []):
+                    normalized = str(value or "").strip()
+                    if normalized:
+                        values.add(normalized)
+        return values
+
     def _member_console_overlay_index(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         overlays: dict[str, dict[str, Any]] = {}
         for raw_member in data.get("members") or []:
@@ -1855,14 +1895,40 @@ class MemberConsoleService:
                 overlays.setdefault(key, raw_member)
         return overlays
 
+    def _resolve_member_console_overlay(
+        self,
+        overlay_index: dict[str, dict[str, Any]],
+        overlay: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        current = overlay
+        seen: set[str] = set()
+        while isinstance(current, dict):
+            user_id = str(current.get("user_id") or "").strip()
+            if user_id:
+                if user_id in seen:
+                    break
+                seen.add(user_id)
+            merged_into = str(current.get("merged_into") or "").strip()
+            if not merged_into or merged_into == user_id:
+                break
+            next_overlay = overlay_index.get(merged_into)
+            if not isinstance(next_overlay, dict):
+                break
+            current = next_overlay
+        return current
+
     def _merge_member_console_overlay(
         self,
         member: dict[str, Any],
         overlay: dict[str, Any] | None,
+        *,
+        source_overlay: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not overlay:
             return member
         merged = deepcopy(member)
+        source_overlay = source_overlay if isinstance(source_overlay, dict) else overlay
+        resolved_from_merged_account = source_overlay is not overlay
         overlay_aliases = {
             str(value or "").strip()
             for value in [
@@ -1883,14 +1949,46 @@ class MemberConsoleService:
                 if str(value or "").strip()
             }
         )
-        if not str(merged.get("phone") or "").strip():
-            phone = self._registered_phone_for_bi(overlay)
-            if phone:
-                merged["phone"] = phone
-        if str(merged.get("display_name") or "").strip() in {"", str(merged.get("user_id") or "").strip()}:
-            display_name = str(overlay.get("display_name") or "").strip()
-            if display_name:
-                merged["display_name"] = display_name
+        merged["search_aliases"] = sorted(self._member_search_alias_values(merged, source_overlay, overlay))
+        overlay_user_id = str(overlay.get("user_id") or "").strip()
+        if overlay_user_id:
+            merged["user_id"] = overlay_user_id
+        overlay_external_user_id = str(overlay.get("external_auth_user_id") or "").strip()
+        overlay_canonical_user_id = str(overlay.get("canonical_user_id") or "").strip()
+        if overlay_external_user_id and is_uuid_like(overlay_external_user_id):
+            merged["canonical_user_id"] = overlay_external_user_id
+        elif overlay_canonical_user_id:
+            merged["canonical_user_id"] = overlay_canonical_user_id
+        elif overlay_user_id:
+            merged["canonical_user_id"] = overlay_user_id
+
+        phone = self._registered_phone_for_bi(overlay)
+        if phone:
+            merged["phone"] = phone
+        display_name = str(overlay.get("display_name") or "").strip()
+        if display_name:
+            merged["display_name"] = display_name
+        for field in (
+            "tier",
+            "status",
+            "segment",
+            "risk_level",
+            "auto_renew",
+            "created_at",
+            "expire_at",
+            "auth_username",
+            "external_auth_provider",
+            "external_auth_user_id",
+            "wx_openid",
+            "wx_unionid",
+        ):
+            value = overlay.get(field)
+            if value not in (None, "", [], {}):
+                merged[field] = deepcopy(value)
+        if not resolved_from_merged_account and int(merged.get("points_balance") or 0) <= 0:
+            overlay_points = int(overlay.get("points_balance") or 0)
+            if overlay_points > 0:
+                merged["points_balance"] = overlay_points
         for field in (
             "avatar_url",
             "level",
@@ -1950,11 +2048,27 @@ class MemberConsoleService:
                 overlay = overlay_index.get(key)
                 if overlay is not None:
                     break
-            normalized = self._merge_member_console_overlay(deepcopy(member), overlay)
+            resolved_overlay = self._resolve_member_console_overlay(overlay_index, overlay)
+            normalized = self._merge_member_console_overlay(
+                deepcopy(member),
+                resolved_overlay,
+                source_overlay=overlay,
+            )
             if not self._is_registered_member_for_bi(normalized):
                 continue
             normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
             merged_members.append(normalized)
+        members_by_user_id: dict[str, dict[str, Any]] = {}
+        for member in merged_members:
+            user_id = str(member.get("user_id") or "").strip()
+            if not user_id:
+                continue
+            existing = members_by_user_id.get(user_id)
+            if existing is None:
+                members_by_user_id[user_id] = member
+            else:
+                members_by_user_id[user_id] = self._merge_canonical_member_for_bi(existing, member)
+        merged_members = list(members_by_user_id.values())
         if not include_session_activity_supplements:
             return merged_members
         directory_keys = {
@@ -3002,16 +3116,7 @@ class MemberConsoleService:
     def search_members_for_admin(self, *, q: str, limit: int = 10) -> list[dict[str, Any]]:
         """按手机号/姓名/user_id 模糊搜真实会员，供添加管理员选人（手机号脱敏）。"""
         query = str(q or "").strip().lower()
-        directory = self._member_directory
-        try:
-            members = (
-                list(directory.list_members(limit=5000))
-                if bool(getattr(directory, "is_configured", False))
-                else []
-            )
-        except Exception:
-            logger.warning("search_members_for_admin: directory load failed", exc_info=True)
-            members = []
+        members = self._load_member_directory_members_for_bi(self._load())
         results: list[dict[str, Any]] = []
         for member in members:
             if not isinstance(member, dict):
@@ -3928,6 +4033,10 @@ class MemberConsoleService:
                     if digits:
                         values.append(digits)
         for value in list(member.get("alias_user_ids") or []):
+            normalized = str(value or "").strip()
+            if normalized:
+                values.append(normalized)
+        for value in list(member.get("search_aliases") or []):
             normalized = str(value or "").strip()
             if normalized:
                 values.append(normalized)
