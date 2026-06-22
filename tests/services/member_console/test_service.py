@@ -4058,6 +4058,60 @@ async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
 
 
 @pytest.mark.asyncio
+async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_local_phone(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13911112222":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        canonical = service._ensure_member(data, canonical_uid)
+        canonical["phone"] = ""
+        canonical["external_auth_user_id"] = canonical_uid
+        canonical["display_name"] = "手机号账号"
+        current = service._ensure_member(data, "wx_openid_9012")
+        current["wx_openid"] = "openid_123456789012"
+        current["wx_unionid"] = "unionid_abcdef"
+
+    service._mutate(_seed)
+
+    result = await service.bind_phone_for_wechat("wx_openid_9012", "13911112222")
+    claims = service.verify_access_token(result["token"])
+    data = service._load()
+    canonical = service._find_member(data, canonical_uid)
+    current = service._find_member(data, "wx_openid_9012")
+
+    assert result["bound"] is True
+    assert result["merged"] is True
+    assert result["user_id"] == canonical_uid
+    assert result["user"]["user_id"] == canonical_uid
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert canonical["phone"] == "13911112222"
+    assert canonical["wx_openid"] == "openid_123456789012"
+    assert canonical["wx_unionid"] == "unionid_abcdef"
+    assert current["merged_into"] == canonical_uid
+    assert current["wx_openid"] == ""
+    assert current["wx_unionid"] == ""
+
+
+@pytest.mark.asyncio
 async def test_bind_phone_for_wechat_accepts_normalized_phone_for_legacy_clients(
     tmp_path: Path,
 ) -> None:

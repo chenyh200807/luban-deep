@@ -182,6 +182,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   writeback。`/api/v1/auth/reset-password` 成功后只能更新 external auth 密码、消费验证码并
   失效旧 auth session，不得写 `learner_summaries`、`learner_memory_events`、profile、
   progress、goals、heartbeat 或 assessment / turn state，也不得返回登录 token。
+- 手机号不是 `user_id`；它是可信账户凭证 alias。`MemberConsoleService` 处理手机号验证码登录、
+  微信手机号快速登录或注册去重时，必须先通过可信 `phone` alias 解析到 canonical UUID，再绑定或
+  合并 member identity。`member_console` 本地 `member.phone` 只能作为兼容读模型和低风险补充，
+  不得绕过 `public.user_identity_aliases` 另建第二个手机号账号 authority。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment
