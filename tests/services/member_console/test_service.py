@@ -4251,6 +4251,47 @@ def test_bi_member_read_model_starts_on_launch_day(
     assert service.get_member_360("pre_launch_member")["user_id"] == "pre_launch_member"
 
 
+def test_member_search_can_find_pre_launch_member_without_counting_operationally(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                "canonical_user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                "alias_user_ids": [
+                    "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                    "auth_047b7b7f83164f958bf77197",
+                ],
+                "display_name": "历史验证会员",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-14T03:20:32+00:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    assert service.list_members(page=1, page_size=20)["total"] == 0
+    assert service.get_dashboard()["total_count"] == 0
+
+    result = service.list_members(search="15558866508", page=1, page_size=20)
+
+    assert result["total"] == 1
+    assert result["items"][0]["user_id"] == "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    assert result["items"][0]["phone"] == "15558866508"
+
+
 def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"

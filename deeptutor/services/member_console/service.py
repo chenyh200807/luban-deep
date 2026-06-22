@@ -3738,15 +3738,15 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = self._filter_bi_operational_members(
-            self._merge_session_activity_for_member_list(
-                self._load_member_directory_members_for_bi(
-                    data,
-                    include_session_activity_supplements=True,
-                )
+        search_text = str(search or "").strip().lower()
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
             )
         )
-        search_text = str(search or "").strip().lower()
+        if not search_text:
+            members = self._filter_bi_operational_members(members)
         now = _now()
         heartbeat_user_ids: set[str] | None = None
         if has_heartbeat_job is not None:
