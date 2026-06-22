@@ -1055,6 +1055,30 @@ def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None
     return ""
 
 
+def _message_references_stored_question_set_item(
+    message: str,
+    stored_question_context: dict[str, Any] | None,
+) -> bool:
+    """True if ``message`` references an item of the stored batch question_set by ordinal
+    ("第N题"), via the single ordinal→item authority
+    (``question_followup.requested_question_item_index``, same one the submission path uses).
+
+    Used by the turn-start suspend guard to NOT demote an active batch set into the
+    suspended stack when the user is actually referring to one of its items (task#14):
+    keeping the set in active_object lets the scene low-information gate anchor "第N题".
+    """
+
+    if not stored_question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            requested_question_item_index,
+        )
+    except Exception:
+        return False
+    return requested_question_item_index(message, stored_question_context) is not None
+
+
 def _prepend_suspended_object(
     suspended_object_stack: list[dict[str, Any]] | None,
     active_object: dict[str, Any] | None,
@@ -4780,11 +4804,23 @@ class TurnRuntimeManager:
                 stored_followup_question_context = extract_question_context_from_active_object(
                     stored_active_object
                 )
+            # task#14 (2026-06-22): do NOT demote the active batch question_set when this
+            # turn explicitly references one of its items by ordinal ("刚才第3题的答案和考点
+            # 讲讲"). Otherwise the set is pushed to the suspended stack and the scene
+            # low-information gate (which reads active_object/question_followup_context, not
+            # the suspended stack) can no longer anchor "第N题" → fail-closed. Single
+            # authority for ordinal→item is question_followup.requested_question_item_index
+            # (same as submission path); if it resolves against the stored set, keep the set
+            # active so it flows into scene metadata.
+            stored_set_ordinal_referenced = _message_references_stored_question_set_item(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
+                and not stored_set_ordinal_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,

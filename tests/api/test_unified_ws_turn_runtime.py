@@ -11470,3 +11470,25 @@ def test_turn_end_merge_preserves_batch_set_through_single_item_grading() -> Non
     new_q = build_active_object_from_question_context(_q("qNEW", "新生成的题", "A"), source_turn_id="t2")
     switched = asyncio.run(_run(prior, new_q, {"turn_semantic_decision": {"next_action": "route_to_generation"}}))
     assert str(switched["state_snapshot"].get("question_id") or "") == "qNEW", "real switch was wrongly merged/blocked"
+
+
+def test_t14_message_references_stored_question_set_item_keeps_set_active():
+    """[turn domain] task#14 (2026-06-22): the turn-start suspend guard must NOT demote an
+    active batch question_set when the turn references one of its items by ordinal
+    ("刚才第3题…"). Single authority = question_followup.requested_question_item_index.
+    """
+    from deeptutor.services.session.turn_runtime import (
+        _message_references_stored_question_set_item as refs,
+    )
+    def _it(qid, q):
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": "C"}
+    set_ctx = {"question": "三题", "question_type": "choice",
+               "items": [_it("q1", "Q1"), _it("q2", "Q2"), _it("q3", "Q3")]}
+    single_ctx = _it("q1", "单题")
+    assert refs("刚才第3题的答案和考点讲讲", set_ctx) is True      # ordinal in set → keep active
+    assert refs("第2题再讲讲", set_ctx) is True
+    assert refs("第4题讲讲", set_ctx) is False                     # out of range → demote ok
+    assert refs("换个话题聊聊", set_ctx) is False                  # not an ordinal ref → demote ok
+    assert refs("第1题讲讲", single_ctx) is False                  # single (len<2) → demote ok
+    assert refs("刚才第3题讲讲", None) is False
