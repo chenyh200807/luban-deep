@@ -232,3 +232,61 @@ async def test_cached_submission_action_is_not_dropped_or_rerouted() -> None:
     assert calls["n"] == 0, "cached submission action must NOT be dropped/re-resolved"
     decision = routing.turn_semantic_decision
     assert decision["next_action"] == "route_to_grading"
+
+
+@pytest.mark.asyncio
+async def test_historical_backreference_upgrades_flaky_followup_to_unresolved_switch() -> None:
+    """E1 deterministic reliability (2026-06-22): an explicit historical back-reference
+    ('回到我最开始做错的那道题') must route to the context-continuous main LLM even when
+    the LLM relation classifier flakily binds it to the current active question
+    (ask_followup → ask_about_active_object). The deterministic back-ref detector upgrades
+    it to the unresolved-switch signature so the main LLM recalls the referenced question
+    from shared history instead of explaining the stale active (most-recent) question.
+    """
+    from deeptutor.services.semantic_router import is_unresolved_switch_followup
+
+    active_object = _question_active_object("q_current", "结构找坡题(最近一道)", "C")
+
+    async def fake_interpret(_message, question_context, *, history_context=""):
+        # flaky classifier: treats the back-reference as a plain followup on active Q2
+        return {"intent": "ask_followup", "confidence": 0.8, "answers": [], "reason": "误判为对当前题追问"}
+
+    routing = await resolve_question_semantic_routing(
+        user_message="回到我最开始做错的那道题，正确答案为什么是那个",
+        metadata={"active_object": active_object},
+        history_context=(
+            "Assistant: 第1题 种植平屋面坡度不应小于（2%）\n"
+            "Assistant: 第2题 结构找坡最小坡度（3%）"
+        ),
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=resolve_submission_attempt,
+        looks_like_question_followup=looks_like_question_followup,
+        looks_like_practice_generation_request=looks_like_practice_generation_request,
+    )
+    d = routing.turn_semantic_decision
+    assert d["relation_to_active_object"] == "switch_to_new_object"
+    assert d["next_action"] == "route_to_followup_explainer"
+    assert is_unresolved_switch_followup(d)
+
+
+@pytest.mark.asyncio
+async def test_active_question_followup_not_upgraded_to_switch() -> None:
+    """Negative guard: a plain followup about the CURRENT question ('为什么其它选项不对')
+    must NOT be upgraded to unresolved-switch — it stays a normal active-object followup."""
+    active_object = _question_active_object("q_current", "当前题", "C")
+
+    async def fake_interpret(_message, question_context, *, history_context=""):
+        return {"intent": "ask_followup", "confidence": 0.9, "answers": [], "reason": "对当前题追问"}
+
+    routing = await resolve_question_semantic_routing(
+        user_message="为什么其它选项不对",
+        metadata={"active_object": active_object},
+        history_context="Assistant: 第1题...\nAssistant: 第2题...",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=resolve_submission_attempt,
+        looks_like_question_followup=looks_like_question_followup,
+        looks_like_practice_generation_request=looks_like_practice_generation_request,
+    )
+    d = routing.turn_semantic_decision
+    assert d["relation_to_active_object"] == "ask_about_active_object"
+    assert d["next_action"] == "route_to_followup_explainer"
