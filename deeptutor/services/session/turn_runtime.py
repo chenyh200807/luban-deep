@@ -2530,6 +2530,18 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
 # (subscribe/resume with after_seq). SQLite remains the source of truth, so no data is lost.
 _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
 
+# Cross-worker live-subscribe fallback. With UVICORN_WORKERS>1 a turn frequently
+# runs on a SIBLING worker, so it is absent from THIS worker's in-memory
+# self._executions even though it is alive. The shared SQLite store is the single
+# authoritative event log (every event is persisted via _persist_and_publish
+# before in-memory fan-out), so a subscriber on the wrong worker tails the store
+# instead of giving up. Poll interval trades freshness for store read load; the
+# orphan timeout must exceed the largest plausible gap between a live turn's
+# events (TTFT under load can be tens of seconds) so a slow sibling is never
+# mistaken for a crashed (genuinely orphaned) worker.
+_CROSS_WORKER_TAIL_POLL_SECONDS = 0.4
+_CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS = 150.0
+
 
 # ---- Global turn-concurrency gate (orderly queue + peak shaving) -------------------
 # Each turn runs an expensive LLM/agent task. Without an admission limit, a surge fires
@@ -4405,22 +4417,26 @@ class TurnRuntimeManager:
                 execution.subscribers.append(subscriber)
                 execution.first_subscriber_attached.set()
 
-        catchup = await self._safe_store_call(
-            None,
-            "get_turn_catchup",
-            self.store.get_turn_events,
-            turn_id,
-            last_seq,
-            default=[],
-        )
-        for item in catchup:
-            seq = int(item.get("seq") or 0)
-            if seq <= last_seq:
-                continue
-            last_seq = seq
-            if execution is None:
-                yield _project_result_response_for_legacy_clients(item)
-            else:
+        # Catch-up only bridges the in-memory race for a same-worker subscriber
+        # (events persisted between the backlog read and subscriber attach). When
+        # execution is None the turn is on a sibling worker and the cross-worker
+        # store-tail below is the single path — it re-reads from last_seq and also
+        # recognises the terminal event, so running catch-up here would yield the
+        # terminal event without terminating and spin until the orphan timeout.
+        if execution is not None:
+            catchup = await self._safe_store_call(
+                None,
+                "get_turn_catchup",
+                self.store.get_turn_events,
+                turn_id,
+                last_seq,
+                default=[],
+            )
+            for item in catchup:
+                seq = int(item.get("seq") or 0)
+                if seq <= last_seq:
+                    continue
+                last_seq = seq
                 _offer_to_subscriber(queue, _project_result_response_for_legacy_clients(item))
 
         turn = await self._safe_store_call(
@@ -4433,11 +4449,58 @@ class TurnRuntimeManager:
         if execution is None:
             if turn is None or turn.get("status") != "running":
                 return
-            await self._recover_orphaned_running_turns(
-                str(turn.get("session_id") or ""),
-                reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
-            )
-            return
+            # The turn is running but absent from THIS worker's in-memory
+            # executions. Under UVICORN_WORKERS>1 it is almost always alive on a
+            # SIBLING worker, so tail the shared store (the single event
+            # authority) to completion. The previous behaviour returned here with
+            # backlog only (no live events, no terminal `done` — the live
+            # cross-worker streaming death observed in eval) AND called orphan
+            # recovery, which marks the sibling's live turn "failed". Only a turn
+            # that emits no further events for the orphan timeout is treated as a
+            # genuine crash and handed to the original recovery path.
+            idle_seconds = 0.0
+            while True:
+                await asyncio.sleep(_CROSS_WORKER_TAIL_POLL_SECONDS)
+                tail = await self._safe_store_call(
+                    None,
+                    "get_turn_crossworker_tail",
+                    self.store.get_turn_events,
+                    turn_id,
+                    last_seq,
+                    default=[],
+                )
+                progressed = False
+                terminal = False
+                for item in tail:
+                    seq = int(item.get("seq") or 0)
+                    if seq <= last_seq:
+                        continue
+                    last_seq = seq
+                    progressed = True
+                    if str(item.get("type") or "") in ("done", "error"):
+                        terminal = True
+                    yield _project_result_response_for_legacy_clients(item)
+                if terminal:
+                    return
+                if progressed:
+                    idle_seconds = 0.0
+                    continue
+                idle_seconds += _CROSS_WORKER_TAIL_POLL_SECONDS
+                turn = await self._safe_store_call(
+                    None,
+                    "get_turn_crossworker_status",
+                    self.store.get_turn,
+                    turn_id,
+                    default=None,
+                )
+                if turn is None or turn.get("status") != "running":
+                    return
+                if idle_seconds >= _CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS:
+                    await self._recover_orphaned_running_turns(
+                        str(turn.get("session_id") or ""),
+                        reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
+                    )
+                    return
         try:
             while True:
                 item = await queue.get()
