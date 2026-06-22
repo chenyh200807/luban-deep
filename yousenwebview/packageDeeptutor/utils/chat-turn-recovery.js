@@ -33,7 +33,16 @@ function _messageMetadata(message) {
 
 function getAssistantDisplayText(message) {
   if (!message || typeof message !== "object") return "";
-  return normalizeMessageText(message.content) ? String(message.content || "") : "";
+  var candidates = [
+    message.content,
+    message.response,
+    message.assistant_content,
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var text = normalizeMessageText(candidates[i]);
+    if (text) return String(candidates[i] || "");
+  }
+  return "";
 }
 
 function _messageTurnId(message) {

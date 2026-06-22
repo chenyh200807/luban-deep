@@ -598,12 +598,12 @@ class LangfuseObservability:
         return self._client
 
     def sanitize_input(self, value: Any) -> Any:
-        if not _env_flag("LANGFUSE_CAPTURE_INPUT", True):
+        if not _env_flag("LANGFUSE_CAPTURE_INPUT", False):
             return None
         return _sanitize_value(value, mask_pii=_env_flag("LANGFUSE_MASK_PII", True))
 
     def sanitize_output(self, value: Any) -> Any:
-        if not _env_flag("LANGFUSE_CAPTURE_OUTPUT", True):
+        if not _env_flag("LANGFUSE_CAPTURE_OUTPUT", False):
             return None
         return _sanitize_value(
             redact_internal_output(value),

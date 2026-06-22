@@ -24,6 +24,20 @@ def test_apply_docs_match_direct_postgres_credentials() -> None:
     assert "SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=..." not in str(module.__doc__)
 
 
+def test_schema_sql_keeps_public_projection_tables_service_role_only() -> None:
+    module = _load_script()
+    sql = module._SCHEMA_SQL.lower()
+
+    for table in (
+        "luban_canonical_taxonomy",
+        "luban_canonical_knowledge_catalog",
+        "luban_canonical_knowledge_edges",
+    ):
+        assert f"alter table public.{table} enable row level security;" in sql
+        assert f"alter table public.{table} force row level security;" in sql
+        assert f"revoke all on table public.{table} from anon, authenticated;" in sql
+
+
 def test_catalog_and_edges_are_canonicalized_to_taxonomy_display_codes() -> None:
     module = _load_script()
     alias_to_display = {

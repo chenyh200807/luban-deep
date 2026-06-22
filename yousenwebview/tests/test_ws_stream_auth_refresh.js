@@ -611,6 +611,48 @@ function loadWsStream(config) {
     );
   });
 
+  await run("public result metadata.content should not become final answer authority", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var finals = [];
+
+    loaded.wsStream.streamChat(
+      { query: "请批改案例题", sessionId: "conv_1" },
+      {
+        onFinal: function (payload) {
+          finals.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+    loaded.tasks[0]._open();
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        content: "metadata.content 不能作为终态答案",
+      },
+    });
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        metadata: {
+          content: "nested metadata.content 也不能作为终态答案",
+        },
+      },
+    });
+
+    assert(
+      finals.length === 0,
+      "metadata.content without response/assistant_content must not trigger visible final answer",
+    );
+  });
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

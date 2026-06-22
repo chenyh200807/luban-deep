@@ -12,6 +12,8 @@ import asyncio
 import json
 import re
 import threading
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -76,6 +78,99 @@ class _FakeContext:
                 "content": result,
             },
         ]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class LoopingProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            return LLMResponse(
+                content="继续调用工具",
+                tool_calls=[
+                    ToolCallRequest(
+                        id=f"call_{self.calls}",
+                        name="rag",
+                        arguments={"topic": f"round-{self.calls}"},
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "dummy tool"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            self.calls.append(dict(kwargs))
+            return f"executed:{kwargs['topic']}"
+
+    provider = LoopingProvider()
+    tool = DummyTool()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        max_iterations=5,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(tool)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 2
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert metadata["effective_max_tool_rounds"] == 2
+    assert "maximum number of tool call iterations (2)" in (final_content or "")
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
@@ -1020,7 +1115,6 @@ def test_projected_exact_question_renders_authority_on_learner_surface() -> None
     # The authority response names A (the learner's correct letter), never D.
     assert "A" in rendered
     assert "正确答案是 D" not in rendered and "正确答案 D" not in rendered
-
 
 # ── task#10: pasted-MCQ grounding projected onto the learner option surface ────
 # When a learner pastes an MCQ whose option order differs from the question bank,
