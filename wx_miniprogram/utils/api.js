@@ -790,6 +790,7 @@ function submitAssessment(quizId, answers, timeSpent) {
 module.exports = {
   request: request,
   unwrapResponse: unwrapResponse,
+  ensureFreshAuthToken: ensureFreshAuthToken,
   wxLogin: wxLogin,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,

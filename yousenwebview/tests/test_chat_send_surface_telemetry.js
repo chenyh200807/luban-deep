@@ -262,6 +262,106 @@ function loadChatPage() {
     );
   });
 
+  await run("final next_best_action should attach to the visible AI message", async function () {
+    var loaded = loadChatPage();
+    loaded.page._streamId = "a0";
+    loaded.page._find = function (id) {
+      return id === "a0" ? 0 : -1;
+    };
+    loaded.page.setData({
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          content: "已完成批改",
+          renderableContent: "已完成批改",
+          blocks: [],
+          streaming: false,
+        },
+      ],
+    });
+
+    loaded.page._onFinal({
+      next_best_action: {
+        title: "先补一题可诊断练习",
+        target: "屋面防水薄弱点",
+      },
+    });
+
+    assert(
+      loaded.page.data["messages[0].nextBestAction"] &&
+        loaded.page.data["messages[0].nextBestAction"].title === "先补一题可诊断练习",
+      "final next_best_action should be attached to the current visible AI message",
+    );
+  });
+
+  await run("next_best_action tap should reuse server-projected query", async function () {
+    var loaded = loadChatPage();
+    var sentQuery = "";
+    loaded.page._find = function (id) {
+      return id === "a0" ? 0 : -1;
+    };
+    loaded.page._send = function (query) {
+      sentQuery = query;
+    };
+    loaded.page.setData({
+      isStreaming: false,
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          nextBestAction: {
+            title: "先补一题可诊断练习",
+            target: "屋面防水薄弱点",
+            query: "请围绕屋面防水薄弱点出一道诊断题，等我作答后再批改。",
+          },
+        },
+      ],
+    });
+
+    loaded.page.onNextBestActionTap({
+      currentTarget: { dataset: { msgid: "a0" } },
+    });
+
+    assert(
+      sentQuery === "请围绕屋面防水薄弱点出一道诊断题，等我作答后再批改。",
+      "next_best_action tap should enter the existing _send pipeline with the server-projected query",
+    );
+  });
+
+  await run("next_best_action tap should keep bounded fallback for legacy payloads", async function () {
+    var loaded = loadChatPage();
+    var sentQuery = "";
+    loaded.page._find = function (id) {
+      return id === "a0" ? 0 : -1;
+    };
+    loaded.page._send = function (query) {
+      sentQuery = query;
+    };
+    loaded.page.setData({
+      isStreaming: false,
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          nextBestAction: {
+            title: "先补一题可诊断练习",
+            target: "屋面防水薄弱点",
+          },
+        },
+      ],
+    });
+
+    loaded.page.onNextBestActionTap({
+      currentTarget: { dataset: { msgid: "a0" } },
+    });
+
+    assert(
+      sentQuery === "针对我的薄弱点出一道练习题：屋面防水薄弱点。出题后等我作答再批改。",
+      "legacy next_best_action payloads should still fall back to a bounded practice request",
+    );
+  });
+
   await run("first _doSend should not send a local draft session as conversation_id", async function () {
     var loaded = loadChatPage();
     loaded.page._sid = "s_1780445194569";

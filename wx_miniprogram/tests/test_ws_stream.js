@@ -52,6 +52,9 @@ global.wx = {
   },
   connectSocket: function (opts) {
     socketState.url = opts.url;
+    socketState.header = opts.header || {};
+    socketState.headers = socketState.headers || [];
+    socketState.headers.push(opts.header || {});
     socketState.handlers = {};
     return {
       send: function (payload) {
@@ -101,7 +104,7 @@ assert(
 );
 
 auth.getToken = function () {
-  return "";
+  return "token_initial_for_ws";
 };
 api.startChatTurn = function () {
   api.lastStartTurnPayload = arguments[0] || {};
@@ -201,6 +204,130 @@ Promise.resolve(
     assert(errorCount === 0, "cancelled turn should not surface as an error");
   }),
 )
+  .then(function () {
+    return run("socket connection uses a fresh token after start-turn bootstrap", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.header = {};
+      socketState.headers = [];
+      socketState.handlers = {};
+
+      var originalEnsureFreshAuthToken = api.ensureFreshAuthToken;
+      api.ensureFreshAuthToken = function () {
+        return Promise.resolve("token_refreshed_for_ws");
+      };
+
+      wsStream.streamChat(
+        {
+          query: "请分析这道案例题",
+          sessionId: "session_1",
+          mode: "AUTO",
+        },
+        {
+          onError: function () {},
+          onDone: function () {},
+        },
+      );
+
+      await flush();
+      await flush();
+      api.ensureFreshAuthToken = originalEnsureFreshAuthToken;
+
+      assertEqual(
+        socketState.header.Authorization,
+        "Bearer token_refreshed_for_ws",
+        "socket should use the freshest token instead of a pre-start-turn snapshot",
+      );
+    });
+  })
+  .then(function () {
+    return run("fresh-token failure should fail before opening a socket", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.header = {};
+      socketState.headers = [];
+      socketState.handlers = {};
+
+      var originalEnsureFreshAuthToken = api.ensureFreshAuthToken;
+      api.ensureFreshAuthToken = function () {
+        return Promise.reject(new Error("AUTH_EXPIRED"));
+      };
+      var errors = [];
+      var doneCount = 0;
+
+      wsStream.streamChat(
+        {
+          query: "请分析这道案例题",
+          sessionId: "session_1",
+          mode: "AUTO",
+        },
+        {
+          onError: function (message) {
+            errors.push(message);
+          },
+          onDone: function () {
+            doneCount += 1;
+          },
+        },
+      );
+
+      await flush();
+      await flush();
+      api.ensureFreshAuthToken = originalEnsureFreshAuthToken;
+
+      assertEqual(socketState.headers.length, 0, "socket must not open without a fresh auth token");
+      assertEqual(errors[0], "登录已失效，请重新登录", "auth refresh failure should use unified auth error copy");
+      assertEqual(doneCount, 1, "auth refresh failure should finish the local stream once");
+    });
+  })
+  .then(function () {
+    return run("socket reconnect re-reads a fresh token", async function () {
+      socketState.sent = [];
+      socketState.closed = [];
+      socketState.header = {};
+      socketState.headers = [];
+      socketState.handlers = {};
+
+      var originalEnsureFreshAuthToken = api.ensureFreshAuthToken;
+      var tokens = ["token_first_connect", "token_second_connect"];
+      api.ensureFreshAuthToken = function () {
+        return Promise.resolve(tokens.shift() || "");
+      };
+
+      wsStream.streamChat(
+        {
+          query: "请分析这道案例题",
+          sessionId: "session_1",
+          mode: "AUTO",
+        },
+        {
+          onError: function () {},
+          onDone: function () {},
+        },
+      );
+
+      await flush();
+      await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
+      if (socketState.handlers.close) {
+        socketState.handlers.close({ code: 1006, reason: "dropped" });
+      }
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 650);
+      });
+      await flush();
+      await flush();
+      api.ensureFreshAuthToken = originalEnsureFreshAuthToken;
+
+      assertEqual(
+        socketState.headers[1] && socketState.headers[1].Authorization,
+        "Bearer token_second_connect",
+        "socket reconnect should request and use a fresh token",
+      );
+    });
+  })
   .then(function () {
     return run("cancel requested before socket opens still reaches the authoritative turn", async function () {
       socketState.sent = [];

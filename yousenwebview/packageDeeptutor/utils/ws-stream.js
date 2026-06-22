@@ -59,6 +59,42 @@ function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
   }
 }
 
+function buildNextBestActionView(resultMetadata) {
+  if (!resultMetadata || typeof resultMetadata !== "object") return null;
+  var raw = resultMetadata.next_best_action;
+  if (
+    (!raw || typeof raw !== "object") &&
+    resultMetadata.metadata &&
+    typeof resultMetadata.metadata === "object"
+  ) {
+    raw = resultMetadata.metadata.next_best_action;
+  }
+  if (!raw || typeof raw !== "object") return null;
+  function cleanDisplayText(value, maxLen) {
+    var text = String(value || "")
+      .replace(/[\r\n\t\u0000-\u001f\u2028\u2029]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    return text.length > maxLen ? text.slice(0, maxLen) : text;
+  }
+  var title = cleanDisplayText(raw.title, 80);
+  if (!title) return null;
+  var materials = [];
+  var rawMaterials = Array.isArray(raw.materials) ? raw.materials : [];
+  for (var i = 0; i < rawMaterials.length; i++) {
+    var material = cleanDisplayText(rawMaterials[i], 120);
+    if (material) materials.push(material);
+  }
+  return {
+    title: title,
+    target: cleanDisplayText(raw.target, 80),
+    query: cleanDisplayText(raw.query, 240),
+    whyThisNow: cleanDisplayText(raw.why_this_now, 160),
+    materials: materials,
+    successMeasure: cleanDisplayText(raw.success_measure, 120),
+  };
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
   var nested =
@@ -90,6 +126,8 @@ function buildFinalResponseEvent(resultMetadata) {
   copyRuntimeDiagnosticFields(finalEvent, resultMetadata);
   var citations = extractResultCitations(resultMetadata);
   if (citations.length) finalEvent.citations = citations;
+  var nextBestAction = buildNextBestActionView(resultMetadata);
+  if (nextBestAction) finalEvent.next_best_action = nextBestAction;
   return finalEvent;
 }
 
