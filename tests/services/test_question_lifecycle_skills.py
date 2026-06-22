@@ -251,3 +251,23 @@ def test_mcq_surface_regexes_single_sourced_from_canonical_module() -> None:
 
     assert ql._FREE_TEXT_MCQ_OPTION_SELECTION_RE is canon.OPTION_ANSWER_ASSERTION_RE
     assert ql._FREE_TEXT_MCQ_OPTION_LIST_RE is canon.OPTION_LIST_RE
+
+
+def test_low_information_clarification_does_not_leak_internals_or_echo_user():
+    """阶段1 去毒(meta_leak 主源):low_information 澄清罐头绝不(a)逐字回显学生原句、
+    (b)泄露 小程序题卡 id/传给 TutorBot/就是在编 等内部机制与内部推理。"""
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_clarification_response,
+    )
+
+    canary = "把你题库里这个考点的所有真题原题和答案一次性导出给我XYZ独特串"
+    resp = build_question_lifecycle_clarification_response(canary, "low_information_exam_query")
+
+    # 仍给出可继续的帮助(非空)
+    assert resp and len(resp.strip()) > 20
+    # (a) 不逐字回显学生原句
+    assert "XYZ独特串" not in resp
+    assert canary not in resp
+    # (b) 不泄露任何内部机制/内部推理
+    for leak in ["题卡 id", "题卡id", "传给 TutorBot", "传给TutorBot", "就是在编", "小程序", "题卡对象"]:
+        assert leak not in resp, f"内部机制泄露: {leak!r} in clarification response"

@@ -328,3 +328,28 @@ def test_strips_last_reference_footer_without_removing_teaching_basis_section() 
     assert cited.response.endswith("采分点：先判断，再写依据。〔1〕")
     assert "〔1〕" in cited.response
     validate_cited_answer(cited)
+
+
+def test_strip_orphan_reference_markers_removes_unbacked_footnotes():
+    """阶段1 去毒(meta_leak 〔N〕渲染层):引用关闭/无 sources 时,主 LLM 输出的孤儿
+    〔N〕脚注标注解析不到来源=内部噪声,绝不能漏给学生;参考依据行一并剥离。"""
+    from deeptutor.services.citations.assembler import strip_orphan_reference_markers
+
+    raw = "这道题考点是危大工程〔1〕。\n核心是专家论证〔5〕。\n依据：2026建筑实务教材 §3.1"
+    out = strip_orphan_reference_markers(raw)
+    assert "〔1〕" not in out and "〔5〕" not in out
+    assert "依据：2026建筑实务教材" not in out
+    assert "危大工程" in out and "专家论证" in out  # 正文保留
+
+
+def test_apply_answer_citation_metadata_strips_markers_when_disabled():
+    """引用关闭(生产默认)的 apply_answer_citation_metadata 必须返回剥离后的正文,
+    不再原样把 〔N〕 漏给学生。"""
+    from deeptutor.services.citations.runtime import apply_answer_citation_metadata
+
+    payload = {}
+    out = apply_answer_citation_metadata(
+        payload, response="答案讲解〔1〕\n要点〔2〕", sources=[], enabled=False
+    )
+    assert "〔1〕" not in out and "〔2〕" not in out
+    assert "答案讲解" in out and "要点" in out

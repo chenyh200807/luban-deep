@@ -40,6 +40,29 @@ def test_render_question_context_includes_question_set_items() -> None:
     assert "第2题解析" in rendered
 
 
+def test_render_question_context_withholds_answer_and_warns_when_not_revealed() -> None:
+    """A1 (治④死循环防泄题): 当 reveal_reference_material=False(如未作答),渲染
+    必须不含 Reference answer/Explanation,并带"不得陈述/猜测答案"安全指令——这样删掉
+    deep_question 的硬 block 后,FollowupAgent 也不会泄露或幻觉答案。"""
+    rendered = FollowupAgent._render_question_context(
+        {
+            "question_id": "q_secret",
+            "question": "某题题干",
+            "question_type": "choice",
+            "options": {"A": "甲", "B": "乙"},
+            "user_answer": "",
+            "correct_answer": "B",
+            "explanation": "机密解析",
+        },
+        reveal_reference_material=False,
+    )
+
+    assert "Reference answer:" not in rendered
+    assert "机密解析" not in rendered
+    assert "withheld" in rendered
+    assert "Do NOT state" in rendered
+
+
 @pytest.mark.asyncio
 async def test_followup_agent_process_preserves_concrete_case_anchor_terms(
     monkeypatch: pytest.MonkeyPatch,
