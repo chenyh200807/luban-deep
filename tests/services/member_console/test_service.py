@@ -4014,6 +4014,42 @@ def test_delete_member_account_removes_credentials_and_hides_member_from_default
     assert retry["audit_id"] == result["audit_id"]
 
 
+def test_delete_member_account_marks_credentialless_member_deleted(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._build_default_member("manual_member")
+        member.update(
+            {
+                "phone": "15875046318",
+                "display_name": "manual",
+                "auth_username": "",
+                "external_auth_user_id": "",
+            }
+        )
+        data["members"] = [member]
+
+    service._mutate(_seed)
+
+    result = service.delete_member_account(
+        "manual_member",
+        operator="admin_demo",
+        reason="BI 删除无登录凭证账号",
+        idempotency_key="delete-account-manual",
+    )
+
+    assert result["success"] is True
+    assert result["user_id"] == "manual_member"
+    assert result["status"] == "deleted"
+    assert result["credentials_deleted"] is False
+    assert result["sessions_invalidated"] == 0
+    assert service.list_members()["total"] == 0
+    deleted = service.list_members(status="deleted")
+    assert deleted["total"] == 1
+    assert deleted["items"][0]["user_id"] == "manual_member"
+
+
 def test_cancel_own_account_requires_password_and_uses_self_operator(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

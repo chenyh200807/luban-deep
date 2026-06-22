@@ -8570,8 +8570,8 @@ class MemberConsoleService:
             sessions_invalidated += int(result.get("sessions_invalidated") or 0)
         elif external_user_id:
             sessions_invalidated += delete_external_auth_sessions(external_user_id)
-        else:
-            raise ValueError("当前会员账号没有可删除的登录凭证")
+        elif password is not None:
+            raise ValueError("当前账号未绑定用户名密码登录")
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             if normalized_key:

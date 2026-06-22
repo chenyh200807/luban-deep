@@ -118,6 +118,9 @@ member_console_controls:
       - MemberConsoleService is the single authority for deleting credentials,
         invalidating external auth sessions, marking member status deleted, and
         writing audit.
+      - If a member has no external auth credential, BI deletion must still
+        mark the member deleted and report no credential deletion instead of
+        failing.
       - Default BI member lists hide deleted accounts, while explicit
         status=deleted queries may surface them for audit.
       - Historical audit, wallet, billing, learning, and conversation records
