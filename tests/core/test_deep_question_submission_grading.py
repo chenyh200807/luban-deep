@@ -2001,6 +2001,332 @@ async def test_deep_question_writes_grading_errors_to_learner_state(
     assert call["dedupe_key"]
 
 
+def test_plain_count_generation_request_requires_authoritative_anchor() -> None:
+    for user_topic in ("出三道题", "出3道题", "来两道题", "给我三道题"):
+        assert deep_question_module._topic_needs_authoritative_anchor(user_topic) is True
+
+
+def test_plain_count_generation_request_uses_open_chat_topic_anchor() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="出三道题",
+        active_object={
+            "object_type": "open_chat_topic",
+            "object_id": "topic-deformation-joint",
+            "state_snapshot": {
+                "title": "变形缝",
+                "compressed_summary": "用户刚学习了建筑实务变形缝的设置与构造处理。",
+            },
+        },
+        suspended_object_stack=[],
+        followup_question_context=None,
+        conversation_context_text="",
+    )
+
+    assert topic.startswith("出三道题")
+    assert "当前学习锚点" in topic
+    assert "变形缝" in topic
+
+
+def test_plain_count_generation_request_uses_conversation_context_anchor() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="出三道题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context=None,
+        conversation_context_text="用户上一轮在讨论建筑实务变形缝，重点是沉降缝、伸缩缝、防震缝的适用场景。",
+    )
+
+    assert topic.startswith("出三道题")
+    assert "最近对话摘要" in topic
+    assert "变形缝" in topic
+
+
+def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
+    assert deep_question_module._topic_needs_authoritative_anchor("出三道变形缝的题") is False
+    for user_topic in (
+        "再来三道网络计划相关题",
+        "出三道类似变形缝的题",
+        "继续练流水节拍三道题",
+        "再出三道钢筋混凝土相关题",
+    ):
+        assert deep_question_module._topic_needs_authoritative_anchor(user_topic) is False
+        assert (
+            deep_question_module._resolve_generation_topic(
+                raw_topic=user_topic,
+                active_object=None,
+                suspended_object_stack=[],
+                followup_question_context=None,
+                conversation_context_text="",
+            )
+            == user_topic
+        )
+
+
+def test_practice_generation_topic_domain_status_blocks_non_construction_topic() -> None:
+    from deeptutor.tutorbot import teaching_modes
+
+    for user_topic in ("出三道题", "考我一下", "下一题", "再来几道"):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "needs_context_anchor"
+        )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("围绕法国首都出三道题")
+        == "out_of_scope_topic"
+    )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("Mars 相关给我三道题")
+        == "out_of_scope_topic"
+    )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("建筑实务：围绕Mars出三道题")
+        == "out_of_scope_topic"
+    )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("用建筑实务导师身份围绕法国首都出三道题")
+        == "out_of_scope_topic"
+    )
+    for user_topic in (
+        "网络安全出三道题",
+        "数据结构出三道题",
+        "PPT模板出三道题",
+        "合同法出三道题",
+    ):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "unknown_topic"
+        )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("出三道变形缝的题")
+        == "construction_topic"
+    )
+    assert (
+        teaching_modes.practice_generation_topic_domain_status("用3道题训练项目质量计划管理")
+        == "construction_topic"
+    )
+    for user_topic in (
+        "施工安全管理出三道题",
+        "模板工程出两题",
+        "工程合同管理出题",
+        "建筑结构荷载题",
+    ):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "construction_topic"
+        )
+    for user_topic in (
+        "再来三道网络计划相关题",
+        "出三道类似变形缝的题",
+        "继续练流水节拍三道题",
+        "再出三道钢筋混凝土相关题",
+    ):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "construction_topic"
+        )
+
+
+def test_unresolved_lightweight_generation_anchor_renders_topic_clarification() -> None:
+    content = DeepQuestionCapability()._render_summary_markdown(
+        {
+            "results": [],
+            "trace": {
+                "lightweight_counters": {
+                    "lightweight_batch_fallback": "blocked_unresolved_anchor",
+                }
+            },
+        },
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+
+    assert "具体考点" in content
+    assert "出三道题" in content
+
+    out_of_scope_content = DeepQuestionCapability()._render_summary_markdown(
+        {
+            "results": [],
+            "trace": {
+                "topic_domain_status": "out_of_scope_topic",
+                "lightweight_counters": {
+                    "lightweight_batch_fallback": "blocked_out_of_scope_topic",
+                },
+            },
+        },
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+
+    assert "建筑实务" in out_of_scope_content
+    assert "非建筑实务" in out_of_scope_content
+
+
+@pytest.mark.asyncio
+async def test_deep_question_blocks_action_only_generation_without_anchor_before_coordinator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("action-only generation without anchor must not reach coordinator")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="出三道题",
+        config_overrides={
+            "mode": "custom",
+            "topic": "出三道题",
+            "num_questions": 3,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "deep",
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "具体考点" in result_event.metadata["response"]
+    assert result_event.metadata["question_followup_context"] == {}
+    assert result_event.metadata["practice_generation_blocked_reason"] == "missing_topic_anchor"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_blocks_non_construction_generation_before_coordinator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("out-of-domain generation must not reach coordinator")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="围绕法国首都出三道题",
+        config_overrides={
+            "mode": "custom",
+            "topic": "围绕法国首都出三道题",
+            "num_questions": 3,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "deep",
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "建筑实务" in result_event.metadata["response"]
+    assert result_event.metadata["question_followup_context"] == {}
+    assert (
+        result_event.metadata["practice_generation_blocked_reason"]
+        == "out_of_scope_topic"
+    )
+
+
+@pytest.mark.asyncio
+async def test_deep_question_allows_explicit_construction_generation_topic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback: Any) -> None:
+            captured["ws_callback"] = callback
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["generate_from_topic"] = kwargs
+            return {
+                "source": "topic",
+                "requested": kwargs.get("num_questions", 0),
+                "completed": 0,
+                "failed": 0,
+                "results": [],
+                "trace": {
+                    "lightweight_generation": kwargs.get("lightweight_generation", False),
+                    "lightweight_counters": {
+                        "llm_calls": 0,
+                        "retriever_calls": 0,
+                        "bank_hits": 0,
+                        "lightweight_batch_fallback": "none",
+                        "generated_explanation": False,
+                    },
+                },
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="出三道变形缝的题",
+        config_overrides={
+            "mode": "custom",
+            "topic": "出三道变形缝的题",
+            "num_questions": 3,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "deep",
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert captured["generate_from_topic"]["num_questions"] == 3
+    assert "变形缝" in captured["generate_from_topic"]["user_topic"]
+    assert "practice_generation_blocked_reason" not in result_event.metadata
+
+
 def test_related_generation_anchor_uses_next_training_signal() -> None:
     topic = deep_question_module._resolve_generation_topic(
         raw_topic="再给我相关题",

@@ -382,6 +382,103 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
     return any(re.search(pattern, text) for pattern in request_patterns)
 
 
+_PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS = (
+    "刚才",
+    "上面",
+    "这些",
+    "这几个",
+    "这个概念",
+    "几个概念",
+    "类似",
+    "相关",
+    "同类",
+    "继续",
+    "再来",
+    "不要超纲",
+    "围绕这个",
+    "围绕刚才",
+)
+_PRACTICE_GENERATION_ACTION_STRIP_PATTERNS = (
+    r"好[,，]?",
+    r"那你现在",
+    r"现在",
+    r"先",
+    r"请",
+    r"麻烦你",
+    r"麻烦",
+    r"给我",
+    r"帮我",
+    r"我想",
+    r"想",
+    r"继续出",
+    r"继续练",
+    r"继续来一道",
+    r"继续",
+    r"再来一道",
+    r"再来一题",
+    r"再来",
+    r"再出一道",
+    r"再出",
+    r"下一题",
+    r"下一道",
+    r"下一",
+    r"来一道",
+    r"来一题",
+    r"来",
+    r"出题",
+    r"出",
+    r"生成",
+    r"考我",
+    r"刷题",
+    r"测我",
+    r"练题",
+    r"练",
+    r"做题",
+    r"做",
+    r"一下",
+    r"[0-9一二两三四五六七八九十几]+(?:道题|道|题|个题|个题目|个小题|个练习题)?",
+    r"单选题",
+    r"多选题",
+    r"选择题",
+    r"判断题",
+    r"案例题",
+    r"简答题",
+    r"练习题",
+    r"小题",
+    r"题目",
+    r"题",
+    r"同类",
+    r"类似",
+    r"相关",
+    r"刚才",
+    r"上面",
+    r"这些",
+    r"这几个",
+    r"这个",
+    r"的",
+    r"吧",
+)
+
+
+def practice_generation_request_needs_context_anchor(user_message: str | None) -> bool:
+    text = re.sub(r"\s+", "", str(user_message or "").strip().lower())
+    if not text:
+        return False
+    if any(marker.lower() in text for marker in _OUT_OF_SCOPE_PRACTICE_TOPIC_MARKERS):
+        return False
+    if any(marker.lower() in text for marker in _CONSTRUCTION_PRACTICE_TOPIC_MARKERS):
+        return False
+    if any(marker in text for marker in _PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS):
+        return True
+    if not looks_like_practice_generation_request(text):
+        return False
+    residue = text
+    for pattern in _PRACTICE_GENERATION_ACTION_STRIP_PATTERNS:
+        residue = re.sub(pattern, " ", residue, flags=re.IGNORECASE)
+    residue = re.sub(r"[，。！？、,.!?\-:：；;\s]+", "", residue)
+    return not residue
+
+
 # plan §Phase 1 Step 1.1 (A2) — 单一规约函数：判断本轮练题生成走 lightweight 还是 heavy。
 # 调用方契约：orchestrator._prepare_practice_request_context 唯一消费点，
 # coordinator 仅读 config_overrides["lightweight_generation"]，不自行判断。
@@ -393,7 +490,176 @@ _HEAVY_KEYWORDS: tuple[str, ...] = (
     r"高质量原创案例|完整案例题|完整 ?rubric|完整评分标准",
 )
 PracticeStrategy = Literal["lightweight", "heavy"]
+PracticeGenerationTopicDomainStatus = Literal[
+    "construction_topic",
+    "needs_context_anchor",
+    "unknown_topic",
+    "out_of_scope_topic",
+]
 _LIGHTWEIGHT_MAX_QUESTIONS = 5
+_CONSTRUCTION_PRACTICE_TOPIC_MARKERS = (
+    "建筑实务",
+    "一建",
+    "一级建造师",
+    "二建",
+    "二级建造师",
+    "建造师",
+    "建筑工程",
+    "施工",
+    "施工现场",
+    "建筑",
+    "变形缝",
+    "伸缩缝",
+    "沉降缝",
+    "防震缝",
+    "抗震",
+    "建筑高度",
+    "建筑构造",
+    "构造柱",
+    "荷载",
+    "建筑结构",
+    "主体结构",
+    "地基",
+    "地基基础",
+    "基础工程",
+    "基坑",
+    "土方",
+    "桩",
+    "钢筋",
+    "混凝土",
+    "模板工程",
+    "模板支架",
+    "脚手架",
+    "砌体",
+    "钢结构",
+    "屋面",
+    "防水",
+    "地下防水",
+    "卷材",
+    "涂膜",
+    "保温",
+    "装饰装修",
+    "抹灰",
+    "吊顶",
+    "幕墙",
+    "门窗",
+    "防火",
+    "防火门",
+    "消防",
+    "临时用电",
+    "三级配电",
+    "临边",
+    "洞口",
+    "危大",
+    "专项方案",
+    "专家论证",
+    "施工组织",
+    "施工组织设计",
+    "平面布置",
+    "网络计划",
+    "双代号",
+    "流水施工",
+    "流水节拍",
+    "总时差",
+    "自由时差",
+    "关键线路",
+    "施工进度",
+    "进度管理",
+    "工期",
+    "施工质量",
+    "质量计划",
+    "质量管理",
+    "质量验收",
+    "质量通病",
+    "工程验收",
+    "隐蔽验收",
+    "安全管理",
+    "施工安全",
+    "安全事故",
+    "安全检查",
+    "安全技术",
+    "施工成本",
+    "成本管理",
+    "工程成本",
+    "成本控制",
+    "施工合同",
+    "工程合同",
+    "合同管理",
+    "工程索赔",
+    "费用索赔",
+    "工期索赔",
+    "工程招标",
+    "施工招标",
+    "工程投标",
+    "施工投标",
+    "工程量",
+    "工程量清单",
+    "工程计量",
+    "工程计价",
+    "绿色施工",
+    "BIM",
+    "ALC",
+)
+_OUT_OF_SCOPE_PRACTICE_TOPIC_MARKERS = (
+    "法国",
+    "巴黎",
+    "首都",
+    "火星",
+    "mars",
+    "英语",
+    "语法",
+    "单词",
+    "翻译",
+    "作文",
+    "数学",
+    "物理",
+    "化学",
+    "历史",
+    "地理",
+    "生物",
+    "政治",
+    "编程",
+    "python",
+    "javascript",
+    "java",
+    "股票",
+    "股市",
+    "基金",
+    "天气",
+    "足球",
+    "篮球",
+    "电影",
+    "小说",
+)
+
+
+def practice_generation_topic_domain_status(
+    user_message: str | None,
+) -> PracticeGenerationTopicDomainStatus:
+    """Classify whether a practice-generation topic is usable for Luban.
+
+    This is the runtime domain gate for submit-able question generation. It is
+    deliberately narrower than general chat: an explicit topic must look like a
+    construction-exam topic, while action-only requests must inherit context.
+    """
+    text = re.sub(r"\s+", "", str(user_message or "").strip())
+    if not text:
+        return "unknown_topic"
+    lowered = text.lower()
+
+    has_construction_marker = any(
+        marker.lower() in lowered for marker in _CONSTRUCTION_PRACTICE_TOPIC_MARKERS
+    )
+    has_out_of_scope_marker = any(
+        marker.lower() in lowered for marker in _OUT_OF_SCOPE_PRACTICE_TOPIC_MARKERS
+    )
+    if has_out_of_scope_marker:
+        return "out_of_scope_topic"
+    if has_construction_marker:
+        return "construction_topic"
+    if practice_generation_request_needs_context_anchor(text):
+        return "needs_context_anchor"
+    return "unknown_topic"
 
 
 def classify_practice_strategy(
