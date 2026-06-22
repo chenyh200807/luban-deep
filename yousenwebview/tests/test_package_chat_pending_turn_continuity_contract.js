@@ -61,6 +61,14 @@ assertContains(
   "package cold-start recovery should use a short foreground window instead of locking the chat for long polling",
 );
 assertContains(
+  "_continuePendingTurnRecoveryInBackground: function ()",
+  "package short foreground recovery exhaustion should continue long canonical history recovery without blocking the UI",
+);
+assert(
+  /_continuePendingTurnRecoveryInBackground:\s*function\s*\(\)[\s\S]*?longPoll:\s*true/.test(source),
+  "package background continuation should reuse canonical history recovery with long polling",
+);
+assertContains(
   "opts.longPoll || opts.unlockOnExhausted ? serverMessages : null",
   "package unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
 );

@@ -442,6 +442,39 @@ assert(
   finalEv2 && finalEv2.response === "嵌套 metadata.response",
   "[buildFinalResponseEvent] falls through to metadata.response",
 );
+var assistantContentFinalEv = pure.buildFinalResponseEvent({
+  assistant_content: "assistant_content 终态答案",
+});
+assert(
+  assistantContentFinalEv &&
+    assistantContentFinalEv.response === "assistant_content 终态答案",
+  "[buildFinalResponseEvent] falls through to assistant_content",
+);
+var contentOnlyFinalEv = pure.buildFinalResponseEvent({
+  content: "content 终态答案",
+});
+assertEqual(
+  contentOnlyFinalEv,
+  null,
+  "[buildFinalResponseEvent] content without response/assistant_content is not terminal answer authority",
+);
+var nestedAssistantContentFinalEv = pure.buildFinalResponseEvent({
+  metadata: { assistant_content: "metadata.assistant_content 终态答案" },
+});
+assert(
+  nestedAssistantContentFinalEv &&
+    nestedAssistantContentFinalEv.response ===
+      "metadata.assistant_content 终态答案",
+  "[buildFinalResponseEvent] falls through to metadata.assistant_content",
+);
+var nestedContentOnlyFinalEv = pure.buildFinalResponseEvent({
+  metadata: { content: "metadata.content 终态答案" },
+});
+assertEqual(
+  nestedContentOnlyFinalEv,
+  null,
+  "[buildFinalResponseEvent] metadata.content without response/assistant_content is not terminal answer authority",
+);
 var gradingMetaFinalEv = pure.buildFinalResponseEvent({
   response: "本轮批改诊断",
   api_base: "https://test2.yousenjiaoyu.com",

@@ -7476,9 +7476,18 @@ class MemberConsoleService:
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
 
+        try:
+            verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
+        except ValueError as exc:
+            raise ValueError("手机号身份冲突，请联系客服") from exc
+
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             current = self._ensure_member(data, user_id)
-            target = self._find_member_by_phone(data, normalized)
+            target = (
+                self._ensure_member(data, verified_phone_canonical_uid)
+                if verified_phone_canonical_uid
+                else self._find_member_by_phone(data, normalized)
+            )
 
             if target and target["user_id"] != current["user_id"]:
                 before = deepcopy(target)
@@ -7495,7 +7504,7 @@ class MemberConsoleService:
                     action="wechat_bind_phone",
                     target_user=target["user_id"],
                     operator="wechat_mp",
-                    reason="bind_phone_merge",
+                    reason="bind_phone_alias_merge" if verified_phone_canonical_uid else "bind_phone_merge",
                     before=before,
                     after=target,
                 )
