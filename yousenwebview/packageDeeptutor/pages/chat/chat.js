@@ -610,6 +610,7 @@ Page({
       avatarChar: name.charAt(0).toUpperCase(),
     };
     this.setData(nextState);
+    return info;
   },
 
   _ensureChatReady: function () {
@@ -626,7 +627,13 @@ Page({
     self._chatReadyPromise = api
       .getUserInfo()
       .then(function (raw) {
-        self._applyAuthProfile(raw);
+        var info = self._applyAuthProfile(raw);
+        var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
+        if (!phone || phone.length < 8) {
+          self.setData({ isGuestPreview: true });
+          runtime.redirectToLogin(route.chat({ preview: "1" }));
+          throw new Error("PHONE_BIND_REQUIRED");
+        }
       })
       .then(
         function (result) {

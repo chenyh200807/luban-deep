@@ -91,7 +91,23 @@ Page({
     } catch (_) {}
     this._captureEntryContext(options);
     if (auth.isLoggedIn()) {
-      this._reLaunchAfterAuth();
+      var self = this;
+      api
+        .getUserInfo()
+        .then(function (raw) {
+          var info = api.unwrapResponse
+            ? api.unwrapResponse(raw)
+            : raw.data || raw;
+          var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
+          if (phone && phone.length >= 8) {
+            self._reLaunchAfterAuth();
+            return;
+          }
+          self.setData({ loginMode: "bind_phone_only" });
+        })
+        .catch(function () {
+          auth.clearToken();
+        });
       return;
     }
   },
