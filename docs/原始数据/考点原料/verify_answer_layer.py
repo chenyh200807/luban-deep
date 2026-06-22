@@ -73,8 +73,12 @@ def audit(md_path):
         label = m.group(1) if m else None
         if not label:
             continue  # 无标签的不是采分点行 (说明/小计等)
-        # 显式非采分点行 → 跳过
-        if NONSCORING.search(line):
+        # 显式非采分点行 → 跳过。⚠️ 只在 "采分点 cell + 版本状态 cell" 两区检测,
+        # **不查必写词 cell**: 必写词来源标注 `[工程通识]` 含"工程通识"会误伤真采分点行
+        # (N02 R5-2/R5-5 实证)。非采分点状态只合法声明于采分点cell或版本状态cell。
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        zone = (cells[1] + " " + cells[-2]) if len(cells) >= 3 else line
+        if NONSCORING.search(zone):
             continue
         # 错因码-only 行 (E07/M08 纯码 + 行短) → 跳过
         if re.fullmatch(r"[EM]\d{2}", label) and len(line) < 70:
