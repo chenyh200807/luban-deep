@@ -2576,6 +2576,19 @@ class MemberConsoleService:
         if not phone or phone == synthetic_default_phone:
             return
         desired_user_id = current_external_user_id if is_uuid_like(current_external_user_id) else ""
+        if not desired_user_id:
+            try:
+                alias_ids = self._trusted_phone_alias_user_ids(phone)
+            except ValueError as exc:
+                logger.warning(
+                    "phone-backed external identity alias lookup skipped for user_id=%s phone=%s: %s",
+                    member.get("user_id"),
+                    phone,
+                    exc,
+                )
+                return
+            if alias_ids:
+                desired_user_id = next(iter(alias_ids))
         try:
             external_user = ensure_external_auth_user_for_phone(
                 phone,
@@ -8422,7 +8435,9 @@ class MemberConsoleService:
         if canonical_uid:
             def _apply_verified_alias(data: dict[str, Any]) -> dict[str, Any]:
                 member = self._ensure_member(data, canonical_uid)
-                if not _normalize_phone_input(str(member.get("phone") or "")):
+                current_phone = _normalize_phone_input(str(member.get("phone") or ""))
+                synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
+                if not current_phone or current_phone == synthetic_default_phone:
                     member["phone"] = verified_phone
                 member["last_active_at"] = _iso()
                 return deepcopy(member)
