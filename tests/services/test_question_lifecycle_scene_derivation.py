@@ -794,3 +794,43 @@ def test_attach_with_unknown_scene_writes_empty_skill_names():
     attach_question_lifecycle_scene_to_context(ctx)
     assert ctx.metadata["question_lifecycle_scene"] is None
     assert ctx.metadata["question_lifecycle_skill_names"] == []
+
+
+def _t14_batch_metadata() -> dict[str, Any]:
+    def _it(qid: str, q: str) -> dict[str, Any]:
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": "C"}
+    return {"active_object": {"object_type": "question_set", "state_snapshot": {
+        "question": "三道屋面防水题", "question_type": "choice",
+        "items": [_it("q1", "Q1基本要求"), _it("q2", "Q2找坡层厚度"), _it("q3", "Q3结构坡度")]}}}
+
+
+def test_t14_ordinal_review_anchors_to_question_review():
+    """task#14 (2026-06-22): '刚才第3题的答案和考点讲讲' on an active batch set anchors to
+    item 3 → question_review, not blocked low_information_exam_query (Layer 2 gate)."""
+    ctx = _FakeContext(user_message="刚才第3题的答案和考点讲讲", metadata=_t14_batch_metadata())
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+def test_t14_out_of_range_ordinal_not_anchored():
+    ctx = _FakeContext(user_message="第4题的答案讲讲", metadata=_t14_batch_metadata())
+    assert derive_question_lifecycle_scene(ctx) != "question_review"
+
+
+def test_t14_gate_ordinal_anchor_and_boundaries():
+    from deeptutor.services.question_lifecycle_skills import (
+        _low_information_query_can_use_active_question as f,
+    )
+    batch = _t14_batch_metadata()
+    # live shape: followup_ctx narrowed to single, but active_object holds the set
+    def _it(qid, q):
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b"}, "correct_answer": "A"}
+    live = {"question_followup_context": _it("q1", "单题"), **batch}
+    single = {"active_object": {"object_type": "single_question", "state_snapshot": _it("q1", "单题")}}
+    assert f("刚才第3题的答案和考点讲讲", batch) is True
+    assert f("刚才第3题的答案和考点讲讲", live) is True
+    assert f("第4题讲讲", batch) is False        # out of range
+    assert f("第1题讲讲", single) is False         # single set (len<2)
+    assert f("这道题讲讲", batch) is True          # demonstrative path intact
+    assert f("看看历年真题有哪些", batch) is False  # genuine low-info
