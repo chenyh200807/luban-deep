@@ -1892,8 +1892,40 @@ class MemberConsoleService:
             if not isinstance(raw_member, dict):
                 continue
             for key in self._member_overlay_keys_for_directory(raw_member):
-                overlays.setdefault(key, raw_member)
+                existing = overlays.get(key)
+                if existing is None or self._is_better_member_console_overlay(raw_member, existing, key):
+                    overlays[key] = raw_member
         return overlays
+
+    def _is_better_member_console_overlay(
+        self,
+        candidate: dict[str, Any],
+        existing: dict[str, Any],
+        key: str,
+    ) -> bool:
+        def rank(member: dict[str, Any]) -> tuple[int, int, int, int, int, float, int]:
+            user_id = str(member.get("user_id") or "").strip()
+            merged_into = str(member.get("merged_into") or "").strip()
+            tier = str(member.get("tier") or "").strip()
+            key_value = str(key or "").strip()
+            direct_user_id_match = 1 if user_id and user_id == key_value else 0
+            non_auth_wrapper = 0 if user_id.startswith("auth_") else 1
+            canonical_uuid_user_id = 1 if is_uuid_like(user_id) else 0
+            canonical_root = 1 if not merged_into else 0
+            paid_tier = 1 if tier and tier != "trial" else 0
+            expire_ts = _parse_time(member.get("expire_at")).timestamp()
+            signal_score = self._member_signal_score(member)
+            return (
+                direct_user_id_match,
+                non_auth_wrapper,
+                canonical_uuid_user_id,
+                canonical_root,
+                paid_tier,
+                expire_ts,
+                signal_score,
+            )
+
+        return rank(candidate) > rank(existing)
 
     def _resolve_member_console_overlay(
         self,
@@ -1943,6 +1975,9 @@ class MemberConsoleService:
             {
                 str(value or "").strip()
                 for value in [
+                    merged.get("user_id"),
+                    merged.get("canonical_user_id"),
+                    merged.get("external_auth_user_id"),
                     *list(merged.get("alias_user_ids") or []),
                     *list(overlay_aliases),
                 ]
