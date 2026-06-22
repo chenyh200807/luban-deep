@@ -794,3 +794,75 @@ def test_attach_with_unknown_scene_writes_empty_skill_names():
     attach_question_lifecycle_scene_to_context(ctx)
     assert ctx.metadata["question_lifecycle_scene"] is None
     assert ctx.metadata["question_lifecycle_skill_names"] == []
+
+
+def _batch_set_metadata() -> dict[str, Any]:
+    """Active batch question_set of 3 items (E8 group-preserved shape)."""
+    def _it(qid: str, q: str) -> dict[str, Any]:
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": "C"}
+    return {
+        "active_object": {
+            "object_type": "question_set",
+            "state_snapshot": {
+                "question": "三道屋面防水题",
+                "question_type": "choice",
+                "items": [_it("q1", "Q1基本要求"), _it("q2", "Q2找坡层厚度"), _it("q3", "Q3结构坡度")],
+            },
+        }
+    }
+
+
+def test_ordinal_review_on_active_batch_set_anchors_not_blocked():
+    """task#14 (2026-06-22): '刚才第3题的答案和考点讲讲' against an active batch set must
+    anchor to item 3 (→ question_review), NOT be blocked as low_information_exam_query.
+    Single authority = question_followup.requested_question_item_index, consulted by the
+    low-info gate's escape hatch."""
+    ctx = _FakeContext(user_message="刚才第3题的答案和考点讲讲", metadata=_batch_set_metadata())
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+def test_out_of_range_ordinal_review_not_anchored():
+    """Negative: '第4题' on a 3-item set does not resolve (out of range) → must NOT be
+    treated as an anchored active question (falls back to the existing low-info handling)."""
+    ctx = _FakeContext(user_message="第4题的答案讲讲", metadata=_batch_set_metadata())
+    assert derive_question_lifecycle_scene(ctx) != "question_review"
+
+
+def test_low_info_gate_ordinal_anchor_helper_direct():
+    """Unit on the single-authority consult: ordinal in active batch → allow; out-of-range
+    / single-item → fall through; demonstrative '这道题' still allowed."""
+    from deeptutor.services.question_lifecycle_skills import (
+        _low_information_query_can_use_active_question,
+    )
+    batch = _batch_set_metadata()
+    single = {"active_object": {"object_type": "single_question",
+              "state_snapshot": {"question_id": "q1", "question": "单题", "question_type": "single_choice",
+                                 "options": {"A": "a", "B": "b"}, "correct_answer": "A"}}}
+    assert _low_information_query_can_use_active_question("刚才第3题的答案和考点讲讲", batch) is True
+    assert _low_information_query_can_use_active_question("第4题讲讲", batch) is False
+    assert _low_information_query_can_use_active_question("第1题讲讲", single) is False
+    assert _low_information_query_can_use_active_question("这道题讲讲", batch) is True
+    assert _low_information_query_can_use_active_question("看看历年真题有哪些", batch) is False
+
+
+def test_ordinal_anchor_uses_active_object_set_when_followup_ctx_narrowed_to_single():
+    """task#14 live-shape regression: after a grading turn, question_followup_context is
+    narrowed to the last graded SINGLE item, but active_object still holds the full batch
+    set (E8 group-preservation). The ordinal anchor must consult the active_object set
+    (not only the narrowed followup ctx) so '刚才第3题…' still resolves → allow."""
+    from deeptutor.services.question_lifecycle_skills import (
+        _low_information_query_can_use_active_question,
+    )
+    def _it(qid, q):
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": "C"}
+    live_shape = {
+        "question_followup_context": _it("q1", "上一轮判分的单题Q1"),  # narrowed single
+        "active_object": {"object_type": "question_set", "state_snapshot": {
+            "question": "三题", "question_type": "choice",
+            "items": [_it("q1", "Q1"), _it("q2", "Q2"), _it("q3", "Q3")]}},
+    }
+    assert _low_information_query_can_use_active_question("刚才第3题的答案和考点讲讲", live_shape) is True
+    # no active context at all → stays blocked
+    assert _low_information_query_can_use_active_question("刚才第3题的答案和考点讲讲", {}) is False

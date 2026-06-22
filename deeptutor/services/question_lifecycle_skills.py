@@ -612,10 +612,40 @@ def _low_information_query_can_use_active_question(query: str, metadata: Any) ->
     case/question ordinal, or exam inventory filter.
     """
 
-    if not _active_question_context_from_metadata(metadata):
-        return False
+    active_ctx = _active_question_context_from_metadata(metadata)
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
+        return False
+    # Single-authority ordinal anchor (task#14, 2026-06-22): a "第N题…" reference that
+    # resolves to an item of the ACTIVE batch set is NOT an external exam-inventory query
+    # — it points at item N of the current set. Consult the one ordinal→item authority
+    # (question_followup.requested_question_item_index, also used by the submission path)
+    # against EVERY available active context shape: the resolved active_ctx (which may have
+    # been narrowed to the last graded single item, e.g. question_followup_context after a
+    # grading turn) AND the raw active_object state_snapshot (which after E8 group-
+    # preservation still holds the full batch set). An ordinal resolving against the full
+    # set means it points at item N → anchor to question_review, do not block as low-info.
+    # This runs BEFORE the empty/active-card guards so the set is consulted even when the
+    # narrowed active_ctx is empty/single. Out-of-range / non-ordinal / single-item (len<2)
+    # → None → falls through to the existing current-card logic (clarify, not block).
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            requested_question_item_index,
+        )
+    except Exception:
+        requested_question_item_index = None  # type: ignore[assignment]
+    if requested_question_item_index is not None:
+        candidate_ctxs = [active_ctx]
+        active_object = metadata.get("active_object") if isinstance(metadata, dict) else None
+        if isinstance(active_object, dict) and isinstance(active_object.get("state_snapshot"), dict):
+            candidate_ctxs.append(active_object["state_snapshot"])
+        if any(
+            requested_question_item_index(query, ctx) is not None
+            for ctx in candidate_ctxs
+            if ctx
+        ):
+            return True
+    if not active_ctx:
         return False
     if not any(marker in text for marker in ("题卡", "当前题", "这题", "这道题", "本题")):
         return False
