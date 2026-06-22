@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
-"""案例题作答层 · 采分点锚定机器闸 (确定性, fail-closed).
+"""案例题作答层 · 采分点锚定机器闸 v1 (确定性, fail-closed).
 
-治本: 前 3 批样板被异源审抓出"凭真题/凭空另造采分点"(违反 skill 红线1 采分点
-ground truth 归 signed R5)。verify_pack.py 只核"出现的 point_id 存在", 核不到
-"每个采分点行是否都锚 signed point_id" —— 这是盲区。本闸补这一刀:
+治本背景: 前 3 批样板被异源审抓出"凭真题/凭空另造采分点 + 冒充教材锚"(违反 skill
+红线1 采分点 ground truth 归 signed R5)。verify_pack.py 只核"出现的 point_id 存在",
+核不到"每个采分点行的锚声明与实际锚是否一致" —— 这是盲区。本闸补这一刀。
 
-  采分点行的"锚"必须是 signed point_id (ca:/kc:/m35:)。
-  锚真题 {年份} 而无 signed point_id = 违规 (凭真题造采分点, K01 W8 类)。
-  无任何锚 = 待核 (可能 🔵 作答策略行, 也可能漏锚)。
+—— v0→v1 关键纠偏(2026-06-22) ——
+v0 用"真题锚而无 signed point_id = 造点违规"做唯一判据, **太宽**: 它把两类混为一谈:
+  (1) 冒充教材锚: 行坐在 🟢 簇 / 标"现行有效", 只锚真题、无 point_id、不披露 = 真违规 (K01 W8)
+  (2) 诚实真题侧披露: 编译库零教材锚, 行如实标"真题侧·待补规范锚" = 合规 (S07 coarse_review)
+v0 会把 (2) 也判违规, 等于逼诚实的 coarse_review 去**伪造** point_id (反向失真)。
 
-只核确定性的"锚类型"; "内容是否篡改/必写是否夸大/方法是否张冠李戴"是语义,
-归异源门 (run_luban_answer_layer_cross_model_audit.py) + 人核, 本闸不管。
+真正的不变量 = **锚声明与实际锚一致, 不冒充教材锚**, 不是"必须有 point_id"。三分类:
+  ① 有 signed point_id (ca/kc/m35) → ✅ OK
+     (内容是否被篡改/方法张冠李戴 = 语义, 归异源门 run_..._cross_model_audit.py, 本闸不管)
+  ② 无 point_id, 但如实披露真题侧/工程通识 + 锚证据包内真题 → ✅ 诚实披露 (S07)
+  ③ 无 point_id, 有真题, 标"现行有效"/坐 🟢 簇而**不披露** → 🔴 冒充教材锚/未披露 (K01 W8, Q01 B/C/V)
+  ④ 无任何锚, 非 🔵 行 → ⚠️ 待核 (漏锚或漏标 🔵)
+
+🔵 / 工程通识 / 非采分点 / 背景注 / 对照 行 = 显式非判分眼, 跳过 (不是采分点)。
+
+本闸**只核确定性的"锚声明 vs 实际锚一致性"**; "采分点内容是否忠实 R5 真值"是语义,
+归异源门 + 人核, 本闸不管 (K01 W5 那种 point_id 在场但内容篡改, 本闸判 OK 是对的)。
 
 用法: python3 verify_answer_layer.py [<作答层.md> ...]   (无参=审成品/全部)
 """
@@ -20,53 +31,81 @@ import glob
 import os
 
 KAOYUAN = os.path.dirname(os.path.abspath(__file__))
+
 SIGNED = re.compile(r"(?:ca|kc|m35):[0-9A-Za-z_]")
-EXAM = re.compile(r"真题\s*[`｛{]|\{20\d\d")
-LABEL = re.compile(r"\*\*([A-Z][0-9A-Za-z\-]*)\*\*")
-# 采分点行: | 开头 + 含"锚"字 (有锚字段才是采分点行, 排除说明/小计/错因码行)
-BLUE = re.compile(r"🔵|作答策略|非\s*signed|教材锚|邻接|待补")
+# 真题锚: {2015·第26题} / {2015,案例1} / `{2019,第17题}` —— 花括号/反引号后接年份
+EXAM_ANCHOR = re.compile(r"[`｛{（(]\s*20\d\d|真题\s*[`｛{｛]")
+# 诚实披露真题侧/工程通识来源 (不冒充教材锚) —— S07 coarse_review 的合规口径
+DISCLOSE = re.compile(r"真题侧|待补规范锚|真题应用印证|真题印证|真题口径|教材未逐字|单源审")
+# 显式非采分点行 (背景注/对照/工程通识/作答策略) —— 跳过, 不当采分点核
+NONSCORING = re.compile(r"🔵|工程通识|非\s*采分点|非新采分点|不充.{0,6}采分点|对照背景|背景注")
+LABEL = re.compile(r"\*\*([A-Za-z][0-9A-Za-z#\-－]*)\*\*")
+
+
+def _is_table_row(line: str) -> bool:
+    return line.lstrip().startswith("|") and line.count("|") >= 4
 
 
 def audit(md_path):
     txt = open(md_path, encoding="utf-8").read()
-    rows = [l for l in txt.splitlines() if l.startswith("|") and "锚" in l]
-    signed = exam_only = noanchor = 0
-    violations = []
-    for l in rows:
-        m = LABEL.search(l)
-        label = m.group(1) if m else "?"
-        # 错因码行 (E07/M08 等纯码 + 无采分点内容) 跳过: label 是 E/M 两位码且行短
-        if re.fullmatch(r"[EM]\d{2}", label) and len(l) < 60:
+    signed = honest = impersonate = noanchor = 0
+    violations = []  # (label, severity, reason)
+    in_scoring_table = False  # 只审 §1 采分点可写化表, 不审 §2 句式/§3 批改/§4 实测表
+    for raw in txt.splitlines():
+        line = raw.strip()
+        # 表头行 (含"采分点"+"必写关键词"两词) = 进入采分点表; 任何非表格行 = 离开
+        if "采分点" in line and "必写关键词" in line and _is_table_row(line):
+            in_scoring_table = True
             continue
-        has_signed = bool(SIGNED.search(l))
-        has_exam = bool(EXAM.search(l))
+        if not _is_table_row(line):
+            in_scoring_table = False
+            continue
+        if not in_scoring_table:
+            continue  # 表格行但不在采分点表内 (句式/批改/实测表) → 不审
+        if re.fullmatch(r"\|[\s\-:|]+\|?", line):
+            continue
+        m = LABEL.search(line)
+        label = m.group(1) if m else None
+        if not label:
+            continue  # 无标签的不是采分点行 (说明/小计等)
+        # 显式非采分点行 → 跳过
+        if NONSCORING.search(line):
+            continue
+        # 错因码-only 行 (E07/M08 纯码 + 行短) → 跳过
+        if re.fullmatch(r"[EM]\d{2}", label) and len(line) < 70:
+            continue
+        has_signed = bool(SIGNED.search(line))
+        has_exam = bool(EXAM_ANCHOR.search(line))
+        discloses = bool(DISCLOSE.search(line))
         if has_signed:
-            signed += 1
+            signed += 1  # ② 内容忠实性归异源门, 本闸放过
+        elif has_exam and discloses:
+            honest += 1  # ② 诚实真题侧披露 (S07)
         elif has_exam:
-            exam_only += 1
-            violations.append((label, "🔴锚真题无signed(凭真题造点)"))
-        elif not BLUE.search(l):
-            noanchor += 1
-            violations.append((label, "⚠️无锚(漏锚或未标🔵)"))
-    return signed, exam_only, noanchor, violations
+            impersonate += 1  # ③ 冒充教材锚 / 未披露真题侧 (K01 W8)
+            violations.append((label, "🔴", "真题锚无point_id且未披露真题侧(冒充教材锚)"))
+        else:
+            noanchor += 1  # ④ 无锚待核
+            violations.append((label, "⚠️", "无锚(漏锚或漏标🔵)"))
+    return signed, honest, impersonate, noanchor, violations
 
 
 def main():
     args = sys.argv[1:] or sorted(glob.glob(os.path.join(KAOYUAN, "成品/*_案例题作答层样板.md")))
-    print(f"{'pack':6} {'signed锚':8} {'🔴真题造点':10} {'⚠️无锚':7} 裁决")
+    print(f"{'pack':6} {'✅signed':8} {'✅真题侧':8} {'🔴冒充':7} {'⚠️无锚':7} 裁决")
     total_red = 0
     fails = []
     for f in args:
         pid = re.match(r"([A-Z]\d+)", os.path.basename(f))
         pid = pid.group(1) if pid else os.path.basename(f)
-        s, e, n, viol = audit(f)
-        total_red += e
-        verdict = "❌FAIL" if e > 0 else ("⚠️待核" if n > 0 else "✅PASS")
-        if e > 0:
-            fails.append((pid, [v for v in viol if "🔴" in v[1]]))
-        print(f"{pid:6} {s:<8} {e:<10} {n:<7} {verdict}")
-    print("─" * 50)
-    print(f"总计 🔴凭真题造采分点(铁违规): {total_red} 行, 涉及 {len(fails)} 个 pack")
+        s, h, imp, n, viol = audit(f)
+        total_red += imp
+        verdict = "❌FAIL" if imp > 0 else ("⚠️待核" if n > 0 else "✅PASS")
+        if imp > 0:
+            fails.append((pid, [v for v in viol if v[1] == "🔴"]))
+        print(f"{pid:6} {s:<8} {h:<8} {imp:<7} {n:<7} {verdict}")
+    print("─" * 56)
+    print(f"总计 🔴冒充教材锚(铁违规): {total_red} 行, 涉及 {len(fails)} 个 pack")
     for pid, viol in fails:
         labels = ", ".join(v[0] for v in viol)
         print(f"  {pid}: {labels}")
