@@ -59,6 +59,26 @@ def _strip_inline_reference_noise(answer: str, *, markers: list[str]) -> str:
     return "\n".join(lines).strip()
 
 
+_ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔\d{1,3}〕")
+
+
+def strip_orphan_reference_markers(answer: str) -> str:
+    """剥离学生可见文本里的孤儿数字脚注标注（〔N〕）+ 参考依据行。
+
+    引用关闭(生产默认)或无 sources 时,_strip_inline_reference_noise 因 markers 为空
+    不剥任何标注,但主 LLM 仍可能输出 grounding 标注 〔N〕,它们解析不到任何来源=纯内部
+    噪声,绝不能漏给学生(Langfuse meta_leak 实证 2026-06-22)。标注格式即 assembler 自己
+    生成的 canonical 〔index〕。本剥离器只服务"无引用"路径,不影响引用开启时的 〔N〕 渲染。
+    """
+    lines = []
+    for line in str(answer or "").splitlines():
+        reference_line = _REFERENCE_LINE_RE.match(line)
+        if reference_line and _REFERENCE_SOURCE_HINT_RE.search(reference_line.group("body")):
+            continue
+        lines.append(_ORPHAN_REFERENCE_MARKER_RE.sub("", line).rstrip())
+    return "\n".join(lines).strip()
+
+
 def _segments(answer: str) -> list[str]:
     return [part.strip() for part in re.split(r"(\n{2,}|(?<=。)\n)", answer) if part.strip()]
 

@@ -216,7 +216,7 @@ def build_open_world_diagnostic(
     elif provider is not None:
         try:
             raw = provider(
-                system="你是建筑实务诊断助手，只做非正式诊断，不得给出官方真题答案或正式分。",
+                system="你是建筑实务诊断助手，只做非正式诊断，不得给出官方真题答案或正式分。你陈述的事实/数字必须可溯源到题面或提供的证据，不得引入题面与证据之外的背景数字。",
                 user=json.dumps(
                     {
                         "prompt": prompt,
