@@ -1640,6 +1640,14 @@ def _event_identity(event: dict[str, Any], key: str) -> str:
     return ""
 
 
+def _is_public_result_event(event: dict[str, Any]) -> bool:
+    event_type = str(event.get("type") or "").strip().lower().split(".")[-1]
+    if event_type != "result":
+        return False
+    visibility = str(event.get("visibility") or "public").strip().lower()
+    return visibility == "public"
+
+
 def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
     if isinstance(message, dict):
         for key in ("engine_turn_id", "turn_id"):
@@ -1677,16 +1685,34 @@ def _mobile_message_identity(message: dict[str, Any] | None, keys: tuple[str, ..
     return ""
 
 
+def _iter_mobile_message_answer_metadata(message: dict[str, Any]) -> Iterable[dict[str, Any]]:
+    metadata = message.get("metadata")
+    if isinstance(metadata, dict):
+        yield metadata
+        nested_metadata = metadata.get("metadata")
+        if isinstance(nested_metadata, dict):
+            yield nested_metadata
+    for event in _message_events(message):
+        if not _is_public_result_event(event):
+            continue
+        event_metadata = event.get("metadata")
+        if isinstance(event_metadata, dict):
+            yield event_metadata
+            nested_event_metadata = event_metadata.get("metadata")
+            if isinstance(nested_event_metadata, dict):
+                yield nested_event_metadata
+
+
 def _assistant_message_display_content(message: dict[str, Any]) -> str:
     content = str(message.get("content") or "")
     if content.strip() or str(message.get("role") or "") != "assistant":
         return content
-    for key in ("response", "assistant_content", "content"):
+    for key in ("response", "assistant_content"):
         direct = str(message.get(key) or "").strip()
         if direct:
             return str(message.get(key) or "")
-    for metadata in _iter_mobile_message_metadata(message):
-        for key in ("response", "assistant_content", "content"):
+    for metadata in _iter_mobile_message_answer_metadata(message):
+        for key in ("response", "assistant_content"):
             candidate = str(metadata.get(key) or "").strip()
             if candidate:
                 return str(metadata.get(key) or "")
