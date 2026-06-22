@@ -54,66 +54,12 @@ from deeptutor.services.semantic_router import (
 )
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
-from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+from deeptutor.tutorbot.teaching_modes import (
+    looks_like_practice_generation_request,
+    practice_generation_request_needs_context_anchor,
+    practice_generation_topic_domain_status,
+)
 
-_GENERATION_TOPIC_ANCHOR_MARKERS = (
-    "刚才",
-    "上面",
-    "这些",
-    "这几个",
-    "这个概念",
-    "几个概念",
-    "类似",
-    "相关",
-    "同类",
-    "继续",
-    "再来",
-    "不要超纲",
-    "围绕这个",
-    "围绕刚才",
-)
-_GENERATION_REQUEST_STRIP_PATTERNS = (
-    r"好[,，]?",
-    r"那你现在",
-    r"现在",
-    r"请",
-    r"麻烦你",
-    r"麻烦",
-    r"给我",
-    r"帮我",
-    r"我想",
-    r"想",
-    r"继续出",
-    r"继续来一道",
-    r"继续",
-    r"再来一道",
-    r"再来一题",
-    r"再来",
-    r"再出一道",
-    r"再出",
-    r"来一道",
-    r"来一题",
-    r"来",
-    r"出题",
-    r"出",
-    r"考我",
-    r"刷题",
-    r"测我",
-    r"[0-9一二两三四五六七八九十几]+(?:道|题|个题目|个小题)?",
-    r"单选题",
-    r"多选题",
-    r"选择题",
-    r"判断题",
-    r"案例题",
-    r"简答题",
-    r"题目",
-    r"很简单的",
-    r"简单的",
-    r"很简单",
-    r"简单",
-    r"容易的",
-    r"容易",
-)
 _POST_GRADING_GENERATION_COUNT_RE = re.compile(
     r"(?:再|继续|接着).{0,8}?([0-9]{1,2}|[一二两三四五六七八九十几])\s*(?:道|题|个题目|个小题)?"
 )
@@ -398,18 +344,7 @@ def _suspended_stack_generation_anchor(
 
 
 def _topic_needs_authoritative_anchor(topic: str) -> bool:
-    normalized = _compact_text(topic).lower()
-    if not normalized:
-        return False
-    if any(marker in normalized for marker in _GENERATION_TOPIC_ANCHOR_MARKERS):
-        return True
-    if not looks_like_practice_generation_request(normalized):
-        return False
-    residue = normalized
-    for pattern in _GENERATION_REQUEST_STRIP_PATTERNS:
-        residue = re.sub(pattern, " ", residue, flags=re.IGNORECASE)
-    residue = re.sub(r"[，。！？、,.!?\-:：\s]+", "", residue)
-    return not residue
+    return practice_generation_request_needs_context_anchor(_compact_text(topic))
 
 
 def _prefers_current_question_anchor(topic: str) -> bool:
@@ -455,11 +390,30 @@ def _resolve_generation_topic(
         else broader_anchor or question_anchor
     )
     if not anchor:
-        return topic
+        return ""
     return (
         f"{topic}\n\n"
         "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
         f"{anchor}"
+    )
+
+
+def _render_missing_generation_topic_anchor_feedback() -> str:
+    return (
+        "我还没有拿到本轮出题的具体考点，不能只按“出三道题”这类动作词生成题目。"
+        "请指定要围绕哪个知识点出题，或先回到刚才的学习主题后再让我出题。"
+    )
+
+
+def _render_invalid_generation_topic_feedback(status: str) -> str:
+    if status == "out_of_scope_topic":
+        return (
+            "我是建筑实务备考导师，不能围绕非建筑实务主题生成可提交练习题。"
+            "请指定建筑实务考点，例如变形缝、网络计划、屋面防水、项目质量计划管理。"
+        )
+    return (
+        "我还没有确认本轮出题主题属于建筑实务考点，不能直接生成可提交练习题。"
+        "请把主题说成具体建筑实务考点，例如变形缝、网络计划、屋面防水、项目质量计划管理。"
     )
 
 
@@ -4083,6 +4037,88 @@ class DeepQuestionCapability(BaseCapability):
                 "code_execution": "code_execution" in enabled_tools,
             }
 
+        if mode != "mimic" and not topic:
+            content = _render_missing_generation_topic_anchor_feedback()
+            if content and not answer_citations_enabled():
+                await stream.content(content, source=self.name, stage="generation")
+            result_payload = {
+                "response": content,
+                "mode": mode,
+                "question_followup_context": {},
+                "active_object": {},
+                "turn_semantic_decision": turn_semantic_decision
+                or self._default_turn_semantic_decision(
+                    next_action="route_to_generation",
+                    active_object=active_object,
+                    question_context=None,
+                    user_message=context.user_message,
+                ),
+                "practice_generation_blocked_reason": "missing_topic_anchor",
+                "metadata": {
+                    "question_lifecycle_scene": "practice_generation",
+                    "practice_generation_blocked_reason": "missing_topic_anchor",
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                result_payload,
+                stage="generation",
+                emit_content_when_enabled=False,
+            )
+            return
+
+        should_enforce_practice_topic_domain = (
+            mode != "mimic"
+            and not question_review_mode
+            and (
+                lifecycle_scene == "practice_generation"
+                or force_generate_questions
+                or looks_like_practice_generation_request(raw_topic)
+            )
+        )
+        if should_enforce_practice_topic_domain:
+            topic_domain_status = practice_generation_topic_domain_status(topic)
+            if isinstance(context.metadata, dict):
+                trace_meta = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(trace_meta, dict):
+                    trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
+            if topic_domain_status != "construction_topic":
+                blocked_reason = (
+                    "out_of_scope_topic"
+                    if topic_domain_status == "out_of_scope_topic"
+                    else "unknown_topic_anchor"
+                )
+                content = _render_invalid_generation_topic_feedback(topic_domain_status)
+                if content and not answer_citations_enabled():
+                    await stream.content(content, source=self.name, stage="generation")
+                result_payload = {
+                    "response": content,
+                    "mode": mode,
+                    "question_followup_context": {},
+                    "active_object": {},
+                    "turn_semantic_decision": turn_semantic_decision
+                    or self._default_turn_semantic_decision(
+                        next_action="route_to_generation",
+                        active_object=active_object,
+                        question_context=None,
+                        user_message=context.user_message,
+                    ),
+                    "practice_generation_blocked_reason": blocked_reason,
+                    "practice_generation_topic_domain_status": topic_domain_status,
+                    "metadata": {
+                        "question_lifecycle_scene": "practice_generation",
+                        "practice_generation_blocked_reason": blocked_reason,
+                        "practice_generation_topic_domain_status": topic_domain_status,
+                    },
+                }
+                await self._emit_result_with_citations(
+                    stream,
+                    result_payload,
+                    stage="generation",
+                    emit_content_when_enabled=False,
+                )
+                return
+
         coordinator = AgentCoordinator(
             api_key=llm_config.api_key,
             base_url=llm_config.base_url,
@@ -5436,6 +5472,25 @@ class DeepQuestionCapability(BaseCapability):
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
+            counters = (
+                (summary.get("trace") or {}).get("lightweight_counters")
+                if isinstance(summary.get("trace"), dict)
+                else {}
+            )
+            if (
+                isinstance(counters, dict)
+                and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
+            ):
+                return _render_missing_generation_topic_anchor_feedback()
+            if isinstance(counters, dict) and counters.get(
+                "lightweight_batch_fallback"
+            ) in {"blocked_out_of_scope_topic", "blocked_unknown_topic_anchor"}:
+                status = (
+                    (summary.get("trace") or {}).get("topic_domain_status")
+                    if isinstance(summary.get("trace"), dict)
+                    else ""
+                )
+                return _render_invalid_generation_topic_feedback(str(status or "unknown_topic"))
             return ""
 
         lines: list[str] = []

@@ -799,8 +799,8 @@ async def test_tutorbot_process_direct_exports_llm_stream_telemetry_to_runtime_m
     tmp_path,
 ) -> None:
     import deeptutor.tutorbot.agent.loop as loop_module
-    import deeptutor.tutorbot.agent.memory as memory_module
     from deeptutor.tutorbot.agent.loop import AgentLoop
+    import deeptutor.tutorbot.agent.memory as memory_module
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
@@ -8138,7 +8138,7 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
         metadata={
             "question_followup_context": {
                 "question_id": "q_1",
-                "question": "旧题",
+                "question": "屋面防水卷材搭接要求旧题",
                 "question_type": "choice",
                 "correct_answer": "A",
             },
@@ -8148,7 +8148,7 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["topic_call"]["user_topic"].startswith("继续出")
-    assert "当前题目内容：旧题" in captured["topic_call"]["user_topic"]
+    assert "当前题目内容：屋面防水卷材搭接要求旧题" in captured["topic_call"]["user_topic"]
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "custom"
     assert result_event.metadata["question_followup_context"]["question"] == "新的防水工程单选题"

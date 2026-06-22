@@ -87,6 +87,7 @@ from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
+    get_external_auth_user_by_phone,
     load_external_auth_users,
     reset_external_auth_password,
     validate_external_auth_password,
@@ -2572,14 +2573,27 @@ class MemberConsoleService:
         phone = _normalize_phone_input(raw_phone)
         current_external_user_id = str(member.get("external_auth_user_id") or "").strip()
         synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
-        if (
-            not phone
-            or phone == synthetic_default_phone
-            or is_uuid_like(current_external_user_id)
-        ):
+        if not phone or phone == synthetic_default_phone:
             return
+        desired_user_id = current_external_user_id if is_uuid_like(current_external_user_id) else ""
+        if not desired_user_id:
+            try:
+                alias_ids = self._trusted_phone_alias_user_ids(phone)
+            except ValueError as exc:
+                logger.warning(
+                    "phone-backed external identity alias lookup skipped for user_id=%s phone=%s: %s",
+                    member.get("user_id"),
+                    phone,
+                    exc,
+                )
+                return
+            if alias_ids:
+                desired_user_id = next(iter(alias_ids))
         try:
-            external_user = ensure_external_auth_user_for_phone(phone)
+            external_user = ensure_external_auth_user_for_phone(
+                phone,
+                user_id=desired_user_id or None,
+            )
         except ValueError as exc:
             logger.warning(
                 "phone-backed external identity skipped for user_id=%s phone=%s: %s",
@@ -2600,6 +2614,15 @@ class MemberConsoleService:
             return
         external_user_id = str(external_user.get("id") or "").strip()
         if not is_uuid_like(external_user_id):
+            return
+        if desired_user_id and external_user_id != desired_user_id:
+            logger.warning(
+                "phone-backed external identity id mismatch for user_id=%s phone=%s expected=%s actual=%s",
+                member.get("user_id"),
+                phone,
+                desired_user_id,
+                external_user_id,
+            )
             return
         member["auth_username"] = str(external_user.get("username") or member.get("auth_username") or "").strip()
         member["external_auth_provider"] = "fastapi20251222_simple_auth"
@@ -7743,7 +7766,13 @@ class MemberConsoleService:
                 return member
         return None
 
-    def _ensure_member_for_external_auth(self, username: str, user_data: dict[str, Any]) -> dict[str, Any]:
+    def _ensure_member_for_external_auth(
+        self,
+        username: str,
+        user_data: dict[str, Any],
+        *,
+        preserve_display_name: bool = False,
+    ) -> dict[str, Any]:
         normalized_username = str(username or "").strip()
         external_user_id = str(user_data.get("id") or "").strip()
         external_phone = str(user_data.get("phone") or "").strip()
@@ -7763,7 +7792,10 @@ class MemberConsoleService:
                 merged_into = str(member.get("merged_into") or "").strip()
                 if merged_into and merged_into != str(member.get("user_id") or "").strip():
                     member = self._ensure_member(data, merged_into)
-            member["display_name"] = normalized_username or str(member.get("display_name") or "")
+            current_display = str(member.get("display_name") or "").strip()
+            current_user_id = str(member.get("user_id") or "").strip()
+            if not preserve_display_name or not current_display or current_display == current_user_id:
+                member["display_name"] = normalized_username or current_display
             member["auth_username"] = normalized_username
             member["external_auth_provider"] = "fastapi20251222_simple_auth"
             if external_user_id:
@@ -7897,6 +7929,66 @@ class MemberConsoleService:
                 linked_phone_match = True
         return linked_phone_match, account_ids
 
+    def _resolve_phone_backed_password_reset_account(self, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        try:
+            phone_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            logger.warning(
+                "password reset phone alias conflict: phone=%s error=%s",
+                normalized_phone[-4:],
+                exc,
+            )
+            raise ValueError("账号或手机号不匹配") from exc
+        local_account_ids = self._local_member_user_ids_for_phone(normalized_phone)
+        external_user = get_external_auth_user_by_phone(normalized_phone)
+        external_user_id = str((external_user or {}).get("id") or "").strip()
+        if not phone_alias_ids and not local_account_ids and external_user is None:
+            raise ValueError("账号或手机号不匹配")
+
+        canonical_uid = ""
+        if phone_alias_ids:
+            canonical_uid = next(iter(phone_alias_ids))
+        elif is_uuid_like(external_user_id):
+            canonical_uid = external_user_id
+        else:
+            local_uuid_ids = {candidate for candidate in local_account_ids if is_uuid_like(candidate)}
+            if len(local_uuid_ids) > 1:
+                raise ValueError("账号或手机号不匹配")
+            if local_uuid_ids:
+                canonical_uid = next(iter(local_uuid_ids))
+
+        external_user = ensure_external_auth_user_for_phone(
+            normalized_phone,
+            user_id=canonical_uid or None,
+        )
+        external_username = str(external_user.get("username") or "").strip()
+        if not external_username:
+            raise ValueError("账号或手机号不匹配")
+        member = self._ensure_member_for_external_auth(
+            external_username,
+            external_user,
+            preserve_display_name=True,
+        )
+        account_ids = set(local_account_ids)
+        external_user_id = str(external_user.get("id") or "").strip()
+        for candidate in (
+            external_user_id,
+            str(member.get("user_id") or "").strip(),
+            str(member.get("external_auth_user_id") or "").strip(),
+            str(member.get("merged_into") or "").strip(),
+        ):
+            if is_uuid_like(candidate):
+                account_ids.add(candidate)
+        return {
+            "username": external_username,
+            "phone": normalized_phone,
+            "external_user": external_user,
+            "account_ids": sorted(account_ids),
+        }
+
     def _resolve_password_reset_account(self, username: str, phone: str) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
         if not normalized_phone:
@@ -7904,6 +7996,11 @@ class MemberConsoleService:
         normalized_username = str(username or "").strip()
         external_user = get_external_auth_user(normalized_username)
         if not external_user:
+            if (
+                not normalized_username
+                or _normalize_phone_input(normalized_username) == normalized_phone
+            ):
+                return self._resolve_phone_backed_password_reset_account(normalized_phone)
             raise ValueError("账号或手机号不匹配")
         linked_phone_match, account_ids = self._linked_member_phone_matches_account(
             external_user=external_user,
@@ -8338,7 +8435,9 @@ class MemberConsoleService:
         if canonical_uid:
             def _apply_verified_alias(data: dict[str, Any]) -> dict[str, Any]:
                 member = self._ensure_member(data, canonical_uid)
-                if not _normalize_phone_input(str(member.get("phone") or "")):
+                current_phone = _normalize_phone_input(str(member.get("phone") or ""))
+                synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
+                if not current_phone or current_phone == synthetic_default_phone:
                     member["phone"] = verified_phone
                 member["last_active_at"] = _iso()
                 return deepcopy(member)

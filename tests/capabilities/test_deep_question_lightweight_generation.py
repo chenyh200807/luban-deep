@@ -136,7 +136,7 @@ def test_lightweight_uses_single_llm_batch_for_three_questions(
 
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出3题",
+            user_topic="网络计划，再出3题",
             preference="",
             num_questions=3,
             difficulty="easy",
@@ -163,7 +163,7 @@ def test_lightweight_uses_at_most_two_llm_calls_for_five_questions(
 
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出5题",
+            user_topic="网络计划，再出5题",
             preference="",
             num_questions=5,
             difficulty="easy",
@@ -186,7 +186,7 @@ def test_lightweight_falls_back_to_parallel_when_batch_path_fails(
 
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出2题",
+            user_topic="网络计划，再出2题",
             preference="",
             num_questions=2,
             difficulty="easy",
@@ -208,7 +208,7 @@ def test_lightweight_results_carry_hidden_grading_key(
     coord, _ = _stub_coordinator(monkeypatch)
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出2题",
+            user_topic="网络计划，再出2题",
             preference="",
             num_questions=2,
             difficulty="easy",
@@ -325,6 +325,108 @@ def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
     assert counters.get("lightweight_batch_fallback") == "disabled"
     assert fake_gen.call_count == 0
     assert fake_gen.batch_call_count == 0
+
+
+def test_lightweight_action_only_topic_without_anchor_blocks_llm_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _miss_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {"answer": "", "provider": "stub", "kb_name": "stub-kb"}
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _miss_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="出三道题",
+            preference="",
+            num_questions=3,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("llm_calls") == 0
+    assert counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
+def test_lightweight_out_of_scope_topic_blocks_llm_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+    coord.enable_idea_rag = True
+    coord.kb_name = "construction-exam"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="围绕法国首都出三道题",
+            preference="",
+            num_questions=3,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("llm_calls") == 0
+    assert counters.get("retriever_calls") == 0
+    assert counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
+    assert (result.get("trace") or {}).get("topic_domain_status") == "out_of_scope_topic"
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
+def test_lightweight_resolved_topic_anchor_survives_empty_rag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _miss_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {"answer": "", "provider": "stub", "kb_name": "stub-kb"}
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _miss_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    resolved_topic = (
+        "出三道题\n\n"
+        "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
+        "当前会话摘要：用户刚学习了建筑实务变形缝的设置与构造处理。"
+    )
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic=resolved_topic,
+            preference="",
+            num_questions=3,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+
+    assert fake_gen.batch_call_count == 1
+    templates = result.get("templates") or []
+    assert "变形缝" in templates[0]["metadata"]["knowledge_context"]
 
 
 def test_question_review_uses_similar_rag_source_for_variant_when_bank_misses(
@@ -656,7 +758,7 @@ def test_lightweight_three_questions_counters_equal_real_calls(
     coord, fake_gen = _stub_coordinator(monkeypatch)
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出3题",
+            user_topic="网络计划，再出3题",
             preference="",
             num_questions=3,
             difficulty="easy",
@@ -677,7 +779,7 @@ def test_lightweight_five_questions_counters_exactly_two(
     coord, fake_gen = _stub_coordinator(monkeypatch)
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出5题",
+            user_topic="网络计划，再出5题",
             preference="",
             num_questions=5,
             difficulty="easy",
@@ -699,7 +801,7 @@ def test_lightweight_four_questions_counters_exactly_two(
     coord, fake_gen = _stub_coordinator(monkeypatch)
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出4题",
+            user_topic="网络计划，再出4题",
             preference="",
             num_questions=4,
             difficulty="easy",
@@ -720,7 +822,7 @@ def test_lightweight_parallel_fallback_counters_match_real_calls(
     coord, fake_gen = _stub_coordinator(monkeypatch, batch_fail=True)
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic="再出2题",
+            user_topic="网络计划，再出2题",
             preference="",
             num_questions=2,
             difficulty="easy",

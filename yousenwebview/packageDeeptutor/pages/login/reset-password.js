@@ -18,9 +18,8 @@ function showSmsSentFeedback(message) {
 }
 
 function validateResetForm(username, phone, code, password, confirmPassword) {
-  if (!username) return "请输入用户名或邮箱";
-  if (username.length < 2) return "账号至少需要 2 个字符";
-  if (username.length > 50) return "账号不能超过 50 个字符";
+  if (username && username.length < 2) return "账号至少需要 2 个字符";
+  if (username && username.length > 50) return "账号不能超过 50 个字符";
   if (!phone) return "请输入手机号";
   if (!CN_MOBILE_RE.test(phone)) return "请输入正确的手机号";
   if (!code) return "请输入验证码";
@@ -45,7 +44,7 @@ function describeResetAuthError(info) {
     return "";
   }
   if (detail.indexOf("账号或手机号不匹配") >= 0) {
-    return "账号和手机号不匹配，请确认注册账号和绑定手机号";
+    return "账号和手机号不匹配；快速登录用户可只填手机号重试";
   }
   if (detail.indexOf("验证码不存在") >= 0) {
     return "请先获取验证码";
@@ -170,16 +169,16 @@ Page({
     if (self.data.codeCountdown > 0 || self.data.loading) return;
     var username = (self.data.username || "").trim();
     var phone = (self.data.phone || "").trim();
-    if (!username) {
-      self.setData({ errorMsg: "请输入用户名或邮箱" });
-      return;
-    }
-    if (username.length < 2) {
+    if (username && username.length < 2) {
       self.setData({ errorMsg: "账号至少需要 2 个字符" });
       return;
     }
-    if (username.length > 50) {
+    if (username && username.length > 50) {
       self.setData({ errorMsg: "账号不能超过 50 个字符" });
+      return;
+    }
+    if (!phone) {
+      self.setData({ errorMsg: "请输入手机号" });
       return;
     }
     if (!CN_MOBILE_RE.test(phone)) {
