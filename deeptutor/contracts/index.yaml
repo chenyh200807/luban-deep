@@ -95,6 +95,7 @@ member_console_controls:
       - BI operational member and commerce read models start at 2026-06-22T00:00:00+08:00.
       - Members created before the operational start must not count in BI member totals, new-member windows, BI member lists, or BI aggregate member projections.
       - Internal QA, smoke, synthetic, and automation namespace accounts must not count in BI operational member totals, new-member windows, or default BI member lists.
+      - When the Supabase member directory is enabled, member_console-only manual members with valid registered phones are supplementary BI read-model members, not invisible overlay-only records.
       - Wallet/member-console ledger rows effective before the operational start must not count in BI commerce ledger, recharge records, revenue summaries, or latest revenue.
       - The operational filter is read-model only; it must not delete, mutate, or reverse canonical member records, wallet balances, wallet_ledger rows, audit logs, or member 360 drilldown data.
   manual_membership_reversal:
