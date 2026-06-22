@@ -122,6 +122,18 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     }
 )
 _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
+_MEMBERSHIP_TIER_RANK = {
+    "trial": 0,
+    "vip": 1,
+    "svip": 2,
+    "supreme_svip": 3,
+}
+_ADMIN_ROLE_RANK = {
+    rbac.ROLE_ANALYST: 0,
+    rbac.ROLE_OPERATOR: 1,
+    rbac.ROLE_ADMIN: 2,
+    rbac.ROLE_SUPER_ADMIN: 3,
+}
 
 
 def _assessment_writeback_worker_count() -> int:
@@ -5467,6 +5479,327 @@ class MemberConsoleService:
             "deduped": bool(entitlement.get("deduped", False)),
         }
 
+    @staticmethod
+    def _membership_tier_rank(tier: Any) -> int:
+        return _MEMBERSHIP_TIER_RANK.get(str(tier or "").strip(), 0)
+
+    @staticmethod
+    def _later_iso(left: Any, right: Any) -> str:
+        left_ts = _parse_time(left)
+        right_ts = _parse_time(right)
+        return _iso(left_ts if left_ts >= right_ts else right_ts)
+
+    @staticmethod
+    def _admin_role_rank(role: str | None) -> int:
+        return _ADMIN_ROLE_RANK.get(str(role or "").strip(), -1)
+
+    def _best_admin_role_for_merge(self, user_ids: list[str]) -> str | None:
+        best_role: str | None = None
+        for user_id in user_ids:
+            role = self.get_admin_role(user_id)
+            if self._admin_role_rank(role) > self._admin_role_rank(best_role):
+                best_role = role
+        return best_role
+
+    def _apply_merged_admin_role(
+        self,
+        *,
+        target_user_id: str,
+        merged_user_ids: list[str],
+        operator: str,
+        display_name: str = "",
+    ) -> str | None:
+        best_role = self._best_admin_role_for_merge(merged_user_ids)
+        if not best_role:
+            return None
+        if target_user_id in self._env_admin_user_ids():
+            return self.get_admin_role(target_user_id)
+        current_role = self.get_admin_role(target_user_id)
+        if self._admin_role_rank(best_role) <= self._admin_role_rank(current_role):
+            return current_role
+        set_admin(
+            self._bi_admins_path(),
+            target_user_id,
+            role=best_role,
+            display_name=display_name,
+            actor=operator,
+            granted_at=_iso(),
+        )
+        return best_role
+
+    def _wallet_balance_micros_for_merge(self, wallet_service: Any, user_id: str) -> int:
+        get_wallet = getattr(wallet_service, "get_wallet", None)
+        if not callable(get_wallet):
+            return 0
+        snapshot = get_wallet(user_id)
+        return max(0, int(getattr(snapshot, "balance_micros", 0) or 0)) if snapshot is not None else 0
+
+    def _apply_wallet_account_merge(
+        self,
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str,
+        reason: str,
+        idempotency_key: str,
+    ) -> list[dict[str, Any]]:
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            return []
+        admin_adjust_points = getattr(wallet_service, "admin_adjust_points", None)
+        if not callable(admin_adjust_points):
+            return []
+        adjustments: list[dict[str, Any]] = []
+        for source_user_id in source_user_ids:
+            source_balance_micros = self._wallet_balance_micros_for_merge(wallet_service, source_user_id)
+            if source_balance_micros <= 0:
+                continue
+            reference_id = f"{target_user_id}:{source_user_id}"
+            metadata = {
+                "source": "member_identity_merge",
+                "target_user_id": target_user_id,
+                "source_user_id": source_user_id,
+                "operator_id": operator,
+                "reason": reason,
+            }
+            credit = admin_adjust_points(
+                user_id=target_user_id,
+                delta_micros=source_balance_micros,
+                reference_id=reference_id,
+                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:credit",
+                reason="member_identity_merge",
+                metadata=metadata,
+                operator_type="admin",
+                operator_id=operator,
+            )
+            debit = admin_adjust_points(
+                user_id=source_user_id,
+                delta_micros=-source_balance_micros,
+                reference_id=reference_id,
+                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:debit",
+                reason="member_identity_merge",
+                metadata=metadata,
+                operator_type="admin",
+                operator_id=operator,
+            )
+            adjustments.append(
+                {
+                    "source_user_id": source_user_id,
+                    "target_user_id": target_user_id,
+                    "points_transferred": int(source_balance_micros / 1_000_000),
+                    "credit_ledger_event_id": str(getattr(credit, "ledger_event_id", "") or ""),
+                    "debit_ledger_event_id": str(getattr(debit, "ledger_event_id", "") or ""),
+                }
+            )
+        return adjustments
+
+    def _merge_member_accounts_locked(
+        self,
+        data: dict[str, Any],
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str,
+        reason: str,
+        action: str,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        existing_audit_id = self._find_audit_id_by_idempotency_key(
+            data,
+            action,
+            idempotency_key,
+            operator=operator,
+        )
+        target = self._find_member(data, target_user_id)
+        if existing_audit_id is not None:
+            return {
+                "member": deepcopy(self._ensure_member(data, str(target.get("user_id") or target_user_id))),
+                "audit_id": existing_audit_id,
+                "deduped": True,
+                "merged_source_ids": [],
+                "points_transferred": 0,
+                "admin_role_after": self.get_admin_role(target_user_id),
+                "target_user_id": str(target.get("user_id") or target_user_id),
+            }
+
+        target = self._ensure_member(data, target_user_id)
+        canonical_target_id = str(target.get("user_id") or target_user_id).strip()
+        before = deepcopy(target)
+        points_transferred = 0
+        merged_source_ids: list[str] = []
+        source_before: dict[str, Any] = {}
+        now = _iso()
+
+        for raw_source_id in source_user_ids:
+            source_id = str(raw_source_id or "").strip()
+            if not source_id or source_id == canonical_target_id or source_id in merged_source_ids:
+                continue
+            source = self._find_member(data, source_id)
+            source_before[source_id] = deepcopy(source)
+            resolved_source = self._ensure_member(data, source_id)
+            if str(resolved_source.get("user_id") or "").strip() == canonical_target_id:
+                source["merged_into"] = canonical_target_id
+                source["merged_at"] = source.get("merged_at") or now
+                merged_source_ids.append(source_id)
+                continue
+
+            source = resolved_source
+            source_id = str(source.get("user_id") or source_id).strip()
+            if not source_id or source_id == canonical_target_id or source_id in merged_source_ids:
+                continue
+            source_before[source_id] = deepcopy(source)
+
+            source_tier = str(source.get("tier") or "").strip()
+            target_tier = str(target.get("tier") or "").strip()
+            if self._membership_tier_rank(source_tier) > self._membership_tier_rank(target_tier):
+                target["tier"] = source_tier
+            target["expire_at"] = self._later_iso(target.get("expire_at"), source.get("expire_at"))
+            target["last_active_at"] = self._later_iso(target.get("last_active_at"), source.get("last_active_at"))
+            if str(source.get("status") or "").strip() == "active" or _parse_time(target.get("expire_at")) > _now():
+                target["status"] = "active"
+
+            source_points = max(0, int(source.get("points_balance") or 0))
+            if source_points:
+                target["points_balance"] = max(0, int(target.get("points_balance") or 0)) + source_points
+                source["points_balance"] = 0
+                points_transferred += source_points
+                target.setdefault("ledger", []).insert(
+                    0,
+                    {
+                        "id": f"merge_{uuid.uuid4().hex[:12]}",
+                        "delta": source_points,
+                        "reason": "member_identity_merge",
+                        "created_at": now,
+                        "metadata": {
+                            "source_user_id": source_id,
+                            "target_user_id": canonical_target_id,
+                            "operator": operator,
+                            "reason": reason,
+                        },
+                    },
+                )
+                source.setdefault("ledger", []).insert(
+                    0,
+                    {
+                        "id": f"merge_out_{uuid.uuid4().hex[:12]}",
+                        "delta": -source_points,
+                        "reason": "member_identity_merge",
+                        "created_at": now,
+                        "metadata": {
+                            "target_user_id": canonical_target_id,
+                            "operator": operator,
+                            "reason": reason,
+                        },
+                    },
+                )
+
+            if not self._is_meaningful_phone(target.get("phone")) and self._is_meaningful_phone(source.get("phone")):
+                target["phone"] = _normalize_phone_input(str(source.get("phone") or ""))
+            for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
+                if source.get(key):
+                    target[key] = source[key]
+                    source[key] = ""
+            for key in ("avatar_url", "exam_date", "focus_topic", "focus_query"):
+                if not str(target.get(key) or "").strip() and str(source.get(key) or "").strip():
+                    target[key] = source[key]
+
+            source["merged_into"] = canonical_target_id
+            source["merged_at"] = now
+            source["status"] = "merged"
+            source["last_active_at"] = now
+            merged_source_ids.append(source_id)
+
+        after = deepcopy(target)
+        audit = self._append_audit(
+            data,
+            action=action,
+            target_user=canonical_target_id,
+            reason=reason or "member_identity_merge",
+            before={
+                "target": before,
+                "sources": source_before,
+            },
+            after={
+                "target": after,
+                "merged_source_ids": list(merged_source_ids),
+                "points_transferred": points_transferred,
+            },
+            operator=operator,
+        )
+        self._remember_idempotency_key(
+            data,
+            action,
+            idempotency_key,
+            audit["id"],
+            operator=operator,
+        )
+        return {
+            "member": after,
+            "audit_id": audit["id"],
+            "deduped": False,
+            "merged_source_ids": list(merged_source_ids),
+            "points_transferred": points_transferred,
+            "target_user_id": canonical_target_id,
+            "admin_role_after": None,
+        }
+
+    def merge_member_accounts(
+        self,
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_target = str(target_user_id or "").strip()
+        normalized_sources = [str(item or "").strip() for item in list(source_user_ids or []) if str(item or "").strip()]
+        normalized_sources = list(dict.fromkeys(normalized_sources))
+        normalized_operator = str(operator or "admin").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_target:
+            raise ValueError("target_user_id is required")
+        if not normalized_sources:
+            raise ValueError("source_user_ids is required")
+        if normalized_target in normalized_sources:
+            raise ValueError("target_user_id cannot also be a source")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+
+        action = "member_identity_merge"
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            return self._merge_member_accounts_locked(
+                data,
+                target_user_id=normalized_target,
+                source_user_ids=normalized_sources,
+                operator=normalized_operator,
+                reason=str(reason or "").strip(),
+                action=action,
+                idempotency_key=normalized_key,
+            )
+
+        result = self._mutate(_apply)
+        canonical_target = str(result.get("target_user_id") or normalized_target)
+        admin_role = self._apply_merged_admin_role(
+            target_user_id=canonical_target,
+            merged_user_ids=[canonical_target, *normalized_sources],
+            operator=normalized_operator,
+            display_name=str((result.get("member") or {}).get("display_name") or ""),
+        )
+        if admin_role:
+            result["admin_role_after"] = admin_role
+        wallet_adjustments = self._apply_wallet_account_merge(
+            target_user_id=canonical_target,
+            source_user_ids=normalized_sources,
+            operator=normalized_operator,
+            reason=str(reason or "").strip(),
+            idempotency_key=normalized_key,
+        )
+        if wallet_adjustments:
+            result["wallet_adjustments"] = wallet_adjustments
+        return result
+
     def update_subscription(
         self,
         user_id: str,
@@ -7512,24 +7845,18 @@ class MemberConsoleService:
             )
 
             if target and target["user_id"] != current["user_id"]:
-                before = deepcopy(target)
-                for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
-                    if current.get(key):
-                        target[key] = current[key]
-                        current[key] = ""
-                target["phone"] = normalized
-                target["last_active_at"] = _iso()
-                current["merged_into"] = target["user_id"]
-                current["last_active_at"] = _iso()
-                self._append_audit(
+                merge = self._merge_member_accounts_locked(
                     data,
-                    action="wechat_bind_phone",
-                    target_user=target["user_id"],
+                    target_user_id=str(target["user_id"]),
+                    source_user_ids=[str(current["user_id"])],
                     operator="wechat_mp",
                     reason="bind_phone_alias_merge" if verified_phone_canonical_uid else "bind_phone_merge",
-                    before=before,
-                    after=target,
+                    action="wechat_bind_phone",
+                    idempotency_key=f"{target['user_id']}:{current['user_id']}:{normalized}",
                 )
+                target = self._find_member(data, str(merge.get("target_user_id") or target["user_id"]))
+                target["phone"] = normalized
+                target["last_active_at"] = _iso()
                 return {
                     "bound": True,
                     "merged": True,

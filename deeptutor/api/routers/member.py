@@ -65,6 +65,12 @@ class ManualPurchaseReversalRequest(BaseModel):
     reason: str = Field(default="", max_length=200)
 
 
+class AccountMergeRequest(BaseModel):
+    target_user_id: str = Field(..., min_length=1, max_length=200)
+    source_user_ids: list[str] = Field(..., min_length=1, max_length=10)
+    reason: str = Field(default="", max_length=200)
+
+
 class MembershipPackageRequest(BaseModel):
     label: str = Field(..., min_length=1, max_length=80)
     tier: str = Field(..., min_length=1, max_length=40)
