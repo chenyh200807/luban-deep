@@ -2155,24 +2155,31 @@ class MemberConsoleService:
             else:
                 members_by_user_id[user_id] = self._merge_canonical_member_for_bi(existing, member)
         merged_members = list(members_by_user_id.values())
-        if not include_session_activity_supplements:
-            return merged_members
         directory_keys = {
             key
             for member in merged_members
             for key in self._canonical_member_keys_for_bi(member)
         }
         local_members = self._members_for_bi(data)
-        local_members_with_activity = self._merge_session_activity_for_member_list(
-            [deepcopy(member) for member in local_members]
+        local_members_with_activity = (
+            self._merge_session_activity_for_member_list([deepcopy(member) for member in local_members])
+            if include_session_activity_supplements
+            else [deepcopy(member) for member in local_members]
         )
         for original, local_member in zip(local_members, local_members_with_activity, strict=False):
+            local_user_id = str(local_member.get("user_id") or "").strip()
+            local_merged_into = str(local_member.get("merged_into") or "").strip()
+            if local_merged_into and local_merged_into != local_user_id:
+                continue
             local_keys = self._canonical_member_keys_for_bi(local_member)
             if not local_keys or any(key in directory_keys for key in local_keys):
                 continue
-            if _parse_time(local_member.get("last_active_at")) <= _parse_time(original.get("last_active_at")):
-                continue
-            local_member.setdefault("member_directory_source", "member_console_session_activity_supplement")
+            if include_session_activity_supplements and _parse_time(
+                local_member.get("last_active_at")
+            ) > _parse_time(original.get("last_active_at")):
+                local_member["member_directory_source"] = "member_console_session_activity_supplement"
+            else:
+                local_member["member_directory_source"] = "member_console_local_supplement"
             merged_members.append(local_member)
             directory_keys.update(local_keys)
         return merged_members

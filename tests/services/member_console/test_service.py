@@ -4733,7 +4733,7 @@ def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path:
     assert dashboard["active_count"] == 1
 
 
-def test_list_members_and_dashboard_use_supabase_member_directory_when_configured(tmp_path: Path) -> None:
+def test_list_members_and_dashboard_use_supabase_directory_plus_local_manual_members(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [
             {
@@ -4791,12 +4791,70 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
     payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
     dashboard = service.get_dashboard()
 
-    assert payload["total"] == 1
-    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1"]
+    assert payload["total"] == 2
+    assert [item["user_id"] for item in payload["items"]] == [
+        "canonical_member_1",
+        "local_only_member",
+    ]
     assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
-    assert dashboard["total_count"] == 1
+    assert dashboard["total_count"] == 2
     assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
     assert directory.calls
+
+
+def test_member_directory_includes_member_console_only_manual_phone_member(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-22T10:00:00+08:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_manual_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("15875046318")
+        member["display_name"] = "15875046318"
+        member["phone"] = "15875046318"
+        member["created_at"] = "2026-06-22T13:44:27+08:00"
+        member["last_active_at"] = "2026-06-22T13:44:27+08:00"
+        data["members"].append(member)
+
+    service._mutate(_seed_manual_member)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    search = service.list_members(search="15875046318", page=1, page_size=20)
+    dashboard = service.get_dashboard()
+    read_model_members = {
+        item["user_id"]: item
+        for item in service.list_members_for_bi()
+    }
+
+    assert payload["total"] == 2
+    assert search["total"] == 1
+    assert search["items"][0]["user_id"] == "15875046318"
+    assert search["items"][0]["phone"] == "15875046318"
+    assert read_model_members["15875046318"]["member_directory_source"] == "member_console_local_supplement"
+    assert dashboard["total_count"] == 2
+    assert dashboard["new_today_count"] == 2
 
 
 def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp_path: Path) -> None:
@@ -4946,7 +5004,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
     assert payload["items"][0]["user_id"] == "local_missing_from_directory"
     assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
     assert payload["items"][1]["user_id"] == "canonical_member_1"
-    assert dashboard["total_count"] == 1
+    assert dashboard["total_count"] == 2
     assert (
         read_model_members["local_missing_from_directory"]["member_directory_source"]
         == "member_console_session_activity_supplement"
