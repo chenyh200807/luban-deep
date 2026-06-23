@@ -97,6 +97,10 @@ skills:
     path: agent-skills/luban-rich-leaf-compiler/SKILL.md
     lane: luban
     expected_use: conditional
+  - name: tutorbot-student-army-eval-loop
+    path: agent-skills/tutorbot-student-army-eval-loop/SKILL.md
+    lane: qa
+    expected_use: conditional
   - name: wechat-tutorbot-real-entry-qa
     path: agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md
     lane: wechat-qa
