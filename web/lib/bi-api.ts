@@ -1861,7 +1861,9 @@ export async function getBiCost(options: BiFetchOptions = {}): Promise<BiCostDat
     ),
     models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) => {
       const rank = normalizeRankItem(item, `Model ${index + 1}`)
-      const calibrated = optionalNumber(asRecord(item).calibrated_value ?? asRecord(item).calibratedValue)
+      const calibrated = optionalNumber(
+        asRecord(item).calibrated_value ?? asRecord(item).calibratedValue
+      )
       return calibrated === undefined ? rank : { ...rank, calibratedValue: calibrated }
     }),
     providers: firstArray(raw, ['providers', 'sources', 'usage_sources']).map((item, index) =>
@@ -1985,6 +1987,11 @@ export async function getBiAnomalies(options: BiFetchOptions = {}): Promise<BiAn
       normalizeAlert(item, `异常 ${index + 1}`)
     ),
   }
+}
+
+export async function getBiMemberOpsPackages(): Promise<BiCommercePackage[]> {
+  const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/packages'))
+  return firstArray(raw, ['packages', 'package_items']).map(item => normalizeCommercePackage(item))
 }
 
 export async function getBiCommerce(options: { limit?: number } = {}): Promise<BiCommerceData> {

@@ -49,8 +49,8 @@ import {
   type MemberListItem,
 } from '@/lib/member-api'
 import {
-  getBiCommerce,
   getBiInternalAccounts,
+  getBiMemberOpsPackages,
   markMemberInternalAccount,
   type BiCommercePackage,
   type BiInternalAccountState,
@@ -365,7 +365,7 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list, commerce, internalData] = await Promise.all([
+      const [nextDashboard, list, packages, internalData] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -378,7 +378,7 @@ export function BiV2MemberOpsPanel({
           expire_within_days: filters.expiringDays || undefined,
           risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
         }),
-        getBiCommerce({ limit: 50 }).catch(() => null),
+        getBiMemberOpsPackages().catch(() => []),
         getBiInternalAccounts().catch(() => ({
           states: {} as Record<string, BiInternalAccountState>,
           internal_accounts: [],
@@ -395,11 +395,7 @@ export function BiV2MemberOpsPanel({
         ),
       }))
       setDashboard(nextDashboard)
-      if (commerce) {
-        setMembershipPackages(
-          commerce.packages.filter(pkg => (pkg.status || 'active') !== 'archived')
-        )
-      }
+      setMembershipPackages(packages.filter(pkg => (pkg.status || 'active') !== 'archived'))
       setLiveRows(nextRows)
       setTotalRows(list.total)
       setSelectedRows(
