@@ -6,7 +6,6 @@
 # question_followup single guard) or regenerate with reviewer sign-off + the
 # approving PR. See contracts/turn.md §硬约束 24.
 deeptutor/capabilities/deep_question.py::_looks_like_option_mapping_challenge
-deeptutor/capabilities/deep_question.py::_looks_like_option_scoring_or_challenge_request
 deeptutor/runtime/orchestrator.py::_looks_like_current_question_followup
 deeptutor/runtime/orchestrator.py::_looks_like_free_text_question_review_request
 deeptutor/runtime/orchestrator.py::_looks_like_question_followup
