@@ -62,16 +62,32 @@ def _strip_inline_reference_noise(answer: str, *, markers: list[str]) -> str:
 _ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔\d{1,3}〕")
 
 
+def _has_backing_reference_footer(text: str) -> bool:
+    """文本里是否有合法的引用 footer(`依据` 段 + 〔N〕 + 来源线索)——即 assembler
+    渲染出来、〔N〕 真有来源的情况。有则 〔N〕 是合法引用,不可剥。"""
+    for match in _FOOTER_RE.finditer(text):
+        footer = text[match.end() :]
+        if _ORPHAN_REFERENCE_MARKER_RE.search(footer) and _REFERENCE_SOURCE_HINT_RE.search(footer):
+            return True
+    return False
+
+
 def strip_orphan_reference_markers(answer: str) -> str:
     """剥离学生可见文本里的孤儿数字脚注标注（〔N〕）+ 参考依据行。
 
-    引用关闭(生产默认)或无 sources 时,_strip_inline_reference_noise 因 markers 为空
-    不剥任何标注,但主 LLM 仍可能输出 grounding 标注 〔N〕,它们解析不到任何来源=纯内部
-    噪声,绝不能漏给学生(Langfuse meta_leak 实证 2026-06-22)。标注格式即 assembler 自己
-    生成的 canonical 〔index〕。本剥离器只服务"无引用"路径,不影响引用开启时的 〔N〕 渲染。
+    判据是 **这段文本里 〔N〕 有没有 backing footer**,与全局 citation flag 无关——
+    实证(2026-06-23):test2 上 `answer_citations_enabled()=True` 但判分 LLM 吐的 〔N〕
+    并没走引用装配、没有 footer = 孤儿,仍漏给学生。所以 flag≠footer,必须按 footer 判。
+    有合法 footer(`依据`段+来源线索)→ 〔N〕 是合法引用,整段不动;无 footer → 〔N〕 是
+    主 LLM 输出但解析不到来源的内部噪声,剥掉 + 去掉悬空参考依据行。
     """
+    text = str(answer or "")
+    if not text.strip():
+        return text
+    if _has_backing_reference_footer(text):
+        return text
     lines = []
-    for line in str(answer or "").splitlines():
+    for line in text.splitlines():
         reference_line = _REFERENCE_LINE_RE.match(line)
         if reference_line and _REFERENCE_SOURCE_HINT_RE.search(reference_line.group("body")):
             continue
