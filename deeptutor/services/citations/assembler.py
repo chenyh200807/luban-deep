@@ -60,6 +60,10 @@ def _strip_inline_reference_noise(answer: str, *, markers: list[str]) -> str:
 
 
 _ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔\d{1,3}〕")
+# 〔源:chunk_id〕 是 rich_leaf 检索 grounding 标记(supporting-citation-only),只该
+# 出现在喂 LLM 判分/教学的上下文里,绝不是合法学生引用(合法引用是带 footer 的数字
+# 〔N〕)。judge 模仿进输出时必须无条件剥——与 backing footer 无关。
+_GROUNDING_SOURCE_MARKER_RE = re.compile(r"〔源[:：][^〕]*〕")
 
 
 def _has_backing_reference_footer(text: str) -> bool:
@@ -84,6 +88,8 @@ def strip_orphan_reference_markers(answer: str) -> str:
     text = str(answer or "")
     if not text.strip():
         return text
+    # 〔源:chunk_id〕 grounding 标记永远剥(与 footer 无关),它不是合法学生引用。
+    text = _GROUNDING_SOURCE_MARKER_RE.sub("", text)
     if _has_backing_reference_footer(text):
         return text
     lines = []
