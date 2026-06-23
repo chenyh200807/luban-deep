@@ -1336,6 +1336,10 @@ def _reference_explanation(question_context: dict[str, Any]) -> str:
     return "\n".join(lines).strip()
 
 
+# #21(2026-06-23):深度/概念追问标记。用于"确定性简短反馈 vs FollowupAgent 教学"的
+# **渲染深度**选择(在 followup 已被路由之后),不是 submission/relation 判定——故内联进
+# 既有渲染闸 _should_render_deterministic_reference_feedback,不另立 _looks_like_* gate
+# (避免与 submission/relation 单一权威治理混淆;它不重判"是不是作答/判哪题")。
 _DEPTH_EXPLANATION_MARKERS = (
     "为什么",
     "为啥",
@@ -1353,13 +1357,6 @@ _DEPTH_EXPLANATION_MARKERS = (
 )
 
 
-def _looks_like_depth_explanation_request(user_message: str) -> bool:
-    text = str(user_message or "").strip()
-    if not text:
-        return False
-    return any(marker in text for marker in _DEPTH_EXPLANATION_MARKERS)
-
-
 def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1369,13 +1366,13 @@ def _should_render_deterministic_reference_feedback(
         and _reference_items(question_context)
     ):
         return False
-    # #21(2026-06-23):深度/概念追问(为什么/讲讲原理/为什么其他选项也不对)求逐项讲解,
-    # 应走 FollowupAgent(能逐项推理 + 阶段1 反篡改-as-teaching prompt),不走只回显 item
-    # explanation 的简短确定性模板(否则就是"无防御罐头但仍薄答")。仅简短揭示请求(brevity)
-    # 或纯要答案才走确定性简短反馈。
-    if _looks_like_depth_explanation_request(user_message) and not looks_like_explicit_brevity_request(
-        user_message
-    ):
+    # 深度/概念追问(为什么/讲讲原理/为什么其他选项也不对)求逐项讲解,应走 FollowupAgent
+    # (能逐项推理 + 阶段1 反篡改-as-teaching prompt),不走只回显 item explanation 的简短
+    # 确定性模板(否则就是"无防御罐头但仍薄答")。仅简短揭示请求(brevity)/纯要答案才走
+    # 确定性简短反馈。这是渲染深度选择,不是 submission/relation 判定。
+    text = str(user_message or "")
+    wants_depth = any(marker in text for marker in _DEPTH_EXPLANATION_MARKERS)
+    if wants_depth and not looks_like_explicit_brevity_request(user_message):
         return False
     return True
 
