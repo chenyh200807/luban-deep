@@ -239,3 +239,16 @@ def test_unanswered_explicit_answer_request_still_withholds_answer() -> None:
     msg = "直接告诉我答案是什么"
     assert should_reveal_reference_material(msg, ctx) is False
     assert _should_render_deterministic_reference_feedback(msg, ctx) is False
+
+
+def test_depth_concept_followup_routes_to_followup_agent_not_deterministic():
+    """#21(2026-06-23):已作答题的深度概念追问(为什么B错/为什么C、D也不对/讲讲原理)
+    应走 FollowupAgent 逐项教学,不走只回显 item explanation 的简短确定性模板
+    (否则=无防御罐头但仍薄答)。简短揭示(brevity)仍走确定性。"""
+    from deeptutor.capabilities.deep_question import _should_render_deterministic_reference_feedback
+
+    ctx = _wall_context(user_answer="A", is_correct=False)
+    # 深度概念追问 → 不走确定性(落 FollowupAgent)
+    assert _should_render_deterministic_reference_feedback("为什么我选A错?为什么C、D也不对?讲讲原理", ctx) is False
+    # 简短揭示请求 → 仍走确定性简短反馈
+    assert _should_render_deterministic_reference_feedback("错因是什么?10个字以内", ctx) is True

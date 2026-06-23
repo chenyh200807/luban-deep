@@ -1336,14 +1336,48 @@ def _reference_explanation(question_context: dict[str, Any]) -> str:
     return "\n".join(lines).strip()
 
 
+_DEPTH_EXPLANATION_MARKERS = (
+    "为什么",
+    "为啥",
+    "讲讲",
+    "讲解",
+    "原理",
+    "怎么区分",
+    "凭什么",
+    "区别",
+    "其他选项",
+    "别的选项",
+    "其余选项",
+    "也不对",
+    "也错",
+)
+
+
+def _looks_like_depth_explanation_request(user_message: str) -> bool:
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    return any(marker in text for marker in _DEPTH_EXPLANATION_MARKERS)
+
+
 def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    return bool(
+    if not (
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
-    )
+    ):
+        return False
+    # #21(2026-06-23):深度/概念追问(为什么/讲讲原理/为什么其他选项也不对)求逐项讲解,
+    # 应走 FollowupAgent(能逐项推理 + 阶段1 反篡改-as-teaching prompt),不走只回显 item
+    # explanation 的简短确定性模板(否则就是"无防御罐头但仍薄答")。仅简短揭示请求(brevity)
+    # 或纯要答案才走确定性简短反馈。
+    if _looks_like_depth_explanation_request(user_message) and not looks_like_explicit_brevity_request(
+        user_message
+    ):
+        return False
+    return True
 
 
 def _looks_like_option_mapping_challenge(user_message: str) -> bool:
