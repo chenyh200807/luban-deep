@@ -94,7 +94,13 @@ def test_add_and_update_record_trigger_learner_state_writeback(monkeypatch, tmp_
     assert calls[2]["bot_id"] == "bot_alpha"
     assert calls[2]["user_id"] == "student_demo"
     assert any(item["field"] == "local_notebook_scope_refs" for item in calls[2]["patch"]["operations"])
-    assert any(item["field"] == "working_memory_projection" for item in calls[2]["patch"]["operations"])
+    # #23 第二层(2026-06-23):notebook 自动卡不再把判分输出 / 卡片摘要写进
+    # working_memory_projection——该字段经 turn_runtime 当 EVIDENCE 注入下一轮 judge,
+    # 写判分输出会跨会话自我强化幻觉(judge 抄回自己上一轮脑补的"中标价1.7亿")。
+    # 断写入链=循环自灭。只保留 local_notebook_scope_refs(无害的 scope 引用)。
+    assert not any(
+        item["field"] == "working_memory_projection" for item in calls[2]["patch"]["operations"]
+    )
 
     updated = manager.update_record(
         notebook["id"],

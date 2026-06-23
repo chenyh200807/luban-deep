@@ -240,6 +240,7 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 - 学员全局 weak points
 - 学员全局 summary
 - 学员全局 consent
+- judge / bot 的判分输出原文，或其中题面未给出的脑补背景数值（如“中标价 1.7 亿”）。`working_memory_projection` 经 `turn_runtime` 当 EVIDENCE 块注入下一轮 judge；若回灌判分输出，会跨会话**自我强化幻觉**——judge 把自己上一轮脑补的数字当“参考证据”抄回。notebook 自动卡 writeback **不得**把判分输出 / 卡片摘要写进 `working_memory_projection`（#23 第二层，2026-06-23，DeepSeek-V4-Pro 异源核坐实）；卡片 summary 仍存卡片本身供展示，不污染 overlay。
 
 ### Overlay 晋升规则
 
