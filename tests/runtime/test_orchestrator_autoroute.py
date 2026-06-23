@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 
 from deeptutor.core.context import UnifiedContext
+from deeptutor.core.stream import StreamEventType
 from deeptutor.runtime.orchestrator import ChatOrchestrator
 
 
@@ -37,6 +38,33 @@ class _FakeRegistry:
         return []
 
 
+class _FailingCapability:
+    async def run(self, context: UnifiedContext, bus) -> None:
+        raise RuntimeError("raw provider secret boom")
+
+
+class _FailingRegistry:
+    def get(self, name: str) -> Any:
+        return _FailingCapability()
+
+    def list_capabilities(self) -> list[str]:
+        return ["chat"]
+
+    def get_manifests(self) -> list[dict[str, Any]]:
+        return []
+
+
+class _MissingCapabilityRegistry:
+    def get(self, name: str) -> Any:
+        return None
+
+    def list_capabilities(self) -> list[str]:
+        return ["chat"]
+
+    def get_manifests(self) -> list[dict[str, Any]]:
+        return []
+
+
 @pytest.mark.asyncio
 async def test_orchestrator_autoroutes_practice_request_to_deep_question() -> None:
     orchestrator = ChatOrchestrator()
@@ -57,6 +85,49 @@ async def test_orchestrator_autoroutes_practice_request_to_deep_question() -> No
     assert context.config_overrides["question_type"] == "choice"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["question_type"] == "choice"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_propagates_capability_failure_without_done_or_raw_public_error() -> None:
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _FailingRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-fails",
+        user_message="hello",
+        config_overrides={"capability": "chat"},
+        metadata={},
+        language="zh",
+    )
+
+    events = []
+    with pytest.raises(RuntimeError, match="raw provider secret boom"):
+        async for event in orchestrator.handle(context):
+            events.append(event)
+
+    assert all(event.type != StreamEventType.DONE for event in events)
+    assert all("raw provider secret boom" not in str(event.content or "") for event in events)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_unknown_capability_fails_terminal_truth() -> None:
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _MissingCapabilityRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-missing",
+        user_message="hello",
+        config_overrides={"capability": "chat"},
+        metadata={},
+        language="zh",
+    )
+
+    events = []
+    with pytest.raises(RuntimeError, match="Unknown capability: chat"):
+        async for event in orchestrator.handle(context):
+            events.append(event)
+
+    assert events == []
 
 
 @pytest.mark.asyncio
@@ -2655,3 +2726,194 @@ async def test_orchestrator_captures_routing_input_without_changing_route() -> N
     assert registry.captured[0] == "deep_question"
     # in-place capture of the exact routing message (closes the post-join breakpoint)
     assert context.metadata["semantic_router_captured_input"] == "考我一道流水施工的题"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_unresolved_switch_to_context_continuous_main_llm() -> None:
+    """Context-continuity invariant (contracts/turn.md §跨能力上下文连续性).
+
+    A back-reference to an EARLIER question that cannot be resolved to a structured
+    target (the unresolved-switch signature) must route to the context-continuous main
+    LLM (TutorBot, which carries conversation_context_text), NOT into deep_question's
+    structured switch resolver — which fail-closes ("can't locate that question") and
+    produces cross-capability amnesia. This is the architectural fix for the recurring
+    "switched capability, lost context" class.
+    """
+
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _unresolved_switch_decision(context, message):  # noqa: ANN001
+        decision = {
+            "relation_to_active_object": "switch_to_new_object",
+            "next_action": "route_to_followup_explainer",
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = _unresolved_switch_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-unresolved-switch",
+        user_message="刚才那道我选A的屋面坡度题，再帮我把考点讲透",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            # pre-stamped lifecycle scene so the resolver honors it without an LLM call
+            "question_lifecycle_scene": "question_review",
+            # an active multi-question set is present (practice-gen replaced the old one)
+            "question_followup_context": {
+                "items": [
+                    {"question_id": "q1", "question": "平屋面防水道数",
+                     "options": {"A": "1道", "B": "2道", "C": "3道", "D": "4道"},
+                     "correct_answer": "B", "question_type": "single_choice"},
+                    {"question_id": "q2", "question": "结构找坡坡度",
+                     "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+                     "correct_answer": "C", "question_type": "single_choice"},
+                ]
+            },
+        },
+        language="zh",
+    )
+
+    cap = await orchestrator._select_capability(context)
+
+    # routed to the context-continuous main LLM, NOT the fail-closed structured resolver
+    assert cap == "tutorbot"
+    assert cap != "deep_question"
+    assert (
+        context.metadata.get("semantic_router_mode_reason")
+        == "llm_unresolved_switch_to_context_continuity"
+        or "unresolved_switch_to_context_continuity"
+        in str(context.metadata.get("semantic_router_mode_reason"))
+    )
+
+
+@pytest.mark.asyncio
+async def test_question_review_no_active_supplies_canonical_decision_matching_fabrication() -> None:
+    """task #12 step 2 part 2: the no-active-object free-text question_review path must
+    supply the canonical turn_semantic_decision at the orchestrator (the routing
+    authority) so deep_question READS it instead of fabricating a second-authority one.
+    Behavior-preserving: the decision-bearing fields match what deep_question's
+    _default_turn_semantic_decision produced for this path; deep_question no longer
+    fabricates (observation predicate now False)."""
+    from deeptutor.capabilities.deep_question import DeepQuestionCapability
+
+    orchestrator = ChatOrchestrator()
+    orchestrator._cap_registry = _FakeRegistry()  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-qr-no-active",
+        user_message="分析一道屋面坡度的真题，帮我讲讲考点",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={"question_lifecycle_scene": "question_review"},  # pre-stamped, no active object
+        language="zh",
+    )
+
+    cap = await orchestrator._select_capability(context)
+    assert cap == "deep_question"
+
+    supplied = context.metadata.get("turn_semantic_decision")
+    assert isinstance(supplied, dict) and supplied, "orchestrator must supply a canonical decision"
+
+    # decision-bearing parity with deep_question's former fabrication for this path
+    fabricated = DeepQuestionCapability._default_turn_semantic_decision(
+        next_action="route_to_followup_explainer",
+        active_object=context.metadata.get("active_object"),
+        question_context=context.metadata.get("question_followup_context"),
+        user_message=context.user_message,
+    )
+    for field in ("relation_to_active_object", "next_action", "allowed_patch"):
+        assert supplied.get(field) == fabricated.get(field), f"{field} drifted"
+
+    # deep_question now reads the canonical decision → no fabrication, no observation flag
+    assert DeepQuestionCapability._canonical_turn_decision_missing(context.metadata) is False
+
+
+def _batch_three_question_active_object() -> dict[str, Any]:
+    """A batch question_set with 3 distinct MCQ items (E8 repro shape)."""
+    items = [
+        {
+            "question_id": "qb-1",
+            "question": "屋面防水施工基本要求正确的是（  ）。",
+            "question_type": "choice",
+            "options": {"A": "以排为主", "B": "结构找坡2%", "C": "找坡层15mm", "D": "设计年限20年"},
+            "correct_answer": "D",
+        },
+        {
+            "question_id": "qb-2",
+            "question": "材料找坡时找坡层最薄处厚度不宜小于（ ）mm。",
+            "question_type": "choice",
+            "options": {"A": "10", "B": "15", "C": "20", "D": "25"},
+            "correct_answer": "C",
+        },
+        {
+            "question_id": "qb-3",
+            "question": "结构找坡时屋面坡度不应小于（ ）。",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "C",
+        },
+    ]
+    snapshot = {"question_type": "choice", "items": items}
+    return {
+        "object_type": "question_set",
+        "state_snapshot": snapshot,
+    }
+
+
+def test_prepare_submission_keeps_batch_set_after_numbered_single_grade() -> None:
+    """SEV-1 regression (E8, 2026-06-21): grading one numbered item of a batch must
+    NOT collapse the active set to that single item.
+
+    Production: 出三道题 → 「第2题我选B」判分后 active set 塌成单题 [Q2] →
+    后续「第1题我选A」按塌缩集 items[0]=Q2 判分 → 把第1题判成了第2题（判错题）。
+    The batch set (Q1/Q2/Q3) must survive so a later 「第1题」 resolves to Q1.
+    """
+    orchestrator = ChatOrchestrator()
+    context = UnifiedContext(
+        session_id="s-batch-continuity",
+        user_message="第2题我选B",
+        config_overrides={},
+        metadata={"active_object": _batch_three_question_active_object()},
+        language="zh",
+    )
+
+    orchestrator._prepare_question_submission_context(context, action=None)
+
+    qfc = context.metadata.get("question_followup_context") or {}
+    items = qfc.get("items") or []
+    assert len(items) == 3, f"batch set collapsed to {len(items)} item(s) — Q1/Q3 lost"
+    # The graded item (#2) carries the user answer; the others stay unanswered.
+    assert str(items[1].get("user_answer") or "").upper() == "B"
+    assert not str(items[0].get("user_answer") or "").strip()
+    assert not str(items[2].get("user_answer") or "").strip()
+
+    # The active object must remain a 3-item set so a later 「第1题」 resolves to Q1.
+    active_items = (
+        (context.metadata.get("active_object") or {}).get("state_snapshot") or {}
+    ).get("items") or []
+    assert len(active_items) == 3
+
+
+def test_prepare_submission_uses_shared_batch_continuity_helper() -> None:
+    """[capability domain] The orchestrator's numbered-single-in-batch grading prep is
+    consolidated onto the single shared chokepoint
+    `question_followup.batch_answer_action_for_numbered_single` (same authority as the
+    turn-start fix), so tutorbot and deep_question grading paths preserve the batch set
+    identically. Negative guard: single-question context returns None (untouched).
+    """
+    from deeptutor.services.question_followup import batch_answer_action_for_numbered_single
+
+    sub = {"kind": "single", "answer": "B", "question_id": "q2", "index": 2}
+    batch_ctx = {"items": [{"question_id": "q1"}, {"question_id": "q2"}, {"question_id": "q3"}]}
+    action = batch_answer_action_for_numbered_single(sub, batch_ctx)
+    assert action is not None
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+    # single-question context (len<=1) → None → orchestrator keeps its existing path
+    assert batch_answer_action_for_numbered_single(
+        {"kind": "single", "answer": "B", "question_id": "q", "index": 1},
+        {"items": [{"question_id": "q"}]},
+    ) is None

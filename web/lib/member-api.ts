@@ -1,5 +1,5 @@
-import { apiUrl, withAdminAuthorization } from '@/lib/api'
-import { ApiError } from '@/lib/api-errors'
+import { apiUrl, withAdminAuthorization } from './api.ts'
+import { ApiError } from './api-errors.ts'
 
 export interface MemberDashboard {
   total_count: number
@@ -172,6 +172,17 @@ export interface ManualMembershipReversalResult {
   deduped: boolean
 }
 
+export interface ReversibleMembershipPurchase {
+  purchase_id: string
+  package_id: string
+  amount_cny: number
+  points: number
+  days: number
+  created_at: string
+  ledger_event_id?: string
+  audit_id?: string
+}
+
 export interface MembershipPackagePayload {
   label: string
   tier: string
@@ -341,6 +352,9 @@ export interface MemberDetail {
   }
   bot_overlays?: BotOverlaySummary[]
   behavior?: MemberBehaviorPayload
+  membership_billing?: {
+    reversible_supreme_purchase?: ReversibleMembershipPurchase | null
+  }
 }
 
 async function expectJson<T>(response: Response): Promise<T> {
@@ -369,7 +383,7 @@ function makeIdempotencyKey(): string {
 }
 
 export async function getMemberDashboard(): Promise<MemberDashboard> {
-  const response = await fetch(apiUrl('/api/v1/member/dashboard'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/dashboard'), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
@@ -384,7 +398,7 @@ export async function listMembers(
     if (value === undefined || value === '' || value === 'all') return
     query.set(key, String(value))
   })
-  const response = await fetch(apiUrl(`/api/v1/member/list?${query.toString()}`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/list?${query.toString()}`), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
@@ -392,7 +406,7 @@ export async function listMembers(
 }
 
 export async function getMemberDetail(userId: string): Promise<MemberDetail> {
-  const response = await fetch(apiUrl(`/api/v1/member/${userId}/360`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/360`), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
@@ -421,7 +435,7 @@ export async function listMemberConversations(
   if (params.order) query.set('order', params.order)
   const suffix = query.toString() ? `?${query.toString()}` : ''
   const response = await fetch(
-    apiUrl(`/api/v1/member/${encodeURIComponent(userId)}/conversations${suffix}`),
+    apiUrl(`/api/v1/bi/member/${encodeURIComponent(userId)}/conversations${suffix}`),
     {
       cache: 'no-store',
       headers: adminHeaders(),
@@ -434,7 +448,7 @@ export async function createMemberNote(
   userId: string,
   payload: { content: string; pinned?: boolean; channel?: string }
 ): Promise<MemberNote> {
-  const response = await fetch(apiUrl(`/api/v1/member/${userId}/notes`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/notes`), {
     method: 'POST',
     headers: adminHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
@@ -451,9 +465,12 @@ export async function recordMemberOpsAction(
     next_follow_up_at?: string
   }
 ): Promise<MemberOpsActionResult> {
-  const response = await fetch(apiUrl(`/api/v1/member/${userId}/ops-actions`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/ops-actions`), {
     method: 'POST',
-    headers: adminHeaders({ 'Content-Type': 'application/json' }),
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
     body: JSON.stringify(payload),
   })
   return expectJson<MemberOpsActionResult>(response)
@@ -468,7 +485,7 @@ export async function recordMemberConversationView(
   // accepts no body; we pass reason as ?reason= query so it lands in access logs
   // and is forward-compatible with the planned backend column.
   const base = apiUrl(
-    `/api/v1/member/${encodeURIComponent(userId)}/conversations/${encodeURIComponent(sessionId)}/view-audit`
+    `/api/v1/bi/member/${encodeURIComponent(userId)}/conversations/${encodeURIComponent(sessionId)}/view-audit`
   )
   const url = reason ? `${base}?reason=${encodeURIComponent(reason)}` : base
   const response = await fetch(url, {
@@ -482,20 +499,6 @@ export async function recordMemberConversationView(
   return expectJson<MemberConversationViewAudit>(response)
 }
 
-export async function grantMembership(payload: {
-  user_id: string
-  days: number
-  tier: string
-  reason?: string
-}): Promise<MemberDetail> {
-  const response = await fetch(apiUrl('/api/v1/member/grant'), {
-    method: 'POST',
-    headers: adminHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(payload),
-  })
-  return expectJson<MemberDetail>(response)
-}
-
 export async function manualPurchaseMembership(payload: {
   user_id: string
   package_id: string
@@ -505,7 +508,7 @@ export async function manualPurchaseMembership(payload: {
   display_name?: string
   amount_cny?: number
 }): Promise<ManualMembershipPurchaseResult> {
-  const response = await fetch(apiUrl('/api/v1/member/manual-purchase'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/manual-purchase'), {
     method: 'POST',
     headers: adminHeaders({
       'Content-Type': 'application/json',
@@ -522,7 +525,7 @@ export async function reverseManualMembershipPurchase(payload: {
   amount_cny?: number
   reason?: string
 }): Promise<ManualMembershipReversalResult> {
-  const response = await fetch(apiUrl('/api/v1/member/manual-purchase/reverse'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/manual-purchase/reverse'), {
     method: 'POST',
     headers: adminHeaders({
       'Content-Type': 'application/json',
@@ -537,14 +540,17 @@ export async function upsertMembershipPackage(
   packageId: string,
   payload: MembershipPackagePayload
 ): Promise<MembershipPackageResult> {
-  const response = await fetch(apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}`), {
-    method: 'PUT',
-    headers: adminHeaders({
-      'Content-Type': 'application/json',
-      'X-Idempotency-Key': makeIdempotencyKey(),
-    }),
-    body: JSON.stringify(payload),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/packages/${encodeURIComponent(packageId)}`),
+    {
+      method: 'PUT',
+      headers: adminHeaders({
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+      body: JSON.stringify(payload),
+    }
+  )
   return expectJson<MembershipPackageResult>(response)
 }
 
@@ -554,7 +560,7 @@ export async function deleteMembershipPackage(
 ): Promise<MembershipPackageResult> {
   const suffix = reason ? `?reason=${encodeURIComponent(reason)}` : ''
   const response = await fetch(
-    apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}${suffix}`),
+    apiUrl(`/api/v1/bi/member/packages/${encodeURIComponent(packageId)}${suffix}`),
     {
       method: 'DELETE',
       headers: adminHeaders({
@@ -573,7 +579,7 @@ export async function updateMembership(payload: {
   auto_renew?: boolean
   reason?: string
 }): Promise<MemberDetail> {
-  const response = await fetch(apiUrl('/api/v1/member/update'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/update'), {
     method: 'POST',
     headers: adminHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
@@ -585,7 +591,7 @@ export async function revokeMembership(payload: {
   user_id: string
   reason?: string
 }): Promise<MemberDetail> {
-  const response = await fetch(apiUrl('/api/v1/member/revoke'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/revoke'), {
     method: 'POST',
     headers: adminHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
@@ -594,18 +600,24 @@ export async function revokeMembership(payload: {
 }
 
 export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
-  const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/pause`), {
-    method: 'POST',
-    headers: adminHeaders(),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/pause`),
+    {
+      method: 'POST',
+      headers: adminHeaders(),
+    }
+  )
   return expectJson<HeartbeatJob>(response)
 }
 
 export async function resumeHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
-  const response = await fetch(apiUrl(`/api/v1/member/${userId}/heartbeat-jobs/${jobId}/resume`), {
-    method: 'POST',
-    headers: adminHeaders(),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/resume`),
+    {
+      method: 'POST',
+      headers: adminHeaders(),
+    }
+  )
   return expectJson<HeartbeatJob>(response)
 }
 
@@ -615,7 +627,7 @@ export async function applyOverlayPromotions(
   payload: { min_confidence?: number; max_candidates?: number } = {}
 ): Promise<{ acked_ids: string[]; dropped_ids: string[] }> {
   const response = await fetch(
-    apiUrl(`/api/v1/member/${userId}/overlays/${botId}/promotions/apply`),
+    apiUrl(`/api/v1/bi/member/${userId}/overlays/${botId}/promotions/apply`),
     {
       method: 'POST',
       headers: adminHeaders({ 'Content-Type': 'application/json' }),
@@ -627,14 +639,14 @@ export async function applyOverlayPromotions(
 
 export async function batchUpdateMembers(payload: {
   user_ids: string[]
-  action: 'grant' | 'update' | 'revoke'
+  action: 'update' | 'revoke'
   days?: number
   tier?: string
   expire_at?: string
   auto_renew?: boolean
   reason?: string
 }): Promise<MemberBatchActionResult> {
-  const response = await fetch(apiUrl('/api/v1/member/batch'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/batch'), {
     method: 'POST',
     headers: adminHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(payload),
@@ -650,9 +662,35 @@ export async function getMemberAuditLog(
     if (value === undefined || value === '') return
     query.set(key, String(value))
   })
-  const response = await fetch(apiUrl(`/api/v1/member/audit-log?${query.toString()}`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/audit-log?${query.toString()}`), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
   return expectJson<MemberAuditLogResponse>(response)
+}
+
+export interface MemberAccountDeletionResult {
+  success: boolean
+  user_id: string
+  status: string
+  message: string
+  credentials_deleted: boolean
+  sessions_invalidated: number
+  audit_id?: string
+  deduped?: boolean
+}
+
+export async function deleteMemberAccount(payload: {
+  user_id: string
+  reason?: string
+}): Promise<MemberAccountDeletionResult> {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`), {
+    method: 'DELETE',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify({ reason: payload.reason ?? '' }),
+  })
+  return expectJson<MemberAccountDeletionResult>(response)
 }

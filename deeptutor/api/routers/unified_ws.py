@@ -15,14 +15,17 @@ import time
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
-from deeptutor.api._secure_router import secure_ws_endpoint
+from deeptutor.api._secure_router import secure_ws_endpoint, secure_ws_router
 from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
 from deeptutor.runtime.safety import spawn_task
-from deeptutor.services.question_followup import redact_question_followup_context_for_public
+from deeptutor.services.question_followup import (
+    PUBLIC_HIDDEN_PAYLOAD_KEYS,
+    redact_question_followup_context_for_public,
+)
 from deeptutor.contracts.unified_turn import (
     UnifiedTurnCancelMessage,
     UnifiedTurnResumeMessage,
@@ -32,7 +35,7 @@ from deeptutor.contracts.unified_turn import (
     UnifiedTurnUnsubscribeMessage,
 )
 
-router = APIRouter()
+router = secure_ws_router()
 logger = logging.getLogger(__name__)
 
 # F5: hard cap on a single inbound WS text frame (character length). The handler
@@ -316,27 +319,7 @@ def _bind_authenticated_user(
 # /api/v1/ws boundary. Hidden grading authority (grading_key, correct_answer,
 # scoring_points, explanation) must never leave the server through this stream,
 # regardless of nesting depth or visibility=internal/public.
-_HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
-    "grading_key",
-    "scoring_points",
-    "minimal_rationale",
-    "correct_answer",
-    "official_answer",
-    "official_slice",
-    "atomic_official_slice",
-    "official_sub_answer_verbatim",
-    "official_analysis",
-    "term_provenance",
-    "flaw_span",
-    "correction_span",
-    "base_rule",
-    "exception_items",
-    "official_total_score_authority",
-    "score_authority",
-    "per_point_score_authority",
-    "answer_key_authority",
-    "explanation",
-)
+_HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = PUBLIC_HIDDEN_PAYLOAD_KEYS
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
 # produced the evidence value. If the named field references a hidden authority,

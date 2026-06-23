@@ -12,6 +12,7 @@ from deeptutor.agents.question.agents._anchor_terms import (
     extract_anchor_terms,
     render_anchor_contract,
 )
+from deeptutor.core.grounding import prepend_grounding
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 from deeptutor.services.question_followup import should_reveal_reference_material
 
@@ -34,7 +35,7 @@ class FollowupAgent(BaseAgent):
         question_context: dict[str, Any],
         history_context: str = "",
     ) -> str:
-        system_prompt = self.get_prompt("system", "")
+        system_prompt = prepend_grounding(self.get_prompt("system", ""))
         user_prompt_template = self.get_prompt("answer_followup", "")
         if not user_prompt_template:
             user_prompt_template = (
@@ -138,6 +139,20 @@ class FollowupAgent(BaseAgent):
                     "",
                     "Explanation:",
                     str(question_context.get("explanation", "") or "(none)"),
+                ]
+            )
+        else:
+            # A1 (2026-06-22): the reference answer/explanation is intentionally withheld
+            # (e.g. the learner has not answered yet). The answer is NOT in this context,
+            # so do not let the model fabricate one — help the learner reason instead.
+            lines.extend(
+                [
+                    "",
+                    "IMPORTANT: The reference answer and explanation are intentionally "
+                    "withheld here. Do NOT state, hint at, or guess the correct "
+                    "option/answer. Help the learner understand the question and the "
+                    "underlying concept; if they have not answered yet, gently encourage "
+                    "them to attempt an answer first.",
                 ]
             )
         items = question_context.get("items") or []

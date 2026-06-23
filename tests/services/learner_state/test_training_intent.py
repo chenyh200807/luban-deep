@@ -120,6 +120,11 @@ def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -
     )
 
     assert projection is not None
+    assert projection["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        projection["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
     # learning_evidence already resolved "防水工程" to canonical node 1A413000-C24; the home
     # projection must NOT override a resolved taxonomy node with the textbook-section alias
     # (merge resolution: ship branch behavior per owner decision).
@@ -183,7 +188,7 @@ def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
     )
 
 
-def test_fresh_legacy_home_projection_is_upgraded_by_reader() -> None:
+def test_markerless_legacy_home_projection_falls_back_by_reader() -> None:
     from datetime import datetime, timedelta, timezone
 
     from deeptutor.services.learner_state.home_personalization import (
@@ -229,8 +234,10 @@ def test_fresh_legacy_home_projection_is_upgraded_by_reader() -> None:
         now=datetime(2026, 5, 21, 10, 0, tzinfo=tz),
     )
 
-    assert len(dashboard["recommended_prompts"]) == 6
-    assert dashboard["recommended_prompts"][4]["prompt_type"] == "knowledge_map"
+    assert dashboard["source_status"]["fallback_used"] is True
+    assert dashboard["source_status"]["fallback_reason"] == "stale"
+    assert "home_projection_contract" not in dashboard["source_status"]
+    assert len(dashboard["recommended_prompts"]) == 3
 
 
 def test_training_intent_v2_degrades_when_evidence_refs_empty() -> None:

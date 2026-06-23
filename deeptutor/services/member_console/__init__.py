@@ -1,3 +1,13 @@
-from .service import MemberConsoleService, get_member_console_service
+from .service import (
+    BI_OPERATION_START_AT,
+    MemberConsoleService,
+    get_member_console_service,
+    is_bi_operational_at,
+)
 
-__all__ = ["MemberConsoleService", "get_member_console_service"]
+__all__ = [
+    "BI_OPERATION_START_AT",
+    "MemberConsoleService",
+    "get_member_console_service",
+    "is_bi_operational_at",
+]

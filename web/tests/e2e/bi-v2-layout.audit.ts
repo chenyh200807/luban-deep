@@ -338,7 +338,7 @@ async function mockBiV2ReadApis(
       }),
     });
   });
-  await page.route("**/api/v1/member/audit-log**", (route) =>
+  await page.route("**/api/v1/bi/member/audit-log**", (route) =>
     route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -387,7 +387,7 @@ async function mockMemberOpsApis(
     };
   });
 
-  await page.route("**/api/v1/member/dashboard**", (route) =>
+  await page.route("**/api/v1/bi/member/dashboard**", (route) =>
     route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -407,7 +407,7 @@ async function mockMemberOpsApis(
       }),
     }),
   );
-  await page.route("**/api/v1/member/list**", (route) =>
+  await page.route("**/api/v1/bi/member/list**", (route) =>
     route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -420,7 +420,7 @@ async function mockMemberOpsApis(
       }),
     }),
   );
-  await page.route("**/api/v1/member/user_1/360", (route) =>
+  await page.route("**/api/v1/bi/member/user_1/360", (route) =>
     route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
@@ -473,7 +473,7 @@ async function mockMemberOpsApis(
       }),
     });
   });
-  await page.route("**/api/v1/member/user_1/conversations**", (route) => {
+  await page.route("**/api/v1/bi/member/user_1/conversations**", (route) => {
     if (route.request().method() === "POST") {
       return route.fulfill({
         status: 200,

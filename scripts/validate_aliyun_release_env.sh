@@ -17,6 +17,9 @@ import os
 import sys
 
 remote_dir = Path(os.environ['REMOTE_DIR'])
+remote_root = remote_dir.resolve()
+if remote_root != Path('/root/deeptutor'):
+    raise SystemExit(f'REMOTE_DIR 必须解析到 /root/deeptutor: {remote_root}')
 env_path = remote_dir / '.env'
 if not env_path.exists():
     raise SystemExit(f'远端缺少 .env: {env_path}')
@@ -29,16 +32,38 @@ for raw_line in env_path.read_text(encoding='utf-8').splitlines():
     key, value = line.split('=', 1)
     values[key.strip()] = value.strip()
 
-service_env = str(values.get('SERVICE_ENV') or values.get('DEEPTUTOR_ENV') or '').strip().lower()
-app_env = str(values.get('APP_ENV') or '').strip().lower()
-is_production = service_env == 'production' or app_env == 'production'
+# Production detection mirrors deeptutor/services/runtime_env.py (the single authority):
+# same key precedence, same fail-closed _NON_PRODUCTION_ENV_NAMES allowlist. This runs in
+# an SSH heredoc on the host and cannot import the package, so the set is replicated here
+# and kept in sync by tests/scripts/test_aliyun_deploy_scripts.py. FAIL-CLOSED: unset /
+# misspelled / 'aliyun' / 'prod' / unknown all resolve to production, so a real production
+# release can never silently skip the required checks below (the old == production
+# test treated DEEPTUTOR_ENV=aliyun — a production deploy — as non-production and skipped).
+runtime_env_keys = (
+    'DEEPTUTOR_ENV', 'DEEPTUTOR_RUNTIME_ENV', 'APP_ENV', 'ENV', 'ENVIRONMENT', 'SERVICE_ENV',
+)
+non_production_env_names = {'local', 'dev', 'development', 'test', 'testing', 'ci', 'eval'}
+resolved_env = ''
+for env_key in runtime_env_keys:
+    candidate = str(values.get(env_key) or '').strip().lower()
+    if candidate:
+        resolved_env = candidate
+        break
+is_production = resolved_env not in non_production_env_names
 if not is_production:
-    print('远端环境不是 production，跳过生产发布必填校验。')
+    print(f'远端环境为 {resolved_env!r}（非生产），跳过生产发布必填校验。')
     raise SystemExit(0)
 
 missing = [
     key
-    for key in ('DEEPTUTOR_AUTH_SECRET', 'DEEPTUTOR_ADMIN_USER_IDS')
+    for key in (
+        'DEEPTUTOR_AUTH_SECRET',
+        'DEEPTUTOR_ATTEMPT_REF_SECRET',
+        'DEEPTUTOR_ADMIN_USER_IDS',
+        'DEEPTUTOR_METRICS_TOKEN',
+        'SUPABASE_RAG_COMPILED_TRUTH_ENABLED',
+        'SUPABASE_RAG_PROVENANCE_BOOST_ENABLED',
+    )
     if not str(values.get(key) or '').strip()
 ]
 missing.extend(
@@ -55,6 +80,17 @@ if missing:
     raise SystemExit(
         'production 环境缺少必填项: ' + ', '.join(missing)
     )
+
+for key in ('SUPABASE_RAG_COMPILED_TRUTH_ENABLED', 'SUPABASE_RAG_PROVENANCE_BOOST_ENABLED'):
+    current = str(values.get(key) or '').strip().lower()
+    if current not in {'false', '0', 'no', 'off'}:
+        raise SystemExit(f'{key} 必须显式为 false，当前值: {values.get(key)}')
+
+attempt_ref_secret = str(values.get('DEEPTUTOR_ATTEMPT_REF_SECRET') or '').strip()
+if len(attempt_ref_secret) < 32:
+    raise SystemExit('DEEPTUTOR_ATTEMPT_REF_SECRET 太短，production 至少需要 32 字符随机值')
+if attempt_ref_secret in {'dev-attempt-ref-secret', 'dev-secret', 'secret', 'change-me', 'changeme'}:
+    raise SystemExit('DEEPTUTOR_ATTEMPT_REF_SECRET 不能使用开发默认值或示例值')
 
 for key in (
     'DEEPTUTOR_RELEASE_ID',
@@ -76,6 +112,11 @@ for key in ('DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE', 'DEEPTUTOR_EXTERNAL_AUTH_SESSI
 legacy_routers = str(values.get('DEEPTUTOR_ENABLE_LEGACY_ROUTERS') or '').strip().lower()
 if legacy_routers in {'1', 'true', 'yes', 'on'}:
     raise SystemExit('DEEPTUTOR_ENABLE_LEGACY_ROUTERS 不允许在 production 开启（匿名 LLM WebSocket 面）')
+
+for key in ('SUPABASE_RAG_COMPILED_TRUTH_ENABLED', 'SUPABASE_RAG_PROVENANCE_BOOST_ENABLED'):
+    current = str(values.get(key) or '').strip().lower()
+    if current in {'1', 'true', 'yes', 'on'}:
+        raise SystemExit(f'{key} 不允许在 production 发布校验中开启；启用前必须先更新 RAG contract 与 staging baseline')
 
 # Multi-worker pairing: heartbeat single-instance lock / WS connection cap / shared
 # rate limits all need the redis backend once workers > 1 (else they degrade per-process).

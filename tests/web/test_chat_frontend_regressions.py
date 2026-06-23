@@ -45,6 +45,20 @@ def test_workspace_sends_request_scoped_llm_selection() -> None:
     assert "ModelSelector" in composer_source
 
 
+def test_stream_visibility_controls_user_visible_chat_projection() -> None:
+    stream_source = _read("web/lib/stream.ts")
+    unified_ws_source = _read("web/lib/unified-ws.ts")
+    context_source = _read("web/context/UnifiedChatContext.tsx")
+    quiz_source = _read("web/components/quiz/QuizViewer.tsx")
+
+    assert "visibility?: StreamEventVisibility;" in unified_ws_source
+    assert "resolveStreamEventVisibility" in stream_source
+    assert "isUserVisibleStreamEvent" in stream_source
+    assert "if (!isUserVisibleStreamEvent(action.event))" in context_source
+    assert "if (isUserVisibleStreamEvent(event) && event.type === \"stage_start\")" in quiz_source
+    assert "if (isUserVisibleStreamEvent(event) && event.type === \"error\")" in quiz_source
+
+
 def test_chat_model_options_use_public_projection_not_admin_settings() -> None:
     source = _read("web/lib/llm-options.ts")
 

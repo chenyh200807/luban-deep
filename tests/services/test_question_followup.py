@@ -1106,6 +1106,7 @@ def test_resolve_submission_attempt_accepts_q_number_single_submission() -> None
         "kind": "single",
         "answer": "C",
         "question_id": "q_2",
+        "index": 2,
     }
 
 
@@ -1198,6 +1199,7 @@ def test_resolve_submission_attempt_keeps_single_numbered_case_answer_unsplit() 
         "kind": "single",
         "answer": "施工缝未按规范处理，需要返工整改",
         "question_id": "case_q2",
+        "index": 2,
     }
 
 
@@ -1918,6 +1920,8 @@ def test_redact_question_followup_context_for_public_strips_hidden_authority() -
                 "question_type": "choice",
                 "options": {"A": "a", "B": "b"},
                 "correct_answer": "A",
+                "minimal_rationale": "hidden minimal rationale",
+                "official_answer": "hidden official answer",
                 "explanation": "leak",
                 "grading_key": {"correct_answer": "A", "scoring_points": ["sp1"]},
                 "scoring_points": ["should be redacted"],
@@ -1927,7 +1931,17 @@ def test_redact_question_followup_context_for_public_strips_hidden_authority() -
     public = redact_question_followup_context_for_public(ctx)
     assert public is not None
     payload_blob = json.dumps(public, ensure_ascii=False)
-    for forbidden in ("grading_key", "scoring_points", "correct_answer", "leak-should-be-removed", "leak"):
+    for forbidden in (
+        "grading_key",
+        "scoring_points",
+        "correct_answer",
+        "minimal_rationale",
+        "official_answer",
+        "hidden minimal rationale",
+        "hidden official answer",
+        "leak-should-be-removed",
+        "leak",
+    ):
         assert forbidden not in payload_blob, f"public payload must not leak {forbidden}"
     # 非禁字段保留
     assert public["question_id"] == "qs_1"
@@ -2186,3 +2200,103 @@ def test_resolve_submission_attempt_mixed_answer_then_generation_keeps_submissio
     # though it also asks for more questions.
     _target, submission = resolve_submission_attempt("我选A，再出3题", _mcq_ctx())
     assert submission is not None
+
+
+# ── task#11: 回指历史题+讲解 不被误判成对当前多题集的作答 ──────────────────────
+def _multi_question_set() -> dict:
+    return {
+        "items": [
+            {"question_id": "q1", "question": "平屋面防水道数",
+             "options": {"A": "1道", "B": "2道", "C": "3道", "D": "4道"},
+             "correct_answer": "B", "question_type": "single_choice"},
+            {"question_id": "q2", "question": "结构找坡坡度",
+             "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+             "correct_answer": "C", "question_type": "single_choice"},
+            {"question_id": "q3", "question": "卷材搭接宽度",
+             "options": {"A": "50", "B": "80", "C": "100", "D": "150"},
+             "correct_answer": "C", "question_type": "single_choice"},
+        ]
+    }
+
+
+def test_backreference_explanation_is_not_a_submission_to_active_set() -> None:
+    # After a practice-gen turn replaced the active object with a new set, recalling an
+    # EARLIER question to explain it must NOT be mined as an ambiguous submission.
+    _target, submission = resolve_submission_attempt(
+        "刚才那道我选A的屋面坡度题，再帮我把考点讲透", _multi_question_set()
+    )
+    assert submission is None
+
+
+def test_backreference_without_explanation_or_genuine_submission_still_blocks() -> None:
+    # A bare ambiguous submission ("我选B" against a multi-set) must still be caught so
+    # the learner is asked which question — no regression to the existing guard.
+    _target, submission = resolve_submission_attempt("我选B", _multi_question_set())
+    assert isinstance(submission, dict) and submission.get("kind") == "ambiguous"
+
+
+def test_backreference_guard_exempts_answer_led_and_plain_submissions() -> None:
+    # The new back-reference/explanation guard must never suppress an answer-led turn
+    # or a plain submission — only recall-and-explain turns.
+    from deeptutor.services.question_followup import (
+        _looks_like_past_question_explanation_request as _guard,
+    )
+    assert _guard("刚才那道我选A的屋面坡度题，讲讲考点") is True
+    assert _guard("A") is False
+    assert _guard("我选A") is False
+    assert _guard("B，刚才那题再讲讲") is False  # answer-led keeps priority
+    assert _guard("刚才那道屋面题") is False  # back-ref without explanation isn't suppressed
+
+
+def test_turn_start_keeps_batch_set_for_numbered_single_answer() -> None:
+    """SEV-1 root chokepoint (E8, 2026-06-21): the COLLAPSE happens at turn-start
+    resolution (`_submission_action_for_user_message`), BEFORE any capability runs —
+    so a capability-layer fix (orchestrator) can't reach it. A numbered single answer
+    to one item of a batch must return the FULL set context + a batch-style action that
+    grades that item within the set, not the narrowed single item (which collapses the
+    set so a later "第1题" grades the wrong question).
+    """
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    batch_ctx = {
+        "question_id": "set-1",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q1", "question": "Q1", "question_type": "single_choice",
+             "options": {"A": "a1", "B": "b1", "C": "c1", "D": "d1"}, "correct_answer": "D"},
+            {"question_id": "q2", "question": "Q2", "question_type": "single_choice",
+             "options": {"A": "a2", "B": "b2", "C": "c2", "D": "d2"}, "correct_answer": "B"},
+            {"question_id": "q3", "question": "Q3", "question_type": "single_choice",
+             "options": {"A": "a3", "B": "b3", "C": "c3", "D": "d3"}, "correct_answer": "C"},
+        ],
+    }
+
+    ctx, action = _submission_action_for_user_message("第2题我选B", batch_ctx)
+
+    # The returned context must remain the FULL 3-item set (not narrowed to q2).
+    assert ctx is not None
+    assert len(ctx.get("items") or []) == 3, "batch set collapsed at turn-start"
+    # The action grades item 2 within the set and preserves the others.
+    assert action is not None and action["intent"] == "answer_questions"
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+
+def test_turn_start_single_question_answer_unaffected() -> None:
+    """Negative guard: a single-question context ("我选B") must be untouched by the
+    batch-continuity path (no index / len<=1 → narrowed single, as before)."""
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    single_ctx = {
+        "question_id": "q-solo",
+        "question": "solo",
+        "question_type": "single_choice",
+        "options": {"A": "a", "B": "b"},
+        "correct_answer": "B",
+    }
+    ctx, action = _submission_action_for_user_message("我选B", single_ctx)
+    assert ctx is not None
+    assert action is not None and action["intent"] == "answer_questions"
+    # single path keeps the {question_id, answer} shape (no batch index/preserve)
+    assert action["answers"] == [{"question_id": "q-solo", "answer": "B"}]
+    assert "preserve_other_answers" not in action

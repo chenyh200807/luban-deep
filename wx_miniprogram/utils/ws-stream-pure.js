@@ -59,8 +59,6 @@ function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
     "release_id",
     "grading_engine_version",
     "v1_case_graded",
-    "score_authority",
-    "grading_rubric_provenance",
   ];
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
@@ -117,13 +115,19 @@ function buildNextBestActionView(resultMetadata) {
 
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
+  var nested =
+    resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+      ? resultMetadata.metadata
+      : {};
   var response = resultMetadata.response;
-  if (
-    typeof response !== "string" &&
-    resultMetadata.metadata &&
-    typeof resultMetadata.metadata === "object"
-  ) {
-    response = resultMetadata.metadata.response;
+  if (typeof response !== "string" || !response.trim()) {
+    response = resultMetadata.assistant_content;
+  }
+  if (typeof response !== "string" || !response.trim()) {
+    response = nested.response;
+  }
+  if (typeof response !== "string" || !response.trim()) {
+    response = nested.assistant_content;
   }
   if (typeof response !== "string" || !response.trim()) return null;
   var finalEvent = {

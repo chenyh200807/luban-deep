@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from deeptutor.services.citations.assembler import assemble_cited_answer
+from deeptutor.services.citations.assembler import (
+    assemble_cited_answer,
+    strip_orphan_reference_markers,
+)
 from deeptutor.services.citations.quality import CitationQualityError, validate_cited_answer
 from deeptutor.services.citations.schema import CitationBundle, CitationPolicy, CitedAnswer
 
@@ -91,4 +94,6 @@ def apply_answer_citation_metadata(
         return cited.response
     result_payload["citation_bundle_candidate"] = cited.bundle.to_public_dict()
     result_payload["citation_metrics"] = metrics
-    return response
+    # 引用关闭(生产默认):仍剥离主 LLM 输出的孤儿 〔N〕 标注,绝不漏给学生
+    # (Langfuse meta_leak 实证;此处不插引用,只去噪)。
+    return strip_orphan_reference_markers(response)

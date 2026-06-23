@@ -65,6 +65,7 @@ Page({
     ],
   },
   onLoad: function () {
+    this._mounted = true;
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
@@ -82,6 +83,7 @@ Page({
       api
         .getUserInfo()
         .then(function (raw) {
+          if (!self._mounted) return;
           var info = api.unwrapResponse
             ? api.unwrapResponse(raw)
             : raw.data || raw;
@@ -94,6 +96,7 @@ Page({
           }
         })
         .catch(function () {
+          if (!self._mounted) return;
           // token 失效，清除并留在登录页
           auth.clearToken();
         });
@@ -110,6 +113,11 @@ Page({
     this._stopSubtitleAutoPlay();
   },
   onUnload: function () {
+    this._mounted = false;
+    if (this._codeTimer) {
+      clearInterval(this._codeTimer);
+      this._codeTimer = null;
+    }
     this._stopOrbMotion();
     this._stopSubtitleAutoPlay();
   },
@@ -244,9 +252,11 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );
@@ -329,6 +339,11 @@ Page({
     if (self._codeTimer) clearInterval(self._codeTimer);
     var remaining = seconds;
     self._codeTimer = setInterval(function () {
+      if (!self._mounted) {
+        clearInterval(self._codeTimer);
+        self._codeTimer = null;
+        return;
+      }
       remaining--;
       if (remaining <= 0) {
         clearInterval(self._codeTimer);
@@ -372,9 +387,11 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );
@@ -439,8 +456,7 @@ Page({
             var m = String((err && err.message) || "");
             var msg = "快速登录失败，请重试";
             if (m.includes("credentials")) msg = "后端未配置小程序密钥";
-            else if (m.includes("getuserphonenumber"))
-              msg = "手机号验证失败";
+            else if (m.includes("getuserphonenumber")) msg = "手机号验证失败";
             else if (m.includes("NETWORK_")) msg = "网络连接失败";
             else if (m && !m.startsWith("HTTP_")) msg = m;
             self.setData({ errorMsg: msg });

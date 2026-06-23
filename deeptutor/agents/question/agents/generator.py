@@ -11,6 +11,7 @@ from typing import Any
 
 from deeptutor.agents.base_agent import BaseAgent
 from deeptutor.agents.question.models import QAPair, QuestionTemplate
+from deeptutor.core.grounding import prepend_grounding
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.security.tool_access import is_end_user_tool_allowed
@@ -93,7 +94,7 @@ class Generator(BaseAgent):
             '"options":{},"correct_answer":"","explanation":"",'
             '"grading_points":[],"common_traps":[]}]}'
         )
-        system_prompt = self.get_prompt("system", "")
+        system_prompt = prepend_grounding(self.get_prompt("system", ""))
 
         _chunks: list[str] = []
         try:
@@ -253,7 +254,7 @@ class Generator(BaseAgent):
         require_explanation: bool = True,
         lightweight_generation: bool = False,
     ) -> dict[str, Any]:
-        system_prompt = self.get_prompt("system", "")
+        system_prompt = prepend_grounding(self.get_prompt("system", ""))
         user_prompt_template = self.get_prompt("generate", "")
         if lightweight_generation:
             user_prompt_template = (

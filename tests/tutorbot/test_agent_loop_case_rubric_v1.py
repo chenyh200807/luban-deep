@@ -9,7 +9,11 @@ extracts the case reference from covered_subquestions[].authoritative_answer, an
 from __future__ import annotations
 
 import asyncio
+import json
+import re
 import threading
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -59,7 +63,114 @@ class _FakeContext:
         return [{"role": "system", "content": ""}, *history, {"role": "user", "content": current_message}]
 
     def add_assistant_message(self, messages, content, **_kwargs):
-        return [*messages, {"role": "assistant", "content": content}]
+        item = {"role": "assistant", "content": content}
+        if _kwargs.get("tool_calls") is not None:
+            item["tool_calls"] = _kwargs["tool_calls"]
+        return [*messages, item]
+
+    def add_tool_result(self, messages, tool_call_id, tool_name, result):
+        return [
+            *messages,
+            {
+                "role": "tool",
+                "tool_call_id": tool_call_id,
+                "name": tool_name,
+                "content": result,
+            },
+        ]
+
+
+@pytest.mark.asyncio
+async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class LoopingProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            return LLMResponse(
+                content="继续调用工具",
+                tool_calls=[
+                    ToolCallRequest(
+                        id=f"call_{self.calls}",
+                        name="rag",
+                        arguments={"topic": f"round-{self.calls}"},
+                    )
+                ],
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "dummy tool"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"topic": {"type": "string"}},
+                "required": ["topic"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            self.calls.append(dict(kwargs))
+            return f"executed:{kwargs['topic']}"
+
+    provider = LoopingProvider()
+    tool = DummyTool()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=provider,
+        workspace=tmp_path,
+        max_iterations=5,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(tool)
+    metadata = {
+        "default_tools": ["rag"],
+        "mode_execution_policy": {"max_tool_rounds": 2},
+    }
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "一直调用工具"}],
+        runtime_metadata=metadata,
+    )
+
+    assert provider.calls == 2
+    assert tools_used == ["rag", "rag"]
+    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
+    assert metadata["effective_max_tool_rounds"] == 2
+    assert "maximum number of tool call iterations (2)" in (final_content or "")
 
 
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
@@ -1004,3 +1115,121 @@ def test_projected_exact_question_renders_authority_on_learner_surface() -> None
     # The authority response names A (the learner's correct letter), never D.
     assert "A" in rendered
     assert "正确答案是 D" not in rendered and "正确答案 D" not in rendered
+
+# ── task#10: pasted-MCQ grounding projected onto the learner option surface ────
+# When a learner pastes an MCQ whose option order differs from the question bank,
+# the prefetch RAG grounding the grading LLM reads must be projected onto the
+# learner's surface, so the prompt never carries a conflicting bank answer letter.
+def test_prefetch_grounded_rag_projects_bank_grounding_to_learner_surface() -> None:
+    bank_grounding = (
+        "【题目】某工程屋面为压型金属板，坡度最小值是（）。\n"
+        '【选项】[{"key": "A", "value": "1%"}, {"key": "B", "value": "2%"}, '
+        '{"key": "C", "value": "3%"}, {"key": "D", "value": "5%"}]\n'
+        "【答案】D\n【解析】压型金属板：5%。"
+    )
+    learner = "某工程屋面为压型金属板，坡度最小值是（）。A.5% B.2% C.3% D.1%。我选A，判对错。"
+
+    class _RagTool:
+        def preview_args(self, args):
+            return args
+
+        def consume_trace_metadata(self):
+            return {}
+
+    class _Tools:
+        def get(self, name):
+            return _RagTool()
+
+        async def execute(self, name, args):
+            return bank_grounding
+
+    class _Ctx:
+        def add_assistant_message(self, messages, content, **_kwargs):
+            return [*messages, {"role": "assistant", "content": content}]
+
+        def add_tool_result(self, messages, tool_call_id, name, result):
+            return [*messages, {"role": "tool", "name": name, "content": result}]
+
+    loop = _loop()
+    loop.tools = _Tools()
+    loop.context = _Ctx()
+    loop._should_prefetch_grounded_rag = lambda **_k: True
+    loop._build_rag_preview_args = lambda *_a, **_k: {"query": learner}
+    loop._augment_rag_trace_metadata = lambda **_k: {}
+    loop._record_rag_trace_status = lambda *_a, **_k: None
+
+    initial = [{"role": "user", "content": learner}]
+    messages = asyncio.run(
+        loop._maybe_prefetch_grounded_rag(
+            initial_messages=initial,
+            current_message=learner,
+            runtime_metadata={},
+        )
+    )
+    tool_msgs = [m for m in messages if m.get("role") == "tool"]
+    assert tool_msgs, "grounding tool result must be injected"
+    grounding = tool_msgs[-1]["content"]
+    # bank answer D rewritten to the learner's A (whose value is the correct 5%).
+    assert "【答案】A" in grounding
+    assert "【答案】D" not in grounding
+
+
+@pytest.mark.asyncio
+async def test_prefetched_rag_grounding_projects_answer_to_learner_option_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakeRagTool:
+        def preview_args(self, params):
+            return dict(params)
+
+        def consume_trace_metadata(self):
+            return {}
+
+    class _FakeTools:
+        def __init__(self) -> None:
+            self.rag_tool = _FakeRagTool()
+
+        def get(self, name):
+            return self.rag_tool if name == "rag" else None
+
+        async def execute(self, name, _args):
+            assert name == "rag"
+            return (
+                "题库原题\n"
+                "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+                "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+                "【答案】D\n"
+                "【解析】屋面最小坡度：压型金属板：5%。"
+            )
+
+    loop = _loop()
+    loop.tools = _FakeTools()
+    loop.context = _FakeContext()
+    monkeypatch.setattr(AgentLoop, "_should_prefetch_grounded_rag", classmethod(lambda cls, **_kwargs: True))
+
+    tool_results: list[str] = []
+
+    async def _on_tool_result(_tool_name, result, _metadata):
+        tool_results.append(result)
+
+    messages = await loop._maybe_prefetch_grounded_rag(
+        initial_messages=[{"role": "system", "content": ""}],
+        current_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，对吗？"
+        ),
+        runtime_metadata={},
+        on_tool_result=_on_tool_result,
+    )
+
+    tool_message = next(item for item in messages if item["role"] == "tool")
+    options_match = re.search(
+        r"【选项】(?P<options>\[.*?\])\s*\n【答案】(?P<answer>[A-E])",
+        tool_message["content"],
+    )
+    assert options_match is not None
+    assert options_match.group("answer") == "A"
+    options = json.loads(options_match.group("options"))
+    assert options[0] == {"key": "A", "value": "5%"}
+    assert "【答案】D" not in tool_message["content"]
+    assert tool_results == [tool_message["content"]]

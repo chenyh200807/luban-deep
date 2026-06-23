@@ -26,6 +26,7 @@
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
 6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
+7. 会员控制台 / 学员 read-model 访问 token 是身份边界，不是 learner-state truth。签名 token 必须同时满足 HMAC-SHA256 校验、`hmac.compare_digest`、未来 `exp`；缺失、非法或过期 `exp` 必须 fail-closed，不得被解释为“无过期时间”继续访问 learner read model。
 
 ### Compact Context 读取边界
 
@@ -181,12 +182,25 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   writeback。`/api/v1/auth/reset-password` 成功后只能更新 external auth 密码、消费验证码并
   失效旧 auth session，不得写 `learner_summaries`、`learner_memory_events`、profile、
   progress、goals、heartbeat 或 assessment / turn state，也不得返回登录 token。
+- 手机号不是 `user_id`；它是可信账户凭证 alias。`MemberConsoleService` 处理手机号验证码登录、
+  微信手机号快速登录或注册去重时，必须先通过可信 `phone` alias 解析到 canonical UUID，再绑定或
+  合并 member identity。`member_console` 本地 `member.phone` 只能作为兼容读模型和低风险补充，
+  不得绕过 `public.user_identity_aliases` 另建第二个手机号账号 authority。
+- 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
+  资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
+  长期绕过手机号 canonical identity。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment
   create/resume/report/explanation/writeback-retry paths must fail closed with
   `assessment_sessions_supabase_not_configured`; they must not silently use JSON or
   in-memory sessions as production authority.
+- 会员身份合并链解析必须对成环安全。`MemberConsoleService._ensure_member` 会沿
+  `merged_into` 指针回溯到 canonical 会员（`user_id == external_auth_user_id` 的那条），
+  但多跳环（如 `A→B→A`）属于数据损坏，绝不能让解析无限递归 → `RecursionError` →
+  `/api/v1/auth/login` 500 →（小程序显示"服务暂时不可用"登不进）。解析器必须跟踪已访问
+  `user_id`，重访即停并把当前会员当 canonical 返回；数据层的环要单独修复（清 canonical
+  的 `merged_into`），但代码层对任何成环输入都必须终止，登录永不因合并环而崩。
 
 ## 第二阶段预留语义：Bot-Learner Overlay
 
@@ -232,6 +246,7 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 - 学员全局 weak points
 - 学员全局 summary
 - 学员全局 consent
+- judge / bot 的判分输出原文，或其中题面未给出的脑补背景数值（如“中标价 1.7 亿”）。`working_memory_projection` 经 `turn_runtime` 当 EVIDENCE 块注入下一轮 judge；若回灌判分输出，会跨会话**自我强化幻觉**——judge 把自己上一轮脑补的数字当“参考证据”抄回。notebook 自动卡 writeback **不得**把判分输出 / 卡片摘要写进 `working_memory_projection`（#23 第二层，2026-06-23，DeepSeek-V4-Pro 异源核坐实）；卡片 summary 仍存卡片本身供展示，不污染 overlay。
 
 ### Overlay 晋升规则
 
@@ -406,6 +421,19 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- `home_personalization` projection 的 canonical marker 必须位于 projection 本体的
+  `source_status`：`home_projection_contract="canonical_taxonomy_v1"` 且
+  `topic_authority="learner_state.home_personalization.canonical_taxonomy"`。外层
+  dashboard 上挂一个空 `home_projection.source_status` 不能授权顶层 legacy
+  `today_focus` / `recommended_prompts`。`fallback_used=true`、markerless payload、
+  malformed payload、API failure fallback、guest preview、旧缓存和 member-console
+  legacy focus 都不得被应用为“今日焦点”或“根据你的学情”自动推荐；它们只能降级为空态 /
+  静态示例 / starter fallback，不得伪装成 canonical personalized recommendation。
+- `write_home_personalization_projection()` 是 durable home personalization projection
+  的写入门；它必须 fail-closed 拒绝 markerless 或非 canonical topic/prompt 的 payload，
+  不得因为 shape 看起来合法就自动补 canonical marker。`MemberConsoleService` 与
+  mobile / WeChat read model 只能读取并呈现通过同一 canonical validator 的 projection
+  本体，不能从顶层 dashboard、旧缓存、`today.hint` 或 prompt 文案二次解释出推荐。
 - 学情 / 首页展示 topic、Home dashboard 用户可见的 `today_focus` 与 recommended prompt
   topic 必须来自同一 learner-state / taxonomy authority 的 canonical label，并经
   taxonomy canonical resolver 对齐到教材目录 canonical 章/节名称。学情、每日任务、

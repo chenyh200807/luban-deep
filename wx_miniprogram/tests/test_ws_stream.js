@@ -104,7 +104,7 @@ assert(
 );
 
 auth.getToken = function () {
-  return "token_initial";
+  return "token_initial_for_ws";
 };
 api.startChatTurn = function () {
   api.lastStartTurnPayload = arguments[0] || {};

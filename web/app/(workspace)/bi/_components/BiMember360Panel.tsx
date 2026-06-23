@@ -122,7 +122,7 @@ export function BiMember360Panel({
 
         <div className="mt-5 flex flex-wrap gap-3">
           <button type="button" onClick={onGrant} disabled={actionLoading} className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-            开通 30 天 VIP
+            开通VIP套餐
           </button>
           <button type="button" onClick={onExtend} disabled={actionLoading} className="rounded-full bg-[var(--secondary)] px-4 py-2 text-sm font-medium text-[var(--secondary-foreground)] disabled:opacity-60">
             续期 90 天

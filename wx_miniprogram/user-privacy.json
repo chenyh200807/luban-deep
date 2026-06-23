@@ -1,0 +1,9 @@
+{
+  "privacyList": [
+    {
+      "privacyKey": "phoneNumber",
+      "label": "手机号"
+    }
+  ],
+  "entranceName": "用户隐私保护指引"
+}

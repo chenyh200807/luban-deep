@@ -1,0 +1,31 @@
+# Submission / relation gate authority baseline (fail-on-new).
+# Each line: <relpath>::<funcname> of an existing _looks_like_* gate that
+# independently decides submission/relation intent. Grandfathered debt; the
+# guard fails on any NEW gate not listed here. Never hand-edit to silence a
+# new gate — route through the canonical authority (turn_semantic_decision /
+# question_followup single guard) or regenerate with reviewer sign-off + the
+# approving PR. See contracts/turn.md §硬约束 24.
+deeptutor/capabilities/deep_question.py::_looks_like_option_mapping_challenge
+deeptutor/runtime/orchestrator.py::_looks_like_current_question_followup
+deeptutor/runtime/orchestrator.py::_looks_like_free_text_question_review_request
+deeptutor/runtime/orchestrator.py::_looks_like_question_followup
+deeptutor/runtime/orchestrator.py::_looks_like_question_submission
+deeptutor/services/question_followup.py::_looks_like_answer_concession
+deeptutor/services/question_followup.py::_looks_like_option_challenge_followup
+deeptutor/services/question_followup.py::_looks_like_option_value_challenge_followup
+deeptutor/services/question_followup.py::_looks_like_past_question_explanation_request
+deeptutor/services/question_lifecycle_skills.py::_looks_like_ambiguous_multi_question_submission
+deeptutor/services/question_lifecycle_skills.py::_looks_like_explicit_question_generation_request
+deeptutor/services/question_lifecycle_skills.py::_looks_like_free_text_case_grading
+deeptutor/services/question_lifecycle_skills.py::_looks_like_free_text_mcq_answer_request
+deeptutor/services/question_lifecycle_skills.py::_looks_like_free_text_mcq_grading
+deeptutor/services/question_lifecycle_skills.py::_looks_like_full_case_answer_submission
+deeptutor/services/question_lifecycle_skills.py::_looks_like_unanchored_mcq_answer_submission
+deeptutor/services/question_lifecycle_skills.py::_looks_like_value_only_mcq_option_surface
+deeptutor/services/rag/service.py::_looks_like_empty_retrieval_answer
+deeptutor/services/session/context_router.py::_looks_like_session_followup
+deeptutor/services/source_compiler/answer_rubric_extractor.py::_looks_like_diagram_answer
+deeptutor/services/taxonomy/learning_topic_resolver.py::_looks_like_question_stem_label
+deeptutor/tutorbot/agent/loop.py::_looks_like_process_only_answer
+deeptutor/tutorbot/agent/tools/deeptutor_tools.py::_looks_like_empty_retrieval_answer
+deeptutor/tutorbot/response_mode.py::_looks_like_structured_submission_followup

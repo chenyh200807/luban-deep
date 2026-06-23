@@ -65,6 +65,12 @@ class ManualPurchaseReversalRequest(BaseModel):
     reason: str = Field(default="", max_length=200)
 
 
+class AccountMergeRequest(BaseModel):
+    target_user_id: str = Field(..., min_length=1, max_length=200)
+    source_user_ids: list[str] = Field(..., min_length=1, max_length=10)
+    reason: str = Field(default="", max_length=200)
+
+
 class MembershipPackageRequest(BaseModel):
     label: str = Field(..., min_length=1, max_length=80)
     tier: str = Field(..., min_length=1, max_length=40)
@@ -443,8 +449,20 @@ async def create_member_note(
 async def record_member_ops_action(
     user_id: str,
     body: OpsActionResultRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
     current_user: AuthContext = Depends(require_admin),
 ) -> dict[str, Any]:
+    normalized_key = str(idempotency_key or "").strip()
+    if not normalized_key:
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key header is required for audited writes",
+        )
+    if len(normalized_key) > 128 or not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized_key):
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
+        )
     try:
         return service.record_ops_action_result(
             user_id,
@@ -453,6 +471,7 @@ async def record_member_ops_action(
             action_title=body.action_title,
             next_follow_up_at=body.next_follow_up_at,
             operator=current_user.user_id,
+            idempotency_key=normalized_key,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -566,6 +585,11 @@ async def member_batch_action(
     body: BatchActionRequest,
     current_user: AuthContext = Depends(require_admin),
 ) -> dict[str, Any]:
+    if body.action == "grant":
+        raise HTTPException(
+            status_code=400,
+            detail="Batch tier grant is no longer supported; use manual membership purchase by package.",
+        )
     return service.batch_update_members(
         user_ids=body.user_ids,
         action=body.action,
@@ -615,12 +639,9 @@ async def grant_membership(
     body: GrantRequest,
     current_user: AuthContext = Depends(require_admin),
 ) -> dict[str, Any]:
-    return service.grant_subscription(
-        body.user_id,
-        body.days,
-        tier=body.tier,
-        reason=body.reason,
-        operator=current_user.user_id,
+    raise HTTPException(
+        status_code=400,
+        detail="Tier-only grant is no longer supported; use /api/v1/member/manual-purchase with a package.",
     )
 
 
@@ -676,11 +697,16 @@ async def reverse_manual_purchase_membership(
             status_code=400,
             detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
         )
+    if not body.purchase_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="purchase_id is required for manual membership reversal",
+        )
     try:
         return service.reverse_manual_membership_purchase(
             user_id=body.user_id,
             purchase_id=body.purchase_id,
-            amount_cny=body.amount_cny,
+            amount_cny=None,
             operator=current_user.user_id,
             reason=body.reason,
             idempotency_key=normalized_key,

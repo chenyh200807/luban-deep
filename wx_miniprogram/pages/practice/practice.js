@@ -58,6 +58,7 @@ Page({
   },
 
   onLoad() {
+    this._mounted = true;
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
     this.setData({
@@ -67,28 +68,38 @@ Page({
     });
   },
 
+  onUnload() {
+    this._mounted = false;
+  },
+
   onShow() {
     this.setData({ isDark: helpers.isDark() });
+    if (this._fetchInFlight) return;
+    this._fetchInFlight = true;
     const app = getApp();
     app.checkAuth(() => {
-      this._loadProgress();
-      this._loadChapters();
+      Promise.all([this._loadProgress(), this._loadChapters()]).finally(() => {
+        this._fetchInFlight = false;
+      });
     });
   },
 
   async _loadProgress() {
     try {
       const raw = await api.getTodayProgress();
+      if (!this._mounted) return;
       const data = api.unwrapResponse(raw);
       const done = data.today_done || 0;
       const target = data.daily_target || 30;
       this.setData({
         todayDone: done,
         dailyTarget: target,
-        progressPct: Math.min(100, Math.round((done / target) * 100)),
+        progressPct:
+          target > 0 ? Math.min(100, Math.round((done / target) * 100)) : 0,
         streakDays: data.streak_days || 0,
       });
     } catch (e) {
+      if (!this._mounted) return;
       wx.showToast({ title: "数据加载失败", icon: "none", duration: 2000 });
     }
   },
@@ -96,6 +107,7 @@ Page({
   async _loadChapters() {
     try {
       const raw = await api.getChapterProgress();
+      if (!this._mounted) return;
       const data = api.unwrapResponse(raw);
       const chapterColors = [
         "#3b82f6",
@@ -117,6 +129,7 @@ Page({
       }));
       this.setData({ chapters, chaptersLoading: false, chaptersError: false });
     } catch (e) {
+      if (!this._mounted) return;
       wx.showToast({ title: "数据加载失败", icon: "none", duration: 2000 });
       this.setData({
         chaptersLoading: false,
@@ -142,16 +155,22 @@ Page({
     const modeId = e.currentTarget.dataset.id;
     const modeQueries = {
       smart: "根据我当前薄弱点，给我来5道高价值选择题，不要提前给答案和解析。",
-      chapter: "请按我当前最薄弱的章节，给我安排5道章节专项选择题，不要提前给答案和解析。",
+      chapter:
+        "请按我当前最薄弱的章节，给我安排5道章节专项选择题，不要提前给答案和解析。",
       mock: "请按一建建筑实务模考风格，给我来5道递进式选择题，不要提前给答案和解析。",
       weak: "针对我最近最薄弱的知识点，给我来5道攻克训练选择题，不要提前给答案和解析。",
     };
-    this._openPracticeChat(modeQueries[modeId] || "给我安排一组练习题。", "AUTO");
+    this._openPracticeChat(
+      modeQueries[modeId] || "给我安排一组练习题。",
+      "AUTO",
+    );
   },
 
   startChapter(e) {
     const chapterId = e.currentTarget.dataset.id;
-    const current = (this.data.chapters || []).find((item) => item.id === chapterId);
+    const current = (this.data.chapters || []).find(
+      (item) => item.id === chapterId,
+    );
     const chapterName = current && current.name ? current.name : "当前章节";
     this._openPracticeChat(
       `我想练习${chapterName}，请给我来5道选择题，不要提前给答案和解析。`,

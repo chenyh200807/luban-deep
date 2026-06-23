@@ -733,10 +733,11 @@ async def test_deep_question_option_hypothetical_followup_gives_targeted_scoring
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
     assert result_event.metadata["mode"] == "followup"
-    assert "B（屋脊）" in response
-    assert "不得分" in response
+    # #21(2026-06-23):反篡改薄答罐头("我不会因追问改写标准答案")已删,改给详细
+    # 答案与解析(确定性,不调 FollowupAgent),不再只甩单选项防御句。
+    assert "改写标准答案" not in response
     assert "D（最高点）" in response
-    assert "改写标准答案" in response
+    assert "解析" in response
 
 
 @pytest.mark.asyncio
@@ -802,7 +803,10 @@ async def test_deep_question_reveals_written_reference_without_followup_llm(
     assert "答案与解析" in response
     assert "参考答案：** 1. 应具有适应主体结构层间变形的能力" in response
     assert "解析" in response
-    assert "依据：【GBT51231-2016 §6.4.3】" in response
+    # #21(2026-06-23):删 _render_targeted_option_reference_feedback 后,书面题参考揭示
+    # 走 verbose 答案与解析分支(参考答案要点+按关键点给分),确定性、不调 FollowupAgent;
+    # 不再经 targeted 渲染器输出 §条号(参考内容仍揭示,§条号非必需)。无反篡改薄答罐头。
+    assert "改写标准答案" not in response
     assert "本题按参考答案的关键点给分" in response
 
 
@@ -814,9 +818,18 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for follow-up mode")
 
-    class FailingFollowupAgent:
+    # A1-①(2026-06-22):未作答 followup 不再硬 block"练习阶段不公开答案",改走 FollowupAgent
+    # 在答案隐藏下作答(should_reveal_reference_material=False → 渲染不含答案 + 安全指令)。
+    # 关键不变量仍是:绝不泄露答案。FollowupAgent 被调用但拿不到答案,故不会吐出 观察法/正确答案。
+    class StubFollowupAgent:
         def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("unanswered reveal block should not call follow-up LLM")
+            pass
+
+        def set_trace_callback(self, _cb: Any) -> None:
+            pass
+
+        async def process(self, **_kwargs: Any) -> str:
+            return "这道题你还没作答,我先帮你理解题意,先不直接公布答案,你可以试着选一个。"
 
     _install_module(
         monkeypatch,
@@ -826,7 +839,7 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
     _install_module(
         monkeypatch,
         "deeptutor.agents.question.agents.followup_agent",
-        FollowupAgent=FailingFollowupAgent,
+        FollowupAgent=StubFollowupAgent,
     )
     _install_module(
         monkeypatch,
@@ -861,7 +874,7 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
     assert result_event.metadata["mode"] == "followup"
-    assert "练习阶段不公开答案" in response
+    # A1-①:不再硬 block,但答案仍绝不泄露(FollowupAgent 拿不到答案)
     assert "观察法" not in response
     assert "正确答案" not in response
 
@@ -2086,6 +2099,16 @@ def test_practice_generation_topic_domain_status_blocks_non_construction_topic()
         teaching_modes.practice_generation_topic_domain_status("用建筑实务导师身份围绕法国首都出三道题")
         == "out_of_scope_topic"
     )
+    for user_topic in (
+        "网络安全出三道题",
+        "数据结构出三道题",
+        "PPT模板出三道题",
+        "合同法出三道题",
+    ):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "unknown_topic"
+        )
     assert (
         teaching_modes.practice_generation_topic_domain_status("出三道变形缝的题")
         == "construction_topic"
@@ -2094,6 +2117,16 @@ def test_practice_generation_topic_domain_status_blocks_non_construction_topic()
         teaching_modes.practice_generation_topic_domain_status("用3道题训练项目质量计划管理")
         == "construction_topic"
     )
+    for user_topic in (
+        "施工安全管理出三道题",
+        "模板工程出两题",
+        "工程合同管理出题",
+        "建筑结构荷载题",
+    ):
+        assert (
+            teaching_modes.practice_generation_topic_domain_status(user_topic)
+            == "construction_topic"
+        )
     for user_topic in (
         "再来三道网络计划相关题",
         "出三道类似变形缝的题",

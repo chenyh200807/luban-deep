@@ -157,6 +157,45 @@ _GENERATION_INTENT_MARKERS = (
     "选择题", "单选题", "多选题", "判断题", "案例题", "简答题",
     "刷题", "练题", "练习", "做题", "出几道", "出三道", "出两道",
 )
+# A turn that explicitly recalls an EARLIER question ("刚才那道…题" / "回到之前那道")
+# and asks to explain it is NOT a fresh answer submission to the current active
+# question/set. After a practice-generation turn replaces the active object with a
+# new question set, "刚才那道屋面坡度题，讲讲考点" must route to explanation via
+# conversation history, not be mined for an option letter and hijacked into the
+# ambiguous "name the question number" clarification. Closed vocabulary; shared by
+# the option submission extractor (the subjective extractor already guards
+# explanation intent). Answer-led turns keep submission priority via the leading
+# guards below, so this never suppresses a genuine submission.
+_PAST_QUESTION_BACKREFERENCE_MARKERS = (
+    "刚才那", "刚才的那", "刚才做的", "刚刚那", "之前那", "之前做的",
+    "上一道", "上一题", "上道题", "上一道题", "前面那", "回到刚才",
+    "回到之前", "回到上", "前面做的", "刚才讲的那", "刚才那一",
+)
+_PAST_QUESTION_EXPLANATION_MARKERS = (
+    "讲考点", "讲讲", "讲透", "讲一下", "讲解", "讲明白", "讲清楚", "讲下",
+    "拆考点", "拆一下", "为什么", "为啥", "再讲", "回顾", "复盘",
+    "怎么分析", "考点", "知识点", "再帮我", "再给我讲",
+)
+
+
+def _looks_like_past_question_explanation_request(text: str) -> bool:
+    """Back-reference to an EARLIER question + explanation intent → not a submission.
+
+    Symmetric with the generation-intent guard: refuse to mine an option key out of
+    "刚才那道我选A的屋面坡度题，再帮我把考点讲透" so the turn is routed to explanation
+    over conversation history instead of being misread as an ambiguous submission to
+    the current (newly generated) question set. Answer-led / leading-submission turns
+    are exempt and keep submission priority.
+    """
+
+    t = str(text or "").strip()
+    if not t:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
+        return False
+    return any(b in t for b in _PAST_QUESTION_BACKREFERENCE_MARKERS) and any(
+        e in t for e in _PAST_QUESTION_EXPLANATION_MARKERS
+    )
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -223,6 +262,7 @@ _FOLLOWUP_ACTION_INTENTS = {
     "answer_questions",
     "revise_answers",
     "ask_followup",
+    "ask_other_question",
     "generate_more_questions",
     "unknown",
     "unrelated",
@@ -383,9 +423,11 @@ def _normalize_unmatched_answer_refs(raw: Any) -> list[dict[str, Any]]:
     return refs
 
 
-_PUBLIC_REDACTED_KEYS = (
+PUBLIC_HIDDEN_PAYLOAD_KEYS = (
     "grading_key",
     "correct_answer",
+    "minimal_rationale",
+    "official_answer",
     "explanation",
     "scoring_points",
     "official_slice",
@@ -402,6 +444,7 @@ _PUBLIC_REDACTED_KEYS = (
     "per_point_score_authority",
     "answer_key_authority",
 )
+_PUBLIC_REDACTED_KEYS = PUBLIC_HIDDEN_PAYLOAD_KEYS
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
 # produced the evidence value. If the named field is a hidden authority
@@ -776,6 +819,10 @@ def resolve_submission_attempt(
                         "kind": "single",
                         "answer": answer,
                         "question_id": narrowed.get("question_id", ""),
+                        # object-continuity: carry the 1-based item index of the
+                        # batch set so callers can grade this item WITHIN the set
+                        # instead of collapsing the set to the narrowed single item.
+                        "index": item_index,
                     }
 
     if len(items) > 1:
@@ -794,6 +841,44 @@ def resolve_submission_attempt(
         "kind": "single",
         "answer": answer,
         "question_id": normalized.get("question_id", ""),
+    }
+
+
+def batch_answer_action_for_numbered_single(
+    submission: dict[str, Any] | None,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Single chokepoint for object-continuity of batch question sets (E8 SEV-1).
+
+    When the learner answers ONE numbered item of a multi-item question set
+    ("第2题我选B"), `resolve_submission_attempt` narrows `target_context` to that single
+    item. Building the active object from that narrowed context COLLAPSES the set to a
+    single question, so a later "第1题" resolves against a 1-item set and grades the
+    wrong question. This helper turns a numbered-single submission into a batch-style
+    answer action that grades the referenced item WITHIN the full set (preserving the
+    other items), so callers can apply it to the FULL context and keep the set intact.
+
+    Returns None when not a numbered-single-in-batch (caller keeps its existing path):
+    single-question contexts and out-of-range indices are untouched.
+    """
+    if not isinstance(submission, dict) or submission.get("kind") != "single":
+        return None
+    index = submission.get("index")
+    items = (question_context or {}).get("items") if isinstance(question_context, dict) else None
+    if not index or not isinstance(items, list) or len(items) <= 1:
+        return None
+    return {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [
+            {
+                "index": int(index),
+                "question_id": str(submission.get("question_id") or "").strip(),
+                "user_answer": str(submission.get("answer") or "").strip(),
+            }
+        ],
+        "preserve_other_answers": True,
+        "reason": "用户对题组内某一道作答，需在整组内判该题并保留其余题（object continuity）。",
     }
 
 
@@ -1286,6 +1371,11 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     text = str(message or "").strip()
     if not text:
         return None
+    # A back-reference to an EARLIER question + explanation intent is not a fresh
+    # subjective answer either (a multi-question set normalizes to a "written" set-level
+    # type, so this path would otherwise capture the whole recall sentence as the answer).
+    if _looks_like_past_question_explanation_request(text):
+        return None
     explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
     prestrip_lowered = text.lower()
     prestrip_question_markers = (
@@ -1645,6 +1735,12 @@ def _extract_option_submission(
         and not _LEADING_OPTION_ANSWER.match(text)
         and any(marker in text for marker in _GENERATION_INTENT_MARKERS)
     ):
+        return None
+    # A back-reference to an EARLIER question + explanation intent ("刚才那道我选A的
+    # 屋面坡度题，讲讲考点") is not a fresh answer to the current set — refuse to mine
+    # an option key so it routes to explanation via history instead of the ambiguous
+    # "name the question number" clarification.
+    if _looks_like_past_question_explanation_request(text):
         return None
 
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")
@@ -2023,7 +2119,7 @@ def _build_followup_action_prompt(
     return (
         "请根据当前用户消息和题目上下文，判断用户意图。"
         "只能从以下 intent 中选择一个："
-        "answer_questions, revise_answers, ask_followup, generate_more_questions, unknown, unrelated。\n"
+        "answer_questions, revise_answers, ask_followup, ask_other_question, generate_more_questions, unknown, unrelated。\n"
         "规则：\n"
         "1. 如果用户是在提交当前题目/题组答案，intent=answer_questions。\n"
         "   包括前端交互生成的“提交作答，请批改：第1题：B；第2题：C”、"
@@ -2032,7 +2128,16 @@ def _build_followup_action_prompt(
         "即便附带了「错因」/「为什么」等追问词，整体仍为 answer_questions（提交优先），"
         "不要因追问词改判为 ask_followup。如：「我选ACDE，错因10字以内」→ answer_questions。\n"
         "2. 如果用户是在修改已经提交过的答案，如“第2题改成C，其他不变”，intent=revise_answers。\n"
-        "3. 如果用户是在问解析/讲解/为什么/哪题错了（且未附上我选X提交），intent=ask_followup。\n"
+        “3. 如果用户是在问解析/讲解/为什么/哪题错了（且未附上我选X提交），且问的是 active_question_set 里的题，intent=ask_followup。\n”
+        “3b. ask_other_question 仅用于一种情况：用户用序数/位置/属性【回指本对话 history_context 里”
+        “已经出现过、但不在 active_question_set 里】的另一道题来问解析/讲解”
+        “（如”最开始那道/我做错的那道/上一道/第3题但当前题组没有第3题，正确答案为什么”）。”
+        “硬性前置：被指的那道题必须能在 history_context 里找到它确实早前出现过。\n”
+        “   反例（绝不可判 ask_other_question）：①”分析/讲/出一道X考点的(真)题””来一道X题”等要求”
+        “【生成或调取一道新题】的——属 generate_more_questions 或新讲题，不是回指；”
+        “②序数落在 active_question_set 槽位范围内（题组有3题、用户说”第2题”）——用 ask_followup/answer_questions；”
+        “③history_context 里找不到被指的那道题——用 unknown，不要猜。\n”
+        “   ask_other_question 只用于讲解/追问，绝不用于作答或改答。\n”
         "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"
         "5. 如果无法有把握地判断为题目 follow-up，返回 unknown 或 unrelated，不要猜。\n"
         "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"

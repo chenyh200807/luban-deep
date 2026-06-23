@@ -16,6 +16,7 @@ Page({
   },
 
   onLoad() {
+    this._unloaded = false;
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -31,7 +32,13 @@ Page({
     });
   },
 
+  onUnload() {
+    this._unloaded = true;
+  },
+
   async _loadUsage() {
+    if (this._loadUsageInFlight) return;
+    this._loadUsageInFlight = true;
     try {
       this.setData({ ledgerLoading: true });
       var results = await Promise.all([
@@ -43,13 +50,17 @@ Page({
           return null;
         }),
       ]);
+      if (this._unloaded) return;
       var state = _normalizeUsage(results[0], results[1], results[2]);
       state.ledgerLoading = false;
       this.setData(state);
     } catch (_) {
+      if (this._unloaded) return;
       var degraded = _degradedUsageState();
       degraded.ledgerLoading = false;
       this.setData(degraded);
+    } finally {
+      this._loadUsageInFlight = false;
     }
   },
 
@@ -70,12 +81,16 @@ Page({
 
 function _normalizeUsage(raw, walletRaw, ledgerRaw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
-  var wallet = api.unwrapResponse ? api.unwrapResponse(walletRaw) : walletRaw || {};
+  var wallet = api.unwrapResponse
+    ? api.unwrapResponse(walletRaw)
+    : walletRaw || {};
   var ledgerEntries = _ledgerEntries(ledgerRaw);
   if (data && data.status === "degraded") {
     return _degradedUsageState(data.display);
   }
-  var balance = Number(wallet.balance || wallet.points || wallet.display_balance || 0);
+  var balance = Number(
+    wallet.balance || wallet.points || wallet.display_balance || 0,
+  );
   if (isNaN(balance)) balance = 0;
   balance = Math.max(0, Math.round(balance));
   var denominator = _displayDenominator(balance, ledgerEntries);
@@ -89,7 +104,10 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw) {
         key: "wallet_percent",
         label: "当前权益",
         remainingLabel: remainingLabel,
-        barStyle: "width:" + Math.max(0, Math.min(100, Math.round(remainingPercent))) + "%",
+        barStyle:
+          "width:" +
+          Math.max(0, Math.min(100, Math.round(remainingPercent))) +
+          "%",
       },
       {
         key: "usage_record",
@@ -130,17 +148,26 @@ function _displayDenominator(balance, entries) {
     if (delta > 0) positive += delta;
     if (delta < 0) debits += Math.abs(delta);
   });
-  return Math.max(1, Math.round(positive), Math.round(balance + debits), Math.round(balance));
+  return Math.max(
+    1,
+    Math.round(positive),
+    Math.round(balance + debits),
+    Math.round(balance),
+  );
 }
 
 function _percent(value, denominator) {
   if (!denominator) return 0;
-  return Math.max(0, Math.min(100, (Number(value || 0) / Number(denominator || 1)) * 100));
+  return Math.max(
+    0,
+    Math.min(100, (Number(value || 0) / Number(denominator || 1)) * 100),
+  );
 }
 
 function _formatPrimaryPercent(value) {
   var rounded = Math.round(Number(value || 0) * 10) / 10;
-  if (Math.abs(rounded - Math.round(rounded)) < 0.001) return String(Math.round(rounded)) + "%";
+  if (Math.abs(rounded - Math.round(rounded)) < 0.001)
+    return String(Math.round(rounded)) + "%";
   return rounded.toFixed(1) + "%";
 }
 
@@ -156,21 +183,27 @@ function _formatGaugePercent(value) {
 }
 
 function _normalizeLedgerRows(entries, denominator) {
-  return (Array.isArray(entries) ? entries : []).filter(function (entry) {
-    return Number(entry.delta || 0) < 0;
-  }).slice(0, 10).map(function (entry) {
-    var delta = Math.abs(Math.round(Number(entry.delta || 0)));
-    var balanceAfter = Math.max(0, Math.round(Number(entry.balance_after || 0)));
-    var deltaPercent = _percent(delta, denominator);
-    var balanceAfterPercent = _percent(balanceAfter, denominator);
-    return {
-      id: String(entry.id || entry.reference_id || entry.created_at || Math.random()),
-      title: _ledgerTitle(entry),
-      timeLabel: _formatLedgerTime(entry.created_at),
-      usageLabel: "-" + _formatRecordPercent(deltaPercent),
-      balanceLabel: "剩余 " + _formatPrimaryPercent(balanceAfterPercent),
-    };
-  });
+  return (Array.isArray(entries) ? entries : [])
+    .filter(function (entry) {
+      return Number(entry.delta || 0) < 0;
+    })
+    .slice(0, 10)
+    .map(function (entry, idx) {
+      var delta = Math.abs(Math.round(Number(entry.delta || 0)));
+      var balanceAfter = Math.max(
+        0,
+        Math.round(Number(entry.balance_after || 0)),
+      );
+      var deltaPercent = _percent(delta, denominator);
+      var balanceAfterPercent = _percent(balanceAfter, denominator);
+      return {
+        id: String(entry.id || entry.reference_id || entry.created_at || idx),
+        title: _ledgerTitle(entry),
+        timeLabel: _formatLedgerTime(entry.created_at),
+        usageLabel: "-" + _formatRecordPercent(deltaPercent),
+        balanceLabel: "剩余 " + _formatPrimaryPercent(balanceAfterPercent),
+      };
+    });
 }
 
 function _ledgerTitle(entry) {

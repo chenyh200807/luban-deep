@@ -150,15 +150,19 @@ def test_named_option_brevity_routes_to_brief_option_focus() -> None:
     assert ("干扰项" in response) or ("不在标准答案" in response)
 
 
-def test_option_challenge_without_brevity_keeps_detailed_reference_feedback() -> None:
+def test_option_challenge_without_brevity_gives_detailed_explanation_not_brushoff() -> None:
+    """#21(2026-06-23):点名选项的概念追问("A错在哪里")必须给真实讲解(答案+逐项原理),
+    绝不再吐"我不会因追问改写标准答案"的反篡改薄答罐头(Langfuse 实证 3/3 live 复现)。"""
     response = _render_deterministic_reference_feedback(
         _wall_context(user_answer="CDE", is_correct=True),
         user_message="A错在哪里？请说明标准答案依据。",
     )
 
-    assert response.startswith("A（槽段长度8-10m）")
-    assert "本题标准答案是 C" in response
-    assert "我不会因为追问或假设选项改写标准答案" in response
+    # 反篡改薄答罐头必须消失
+    assert "我不会因为追问或假设选项改写标准答案" not in response
+    # 给真实讲解:正确答案 + A 为什么错的原理
+    assert "正确答案" in response
+    assert "槽段长度宜为 4～6m" in response or "A 错误" in response
 
 
 def test_reference_feedback_targets_indexed_question_set_item() -> None:
@@ -193,3 +197,58 @@ def test_reference_feedback_targets_indexed_question_set_item() -> None:
 
     assert "验收合格可参照合同支付" in response
     assert "主体结构不得分包" not in response
+
+
+def _unanswered_wall_context(**overrides):
+    ctx = _wall_context(
+        user_answer="",
+        is_correct=None,
+        reveal_answers=False,
+        reveal_explanations=False,
+    )
+    ctx.update(overrides)
+    return ctx
+
+
+def test_unanswered_knowledge_followup_withholds_answer_and_routes_to_followup_agent() -> None:
+    """A1 (治④死循环): 未作答题 + 知识/讲解 followup(如"讲讲考点")必须不揭示答案,
+    且不触发 deterministic reference-feedback(那条会带答案)——改走 FollowupAgent
+    (在答案隐藏下解释),而非旧的"练习阶段不公开答案;你先作答"硬 block。"""
+    from deeptutor.capabilities.deep_question import (
+        _should_render_deterministic_reference_feedback,
+    )
+    from deeptutor.services.question_followup import should_reveal_reference_material
+
+    ctx = _unanswered_wall_context()
+    msg = "讲讲这道题的考点和易错点"
+    # 答案隐藏的单一权威 = should_reveal_reference_material
+    assert should_reveal_reference_material(msg, ctx) is False
+    # 非 deterministic-with-answer 路径 → 落 FollowupAgent
+    assert _should_render_deterministic_reference_feedback(msg, ctx) is False
+
+
+def test_unanswered_explicit_answer_request_still_withholds_answer() -> None:
+    """未作答题上即便明确"答案是什么"也必须隐藏参考答案(不泄露);改走 FollowupAgent,
+    由其渲染层(reveal=False)拿不到答案 + 被指示不得陈述/猜测,而非硬 block。"""
+    from deeptutor.capabilities.deep_question import (
+        _should_render_deterministic_reference_feedback,
+    )
+    from deeptutor.services.question_followup import should_reveal_reference_material
+
+    ctx = _unanswered_wall_context()
+    msg = "直接告诉我答案是什么"
+    assert should_reveal_reference_material(msg, ctx) is False
+    assert _should_render_deterministic_reference_feedback(msg, ctx) is False
+
+
+def test_depth_concept_followup_routes_to_followup_agent_not_deterministic():
+    """#21(2026-06-23):已作答题的深度概念追问(为什么B错/为什么C、D也不对/讲讲原理)
+    应走 FollowupAgent 逐项教学,不走只回显 item explanation 的简短确定性模板
+    (否则=无防御罐头但仍薄答)。简短揭示(brevity)仍走确定性。"""
+    from deeptutor.capabilities.deep_question import _should_render_deterministic_reference_feedback
+
+    ctx = _wall_context(user_answer="A", is_correct=False)
+    # 深度概念追问 → 不走确定性(落 FollowupAgent)
+    assert _should_render_deterministic_reference_feedback("为什么我选A错?为什么C、D也不对?讲讲原理", ctx) is False
+    # 简短揭示请求 → 仍走确定性简短反馈
+    assert _should_render_deterministic_reference_feedback("错因是什么?10个字以内", ctx) is True

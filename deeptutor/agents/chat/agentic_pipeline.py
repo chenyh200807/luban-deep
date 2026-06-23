@@ -42,7 +42,10 @@ from deeptutor.services.llm import (
 )
 from deeptutor.services.llm.exceptions import LLMConfigError
 from deeptutor.services.observability import get_langfuse_observability
-from deeptutor.services.security.tool_access import END_USER_BLOCKED_TOOLS
+from deeptutor.services.security.tool_access import (
+    END_USER_BLOCKED_TOOLS,
+    is_end_user_tool_allowed,
+)
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -1025,6 +1028,7 @@ class AgenticChatPipeline:
                     messages=messages,
                     tools=tool_schemas,
                     tool_choice="auto",
+                    extra_headers=self.extra_headers or None,
                     **completion_kwargs,
                 )
             except Exception as exc:
@@ -1067,6 +1071,7 @@ class AgenticChatPipeline:
         message = choice.message
         assistant_content = self._message_text(message.content)
         raw_tool_calls = list(message.tool_calls or [])
+        enabled_tool_names = frozenset(enabled_tools)
 
         if assistant_content:
             await stream.thinking(
@@ -1130,6 +1135,34 @@ class AgenticChatPipeline:
             )
         for tool_call in raw_tool_calls[:MAX_PARALLEL_TOOL_CALLS]:
             tool_name = tool_call.function.name
+            denial = self._tool_access_denial(tool_name, enabled_tools)
+            if denial is not None:
+                await stream.error(
+                    denial["result_text"],
+                    source="chat",
+                    stage="acting",
+                    metadata=merge_trace_metadata(
+                        trace_meta,
+                        {
+                            "trace_kind": "call_status",
+                            "call_state": "rejected",
+                            "error": "unauthorized_tool",
+                            "tool_name": tool_name,
+                            "resolved_tool_name": denial["metadata"].get("resolved_tool_name"),
+                        },
+                    ),
+                )
+                tool_traces.append(
+                    ToolTrace(
+                        name=tool_name,
+                        arguments={},
+                        result=denial["result_text"],
+                        success=False,
+                        sources=[],
+                        metadata=denial["metadata"],
+                    )
+                )
+                continue
             tool_args = parse_json_response(
                 tool_call.function.arguments or "{}",
                 logger_instance=logger,
@@ -1160,7 +1193,9 @@ class AgenticChatPipeline:
                 self._execute_tool_call(
                     tool_name,
                     tool_args,
+                    allowed_tools=enabled_tools,
                     stream=stream,
+                    enabled_tools=enabled_tool_names,
                     retrieve_meta=self._retrieve_trace_metadata(
                         trace_meta,
                         context=context,
@@ -1181,12 +1216,8 @@ class AgenticChatPipeline:
             success = bool(tool_result["success"])
             sources = tool_result["sources"]
             metadata = tool_result["metadata"]
-            await stream.tool_result(
-                tool_name=tool_name,
-                result=result_text,
-                source="chat",
-                stage="acting",
-                metadata=self._tool_trace_metadata(
+            result_metadata = merge_trace_metadata(
+                self._tool_trace_metadata(
                     trace_meta,
                     context=context,
                     tool_call_id=tool_call_id,
@@ -1194,6 +1225,14 @@ class AgenticChatPipeline:
                     tool_index=tool_index,
                     trace_kind="tool_result",
                 ),
+                metadata if isinstance(metadata, dict) else {},
+            )
+            await stream.tool_result(
+                tool_name=tool_name,
+                result=result_text,
+                source="chat",
+                stage="acting",
+                metadata=result_metadata,
             )
 
             tool_traces.append(
@@ -1349,6 +1388,43 @@ class AgenticChatPipeline:
             return tool_traces
 
         tool_args = self._augment_tool_kwargs(action, action_input, context, thinking_text)
+        denial = self._tool_access_denial(action, enabled_tools)
+        if denial is not None:
+            await stream.error(
+                denial["result_text"],
+                source="chat",
+                stage="acting",
+                metadata=merge_trace_metadata(
+                    trace_meta,
+                    {
+                        "trace_kind": "call_status",
+                        "call_state": "rejected",
+                        "error": "unauthorized_tool",
+                        "tool_name": action,
+                        "resolved_tool_name": denial["metadata"].get("resolved_tool_name"),
+                    },
+                ),
+            )
+            tool_traces.append(
+                ToolTrace(
+                    name=action,
+                    arguments={},
+                    result=denial["result_text"],
+                    success=False,
+                    sources=[],
+                    metadata=denial["metadata"],
+                )
+            )
+            await stream.progress(
+                "",
+                source="chat",
+                stage="acting",
+                metadata=merge_trace_metadata(
+                    trace_meta,
+                    {"trace_kind": "call_status", "call_state": "complete"},
+                ),
+            )
+            return tool_traces
         if response:
             await stream.thinking(
                 response,
@@ -1371,7 +1447,9 @@ class AgenticChatPipeline:
             result = await self._execute_tool_call(
                 action,
                 tool_args,
+                allowed_tools=enabled_tools,
                 stream=stream,
+                enabled_tools=frozenset(enabled_tools),
                 retrieve_meta=self._retrieve_trace_metadata(
                     trace_meta,
                     context=context,
@@ -1563,8 +1641,6 @@ class AgenticChatPipeline:
             client_kwargs = openai_client_kwargs()
         except LLMConfigError as exc:
             raise RuntimeError(str(exc)) from exc
-        if self.extra_headers:
-            client_kwargs["default_headers"] = self.extra_headers
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):
             return make_azure_openai_client(
                 self.api_key or "sk-no-key-required",
@@ -1660,14 +1736,72 @@ class AgenticChatPipeline:
             return None
         return raw
 
+    def _resolve_tool_name(self, tool_name: str) -> str:
+        resolver = getattr(self.registry, "resolve_name", None)
+        if callable(resolver):
+            return str(resolver(tool_name) or "").strip()
+        return str(tool_name or "").strip()
+
+    def _tool_access_denial(
+        self,
+        tool_name: str,
+        allowed_tools: list[str] | None,
+    ) -> dict[str, Any] | None:
+        requested = str(tool_name or "").strip()
+        resolved_tool_name = self._resolve_tool_name(requested)
+        resolved_allowed = {
+            self._resolve_tool_name(str(name or "").strip())
+            for name in (allowed_tools or [])
+            if str(name or "").strip()
+        }
+        if (
+            requested
+            and resolved_tool_name in resolved_allowed
+            and is_end_user_tool_allowed(requested)
+            and is_end_user_tool_allowed(resolved_tool_name)
+        ):
+            return None
+        message = self._text(
+            zh=f"工具 {requested or '<empty>'} 未在本轮授权工具列表中，已拒绝执行。",
+            en=(
+                f"Tool {requested or '<empty>'} was not authorized for this turn "
+                "and was not executed."
+            ),
+        )
+        return {
+            "result_text": message,
+            "success": False,
+            "sources": [],
+            "metadata": {
+                "error": "unauthorized_tool",
+                "tool_name": requested,
+                "resolved_tool_name": resolved_tool_name,
+                "allowed_tools": sorted(resolved_allowed),
+            },
+        }
+
     async def _execute_tool_call(
         self,
         tool_name: str,
         tool_args: dict[str, Any],
         *,
+        allowed_tools: list[str] | None = None,
         stream: StreamBus | None = None,
+        enabled_tools: frozenset[str] | None = None,
         retrieve_meta: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        if enabled_tools is not None and tool_name not in enabled_tools:
+            logger.warning("Rejecting unadvertised chat tool call: %s", tool_name)
+            return {
+                "result_text": self._text(
+                    zh=f"工具 {tool_name} 未在本轮启用，已拒绝执行。",
+                    en=f"Tool {tool_name} is not enabled for this turn and was not executed.",
+                ),
+                "success": False,
+                "sources": [],
+                "metadata": {"error": "tool_not_enabled", "tool_name": tool_name},
+            }
+
         async def _event_sink(
             event_type: str,
             message: str = "",
@@ -1684,7 +1818,26 @@ class AgenticChatPipeline:
                     trace_kind=str(event_type or "tool_log"),
                     **(metadata or {}),
                 ),
-            )
+                )
+
+        if allowed_tools is not None:
+            denial = self._tool_access_denial(tool_name, allowed_tools)
+            if denial is not None:
+                if stream is not None and retrieve_meta is not None:
+                    await stream.error(
+                        denial["result_text"],
+                        source="chat",
+                        stage="acting",
+                        metadata=derive_trace_metadata(
+                            retrieve_meta,
+                            trace_kind="call_status",
+                            call_state="rejected",
+                            error="unauthorized_tool",
+                            tool_name=tool_name,
+                            resolved_tool_name=denial["metadata"].get("resolved_tool_name"),
+                        ),
+                    )
+                return denial
 
         if stream is not None and retrieve_meta is not None:
             query = str(retrieve_meta.get("query") or tool_args.get("query") or "").strip()
@@ -3067,6 +3220,7 @@ class AgenticChatPipeline:
         result = await self._execute_tool_call(
             tool_name,
             tool_args,
+            allowed_tools=["rag"],
             stream=stream,
             retrieve_meta=self._retrieve_trace_metadata(
                 trace_meta,

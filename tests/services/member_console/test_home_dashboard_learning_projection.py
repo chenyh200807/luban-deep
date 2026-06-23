@@ -18,11 +18,21 @@ from deeptutor.services.member_console.service import MemberConsoleService
 _TZ = timezone(timedelta(hours=8))
 
 
+def _canonical_home_projection_source_status(**overrides: object) -> dict[str, object]:
+    return {
+        "fallback_used": False,
+        "learning_report": "projection",
+        "home_projection_contract": "canonical_taxonomy_v1",
+        "topic_authority": "learner_state.home_personalization.canonical_taxonomy",
+        **overrides,
+    }
+
+
 def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：项目质量计划管理",
             "meta": "刚生成的学情投影",
@@ -56,7 +66,7 @@ def test_fresh_legacy_three_prompt_projection_upgrades_to_six_actions() -> None:
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：项目质量计划管理",
             "meta": "来自 learner_state.home_personalization",
@@ -138,8 +148,61 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
-def test_home_focus_topic_alias_helper_keeps_free_text_on_textbook_section() -> None:
-    assert canonical_home_focus_topic_label("防水工程") == "屋面与防水工程施工"
+def test_home_focus_topic_helper_accepts_only_canonical_members() -> None:
+    assert canonical_home_focus_topic_label("防水工程") == "防水工程"
+    assert canonical_home_focus_topic_label("屋面与防水工程施工") == "屋面与防水工程施工"
+    assert canonical_home_focus_topic_label("出三道屋面防水的") == ""
+    assert canonical_home_focus_topic_label("今日推进") == ""
+    assert canonical_home_focus_topic_label("直接练题才能把") == ""
+
+
+def test_learning_signal_projection_rejects_free_text_practice_request_topic() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "event_type": "learning_evidence",
+            "concept": {"label": "出三道屋面防水的"},
+            "next_training_signal": {"focus": "出三道屋面防水的"},
+            "event_id": "evt-home-free-text-topic",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+        llm_topic_inferer=lambda payload, candidates: "",
+    )
+
+    assert projection is None
+
+
+def test_recent_learning_event_recovery_rejects_free_text_practice_request_topic(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        home_personalization_module,
+        "infer_learning_topic_with_llm",
+        lambda payload, candidates: "",
+    )
+    event = SimpleNamespace(
+        event_id="evt_free_text_recovery",
+        memory_kind="learning_evidence",
+        source_feature="conversation_learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "concept": {"label": "出三道屋面防水的"},
+            "next_training_signal": {"focus": "出三道屋面防水的"},
+            "event_id": "evt_free_text_recovery",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=None,
+        conversation_events=[event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    rendered = json.dumps(dashboard, ensure_ascii=False)
+    assert "出三道屋面防水的" not in rendered
+    assert dashboard["source_status"]["fallback_used"] is True
+    assert "home_projection_contract" not in dashboard["source_status"]
 
 
 def test_learning_signal_projection_rejects_deictic_focus_labels() -> None:
@@ -296,6 +359,118 @@ def test_home_personalization_write_rejects_non_canonical_focus_projection() -> 
     assert learner_state.patches == []
 
 
+def test_home_personalization_write_rejects_markerless_projection() -> None:
+    class _LearnerState:
+        def __init__(self) -> None:
+            self.patches: list[dict[str, object]] = []
+
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> None:
+            self.patches.append({"user_id": user_id, "patch": patch})
+
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "concept": {"label": "主体结构验收"},
+            "error": {"label": "验收程序混淆"},
+            "event_id": "evt-markerless",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+    assert projection is not None
+    projection.pop("source_status", None)
+
+    learner_state = _LearnerState()
+    assert write_home_personalization_projection(
+        learner_state,
+        user_id="student_demo",
+        projection=projection,
+    ) is False
+    assert learner_state.patches == []
+
+
+def test_markerless_legacy_three_prompt_projection_does_not_upgrade_to_canonical() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    projection = {
+        "generated_at": generated_at,
+        "today_focus": {
+            "title": "今日焦点：项目质量计划管理",
+            "meta": "来自 learner_state.home_personalization",
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练项目质量计划管理",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                },
+            },
+            {
+                "prompt_type": "mistake_review",
+                "text": "复盘项目质量计划管理里的质量计划和质量保证混淆",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                },
+            },
+            {
+                "prompt_type": "concept_explain",
+                "text": "讲清楚项目质量计划管理的关键判断",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                },
+            },
+        ],
+    }
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=projection,
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert dashboard["source_status"]["fallback_used"] is True
+    assert dashboard["source_status"]["fallback_reason"] == "stale"
+    assert "home_projection_contract" not in dashboard["source_status"]
+
+
+def test_home_personalization_write_persists_only_canonical_projection() -> None:
+    class _LearnerState:
+        def __init__(self) -> None:
+            self.patches: list[dict[str, object]] = []
+
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> None:
+            self.patches.append({"user_id": user_id, "patch": patch})
+
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "concept": {"label": "主体结构验收"},
+            "error": {"label": "验收程序混淆"},
+            "event_id": "evt-canonical-write",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    learner_state = _LearnerState()
+    assert projection is not None
+    assert write_home_personalization_projection(
+        learner_state,
+        user_id="student_demo",
+        projection=projection,
+    ) is True
+    saved = learner_state.patches[0]["patch"]["home_personalization"]  # type: ignore[index]
+    assert saved["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        saved["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
+
+
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
     stale_projection = {
         "generated_at": datetime(2026, 5, 21, 2, 0, tzinfo=_TZ).isoformat(),
@@ -327,7 +502,7 @@ def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     bad_projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：这题",
             "meta": "来自 learner_state.home_personalization",
@@ -375,7 +550,7 @@ def test_fresh_projection_with_question_stem_focus_recovers_to_canonical_textboo
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     bad_projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：本题为",
             "meta": "来自 learner_state.home_personalization",
@@ -434,7 +609,7 @@ def test_fresh_projection_with_canonical_focus_but_bad_prompt_text_recovers() ->
     generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
     bad_projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：施工临时用电",
             "meta": "来自 learner_state.home_personalization",
@@ -643,7 +818,7 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
 
     projection = {
         "generated_at": generated_at,
-        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "source_status": _canonical_home_projection_source_status(),
         "today_focus": {
             "title": "今日焦点：施工进度计划编制与控制",
             "meta": "来自 learner_state.home_personalization",
@@ -688,6 +863,39 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
     assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度计划编制与控制"
     assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用 3 道题训练施工进度计划编制与控制"
     assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+    assert (
+        dashboard["home_projection"]["source_status"]["home_projection_contract"]
+        == "canonical_taxonomy_v1"
+    )
+
+
+def test_home_projection_marks_recovered_payload_with_canonical_contract() -> None:
+    latest_event = SimpleNamespace(
+        event_id="evt_contract_marker",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-contract-marker",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=None,
+        conversation_events=[latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["source_status"]["home_projection_contract"] == "canonical_taxonomy_v1"
+    assert (
+        dashboard["source_status"]["topic_authority"]
+        == "learner_state.home_personalization.canonical_taxonomy"
+    )
 
 
 def test_dashboard_recovers_projection_from_assessment_learning_evidence(
@@ -834,7 +1042,9 @@ def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
 
     dashboard = service.get_home_dashboard("subject_user")
 
-    assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == seed_payload["prompts"][0]["text"]
+    assert "home_projection" not in dashboard
+    assert "recommended_prompts" not in dashboard
+    assert dashboard["today_focus"]["title"] != seed_payload["today_focus"]["title"]
 
 
 def test_weak_nodes_do_not_synthesize_fake_personalization() -> None:
@@ -882,8 +1092,8 @@ def test_member_console_today_focus_skips_deictic_topics() -> None:
         study_plan={"focus_topic": "这题"},
     )
 
-    assert focus["topic"] == "屋面与防水工程施工"
-    assert focus["title"] == "推进屋面与防水工程施工下一步学习"
+    assert focus["topic"] == "防水工程"
+    assert focus["title"] == "推进防水工程下一步学习"
     assert "这题" not in json.dumps(focus, ensure_ascii=False)
 
 

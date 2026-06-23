@@ -27,7 +27,11 @@ function _looksLikeInternalHistoryText(value) {
 
 function _extractVisibleHistoryQuestion(value) {
   var text = String(value || "");
-  var markers = ["## 当前用户问题", "## Current User Question", "[User Question]"];
+  var markers = [
+    "## 当前用户问题",
+    "## Current User Question",
+    "[User Question]",
+  ];
   for (var i = 0; i < markers.length; i++) {
     var marker = markers[i];
     var idx = text.indexOf(marker);
@@ -47,7 +51,8 @@ function _extractVisibleHistoryQuestion(value) {
       if (stopIdx >= 0) cut = Math.min(cut, stopIdx);
     });
     var candidate = rest.slice(0, cut).trim();
-    if (candidate && !_looksLikeInternalHistoryText(candidate)) return candidate;
+    if (candidate && !_looksLikeInternalHistoryText(candidate))
+      return candidate;
   }
   return "";
 }
@@ -85,7 +90,9 @@ function _deriveConversationTitle(rawTitle, preview) {
 }
 
 function _capabilityLabel(capability) {
-  var key = String(capability || "").trim().toLowerCase();
+  var key = String(capability || "")
+    .trim()
+    .toLowerCase();
   if (!key || key === "chat" || key === "tutorbot") return "智能对话";
   if (key === "solve" || key === "deep_solve") return "深度解题";
   if (key === "question" || key === "deep_question") return "组题训练";
@@ -95,10 +102,14 @@ function _capabilityLabel(capability) {
 }
 
 function _normalizeModeKey(value) {
-  var key = String(value || "").trim().toLowerCase();
+  var key = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!key) return "";
-  if (key === "fast" || key === "quick" || key === "快速" || key === "快答") return "fast";
-  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲") return "deep";
+  if (key === "fast" || key === "quick" || key === "快速" || key === "快答")
+    return "fast";
+  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲")
+    return "deep";
   return "";
 }
 
@@ -110,9 +121,11 @@ function _modeLabel(mode) {
 
 function _conversationModeLabel(c) {
   c = c || {};
-  var preferences = c.preferences && typeof c.preferences === "object" ? c.preferences : {};
+  var preferences =
+    c.preferences && typeof c.preferences === "object" ? c.preferences : {};
   var hints =
-    preferences.interaction_hints && typeof preferences.interaction_hints === "object"
+    preferences.interaction_hints &&
+    typeof preferences.interaction_hints === "object"
       ? preferences.interaction_hints
       : {};
   var candidates = [
@@ -140,7 +153,9 @@ function _conversationModeLabel(c) {
 }
 
 function _statusMeta(status) {
-  var key = String(status || "").trim().toLowerCase();
+  var key = String(status || "")
+    .trim()
+    .toLowerCase();
   if (key === "running") {
     return { label: "进行中", tone: "blue" };
   }
@@ -154,7 +169,9 @@ function _statusMeta(status) {
 }
 
 function _sourceMeta(source) {
-  var key = String(source || "").trim().toLowerCase();
+  var key = String(source || "")
+    .trim()
+    .toLowerCase();
   if (key === "wx_miniprogram") {
     return { label: "小程序", tone: "sky" };
   }
@@ -238,7 +255,9 @@ function _buildConversationItem(c) {
 
 function _normalizeCachedConversationItem(item) {
   var normalized = Object.assign({}, item || {});
-  var preview = _normalizePreview(normalized.preview || normalized.last_message || "");
+  var preview = _normalizePreview(
+    normalized.preview || normalized.last_message || "",
+  );
   var cachedLabel = String(normalized.capabilityLabel || "").trim();
   var cachedLabelKey = cachedLabel.toLowerCase();
 
@@ -249,14 +268,20 @@ function _normalizeCachedConversationItem(item) {
   normalized.modeLabel = _conversationModeLabel(normalized);
   if (normalized.capability) {
     normalized.capabilityLabel = _capabilityLabel(normalized.capability);
-  } else if (!cachedLabel || cachedLabelKey === "tutorbot" || cachedLabelKey === "chat") {
+  } else if (
+    !cachedLabel ||
+    cachedLabelKey === "tutorbot" ||
+    cachedLabelKey === "chat"
+  ) {
     normalized.capabilityLabel = "智能对话";
   }
   return normalized;
 }
 
 function _normalizeCachedConversations(convs) {
-  return (Array.isArray(convs) ? convs : []).map(_normalizeCachedConversationItem);
+  return (Array.isArray(convs) ? convs : []).map(
+    _normalizeCachedConversationItem,
+  );
 }
 
 function _flattenGroups(groups) {
@@ -368,12 +393,14 @@ Page({
     var navContentPaddingTop = 0;
     var navActionRowHeight = 36;
     // 用胶囊按钮精确计算，避免与小程序右上角控制按钮重叠
+    var rightInset = 24; // 默认值，胶囊按钮不可用时退退退
     if (wx.getMenuButtonBoundingClientRect) {
       var rect = wx.getMenuButtonBoundingClientRect();
       navContentPaddingTop = rect.top - statusBarHeight;
-      navContentHeight = rect.height + navContentPaddingTop * 2 + navActionRowHeight;
+      navContentHeight =
+        rect.height + navContentPaddingTop * 2 + navActionRowHeight;
       var windowWidth = info.windowWidth || info.screenWidth || 375;
-      var rightInset = Math.max(24, windowWidth - rect.left + 8);
+      rightInset = Math.max(24, windowWidth - rect.left + 8);
     } else {
       navContentHeight += navActionRowHeight;
     }
@@ -387,12 +414,17 @@ Page({
   },
 
   onShow: function () {
+    this._abortPending = false;
     this.setData({ isDark: helpers.isDark() });
     helpers.syncTabBar(this, 1);
     var self = this;
     getApp().checkAuth(function () {
       self._loadWithCache();
     });
+  },
+
+  onUnload: function () {
+    this._abortPending = true;
   },
 
   // ── SWR: 先展示缓存，后台刷新 ─────────────────
@@ -403,12 +435,22 @@ Page({
     var now = Date.now();
 
     if (cached && cached.groups && cached.ts && now - cached.ts < CACHE_TTL) {
-      this._applyConversationState(_normalizeCachedConversations(cached.conversations || _flattenGroups(cached.groups)), false);
+      this._applyConversationState(
+        _normalizeCachedConversations(
+          cached.conversations || _flattenGroups(cached.groups),
+        ),
+        false,
+      );
       return;
     }
 
     if (cached && cached.groups) {
-      this._applyConversationState(_normalizeCachedConversations(cached.conversations || _flattenGroups(cached.groups)), false);
+      this._applyConversationState(
+        _normalizeCachedConversations(
+          cached.conversations || _flattenGroups(cached.groups),
+        ),
+        false,
+      );
       this._fetchFromServer(true);
     } else {
       this.setData({ loading: true });
@@ -418,6 +460,7 @@ Page({
 
   _fetchFromServer: function (silent) {
     var self = this;
+    if (this._abortPending) return;
     if (!silent) self.setData({ error: false });
 
     var isArchived = self.data.tab === "archived";
@@ -425,6 +468,7 @@ Page({
     api
       .getConversations(isArchived ? true : undefined)
       .then(function (raw) {
+        if (self._abortPending) return;
         // [FIX 2026-04-01] 统一 unwrap ApiResponse {code,data:{conversations}}
         var unwrapped = api.unwrapResponse(raw);
         var list = unwrapped.conversations || [];
@@ -446,6 +490,7 @@ Page({
         self._lastFetch = Date.now();
       })
       .catch(function (e) {
+        if (self._abortPending) return;
         if (!silent)
           self.setData({ loading: false, error: true, refreshing: false });
         else self.setData({ refreshing: false });
@@ -485,7 +530,9 @@ Page({
     var query = String((e.detail && e.detail.value) || "");
     this.setData({
       query: query,
-      groups: _groupByDate(_filterConversations(this.data.conversations, query)),
+      groups: _groupByDate(
+        _filterConversations(this.data.conversations, query),
+      ),
       emptyState: _emptyState(this.data.tab, query),
     });
   },
@@ -547,6 +594,7 @@ Page({
     api
       .deleteConversation(convId)
       .then(function () {
+        if (self._abortPending) return;
         _rememberDeletedConversationIds([convId]);
         self._removeFromGroups([convId]);
         wx.removeStorageSync(CACHE_KEY);
@@ -554,6 +602,7 @@ Page({
         wx.showToast({ title: "已删除", icon: "success" });
       })
       .catch(function () {
+        if (self._abortPending) return;
         wx.showToast({ title: "删除失败", icon: "none" });
       });
   },
@@ -574,6 +623,7 @@ Page({
         api
           .batchConversations("archive", [convId])
           .then(function () {
+            if (self._abortPending) return;
             wx.hideLoading();
             self._removeFromGroups([convId]);
             wx.removeStorageSync(CACHE_KEY);
@@ -581,6 +631,7 @@ Page({
             wx.showToast({ title: "已归档", icon: "success" });
           })
           .catch(function () {
+            if (self._abortPending) return;
             wx.hideLoading();
             wx.showToast({ title: "归档失败", icon: "none" });
           });
@@ -701,6 +752,7 @@ Page({
     api
       .batchConversations(action, ids)
       .then(function (res) {
+        if (self._abortPending) return;
         wx.hideLoading();
         if (action === "delete") {
           _rememberDeletedConversationIds(ids);
@@ -719,6 +771,7 @@ Page({
         wx.showToast({ title: msg, icon: "success" });
       })
       .catch(function () {
+        if (self._abortPending) return;
         wx.hideLoading();
         wx.showToast({ title: "操作失败", icon: "none" });
       });
@@ -809,7 +862,9 @@ function _groupByDate(convs) {
 
 function _filterConversations(convs, query) {
   convs = Array.isArray(convs) ? convs : [];
-  var keyword = String(query || "").trim().toLowerCase();
+  var keyword = String(query || "")
+    .trim()
+    .toLowerCase();
   if (!keyword) return convs;
   return convs.filter(function (item) {
     return [
@@ -820,7 +875,11 @@ function _filterConversations(convs, query) {
       item.capabilityLabel,
       item.metaLine,
     ].some(function (part) {
-      return String(part || "").toLowerCase().indexOf(keyword) !== -1;
+      return (
+        String(part || "")
+          .toLowerCase()
+          .indexOf(keyword) !== -1
+      );
     });
   });
 }

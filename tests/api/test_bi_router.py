@@ -19,6 +19,7 @@ bi_router_module = importlib.import_module("deeptutor.api.routers.bi")
 bi_router = bi_router_module.router
 
 from deeptutor.services.bi_service import BIService
+from deeptutor.services.config import env_store as env_store_module
 from deeptutor.services.feedback_service import build_mobile_feedback_row
 from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.service import get_member_console_service
@@ -56,7 +57,7 @@ class _FakeMemberService:
                 "risk_level": "low",
                 "auto_renew": True,
                 "expire_at": "2026-05-01T00:00:00+08:00",
-                "created_at": "2026-04-01T00:00:00+08:00",
+                "created_at": "2026-06-22T00:00:00+08:00",
                 "last_active_at": "2026-04-14T08:00:00+08:00",
                 "points_balance": 500,
                 "review_due": 2,
@@ -71,7 +72,7 @@ class _FakeMemberService:
                 "risk_level": "high",
                 "auto_renew": False,
                 "expire_at": "2026-04-16T00:00:00+08:00",
-                "created_at": "2026-04-10T00:00:00+08:00",
+                "created_at": "2026-06-22T00:00:00+08:00",
                 "last_active_at": "2026-04-12T00:00:00+08:00",
                 "points_balance": 40,
                 "review_due": 6,
@@ -180,7 +181,7 @@ class _FakeWalletService:
                 reference_id="ord_real_1",
                 idempotency_key="order:ord_real_1",
                 metadata={"channel": "wechat", "amount_cny": 99},
-                created_at="2026-04-15T10:00:00+08:00",
+                created_at="2026-06-22T10:00:00+08:00",
             ),
             SimpleNamespace(
                 id="ledger_real_2",
@@ -193,7 +194,7 @@ class _FakeWalletService:
                 reference_id="session_1",
                 idempotency_key="usage:session_1",
                 metadata={"capability": "deep_solve"},
-                created_at="2026-04-15T11:00:00+08:00",
+                created_at="2026-06-22T11:00:00+08:00",
             ),
         ]
         return rows[offset : offset + limit]
@@ -204,6 +205,16 @@ def _build_app(service: BIService) -> FastAPI:
     app.include_router(bi_router, prefix="/api/v1/bi")
     app.dependency_overrides = {}
     return app
+
+
+def _set_metrics_env_store(monkeypatch, tmp_path: Path, token: str) -> None:
+    env_file = tmp_path / "metrics.env"
+    env_file.write_text(f"DEEPTUTOR_METRICS_TOKEN={token}\n", encoding="utf-8")
+    monkeypatch.setattr(
+        env_store_module,
+        "_env_store",
+        env_store_module.EnvStore(path=env_file, fallback_paths=()),
+    )
 
 
 def _assert_non_empty_list(value: object, field_name: str) -> list[object]:
@@ -784,6 +795,9 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         def can_manage_permissions(self, *_args, **_kwargs) -> bool:
             return True
 
+        def record_ops_action_result(self, *args, **kwargs):
+            return service._member_service.record_ops_action_result(*args, **kwargs)  # noqa: SLF001
+
     monkeypatch.setattr(
         "deeptutor.api.routers.bi.get_member_console_service",
         lambda: _FullAccessMemberService(),
@@ -1088,8 +1102,9 @@ def test_bi_router_honors_explicit_public_flag_in_production(
 def test_bi_router_allows_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1104,8 +1119,9 @@ def test_bi_router_allows_metrics_token_in_production(
 def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1120,8 +1136,9 @@ def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
 def test_bi_router_metrics_token_does_not_expose_commerce(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1136,8 +1153,9 @@ def test_bi_router_metrics_token_does_not_expose_commerce(
 def test_bi_router_metrics_token_does_not_expose_invite_test_stats(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(
@@ -1565,8 +1583,9 @@ def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService, tmp_
 def test_bi_router_rejects_invalid_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,
+    tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+    _set_metrics_env_store(monkeypatch, tmp_path, "bi-read-token")
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get(

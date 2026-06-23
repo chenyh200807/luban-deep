@@ -1,0 +1,170 @@
+[
+  {
+    "issue": "工期索赔三分支过度锚定，关键线路全赔情景缺少独立quote或真题锚支撑",
+    "location": "§1/§2/§4/§5",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将三分支总规则降级为🔵，B/C真题算例可保🟢，并补充全赔情景独立锚例"
+  },
+  {
+    "issue": "R2母规则‘工期闸门只认网络位置，不认责任方’语义过绝对，缺少索赔资格前提",
+    "location": "§2/§3 R2母规则",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "改为‘在索赔资格/程序有效前提下，工期量只看关键线路/总时差’，避免误导承包人原因也可索工期"
+  },
+  {
+    "issue": "R2‘工期成立⇏费用成立’方向缺少清晰锚例，双向独立性反向证据不足",
+    "location": "§3 R2场景表",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "补充‘工期成立但费用不成立’的干净锚例，或将该半句降级为🔵待锚"
+  },
+  {
+    "issue": "赶工压缩工序优选归属过界，且‘不影响后续’作为必选条件未核实",
+    "location": "§1/§4/§8 赶工优选",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "降级为🔵邻接·高频后续工具，‘不影响后续’待核后改为条件描述"
+  },
+  {
+    "issue": "T2网络计划定量求解归属过界，单独考关键线路/总时差时属进度管理，不应完全并入索赔本体",
+    "location": "§4 T2",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "降级为🔵工具层/前置能力，注明仅在判索赔成立时伴生属本体"
+  },
+  {
+    "issue": "C工期不成立措辞不严谨，实际是工期只部分成立/不全额成立",
+    "location": "§4高频陷阱3/§7旁白",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "修改为‘C工期只部分成立/不全额成立’等准确描述"
+  },
+  {
+    "issue": "发包人原因可加索利润的规则quote精准度不足",
+    "location": "§2/§5/R6 利润可索",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "定位具体支持利润索赔的quote，先降🔵待确认后升🟢"
+  },
+  {
+    "issue": "误区2‘忽视索赔时限’映射E06不当，E06为程序顺序错误而非时限遗漏",
+    "location": "§6 误区2→E06映射",
+    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "区分题型：案例题可保留E06，客观题改E09/E10，或拆行标注适用条件"
+  },
+  {
+    "issue": "错因码映射总表未经ERROR_CODE_REGISTRY核验，表头自相矛盾，不能转绿",
+    "location": "§6 映射总表",
+    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "保持🔴待核准，明确需registry核验后调整"
+  },
+  {
+    "issue": "索赔处理四步未被quote完整支持，仅后两步有锚",
+    "location": "§5 索赔处理四步",
+    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "后两步🟢可保，整体降级🔵，补充前两步quote"
+  },
+  {
+    "issue": "常见证据清单中部分项（照片/气候报告等）未在供核quote中露出",
+    "location": "§1 常见证据清单",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补充对应quote或明确为补充举例，暂降🔵"
+  },
+  {
+    "issue": "不可抗力损失分担规则扩写过度，quote截断不能充分支持整套表述",
+    "location": "§1 不可抗力分担",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "已露出的保留🟢，其余条款补全quote后再纳入"
+  },
+  {
+    "issue": "‘立案开关：非承包人原因→索赔成立可能性开启’为推理表述，quote未直接支持‘可能性开启’",
+    "location": "§2 立案开关",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "回真源核，若无明确‘立案’说法则降级为工程通识归纳或另觅锚点"
+  },
+  {
+    "issue": "措施项目调价公式归属标注有误/证据强度不足",
+    "location": "§1 措施项目调价公式",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "保留🔵但调属性描述为‘邻接·费用计算工具’，或补出题频率证据后升级"
+  },
+  {
+    "issue": "工期比例分析法（原工期×新增工程量/原工程量）未被point对应quote支持",
+    "location": "§1 工期比例分析法",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核实原文，如不支持则降级为衍生归纳或删除"
+  },
+  {
+    "issue": "费用索赔分项法（人工/机械/管理/利润逐项）quote仅支持总费用法主干，不支持分项法",
+    "location": "§1 费用索赔分项法",
+    "flagged_by": ["Qwen-3.7-Max"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "总费用法保留🟢，分项法须定位独立quote或降级为扩展"
+  },
+  {
+    "issue": "误区3‘证据不足’映射E03不当，口头/简单记录够不单纯是关键词缺失",
+    "location": "§6 误区3→E03",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分：漏四性可E03/E02，误以为口头够应E10，重映射"
+  },
+  {
+    "issue": "误区5‘费用利润混写’一行混了两种错因，需拆分",
+    "location": "§6 误区5→E02/E10",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "拆分：漏写利润用E02，乱套利润用E10"
+  },
+  {
+    "issue": "误区6/7数值与赶工类错误码未区分E/M题型边界",
+    "location": "§6 误区6/7 映射",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "增加适用题型列，客观题候选M08/M10，待registry核"
+  },
+  {
+    "issue": "28天表述在误区/旁白中简化为‘28天内提’，遗漏‘合同未约定’条件",
+    "location": "§1/§6/§7 28天时限",
+    "flagged_by": ["GPT-5.5(Codex)"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "所有短句补上‘合同未约定→28天’条件，否则降🔵"
+  },
+  {
+    "issue": "误区4‘非关键按延误全额索’映射E09/E07优先级不清",
+    "location": "§6 误区4映射",
+    "flagged_by": ["DeepSeek-V4-Pro"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "注明‘原发E07概念混淆，衍生E09计算错误’"
+  }
+]

@@ -21,9 +21,11 @@ from pathlib import Path
 import os
 import shutil
 import subprocess
-import tempfile
 
-remote_dir = Path(os.environ['REMOTE_DIR'])
+remote_dir = Path(os.environ['REMOTE_DIR']).resolve()
+remote_root = remote_dir
+if remote_root != Path('/root/deeptutor'):
+    raise SystemExit(f'REMOTE_DIR 必须解析到 /root/deeptutor: {remote_root}')
 release_dir = remote_dir / 'data' / 'releases' / 'code'
 if not release_dir.exists():
     raise SystemExit(f'缺少代码快照目录: {release_dir}')
@@ -39,7 +41,19 @@ else:
     if not snapshot.exists():
         raise SystemExit(f'指定代码快照不存在: {snapshot}')
 
-tmp_dir = Path(tempfile.mkdtemp(prefix='deeptutor_release_restore_'))
+snapshot = snapshot.resolve()
+if release_dir not in snapshot.parents:
+    raise SystemExit(f'代码快照必须位于 {release_dir} 内: {snapshot}')
+
+staging_root = (remote_dir / 'data' / 'releases' / 'restore_tmp').resolve()
+tmp_dir = (staging_root / ('restore_{}'.format(os.getpid()))).resolve()
+if remote_dir not in tmp_dir.parents:
+    raise SystemExit(f'回滚 staging 目录必须位于 {remote_dir} 内: {tmp_dir}')
+if staging_root not in tmp_dir.parents:
+    raise SystemExit(f'回滚 staging 目录必须位于 {staging_root} 内: {tmp_dir}')
+if tmp_dir.exists():
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+tmp_dir.mkdir(parents=True, exist_ok=False)
 try:
     subprocess.run(['tar', '-xzf', str(snapshot), '-C', str(tmp_dir)], check=True)
     restore_cmd = [

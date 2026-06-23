@@ -58,6 +58,27 @@ def test_learning_report_contract_surface_registered() -> None:
     assert "deeptutor/services/learner_state/home_personalization.py" in turn["protected_patterns"]
 
 
+def test_mobile_password_change_auth_control_registered() -> None:
+    index = _load_yaml(ROOT / "contracts" / "index.yaml")
+    controls = index["mobile_http_auth_controls"]
+    password_change = controls["password_change"]
+
+    assert password_change["path"] == "/api/v1/auth/change-password"
+    assert password_change["authority"] == "MemberConsoleService -> external_auth"
+    semantics = " | ".join(password_change["semantics"])
+    assert "authenticated" in semantics
+    assert "old password" in semantics
+    assert "must not write learner" in semantics
+
+
+def test_mobile_http_auth_controls_paths_are_unique() -> None:
+    index = _load_yaml(ROOT / "contracts" / "index.yaml")
+    controls = index["mobile_http_auth_controls"]
+    paths = [str(value["path"]) for value in controls.values()]
+
+    assert len(paths) == len(set(paths))
+
+
 def test_learning_report_contract_keeps_conversation_evidence_inside_learning_evidence() -> None:
     contract = (ROOT / "contracts" / "learning-report.md").read_text(encoding="utf-8")
 

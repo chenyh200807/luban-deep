@@ -1176,6 +1176,56 @@
 .callout-tag-tip { color: #a7f3d0; background: rgba(16,185,129,0.18); border: 1rpx solid rgba(52,211,153,0.36); }
 .callout-body { font-size: 27rpx; color: rgba(241,245,249,0.94); line-height: 1.72; }
 
+.nba-card {
+  margin: 16rpx 0;
+  padding: 18rpx 22rpx;
+  border-left: 6rpx solid rgba(16,185,129,0.72);
+  border-radius: 14rpx;
+  background: rgba(16,185,129,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.nba-badge {
+  align-self: flex-start;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #a7f3d0;
+  background: rgba(16,185,129,0.16);
+}
+.nba-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: rgba(240,253,244,0.96);
+  line-height: 1.45;
+}
+.nba-why,
+.nba-material,
+.nba-measure {
+  font-size: 24rpx;
+  color: rgba(209,250,229,0.82);
+  line-height: 1.55;
+}
+.nba-materials {
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+.nba-go {
+  align-self: flex-start;
+  margin-top: 4rpx;
+  padding: 9rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(16,185,129,0.95);
+}
+.nba-go-label {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
 /* ── MCQ — 深色玻璃卡片 ──────────────────────── */
 .mcq { margin-top: 20rpx; display: flex; flex-direction: column; gap: 14rpx; }
 .mcq-head {
@@ -2094,6 +2144,19 @@
 .page.light .md-callout-warning { border-left-color: #ef4444; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); }
 .page.light .md-callout-highlight { border-left-color: #2f6bff; background: linear-gradient(135deg, #eef4ff 0%, #ffffff 100%); }
 .page.light .md-callout-tip { border-left-color: #22c55e; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); }
+
+.page.light .nba-card {
+  background: #ecfdf5;
+  border-left-color: #10b981;
+}
+.page.light .nba-badge {
+  color: #047857;
+  background: rgba(16,185,129,0.14);
+}
+.page.light .nba-title { color: #0f172a; }
+.page.light .nba-why,
+.page.light .nba-material,
+.page.light .nba-measure { color: #334155; }
 
 /* ── MCQ ───────────────────────────────────── */
 .page.light .mcq-head-title { color: #2f5fda; }

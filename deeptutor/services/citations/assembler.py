@@ -59,6 +59,48 @@ def _strip_inline_reference_noise(answer: str, *, markers: list[str]) -> str:
     return "\n".join(lines).strip()
 
 
+_ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔\d{1,3}〕")
+# 〔源:chunk_id〕 是 rich_leaf 检索 grounding 标记(supporting-citation-only),只该
+# 出现在喂 LLM 判分/教学的上下文里,绝不是合法学生引用(合法引用是带 footer 的数字
+# 〔N〕)。judge 模仿进输出时必须无条件剥——与 backing footer 无关。
+_GROUNDING_SOURCE_MARKER_RE = re.compile(r"〔源[:：][^〕]*〕")
+
+
+def _has_backing_reference_footer(text: str) -> bool:
+    """文本里是否有合法的引用 footer(`依据` 段 + 〔N〕 + 来源线索)——即 assembler
+    渲染出来、〔N〕 真有来源的情况。有则 〔N〕 是合法引用,不可剥。"""
+    for match in _FOOTER_RE.finditer(text):
+        footer = text[match.end() :]
+        if _ORPHAN_REFERENCE_MARKER_RE.search(footer) and _REFERENCE_SOURCE_HINT_RE.search(footer):
+            return True
+    return False
+
+
+def strip_orphan_reference_markers(answer: str) -> str:
+    """剥离学生可见文本里的孤儿数字脚注标注（〔N〕）+ 参考依据行。
+
+    判据是 **这段文本里 〔N〕 有没有 backing footer**,与全局 citation flag 无关——
+    实证(2026-06-23):test2 上 `answer_citations_enabled()=True` 但判分 LLM 吐的 〔N〕
+    并没走引用装配、没有 footer = 孤儿,仍漏给学生。所以 flag≠footer,必须按 footer 判。
+    有合法 footer(`依据`段+来源线索)→ 〔N〕 是合法引用,整段不动;无 footer → 〔N〕 是
+    主 LLM 输出但解析不到来源的内部噪声,剥掉 + 去掉悬空参考依据行。
+    """
+    text = str(answer or "")
+    if not text.strip():
+        return text
+    # 〔源:chunk_id〕 grounding 标记永远剥(与 footer 无关),它不是合法学生引用。
+    text = _GROUNDING_SOURCE_MARKER_RE.sub("", text)
+    if _has_backing_reference_footer(text):
+        return text
+    lines = []
+    for line in text.splitlines():
+        reference_line = _REFERENCE_LINE_RE.match(line)
+        if reference_line and _REFERENCE_SOURCE_HINT_RE.search(reference_line.group("body")):
+            continue
+        lines.append(_ORPHAN_REFERENCE_MARKER_RE.sub("", line).rstrip())
+    return "\n".join(lines).strip()
+
+
 def _segments(answer: str) -> list[str]:
     return [part.strip() for part in re.split(r"(\n{2,}|(?<=。)\n)", answer) if part.strip()]
 

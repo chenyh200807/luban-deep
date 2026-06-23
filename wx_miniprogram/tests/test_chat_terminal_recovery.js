@@ -163,6 +163,10 @@ function loadChatPage(options) {
     isStreaming: true,
     canStopStream: true,
   });
+  var emptyDoneBackgroundContinues = 0;
+  page._continuePendingTurnRecoveryInBackground = function () {
+    emptyDoneBackgroundContinues += 1;
+  };
 
   page._onDone();
   for (var i = 0; i < 8; i++) {
@@ -175,6 +179,10 @@ function loadChatPage(options) {
   );
   assert(page.data.isStreaming === false, "empty done recovery exhaustion should unlock streaming state");
   assert(page.data.canStopStream === false, "empty done recovery exhaustion should clear stop affordance");
+  assert(
+    emptyDoneBackgroundContinues === 1,
+    "empty done short recovery exhaustion should continue canonical history recovery in the background",
+  );
 
   var foregroundPage = loadChatPage({
     getConversationMessages: function () {
@@ -207,7 +215,13 @@ function loadChatPage(options) {
     canStopStream: false,
   });
 
-  foregroundPage._startPendingTurnBackgroundRecovery();
+  foregroundPage._pendingRecoveryActive = true;
+  await foregroundPage._recoverTurnFromHistory({
+    maxAttempts: 1,
+    unlockOnExhausted: true,
+    keepPendingOnExhausted: true,
+    hydrateOnExhausted: false,
+  });
   for (var j = 0; j < 8; j++) {
     await flushPromises();
   }

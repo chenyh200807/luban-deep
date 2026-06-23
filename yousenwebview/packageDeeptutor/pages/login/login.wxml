@@ -55,7 +55,9 @@
         <text class="err-txt">{{errorMsg}}</text>
       </view>
 
-      <view class="btn-wechat-stack">
+      <view wx:if="{{loginMode === 'bind_phone_only'}}" class="bind-phone-only-panel">
+        <text class="bind-phone-title">请先绑定手机号</text>
+        <text class="bind-phone-desc">绑定后才会进入会员系统和权益记录</text>
         <button
           wx:if="{{privacyChecked}}"
           class="btn-wechat-primary {{wechatLoading?'off':''}}"
@@ -63,7 +65,7 @@
           bindgetphonenumber="handleWechatPhoneNumber"
           disabled="{{wechatLoading || loading}}"
         >
-          <text class="btn-wechat-primary-txt">{{wechatLoading ? '登录中...' : '快速登录'}}</text>
+          <text class="btn-wechat-primary-txt">{{wechatLoading ? '绑定中...' : '绑定手机号'}}</text>
         </button>
         <button
           wx:else
@@ -103,15 +105,28 @@
         <text class="privacy-link" catchtap="openPrivacyGuide">{{privacyContractName}}</text>
       </view>
 
-      <view class="guest-entry" bindtap="handleGuestPreview" aria-role="button" aria-label="先体验导学">
-        <text class="guest-entry-txt">先体验导学</text>
-        <text class="guest-entry-arrow">›</text>
-      </view>
+      <view wx:else>
+        <view class="btn-wechat-stack">
+          <button
+            class="btn-wechat-primary {{wechatLoading?'off':''}}"
+            open-type="getPhoneNumber"
+            bindgetphonenumber="handleWechatPhoneNumber"
+            disabled="{{wechatLoading || loading}}"
+          >
+            <text class="btn-wechat-primary-txt">{{wechatLoading ? '登录中...' : '快速登录'}}</text>
+          </button>
+        </view>
 
-      <view class="link-row">
-        <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
-        <text class="link-sep">|</text>
-        <text class="manual-link" bindtap="goPasswordReset">忘记密码</text>
+        <view class="guest-entry" bindtap="handleGuestPreview" aria-role="button" aria-label="先体验导学">
+          <text class="guest-entry-txt">先体验导学</text>
+          <text class="guest-entry-arrow">›</text>
+        </view>
+
+        <view class="link-row">
+          <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
+          <text class="link-sep">|</text>
+          <text class="manual-link" bindtap="goPasswordReset">忘记密码</text>
+        </view>
       </view>
     </view>
   </view>

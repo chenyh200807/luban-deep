@@ -683,7 +683,7 @@ module.exports = {
 	            <view class="web-pill-icon"><view class="web-pill-ring"></view></view>
 	            <text class="web-pill-txt">联网</text>
 	          </view>
-	          <text class="mode-hint">自动切换 · 1-10点</text>
+	          <text class="mode-hint">{{modeHintText}}</text>
 	        </view>
 	        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
 	          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>

@@ -14,6 +14,7 @@ Uses the unified LLM factory from BaseAgent for both cloud and local LLM support
 from typing import Any, AsyncGenerator
 
 from deeptutor.agents.base_agent import BaseAgent
+from deeptutor.core.grounding import GROUNDING_CLAUSE
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 
 
@@ -256,7 +257,7 @@ class ChatAgent(BaseAgent):
         """
         messages = []
 
-        system_parts = [self.get_prompt("system", "You are a helpful AI assistant.")]
+        system_parts = [GROUNDING_CLAUSE, self.get_prompt("system", "You are a helpful AI assistant.")]
         if context:
             context_template = self.get_prompt("context_template", "Reference context:\n{context}")
             system_parts.append(context_template.format(context=context))

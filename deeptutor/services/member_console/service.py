@@ -77,12 +77,17 @@ from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
-from deeptutor.services.learner_state.home_personalization import canonical_home_focus_topic_label
+from deeptutor.services.learner_state.home_personalization import (
+    canonical_home_focus_topic_label,
+    is_canonical_home_personalization_projection,
+)
 from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
+    change_external_auth_password,
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
+    get_external_auth_user_by_phone,
     load_external_auth_users,
     reset_external_auth_password,
     validate_external_auth_password,
@@ -106,6 +111,7 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -116,6 +122,19 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
         "phone_verification",
     }
 )
+_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
+_MEMBERSHIP_TIER_RANK = {
+    "trial": 0,
+    "vip": 1,
+    "svip": 2,
+    "supreme_svip": 3,
+}
+_ADMIN_ROLE_RANK = {
+    rbac.ROLE_ANALYST: 0,
+    rbac.ROLE_OPERATOR: 1,
+    rbac.ROLE_ADMIN: 2,
+    rbac.ROLE_SUPER_ADMIN: 3,
+}
 
 
 def _assessment_writeback_worker_count() -> int:
@@ -162,6 +181,19 @@ def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> b
         created_at = created_at.replace(tzinfo=_TZ)
     age = now - created_at.astimezone(_TZ)
     return timedelta(0) <= age <= timedelta(days=days)
+
+
+def is_bi_operational_at(value: Any) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_TZ)
+    return parsed.astimezone(_TZ) >= BI_OPERATION_START_AT
 
 
 def _slugify_phone(value: str) -> str:
@@ -1656,6 +1688,9 @@ class MemberConsoleService:
         )
         test_markers = (
             "test",
+            "qa_",
+            "qa-",
+            "qa.",
             "casefix",
             "codex",
             "probe",
@@ -1664,10 +1699,13 @@ class MemberConsoleService:
             "prelaunchsmoke",
             "preflight",
             "smoke",
+            "soak",
             "debug",
             "mock",
             "dummy",
             "fake",
+            "compiled_shadow",
+            "synthetic",
             "测试",
         )
         demo_member_ids = {
@@ -1727,11 +1765,14 @@ class MemberConsoleService:
         return score(source) > score(target)
 
     def _merge_canonical_member_for_bi(self, target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
+        target_points = int(target.get("points_balance") or 0)
+        source_points = int(source.get("points_balance") or 0)
         alias_user_ids = {
             str(item).strip()
             for item in list(target.get("alias_user_ids") or []) + list(source.get("alias_user_ids") or [])
             if str(item).strip()
         }
+        search_aliases = self._member_search_alias_values(target, source)
         for item in (target.get("user_id"), source.get("user_id")):
             if str(item or "").strip():
                 alias_user_ids.add(str(item).strip())
@@ -1745,6 +1786,8 @@ class MemberConsoleService:
             self._merge_member_identity_view(target, source)
 
         target["alias_user_ids"] = sorted(alias_user_ids)
+        target["search_aliases"] = sorted(search_aliases)
+        target["points_balance"] = max(target_points, source_points, int(target.get("points_balance") or 0))
         phone = self._registered_phone_for_bi(target) or self._registered_phone_for_bi(source)
         if phone:
             target["phone"] = phone
@@ -1815,23 +1858,144 @@ class MemberConsoleService:
             keys.add(f"phone:{phone}")
         return {key for key in keys if key}
 
+    @staticmethod
+    def _member_search_alias_values(*members: dict[str, Any] | None) -> set[str]:
+        values: set[str] = set()
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            for key in (
+                "user_id",
+                "canonical_user_id",
+                "canonical_uid",
+                "external_auth_user_id",
+                "auth_username",
+                "display_name",
+                "identifier",
+                "phone",
+                "wx_openid",
+                "openid",
+                "wx_unionid",
+                "unionid",
+            ):
+                value = str(member.get(key) or "").strip()
+                if not value:
+                    continue
+                values.add(value)
+                if key == "phone":
+                    digits = re.sub(r"\D+", "", value)
+                    if digits:
+                        values.add(digits)
+            for key in ("alias_user_ids", "search_aliases"):
+                for value in list(member.get(key) or []):
+                    normalized = str(value or "").strip()
+                    if normalized:
+                        values.add(normalized)
+        return values
+
     def _member_console_overlay_index(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
         overlays: dict[str, dict[str, Any]] = {}
         for raw_member in data.get("members") or []:
             if not isinstance(raw_member, dict):
                 continue
             for key in self._member_overlay_keys_for_directory(raw_member):
-                overlays.setdefault(key, raw_member)
+                existing = overlays.get(key)
+                if existing is None or self._is_better_member_console_overlay(raw_member, existing, key):
+                    overlays[key] = raw_member
         return overlays
+
+    def _member_console_merged_aliases(
+        self,
+        data: dict[str, Any],
+        overlay_index: dict[str, dict[str, Any]],
+    ) -> dict[str, set[str]]:
+        aliases_by_user_id: dict[str, set[str]] = {}
+        for raw_member in data.get("members") or []:
+            if not isinstance(raw_member, dict):
+                continue
+            resolved = self._resolve_member_console_overlay(overlay_index, raw_member)
+            if not isinstance(resolved, dict) or resolved is raw_member:
+                continue
+            resolved_user_id = str(resolved.get("user_id") or "").strip()
+            if not resolved_user_id:
+                continue
+            aliases_by_user_id.setdefault(resolved_user_id, set()).update(
+                self._member_search_alias_values(raw_member)
+            )
+        return aliases_by_user_id
+
+    @staticmethod
+    def _member_alias_user_id_values(values: set[str]) -> set[str]:
+        return {
+            value
+            for value in values
+            if is_uuid_like(value) or value.startswith("auth_")
+        }
+
+    def _is_better_member_console_overlay(
+        self,
+        candidate: dict[str, Any],
+        existing: dict[str, Any],
+        key: str,
+    ) -> bool:
+        def rank(member: dict[str, Any]) -> tuple[int, int, int, int, int, float, int]:
+            user_id = str(member.get("user_id") or "").strip()
+            merged_into = str(member.get("merged_into") or "").strip()
+            tier = str(member.get("tier") or "").strip()
+            key_value = str(key or "").strip()
+            direct_user_id_match = 1 if user_id and user_id == key_value else 0
+            non_auth_wrapper = 0 if user_id.startswith("auth_") else 1
+            canonical_uuid_user_id = 1 if is_uuid_like(user_id) else 0
+            canonical_root = 1 if not merged_into else 0
+            paid_tier = 1 if tier and tier != "trial" else 0
+            expire_ts = _parse_time(member.get("expire_at")).timestamp()
+            signal_score = self._member_signal_score(member)
+            return (
+                direct_user_id_match,
+                non_auth_wrapper,
+                canonical_uuid_user_id,
+                canonical_root,
+                paid_tier,
+                expire_ts,
+                signal_score,
+            )
+
+        return rank(candidate) > rank(existing)
+
+    def _resolve_member_console_overlay(
+        self,
+        overlay_index: dict[str, dict[str, Any]],
+        overlay: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        current = overlay
+        seen: set[str] = set()
+        while isinstance(current, dict):
+            user_id = str(current.get("user_id") or "").strip()
+            if user_id:
+                if user_id in seen:
+                    break
+                seen.add(user_id)
+            merged_into = str(current.get("merged_into") or "").strip()
+            if not merged_into or merged_into == user_id:
+                break
+            next_overlay = overlay_index.get(merged_into)
+            if not isinstance(next_overlay, dict):
+                break
+            current = next_overlay
+        return current
 
     def _merge_member_console_overlay(
         self,
         member: dict[str, Any],
         overlay: dict[str, Any] | None,
+        *,
+        source_overlay: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not overlay:
             return member
         merged = deepcopy(member)
+        source_overlay = source_overlay if isinstance(source_overlay, dict) else overlay
+        resolved_from_merged_account = source_overlay is not overlay
         overlay_aliases = {
             str(value or "").strip()
             for value in [
@@ -1846,20 +2010,55 @@ class MemberConsoleService:
             {
                 str(value or "").strip()
                 for value in [
+                    merged.get("user_id"),
+                    merged.get("canonical_user_id"),
+                    merged.get("external_auth_user_id"),
                     *list(merged.get("alias_user_ids") or []),
                     *list(overlay_aliases),
                 ]
                 if str(value or "").strip()
             }
         )
-        if not str(merged.get("phone") or "").strip():
-            phone = self._registered_phone_for_bi(overlay)
-            if phone:
-                merged["phone"] = phone
-        if str(merged.get("display_name") or "").strip() in {"", str(merged.get("user_id") or "").strip()}:
-            display_name = str(overlay.get("display_name") or "").strip()
-            if display_name:
-                merged["display_name"] = display_name
+        merged["search_aliases"] = sorted(self._member_search_alias_values(merged, source_overlay, overlay))
+        overlay_user_id = str(overlay.get("user_id") or "").strip()
+        if overlay_user_id:
+            merged["user_id"] = overlay_user_id
+        overlay_external_user_id = str(overlay.get("external_auth_user_id") or "").strip()
+        overlay_canonical_user_id = str(overlay.get("canonical_user_id") or "").strip()
+        if overlay_external_user_id and is_uuid_like(overlay_external_user_id):
+            merged["canonical_user_id"] = overlay_external_user_id
+        elif overlay_canonical_user_id:
+            merged["canonical_user_id"] = overlay_canonical_user_id
+        elif overlay_user_id:
+            merged["canonical_user_id"] = overlay_user_id
+
+        phone = self._registered_phone_for_bi(overlay)
+        if phone:
+            merged["phone"] = phone
+        display_name = str(overlay.get("display_name") or "").strip()
+        if display_name:
+            merged["display_name"] = display_name
+        for field in (
+            "tier",
+            "status",
+            "segment",
+            "risk_level",
+            "auto_renew",
+            "created_at",
+            "expire_at",
+            "auth_username",
+            "external_auth_provider",
+            "external_auth_user_id",
+            "wx_openid",
+            "wx_unionid",
+        ):
+            value = overlay.get(field)
+            if value not in (None, "", [], {}):
+                merged[field] = deepcopy(value)
+        if not resolved_from_merged_account and int(merged.get("points_balance") or 0) <= 0:
+            overlay_points = int(overlay.get("points_balance") or 0)
+            if overlay_points > 0:
+                merged["points_balance"] = overlay_points
         for field in (
             "avatar_url",
             "level",
@@ -1910,6 +2109,7 @@ class MemberConsoleService:
             logger.warning("Failed to load Supabase member directory read model", exc_info=True)
             return []
         overlay_index = self._member_console_overlay_index(data)
+        merged_aliases = self._member_console_merged_aliases(data, overlay_index)
         merged_members: list[dict[str, Any]] = []
         for member in members:
             if not isinstance(member, dict) or not self._is_registered_member_for_bi(member):
@@ -1919,29 +2119,68 @@ class MemberConsoleService:
                 overlay = overlay_index.get(key)
                 if overlay is not None:
                     break
-            normalized = self._merge_member_console_overlay(deepcopy(member), overlay)
+            resolved_overlay = self._resolve_member_console_overlay(overlay_index, overlay)
+            normalized = self._merge_member_console_overlay(
+                deepcopy(member),
+                resolved_overlay,
+                source_overlay=overlay,
+            )
             if not self._is_registered_member_for_bi(normalized):
                 continue
+            canonical_user_id = str(normalized.get("user_id") or "").strip()
+            extra_aliases = merged_aliases.get(canonical_user_id) or set()
+            if extra_aliases:
+                normalized["search_aliases"] = sorted(
+                    self._member_search_alias_values(normalized) | extra_aliases
+                )
+                normalized["alias_user_ids"] = sorted(
+                    {
+                        str(value or "").strip()
+                        for value in [
+                            *list(normalized.get("alias_user_ids") or []),
+                            *self._member_alias_user_id_values(extra_aliases),
+                        ]
+                        if str(value or "").strip()
+                    }
+                )
             normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
             merged_members.append(normalized)
-        if not include_session_activity_supplements:
-            return merged_members
+        members_by_user_id: dict[str, dict[str, Any]] = {}
+        for member in merged_members:
+            user_id = str(member.get("user_id") or "").strip()
+            if not user_id:
+                continue
+            existing = members_by_user_id.get(user_id)
+            if existing is None:
+                members_by_user_id[user_id] = member
+            else:
+                members_by_user_id[user_id] = self._merge_canonical_member_for_bi(existing, member)
+        merged_members = list(members_by_user_id.values())
         directory_keys = {
             key
             for member in merged_members
             for key in self._canonical_member_keys_for_bi(member)
         }
         local_members = self._members_for_bi(data)
-        local_members_with_activity = self._merge_session_activity_for_member_list(
-            [deepcopy(member) for member in local_members]
+        local_members_with_activity = (
+            self._merge_session_activity_for_member_list([deepcopy(member) for member in local_members])
+            if include_session_activity_supplements
+            else [deepcopy(member) for member in local_members]
         )
         for original, local_member in zip(local_members, local_members_with_activity, strict=False):
+            local_user_id = str(local_member.get("user_id") or "").strip()
+            local_merged_into = str(local_member.get("merged_into") or "").strip()
+            if local_merged_into and local_merged_into != local_user_id:
+                continue
             local_keys = self._canonical_member_keys_for_bi(local_member)
             if not local_keys or any(key in directory_keys for key in local_keys):
                 continue
-            if _parse_time(local_member.get("last_active_at")) <= _parse_time(original.get("last_active_at")):
-                continue
-            local_member.setdefault("member_directory_source", "member_console_session_activity_supplement")
+            if include_session_activity_supplements and _parse_time(
+                local_member.get("last_active_at")
+            ) > _parse_time(original.get("last_active_at")):
+                local_member["member_directory_source"] = "member_console_session_activity_supplement"
+            else:
+                local_member["member_directory_source"] = "member_console_local_supplement"
             merged_members.append(local_member)
             directory_keys.update(local_keys)
         return merged_members
@@ -2296,7 +2535,9 @@ class MemberConsoleService:
             )
         return target
 
-    def _ensure_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
+    def _ensure_member(
+        self, data: dict[str, Any], user_id: str, _seen: set[str] | None = None
+    ) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         reconciled = self._reconcile_external_auth_member(data, normalized_user_id)
         if reconciled is not None:
@@ -2306,7 +2547,23 @@ class MemberConsoleService:
             member = self._find_member(data, normalized_user_id)
             merged_into = str(member.get("merged_into") or "").strip()
             if merged_into and merged_into != normalized_user_id:
-                return self._ensure_member(data, merged_into)
+                # Guard against cyclic/broken merge chains (e.g. A->B->A). The
+                # self-reference check above only catches 1-step loops; a multi-hop
+                # cycle would recurse until RecursionError -> login 500. Track
+                # visited ids and stop if the chain revisits one, treating the
+                # current member as canonical instead of recursing forever.
+                seen = _seen if _seen is not None else set()
+                seen.add(normalized_user_id)
+                if merged_into in seen:
+                    logger.warning(
+                        "member merge cycle detected at user_id=%s merged_into=%s; "
+                        "treating current member as canonical",
+                        normalized_user_id,
+                        merged_into,
+                    )
+                    self._ensure_learning_profile(member)
+                    return member
+                return self._ensure_member(data, merged_into, seen)
             self._ensure_learning_profile(member)
             return member
         except KeyError:
@@ -2334,14 +2591,27 @@ class MemberConsoleService:
         phone = _normalize_phone_input(raw_phone)
         current_external_user_id = str(member.get("external_auth_user_id") or "").strip()
         synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
-        if (
-            not phone
-            or phone == synthetic_default_phone
-            or is_uuid_like(current_external_user_id)
-        ):
+        if not phone or phone == synthetic_default_phone:
             return
+        desired_user_id = current_external_user_id if is_uuid_like(current_external_user_id) else ""
+        if not desired_user_id:
+            try:
+                alias_ids = self._trusted_phone_alias_user_ids(phone)
+            except ValueError as exc:
+                logger.warning(
+                    "phone-backed external identity alias lookup skipped for user_id=%s phone=%s: %s",
+                    member.get("user_id"),
+                    phone,
+                    exc,
+                )
+                return
+            if alias_ids:
+                desired_user_id = next(iter(alias_ids))
         try:
-            external_user = ensure_external_auth_user_for_phone(phone)
+            external_user = ensure_external_auth_user_for_phone(
+                phone,
+                user_id=desired_user_id or None,
+            )
         except ValueError as exc:
             logger.warning(
                 "phone-backed external identity skipped for user_id=%s phone=%s: %s",
@@ -2362,6 +2632,15 @@ class MemberConsoleService:
             return
         external_user_id = str(external_user.get("id") or "").strip()
         if not is_uuid_like(external_user_id):
+            return
+        if desired_user_id and external_user_id != desired_user_id:
+            logger.warning(
+                "phone-backed external identity id mismatch for user_id=%s phone=%s expected=%s actual=%s",
+                member.get("user_id"),
+                phone,
+                desired_user_id,
+                external_user_id,
+            )
             return
         member["auth_username"] = str(external_user.get("username") or member.get("auth_username") or "").strip()
         member["external_auth_provider"] = "fastapi20251222_simple_auth"
@@ -2653,6 +2932,25 @@ class MemberConsoleService:
             max_session_age = 60 * 60 * 24 * 90
         return max(self._access_token_ttl_seconds(), max_session_age)
 
+    def _wechat_phone_auth_required_after_ts(self) -> int:
+        raw = str(os.getenv("DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS") or "").strip()
+        try:
+            return max(0, int(raw)) if raw else _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS
+        except (TypeError, ValueError):
+            return _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS
+
+    def _wechat_token_requires_phone_reauth(self, payload: dict[str, Any]) -> bool:
+        if str(payload.get("provider") or "").strip() != "wechat_mp":
+            return False
+        min_iat = self._wechat_phone_auth_required_after_ts()
+        if min_iat <= 0:
+            return False
+        try:
+            issued_at = int(payload.get("orig_iat") or payload.get("iat") or 0)
+        except (TypeError, ValueError):
+            return True
+        return issued_at < min_iat
+
     def _issue_access_token(
         self,
         *,
@@ -2695,7 +2993,7 @@ class MemberConsoleService:
         ).digest()
         return f"dtm.{payload_part}.{self._b64url_encode(signature)}"
 
-    def _verify_access_token(self, token: str) -> dict[str, Any] | None:
+    def _verify_access_token(self, token: str, *, verify_exp: bool = True) -> dict[str, Any] | None:
         raw = str(token or "").strip()
         if not raw:
             return None
@@ -2726,9 +3024,14 @@ class MemberConsoleService:
             payload = json.loads(self._b64url_decode(payload_part).decode("utf-8"))
         except Exception:
             return None
-        exp = int(payload.get("exp") or 0)
+        try:
+            exp = int(payload.get("exp"))
+        except (TypeError, ValueError):
+            return None
         now = int(_now().timestamp())
-        if exp and exp < now:
+        if verify_exp and exp <= now:
+            return None
+        if self._wechat_token_requires_phone_reauth(payload):
             return None
         return payload
 
@@ -2947,16 +3250,7 @@ class MemberConsoleService:
     def search_members_for_admin(self, *, q: str, limit: int = 10) -> list[dict[str, Any]]:
         """按手机号/姓名/user_id 模糊搜真实会员，供添加管理员选人（手机号脱敏）。"""
         query = str(q or "").strip().lower()
-        directory = self._member_directory
-        try:
-            members = (
-                list(directory.list_members(limit=5000))
-                if bool(getattr(directory, "is_configured", False))
-                else []
-            )
-        except Exception:
-            logger.warning("search_members_for_admin: directory load failed", exc_info=True)
-            members = []
+        members = self._load_member_directory_members_for_bi(self._load())
         results: list[dict[str, Any]] = []
         for member in members:
             if not isinstance(member, dict):
@@ -2966,7 +3260,7 @@ class MemberConsoleService:
                 continue
             name = str(member.get("display_name") or member.get("identifier") or "")
             phone = str(member.get("phone") or "")
-            if query and query not in f"{uid} {name} {phone}".lower():
+            if query and query not in self._member_search_haystack(member):
                 continue
             masked = (phone[:3] + "****" + phone[-4:]) if len(phone) >= 7 else phone
             results.append(
@@ -3358,7 +3652,7 @@ class MemberConsoleService:
 
     def refresh_access_token(self, auth_header: str | None = None) -> dict[str, Any]:
         token = self._extract_access_token(auth_header)
-        claims = self.verify_access_token(token)
+        claims = self._verify_access_token(token, verify_exp=False)
         user_id = str((claims or {}).get("canonical_uid") or (claims or {}).get("uid") or "").strip()
         if not claims or not user_id:
             raise ValueError("Invalid or expired token")
@@ -3369,6 +3663,8 @@ class MemberConsoleService:
         max_session_exp = orig_iat + self._access_token_max_session_age_seconds()
         if now >= max_session_exp:
             raise ValueError("Session refresh window expired")
+        if int(claims.get("exp") or 0) <= now:
+            raise ValueError("Invalid or expired token")
         auth_identity = self._auth_identity_for_member(user_id)
         refreshed_token = self._issue_access_token(
             user_id=auth_identity["user_id"] or user_id,
@@ -3578,10 +3874,20 @@ class MemberConsoleService:
                 for user_id in user_ids
             }
 
+    @staticmethod
+    def _filter_bi_operational_members(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            member
+            for member in members
+            if is_bi_operational_at(member.get("created_at"))
+        ]
+
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = self._merge_session_activity_for_member_list(
-            self._load_member_directory_members_for_bi(data)
+        members = self._filter_bi_operational_members(
+            self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(data)
+            )
         )
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
@@ -3660,6 +3966,7 @@ class MemberConsoleService:
                 "members": self._member_directory_authority(),
                 "member_overlay": "member_console",
                 "behavior": "product_behavior_events",
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
             "tier_breakdown": [
                 {"tier": tier, "count": count}
@@ -3704,13 +4011,15 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
+        search_text = str(search or "").strip().lower()
         members = self._merge_session_activity_for_member_list(
             self._load_member_directory_members_for_bi(
                 data,
                 include_session_activity_supplements=True,
             )
         )
-        search_text = str(search or "").strip().lower()
+        if not search_text:
+            members = self._filter_bi_operational_members(members)
         now = _now()
         heartbeat_user_ids: set[str] | None = None
         if has_heartbeat_job is not None:
@@ -3745,9 +4054,7 @@ class MemberConsoleService:
             if auto_renew is not None and bool(item.get("auto_renew")) != auto_renew:
                 continue
             if search_text:
-                haystack = " ".join(
-                    [item["user_id"], item["display_name"], item["phone"]]
-                ).lower()
+                haystack = self._member_search_haystack(item)
                 if search_text not in haystack:
                     continue
             if expire_within_days is not None:
@@ -3824,15 +4131,59 @@ class MemberConsoleService:
                 "members": self._member_directory_authority(),
                 "member_overlay": "member_console",
                 "behavior": "product_behavior_events",
+                "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
         }
+
+    @staticmethod
+    def _member_search_haystack(member: dict[str, Any]) -> str:
+        """Canonical member search terms shared by BI tables and admin picker.
+
+        Operators search by what they actually see or receive from students:
+        phone, account/login name, canonical uid, legacy user_id, and alias ids.
+        Keeping the haystack in one service helper avoids one UI saying "账号"
+        while another backend path only searches display name.
+        """
+        values: list[str] = []
+        for key in (
+            "user_id",
+            "canonical_user_id",
+            "canonical_uid",
+            "external_auth_user_id",
+            "auth_username",
+            "display_name",
+            "identifier",
+            "phone",
+            "wx_openid",
+            "openid",
+            "wx_unionid",
+            "unionid",
+        ):
+            value = str(member.get(key) or "").strip()
+            if value:
+                values.append(value)
+                if key == "phone":
+                    digits = re.sub(r"\D+", "", value)
+                    if digits:
+                        values.append(digits)
+        for value in list(member.get("alias_user_ids") or []):
+            normalized = str(value or "").strip()
+            if normalized:
+                values.append(normalized)
+        for value in list(member.get("search_aliases") or []):
+            normalized = str(value or "").strip()
+            if normalized:
+                values.append(normalized)
+        return " ".join(values).lower()
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
         data = self._load()
         return deepcopy(
-            self._load_member_directory_members_for_bi(
-                data,
-                include_session_activity_supplements=True,
+            self._filter_bi_operational_members(
+                self._load_member_directory_members_for_bi(
+                    data,
+                    include_session_activity_supplements=True,
+                )
             )
         )
 
@@ -3918,6 +4269,12 @@ class MemberConsoleService:
             member["bot_overlays"] = []
         member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
         member["behavior"] = self._load_member_behavior_payload_for_member(member)
+        member["membership_billing"] = {
+            "reversible_supreme_purchase": self._latest_reversible_manual_membership_purchase(
+                data,
+                user_id=str(member.get("user_id") or user_id).strip(),
+            )
+        }
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:
@@ -5131,6 +5488,32 @@ class MemberConsoleService:
                 return True
         return False
 
+    def _latest_reversible_manual_membership_purchase(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+    ) -> dict[str, Any] | None:
+        audit = self._find_latest_manual_membership_purchase_audit(data, user_id=user_id)
+        if audit is None:
+            return None
+        after = audit.get("after") if isinstance(audit.get("after"), dict) else {}
+        purchase_id = str(after.get("purchase_id") or "").strip()
+        if not purchase_id or str(after.get("package_id") or "").strip() != "supreme_svip":
+            return None
+        if self._has_manual_membership_reversal(data, user_id=user_id, purchase_id=purchase_id):
+            return None
+        return {
+            "purchase_id": purchase_id,
+            "package_id": "supreme_svip",
+            "amount_cny": self._package_amount_cny({"price": after.get("amount_cny", 0)}),
+            "points": int(after.get("points") or 0),
+            "days": int(after.get("days") or 0),
+            "created_at": str(audit.get("created_at") or ""),
+            "ledger_event_id": str(after.get("ledger_event_id") or ""),
+            "audit_id": str(audit.get("id") or ""),
+        }
+
     def reverse_manual_membership_purchase(
         self,
         *,
@@ -5144,8 +5527,11 @@ class MemberConsoleService:
         normalized_user_id = str(user_id or "").strip()
         normalized_operator = str(operator or "").strip() or "admin"
         normalized_key = str(idempotency_key or "").strip()
+        normalized_purchase_id = str(purchase_id or "").strip()
         if not normalized_user_id:
             raise ValueError("user_id is required")
+        if not normalized_purchase_id:
+            raise ValueError("purchase_id is required for manual membership reversal")
         if not normalized_key:
             raise ValueError("idempotency_key is required")
 
@@ -5160,7 +5546,7 @@ class MemberConsoleService:
             purchase_audit = self._find_latest_manual_membership_purchase_audit(
                 data,
                 user_id=normalized_user_id,
-                purchase_id=purchase_id,
+                purchase_id=normalized_purchase_id,
             )
             if purchase_audit is None:
                 raise ValueError("manual membership purchase was not found")
@@ -5189,12 +5575,12 @@ class MemberConsoleService:
 
         reversal_inputs = self._mutate(_load_reversal_inputs)
         purchase_after = dict(reversal_inputs["purchase_after"])
-        resolved_purchase_id = str(purchase_after.get("purchase_id") or purchase_id or "").strip()
+        resolved_purchase_id = str(purchase_after.get("purchase_id") or normalized_purchase_id or "").strip()
         package_id = str(purchase_after.get("package_id") or "").strip()
         if package_id != "supreme_svip":
             raise ValueError("Only supreme_svip manual membership purchases can be reversed")
         if reversal_inputs.get("deduped"):
-            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)}, amount_cny)
+            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)})
             return {
                 "member": reversal_inputs["member"],
                 "amount_cny": -abs(original_amount),
@@ -5219,7 +5605,9 @@ class MemberConsoleService:
         points = abs(int(purchase_after.get("points") or package.get("points") or 0))
         if points <= 0:
             raise ValueError("reversal points must be positive")
-        original_amount = self._package_amount_cny(package, amount_cny if amount_cny is not None else purchase_after.get("amount_cny"))
+        # The original purchase audit is the only amount authority. Legacy
+        # callers may still send amount_cny, but it must not alter reconciliation.
+        original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)})
         if original_amount <= 0:
             raise ValueError("reversal amount_cny must be positive")
         reversal_amount = -abs(original_amount)
@@ -5333,6 +5721,327 @@ class MemberConsoleService:
             "audit_id": entitlement.get("audit_id", ""),
             "deduped": bool(entitlement.get("deduped", False)),
         }
+
+    @staticmethod
+    def _membership_tier_rank(tier: Any) -> int:
+        return _MEMBERSHIP_TIER_RANK.get(str(tier or "").strip(), 0)
+
+    @staticmethod
+    def _later_iso(left: Any, right: Any) -> str:
+        left_ts = _parse_time(left)
+        right_ts = _parse_time(right)
+        return _iso(left_ts if left_ts >= right_ts else right_ts)
+
+    @staticmethod
+    def _admin_role_rank(role: str | None) -> int:
+        return _ADMIN_ROLE_RANK.get(str(role or "").strip(), -1)
+
+    def _best_admin_role_for_merge(self, user_ids: list[str]) -> str | None:
+        best_role: str | None = None
+        for user_id in user_ids:
+            role = self.get_admin_role(user_id)
+            if self._admin_role_rank(role) > self._admin_role_rank(best_role):
+                best_role = role
+        return best_role
+
+    def _apply_merged_admin_role(
+        self,
+        *,
+        target_user_id: str,
+        merged_user_ids: list[str],
+        operator: str,
+        display_name: str = "",
+    ) -> str | None:
+        best_role = self._best_admin_role_for_merge(merged_user_ids)
+        if not best_role:
+            return None
+        if target_user_id in self._env_admin_user_ids():
+            return self.get_admin_role(target_user_id)
+        current_role = self.get_admin_role(target_user_id)
+        if self._admin_role_rank(best_role) <= self._admin_role_rank(current_role):
+            return current_role
+        set_admin(
+            self._bi_admins_path(),
+            target_user_id,
+            role=best_role,
+            display_name=display_name,
+            actor=operator,
+            granted_at=_iso(),
+        )
+        return best_role
+
+    def _wallet_balance_micros_for_merge(self, wallet_service: Any, user_id: str) -> int:
+        get_wallet = getattr(wallet_service, "get_wallet", None)
+        if not callable(get_wallet):
+            return 0
+        snapshot = get_wallet(user_id)
+        return max(0, int(getattr(snapshot, "balance_micros", 0) or 0)) if snapshot is not None else 0
+
+    def _apply_wallet_account_merge(
+        self,
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str,
+        reason: str,
+        idempotency_key: str,
+    ) -> list[dict[str, Any]]:
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            return []
+        admin_adjust_points = getattr(wallet_service, "admin_adjust_points", None)
+        if not callable(admin_adjust_points):
+            return []
+        adjustments: list[dict[str, Any]] = []
+        for source_user_id in source_user_ids:
+            source_balance_micros = self._wallet_balance_micros_for_merge(wallet_service, source_user_id)
+            if source_balance_micros <= 0:
+                continue
+            reference_id = f"{target_user_id}:{source_user_id}"
+            metadata = {
+                "source": "member_identity_merge",
+                "target_user_id": target_user_id,
+                "source_user_id": source_user_id,
+                "operator_id": operator,
+                "reason": reason,
+            }
+            credit = admin_adjust_points(
+                user_id=target_user_id,
+                delta_micros=source_balance_micros,
+                reference_id=reference_id,
+                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:credit",
+                reason="member_identity_merge",
+                metadata=metadata,
+                operator_type="admin",
+                operator_id=operator,
+            )
+            debit = admin_adjust_points(
+                user_id=source_user_id,
+                delta_micros=-source_balance_micros,
+                reference_id=reference_id,
+                idempotency_key=f"member_identity_merge:{idempotency_key}:{source_user_id}:debit",
+                reason="member_identity_merge",
+                metadata=metadata,
+                operator_type="admin",
+                operator_id=operator,
+            )
+            adjustments.append(
+                {
+                    "source_user_id": source_user_id,
+                    "target_user_id": target_user_id,
+                    "points_transferred": int(source_balance_micros / 1_000_000),
+                    "credit_ledger_event_id": str(getattr(credit, "ledger_event_id", "") or ""),
+                    "debit_ledger_event_id": str(getattr(debit, "ledger_event_id", "") or ""),
+                }
+            )
+        return adjustments
+
+    def _merge_member_accounts_locked(
+        self,
+        data: dict[str, Any],
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str,
+        reason: str,
+        action: str,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        existing_audit_id = self._find_audit_id_by_idempotency_key(
+            data,
+            action,
+            idempotency_key,
+            operator=operator,
+        )
+        target = self._find_member(data, target_user_id)
+        if existing_audit_id is not None:
+            return {
+                "member": deepcopy(self._ensure_member(data, str(target.get("user_id") or target_user_id))),
+                "audit_id": existing_audit_id,
+                "deduped": True,
+                "merged_source_ids": [],
+                "points_transferred": 0,
+                "admin_role_after": self.get_admin_role(target_user_id),
+                "target_user_id": str(target.get("user_id") or target_user_id),
+            }
+
+        target = self._ensure_member(data, target_user_id)
+        canonical_target_id = str(target.get("user_id") or target_user_id).strip()
+        before = deepcopy(target)
+        points_transferred = 0
+        merged_source_ids: list[str] = []
+        source_before: dict[str, Any] = {}
+        now = _iso()
+
+        for raw_source_id in source_user_ids:
+            source_id = str(raw_source_id or "").strip()
+            if not source_id or source_id == canonical_target_id or source_id in merged_source_ids:
+                continue
+            source = self._find_member(data, source_id)
+            source_before[source_id] = deepcopy(source)
+            resolved_source = self._ensure_member(data, source_id)
+            if str(resolved_source.get("user_id") or "").strip() == canonical_target_id:
+                source["merged_into"] = canonical_target_id
+                source["merged_at"] = source.get("merged_at") or now
+                merged_source_ids.append(source_id)
+                continue
+
+            source = resolved_source
+            source_id = str(source.get("user_id") or source_id).strip()
+            if not source_id or source_id == canonical_target_id or source_id in merged_source_ids:
+                continue
+            source_before[source_id] = deepcopy(source)
+
+            source_tier = str(source.get("tier") or "").strip()
+            target_tier = str(target.get("tier") or "").strip()
+            if self._membership_tier_rank(source_tier) > self._membership_tier_rank(target_tier):
+                target["tier"] = source_tier
+            target["expire_at"] = self._later_iso(target.get("expire_at"), source.get("expire_at"))
+            target["last_active_at"] = self._later_iso(target.get("last_active_at"), source.get("last_active_at"))
+            if str(source.get("status") or "").strip() == "active" or _parse_time(target.get("expire_at")) > _now():
+                target["status"] = "active"
+
+            source_points = max(0, int(source.get("points_balance") or 0))
+            if source_points:
+                target["points_balance"] = max(0, int(target.get("points_balance") or 0)) + source_points
+                source["points_balance"] = 0
+                points_transferred += source_points
+                target.setdefault("ledger", []).insert(
+                    0,
+                    {
+                        "id": f"merge_{uuid.uuid4().hex[:12]}",
+                        "delta": source_points,
+                        "reason": "member_identity_merge",
+                        "created_at": now,
+                        "metadata": {
+                            "source_user_id": source_id,
+                            "target_user_id": canonical_target_id,
+                            "operator": operator,
+                            "reason": reason,
+                        },
+                    },
+                )
+                source.setdefault("ledger", []).insert(
+                    0,
+                    {
+                        "id": f"merge_out_{uuid.uuid4().hex[:12]}",
+                        "delta": -source_points,
+                        "reason": "member_identity_merge",
+                        "created_at": now,
+                        "metadata": {
+                            "target_user_id": canonical_target_id,
+                            "operator": operator,
+                            "reason": reason,
+                        },
+                    },
+                )
+
+            if not self._is_meaningful_phone(target.get("phone")) and self._is_meaningful_phone(source.get("phone")):
+                target["phone"] = _normalize_phone_input(str(source.get("phone") or ""))
+            for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
+                if source.get(key):
+                    target[key] = source[key]
+                    source[key] = ""
+            for key in ("avatar_url", "exam_date", "focus_topic", "focus_query"):
+                if not str(target.get(key) or "").strip() and str(source.get(key) or "").strip():
+                    target[key] = source[key]
+
+            source["merged_into"] = canonical_target_id
+            source["merged_at"] = now
+            source["status"] = "merged"
+            source["last_active_at"] = now
+            merged_source_ids.append(source_id)
+
+        after = deepcopy(target)
+        audit = self._append_audit(
+            data,
+            action=action,
+            target_user=canonical_target_id,
+            reason=reason or "member_identity_merge",
+            before={
+                "target": before,
+                "sources": source_before,
+            },
+            after={
+                "target": after,
+                "merged_source_ids": list(merged_source_ids),
+                "points_transferred": points_transferred,
+            },
+            operator=operator,
+        )
+        self._remember_idempotency_key(
+            data,
+            action,
+            idempotency_key,
+            audit["id"],
+            operator=operator,
+        )
+        return {
+            "member": after,
+            "audit_id": audit["id"],
+            "deduped": False,
+            "merged_source_ids": list(merged_source_ids),
+            "points_transferred": points_transferred,
+            "target_user_id": canonical_target_id,
+            "admin_role_after": None,
+        }
+
+    def merge_member_accounts(
+        self,
+        *,
+        target_user_id: str,
+        source_user_ids: list[str],
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_target = str(target_user_id or "").strip()
+        normalized_sources = [str(item or "").strip() for item in list(source_user_ids or []) if str(item or "").strip()]
+        normalized_sources = list(dict.fromkeys(normalized_sources))
+        normalized_operator = str(operator or "admin").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_target:
+            raise ValueError("target_user_id is required")
+        if not normalized_sources:
+            raise ValueError("source_user_ids is required")
+        if normalized_target in normalized_sources:
+            raise ValueError("target_user_id cannot also be a source")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+
+        action = "member_identity_merge"
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            return self._merge_member_accounts_locked(
+                data,
+                target_user_id=normalized_target,
+                source_user_ids=normalized_sources,
+                operator=normalized_operator,
+                reason=str(reason or "").strip(),
+                action=action,
+                idempotency_key=normalized_key,
+            )
+
+        result = self._mutate(_apply)
+        canonical_target = str(result.get("target_user_id") or normalized_target)
+        admin_role = self._apply_merged_admin_role(
+            target_user_id=canonical_target,
+            merged_user_ids=[canonical_target, *normalized_sources],
+            operator=normalized_operator,
+            display_name=str((result.get("member") or {}).get("display_name") or ""),
+        )
+        if admin_role:
+            result["admin_role_after"] = admin_role
+        wallet_adjustments = self._apply_wallet_account_merge(
+            target_user_id=canonical_target,
+            source_user_ids=normalized_sources,
+            operator=normalized_operator,
+            reason=str(reason or "").strip(),
+            idempotency_key=normalized_key,
+        )
+        if wallet_adjustments:
+            result["wallet_adjustments"] = wallet_adjustments
+        return result
 
     def update_subscription(
         self,
@@ -5643,13 +6352,14 @@ class MemberConsoleService:
         }
         if env_flag(_HOME_PERSONALIZATION_ENABLED):
             home_projection = self._build_home_learning_projection(snapshot=snapshot, member=member)
-            dashboard["home_projection"] = home_projection
-            self._apply_home_learning_projection(dashboard, home_projection)
+            if is_canonical_home_personalization_projection(home_projection):
+                dashboard["home_projection"] = home_projection
+                self._apply_home_learning_projection(dashboard, home_projection)
         return dashboard
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:
-        if not isinstance(projection, dict):
+        if not is_canonical_home_personalization_projection(projection):
             return
         today_focus = projection.get("today_focus")
         if isinstance(today_focus, dict) and today_focus:
@@ -7074,7 +7784,13 @@ class MemberConsoleService:
                 return member
         return None
 
-    def _ensure_member_for_external_auth(self, username: str, user_data: dict[str, Any]) -> dict[str, Any]:
+    def _ensure_member_for_external_auth(
+        self,
+        username: str,
+        user_data: dict[str, Any],
+        *,
+        preserve_display_name: bool = False,
+    ) -> dict[str, Any]:
         normalized_username = str(username or "").strip()
         external_user_id = str(user_data.get("id") or "").strip()
         external_phone = str(user_data.get("phone") or "").strip()
@@ -7094,7 +7810,10 @@ class MemberConsoleService:
                 merged_into = str(member.get("merged_into") or "").strip()
                 if merged_into and merged_into != str(member.get("user_id") or "").strip():
                     member = self._ensure_member(data, merged_into)
-            member["display_name"] = normalized_username or str(member.get("display_name") or "")
+            current_display = str(member.get("display_name") or "").strip()
+            current_user_id = str(member.get("user_id") or "").strip()
+            if not preserve_display_name or not current_display or current_display == current_user_id:
+                member["display_name"] = normalized_username or current_display
             member["auth_username"] = normalized_username
             member["external_auth_provider"] = "fastapi20251222_simple_auth"
             if external_user_id:
@@ -7228,6 +7947,66 @@ class MemberConsoleService:
                 linked_phone_match = True
         return linked_phone_match, account_ids
 
+    def _resolve_phone_backed_password_reset_account(self, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        try:
+            phone_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            logger.warning(
+                "password reset phone alias conflict: phone=%s error=%s",
+                normalized_phone[-4:],
+                exc,
+            )
+            raise ValueError("账号或手机号不匹配") from exc
+        local_account_ids = self._local_member_user_ids_for_phone(normalized_phone)
+        external_user = get_external_auth_user_by_phone(normalized_phone)
+        external_user_id = str((external_user or {}).get("id") or "").strip()
+        if not phone_alias_ids and not local_account_ids and external_user is None:
+            raise ValueError("账号或手机号不匹配")
+
+        canonical_uid = ""
+        if phone_alias_ids:
+            canonical_uid = next(iter(phone_alias_ids))
+        elif is_uuid_like(external_user_id):
+            canonical_uid = external_user_id
+        else:
+            local_uuid_ids = {candidate for candidate in local_account_ids if is_uuid_like(candidate)}
+            if len(local_uuid_ids) > 1:
+                raise ValueError("账号或手机号不匹配")
+            if local_uuid_ids:
+                canonical_uid = next(iter(local_uuid_ids))
+
+        external_user = ensure_external_auth_user_for_phone(
+            normalized_phone,
+            user_id=canonical_uid or None,
+        )
+        external_username = str(external_user.get("username") or "").strip()
+        if not external_username:
+            raise ValueError("账号或手机号不匹配")
+        member = self._ensure_member_for_external_auth(
+            external_username,
+            external_user,
+            preserve_display_name=True,
+        )
+        account_ids = set(local_account_ids)
+        external_user_id = str(external_user.get("id") or "").strip()
+        for candidate in (
+            external_user_id,
+            str(member.get("user_id") or "").strip(),
+            str(member.get("external_auth_user_id") or "").strip(),
+            str(member.get("merged_into") or "").strip(),
+        ):
+            if is_uuid_like(candidate):
+                account_ids.add(candidate)
+        return {
+            "username": external_username,
+            "phone": normalized_phone,
+            "external_user": external_user,
+            "account_ids": sorted(account_ids),
+        }
+
     def _resolve_password_reset_account(self, username: str, phone: str) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
         if not normalized_phone:
@@ -7235,6 +8014,11 @@ class MemberConsoleService:
         normalized_username = str(username or "").strip()
         external_user = get_external_auth_user(normalized_username)
         if not external_user:
+            if (
+                not normalized_username
+                or _normalize_phone_input(normalized_username) == normalized_phone
+            ):
+                return self._resolve_phone_backed_password_reset_account(normalized_phone)
             raise ValueError("账号或手机号不匹配")
         linked_phone_match, account_ids = self._linked_member_phone_matches_account(
             external_user=external_user,
@@ -7364,29 +8148,32 @@ class MemberConsoleService:
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
 
+        try:
+            verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
+        except ValueError as exc:
+            raise ValueError("手机号身份冲突，请联系客服") from exc
+
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             current = self._ensure_member(data, user_id)
-            target = self._find_member_by_phone(data, normalized)
+            target = (
+                self._ensure_member(data, verified_phone_canonical_uid)
+                if verified_phone_canonical_uid
+                else self._find_member_by_phone(data, normalized)
+            )
 
             if target and target["user_id"] != current["user_id"]:
-                before = deepcopy(target)
-                for key in ("wx_openid", "wx_unionid", "wx_session_key", "wx_last_login_at"):
-                    if current.get(key):
-                        target[key] = current[key]
-                        current[key] = ""
+                merge = self._merge_member_accounts_locked(
+                    data,
+                    target_user_id=str(target["user_id"]),
+                    source_user_ids=[str(current["user_id"])],
+                    operator="wechat_mp",
+                    reason="bind_phone_alias_merge" if verified_phone_canonical_uid else "bind_phone_merge",
+                    action="wechat_bind_phone",
+                    idempotency_key=f"{target['user_id']}:{current['user_id']}:{normalized}",
+                )
+                target = self._find_member(data, str(merge.get("target_user_id") or target["user_id"]))
                 target["phone"] = normalized
                 target["last_active_at"] = _iso()
-                current["merged_into"] = target["user_id"]
-                current["last_active_at"] = _iso()
-                self._append_audit(
-                    data,
-                    action="wechat_bind_phone",
-                    target_user=target["user_id"],
-                    operator="wechat_mp",
-                    reason="bind_phone_merge",
-                    before=before,
-                    after=target,
-                )
                 return {
                     "bound": True,
                     "merged": True,
@@ -7666,7 +8453,9 @@ class MemberConsoleService:
         if canonical_uid:
             def _apply_verified_alias(data: dict[str, Any]) -> dict[str, Any]:
                 member = self._ensure_member(data, canonical_uid)
-                if not _normalize_phone_input(str(member.get("phone") or "")):
+                current_phone = _normalize_phone_input(str(member.get("phone") or ""))
+                synthetic_default_phone = _slugify_phone(str(member.get("user_id") or ""))
+                if not current_phone or current_phone == synthetic_default_phone:
                     member["phone"] = verified_phone
                 member["last_active_at"] = _iso()
                 return deepcopy(member)
@@ -7750,6 +8539,18 @@ class MemberConsoleService:
             "success": True,
             "message": "密码已重置，请使用新密码登录",
             "sessions_invalidated": int(reset_result.get("sessions_invalidated") or 0),
+        }
+
+    def change_password(self, user_id: str, old_password: str, new_password: str) -> dict[str, Any]:
+        member = self._load_member_snapshot(user_id)["member"]
+        username = str(member.get("auth_username") or "").strip()
+        if not username:
+            raise ValueError("当前账号未绑定用户名密码登录")
+        result = change_external_auth_password(username, old_password, new_password)
+        return {
+            "success": True,
+            "message": "密码已修改，请使用新密码重新登录",
+            "sessions_invalidated": int(result.get("sessions_invalidated") or 0),
         }
 
     def create_demo_token(self, user_id: str) -> str:

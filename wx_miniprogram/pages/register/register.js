@@ -27,7 +27,11 @@ function validateRegisterForm(username, phone, password, confirmPassword) {
   if (!password) return "请设置密码";
   if (password.length < 6) return "密码至少 6 位";
   if (password.length > 128) return "密码不能超过 128 个字符";
-  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+  if (
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password) ||
+    !/\d/.test(password)
+  ) {
     return "密码需包含大写字母、小写字母和数字";
   }
   if (!confirmPassword) return "请再次输入密码";
@@ -52,6 +56,7 @@ Page({
     registerNoticeItems: REGISTER_NOTICE_ITEMS,
   },
   onLoad: function () {
+    this._mounted = true;
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
@@ -91,7 +96,12 @@ Page({
     var phone = (self.data.phone || "").trim();
     var password = self.data.password || "";
     var confirmPassword = self.data.confirmPassword || "";
-    var formError = validateRegisterForm(username, phone, password, confirmPassword);
+    var formError = validateRegisterForm(
+      username,
+      phone,
+      password,
+      confirmPassword,
+    );
 
     if (formError) {
       self.setData({ errorMsg: formError });
@@ -111,14 +121,21 @@ Page({
         noAuth: true,
       })
       .then(function (resp) {
+        if (!self._mounted) return;
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
-        var token = inner.token || inner._token || resp.token || resp._token || user._token;
+        var token =
+          inner.token ||
+          inner._token ||
+          resp.token ||
+          resp._token ||
+          user._token;
         if (!token) throw new Error("服务端未返回凭证");
         auth.setToken(token, inner.expires_at, inner);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
+        if (!self._mounted) return;
         var m = String((err && err.message) || "");
         var msg = "注册失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
@@ -128,12 +145,17 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );
+  },
+  onUnload: function () {
+    this._mounted = false;
   },
   goLogin: function () {
     wx.navigateBack({
@@ -158,7 +180,8 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
-    var phoneCode = e && e.detail && (e.detail.code || e.detail.phoneCode || "");
+    var phoneCode =
+      e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
       self.setData({ errorMsg: "未完成手机号验证" });
       return;
@@ -166,17 +189,23 @@ Page({
     self.setData({ wechatLoading: true, errorMsg: "" });
     wx.login({
       success: function (loginRes) {
+        if (!self._mounted) return;
         if (!loginRes.code) {
-          self.setData({ wechatLoading: false, errorMsg: "快捷注册失败，请重试" });
+          self.setData({
+            wechatLoading: false,
+            errorMsg: "快捷注册失败，请重试",
+          });
           return;
         }
         api
           .wxLoginWithPhone(loginRes.code, phoneCode)
           .then(function (resp) {
+            if (!self._mounted) return;
             self._completeWechatAuth(resp);
             wx.switchTab({ url: "/pages/chat/chat" });
           })
           .catch(function (err) {
+            if (!self._mounted) return;
             var m = String((err && err.message) || "");
             var msg = "快捷注册失败，请重试";
             if (m.includes("credentials")) msg = "后端未配置小程序密钥";
@@ -187,14 +216,17 @@ Page({
           })
           .then(
             function () {
+              if (!self._mounted) return;
               self.setData({ wechatLoading: false });
             },
             function () {
+              if (!self._mounted) return;
               self.setData({ wechatLoading: false });
             },
           );
       },
       fail: function () {
+        if (!self._mounted) return;
         self.setData({ wechatLoading: false, errorMsg: "无法获取登录凭证" });
       },
     });

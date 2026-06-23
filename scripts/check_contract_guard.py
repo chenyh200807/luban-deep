@@ -216,6 +216,112 @@ def resolve_changed_files(files: list[str], *, base: str | None, head: str | Non
     return _git_current_candidate_files()
 
 
+def _resolve_base_ref_for_index(base: str, head: str | None) -> str:
+    """Resolve the merge-base of base...head so the no-shrink closure only sees
+    what THIS change removed — not entries the base branch added after this
+    branch forked, which would otherwise read as false-positive removals."""
+    head_ref = head or "HEAD"
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", base, head_ref],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return base
+    return result.stdout.strip() or base
+
+
+def _load_index_domains_from_ref(ref: str) -> dict[str, Any] | None:
+    """Load contracts/index.yaml ``domains`` at a git ref. None if unavailable."""
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{ref}:contracts/index.yaml"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return None
+    try:
+        payload = yaml.safe_load(result.stdout) or {}
+    except yaml.YAMLError:
+        return None
+    domains = payload.get("domains")
+    return domains if isinstance(domains, dict) else {}
+
+
+def _detect_protected_pattern_shrink(
+    base_domains: dict[str, Any], head_domains: dict[str, Any]
+) -> list[str]:
+    """Pure: report any domain whose ``protected_patterns`` set shrank.
+
+    protected_patterns are globs, so ordinary file renames/additions never touch
+    them — only deleting or narrowing a protection category does. That deletion
+    is exactly the self-grandfather move (drop a glob so evaluate_changed_files
+    sees the now-unprotected source as "no domain touched"), so any removal is a
+    fail.
+    """
+    removals: list[str] = []
+    for domain_name, base_domain in (base_domains or {}).items():
+        if not isinstance(base_domain, dict):
+            continue
+        base_patterns = {str(p) for p in (base_domain.get("protected_patterns") or [])}
+        if not base_patterns:
+            continue
+        head_domain = (head_domains or {}).get(domain_name)
+        if not isinstance(head_domain, dict):
+            removals.append(
+                f"[{domain_name}] domain dropped from contracts/index.yaml "
+                f"(was protecting {len(base_patterns)} pattern(s))"
+            )
+            continue
+        head_patterns = {str(p) for p in (head_domain.get("protected_patterns") or [])}
+        missing = sorted(base_patterns - head_patterns)
+        if missing:
+            removals.append(
+                f"[{domain_name}] protected_patterns removed: {', '.join(missing)}"
+            )
+    return removals
+
+
+def evaluate_contract_index_protected_patterns_no_shrink(
+    base: str | None = None, head: str | None = None
+) -> tuple[bool, str]:
+    """Only-grow closure for the gate's own rule source (contracts/index.yaml).
+
+    Without this, a PR can self-grandfather a violation: drop a domain's
+    protected_patterns in the same diff that changes the now-unprotected source,
+    so evaluate_changed_files() reports "no protected domains changed" and passes.
+    This makes protected_patterns only-grow vs the change's merge-base.
+
+    No base ref → skip (local run); CI always passes --base, so the closure is
+    load-bearing exactly where unreviewed PRs land. CODEOWNERS /contracts/** is
+    the primary review-layer defense; this is the structural backstop.
+    """
+    if not base:
+        return True, "contract-index-no-shrink-guard: skipped (no base ref)"
+    ref = _resolve_base_ref_for_index(base, head)
+    base_domains = _load_index_domains_from_ref(ref)
+    if base_domains is None:
+        return True, (
+            f"contract-index-no-shrink-guard: skipped (index unavailable at {ref})"
+        )
+    head_index = yaml.safe_load(INDEX_PATH.read_text(encoding="utf-8")) or {}
+    head_domains = head_index.get("domains")
+    if not isinstance(head_domains, dict):
+        head_domains = {}
+    removals = _detect_protected_pattern_shrink(base_domains, head_domains)
+    if removals:
+        return False, (
+            "contract-index-no-shrink-guard: failed — a domain's protected_patterns "
+            "shrank (only-grow invariant; restore the removed entr(y/ies) or get "
+            "/contracts owner review):\n" + "\n".join(removals)
+        )
+    return True, "contract-index-no-shrink-guard: passed"
+
+
 def evaluate_changed_files(changed_files: list[str]) -> tuple[bool, str]:
     normalized = tuple(sorted({path.strip() for path in changed_files if path.strip()}))
     if not normalized:
@@ -609,6 +715,12 @@ def main(argv: list[str] | None = None) -> int:
     index_yaml_stream = sys.stdout if index_yaml_ok else sys.stderr
     print(index_yaml_message, file=index_yaml_stream)
 
+    no_shrink_ok, no_shrink_message = evaluate_contract_index_protected_patterns_no_shrink(
+        base=args.base, head=args.head
+    )
+    no_shrink_stream = sys.stdout if no_shrink_ok else sys.stderr
+    print(no_shrink_message, file=no_shrink_stream)
+
     ok, message = evaluate_changed_files(changed_files)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)
@@ -651,9 +763,9 @@ def main(argv: list[str] | None = None) -> int:
     mistake_stream = sys.stdout if mistake_ok else sys.stderr
     print(mistake_message, file=mistake_stream)
 
-    return 0 if (index_yaml_ok and ok and code_ok and node_ok and lifecycle_ok
-                 and upstream_ok and ws_ok and schema_ok and route_model_ok
-                 and evidence_ok and mistake_ok) else 1
+    return 0 if (index_yaml_ok and no_shrink_ok and ok and code_ok and node_ok
+                 and lifecycle_ok and upstream_ok and ws_ok and schema_ok
+                 and route_model_ok and evidence_ok and mistake_ok) else 1
 
 
 if __name__ == "__main__":

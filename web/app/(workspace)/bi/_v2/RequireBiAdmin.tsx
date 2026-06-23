@@ -8,30 +8,28 @@ import { isAdminLoginSubmitDisabled } from './admin-login-disabled'
 import { useBiAdminIdentity, type BiAdminIdentity } from './useBiAdminIdentity'
 
 export type RequireBiAdminProps = {
-  // children 必接收已认证的 admin identity；未认证或非 admin 时 children 不会渲染。
-  children: (identity: BiAdminIdentity & { authenticated: true; isAdmin: true }) => ReactNode
-  // 兜底 fallback：未登录或权限不足时显示的内容。默认 LoginPrompt / NotAdminPrompt。
+  // children 必接收已认证且拥有 BI 角色的 identity；未认证或无 BI 角色时 children 不会渲染。
+  children: (identity: BiAdminIdentity & { authenticated: true; hasBiAccess: true }) => ReactNode
+  // 兜底 fallback：未登录或权限不足时显示的内容。默认 LoginPrompt / NoBiAccessPrompt。
   unauthenticated?: ReactNode
   notAdmin?: ReactNode
 }
 
-// Single cross-cutting boundary for BI Admin access. Replaces the per-panel
-// `if (!identity.authenticated)` scatter (Round 2 reviewer 找出的 6 处重复)。
-// Children only render when identity is fully authenticated AND admin. This
-// means every panel below the boundary can assume identity.actorId is real,
-// removing the "fabricate audit with actor='unauthenticated'" footgun.
+// Single cross-cutting boundary for BI role access. BI membership is governed by
+// /api/v1/bi/rbac/me, not by the legacy full-admin boolean. Children can assume
+// identity.actorId is real and identity.accessibleTabs carries the tab matrix.
 export function RequireBiAdmin({ children, unauthenticated, notAdmin }: RequireBiAdminProps) {
   const identity = useBiAdminIdentity()
 
   if (!identity.authenticated) {
     return <>{unauthenticated ?? <UnauthenticatedView />}</>
   }
-  if (!identity.isAdmin) {
+  if (!identity.hasBiAccess) {
     return <>{notAdmin ?? <NotAdminView identity={identity} />}</>
   }
 
-  // TypeScript 收窄到 authenticated:true & isAdmin:true 的 identity。
-  return <>{children(identity as BiAdminIdentity & { authenticated: true; isAdmin: true })}</>
+  // TypeScript 收窄到 authenticated:true & hasBiAccess:true 的 identity。
+  return <>{children(identity as BiAdminIdentity & { authenticated: true; hasBiAccess: true })}</>
 }
 
 function UnauthenticatedView() {
@@ -66,11 +64,11 @@ function UnauthenticatedView() {
       role="alert"
     >
       <div className="flex items-center gap-2 font-semibold">
-        <Lock className="h-4 w-4" aria-hidden /> BI 后台需 admin 登录
+        <Lock className="h-4 w-4" aria-hidden /> BI 后台需授权登录
       </div>
       <p className="text-xs leading-relaxed">
-        BI 会员经营后台是 admin-only 工作区。请使用管理员账号登录，所有写动作（备注 / 跟进 /
-        audit）均会绑定真实 actor_id 写入服务端。
+        BI 会员经营后台按角色授权开放。请使用已授予 BI 角色的账号登录，所有写动作都会绑定真实
+        actor_id 写入服务端。
       </p>
       <form
         className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
@@ -116,8 +114,8 @@ function NotAdminView({ identity }: { identity: BiAdminIdentity }) {
         <ShieldAlert className="h-4 w-4" aria-hidden /> 当前账号权限不足
       </div>
       <p className="text-xs">
-        当前账号 <code className="font-mono">{identity.actorId}</code> 已认证但非 admin。 BI 后台仅
-        admin 可见；请使用 admin 账号登录或联系运维授予权限。
+        当前账号 <code className="font-mono">{identity.actorId}</code> 已认证但没有 BI 角色。请联系权限管理员授予
+        运营、分析师或管理员角色。
       </p>
     </div>
   )

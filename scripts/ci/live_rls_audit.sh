@@ -16,18 +16,24 @@
 #
 # Usage:
 #   SUPABASE_DB_URL=postgresql://... bash scripts/ci/live_rls_audit.sh > docs/audit/rls_audit.json
+#   DB_URL=postgresql://... bash scripts/ci/live_rls_audit.sh > docs/audit/rls_audit.json
+#   DATABASE_URL=postgresql://... bash scripts/ci/live_rls_audit.sh > docs/audit/rls_audit.json
 #
 # Required env:
-#   SUPABASE_DB_URL — Postgres connection string with read access to pg_catalog
-#                     and information_schema. Service-role pooler URL works.
+#   SUPABASE_DB_URL, DB_URL, or DATABASE_URL — Postgres connection string with
+#                                             read access to pg_catalog and
+#                                             information_schema. Service-role
+#                                             pooler URL works.
 #
 # Exits non-zero only on connection / query failure, never on policy findings.
 
 set -euo pipefail
 
-if [ -z "${SUPABASE_DB_URL:-}" ]; then
+RLS_AUDIT_DB_URL="${SUPABASE_DB_URL:-${DB_URL:-${DATABASE_URL:-}}}"
+
+if [ -z "${RLS_AUDIT_DB_URL:-}" ]; then
     cat >&2 <<'ERR'
-ERROR: SUPABASE_DB_URL not set.
+ERROR: SUPABASE_DB_URL, DB_URL, or DATABASE_URL not set.
 
 To dump live baseline:
   export SUPABASE_DB_URL='postgresql://postgres.<project>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres'
@@ -35,6 +41,8 @@ To dump live baseline:
 
 You can also pass it inline:
   SUPABASE_DB_URL='...' bash scripts/ci/live_rls_audit.sh
+  DB_URL='...' bash scripts/ci/live_rls_audit.sh
+  DATABASE_URL='...' bash scripts/ci/live_rls_audit.sh
 ERR
     exit 2
 fi
@@ -45,7 +53,7 @@ if ! command -v psql >/dev/null 2>&1; then
 fi
 
 # JSON output. Aggregates table-level RLS state + policy count + anon/authenticated grants.
-psql "$SUPABASE_DB_URL" -At -v ON_ERROR_STOP=1 <<'SQL'
+psql "$RLS_AUDIT_DB_URL" -At -v ON_ERROR_STOP=1 <<'SQL'
 with table_rls as (
     select n.nspname as schema_name,
            c.relname as table_name,

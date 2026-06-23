@@ -129,10 +129,11 @@ function buildFocusDisplayTitle(focus, title) {
     .replace(/^今日焦点[:：]\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
+  if (!text) return "";
   if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text)) return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
   if (text && text !== "保持节奏，继续推进" && text !== "按当前状态推进建筑实务") return text;
-  return "今日推进";
+  return "";
 }
 
 function buildFocusDisplayMeta(focus, meta) {
@@ -571,9 +572,9 @@ Page({
         userName: "同学",
         avatarChar: "L",
         focusTone: "plan",
-        focusTitle: "先看看鲁班智考能怎么帮你提分",
-        focusMeta: "发送真实问题时再登录，付费能力会在动作前提示",
-        focusText: "先看看鲁班智考能怎么帮你提分",
+        focusTitle: "",
+        focusMeta: "",
+        focusText: "",
         focusQuery: "",
         focusActionType: "",
         focusPromptIntent: null,
@@ -609,6 +610,7 @@ Page({
       avatarChar: name.charAt(0).toUpperCase(),
     };
     this.setData(nextState);
+    return info;
   },
 
   _ensureChatReady: function () {
@@ -625,7 +627,13 @@ Page({
     self._chatReadyPromise = api
       .getUserInfo()
       .then(function (raw) {
-        self._applyAuthProfile(raw);
+        var info = self._applyAuthProfile(raw);
+        var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
+        if (!phone || phone.length < 8) {
+          self.setData({ isGuestPreview: true });
+          runtime.redirectToLogin(route.chat({ preview: "1" }));
+          throw new Error("PHONE_BIND_REQUIRED");
+        }
       })
       .then(
         function (result) {
@@ -783,7 +791,32 @@ Page({
       self._pendingRecoveryActive = false;
       if (!recovered) {
         self._recoveringTurn = false;
+        self._continuePendingTurnRecoveryInBackground();
       }
+    }, function () {
+      self._pendingRecoveryActive = false;
+      self._recoveringTurn = false;
+      self._continuePendingTurnRecoveryInBackground();
+    });
+  },
+
+  _continuePendingTurnRecoveryInBackground: function () {
+    var self = this;
+    if (!this._isPendingTurnCurrent(this._pendingTurn || this._loadPendingTurn()) || this._pendingRecoveryActive) return;
+    this._pendingRecoveryActive = true;
+    this._recoverTurnFromHistory({
+      longPoll: true,
+      unlockOnExhausted: true,
+      keepPendingOnExhausted: true,
+      hydrateOnExhausted: false,
+    }).then(function (recovered) {
+      self._pendingRecoveryActive = false;
+      if (!recovered) {
+        self._recoveringTurn = false;
+      }
+    }, function () {
+      self._pendingRecoveryActive = false;
+      self._recoveringTurn = false;
     });
   },
 
@@ -1118,6 +1151,7 @@ Page({
           }
           self._finishPendingTurnRecovery(null, {
             keepPending: !!opts.keepPendingOnExhausted,
+            hydrate: opts.hydrateOnExhausted !== false,
           });
           return false;
         });
@@ -1480,7 +1514,12 @@ Page({
         recoverySelf._pendingRecoveryActive = false;
         if (!recovered) {
           recoverySelf._recoveringTurn = false;
+          recoverySelf._continuePendingTurnRecoveryInBackground();
         }
+      }, function () {
+        recoverySelf._pendingRecoveryActive = false;
+        recoverySelf._recoveringTurn = false;
+        recoverySelf._continuePendingTurnRecoveryInBackground();
       });
       return;
     }
@@ -2057,12 +2096,12 @@ Page({
       .catch(function (err) {
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
         if (cachedDashboard) return;
-        // 降级：仍显示默认焦点条
+        // No trusted canonical focus: keep only static examples.
         self.setData({
           focusTone: "plan",
-          focusTitle: "今日推进",
+          focusTitle: "",
           focusMeta: "",
-          focusText: "今日推进",
+          focusText: "",
           focusPromptIntent: null,
           focusActionType: "",
           recommendedPrompts: [],

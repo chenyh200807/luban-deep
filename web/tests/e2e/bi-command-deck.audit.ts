@@ -55,7 +55,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
     });
   });
 
-  await page.route("**/api/v1/member/**", async (route) => {
+  await page.route("**/api/v1/bi/member/**", async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
     const memberListItem = {
@@ -74,7 +74,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
       review_due: 2,
     };
 
-    if (path === "/api/v1/member/list") {
+    if (path === "/api/v1/bi/member/list") {
       await route.fulfill({
         status: 200,
         headers: { "content-type": "application/json" },
@@ -89,7 +89,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
       return;
     }
 
-    if (path === "/api/v1/member/dashboard") {
+    if (path === "/api/v1/bi/member/dashboard") {
       await route.fulfill({
         status: 200,
         headers: { "content-type": "application/json" },
@@ -111,7 +111,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
       return;
     }
 
-    if (path === "/api/v1/member/learner-001/360") {
+    if (path === "/api/v1/bi/member/learner-001/360") {
       await route.fulfill({
         status: 200,
         headers: { "content-type": "application/json" },

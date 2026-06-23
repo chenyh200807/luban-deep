@@ -65,6 +65,9 @@ scanners:
   - script: scripts/check_model_authority.py
     governs: single DEFAULT_LLM_MODEL / DEFAULT_LLM_PROVIDER authority
     enforcement: pr_gate
+  - script: scripts/check_submission_relation_gate_authority.py
+    governs: no NEW independent submission/relation _looks_like_* gate (Context-Continuity 止血, contracts/turn.md §24; fail-on-new, baseline-grandfathered)
+    enforcement: pr_gate
   # ── shell CI gates ──
   - script: scripts/ci/check_secure_routers.sh
     governs: routers must use the secure auth dependency (fail-on-new)
@@ -110,6 +113,9 @@ scanners:
     enforcement: operational
   - script: scripts/check_local_env.py
     governs: local env sanity (dev tool)
+    enforcement: operational
+  - script: scripts/check_luban_animation_taxonomy_alignment.py
+    governs: Luban animation pack taxonomy alignment registry / production manifest consistency (content-production gate)
     enforcement: operational
   - script: scripts/check_secret_envs.py
     governs: secret-in-env scan (pre-commit / on-demand)

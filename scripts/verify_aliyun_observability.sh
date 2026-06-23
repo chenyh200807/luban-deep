@@ -58,12 +58,16 @@ if readiness.get('ready') is not True:
 if 'deeptutor_ready 1' not in prometheus_body:
     raise SystemExit('metrics/prometheus 未导出 deeptutor_ready 1')
 
-langfuse_status = 'skipped'
+# Honest default: when no LLM trace sink is enabled, say so explicitly instead of a
+# silent 'skipped' that reads as a clean pass. We do NOT hard-fail (whether to run a
+# trace sink is an operator policy), but the deploy log must make the gap visible.
+langfuse_status = 'disabled (no LLM trace sink configured)'
 langfuse_enabled = env_values.get('LANGFUSE_ENABLED', '').lower() in {'1', 'true', 'yes', 'on'}
-langfuse_url = env_values.get('LANGFUSE_BASE_URL', '')
+# Resolve the URL the same way the app does (langfuse_adapter.py): BASE_URL or HOST.
+langfuse_url = env_values.get('LANGFUSE_BASE_URL', '') or env_values.get('LANGFUSE_HOST', '')
 if langfuse_enabled:
     if not langfuse_url:
-        raise SystemExit('LANGFUSE_ENABLED=true 但缺少 LANGFUSE_BASE_URL。')
+        raise SystemExit('LANGFUSE_ENABLED=true 但缺少 LANGFUSE_BASE_URL / LANGFUSE_HOST。')
     compose_ps = subprocess.run(
         ['docker', 'compose', 'ps', '-q', 'deeptutor'],
         cwd=str(remote_dir),

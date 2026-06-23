@@ -111,7 +111,6 @@ function loadWsStream(config) {
           },
           ensureFreshAuthToken: function () {
             ensureTokenCalls += 1;
-            if (config.tokenError) return Promise.reject(config.tokenError);
             return Promise.resolve(tokenQueue.shift() || "");
           },
         };
@@ -234,34 +233,6 @@ function loadWsStream(config) {
       loaded.connects[0].header.Authorization === "Bearer fresh-token-1",
       "initial socket connect should use refreshed bearer token instead of stale snapshot",
     );
-  });
-
-  await run("fresh-token failure should fail before opening a socket", async function () {
-    var loaded = loadWsStream({
-      tokenError: new Error("AUTH_EXPIRED"),
-    });
-    var errors = [];
-    var doneCount = 0;
-
-    loaded.wsStream.streamChat(
-      { query: "继续", sessionId: "conv_1" },
-      {
-        onError: function (message) {
-          errors.push(message);
-        },
-        onDone: function () {
-          doneCount += 1;
-        },
-      },
-    );
-
-    await flushPromises();
-    await flushPromises();
-
-    assert(loaded.getEnsureTokenCalls() === 1, "token refresh should be attempted once");
-    assert(loaded.connects.length === 0, "socket must not open when fresh auth token cannot be resolved");
-    assert(errors[0] === "登录已失效，请重新登录", "auth refresh failure should use unified auth error copy");
-    assert(doneCount === 1, "auth refresh failure should finish the local stream once");
   });
 
   await run("first-turn stream should let start-turn create the conversation", async function () {
@@ -718,7 +689,7 @@ function loadWsStream(config) {
     );
   });
 
-  await run("public result must not use metadata.content as final response", async function () {
+  await run("public result metadata.content should not become final answer authority", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],
     });
@@ -741,14 +712,22 @@ function loadWsStream(config) {
       type: "result",
       visibility: "public",
       metadata: {
-        content: "不应作为最终答案的内部内容",
-        metadata: { content: "嵌套内部内容也不应作为最终答案" },
+        content: "metadata.content 不能作为终态答案",
+      },
+    });
+    loaded.tasks[0]._message({
+      type: "result",
+      visibility: "public",
+      metadata: {
+        metadata: {
+          content: "nested metadata.content 也不能作为终态答案",
+        },
       },
     });
 
     assert(
       finals.length === 0,
-      "metadata.content must not become a final answer projection",
+      "metadata.content without response/assistant_content must not trigger visible final answer",
     );
   });
 

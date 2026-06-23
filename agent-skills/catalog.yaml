@@ -73,10 +73,6 @@ skills:
     path: agent-skills/deeptutor-source-grounded-change/SKILL.md
     lane: source-grounding
     expected_use: conditional
-  - name: deeptutor-storm-source-inspection
-    path: agent-skills/deeptutor-storm-source-inspection/SKILL.md
-    lane: source-grounding
-    expected_use: conditional
   - name: deeptutor-spec-plan-gate
     path: agent-skills/deeptutor-spec-plan-gate/SKILL.md
     lane: planning
@@ -93,14 +89,6 @@ skills:
     path: agent-skills/luban-diagram-microlesson/SKILL.md
     lane: luban
     expected_use: conditional
-  - name: luban-learning-pack-factory
-    path: agent-skills/luban-learning-pack-factory/SKILL.md
-    lane: luban
-    expected_use: conditional
-  - name: luban-case-answer-layer
-    path: agent-skills/luban-case-answer-layer/SKILL.md
-    lane: luban
-    expected_use: conditional
   - name: luban-okf-context
     path: agent-skills/luban-okf-context/SKILL.md
     lane: luban
@@ -108,6 +96,10 @@ skills:
   - name: luban-rich-leaf-compiler
     path: agent-skills/luban-rich-leaf-compiler/SKILL.md
     lane: luban
+    expected_use: conditional
+  - name: tutorbot-student-army-eval-loop
+    path: agent-skills/tutorbot-student-army-eval-loop/SKILL.md
+    lane: qa
     expected_use: conditional
   - name: wechat-tutorbot-real-entry-qa
     path: agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md

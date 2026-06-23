@@ -62,12 +62,12 @@ assertContains(
   "empty done and foreground recovery should preserve pending identity while canonical history catches up",
 );
 assertContains(
-  "hydrateOnExhausted: false",
-  "empty done recovery exhaustion must not replace the local turn with incomplete server history",
+  "_continuePendingTurnRecoveryInBackground: function ()",
+  "short foreground recovery exhaustion should continue long canonical history recovery without blocking the UI",
 );
 assert(
-  /_startPendingTurnBackgroundRecovery:\s*function[\s\S]*?keepPendingOnExhausted:\s*true,\s*hydrateOnExhausted:\s*false,/.test(source),
-  "foreground/background pending recovery must not hydrate incomplete server history over local pending UI",
+  /_continuePendingTurnRecoveryInBackground:\s*function\s*\(\)[\s\S]*?longPoll:\s*true/.test(source),
+  "background continuation should reuse canonical history recovery with long polling",
 );
 assertContains(
   "self._finishPendingTurnRecovery();",
@@ -98,7 +98,7 @@ assert(
   "non-cancelling local stream aborts must not erase the durable pending turn",
 );
 assert(
-  /_onDone:\s*function\s*\(options\)[\s\S]*?var wasRecoveringTurn = !!this\._recoveringTurn;[\s\S]*?var renderedAnswer = false;[\s\S]*?!skipHistoryRecovery && !renderedAnswer[\s\S]*?_recoverTurnFromHistory\(/.test(source),
+  /_onDone:\s*function\s*\(options\)[\s\S]*?var wasRecoveringTurn = !!this\._recoveringTurn;[\s\S]*?var renderedAnswer = false;[\s\S]*?!skipHistoryRecovery\s*&&\s*!renderedAnswer[\s\S]*?_recoverTurnFromHistory\(/.test(source),
   "terminal done without a visible answer should preserve pending identity and recover from canonical history",
 );
 assert(

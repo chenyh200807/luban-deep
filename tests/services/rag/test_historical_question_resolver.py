@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 import pytest
 
@@ -136,6 +137,44 @@ def test_historical_question_resolver_remaps_answer_to_current_option_surface(tm
     assert exact_question["options"][0] == {"key": "A", "value": "5%"}
     response = build_exact_authority_response(exact_question, user_message=query)
     assert response == "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+
+
+def test_grounding_text_projection_remaps_bank_answer_to_query_option_surface() -> None:
+    from deeptutor.services.rag.historical_questions import project_grounding_text_to_query_surface
+
+    grounding = (
+        "题库原题\n"
+        "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+        "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+        "【答案】D\n"
+        "【解析】屋面最小坡度：压型金属板：5%。"
+    )
+    query = (
+        "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+        "A.5% B.1% C.2% D.3%，我选A，对吗？"
+    )
+
+    projected = project_grounding_text_to_query_surface(grounding, query)
+    options_match = re.search(r"【选项】(?P<options>\[.*?\])\s*\n【答案】(?P<answer>[A-E])", projected)
+
+    assert options_match is not None
+    assert options_match.group("answer") == "A"
+    options = json.loads(options_match.group("options"))
+    assert options[0] == {"key": "A", "value": "5%"}
+    assert "【答案】D" not in projected
+
+
+def test_grounding_text_projection_fails_open_when_query_surface_does_not_match() -> None:
+    from deeptutor.services.rag.historical_questions import project_grounding_text_to_query_surface
+
+    grounding = (
+        "【选项】[{\"key\":\"A\",\"value\":\"1%\"},{\"key\":\"B\",\"value\":\"2%\"},"
+        "{\"key\":\"C\",\"value\":\"3%\"},{\"key\":\"D\",\"value\":\"5%\"}]\n"
+        "【答案】D"
+    )
+    query = "某工程屋面坡度最小值是多少？我选A。"
+
+    assert project_grounding_text_to_query_surface(grounding, query) == grounding
 
 
 def test_historical_question_resolver_matches_natural_stem_variant_with_option_surface(tmp_path) -> None:
@@ -315,3 +354,46 @@ async def test_rag_service_returns_historical_exact_question_when_provider_fails
     assert result["evidence_bundle"]["retrieval_status"] == "provider_failed_exact_question_resolved"
     assert "题库原题" in result["content"]
     assert "标准答案：CDE" in result["content"]
+
+
+# ── grounding option-surface projection (task#10: pasted-MCQ grading) ──────────
+# The grading LLM reads question-bank grounding whose letter↔value surface (5%=D)
+# can differ from the learner's pasted surface (5%=A). project_grounding_text_to_
+# query_surface rewrites the grounding onto the learner surface so the prompt holds
+# only ONE surface — making the decision deterministic instead of model-dependent.
+from deeptutor.services.rag.historical_questions import (  # noqa: E402
+    project_grounding_text_to_query_surface,
+)
+
+_BANK_GROUNDING = (
+    "【题目】某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（）。\n"
+    '【选项】[{"key": "A", "value": "1%"}, {"key": "B", "value": "2%"}, '
+    '{"key": "C", "value": "3%"}, {"key": "D", "value": "5%"}]\n'
+    "【答案】D\n【解析】压型金属板：5%。"
+)
+# Learner pasted A=5% (correct value), chose A.
+_LEARNER_PASTE = "某工程屋面为压型金属板，坡度最小值是（）。A.5% B.2% C.3% D.1%。我选A，判对错。"
+
+
+def test_grounding_projection_remaps_bank_answer_to_learner_surface() -> None:
+    out = project_grounding_text_to_query_surface(_BANK_GROUNDING, _LEARNER_PASTE)
+    match = re.search(r"【选项】(\[.*?\])\n【答案】([A-E])", out)
+    assert match is not None
+    options = {o["key"]: o["value"] for o in json.loads(match.group(1))}
+    answer = match.group(2)
+    # bank said D; on the learner surface the correct 5% is A.
+    assert answer == "A"
+    assert options[answer] == "5%"
+    assert "【答案】D" not in out
+
+
+def test_grounding_projection_failsafe_when_learner_pasted_no_options() -> None:
+    assert (
+        project_grounding_text_to_query_surface(_BANK_GROUNDING, "压型金属板坡度是多少？")
+        == _BANK_GROUNDING
+    )
+
+
+def test_grounding_projection_failsafe_when_values_do_not_correspond() -> None:
+    grounding = '【选项】[{"key": "A", "value": "99%"}, {"key": "B", "value": "88%"}]\n【答案】A'
+    assert project_grounding_text_to_query_surface(grounding, _LEARNER_PASTE) == grounding

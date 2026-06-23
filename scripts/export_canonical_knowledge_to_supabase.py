@@ -304,6 +304,25 @@ create table if not exists public.luban_canonical_knowledge_edges (
 );
 create index if not exists idx_lkge_src on public.luban_canonical_knowledge_edges (src);
 create index if not exists idx_lkge_dst on public.luban_canonical_knowledge_edges (dst);
+
+-- catalog projection tables are ops-maintained via direct Postgres only.
+-- They are public schema tables, so every refresh must restore the same
+-- service-role-only RLS posture after create/drop.
+alter table public.luban_canonical_taxonomy enable row level security;
+alter table public.luban_canonical_knowledge_catalog enable row level security;
+alter table public.luban_canonical_knowledge_edges enable row level security;
+alter table public.luban_canonical_taxonomy force row level security;
+alter table public.luban_canonical_knowledge_catalog force row level security;
+alter table public.luban_canonical_knowledge_edges force row level security;
+revoke all on table public.luban_canonical_taxonomy from anon, authenticated;
+revoke all on table public.luban_canonical_knowledge_catalog from anon, authenticated;
+revoke all on table public.luban_canonical_knowledge_edges from anon, authenticated;
+comment on table public.luban_canonical_taxonomy is
+  'Ops-maintained canonical taxonomy projection. RLS service-role-only; anon/authenticated revoked.';
+comment on table public.luban_canonical_knowledge_catalog is
+  'Ops-maintained canonical knowledge coverage projection. RLS service-role-only; anon/authenticated revoked.';
+comment on table public.luban_canonical_knowledge_edges is
+  'Ops-maintained canonical knowledge graph projection. RLS service-role-only; anon/authenticated revoked.';
 """
 
 

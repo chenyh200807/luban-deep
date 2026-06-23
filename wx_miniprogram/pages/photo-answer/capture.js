@@ -16,6 +16,7 @@ Page({
   },
 
   onLoad: function (options) {
+    this._mounted = true;
     var stem = "";
     try {
       stem = decodeURIComponent(options.stem || "");
@@ -29,6 +30,10 @@ Page({
     if (!this.data.questionId) {
       this.setData({ errorText: "缺少题号，请从题目页进入拍照作答" });
     }
+  },
+
+  onUnload: function () {
+    this._mounted = false;
   },
 
   addPhotos: function () {
@@ -45,10 +50,20 @@ Page({
       sizeType: ["compressed"],
       camera: "back",
       success: function (res) {
+        if (!that._mounted) return;
         var added = (res.tempFiles || []).map(function (f) {
-          return { tempPath: f.tempFilePath, status: "ready", qualityIssues: [] };
+          return {
+            tempPath: f.tempFilePath,
+            status: "ready",
+            qualityIssues: [],
+          };
         });
         that.setData({ pages: that.data.pages.concat(added), errorText: "" });
+      },
+      fail: function (err) {
+        var code = err && err.errCode;
+        if (code === -2 || code === 2) return; // user cancelled
+        wx.showToast({ title: "请在设置中允许访问相机或相册", icon: "none" });
       },
     });
   },
@@ -77,10 +92,14 @@ Page({
 
     var ensureSession = this.sessionId
       ? Promise.resolve({ session: { id: this.sessionId } })
-      : api.createPhotoAnswerSession(this.data.questionId, this.data.questionStem);
+      : api.createPhotoAnswerSession(
+          this.data.questionId,
+          this.data.questionStem,
+        );
 
     ensureSession
       .then(function (res) {
+        if (!that._mounted) return;
         that.sessionId = (res.session && res.session.id) || that.sessionId;
         if (!that.sessionId) {
           throw new Error("SESSION_CREATE_FAILED");
@@ -88,44 +107,58 @@ Page({
         var chain = Promise.resolve();
         that.data.pages.forEach(function (page, index) {
           chain = chain.then(function () {
+            if (!that._mounted) return null;
             if (page.status === "done") {
               return null;
             }
             that.setData({ ["pages[" + index + "].status"]: "uploading" });
-            return api.uploadPhotoAnswerPage(that.sessionId, index, page.tempPath).then(
-              function (uploaded) {
-                var issues = (uploaded.quality && uploaded.quality.issues) || [];
-                that.setData({
-                  ["pages[" + index + "].status"]: "done",
-                  ["pages[" + index + "].qualityIssues"]: issues,
-                });
-                if (issues.length) {
-                  wx.showToast({
-                    title: "第" + (index + 1) + "页" + that._qualityHint(issues) + "，建议重拍",
-                    icon: "none",
-                    duration: 2500,
+            return api
+              .uploadPhotoAnswerPage(that.sessionId, index, page.tempPath)
+              .then(
+                function (uploaded) {
+                  if (!that._mounted) return;
+                  var issues =
+                    (uploaded.quality && uploaded.quality.issues) || [];
+                  that.setData({
+                    ["pages[" + index + "].status"]: "done",
+                    ["pages[" + index + "].qualityIssues"]: issues,
                   });
-                }
-              },
-              function (err) {
-                that.setData({ ["pages[" + index + "].status"]: "failed" });
-                throw err;
-              }
-            );
+                  if (issues.length) {
+                    wx.showToast({
+                      title:
+                        "第" +
+                        (index + 1) +
+                        "页" +
+                        that._qualityHint(issues) +
+                        "，建议重拍",
+                      icon: "none",
+                      duration: 2500,
+                    });
+                  }
+                },
+                function (err) {
+                  if (!that._mounted) return;
+                  that.setData({ ["pages[" + index + "].status"]: "failed" });
+                  throw err;
+                },
+              );
           });
         });
         return chain;
       })
       .then(function () {
+        if (!that._mounted) return;
         return api.submitPhotoAnswerSession(that.sessionId);
       })
       .then(function () {
+        if (!that._mounted) return;
         that.setData({ submitting: false });
         wx.navigateTo({
           url: "/pages/photo-answer/confirm?session_id=" + that.sessionId,
         });
       })
       .catch(function (err) {
+        if (!that._mounted) return;
         that.setData({
           submitting: false,
           errorText: (err && err.message) || "上传失败，请重试",

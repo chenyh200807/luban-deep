@@ -421,7 +421,6 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)：非平凡实现、修复、审查、文档/计划、发布准备、或吸收外部 agent skill pack 时的 DeepTutor 本地调度入口。
 - [deeptutor-spec-plan-gate](./agent-skills/deeptutor-spec-plan-gate/SKILL.md)：PRD / roadmap / implementation plan / capability status 的本地 spec-plan 门槛。
 - [deeptutor-source-grounded-change](./agent-skills/deeptutor-source-grounded-change/SKILL.md)：框架、库、API、外部文档依赖类改动的 source-driven 工作流。
-- [deeptutor-storm-source-inspection](./agent-skills/deeptutor-storm-source-inspection/SKILL.md)：STORM / Co-STORM 式多视角 source inspection，用于知识编译、OKF-like pilot、ADR 和研究综合；输出只能是 candidate/review-only findings，不得成为 runtime、评分、RAG、citation 或 learner truth authority。
 - [deeptutor-incremental-implementation](./agent-skills/deeptutor-incremental-implementation/SKILL.md)：多文件改动的小步垂直切片实现工作流。
 - [deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)：行为变更、bug 修复、文档/skill 变更的测试与证据门槛。
 - [deeptutor-ci-runtime-fix-gate](./agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md)：GitHub Actions、CI runtime、route smoke、contract guard、detect-secrets、Deploy Gate 等失败的同 SHA 复现与修复门槛。
@@ -430,10 +429,10 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - [deeptutor-resource-registry-gate](./agent-skills/deeptutor-resource-registry-gate/SKILL.md)：DB、env/flag/secret、provider、process/cron、route、model/harness、governance scanner 等基础资源的 register-before-use 门槛。
 - [deeptutor-web-bi-frontend-gate](./agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md)：Web / BI / frontend / browser 检查的内存 preflight 与安全执行工作流。
 - [deeptutor-authority-debugging](./agent-skills/deeptutor-authority-debugging/SKILL.md)：状态丢失、拒答、上下文断裂、follow-up 误路由、authority drift。
+- [tutorbot-student-army-eval-loop](./agent-skills/tutorbot-student-army-eval-loop/SKILL.md)：主动派多 persona 学员军团在 test2 长对话压测 TutorBot，跑 发现→根因→治本→验证→沉淀 闭环；持续维护（每轮回写新 bug 模式与诊断/修复铁律）。
 - [wechat-tutorbot-real-entry-qa](./agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md)：真实微信 TutorBot 链路、DevTools、near-real / shadow 证据分级、客户满意度 QA。
 - [compiled-knowledge-shadow-eval](./agent-skills/compiled-knowledge-shadow-eval/SKILL.md)：Nexus-like / RAG+compiled 一般知识对话、TutorBot online shadow、source pollution 回流 compiler、system-wide default 裁决。
 - [luban-rich-leaf-compiler](./agent-skills/luban-rich-leaf-compiler/SKILL.md)：RichLeafArtifact / 2026 全量深编译 / source-evidence agent / semantic review queue / runtime supply candidate / Grading-to-Brain dry-run。
-- [luban-learning-pack-factory](./agent-skills/luban-learning-pack-factory/SKILL.md)：鲁班教研测一体学习包批量生产线；用于高频母题卡、讲懂动画、变题、看穿真懂 vs 背过的 loop-until-pass 量产闭环。
 - [luban-okf-context](./agent-skills/luban-okf-context/SKILL.md)：鲁班 OKF AI-only 资料导航入口；当问题涉及数据资产、教材/真题/讲义/规范、主题覆盖、考频/来源证据、candidate/runtime 边界时，先读 OKF index/topic cards 再回源验证。
 - [luban-diagram-microlesson](./agent-skills/luban-diagram-microlesson/SKILL.md)：图解微课卡 authoring / 确定性 renderer / 一屏一重点翻页 deck / 单一权威边界（renderer 不判分·candidate 不冒充签发·学生端不露内部词）/ 微信 web-view 沙盒 / 零依赖 CDP 验收。
 - [external-tool-absorption-boundary](./agent-skills/external-tool-absorption-boundary/SKILL.md)：采纳/升级 gstack、Claude Code 插件、marketplace skill、CLI、MCP、共享 hook 时，审计并中和其默认行为（auto-commit / CLAUDE.md 注入 / 越权 hook / telemetry），不越过单一权威、分支纪律、register-before-use。

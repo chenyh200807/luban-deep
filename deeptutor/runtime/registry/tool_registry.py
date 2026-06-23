@@ -68,6 +68,11 @@ class ToolRegistry:
 
         return resolved_name, merged_kwargs
 
+    def resolve_name(self, name: str) -> str:
+        """Return the canonical runtime tool name after alias resolution."""
+        resolved_name, _ = self._resolve_request(name)
+        return resolved_name
+
     def get(self, name: str) -> BaseTool | None:
         resolved_name, _ = self._resolve_request(name)
         tool = self._tools.get(resolved_name)

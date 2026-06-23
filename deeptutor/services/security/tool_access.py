@@ -9,6 +9,15 @@ END_USER_TOOL_ALIASES = {
     "code_execute": "code_execution",
     "run_code": "code_execution",
 }
+# Tools allowed in untrusted end-user (student) chat flows.
+#
+# This is an allowlist, not a denylist: the TutorBot registry contains trusted
+# operator tools such as filesystem and web_fetch tools. Those must not become
+# student-facing simply because a caller omitted metadata.default_tools.
+END_USER_ALLOWED_TOOLS = frozenset(
+    {"rag", "web_search", "reason", "brainstorm", "paper_search", "geogebra", "geogebra_analysis"}
+)
+
 # Tools never exposed to untrusted end-user (student) chat flows.
 # - code_execution / exec: arbitrary code/command execution (RCE surface).
 # - spawn / team / cron: agent-orchestration tools. spawn has no per-call cap, so a
@@ -28,7 +37,7 @@ def canonical_end_user_tool_name(tool_name: str) -> str:
 def is_end_user_tool_allowed(tool_name: str) -> bool:
     """Return whether a tool may be exposed to untrusted end-user chat flows."""
     normalized = canonical_end_user_tool_name(tool_name)
-    return bool(normalized) and normalized not in END_USER_BLOCKED_TOOLS
+    return bool(normalized) and normalized in END_USER_ALLOWED_TOOLS
 
 
 def filter_end_user_tools(tool_names: Iterable[str]) -> list[str]:

@@ -33,6 +33,7 @@ from .supabase_strategy import (
     dedupe_ranked_results,
     expand_query_variants,
     classify_query_shape,
+    exact_question_stem_corresponds,
     extract_node_code_prefix,
     is_question_like_query,
     matches_allowed_question_type,
@@ -1882,6 +1883,12 @@ class SupabasePipeline:
                 option_validation_required=option_validation_required,
             ):
                 continue
+            if not exact_question_stem_corresponds(
+                original_query=original_query,
+                matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                question_type=row.get("question_type"),
+            ):
+                continue
             return [self._normalize_question_result(row, source_group="question_exact_text", score=1.0)]
 
         if config.exact_question_text_rpc_enabled:
@@ -1912,6 +1919,12 @@ class SupabasePipeline:
                         original_query=original_query,
                         options=row.get("options"),
                         option_validation_required=option_validation_required,
+                    ):
+                        continue
+                    if not exact_question_stem_corresponds(
+                        original_query=original_query,
+                        matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                        question_type=row.get("question_type"),
                     ):
                         continue
                     return [
@@ -2697,8 +2710,20 @@ class SupabasePipeline:
         query: str,
         query_shape: str,
     ) -> dict[str, Any] | None:
-        if not isinstance(exact_question, dict) or query_shape != "case_like":
+        if not isinstance(exact_question, dict):
             return exact_question
+        if query_shape != "case_like":
+            # 题型一致性 fail-closed(#23, 2026-06-23, DeepSeek-V4-Pro 异源核坐实):
+            # case_study exact 命中代表"学生粘的就是这道题库案例题"。若学生 query 不是
+            # 案例题(query_shape != case_like,如 mcq_like/standard_like——经 exact_probe
+            # 文本相似度误命中一道案例 row),这不是同一道题:撤销命中(返回 None=无 exact
+            # 命中,兜底走正常 RAG+LLM),否则 exact_authority 会把该案例题整段"标准作答"
+            # (含别题背景数字如"中标价1.7亿")确定性拼给学生。非 case 命中(mcq/free_text
+            # exact 无 covered_subquestions)不受影响,原样返回。
+            is_case_hit = bool(exact_question.get("covered_subquestions")) or (
+                str(exact_question.get("answer_kind") or "").strip().lower() == "case_study"
+            )
+            return None if is_case_hit else exact_question
         query_items = extract_case_subquestion_items(query, max_items=8)
         if not query_items:
             return exact_question

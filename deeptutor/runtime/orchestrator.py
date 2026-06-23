@@ -13,9 +13,9 @@ import contextlib
 import logging
 import os
 import re
-import uuid
 from types import SimpleNamespace
 from typing import Any, AsyncIterator
+import uuid
 
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
@@ -25,13 +25,14 @@ from deeptutor.runtime.registry.capability_registry import get_capability_regist
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
+    batch_answer_action_for_numbered_single,
     detect_answer_reveal_preference,
     detect_requested_question_type,
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
-    resolve_submission_attempt,
     reset_question_submission_state,
+    resolve_submission_attempt,
 )
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_context,
@@ -39,14 +40,16 @@ from deeptutor.services.question_lifecycle_skills import (
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
+from deeptutor.services.runtime_env import env_flag
 from deeptutor.services.semantic_router import (
     build_active_object_from_question_context,
+    build_turn_semantic_decision,
+    is_unresolved_switch_followup,
     normalize_active_object,
     question_context_from_active_object,
     resolve_question_semantic_routing,
     turn_semantic_decision_route,
 )
-from deeptutor.services.runtime_env import env_flag
 from deeptutor.tutorbot.teaching_modes import (
     classify_practice_strategy,
     looks_like_practice_generation_request,
@@ -119,16 +122,8 @@ class ChatOrchestrator:
         capability = self._cap_registry.get(cap_name)
 
         if capability is None:
-            bus = StreamBus()
-            await bus.error(
-                f"Unknown capability: {cap_name}. "
-                f"Available: {self._cap_registry.list_capabilities()}",
-                source="orchestrator",
-            )
-            await bus.close()
-            async for event in bus.subscribe():
-                yield event
-            return
+            available = self._cap_registry.list_capabilities()
+            raise RuntimeError(f"Unknown capability: {cap_name}. Available: {available}")
 
         yield StreamEvent(
             type=StreamEventType.SESSION,
@@ -142,14 +137,17 @@ class ChatOrchestrator:
         bus = StreamBus()
 
         async def _run() -> None:
+            completed = False
             try:
                 await capability.run(context, bus)
+                completed = True
             except Exception as exc:
                 logger.error("Capability %s failed: %s", cap_name, exc, exc_info=True)
-                await bus.error(str(exc), source=cap_name)
+                raise
             finally:
-                with contextlib.suppress(BaseException):
-                    await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
+                if completed:
+                    with contextlib.suppress(BaseException):
+                        await bus.emit(StreamEvent(type=StreamEventType.DONE, source=cap_name))
                 with contextlib.suppress(BaseException):
                     await bus.close()
 
@@ -219,6 +217,23 @@ class ChatOrchestrator:
                 turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
                 semantic_route = turn_semantic_decision_route(turn_decision)
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                # Context-continuity invariant (contracts/turn.md §跨能力上下文连续性):
+                # an unresolved switch/back-reference (learner asked about an EARLIER
+                # object we can't resolve to a structured target) depends on prior
+                # context that lives in conversation_context_text. Route it to the
+                # context-continuous main LLM (TutorBot) to answer from history — never
+                # into deep_question's structured switch resolver, which fail-closes
+                # ("can't locate that question") = amnesia.
+                if is_unresolved_switch_followup(turn_decision):
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_unresolved_switch_to_context_continuity"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",
@@ -242,6 +257,25 @@ class ChatOrchestrator:
             ):
                 self._suspend_active_lifecycle_context(context)
             self._prepare_free_text_question_review_context(context, routing_user_message)
+            # Context-Continuity 真闭包 task #12 step 2 part 2: the no-active-object free-text
+            # question_review path routes to deep_question WITHOUT a canonical
+            # turn_semantic_decision, so deep_question used to fabricate one
+            # (_default_turn_semantic_decision) — a second-authority bypass the step-2
+            # observation caught in production. Supply the canonical decision here (the
+            # routing authority) instead. The decision-bearing fields match what
+            # deep_question fabricated for this path (relation=ask_about_active_object,
+            # next_action=route_to_followup_explainer, allowed_patch=no_state_change), so
+            # behavior is preserved; deep_question now READS it and no longer fabricates.
+            if not context.metadata.get("turn_semantic_decision"):
+                context.metadata["turn_semantic_decision"] = build_turn_semantic_decision(
+                    relation_to_active_object="ask_about_active_object",
+                    next_action="route_to_followup_explainer",
+                    allowed_patch="no_state_change",
+                    confidence=1.0,
+                    reason="orchestrator question_review(无 active object)分支提供 canonical "
+                    "decision,避免 deep_question 伪造兜底(turn.md §硬约束 24)。",
+                    active_object=context.metadata.get("active_object"),
+                )
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
                 f"{lifecycle_decision.source}_question_review"
@@ -256,6 +290,19 @@ class ChatOrchestrator:
                 turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
                 semantic_route = turn_semantic_decision_route(turn_decision)
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                # Context-continuity invariant: unresolved switch/back-reference → the
+                # context-continuous main LLM (TutorBot, from conversation_context_text),
+                # never the deep_question structured switch resolver (fail-closed amnesia).
+                if is_unresolved_switch_followup(turn_decision):
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_unresolved_switch_to_context_continuity"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",
@@ -373,6 +420,16 @@ class ChatOrchestrator:
             context.metadata["semantic_router_shadow_decision"] = {}
             context.metadata["semantic_router_shadow_route"] = ""
             semantic_route = turn_semantic_decision_route(turn_decision)
+            # Context-continuity invariant: an unresolved switch/back-reference depends on
+            # prior context (conversation_context_text) → route to the context-continuous
+            # main LLM, never the deep_question structured switch resolver (fail-closed).
+            if is_unresolved_switch_followup(turn_decision):
+                cap_name = self._default_chat_capability(context)
+                context.metadata["semantic_router_mode_reason"] = (
+                    "unresolved_switch_to_context_continuity"
+                )
+                context.metadata["semantic_router_selected_capability"] = cap_name
+                return cap_name
             if semantic_route == "deep_question":
                 next_action = str((turn_decision or {}).get("next_action") or "").strip()
                 if next_action == "route_to_grading":
@@ -781,22 +838,33 @@ class ChatOrchestrator:
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
         if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
-        fallback_action = {
-            "intent": "answer_questions",
-            "answers": (
-                submission.get("answers")
-                if submission.get("kind") == "batch"
-                else [
-                    {
-                        "index": 1,
-                        "question_id": str(target_context.get("question_id") or "").strip(),
-                        "user_answer": str(submission.get("answer") or "").strip(),
-                    }
-                ]
-            ),
-            "preserve_other_answers": False,
-        }
-        fallback_context = apply_followup_action_to_context(target_context, fallback_action)
+        # object-continuity (E8 SEV-1, 2026-06-21): grade a numbered single submission
+        # WITHIN the full batch set so the other questions survive (single chokepoint =
+        # `batch_answer_action_for_numbered_single`; the primary fix is at turn-start in
+        # turn_runtime, this is the deep_question-path defense-in-depth on the same helper).
+        # Returns None for single-question contexts / out-of-range → keep existing path.
+        batch_action = batch_answer_action_for_numbered_single(submission, qctx)
+        if batch_action is not None:
+            grade_target = qctx
+            fallback_action = batch_action
+        else:
+            grade_target = target_context
+            fallback_action = {
+                "intent": "answer_questions",
+                "answers": (
+                    submission.get("answers")
+                    if submission.get("kind") == "batch"
+                    else [
+                        {
+                            "index": 1,
+                            "question_id": str(target_context.get("question_id") or "").strip(),
+                            "user_answer": str(submission.get("answer") or "").strip(),
+                        }
+                    ]
+                ),
+                "preserve_other_answers": False,
+            }
+        fallback_context = apply_followup_action_to_context(grade_target, fallback_action)
         if fallback_context:
             context.metadata["question_followup_context"] = fallback_context
             active_object = build_active_object_from_question_context(

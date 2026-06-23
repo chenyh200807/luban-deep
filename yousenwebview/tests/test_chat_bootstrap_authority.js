@@ -483,7 +483,7 @@ function loadChatPage(overrides) {
   );
 
   await run(
-    "chat page should keep a default today focus when dashboard request fails",
+    "chat page should hide today focus when dashboard request fails",
     async function () {
       var loaded = loadChatPage({
         preserveLoadDashboard: true,
@@ -498,12 +498,12 @@ function loadChatPage(overrides) {
       await flushPromises();
 
       assert(
-        loaded.page.data.focusTitle === "今日推进",
-        "dashboard failure should still set default focus title",
+        loaded.page.data.focusTitle === "",
+        "dashboard failure should not render a non-canonical default focus title",
       );
       assert(
-        loaded.page.data.focusText === "今日推进",
-        "dashboard failure should still make focus bar renderable",
+        loaded.page.data.focusText === "",
+        "dashboard failure should not make the focus bar renderable",
       );
     },
   );

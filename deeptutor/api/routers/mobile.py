@@ -109,19 +109,16 @@ _MAX_MOBILE_START_TURN_QUERY_CHARS = 128 * 1024
 
 _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
-_BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
-_BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
-_INTERNAL_BETA_USAGE_LIMIT_TURNS = "DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
-_BILLING_PLAN_QUOTA_POINTS = {
-    "vip": {"five_hour": 3200, "weekly": 9000},
-    "svip": {"five_hour": 10000, "weekly": 28000},
-    "supreme_svip": {"five_hour": 18000, "weekly": 50000},
+_BILLING_PLAN_REFERENCE_POINTS = {
+    "vip": 9000,
+    "svip": 28000,
+    "supreme_svip": 50000,
 }
 _BILLING_PLAN_ALIASES = {
     "": "vip",
@@ -421,28 +418,14 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
     }
 
 
-def _billing_usage_limit_points(env_name: str, default: int) -> int:
-    try:
-        return max(1, int(os.getenv(env_name, str(default)) or default))
-    except (TypeError, ValueError):
-        return default
-
-
-def _internal_beta_usage_limit_turns() -> int:
-    return _billing_usage_limit_points(_INTERNAL_BETA_USAGE_LIMIT_TURNS, 450)
-
-
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
     return _BILLING_PLAN_ALIASES.get(raw, "vip")
 
 
-def _billing_usage_limit_for_plan(plan_id: str | None, window: str) -> int:
+def _billing_usage_reference_points_for_plan(plan_id: str | None) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
-    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["vip"]
-    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["vip"][window])
-    env_name = _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS if window == "five_hour" else _BILLING_USAGE_WEEKLY_LIMIT_POINTS
-    return _billing_usage_limit_points(env_name, default)
+    return int(_BILLING_PLAN_REFERENCE_POINTS.get(normalized) or _BILLING_PLAN_REFERENCE_POINTS["vip"])
 
 
 def _parse_ledger_datetime(value: str) -> datetime | None:
@@ -465,28 +448,6 @@ def _is_ai_usage_debit(entry: WalletLedgerEntry) -> bool:
     return entry.event_type == "debit" or entry.reference_type == "ai_usage" or reason == "capture"
 
 
-def _usage_window_payload(
-    *,
-    key: str,
-    label: str,
-    limit_points: int,
-    used_micros: int,
-    reset_at: datetime | None,
-) -> dict[str, Any]:
-    limit_micros = max(1, int(limit_points)) * 1_000_000
-    used = max(0, int(used_micros or 0))
-    remaining = max(0, limit_micros - used)
-    percent = int(round((remaining / limit_micros) * 100))
-    percent = max(0, min(100, percent))
-    return {
-        "key": key,
-        "label": label,
-        "remaining_percent": percent,
-        "used_percent": max(0, min(100, 100 - percent)),
-        "reset_at": reset_at.isoformat() if reset_at else "",
-    }
-
-
 def _build_billing_usage_payload(
     entries: list[WalletLedgerEntry],
     *,
@@ -495,61 +456,54 @@ def _build_billing_usage_payload(
     limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
-    five_hour_start = current - timedelta(hours=5)
-    week_start = (current - timedelta(days=current.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
-    week_reset = week_start + timedelta(days=7)
-
-    five_hour_used = 0
-    weekly_used = 0
-    five_hour_times: list[datetime] = []
+    _ = limit_points_by_window
+    total_used_micros = 0
+    total_credit_micros = 0
+    latest_balance_micros = 0
+    latest_created_at: datetime | None = None
 
     for entry in entries:
-        if not _is_ai_usage_debit(entry):
-            continue
         created_at = _parse_ledger_datetime(entry.created_at)
         if created_at is None:
-            continue
+            created_at = current
+        if latest_created_at is None or created_at >= latest_created_at:
+            latest_created_at = created_at
+            latest_balance_micros = max(0, int(entry.balance_after_micros or 0))
         amount = abs(int(entry.delta_micros or 0))
-        if created_at >= five_hour_start:
-            five_hour_used += amount
-            five_hour_times.append(created_at)
-        if created_at >= week_start:
-            weekly_used += amount
+        if _is_ai_usage_debit(entry):
+            total_used_micros += amount
+        elif int(entry.delta_micros or 0) > 0:
+            total_credit_micros += int(entry.delta_micros or 0)
 
-    five_hour_reset = min(five_hour_times) + timedelta(hours=5) if five_hour_times else None
-    rows = [
-        _usage_window_payload(
-            key="five_hour",
-            label="5 小时保护额度",
-            limit_points=(
-                int((limit_points_by_window or {}).get("five_hour") or 0)
-                or _billing_usage_limit_for_plan(plan_id, "five_hour")
-            ),
-            used_micros=five_hour_used,
-            reset_at=five_hour_reset,
-        ),
-        _usage_window_payload(
-            key="weekly",
-            label="本周额度",
-            limit_points=(
-                int((limit_points_by_window or {}).get("weekly") or 0)
-                or _billing_usage_limit_for_plan(plan_id, "weekly")
-            ),
-            used_micros=weekly_used,
-            reset_at=week_reset,
-        ),
-    ]
-    primary = next((row for row in rows if row.get("key") == "weekly"), rows[-1])
+    observed_reference_micros = max(
+        1,
+        total_credit_micros,
+        latest_balance_micros + total_used_micros,
+        latest_balance_micros,
+    )
+    package_reference_micros = int(_billing_usage_reference_points_for_plan(plan_id)) * 1_000_000
+    reference_micros = (
+        observed_reference_micros
+        if observed_reference_micros > total_used_micros
+        else max(1, package_reference_micros)
+    )
+    remaining_basis_micros = (
+        latest_balance_micros
+        if latest_balance_micros > 0 or total_credit_micros > 0
+        else max(0, reference_micros - total_used_micros)
+    )
+    remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100)) if entries else 100
+    remaining_percent = max(0, min(100, remaining_percent))
     return {
         "status": "ok",
         "display": {
-            "primary_label": f"剩余 {int(primary['remaining_percent'])}%",
-            "primary_percent": int(primary["remaining_percent"]),
-            "limited_by": primary["key"],
+            "primary_label": f"剩余 {remaining_percent}%",
+            "primary_percent": remaining_percent,
+            "limited_by": "membership_balance",
             "plan_id": _normalize_billing_plan_id(plan_id),
         },
         "quota": {
-            "rows": rows,
+            "rows": [],
         },
     }
 
@@ -650,7 +604,6 @@ def _build_internal_beta_usage_payload(
     now: datetime | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
-    limit_turns = _internal_beta_usage_limit_turns()
     unit_points = int(_MINI_PROGRAM_CAPTURE_COST)
     entries = _usage_meter_events_as_ledger_entries(
         events,
@@ -660,12 +613,7 @@ def _build_internal_beta_usage_payload(
         entries,
         now=current,
         plan_id=plan_id,
-        limit_points_by_window={
-            "five_hour": limit_turns * unit_points,
-            "weekly": limit_turns * unit_points,
-        },
     )
-    payload["quota"]["unit"] = "turn"
     return payload
 
 
@@ -680,9 +628,9 @@ def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, 
         "status": "degraded",
         "reason": "billing_storage_unavailable",
         "display": {
-            "primary_label": "额度暂不可用",
+            "primary_label": "权益暂不可用",
             "primary_percent": 100,
-            "limited_by": "weekly",
+            "limited_by": "membership_balance",
             "plan_id": _normalize_billing_plan_id(plan_id),
         },
         "quota": {
@@ -1692,6 +1640,14 @@ def _event_identity(event: dict[str, Any], key: str) -> str:
     return ""
 
 
+def _is_public_result_event(event: dict[str, Any]) -> bool:
+    event_type = str(event.get("type") or "").strip().lower().split(".")[-1]
+    if event_type != "result":
+        return False
+    visibility = str(event.get("visibility") or "public").strip().lower()
+    return visibility == "public"
+
+
 def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
     if isinstance(message, dict):
         for key in ("engine_turn_id", "turn_id"):
@@ -1708,6 +1664,59 @@ def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
         if turn_id:
             return turn_id
     return ""
+
+
+def _mobile_message_identity(message: dict[str, Any] | None, keys: tuple[str, ...]) -> str:
+    if isinstance(message, dict):
+        for key in keys:
+            direct = str(message.get(key) or "").strip()
+            if direct:
+                return direct
+        for metadata in _iter_mobile_message_metadata(message):
+            for key in keys:
+                candidate = str(metadata.get(key) or "").strip()
+                if candidate:
+                    return candidate
+    for event in reversed(_message_events(message)):
+        for key in keys:
+            candidate = _event_identity(event, key)
+            if candidate:
+                return candidate
+    return ""
+
+
+def _iter_mobile_message_answer_metadata(message: dict[str, Any]) -> Iterable[dict[str, Any]]:
+    metadata = message.get("metadata")
+    if isinstance(metadata, dict):
+        yield metadata
+        nested_metadata = metadata.get("metadata")
+        if isinstance(nested_metadata, dict):
+            yield nested_metadata
+    for event in _message_events(message):
+        if not _is_public_result_event(event):
+            continue
+        event_metadata = event.get("metadata")
+        if isinstance(event_metadata, dict):
+            yield event_metadata
+            nested_event_metadata = event_metadata.get("metadata")
+            if isinstance(nested_event_metadata, dict):
+                yield nested_event_metadata
+
+
+def _assistant_message_display_content(message: dict[str, Any]) -> str:
+    content = str(message.get("content") or "")
+    if content.strip() or str(message.get("role") or "") != "assistant":
+        return content
+    for key in ("response", "assistant_content"):
+        direct = str(message.get(key) or "").strip()
+        if direct:
+            return str(message.get(key) or "")
+    for metadata in _iter_mobile_message_answer_metadata(message):
+        for key in ("response", "assistant_content"):
+            candidate = str(metadata.get(key) or "").strip()
+            if candidate:
+                return str(metadata.get(key) or "")
+    return content
 
 
 def _assistant_message_trace_id(message: dict[str, Any] | None) -> str:
@@ -2022,14 +2031,27 @@ def _build_presentation_payload(message: dict[str, Any]) -> dict[str, Any] | Non
 
 def _serialize_mobile_message(message: dict[str, Any]) -> dict[str, Any]:
     presentation = _build_presentation_payload(message)
-    return {
+    turn_id = _mobile_message_identity(
+        message,
+        ("turn_id", "engine_turn_id", "turnId", "engineTurnId"),
+    )
+    client_turn_id = _mobile_message_identity(
+        message,
+        ("client_turn_id", "clientTurnId"),
+    )
+    serialized = {
         "id": str(message.get("id") or ""),
         "role": str(message.get("role") or ""),
-        "content": str(message.get("content") or ""),
+        "content": _assistant_message_display_content(message),
         "created_at": _ts_to_iso(message.get("created_at")),
         "engine_turn_id": _assistant_message_turn_id(message),
         "presentation": presentation,
     }
+    if turn_id:
+        serialized["turn_id"] = turn_id
+    if client_turn_id:
+        serialized["client_turn_id"] = client_turn_id
+    return serialized
 
 
 def _build_tutorbot_start_response(
@@ -2075,10 +2097,15 @@ class VerifyCodeRequest(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-    username: str
     phone: str
     code: str
     password: str
+    username: str = ""
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class RegisterRequest(BaseModel):
@@ -2241,6 +2268,29 @@ async def auth_reset_password(body: PasswordResetRequest) -> dict[str, Any]:
             body.phone,
             body.code,
             body.password,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/auth/change-password",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_change_password", default_max_requests=5, default_window_seconds=60.0))
+    ],
+)
+async def auth_change_password(
+    body: ChangePasswordRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        # bcrypt verify + re-hash — threadpool, same rationale as auth_login.
+        return await run_in_threadpool(
+            member_service.change_password,
+            user_id,
+            body.old_password,
+            body.new_password,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -2415,11 +2465,10 @@ async def billing_wallet(authorization: str | None = Header(default=None)) -> di
 
 @router.get("/billing/usage")
 async def billing_usage(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    _resolve_authenticated_user_id(authorization)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    if not str(wallet_user_id or "").strip():
-        return _build_billing_usage_payload([])
     try:
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
     except Exception as exc:
@@ -2462,15 +2511,10 @@ async def billing_ledger(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
+    _resolve_authenticated_user_id(authorization)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
     if not getattr(wallet_service, "is_configured", False):
         raise HTTPException(status_code=503, detail="Wallet service unavailable")
-    if not str(wallet_user_id or "").strip():
-        return {
-            "entries": [],
-            "has_more": False,
-            "total": 0,
-        }
     merge_window = offset + limit + 1
     try:
         wallet_rows = wallet_service.list_wallet_ledger(wallet_user_id, limit=merge_window, offset=0)

@@ -32,7 +32,6 @@ from deeptutor.tools.question.question_extractor import extract_questions_from_p
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.teaching_modes import (
     practice_generation_request_needs_context_anchor,
-    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -195,12 +194,11 @@ class AgentCoordinator:
         batch_number = 0
         if _uses_construction_exam_scope(self.kb_name):
             topic_domain_status = practice_generation_topic_domain_status(user_topic)
-            block_decision = practice_generation_topic_block_decision(topic_domain_status)
-            if block_decision != "allow":
+            if topic_domain_status != "construction_topic":
                 blocked_reason = (
                     "blocked_out_of_scope_topic"
-                    if block_decision == "block_out_of_scope"
-                    else "blocked_unresolved_anchor"
+                    if topic_domain_status == "out_of_scope_topic"
+                    else "blocked_unknown_topic_anchor"
                 )
                 if lightweight_generation:
                     lightweight_trace_counters["lightweight_batch_fallback"] = blocked_reason
@@ -432,28 +430,6 @@ class AgentCoordinator:
                 history_context=history_context,
                 require_explanation=require_explanation,
                 lightweight_generation=lightweight_generation,
-            )
-        # 出口科目门（owner=只建筑）：生成题全部跑偏到非建筑（汉字/外国常识/纯他科）时
-        # 诚实拒答 subject_unavailable，禁出无关/跨科题。复用既有 blocked_out_of_scope_topic
-        # 消费路径（deep_question 渲染拒答），不另造拒答机制。
-        # 仅对 construction exam kb 生效，与入口科目门 _uses_construction_exam_scope 保持对称。
-        if _uses_construction_exam_scope(self.kb_name) and not self._generated_questions_in_construction_scope(templates[:requested], qa_pairs):
-            if lightweight_generation:
-                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_out_of_scope_topic"
-            return self._build_summary(
-                source="topic",
-                requested=requested,
-                templates=[],
-                qa_pairs=[],
-                trace={
-                    "batches": batch_trace,
-                    "lightweight_generation": lightweight_generation,
-                    "lightweight_counters": dict(lightweight_trace_counters)
-                    if lightweight_generation
-                    else None,
-                    "subject_scope_blocked": "subject_unavailable",
-                    "topic_domain_status": "out_of_scope_topic",
-                },
             )
         return self._build_summary(
             source="topic",
@@ -1366,33 +1342,6 @@ class AgentCoordinator:
         # (SMA topic vs 垂直运输/井架 stem) shares none and is rejected.
         topic_bigrams = {t[i : i + 2] for t in loose_terms for i in range(len(t) - 1)}
         return any(bigram in haystack for bigram in topic_bigrams)
-
-    @staticmethod
-    def _generated_questions_in_construction_scope(
-        templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
-    ) -> bool:
-        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
-        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
-        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
-        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
-        """
-        texts: list[str] = []
-        for qp in qa_pairs or []:
-            pair = qp.get("qa_pair") if isinstance(qp, dict) else None
-            if isinstance(pair, dict):
-                # Bank-hit questions are pre-vetted by the RAG store; skip scope check for them.
-                if (pair.get("grading_key") or {}).get("source") == "questions_bank":
-                    continue
-                texts.append(f"{pair.get('concentration') or ''} {pair.get('question') or ''}")
-        for template in templates or []:
-            texts.append(str(getattr(template, "concentration", "") or ""))
-        candidates = [text for text in texts if text.strip()]
-        if not candidates:
-            return True
-        return any(
-            practice_generation_topic_domain_status(text) == "construction_topic"
-            for text in candidates
-        )
 
     @staticmethod
     def _derive_lightweight_anchor_label(

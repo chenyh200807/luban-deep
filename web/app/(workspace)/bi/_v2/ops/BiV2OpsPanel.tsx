@@ -336,7 +336,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           }
         >
           BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
-          <code className="font-mono">/api/v1/member/audit-log</code>；导出请求写入{' '}
+          <code className="font-mono">/api/v1/bi/member/audit-log</code>；导出请求写入{' '}
           <code className="font-mono">/api/v1/bi/export-jobs</code> audit。
         </BiV2DataSourceBanner>
       )}

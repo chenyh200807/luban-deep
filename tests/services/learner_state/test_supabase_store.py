@@ -191,8 +191,20 @@ def test_stats_preserves_home_personalization_projection_inside_knowledge_map() 
     )
     store = LearnerStateSupabaseCoreStore(client=client)
     projection = {
+        "source_status": {
+            "fallback_used": False,
+            "learning_report": "projection",
+            "home_projection_contract": "canonical_taxonomy_v1",
+            "topic_authority": "learner_state.home_personalization.canonical_taxonomy",
+        },
         "today_focus": {"title": "今日焦点：防水工程"},
-        "recommended_prompts": [{"text": "用 3 道题训练防水工程", "intent": {"source": "home"}}],
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练防水工程",
+                "intent": {"source": "learner_state.home_personalization", "concept_label": "防水工程"},
+            }
+        ],
     }
 
     async def _run() -> None:

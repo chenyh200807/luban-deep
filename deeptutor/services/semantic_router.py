@@ -501,6 +501,33 @@ def turn_semantic_decision_route(decision: dict[str, Any] | None) -> str | None:
     return None
 
 
+def is_unresolved_switch_followup(decision: dict[str, Any] | None) -> bool:
+    """Canonical predicate: the learner referenced a DIFFERENT / earlier object but the
+    runtime could not resolve a concrete structured target, so the decision degraded to
+    a followup on the (stale) active object.
+
+    ``switch_to_new_object`` never legitimately co-occurs with
+    ``route_to_followup_explainer`` (a real switch resolves a NEW active object and
+    routes to generation/grading; a real followup carries ``ask_about_active_object`` /
+    ``answer_active_object``). This exact combo is the unambiguous "wanted a different /
+    earlier object, fell back to the stale one" signature.
+
+    Context-continuity invariant (see contracts/turn.md §跨能力上下文连续性): such a turn
+    depends on prior conversation context that lives in ``conversation_context_text``
+    (the canonical shared history, unconditionally injected into the main conversational
+    LLM). It MUST be routed to that context-continuous executor (TutorBot) to be answered
+    from history — never fail-closed as "I can't locate that question" amnesia. This
+    predicate is the SINGLE source of that signature; orchestrator routing and the
+    deep_question safety net both read it (no second definition).
+    """
+
+    decision = decision if isinstance(decision, dict) else {}
+    return (
+        str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
+        and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
+    )
+
+
 def build_active_object_from_question_context(
     question_context: dict[str, Any] | None,
     *,
@@ -721,6 +748,22 @@ async def resolve_question_semantic_routing(
             )
 
     llm_action: dict[str, Any] | None = followup_action
+    # Stage C activation (2026-06-21): the cached followup action is resolved upstream
+    # (turn_runtime) BEFORE conversation history is built, so it only ever sees the
+    # active question set — it cannot detect that an EXPLANATION turn references a
+    # DIFFERENT historical question ("最开始做错的那道"/"刚才第3题"). Here, where the
+    # canonical conversation_context_text IS available, drop a cached NON-submission
+    # action so the history-aware classifier below re-resolves and can upgrade to
+    # ask_other_question (→ switch_to_new_object → context-continuous main LLM).
+    # Submission/grading and practice-generation actions keep their deterministic cache
+    # and are NEVER re-routed to the main LLM (structured grading authority is preserved).
+    if (
+        question_context is not None
+        and isinstance(llm_action, dict)
+        and history_context.strip()
+        and followup_action_route(llm_action) not in {"submission", "practice_generation"}
+    ):
+        llm_action = None
     if question_context is not None and llm_action is None:
         llm_action = await interpret_followup_action(user_message, question_context)
 
@@ -730,6 +773,30 @@ async def resolve_question_semantic_routing(
         user_message=user_message,
         question_context=question_context,
     )
+    # Deterministic reliability for explicit historical back-references (E1, 2026-06-22):
+    # "回到我最开始做错的那道题" / "最早那道" / "第一道" must NOT be bound to the current
+    # active question just because the LLM relation classifier flakily returned a plain
+    # followup (ask_about_active_object). When such an explicit historical back-reference
+    # is classified as a followup/ask on the ACTIVE object, upgrade it to the unresolved-
+    # switch signature so it routes to the context-continuous main LLM, which recalls the
+    # referenced question from shared history (the proven-correct path). The regex only
+    # DETECTS the back-reference; it never decides WHICH question (the main LLM does).
+    # Grading/submission relations are untouched (a back-referenced answer is different).
+    if (
+        question_context is not None
+        and isinstance(llm_decision, dict)
+        and str(llm_decision.get("relation_to_active_object") or "").strip()
+        == "ask_about_active_object"
+        and _message_is_historical_question_backreference(user_message)
+    ):
+        llm_decision = build_turn_semantic_decision(
+            relation_to_active_object="switch_to_new_object",
+            next_action="route_to_followup_explainer",
+            allowed_patch="no_state_change",
+            confidence=float(llm_decision.get("confidence") or 0.0) or 0.9,
+            reason="显式回指更早/其它历史题（确定性检测），落上下文连续主 LLM 从共享历史召回，不绑当前 active 题。",
+            active_object=active_object,
+        )
     if llm_decision is None and _is_guide_active_object(active_object):
         llm_decision = _decision_from_active_learning_object(
             user_message=user_message,
@@ -839,6 +906,23 @@ def _decision_from_followup_action(
     route = followup_action_route(action)
     confidence = _normalize_confidence(action.get("confidence"), default=0.0)
     reason = str(action.get("reason") or "").strip()
+    if str(action.get("intent") or "").strip() == "ask_other_question":
+        # The learner references a question that is NOT the current active object
+        # (by ordinal/position/attribute — "最开始做错的那道"/"第3题"超出当前题组).
+        # This is an explanation request about a DIFFERENT object the runtime cannot
+        # pin to a structured active object → emit the unresolved-switch signature so
+        # the turn routes to the context-continuous main LLM (which has the question in
+        # conversation_context_text) instead of binding to / fabricating a followup on
+        # the stale active object. NOT a grading/submission route (those stay structured).
+        return build_turn_semantic_decision(
+            relation_to_active_object="switch_to_new_object",
+            next_action="route_to_followup_explainer",
+            allowed_patch="no_state_change",
+            confidence=confidence or 0.9,
+            reason=reason
+            or "用户回指对话历史里非当前 active 的另一道题（序数/位置/属性），需落上下文连续主 LLM 从历史定位讲解。",
+            active_object=active_object,
+        )
     if route == "submission":
         relation: SemanticRelation = (
             "revise_answer_on_active_object"
@@ -1013,7 +1097,16 @@ async def _resolve_from_suspended_stack(
         return None
 
     suspended_candidate, candidate_question_context, candidate_action, candidate_decision = best_candidate
-    if prefers_previous_object or not active_is_strong_match:
+    candidate_route = semantic_route_for_decision(candidate_decision)
+    # Resume a suspended question on a message that does NOT explicitly reference going
+    # back only when it is a genuine SUBMISSION to that question (the answer itself
+    # disambiguates which question is meant). A mere followup-shaped match — an extension /
+    # new-knowledge question that loosely resembles a followup to a suspended question —
+    # must NOT resume it: promoting it yields switch_to_new_object + route_to_followup_explainer,
+    # which `_is_unresolved_switch_followup` then rejects as an unresolved switch ("can't
+    # locate that question, resend it"). Such a question is answered on the current context /
+    # open instead. Explicit back-reference (prefers_previous_object) still resumes either way.
+    if prefers_previous_object or (not active_is_strong_match and candidate_route == "submission"):
         resumed_decision = _promote_suspended_candidate_decision(
             suspended_candidate=suspended_candidate,
             candidate_decision=candidate_decision,
@@ -1425,6 +1518,31 @@ def _message_prefers_previous_object(message: str) -> bool:
     return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS) or bool(
         _PREVIOUS_OBJECT_REFERENCE_RE.search(text)
     )
+
+
+# Explicit reference back to an EARLIER / different question by position / ordinal /
+# attribute ("回到我最开始做错的那道题" / "最早那道" / "第一道" / "上一道" / "我刚才做错的那道").
+# This is a STABLE linguistic back-reference signal — it only DETECTS that the learner
+# means a historical (non-active) question; WHICH question is still resolved by the
+# context-continuous main LLM from shared history (is_unresolved_switch route). It must
+# NOT match a reference to the CURRENT active question ("这道题再讲讲").
+_HISTORICAL_QUESTION_BACKREF_RE = re.compile(
+    r"(最开始|最早|一开始|开头|最先)(那)?(道|题|一道|一题)"
+    r"|第[一1](道|题)"
+    r"|上(一|上)?(道|题)"
+    r"|(回到|回去|返回).{0,10}(最开始|最早|开头|第[一1]|上一|之前|刚才|前面|做错|答错|错的|那道|那题)"
+    r"|(我)?(刚才|之前|先前|最先|一开始)?(做错|答错|选错)(的)?(那)?(道|题|一道|一题)"
+)
+_ACTIVE_QUESTION_SELF_REF_MARKERS = ("这道", "这题", "这一道", "这一题", "当前这", "本题")
+
+
+def _message_is_historical_question_backreference(message: str) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+    if any(marker in text for marker in _ACTIVE_QUESTION_SELF_REF_MARKERS):
+        return False
+    return bool(_HISTORICAL_QUESTION_BACKREF_RE.search(text))
 
 
 def _is_guide_active_object(active_object: dict[str, Any] | None) -> bool:

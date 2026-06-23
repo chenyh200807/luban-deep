@@ -57,6 +57,7 @@
 3. 表格内容被裁切但用户感知不到
 4. MCQ 被正文或其他 block 覆盖导致不可点击
 5. wx 与宿主分包表现明显不一致
+6. imported interactive content 在微信端执行 raw HTML / JS、访问宿主状态，或未规范化为 render model 就进入主渲染链路
 
 ## 5. 通过条件
 
@@ -66,3 +67,4 @@
 2. iPhone 与 Android 抽样都通过
 3. 弱网场景下公式与表格的回退行为符合预期
 4. 至少留存一轮截图或录屏证据
+5. 如样例或历史消息包含 imported interactive content，只能显示安全降级态或 Scene Runtime Core 规范化后的 render model，不得执行任意 HTML / JS

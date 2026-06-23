@@ -39,7 +39,6 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     requested_question_item_index,
     resolve_submission_attempt,
-    should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
@@ -58,7 +57,6 @@ from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
     practice_generation_request_needs_context_anchor,
-    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -398,12 +396,6 @@ def _resolve_generation_topic(
         "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
         f"{anchor}"
     )
-
-
-_NON_SPECIALIST_PRACTICE_NOTICE = (
-    "> ⚠️ 以下题目由通用 AI 能力生成，**不是鲁班针对该考点专门训练 / 校对的专项内容**，"
-    "仅供参考练习；建筑工程实务专项考点的题目质量更有保障。\n\n"
-)
 
 
 def _render_missing_generation_topic_anchor_feedback() -> str:
@@ -1344,14 +1336,45 @@ def _reference_explanation(question_context: dict[str, Any]) -> str:
     return "\n".join(lines).strip()
 
 
+# #21(2026-06-23):深度/概念追问标记。用于"确定性简短反馈 vs FollowupAgent 教学"的
+# **渲染深度**选择(在 followup 已被路由之后),不是 submission/relation 判定——故内联进
+# 既有渲染闸 _should_render_deterministic_reference_feedback,不另立 _looks_like_* gate
+# (避免与 submission/relation 单一权威治理混淆;它不重判"是不是作答/判哪题")。
+_DEPTH_EXPLANATION_MARKERS = (
+    "为什么",
+    "为啥",
+    "讲讲",
+    "讲解",
+    "原理",
+    "怎么区分",
+    "凭什么",
+    "区别",
+    "其他选项",
+    "别的选项",
+    "其余选项",
+    "也不对",
+    "也错",
+)
+
+
 def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    return bool(
+    if not (
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
-    )
+    ):
+        return False
+    # 深度/概念追问(为什么/讲讲原理/为什么其他选项也不对)求逐项讲解,应走 FollowupAgent
+    # (能逐项推理 + 阶段1 反篡改-as-teaching prompt),不走只回显 item explanation 的简短
+    # 确定性模板(否则就是"无防御罐头但仍薄答")。仅简短揭示请求(brevity)/纯要答案才走
+    # 确定性简短反馈。这是渲染深度选择,不是 submission/relation 判定。
+    text = str(user_message or "")
+    wants_depth = any(marker in text for marker in _DEPTH_EXPLANATION_MARKERS)
+    if wants_depth and not looks_like_explicit_brevity_request(user_message):
+        return False
+    return True
 
 
 def _looks_like_option_mapping_challenge(user_message: str) -> bool:
@@ -1507,75 +1530,11 @@ def _render_targeted_brief_reference_feedback(
     return ""
 
 
-def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-    return any(
-        marker in text
-        for marker in (
-            "为什么",
-            "为啥",
-            "不对",
-            "错",
-            "扣分",
-            "怎么扣",
-            "怎么判",
-            "怎么评分",
-            "得几分",
-            "给几分",
-            "能拿",
-            "如果",
-            "假如",
-            "要是",
-        )
-    )
-
-
 def _named_option_letters_from_item(user_message: str, item: dict[str, Any]) -> list[str]:
     options = dict(_option_entries(item))
     if not options:
         return []
     return _named_option_letters(user_message, options)
-
-
-def _render_targeted_option_reference_feedback(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> str:
-    if not _looks_like_option_scoring_or_challenge_request(user_message):
-        return ""
-    # brevity requests defer to the brief path (already ran first); the verbose verdict
-    # template does not honour "一句话" and should not override a brief answer.
-    if looks_like_explicit_brevity_request(user_message):
-        return ""
-    items = _reference_items(question_context)
-    if len(items) != 1:
-        return ""
-    item = items[0]
-    options = dict(_option_entries(item))
-    if not options:
-        return ""
-    named_letters = _named_option_letters_from_item(user_message, item)
-    if not named_letters:
-        return ""
-    letter = named_letters[0]
-    correct_letters = set(_answer_letters(item.get("correct_answer")))
-    answer = _format_answer_with_option_text(item, item.get("correct_answer"))
-    option = _format_answer_with_option_text(item, letter)
-    verdict = (
-        "它属于标准答案，会按正确项处理。"
-        if letter in correct_letters
-        else "它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。"
-    )
-    explanation = _compact_text(str(item.get("explanation") or ""))
-    lines = [
-        f"{option}：{verdict}",
-        f"本题标准答案是 {answer}，我不会因为追问或假设选项改写标准答案。",
-    ]
-    if explanation:
-        lines.append(f"依据：{explanation}")
-    return "\n".join(lines).strip()
 
 
 def _render_brief_reference_feedback(
@@ -1617,9 +1576,10 @@ def _render_deterministic_reference_feedback(
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief
-    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
-    if targeted_option:
-        return targeted_option
+    # #21(2026-06-23):删除 _render_targeted_option_reference_feedback 反篡改薄答——
+    # 它对"为什么B错/C不对"这类点名选项的真诚概念追问吐"我不会因追问改写标准答案"防御
+    # 罐头(Langfuse 实证薄答,3/3 live 复现)。删后这类追问落到下面的"答案与解析"讲解
+    # 分支(给真实原理),概念深追走 FollowupAgent(已带反篡改-as-teaching prompt)。
     if looks_like_explicit_brevity_request(user_message):
         return _render_brief_reference_feedback(user_message, question_context)
 
@@ -1778,6 +1738,26 @@ def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
         results.append(row)
     promoted["results"] = results
     return promoted
+
+
+_NON_EXAM_GARBAGE_RES = (
+    re.compile(r"(正确读音|的拼音|拼音是|字形结构|笔画|偏旁|部首|这个字的|字的结构)"),
+    re.compile(r"这句话[^。\n]{0,8}表达(什么|的是|了)"),
+    re.compile(r"(首都|哪颗行星|红色星球|几大洲|地球有几大)"),
+    re.compile(r"\b(Which|What|How|Why|Where)\b[^。\n]{0,40}\b(is|are|of|the)\b", re.IGNORECASE),
+)
+
+
+def _looks_like_non_exam_garbage(text: str) -> bool:
+    """止血(2026-06-22, B 出题管线):检测明显非一建考试题的垃圾生成——拼音/字形/英文/
+    语用/地理通识题。LLM 在 topic 被污染(字面"出"、填充语"行行行")或被点名科目无考点
+    地图时,会裸生成这类与一建实务完全无关的题(Langfuse 实证 SEV1)。这些标记在真实
+    建筑/市政工程题里近乎不出现,误伤率极低。**这不是闭包**(真闭环=补 6 门考点地图,内容
+    真相病另案),只防最离谱的跑题题被 emit 给学生。"""
+    t = str(text or "")
+    if not t.strip():
+        return False
+    return any(rx.search(t) for rx in _NON_EXAM_GARBAGE_RES)
 
 
 def _render_missing_question_review_feedback(topic: str) -> str:
@@ -3620,6 +3600,31 @@ class DeepQuestionCapability(BaseCapability):
         turn_semantic_decision = normalize_turn_semantic_decision(
             context.metadata.get("turn_semantic_decision")
         ) or {}
+        # Context-Continuity 真闭包 task #12 step 2 (observability-first, ZERO behavior
+        # change): deep_question should READ the orchestrator's canonical
+        # turn_semantic_decision. When it is absent here, deep_question fabricates a
+        # fallback (_default_turn_semantic_decision) — a second-authority path the
+        # migration will remove. Before removing it we OBSERVE in production whether any
+        # live path actually reaches deep_question without the canonical decision (the
+        # harness only covers the matrix, not all live paths). Records a trace flag + warns;
+        # the existing fallback still runs, so routing/grading is unchanged.
+        if self._canonical_turn_decision_missing(context.metadata):
+            _md = context.metadata if isinstance(context.metadata, dict) else {}
+            if isinstance(context.metadata, dict):
+                context.metadata.setdefault("trace_metadata", {})
+                if isinstance(context.metadata["trace_metadata"], dict):
+                    context.metadata["trace_metadata"][
+                        "deep_question_canonical_decision_missing"
+                    ] = True
+            # loguru uses {key}-style formatting; enrich with identifying context so the
+            # observation window can pin which upstream path bypassed the canonical decision.
+            logger.warning(
+                "deep_question reached without canonical turn_semantic_decision; "
+                "fabricating fallback (Context-Continuity task#12 step2 observation) "
+                "scene={scene} active_object={active_object} suspended={suspended} "
+                "turn_id={turn_id} client_turn_id={client_turn_id}",
+                **self._fabrication_observation_fields(_md),
+            )
         followup_question_context = question_context_from_active_object(active_object) or (
             context.metadata.get("question_followup_context", {}) or {}
         )
@@ -4051,7 +4056,6 @@ class DeepQuestionCapability(BaseCapability):
             )
             return
 
-        practice_topic_non_specialist = False
         should_enforce_practice_topic_domain = (
             mode != "mimic"
             and not question_review_mode
@@ -4063,19 +4067,17 @@ class DeepQuestionCapability(BaseCapability):
         )
         if should_enforce_practice_topic_domain:
             topic_domain_status = practice_generation_topic_domain_status(topic)
-            practice_topic_non_specialist = topic_domain_status != "construction_topic"
             if isinstance(context.metadata, dict):
                 trace_meta = context.metadata.setdefault("trace_metadata", {})
                 if isinstance(trace_meta, dict):
                     trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
-            block_decision = practice_generation_topic_block_decision(topic_domain_status)
-            if block_decision != "allow":
-                if block_decision == "needs_anchor":
-                    blocked_reason = "needs_context_anchor"
-                    content = _render_missing_generation_topic_anchor_feedback()
-                else:
-                    blocked_reason = "out_of_scope_topic"
-                    content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
+            if topic_domain_status != "construction_topic":
+                blocked_reason = (
+                    "out_of_scope_topic"
+                    if topic_domain_status == "out_of_scope_topic"
+                    else "unknown_topic_anchor"
+                )
+                content = _render_invalid_generation_topic_feedback(topic_domain_status)
                 if content and not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
                 result_payload = {
@@ -4286,6 +4288,45 @@ class DeepQuestionCapability(BaseCapability):
             reveal_explanations=reveal_explanations,
             review_mode=question_review_mode,
         )
+        # 止血(B 出题管线,2026-06-22):LLM 在 topic 被污染或被点名科目无考点地图时,会
+        # 裸生成拼音/字形/英文/语用/通识等明显非一建考试题(Langfuse SEV1)。宁可诚实澄清,
+        # 也绝不把跑题垃圾题 emit 给学生。真闭环=补 6 门考点地图(内容真相病,另案工单);
+        # 此处只拦最离谱跑题,误伤率极低。
+        if not question_review_mode and content and _looks_like_non_exam_garbage(content):
+            logger.warning(
+                "practice generation produced non-exam garbage; refusing to emit (topic=%s)",
+                str(topic)[:80],
+            )
+            if isinstance(context.metadata, dict):
+                _tm = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(_tm, dict):
+                    _tm["practice_generation.refused_non_exam_garbage"] = True
+            content = (
+                "这道题我没生成好(跑题了),先不给你这道,免得耽误你。\n\n"
+                "你告诉我具体想练哪个考点就行;如果练建筑工程(建筑实务),我这边题库最全——"
+                "直接说\"建筑实务\"我就给你出一道靠谱的。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(content, source=self.name, stage="generation")
+            await self._emit_result_with_citations(
+                stream,
+                {
+                    "response": content,
+                    "mode": mode,
+                    "question_followup_context": {},
+                    "active_object": {},
+                    "turn_semantic_decision": build_turn_semantic_decision(
+                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
+                        next_action="route_to_followup_explainer",
+                        allowed_patch="no_state_change",
+                        confidence=0.85,
+                        reason="refused non-exam garbage: route to followup explainer",
+                        active_object=active_object,
+                    ),
+                    "metadata": {"practice_generation": {"refused_non_exam_garbage": True}},
+                },
+            )
+            return
         generation_citation_enabled = answer_citations_enabled()
         if content and not generation_citation_enabled:
             await stream.content(content, source=self.name, stage="generation")
@@ -4924,12 +4965,16 @@ class DeepQuestionCapability(BaseCapability):
         force_default_decision: bool = False,
     ) -> None:
         async with stream.stage("generation", source=self.name):
-            if should_block_unanswered_reference_reveal(
-                raw_user_message,
-                followup_question_context,
-            ):
-                answer = "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
-            elif _should_render_deterministic_reference_feedback(
+            # A1 (2026-06-22, 治④死循环): 不再对"未作答 followup"硬 block 成
+            # "练习阶段不公开答案;你先作答"。旧硬 block 对**任何**未作答 followup 都 fire,
+            # 把"讲解钻芯法/讲讲这题考点"这类合法知识/讲解请求也挡成墙,造成 live eval 的
+            # p10 死循环(且与 should_reveal_reference_material 重复)。答案隐藏的单一权威是
+            # should_reveal_reference_material:未作答时它返回 False →
+            # _should_render_deterministic_reference_feedback 不 fire、FollowupAgent 渲染
+            # **不含** reference answer/explanation(prompt 层无答案,无从泄露),且 followup
+            # 渲染额外指示"答案隐藏时不得陈述/猜测正确答案"(防幻觉)。因此这里只按"是否揭示
+            # 参考材料"分流,不再整轮拒答。
+            if _should_render_deterministic_reference_feedback(
                 raw_user_message,
                 followup_question_context,
             ):
@@ -5009,23 +5054,18 @@ class DeepQuestionCapability(BaseCapability):
 
     @staticmethod
     def _is_unresolved_switch_followup(turn_semantic_decision: dict[str, Any] | None) -> bool:
-        """True for the failed-switch signature (P1-Y).
+        """Failed-switch signature — delegates to the SINGLE canonical predicate.
 
-        The learner asked to switch/return to a DIFFERENT question, but the runtime
-        could not resolve a concrete target, so the decision degraded to a followup
-        on the current active object. ``switch_to_new_object`` never legitimately
-        co-occurs with ``route_to_followup_explainer`` (a real switch resolves a new
-        active object and routes to generation/grading; a real followup carries
-        ``ask_about_active_object`` / ``answer_active_object``). So this exact combo
-        is the unambiguous "wanted a different question, fell back to the stale one"
-        case — answer it as a clarification, not a stale-object followup.
+        The orchestrator now routes this signature to the context-continuous main LLM
+        (see contracts/turn.md §跨能力上下文连续性), so this in-capability check is a
+        safety net only. The signature definition lives once in
+        ``semantic_router.is_unresolved_switch_followup``; this thin wrapper reads it so
+        there is no second copy that can drift.
         """
 
-        decision = turn_semantic_decision if isinstance(turn_semantic_decision, dict) else {}
-        return (
-            str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
-            and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
-        )
+        from deeptutor.services.semantic_router import is_unresolved_switch_followup
+
+        return is_unresolved_switch_followup(turn_semantic_decision)
 
     async def _emit_unresolved_switch_clarification(
         self,
@@ -5076,6 +5116,37 @@ class DeepQuestionCapability(BaseCapability):
             )
 
     @staticmethod
+    def _canonical_turn_decision_missing(metadata: Any) -> bool:
+        """True when deep_question is reached WITHOUT the orchestrator's canonical
+        ``turn_semantic_decision`` and must fall back to fabricating one.
+
+        Context-Continuity 真闭包 task #12 step 2 observation predicate. The canonical
+        single authority is ``semantic_router.build_turn_semantic_decision`` surfaced in
+        ``metadata['turn_semantic_decision']`` (contracts/turn.md §硬约束 24). A True here
+        marks a path that bypassed it — the second-authority fabrication the migration
+        removes once production traces confirm which (if any) paths trip it.
+        """
+
+        if not isinstance(metadata, dict):
+            return False
+        return not normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+
+    @staticmethod
+    def _fabrication_observation_fields(metadata: Any) -> dict[str, Any]:
+        """Identifying context logged when deep_question falls back to a fabricated
+        turn_semantic_decision (task #12 step 2 observation), so the observation window can
+        pin which upstream path bypassed the canonical decision."""
+
+        md = metadata if isinstance(metadata, dict) else {}
+        stack = md.get("suspended_object_stack")
+        return {
+            "scene": md.get("question_lifecycle_scene"),
+            "active_object": bool(md.get("active_object")),
+            "suspended": len(stack) if isinstance(stack, list) else 0,
+            "turn_id": md.get("turn_id"),
+            "client_turn_id": md.get("client_turn_id"),
+        }
+
     @staticmethod
     def _prefer_followup_without_semantic_decision(
         *,
@@ -5384,15 +5455,15 @@ class DeepQuestionCapability(BaseCapability):
                 and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
             ):
                 return _render_missing_generation_topic_anchor_feedback()
-            trace = summary.get("trace") if isinstance(summary.get("trace"), dict) else {}
-            # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
-            # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
-            if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
-                isinstance(counters, dict)
-                and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
-            ):
-                status = trace.get("topic_domain_status") if isinstance(trace, dict) else ""
-                return _render_invalid_generation_topic_feedback(str(status or "out_of_scope_topic"))
+            if isinstance(counters, dict) and counters.get(
+                "lightweight_batch_fallback"
+            ) in {"blocked_out_of_scope_topic", "blocked_unknown_topic_anchor"}:
+                status = (
+                    (summary.get("trace") or {}).get("topic_domain_status")
+                    if isinstance(summary.get("trace"), dict)
+                    else ""
+                )
+                return _render_invalid_generation_topic_feedback(str(status or "unknown_topic"))
             return ""
 
         lines: list[str] = []

@@ -1034,6 +1034,7 @@ Markdown 不再承担：
 4. 图表和公式应支持延迟加载或降配
 5. block 渲染失败不得拖垮整条消息
 6. 关键内容需支持复制、重试或回退查看
+7. imported interactive content 必须先被 Scene Runtime Core 规范化；微信端不得执行 raw HTML / JS，不得通过 WebView / iframe 承载 P0 主播放器
 
 ### 10.12 可访问性与教学可读性要求
 
@@ -1218,6 +1219,7 @@ Markdown 不再承担：
 1. 图表失败回退率可接受
 2. 教学语义组件没有破坏普通消息体验
 3. 有明确灰度与回滚开关
+4. imported interactive content 不执行 raw HTML / JS，不访问宿主状态，失败时只降级当前 block / scene
 
 当前状态：
 
@@ -1281,12 +1283,18 @@ Markdown 不再承担：
 5. 图表：
    - 至少具备结构化输入与回退能力
 
+6. imported interactive content：
+   - 未规范化为 render model 前不得显示为可执行内容
+   - 任意失败只影响当前 block / scene
+   - 不访问宿主 cookie、localStorage、parent DOM 或小程序宿主状态
+
 ### 12.2 工程验收
 
 1. AI 消息渲染只有一个 render model 派生入口
 2. `wx_miniprogram` 与 `yousenwebview` 通过 parity tests 保持一致
 3. 结构化 blocks 与 Markdown fallback 的优先级清晰
 4. 模板层不再承担复杂语义推断
+5. 微信 renderer 不承担 imported HTML / JS sandbox 运行时职责；HTML export 如需 sandbox 必须走独立 export gate
 
 ### 12.3 体验验收
 
@@ -1348,6 +1356,7 @@ Markdown 不再承担：
 11. fallback 原因分布
 12. 公式降级率
 13. 断流恢复后一致性错误率
+14. imported interactive content 降级成功率
 
 ### 13.1 目标值建议
 
@@ -1358,6 +1367,7 @@ Markdown 不再承担：
 3. 图表失败时空白率目标为 0
 4. 公式失败时空白率目标为 0
 5. 断流恢复后一致性错误率应压到极低水平
+6. imported interactive content 造成的整消息/整课堂 fatal error 目标为 0
 
 ## 14. 风险与应对
 

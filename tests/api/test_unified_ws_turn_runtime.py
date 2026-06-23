@@ -29,6 +29,7 @@ from deeptutor.services.session.turn_runtime import (
     _billing_capture_amount_from_usage_summary,
     _build_turn_semantic_decision,
     _enrich_result_question_authority_from_trace,
+    _is_mobile_surface_turn_config,
     _learning_prompt_intent_trace_metadata,
     _LiveSubscriber,
     _normalize_turn_user_content,
@@ -3078,6 +3079,106 @@ async def test_turn_runtime_routes_recent_practice_offer_acceptance_to_deep_ques
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_marks_capability_failure_failed_without_raw_public_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FailingCapability:
+        async def run(self, context, bus) -> None:
+            raise RuntimeError("raw provider secret boom")
+
+    class FakeRegistry:
+        def get(self, name: str):
+            return FailingCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "capability": "chat",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events: list[dict[str, Any]] = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["status"] == "failed"
+    assert "raw provider secret boom" in str(persisted_turn["error"])
+
+    public_blob = json.dumps(
+        [
+            {"type": event.get("type"), "content": event.get("content"), "metadata": event.get("metadata")}
+            for event in events
+        ],
+        ensure_ascii=False,
+    )
+    assert "raw provider secret boom" not in public_blob
+    assert any(
+        event.get("type") == StreamEventType.ERROR.value
+        and (event.get("metadata") or {}).get("turn_terminal") is True
+        and (event.get("metadata") or {}).get("status") == "failed"
+        for event in events
+    )
+    assert events[-1].get("type") == StreamEventType.DONE.value
+    assert (events[-1].get("metadata") or {}).get("status") == "failed"
+
+    detail = await store.get_session_with_messages(turn["session_id"])
+    assert detail is not None
+    assistant_messages = [m for m in detail["messages"] if m["role"] == "assistant"]
+    assert assistant_messages
+    assert assistant_messages[-1]["metadata"]["terminal_status"] == "failed"
+    assert "raw provider secret boom" not in assistant_messages[-1]["content"]
 
 
 @pytest.mark.asyncio
@@ -7527,6 +7628,96 @@ async def test_turn_runtime_preserves_auto_capability_selection_when_unspecified
 
 
 @pytest.mark.asyncio
+async def test_mobile_surface_turn_synthesizes_public_result_response_from_final_content_before_done(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="generation",
+                content="### Question 1\n流水施工中，流水步距反映什么？",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "考我一道流水施工的题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                }
+            },
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "### Question 1\n流水施工中，流水步距反映什么？"
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["content"] == "### Question 1\n流水施工中，流水步距反映什么？"
+
+
+def test_mobile_surface_turn_config_accepts_interaction_hint_product_surface() -> None:
+    assert _is_mobile_surface_turn_config(
+        {"interaction_hints": {"product_surface": "wechat_miniprogram"}},
+        None,
+    )
+    assert _is_mobile_surface_turn_config(
+        {"product_surface": "wx_miniprogram"},
+        None,
+    )
+    assert not _is_mobile_surface_turn_config(
+        {"interaction_hints": {"product_surface": "web"}},
+        None,
+    )
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_marks_explicit_chat_mode_in_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -8185,7 +8376,12 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "这是一次会扣分的回复。"
+    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
+    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
     assert captured == {
         "wallet_user_id": "wallet_demo",
         "amount_points": 20,
@@ -8433,7 +8629,12 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "result", "done"]
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert result_events[-1]["metadata"]["response"] == "这是一次不会扣分的回复。"
+    assert result_events[-1]["metadata"]["terminal_normalization"] == "mobile_result_before_done"
+    assert result_events[-1]["metadata"]["synthesized_from"] == "final_content"
     assert captured == {
         "learning_user_id": "learner_demo",
         "learning_query": "继续解释这道题",
@@ -11169,3 +11370,202 @@ def test_volatile_question_context_cache_is_bounded(tmp_path) -> None:
     runtime._set_volatile_question_context(f"session-{cap + 6}", {"question_id": "fresh"})
     assert len(contexts) == cap
     assert contexts[f"session-{cap + 6}"] == {"question_id": "fresh"}
+
+
+def test_turn_start_preserves_batch_set_for_numbered_single_answer() -> None:
+    """[turn domain] SEV-1 root chokepoint (E8, 2026-06-21): batch question-set
+    object-continuity. A numbered single answer to one item of a batch must be resolved
+    against the FULL set at turn-start (`_submission_action_for_user_message`), not the
+    narrowed single item — collapsing the set here (before any capability runs) makes a
+    later "第1题" bind to a 1-item set and grade the wrong question.
+    """
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    batch_ctx = {
+        "question_id": "set-1",
+        "question_type": "choice",
+        "items": [
+            {"question_id": "q1", "question": "Q1", "question_type": "single_choice",
+             "options": {"A": "a1", "B": "b1", "C": "c1", "D": "d1"}, "correct_answer": "D"},
+            {"question_id": "q2", "question": "Q2", "question_type": "single_choice",
+             "options": {"A": "a2", "B": "b2", "C": "c2", "D": "d2"}, "correct_answer": "B"},
+            {"question_id": "q3", "question": "Q3", "question_type": "single_choice",
+             "options": {"A": "a3", "B": "b3", "C": "c3", "D": "d3"}, "correct_answer": "C"},
+        ],
+    }
+    ctx, action = _submission_action_for_user_message("第2题我选B", batch_ctx)
+    assert ctx is not None and len(ctx.get("items") or []) == 3, "batch set collapsed at turn-start"
+    assert action is not None
+    assert action["answers"] == [{"index": 2, "question_id": "q2", "user_answer": "B"}]
+    assert action["preserve_other_answers"] is True
+
+    # negative guard: single-question context is untouched (no batch index/preserve)
+    single_ctx = {"question_id": "solo", "question": "s", "question_type": "single_choice",
+                  "options": {"A": "a", "B": "b"}, "correct_answer": "B"}
+    _c, single_action = _submission_action_for_user_message("我选B", single_ctx)
+    assert single_action is not None and single_action["answers"] == [{"question_id": "solo", "answer": "B"}]
+    assert "preserve_other_answers" not in single_action
+
+
+def test_turn_end_merge_preserves_batch_set_through_single_item_grading() -> None:
+    """[turn domain] Single-authority object-continuity (E8/E1, 2026-06-22): turn-END
+    must NOT collapse a batch question_set when a grading turn judges ONE item. The
+    capability emits a single graded question; turn-END merges it back into the prior
+    set (by question_id) and keeps the SET as active_object — so a later '第1题' /
+    '回到最开始' still sees all items. A genuine switch (new question not in the set)
+    still replaces.
+    """
+    import asyncio
+    from types import SimpleNamespace
+    from deeptutor.services.session.turn_runtime import TurnRuntimeManager
+    from deeptutor.services.session.sqlite_store import build_active_object_from_question_context
+
+    def _q(qid, q, correct, ua="", ic=None):
+        d = {"question_id": qid, "question": q, "question_type": "single_choice",
+             "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": correct}
+        if ua:
+            d["user_answer"] = ua
+        if ic is not None:
+            d["is_correct"] = ic
+        return d
+
+    async def _run(prior_ao, result_ao, metadata):
+        async def fake_get(_sid):
+            return prior_ao
+
+        async def fake_safe(execution, op, fn, *a, default=None, **k):
+            return await fn(*a, **k)
+
+        fake_self = SimpleNamespace(
+            store=SimpleNamespace(get_active_object=fake_get),
+            _safe_store_call=fake_safe,
+        )
+        execution = SimpleNamespace(session_id="s1")
+        return await TurnRuntimeManager._merge_grading_result_into_active_set(
+            fake_self, execution, result_ao, metadata
+        )
+
+    items = [_q("q1", "Q1基本要求", "D"), _q("q2", "Q2找坡层厚度", "C"), _q("q3", "Q3结构坡度", "C")]
+    prior = build_active_object_from_question_context(
+        {"question": "三道屋面防水题", "question_type": "choice", "items": items}, source_turn_id="t0"
+    )
+    assert prior["object_type"] == "question_set" and len(prior["state_snapshot"]["items"]) == 3
+
+    # capability grades ONE item (q2) and emits a single-question active_object
+    result_single = build_active_object_from_question_context(
+        _q("q2", "Q2找坡层厚度", "C", ua="B", ic=False), source_turn_id="t1"
+    )
+    merged = asyncio.run(_run(prior, result_single, {"turn_semantic_decision": {"next_action": "route_to_grading"}}))
+
+    # batch set preserved, q2 merged with the judging fields
+    assert merged["object_type"] == "question_set", "batch set collapsed at turn-END"
+    snap_items = merged["state_snapshot"]["items"]
+    assert len(snap_items) == 3, f"set collapsed to {len(snap_items)} items"
+    q2 = [it for it in snap_items if it["question_id"] == "q2"][0]
+    assert q2.get("user_answer") == "B" and q2.get("is_correct") is False
+    # q1/q3 still present and unanswered
+    assert {it["question_id"] for it in snap_items} == {"q1", "q2", "q3"}
+
+    # negative: a genuine switch (new generated question not in the set) still replaces
+    new_q = build_active_object_from_question_context(_q("qNEW", "新生成的题", "A"), source_turn_id="t2")
+    switched = asyncio.run(_run(prior, new_q, {"turn_semantic_decision": {"next_action": "route_to_generation"}}))
+    assert str(switched["state_snapshot"].get("question_id") or "") == "qNEW", "real switch was wrongly merged/blocked"
+
+
+def test_t14_message_references_stored_question_set_item_keeps_set_active():
+    """[turn domain] task#14 (2026-06-22): the turn-start suspend guard must NOT demote an
+    active batch question_set when the turn references one of its items by ordinal
+    ("刚才第3题…"). Single authority = question_followup.requested_question_item_index.
+    """
+    from deeptutor.services.session.turn_runtime import (
+        _message_references_stored_question_set_item as refs,
+    )
+    def _it(qid, q):
+        return {"question_id": qid, "question": q, "question_type": "single_choice",
+                "options": {"A": "a", "B": "b", "C": "c", "D": "d"}, "correct_answer": "C"}
+    set_ctx = {"question": "三题", "question_type": "choice",
+               "items": [_it("q1", "Q1"), _it("q2", "Q2"), _it("q3", "Q3")]}
+    single_ctx = _it("q1", "单题")
+    assert refs("刚才第3题的答案和考点讲讲", set_ctx) is True      # ordinal in set → keep active
+    assert refs("第2题再讲讲", set_ctx) is True
+    assert refs("第4题讲讲", set_ctx) is False                     # out of range → demote ok
+    assert refs("换个话题聊聊", set_ctx) is False                  # not an ordinal ref → demote ok
+    assert refs("第1题讲讲", single_ctx) is False                  # single (len<2) → demote ok
+    assert refs("刚才第3题讲讲", None) is False
+
+
+@pytest.mark.asyncio
+async def test_subscribe_turn_tails_shared_store_when_turn_runs_on_sibling_worker(tmp_path) -> None:
+    """INFRA-1 (cross-worker WS streaming death) regression.
+
+    With UVICORN_WORKERS>1 a turn frequently runs on a SIBLING worker, so it is
+    absent from THIS worker's in-memory ``_executions`` even while alive. The
+    shared SQLite store is the single authoritative event log, so ``subscribe_turn``
+    must tail it to the terminal ``done`` — not return backlog-only with no live
+    events / no terminal event (the death observed live in eval) — and must NOT
+    mark the sibling's live turn ``failed`` via orphan recovery.
+    """
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(session_id="tb_xworker")
+    turn = await store.create_turn(session["id"], "chat")
+    tid = turn["id"]
+
+    # What the sibling worker has emitted to the shared store by subscribe time.
+    await store.append_turn_event(tid, {"type": "session", "content": ""})
+    await store.append_turn_event(tid, {"type": "progress", "content": "已收到，正在理解问题。"})
+
+    runtime = TurnRuntimeManager(store)
+    # Simulates: the turn is alive on a sibling worker, not in THIS worker's map.
+    assert tid not in runtime._executions
+
+    gen = runtime.subscribe_turn(tid, after_seq=0)
+    e1 = await gen.__anext__()
+    e2 = await gen.__anext__()
+    assert e1["type"] == "session"
+    assert e2["type"] == "progress"
+
+    # Sibling worker finishes AFTER we subscribed: live content + terminal done.
+    await store.append_turn_event(tid, {"type": "content", "content": "答案正文"})
+    await store.append_turn_event(
+        tid, {"type": "done", "content": "", "metadata": {"status": "completed"}}
+    )
+
+    e3 = await gen.__anext__()
+    e4 = await gen.__anext__()
+    assert e3["type"] == "content"
+    assert e3["content"] == "答案正文"
+    assert e4["type"] == "done"
+    with pytest.raises(StopAsyncIteration):
+        await gen.__anext__()
+
+    # The sibling's live turn must NOT have been flipped to 'failed' by the old
+    # orphan-recovery-on-subscribe behaviour.
+    final = await store.get_turn(tid)
+    assert final is not None
+    assert final["status"] != "failed"
+
+
+@pytest.mark.asyncio
+async def test_subscribe_turn_completed_turn_on_other_worker_returns_backlog_without_hang(
+    tmp_path,
+) -> None:
+    """A turn already completed on a sibling worker (status terminal in the store)
+    must deliver its full backlog (incl. done) and return immediately — never enter
+    the cross-worker tail wait."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(session_id="tb_xworker_done")
+    turn = await store.create_turn(session["id"], "chat")
+    tid = turn["id"]
+    await store.append_turn_event(tid, {"type": "session", "content": ""})
+    await store.append_turn_event(tid, {"type": "content", "content": "完整答案"})
+    await store.append_turn_event(
+        tid, {"type": "done", "content": "", "metadata": {"status": "completed"}}
+    )
+    await store.update_turn_status(tid, "completed")
+
+    runtime = TurnRuntimeManager(store)
+    assert tid not in runtime._executions
+
+    events = [evt async for evt in runtime.subscribe_turn(tid, after_seq=0)]
+    types = [e["type"] for e in events]
+    assert types == ["session", "content", "done"]

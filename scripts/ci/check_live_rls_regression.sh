@@ -6,8 +6,8 @@
 # (20260529000300_rls_harden_user_tables.sql) cannot silently regress: if any
 # PII / sensitive public table regains an anon or authenticated grant, CI goes red.
 #
-# Graceful degradation (per task requirement): the audit needs SUPABASE_DB_URL
-# (service-role pooler connection string). On forks / PRs without the secret,
+# Graceful degradation (per task requirement): the audit needs SUPABASE_DB_URL,
+# DB_URL, or DATABASE_URL (service-role pooler connection string). On forks / PRs without the secret,
 # live_rls_audit.sh exits 2. This wrapper treats a missing secret as SKIP+WARN
 # (exit 0) so a missing credential never blocks CI — only a real, observed
 # violation fails the gate.
@@ -29,9 +29,9 @@ AUDIT="${AUDIT:-scripts/ci/live_rls_audit.sh}"
 MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams wallets}"
 REQUIRE_FORCE_RLS="${REQUIRE_FORCE_RLS:-true}"
 
-if [ -z "${SUPABASE_DB_URL:-}" ]; then
-    echo "[SKIP] check_live_rls_regression: SUPABASE_DB_URL not set."
-    echo "  → Configure the repo secret SUPABASE_DB_URL to enable live RLS enforcement."
+if [ -z "${SUPABASE_DB_URL:-${DB_URL:-${DATABASE_URL:-}}}" ]; then
+    echo "[SKIP] check_live_rls_regression: SUPABASE_DB_URL, DB_URL, or DATABASE_URL not set."
+    echo "  → Configure the repo secret SUPABASE_DB_URL, DB_URL, or DATABASE_URL to enable live RLS enforcement."
     echo "  → Gate passes (warn-only) so a missing credential does not block CI."
     exit 0
 fi

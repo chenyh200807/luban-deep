@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import json
 import logging
 import sys
@@ -16,6 +17,7 @@ import httpx
 import pytest
 
 import deeptutor.services.member_console.service as member_service_module
+from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.member_console import external_auth as external_auth_module
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
@@ -56,7 +58,11 @@ class _FakeWalletBootstrapService:
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
         self.grants: list[dict[str, object]] = []
+        self.adjustments: list[dict[str, object]] = []
         self.snapshots: dict[str, SimpleNamespace] = {}
+
+    def get_wallet(self, user_id: str):
+        return self.snapshots.get(str(user_id))
 
     def ensure_wallet_seeded(self, **kwargs):
         self.calls.append(dict(kwargs))
@@ -105,6 +111,39 @@ class _FakeWalletBootstrapService:
             reference_type=str(kwargs["reference_type"]),
             reference_id=str(kwargs["reference_id"]),
             created_at="2026-06-14T10:05:00+08:00",
+        )
+
+    def admin_adjust_points(self, **kwargs):
+        self.adjustments.append(dict(kwargs))
+        user_id = str(kwargs["user_id"])
+        delta_micros = int(kwargs["delta_micros"])
+        snapshot = self.snapshots.get(user_id)
+        current = int(getattr(snapshot, "balance_micros", 0) or 0) if snapshot else 0
+        updated = max(0, current + delta_micros)
+        if snapshot is None:
+            snapshot = SimpleNamespace(
+                user_id=user_id,
+                balance_micros=updated,
+                frozen_micros=0,
+                plan_id="",
+                version=1,
+                created_at="2026-06-14T10:10:00+08:00",
+            )
+            self.snapshots[user_id] = snapshot
+        else:
+            snapshot.balance_micros = updated
+        return SimpleNamespace(
+            ledger_event_id=f"ledger_adjust_{len(self.adjustments)}",
+            user_id=user_id,
+            event_type="admin_adjust",
+            delta_micros=delta_micros,
+            balance_micros=updated,
+            frozen_micros=0,
+            version=1,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type="ticket",
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:10:00+08:00",
         )
 
 
@@ -191,7 +230,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
     monkeypatch.setattr(
         member_service_module,
         "ensure_external_auth_user_for_phone",
-        lambda phone: {"id": canonical_uid, "username": "user_1499", "phone": phone},
+        lambda phone, **_kwargs: {"id": canonical_uid, "username": "user_1499", "phone": phone},
     )
     service._mutate(_seed)
 
@@ -401,6 +440,65 @@ def test_resolve_user_id_accepts_lowercase_bearer_prefix(tmp_path: Path) -> None
     token = service._issue_access_token(user_id="student_demo")
 
     assert service.resolve_user_id(f"bearer {token}") == "student_demo"
+
+
+def test_verify_access_token_rejects_signed_token_without_exp(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    payload = {
+        "v": 1,
+        "sub": "student_demo",
+        "uid": "student_demo",
+        "canonical_uid": "student_demo",
+        "provider": "local",
+        "iat": int(time.time()),
+    }
+    payload_part = service._b64url_encode(
+        json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    )
+    signature = hmac.new(
+        service._auth_secret().encode("utf-8"),
+        payload_part.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    token = f"dtm.{payload_part}.{service._b64url_encode(signature)}"
+
+    assert service.verify_access_token(token) is None
+    assert service.resolve_user_id(f"Bearer {token}") == ""
+
+
+def test_verify_access_token_rejects_legacy_wechat_token_before_phone_auth_cutover(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    token = service._issue_access_token(
+        user_id="wx_legacy",
+        openid="openid_legacy",
+        orig_iat=member_service_module._WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS - 1,
+    )
+
+    assert service.verify_access_token(token) is None
+    assert service.resolve_user_id(f"Bearer {token}") == ""
+    with pytest.raises(ValueError, match="Invalid or expired token"):
+        service.refresh_access_token(f"Bearer {token}")
+
+
+def test_verify_access_token_keeps_legacy_local_token_before_wechat_phone_cutover(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    token = service._issue_access_token(
+        user_id="student_demo",
+        orig_iat=member_service_module._WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS - 1,
+    )
+
+    claims = service.verify_access_token(token)
+
+    assert claims is not None
+    assert claims["uid"] == "student_demo"
+    assert claims["provider"] == "local"
 
 
 def test_issue_access_token_uses_configured_ttl(
@@ -1360,6 +1458,8 @@ def test_register_with_external_auth_rejects_existing_verified_phone_alias(
     monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     class _FakeAliasStore:
         is_configured = True
@@ -1706,7 +1806,7 @@ def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
 
         def load_persisted_form_bank(self, blueprint):
             if blueprint.version == "topic_waterproof_v1":
-                raise AssessmentBlueprintUnavailable("duplicate source ids")
+                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
             raise AssertionError("catalog should not validate topics below the open floor")
 
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _InvalidFormProvider)
@@ -2708,6 +2808,18 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
+    def _seed_merge_points(data: dict[str, object]) -> None:
+        members = data.get("members") or []
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            if member.get("user_id") == "student_demo":
+                member["points_balance"] = 123
+            if member.get("user_id") == "student_risk":
+                member["points_balance"] = 456
+
+    service._mutate(_seed_merge_points)
+
     async def _fake_exchange_phone_code(_phone_code: str) -> str:
         return "13800000002"
 
@@ -2722,6 +2834,156 @@ async def test_bind_phone_for_wechat_merges_into_existing_phone_user(tmp_path: P
     assert result["merged"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["user"]["user_id"] == "student_risk"
+
+    data = service._load()
+    assert service._find_member(data, "student_demo")["points_balance"] == 0
+    assert service._ensure_member(data, "student_demo")["user_id"] == "student_risk"
+    assert service.get_wallet("student_risk")["balance"] == 579
+
+
+def test_merge_member_accounts_consolidates_entitlement_points_identity_and_admin_role(
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._admin_user_ids = lambda: {"root_admin"}  # type: ignore[method-assign]
+    wallet_service = _FakeWalletBootstrapService()
+    service._get_wallet_service = lambda: wallet_service  # type: ignore[method-assign]
+
+    target_uid = "user_phone_6508"
+    wx_uid = "user_wx_h"
+    account_uid = "user_account_chenyh2008"
+    wallet_service.snapshots[target_uid] = SimpleNamespace(
+        user_id=target_uid,
+        balance_micros=200 * 1_000_000,
+        frozen_micros=0,
+        plan_id="svip",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+    wallet_service.snapshots[wx_uid] = SimpleNamespace(
+        user_id=wx_uid,
+        balance_micros=30 * 1_000_000,
+        frozen_micros=0,
+        plan_id="trial",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+    wallet_service.snapshots[account_uid] = SimpleNamespace(
+        user_id=account_uid,
+        balance_micros=700 * 1_000_000,
+        frozen_micros=0,
+        plan_id="supreme_svip",
+        version=1,
+        created_at="2026-06-14T10:00:00+08:00",
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        target = service._build_default_member(target_uid)
+        target.update(
+            {
+                "display_name": "user_6508",
+                "phone": "13800136508",
+                "tier": "svip",
+                "expire_at": "2026-08-01T00:00:00+08:00",
+                "points_balance": 200,
+                "auth_username": "user_6508",
+                "external_auth_user_id": target_uid,
+            }
+        )
+        wx_member = service._build_default_member(wx_uid)
+        wx_member.update(
+            {
+                "display_name": "H",
+                "phone": "12240059568",
+                "tier": "trial",
+                "expire_at": "2026-07-12T16:23:50+08:00",
+                "points_balance": 30,
+                "wx_openid": "wx_openid_merge_demo",
+                "wx_unionid": "wx_union_merge_demo",
+            }
+        )
+        account_member = service._build_default_member(account_uid)
+        account_member.update(
+            {
+                "display_name": "chenyh2008",
+                "phone": "52649394196",
+                "tier": "supreme_svip",
+                "expire_at": "2027-06-15T09:13:15+08:00",
+                "points_balance": 700,
+                "auth_username": "chenyh2008",
+                "external_auth_user_id": account_uid,
+            }
+        )
+        data["members"] = [target, wx_member, account_member]
+
+    service._mutate(_seed)
+    service.set_admin_role(
+        actor="root_admin",
+        user_id=target_uid,
+        role=rbac.ROLE_ADMIN,
+        display_name="user_6508",
+    )
+    service.set_admin_role(
+        actor="root_admin",
+        user_id=account_uid,
+        role=rbac.ROLE_SUPER_ADMIN,
+        display_name="chenyh2008",
+    )
+
+    result = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[wx_uid, account_uid],
+        operator="root_admin",
+        reason="confirmed_same_owner",
+        idempotency_key="merge-6508-once",
+    )
+
+    assert result["member"]["user_id"] == target_uid
+    assert result["member"]["tier"] == "supreme_svip"
+    assert result["member"]["expire_at"] == "2027-06-15T09:13:15+08:00"
+    assert result["member"]["points_balance"] == 930
+    assert result["member"]["wx_openid"] == "wx_openid_merge_demo"
+    assert result["points_transferred"] == 730
+    assert result["wallet_adjustments"] == [
+        {
+            "source_user_id": wx_uid,
+            "target_user_id": target_uid,
+            "points_transferred": 30,
+            "credit_ledger_event_id": "ledger_adjust_1",
+            "debit_ledger_event_id": "ledger_adjust_2",
+        },
+        {
+            "source_user_id": account_uid,
+            "target_user_id": target_uid,
+            "points_transferred": 700,
+            "credit_ledger_event_id": "ledger_adjust_3",
+            "debit_ledger_event_id": "ledger_adjust_4",
+        },
+    ]
+    assert service.get_admin_role(target_uid) == rbac.ROLE_SUPER_ADMIN
+    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
+    assert wallet_service.snapshots[wx_uid].balance_micros == 0
+    assert wallet_service.snapshots[account_uid].balance_micros == 0
+
+    data = service._load()
+    assert service._find_member(data, wx_uid)["merged_into"] == target_uid
+    assert service._find_member(data, account_uid)["merged_into"] == target_uid
+    assert service._find_member(data, wx_uid)["points_balance"] == 0
+    assert service._find_member(data, account_uid)["points_balance"] == 0
+    assert service._ensure_member(data, wx_uid)["user_id"] == target_uid
+    assert service._ensure_member(data, account_uid)["user_id"] == target_uid
+
+    repeated = service.merge_member_accounts(
+        target_user_id=target_uid,
+        source_user_ids=[wx_uid, account_uid],
+        operator="root_admin",
+        reason="confirmed_same_owner",
+        idempotency_key="merge-6508-once",
+    )
+    assert repeated["deduped"] is True
+    assert service.get_wallet(target_uid)["balance"] == 930
+    assert wallet_service.snapshots[target_uid].balance_micros == 930 * 1_000_000
 
 
 def test_submit_assessment_updates_today_progress_and_chapter_practice(tmp_path: Path) -> None:
@@ -3475,10 +3737,12 @@ def test_verify_phone_code_locks_out_after_max_attempts(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", real_code)
 
 
-def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_auto_external_user(
+def test_verify_phone_code_uses_verified_phone_alias_as_external_auth_canonical_uid(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
@@ -3492,26 +3756,21 @@ def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_au
                 return {"user_id": canonical_uid, "source": "phone_verification"}
             return None
 
-    def _unexpected_auto_external_user(_phone: str) -> dict[str, object]:
-        raise AssertionError("phone login should use existing canonical phone alias")
-
     monkeypatch.setattr(
         "deeptutor.services.wallet.identity.get_wallet_identity_store",
         lambda: _FakeAliasStore(),
     )
-    monkeypatch.setattr(
-        member_service_module,
-        "ensure_external_auth_user_for_phone",
-        _unexpected_auto_external_user,
-    )
 
     service.send_phone_code("13955556666")
     result = service.verify_phone_code("13955556666", _active_otp(service))
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
 
     claims = service.verify_access_token(result["token"])
     assert claims is not None
     assert claims["canonical_uid"] == canonical_uid
     assert result["user_id"] == canonical_uid
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
 
 
 def test_verify_phone_code_rejects_conflicting_phone_aliases_without_consuming_code(
@@ -3651,6 +3910,43 @@ def test_reset_password_with_phone_code_updates_external_auth_password(
     assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
     with pytest.raises(ValueError, match="验证码不存在"):
         service.verify_phone_code("13955556666", code)
+
+
+def test_change_password_updates_current_member_external_auth_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    login = service.register_with_external_auth(
+        "change_student",
+        "OldPass123",
+        "13955556666",
+    )
+
+    result = service.change_password(str(login["user_id"]), "OldPass123", "NewPass123")
+
+    assert result["success"] is True
+    assert result["message"] == "密码已修改，请使用新密码重新登录"
+    assert external_auth_module.verify_external_auth_user("change_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("change_student", "NewPass123") is not None
+
+
+def test_change_password_requires_username_password_bound_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("wechat_only_user")
+
+    with pytest.raises(ValueError, match="当前账号未绑定用户名密码登录"):
+        service.change_password("wechat_only_user", "OldPass123", "NewPass123")
 
 
 def test_send_password_reset_code_requires_matching_account_phone(
@@ -3833,6 +4129,84 @@ def test_reset_password_with_phone_code_accepts_verified_alias_without_external_
         service.verify_phone_code("13955556666", code)
 
 
+def test_reset_password_with_phone_code_sets_first_password_for_phone_backed_quick_login(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "wx_openid_9012")
+        member["display_name"] = "H"
+        member["phone"] = "13955556666"
+
+    service._mutate(_seed)
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("", "13955556666", code, "NewPass123")
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
+    data = service._load()
+    member = service._find_member(data, "wx_openid_9012")
+
+    assert result["success"] is True
+    assert external_user is not None
+    assert external_auth_module.verify_external_auth_user(external_user["username"], "NewPass123") is not None
+    assert member["auth_username"] == external_user["username"]
+    assert member["display_name"] == "H"
+    assert member["phone"] == "13955556666"
+
+
+def test_reset_password_with_phone_code_uses_verified_alias_canonical_uid_for_quick_login(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, canonical_uid)
+        member["display_name"] = "手机号账号"
+        member["phone"] = "13955556666"
+        member["external_auth_user_id"] = canonical_uid
+
+    service._mutate(_seed)
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("", "13955556666", code, "NewPass123")
+    external_user = external_auth_module.get_external_auth_user_by_phone("13955556666")
+    data = service._load()
+    member = service._find_member(data, canonical_uid)
+
+    assert result["success"] is True
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
+    assert external_auth_module.verify_external_auth_user(external_user["username"], "NewPass123") is not None
+    assert member["auth_username"] == external_user["username"]
+    assert member["external_auth_user_id"] == canonical_uid
+
+
 def test_reset_password_rejects_weak_password_without_consuming_code(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -3941,6 +4315,8 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -3954,6 +4330,11 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
     assert result["bound"] is True
     assert result["user_id"] == result["user"]["user_id"]
     assert result["phone"] == "13911112222"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert external_user is not None
+    assert member["auth_username"] == external_user["username"]
 
 
 @pytest.mark.asyncio
@@ -3961,8 +4342,12 @@ async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
@@ -3986,20 +4371,90 @@ async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
 
     claims = service.verify_access_token(result["token"])
     assert claims is not None
-    assert claims["sub"] == result["user_id"]
 
     data = service._load()
     member = service._find_member(data, result["user_id"])
     assert member["wx_openid"] == "openid_123456789012"
     assert member["phone"] == "13911112222"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert claims["sub"] == external_user["id"]
+    assert claims["canonical_uid"] == external_user["id"]
+    assert member["auth_username"] == external_user["username"]
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_merges_into_verified_phone_alias_without_local_phone(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13911112222":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    def _seed(data: dict[str, object]) -> None:
+        canonical = service._ensure_member(data, canonical_uid)
+        canonical["phone"] = ""
+        canonical["display_name"] = "手机号账号"
+        current = service._ensure_member(data, "wx_openid_9012")
+        current["wx_openid"] = "openid_123456789012"
+        current["wx_unionid"] = "unionid_abcdef"
+
+    service._mutate(_seed)
+
+    result = await service.bind_phone_for_wechat("wx_openid_9012", "13911112222")
+    claims = service.verify_access_token(result["token"])
+    data = service._load()
+    canonical = service._find_member(data, canonical_uid)
+    current = service._find_member(data, "wx_openid_9012")
+
+    assert result["bound"] is True
+    assert result["merged"] is True
+    assert result["user_id"] == canonical_uid
+    assert result["user"]["user_id"] == canonical_uid
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert canonical["phone"] == "13911112222"
+    assert canonical["wx_openid"] == "openid_123456789012"
+    assert canonical["wx_unionid"] == "unionid_abcdef"
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert external_user["id"] == canonical_uid
+    assert canonical["auth_username"] == external_user["username"]
+    assert current["merged_into"] == canonical_uid
+    assert current["wx_openid"] == ""
+    assert current["wx_unionid"] == ""
 
 
 @pytest.mark.asyncio
 async def test_bind_phone_for_wechat_accepts_normalized_phone_for_legacy_clients(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
 
     result = await service.bind_phone_for_wechat("student_demo", "13911112222")
 
@@ -4034,7 +4489,7 @@ async def test_login_with_wechat_code_reuses_merged_canonical_member_after_phone
     monkeypatch.setattr(
         member_service_module,
         "ensure_external_auth_user_for_phone",
-        lambda phone: {"id": canonical_uid, "username": "user_0002", "phone": phone},
+        lambda phone, **_kwargs: {"id": canonical_uid, "username": "user_0002", "phone": phone},
     )
 
     first_login = await service.login_with_wechat_code("wx-code")
@@ -4134,6 +4589,194 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
     assert result["filters"]["expire_within_days"] == 7
 
 
+def test_list_members_searches_account_alias_and_normalized_phone(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["display_name"] = "账号搜索会员"
+        member["phone"] = "138-0013-8000"
+        member["auth_username"] = "chenyh2008"
+        member["external_auth_user_id"] = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+        member["alias_user_ids"] = ["wx_member_1", "legacy_member_1"]
+        data["members"] = [member]
+
+    service._mutate(_seed)
+
+    assert service.list_members(search="chenyh2008")["items"][0]["user_id"] == "legacy_member_1"
+    assert service.list_members(search="wx_member_1")["items"][0]["user_id"] == "legacy_member_1"
+    assert service.list_members(search="13800138000")["items"][0]["user_id"] == "legacy_member_1"
+
+
+def test_bi_member_read_model_starts_on_launch_day(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    now = datetime(2026, 6, 22, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _seed(data: dict[str, object]) -> None:
+        pre_launch = service._build_default_member("pre_launch_member")
+        pre_launch["phone"] = "15558866501"
+        pre_launch["created_at"] = "2026-06-21T23:59:59+08:00"
+        pre_launch["last_active_at"] = now.isoformat()
+        launch_member = service._build_default_member("launch_member")
+        launch_member["phone"] = "15558866502"
+        launch_member["created_at"] = "2026-06-22T00:00:00+08:00"
+        launch_member["last_active_at"] = now.isoformat()
+        data["members"] = [pre_launch, launch_member]
+
+    service._mutate(_seed)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["user_id"] == "launch_member"
+    assert payload["authority"]["operational_start_at"] == "2026-06-22T00:00:00+08:00"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["authority"]["operational_start_at"] == "2026-06-22T00:00:00+08:00"
+    assert service.get_member_360("pre_launch_member")["user_id"] == "pre_launch_member"
+
+
+def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(user_id: str, *, display_name: str, phone: str) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id, f"auth_{user_id.replace('-', '')[:24]}"],
+            "display_name": display_name,
+            "auth_username": display_name,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": now.isoformat(),
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member(
+                "d0ee1218-4323-4273-842a-69dec55067f7",
+                display_name="qa_wechat_1780932635",
+                phone="19213428637",
+            ),
+            _member(
+                "3c08282e-d2a4-4bfe-a6d2-c6d5ed4d0788",
+                display_name="qa_pool_11_1782108255519",
+                phone="13908255519",
+            ),
+            _member(
+                "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                display_name="真实快速登录会员",
+                phone="15558866508",
+            ),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["user_id"] == "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["new_7d_count"] == 1
+    assert dashboard["new_30d_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_wechat_phone_quick_login_counts_as_new_bi_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_quick_login_123",
+            "unionid": "unionid_quick_login_123",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "15558866508"
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.login_with_wechat_phone("wx-code", "phone-code-123")
+    dashboard = service.get_dashboard()
+
+    assert result["bound"] is True
+    assert result["phone"] == "15558866508"
+    assert dashboard["total_count"] == 1
+    assert dashboard["new_today_count"] == 1
+
+
+def test_member_search_can_find_pre_launch_member_without_counting_operationally(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                "canonical_user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                "alias_user_ids": [
+                    "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                    "auth_047b7b7f83164f958bf77197",
+                ],
+                "display_name": "历史验证会员",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-14T03:20:32+00:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    assert service.list_members(page=1, page_size=20)["total"] == 0
+    assert service.get_dashboard()["total_count"] == 0
+
+    result = service.list_members(search="15558866508", page=1, page_size=20)
+
+    assert result["total"] == 1
+    assert result["items"][0]["user_id"] == "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    assert result["items"][0]["phone"] == "15558866508"
+
+
 def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -4194,7 +4837,7 @@ def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path:
     assert dashboard["active_count"] == 1
 
 
-def test_list_members_and_dashboard_use_supabase_member_directory_when_configured(tmp_path: Path) -> None:
+def test_list_members_and_dashboard_use_supabase_directory_plus_local_manual_members(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [
             {
@@ -4208,7 +4851,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4228,7 +4871,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-21T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-23T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
@@ -4252,12 +4895,70 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
     payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
     dashboard = service.get_dashboard()
 
-    assert payload["total"] == 1
-    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1"]
+    assert payload["total"] == 2
+    assert [item["user_id"] for item in payload["items"]] == [
+        "canonical_member_1",
+        "local_only_member",
+    ]
     assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
-    assert dashboard["total_count"] == 1
+    assert dashboard["total_count"] == 2
     assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
     assert directory.calls
+
+
+def test_member_directory_includes_member_console_only_manual_phone_member(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-22T10:00:00+08:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_manual_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("15875046318")
+        member["display_name"] = "15875046318"
+        member["phone"] = "15875046318"
+        member["created_at"] = "2026-06-22T13:44:27+08:00"
+        member["last_active_at"] = "2026-06-22T13:44:27+08:00"
+        data["members"].append(member)
+
+    service._mutate(_seed_manual_member)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    search = service.list_members(search="15875046318", page=1, page_size=20)
+    dashboard = service.get_dashboard()
+    read_model_members = {
+        item["user_id"]: item
+        for item in service.list_members_for_bi()
+    }
+
+    assert payload["total"] == 2
+    assert search["total"] == 1
+    assert search["items"][0]["user_id"] == "15875046318"
+    assert search["items"][0]["phone"] == "15875046318"
+    assert read_model_members["15875046318"]["member_directory_source"] == "member_console_local_supplement"
+    assert dashboard["total_count"] == 2
+    assert dashboard["new_today_count"] == 2
 
 
 def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp_path: Path) -> None:
@@ -4274,7 +4975,7 @@ def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-26T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4294,7 +4995,7 @@ def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-21T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-27T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
@@ -4362,7 +5063,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-05-26T01:03:44+00:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4380,7 +5081,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
     def _seed_local_member(data: dict[str, object]) -> None:
         member = service._build_default_member("local_missing_from_directory")
         member["phone"] = "15558866509"
-        member["created_at"] = "2026-04-21T10:00:00+08:00"
+        member["created_at"] = "2026-06-22T10:00:00+08:00"
         member["last_active_at"] = "2026-05-20T10:00:00+08:00"
         data["members"].append(member)
 
@@ -4407,7 +5108,7 @@ def test_list_members_supplements_directory_gaps_with_session_active_registered_
     assert payload["items"][0]["user_id"] == "local_missing_from_directory"
     assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
     assert payload["items"][1]["user_id"] == "canonical_member_1"
-    assert dashboard["total_count"] == 1
+    assert dashboard["total_count"] == 2
     assert (
         read_model_members["local_missing_from_directory"]["member_directory_source"]
         == "member_console_session_activity_supplement"
@@ -4418,7 +5119,7 @@ def test_dashboard_counts_recent_registered_member_windows(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    now = datetime(2026, 6, 9, 12, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 6, 30, 12, 0, tzinfo=timezone.utc)
     monkeypatch.setattr(member_service_module, "_now", lambda: now)
 
     def _member(
@@ -4451,7 +5152,7 @@ def test_dashboard_counts_recent_registered_member_windows(
         [
             _member("member_today", days_ago=0),
             _member("member_3d", days_ago=3, phone="15558866509"),
-            _member("member_20d", days_ago=20, phone="15558866510"),
+            _member("member_8d", days_ago=8, phone="15558866510"),
             _member("member_40d", days_ago=40, phone="15558866511"),
             _member("internal_no_phone", days_ago=0, phone=""),
             _member("invalid_created_at", days_ago=0, phone="15558866512", created_at="not-a-time"),
@@ -4463,7 +5164,7 @@ def test_dashboard_counts_recent_registered_member_windows(
 
     dashboard = service.get_dashboard()
 
-    assert dashboard["total_count"] == 6
+    assert dashboard["total_count"] == 4
     assert dashboard["new_today_count"] == 1
     assert dashboard["new_7d_count"] == 2
     assert dashboard["new_30d_count"] == 3
@@ -4483,7 +5184,7 @@ def test_member_directory_merges_member_console_overlay_without_owning_member_po
                 "segment": "general",
                 "risk_level": "low",
                 "auto_renew": False,
-                "created_at": "2026-04-20T10:00:00+08:00",
+                "created_at": "2026-06-22T10:00:00+08:00",
                 "last_active_at": "2026-04-22T10:00:00+08:00",
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
@@ -4518,6 +5219,263 @@ def test_member_directory_merges_member_console_overlay_without_owning_member_po
     }
     assert detail["wallet"]["balance"] == 260
     assert detail["recent_notes"][0]["content"] == "需要回访"
+
+
+def test_member_directory_resolves_merged_accounts_to_canonical_member(tmp_path: Path) -> None:
+    target_user_id = "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    merged_account_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": target_user_id,
+                "canonical_user_id": target_user_id,
+                "alias_user_ids": [target_user_id],
+                "display_name": "user_6508",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-22T10:00:00+08:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 1_196_321,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": merged_account_user_id,
+                "canonical_user_id": merged_account_user_id,
+                "alias_user_ids": [merged_account_user_id],
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "13911112222",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-21T10:00:00+08:00",
+                "last_active_at": "2026-06-21T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_merged_accounts(data: dict[str, object]) -> None:
+        target = service._build_default_member(target_user_id)
+        target.update(
+            {
+                "canonical_user_id": target_user_id,
+                "alias_user_ids": [target_user_id, "0c4b582c-5937-4ae1-86a2-d68f07702731"],
+                "display_name": "user_6508",
+                "phone": "15558866508",
+                "tier": "supreme_svip",
+                "status": "active",
+                "expire_at": "2027-06-15T09:13:15+08:00",
+                "points_balance": 1_197_161,
+                "external_auth_user_id": target_user_id,
+                "wx_openid": "wx-openid-h",
+            }
+        )
+        source = service._build_default_member(merged_account_user_id)
+        source.update(
+            {
+                "canonical_user_id": merged_account_user_id,
+                "alias_user_ids": [merged_account_user_id],
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "13911112222",
+                "tier": "trial",
+                "status": "merged",
+                "merged_into": target_user_id,
+                "points_balance": 0,
+                "external_auth_user_id": merged_account_user_id,
+            }
+        )
+        data["members"].extend([target, source])
+
+    service._mutate(_seed_merged_accounts)
+
+    by_account = service.list_members(search="chenyh2008", page=1, page_size=20)
+    by_old_phone = service.list_members(search="13911112222", page=1, page_size=20)
+    by_target_phone = service.list_members(search="15558866508", page=1, page_size=20)
+    admin_picker = service.search_members_for_admin(q="chenyh2008")
+
+    assert by_account["total"] == 1
+    assert by_old_phone["total"] == 1
+    assert by_target_phone["total"] == 1
+    item = by_account["items"][0]
+    assert item["user_id"] == target_user_id
+    assert item["tier"] == "supreme_svip"
+    assert item["status"] == "active"
+    assert item["expire_at"] == "2027-06-15T09:13:15+08:00"
+    assert item["points_balance"] == 1_196_321
+    assert set(item["alias_user_ids"]) >= {
+        target_user_id,
+        merged_account_user_id,
+        "0c4b582c-5937-4ae1-86a2-d68f07702731",
+    }
+    assert by_old_phone["items"][0]["user_id"] == target_user_id
+    assert by_target_phone["items"][0]["user_id"] == target_user_id
+    assert [item["user_id"] for item in admin_picker] == [target_user_id]
+
+
+def test_member_directory_prefers_canonical_overlay_over_auth_wrapper(tmp_path: Path) -> None:
+    target_user_id = "047b7b7f-8316-4f95-8bf7-71973c102be7"
+    target_auth_user_id = "auth_047b7b7f83164f958bf77197"
+    merged_account_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    merged_auth_user_id = "auth_2d9eac155d264e93941b9ec6"
+    quick_login_user_id = "0c4b582c-5937-4ae1-86a2-d68f07702731"
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": target_auth_user_id,
+                "canonical_user_id": target_user_id,
+                "external_auth_user_id": target_user_id,
+                "alias_user_ids": [target_user_id],
+                "display_name": "user_6508",
+                "auth_username": "user_6508",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-22T10:00:00+08:00",
+                "last_active_at": "2026-06-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 1_196_321,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": merged_auth_user_id,
+                "canonical_user_id": merged_account_user_id,
+                "external_auth_user_id": merged_account_user_id,
+                "alias_user_ids": [merged_account_user_id],
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "13911112222",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-06-21T10:00:00+08:00",
+                "last_active_at": "2026-06-21T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 997_486,
+                "review_due": 0,
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_auth_wrappers(data: dict[str, object]) -> None:
+        target = service._build_default_member(target_user_id)
+        target.update(
+            {
+                "display_name": "user_6508",
+                "auth_username": "user_6508",
+                "phone": "15558866508",
+                "tier": "supreme_svip",
+                "status": "active",
+                "expire_at": "2027-06-15T09:13:15+08:00",
+                "points_balance": 1_197_161,
+                "external_auth_user_id": target_user_id,
+            }
+        )
+        target_auth = service._build_default_member(target_auth_user_id)
+        target_auth.update(
+            {
+                "display_name": "user_6508",
+                "auth_username": "user_6508",
+                "phone": "15558866508",
+                "tier": "trial",
+                "status": "active",
+                "expire_at": "2026-07-13T23:07:43+08:00",
+                "points_balance": 0,
+                "external_auth_user_id": target_user_id,
+                "merged_into": target_user_id,
+            }
+        )
+        source = service._build_default_member(merged_account_user_id)
+        source.update(
+            {
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "52649394196",
+                "tier": "trial",
+                "status": "merged",
+                "points_balance": 0,
+                "external_auth_user_id": merged_account_user_id,
+                "merged_into": target_user_id,
+            }
+        )
+        source_auth = service._build_default_member(merged_auth_user_id)
+        source_auth.update(
+            {
+                "display_name": "chenyh2008",
+                "auth_username": "chenyh2008",
+                "phone": "52649394196",
+                "tier": "trial",
+                "status": "active",
+                "points_balance": 997_486,
+                "external_auth_user_id": merged_account_user_id,
+                "merged_into": merged_account_user_id,
+            }
+        )
+        quick_login = service._build_default_member(quick_login_user_id)
+        quick_login.update(
+            {
+                "display_name": "H",
+                "phone": "12240059568",
+                "tier": "trial",
+                "status": "merged",
+                "points_balance": 0,
+                "external_auth_user_id": quick_login_user_id,
+                "merged_into": target_user_id,
+            }
+        )
+        data["members"].extend([target_auth, source_auth, target, source, quick_login])
+
+    service._mutate(_seed_auth_wrappers)
+
+    by_phone = service.list_members(search="15558866508", page=1, page_size=20)
+    by_account = service.list_members(search="chenyh2008", page=1, page_size=20)
+    by_auth_id = service.list_members(search=merged_auth_user_id, page=1, page_size=20)
+    by_quick_login_id = service.list_members(search=quick_login_user_id, page=1, page_size=20)
+    by_quick_login_phone = service.list_members(search="12240059568", page=1, page_size=20)
+
+    assert by_phone["total"] == 1
+    assert by_account["total"] == 1
+    assert by_auth_id["total"] == 1
+    assert by_quick_login_id["total"] == 1
+    assert by_quick_login_phone["total"] == 1
+    item = by_account["items"][0]
+    assert item["user_id"] == target_user_id
+    assert item["tier"] == "supreme_svip"
+    assert item["status"] == "active"
+    assert item["expire_at"] == "2027-06-15T09:13:15+08:00"
+    assert item["points_balance"] == 1_196_321
+    assert set(item["alias_user_ids"]) >= {
+        target_user_id,
+        target_auth_user_id,
+        merged_account_user_id,
+        merged_auth_user_id,
+        quick_login_user_id,
+    }
+    assert by_quick_login_id["items"][0]["user_id"] == target_user_id
+    assert by_quick_login_phone["items"][0]["user_id"] == target_user_id
 
 
 def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
@@ -4721,7 +5679,7 @@ def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
     result = service.reverse_manual_membership_purchase(
         user_id="manual_user_supreme",
         purchase_id=purchase["purchase_id"],
-        amount_cny=998,
+        amount_cny=1,
         operator="admin_demo",
         reason="本应 0 元开通，冲销误录 998 元",
         idempotency_key="reverse-supreme-1",
@@ -4763,6 +5721,41 @@ def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
     audit = service.get_audit_log(action="manual_membership_reversal")["items"][0]
     assert audit["target_user"] == "manual_user_supreme"
     assert audit["after"]["reversal_of_purchase_id"] == purchase["purchase_id"]
+
+
+def test_member_360_exposes_only_unreversed_supreme_purchase_for_reversal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_supreme",
+        package_id="supreme_svip",
+        days=365,
+        operator="admin_demo",
+        reason="误点套餐价",
+        idempotency_key="manual-supreme-1",
+    )
+
+    detail = service.get_member_360("manual_user_supreme")
+    reversible = detail["membership_billing"]["reversible_supreme_purchase"]
+    assert reversible["purchase_id"] == purchase["purchase_id"]
+    assert reversible["amount_cny"] == 998
+    assert reversible["points"] == 50000
+
+    service.reverse_manual_membership_purchase(
+        user_id="manual_user_supreme",
+        purchase_id=purchase["purchase_id"],
+        operator="admin_demo",
+        reason="撤回误录",
+        idempotency_key="reverse-supreme-1",
+    )
+
+    after = service.get_member_360("manual_user_supreme")
+    assert after["membership_billing"]["reversible_supreme_purchase"] is None
 
 
 def test_non_supreme_membership_purchase_cannot_be_reversed(
@@ -5073,3 +6066,37 @@ def test_list_members_loads_behavior_with_canonical_alias_group(
         "wx_member_1",
         canonical_user_id,
     }
+
+
+def _cycle_member(uid: str, merged_into: str = "") -> dict:
+    return {"user_id": uid, "merged_into": merged_into, "external_auth_user_id": ""}
+
+
+def test_ensure_member_breaks_two_node_merge_cycle() -> None:
+    """A->B->A cyclic merge chain must not RecursionError (login 500 root cause)."""
+    svc = MemberConsoleService()
+    data = {"members": [_cycle_member("A", "B"), _cycle_member("B", "A")]}
+    member = svc._ensure_member(data, "A")
+    assert member["user_id"] in {"A", "B"}
+
+
+def test_ensure_member_breaks_longer_merge_cycle() -> None:
+    """A->B->C->A (3-cycle) must also terminate without RecursionError."""
+    svc = MemberConsoleService()
+    data = {
+        "members": [
+            _cycle_member("A", "B"),
+            _cycle_member("B", "C"),
+            _cycle_member("C", "A"),
+        ]
+    }
+    member = svc._ensure_member(data, "A")
+    assert member["user_id"] in {"A", "B", "C"}
+
+
+def test_ensure_member_terminal_chain_resolves_to_canonical() -> None:
+    """A->B (B terminal) still resolves to the canonical terminal member B."""
+    svc = MemberConsoleService()
+    data = {"members": [_cycle_member("A", "B"), _cycle_member("B", "")]}
+    member = svc._ensure_member(data, "A")
+    assert member["user_id"] == "B"

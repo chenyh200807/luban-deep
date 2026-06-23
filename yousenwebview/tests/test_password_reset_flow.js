@@ -303,9 +303,55 @@ function loadPage(relativePath, options) {
     );
   });
 
+  await run("password reset page supports phone-only first password setup", async function () {
+    if (!exists("packageDeeptutor/pages/login/reset-password.js")) {
+      assert(false, "reset password page script should exist before behavior can be tested");
+      return;
+    }
+    var setup = loadPage("packageDeeptutor/pages/login/reset-password.js");
+    setup.page.setData({
+      username: "",
+      phone: "13955556666",
+      phoneCode: "123456",
+      password: "NewPass123",
+      confirmPassword: "NewPass123",
+    });
+
+    setup.page.sendCode();
+    await flushPromises();
+    setup.page.handleResetPassword();
+    await flushPromises();
+
+    assert(
+      setup.requests[0].url === "/api/v1/auth/send-code",
+      "phone-only reset should still request SMS code through the auth code authority",
+    );
+    assert(
+      setup.requests[0].data.username === "" &&
+        setup.requests[0].data.phone === "13955556666",
+      "phone-only reset should not require a username before sending code",
+    );
+    assert(
+      setup.requests[1].url === "/api/v1/auth/reset-password",
+      "phone-only reset should call the dedicated password reset endpoint",
+    );
+    assert(
+      setup.requests[1].data.username === "" &&
+        setup.requests[1].data.phone === "13955556666" &&
+        setup.requests[1].data.code === "123456" &&
+        setup.requests[1].data.password === "NewPass123",
+      "phone-only reset payload should carry phone, code, and new password without a username",
+    );
+    assert(
+      setup.modalCalls.length === 1 &&
+        setup.modalCalls[0].title === "密码已重置",
+      "phone-only reset success should show the same confirmation modal",
+    );
+  });
+
   await run("password reset page preserves safe backend reset error semantics", async function () {
     var cases = [
-      ["账号或手机号不匹配", "账号和手机号不匹配，请确认注册账号和绑定手机号"],
+      ["账号或手机号不匹配", "账号和手机号不匹配；快速登录用户可只填手机号重试"],
       ["验证码不存在，请先获取验证码", "请先获取验证码"],
       ["验证码已过期，请重新获取", "验证码已过期，请重新获取"],
       ["验证码错误次数过多，请重新获取验证码", "验证码错误次数过多，请重新获取验证码"],
@@ -364,7 +410,7 @@ function loadPage(relativePath, options) {
     await flushPromises();
 
     assert(
-      setup.page.data.errorMsg === "账号和手机号不匹配，请确认注册账号和绑定手机号",
+      setup.page.data.errorMsg === "账号和手机号不匹配；快速登录用户可只填手机号重试",
       "send-code account phone mismatch should be visible before reset submit",
     );
   });

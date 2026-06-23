@@ -639,3 +639,28 @@ async def test_resolve_turn_semantic_decision_clarifies_low_confidence_grading_a
     assert decision is not None
     assert decision["relation_to_active_object"] == "uncertain"
     assert decision["next_action"] == "ask_clarifying_question"
+
+
+def test_decision_from_other_question_intent_is_unresolved_switch() -> None:
+    """ask_other_question (learner references a question NOT in the active set, by
+    ordinal/position/attribute — "最开始做错的那道"/"第3题"超出当前题组) must map to the
+    unresolved-switch signature so the turn routes to the context-continuous main LLM,
+    not bind to / fabricate a followup on the stale active object."""
+    active = {
+        "object_type": "single_question",
+        "state_snapshot": {"question": "结构找坡题", "question_type": "choice"},
+    }
+    decision = semantic_router._decision_from_followup_action(
+        action={
+            "intent": "ask_other_question",
+            "confidence": 0.9,
+            "reason": "用户回指对话更早的另一道题，不是当前 active。",
+        },
+        active_object=active,
+        user_message="回到我最开始做错的那道题，正确答案为什么是那个",
+        question_context={"question": "结构找坡题", "question_type": "choice"},
+    )
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "switch_to_new_object"
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert semantic_router.is_unresolved_switch_followup(decision) is True

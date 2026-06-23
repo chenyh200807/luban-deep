@@ -6,7 +6,7 @@ const endpoints = require("./endpoints");
 var MAX_RETRIES = 2; // 最大重试次数
 var RETRY_BASE_DELAY = 1000; // 首次重试延迟 ms
 var REQUEST_TIMEOUT = 15000; // 请求超时 ms
-var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true }; // 幂等方法才重试
+var RETRYABLE_METHODS = { GET: true, PUT: true, DELETE: true, PATCH: true }; // 幂等方法才重试
 var TOKEN_REFRESH_MARGIN_SECONDS = 60 * 60 * 24; // 仅在 token 临期 24 小时内续期
 var IN_FLIGHT_REFRESH = null;
 
@@ -206,14 +206,22 @@ function rawRequest(opts) {
             reject(new Error("AUTH_EXPIRED"));
             return;
           }
-          // Token 过期 — 清除并跳转登录
-          auth.clearToken();
-          var app = getApp_();
-          if (app) {
-            app.globalData.token = null;
-          }
-          relaunchLogin();
-          reject(new Error("AUTH_EXPIRED"));
+          // Try refresh before giving up — avoids premature logouts when the
+          // token expires between the proactive check and the server response.
+          refreshAuthToken(opts)
+            .then(function () {
+              return rawRequest(
+                Object.assign({}, opts, { skipAuthRefresh: true }),
+              );
+            })
+            .then(resolve, reject);
+          return;
+        }
+
+        if (res.statusCode === 503) {
+          var e503 = new Error("FEATURE_DISABLED");
+          e503.code = "FEATURE_DISABLED";
+          reject(e503);
           return;
         }
 
@@ -239,13 +247,6 @@ function rawRequest(opts) {
           )
             .then(resolve)
             .catch(reject);
-          return;
-        }
-
-        if (res.statusCode === 503) {
-          var e503 = new Error("FEATURE_DISABLED");
-          e503.code = "FEATURE_DISABLED";
-          reject(e503);
           return;
         }
 

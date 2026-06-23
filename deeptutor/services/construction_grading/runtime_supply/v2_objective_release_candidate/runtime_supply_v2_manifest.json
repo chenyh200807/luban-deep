@@ -1,0 +1,27 @@
+{
+  "schema_version": "luban_objective_answer_key.v2_release_candidate",
+  "namespace": "objective_answer_key_real",
+  "status": "release_candidate",
+  "published": false,
+  "production_default_connected": false,
+  "release_authority": null,
+  "source_table": "questions_bank",
+  "source_authority": "questions_bank.correct_answer (REAL_EXAM, governed)",
+  "extraction_query_hash": "cecbf2a7e0977a0ea5bc35454201842c642963e456c912e3d8e51b5bb8925eee",
+  "all_objective_count_all_sources": 2652,
+  "scope": "objective REAL_EXAM (single_choice/multi_choice/judgment) with valid options+answer_key",
+  "row_count": 636,
+  "clean_count": 635,
+  "rejected_count": 0,
+  "conflict_count": 1,
+  "source_meta_present_count": 277,
+  "cited_standard_codes_present_count": 6,
+  "content_hash": "ba2c28755e37ad521dbd4ae8d0a11bcb840db81ddd07cdec231e4e4ae5b3d91d",
+  "source_hashes": {
+    "questions_bank_extract_query": "cecbf2a7e0977a0ea5bc35454201842c642963e456c912e3d8e51b5bb8925eee"
+  },
+  "signature": "64702e2739b66a53413a4272dc1b6d3ccff8d144a9cda3a11b51d0b0d4cea962",
+  "separate_from_case_registry": true,
+  "rollback_pointer": "v2_objective_real_candidate (prior signed supply); loader fail-closed -> objective lane absent; production default OFF",
+  "minimal_supply_note": "answer_key + hashes + provenance only; raw stem/option TEXT not dumped (stem_hash/options_hash seal integrity)."
+}

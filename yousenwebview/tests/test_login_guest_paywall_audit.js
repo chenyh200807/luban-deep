@@ -162,6 +162,11 @@ assert(
   "guest preview should expose a direct quick-login action from chat",
 );
 assert(
+  chatJs.indexOf("先看看鲁班智考能怎么帮你提分") < 0 &&
+    chatJs.indexOf("发送真实问题时再登录，付费能力会在动作前提示") < 0,
+  "guest preview must not render non-taxonomy copy through the focus bar",
+);
+assert(
   chatWxml.indexOf("paywallVisible") >= 0 &&
     chatJs.indexOf("_isBillingBlockedMessage") >= 0,
   "billing quota errors should surface a paywall instead of a generic error",

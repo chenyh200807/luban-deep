@@ -421,7 +421,7 @@ def test_validate_release_env_requires_ff_snapshot_hash(tmp_path: Path) -> None:
     assert "DEEPTUTOR_FF_SNAPSHOT_HASH" in combined
 
 
-def test_validate_release_env_accepts_complete_lineage(tmp_path: Path) -> None:
+def test_validate_release_env_requires_security_observability_and_rag_ff(tmp_path: Path) -> None:
     repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
     remote_dir = tmp_path / "remote"
     remote_dir.mkdir()
@@ -446,14 +446,199 @@ def test_validate_release_env_accepts_complete_lineage(tmp_path: Path) -> None:
 
     result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
 
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "DEEPTUTOR_ATTEMPT_REF_SECRET" in combined
+    assert "DEEPTUTOR_METRICS_TOKEN" in combined
+    assert "SUPABASE_RAG_COMPILED_TRUTH_ENABLED" in combined
+    assert "SUPABASE_RAG_PROVENANCE_BOOST_ENABLED" in combined
+
+
+def test_validate_release_env_blocks_rag_compiled_truth_enabled(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            SERVICE_ENV=production
+            APP_ENV=production
+            DEEPTUTOR_AUTH_SECRET=secret
+            DEEPTUTOR_ATTEMPT_REF_SECRET=attempt-secret
+            DEEPTUTOR_METRICS_TOKEN=metrics-secret
+            DEEPTUTOR_ADMIN_USER_IDS=user_1
+            DEEPTUTOR_RELEASE_ID=1.0.0+abc+production
+            DEEPTUTOR_GIT_SHA=abc
+            DEEPTUTOR_PROMPT_VERSION=git-abc
+            DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233
+            SUPABASE_RAG_COMPILED_TRUTH_ENABLED=true
+            SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "SUPABASE_RAG_COMPILED_TRUTH_ENABLED 必须显式为 false" in combined
+
+
+def test_validate_release_env_rejects_weak_attempt_ref_secret(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            SERVICE_ENV=production
+            APP_ENV=production
+            DEEPTUTOR_AUTH_SECRET=secret
+            DEEPTUTOR_ATTEMPT_REF_SECRET=dev-attempt-ref-secret
+            DEEPTUTOR_METRICS_TOKEN=metrics-secret
+            DEEPTUTOR_ADMIN_USER_IDS=user_1
+            DEEPTUTOR_RELEASE_ID=1.0.0+abc+production
+            DEEPTUTOR_GIT_SHA=abc
+            DEEPTUTOR_PROMPT_VERSION=git-abc
+            DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233
+            SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false
+            SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert "DEEPTUTOR_ATTEMPT_REF_SECRET" in combined
+
+
+def test_validate_release_env_accepts_complete_lineage(tmp_path: Path) -> None:
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            SERVICE_ENV=production
+            APP_ENV=production
+            DEEPTUTOR_AUTH_SECRET=secret
+            DEEPTUTOR_ATTEMPT_REF_SECRET=attempt-secret-with-at-least-32-chars
+            DEEPTUTOR_METRICS_TOKEN=metrics-secret
+            DEEPTUTOR_ADMIN_USER_IDS=user_1
+            DEEPTUTOR_RELEASE_ID=1.0.0+abc+production
+            DEEPTUTOR_GIT_SHA=abc
+            DEEPTUTOR_PROMPT_VERSION=git-abc
+            DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233
+            SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false
+            SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
     assert result.returncode == 0, result.stderr
     assert "远端发布环境校验通过" in result.stdout
     assert "DEEPTUTOR_FF_SNAPSHOT_HASH=ffaa00112233" in result.stdout
 
 
+def test_validate_release_env_treats_aliyun_env_as_production(tmp_path: Path) -> None:
+    # M6: production detection must mirror deeptutor/services/runtime_env.py. 'aliyun' is
+    # a production env name there, so a DEEPTUTOR_ENV=aliyun release with a missing
+    # required key must FAIL the checks — not silently skip them (the old fail-open
+    # `== 'production'` test treated 'aliyun' as non-production and skipped everything).
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text(
+        textwrap.dedent(
+            """\
+            DEEPTUTOR_ENV=aliyun
+            DEEPTUTOR_AUTH_SECRET=secret
+            """
+        ),
+        encoding="utf-8",
+    )
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0, "aliyun env must be treated as production and run the checks"
+    assert "跳过生产发布必填校验" not in combined, "aliyun must NOT skip production checks"
+
+
+def test_validate_release_env_explicit_non_production_still_skips(tmp_path: Path) -> None:
+    # The mirror keeps the legitimate skip: an explicit non-production env (development)
+    # still skips the production-only checks, so dev/test envs are not over-constrained.
+    repo_root = _setup_script_repo(tmp_path, "validate_aliyun_release_env.sh")
+    remote_dir = tmp_path / "remote"
+    remote_dir.mkdir()
+    (remote_dir / ".env").write_text("DEEPTUTOR_ENV=development\n", encoding="utf-8")
+    env, _ = _build_stub_env(tmp_path, execute_remote_python=True)
+    env["REMOTE_HOST"] = "fake-host"
+    env["REMOTE_DIR"] = str(remote_dir)
+
+    result = _run(["bash", "scripts/validate_aliyun_release_env.sh"], cwd=repo_root, env=env)
+
+    assert result.returncode == 0, result.stderr
+    assert "跳过生产发布必填校验" in result.stdout
+
+
+def test_validate_release_env_production_names_stay_in_sync_with_runtime_authority() -> None:
+    # Single authority: the validator replicates runtime_env's NON-production allowlist
+    # (it runs in an SSH heredoc and cannot import the package). If runtime_env ever
+    # narrows that set (turning a name into production), this fails so the script is
+    # updated too — preventing a production env from silently skipping its checks.
+    from deeptutor.services.runtime_env import _NON_PRODUCTION_ENV_NAMES
+
+    script = (SOURCE_SCRIPTS / "validate_aliyun_release_env.sh").read_text(encoding="utf-8")
+    for name in _NON_PRODUCTION_ENV_NAMES:
+        assert f"'{name}'" in script, (
+            f"validate_aliyun_release_env.sh must list non-production name {name!r} "
+            "to stay in sync with deeptutor/services/runtime_env.py"
+        )
+
+
+def test_runtime_backup_cron_writes_only_inside_canonical_root() -> None:
+    # M8: the cron example must keep all writes inside /root/deeptutor (AGENTS.md §3.7),
+    # never /opt/deeptutor or /var/log which violate the single writable-root boundary.
+    cron = (REPO_ROOT / "deployment" / "backup" / "runtime-backup.cron.example").read_text(
+        encoding="utf-8"
+    )
+    # Check the actual cron command lines only — a comment may legitimately mention the
+    # forbidden paths to explain the boundary.
+    command_lines = [
+        line for line in cron.splitlines() if line.strip() and not line.strip().startswith("#")
+    ]
+    assert command_lines, "cron example has no active command lines"
+    for line in command_lines:
+        assert "/opt/deeptutor" not in line, f"cron must not use /opt/deeptutor: {line}"
+        assert "/var/log" not in line, f"cron must not write to /var/log: {line}"
+        assert "cd /root/deeptutor" in line, f"cron must run inside /root/deeptutor: {line}"
+        assert ">> /root/deeptutor/" in line, f"cron log must stay under /root/deeptutor: {line}"
+
+
 def test_deploy_runs_remote_backup_before_bootstrap(tmp_path: Path) -> None:
     repo_root = _setup_wrapper_repo(tmp_path, "deploy_aliyun.sh")
     env, call_log = _build_stub_env(tmp_path)
+    env["FORCE_FULL_REBUILD"] = "1"
 
     result = _run(["bash", "scripts/deploy_aliyun.sh"], cwd=repo_root, env=env)
 
@@ -543,3 +728,26 @@ def test_fast_reload_does_not_use_container_hot_patch() -> None:
     assert "\ndocker cp " not in content
     assert "build deeptutor" in content
     assert "force-recreate deeptutor" in content
+
+
+def test_rollback_uses_remote_dir_staging_not_tmp() -> None:
+    content = (SOURCE_SCRIPTS / "rollback_aliyun_release.sh").read_text(encoding="utf-8")
+
+    assert "tempfile.mkdtemp" not in content
+    assert "remote_dir / 'tmp' / 'release_restore'" in content
+    assert "Path(os.environ['REMOTE_DIR']).resolve()" in content
+    assert "snapshot.resolve()" in content
+    assert "release_dir not in snapshot.parents" in content
+
+
+def test_env_examples_pin_production_security_and_rag_flags() -> None:
+    required_lines = {
+        "DEEPTUTOR_ATTEMPT_REF_SECRET=",
+        "DEEPTUTOR_METRICS_TOKEN=",
+        "SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false",
+        "SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false",
+    }
+    for rel_path in (".env.example", ".env.example_CN", "deployment/aliyun/aliyun.env.example"):
+        content = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+        missing = sorted(line for line in required_lines if line not in content)
+        assert not missing, f"{rel_path} missing: {missing}"

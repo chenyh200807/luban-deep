@@ -62,6 +62,7 @@ connection_factory:
   status: available                                     # in use; sample migration done
   migrated_sites:                                       # raw_connection_sites now on the factory
     - deeptutor/services/benchmark/kb_v5_readonly_adapter.py   # R1 sample migration (read-only)
+    - deeptutor/services/rag/pipelines/kbv5.py                 # KBv5 production RAG path (read-only)
   note: >
     Thin wrapper over psycopg.connect, parameterized by FACT (not raw URL): it
     resolves fact → database → env → url from THIS registry, so the target db is
@@ -121,7 +122,6 @@ databases:
     liveness: in_use
     raw_connection_sites:
       - {path: deeptutor/services/benchmark/kb_v5_readonly_adapter.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
-      - {path: deeptutor/services/rag/pipelines/kbv5.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
       - {path: scripts/export_kb_v5_full_to_runtime_supply.py, mode: read, fact: kb_v5_chunk_retrieval, status: grandfathered}
 
   - name: questions_bank
@@ -172,17 +172,17 @@ tables:
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: public.luban_canonical_knowledge_catalog
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: public.luban_canonical_knowledge_edges
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog
     writable_by: [ops_script]
-    rls_required: false
+    rls_required: true
   - name: concept_taxonomy_registry
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog

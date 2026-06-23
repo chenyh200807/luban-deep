@@ -1,0 +1,138 @@
+[
+  {
+    "issue": "R2 不变量缺少作业安全门槛，且将“过早”与“违章”混为一谈",
+    "location": "PACK > 3 > R2 不变量",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将不变量改为“强度/顺序/程序/作业安全”，拆分“过早”与“违章”后果描述"
+  },
+  {
+    "issue": "规范点 0190:0/1 的锚定角色不当，quote 无法支撑“顺序原则”或“程序门槛”的语义",
+    "location": "PACK > 1/3/4 中关于 0190:0 和 0190:1 的锚定",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "重新审查 0190:0 与 :1 的原文，将顺序锚改为 0187:0，将程序门槛锚改为更直接支撑的条款"
+  },
+  {
+    "issue": "ME04 的 error_code 映射不当，不应使用 ERR_NUMERIC_TABLE_MISMATCH",
+    "location": "PACK > 6 > ME04",
+    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "count": 3,
+    "confidence": "高可信",
+    "fix": "将 ME04 的错因码重新映射为 M08（规范数字混淆）或 E10（条件提取不完整）"
+  },
+  {
+    "issue": "侧模 1N/mm² 数值在 pack 中有陈述但 quote 未包含完整数值",
+    "location": "PACK > 1 > 侧模/墙体大模板邻接噪点",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充 kc:1A413030_104_0186:0 的完整 quote 至包含 1N/mm² 数值，或将该条降级为待验证"
+  },
+  {
+    "issue": "后张法预应力/灌浆 C30 等数值 quote 不完整，本体边界偏宽",
+    "location": "PACK > 1 > 后张法预应力强度/龄期及 R4 V5 / ME06",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补全 0201:0 等 quote，将缺少直接支撑的数值标注为待验证，并将整体降为邻接叠加"
+  },
+  {
+    "issue": "快拆体系规范点（立杆≤2m、保留顶托等）quote 不足",
+    "location": "PACK > 1/2/4/5/6/7 > 快拆体系相关锚点",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充 0187:0 完整条文 quote，确保涵盖立杆间距≤2m、保留顶托等全部规范要素"
+  },
+  {
+    "issue": "形态E「填表」无真题命中却与有真题支撑的形态并列🟢",
+    "location": "PACK > 4 > 形态E",
+    "flagged_by": ["DeepSeek", "Qwen"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将形态E移出🟢常考形态列表，或单独列为🔵教学构造以区分证据等级"
+  },
+  {
+    "issue": "examiner_intent 缺少拆除顺序及程序/作业安全等鉴别点",
+    "location": "PACK > 4 > examiner_intent",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "在第4节补充与拆除顺序、申请批准、作业安全相关的鉴别点"
+  },
+  {
+    "issue": "ME06 错误心智模型的锚定支持和映射准确性存疑",
+    "location": "PACK > 6 > ME06",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "重新审查 ME06 的案例支撑与错因码映射，确保误区锚定与规范证据一致"
+  },
+  {
+    "issue": "底模拆除强度表关键数值 quote 未展开，全表仅截取表头",
+    "location": "PACK > 1 > 底模拆除强度表及 R4 V1 / R5 采分点2",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "补充 0185:0 后完整表格 quote，或将全表数值标注为待补充"
+  },
+  {
+    "issue": "ME01 中将“夹渣/麻面/蜂窝”作为强度未达的直接后果属于邻接噪声",
+    "location": "PACK > 6 > ME01",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "删除或降级该质量缺陷后果描述，保留 ME01 主误区“按表查强度”"
+  },
+  {
+    "issue": "ME05 的 error_code 映射偏泛，COMMONSENSE_OVER_SPEC 未击中漏掉保留顶托条件的核心",
+    "location": "PACK > 6 > ME05",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "将 ME05 映射为 M09/M10 或 E10，体现具体规范条件遗漏"
+  },
+  {
+    "issue": "钢-混组合结构在 §1 标为邻接，但在 R3 S8 中又标为常考情境🔵，标记不一致",
+    "location": "PACK > 1 及 R3 S8 钢-混组合结构",
+    "flagged_by": ["Qwen", "GPT-5.5"],
+    "count": 2,
+    "confidence": "高可信",
+    "fix": "统一为🔵邻接，不进 C04 核心 R3，或标为“延伸例”以区分"
+  },
+  {
+    "issue": "混凝土养护时间的邻接噪点标注缺少 quote 中的具体天数数值支撑",
+    "location": "PACK > 1 > 邻接噪点 > 混凝土养护时间",
+    "flagged_by": ["DeepSeek"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "补全原 quote 至包含 “硅酸盐/普硅≥7d” 等具体天数，或将该噪点降级为待验证"
+  },
+  {
+    "issue": "ERROR_CODE_REGISTRY 中的 ERR_* 码均未在 registry 中正式注册",
+    "location": "PACK > 6 > ERROR_CODE_REGISTRY",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "所有 ERR_* 码落地前必须转为已有的 E/M 码或正式注册到 registry"
+  },
+  {
+    "issue": "R4 V7 专项方案/起拱不应作为拆模条件的封闭变量",
+    "location": "PACK > 4 > R4 V7",
+    "flagged_by": ["GPT-5.5"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "将 V7 降为🔵邻接前置变量，不作为 C04 封闭变量集成员"
+  },
+  {
+    "issue": "动画分镜旁白锚与内容不完全匹配",
+    "location": "PACK > 7 > 动画分镜",
+    "flagged_by": ["Qwen"],
+    "count": 1,
+    "confidence": "存疑",
+    "fix": "核对分镜旁的 quote 锚定，确保旁白与引用的规范内容一致"
+  }
+]

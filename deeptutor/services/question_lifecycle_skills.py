@@ -22,14 +22,18 @@ attach_question_lifecycle_scene_to_context).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 import logging
-import re
-from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any
 
 from deeptutor.core.context import UnifiedContext
+from deeptutor.services.mcq_surface_patterns import (
+    OPTION_ANSWER_ASSERTION_RE,
+    OPTION_LIST_RE,
+)
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.agent.skills import SkillsLoader
@@ -217,18 +221,41 @@ async def resolve_question_lifecycle_scene_decision(
                 business_gate_result="pre_stamped_scene",
             )
     scene = derive_question_lifecycle_scene(ctx)
+    # A back-reference to an EARLIER question + explanation intent ("刚才那道屋面坡度题，
+    # 讲讲考点") is not a submission to the current active set. After a practice-gen turn
+    # replaces the active object with a new set, the embedded "我选A" otherwise trips the
+    # submission gates (ambiguous / unanchored / free-text) and the original question is
+    # lost. Suppress those surface-token gates so the turn routes to explanation via
+    # conversation history. Answer-led turns are exempt inside the detector itself.
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            _looks_like_past_question_explanation_request,
+        )
+
+        recall_explanation_request = _looks_like_past_question_explanation_request(
+            user_message
+        )
+    except Exception:
+        recall_explanation_request = False
     unanchored_submission = (
-        _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+        not recall_explanation_request
+        and _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
         and scene != "mcq_grading"
     )
-    ambiguous_multi_submission = _looks_like_ambiguous_multi_question_submission(
-        user_message,
-        metadata,
+    ambiguous_multi_submission = (
+        not recall_explanation_request
+        and _looks_like_ambiguous_multi_question_submission(
+            user_message,
+            metadata,
+        )
     )
     low_information_exam_query = is_low_information_exam_query(
         user_message
     ) and not _low_information_query_can_use_active_question(user_message, metadata)
-    free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
+    free_text_mcq_answer_request = (
+        not recall_explanation_request
+        and _looks_like_free_text_mcq_answer_request(user_message)
+    )
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
         if isinstance(metadata, dict)
@@ -585,10 +612,37 @@ def _low_information_query_can_use_active_question(query: str, metadata: Any) ->
     case/question ordinal, or exam inventory filter.
     """
 
-    if not _active_question_context_from_metadata(metadata):
-        return False
+    active_ctx = _active_question_context_from_metadata(metadata)
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
+        return False
+    # task#14 Layer 2 (2026-06-22): a "第N题…" reference that resolves to an item of the
+    # ACTIVE batch set is NOT an external exam-inventory query — it points at item N of the
+    # current set. Consult the single ordinal→item authority (question_followup.
+    # requested_question_item_index, same as the submission path) against the active context
+    # AND the raw active_object state_snapshot, so "刚才第3题的答案和考点讲讲" anchors to the
+    # set's item N (→ question_review) instead of being blocked as low-information / rejected
+    # by the 第N题 exclusion below. Layer 1 (turn_runtime suspend guard) keeps the set in
+    # active_object for this turn so it is present here. Out-of-range / non-ordinal / single
+    # (len<2) → None → falls through to the existing current-card logic (clarify, not block).
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            requested_question_item_index,
+        )
+    except Exception:
+        requested_question_item_index = None  # type: ignore[assignment]
+    if requested_question_item_index is not None:
+        candidate_ctxs = [active_ctx]
+        active_object = metadata.get("active_object") if isinstance(metadata, dict) else None
+        if isinstance(active_object, dict) and isinstance(active_object.get("state_snapshot"), dict):
+            candidate_ctxs.append(active_object["state_snapshot"])
+        if any(
+            requested_question_item_index(query, ctx) is not None
+            for ctx in candidate_ctxs
+            if ctx
+        ):
+            return True
+    if not active_ctx:
         return False
     if not any(marker in text for marker in ("题卡", "当前题", "这题", "这道题", "本题")):
         return False
@@ -643,15 +697,17 @@ def build_question_lifecycle_clarification_response(message: str, reason: str) -
             "请带上题号发送，例如：第1题选B、q2 选C，或一次性写成：q1 A，q2 C，q3 B。"
         )
     if reason == "low_information_exam_query":
-        topic = str(message or "").strip() or "真题"
+        # 阶段1 去毒(2026-06-22):此罐头此前(a)逐字回显学生整句 {topic}、(b)向学生
+        # 泄露"小程序题卡 id/题干/选项传给 TutorBot""就是在编"等内部机制与内部推理
+        # (Langfuse 实证 meta_leak 主源)。面向学生输出绝不含内部独白/内部机制/逐字回显。
+        # 改为干净、温暖、可继续的澄清。(此罐头"何时该出"是 A 收权问题——回指应落主 LLM
+        # 而非这里;本步只保证它出现时不泄露。)
         return (
-            f"我知道你是想直接要“{topic}”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。"
-            "如果我只凭“那道真题”直接给答案，就是在编。\n\n"
-            "你可以这样继续：\n"
-            "0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n"
-            "1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n"
-            "2. 查看这一类真题目录或考点范围\n"
-            "3. 让我出一套真题风格练习"
+            "这道题我这边还没拿到完整的题干和选项，先不直接给答案，免得讲错带偏你。\n\n"
+            "你可以这样:\n"
+            "1. 把题干和选项发给我，我来逐项讲评:答案、解析、易错点和记忆抓手\n"
+            "2. 让我按这个考点出一道同类练习题\n"
+            "3. 直接问我这个考点的知识点，我先帮你把概念讲清楚"
         )
     return ""
 
@@ -860,15 +916,14 @@ _FREE_TEXT_MCQ_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "批改",
     "判断",
 )
-_FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
-    r"(?:我选|我选择|选|答案是|我的答案是)\s*[A-DＡ-Ｄ]",
-    re.IGNORECASE,
-)
-_FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
-    r"(?:^|[\s，。；;：:？！!?）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff])).{0,240}?"
-    r"(?:[\s，。；;：:])B(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))",
-    re.IGNORECASE | re.DOTALL,
-)
+# Single-sourced from the canonical MCQ-surface primitive module (task #12 step 1,
+# contracts/turn.md §硬约束 24). These names remain as module-local aliases so every
+# existing call site is unchanged (behavior byte-identical), but the regexes now have
+# ONE definition shared with the submission authority instead of a per-module copy.
+# The canonical module is dependency-free, so this module-level import does not break
+# question_lifecycle_skills' import-safety (contracts/capability.md §27).
+_FREE_TEXT_MCQ_OPTION_SELECTION_RE = OPTION_ANSWER_ASSERTION_RE
+_FREE_TEXT_MCQ_OPTION_LIST_RE = OPTION_LIST_RE
 _FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS: tuple[str, ...] = (
     "正确答案",
     "标准答案",

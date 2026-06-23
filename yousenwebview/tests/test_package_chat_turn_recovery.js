@@ -111,7 +111,7 @@ run("can recover by client turn id when server turn id is not projected after re
   assertEqual(found.assistantIndex, 1, "client turn id fallback should bind to the same user turn");
 });
 
-run("can recover assistant answer stored in metadata response", function () {
+run("does not recover assistant answer from metadata response without canonical content", function () {
   var messages = [
     { role: "user", content: "案例题批改", client_turn_id: "client_meta_1" },
     {
@@ -129,11 +129,40 @@ run("can recover assistant answer stored in metadata response", function () {
     clientTurnId: "client_meta_1",
   });
 
-  assert(!!found, "metadata.response should count as recovered assistant content");
+  assert(!found, "metadata.response must not clear pending turn recovery without content");
   assertEqual(
-    recovery.getAssistantDisplayText(found.assistantMessage),
-    "当前批改结果已经写入终态 metadata",
-    "recovery should expose the same display text used by history hydration",
+    recovery.getAssistantDisplayText(messages[1]),
+    "",
+    "display text should come from canonical assistant content only",
+  );
+});
+
+run("does not recover assistant answer from metadata content", function () {
+  var messages = [
+    { role: "user", content: "案例题批改", client_turn_id: "client_content_1" },
+    {
+      role: "assistant",
+      content: "",
+      metadata: {
+        content: "不应恢复的内部 content",
+        metadata: { content: "不应恢复的嵌套内部 content" },
+      },
+      engine_turn_id: "turn_content_1",
+    },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "案例题批改",
+    turnId: "turn_content_1",
+    clientTurnId: "client_content_1",
+  });
+
+  assert(!found, "metadata.content must not count as recovered assistant content");
+  assertEqual(
+    recovery.getAssistantDisplayText(messages[1]),
+    "",
+    "metadata.content must not be displayed as assistant answer",
   );
 });
 

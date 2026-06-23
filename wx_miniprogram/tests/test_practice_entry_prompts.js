@@ -33,8 +33,9 @@ var homeModel = learningHomeViewModel.buildLearningHomeViewModel({
 });
 assert(
   chatJs.indexOf("learning-home-view-model") >= 0 &&
-    homeModel.focusQuery === focusPrompt,
-  "focus prompt should be projected from learning-home model without upfront answers",
+    homeModel.focusQuery === "" &&
+    homeModel.recommendedPrompts.length === 0,
+  "markerless practice copy must not be projected into canonical home recommendations",
 );
 assert(
   practiceJs.indexOf("给我来5道高价值选择题，不要提前给答案和解析。") >= 0,

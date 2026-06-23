@@ -137,6 +137,17 @@ App({
     const token = auth.getToken();
     if (token) {
       this.globalData.token = token;
+      // Session 可能已过期，静默校验；fail 时清除本地凭据强制重新登录
+      var that = this;
+      wx.checkSession({
+        fail: function () {
+          // session 过期，清除本地 token 强制重新登录
+          auth.clearToken(); // 正确清除 auth_token / auth_token_exp / auth_user_id
+          wx.removeStorageSync("userInfo");
+          that.globalData.token = null;
+          that.globalData.userInfo = null;
+        },
+      });
     }
 
     // [PRR-C9] Network status monitoring
@@ -189,8 +200,8 @@ App({
    * 各页面在 onShow 中调用
    */
   checkAuth(callback) {
-    const token = auth.getToken();
-    if (!token) {
+    // isLoggedIn() 会检查 token 是否存在且未过期，过期时自动调 clearToken()
+    if (!auth.isLoggedIn()) {
       var pages = getCurrentPages();
       var currentRoute =
         pages && pages.length ? pages[pages.length - 1].route || "" : "";
@@ -209,6 +220,7 @@ App({
       });
       return;
     }
+    const token = auth.getToken();
     this.globalData.token = token;
     if (callback) callback(token);
   },

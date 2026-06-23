@@ -11,7 +11,11 @@ function showSmsSentFeedback(message) {
 
 function canShowDebugCode() {
   var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
-  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+  return (
+    cfg.platform === "devtools" ||
+    cfg.envVersion === "develop" ||
+    cfg.envVersion === "trial"
+  );
 }
 
 Page({
@@ -29,6 +33,7 @@ Page({
   },
 
   onLoad: function () {
+    this._mounted = true;
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
@@ -44,6 +49,7 @@ Page({
   },
 
   onUnload: function () {
+    this._mounted = false;
     if (this._codeTimer) {
       clearInterval(this._codeTimer);
       this._codeTimer = null;
@@ -101,17 +107,23 @@ Page({
         noAuth: true,
       })
       .then(function (resp) {
+        if (!self._mounted) return;
         var inner = resp.data || resp;
         var outerCode = resp.code !== undefined ? resp.code : inner.code;
         var outerMsg = resp.message || inner.message || "发送失败";
         var dataObj = inner.data || inner;
-        var retryAfter = (dataObj && dataObj.retry_after) || inner.retry_after || 60;
+        var retryAfter =
+          (dataObj && dataObj.retry_after) || inner.retry_after || 60;
         var sent = inner.sent || (dataObj && dataObj.sent);
 
         if (outerCode === 0 || sent) {
-          var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var debugCode =
+            (dataObj && dataObj.debug_code) || inner.debug_code || "";
           var successMsg =
-            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
+            (dataObj && dataObj.message) ||
+            inner.message ||
+            resp.message ||
+            "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           var showDebugCode = debugCode && canShowDebugCode();
           if (showDebugCode) nextData.phoneCode = debugCode;
@@ -130,6 +142,7 @@ Page({
         }
       })
       .catch(function (err) {
+        if (!self._mounted) return;
         var m = String(err.message || "");
         var msg = "发送失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
@@ -143,6 +156,11 @@ Page({
     if (self._codeTimer) clearInterval(self._codeTimer);
     var remaining = seconds;
     self._codeTimer = setInterval(function () {
+      if (!self._mounted) {
+        clearInterval(self._codeTimer);
+        self._codeTimer = null;
+        return;
+      }
       remaining--;
       if (remaining <= 0) {
         clearInterval(self._codeTimer);
@@ -176,19 +194,23 @@ Page({
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
+        if (!self._mounted) return;
         var m = String(err.message || "");
         var msg = "验证失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("400") || m.includes("验证码")) msg = "验证码错误或已过期";
+        else if (m.includes("400") || m.includes("验证码"))
+          msg = "验证码错误或已过期";
         else if (m.includes("429")) msg = "操作过于频繁";
         else if (m && !m.startsWith("HTTP_")) msg = m;
         self.setData({ errorMsg: msg });
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );
@@ -213,16 +235,23 @@ Page({
       .then(function (resp) {
         var inner = resp.data || resp;
         var user = inner.user || resp.user || {};
-        var token = inner.token || inner._token || resp.token || resp._token || user._token;
+        var token =
+          inner.token ||
+          inner._token ||
+          resp.token ||
+          resp._token ||
+          user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, inner.expires_at, inner);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
+        if (!self._mounted) return;
         var m = String(err.message || "");
         var msg = "登录失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
-        else if (m.includes("401") || m.includes("密码")) msg = "用户名或密码错误";
+        else if (m.includes("401") || m.includes("密码"))
+          msg = "用户名或密码错误";
         else if (m.includes("429")) msg = "登录过于频繁";
         else if (m.includes("token")) msg = "服务端未返回凭证";
         else if (m && !m.startsWith("HTTP_")) msg = m;
@@ -230,9 +259,11 @@ Page({
       })
       .then(
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
         function () {
+          if (!self._mounted) return;
           self.setData({ loading: false });
         },
       );

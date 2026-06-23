@@ -18,6 +18,11 @@
 - KB v5 只读直连 provider 只能作为 `RAGService` 后面的 provider 实现，
   通过只读事务调用 `public.search_chunks_v2`；不得成为第二套 RAG 入口、
   不得写 Supabase/PG，也不得承担评分 authority。
+  其 embedding 必须复用统一 `EmbeddingClient` / provider runtime config /
+  usage-cost observation authority；其 Postgres 连接必须复用
+  `connect_for_fact("kb_v5_chunk_retrieval", readonly=True)` 与
+  `contracts/db_registry.yaml`，不得在 pipeline 内再次直读 `KBV5_DB_URL`、
+  私建 DashScope HTTP client 或私建 DB 连接 authority。
 - exact-question 与 authority metadata 必须以统一字段进入上层 agent
 - TutorBot 默认知识链只能由统一 runtime defaults 注入到 `tools/knowledge_bases`
 - 本地知识库重建只能通过 `POST /api/v1/knowledge/{kb_name}/reindex`
@@ -46,13 +51,14 @@
 17. LLM SDK 客户端生命周期：高频调用路径（`services/llm/executors.py` 的 `sdk_complete/sdk_stream`、agentic acting loop）必须复用 `get_pooled_openai_client()` 的进程级共享连接池，按 (api_key, base_url) 键控；每调用专属的头（如 `x-session-affinity`）必须走请求级 `extra_headers=`，不得为传 header 退回每调用新建 client（那会泄漏一个永不关闭的 httpx 池）。需要 client 级 header / 自定义 timeout / azure 形态时仍走 `make_openai_client()`，调用方自行管理生命周期。
 17. `needs_reindex` 表示当前 canonical 本地 index 不可信；清除该标记的唯一工程路径是从 `raw/` 源文档重新构建成功。不得只靠修改配置或进度状态把它改成 ready。
 18. `retrieval_plan` 是可回放的检索计划 trace，只能描述本轮 source group、intent、query expansion 和 authority order；不得成为第二套 RAG 入口、聊天路由或 TutorBot mode。
+18a. KB v5 provider 是只读检索 implementation，不是 provider/runtime config authority：查询 embedding 必须先在 async 主链路通过 `EmbeddingClient` 生成并记录 usage/cost，再把 1024 维向量交给只读 DB 检索线程；缺少 `DASHSCOPE_API_KEY`、embedding 维度不为 1024、或 DB fact 无法经 registry 解析时，必须以 typed `RAGSearchError(stage="pipeline.kbv5.search")` fail closed，不得 fallback 到 Supabase、空成功或未计费 raw HTTP。
 19. `compiled_learning_truth` 只能由 learner-state / synthesis 层作为只读 projection 传入 `RAGService.search(...)` / provider context；`SupabasePipeline` 只允许 materialize retrieval documents，不允许写 learner-state、更新长期画像或从数据库自行拉取 learner truth。
 20. compiled truth 默认只能进入 `ranking_trace.shadow_sources`，不得影响 `answer/content/sources` 或排序。只有显式 enable 且 intent 属于 `weak_point_review` / `next_training` 时，才允许进入最终候选；即便进入候选，也不能压过 exact-question、标准条文、题库标准答案。
 21. `ranking_trace.provenance_features` 默认只暴露来源、authority、证据等级、人工确认、支持事件数量等 compact metadata；不得记录完整 compiled projection、原始私密画像、手机号、钱包、会员账户等敏感字段。
 22. provenance boost 默认关闭；开启时也只能做 bounded adjustment，且 exact-question pinning 是独立 authority contract，不得依赖 provenance boost 才成立。
 23. TutorBot / Chat agent runtime 如果已经持有 caller-passed `compiled_learning_truth`，必须通过现有 `rag` tool top-level kwargs 传入 `RAGService`；`routing_metadata` 只能记录 `compiled_learning_truth_available` 这类 compact marker，不得承载完整 projection，不得在 wrapper 内合成、拉取或改写 learner truth。
 24. ChatCapability 只能归一化 mode / config 并委托 `AgenticChatPipeline`；fast mode 的工具裁剪也必须留在 agentic pipeline 内执行。不得在 capability wrapper 内另起一条直接 LLM / 直接 tool 终端路径，否则会绕开统一 RAG fallback、sources/result 组装和 trace authority。
-24a. `AgenticChatPipeline` 在解析 end-user enabled tools 时必须复用统一 end-user tool exposure policy，普通聊天 / RAG 链路不得暴露 `code_execution`、`exec` 或其兼容 alias。该过滤只收紧用户侧工具面，不新增 RAG provider、执行身份或第二套 route authority；内部受信评测/开发代码执行必须走独立控制面。
+24a. `AgenticChatPipeline` 在解析 end-user enabled tools 时必须复用统一 end-user tool exposure policy，普通聊天 / RAG 链路不得暴露 `code_execution`、`exec` 或其兼容 alias。Native tool-calling 与 ReAct fallback 的执行边界还必须按同一 enabled set 拒绝 provider 未广告工具调用；未广告调用不得进入 registry execution，也不得把拒绝补丁下沉到 RAG provider 或 prompt。该过滤只收紧用户侧工具面，不新增 RAG provider、执行身份或第二套 route authority；内部受信评测/开发代码执行必须走独立控制面。
 25. graph-aware retrieval 只能作为 compiled truth materialization 的只读上下文，允许表达 `question -> concept -> rubric_item -> error_code -> training_signal -> next_question` 这类 typed edges；它不是第二套 graph DB、第二套 RAG provider，也不得绕过 source-aware ranking。
 26. retrieval maintenance workflow 必须是离线 dry-run / job 形态，输出 retrieval miss、citation、stale weak point、rubric coverage、eval case 报告；不得写 Supabase learner-state，也不得进入在线 `/api/v1/ws` 低延迟链路。
 27. 当 `compiled_learning_truth` final-source enablement 被显式开启且 intent 属于弱点复习 / 下一题训练时，最终 sources 必须至少保留一条已 materialize 的 compiled truth 证据；该证据只能追加在 exact-question、标准、教材等 authority 后面，不得抢占更高权威来源。
@@ -62,6 +68,7 @@
 31. `deep_question` 在 `deep` / `smart` 批改讲评中可以先用统一 `rag` 入口检索题库/规范依据，再交给 `SubmissionGraderAgent` 组织教学反馈；RAG 只提供解释依据，不得覆盖 `active_object / questions_bank / construction_grading_result` 已确定的标准答案、分数或正确性。
 32. exact-question fast path 必须要求强题目锚点：完整题干/选项、当前 active question、明确题目讲评请求且命中高置信题库来源，或正在批改当前题。低信息考试查询（例如"2025真题"、"历年真题"、"防水真题"、"2025真题有哪些"）只能作为目录/检索/澄清输入，不得由 `prepare_exact_question_probe` 生成 exact candidate，也不得让 TutorBot exact-first path 输出标准答案。若上游 metadata 带 `exact_question_blocked_reason`，RAG / TutorBot fast path 必须 fail closed 跳过 exact authority，并把该 reason 保留到 trace。
 32a. exact-question 解析完整 MCQ 且用户当前题面选项顺序或单位表述不同于题库时，当前 query option surface 是本轮公开答案字母 authority。`HistoricalQuestionResolver` 可以在同一题干高置信命中后用稳定 value alias（例如 `25` ↔ `25年`）把题库标准答案 remap 到当前题面；不得继续展示题库旧字母，也不得让普通 RAG/LLM 重写 remap 结果。
+32b. `question_exact_text`（关键词/文本）命中必须通过确定性 stem 对应校验 `exact_question_stem_corresponds` 才能成为 authority：当用户 query 未携带可校验选项时，匹配题干必须被 query 充分覆盖（bigram 覆盖率 ≥ 0.30），否则该命中必须被丢弃、回落普通 RAG/开放讲解。仅共享单个高频域词（如"混凝土"）的命中不算精确命中——禁止据此输出"命中题库原题 / 标准答案"。`case_study` 命中走 `case_bundle` 覆盖判定，不受本校验约束；向量路径已有 `exact_question_min_similarity` 语义门，本校验只补文本/关键词路径的假阳性缺口。
 33. chat 执行壳（`AgenticChatPipeline`）的 construction-exam skill overlay 必须从 `question_lifecycle_scene` turn metadata 读取由 orchestrator（`resolve_question_lifecycle_scene_decision`）写入的单一 scene authority，再经 `build_question_lifecycle_skill_context` 组织 skill 指令；不得在壳内用 legacy `detect_construction_exam_scene` / `get_construction_exam_skill_instruction` 独立重判 scene。scene 是 turn 级一等事实，两套执行壳（chat / tutorbot）只读不重判，由 `scripts/check_harness_authority.py` 静态保证。
 34. `evidence_bundle.sources` must preserve compact public citation identity/location fields when available: `source_id`, `source_table`, `stable_id`, `source_span`, `content_hash`, `quote_hash`, `node_code`, `taxonomy_path`, source type, title, page, and standard/article locators. It must not expose private learner projections or hidden grading authority.
 35. 对建筑实务学生端的概念讲解 / 查漏补缺类 `concept_like` 查询，source-aware ranking 必须把 2026 教材类 `textbook` 作为主概念 grounding，避免大体量标准库挤掉教材证据；只有显式规范、标准编号、条文解释等 `standard_like` 查询才允许把标准 / 精确条文权重提升到教材之上。“附依据 / 写出处 / 教材口径 / 答题依据”这类引用格式要求不得单独触发 `standard_like`。该约束只改变同一 `RAGService` 内的排序权重，不得新增第二套 RAG 入口或第二套引用来源 authority。
@@ -120,6 +127,9 @@
 ## 必测项
 
 - `tests/services/rag/test_rag_pipelines.py`
+- `tests/services/rag/test_kbv5_pipeline.py`
+- `tests/services/db/test_connection_factory.py`
+- `tests/scripts/test_db_registry.py`
 - `tests/services/rag/test_supabase_strategy.py`
 - `tests/agents/chat/test_agentic_parallel_tools.py`
 - `tests/services/citations/test_normalizer.py`

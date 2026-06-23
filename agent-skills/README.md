@@ -14,9 +14,6 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   roadmap, PRD, architecture, and capability-status work under `docs/plan/`.
 - `deeptutor-source-grounded-change`: source-driven workflow for framework,
   library, API, or external-reference changes where stale assumptions are risky.
-- `deeptutor-storm-source-inspection`: STORM/Co-STORM-like multi-perspective
-  source inspection for knowledge compilation, OKF-like pilots, ADRs, and
-  research synthesis; outputs stay candidate/review-only.
 - `deeptutor-incremental-implementation`: thin vertical-slice implementation
   workflow for multi-file DeepTutor changes.
 - `deeptutor-test-verification-gate`: test-first and evidence-first workflow
@@ -37,6 +34,10 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   preflight and no agent-hosted long-lived Next dev server.
 - `deeptutor-authority-debugging`: root-cause workflow for authority, state,
   route, follow-up, refusal, and terminal-truth bugs.
+- `tutorbot-student-army-eval-loop`: proactively pressure-tests TutorBot on
+  test2 with a multi-persona student army (long conversations), then runs the
+  discover→root-cause→fix→verify→sediment loop. Continuously maintained: each
+  run appends new bug patterns and ironclad diagnosis/fix rules to the skill.
 - `wechat-tutorbot-real-entry-qa`: QA workflow for the real WeChat TutorBot
   path, with explicit evidence-surface boundaries.
 - `compiled-knowledge-shadow-eval`: QA and rollout workflow for Nexus-like
@@ -60,14 +61,10 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   rollback, and post-launch verification workflow.
 - `luban-rich-leaf-compiler`: RichLeafArtifact / 2026 source compilation /
   review queue / runtime supply candidate workflow.
-- `luban-learning-pack-factory`: batch production workflow for Luban 教研测一体
-  learning packs, high-frequency mother-topic cards, teaching animations,
-  variants, and mastery-discrimination checks.
 - `luban-okf-context`: AI-only OKF source-navigation workflow for data asset,
   topic coverage, exam/source-evidence, and candidate/runtime boundary questions.
-- `luban-diagram-microlesson`: 图解微课卡 authoring / 6+1 原型选择 /
-  video-first 动画学习卡 / 母题引擎内容权威 / 确定性 renderer /
-  preview contract gate / web-view 沙盒 / 零依赖 CDP 验收 workflow.
+- `luban-diagram-microlesson`: 图解微课卡 authoring / 确定性 renderer / 一屏一重点
+  翻页 deck UX / 单一权威边界 / web-view 沙盒 / 零依赖 CDP 验收 workflow.
 - `external-tool-absorption-boundary`: adopting/upgrading a plugin, marketplace skill,
   gstack, CLI, MCP, or shared hook — audit + neutralize opinionated defaults
   (auto-commit, CLAUDE.md injection, blocking hooks, telemetry) so they never
@@ -119,16 +116,16 @@ verification evidence for that stronger claim.
 The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 
 - Define and plan: `deeptutor-spec-plan-gate`
-- Ground in sources: `deeptutor-source-grounded-change`,
-  `deeptutor-storm-source-inspection`
+- Ground in sources: `deeptutor-source-grounded-change`
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
   `luban-okf-context`, `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
   `deeptutor-ci-runtime-fix-gate`,
+  `tutorbot-student-army-eval-loop`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
-  `luban-rich-leaf-compiler`, `luban-learning-pack-factory`
+  `luban-rich-leaf-compiler`
 - Debug and repair: `deeptutor-authority-debugging`,
   `anti-overfit-repair-review`
 - Review and simplify: `deeptutor-review-quality-gate`,

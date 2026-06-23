@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -52,6 +52,7 @@ from deeptutor.services.observability.identity_bridge import enrich_trace_metada
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
+    batch_answer_action_for_numbered_single,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
@@ -262,6 +263,59 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
         if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
             return str(event.content or "").strip()
     return ""
+
+
+def _is_mobile_surface_turn_config(
+    config: Mapping[str, Any] | None,
+    billing_context: Mapping[str, Any] | None = None,
+) -> bool:
+    if not isinstance(config, Mapping):
+        config = {}
+    config_billing_context = config.get("billing_context")
+    billing_source = ""
+    if isinstance(billing_context, Mapping):
+        billing_source = str(billing_context.get("source") or "").strip()
+    if not billing_source and isinstance(config_billing_context, Mapping):
+        billing_source = str(config_billing_context.get("source") or "").strip()
+    source = str(config.get("source") or "").strip()
+    product_surface = str(config.get("product_surface") or "").strip()
+    interaction_hints = config.get("interaction_hints")
+    hint_product_surface = (
+        str(interaction_hints.get("product_surface") or "").strip()
+        if isinstance(interaction_hints, Mapping)
+        else ""
+    )
+    mobile_surface_values = {"wx_miniprogram", "wechat_miniprogram"}
+    return bool(
+        mobile_surface_values
+        & {
+            billing_source.lower(),
+            source.lower(),
+            product_surface.lower(),
+            hint_product_surface.lower(),
+        }
+    )
+
+
+def _build_synthetic_result_from_final_content(
+    *,
+    content: str,
+    source: str,
+) -> StreamEvent | None:
+    response = normalize_markdown_for_tutorbot(coerce_user_visible_answer(content))
+    if not response.strip():
+        return None
+    return StreamEvent(
+        type=StreamEventType.RESULT,
+        source=source or "turn_runtime",
+        metadata={
+            "response": response,
+            "assistant_content": response,
+            "terminal_normalization": "mobile_result_before_done",
+            "synthesized_from": "final_content",
+        },
+        visibility=_PUBLIC_VISIBILITY,
+    )
 
 
 def _clip_text(value: str, limit: int = 4000) -> str:
@@ -1001,6 +1055,30 @@ def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None
     return ""
 
 
+def _message_references_stored_question_set_item(
+    message: str,
+    stored_question_context: dict[str, Any] | None,
+) -> bool:
+    """True if ``message`` references an item of the stored batch question_set by ordinal
+    ("第N题"), via the single ordinal→item authority
+    (``question_followup.requested_question_item_index``, same one the submission path uses).
+
+    Used by the turn-start suspend guard to NOT demote an active batch set into the
+    suspended stack when the user is actually referring to one of its items (task#14):
+    keeping the set in active_object lets the scene low-information gate anchor "第N题".
+    """
+
+    if not stored_question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            requested_question_item_index,
+        )
+    except Exception:
+        return False
+    return requested_question_item_index(message, stored_question_context) is not None
+
+
 def _prepend_suspended_object(
     suspended_object_stack: list[dict[str, Any]] | None,
     active_object: dict[str, Any] | None,
@@ -1370,6 +1448,14 @@ def _submission_action_for_user_message(
             "answers": submission.get("answers") or [],
             "reason": "用户消息包含当前题组的可解析答案，优先进入批改。",
         }
+    # object-continuity (E8 SEV-1): a numbered single answer to ONE item of a multi-item
+    # set must be graded WITHIN the full set so the other items survive — returning the
+    # narrowed single context here collapses the set at turn-start (before any capability
+    # runs), so a later "第1题" binds to the 1-item set and grades the wrong question.
+    # This is the single chokepoint above both tutorbot and deep_question grading paths.
+    batch_action = batch_answer_action_for_numbered_single(submission, normalized_context)
+    if batch_action is not None:
+        return normalized_context, batch_action
     return target_context, {
         "intent": "answer_questions",
         "confidence": 0.92,
@@ -2443,6 +2529,18 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
 # hang on end-of-stream), and any gap is recoverable by the client via SQLite replay
 # (subscribe/resume with after_seq). SQLite remains the source of truth, so no data is lost.
 _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
+
+# Cross-worker live-subscribe fallback. With UVICORN_WORKERS>1 a turn frequently
+# runs on a SIBLING worker, so it is absent from THIS worker's in-memory
+# self._executions even though it is alive. The shared SQLite store is the single
+# authoritative event log (every event is persisted via _persist_and_publish
+# before in-memory fan-out), so a subscriber on the wrong worker tails the store
+# instead of giving up. Poll interval trades freshness for store read load; the
+# orphan timeout must exceed the largest plausible gap between a live turn's
+# events (TTFT under load can be tens of seconds) so a slow sibling is never
+# mistaken for a crashed (genuinely orphaned) worker.
+_CROSS_WORKER_TAIL_POLL_SECONDS = 0.4
+_CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS = 150.0
 
 
 # ---- Global turn-concurrency gate (orderly queue + peak shaving) -------------------
@@ -4319,22 +4417,26 @@ class TurnRuntimeManager:
                 execution.subscribers.append(subscriber)
                 execution.first_subscriber_attached.set()
 
-        catchup = await self._safe_store_call(
-            None,
-            "get_turn_catchup",
-            self.store.get_turn_events,
-            turn_id,
-            last_seq,
-            default=[],
-        )
-        for item in catchup:
-            seq = int(item.get("seq") or 0)
-            if seq <= last_seq:
-                continue
-            last_seq = seq
-            if execution is None:
-                yield _project_result_response_for_legacy_clients(item)
-            else:
+        # Catch-up only bridges the in-memory race for a same-worker subscriber
+        # (events persisted between the backlog read and subscriber attach). When
+        # execution is None the turn is on a sibling worker and the cross-worker
+        # store-tail below is the single path — it re-reads from last_seq and also
+        # recognises the terminal event, so running catch-up here would yield the
+        # terminal event without terminating and spin until the orphan timeout.
+        if execution is not None:
+            catchup = await self._safe_store_call(
+                None,
+                "get_turn_catchup",
+                self.store.get_turn_events,
+                turn_id,
+                last_seq,
+                default=[],
+            )
+            for item in catchup:
+                seq = int(item.get("seq") or 0)
+                if seq <= last_seq:
+                    continue
+                last_seq = seq
                 _offer_to_subscriber(queue, _project_result_response_for_legacy_clients(item))
 
         turn = await self._safe_store_call(
@@ -4347,11 +4449,58 @@ class TurnRuntimeManager:
         if execution is None:
             if turn is None or turn.get("status") != "running":
                 return
-            await self._recover_orphaned_running_turns(
-                str(turn.get("session_id") or ""),
-                reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
-            )
-            return
+            # The turn is running but absent from THIS worker's in-memory
+            # executions. Under UVICORN_WORKERS>1 it is almost always alive on a
+            # SIBLING worker, so tail the shared store (the single event
+            # authority) to completion. The previous behaviour returned here with
+            # backlog only (no live events, no terminal `done` — the live
+            # cross-worker streaming death observed in eval) AND called orphan
+            # recovery, which marks the sibling's live turn "failed". Only a turn
+            # that emits no further events for the orphan timeout is treated as a
+            # genuine crash and handed to the original recovery path.
+            idle_seconds = 0.0
+            while True:
+                await asyncio.sleep(_CROSS_WORKER_TAIL_POLL_SECONDS)
+                tail = await self._safe_store_call(
+                    None,
+                    "get_turn_crossworker_tail",
+                    self.store.get_turn_events,
+                    turn_id,
+                    last_seq,
+                    default=[],
+                )
+                progressed = False
+                terminal = False
+                for item in tail:
+                    seq = int(item.get("seq") or 0)
+                    if seq <= last_seq:
+                        continue
+                    last_seq = seq
+                    progressed = True
+                    if str(item.get("type") or "") in ("done", "error"):
+                        terminal = True
+                    yield _project_result_response_for_legacy_clients(item)
+                if terminal:
+                    return
+                if progressed:
+                    idle_seconds = 0.0
+                    continue
+                idle_seconds += _CROSS_WORKER_TAIL_POLL_SECONDS
+                turn = await self._safe_store_call(
+                    None,
+                    "get_turn_crossworker_status",
+                    self.store.get_turn,
+                    turn_id,
+                    default=None,
+                )
+                if turn is None or turn.get("status") != "running":
+                    return
+                if idle_seconds >= _CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS:
+                    await self._recover_orphaned_running_turns(
+                        str(turn.get("session_id") or ""),
+                        reason=f"Recovered orphaned running turn during subscribe: {turn_id}",
+                    )
+                    return
         try:
             while True:
                 item = await queue.get()
@@ -4585,7 +4734,7 @@ class TurnRuntimeManager:
             # "system busy" event instead of firing another LLM call into an overload.
             turn_slot_acquired = await _acquire_turn_slot()
             if not turn_slot_acquired:
-                terminal_status = "rejected"
+                terminal_status = "failed"
                 # Same public phrasing as unified_ws._public_ws_failure_message —
                 # inlined because the runtime must not import from the transport
                 # layer, and the previous bare reference raised NameError here,
@@ -4607,6 +4756,15 @@ class TurnRuntimeManager:
                         source=capability_name,
                         metadata={"status": "rejected", "reason": "server_busy"},
                     ),
+                )
+                await self._safe_store_call(
+                    execution,
+                    "mark_turn_rejected_server_busy",
+                    self.store.update_turn_status,
+                    turn_id,
+                    "failed",
+                    "server_busy",
+                    default=False,
                 )
                 logger.warning(
                     "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",
@@ -4709,11 +4867,23 @@ class TurnRuntimeManager:
                 stored_followup_question_context = extract_question_context_from_active_object(
                     stored_active_object
                 )
+            # task#14 (2026-06-22): do NOT demote the active batch question_set when this
+            # turn explicitly references one of its items by ordinal ("刚才第3题的答案和考点
+            # 讲讲"). Otherwise the set is pushed to the suspended stack and the scene
+            # low-information gate (which reads active_object/question_followup_context, not
+            # the suspended stack) can no longer anchor "第N题" → fail-closed. Single
+            # authority for ordinal→item is question_followup.requested_question_item_index
+            # (same as submission path); if it resolves against the stored set, keep the set
+            # active so it flows into scene metadata.
+            stored_set_ordinal_referenced = _message_references_stored_question_set_item(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
+                and not stored_set_ordinal_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,
@@ -5548,6 +5718,11 @@ class TurnRuntimeManager:
                 capability_stream_started_at = time.perf_counter()
                 capability_stream_stage_timings = _TurnLatencyStages()
                 capability_stream_event_counts: dict[str, int] = {}
+                public_result_response_seen = False
+                synthesize_mobile_result_before_done = _is_mobile_surface_turn_config(
+                    request_config,
+                    billing_context,
+                )
 
                 def _record_capability_stream_since_once(stage: str) -> None:
                     if capability_stream_stage_timings.has_stage(stage):
@@ -5605,6 +5780,34 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                        if (
+                            _event_visibility(event) == _PUBLIC_VISIBILITY
+                            and _result_response_text(event.metadata or {})
+                        ):
+                            public_result_response_seen = True
+                    if (
+                        event.type == StreamEventType.DONE
+                        and synthesize_mobile_result_before_done
+                        and not public_result_response_seen
+                        and authoritative_assistant_content
+                    ):
+                        synthetic_result = _build_synthetic_result_from_final_content(
+                            content=authoritative_assistant_content,
+                            source=str(event.source or "").strip() or capability_name or "turn_runtime",
+                        )
+                        if synthetic_result is not None:
+                            synthetic_persist_started_at = time.perf_counter()
+                            synthetic_payload_event = await self._persist_and_publish(
+                                execution,
+                                synthetic_result,
+                            )
+                            capability_stream_stage_timings.add_duration(
+                                "event_persist_total",
+                                (time.perf_counter() - synthetic_persist_started_at) * 1000.0,
+                            )
+                            if _event_visibility(synthetic_payload_event) == _PUBLIC_VISIBILITY:
+                                assistant_events.append(synthetic_payload_event)
+                            public_result_response_seen = True
                     event_persist_started_at = time.perf_counter()
                     payload_event = await self._persist_and_publish(execution, event)
                     capability_stream_stage_timings.add_duration(
@@ -5981,6 +6184,80 @@ class TurnRuntimeManager:
                         _offer_to_subscriber(subscriber.queue, None)
                     self._executions.pop(turn_id, None)
 
+    async def _merge_grading_result_into_active_set(
+        self,
+        execution: Any,
+        result_active_object: dict[str, Any],
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Keep a batch question_set alive across a single-item grading turn.
+
+        A grading turn judges ONE item; the capability emits a single-question
+        active_object. If the prior canonical active_object is a multi-item set and
+        this result is a single question that BELONGS to that set, merge the judged
+        item back into the set (by question_id) and keep the SET as active_object —
+        do not let turn-END collapse the set to the lone judged item. A genuine
+        switch (the result question is not part of the prior set, e.g. a freshly
+        generated question) passes through unchanged so real transitions still work.
+
+        Single-authority: the only active_object identity writer is turn-START; this
+        keeps turn-END from acting as a second, set-destroying writer.
+        """
+        result_ao = normalize_active_object(result_active_object)
+        if result_ao is None:
+            return result_active_object
+        result_ctx = extract_question_context_from_active_object(result_ao)
+        if result_ctx is None:
+            return result_active_object
+        result_items = result_ctx.get("items") or []
+        # Only single-item results can collapse a set; a result that is itself a set
+        # is either a fresh generated set (switch) or already whole — leave it.
+        if len(result_items) > 1:
+            return result_active_object
+        result_single = result_items[0] if result_items else result_ctx
+        result_qid = str(result_single.get("question_id") or "").strip()
+
+        prior_ao = await self._safe_store_call(
+            execution,
+            "get_active_object_for_grading_merge",
+            self.store.get_active_object,
+            execution.session_id,
+            default=None,
+        )
+        prior_ctx = extract_question_context_from_active_object(prior_ao)
+        prior_items = list((prior_ctx or {}).get("items") or [])
+        if len(prior_items) <= 1:
+            # Prior was not a batch set → nothing to preserve, behave as before.
+            return result_active_object
+
+        prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
+        decision = metadata.get("turn_semantic_decision")
+        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
+
+        if result_qid and result_qid in prior_qids:
+            # Grading-of-set-item: merge the judged version back into the set.
+            merged_items = [
+                dict(result_single) if qid == result_qid else it
+                for it, qid in zip(prior_items, prior_qids)
+            ]
+        elif next_action == "route_to_grading":
+            # Grading turn but the result id does not line up with the set (id not
+            # preserved through grading). Never collapse on a grading turn: keep the
+            # prior set intact (the judging is already surfaced in the response).
+            merged_items = prior_items
+        else:
+            # Genuine switch (new object not in the prior set) → let it replace.
+            return result_active_object
+
+        merged_ctx = dict(prior_ctx)
+        merged_ctx["items"] = merged_items
+        merged_ao = build_active_object_from_question_context(
+            merged_ctx,
+            previous_active_object=prior_ao,
+            source_turn_id=str(metadata.get("turn_id") or "").strip() or None,
+        )
+        return merged_ao or result_active_object
+
     async def _persist_and_publish(
         self,
         execution: _TurnExecution,
@@ -6016,6 +6293,18 @@ class TurnRuntimeManager:
                 metadata["execution_path"] = execution_path
             active_object = _result_active_object(metadata)
             suspended_object_stack = _result_suspended_object_stack(metadata)
+            # object-continuity single-authority (E8/E1, 2026-06-22): turn-END is NOT a
+            # second active_object writer. A grading turn judges ONE item of a batch set;
+            # capabilities (tutorbot kb_first / deep_question) emit a single-question
+            # active_object. Persisting it here UNCONDITIONALLY collapses the turn-start
+            # full set → a later "第1题"/"回到最开始" then binds to the lone surviving
+            # (most-recent) question (SEV-1 mis-grade / wrong recall). Merge the judged
+            # item back into the prior set instead of overwriting identity; only a genuine
+            # switch (new object not in the prior set) replaces it.
+            if active_object is not None:
+                active_object = await self._merge_grading_result_into_active_set(
+                    execution, active_object, metadata
+                )
             if active_object is not None:
                 metadata["active_object"] = dict(active_object)
             metadata["suspended_object_stack"] = list(suspended_object_stack)

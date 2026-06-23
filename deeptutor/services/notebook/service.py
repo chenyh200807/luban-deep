@@ -309,14 +309,13 @@ class NotebookManager:
                         "value": [str(notebook_id).strip()],
                     }
                 ]
-                if normalized_summary or normalized_title:
-                    operations.append(
-                        {
-                            "op": "set",
-                            "field": "working_memory_projection",
-                            "value": normalized_summary or normalized_title,
-                        }
-                    )
+                # working_memory_projection 不再写入判分输出 / 卡片摘要(#23 第二层,
+                # 2026-06-23,DeepSeek-V4-Pro 异源核坐实):该字段经 turn_runtime 当
+                # EVIDENCE 注入下一轮 judge;若写入 judge 判分输出(可能含题面未给出的
+                # 脑补背景数值,如"中标价 1.7 亿"),会跨会话自我强化幻觉固化——下一轮
+                # judge 把自己上一轮的幻觉当"参考证据"抄回。断这条写入链 = 循环自灭
+                # (单点根治;优于注入侧把它降级为 LEARNER 块:LLM 仍会沿用记忆里的数字)。
+                # 卡片 summary 仍存于卡片本身供展示,只是不再污染 learner_state overlay。
                 get_bot_learner_overlay_service().patch_overlay(
                     source_bot_id,
                     normalized_user_id,
