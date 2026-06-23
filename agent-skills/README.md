@@ -34,6 +34,10 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   preflight and no agent-hosted long-lived Next dev server.
 - `deeptutor-authority-debugging`: root-cause workflow for authority, state,
   route, follow-up, refusal, and terminal-truth bugs.
+- `tutorbot-student-army-eval-loop`: proactively pressure-tests TutorBot on
+  test2 with a multi-persona student army (long conversations), then runs the
+  discover→root-cause→fix→verify→sediment loop. Continuously maintained: each
+  run appends new bug patterns and ironclad diagnosis/fix rules to the skill.
 - `wechat-tutorbot-real-entry-qa`: QA workflow for the real WeChat TutorBot
   path, with explicit evidence-surface boundaries.
 - `compiled-knowledge-shadow-eval`: QA and rollout workflow for Nexus-like
@@ -119,6 +123,7 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
   `luban-okf-context`, `luban-diagram-microlesson`
 - Verify: `deeptutor-test-verification-gate`,
   `deeptutor-ci-runtime-fix-gate`,
+  `tutorbot-student-army-eval-loop`,
   `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
   `luban-rich-leaf-compiler`
 - Debug and repair: `deeptutor-authority-debugging`,
