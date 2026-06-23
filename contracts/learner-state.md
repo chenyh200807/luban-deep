@@ -195,6 +195,12 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   create/resume/report/explanation/writeback-retry paths must fail closed with
   `assessment_sessions_supabase_not_configured`; they must not silently use JSON or
   in-memory sessions as production authority.
+- 会员身份合并链解析必须对成环安全。`MemberConsoleService._ensure_member` 会沿
+  `merged_into` 指针回溯到 canonical 会员（`user_id == external_auth_user_id` 的那条），
+  但多跳环（如 `A→B→A`）属于数据损坏，绝不能让解析无限递归 → `RecursionError` →
+  `/api/v1/auth/login` 500 →（小程序显示"服务暂时不可用"登不进）。解析器必须跟踪已访问
+  `user_id`，重访即停并把当前会员当 canonical 返回；数据层的环要单独修复（清 canonical
+  的 `merged_into`），但代码层对任何成环输入都必须终止，登录永不因合并环而崩。
 
 ## 第二阶段预留语义：Bot-Learner Overlay
 
