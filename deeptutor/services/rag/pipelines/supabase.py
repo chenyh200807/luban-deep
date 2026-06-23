@@ -1119,6 +1119,7 @@ class SupabasePipeline:
         else:
             reranked = list(enriched)
         reranked = self._filter_partial_case_results(reranked, exact_question=exact_question)
+        reranked = self._drop_cross_type_case_exam_evidence(reranked, query_shape=query_shape)
         final_results = dedupe_ranked_results(reranked, max_items=config.top_k)
         final_results = self._ensure_final_compiled_truth_presence(
             final_results,
@@ -2281,6 +2282,47 @@ class SupabasePipeline:
                 filtered.append(item)
                 continue
         return filtered or results
+
+    @staticmethod
+    def _drop_cross_type_case_exam_evidence(
+        results: list[dict[str, Any]],
+        *,
+        query_shape: str,
+    ) -> list[dict[str, Any]]:
+        """题型一致性的召回侧延伸(#23 第二层, task#26, 2026-06-23)。
+
+        第一层题型门(``_augment_case_exact_question_with_query``)撤销了"确定性拼
+        别题标准作答"的 exact 命中,但那道误召回的题库**案例题**作为普通 RAG source
+        仍在 evidence 里——其解析含**别题**的具体背景数值(如"中标价1.7亿"),判分
+        LLM 会锚定误用于本题(纯 prompt grounding 子句已 live 证伪 5/6,压不住 evidence
+        邻近数字锚定)。
+
+        当学生 query 不是案例题(``query_shape != "case_like"``)时,从 evidence 剔除
+        题库里的案例题(``questions_bank`` 且 question_type 含 case/案例)——它们是别的
+        题,对一道 MCQ/判断题判分无用且污染。规则/标准由 standard/textbook/kb_chunks
+        提供,**不受影响**。学生确实粘案例题(case_like)时保留(合法相关)。
+
+        fail-safe(DeepSeek-V4-Pro 异源审修正):剔除后即便为空也**返回剔除后的安全集**,
+        绝不退回原结果——若召回全是案例题(kept 为空)而退回原,别题背景数值(1.7亿)会
+        重新进入 evidence=过滤失效。剔空时 judge 退化为纯题面判分(不会编造),这比退回
+        污染源安全。仅当本轮没有剔除任何项(dropped==0)时原样返回。
+        """
+        if query_shape == "case_like" or not results:
+            return results
+        kept: list[dict[str, Any]] = []
+        dropped = 0
+        for item in results:
+            source_table = str(
+                item.get("_source_table") or item.get("source_table") or ""
+            ).strip().lower()
+            question_type = str(item.get("question_type") or "").strip().lower()
+            if source_table == "questions_bank" and (
+                "case" in question_type or "案例" in question_type
+            ):
+                dropped += 1
+                continue
+            kept.append(item)
+        return kept if dropped else results
 
     def _extract_exact_question_payload(
         self,
