@@ -43,6 +43,7 @@ from deeptutor.services.question_followup import (
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -52,69 +53,15 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
-from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
-from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+from deeptutor.tutorbot.teaching_modes import (
+    looks_like_practice_generation_request,
+    practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
+    practice_generation_topic_domain_status,
+)
 
-_GENERATION_TOPIC_ANCHOR_MARKERS = (
-    "刚才",
-    "上面",
-    "这些",
-    "这几个",
-    "这个概念",
-    "几个概念",
-    "类似",
-    "相关",
-    "同类",
-    "继续",
-    "再来",
-    "不要超纲",
-    "围绕这个",
-    "围绕刚才",
-)
-_GENERATION_REQUEST_STRIP_PATTERNS = (
-    r"好[,，]?",
-    r"那你现在",
-    r"现在",
-    r"请",
-    r"麻烦你",
-    r"麻烦",
-    r"给我",
-    r"帮我",
-    r"我想",
-    r"想",
-    r"继续出",
-    r"继续来一道",
-    r"继续",
-    r"再来一道",
-    r"再来一题",
-    r"再来",
-    r"再出一道",
-    r"再出",
-    r"来一道",
-    r"来一题",
-    r"来",
-    r"出题",
-    r"出",
-    r"考我",
-    r"刷题",
-    r"测我",
-    r"[0-9一二两三四五六七八九十几]+(?:道|题|个题目|个小题)?",
-    r"单选题",
-    r"多选题",
-    r"选择题",
-    r"判断题",
-    r"案例题",
-    r"简答题",
-    r"题目",
-    r"很简单的",
-    r"简单的",
-    r"很简单",
-    r"简单",
-    r"容易的",
-    r"容易",
-)
 _POST_GRADING_GENERATION_COUNT_RE = re.compile(
     r"(?:再|继续|接着).{0,8}?([0-9]{1,2}|[一二两三四五六七八九十几])\s*(?:道|题|个题目|个小题)?"
 )
@@ -399,18 +346,7 @@ def _suspended_stack_generation_anchor(
 
 
 def _topic_needs_authoritative_anchor(topic: str) -> bool:
-    normalized = _compact_text(topic).lower()
-    if not normalized:
-        return False
-    if any(marker in normalized for marker in _GENERATION_TOPIC_ANCHOR_MARKERS):
-        return True
-    if not looks_like_practice_generation_request(normalized):
-        return False
-    residue = normalized
-    for pattern in _GENERATION_REQUEST_STRIP_PATTERNS:
-        residue = re.sub(pattern, " ", residue, flags=re.IGNORECASE)
-    residue = re.sub(r"[，。！？、,.!?\-:：\s]+", "", residue)
-    return not residue
+    return practice_generation_request_needs_context_anchor(_compact_text(topic))
 
 
 def _prefers_current_question_anchor(topic: str) -> bool:
@@ -456,11 +392,36 @@ def _resolve_generation_topic(
         else broader_anchor or question_anchor
     )
     if not anchor:
-        return topic
+        return ""
     return (
         f"{topic}\n\n"
         "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
         f"{anchor}"
+    )
+
+
+_NON_SPECIALIST_PRACTICE_NOTICE = (
+    "> ⚠️ 以下题目由通用 AI 能力生成，**不是鲁班针对该考点专门训练 / 校对的专项内容**，"
+    "仅供参考练习；建筑工程实务专项考点的题目质量更有保障。\n\n"
+)
+
+
+def _render_missing_generation_topic_anchor_feedback() -> str:
+    return (
+        "我还没有拿到本轮出题的具体考点，不能只按“出三道题”这类动作词生成题目。"
+        "请指定要围绕哪个知识点出题，或先回到刚才的学习主题后再让我出题。"
+    )
+
+
+def _render_invalid_generation_topic_feedback(status: str) -> str:
+    if status == "out_of_scope_topic":
+        return (
+            "我是建筑实务备考导师，不能围绕非建筑实务主题生成可提交练习题。"
+            "请指定建筑实务考点，例如变形缝、网络计划、屋面防水、项目质量计划管理。"
+        )
+    return (
+        "我还没有确认本轮出题主题属于建筑实务考点，不能直接生成可提交练习题。"
+        "请把主题说成具体建筑实务考点，例如变形缝、网络计划、屋面防水、项目质量计划管理。"
     )
 
 
@@ -2481,6 +2442,14 @@ def _summarize_pgo_query_result(result: Any) -> dict[str, Any]:
     scoring_points = result.get("scoring_points")
     if isinstance(scoring_points, list):
         summary["scoring_point_count"] = len(scoring_points)
+        # Consume the C3 `scorable` signal: only score-bearing points may enter
+        # the grade channel, so the gradable denominator excludes supporting /
+        # unsourced points instead of counting every projected point.
+        scorable_count = sum(
+            1 for point in scoring_points if isinstance(point, dict) and point.get("scorable") is True
+        )
+        summary["scorable_point_count"] = scorable_count
+        summary["has_unscorable_points"] = scorable_count < len(scoring_points)
     summary.update(
         {
             "runtime_consumed": True,
@@ -3689,11 +3658,17 @@ class DeepQuestionCapability(BaseCapability):
         ):
             full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
             if full_case_context is not None:
-                case_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="case_grading full-submission fallback",
                     active_object=active_object,
-                    question_context=full_case_context,
-                    user_message=raw_user_message,
                 )
                 context.metadata["question_followup_context"] = dict(full_case_context)
                 context.metadata["turn_semantic_decision"] = case_turn_decision
@@ -3732,11 +3707,17 @@ class DeepQuestionCapability(BaseCapability):
             # case full-submission entry and grade open-world on the LEARNER's surface.
             full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
             if full_mcq_context is not None:
-                mcq_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="mcq_grading full-submission fallback",
                     active_object=active_object,
-                    question_context=full_mcq_context,
-                    user_message=raw_user_message,
                 )
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
@@ -4039,6 +4020,93 @@ class DeepQuestionCapability(BaseCapability):
                 "code_execution": "code_execution" in enabled_tools,
             }
 
+        if mode != "mimic" and not topic:
+            content = _render_missing_generation_topic_anchor_feedback()
+            if content and not answer_citations_enabled():
+                await stream.content(content, source=self.name, stage="generation")
+            result_payload = {
+                "response": content,
+                "mode": mode,
+                "question_followup_context": {},
+                "active_object": {},
+                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
+                    next_action="route_to_generation",
+                    allowed_patch="set_active_object",
+                    confidence=1.0,
+                    reason="generation blocked: missing_topic_anchor",
+                    active_object=active_object,
+                ),
+                "practice_generation_blocked_reason": "missing_topic_anchor",
+                "metadata": {
+                    "question_lifecycle_scene": "practice_generation",
+                    "practice_generation_blocked_reason": "missing_topic_anchor",
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                result_payload,
+                stage="generation",
+                emit_content_when_enabled=False,
+            )
+            return
+
+        practice_topic_non_specialist = False
+        should_enforce_practice_topic_domain = (
+            mode != "mimic"
+            and not question_review_mode
+            and (
+                lifecycle_scene == "practice_generation"
+                or force_generate_questions
+                or looks_like_practice_generation_request(raw_topic)
+            )
+        )
+        if should_enforce_practice_topic_domain:
+            topic_domain_status = practice_generation_topic_domain_status(topic)
+            practice_topic_non_specialist = topic_domain_status != "construction_topic"
+            if isinstance(context.metadata, dict):
+                trace_meta = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(trace_meta, dict):
+                    trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
+                if block_decision == "needs_anchor":
+                    blocked_reason = "needs_context_anchor"
+                    content = _render_missing_generation_topic_anchor_feedback()
+                else:
+                    blocked_reason = "out_of_scope_topic"
+                    content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
+                if content and not answer_citations_enabled():
+                    await stream.content(content, source=self.name, stage="generation")
+                result_payload = {
+                    "response": content,
+                    "mode": mode,
+                    "question_followup_context": {},
+                    "active_object": {},
+                    "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
+                        next_action="route_to_generation",
+                        allowed_patch="set_active_object",
+                        confidence=1.0,
+                        reason="generation blocked: invalid topic",
+                        active_object=active_object,
+                    ),
+                    "practice_generation_blocked_reason": blocked_reason,
+                    "practice_generation_topic_domain_status": topic_domain_status,
+                    "metadata": {
+                        "question_lifecycle_scene": "practice_generation",
+                        "practice_generation_blocked_reason": blocked_reason,
+                        "practice_generation_topic_domain_status": topic_domain_status,
+                    },
+                }
+                await self._emit_result_with_citations(
+                    stream,
+                    result_payload,
+                    stage="generation",
+                    emit_content_when_enabled=False,
+                )
+                return
+
         coordinator = AgentCoordinator(
             api_key=llm_config.api_key,
             base_url=llm_config.base_url,
@@ -4167,11 +4235,13 @@ class DeepQuestionCapability(BaseCapability):
                         "mode": mode,
                         "question_followup_context": {},
                         "active_object": {},
-                        "turn_semantic_decision": self._default_turn_semantic_decision(
+                        "turn_semantic_decision": build_turn_semantic_decision(
+                            relation_to_active_object="ask_about_active_object",
                             next_action="route_to_followup_explainer",
+                            allowed_patch="no_state_change",
+                            confidence=1.0,
+                            reason="question_review: missing question fallback",
                             active_object=active_object,
-                            question_context=None,
-                            user_message=context.user_message,
                         ),
                         "metadata": {
                             "question_lifecycle_scene": "question_review",
@@ -4271,11 +4341,15 @@ class DeepQuestionCapability(BaseCapability):
                 learning_training_intent,
             )
             result_payload["learning_training_intent"] = dict(learning_training_intent)
-        result_payload["turn_semantic_decision"] = turn_semantic_decision or self._default_turn_semantic_decision(
+        result_payload["turn_semantic_decision"] = turn_semantic_decision or build_turn_semantic_decision(
+            relation_to_active_object="ask_about_active_object" if question_review_mode else (
+                "continue_same_learning_flow" if (result_payload.get("active_object") or active_object) else "switch_to_new_object"
+            ),
             next_action="route_to_followup_explainer" if question_review_mode else "route_to_generation",
-            active_object=result_payload["active_object"] or active_object,
-            question_context=result_payload["question_followup_context"],
-            user_message=context.user_message,
+            allowed_patch="no_state_change" if question_review_mode else "set_active_object",
+            confidence=1.0,
+            reason="question_review followup" if question_review_mode else "practice generation result",
+            active_object=result_payload.get("active_object") or active_object,
         )
         transitioned_active_object, transitioned_stack = apply_active_object_transition(
             previous_active_object=active_object,
@@ -4297,6 +4371,10 @@ class DeepQuestionCapability(BaseCapability):
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
+        if practice_topic_non_specialist and str(result_payload.get("response") or "").strip():
+            result_payload["response"] = _NON_SPECIALIST_PRACTICE_NOTICE + str(
+                result_payload["response"]
+            )
         await self._emit_result_with_citations(
             stream,
             result_payload,
@@ -4611,12 +4689,17 @@ class DeepQuestionCapability(BaseCapability):
                 or {},
                 "active_object": result_active_object or {},
                 "suspended_object_stack": suspended_object_stack,
-                "turn_semantic_decision": turn_semantic_decision
-                or self._default_turn_semantic_decision(
+                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((graded_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="emit_grading_result fallback",
                     active_object=result_active_object or active_object,
-                    question_context=graded_context,
-                    user_message=raw_user_message,
                 ),
                 **_mcq_trace_fields(
                     graded_context,
@@ -4878,11 +4961,13 @@ class DeepQuestionCapability(BaseCapability):
                 source_turn_id=turn_id,
                 previous_active_object=active_object,
             )
-            default_decision = self._default_turn_semantic_decision(
+            default_decision = build_turn_semantic_decision(
+                relation_to_active_object="ask_about_active_object",
                 next_action="route_to_followup_explainer",
+                allowed_patch="no_state_change",
+                confidence=1.0,
+                reason="emit_followup_result default",
                 active_object=result_active_object or active_object,
-                question_context=followup_question_context,
-                user_message=raw_user_message,
             )
             followup_payload: dict[str, Any] = {
                 "response": answer or "",
@@ -4991,41 +5076,6 @@ class DeepQuestionCapability(BaseCapability):
             )
 
     @staticmethod
-    def _default_turn_semantic_decision(
-        *,
-        next_action: str,
-        active_object: dict[str, Any] | None,
-        question_context: dict[str, Any] | None,
-        user_message: str,
-    ) -> dict[str, Any]:
-        items = (question_context or {}).get("items") or []
-        if next_action == "route_to_grading":
-            relation = (
-                "revise_answer_on_active_object"
-                if any(marker in str(user_message or "") for marker in ("改", "更正", "修正", "订正"))
-                else "answer_active_object"
-            )
-            allowed_patch = "append_answer_slots" if len(items) > 1 else "update_answer_slot"
-            reason = "deep_question 按当前 active object 完成答题/批改。"
-        elif next_action == "route_to_followup_explainer":
-            relation = "ask_about_active_object"
-            allowed_patch = "no_state_change"
-            reason = "deep_question 按当前 active object 完成题目追问解释。"
-        else:
-            relation = (
-                "continue_same_learning_flow" if active_object is not None else "switch_to_new_object"
-            )
-            allowed_patch = "set_active_object"
-            reason = "deep_question 生成了新的题目对象并更新 active object。"
-        return build_turn_semantic_decision(
-            relation_to_active_object=relation,
-            next_action=next_action,
-            allowed_patch=allowed_patch,
-            confidence=1.0,
-            reason=reason,
-            active_object=active_object,
-        )
-
     @staticmethod
     def _prefer_followup_without_semantic_decision(
         *,
@@ -5324,6 +5374,25 @@ class DeepQuestionCapability(BaseCapability):
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
+            counters = (
+                (summary.get("trace") or {}).get("lightweight_counters")
+                if isinstance(summary.get("trace"), dict)
+                else {}
+            )
+            if (
+                isinstance(counters, dict)
+                and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
+            ):
+                return _render_missing_generation_topic_anchor_feedback()
+            trace = summary.get("trace") if isinstance(summary.get("trace"), dict) else {}
+            # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
+            # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
+            if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
+                isinstance(counters, dict)
+                and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
+            ):
+                status = trace.get("topic_domain_status") if isinstance(trace, dict) else ""
+                return _render_invalid_generation_topic_feedback(str(status or "out_of_scope_topic"))
             return ""
 
         lines: list[str] = []

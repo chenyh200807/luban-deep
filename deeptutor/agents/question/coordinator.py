@@ -30,6 +30,24 @@ from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
 from deeptutor.tools.rag_tool import rag_search
+from deeptutor.tutorbot.teaching_modes import (
+    practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
+    practice_generation_topic_domain_status,
+)
+
+_CONSTRUCTION_EXAM_KB_ALIASES = {
+    "construction-exam",
+    "construction_exam",
+    "construction-exam-coach",
+    "construction-exam-tutor",
+    "construction_exam_tutor",
+}
+
+
+def _uses_construction_exam_scope(kb_name: str | None) -> bool:
+    normalized = str(kb_name or "").strip().lower()
+    return normalized in _CONSTRUCTION_EXAM_KB_ALIASES
 
 
 def _qa_pair_template_dict(qa_pair: QAPair, templates: list[QuestionTemplate]) -> dict[str, Any]:
@@ -175,12 +193,80 @@ class AgentCoordinator:
             "generated_explanation": False,
         }
         batch_number = 0
+        if _uses_construction_exam_scope(self.kb_name):
+            topic_domain_status = practice_generation_topic_domain_status(user_topic)
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
+                blocked_reason = (
+                    "blocked_out_of_scope_topic"
+                    if block_decision == "block_out_of_scope"
+                    else "blocked_unresolved_anchor"
+                )
+                if lightweight_generation:
+                    lightweight_trace_counters["lightweight_batch_fallback"] = blocked_reason
+                batch_trace.append(
+                    {
+                        "mode": (
+                            "lightweight_topic_generation"
+                            if lightweight_generation
+                            else "topic_generation"
+                        ),
+                        "requested": requested,
+                        "generated": 0,
+                        "knowledge_context": "",
+                        "retrieval": {"used_rag": False},
+                        "bank_short_circuit": False,
+                        "anchor_resolution_status": blocked_reason,
+                        "topic_domain_status": topic_domain_status,
+                    }
+                )
+                return self._build_summary(
+                    source="topic",
+                    requested=requested,
+                    templates=[],
+                    qa_pairs=[],
+                    trace={
+                        "batches": batch_trace,
+                        "lightweight_generation": lightweight_generation,
+                        "lightweight_counters": dict(lightweight_trace_counters)
+                        if lightweight_generation
+                        else None,
+                        "topic_domain_status": topic_domain_status,
+                    },
+                )
         if lightweight_generation:
             anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
                 user_topic=user_topic,
             )
             # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
             lightweight_trace_counters["retriever_calls"] = 1
+            if self._should_block_unresolved_lightweight_anchor(
+                user_topic=user_topic,
+                anchor_payload=anchor_payload,
+            ):
+                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
+                batch_trace.append(
+                    {
+                        "mode": "lightweight_topic_generation",
+                        "requested": requested,
+                        "generated": 0,
+                        "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
+                        "retrieval": retrieval_trace,
+                        "bank_short_circuit": False,
+                        "anchor_resolution_status": "blocked_unresolved_anchor",
+                    }
+                )
+                return self._build_summary(
+                    source="topic",
+                    requested=requested,
+                    templates=[],
+                    qa_pairs=[],
+                    trace={
+                        "batches": batch_trace,
+                        "lightweight_generation": lightweight_generation,
+                        "lightweight_counters": dict(lightweight_trace_counters),
+                    },
+                )
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
@@ -346,6 +432,28 @@ class AgentCoordinator:
                 history_context=history_context,
                 require_explanation=require_explanation,
                 lightweight_generation=lightweight_generation,
+            )
+        # 出口科目门（owner=只建筑）：生成题全部跑偏到非建筑（汉字/外国常识/纯他科）时
+        # 诚实拒答 subject_unavailable，禁出无关/跨科题。复用既有 blocked_out_of_scope_topic
+        # 消费路径（deep_question 渲染拒答），不另造拒答机制。
+        # 仅对 construction exam kb 生效，与入口科目门 _uses_construction_exam_scope 保持对称。
+        if _uses_construction_exam_scope(self.kb_name) and not self._generated_questions_in_construction_scope(templates[:requested], qa_pairs):
+            if lightweight_generation:
+                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_out_of_scope_topic"
+            return self._build_summary(
+                source="topic",
+                requested=requested,
+                templates=[],
+                qa_pairs=[],
+                trace={
+                    "batches": batch_trace,
+                    "lightweight_generation": lightweight_generation,
+                    "lightweight_counters": dict(lightweight_trace_counters)
+                    if lightweight_generation
+                    else None,
+                    "subject_scope_blocked": "subject_unavailable",
+                    "topic_domain_status": "out_of_scope_topic",
+                },
             )
         return self._build_summary(
             source="topic",
@@ -871,11 +979,7 @@ class AgentCoordinator:
         *,
         user_topic: str,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        anchor_label = self._derive_lightweight_anchor_label(user_topic=user_topic)
-        fallback = {
-            "knowledge_context": f"当前学习锚点：{anchor_label}",
-            "concentration": anchor_label,
-        }
+        fallback = self._base_lightweight_anchor_payload(user_topic=user_topic)
         trace: dict[str, Any] = {"used_rag": False}
         if not self.enable_idea_rag or not self.kb_name:
             return fallback, trace
@@ -912,16 +1016,70 @@ class AgentCoordinator:
         return anchor, trace
 
     @staticmethod
+    def _base_lightweight_anchor_payload(*, user_topic: str) -> dict[str, Any]:
+        embedded_anchor = AgentCoordinator._extract_embedded_generation_anchor(user_topic)
+        if embedded_anchor:
+            return {
+                "knowledge_context": embedded_anchor,
+                "concentration": AgentCoordinator._derive_lightweight_anchor_label(
+                    user_topic=embedded_anchor
+                ),
+                "anchor_source": "resolved_topic_anchor",
+            }
+        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        return {
+            "knowledge_context": f"当前学习锚点：{anchor_label}",
+            "concentration": anchor_label,
+        }
+
+    @staticmethod
+    def _extract_embedded_generation_anchor(user_topic: str) -> str:
+        text = str(user_topic or "").strip()
+        marker = "请严格围绕以下当前学习锚点出题"
+        marker_index = text.find(marker)
+        if marker_index < 0:
+            return ""
+        tail = text[marker_index + len(marker) :]
+        if "：" in tail:
+            tail = tail.split("：", 1)[1]
+        elif ":" in tail:
+            tail = tail.split(":", 1)[1]
+        return re.sub(r"\s+", " ", tail).strip()[:500]
+
+    @staticmethod
+    def _lightweight_anchor_has_grounding(anchor_payload: dict[str, Any] | None) -> bool:
+        payload = anchor_payload if isinstance(anchor_payload, dict) else {}
+        if str(payload.get("anchor_source") or "").strip():
+            return True
+        if str(payload.get("reference_question") or "").strip():
+            return True
+        if str(payload.get("source_group") or "").strip() or str(payload.get("source_id") or "").strip():
+            return True
+        evidence_refs = payload.get("evidence_refs")
+        return isinstance(evidence_refs, list) and any(isinstance(ref, dict) for ref in evidence_refs)
+
+    @staticmethod
+    def _should_block_unresolved_lightweight_anchor(
+        *,
+        user_topic: str,
+        anchor_payload: dict[str, Any] | None,
+    ) -> bool:
+        if AgentCoordinator._lightweight_anchor_has_grounding(anchor_payload):
+            return False
+        payload = anchor_payload if isinstance(anchor_payload, dict) else {}
+        label = str(payload.get("concentration") or "").strip() or AgentCoordinator._derive_lightweight_anchor_label(
+            user_topic=user_topic
+        )
+        return practice_generation_request_needs_context_anchor(label)
+
+    @staticmethod
     def _build_lightweight_rag_anchor_payload(
         *,
         user_topic: str,
         result: dict[str, Any] | None,
     ) -> dict[str, Any]:
-        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
-        base = {
-            "knowledge_context": f"当前学习锚点：{anchor_label}",
-            "concentration": anchor_label,
-        }
+        base = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
+        anchor_label = str(base.get("concentration") or "").strip()
         if not isinstance(result, dict):
             return base
 
@@ -1208,6 +1366,33 @@ class AgentCoordinator:
         # (SMA topic vs 垂直运输/井架 stem) shares none and is rejected.
         topic_bigrams = {t[i : i + 2] for t in loose_terms for i in range(len(t) - 1)}
         return any(bigram in haystack for bigram in topic_bigrams)
+
+    @staticmethod
+    def _generated_questions_in_construction_scope(
+        templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
+    ) -> bool:
+        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
+        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
+        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
+        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
+        """
+        texts: list[str] = []
+        for qp in qa_pairs or []:
+            pair = qp.get("qa_pair") if isinstance(qp, dict) else None
+            if isinstance(pair, dict):
+                # Bank-hit questions are pre-vetted by the RAG store; skip scope check for them.
+                if (pair.get("grading_key") or {}).get("source") == "questions_bank":
+                    continue
+                texts.append(f"{pair.get('concentration') or ''} {pair.get('question') or ''}")
+        for template in templates or []:
+            texts.append(str(getattr(template, "concentration", "") or ""))
+        candidates = [text for text in texts if text.strip()]
+        if not candidates:
+            return True
+        return any(
+            practice_generation_topic_domain_status(text) == "construction_topic"
+            for text in candidates
+        )
 
     @staticmethod
     def _derive_lightweight_anchor_label(

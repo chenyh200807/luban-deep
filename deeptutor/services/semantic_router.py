@@ -561,7 +561,18 @@ async def resolve_turn_semantic_decision(
             return decision, None
         return None, None
 
-    if looks_like_free_text_mcq_grading_request(user_message):
+    # Skip the detour when user explicitly submitted their own answer (我选/我改选)
+    # WITHOUT an explicit new-question request (换题 etc.).
+    # "换题：新题...我选C" → user wants a brand-new question graded, not the active one;
+    # keep the detour so we don't bind their answer to the wrong active object.
+    # "我选B" / pasted-same-stem + "我选X" → genuine active-question submission;
+    # bypass the detour and let the inner LLM routing decide.
+    _SUBMISSION_MARKERS = ("我选", "我改选", "我的答案", "我答")
+    _NEW_QUESTION_MARKERS = ("换题", "换一题", "换一道", "换道题", "换个题")
+    _is_plain_submission = any(m in user_message for m in _SUBMISSION_MARKERS) and not any(
+        m in user_message for m in _NEW_QUESTION_MARKERS
+    )
+    if looks_like_free_text_mcq_grading_request(user_message) and not _is_plain_submission:
         decision = build_turn_semantic_decision(
             relation_to_active_object="temporary_detour",
             next_action="route_to_general_chat",
