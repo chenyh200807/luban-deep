@@ -150,15 +150,19 @@ def test_named_option_brevity_routes_to_brief_option_focus() -> None:
     assert ("干扰项" in response) or ("不在标准答案" in response)
 
 
-def test_option_challenge_without_brevity_keeps_detailed_reference_feedback() -> None:
+def test_option_challenge_without_brevity_gives_detailed_explanation_not_brushoff() -> None:
+    """#21(2026-06-23):点名选项的概念追问("A错在哪里")必须给真实讲解(答案+逐项原理),
+    绝不再吐"我不会因追问改写标准答案"的反篡改薄答罐头(Langfuse 实证 3/3 live 复现)。"""
     response = _render_deterministic_reference_feedback(
         _wall_context(user_answer="CDE", is_correct=True),
         user_message="A错在哪里？请说明标准答案依据。",
     )
 
-    assert response.startswith("A（槽段长度8-10m）")
-    assert "本题标准答案是 C" in response
-    assert "我不会因为追问或假设选项改写标准答案" in response
+    # 反篡改薄答罐头必须消失
+    assert "我不会因为追问或假设选项改写标准答案" not in response
+    # 给真实讲解:正确答案 + A 为什么错的原理
+    assert "正确答案" in response
+    assert "槽段长度宜为 4～6m" in response or "A 错误" in response
 
 
 def test_reference_feedback_targets_indexed_question_set_item() -> None:

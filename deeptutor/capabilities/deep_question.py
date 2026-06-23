@@ -1499,75 +1499,11 @@ def _render_targeted_brief_reference_feedback(
     return ""
 
 
-def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-    return any(
-        marker in text
-        for marker in (
-            "为什么",
-            "为啥",
-            "不对",
-            "错",
-            "扣分",
-            "怎么扣",
-            "怎么判",
-            "怎么评分",
-            "得几分",
-            "给几分",
-            "能拿",
-            "如果",
-            "假如",
-            "要是",
-        )
-    )
-
-
 def _named_option_letters_from_item(user_message: str, item: dict[str, Any]) -> list[str]:
     options = dict(_option_entries(item))
     if not options:
         return []
     return _named_option_letters(user_message, options)
-
-
-def _render_targeted_option_reference_feedback(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> str:
-    if not _looks_like_option_scoring_or_challenge_request(user_message):
-        return ""
-    # brevity requests defer to the brief path (already ran first); the verbose verdict
-    # template does not honour "一句话" and should not override a brief answer.
-    if looks_like_explicit_brevity_request(user_message):
-        return ""
-    items = _reference_items(question_context)
-    if len(items) != 1:
-        return ""
-    item = items[0]
-    options = dict(_option_entries(item))
-    if not options:
-        return ""
-    named_letters = _named_option_letters_from_item(user_message, item)
-    if not named_letters:
-        return ""
-    letter = named_letters[0]
-    correct_letters = set(_answer_letters(item.get("correct_answer")))
-    answer = _format_answer_with_option_text(item, item.get("correct_answer"))
-    option = _format_answer_with_option_text(item, letter)
-    verdict = (
-        "它属于标准答案，会按正确项处理。"
-        if letter in correct_letters
-        else "它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。"
-    )
-    explanation = _compact_text(str(item.get("explanation") or ""))
-    lines = [
-        f"{option}：{verdict}",
-        f"本题标准答案是 {answer}，我不会因为追问或假设选项改写标准答案。",
-    ]
-    if explanation:
-        lines.append(f"依据：{explanation}")
-    return "\n".join(lines).strip()
 
 
 def _render_brief_reference_feedback(
@@ -1609,9 +1545,10 @@ def _render_deterministic_reference_feedback(
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief
-    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
-    if targeted_option:
-        return targeted_option
+    # #21(2026-06-23):删除 _render_targeted_option_reference_feedback 反篡改薄答——
+    # 它对"为什么B错/C不对"这类点名选项的真诚概念追问吐"我不会因追问改写标准答案"防御
+    # 罐头(Langfuse 实证薄答,3/3 live 复现)。删后这类追问落到下面的"答案与解析"讲解
+    # 分支(给真实原理),概念深追走 FollowupAgent(已带反篡改-as-teaching prompt)。
     if looks_like_explicit_brevity_request(user_message):
         return _render_brief_reference_feedback(user_message, question_context)
 
