@@ -342,6 +342,35 @@ def test_strip_orphan_reference_markers_removes_unbacked_footnotes():
     assert "危大工程" in out and "专家论证" in out  # 正文保留
 
 
+def test_strip_orphan_reference_markers_removes_rich_grounding_source_markers():
+    """task#27:〔源:chunk_id〕 是 supporting-citation-only 的检索 grounding 标记
+    (rich_leaf_runtime),只该出现在喂 LLM 的上下文里;judge 模仿进判分/教学输出时
+    绝不能漏给学生。无 backing footer 时必剥(正文保留)。"""
+    from deeptutor.services.citations.assembler import strip_orphan_reference_markers
+
+    raw = "正确答案是 A。专家论证是危大工程核心〔源:CK_1A_0001〕。"
+    out = strip_orphan_reference_markers(raw)
+    assert "〔源:CK_1A_0001〕" not in out
+    assert "〔源" not in out
+    assert "正确答案是 A" in out and "专家论证是危大工程核心" in out
+
+
+def test_strip_orphan_reference_markers_strips_source_markers_even_with_footer():
+    """〔源:〕 永远剥——即使文本带合法 backing footer。合法学生引用是带 footer 行的
+    数字 〔N〕;〔源:chunk_id〕 是内部 grounding,任何情况下都不该露给学生。
+    带 footer 的合法数字 〔N〕 保留。"""
+    from deeptutor.services.citations.assembler import strip_orphan_reference_markers
+
+    raw = (
+        "屋面防水等级应根据工程重要性确定。〔1〕〔源:CK_1A_0001〕\n\n"
+        "依据\n〔1〕2026 建筑实务教材，第 3 章。摘录：屋面防水等级应根据工程重要性确定。"
+    )
+    out = strip_orphan_reference_markers(raw)
+    assert "〔源:CK_1A_0001〕" not in out and "〔源" not in out  # grounding 标记永远剥
+    assert "〔1〕" in out  # 合法数字引用 + footer 保留
+    assert "2026 建筑实务教材" in out
+
+
 def test_apply_answer_citation_metadata_strips_markers_when_disabled():
     """引用关闭(生产默认)的 apply_answer_citation_metadata 必须返回剥离后的正文,
     不再原样把 〔N〕 漏给学生。"""

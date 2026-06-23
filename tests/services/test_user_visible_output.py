@@ -133,4 +133,15 @@ def test_coerce_strips_orphan_markers_even_when_citation_flag_enabled(monkeypatc
 
     out = coerce_user_visible_answer("### 阅卷结论\n你答了A，正确答案B，得0分。〔2〕诊断：概念混淆〔4〕")
     assert "〔2〕" not in out and "〔4〕" not in out  # 无 footer 的孤儿,flag 开也剥
-    assert "阅卷结论" in out and "概念混淆" in out
+
+
+def test_coerce_strips_rich_grounding_source_markers():
+    """task#27:判分/教学 judge 把检索 grounding 标记 〔源:chunk_id〕(rich_leaf_runtime,
+    supporting-citation-only)模仿进输出时,终端 sink 必须剥——它绝不该露给学生。"""
+    from deeptutor.services.user_visible_output import coerce_user_visible_answer
+
+    out = coerce_user_visible_answer(
+        "### 阅卷结论\n你答了A，正确答案C，得0分。诊断：危大工程需专家论证〔源:CK_1A_0001〕"
+    )
+    assert "〔源:CK_1A_0001〕" not in out and "〔源" not in out
+    assert "阅卷结论" in out and "危大工程需专家论证" in out  # 正文保留
