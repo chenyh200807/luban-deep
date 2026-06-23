@@ -658,3 +658,29 @@ export async function getMemberAuditLog(
   })
   return expectJson<MemberAuditLogResponse>(response)
 }
+
+export interface MemberAccountDeletionResult {
+  success: boolean
+  user_id: string
+  status: string
+  message: string
+  credentials_deleted: boolean
+  sessions_invalidated: number
+  audit_id?: string
+  deduped?: boolean
+}
+
+export async function deleteMemberAccount(payload: {
+  user_id: string
+  reason?: string
+}): Promise<MemberAccountDeletionResult> {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`), {
+    method: 'DELETE',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify({ reason: payload.reason ?? '' }),
+  })
+  return expectJson<MemberAccountDeletionResult>(response)
+}
