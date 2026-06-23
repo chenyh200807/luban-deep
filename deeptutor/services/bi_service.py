@@ -3194,7 +3194,15 @@ class BIService:
         }
 
     @staticmethod
+    def _is_internal_op_row(row: dict[str, Any]) -> bool:
+        """内部/测试条目标记：metadata.is_internal=true 的条目不计入BI统计。"""
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        return bool(metadata.get("is_internal"))
+
+    @staticmethod
     def _is_commerce_recharge_row(row: dict[str, Any]) -> bool:
+        if BIService._is_internal_op_row(row):
+            return False
         if _safe_float(row.get("amount")) <= 0:
             return False
         reference_type = str(row.get("reference_type") or "").strip().lower()
@@ -3239,6 +3247,8 @@ class BIService:
 
     @staticmethod
     def _commerce_revenue_cny(row: dict[str, Any]) -> float:
+        if BIService._is_internal_op_row(row):
+            return 0.0
         metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
         if BIService._is_commerce_recharge_row(row):
             return max(_safe_float(metadata.get("amount_cny")), 0.0)
@@ -3729,6 +3739,7 @@ class BIService:
         except Exception as exc:  # noqa: BLE001
             logger.warning("get_internal_account_states failed: %s", exc)
             return {}
+
         states: dict[str, dict[str, Any]] = {}
         for row in rows:
             uid = str(row.get("user_id") or "").strip()

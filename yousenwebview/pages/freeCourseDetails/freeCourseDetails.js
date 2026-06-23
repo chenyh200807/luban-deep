@@ -1,40 +1,8 @@
 // package/freeCourseDetails/freeCourseDetails.js
-var hostApiMap = require('../../api/baseApi')
-var hostConfig = require('../../utils/config')
+var behavior = require('../../utils/behavior')
+var utilMd5 = require('../../utils/md5.js');
 
 let polyvModule = null;
-
-function postHostRequest(urlName, data = {}, isLoading = false) {
-  return new Promise(function (resolve, reject) {
-    let shouldHideLoading = false;
-    if (isLoading) {
-      shouldHideLoading = true;
-      wx.showLoading({
-        title: "加载中",
-        mask: false
-      });
-    }
-    wx.request({
-      url: hostConfig.baseUrl3 + hostApiMap[urlName],
-      data: data,
-      header: {
-        "content-type": "application/json"
-      },
-      method: "POST",
-      success: function (res) {
-        resolve(res.data);
-      },
-      fail: function (err) {
-        reject(err);
-      },
-      complete: function () {
-        if (shouldHideLoading) {
-          wx.hideLoading();
-        }
-      }
-    });
-  });
-}
 
 function getPolyvModule() {
   if (!polyvModule) {
@@ -45,29 +13,18 @@ function getPolyvModule() {
   return polyvModule;
 }
 
-function getPolyvSignature(source, vid) {
-  const payload = source && typeof source === 'object' ? source : {};
-  const signatureMap = payload.polyv_signatures || payload.video_signatures || {};
-  const mapped = vid && signatureMap && typeof signatureMap === 'object' ? signatureMap[vid] : null;
-  const signatureSource = mapped && typeof mapped === 'object' ? mapped : payload;
-  const ts = signatureSource.polyv_ts || signatureSource.video_ts || signatureSource.videoTs || signatureSource.ts;
-  const sign = signatureSource.polyv_sign || signatureSource.video_sign || signatureSource.videoSign || signatureSource.sign;
-  if (!ts || !sign) {
-    return null;
-  }
-  return {
-    ts: ts,
-    sign: String(sign)
-  };
-}
-
-Page({
+Component({
+  behaviors: [behavior],
 
   /**
    * 页面的初始数据
    */
   data: {
     pk_id: '',
+    ggimage: '',
+    oneggimage: '',
+    oneggimageurl: '',
+    adPosition: 0, // 广告位置：1-课程摘要后，2-标签页后，3-页面底部
     videoSrc: {
       src: '',
       showBeishu: false,
@@ -94,13 +51,12 @@ Page({
     kechengmulu: '',
     kechengneirong: '',
     show: false,
+    videotitle: '',
     gratisDetail: {
       chapter: []
     }
   },
-  isPostHttp: function(urlName, data, isLoading) {
-    return postHostRequest(urlName, data, isLoading)
-  },
+  methods: {
     clearBeishuTimer: function() {
       if (this.beishuTimer) {
         clearTimeout(this.beishuTimer);
@@ -213,7 +169,7 @@ Page({
         polyvModule.destroy();
       }
     },
-    requestVideoSrc: function(vid, shouldAutoPlay, signatureSource) {
+    requestVideoSrc: function(vid, shouldAutoPlay) {
       if (!vid) {
         return;
       }
@@ -227,17 +183,15 @@ Page({
       this.videoRequestSeq = requestSeq;
       this.pendingAutoPlaySeq = shouldAutoPlay ? requestSeq : 0;
       this.videoReady = false;
-      const signedRequest = getPolyvSignature(signatureSource, vid);
-      if (!signedRequest) {
-        this.pendingAutoPlaySeq = 0;
-        console.error('polyv signed request unavailable');
-        return;
-      }
+      const timestamp = Date.parse(new Date());
+      const secretKey = 'mnABa9XMn8';
+      const ts = timestamp;
+      const sign = utilMd5.hexMD5(secretKey + vid + ts);
       const that = this;
       polyv.getVideo({
         vid: vid,
-        ts: signedRequest.ts,
-        sign: signedRequest.sign,
+        ts: ts,
+        sign: sign,
         callback: function(videoInfo) {
           if (requestSeq !== that.videoRequestSeq) {
             return;
@@ -266,7 +220,7 @@ Page({
         return;
       }
       try {
-      this.requestVideoSrc(playId, true, initial && initial.item ? initial.item : detail);
+        this.requestVideoSrc(playId, true);
       } catch (error) {
         this.pendingAutoPlaySeq = 0;
         console.error('video init failed', error);
@@ -298,6 +252,7 @@ Page({
           introHtmlRaw: '',
           introContentReady: false,
           thevideoshow: '',
+          videotitle: '',
           activeChapterIndex: -1,
           currentChapterNumber: 0,
           chapterCount: 0,
@@ -338,8 +293,8 @@ Page({
           wx.setNavigationBarTitle({
             title: detail.name || '佑森好课'
           });
-
-          if (res.showvier == 27) {
+        //showvier 
+          if (res.showvier == 32) {
             wx.redirectTo({
               url: '/pages/freeCourseDetailsonline/freeCourseDetailsonline'
             });
@@ -360,8 +315,13 @@ Page({
             currentChapterNumber: progressState.currentChapterNumber,
             chapterCount: progressState.chapterCount,
             progressPercent: progressState.progressPercent,
+            videotitle: initial.item && initial.item.title ? '正在播放：  ' + initial.item.title : '',
             kechengmulu: res.kechengmulu || '',
             kechengneirong: res.kechengneirong || '',
+            ggimage: res.ggimage || '',
+            oneggimage: res.oneggimage || '',
+            oneggimageurl: res.oneggimageurl || '',
+            adPosition: res.adPosition || 0,
             show: shouldShowVideo,
             loadingDetail: false
           });
@@ -401,12 +361,13 @@ Page({
           currentChapterNumber: progressState.currentChapterNumber,
           chapterCount: progressState.chapterCount,
           progressPercent: progressState.progressPercent,
+          videotitle: '正在播放：  ' + (currentChapter.title || ''),
           thevideoshow: currentChapter.title || '',
           'videoSrc.isShowBeishu': true
         });
         this.scheduleBeishuHide();
         if (video_id) {
-          this.requestVideoSrc(video_id, true, currentChapter);
+          this.requestVideoSrc(video_id, true);
         }
       } else {
         const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
@@ -428,7 +389,7 @@ Page({
     },
     //第三方视频
     publicVideo: function(id) {
-      this.requestVideoSrc(id, true, this.data.gratisDetail);
+      this.requestVideoSrc(id, true);
     },
     staPlay: function() {
       this.pendingAutoPlaySeq = 0;
@@ -513,49 +474,6 @@ Page({
       this.cleanupPage({ destroy: true });
     },
 
-    scrollToSelector: function(selector) {
-      const query = wx.createSelectorQuery().in(this);
-      query.select(selector).boundingClientRect();
-      query.selectViewport().scrollOffset();
-      query.exec(res => {
-        const targetRect = res && res[0];
-        const viewport = res && res[1];
-        if (!targetRect || !viewport) {
-          return;
-        }
-        const nextTop = Math.max(0, viewport.scrollTop + targetRect.top - 132);
-        wx.pageScrollTo({
-          scrollTop: nextTop,
-          duration: 260
-        });
-      });
-    },
-    scrollToCatalog: function() {
-      setTimeout(() => {
-        this.scrollToSelector('#course-catalog');
-      }, 80);
-    },
-    scrollToCurrentChapter: function() {
-      setTimeout(() => {
-        const query = wx.createSelectorQuery().in(this);
-        query.select('#current-chapter').boundingClientRect();
-        query.exec(res => {
-          if (res && res[0]) {
-            this.scrollToSelector('#current-chapter');
-            return;
-          }
-          this.scrollToSelector('#course-catalog');
-        });
-      }, 80);
-    },
-    openCatalog: function() {
-      this.setData({
-        showmulu: true,
-        neirong1: false
-      }, () => {
-        this.scrollToCurrentChapter();
-      });
-    },
     showmulu: function() {
       this.setData({
         showmulu: true,
@@ -573,6 +491,16 @@ Page({
       }
       this.setData(nextState);
     },
+   
+   //广告跳转
+   goTooneggimageurl: function(){
+    if(this.data.oneggimageurl){
+      wx.navigateTo({
+        url: '/pages/text/text?url='+this.data.oneggimageurl
+      })
+    }
+  },
+
     /**
      * 用户点击右上角分享
      */
@@ -593,4 +521,5 @@ Page({
         };
       }
     }
+  }
 })

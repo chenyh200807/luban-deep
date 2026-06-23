@@ -3,18 +3,23 @@
   "ir_id": "P40_A01_animation_ir_v0",
   "card_id": "P40_A01",
   "display": {
-    "kicker": "鲁班深母题 · Slot 7",
-    "title": "检验批/分部分项验收程序"
+    "kicker": "鲁班深母题 · A01 作答层",
+    "title": "结构实体检验答案诊断"
   },
-  "main_exam_action": "把「检验批/分部分项验收程序」写成采分链：先判对象，再判条件，最后写判断依据。",
+  "main_exam_action": "把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。",
   "teaching_spine": {
-    "source_pack": "docs/原始数据/考点原料/成品/A01_检验批验收程序.md",
-    "archetype": "decision_branch_reveal",
-    "warm_correction": "检验批/分部分项验收程序 不是背散点，而是把题干转成可得分的判断链。"
+    "source_pack": "docs/原始数据/考点原料/成品/A01_案例题作答层样板.md",
+    "source_card": "P40_A01.source_card.json",
+    "archetype": "scoring_diagnosis_reveal",
+    "warm_correction": "作答层不是背整段标准答案，而是扫描答题纸缺口并补成采分句。"
   },
   "source_refs": {
-    "pack_markdown": "docs/原始数据/考点原料/成品/A01_检验批验收程序.md",
-    "timing": "P40_A01.lesson.timing.json"
+    "pack_markdown": "docs/原始数据/考点原料/成品/A01_案例题作答层样板.md",
+    "visual_prototype_inventory": "docs/原始数据/数据盘点/2026-06-22-成品考点视觉原型盘点.md",
+    "source_card": "P40_A01.source_card.json",
+    "lesson": "P40_A01.lesson.json",
+    "timing": "P40_A01.lesson.timing.json",
+    "audio": "P40_A01.lesson.mp3"
   },
   "render_contract": {
     "renderer": "render_animation_ir_preview.py",
@@ -24,43 +29,130 @@
     "practice_href": "P40_A01.practice.html",
     "max_visible_nodes": 4,
     "archetype_visual_required": [
-      "decision_tree"
+      "answer_scan"
     ],
     "teaching_scene_ids": [
       "hook",
-      "map",
-      "rule",
-      "trap",
+      "answer_sheet",
+      "score_atoms",
+      "organization_gap",
+      "calculation_gap",
+      "rewrite",
       "score"
     ],
-    "min_diagrammatic_teaching_scenes": 5,
-    "challenge_unlock_sec": 78.857,
+    "min_diagrammatic_teaching_scenes": 7,
+    "min_domain_visual_teaching_scenes": 7,
+    "challenge_unlock_sec": 147.816,
     "one_active_scene": true,
     "one_active_keycard": true,
     "theater_requires_challenge_cta": true,
     "ai_ask_required": true
   },
-  "taxonomy_alignment": {
-    "priority_slot": 7,
-    "pack_id": "A01",
-    "status": "direct",
-    "canonical_taxonomy_refs": [
-      "1A434020-B018",
-      "1A434020-B006",
-      "1A434020-B001"
+  "visual_archetype_decision": {
+    "primary_archetype": "scoring_diagnosis_reveal",
+    "secondary_archetype": "calculation_structure",
+    "visual_primitive": "answer_scan",
+    "motion_grammar": "scan_hit_partial_miss_then_formula_chain_then_rewrite",
+    "why_this_visual": "本卡的核心难点不是知道验收知识，而是看见一份学生答案逐句被扫描后，哪句命中、哪句半命中、哪句完全漏掉，并把缺口补成可写采分句。",
+    "why_not_text": "纯文字解析会让学生继续觉得“我只是少写了一点”。答题纸扫描能把钢筋保护层、结构位置尺寸偏差、合同约定项目、监理组织和88/80双阈值这些漏点逐行显出来，才能训练主观题输出。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": [
+          "答题纸",
+          "扫描笔",
+          "学生答案片段",
+          "实体检验题面"
+        ],
+        "visual_action": "题面和学生答案先进入白板，扫描笔从第一行扫过，告诉学生这不是背答案，而是查采分缺口。",
+        "why_object_not_box": "只用“采分点/漏点”文字框，学生看不见自己的答案哪一行在丢分。"
+      },
+      {
+        "scene": "answer_sheet",
+        "domain_objects": [
+          "学生答题纸",
+          "混凝土强度行",
+          "钢筋保护层行",
+          "空白漏项行"
+        ],
+        "visual_action": "答题纸逐行扫描：强度命中、保护层部分命中，结构位置尺寸偏差和合同约定项目以漏项红线退出。",
+        "why_object_not_box": "实体检验四项是清单对象，必须在答题纸上逐项看见命中和漏项，不能只写“内容不全”。"
+      },
+      {
+        "scene": "score_atoms",
+        "domain_objects": [
+          "混凝土构件",
+          "钢筋保护层",
+          "尺寸偏差尺",
+          "合同约定项目标签"
+        ],
+        "visual_action": "四个实体检验对象从构件旁逐个进入采分槽，缺失对象被红色占位提示补写。",
+        "why_object_not_box": "如果只列四个词，学生仍会把后三项当可有可无；对象进入采分槽才能说明每项都是得分物。"
+      },
+      {
+        "scene": "organization_gap",
+        "domain_objects": [
+          "监理单位",
+          "施工单位",
+          "见证标记",
+          "组织箭头"
+        ],
+        "visual_action": "施工单位组织箭头被淘汰，监理组织、施工实施、监理见证三段箭头按顺序亮起。",
+        "why_object_not_box": "主体错是单位角色错位，不画监理/施工对象，就会退化成“主体不准确”的空话。"
+      },
+      {
+        "scene": "calculation_gap",
+        "domain_objects": [
+          "C35 构件",
+          "三个芯样 28.5/31/32",
+          "平均值标尺",
+          "最小值标尺",
+          "88%/80%阈值线"
+        ],
+        "visual_action": "三个芯样进入公式链，平均值和最小值分别命中88%和80%阈值线，直接比35的错误路径被划掉。",
+        "why_object_not_box": "计算判定必须看见芯样数值如何进入两条阈值线，文字框不能解释“为什么不能直接比设计值”。"
+      },
+      {
+        "scene": "rewrite",
+        "domain_objects": [
+          "标准答题纸",
+          "内容清单格",
+          "组织主体格",
+          "判定依据格"
+        ],
+        "visual_action": "三个采分格按扫描结果补齐，学生原答案中可保留的行被迁移到标准答题纸，漏项格逐个填入。",
+        "why_object_not_box": "作答层最终训练的是改写动作，必须看见原答案如何移动、补齐、重排到标准答案。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": [
+          "最终答题纸",
+          "命中/半命中/漏点标记",
+          "补写句"
+        ],
+        "visual_action": "扫描笔最后从上到下扫完整答题纸，hit/partial/miss 收束成“补这三句”的采分动作。",
+        "why_object_not_box": "最终不是记知识点，而是产出能拿分的句子；必须落在答题纸对象上。"
+      }
     ],
-    "note": "检验批、分项、分部、主体结构验收"
+    "pure_text_allowed": false
+  },
+  "taxonomy_alignment": {
+    "priority_slot": "P40_A01",
+    "pack_id": "A01",
+    "source_kind": "case_answer_layer",
+    "note": "2026-06-22 visual inventory maps A01 answer-layer prototype to scoring_diagnosis_reveal / answer_scan."
   },
   "ai_context": {
     "context_id": "P40_A01",
-    "title": "检验批/分部分项验收程序",
-    "main_exam_action": "把「检验批/分部分项验收程序」写成采分链：先判对象，再判条件，最后写判断依据。",
-    "safe_summary": "检验批/分部分项验收程序 的学习重点是：验收四级体系：检验批→分项→分部（子分部）→单位工程; 检验批划分条件：工程量、楼层、施工段、变形缝; 分项工程划分条件：主要工种、材料、施工工艺、设备类别; 分部按专业性质、工程部位划分；单位工程=独立使用功能单元。",
+    "title": "结构实体检验答案诊断",
+    "main_exam_action": "把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。",
+    "safe_summary": "本卡训练结构实体检验案例题的作答层：先扫学生答案，再补内容清单、组织主体、判定依据三格，避免只写熟词和结论。",
     "key_points": [
-      "验收四级体系：检验批→分项→分部（子分部）→单位工程",
-      "检验批划分条件：工程量、楼层、施工段、变形缝",
-      "分项工程划分条件：主要工种、材料、施工工艺、设备类别",
-      "分部按专业性质、工程部位划分；单位工程=独立使用功能单元"
+      "扫答题纸找命中/半命中/漏点",
+      "内容清单补保护层、尺寸偏差、合同项目",
+      "主体写监理组织、施工实施、监理见证",
+      "强度判定写平均88%和最小80%双阈值"
     ],
     "handoff_mode": "context_id_plus_current_scene",
     "api_base": "https://test2.yousenjiaoyu.com"
@@ -68,615 +160,1277 @@
   "chapters": [
     {
       "id": "hook",
-      "label": "先避坑",
-      "start_sec": 0.0
+      "label": "扫缺口",
+      "start_sec": 0
     },
     {
-      "id": "map",
-      "label": "看结构",
-      "start_sec": 19.714
+      "id": "answer_sheet",
+      "label": "扫答题纸",
+      "start_sec": 22.648
     },
     {
-      "id": "rule",
-      "label": "判边界",
-      "start_sec": 39.429
+      "id": "score_atoms",
+      "label": "补清单",
+      "start_sec": 44.528
     },
     {
-      "id": "trap",
-      "label": "错法",
-      "start_sec": 59.143
+      "id": "organization_gap",
+      "label": "改主体",
+      "start_sec": 63.168
+    },
+    {
+      "id": "calculation_gap",
+      "label": "跑阈值",
+      "start_sec": 83.992
+    },
+    {
+      "id": "rewrite",
+      "label": "重排答案",
+      "start_sec": 118.184
     },
     {
       "id": "score",
-      "label": "采分",
-      "start_sec": 78.857
+      "label": "采分扫描",
+      "start_sec": 147.816
     },
     {
-      "id": "qa",
+      "id": "qa_closure",
       "label": "三问",
-      "start_sec": 98.571
+      "start_sec": 169.552
     },
     {
       "id": "closing_challenge",
       "label": "闯关",
-      "start_sec": 118.286
+      "start_sec": 224.128
     }
   ],
   "scenes": [
     {
       "id": "hook",
-      "label": "先避坑",
-      "start_sec": 0.0,
-      "end_sec": 19.714,
-      "scene": "decision_branch_reveal_hook",
-      "focus": "hook_visual",
+      "label": "先扫缺口",
+      "start_sec": 0,
+      "end_sec": 22.248,
+      "scene": "answer_scan_hook",
+      "focus": "student_answer_scan",
       "enter": [
         "scene.fade_in",
-        "hook_visual.reveal"
+        "student_answer_scan.reveal"
       ],
       "hold": [
-        "hook_visual.spotlight"
+        "student_answer_scan.scan",
+        "student_answer_scan.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "student_answer_scan.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
         "verb": "push-in",
-        "target": "hook_visual",
+        "target": "student_answer_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "hook_visual"
+        "student_answer_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "hook_visual",
+          "target": "student_answer_scan",
           "start": 0,
-          "end": 0.24
+          "end": 0.18
         },
         {
           "kind": "reveal",
-          "target": "hook_visual",
+          "target": "student_answer_scan",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.24
         },
         {
           "kind": "highlight",
-          "target": "hook_visual",
-          "start": 0.3,
-          "end": 0.9
+          "target": "student_answer_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "student_answer_scan",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "考场先别急着写术语",
-      "coach": "注意哈，这类题别先背答案，先看图里藏着哪条采分链。"
+      "keycard": "这不是背答案，是扫缺口",
+      "coach": "先看学生答题纸哪一行命中、哪一行漏分。"
     },
     {
-      "id": "map",
-      "label": "看结构",
-      "start_sec": 19.714,
-      "end_sec": 39.429,
-      "scene": "decision_branch_reveal_map",
-      "focus": "prototype_map",
+      "id": "answer_sheet",
+      "label": "扫学生答题纸",
+      "start_sec": 22.648,
+      "end_sec": 44.128,
+      "scene": "answer_sheet_scan",
+      "focus": "student_answer_scan",
       "enter": [
         "scene.fade_in",
-        "prototype_map.reveal"
+        "student_answer_scan.reveal"
       ],
       "hold": [
-        "prototype_map.spotlight"
+        "student_answer_scan.scan",
+        "student_answer_scan.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "student_answer_scan.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
         "verb": "push-in",
-        "target": "prototype_map",
+        "target": "student_answer_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "prototype_map"
+        "student_answer_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "prototype_map",
+          "target": "student_answer_scan",
           "start": 0,
-          "end": 0.24
+          "end": 0.18
         },
         {
           "kind": "reveal",
-          "target": "prototype_map",
+          "target": "student_answer_scan",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.24
         },
         {
           "kind": "highlight",
-          "target": "prototype_map",
-          "start": 0.3,
-          "end": 0.9
+          "target": "student_answer_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "student_answer_scan",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "先看它属于哪类图",
-      "coach": "先把它画成图：验收四级体系：…、检验批划分条件…、分项工程划分条…、分部按专业性质。"
+      "keycard": "命中、半中、漏点先标出来",
+      "coach": "保护层是半中，主体和阈值是漏点。"
     },
     {
-      "id": "rule",
-      "label": "判边界",
-      "start_sec": 39.429,
-      "end_sec": 59.143,
-      "scene": "decision_branch_reveal_rule",
-      "focus": "rule_model",
+      "id": "score_atoms",
+      "label": "补实体检验清单",
+      "start_sec": 44.528,
+      "end_sec": 62.768,
+      "scene": "score_atom_slots",
+      "focus": "content_slots",
       "enter": [
         "scene.fade_in",
-        "rule_model.reveal"
+        "content_slots.reveal"
       ],
       "hold": [
-        "rule_model.spotlight"
+        "content_slots.scan",
+        "content_slots.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "content_slots.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
         "verb": "push-in",
-        "target": "rule_model",
+        "target": "content_slots",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "rule_model"
+        "content_slots"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "rule_model",
+          "target": "content_slots",
           "start": 0,
-          "end": 0.24
+          "end": 0.18
         },
         {
           "kind": "reveal",
-          "target": "rule_model",
+          "target": "content_slots",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.24
         },
         {
           "kind": "highlight",
-          "target": "rule_model",
-          "start": 0.3,
-          "end": 0.9
+          "target": "content_slots",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "content_slots",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "用图走一遍判断动作",
-      "coach": "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"
+      "keycard": "清单要补成工程对象",
+      "coach": "让保护层、尺寸偏差、合同项目逐项进入采分槽。"
     },
     {
-      "id": "trap",
-      "label": "错法",
-      "start_sec": 59.143,
-      "end_sec": 78.857,
-      "scene": "decision_branch_reveal_trap",
-      "focus": "trap_visual",
+      "id": "organization_gap",
+      "label": "纠正组织主体",
+      "start_sec": 63.168,
+      "end_sec": 83.592,
+      "scene": "organization_role_trace",
+      "focus": "organization_flow",
       "enter": [
         "scene.fade_in",
-        "trap_visual.reveal"
+        "organization_flow.reveal"
       ],
       "hold": [
-        "trap_visual.spotlight"
+        "organization_flow.scan",
+        "organization_flow.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "organization_flow.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
         "verb": "push-in",
-        "target": "trap_visual",
+        "target": "organization_flow",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "trap_visual"
+        "organization_flow"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "trap_visual",
+          "target": "organization_flow",
           "start": 0,
-          "end": 0.24
+          "end": 0.18
         },
         {
           "kind": "reveal",
-          "target": "trap_visual",
+          "target": "organization_flow",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.24
         },
         {
           "kind": "highlight",
-          "target": "trap_visual",
-          "start": 0.3,
-          "end": 0.9
+          "target": "organization_flow",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "organization_flow",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "先拆常见错法",
-      "coach": "只写结果、不写依据，最容易漏采分点。"
+      "keycard": "施工实施，不等于施工组织",
+      "coach": "错误箭头退出，监理组织、施工实施、监理见证亮起。"
+    },
+    {
+      "id": "calculation_gap",
+      "label": "芯样跑双阈值",
+      "start_sec": 83.992,
+      "end_sec": 117.784,
+      "scene": "strength_formula_chain",
+      "focus": "strength_threshold_chain",
+      "enter": [
+        "scene.fade_in",
+        "strength_threshold_chain.reveal"
+      ],
+      "hold": [
+        "strength_threshold_chain.scan",
+        "strength_threshold_chain.trace"
+      ],
+      "exit": [
+        "strength_threshold_chain.exit",
+        "scene.clear_before_next"
+      ],
+      "layout": {
+        "portrait": "mobile_whiteboard_center",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board_single_scene"
+      },
+      "camera": {
+        "verb": "track",
+        "target": "strength_threshold_chain",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "strength_threshold_chain"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "track",
+          "target": "strength_threshold_chain",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "strength_threshold_chain",
+          "start": 0.04,
+          "end": 0.24
+        },
+        {
+          "kind": "highlight",
+          "target": "strength_threshold_chain",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "strength_threshold_chain",
+          "start": 0.88,
+          "end": 1
+        }
+      ],
+      "keycard": "不能直接平均值比 35",
+      "coach": "三个芯样进入平均值和最小值两条阈值线。"
+    },
+    {
+      "id": "rewrite",
+      "label": "三格重排答案",
+      "start_sec": 118.184,
+      "end_sec": 147.416,
+      "scene": "rewrite_answer_sheet",
+      "focus": "rewrite_scan",
+      "enter": [
+        "scene.fade_in",
+        "rewrite_scan.reveal"
+      ],
+      "hold": [
+        "rewrite_scan.scan",
+        "rewrite_scan.trace"
+      ],
+      "exit": [
+        "rewrite_scan.exit",
+        "scene.clear_before_next"
+      ],
+      "layout": {
+        "portrait": "mobile_whiteboard_center",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board_single_scene"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "rewrite_scan",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "rewrite_scan"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "rewrite_scan",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "rewrite_scan",
+          "start": 0.04,
+          "end": 0.24
+        },
+        {
+          "kind": "highlight",
+          "target": "rewrite_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "rewrite_scan",
+          "start": 0.88,
+          "end": 1
+        }
+      ],
+      "keycard": "原答案迁移到三格采分句",
+      "coach": "把可保留内容移动，把漏项补齐，再重排。"
     },
     {
       "id": "score",
-      "label": "采分",
-      "start_sec": 78.857,
-      "end_sec": 98.571,
-      "scene": "decision_branch_reveal_score",
-      "focus": "score_sheet",
+      "label": "最终采分扫描",
+      "start_sec": 147.816,
+      "end_sec": 169.152,
+      "scene": "final_score_scan",
+      "focus": "final_answer_scan",
       "enter": [
         "scene.fade_in",
-        "score_sheet.reveal"
+        "final_answer_scan.reveal"
       ],
       "hold": [
-        "score_sheet.spotlight"
+        "final_answer_scan.scan",
+        "final_answer_scan.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "final_answer_scan.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
         "verb": "push-in",
-        "target": "score_sheet",
+        "target": "final_answer_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "score_sheet"
+        "final_answer_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "score_sheet",
+          "target": "final_answer_scan",
           "start": 0,
-          "end": 0.24
+          "end": 0.18
         },
         {
           "kind": "reveal",
-          "target": "score_sheet",
+          "target": "final_answer_scan",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.24
         },
         {
           "kind": "highlight",
-          "target": "score_sheet",
-          "start": 0.3,
-          "end": 0.9
+          "target": "final_answer_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "final_answer_scan",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "把答案写成采分句",
-      "coach": "答题纸按三段写：验收四级体系：…、检验批划分条件…、分项工程划分条…。"
+      "keycard": "以后先扫答案，再补三格",
+      "coach": "最终答题纸要让三格都能被扫描到。"
     },
     {
-      "id": "qa",
-      "label": "三问",
-      "start_sec": 98.571,
-      "end_sec": 118.286,
-      "scene": "decision_branch_reveal_qa",
-      "focus": "student_q1",
+      "id": "qa_closure",
+      "label": "学生三问",
+      "start_sec": 169.552,
+      "end_sec": 223.728,
+      "scene": "qa_answer_scan_closure",
+      "focus": "qa_scan",
       "enter": [
         "scene.fade_in",
-        "student_q1.reveal"
+        "qa_scan.reveal"
       ],
       "hold": [
-        "student_q1.spotlight"
+        "qa_scan.scan",
+        "qa_scan.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "qa_scan.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
-        "verb": "spotlight",
-        "target": "student_q1",
+        "verb": "push-in",
+        "target": "qa_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "student_q1",
-        "student_q2",
-        "teacher_a"
+        "qa_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "student_q1",
+          "target": "qa_scan",
           "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_scan",
+          "start": 0.04,
           "end": 0.24
         },
         {
-          "kind": "reveal",
-          "target": "student_q1",
-          "start": 0.04,
-          "end": 0.2
-        },
-        {
-          "kind": "reveal",
-          "target": "student_q2",
-          "start": 0.19,
-          "end": 0.35
-        },
-        {
-          "kind": "reveal",
-          "target": "teacher_a",
-          "start": 0.34,
-          "end": 0.5
-        },
-        {
           "kind": "highlight",
-          "target": "student_q1",
-          "start": 0.3,
-          "end": 0.9
+          "target": "qa_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "qa_scan",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "三问集中放后面",
-      "coach": "学生常问三个问题：先写哪个、少一句扣不扣分、能不能只写结论。都回到采分链。"
+      "keycard": "三个追问都回到答题纸",
+      "coach": "保护层、主体、阈值三个疑问都落回采分动作。"
     },
     {
       "id": "closing_challenge",
-      "label": "闯关",
-      "start_sec": 118.286,
-      "end_sec": 138.0,
-      "scene": "decision_branch_reveal_closing_challenge",
-      "focus": "closing_sentence",
+      "label": "闯关入口",
+      "start_sec": 224.128,
+      "end_sec": 237.936,
+      "scene": "closing_challenge_scan",
+      "focus": "challenge_scan",
       "enter": [
         "scene.fade_in",
-        "closing_sentence.reveal"
+        "challenge_scan.reveal"
       ],
       "hold": [
-        "closing_sentence.spotlight"
+        "challenge_scan.scan",
+        "challenge_scan.trace"
       ],
       "exit": [
-        "scene.fade_out"
+        "challenge_scan.exit",
+        "scene.clear_before_next"
       ],
       "layout": {
-        "portrait": "centered_board",
+        "portrait": "mobile_whiteboard_center",
         "landscape": "stage_left_coach_right",
-        "theater": "clean_board"
+        "theater": "clean_board_single_scene"
       },
       "camera": {
-        "verb": "spotlight",
-        "target": "closing_sentence",
+        "verb": "push-in",
+        "target": "challenge_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "closing_sentence",
-        "challenge_cta"
+        "challenge_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "closing_sentence",
+          "target": "challenge_scan",
           "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_scan",
+          "start": 0.04,
           "end": 0.24
         },
         {
-          "kind": "reveal",
-          "target": "closing_sentence",
-          "start": 0.04,
-          "end": 0.2
-        },
-        {
-          "kind": "reveal",
-          "target": "challenge_cta",
-          "start": 0.19,
-          "end": 0.35
-        },
-        {
           "kind": "highlight",
-          "target": "closing_sentence",
-          "start": 0.3,
-          "end": 0.9
+          "target": "challenge_scan",
+          "start": 0.32,
+          "end": 0.74
+        },
+        {
+          "kind": "exit",
+          "target": "challenge_scan",
+          "start": 0.88,
+          "end": 1
         }
       ],
-      "keycard": "收束到闯关",
-      "coach": "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"
+      "keycard": "扫答案，补三格",
+      "coach": "现在进闯关，用诊断图练采分句输出。"
     }
   ],
   "visual_library": {
     "hook": {
-      "board": "warm_grid",
       "nodes": [
         {
-          "id": "hook_visual",
-          "kind": "decision_tree",
-          "text": "先看图再下笔",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
-          "tone": "danger",
+          "id": "student_answer_scan",
+          "kind": "answer_scan",
+          "text": "学生答案扫描",
           "labels": [
-            "验收四级体系：…",
-            "检验批划分条件…",
-            "分项工程划分条…",
-            "分部按专业性质",
-            "错因",
-            "结论"
+            "强度结论",
+            "保护层半中",
+            "主体漏点",
+            "阈值漏点"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "amber",
+          "domain_visual": true,
+          "domain_objects": [
+            "答题纸",
+            "扫描笔",
+            "学生答案片段",
+            "实体检验题面"
           ]
         }
       ]
     },
-    "map": {
-      "board": "warm_grid",
+    "answer_sheet": {
       "nodes": [
         {
-          "id": "prototype_map",
-          "kind": "decision_tree",
-          "text": "判断树",
-          "x": 30,
-          "y": 42,
-          "w": 300,
+          "id": "student_answer_scan",
+          "kind": "answer_scan",
+          "text": "逐句扫描学生答案",
+          "labels": [
+            "保护层半中",
+            "施工组织漏点",
+            "直接比35漏点",
+            "补三格"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "amber",
+          "domain_visual": true,
+          "domain_objects": [
+            "学生答题纸",
+            "混凝土强度行",
+            "钢筋保护层行",
+            "空白漏项行"
+          ]
+        }
+      ]
+    },
+    "score_atoms": {
+      "nodes": [
+        {
+          "id": "content_slots",
+          "kind": "answer_scan",
+          "text": "实体检验对象进槽",
+          "labels": [
+            "混凝土强度",
+            "保护层厚度",
+            "位置尺寸偏差",
+            "合同约定项目"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "blue",
+          "domain_visual": true,
+          "domain_objects": [
+            "混凝土构件",
+            "钢筋保护层",
+            "尺寸偏差尺",
+            "合同约定项目标签"
+          ]
+        }
+      ]
+    },
+    "organization_gap": {
+      "nodes": [
+        {
+          "id": "organization_flow",
+          "kind": "process_flow",
+          "text": "组织箭头纠正",
+          "labels": [
+            "监理组织",
+            "施工实施",
+            "监理见证",
+            "方案审批"
+          ],
+          "x": 24,
+          "y": 30,
+          "w": 312,
           "h": 178,
           "tone": "success",
-          "labels": [
-            "验收四级体系：…",
-            "检验批划分条件…",
-            "分项工程划分条…",
-            "分部按专业性质",
-            "错因",
-            "结论"
+          "domain_visual": true,
+          "domain_objects": [
+            "监理单位",
+            "施工单位",
+            "见证标记",
+            "组织箭头"
           ]
         }
       ]
     },
-    "rule": {
-      "board": "warm_grid",
+    "calculation_gap": {
       "nodes": [
         {
-          "id": "rule_model",
-          "kind": "decision_tree",
-          "text": "对象→条件→结论",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
+          "id": "strength_threshold_chain",
+          "kind": "formula_chain",
+          "text": "芯样进入双阈值",
+          "labels": [
+            "平均30.8",
+            "35×88%=30.8",
+            "最小28.5",
+            "35×80%=28"
+          ],
+          "x": 20,
+          "y": 34,
+          "w": 320,
+          "h": 176,
+          "tone": "amber",
+          "domain_visual": true,
+          "domain_objects": [
+            "C35构件",
+            "三个芯样28.5/31/32",
+            "平均值标尺",
+            "最小值标尺",
+            "88%/80%阈值线"
+          ]
+        }
+      ]
+    },
+    "rewrite": {
+      "nodes": [
+        {
+          "id": "rewrite_scan",
+          "kind": "answer_scan",
+          "text": "原答案重排成三格",
+          "labels": [
+            "内容清单",
+            "组织主体",
+            "判定依据",
+            "回判结论"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
           "tone": "success",
-          "labels": [
-            "验收四级体系：…",
-            "检验批划分条件…",
-            "分项工程划分条…",
-            "分部按专业性质",
-            "错因",
-            "结论"
-          ]
-        }
-      ]
-    },
-    "trap": {
-      "board": "warm_grid",
-      "nodes": [
-        {
-          "id": "trap_visual",
-          "kind": "decision_tree",
-          "text": "漏一道门",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
-          "tone": "danger",
-          "labels": [
-            "验收四级体系：…",
-            "检验批划分条件…",
-            "分项工程划分条…",
-            "分部按专业性质",
-            "错因",
-            "结论"
+          "domain_visual": true,
+          "domain_objects": [
+            "标准答题纸",
+            "内容清单格",
+            "组织主体格",
+            "判定依据格"
           ]
         }
       ]
     },
     "score": {
-      "board": "paper",
       "nodes": [
         {
-          "id": "score_sheet",
+          "id": "final_answer_scan",
           "kind": "answer_scan",
-          "text": "答题纸采分",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
-          "tone": "success",
+          "text": "最终答题纸扫描",
           "labels": [
-            "验收四级体系：…",
-            "检验批划分条件…",
-            "分项工程划分条…",
-            "结论"
+            "内容清单命中",
+            "主体链命中",
+            "双阈值命中",
+            "临界备注"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "success",
+          "domain_visual": true,
+          "domain_objects": [
+            "最终答题纸",
+            "命中标记",
+            "漏点标记",
+            "补写句"
           ]
         }
       ]
     },
-    "qa": {
-      "board": "warm_grid",
+    "qa_closure": {
       "nodes": [
         {
-          "id": "student_q1",
-          "kind": "dialogue_box",
-          "text": "学生问:先写哪个?",
-          "x": 42,
-          "y": 58,
-          "w": 276,
-          "h": 44,
-          "tone": "blue"
-        },
-        {
-          "id": "student_q2",
-          "kind": "dialogue_box",
-          "text": "学生问:少一句扣分吗?",
-          "x": 42,
-          "y": 114,
-          "w": 276,
-          "h": 44,
-          "tone": "amber"
-        },
-        {
-          "id": "teacher_a",
-          "kind": "dialogue_box",
-          "text": "老师:按采分链补齐",
-          "x": 42,
-          "y": 170,
-          "w": 276,
-          "h": 46,
-          "tone": "success"
+          "id": "qa_scan",
+          "kind": "answer_scan",
+          "text": "三问回到三格",
+          "labels": [
+            "保护层只半中",
+            "监理组织",
+            "双阈值",
+            "补采分句"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "blue",
+          "domain_visual": true,
+          "domain_objects": [
+            "学生追问卡",
+            "答题纸三格",
+            "扫描笔",
+            "补写句"
+          ]
         }
       ]
     },
     "closing_challenge": {
-      "board": "closing",
       "nodes": [
         {
-          "id": "closing_sentence",
-          "kind": "closing_text",
-          "text": "带走一句话",
-          "x": 0,
-          "y": 0,
-          "w": 176,
-          "h": 46,
-          "tone": "success",
-          "subtext": "检验批/分部分项验收程序: 对象→条件→依据"
-        },
-        {
-          "id": "challenge_cta",
-          "kind": "challenge_button",
-          "text": "开始闯关",
-          "x": 90,
-          "y": 166,
-          "w": 180,
-          "h": 44,
-          "tone": "amber"
+          "id": "challenge_scan",
+          "kind": "answer_scan",
+          "text": "闯关答题纸",
+          "labels": [
+            "先扫答案",
+            "补内容",
+            "补主体",
+            "补依据"
+          ],
+          "x": 26,
+          "y": 24,
+          "w": 308,
+          "h": 196,
+          "tone": "amber",
+          "domain_visual": true,
+          "domain_objects": [
+            "闯关答题纸",
+            "扫描笔",
+            "三格采分槽",
+            "练习入口"
+          ]
         }
       ]
     }
-  }
+  },
+  "timing": {
+    "audio": "P40_A01.lesson.mp3",
+    "total_sec": 237.936,
+    "teach_end_sec": 169.152,
+    "style": "teach_then_qa"
+  },
+  "lesson_segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "hook",
+      "startSec": 0,
+      "durSec": 22.248,
+      "speaker": "T",
+      "keycard": "这不是背答案，是扫缺口",
+      "text": "注意哈，这张卡不训练你背一整段标准答案，而是训练你看一份学生答案到底差哪句。题干问结构实体检验，学生写了钢筋保护层，又算了平均强度，还下了不合格结论。看起来会一点，但白板一扫描就会发现：内容清单不全，组织主体错位，计算判据也跑偏。"
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "answer_sheet",
+      "startSec": 22.648,
+      "durSec": 21.48,
+      "speaker": "T",
+      "keycard": "先把每一行标成 hit、partial、miss",
+      "text": "第一笔，扫答案。钢筋保护层这个词不是完全错，它是部分命中；问题是它只写了一个项目。由施工单位组织这一句，主体错了。平均值比三十五小，所以不合格，这一句更危险，因为它直接拿平均强度去比设计值，跳过了实体强度的双阈值。"
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "score_atoms",
+      "startSec": 44.528,
+      "durSec": 18.24,
+      "speaker": "T",
+      "keycard": "实体检验项目要补成完整清单",
+      "text": "结构实体检验不是只写混凝土强度。学生写保护层，只补到了一格。答题纸上还要看见结构位置与尺寸偏差，再看见合同约定项目。这里的动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽。"
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "organization_gap",
+      "startSec": 63.168,
+      "durSec": 20.424,
+      "speaker": "T",
+      "keycard": "施工单位实施，不等于施工单位组织",
+      "text": "第二格看主体。施工单位当然参与，但它在这条链里是实施主体，不是组织主体。要写成监理单位组织，施工单位实施，监理见证全过程。你看白板上，施工单位组织这条箭头退出，监理组织这条箭头才是阅卷要扫到的主体动作。"
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "calculation_gap",
+      "startSec": 83.992,
+      "durSec": 33.792,
+      "speaker": "T",
+      "keycard": "实体强度判定跑双阈值",
+      "text": "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点八，三十五乘百分之八十八也是三十点八；最小值二十八点五，也高于三十五乘百分之八十的二十八。临界怎么给官方分，要看评分细则或教研裁定，但你的答题纸必须把这条双阈值链写出来。"
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "rewrite",
+      "startSec": 118.184,
+      "durSec": 29.232,
+      "speaker": "T",
+      "keycard": "把原答案重排成三格采分句",
+      "text": "现在才进入改写。第一段，结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。第二段，由监理单位组织，施工单位实施，监理见证全过程。第三段，强度按平均值不小于设计值百分之八十八、最小值不小于设计值百分之八十回判。这样写，不是更啰嗦，而是每一格都能被扫描到。"
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "score",
+      "startSec": 147.816,
+      "durSec": 21.336,
+      "speaker": "T",
+      "keycard": "以后先扫答案，再补三格",
+      "text": "最后扫一遍成品答案。内容清单命中，主体链命中，判定依据命中。你真正要带走的不是一段死记答案，而是一个作答动作：看到结构实体检验案例，先扫自己的答题纸，问三格齐不齐。内容清单有没有完整，组织主体有没有写对，计算判据有没有亮出来。"
+    },
+    {
+      "idx": 7,
+      "kind": "q",
+      "state": "qa_closure",
+      "startSec": 169.552,
+      "durSec": 4.224,
+      "speaker": "S",
+      "keycard": null,
+      "text": "老师，我写了钢筋保护层，这块能拿分不？"
+    },
+    {
+      "idx": 8,
+      "kind": "a",
+      "state": "qa_closure",
+      "startSec": 174.176,
+      "durSec": 13.224,
+      "speaker": "T",
+      "keycard": null,
+      "text": "能拿一点方向分，但不稳。因为这只命中保护层，漏了结构位置与尺寸偏差和合同约定项目。主观题不是看你有没有碰到熟词，而是看清单有没有补完整。"
+    },
+    {
+      "idx": 9,
+      "kind": "q",
+      "state": "qa_closure",
+      "startSec": 187.8,
+      "durSec": 4.224,
+      "speaker": "S",
+      "keycard": null,
+      "text": "那我直接写施工单位组织，咋就不行呢？"
+    },
+    {
+      "idx": 10,
+      "kind": "a",
+      "state": "qa_closure",
+      "startSec": 192.424,
+      "durSec": 10.968,
+      "speaker": "T",
+      "keycard": null,
+      "text": "因为你把实施主体写成组织主体了。施工单位实施检验，但组织要写监理单位，过程还要有监理见证。主体错位，阅卷会直接扣。"
+    },
+    {
+      "idx": 11,
+      "kind": "q",
+      "state": "qa_closure",
+      "startSec": 203.792,
+      "durSec": 5.976,
+      "speaker": "S",
+      "keycard": null,
+      "text": "整明白了，但平均值这块我能不能直接跟 C35 比？"
+    },
+    {
+      "idx": 12,
+      "kind": "a",
+      "state": "qa_closure",
+      "startSec": 210.168,
+      "durSec": 13.56,
+      "speaker": "T",
+      "keycard": null,
+      "text": "不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。你可以不替官方抢判临界分，但公式、代入、回判这条链必须写。"
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "closing_challenge",
+      "startSec": 224.128,
+      "durSec": 13.008,
+      "speaker": "T",
+      "keycard": null,
+      "text": "记住哈，A01 作答层就一句话：扫答案，补三格。内容清单、组织主体、判定依据，少一格都不是完整采分句。现在进闯关，按答题纸扫描来练。"
+    }
+  ],
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "扫学生答案",
+      "skill": "答案缺口诊断",
+      "scene_gap": "学生答案写了一个熟词，但没有形成完整清单。",
+      "student": "学生答：结构实体检验还要测一下钢筋保护层。",
+      "stem": "这句话在实体检验项目上最主要缺哪一类采分动作？",
+      "answer": "complete_items",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "答题纸逐句扫描",
+        "before": [
+          "混凝土强度",
+          "钢筋保护层",
+          "空白",
+          "空白"
+        ],
+        "after": [
+          "混凝土强度",
+          "钢筋保护层厚度",
+          "结构位置与尺寸偏差",
+          "合同约定项目"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "complete_items",
+          "label": "补尺寸偏差和合同项目，清单才完整。",
+          "reason": "把半命中的清单补完整。"
+        },
+        {
+          "id": "write_stronger",
+          "label": "只改语气，不补缺项。",
+          "reason": "语气变强不能补缺项。"
+        },
+        {
+          "id": "organizer_now",
+          "label": "先改主体，但本句清单仍缺。",
+          "reason": "主体也要改，但本句首先卡在检验项目不全。"
+        },
+        {
+          "id": "strength_only",
+          "label": "只写强度，漏掉题问对象。",
+          "reason": "题干第一问明确问强度以外还包括哪些项目。"
+        }
+      ],
+      "optionFeedback": {
+        "write_stronger": "容易选，因为“必须检测”听起来更规范。但阅卷缺的是项目，不是语气；要把尺寸偏差和合同约定项目补出来。",
+        "organizer_now": "监理组织是下一格主体分，不能替代内容清单。先把检验内容写完整。",
+        "strength_only": "这会回到题干已经给出的强度，反而漏掉问题问的“除混凝土强度外”。"
+      },
+      "correct": "对。学生只写到保护层，属于部分命中；正确补法是把结构位置与尺寸偏差、合同约定项目也写进清单。",
+      "wrong": "这题先看内容清单。只改语气、只改主体或只写强度，都没有补齐“除混凝土强度外”的采分对象。"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "改主体错位",
+      "skill": "组织主体定位",
+      "scene_gap": "学生把实施主体写成组织主体。",
+      "student": "学生答：结构实体检验由施工单位组织检验。",
+      "stem": "下面哪一句改正动作最像能拿主体分？",
+      "answer": "supervision_organizes",
+      "visual": {
+        "kind": "process_flow",
+        "title": "组织主体箭头纠正",
+        "before": [
+          "施工组织",
+          "监理缺位",
+          "见证缺失"
+        ],
+        "after": [
+          "监理组织",
+          "施工实施",
+          "监理见证"
+        ],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "supervision_organizes",
+          "label": "写监理组织、施工实施、监理见证。",
+          "reason": "把组织、实施、见证三个角色拆清。"
+        },
+        {
+          "id": "construction_self_check",
+          "label": "写施工自检，仍然主体错位。",
+          "reason": "把自检和组织验收混在一起。"
+        },
+        {
+          "id": "owner_organizes",
+          "label": "改成建设单位，还是猜主体。",
+          "reason": "把实体检验组织主体改成了另一个不对应主体。"
+        },
+        {
+          "id": "only_special_plan",
+          "label": "只写方案审批，漏组织链。",
+          "reason": "专项方案是补充点，不能替代组织、实施、见证。"
+        }
+      ],
+      "optionFeedback": {
+        "construction_self_check": "容易选，因为施工单位确实实施检验。但组织主体不是施工单位，答案要把监理组织写出来。",
+        "owner_organizes": "建设单位不是本题结构实体检验的组织主体。盲目改成更高一级，会继续主体错位。",
+        "only_special_plan": "专项方案报监理审批可以补，但主体分还要写监理组织、施工实施、监理见证。"
+      },
+      "correct": "对。主体分要拆角色：监理单位组织，施工单位实施，监理见证全过程。",
+      "wrong": "主体题不能用“谁施工谁组织”或“建设单位兜底”来猜；要按监理组织、施工实施、监理见证写。"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "跑双阈值",
+      "skill": "计算判定链",
+      "scene_gap": "学生直接把平均强度和设计值比较，跳过88%/80%双阈值。",
+      "student": "题干：C35 构件芯样 28.5、31、32MPa。学生答：平均值比35小，所以不合格。",
+      "stem": "这一步最稳的计算判定链应该怎么写？",
+      "answer": "dual_threshold",
+      "visual": {
+        "kind": "formula_chain",
+        "title": "芯样进入双阈值标尺",
+        "before": [
+          "28.5",
+          "31",
+          "32",
+          "直接比35"
+        ],
+        "after": [
+          "平均值30.8",
+          "35×88%=30.8",
+          "最小28.5",
+          "35×80%=28"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "dual_threshold",
+          "label": "亮88%/80%判据，再代入回判。",
+          "reason": "完整交付公式、代入和回判。"
+        },
+        {
+          "id": "direct_compare",
+          "label": "直接比35，跳过实体判据。",
+          "reason": "把实体判定误写成直接比设计值。"
+        },
+        {
+          "id": "average_only",
+          "label": "只看平均，漏最小值门。",
+          "reason": "漏掉最小值80%的另一条门。"
+        },
+        {
+          "id": "min_only",
+          "label": "只看最小值，漏平均值门。",
+          "reason": "漏掉平均值88%的另一条门。"
+        }
+      ],
+      "optionFeedback": {
+        "direct_compare": "这是学生样本的核心错法。实体强度不是直接比35，而是先把设计值乘88%和80%。",
+        "average_only": "平均值是第一条门，但最小值也要同时满足；只算平均会漏判最弱芯样。",
+        "min_only": "最小值过线不代表平均值自动过线。两条门都要亮出来。"
+      },
+      "correct": "对。计算题要交付“判据、代入、回判”三步；临界取舍不擅自定官方分，但阈值链必须写对。",
+      "wrong": "这题不是比谁算得快，而是看你有没有把实体强度的双阈值判据写出来。"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "重排标准答",
+      "skill": "三格改写",
+      "scene_gap": "学生答案的内容、主体、依据散乱，需要重排成阅卷结构。",
+      "student": "现在要把学生样本改成答题纸答案。",
+      "stem": "下面哪种组织顺序最像阅卷友好的主观题答案？",
+      "answer": "three_grids",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "三格改写答题纸",
+        "before": [
+          "测保护层",
+          "施工单位组织",
+          "平均比35",
+          "不合格"
+        ],
+        "after": [
+          "内容清单",
+          "监理组织/施工实施/见证",
+          "88%/80%双阈值",
+          "回判结论"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "three_grids",
+          "label": "按内容、主体、依据三格重排。",
+          "reason": "内容、主体、依据三格齐全。"
+        },
+        {
+          "id": "calculation_first",
+          "label": "先算数值，清单主体仍空。",
+          "reason": "计算有了，但内容清单和主体仍然空。"
+        },
+        {
+          "id": "definition_first",
+          "label": "讲概念，替代不了作答。",
+          "reason": "概念解释不能替代采分动作。"
+        },
+        {
+          "id": "conclusion_first",
+          "label": "先结论，依据变成可有可无。",
+          "reason": "主观题不能把依据放成可有可无。"
+        }
+      ],
+      "optionFeedback": {
+        "calculation_first": "这是把最显眼的数值题放在前面，但第一问的内容清单和主体会继续漏。",
+        "definition_first": "案例题不是名词解释。阅卷要看你有没有把题干要求的采分动作写出来。",
+        "conclusion_first": "结论冲太快会丢过程和依据。尤其本题有临界处置，更不能只写结论。"
+      },
+      "correct": "对。阅卷友好的顺序就是内容清单、组织主体、双阈值依据三格连续写。",
+      "wrong": "这道题不是靠一个结论拿分。你要让阅卷人看见内容、主体、依据三个格子都齐。"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "输出采分句",
+      "skill": "采分句输出",
+      "scene_gap": "最后训练学生把诊断结果压成完整可写句。",
+      "student": "考试要求：结构实体检验除混凝土强度外还包括哪些项目？由谁组织？强度是否合格，写依据。",
+      "stem": "下面哪一句最像完整采分句？",
+      "answer": "score_sentence",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "最终答题纸扫描",
+        "before": [
+          "内容",
+          "主体",
+          "依据",
+          "结论"
+        ],
+        "after": [
+          "保护层/尺寸偏差/合同项目",
+          "监理组织施工实施见证",
+          "平均≥88%且最小≥80%",
+          "按细则回判"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "score_sentence",
+          "label": "三格齐全：内容、主体、依据。",
+          "reason": "内容、主体、依据都交付。"
+        },
+        {
+          "id": "short_strength",
+          "label": "重复错答，三处都漏。",
+          "reason": "基本重复学生错答。"
+        },
+        {
+          "id": "content_only",
+          "label": "空泛保证，没有采分对象。",
+          "reason": "空泛表达，没有具体采分对象和判据。"
+        },
+        {
+          "id": "organizer_only",
+          "label": "只修主体，漏清单和判据。",
+          "reason": "只命中主体的一部分，漏内容和计算依据。"
+        }
+      ],
+      "optionFeedback": {
+        "short_strength": "这几乎就是学生错答：清单不全、主体错位、判定依据错。",
+        "content_only": "“很多、逐项、确保质量”听着稳，但阅卷无法定位保护层、尺寸偏差、合同项目和双阈值。",
+        "organizer_only": "监理组织是对的，但只拿到一个格子；内容清单和判定依据仍然没交付。"
+      },
+      "correct": "对。最终答案要让阅卷人扫到三格：内容清单、组织主体、判定依据。",
+      "wrong": "最终句不能只修一个点。A01 作答层训练的是把所有漏点压成完整采分表达。"
+    }
+  ]
 }

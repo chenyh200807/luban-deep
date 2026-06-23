@@ -11,6 +11,7 @@ import {
   Search,
   Settings2,
   ShieldOff,
+  Trash2,
   UserCog,
 } from 'lucide-react'
 import {
@@ -40,6 +41,7 @@ import {
   getMemberDashboard,
   getMemberDetail,
   listMembers,
+  deleteMemberAccount,
   manualPurchaseMembership,
   reverseManualMembershipPurchase,
   revokeMembership,
@@ -107,7 +109,6 @@ const EMPTY_VIEWS: SavedView[] = []
 const EMPTY_PACKAGES: BiCommercePackage[] = []
 const MEMBERSHIP_INPUT_CLASS =
   'h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60'
-type PendingMembershipAction = 'revoke' | 'reverse_supreme' | 'supreme_free'
 let savedViewsRawSnapshot: string | null = null
 let savedViewsSnapshot: SavedView[] = EMPTY_VIEWS
 
@@ -380,13 +381,13 @@ export function BiV2MemberOpsPanel({
         }),
         getBiMemberOpsPackages().catch(() => []),
         getBiInternalAccounts().catch(() => ({
-          states: {} as Record<string, BiInternalAccountState>,
+          states: {},
           internal_accounts: [],
           audit: [],
           total_internal: 0,
         })),
       ])
-      setInternalStates(internalData.states as Record<string, BiInternalAccountState>)
+      setInternalStates(internalData.states)
       setInternalAudit(internalData.audit)
       const nextRows = list.items.map(item => ({
         ...toMemberRow(item),
@@ -636,6 +637,25 @@ export function BiV2MemberOpsPanel({
     return result.ok
   }
 
+  async function markInternalAccount(member: MemberRow, isInternal: boolean, reason: string) {
+    if (!flagEnabled || internalActionWriting) return
+    setInternalActionError('')
+    try {
+      setInternalActionWriting(true)
+      await markMemberInternalAccount(member.user_id, isInternal, reason)
+      setOpsActionNotice(
+        isInternal
+          ? `已将 ${member.phone_masked} 标记为内部账号`
+          : `已取消 ${member.phone_masked} 的内部账号标记`
+      )
+      await loadMembers()
+    } catch (err) {
+      setInternalActionError(err instanceof Error ? err.message : '内部账号标记失败')
+    } finally {
+      setInternalActionWriting(false)
+    }
+  }
+
   async function markContacted(member: MemberRow) {
     const ok = await executeMemberOpsAction(member.user_id, {
       status: 'done',
@@ -661,25 +681,6 @@ export function BiV2MemberOpsPanel({
       action_title: '运营备注',
     })
     if (ok) setOpsActionNotice(`已给 ${member.phone_masked} 添加备注`)
-  }
-
-  async function markInternalAccount(member: MemberRow, isInternal: boolean, reason: string) {
-    if (!flagEnabled || internalActionWriting) return
-    setInternalActionWriting(true)
-    setInternalActionError('')
-    try {
-      await markMemberInternalAccount(member.user_id, isInternal, reason)
-      setOpsActionNotice(
-        isInternal
-          ? `已将 ${member.phone_masked} 标记为内部账号`
-          : `已取消 ${member.phone_masked} 的内部账号标记`
-      )
-      await loadMembers()
-    } catch (err) {
-      setInternalActionError(err instanceof Error ? err.message : '内部账号标记失败')
-    } finally {
-      setInternalActionWriting(false)
-    }
   }
 
   async function upgradeMemberToVip(member: MemberRow) {
@@ -759,36 +760,58 @@ export function BiV2MemberOpsPanel({
     )
   }
 
+  async function deleteAccount(member: MemberRow, reason: string) {
+    if (!flagEnabled || membershipActionWriting) return
+    setOpsActionNotice('')
+    setMembershipActionError('')
+    try {
+      setMembershipActionWriting(true)
+      const result = await deleteMemberAccount({
+        user_id: member.user_id,
+        reason,
+      })
+      setOpsActionNotice(result.message || `已删除 ${member.phone_masked} 会员账号`)
+      setSelectedDetail(null)
+      setSelectedMember(null)
+      setDrawer('none')
+      await loadMembers()
+    } catch (err) {
+      setMembershipActionError(err instanceof Error ? err.message : '会员账号删除失败')
+    } finally {
+      setMembershipActionWriting(false)
+    }
+  }
+
   async function reverseSupremeMembership(
     member: MemberRow,
-    payload: { purchaseId: string; reason: string }
+    payload: { amountCny?: number; reason: string }
   ) {
     await writeMembershipChange(
       member,
       async () => {
         const result = await reverseManualMembershipPurchase({
           user_id: member.user_id,
-          purchase_id: payload.purchaseId,
+          amount_cny: payload.amountCny,
           reason: payload.reason,
         })
         notifyCommerceMutated({ userId: member.user_id, packageId: 'supreme_svip' })
         return result.member
       },
       detail =>
-        `已撤回 ${member.phone_masked} 至尊SVIP，并冲销原始流水 ${payload.purchaseId}，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
+        `已撤回 ${member.phone_masked} 至尊SVIP，并冲销 ¥${Math.abs(payload.amountCny ?? 0) || '最近一笔'}，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
     )
   }
 
   async function convertSupremeMembershipToFree(
     member: MemberRow,
-    payload: { packageId: string; days: number; purchaseId: string; reason: string }
+    payload: { packageId: string; days: number; reversalAmountCny?: number; reason: string }
   ) {
     await writeMembershipChange(
       member,
       async () => {
         await reverseManualMembershipPurchase({
           user_id: member.user_id,
-          purchase_id: payload.purchaseId,
+          amount_cny: payload.reversalAmountCny,
           reason: `${payload.reason}：manual_membership_reversal 冲销误录收入`,
         })
         const result = await manualPurchaseMembership({
@@ -845,7 +868,7 @@ export function BiV2MemberOpsPanel({
         <BiV2DataSourceBanner tone="amber">
           BI_CRM_V2_ENABLED 未开启。当前为 Batch 2 静态原型；Batch 2.5+ 接入真实
           <code className="mx-1 font-mono">/api/v1/bi/members</code> 与
-          <code className="font-mono">/api/v1/bi/member/&lt;user_id&gt;/*</code>。
+          <code className="font-mono">/api/v1/member/&lt;user_id&gt;/*</code>。
         </BiV2DataSourceBanner>
       ) : (
         <BiV2DataSourceBanner
@@ -864,8 +887,8 @@ export function BiV2MemberOpsPanel({
           }
         >
           BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
-          <code className="font-mono">/api/v1/bi/member/list</code>，学员 360 读取{' '}
-          <code className="font-mono">/api/v1/bi/member/&lt;user_id&gt;/360</code>；低风险写动作走
+          <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
+          <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
           member.ops_action.record audit。
         </BiV2DataSourceBanner>
       )}
@@ -885,31 +908,38 @@ export function BiV2MemberOpsPanel({
         <MemberOpsCockpit dashboard={dashboard} />
       </div>
 
-      {flagEnabled && (
-        <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg bg-amber-950/40 px-3 py-2 ring-1 ring-amber-500/30">
-          <span className="text-xs font-bold text-amber-200">内部账号</span>
-          <button
-            type="button"
-            className={`rounded px-2 py-0.5 text-xs font-semibold transition ${showInternalOnly ? 'bg-amber-500 text-black' : 'bg-amber-400/20 text-amber-300 hover:bg-amber-400/40'}`}
-            onClick={() => setShowInternalOnly(v => !v)}
-            aria-pressed={showInternalOnly}
-            title={showInternalOnly ? '点击取消仅显示内部账号' : '点击仅显示内部账号'}
-          >
-            {Object.values(internalStates).filter(s => s.is_internal).length} 个
-            {showInternalOnly ? ' · 已筛选' : ''}
-          </button>
-          <button
-            type="button"
-            className="ml-auto rounded px-2 py-0.5 text-xs text-amber-300 hover:text-amber-100"
-            onClick={() => setShowInternalAudit(true)}
-          >
-            查看审计流水
-          </button>
-          {internalActionError && (
-            <span className="text-xs text-rose-400">{internalActionError}</span>
-          )}
-        </div>
-      )}
+      {(() => {
+        const internalCount = Object.values(internalStates).filter(s => s.is_internal).length
+        return (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-2.5">
+            <span className="text-xs font-bold text-amber-200">内部账号</span>
+            <button
+              type="button"
+              onClick={() => setShowInternalOnly(v => !v)}
+              className={`rounded-xl border px-3 py-1 text-xs font-black transition-colors ${
+                showInternalOnly
+                  ? 'border-amber-300/60 bg-amber-300/20 text-amber-100'
+                  : 'border-amber-300/20 bg-amber-300/[0.08] text-amber-200 hover:bg-amber-300/15'
+              }`}
+              aria-pressed={showInternalOnly}
+              title={showInternalOnly ? '点击取消仅显示内部账号' : '点击仅显示内部账号'}
+            >
+              {internalCount} 个{showInternalOnly ? ' · 已筛选' : ''}
+            </button>
+            {internalActionError ? (
+              <span className="text-xs text-rose-400">{internalActionError}</span>
+            ) : null}
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={() => setShowInternalAudit(true)}
+              className="rounded-xl border border-amber-300/20 bg-amber-300/[0.08] px-3 py-1 text-xs text-amber-200 hover:bg-amber-300/15"
+            >
+              查看审计流水
+            </button>
+          </div>
+        )
+      })()}
 
       <BehaviorCohortTabs active={behaviorCohort} onChange={setBehaviorCohort} />
 
@@ -1127,7 +1157,7 @@ export function BiV2MemberOpsPanel({
           selectedMember?.user_id ?? 'none',
           selectedDetail?.tier ?? '',
           selectedDetail?.expire_at ?? '',
-          membershipPackages.map(pkg => `${pkg.id}:${pkg.priceCny}:${pkg.status}`).join('|'),
+          membershipPackages.map(pkg => pkg.id).join('|'),
         ].join(':')}
         open={drawer === 'membershipSettings'}
         member={selectedMember}
@@ -1140,6 +1170,7 @@ export function BiV2MemberOpsPanel({
         onPaidOpen={paidOpenMembership}
         onUpdate={saveMembershipSettings}
         onRevoke={cancelMembership}
+        onDeleteAccount={deleteAccount}
         onReverseSupreme={reverseSupremeMembership}
         onConvertSupremeToFree={convertSupremeMembershipToFree}
         isInternalAccount={Boolean(
@@ -1171,14 +1202,15 @@ function MembershipSettingsPanel({
   loading,
   error,
   writing,
+  isInternalAccount,
+  internalActionWriting,
   onClose,
   onPaidOpen,
   onUpdate,
   onRevoke,
+  onDeleteAccount,
   onReverseSupreme,
   onConvertSupremeToFree,
-  isInternalAccount,
-  internalActionWriting,
   onMarkInternal,
 }: {
   open: boolean
@@ -1188,6 +1220,8 @@ function MembershipSettingsPanel({
   loading: boolean
   error: string
   writing: boolean
+  isInternalAccount: boolean
+  internalActionWriting: boolean
   onClose: () => void
   onPaidOpen: (
     member: MemberRow,
@@ -1198,16 +1232,15 @@ function MembershipSettingsPanel({
     payload: { days?: number; expireAt?: string; reason: string }
   ) => Promise<void> | void
   onRevoke: (member: MemberRow, reason: string) => Promise<void> | void
+  onDeleteAccount: (member: MemberRow, reason: string) => Promise<void> | void
   onReverseSupreme: (
     member: MemberRow,
-    payload: { purchaseId: string; reason: string }
+    payload: { amountCny?: number; reason: string }
   ) => Promise<void> | void
   onConvertSupremeToFree: (
     member: MemberRow,
-    payload: { packageId: string; days: number; purchaseId: string; reason: string }
+    payload: { packageId: string; days: number; reversalAmountCny?: number; reason: string }
   ) => Promise<void> | void
-  isInternalAccount: boolean
-  internalActionWriting: boolean
   onMarkInternal: (member: MemberRow, isInternal: boolean, reason: string) => Promise<void> | void
 }) {
   const activePackages = useMemo(() => packages.filter(isActivePackage), [packages])
@@ -1222,23 +1255,28 @@ function MembershipSettingsPanel({
     initialPackage ? String(initialPackage.priceCny || '') : ''
   )
   const [reason, setReason] = useState('BI 会员设置')
-  const [formError, setFormError] = useState('')
-  const [actionNotice, setActionNotice] = useState('')
-  const [pendingAction, setPendingAction] = useState<PendingMembershipAction | null>(null)
-  const selectedPackage = activePackages.find(pkg => pkg.id === packageId) ?? activePackages[0]
-  const reversiblePurchase = detail?.membership_billing?.reversible_supreme_purchase ?? null
+  const [internalReason, setInternalReason] = useState('')
+  const [internalReasonError, setInternalReasonError] = useState('')
 
-  function clearPendingAction() {
-    setPendingAction(null)
-    setActionNotice('')
+  async function submitMarkInternal(toInternal: boolean) {
+    if (!member) return
+    const rsn = internalReason.trim()
+    if (rsn.length < 5) {
+      setInternalReasonError('请填写至少 5 个字的原因，用于审计留痕')
+      return
+    }
+    setInternalReasonError('')
+    await onMarkInternal(member, toInternal, rsn)
+    setInternalReason('')
   }
+  const [formError, setFormError] = useState('')
+  const selectedPackage = activePackages.find(pkg => pkg.id === packageId) ?? activePackages[0]
 
   if (!member) return null
   const activeMember = member
   const selectedTier = normalizeMembershipTier(selectedPackage?.tier ?? detail?.tier ?? member.tier)
   const currentTier = normalizeMembershipTier(detail?.tier ?? member.tier)
-  const canReverseSupreme =
-    currentTier === 'supreme_svip' && Boolean(reversiblePurchase?.purchase_id)
+  const canReverseSupreme = currentTier === 'supreme_svip'
   const supremePackage = activePackages.find(
     pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip'
   )
@@ -1247,21 +1285,9 @@ function MembershipSettingsPanel({
   function applyPackage(nextPackageId: string) {
     const next = activePackages.find(pkg => pkg.id === nextPackageId)
     setPackageId(nextPackageId)
-    clearPendingAction()
     if (next) {
       setAmountCny(String(next.priceCny || ''))
     }
-  }
-
-  function requireSecondClick(action: PendingMembershipAction, message: string) {
-    if (pendingAction === action) {
-      clearPendingAction()
-      return true
-    }
-    setPendingAction(action)
-    setActionNotice(message)
-    setFormError('')
-    return false
   }
 
   function parseDays(): number | null {
@@ -1279,7 +1305,6 @@ function MembershipSettingsPanel({
   }
 
   async function submitPaidOpen() {
-    clearPendingAction()
     const parsedDays = parseDays()
     const parsedAmount = parseAmount()
     if (!selectedPackage || !parsedDays) {
@@ -1301,7 +1326,6 @@ function MembershipSettingsPanel({
 
   async function submitUpdate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    clearPendingAction()
     const parsedDays = parseDays()
     if (!expireAt && !parsedDays) {
       setFormError('请填写有效期或有效天数')
@@ -1316,54 +1340,75 @@ function MembershipSettingsPanel({
   }
 
   async function submitRevoke() {
+    if (!window.confirm(`取消 ${activeMember.phone_masked} 的会员权益？`)) return
+    setFormError('')
+    await onRevoke(activeMember, reason.trim() || 'BI 会员设置：取消会员')
+  }
+
+  async function submitDeleteAccount() {
     if (
-      !requireSecondClick(
-        'revoke',
-        `再次点击「确认取消」将取消 ${activeMember.phone_masked} 的当前会员权益；历史账务流水不会删除。`
+      !window.confirm(
+        `删除 ${activeMember.phone_masked} 的会员账号？账号将无法登录，历史审计、账务与学习记录会保留。`
       )
     ) {
       return
     }
     setFormError('')
-    await onRevoke(activeMember, reason.trim() || 'BI 会员设置：取消会员')
+    await onDeleteAccount(activeMember, reason.trim() || 'BI 会员设置：删除会员账号')
   }
 
   async function submitSupremeReversal() {
     if (!canReverseSupreme) {
-      setFormError('只有当前为至尊SVIP且存在可冲销原始购买流水时才可以撤回')
+      setFormError('只有当前为至尊SVIP的会员可以撤回')
       return
     }
-    const displayAmount = reversiblePurchase?.amount_cny ?? '原始实收'
+    const parsedAmount = parseAmount()
+    if (parsedAmount === null) {
+      setFormError('冲销金额必须是非负数字')
+      return
+    }
+    if (parsedAmount !== undefined && parsedAmount <= 0) {
+      setFormError('冲销金额需大于 0；如果要按最近一笔至尊SVIP购买金额冲销，请留空')
+      return
+    }
+    const displayAmount = parsedAmount ?? selectedPackage?.priceCny ?? '最近一笔'
     if (
-      !requireSecondClick(
-        'reverse_supreme',
-        `再次点击「确认撤回」将撤回 ${activeMember.phone_masked} 的至尊SVIP权益，并冲销原始流水 ${reversiblePurchase?.purchase_id}（¥${displayAmount}）。`
+      !window.confirm(
+        `撤回 ${activeMember.phone_masked} 的至尊SVIP权益，并生成 ¥${displayAmount} 的负向冲销流水？`
       )
     ) {
       return
     }
     setFormError('')
     await onReverseSupreme(activeMember, {
-      purchaseId: reversiblePurchase?.purchase_id ?? '',
+      amountCny: parsedAmount,
       reason: reason.trim() || 'manual_membership_reversal',
     })
   }
 
   async function submitSupremeFreeCorrection() {
     if (!canReverseSupreme) {
-      setFormError('只有当前为至尊SVIP且存在可冲销原始购买流水时才可以改为0元')
+      setFormError('只有当前为至尊SVIP的会员可以改为0元')
       return
     }
     const parsedDays = parseDays()
+    const parsedAmount = parseAmount()
     if (!supremePackage || !parsedDays) {
       setFormError('需要有效的至尊SVIP套餐和有效天数')
       return
     }
-    const displayAmount = reversiblePurchase?.amount_cny ?? '原始实收'
+    if (parsedAmount === null) {
+      setFormError('冲销金额必须是非负数字')
+      return
+    }
+    if (parsedAmount !== undefined && parsedAmount <= 0) {
+      setFormError('冲销金额需大于 0；如果要按最近一笔至尊SVIP购买金额冲销，请留空')
+      return
+    }
+    const displayAmount = parsedAmount ?? supremePackage.priceCny ?? '最近一笔'
     if (
-      !requireSecondClick(
-        'supreme_free',
-        `再次点击「确认0元」将先冲销原始流水 ${reversiblePurchase?.purchase_id}（¥${displayAmount}），再以 0 元重新开通至尊SVIP。`
+      !window.confirm(
+        `把 ${activeMember.phone_masked} 的至尊SVIP改为0元？系统会先冲销 ¥${displayAmount}，再以 0 元重新开通。`
       )
     ) {
       return
@@ -1372,7 +1417,7 @@ function MembershipSettingsPanel({
     await onConvertSupremeToFree(activeMember, {
       packageId: supremePackage.id,
       days: parsedDays,
-      purchaseId: reversiblePurchase?.purchase_id ?? '',
+      reversalAmountCny: parsedAmount,
       reason: reason.trim() || 'BI 会员设置：改为0元',
     })
   }
@@ -1393,15 +1438,23 @@ function MembershipSettingsPanel({
               variant="danger"
               size="sm"
               className="min-w-[5.5rem] whitespace-nowrap"
-              aria-label={pendingAction === 'revoke' ? '确认取消会员' : '取消会员'}
-              title={
-                pendingAction === 'revoke'
-                  ? '再次点击确认取消会员；历史账务流水不会删除'
-                  : '撤销当前会员权益，不删除历史流水'
-              }
+              aria-label="取消会员"
+              title="撤销当前会员权益，不删除历史流水"
             >
               <ShieldOff className="h-3.5 w-3.5" aria-hidden />
-              {pendingAction === 'revoke' ? '确认取消' : '取消会员'}
+              取消会员
+            </BiButton>
+            <BiButton
+              onClick={() => void submitDeleteAccount()}
+              disabled={writing}
+              variant="danger"
+              size="sm"
+              className="min-w-[5.5rem] whitespace-nowrap"
+              aria-label="删除会员账号"
+              title="删除登录账号并让该会员从默认运营列表消失；历史审计、账务与学习记录保留"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              删除账号
             </BiButton>
             {canReverseSupreme ? (
               <>
@@ -1411,17 +1464,11 @@ function MembershipSettingsPanel({
                   variant="secondary"
                   size="sm"
                   className="min-w-[6rem] whitespace-nowrap"
-                  aria-label={
-                    pendingAction === 'supreme_free' ? '确认将至尊SVIP改为0元' : '将至尊SVIP改为0元'
-                  }
-                  title={
-                    pendingAction === 'supreme_free'
-                      ? '再次点击确认0元修正'
-                      : '先冲销误录收入，再以0元重新开通至尊SVIP'
-                  }
+                  aria-label="将至尊SVIP改为0元"
+                  title="先冲销误录收入，再以0元重新开通至尊SVIP"
                 >
                   <CreditCard className="h-3.5 w-3.5" aria-hidden />
-                  {pendingAction === 'supreme_free' ? '确认0元' : '改为0元'}
+                  改为0元
                 </BiButton>
                 <BiButton
                   onClick={() => void submitSupremeReversal()}
@@ -1429,17 +1476,11 @@ function MembershipSettingsPanel({
                   variant="danger"
                   size="sm"
                   className="min-w-[7.5rem] whitespace-nowrap"
-                  aria-label={
-                    pendingAction === 'reverse_supreme' ? '确认撤回至尊SVIP' : '撤回至尊SVIP'
-                  }
-                  title={
-                    pendingAction === 'reverse_supreme'
-                      ? '再次点击确认撤回并冲销原始流水'
-                      : '只允许撤回至尊SVIP；会生成负向账务流水冲销收入'
-                  }
+                  aria-label="撤回至尊SVIP"
+                  title="只允许撤回至尊SVIP；会生成负向账务流水冲销收入"
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-                  {pendingAction === 'reverse_supreme' ? '确认撤回' : '撤回至尊SVIP'}
+                  撤回至尊SVIP
                 </BiButton>
               </>
             ) : null}
@@ -1468,7 +1509,6 @@ function MembershipSettingsPanel({
       >
         {loading ? <BiNotice tone="sky">正在加载会员状态...</BiNotice> : null}
         {error ? <BiNotice tone="rose">会员设置加载失败：{error}</BiNotice> : null}
-        {actionNotice ? <BiNotice tone="amber">{actionNotice}</BiNotice> : null}
         {formError ? <BiNotice tone="rose">{formError}</BiNotice> : null}
 
         <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -1537,10 +1577,7 @@ function MembershipSettingsPanel({
                 min={1}
                 max={3650}
                 value={days}
-                onChange={event => {
-                  clearPendingAction()
-                  setDays(event.target.value)
-                }}
+                onChange={event => setDays(event.target.value)}
                 className={MEMBERSHIP_INPUT_CLASS}
                 aria-label="设置有效天数"
               />
@@ -1550,10 +1587,7 @@ function MembershipSettingsPanel({
               <input
                 type="date"
                 value={expireAt}
-                onChange={event => {
-                  clearPendingAction()
-                  setExpireAt(event.target.value)
-                }}
+                onChange={event => setExpireAt(event.target.value)}
                 className={MEMBERSHIP_INPUT_CLASS}
                 aria-label="设置会员有效期"
               />
@@ -1563,10 +1597,7 @@ function MembershipSettingsPanel({
               <input
                 inputMode="decimal"
                 value={amountCny}
-                onChange={event => {
-                  clearPendingAction()
-                  setAmountCny(event.target.value)
-                }}
+                onChange={event => setAmountCny(event.target.value)}
                 className={MEMBERSHIP_INPUT_CLASS}
                 aria-label="设置实收金额"
               />
@@ -1574,33 +1605,14 @@ function MembershipSettingsPanel({
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
             不改金额时按套餐价入账；填 0 即 0 元开通，填其他数字即按人工实收金额入账。
-            当前为至尊SVIP时，“撤回至尊SVIP”和“改为0元”只冲销下方展示的原始购买流水，不读取这里的实收金额。
+            当前为至尊SVIP时，“撤回至尊SVIP”会按这里的金额生成负向冲销；留空则后端按最近一笔至尊SVIP购买金额推断。
             “改为0元”会先冲销误录收入，再立即以 0 元重新开通至尊SVIP。
           </p>
-          {currentTier === 'supreme_svip' ? (
-            <div className="mt-3 rounded-xl border border-white/10 bg-black/15 p-3 text-xs text-slate-300">
-              <div className="font-bold text-slate-100">至尊SVIP可撤回流水</div>
-              {reversiblePurchase ? (
-                <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                  <PackageMetric label="购买流水" value={reversiblePurchase.purchase_id} />
-                  <PackageMetric label="原始实收" value={`¥${reversiblePurchase.amount_cny}`} />
-                  <PackageMetric label="点数" value={`${reversiblePurchase.points}`} />
-                </div>
-              ) : (
-                <p className="mt-1 text-slate-400">
-                  没有找到可撤回的至尊SVIP购买流水；可能不是手动购买开通，或已冲销过。
-                </p>
-              )}
-            </div>
-          ) : null}
           <label className="mt-3 block space-y-1">
             <span className="text-[11px] text-slate-400">原因 / 备注</span>
             <input
               value={reason}
-              onChange={event => {
-                clearPendingAction()
-                setReason(event.target.value)
-              }}
+              onChange={event => setReason(event.target.value)}
               className={MEMBERSHIP_INPUT_CLASS}
               aria-label="设置会员变更原因"
             />
@@ -1619,88 +1631,68 @@ function MembershipSettingsPanel({
             保存有效期
           </BiButton>
         </div>
+
+        <section className="rounded-2xl border border-amber-400/25 bg-amber-400/[0.06] p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <h3 className="text-sm font-black text-amber-200">内部账号</h3>
+            {isInternalAccount ? (
+              <span className="rounded bg-amber-400/25 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                已标记
+              </span>
+            ) : (
+              <span className="rounded bg-slate-700/50 px-2 py-0.5 text-[10px] text-slate-400">
+                未标记
+              </span>
+            )}
+          </div>
+          <p className="mb-3 text-[11px] leading-5 text-amber-100/60">
+            内部账号不计入 BI 收入统计。所有标记 / 取消操作都会记录操作人和原因，管理员可审计。
+          </p>
+          <label className="block space-y-1">
+            <span className="text-[11px] text-amber-200/70">操作原因（必填，至少 5 字）</span>
+            <input
+              value={internalReason}
+              onChange={e => {
+                setInternalReason(e.target.value)
+                setInternalReasonError('')
+              }}
+              placeholder={
+                isInternalAccount ? '填写取消内部账号的原因…' : '填写标记为内部账号的原因…'
+              }
+              className={MEMBERSHIP_INPUT_CLASS}
+              aria-label="内部账号操作原因"
+            />
+          </label>
+          {internalReasonError ? (
+            <p className="mt-1 text-[11px] text-rose-400">{internalReasonError}</p>
+          ) : null}
+          <div className="mt-3 flex gap-2">
+            {isInternalAccount ? (
+              <BiButton
+                type="button"
+                onClick={() => void submitMarkInternal(false)}
+                disabled={internalActionWriting}
+                variant="secondary"
+                size="sm"
+              >
+                取消内部标记
+              </BiButton>
+            ) : (
+              <BiButton
+                type="button"
+                onClick={() => void submitMarkInternal(true)}
+                disabled={internalActionWriting}
+                variant="secondary"
+                size="sm"
+                className="border-amber-400/30 text-amber-200 hover:bg-amber-400/10"
+              >
+                标记为内部账号
+              </BiButton>
+            )}
+          </div>
+        </section>
       </form>
-
-      <InternalAccountSection
-        member={activeMember}
-        isInternalAccount={isInternalAccount}
-        writing={internalActionWriting}
-        onMarkInternal={onMarkInternal}
-      />
     </BiSidePanel>
-  )
-}
-
-function InternalAccountSection({
-  member,
-  isInternalAccount,
-  writing,
-  onMarkInternal,
-}: {
-  member: MemberRow
-  isInternalAccount: boolean
-  writing: boolean
-  onMarkInternal: (member: MemberRow, isInternal: boolean, reason: string) => Promise<void> | void
-}) {
-  const [reason, setReason] = useState('')
-  const [reasonError, setReasonError] = useState('')
-
-  async function submit(toInternal: boolean) {
-    const trimmed = reason.trim()
-    if (trimmed.length < 5) {
-      setReasonError('原因至少需要 5 个字')
-      return
-    }
-    setReasonError('')
-    await onMarkInternal(member, toInternal, trimmed)
-    setReason('')
-  }
-
-  return (
-    <section className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/30 p-3">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-xs font-bold text-amber-200">内部账号</span>
-        {isInternalAccount && (
-          <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
-            当前已标记
-          </span>
-        )}
-      </div>
-      <label className="block text-[11px] text-slate-400">
-        操作原因（必填，最少 5 字）
-        <input
-          type="text"
-          value={reason}
-          placeholder="例：此账号为内部测试账号"
-          onChange={e => setReason(e.target.value)}
-          className="mt-1 w-full rounded border border-white/10 bg-black/20 px-2 py-1 text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500/50"
-        />
-      </label>
-      {reasonError && <p className="mt-1 text-[10px] text-rose-400">{reasonError}</p>}
-      <div className="mt-2 flex gap-2">
-        {!isInternalAccount ? (
-          <BiButton
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={writing}
-            onClick={() => void submit(true)}
-          >
-            标记为内部账号
-          </BiButton>
-        ) : (
-          <BiButton
-            type="button"
-            size="sm"
-            variant="danger"
-            disabled={writing}
-            onClick={() => void submit(false)}
-          >
-            取消内部账号标记
-          </BiButton>
-        )}
-      </div>
-    </section>
   )
 }
 
@@ -2039,13 +2031,13 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
   if (key === 'phone')
     return (
       <div className="min-w-[132px]">
-        <div className="flex items-center gap-1.5 font-mono font-black text-slate-100">
-          {row.phone_masked}
-          {row.is_internal_account && (
-            <span className="rounded bg-amber-400/20 px-1 py-0.5 text-[10px] font-semibold text-amber-300">
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono font-black text-slate-100">{row.phone_masked}</span>
+          {row.is_internal_account ? (
+            <span className="rounded bg-amber-400/20 px-1 py-0.5 text-[9px] font-bold text-amber-300">
               内部
             </span>
-          )}
+          ) : null}
         </div>
         <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">{row.user_id}</div>
       </div>
@@ -2111,57 +2103,59 @@ function InternalAccountAuditPanel({
   onClose: () => void
   audit: BiInternalAccountState[]
 }) {
-  if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center">
-      <div className="w-full max-w-2xl rounded-t-2xl bg-slate-900 p-4 shadow-2xl ring-1 ring-white/10 sm:rounded-2xl">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-bold text-amber-200">内部账号审计流水</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded px-2 py-1 text-xs text-slate-400 hover:text-slate-100"
-          >
-            关闭
-          </button>
-        </div>
+    <BiSidePanel open={open} onClose={onClose} title="内部账号审计流水" width="lg">
+      <div className="space-y-2">
+        <p className="text-xs text-amber-200/70">
+          所有标记 /
+          取消内部账号的操作均在此留痕，不可删改。管理员可用此审计是否存在以内部名义违规开通。
+        </p>
         {audit.length === 0 ? (
-          <p className="py-6 text-center text-xs text-slate-500">暂无记录</p>
-        ) : (
-          <div className="max-h-96 overflow-y-auto">
-            <table className="w-full text-[11px]">
-              <thead>
-                <tr className="text-left text-slate-400">
-                  <th className="pb-1 pr-3">时间</th>
-                  <th className="pb-1 pr-3">用户</th>
-                  <th className="pb-1 pr-3">操作</th>
-                  <th className="pb-1 pr-3">操作人</th>
-                  <th className="pb-1">原因</th>
-                </tr>
-              </thead>
-              <tbody>
-                {audit.map((row, i) => (
-                  <tr key={i} className="border-t border-white/5">
-                    <td className="py-1 pr-3 text-slate-400">
-                      {row.created_at ? new Date(row.created_at).toLocaleString('zh-CN') : '—'}
-                    </td>
-                    <td className="py-1 pr-3 font-mono text-slate-300">{row.user_id}</td>
-                    <td className="py-1 pr-3">
-                      {row.is_internal ? (
-                        <span className="text-amber-300">标记内部</span>
-                      ) : (
-                        <span className="text-slate-400">取消标记</span>
-                      )}
-                    </td>
-                    <td className="py-1 pr-3 font-mono text-slate-400">{row.operator_id}</td>
-                    <td className="py-1 text-slate-300">{row.reason}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="rounded-2xl border border-dashed border-white/10 py-8 text-center text-sm text-slate-500">
+            暂无内部账号操作记录
           </div>
+        ) : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-white/10 text-left text-[11px] text-slate-400">
+                <th className="pb-2 pr-3 font-semibold">时间</th>
+                <th className="pb-2 pr-3 font-semibold">user_id</th>
+                <th className="pb-2 pr-3 font-semibold">操作</th>
+                <th className="pb-2 pr-3 font-semibold">操作人</th>
+                <th className="pb-2 font-semibold">原因</th>
+              </tr>
+            </thead>
+            <tbody>
+              {audit.map((row, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-white/[0.05] align-top hover:bg-white/[0.03]"
+                >
+                  <td className="py-2 pr-3 font-mono text-[10px] text-slate-400">
+                    {row.created_at ? new Date(row.created_at).toLocaleString('zh-CN') : '—'}
+                  </td>
+                  <td className="py-2 pr-3 font-mono text-[10px] text-slate-300">{row.user_id}</td>
+                  <td className="py-2 pr-3">
+                    {row.is_internal ? (
+                      <span className="rounded bg-amber-400/20 px-1.5 py-0.5 font-bold text-amber-300">
+                        标记内部
+                      </span>
+                    ) : (
+                      <span className="rounded bg-slate-700/50 px-1.5 py-0.5 text-slate-400">
+                        取消内部
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 font-mono text-[10px] text-slate-400">
+                    {row.operator_id}
+                  </td>
+                  <td className="py-2 text-slate-300">{row.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
-    </div>
+    </BiSidePanel>
   )
 }

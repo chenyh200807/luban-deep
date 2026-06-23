@@ -156,10 +156,14 @@ Page({
       source: source,
       statusBarHeight: win.statusBarHeight || 0,
       navHeight: (win.statusBarHeight || 0) + 48,
-      isDark: true,
+      isDark: helpers.isDark(),
       contextSnapshot: snapshot,
     });
     this._loadNetworkType();
+  },
+
+  onShow: function () {
+    this.setData({ isDark: helpers.isDark() });
   },
 
   _loadNetworkType: function () {

@@ -904,6 +904,32 @@ def test_run_change_impact_cli_writes_control_plane_latest_and_history(tmp_path)
 def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_path) -> None:
     store_dir = tmp_path / "control_plane"
     output_dir = tmp_path / "daily"
+    metrics_path = tmp_path / "metrics.json"
+    metrics_path.write_text(
+        json.dumps(
+            {
+                "release": {
+                    "release_id": "rel-1",
+                    "git_sha": "abc",
+                    "deployment_environment": "dev",
+                },
+                "turn_runtime": {
+                    "turns_started_total": 1,
+                    "turns_completed_total": 1,
+                    "turns_failed_total": 0,
+                    "turns_cancelled_total": 0,
+                    "turns_in_flight": 0,
+                    "ws_active_connections": 0,
+                    "turn_avg_latency_ms": 250.0,
+                },
+                "surface_events": {"coverage": []},
+                "readiness": {"ready": True},
+                "providers": {"error_rates": {}, "circuit_breakers": {}},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     env = {
         **os.environ,
         "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
@@ -915,6 +941,8 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
             str(Path(__file__).resolve().parents[2] / "scripts" / "run_observability_daily.py"),
             "--changed-file",
             "deeptutor/services/session/turn_runtime.py",
+            "--metrics-json",
+            str(metrics_path),
             "--output-dir",
             str(output_dir),
         ],
@@ -966,12 +994,9 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
     assert any(item["check_id"] == "playwright" for item in readiness_payloads)
     assert any(item["check_id"] == "wechat_devtools" for item in readiness_payloads)
     wechat_devtools = next(item for item in readiness_payloads if item["check_id"] == "wechat_devtools")
-    assert any(
-        "expected_task=python scripts/run_readiness_check.py --check-id wechat_devtools" in item
-        for item in wechat_devtools["evidence"]
-    )
-    assert any("project_path=yousenwebview" in item for item in wechat_devtools["evidence"])
-    assert any("target_subpackage=packageDeeptutor" in item for item in wechat_devtools["evidence"])
+    assert wechat_devtools["status"] == "SKIP"
+    assert wechat_devtools["required"] is False
+    assert any("scope_authority=change_impact.required_readiness_checks" == item for item in wechat_devtools["evidence"])
     run_history = DAILY_OBSERVABILITY_MODULE.build_daily_run_history(store_dir=store_dir)
     assert run_history["summary"]["total"] >= 4
 

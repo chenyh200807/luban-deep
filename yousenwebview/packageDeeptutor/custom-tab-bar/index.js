@@ -1,6 +1,11 @@
 var route = require("../utils/route");
 var runtime = require("../utils/runtime");
 var flags = require("../utils/flags");
+var hostRuntime = require("../utils/host-runtime");
+
+function resolveIsDark() {
+  return hostRuntime.getTheme() !== "light";
+}
 
 function getBaseList() {
   return [
@@ -47,6 +52,9 @@ Component({
     refreshState(payload) {
       var next = payload && typeof payload === "object" ? Object.assign({}, payload) : {};
       next.list = flags.resolveShellList(getBaseList());
+      if (typeof next.isDark !== "boolean") {
+        next.isDark = resolveIsDark();
+      }
       if (!flags.shouldShowWorkspaceShell()) {
         next.hidden = true;
       }

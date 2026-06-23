@@ -61,7 +61,7 @@ http_routes:
   - {prefix: /api/attachments, reason: "Session attachment download."}
   - {prefix: /api/v1/agent-config, reason: "Agent config read/write."}
   - {prefix: /api/v1/assessment, reason: "Assessment quiz lifecycle."}
-  - {prefix: /api/v1/auth, reason: "External auth: login / register / code / reset / change password."}
+  - {prefix: /api/v1/auth, reason: "External auth: login / register / code / reset / change password / delete account."}
   - {prefix: /api/v1/bi, reason: "BI cockpit read models + ops actions."}
   - {prefix: /api/v1/billing, reason: "Wallet / ledger / checkout / usage read models."}
   - {prefix: /api/v1/chat, reason: "Chat feedback + start-turn HTTP adapters."}
@@ -88,23 +88,24 @@ http_routes:
   - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
 
 member_console_controls:
-  bi_operational_start:
-    path: /api/v1/bi/members + /api/v1/bi/commerce
-    authority: MemberConsoleService.BI_OPERATION_START_AT
+  account_deletion:
+    path: /api/v1/bi/member/{user_id}/account
+    authority: MemberConsoleService -> external_auth
     semantics:
-      - BI operational member and commerce read models start at 2026-06-22T00:00:00+08:00.
-      - Members created before the operational start must not count in BI member totals, new-member windows, BI member lists, or BI aggregate member projections.
-      - Internal QA, smoke, synthetic, and automation namespace accounts must not count in BI operational member totals, new-member windows, or default BI member lists.
-      - When the Supabase member directory is enabled, member_console-only manual members with valid registered phones are supplementary BI read-model members, not invisible overlay-only records.
-      - Wallet/member-console ledger rows effective before the operational start must not count in BI commerce ledger, recharge records, revenue summaries, or latest revenue.
-      - The operational filter is read-model only; it must not delete, mutate, or reverse canonical member records, wallet balances, wallet_ledger rows, audit logs, or member 360 drilldown data.
+      - BI account deletion is an audited high-risk admin write guarded by
+        member_ops/high_risk and X-Idempotency-Key.
+      - The control deletes external auth credentials and invalidates external
+        auth sessions before marking the member account status as deleted.
+      - Wallet ledger, learner-state, turn/session history, and BI audit rows
+        are retained as historical records; deletion must not rewrite them.
+      - Deleted members are hidden from the default member-ops list and may only
+        be inspected through explicit deleted-status/audit paths.
   manual_membership_reversal:
     path: /api/v1/member/manual-purchase/reverse
     authority: MemberConsoleService -> wallet_ledger
     semantics:
       - Manual membership reversal is append-only; it must not delete or mutate the original purchase ledger row.
       - Only supreme_svip manual membership purchases can be reversed through this control.
-      - purchase_id is required; the original purchase audit is the only amount authority and request amount_cny is ignored.
       - The reversal writes a wallet refund ledger event with negative metadata.amount_cny so BI commerce revenue is netted by wallet_ledger.
       - The control is an audited admin write and requires X-Idempotency-Key.
 
@@ -114,33 +115,19 @@ mobile_http_read_models:
     authority: wallet_snapshot + wallet_ledger_or_member_usage_meter
     semantics:
       - Wallet snapshot read failure returns status=degraded and no quota rows.
-      - The read model exposes remaining percent summary only; it must not expose five-hour or weekly quota rows.
       - When billing enforcement is enabled, wallet ledger is the canonical commerce
         usage authority; ledger read failure must not make the whole usage read model
         unavailable, and the adapter returns status=ok with empty usage entries and
         the snapshot plan.
       - When billing enforcement is disabled for internal beta, MemberUsageMeter may
         provide the non-financial usage display source with charging_status=metered_not_charged;
-        it must not mutate wallet balance or wallet ledger. Public display labels remain
-        percentage-based and must not expose remaining turn counts.
-      - Usage percentages are display read models only; they are not capability routing,
+        it must not mutate wallet balance or wallet ledger. The temporary default display
+        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS;
+        public display labels remain percentage-based rather than exposing remaining turn counts.
+      - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
 
 mobile_http_auth_controls:
-  password_change:
-    path: /api/v1/auth/change-password
-    authority: MemberConsoleService -> external_auth
-    semantics:
-      - Password change is an authenticated member HTTP auth adapter, not a
-        turn/session/capability entrypoint.
-      - Request must carry the current member bearer token and prove the old
-        password before changing the external auth password.
-      - The HTTP route is rate-limited and delegates password verification,
-        hashing, and session invalidation to MemberConsoleService -> external_auth.
-      - Successful change invalidates existing external auth sessions, returns
-        no replacement token, and requires the member to log in again.
-      - Change must not write learner summaries, learner memory events, profile,
-        progress, goals, wallet, capability route state, or turn/session state.
   password_reset:
     path: /api/v1/auth/reset-password
     authority: MemberConsoleService -> external_auth
@@ -149,13 +136,6 @@ mobile_http_auth_controls:
         turn/session/capability entrypoint.
       - Request must prove username, registered phone, and SMS code before changing
         the external auth password.
-      - Phone-authorized quick-login accounts that have not set a password may
-        prove the registered phone and SMS code without a username; the service
-        must attach or create the phone-backed external_auth identity on the same
-        canonical member before setting the first password.
-      - If a trusted phone alias already resolves to a canonical UUID, that UUID
-        is the external_auth user id; synthetic phones derived from local member
-        ids are placeholders and must be overwritten by the verified phone.
       - Successful reset invalidates existing external auth sessions, consumes the
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
@@ -174,6 +154,18 @@ mobile_http_auth_controls:
       - Change password must not write learner summaries, learner memory events,
         profile, progress, goals, wallet, capability route state, or
         turn/session state.
+  delete_account:
+    path: /api/v1/auth/delete-account
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Self account cancellation is an authenticated, rate-limited HTTP auth
+        adapter, not a turn/session/capability entrypoint.
+      - Request must prove the current signed-in member and current password
+        before deleting external auth credentials.
+      - Successful cancellation invalidates existing external auth sessions,
+        returns no token, and never auto-logs in.
+      - Wallet ledger, learner-state, turn/session history, and BI audit rows
+        are retained as historical records; cancellation must not rewrite them.
   wechat_phone_login:
     path: /api/v1/wechat/mp/login
     authority: MemberConsoleService.login_with_wechat_phone
@@ -184,12 +176,6 @@ mobile_http_auth_controls:
         must not issue a full learner token.
       - The returned token is minted only after WeChat phone authorization has
         been exchanged and bound to the canonical member identity.
-      - Binding a verified phone must also attach or create the phone-backed
-        external_auth identity for that same canonical member so later SMS login,
-        password reset, and password login do not create a second account.
-      - Trusted phone aliases outrank local generated member ids when choosing the
-        external_auth canonical id; quick login must not create a random second
-        UUID for a phone that already has a verified alias.
       - The mini-program primary quick-login button must use getPhoneNumber and
         keep audit-safe copy that does not expose WeChat wording in the UI.
 
@@ -411,7 +397,6 @@ domains:
       - tests/services/rag/test_maintenance.py
       - tests/services/rag/test_retrieval_plan.py
       - tests/services/rag/test_evidence_bundle.py
-      - tests/services/rag/test_exact_authority_type_consistency.py
       - tests/services/citations/test_normalizer.py
       - tests/services/citations/test_quality.py
     schema_files:
@@ -533,12 +518,7 @@ domains:
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
       - tests/services/learner_state/heartbeat/test_arbitration.py
-      # Member console service participates in learner/member authority gates,
-      # including launch-day BI zeroing, explicit member lookup, and confirmed
-      # account identity merge / entitlement consolidation with canonical BI
-      # directory search aliases, including synthetic auth_* wrapper ids and
-      # local merged sources that have no directory row.
-      - tests/services/member_console/test_home_dashboard_learning_projection.py
+      # Member console service participates in learner/member authority gates.
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_admin_store.py

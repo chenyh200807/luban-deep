@@ -77,6 +77,69 @@ function hasBridgeConnector(value) {
   return /(所以|接着|因为|有了|这时|最后|先|再|才|不是|而是|但|因此|然后)/.test(String(value || ""));
 }
 
+const STUDENT_TEXT_KEYS = new Set([
+  "exam_scene",
+  "why_learn",
+  "promise",
+  "kicker",
+  "title",
+  "subtitle",
+  "caption",
+  "text",
+  "narration",
+  "spoken",
+  "teacher",
+  "teacher_line",
+  "student",
+  "student_line",
+  "bridge",
+  "exam_task",
+  "visual_explanation",
+  "answer_move",
+  "question",
+  "answer",
+  "summary",
+  "closing",
+]);
+const INTERNAL_NARRATION_TOKEN_RE = /\b(?:A\d{2}|P\d{2}(?:_[A-Z0-9]+)?|F\d{2}|J\d{2}|N\d{2}|S\d{2}|source_card|animation_ir|IR|primitive|pack|scene)\b/i;
+
+function collectStudentFacingText(value, path = "lesson", out = []) {
+  if (!value || typeof value !== "object") return out;
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => collectStudentFacingText(item, `${path}[${index}]`, out));
+    return out;
+  }
+  Object.entries(value).forEach(([key, child]) => {
+    const childPath = `${path}.${key}`;
+    if (typeof child === "string" && STUDENT_TEXT_KEYS.has(key)) {
+      out.push({ path: childPath, text: child });
+    } else if (child && typeof child === "object") {
+      collectStudentFacingText(child, childPath, out);
+    }
+  });
+  return out;
+}
+
+function hasDomainObjects(value) {
+  if (Array.isArray(value)) return value.some((item) => textLen(item) >= 2);
+  return textLen(value) >= 2;
+}
+
+function hasSceneVisualBrief(beat) {
+  const brief = beat.scene_visual_brief;
+  if (typeof brief === "string") {
+    const hasObject = /(对象|工程|现场|资金|图结构|材料|构件|设备|答题纸|节点|路径|门槛)/.test(brief);
+    const hasMotion = /(进入|退出|移动|分层|命中|淘汰|trace|扫描|显现|展开|高亮|退出|对照|切换)/.test(brief);
+    const hasDifference = /(上一幕|下一幕|不能沿用|换图|差异|不同|退出)/.test(brief);
+    return textLen(brief) >= 24 && hasObject && hasMotion && hasDifference;
+  }
+  if (!brief || typeof brief !== "object") return false;
+  const objectField = brief.domain_objects || brief.objects || brief.must_show || brief.visible_objects;
+  const motionField = brief.visual_action || brief.state_change || brief.object_motion || brief.motion;
+  const differenceField = brief.why_not_reuse || brief.difference_from_previous || brief.why_this_scene_differs || brief.exit;
+  return hasDomainObjects(objectField) && textLen(motionField) >= 4 && textLen(differenceField) >= 4;
+}
+
 export function validateLessonWorkflow({ lessonDoc, lessonPath, cardDoc = null, strict = false }) {
   const problems = [];
   const warnings = [];
@@ -122,6 +185,12 @@ export function validateLessonWorkflow({ lessonDoc, lessonPath, cardDoc = null, 
   ["exam_scene", "why_learn", "promise"].forEach((field) => {
     if (!opening[field]) problems.push(`lesson.opening.${field} is required for clarity-first workflow`);
   });
+  collectStudentFacingText(lessonDoc).forEach(({ path, text }) => {
+    const hit = String(text || "").match(INTERNAL_NARRATION_TOKEN_RE);
+    if (hit) {
+      problems.push(`${path} uses internal production token "${hit[0]}" in student-facing narration/text`);
+    }
+  });
 
   const beats = lessonDoc.teach?.beats || lessonDoc.teach?.scenes || [];
   if (beats.length < 5) problems.push(`lesson teach beats should be 5-8 clear beats, got ${beats.length}`);
@@ -139,6 +208,9 @@ export function validateLessonWorkflow({ lessonDoc, lessonPath, cardDoc = null, 
     if (!beat.exam_task) problems.push(`${prefix} missing exam_task`);
     if (!beat.visual_explanation) problems.push(`${prefix} missing visual_explanation`);
     if (!beat.answer_move) problems.push(`${prefix} missing answer_move`);
+    if (!hasSceneVisualBrief(beat)) {
+      problems.push(`${prefix} missing scene_visual_brief with domain objects, visible state change, and difference from adjacent scenes`);
+    }
     if (beat.claim && !beat.anchor) problems.push(`${prefix} claim=true but anchor missing`);
     if (beat.claim && beat.anchor && resolveAnchor(card, beat.anchor) === undefined) {
       problems.push(`${prefix} anchor not found in source card: ${beat.anchor}`);

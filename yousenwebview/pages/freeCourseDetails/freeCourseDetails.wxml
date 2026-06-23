@@ -57,6 +57,7 @@
     <view class="course-summary">
       <view class="summary-main">
         <view class="summary-title ell-2">{{hdata.title}}</view>
+        <view class="summary-subtitle ell">{{videotitle}}</view>
       </view>
 
       <view class="summary-progress">
@@ -79,18 +80,20 @@
           <view class="metric-label">当前讲次</view>
         </view>
         <view class="metric-item">
-          <view class="metric-value">直播</view>
+          <view class="metric-value">线上观看</view>
           <view class="metric-label">学习形式</view>
         </view>
       </view>
 
       <view class="summary-tag-row">
-        <view class="summary-tag">考点梳理</view>
-        <view class="summary-tag">章节回看</view>
-        <view class="summary-tag">资料说明</view>
+        <view class="summary-tag">优秀名师</view>
+        <view class="summary-tag">精品课程</view>
+        <view class="summary-tag">快速提分</view>
       </view>
     </view>
-
+    <view class="course-ad-banner" wx:if="{{oneggimage && adPosition == 1}}" bindtap="goTooneggimageurl">
+      <image class="course-ad-image" src="{{oneggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+    </view>
     <view class="detail-tabs">
       <view class="detail-tab {{showmulu ? 'detail-tab--active' : ''}}" catchtap="showmulu">
         <view class="detail-tab-title">课时</view>
@@ -101,8 +104,10 @@
         <view class="detail-tab-meta">详情</view>
       </view>
     </view>
-
-    <view wx:if="{{showmulu}}" id="course-catalog" class="section-block">
+    <view class="course-ad-banner" wx:if="{{oneggimage && adPosition == 2}}" bindtap="goTooneggimageurl">
+      <image class="course-ad-image" src="{{oneggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+    </view>
+    <view wx:if="{{showmulu}}" class="section-block">
       <view class="section-head">
         <view class="section-title">课程轨道</view>
         <view class="section-caption">按讲次顺序浏览，当前播放课时会高亮显示</view>
@@ -111,7 +116,6 @@
       <view class="chapter-list">
         <block wx:for="{{gratisDetail.chapter}}" wx:key="id">
           <view
-            id="{{currentChapterNumber == item.displayIndex ? 'current-chapter' : ''}}"
             class="chapter-item {{activeChapterIndex == index ? 'chapter-item--active' : ''}}"
             data-video_id="{{item.play_id}}"
             data-index="{{index}}"
@@ -150,10 +154,14 @@
         <rich-text nodes="{{neirong}}"></rich-text>
       </view>
     </view>
+    <view class="course-ad-banner" wx:if="{{oneggimage && adPosition == 3}}" bindtap="goTooneggimageurl">
+      <image class="course-ad-image" src="{{oneggimage}}" mode="aspectFill" lazy-load="{{true}}"></image>
+    </view>
+
   </block>
 
   <view wx:if="{{!detailError && !loadingDetail}}" class="bottom-actions">
-    <view class="bottom-action bottom-action--secondary" catchtap="openCatalog">课时目录</view>
+    <view class="bottom-action bottom-action--secondary" catchtap="showmulu">课时目录</view>
     <view class="bottom-action bottom-action--primary">
       <image src="/images/icon/share_icon_02.png"></image>
       <text>分享课程</text>

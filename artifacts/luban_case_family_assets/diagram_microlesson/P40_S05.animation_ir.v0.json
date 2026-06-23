@@ -6,15 +6,103 @@
     "kicker": "鲁班深母题 · Slot 17",
     "title": "临时用电: 三级配电两级保护"
   },
-  "main_exam_action": "把「临时用电: 三级配电两级保护」写成采分链：先判对象，再判条件，最后写判断依据。",
+  "main_exam_action": "把临时用电题写成“架构完整 → 末端专用 → 顺序参数 → 管理闭环”的采分句: 三级配电、TN-S、二级漏保、一机一闸、停送电顺序和关键参数都要落到现场对象上。",
   "teaching_spine": {
     "source_pack": "docs/原始数据/考点原料/成品/S05_临时用电三级配电.md",
-    "archetype": "decision_branch_reveal",
-    "warm_correction": "临时用电: 三级配电两级保护 不是背散点，而是把题干转成可得分的判断链。"
+    "source_card": "P40_S05.source_card.json",
+    "archetype": "section_or_spatial_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "warm_correction": "先画供电树，再查保护链；一机一箱写末端，顺序参数落答题纸。"
+  },
+  "visual_archetype_decision": {
+    "primary_archetype": "section_or_spatial_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "visual_primitive": "power_distribution_tree",
+    "motion_grammar": "tier_trace_then_branch_eliminate_then_answer_scan",
+    "why_this_visual": "S05 的核心不是一句定义，而是现场供电从总配电箱、分配电箱、开关箱到设备的空间拓扑，以及 TN-S 保护线、二级漏保和末端专用控制的相对位置。",
+    "why_not_text": "纯文字会让学生只背“三个箱名”，看不见越级供电、一箱控多机、PE线缺失、停送电反向这些现场错误；考试要求指出不妥并改正，必须把对象和路径画出来。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": [
+          "现场设备",
+          "共用开关箱",
+          "插头插座活动连接",
+          "红色漏电路径"
+        ],
+        "visual_action": "先让错误现场进入画面: 两台设备从一个开关箱分叉接出，插头插座闪红，漏电路径从设备回冲。",
+        "why_object_not_box": "如果只写“做法不妥”文字框，学生不知道不妥发生在哪个现场对象上。"
+      },
+      {
+        "scene": "power_tree",
+        "domain_objects": [
+          "总配电箱",
+          "分配电箱",
+          "开关箱",
+          "用电设备",
+          "供电电缆"
+        ],
+        "visual_action": "供电线从总配电箱向分配电箱、开关箱、设备逐级 trace，箱体逐个点亮。",
+        "why_object_not_box": "三级配电是拓扑关系，不是三个词并列；必须看见电流路径逐级进入。"
+      },
+      {
+        "scene": "protection",
+        "domain_objects": [
+          "TN-S PE线",
+          "总箱漏保",
+          "末级漏保",
+          "设备外壳"
+        ],
+        "visual_action": "黄绿 PE 线独立贯穿到设备外壳，两处漏保徽标先后亮起，漏电箭头被保护链截断。",
+        "why_object_not_box": "两级保护和 TN-S 是保护链位置问题，纯判断框会把它讲成空泛安全词。"
+      },
+      {
+        "scene": "terminal_rule",
+        "domain_objects": [
+          "开关箱",
+          "电锯",
+          "砂轮机",
+          "专用开关箱"
+        ],
+        "visual_action": "一箱控两机的红色分叉被淘汰，两台设备各自移动到独立开关箱下。",
+        "why_object_not_box": "一机一闸的分数来自设备和开关箱一一对应，不画对象就容易只写“专用”。"
+      },
+      {
+        "scene": "sequence_param",
+        "domain_objects": [
+          "总配电箱",
+          "分配电箱",
+          "开关箱",
+          "潮湿场所灯具",
+          "金属容器灯具",
+          "埋地电缆剖面"
+        ],
+        "visual_action": "送电箭头总→分→开，停电箭头开→分→总；随后安全电压 36/24/12 和 0.7m 电缆剖面作为检查物进入。",
+        "why_object_not_box": "顺序和参数都是现场动作/现场对象的约束，列表不会暴露“写反”和“浅埋”的风险。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": [
+          "答题纸",
+          "采分扫描笔",
+          "架构行",
+          "末端行",
+          "顺序参数行",
+          "管理行"
+        ],
+        "visual_action": "扫描笔逐行扫过答题纸，命中架构、末端控制、顺序参数、管理闭环，漏项行显示 partial/miss。",
+        "why_object_not_box": "最后一幕必须把图转成能写的采分句，不能再停在知识点框。"
+      }
+    ],
+    "pure_text_allowed": false
   },
   "source_refs": {
     "pack_markdown": "docs/原始数据/考点原料/成品/S05_临时用电三级配电.md",
-    "timing": "P40_S05.lesson.timing.json"
+    "source_card": "P40_S05.source_card.json",
+    "lesson": "P40_S05.lesson.json",
+    "timing": "P40_S05.lesson.timing.json",
+    "audio": "P40_S05.lesson.mp3"
   },
   "render_contract": {
     "renderer": "render_animation_ir_preview.py",
@@ -24,17 +112,19 @@
     "practice_href": "P40_S05.practice.html",
     "max_visible_nodes": 4,
     "archetype_visual_required": [
-      "decision_tree"
+      "power_distribution_tree"
     ],
     "teaching_scene_ids": [
       "hook",
-      "map",
-      "rule",
-      "trap",
+      "power_tree",
+      "protection",
+      "terminal_rule",
+      "sequence_param",
       "score"
     ],
-    "min_diagrammatic_teaching_scenes": 5,
-    "challenge_unlock_sec": 78.857,
+    "min_diagrammatic_teaching_scenes": 6,
+    "min_domain_visual_teaching_scenes": 6,
+    "challenge_unlock_sec": 233.448,
     "one_active_scene": true,
     "one_active_keycard": true,
     "theater_requires_challenge_cta": true,
@@ -50,73 +140,353 @@
       "1A431052",
       "1A431010-C03"
     ],
-    "note": "临电组织设计、管理、安全技术"
+    "note": "施工临时用电 / 临时用电组织设计 / 临时用电管理 / 临时用电安全技术"
   },
   "ai_context": {
     "context_id": "P40_S05",
     "title": "临时用电: 三级配电两级保护",
-    "main_exam_action": "把「临时用电: 三级配电两级保护」写成采分链：先判对象，再判条件，最后写判断依据。",
-    "safe_summary": "临时用电: 三级配电两级保护 的学习重点是：临时用电必须采用三级配电系统、TN-S 接零保护系统、…; 总配电箱、分配电箱、开关箱三级配电; 施工用电检查保证项：外电防护/接地接零/配电线路/配电…; 每台设备专用开关箱，不得一箱控 2 台及以上(含插座)。",
+    "main_exam_action": "把临时用电题写成“架构完整 → 末端专用 → 顺序参数 → 管理闭环”的采分句: 三级配电、TN-S、二级漏保、一机一闸、停送电顺序和关键参数都要落到现场对象上。",
+    "safe_summary": "S05 的主线是把现场临时用电画成供电树: 总配电箱、分配电箱、开关箱逐级到设备；保护链补 TN-S 和二级漏保；末端一台设备一个开关箱；最后把停送电顺序、安全电压、电缆埋地和管理动作写成采分句。",
     "key_points": [
-      "临时用电必须采用三级配电系统、TN-S 接零保护系统、…",
-      "总配电箱、分配电箱、开关箱三级配电",
-      "施工用电检查保证项：外电防护/接地接零/配电线路/配电…",
-      "每台设备专用开关箱，不得一箱控 2 台及以上(含插座)"
+      "三级配电: 总配电箱→分配电箱→开关箱→设备",
+      "保护链: TN-S 接零保护 + 二级剩余电流动作保护",
+      "末端控制: 每台设备专用开关箱，进线端禁插头插座活动连接",
+      "答题纸: 架构、末端、顺序参数、管理闭环四行扫描"
     ],
     "handoff_mode": "context_id_plus_current_scene",
     "api_base": "https://test2.yousenjiaoyu.com"
   },
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "看供电树",
+      "skill": "三级配电架构",
+      "scene_gap": "学生把三级配电当成三个词，没有看出设备应从总配、分配、开关箱逐级接出。",
+      "student": "题干: 现场从分配电箱直接给用电设备供电，答案只写“应加强临时用电管理”。",
+      "stem": "如果要求指出不妥并改正，第一句最稳应该怎么写？",
+      "answer": "three_level_path",
+      "visual": {
+        "kind": "s05_power_tree",
+        "title": "设备必须逐级接入",
+        "before": [
+          "总配",
+          "分配",
+          "开关",
+          "设备"
+        ],
+        "after": [
+          "总配电箱",
+          "分配电箱",
+          "开关箱",
+          "用电设备"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "three_level_path",
+          "label": "不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。",
+          "reason": "把现场接法改成三级配电拓扑。"
+        },
+        {
+          "id": "manage_general",
+          "label": "不妥；应加强安全管理，安排电工每天巡视。",
+          "reason": "有管理动作，但没有改供电路径。"
+        },
+        {
+          "id": "only_name_boxes",
+          "label": "应设置总配电箱、分配电箱、开关箱，三个箱名写全即可。",
+          "reason": "箱名有了，但没有说明逐级接入和越级错误。"
+        },
+        {
+          "id": "voltage_first",
+          "label": "应先按36V、24V、12V安全电压分档，再决定如何配电。",
+          "reason": "把特殊照明参数提前到了主供电架构前面。"
+        }
+      ],
+      "optionFeedback": {
+        "manage_general": "容易选，因为安全题常见“加强管理”。但这题的扣分点在供电路径，必须改成总→分→开→设备。",
+        "only_name_boxes": "三个箱名是必要但不够。阅卷要看你有没有指出越级供电，并写逐级配电的正确路径。",
+        "voltage_first": "安全电压是特殊场所照明参数，不是这道越级供电题的第一刀。先修配电拓扑。"
+      },
+      "correct": "对。第一句要把现场设备放回三级供电树，写出总配电箱、分配电箱、开关箱逐级配电。",
+      "wrong": "这道题不是考安全态度，而是考供电拓扑。只写管理、箱名或安全电压，都没有改掉越级接设备。",
+      "basis_anchor": "§5 R6 答案骨架 2"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "拆共箱错法",
+      "skill": "一机一闸",
+      "scene_gap": "现场两台设备共用一个开关箱，学生容易只写“开关箱设置不规范”。",
+      "student": "题干: 电锯和砂轮机共用一个开关箱，开关箱进线端采用插头插座活动连接。",
+      "stem": "下面哪句最像案例题可给分的改正动作？",
+      "answer": "dedicated_fixed",
+      "visual": {
+        "kind": "s05_shared_switch",
+        "before": [
+          "分配箱",
+          "共用开关箱",
+          "电锯",
+          "砂轮机"
+        ],
+        "after": [
+          "分配箱",
+          "专用开关箱",
+          "电锯",
+          "砂轮机"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "dedicated_fixed",
+          "label": "不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。",
+          "reason": "同时补齐一机一闸和进线端禁插接。"
+        },
+        {
+          "id": "add_monitor",
+          "label": "可以共用，但应由专人看护开关箱，发生异常立即断电。",
+          "reason": "把规范禁令误改成管理加强。"
+        },
+        {
+          "id": "label_box",
+          "label": "只要在共用开关箱上贴清楚设备名称，避免误操作即可。",
+          "reason": "标签不能替代专用控制。"
+        },
+        {
+          "id": "replace_socket_only",
+          "label": "只需取消插头插座活动连接，共用开关箱本身可以保留。",
+          "reason": "只修了连接方式，漏掉一箱控多机。"
+        }
+      ],
+      "optionFeedback": {
+        "add_monitor": "容易选，因为它听起来安全。但共用开关箱本身不符合一机一闸，不能靠人盯来补。",
+        "label_box": "设备标签只能帮助识别，不能实现故障设备就近独立断电。仍然是一箱控两机。",
+        "replace_socket_only": "进线端禁插接是一个采分点，但题干还有共用开关箱。只修插头会漏一机一闸。"
+      },
+      "correct": "对。这个题眼有两个动作: 每台设备专用开关箱，且进线端不能用插头插座活动连接。",
+      "wrong": "错项都漏了至少一个现场对象: 不是只看人、标签或插头，而是设备和开关箱必须一一对应。",
+      "basis_anchor": "§5 R5 B1/B2"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "判顺序",
+      "skill": "停送电顺序",
+      "scene_gap": "学生知道有总、分、开三级箱，但把送电和停电方向写反。",
+      "student": "学生答: “送电时先合开关箱，停电时先断总配电箱。”",
+      "stem": "这句话应该怎么诊断并补正？",
+      "answer": "reverse_chain",
+      "visual": {
+        "kind": "s05_sequence",
+        "before": [
+          "总箱",
+          "分箱",
+          "开箱"
+        ],
+        "after": [
+          "送电:总→分→开",
+          "停电:开→分→总"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "reverse_chain",
+          "label": "判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。",
+          "reason": "把正向送电和反向停电都写全。"
+        },
+        {
+          "id": "same_direction",
+          "label": "送电和停电都按总配电箱→分配电箱→开关箱，便于统一管理。",
+          "reason": "把停电也写成送电方向。"
+        },
+        {
+          "id": "operator_decide",
+          "label": "顺序可由现场电工根据方便程度决定，只要最终断电即可。",
+          "reason": "用经验方便替代程序顺序。"
+        },
+        {
+          "id": "only_shutdown",
+          "label": "只需写停电从开关箱开始，送电顺序一般不作为采分点。",
+          "reason": "漏掉送电总→分→开。"
+        }
+      ],
+      "optionFeedback": {
+        "same_direction": "容易选，因为三级箱顺序看似固定。但停电是反向链，写成同方向就是顺序错误。",
+        "operator_decide": "这不是便捷操作题。停送电是封闭有序链，不能交给现场随意决定。",
+        "only_shutdown": "2017案例问过停电顺序，但教材也给出送电顺序。答题最好一并写全，避免漏分。"
+      },
+      "correct": "对。送电和停电是互逆链: 送电总→分→开，停电开→分→总。",
+      "wrong": "顺序题不要写成“最终断电就行”。它考的是操作链，方向错就容易失分。",
+      "basis_anchor": "§5 R5 C1/C2"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "补参数",
+      "skill": "安全电压与电缆",
+      "scene_gap": "学生能指出临电不妥，但参数写成“应符合规范要求”，没有落到场所/剖面。",
+      "student": "题干: 金属容器内用36V照明灯；现场电缆浅埋，答案写“应采用安全电压并保护电缆”。",
+      "stem": "哪句补法更像完整采分动作？",
+      "answer": "specific_params",
+      "visual": {
+        "kind": "s05_voltage_cable",
+        "before": [
+          "潮湿场所",
+          "易触及",
+          "金属容器"
+        ],
+        "after": [
+          "≤36V",
+          "≤24V",
+          "≤12V"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "specific_params",
+          "label": "金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。",
+          "reason": "把场所、电压、剖面和标识色都落到参数。"
+        },
+        {
+          "id": "safe_voltage_general",
+          "label": "应采用安全电压，并对电缆采取可靠保护措施。",
+          "reason": "方向对，但没有场所分档和埋地数值。"
+        },
+        {
+          "id": "thirtysix_all",
+          "label": "特殊场所照明统一不超过36V，电缆埋地深度按现场情况确定。",
+          "reason": "把金属容器和潮湿场所混成一档。"
+        },
+        {
+          "id": "color_only",
+          "label": "重点写五芯电缆N线为蓝色、PE线为黄绿双色，其他参数可略。",
+          "reason": "只命中标识色，漏电压和埋地深度。"
+        }
+      ],
+      "optionFeedback": {
+        "safe_voltage_general": "这句话容易写，但太虚。特殊场所要把36、24、12V对到场所，电缆还要写0.7m。",
+        "thirtysix_all": "金属容器不是36V档，应降到12V。把所有场所统一36V会扣关键数值分。",
+        "color_only": "标识色是采分点之一，但题干还给了金属容器和浅埋电缆，只写颜色不够。"
+      },
+      "correct": "对。参数题要把数字挂到现场对象上: 金属容器12V，埋地0.7m，N蓝、PE黄绿。",
+      "wrong": "错项的问题不是方向完全错，而是没有给阅卷人可判分的数字和对象。",
+      "basis_anchor": "§5 R5 D1/E1/F2"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "写采分句",
+      "skill": "答案诊断",
+      "scene_gap": "综合案例同时出现越级接电、共用开关箱、顺序写反和装饰阶段用电方案缺失，学生只写“加强管理”。",
+      "student": "学生答: “现场临时用电管理不到位，应按规范整改，保证用电安全。”",
+      "stem": "如果让你诊断这份答案，哪一项最能补成完整采分句？",
+      "answer": "full_score_sentence",
+      "visual": {
+        "kind": "s05_answer_scan",
+        "before": [
+          "架构",
+          "末端",
+          "顺序参数",
+          "管理"
+        ],
+        "after": [
+          "三级+TN-S+二级漏保",
+          "一机一闸禁插接",
+          "送停电+36/24/12+0.7m",
+          "持证+组织设计/补方案"
+        ],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "full_score_sentence",
+          "label": "答案应补成: 采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。",
+          "reason": "把架构、末端、顺序参数和管理闭环都交付。"
+        },
+        {
+          "id": "more_management",
+          "label": "答案只需补“项目部应建立用电管理制度，定期检查并落实责任人”。",
+          "reason": "管理更完整，但仍然没有现场采分对象。"
+        },
+        {
+          "id": "only_three_systems",
+          "label": "答案重点补“采用三级配电系统、TN-S系统和二级漏保”，其他可略。",
+          "reason": "架构命中，但漏末端和题干具体错法。"
+        },
+        {
+          "id": "only_params",
+          "label": "答案重点补36/24/12V、0.7m、N蓝PE黄绿这些数字，说明参数记得牢。",
+          "reason": "参数命中，但漏供电拓扑和一机一闸。"
+        }
+      ],
+      "optionFeedback": {
+        "more_management": "这就是原答案的升级版口号。它仍然没有改越级接电、共用开关箱和顺序错误。",
+        "only_three_systems": "三大系统是第一行，但综合案例还会给末端错法和顺序参数。只写架构会 partial。",
+        "only_params": "数字很重要，但 S05 不是纯记忆表。没有三级配电、一机一闸和顺序链，仍然不完整。"
+      },
+      "correct": "对。最后一题训练的是采分句诊断: 把口号答案补成架构、末端、顺序参数、管理四行。",
+      "wrong": "这份答案的问题是口号化。补救不能只加管理、架构或数字，而要把题干现场对象全部扫进采分句。",
+      "basis_anchor": "§5 R6 答案骨架 + §6 M8"
+    }
+  ],
   "chapters": [
     {
       "id": "hook",
       "label": "先避坑",
-      "start_sec": 0.0
+      "start_sec": 0
     },
     {
-      "id": "map",
-      "label": "看结构",
-      "start_sec": 19.714
+      "id": "power_tree",
+      "label": "供电树",
+      "start_sec": 25.72
     },
     {
-      "id": "rule",
-      "label": "判边界",
-      "start_sec": 39.429
+      "id": "protection",
+      "label": "保护链",
+      "start_sec": 48.152
     },
     {
-      "id": "trap",
-      "label": "错法",
-      "start_sec": 59.143
+      "id": "terminal_rule",
+      "label": "一机一箱",
+      "start_sec": 71.784
+    },
+    {
+      "id": "sequence_param",
+      "label": "顺序参数",
+      "start_sec": 100.024
     },
     {
       "id": "score",
-      "label": "采分",
-      "start_sec": 78.857
+      "label": "采分句",
+      "start_sec": 135.968
     },
     {
-      "id": "qa",
+      "id": "qa_closure",
       "label": "三问",
-      "start_sec": 98.571
+      "start_sec": 173.616
     },
     {
       "id": "closing_challenge",
       "label": "闯关",
-      "start_sec": 118.286
+      "start_sec": 233.448
     }
   ],
   "scenes": [
     {
       "id": "hook",
       "label": "先避坑",
-      "start_sec": 0.0,
-      "end_sec": 19.714,
-      "scene": "decision_branch_reveal_hook",
-      "focus": "hook_visual",
+      "start_sec": 0,
+      "end_sec": 25.72,
+      "scene": "section_or_spatial_reveal_hook",
+      "focus": "wrong_shared_tree",
+      "keycard": "两台设备共用一个开关箱先亮红",
+      "coach": "先看错误分叉: 一箱控两机不是管理小瑕疵，而是末端控制对象错了。",
       "enter": [
         "scene.fade_in",
-        "hook_visual.reveal"
+        "wrong_shared_tree.reveal"
       ],
       "hold": [
-        "hook_visual.spotlight"
+        "wrong_shared_tree.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -127,50 +497,50 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "push-in",
-        "target": "hook_visual",
+        "verb": "freeze-frame",
+        "target": "wrong_shared_tree",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "hook_visual"
+        "wrong_shared_tree"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "hook_visual",
+          "target": "wrong_shared_tree",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "hook_visual",
+          "target": "wrong_shared_tree",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.42
         },
         {
           "kind": "highlight",
-          "target": "hook_visual",
-          "start": 0.3,
-          "end": 0.9
+          "target": "wrong_shared_tree",
+          "start": 0.35,
+          "end": 0.86
         }
-      ],
-      "keycard": "考场先别急着写术语",
-      "coach": "注意哈，这类题别先背答案，先看图里藏着哪条采分链。"
+      ]
     },
     {
-      "id": "map",
-      "label": "看结构",
-      "start_sec": 19.714,
-      "end_sec": 39.429,
-      "scene": "decision_branch_reveal_map",
-      "focus": "prototype_map",
+      "id": "power_tree",
+      "label": "供电树",
+      "start_sec": 25.72,
+      "end_sec": 48.152,
+      "scene": "section_or_spatial_reveal_power_tree",
+      "focus": "three_level_tree",
+      "keycard": "总配电箱到分配电箱到开关箱逐级命中设备",
+      "coach": "把三级配电看成一棵供电树，不能只背三个箱名。",
       "enter": [
         "scene.fade_in",
-        "prototype_map.reveal"
+        "three_level_tree.reveal"
       ],
       "hold": [
-        "prototype_map.spotlight"
+        "three_level_tree.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -181,50 +551,50 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "push-in",
-        "target": "prototype_map",
+        "verb": "trace",
+        "target": "three_level_tree",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "prototype_map"
+        "three_level_tree"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "prototype_map",
+          "target": "three_level_tree",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "prototype_map",
+          "target": "three_level_tree",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.42
         },
         {
           "kind": "highlight",
-          "target": "prototype_map",
-          "start": 0.3,
-          "end": 0.9
+          "target": "three_level_tree",
+          "start": 0.35,
+          "end": 0.86
         }
-      ],
-      "keycard": "先看它属于哪类图",
-      "coach": "先把它画成图：临时用电三级配…、总配电箱、施工用电检查保…、每台设备专用开…。"
+      ]
     },
     {
-      "id": "rule",
-      "label": "判边界",
-      "start_sec": 39.429,
-      "end_sec": 59.143,
-      "scene": "decision_branch_reveal_rule",
-      "focus": "rule_model",
+      "id": "protection",
+      "label": "保护链",
+      "start_sec": 48.152,
+      "end_sec": 71.784,
+      "scene": "section_or_spatial_reveal_protection",
+      "focus": "protected_tree",
+      "keycard": "TN-S PE线贯穿，二级漏保逐点亮",
+      "coach": "保护链要落在位置上: 接零保护线到设备外壳，两级漏保守住总端和末端。",
       "enter": [
         "scene.fade_in",
-        "rule_model.reveal"
+        "protected_tree.reveal"
       ],
       "hold": [
-        "rule_model.spotlight"
+        "protected_tree.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -235,50 +605,50 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "push-in",
-        "target": "rule_model",
+        "verb": "spotlight",
+        "target": "protected_tree",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "rule_model"
+        "protected_tree"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "rule_model",
+          "target": "protected_tree",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "rule_model",
+          "target": "protected_tree",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.42
         },
         {
           "kind": "highlight",
-          "target": "rule_model",
-          "start": 0.3,
-          "end": 0.9
+          "target": "protected_tree",
+          "start": 0.35,
+          "end": 0.86
         }
-      ],
-      "keycard": "用图走一遍判断动作",
-      "coach": "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"
+      ]
     },
     {
-      "id": "trap",
-      "label": "错法",
-      "start_sec": 59.143,
-      "end_sec": 78.857,
-      "scene": "decision_branch_reveal_trap",
-      "focus": "trap_visual",
+      "id": "terminal_rule",
+      "label": "一机一箱",
+      "start_sec": 71.784,
+      "end_sec": 100.024,
+      "scene": "section_or_spatial_reveal_terminal_rule",
+      "focus": "dedicated_switches",
+      "keycard": "红色共箱分叉退出，两台设备各归专用开关箱",
+      "coach": "一机一箱是一一对应关系，答案要把共用开关箱拆掉并补进线端禁插接。",
       "enter": [
         "scene.fade_in",
-        "trap_visual.reveal"
+        "dedicated_switches.reveal"
       ],
       "hold": [
-        "trap_visual.spotlight"
+        "dedicated_switches.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -289,44 +659,105 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "push-in",
-        "target": "trap_visual",
+        "verb": "trace",
+        "target": "dedicated_switches",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "trap_visual"
+        "dedicated_switches",
+        "terminal_fix_note"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "trap_visual",
+          "target": "dedicated_switches",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "trap_visual",
+          "target": "dedicated_switches",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.42
         },
         {
           "kind": "highlight",
-          "target": "trap_visual",
-          "start": 0.3,
-          "end": 0.9
+          "target": "dedicated_switches",
+          "start": 0.35,
+          "end": 0.86
+        },
+        {
+          "kind": "reveal",
+          "target": "terminal_fix_note",
+          "start": 0.58,
+          "end": 0.78
         }
-      ],
-      "keycard": "先拆常见错法",
-      "coach": "只写结果、不写依据，最容易漏采分点。"
+      ]
     },
+    {
+      "id": "sequence_param",
+      "label": "顺序参数",
+      "start_sec": 100.024,
+      "end_sec": 135.968,
+      "scene": "section_or_spatial_reveal_sequence_param",
+      "focus": "sequence_flow",
+      "keycard": "送电顺流，停电逆流，参数落到现场物",
+      "coach": "顺序不是口诀悬空背，要沿着总配、分配、开关箱的真实路径走。",
+      "enter": [
+        "scene.fade_in",
+        "sequence_flow.reveal"
+      ],
+      "hold": [
+        "sequence_flow.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "sequence_flow",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "sequence_flow"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "sequence_flow",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "sequence_flow",
+          "start": 0.04,
+          "end": 0.42
+        },
+        {
+          "kind": "highlight",
+          "target": "sequence_flow",
+          "start": 0.35,
+          "end": 0.86
+      }
+    ]
+  },
     {
       "id": "score",
-      "label": "采分",
-      "start_sec": 78.857,
-      "end_sec": 98.571,
-      "scene": "decision_branch_reveal_score",
+      "label": "采分句",
+      "start_sec": 135.968,
+      "end_sec": 173.616,
+      "scene": "section_or_spatial_reveal_score",
       "focus": "score_sheet",
+      "keycard": "扫描答题纸四行: 架构、末端、顺序参数、管理",
+      "coach": "最后把图翻译成采分句，缺哪一行就会丢对应分。",
       "enter": [
         "scene.fade_in",
         "score_sheet.reveal"
@@ -343,7 +774,7 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "push-in",
+        "verb": "answer-paper",
         "target": "score_sheet",
         "duration_sec": 0.45
       },
@@ -362,31 +793,31 @@
           "kind": "reveal",
           "target": "score_sheet",
           "start": 0.04,
-          "end": 0.2
+          "end": 0.42
         },
         {
           "kind": "highlight",
           "target": "score_sheet",
-          "start": 0.3,
-          "end": 0.9
+          "start": 0.35,
+          "end": 0.86
         }
-      ],
-      "keycard": "把答案写成采分句",
-      "coach": "答题纸按三段写：临时用电三级配…、总配电箱、施工用电检查保…。"
+      ]
     },
     {
-      "id": "qa",
+      "id": "qa_closure",
       "label": "三问",
-      "start_sec": 98.571,
-      "end_sec": 118.286,
-      "scene": "decision_branch_reveal_qa",
-      "focus": "student_q1",
+      "start_sec": 173.616,
+      "end_sec": 233.448,
+      "scene": "section_or_spatial_reveal_qa_closure",
+      "focus": "qa_scan",
+      "keycard": "三问回扫: 越级、共箱、顺序参数",
+      "coach": "学生追问时仍回到同一棵供电树，不另造一套文字解释。",
       "enter": [
         "scene.fade_in",
-        "student_q1.reveal"
+        "qa_scan.reveal"
       ],
       "hold": [
-        "student_q1.spotlight"
+        "qa_scan.spotlight"
       ],
       "exit": [
         "scene.fade_out"
@@ -398,57 +829,43 @@
       },
       "camera": {
         "verb": "spotlight",
-        "target": "student_q1",
+        "target": "qa_scan",
         "duration_sec": 0.45
       },
       "visible_nodes": [
-        "student_q1",
-        "student_q2",
-        "teacher_a"
+        "qa_scan"
       ],
       "actions": [
         {
           "kind": "camera",
           "verb": "push-in",
-          "target": "student_q1",
+          "target": "qa_scan",
           "start": 0,
           "end": 0.24
         },
         {
           "kind": "reveal",
-          "target": "student_q1",
+          "target": "qa_scan",
           "start": 0.04,
-          "end": 0.2
-        },
-        {
-          "kind": "reveal",
-          "target": "student_q2",
-          "start": 0.19,
-          "end": 0.35
-        },
-        {
-          "kind": "reveal",
-          "target": "teacher_a",
-          "start": 0.34,
-          "end": 0.5
+          "end": 0.42
         },
         {
           "kind": "highlight",
-          "target": "student_q1",
-          "start": 0.3,
-          "end": 0.9
+          "target": "qa_scan",
+          "start": 0.35,
+          "end": 0.86
         }
-      ],
-      "keycard": "三问集中放后面",
-      "coach": "学生常问三个问题：先写哪个、少一句扣不扣分、能不能只写结论。都回到采分链。"
+      ]
     },
     {
       "id": "closing_challenge",
       "label": "闯关",
-      "start_sec": 118.286,
-      "end_sec": 138.0,
-      "scene": "decision_branch_reveal_closing_challenge",
+      "start_sec": 233.448,
+      "end_sec": 246.392,
+      "scene": "section_or_spatial_reveal_closing_challenge",
       "focus": "closing_sentence",
+      "keycard": "用一句完整采分动作进入练习",
+      "coach": "闯关只考能不能把现场图写成可给分答案。",
       "enter": [
         "scene.fade_in",
         "closing_sentence.reveal"
@@ -465,7 +882,7 @@
         "theater": "clean_board"
       },
       "camera": {
-        "verb": "spotlight",
+        "verb": "pull-back",
         "target": "closing_sentence",
         "duration_sec": 0.45
       },
@@ -476,32 +893,36 @@
       "actions": [
         {
           "kind": "camera",
-          "verb": "push-in",
+          "verb": "pull-back",
           "target": "closing_sentence",
           "start": 0,
-          "end": 0.24
+          "end": 0.28
         },
         {
           "kind": "reveal",
           "target": "closing_sentence",
-          "start": 0.04,
-          "end": 0.2
-        },
-        {
-          "kind": "reveal",
-          "target": "challenge_cta",
-          "start": 0.19,
-          "end": 0.35
+          "start": 0.05,
+          "end": 0.32
         },
         {
           "kind": "highlight",
           "target": "closing_sentence",
           "start": 0.3,
-          "end": 0.9
+          "end": 0.58
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.52,
+          "end": 0.78
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_cta",
+          "start": 0.72,
+          "end": 1
         }
-      ],
-      "keycard": "收束到闯关",
-      "coach": "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"
+      ]
     }
   ],
   "visual_library": {
@@ -509,90 +930,170 @@
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "hook_visual",
-          "kind": "decision_tree",
-          "text": "先看图再下笔",
-          "x": 30,
+          "id": "wrong_shared_tree",
+          "kind": "power_distribution_tree",
+          "mode": "shared_switch",
+          "text": "错误现场先红显",
+          "x": 22,
           "y": 42,
-          "w": 300,
-          "h": 178,
+          "w": 316,
+          "h": 184,
           "tone": "danger",
           "labels": [
-            "临时用电三级配…",
             "总配电箱",
-            "施工用电检查保…",
-            "每台设备专用开…",
-            "错因",
-            "结论"
+            "分配电箱",
+            "共用开关箱",
+            "电锯"
+          ],
+          "second_device": "砂轮机",
+          "domain_objects": [
+            "总配电箱",
+            "分配电箱",
+            "共用开关箱",
+            "电锯",
+            "砂轮机",
+            "插头插座活动连接"
           ]
         }
       ]
     },
-    "map": {
+    "power_tree": {
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "prototype_map",
-          "kind": "decision_tree",
-          "text": "判断树",
-          "x": 30,
+          "id": "three_level_tree",
+          "kind": "power_distribution_tree",
+          "text": "总→分→开→设备",
+          "x": 24,
           "y": 42,
-          "w": 300,
-          "h": 178,
+          "w": 312,
+          "h": 184,
           "tone": "success",
           "labels": [
-            "临时用电三级配…",
             "总配电箱",
-            "施工用电检查保…",
-            "每台设备专用开…",
-            "错因",
-            "结论"
+            "分配电箱",
+            "开关箱",
+            "用电设备"
+          ],
+          "badges": [
+            "逐级配电",
+            "总入口",
+            "末端箱"
+          ],
+          "domain_objects": [
+            "总配电箱",
+            "分配电箱",
+            "开关箱",
+            "用电设备",
+            "供电电缆"
           ]
         }
       ]
     },
-    "rule": {
+    "protection": {
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "rule_model",
-          "kind": "decision_tree",
-          "text": "对象→条件→结论",
-          "x": 30,
+          "id": "protected_tree",
+          "kind": "power_distribution_tree",
+          "text": "三级配电 + 保护链",
+          "x": 24,
           "y": 42,
-          "w": 300,
-          "h": 178,
-          "tone": "success",
+          "w": 312,
+          "h": 184,
+          "tone": "blue",
           "labels": [
-            "临时用电三级配…",
             "总配电箱",
-            "施工用电检查保…",
-            "每台设备专用开…",
-            "错因",
-            "结论"
+            "分配电箱",
+            "开关箱",
+            "设备外壳"
+          ],
+          "badges": [
+            "TN-S PE线",
+            "漏保一级",
+            "漏保二级"
+          ],
+          "domain_objects": [
+            "TN-S PE线",
+            "总箱漏保",
+            "末级漏保",
+            "设备外壳"
           ]
         }
       ]
     },
-    "trap": {
+    "terminal_rule": {
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "trap_visual",
-          "kind": "decision_tree",
-          "text": "漏一道门",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
+          "id": "dedicated_switches",
+          "kind": "power_distribution_tree",
+          "mode": "dedicated_switches",
+          "text": "改成一机一箱",
+          "x": 22,
+          "y": 40,
+          "w": 316,
+          "h": 174,
           "tone": "danger",
           "labels": [
-            "临时用电三级配…",
-            "总配电箱",
-            "施工用电检查保…",
-            "每台设备专用开…",
-            "错因",
-            "结论"
+            "分配电箱",
+            "电锯开关箱",
+            "砂轮机开关箱",
+            "电锯"
+          ],
+          "second_device": "砂轮机",
+          "domain_objects": [
+            "开关箱",
+            "电锯",
+            "砂轮机",
+            "专用开关箱"
+          ]
+        },
+        {
+          "id": "terminal_fix_note",
+          "kind": "note",
+          "text": "改: 每台设备专用开关箱，进线端禁插接",
+          "x": 44,
+          "y": 214,
+          "w": 272,
+          "h": 30,
+          "tone": "success",
+          "domain_objects": [
+            "专用开关箱"
+          ]
+        }
+      ]
+    },
+  "sequence_param": {
+    "board": "warm_grid",
+    "nodes": [
+      {
+        "id": "sequence_flow",
+        "kind": "power_distribution_tree",
+        "text": "顺序参数落到供电树",
+        "x": 26,
+        "y": 38,
+        "w": 308,
+        "h": 188,
+        "tone": "blue",
+        "labels": [
+          "总配箱",
+          "分配箱",
+          "开关箱",
+          "设备"
+        ],
+        "badges": [
+          "送:总分开",
+          "停:开分总",
+          "灯36/24/12 缆0.7m"
+        ],
+        "domain_objects": [
+          "总配电箱",
+          "分配电箱",
+          "开关箱",
+          "潮湿场所灯具",
+          "金属容器灯具",
+          "埋地电缆剖面"
           ]
         }
       ]
@@ -603,53 +1104,51 @@
         {
           "id": "score_sheet",
           "kind": "answer_scan",
-          "text": "答题纸采分",
-          "x": 30,
-          "y": 42,
-          "w": 300,
-          "h": 178,
+          "text": "答题纸四行扫描",
+          "x": 28,
+          "y": 48,
+          "w": 304,
+          "h": 174,
           "tone": "success",
           "labels": [
-            "临时用电三级配…",
-            "总配电箱",
-            "施工用电检查保…",
-            "结论"
+            "架构:三级+TN-S+二级漏保",
+            "末端:一机一闸禁插接",
+            "顺序参数:送停电+36/24/12+0.7m",
+            "管理:持证+组织设计/补方案"
+          ],
+          "domain_objects": [
+            "答题纸",
+            "采分扫描笔",
+            "架构行",
+            "末端行"
           ]
         }
       ]
     },
-    "qa": {
+    "qa_closure": {
       "board": "warm_grid",
       "nodes": [
         {
-          "id": "student_q1",
-          "kind": "dialogue_box",
-          "text": "学生问:先写哪个?",
-          "x": 42,
-          "y": 58,
-          "w": 276,
-          "h": 44,
-          "tone": "blue"
-        },
-        {
-          "id": "student_q2",
-          "kind": "dialogue_box",
-          "text": "学生问:少一句扣分吗?",
-          "x": 42,
-          "y": 114,
-          "w": 276,
-          "h": 44,
-          "tone": "amber"
-        },
-        {
-          "id": "teacher_a",
-          "kind": "dialogue_box",
-          "text": "老师:按采分链补齐",
-          "x": 42,
-          "y": 170,
-          "w": 276,
-          "h": 46,
-          "tone": "success"
+          "id": "qa_scan",
+          "kind": "answer_scan",
+          "text": "三处边界追问",
+          "x": 28,
+          "y": 48,
+          "w": 304,
+          "h": 174,
+          "tone": "amber",
+          "labels": [
+            "只写三级配电?",
+            "共箱能看护?",
+            "顺序怎么记?",
+            "问鲁班"
+          ],
+          "domain_objects": [
+            "答题纸",
+            "开关箱",
+            "总配电箱",
+            "分配电箱"
+          ]
         }
       ]
     },
@@ -659,22 +1158,14 @@
         {
           "id": "closing_sentence",
           "kind": "closing_text",
-          "text": "带走一句话",
-          "x": 0,
-          "y": 0,
-          "w": 176,
-          "h": 46,
-          "tone": "success",
-          "subtext": "临时用电: 三级配电两…: 对象→条件→依据"
+          "text": "先画供电树",
+          "subtext": "再写采分句",
+          "tone": "success"
         },
         {
           "id": "challenge_cta",
           "kind": "challenge_button",
           "text": "开始闯关",
-          "x": 90,
-          "y": 166,
-          "w": 180,
-          "h": 44,
           "tone": "amber"
         }
       ]

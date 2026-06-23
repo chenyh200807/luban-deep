@@ -31,17 +31,23 @@
  P0.25 Visual Archetype Gate:按 6+1 先产 `visual_archetype_decision`,明确 primary/secondary archetype、visual_primitive、motion_grammar、why_not_text、pure_text_allowed。①–⑥ 默认必须图示动画解释;只有(七)数值/记忆可走轻动画文字卡。此门不过,不许生成 IR。
  P0.3 Practice Blueprint Gate:从成品 MD 的 R3/R4/R6/R8/scoring group 提炼 `practice_blueprint[]`,每题写 `scene_gap / visual_items / options / option_feedback / basis_anchor`;不得用 `key_points` 直接生成选项或题图答案
  P0.5 Director Gate(construction-whiteboard-director):5-8 beats + 每 beat 一个 visual action/一句字幕/退出项;先保证"讲清楚一个知识点",5 分钟以内都可接受,不为压到 2 分钟牺牲解释链
+      必须同步产 `scene_visual_brief[]`:逐 beat 先引用当前旁白句/`exam_task`/`answer_move`,再写本幕领域对象、对象状态变化、与前后幕为什么不是同一张图、进入/退出项
+      `workflow_candidate/student_ready` 的 `scene_visual_brief[]` 是 pre-render 硬门,每个 `render_contract.teaching_scene_ids[]` 都必须有一条:
+      `{scene_id, source_sentence, domain_objects[], visual_action, state_change, exit_before_next, why_not_reused_template}`。
+      缺任一字段、缺任一主讲 scene、或 scene_id 指向不存在的 scene,`validate_animation_ir_contract.mjs` 必须 FAIL。
  P1 LLM/agent 生成/修订 lesson beats 或 animation_ir.v0(scene/actions/visual_library)★表现放开★
-      约束:claim:true beat 必 anchor 回卡;selector 必须 data-id;复杂构造坐标只能落在受 schema 约束的 visual_library,不得自由 HTML 画像素
+      约束:claim:true beat 必 anchor 回卡;selector 必须 data-id;复杂构造坐标只能落在受 schema 约束的 visual_library,不得自由 HTML 画像素;同一套四图/流程/判断树外形连续复用超过 2 个主讲 scene 且没有可见状态变化,按模板图贯穿伪动画失败
  P1.2 Lesson Source Gate(validate_lesson_source_workflow.mjs):先审 lesson 是否有 opening、beat bridge、exam_task、visual_explanation、answer_move,并证明 source_card 追溯到成品 MD;不过不配音、不生成 IR
  P1.5 Pre-render Gate(validate_animation_ir_contract.mjs / action schema):先审 IR,证明 scene/action/visual/data-id/Remotion 同源合法,不过不渲染
- P2 渲染(确定性 renderer 吃 lesson/master/animation_ir → journey/rendered.html / preview.html / practice.html)
- P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→practice-interaction→cdp_shot)
-      animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
-      independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开;`validate_practice_interactions.mjs` 必须证明可点击、未答不能下一题、无答前泄露、每个错项有可读专属反馈、结果页有表现分析/补练/问鲁班入口
- P3.2 Mobile Preview Handoff:用户要手机看时,输出 LAN URL(`http://<ip>:8800/<file>`)而不是 `127.0.0.1`;换 Wi-Fi 后重新取 IP 并验证端口监听
- P3.5 Review Packet:记录 machine gates、目标截图墙、judge/human issue、root-cause triage、修复层级和允许回炉字段
- P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
+	 P2 渲染(确定性 renderer 吃 lesson/master/animation_ir → journey/rendered.html / preview.html / practice.html)
+	 P3 自动门 gate.sh 或 animation_ir post gate(schema→timing_sync→render→IR-HTML 等价→data-id→runtime→practice→practice-runtime→practice-interaction→cdp_shot)
+	      animation_ir preview 必跑:IR/HTML 等价、360/390/430 竖屏 + 844/932 横屏、遮挡、触控、字幕、CTA 解锁、非累计 seek
+	      independent practice 必跑:360/390 竖屏 + 844 横屏 + 目标宽屏,文字不裁切、SVG/图元标签不挤压、底栏不覆盖、题干/依据渐进展开;`validate_practice_interactions.mjs` 必须证明可点击、未答不能下一题、无答前泄露、每个错项有可读专属反馈、结果页有表现分析/补练/问鲁班入口
+	 P3.2 Mobile Preview Handoff:用户要手机看时,输出 LAN URL(`http://<ip>:8800/<file>`)而不是 `127.0.0.1`;换 Wi-Fi 后重新取 IP 并验证端口监听
+	 P3.4 Remotion Still Quality Gate:`workflow_candidate/student_ready` 必跑 `capture_remotion_ir_review_stills.mjs`,关键 scene still 必须显示图示主导,且 manifest 中 `quality_gate.required=true/pass=true/flags=[]`
+	 P3.5 Review Packet:记录 machine gates、目标截图墙、Remotion still manifest、judge/human issue、root-cause triage、修复层级和允许回炉字段
+	      `workflow_candidate/student_ready` 的 review packet 不能只有 verdict;`machine_gates[]` 必须非空,且每个 gate 必须有可读 report 文件、bytes、sha256。`machine_gates=[]` 或 gate 缺 report path,`build_workflow_review_packet.mjs` 必须 FAIL。
+	 P4 评审(LLM-as-judge 多视角[镜头/叙事/采分] + 人审[创造力/教学品味/anti-patterns])
  过关? NO→ P5 结构化反馈喂回 → 回 P1 改 IR(只改表现,anchor 不动) / YES→ P6 学员门(KPI 正确率)
 ```
 **铁律:循环只在 P1↔P5(改表现 IR),P0 母题事实永不进循环。**
@@ -62,7 +68,12 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 ## 5. 门/judge/人审三分(anti-patterns 15 条)
 - **~11 条全自动机器门**:schema / source→lesson workflow / animation_action 白名单 / 旁白 anchor / student-safe / 章节语义 / practice / 真实视口 / practice 可读性 / timing sync / data-id selector 命中 / 视觉快照。
 - `validate_lesson_source_workflow.mjs` 必须在 TTS 和 IR 之前跑:它检查成品 MD 来源、source_card teaching_spine、lesson opening、beat bridge、exam_task、visual_explanation、answer_move。这个门专治"文案跳跃、讲不清、画面偏文字卡"。
+- `validate_lesson_source_workflow.mjs`/同级 source workflow judge 还必须拦截两类学生端失败:一是 opening/main beat 用 `A02/P40/source_card/IR/scene/primitive/pack` 等内部编号或制作黑话解释题意;二是缺少 `scene_visual_brief[]`,无法证明每幕画面来自当前文案和采分动作。内部编号可保留在制作追溯字段,不得进入老师/学生音频或学生可见标题。
 - `visual_archetype_decision` 必须在 IR 之前形成:它把成品 MD 的认知难点转成具体图示语法。默认规则是**动画解释知识,不是文字解释知识**。①工序=流程步进;②构造/空间=剖面/层叠/场布;③计算/图结构=网络/公式链/曲线;④判断=判断树/阈值门;⑤正误=左右对照/先错后对;⑥采分诊断=答题纸扫描;⑦数值记忆才允许 memory_table。没有这个字段,或 `pure_text_allowed=true` 但不是(七),只能产 `coarse_draft_requires_single_card_review`,不得标 student-ready。
+- `visual_excellence_profile` 是 `workflow_candidate/student_ready` 的升级门:它必须声明参考视觉范式、must_show、motion_standards、layout_guards、release_bar。目标是把 OpenMAIC-style action authority 继续推进到视觉导演层:工程对象图、阈值线、危险/超限对照、底部规则卡、答题纸落点都要在 IR 里先被承诺,再由 renderer/gate 验证。机器门绿但缺这个 profile,只能算结构草稿。
+- 主图支配门是 `workflow_candidate/student_ready` 的 IR 层升级门:`validate_animation_ir_contract.mjs` 必须证明每个主讲 scene 至少有一个非文字 domain diagram node 达到 `min_visual_dominance_ratio`。这个门专治“有图元但画面仍围绕文字讲”的假图示;A02/S02 当前阈值为 0.62,每幕主图实测 0.744。
+- Remotion still quality gate 是 `workflow_candidate/student_ready` 的成片路径升级门:`capture_remotion_ir_review_stills.mjs` 必须覆盖 `render_contract.remotion_review_scene_ids`,manifest 必须进入 `build_workflow_review_packet.mjs --screenshot remotion=...`,且 `quality_gate.pass=true`、`flags=[]`。still 有大空白、文字压力过高、主板与字幕断裂或缺质量指标时,review packet 必须 FAIL。
+- `scene_visual_brief[]` 必须在 IR 之前形成:每个主讲 scene 写清“这句旁白要学生看见什么工程/现场/资金/图结构对象,对象如何进入、移动、分层、命中、淘汰、trace、扫描或退出”。截图墙/LLM judge 发现 4 个以上主讲 scene 只是同一对象组换标题、换标签、整页淡入淡出,即使 schema gate 绿也必须 FAIL 并回炉到 P0.5/P1,不是只调 CSS。
 - `practice_blueprint` 必须在 practice renderer 之前形成:它把成品 MD 的真实场景、变量、采分骨架和误区转成题目蓝图。没有这层,practice renderer 只能退化成 `coarse_draft_requires_review`,不能标为精品卡。
 - animation_ir preview 的真实视口门是量产准入,不是 F16 特例:360/390/430 竖屏、844/932 横屏、播放器遮挡、触控 44px、字幕 live、闯关解锁、非累计 seek、student-safe 都必须 fail-closed。
 - 闯关页真实视口门同样是量产准入,不是附属检查:`validate_challenge_theater_practice.mjs` 或同级 gate 必须证明题图/流程图标签不挤压、题干/学生答/选项不裁切、导航不覆盖、目标视口截图存在。用户反馈过的视口必须补入下一轮 gate 或截图墙。
@@ -80,7 +91,7 @@ Orchestrator 按 6+1 原型分桶(同原型共享 fixture/golden)→ fan out wor
 - **MVP(先 1 卡,不 fan out)**:选已有母题卡(J01/④ 或 F16/①),手工跑完整 loop。**验收 = "改表现字段三轮内从红到绿"**(证闭环收敛),不追 60 张。
 - **扩到 60**:复用 learning stage 合同 + 6 `fixture/golden` → 每原型各 1 张样板验证 → fan out 60。
 - **量产 gated on retention**:先用 MVP 那张过 P6 学员留存,再铺量。
-- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、`build_workflow_review_packet.mjs`、J01 `gate.sh`、`workflow-review-loop.md` 已落地;
+- 最小件状态:`validate_timing_sync.mjs`、`validate_data_id_targets.mjs`、`render_archetype_practice.py`、`build_card_bundle_manifest.py`、`build_workflow_review_packet.mjs`、`capture_remotion_ir_review_stills.mjs`、`validate_workflow_promotions.mjs`、J01 `gate.sh`、`workflow-review-loop.md` 已落地;
   judge 自动执行器和批量截图墙仍是后续补齐项。
 
 ## 6.1 J01 确定性切片(2026-06-19)
@@ -105,7 +116,7 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 
 未覆盖范围必须明说,不能偷换成全计划完成:
 
-- N01/S02 还未接入同一套 gates。
+- 本 J01 切片不覆盖 N01/S02;S02 的 animation_ir/Remotion 晋级链见 §6.3,不要把 J01 PASS 偷换成全原型完成。
 - judge 修订 prompt 模板和 learner evidence 仍待后续。
 
 ## 6.2 F16 animation_ir.v0 切片(2026-06-20)
@@ -119,6 +130,32 @@ F16 起鼓割补已补齐 OpenMAIC-style 新引擎的最小闭环:
 - `validate_animation_ir_preview.mjs` 是 post-render gate:验证 IR→HTML data 等价、scene 生命周期、控件、字幕、CTA、theater 和 mobile viewport。
 
 这条切片的关键不是 F16 图好看,而是证明 workflow 可量产:LLM/agent 改表现只改 IR;HTML 和 Remotion 都吃同一份 IR;审查先发生在 IR 层,再发生在真实页面层。后续 60 卡先复制这个分工,再扩图元库/action renderer,不要再复制 F16 专用 SVG。
+
+## 6.3 A02/S02 blueprint-poster 晋级切片(2026-06-23)
+
+A02(材料验收/复验/见证取样)和 S02(起重吊装阈值/试吊/停工禁令)已作为图示主导样板接入新晋级链。它们证明的不是“这两张已经 student-ready”,而是下面这条 promotion path 可以防止批量草稿回退成文字卡:
+
+- IR 声明 `render_contract.layout_mode="blueprint_poster"`、`quality_status="workflow_candidate"`、`student_ready=false`、`remotion_review_scene_ids`、`min_visual_dominance_ratio=0.62` 和 `min_dominant_visual_teaching_scenes=7`。
+- 通用 `AnimationIrRenderer` 按同一份 IR 渲染大蓝图画板;主讲区必须是工程图/阈值线/验收链/试吊动作,底部规则卡和字幕只做辅助。
+- `validate_animation_ir_contract.mjs` 必须输出 `dominant_visual_teaching_scene_count=7/7`,证明主图面积支配画面,而不是仅有一个小图标。
+- `capture_remotion_ir_review_stills.mjs` 产 `*.remotion_review/manifest.json`,质量摘要必须无 low-information gap、无 board/caption 断裂、无质量 flag。
+- `build_workflow_review_packet.mjs --ir <card>.animation_ir.v0.json --screenshot visual=<card>.visual_review/<card>.visual_review_manifest.json --screenshot remotion=<card>.remotion_review/manifest.json ...` 把截图墙和 Remotion still manifest 一起纳入 blocking failures。
+- `validate_workflow_promotions.mjs P40_A02 P40_S02` 证明 batch manifest 的 `promoted`、`promotion_authority`、`preserved_by_batch=true` 与 IR/packet/Remotion quality gate 一致。
+
+量产复制的是这条链,不是复制蓝色皮肤。其他考点可以不是 `blueprint_poster`,但必须达到同级可视解释密度:学生第一眼看到对象和判据,第二眼看到动作/对照,最后落成可写采分句。
+
+当前最短验收命令:
+
+```bash
+cd artifacts/luban_case_family_assets/diagram_microlesson
+node validate_animation_ir_contract.mjs P40_A02.animation_ir.v0.json
+node validate_animation_ir_contract.mjs P40_S02.animation_ir.v0.json
+node capture_remotion_ir_review_stills.mjs P40_A02.animation_ir.v0.json --out-dir P40_A02.remotion_review --overwrite
+node capture_remotion_ir_review_stills.mjs P40_S02.animation_ir.v0.json --out-dir P40_S02.remotion_review --overwrite
+node build_workflow_review_packet.mjs --card-id P40_A02 --ir P40_A02.animation_ir.v0.json --screenshot visual=P40_A02.visual_review/P40_A02.visual_review_manifest.json --screenshot remotion=P40_A02.remotion_review/manifest.json --out P40_A02.workflow_review_packet.json
+node build_workflow_review_packet.mjs --card-id P40_S02 --ir P40_S02.animation_ir.v0.json --screenshot visual=P40_S02.visual_review/P40_S02.visual_review_manifest.json --screenshot remotion=P40_S02.remotion_review/manifest.json --out P40_S02.workflow_review_packet.json
+node validate_workflow_promotions.mjs P40_A02 P40_S02
+```
 
 ## 7. MVP 验证(2026-06-19)+ judge 必查项
 

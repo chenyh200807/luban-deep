@@ -85,6 +85,8 @@ from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     change_external_auth_password,
     create_external_auth_user,
+    delete_external_auth_sessions,
+    delete_external_auth_user,
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
     get_external_auth_user_by_phone,
@@ -4043,6 +4045,8 @@ class MemberConsoleService:
                 overlay_candidate_user_ids = set()
         filtered = []
         for item in members:
+            if (not status or status == "all") and str(item.get("status") or "") == "deleted":
+                continue
             if status and status != "all" and item["status"] != status:
                 continue
             if tier and tier != "all" and item["tier"] != tier:
@@ -7776,6 +7780,8 @@ class MemberConsoleService:
         normalized_phone = _slugify_phone(phone) if phone else ""
         normalized_external_user_id = str(external_user_id or "").strip()
         for member in data["members"]:
+            if str(member.get("status") or "").strip() == "deleted":
+                continue
             if str(member.get("auth_username") or "").strip() == normalized_username:
                 return member
             if normalized_external_user_id and str(member.get("external_auth_user_id") or "").strip() == normalized_external_user_id:
@@ -7911,6 +7917,8 @@ class MemberConsoleService:
         data = self._load()
         for member in data.get("members") or []:
             if not isinstance(member, dict):
+                continue
+            if str(member.get("status") or "").strip() == "deleted":
                 continue
             if _slugify_phone(str(member.get("phone") or "")) != normalized_phone:
                 continue
@@ -8552,6 +8560,7 @@ class MemberConsoleService:
             "message": "密码已修改，请使用新密码重新登录",
             "sessions_invalidated": int(result.get("sessions_invalidated") or 0),
         }
+
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

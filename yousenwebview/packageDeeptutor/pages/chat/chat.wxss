@@ -1968,6 +1968,12 @@
   border-color: #d5e1fb;
   box-shadow: 0 14rpx 34rpx rgba(122,146,190,0.14);
 }
+.page.light .focus-label,
+.page.light .focus-title { color: #b45309; }
+.page.light .focus-meta {
+  border-left-color: rgba(180,83,9,0.24);
+  color: #8a4b05;
+}
 .page.light .focus-text { color: #38517c; }
 .page.light .focus-next {
   background: rgba(47,107,255,0.08);
@@ -2245,7 +2251,7 @@
 .page.light .cite-list { background: #f8fbff; border-color: #d8e8fb; }
 .page.light .cite-head { border-color: #e2eaf7; }
 .page.light .cite-head-main { color: #2563eb; }
-.page.light .cite-head-sub { color: #8b98ad; }
+.page.light .cite-head-sub { color: #64748b; }
 .page.light .cite + .cite { border-color: #e6edf8; }
 .page.light .cite-key { color: #2f6bff; }
 .page.light .cite-title { color: #334155; }
@@ -2407,7 +2413,7 @@
 .page.light .usage-row-reset { color: #66758a; }
 .page.light .usage-row-percent { color: #5f6f84; }
 .page.light .usage-meter { background: #e5e7eb; }
-.page.light .usage-meter-fill { background: #111827; }
+.page.light .usage-meter-fill { background: linear-gradient(90deg, #2563eb, #059669); }
 
 /* ═══════════════════════════════════════════════
    ★ 低端设备降级 — 关闭动画、减少 GPU 负载

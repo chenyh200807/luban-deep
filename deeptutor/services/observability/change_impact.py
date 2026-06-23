@@ -193,6 +193,8 @@ def _normalize_changed_files(changed_files: list[str] | tuple[str, ...] | None) 
     files = []
     for item in changed_files or []:
         path = str(item or "").strip().lstrip("./")
+        if len(path) >= 2 and path.startswith('"') and path.endswith('"'):
+            path = path[1:-1]
         if path:
             files.append(path)
     return sorted(dict.fromkeys(files))

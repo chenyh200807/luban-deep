@@ -44,6 +44,86 @@ function readText(path) {
   return readFileSync(path, "utf8");
 }
 
+function charLength(value) {
+  return Array.from(String(value || "").trim()).length;
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  return value ? [value] : [];
+}
+
+function sceneVisualSimilaritySummary(ir, teachingSceneIds, primaryRequired) {
+  const visualBriefs = new Map((Array.isArray(ir?.scene_visual_brief) ? ir.scene_visual_brief : [])
+    .filter((brief) => brief && typeof brief === "object" && brief.scene_id)
+    .map((brief) => [brief.scene_id, brief]));
+  const tokenSet = (sceneId) => {
+    const tokens = new Set([`scene:${sceneId}`]);
+    const nodes = Array.isArray(ir?.visual_library?.[sceneId]?.nodes) ? ir.visual_library[sceneId].nodes : [];
+    for (const node of nodes) {
+      if (primaryRequired.length && !primaryRequired.includes(node.kind)) continue;
+      tokens.add(`kind:${node.kind || "node"}`);
+      tokens.add(`mode:${node.mode || "default"}`);
+      tokens.add(`signature:${node.visual_signature || `${node.kind || "node"}:${node.mode || "default"}`}`);
+      for (const item of asArray(node.domain_objects)) tokens.add(`object:${item}`);
+      for (const step of asArray(node.primitive_steps)) {
+        tokens.add(`step:${step.kind || "step"}:${step.domain_object || ""}:${step.target || ""}`);
+      }
+    }
+    const scene = (ir?.scenes || []).find((item) => item.id === sceneId) || {};
+    for (const action of asArray(scene.actions)) {
+      if (action.kind === "primitive_step") {
+        tokens.add(`action:${action.kind}:${action.verb || ""}:${action.step || action.target || ""}`);
+      }
+    }
+    const brief = visualBriefs.get(sceneId) || {};
+    for (const field of ["visual_action", "state_change", "exit_before_next", "why_not_reused_template"]) {
+      const text = String(brief[field] || "");
+      for (const token of text.split(/[，。；、,\s/|:：]+/).filter((item) => item.length >= 2)) {
+        tokens.add(`${field}:${token}`);
+      }
+    }
+    return tokens;
+  };
+  const sets = new Map(teachingSceneIds.map((sceneId) => [sceneId, tokenSet(sceneId)]));
+  const pairs = [];
+  for (let i = 0; i < teachingSceneIds.length; i += 1) {
+    for (let j = i + 1; j < teachingSceneIds.length; j += 1) {
+      const leftId = teachingSceneIds[i];
+      const rightId = teachingSceneIds[j];
+      const left = sets.get(leftId) || new Set();
+      const right = sets.get(rightId) || new Set();
+      const intersection = [...left].filter((token) => right.has(token)).length;
+      const union = new Set([...left, ...right]).size || 1;
+      pairs.push({
+        left: leftId,
+        right: rightId,
+        ratio: Number((intersection / union).toFixed(4)),
+      });
+    }
+  }
+  pairs.sort((left, right) => right.ratio - left.ratio);
+  return {
+    max_pair: pairs[0] || null,
+    pairs,
+  };
+}
+
+function blueprintReferenceRequired(ir) {
+  const profileText = [
+    ir?.visual_excellence_profile?.reference_style,
+    ir?.visual_excellence_profile?.reference_image_note,
+    ir?.render_contract?.primary_visual_primitive_required,
+  ].filter(Boolean).join(" ");
+  return /blueprint|threshold|inspection_blueprint_board|lifting_threshold_board/i.test(profileText);
+}
+
+function getTeachingSceneIds(ir, scenes) {
+  return Array.isArray(ir?.render_contract?.teaching_scene_ids) && ir.render_contract.teaching_scene_ids.length
+    ? ir.render_contract.teaching_scene_ids
+    : scenes.slice(0, Math.max(1, scenes.length - 2)).map((scene) => scene.id);
+}
+
 function checkStatic(ir, html) {
   if (!ir) return;
   ir.schema_version === "luban_animation_ir.v0"
@@ -118,10 +198,30 @@ function checkStatic(ir, html) {
   } else {
     pass("action_playback", "has deterministic action queue playback");
   }
+  const primitiveActionCount = scenes
+    .flatMap((scene) => (Array.isArray(scene.actions) ? scene.actions : []))
+    .filter((action) => action.kind === "primitive_step").length;
+  if (primitiveActionCount) {
+    if (!/annotatePrimitiveSteps/.test(html) || !/primitiveStepTrace/.test(html) || !/stepTarget/.test(html)) {
+      fail("primitive_step_playback_hooks", "primitive_step actions must annotate DOM steps and expose a runtime consumption trace");
+    } else {
+      pass("primitive_step_playback_hooks", `preview exposes runtime primitive step hooks for ${primitiveActionCount} action(s)`);
+    }
+  }
   if (!/controls-visible/.test(html)) {
     fail("theater_controls_autohide", "theater controls must use show/hide state");
   } else {
     pass("theater_controls_autohide", "has controls-visible show/hide state");
+  }
+  const sharedSwitchNodes = Object.values(ir.visual_library || {})
+    .flatMap((visual) => (Array.isArray(visual.nodes) ? visual.nodes : []))
+    .filter((node) => node.kind === "power_distribution_tree" && node.mode === "shared_switch");
+  if (sharedSwitchNodes.length) {
+    if (!/data-shared-switch-branch/.test(html) || !/data-shared-switch-device/.test(html)) {
+      fail("shared_switch_renderer_hooks", "shared_switch must render countable branch and device hooks");
+    } else {
+      pass("shared_switch_renderer_hooks", "shared_switch exposes branch/device hooks for runtime audit");
+    }
   }
   if (!/--player-h/.test(html) || !/ResizeObserver/.test(html)) {
     fail("dynamic_player_height", "renderer must derive shell spacing from measured player height, not fixed magic numbers");
@@ -144,6 +244,153 @@ function checkStatic(ir, html) {
     } else {
       pass("ai_ask_entry", "AI ask entry exposes structured current-scene context");
     }
+  }
+  const requiresBlueprintReference = blueprintReferenceRequired(ir);
+  if (requiresBlueprintReference) {
+    const teachingSceneIds = getTeachingSceneIds(ir, scenes);
+    const primaryRequired = Array.isArray(ir.render_contract?.primary_visual_primitive_required)
+      ? ir.render_contract.primary_visual_primitive_required
+      : ir.render_contract?.primary_visual_primitive_required
+        ? [ir.render_contract.primary_visual_primitive_required]
+        : [];
+    const maxCaptionChars = Number(ir.render_contract?.max_caption_chars ?? 42);
+    const isBlueprintPoster = ir.render_contract?.layout_mode === "blueprint_poster";
+    const maxKeycardChars = Number(ir.render_contract?.max_keycard_chars ?? (isBlueprintPoster ? 14 : 28));
+    const maxCoachChars = Number(ir.render_contract?.max_coach_chars ?? (isBlueprintPoster ? 24 : 72));
+    const minVisualAttentionRatio = Number(ir.render_contract?.min_visual_attention_ratio ?? (isBlueprintPoster ? 0.7 : 0.55));
+    const minDomainObjectCoverageRatio = Number(ir.render_contract?.min_domain_object_coverage_ratio ?? (isBlueprintPoster ? 0.16 : 0.12));
+    const minBlueprintSurfaceCoverageRatio = Number(ir.render_contract?.min_blueprint_surface_coverage_ratio ?? (isBlueprintPoster ? 0.25 : 0.2));
+    const maxSvgTextPressureRatio = Number(ir.render_contract?.max_svg_text_pressure_ratio ?? (isBlueprintPoster ? 0.16 : 0.24));
+    const minPrimaryObjectCoverageRatio = Number(ir.render_contract?.min_primary_object_coverage_ratio ?? (isBlueprintPoster ? 0.22 : 0.14));
+    const maxRuleCardAreaRatio = Number(ir.render_contract?.max_rule_card_area_ratio ?? (isBlueprintPoster ? 0.16 : 0.22));
+    const maxRuleCardTextPressureRatio = Number(ir.render_contract?.max_rule_card_text_pressure_ratio ?? (isBlueprintPoster ? 0.06 : 0.1));
+    const minRuleCardTopRatio = Number(ir.render_contract?.min_rule_card_top_ratio ?? (isBlueprintPoster ? 0.68 : 0.58));
+    const minLabelClearancePx = Number(ir.render_contract?.min_label_clearance_px ?? (isBlueprintPoster ? 4 : 2));
+    const maxSceneVisualSimilarityRatio = Number(ir.render_contract?.max_scene_visual_similarity_ratio ?? (isBlueprintPoster ? 0.82 : 0.9));
+    const blueprintScenes = teachingSceneIds.filter((sceneId) => {
+      const board = ir.visual_library?.[sceneId]?.board;
+      return board === "blueprint" || board === "blueprint_poster";
+    });
+    const primaryScenes = teachingSceneIds.filter((sceneId) => {
+      const kinds = (ir.visual_library?.[sceneId]?.nodes || []).map((node) => node.kind);
+      return primaryRequired.length ? kinds.some((kind) => primaryRequired.includes(kind)) : kinds.some((kind) => /blueprint|threshold/.test(kind));
+    });
+    blueprintScenes.length === teachingSceneIds.length
+      ? pass("blueprint_reference_board", `${blueprintScenes.length}/${teachingSceneIds.length} teaching scenes use blueprint board`)
+      : fail("blueprint_reference_board", `${blueprintScenes.length}/${teachingSceneIds.length} teaching scenes use blueprint board`);
+    primaryScenes.length === teachingSceneIds.length
+      ? pass("blueprint_reference_primary_primitive", `${primaryScenes.length}/${teachingSceneIds.length} teaching scenes use ${primaryRequired.join("|") || "blueprint primitive"}`)
+      : fail("blueprint_reference_primary_primitive", `${primaryScenes.length}/${teachingSceneIds.length} teaching scenes use ${primaryRequired.join("|") || "blueprint primitive"}`);
+    const teachingSignatures = teachingSceneIds.flatMap((sceneId) => {
+      const nodes = ir.visual_library?.[sceneId]?.nodes || [];
+      return nodes
+        .filter((node) => {
+          if (!primaryRequired.length) return /blueprint|threshold/.test(String(node.kind || ""));
+          return primaryRequired.includes(node.kind);
+        })
+        .map((node) => String(node.visual_signature || `${node.kind || "node"}:${node.mode || "default"}`));
+    });
+    const uniqueTeachingSignatures = new Set(teachingSignatures);
+    const minSignatureCount = Math.min(4, teachingSceneIds.length);
+    if (uniqueTeachingSignatures.size < minSignatureCount) {
+      fail("blueprint_reference_visual_signature_variety", `${uniqueTeachingSignatures.size} visual signature(s), expected at least ${minSignatureCount}`);
+    } else {
+      pass("blueprint_reference_visual_signature_variety", `${uniqueTeachingSignatures.size} distinct teaching visual signature(s)`);
+    }
+    if (!/data-visual-signature=/.test(html) || !/data-visual-mode=/.test(html)) {
+      fail("blueprint_reference_visual_signature_hooks", "blueprint HTML must expose visual signature/mode hooks");
+    } else {
+      pass("blueprint_reference_visual_signature_hooks", "blueprint HTML exposes visual signature/mode hooks");
+    }
+    if (!/data-visual-signature-part=/.test(html)) {
+      fail("blueprint_reference_visual_signature_parts", "blueprint renderer must expose visible signature-part hooks");
+    } else {
+      pass("blueprint_reference_visual_signature_parts", "blueprint renderer exposes signature-part hooks");
+    }
+    if (!/data-engineering-object=/.test(html)) {
+      fail("blueprint_reference_engineering_hooks", "blueprint HTML must expose data-engineering-object hooks");
+    } else {
+      pass("blueprint_reference_engineering_hooks", "blueprint HTML exposes engineering object hooks");
+    }
+    if (!/data-rule-card=/.test(html)) {
+      fail("blueprint_reference_rule_card", "blueprint HTML must expose bottom rule-card hooks");
+    } else {
+      pass("blueprint_reference_rule_card", "blueprint HTML exposes rule-card hooks");
+    }
+    if (!/data-threshold-line=/.test(html)) {
+      fail("blueprint_reference_threshold_hooks", "blueprint HTML must expose threshold/boundary line hooks");
+    } else {
+      pass("blueprint_reference_threshold_hooks", "blueprint HTML exposes threshold/boundary line hooks");
+    }
+    ir.render_contract?.caption_mode === "visual_brief"
+      ? pass("blueprint_reference_caption_mode", "blueprint preview uses visual_brief captions")
+      : fail("blueprint_reference_caption_mode", "blueprint previews must use render_contract.caption_mode=visual_brief, not full timing narration");
+    const captionIssues = teachingSceneIds.flatMap((sceneId) => {
+      const scene = scenes.find((candidate) => candidate.id === sceneId);
+      const caption = scene?.caption;
+      const issues = [];
+      if (!caption) issues.push(`${sceneId}: missing caption`);
+      if (charLength(caption) > maxCaptionChars) issues.push(`${sceneId}: ${charLength(caption)} chars > ${maxCaptionChars}`);
+      if (/source_ref|schema_version|candidate|official_score_allowed|\bP\d{2,}\b|\bE\d{2}\b/i.test(String(caption || ""))) {
+        issues.push(`${sceneId}: internal token in caption`);
+      }
+      return issues;
+    });
+    if (captionIssues.length) fail("blueprint_reference_caption_budget", captionIssues.join("; "));
+    else pass("blueprint_reference_caption_budget", `${teachingSceneIds.length} teaching captions fit <= ${maxCaptionChars} chars`);
+    if (isBlueprintPoster) {
+      ir.render_contract?.diagram_led_required
+        ? pass("blueprint_poster_diagram_led_contract", "layout declares diagram_led_required=true")
+        : fail("blueprint_poster_diagram_led_contract", "blueprint_poster must declare render_contract.diagram_led_required=true");
+      minVisualAttentionRatio >= 0.7
+        ? pass("blueprint_poster_visual_attention_contract", `min visual attention ratio=${minVisualAttentionRatio}`)
+        : fail("blueprint_poster_visual_attention_contract", `min visual attention ratio ${minVisualAttentionRatio} < 0.7`);
+      minDomainObjectCoverageRatio >= 0.16
+        ? pass("blueprint_poster_domain_object_coverage_contract", `min domain object coverage ratio=${minDomainObjectCoverageRatio}`)
+        : fail("blueprint_poster_domain_object_coverage_contract", `min domain object coverage ratio ${minDomainObjectCoverageRatio} < 0.16`);
+      minBlueprintSurfaceCoverageRatio >= 0.25
+        ? pass("blueprint_poster_surface_coverage_contract", `min blueprint surface coverage ratio=${minBlueprintSurfaceCoverageRatio}`)
+        : fail("blueprint_poster_surface_coverage_contract", `min blueprint surface coverage ratio ${minBlueprintSurfaceCoverageRatio} < 0.25`);
+      maxSvgTextPressureRatio <= 0.18
+        ? pass("blueprint_poster_svg_text_pressure_contract", `max SVG text pressure ratio=${maxSvgTextPressureRatio}`)
+        : fail("blueprint_poster_svg_text_pressure_contract", `max SVG text pressure ratio ${maxSvgTextPressureRatio} > 0.18`);
+      minPrimaryObjectCoverageRatio >= 0.22
+        ? pass("blueprint_poster_primary_object_contract", `min primary object coverage ratio=${minPrimaryObjectCoverageRatio}`)
+        : fail("blueprint_poster_primary_object_contract", `min primary object coverage ratio ${minPrimaryObjectCoverageRatio} < 0.22`);
+      maxRuleCardAreaRatio <= 0.16 && maxRuleCardTextPressureRatio <= 0.06 && minRuleCardTopRatio >= 0.68
+        ? pass("blueprint_poster_rule_card_contract", `rule card area<=${maxRuleCardAreaRatio}, text<=${maxRuleCardTextPressureRatio}, top>=${minRuleCardTopRatio}`)
+        : fail("blueprint_poster_rule_card_contract", `rule card contract must keep area<=0.16, text<=0.06, top>=0.68; got area<=${maxRuleCardAreaRatio}, text<=${maxRuleCardTextPressureRatio}, top>=${minRuleCardTopRatio}`);
+      minLabelClearancePx >= 4
+        ? pass("blueprint_poster_label_clearance_contract", `min label clearance=${minLabelClearancePx}px`)
+        : fail("blueprint_poster_label_clearance_contract", `min label clearance ${minLabelClearancePx}px < 4px`);
+      maxSceneVisualSimilarityRatio <= 0.82
+        ? pass("blueprint_scene_visual_similarity_contract", `max scene visual similarity=${maxSceneVisualSimilarityRatio}`)
+        : fail("blueprint_scene_visual_similarity_contract", `max scene visual similarity ${maxSceneVisualSimilarityRatio} > 0.82`);
+      const similarity = sceneVisualSimilaritySummary(ir, teachingSceneIds, primaryRequired);
+      if (similarity.max_pair && similarity.max_pair.ratio > maxSceneVisualSimilarityRatio) {
+        fail("blueprint_scene_visual_similarity", `${similarity.max_pair.left}<->${similarity.max_pair.right} similarity ${similarity.max_pair.ratio} > ${maxSceneVisualSimilarityRatio}`);
+      } else if (similarity.max_pair) {
+        pass("blueprint_scene_visual_similarity", `max ${similarity.max_pair.left}<->${similarity.max_pair.right} similarity ${similarity.max_pair.ratio} <= ${maxSceneVisualSimilarityRatio}`);
+      } else {
+        pass("blueprint_scene_visual_similarity", "single teaching scene has no reusable-scene pair");
+      }
+      const textIssues = teachingSceneIds.flatMap((sceneId) => {
+        const scene = scenes.find((candidate) => candidate.id === sceneId) || {};
+        const issues = [];
+        if (charLength(scene.keycard) > maxKeycardChars) issues.push(`${sceneId}: keycard ${charLength(scene.keycard)} > ${maxKeycardChars}`);
+        if (charLength(scene.coach) > maxCoachChars) issues.push(`${sceneId}: coach ${charLength(scene.coach)} > ${maxCoachChars}`);
+        return issues;
+      });
+      if (textIssues.length) fail("blueprint_poster_text_budget", textIssues.join("; "));
+      else pass("blueprint_poster_text_budget", `keycard/coach fit <= ${maxKeycardChars}/${maxCoachChars} chars`);
+      if (/grid-template-columns:minmax\(0,1fr\)\s+160px/.test(html)) {
+        fail("blueprint_poster_no_text_sidebar", "blueprint_poster must not reserve a right-side text rail");
+      } else {
+        pass("blueprint_poster_no_text_sidebar", "blueprint_poster does not reserve a text sidebar");
+      }
+    }
+  } else {
+    pass("blueprint_reference_scope", "IR does not claim blueprint/threshold reference style");
   }
 
   const dataMatch = html.match(/<script[^>]+id=["']irPreviewData["'][^>]*>([\s\S]*?)<\/script>/);
@@ -181,6 +428,11 @@ function checkStatic(ir, html) {
           }
         }
       }
+      if (requiresBlueprintReference && preview.captionMode !== "visual_brief") {
+        fail("ir_html_caption_mode", `preview captionMode drift: ${preview.captionMode || "(missing)"}`);
+      } else {
+        pass("ir_html_caption_mode", `preview captionMode=${preview.captionMode || "timing"}`);
+      }
       if (!Number.isFinite(Number(preview.challengeUnlockSec))) {
         fail("challenge_unlock_static", "preview data must expose challengeUnlockSec");
       } else {
@@ -191,7 +443,7 @@ function checkStatic(ir, html) {
     }
   }
 
-  const internalTokens = [/source_ref/i, /schema_version/i, /candidate/i, /official_score_allowed/i, /\bE\d{2}\b/, /\bP\d{2,}\b/];
+  const internalTokens = [/source_ref/i, /schema_version/i, /candidate/i, /official_score_allowed/i, /\bA\d{2}\b/, /\bE\d{2}\b/, /\bF\d{2}\b/, /\bJ\d{2}\b/, /\bN\d{2}\b/, /\bP\d{2,}\b/, /\bS\d{2}\b/];
   const hit = internalTokens.find((re) => re.test(html));
   if (hit) fail("student_safe_tokens", `student preview contains possible internal token ${hit}`);
   else pass("student_safe_tokens", "no obvious internal authority tokens in preview HTML");
@@ -267,12 +519,28 @@ async function checkRuntime(ir) {
     await client.send("Runtime.enable");
 
     const maxNodes = Number(ir.render_contract?.max_visible_nodes ?? 4);
+    const requiresBlueprintReference = blueprintReferenceRequired(ir);
+    const blueprintTeachingSceneIds = new Set(requiresBlueprintReference ? getTeachingSceneIds(ir, ir.scenes || []) : []);
+    const maxCaptionChars = Number(ir.render_contract?.max_caption_chars ?? 42);
+    const isBlueprintPoster = ir.render_contract?.layout_mode === "blueprint_poster";
+    const minVisualAttentionRatio = Number(ir.render_contract?.min_visual_attention_ratio ?? (isBlueprintPoster ? 0.7 : 0.55));
+    const maxTextOverlayRatio = Number(ir.render_contract?.max_text_overlay_ratio ?? (isBlueprintPoster ? 0.16 : 0.28));
+    const minDomainObjectCoverageRatio = Number(ir.render_contract?.min_domain_object_coverage_ratio ?? (isBlueprintPoster ? 0.16 : 0.12));
+    const minBlueprintSurfaceCoverageRatio = Number(ir.render_contract?.min_blueprint_surface_coverage_ratio ?? (isBlueprintPoster ? 0.25 : 0.2));
+    const maxSvgTextPressureRatio = Number(ir.render_contract?.max_svg_text_pressure_ratio ?? (isBlueprintPoster ? 0.16 : 0.24));
+    const minPrimaryObjectCoverageRatio = Number(ir.render_contract?.min_primary_object_coverage_ratio ?? (isBlueprintPoster ? 0.22 : 0.14));
+    const maxRuleCardAreaRatio = Number(ir.render_contract?.max_rule_card_area_ratio ?? (isBlueprintPoster ? 0.16 : 0.22));
+    const maxRuleCardTextPressureRatio = Number(ir.render_contract?.max_rule_card_text_pressure_ratio ?? (isBlueprintPoster ? 0.06 : 0.1));
+    const minRuleCardTopRatio = Number(ir.render_contract?.min_rule_card_top_ratio ?? (isBlueprintPoster ? 0.68 : 0.58));
+    const minLabelClearancePx = Number(ir.render_contract?.min_label_clearance_px ?? (isBlueprintPoster ? 4 : 2));
     const viewports = [
       { name: "portrait_360", width: 360, height: 740, mobile: true },
       { name: "portrait_390", width: 390, height: 844, mobile: true },
       { name: "portrait_430", width: 430, height: 932, mobile: true },
       { name: "landscape_844", width: 844, height: 390, mobile: true },
       { name: "landscape_932", width: 932, height: 430, mobile: true },
+      { name: "embed_980", width: 980, height: 820, mobile: false },
+      { name: "embed_1082", width: 1082, height: 950, mobile: false },
       { name: "wide_1302", width: 1302, height: 950, mobile: false },
     ];
     const samples = ir.scenes.filter(Boolean);
@@ -296,7 +564,7 @@ async function checkRuntime(ir) {
     };
 
     const evalValue = async (expression) => {
-      const response = await client.send("Runtime.evaluate", { expression, returnByValue: true });
+      const response = await client.send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
       return response.result.result.value;
     };
 
@@ -317,6 +585,7 @@ async function checkRuntime(ir) {
           };
           const stage = document.querySelector(".stage");
           const player = document.querySelector(".player");
+          const active = document.querySelector(".scene.active");
           const aiAskButtons = [...document.querySelectorAll("[data-ai-ask-entry]")].filter(visible).length;
           const buttons = [...document.querySelectorAll("button,a,input[type=range]")].filter(visible);
           const smallTargets = buttons
@@ -329,6 +598,7 @@ async function checkRuntime(ir) {
             overflowX: document.documentElement.scrollWidth - innerWidth,
             stage: rect(stage),
             player: rect(player),
+            activeGrid: active ? getComputedStyle(active).gridTemplateColumns : "",
             aiAskButtons,
             smallTargets,
             missingNames,
@@ -350,6 +620,13 @@ async function checkRuntime(ir) {
       } else {
         pass("runtime_player_layout", `${viewport.name}: player is in viewport flow`);
       }
+      const gridColumns = String(layoutValue.activeGrid || "").trim().split(/\s+/).filter(Boolean).length;
+      const mediumDesktopEmbed = viewport.mobile === false && viewport.width < 1120 && viewport.height > 520;
+      if (mediumDesktopEmbed && gridColumns > 1) {
+        fail("runtime_medium_embed_single_column", `${viewport.name}: medium embedded viewport must stay single-column, got ${layoutValue.activeGrid}`);
+      } else if (mediumDesktopEmbed) {
+        pass("runtime_medium_embed_single_column", `${viewport.name}: medium embedded viewport uses single-column stage`);
+      }
       if (layoutValue.smallTargets.length) {
         fail("runtime_touch_targets", `${viewport.name}: small targets ${layoutValue.smallTargets.map((item) => `${item.name}:${Math.round(item.rect.width)}x${Math.round(item.rect.height)}`).join(", ")}`);
       } else {
@@ -367,6 +644,9 @@ async function checkRuntime(ir) {
         const sceneStart = Number(scene.start_sec);
         const sceneEnd = Number(scene.end_sec);
         const sceneDur = Math.max(0.8, sceneEnd - sceneStart);
+        const sceneVisualNodes = ir.visual_library?.[scene.id]?.nodes || [];
+        const sceneHasSharedSwitch = sceneVisualNodes.some((node) => node.kind === "power_distribution_tree" && node.mode === "shared_switch");
+        const expectedPrimitiveActions = (Array.isArray(scene.actions) ? scene.actions : []).filter((action) => action.kind === "primitive_step");
         const t = sceneStart + Math.max(0.25, Math.min(sceneDur - 0.15, Math.max(0.8, sceneDur * 0.86)));
         const expression = `
         (() => {
@@ -376,6 +656,22 @@ async function checkRuntime(ir) {
             const r = el.getBoundingClientRect();
             return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0.05 && r.width > 1 && r.height > 1;
           };
+          const visibleSvg = (el) => {
+            if (!el) return false;
+            let cur = el;
+            while (cur && cur.nodeType === 1) {
+              const cs = getComputedStyle(cur);
+              if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity || 1) <= 0.05) return false;
+              cur = cur.parentElement;
+            }
+            const r = el.getBoundingClientRect();
+            if (r.width > 1 && r.height > 1) return true;
+            if (typeof el.getBBox === "function") {
+              const b = el.getBBox();
+              return b.width > 1 || b.height > 1;
+            }
+            return false;
+          };
           const rect = (el) => {
             if (!el) return null;
             const r = el.getBoundingClientRect();
@@ -384,9 +680,49 @@ async function checkRuntime(ir) {
           const intersects = (a,b,pad=1) => !!a && !!b && a.left < b.right - pad && a.right > b.left + pad && a.top < b.bottom - pad && a.bottom > b.top + pad;
           const activeScenes = [...document.querySelectorAll(".scene.active")];
           const active = activeScenes[0];
+          const stageRect = rect(document.querySelector(".stage"));
+          const visualRect = rect(active?.querySelector(".visual"));
+          const diagramRect = active ? [...active.querySelectorAll(".visual svg")]
+            .filter(visible)
+            .map(rect)
+            .filter(Boolean)
+            .sort((left, right) => (right.width * right.height) - (left.width * left.height))[0] || visualRect
+            : visualRect;
+          const playerState = window.__IR_PLAYER__.state();
+          const primitiveTrace = Array.isArray(playerState.primitiveTrace) ? playerState.primitiveTrace : [];
+          const primitiveMissing = primitiveTrace
+            .filter((item) => item.status !== "consumed")
+            .map((item) => item.target + ":" + item.status);
+          const primitiveMetadataIssues = active ? [...active.querySelectorAll("[data-primitive-step-id]")]
+            .filter((el) => !(el.dataset.stepKind && el.dataset.domainObject && el.dataset.stepTarget))
+            .map((el) => el.dataset.primitiveStepId || el.dataset.primitiveStep || "step")
+            .slice(0, 12) : [];
           const player = document.querySelector(".player");
           const playerRect = rect(player);
           const coachRect = rect(active?.querySelector(".coach-card"));
+          const captionRect = rect(document.querySelector(".caption-line"));
+          const ratio = (part, whole) => {
+            if (!part || !whole || whole.width <= 0 || whole.height <= 0) return 0;
+            return Math.max(0, Math.min(1, (part.width * part.height) / (whole.width * whole.height)));
+          };
+          const gap = (a, b) => {
+            if (!a || !b) return Infinity;
+            if (intersects(a, b, 0)) return 0;
+            const dx = Math.max(0, a.left > b.right ? a.left - b.right : b.left - a.right);
+            const dy = Math.max(0, a.top > b.bottom ? a.top - b.bottom : b.top - a.bottom);
+            return Math.sqrt(dx * dx + dy * dy);
+          };
+          const unionRect = (rects) => {
+            const usable = rects.filter((item) => item && item.width > 1 && item.height > 1);
+            if (!usable.length) return null;
+            const left = Math.min(...usable.map((item) => item.left));
+            const top = Math.min(...usable.map((item) => item.top));
+            const right = Math.max(...usable.map((item) => item.right));
+            const bottom = Math.max(...usable.map((item) => item.bottom));
+            return { left, top, right, bottom, width: right - left, height: bottom - top };
+          };
+          const visualAttentionRatio = ratio(visualRect, stageRect);
+          const textOverlayRatio = ratio(coachRect, stageRect) + ratio(captionRect, stageRect);
           const inViewport = (r) => !!r && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1;
           const pillLabelIssues = active ? [...active.querySelectorAll('[data-visual-kind="pill"]')].flatMap((node) => {
             const box = node.querySelector("rect");
@@ -455,12 +791,164 @@ async function checkRuntime(ir) {
             .map((el) => ({name: el.className || el.tagName, rect: rect(el)}))
             .filter((item) => intersects(playerRect, item.rect))
             .map((item) => item.name);
+          const askRect = rect(document.querySelector("[data-ai-ask-entry]"));
+          const askBlocks = protectedEls
+            .map((el) => ({name: el.className || el.tagName, rect: rect(el)}))
+            .filter((item) => intersects(askRect, item.rect))
+            .map((item) => item.name);
+          const centerPlayBlocks = [...document.querySelectorAll(".center-play")].filter(visible)
+            .flatMap((overlay) => protectedEls
+              .map((el) => ({name: el.className || el.tagName, rect: rect(el), overlayRect: rect(overlay)}))
+              .filter((item) => intersects(item.overlayRect, item.rect))
+              .map((item) => item.name));
           const captionCoachOverlap = intersects(rect(document.querySelector(".caption-line")), rect(document.querySelector(".scene.active .coach-card")));
           const offSceneVisible = [...document.querySelectorAll(".scene:not(.active) [data-visible-node]")].filter(visible).length;
+          const sharedSwitchBranches = active ? [...active.querySelectorAll('[data-shared-switch-branch="1"]')].filter(visibleSvg).length : 0;
+          const sharedSwitchDevices = active ? [...active.querySelectorAll('[data-shared-switch-device="1"]')].filter(visibleSvg).length : 0;
+          const visibleHook = (el) => {
+            const node = el.closest("[data-visible-node]");
+            const step = el.closest("[data-primitive-step]");
+            const stepOpacity = step ? Number(getComputedStyle(step).opacity || 1) : 1;
+            return (!node || visible(node)) && stepOpacity > 0.05;
+          };
+          const domainObjectRects = active ? [
+            ...active.querySelectorAll("[data-engineering-object], [data-threshold-line], [data-visual-signature-part]")
+          ].filter(visibleHook).map(rect).filter(Boolean) : [];
+          const domainObjectUnion = unionRect(domainObjectRects);
+          const domainObjectCoverageRatio = ratio(domainObjectUnion, stageRect);
+          const primaryObjectRects = active ? [
+            ...active.querySelectorAll("[data-engineering-object], [data-visual-signature-part]")
+          ]
+            .filter((el) => !el.closest("[data-rule-card]") && !el.matches("[data-rule-card]"))
+            .filter((el) => !el.matches("[data-threshold-line]"))
+            .filter(visibleHook)
+            .map(rect)
+            .filter(Boolean) : [];
+          const primaryObjectUnion = unionRect(primaryObjectRects);
+          const primaryObjectCoverageRatio = ratio(primaryObjectUnion, diagramRect || visualRect || stageRect);
+          const blueprintSurfaceRects = active ? [
+            ...active.querySelectorAll("[data-engineering-object], [data-threshold-line], [data-visual-signature-part], [data-rule-card]")
+          ].filter(visibleHook).map(rect).filter(Boolean) : [];
+          const blueprintSurfaceUnion = unionRect(blueprintSurfaceRects);
+          const blueprintSurfaceCoverageRatio = ratio(blueprintSurfaceUnion, stageRect);
+          const ruleCardRects = active ? [...active.querySelectorAll("[data-rule-card]")]
+            .filter(visibleHook)
+            .map(rect)
+            .filter(Boolean) : [];
+          const ruleCardUnion = unionRect(ruleCardRects);
+          const ruleCardTopInSvgRatio = active ? (() => {
+            const card = [...active.querySelectorAll("[data-rule-card]")].filter(visibleHook)[0];
+            const svg = card?.closest("svg");
+            if (!card || !svg || typeof card.getBBox !== "function") return null;
+            const viewBox = svg.viewBox?.baseVal;
+            const box = card.getBBox();
+            if (!viewBox || !viewBox.height) return null;
+            return Math.max(0, Math.min(1, (box.y - viewBox.y) / viewBox.height));
+          })() : null;
+          const ruleCardAreaRatio = ratio(ruleCardUnion, diagramRect || visualRect || stageRect);
+          const ruleCardTopRatio = Number.isFinite(ruleCardTopInSvgRatio) ? ruleCardTopInSvgRatio : ruleCardUnion && (diagramRect || visualRect || stageRect)
+            ? Math.max(0, Math.min(1, (ruleCardUnion.top - (diagramRect || visualRect || stageRect).top) / (diagramRect || visualRect || stageRect).height))
+            : 0;
+          const ruleCardTextPressureRatio = active ? Math.min(1, [...active.querySelectorAll("[data-rule-card] text")]
+            .filter(visibleSvg)
+            .map(rect)
+            .filter(Boolean)
+            .reduce((sum, item) => sum + ratio(item, diagramRect || visualRect || stageRect), 0)) : 0;
+          const ruleCardPrimaryOverlap = intersects(ruleCardUnion, primaryObjectUnion, 4);
+          const svgTextPressureRatio = active ? Math.min(1, [...active.querySelectorAll("[data-visible-node] text, [data-rule-card] text")]
+            .filter(visibleSvg)
+            .map(rect)
+            .filter(Boolean)
+            .reduce((sum, item) => sum + ratio(item, stageRect), 0)) : 0;
+          const labelClearance = active ? (() => {
+            const labels = [...active.querySelectorAll("[data-visible-node] text")]
+              .filter((el) => !el.closest("[data-rule-card]"))
+              .filter(visibleSvg)
+              .map((el) => ({ label: (el.textContent || "").trim().slice(0, 18), rect: rect(el) }))
+              .filter((item) => item.label && item.rect);
+            let nearest = Infinity;
+            let pair = "";
+            for (let i = 0; i < labels.length; i += 1) {
+              for (let j = i + 1; j < labels.length; j += 1) {
+                const current = gap(labels[i].rect, labels[j].rect);
+                if (current < nearest) {
+                  nearest = current;
+                  pair = labels[i].label + "<->" + labels[j].label;
+                }
+              }
+            }
+            return { nearest: Number.isFinite(nearest) ? nearest : 999, pair };
+          })() : { nearest: 999, pair: "" };
+          const visibleThresholdLines = active ? [...active.querySelectorAll("[data-threshold-line]")].filter(visibleHook).length : 0;
+          const visibleRuleCards = active ? [...active.querySelectorAll("[data-rule-card]")].filter(visibleHook).length : 0;
+          const visualSignatures = active ? [...active.querySelectorAll("[data-visual-signature]")].filter(visibleHook).map((el) => el.dataset.visualSignature || "").filter(Boolean) : [];
+          const visibleSignatureParts = active ? [...active.querySelectorAll("[data-visual-signature-part]")].filter(visibleHook).length : 0;
+          const sharedSwitchPathTextIssues = active ? (() => {
+            const issues = [];
+            const texts = [...active.querySelectorAll('[data-visible-node] text')].filter(visibleSvg);
+            for (const path of [...active.querySelectorAll('[data-shared-switch-branch="1"]')].filter(visibleSvg)) {
+              if (typeof path.getBBox !== "function") continue;
+              const pb = path.getBBox();
+              const zone = { x: pb.x - 4, y: pb.y - 4, width: pb.width + 8, height: pb.height + 8 };
+              for (const text of texts) {
+                if (typeof text.getBBox !== "function") continue;
+                const label = (text.textContent || "").trim().slice(0, 18);
+                if (!label) continue;
+                const tb = text.getBBox();
+                const overlap = tb.x < zone.x + zone.width && tb.x + tb.width > zone.x && tb.y < zone.y + zone.height && tb.y + tb.height > zone.y;
+                if (overlap) issues.push(label);
+              }
+            }
+            return [...new Set(issues)];
+          })() : [];
+          const layoutOverlapIssues = active ? (() => {
+            const issues = [];
+            const describe = (el, fallback) =>
+              el?.getAttribute("data-layout-item") ||
+              el?.getAttribute("data-layout-label") ||
+              el?.getAttribute("data-layout-shape") ||
+              fallback;
+            const overlap = (a, b) => intersects(a.rect, b.rect, 0.5);
+            const items = [...active.querySelectorAll("[data-layout-item]")]
+              .filter(visibleSvg)
+              .map((el, index) => ({ id: describe(el, "item" + index), rect: rect(el) }))
+              .filter((item) => item.rect);
+            const labels = [...active.querySelectorAll("[data-layout-label]")]
+              .filter(visibleSvg)
+              .map((el, index) => ({ id: describe(el, "label" + index), rect: rect(el) }))
+              .filter((item) => item.rect);
+            const shapes = [...active.querySelectorAll("[data-layout-shape]")]
+              .filter(visibleSvg)
+              .map((el, index) => ({ id: describe(el, "shape" + index), rect: rect(el) }))
+              .filter((item) => item.rect);
+            for (let i = 0; i < items.length; i += 1) {
+              for (let j = i + 1; j < items.length; j += 1) {
+                if (overlap(items[i], items[j])) issues.push("object:" + items[i].id + "<->" + items[j].id);
+              }
+            }
+            for (let i = 0; i < labels.length; i += 1) {
+              for (let j = i + 1; j < labels.length; j += 1) {
+                if (overlap(labels[i], labels[j])) issues.push("label:" + labels[i].id + "<->" + labels[j].id);
+              }
+            }
+            for (const label of labels) {
+              for (const shape of shapes) {
+                if (overlap(label, shape)) issues.push("label-image:" + label.id + "<->" + shape.id);
+              }
+            }
+            return [...new Set(issues)].slice(0, 12);
+          })() : [];
+          const layoutItemCountIssues = active ? (() => {
+            const count = [...active.querySelectorAll("[data-layout-item]")].filter(visibleSvg).length;
+            return count > 0 && (count < 2 || count > 6) ? ["expected 2-6 marked domain items, got " + count] : [];
+          })() : [];
         return {
-          state: window.__IR_PLAYER__.state(),
+          state: playerState,
           activeScenes: activeScenes.length,
           visibleNodes: active ? [...active.querySelectorAll("[data-visible-node]")].filter(visible).map((el) => el.dataset.visibleNode) : [],
+          primitiveTraceCount: primitiveTrace.length,
+          primitiveMissing,
+          primitiveMetadataIssues,
           keycards: active ? [...active.querySelectorAll(".coach-card")].filter(visible).length : 0,
           caption: document.querySelector("[data-caption]")?.textContent?.trim() || "",
 	          coachInViewport: inViewport(coachRect),
@@ -470,8 +958,30 @@ async function checkRuntime(ir) {
 	          challengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter(visible).length,
           enabledChallengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter((el) => visible(el) && el.getAttribute("aria-disabled") !== "true").length,
           playerBlocks,
+          askBlocks,
+          centerPlayBlocks,
           captionCoachOverlap,
-          offSceneVisible
+          offSceneVisible,
+          sharedSwitchBranches,
+          sharedSwitchDevices,
+          visibleThresholdLines,
+          visibleRuleCards,
+          visualSignatures,
+          visibleSignatureParts,
+          visualAttentionRatio,
+          textOverlayRatio,
+          domainObjectCoverageRatio,
+          primaryObjectCoverageRatio,
+          blueprintSurfaceCoverageRatio,
+          ruleCardAreaRatio,
+          ruleCardTextPressureRatio,
+          ruleCardTopRatio,
+          ruleCardPrimaryOverlap,
+          svgTextPressureRatio,
+          labelClearance,
+          sharedSwitchPathTextIssues,
+          layoutOverlapIssues,
+          layoutItemCountIssues
         };
         })()
       `;
@@ -483,24 +993,173 @@ async function checkRuntime(ir) {
         else pass("runtime_visible_budget", `${label}: ${value.visibleNodes.length}/${maxNodes}`);
         if (value.visibleNodes.length < 1) fail("runtime_visible_progress", `${label}: no visible node after scene midpoint`);
         else pass("runtime_visible_progress", `${label}: progressive reveal produced visible nodes`);
+        if (expectedPrimitiveActions.length) {
+          if (value.primitiveTraceCount !== expectedPrimitiveActions.length) {
+            fail("runtime_primitive_step_sequence", `${label}: expected ${expectedPrimitiveActions.length} primitive step trace item(s), got ${value.primitiveTraceCount}`);
+          } else {
+            pass("runtime_primitive_step_sequence", `${label}: traced ${value.primitiveTraceCount} primitive step action(s)`);
+          }
+          if (value.primitiveMissing.length) {
+            fail("runtime_primitive_step_consumption", `${label}: missing primitive step target(s) ${value.primitiveMissing.join(", ")}`);
+          } else {
+            pass("runtime_primitive_step_consumption", `${label}: primitive step action targets are consumed by DOM steps`);
+          }
+          if (value.primitiveMetadataIssues.length) {
+            fail("runtime_primitive_step_metadata", `${label}: primitive step metadata incomplete ${value.primitiveMetadataIssues.join(", ")}`);
+          } else {
+            pass("runtime_primitive_step_metadata", `${label}: primitive step DOM exposes id/kind/domain object metadata`);
+          }
+        }
         if (value.keycards !== 1) fail("runtime_keycard_budget", `${label}: ${value.keycards} visible keycards`);
         else pass("runtime_keycard_budget", `${label}: one keycard`);
         if (!value.caption) fail("runtime_caption", `${label}: caption is empty`);
         else pass("runtime_caption", `${label}: caption visible`);
+        if (requiresBlueprintReference && blueprintTeachingSceneIds.has(scene.id)) {
+          const captionChars = charLength(value.caption);
+          if (captionChars > maxCaptionChars) {
+            fail("runtime_blueprint_caption_budget", `${label}: visible caption ${captionChars} chars > ${maxCaptionChars}`);
+          } else {
+            pass("runtime_blueprint_caption_budget", `${label}: visible caption ${captionChars}/${maxCaptionChars} chars`);
+          }
+          if (value.visibleThresholdLines < 1) {
+            fail("runtime_blueprint_threshold_visible", `${label}: no visible threshold/boundary line`);
+          } else {
+            pass("runtime_blueprint_threshold_visible", `${label}: ${value.visibleThresholdLines} visible threshold/boundary line(s)`);
+          }
+          if (value.visibleRuleCards < 1) {
+            fail("runtime_blueprint_rule_card_visible", `${label}: no visible bottom rule card`);
+          } else {
+            pass("runtime_blueprint_rule_card_visible", `${label}: ${value.visibleRuleCards} visible bottom rule card(s)`);
+          }
+          if (!value.visualSignatures.length) {
+            fail("runtime_blueprint_visual_signature", `${label}: no visible visual signature hook`);
+          } else {
+            pass("runtime_blueprint_visual_signature", `${label}: ${[...new Set(value.visualSignatures)].join(",")}`);
+          }
+          if (value.visibleSignatureParts < 1) {
+            fail("runtime_blueprint_signature_parts", `${label}: no visible signature-part hook`);
+          } else {
+            pass("runtime_blueprint_signature_parts", `${label}: ${value.visibleSignatureParts} visible signature part(s)`);
+          }
+          if (isBlueprintPoster) {
+            if (value.visualAttentionRatio < minVisualAttentionRatio) {
+              fail("runtime_blueprint_poster_visual_attention", `${label}: visual ratio ${value.visualAttentionRatio.toFixed(2)} < ${minVisualAttentionRatio}`);
+            } else {
+              pass("runtime_blueprint_poster_visual_attention", `${label}: visual ratio ${value.visualAttentionRatio.toFixed(2)} >= ${minVisualAttentionRatio}`);
+            }
+            if (value.textOverlayRatio > maxTextOverlayRatio) {
+              fail("runtime_blueprint_poster_text_overlay", `${label}: text overlay ratio ${value.textOverlayRatio.toFixed(2)} > ${maxTextOverlayRatio}`);
+            } else {
+              pass("runtime_blueprint_poster_text_overlay", `${label}: text overlay ratio ${value.textOverlayRatio.toFixed(2)} <= ${maxTextOverlayRatio}`);
+            }
+            if (value.domainObjectCoverageRatio < minDomainObjectCoverageRatio) {
+              fail("runtime_blueprint_domain_object_coverage", `${label}: domain object coverage ${value.domainObjectCoverageRatio.toFixed(2)} < ${minDomainObjectCoverageRatio}`);
+            } else {
+              pass("runtime_blueprint_domain_object_coverage", `${label}: domain object coverage ${value.domainObjectCoverageRatio.toFixed(2)} >= ${minDomainObjectCoverageRatio}`);
+            }
+            if (value.primaryObjectCoverageRatio < minPrimaryObjectCoverageRatio) {
+              fail("runtime_blueprint_primary_object_coverage", `${label}: primary object coverage ${value.primaryObjectCoverageRatio.toFixed(2)} < ${minPrimaryObjectCoverageRatio}`);
+            } else {
+              pass("runtime_blueprint_primary_object_coverage", `${label}: primary object coverage ${value.primaryObjectCoverageRatio.toFixed(2)} >= ${minPrimaryObjectCoverageRatio}`);
+            }
+            if (value.blueprintSurfaceCoverageRatio < minBlueprintSurfaceCoverageRatio) {
+              fail("runtime_blueprint_surface_coverage", `${label}: blueprint surface coverage ${value.blueprintSurfaceCoverageRatio.toFixed(2)} < ${minBlueprintSurfaceCoverageRatio}`);
+            } else {
+              pass("runtime_blueprint_surface_coverage", `${label}: blueprint surface coverage ${value.blueprintSurfaceCoverageRatio.toFixed(2)} >= ${minBlueprintSurfaceCoverageRatio}`);
+            }
+            if (value.visibleRuleCards !== 1) {
+              fail("runtime_blueprint_rule_card_budget", `${label}: rule cards ${value.visibleRuleCards}, expected exactly 1`);
+            } else if (value.ruleCardAreaRatio > maxRuleCardAreaRatio || value.ruleCardTextPressureRatio > maxRuleCardTextPressureRatio || value.ruleCardTopRatio < minRuleCardTopRatio || value.ruleCardPrimaryOverlap) {
+              fail("runtime_blueprint_rule_card_budget", `${label}: count=1 area=${value.ruleCardAreaRatio.toFixed(2)} text=${value.ruleCardTextPressureRatio.toFixed(2)} top=${value.ruleCardTopRatio.toFixed(2)} overlap=${value.ruleCardPrimaryOverlap}`);
+            } else {
+              pass("runtime_blueprint_rule_card_budget", `${label}: count=1 area=${value.ruleCardAreaRatio.toFixed(2)}<=${maxRuleCardAreaRatio} text=${value.ruleCardTextPressureRatio.toFixed(2)}<=${maxRuleCardTextPressureRatio} top=${value.ruleCardTopRatio.toFixed(2)}>=${minRuleCardTopRatio}`);
+            }
+            if (value.svgTextPressureRatio > maxSvgTextPressureRatio) {
+              fail("runtime_blueprint_svg_text_pressure", `${label}: SVG text pressure ${value.svgTextPressureRatio.toFixed(2)} > ${maxSvgTextPressureRatio}`);
+            } else {
+              pass("runtime_blueprint_svg_text_pressure", `${label}: SVG text pressure ${value.svgTextPressureRatio.toFixed(2)} <= ${maxSvgTextPressureRatio}`);
+            }
+            if (value.labelClearance.nearest < minLabelClearancePx) {
+              fail("runtime_blueprint_label_clearance", `${label}: nearest label clearance ${value.labelClearance.nearest.toFixed(1)}px < ${minLabelClearancePx}px (${value.labelClearance.pair})`);
+            } else {
+              pass("runtime_blueprint_label_clearance", `${label}: nearest label clearance ${value.labelClearance.nearest.toFixed(1)}px >= ${minLabelClearancePx}px`);
+            }
+          }
+        }
         if (!value.coachInViewport) fail("runtime_coach_in_view", `${label}: coach card is outside viewport`);
         else pass("runtime_coach_in_view", `${label}: coach card is inside viewport`);
         if (value.pillLabelIssues.length) fail("runtime_svg_label_fit", `${label}: pill labels too close to edge ${value.pillLabelIssues.join(", ")}`);
         else pass("runtime_svg_label_fit", `${label}: pill labels have safe padding`);
         if (value.svgTextIssues.length) fail("runtime_svg_text_collision", `${label}: svg text collision/line crowding ${value.svgTextIssues.join(", ")}`);
         else pass("runtime_svg_text_collision", `${label}: svg text avoids other labels and arrows`);
+        if (value.layoutOverlapIssues.length) fail("runtime_domain_layout_overlap", `${label}: domain object/text overlap ${value.layoutOverlapIssues.join(", ")}`);
+        else pass("runtime_domain_layout_overlap", `${label}: marked domain objects, labels, and images do not overlap`);
+        if (value.layoutItemCountIssues.length) fail("runtime_domain_layout_item_count", `${label}: ${value.layoutItemCountIssues.join(", ")}`);
+        else pass("runtime_domain_layout_item_count", `${label}: marked domain object count is correct when declared`);
+        if (value.sharedSwitchPathTextIssues.length) fail("runtime_shared_switch_branch_label_clearance", `${label}: shared switch branch crosses label text ${value.sharedSwitchPathTextIssues.join(", ")}`);
+        else pass("runtime_shared_switch_branch_label_clearance", `${label}: shared switch branches avoid label text`);
         if (value.svgBoardIssues.length) fail("runtime_svg_text_in_board", `${label}: svg text outside primary board ${value.svgBoardIssues.join(", ")}`);
         else pass("runtime_svg_text_in_board", `${label}: svg text stays inside primary board`);
         if (value.playerBlocks.length) fail("runtime_player_occlusion", `${label}: player overlaps ${value.playerBlocks.join(", ")}`);
         else pass("runtime_player_occlusion", `${label}: player does not cover protected content`);
+        if (value.askBlocks.length) fail("runtime_ai_ask_occlusion", `${label}: AI ask entry overlaps ${value.askBlocks.join(", ")}`);
+        else pass("runtime_ai_ask_occlusion", `${label}: AI ask entry does not cover protected content`);
+        if (value.centerPlayBlocks.length) fail("runtime_center_play_occlusion", `${label}: center play overlays ${value.centerPlayBlocks.join(", ")}`);
+        else pass("runtime_center_play_occlusion", `${label}: center play does not cover protected content`);
         if (value.captionCoachOverlap) fail("runtime_caption_coach_overlap", `${label}: caption overlaps coach card`);
         else pass("runtime_caption_coach_overlap", `${label}: caption avoids coach card`);
         if (value.offSceneVisible) fail("runtime_non_cumulative_seek", `${label}: ${value.offSceneVisible} off-scene visible nodes`);
         else pass("runtime_non_cumulative_seek", `${label}: off-scene nodes are not visible`);
+        if (sceneHasSharedSwitch) {
+          if (value.sharedSwitchBranches < 2 || value.sharedSwitchDevices < 2) {
+            fail("runtime_shared_switch_domain_objects", `${label}: needs two visible branches and two visible devices, got branches=${value.sharedSwitchBranches}, devices=${value.sharedSwitchDevices}`);
+          } else {
+            pass("runtime_shared_switch_domain_objects", `${label}: shared switch shows two branches and two devices`);
+          }
+          const revealSamples = [0.42, 0.52, 0.62, 0.72].map((fraction) =>
+            sceneStart + Math.max(0.25, Math.min(sceneDur - 0.15, sceneDur * fraction))
+          );
+          const revealValue = await evalValue(`
+            (() => {
+              const visible = (el) => {
+                const cs = getComputedStyle(el);
+                const r = el.getBoundingClientRect();
+                return cs.display !== "none" && cs.visibility !== "hidden" && Number(cs.opacity || 1) > 0.05 && r.width > 1 && r.height > 1;
+              };
+              const visibleSvg = (el) => {
+                if (!el) return false;
+                let cur = el;
+                while (cur && cur.nodeType === 1) {
+                  const cs = getComputedStyle(cur);
+                  if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity || 1) <= 0.05) return false;
+                  cur = cur.parentElement;
+                }
+                const r = el.getBoundingClientRect();
+                if (r.width > 1 && r.height > 1) return true;
+                if (typeof el.getBBox === "function") {
+                  const b = el.getBBox();
+                  return b.width > 1 || b.height > 1;
+                }
+                return false;
+              };
+              return ${JSON.stringify(revealSamples)}.map((sampleT) => {
+                window.__IR_PLAYER__.seek(sampleT);
+                const active = document.querySelector(".scene.active");
+                return {
+                  t: sampleT,
+                  branches: active ? [...active.querySelectorAll('[data-shared-switch-branch="1"]')].filter(visibleSvg).length : 0,
+                  devices: active ? [...active.querySelectorAll('[data-shared-switch-device="1"]')].filter(visibleSvg).length : 0,
+                };
+              });
+            })()
+          `);
+          const badReveal = Array.isArray(revealValue) ? revealValue.find((item) => item.branches > 0 && item.devices < 2) : null;
+          if (badReveal) {
+            fail("runtime_shared_switch_atomic_reveal", `${label}: branch appears before two devices at ${Number(badReveal.t).toFixed(2)}s`);
+          } else {
+            pass("runtime_shared_switch_atomic_reveal", `${label}: branch/device reveal is atomic across sampled frames`);
+          }
+        }
         if (scene.id === "closing_challenge" && value.challengeCtas < 1) {
           fail("runtime_challenge_cta", `${label}: closing scene has no visible challenge CTA`);
         }
@@ -530,8 +1189,15 @@ async function checkRuntime(ir) {
     for (const viewport of viewports.filter((item) => item.name === "portrait_390" || item.name === "landscape_844")) {
       await loadViewport(viewport);
       const theaterExpression = `
-      (() => {
+      (async () => {
         document.querySelector("[data-theater-toggle]")?.click();
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        const lesson = document.querySelector(".lesson");
+        const controlsShown = lesson?.classList.contains("controls-visible") || false;
+        if (${isBlueprintPoster ? "true" : "false"}) {
+          lesson?.classList.remove("controls-visible");
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
         window.__IR_PLAYER__.seek(${JSON.stringify(ir.scenes.at(-1).start_sec + 0.2)});
         const visible = (el) => {
           const cs = getComputedStyle(el);
@@ -550,8 +1216,8 @@ async function checkRuntime(ir) {
         const coach = document.querySelector(".scene.active .coach-card");
         const playerRect = rect(player);
         return {
-          theater: document.querySelector(".lesson")?.classList.contains("theater"),
-          controlsVisible: document.querySelector(".lesson")?.classList.contains("controls-visible"),
+          theater: lesson?.classList.contains("theater"),
+          controlsVisible: controlsShown,
           challengeCtas: [...document.querySelectorAll("[data-challenge-cta]")].filter(visible).length,
           stageRect: rect(stage),
           playerRect,
@@ -570,6 +1236,15 @@ async function checkRuntime(ir) {
         fail("runtime_theater_stage", `${viewport.name}: stage width ${Math.round(theater.stageRect.width)} < viewport`);
       } else {
         pass("runtime_theater_stage", `${viewport.name}: theater stage spans viewport width`);
+      }
+      if (isBlueprintPoster) {
+        const widthRatio = theater.stageRect ? theater.stageRect.width / theater.viewport.width : 0;
+        const heightRatio = theater.stageRect ? theater.stageRect.height / theater.viewport.height : 0;
+        if (widthRatio < 0.95 || heightRatio < 0.95) {
+          fail("runtime_blueprint_theater_stage_coverage", `${viewport.name}: theater clean stage ${widthRatio.toFixed(2)}x${heightRatio.toFixed(2)} of viewport`);
+        } else {
+          pass("runtime_blueprint_theater_stage_coverage", `${viewport.name}: theater clean stage covers ${widthRatio.toFixed(2)}x${heightRatio.toFixed(2)} of viewport`);
+        }
       }
       if (theater.playerCaptionOverlap || theater.playerCoachOverlap) {
         fail("runtime_theater_occlusion", `${viewport.name}: controls overlap caption or coach card`);

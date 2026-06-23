@@ -1440,11 +1440,11 @@ async def test_deep_question_capability_uses_user_message_as_topic(
                 "results": [
                     {
                         "qa_pair": {
-                            "question": "What is a matrix?",
+                            "question": "施工缝处理的正确做法是？",
                             "question_type": "choice",
-                            "options": {"A": "A table", "B": "A scalar"},
+                            "options": {"A": "浇筑前清理", "B": "随浇随走"},
                             "correct_answer": "A",
-                            "explanation": "A matrix is a table.",
+                            "explanation": "施工缝浇筑前须清理松动石子。",
                         }
                     }
                 ]
@@ -1479,7 +1479,7 @@ async def test_deep_question_capability_uses_user_message_as_topic(
     assert question["followup_context"]["correct_answer"] == ""
     assert question["followup_context"]["explanation"] == ""
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "A"
-    assert result_event.metadata["question_followup_context"]["explanation"] == "A matrix is a table."
+    assert result_event.metadata["question_followup_context"]["explanation"] == "施工缝浇筑前须清理松动石子。"
 
 
 @pytest.mark.asyncio
@@ -4531,110 +4531,6 @@ async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
 
     assert provider.calls == 2
     assert tools_used == ["rag", "rag"]
-    assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
-    assert metadata["effective_max_tool_rounds"] == 2
-    assert "maximum number of tool call iterations (2)" in (final_content or "")
-
-
-@pytest.mark.asyncio
-async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path,
-) -> None:
-    fake_loguru = types.ModuleType("loguru")
-    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
-        info=lambda *args, **kwargs: None,
-        warning=lambda *args, **kwargs: None,
-        error=lambda *args, **kwargs: None,
-        debug=lambda *args, **kwargs: None,
-        exception=lambda *args, **kwargs: None,
-    )
-    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
-
-    from deeptutor.tutorbot.agent.loop import AgentLoop
-    from deeptutor.tutorbot.agent.tools.base import Tool
-    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
-    from deeptutor.tutorbot.bus.queue import MessageBus
-    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-
-    class LoopingProvider(LLMProvider):
-        def __init__(self) -> None:
-            super().__init__()
-            self.calls = 0
-
-        async def chat(
-            self,
-            messages: list[dict[str, Any]],
-            tools: list[dict[str, Any]] | None = None,
-            model: str | None = None,
-            max_tokens: int = 4096,
-            temperature: float = 0.7,
-            reasoning_effort: str | None = None,
-            tool_choice: str | dict[str, Any] | None = None,
-            on_content_delta=None,
-        ) -> LLMResponse:
-            self.calls += 1
-            return LLMResponse(
-                content="继续调用工具",
-                tool_calls=[
-                    ToolCallRequest(
-                        id=f"call_{self.calls}",
-                        name="dummy_tool",
-                        arguments={"topic": f"round-{self.calls}"},
-                    )
-                ],
-            )
-
-        def get_default_model(self) -> str:
-            return "fake-model"
-
-    class DummyTool(Tool):
-        def __init__(self) -> None:
-            self.calls: list[dict[str, Any]] = []
-
-        @property
-        def name(self) -> str:
-            return "dummy_tool"
-
-        @property
-        def description(self) -> str:
-            return "dummy tool"
-
-        @property
-        def parameters(self) -> dict[str, Any]:
-            return {
-                "type": "object",
-                "properties": {"topic": {"type": "string"}},
-                "required": ["topic"],
-            }
-
-        async def execute(self, **kwargs: Any) -> str:
-            self.calls.append(dict(kwargs))
-            return f"executed:{kwargs['topic']}"
-
-    provider = LoopingProvider()
-    tool = DummyTool()
-    loop = AgentLoop(
-        bus=MessageBus(),
-        provider=provider,
-        workspace=tmp_path,
-        max_iterations=5,
-        session_manager=SimpleNamespace(
-            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
-            save=lambda session: None,
-        ),
-    )
-    loop.tools = TutorBotToolRegistry()
-    loop.tools.register(tool)
-    metadata = {"mode_execution_policy": {"max_tool_rounds": 2}}
-
-    final_content, tools_used, _messages = await loop._run_agent_loop(
-        [{"role": "user", "content": "一直调用工具"}],
-        runtime_metadata=metadata,
-    )
-
-    assert provider.calls == 2
-    assert tools_used == ["dummy_tool", "dummy_tool"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
     assert "maximum number of tool call iterations (2)" in (final_content or "")

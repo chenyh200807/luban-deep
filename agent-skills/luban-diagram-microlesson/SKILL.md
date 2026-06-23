@@ -10,6 +10,7 @@ description: Use when authoring, rendering, redesigning, or reviewing 鲁班 dia
 > **唯一目录**:`artifacts/luban_case_family_assets/diagram_microlesson/`。不新建第二套目录 / 第二个 schema_version / 第二份 skill。
 >
 > 配套实现(均在上述唯一目录):`SCHEMA.md`(schema 脊柱)、`render_card.py`/`render_network_card.py`/`render_contrast_card.py`/`render_decision_card.py`(原型渲染器)、`render_master_view.py`(深母题 deck 闯关)、`render_teaching_animation.py`(PPT 教学动画·讲懂幕引擎)、`render_archetype_journey.py`(**完整学习闭环·一镜到底**)、`render_network_video_first.py` + `remotion_demo/src/N01NetworkVideoFirst.tsx`(**N01 video-first 当前样板**)、`F16_qigu.animation_ir.v0.json` + `render_animation_ir_preview.py` + `remotion_demo/src/AnimationIrRenderer.tsx` + `remotion_demo/src/F16AnimationIrPreview.tsx`(**OpenMAIC-style animation_ir.v0 新引擎样板:通用 renderer + F16 thin wrapper**)、`validate_schema_drafts.py`(schema 校验门)、`validate_lesson_source_workflow.mjs`(**成品 MD→source_card→lesson 连贯性门**)、`validate_animation_action_schema.py`(v0 beat action 白名单门)、`validate_animation_ir_contract.mjs`(**渲染前 IR contract 门:scene/action/visual_library/Remotion 同源**)、`validate_animation_ir_preview.mjs`(**渲染后 IR→HTML 等价/真实视口/遮挡/触控/闯关解锁门**)、`validate_challenge_theater_practice.mjs`(**独立闯关页真实视口/文字可读/图元标签适配门**)、`validate_timing_sync.mjs`(timing/sync_keyword 门)、`validate_data_id_targets.mjs`(action target→DOM 命中门)、`validate_video_first_preview.mjs`(video-first/IR 静态预览合同门)、`validate_learning_stage_runtime.mjs`(学习舞台真实视口运行时门)、`build_workflow_review_packet.mjs`(**机器门/截图墙/root-cause 回炉包**)、`gate.sh`(J01 当前确定性门串联)、`build_card_narration.mjs`(单卡旁白派生)、`build_lesson_narration.mjs`(教学动画/双人配音+防漂移闸)、`cdp_shot.mjs`(零依赖手机截图)、脚手架卡 `F16_qigu.json`(①)/`N01_network_keypath.json`(③)/`C01_*contrast*.json`(⑤)/`J01_*argumentation*.json`(④)、讲懂脚本 `*.lesson.json`、母题样板 `M_*.master.json`(标 sample.v0,**生产 case_family 待 schema 登记**)。
+> 晋级实现(2026-06-23 起必须跟随):`capture_remotion_ir_review_stills.mjs` 是 `workflow_candidate/student_ready` 的 Remotion still 截图与质量门 authority;`validate_workflow_promotions.mjs` 是批量 manifest 中 `promoted/preserved_by_batch` 的晋级验收 authority;`build_animation_ir_batch.py` 必须保留已晋级卡,不得用粗糙批量草稿覆盖。
 > references:造卡读 `style-guide.md` + 对应 `type-*.md`;**造 video-first / decision-first 动画学习卡、Remotion、独立闯关页先读 `animation-production-director.md` + `learning-stage-shell.md` + `workflow-review-loop.md` + `video-first-pressure-tests.md` + `anti-patterns.md`**;有声卡读 `narration-spec.md`;完整母题闭环/教学动画读 `teaching-animation-journey.md`;web-view 承载读 `wechat-webview-sandbox.md`;手机截图/DOM 断言读 `zero-dep-cdp-harness.md`。
 
 ## 这套 skill 解决什么
@@ -74,6 +75,15 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
   "motion_grammar": "step_trace|layer_explode|path_growth|branch_eliminate|wrong_then_right|scan_hit_partial_miss|table_flash",
   "why_this_visual": "它解决哪个认知难点",
   "why_not_text": "纯文字为什么讲不清",
+  "must_show_domain_objects": true,
+  "domain_visual_plan": [
+    {
+      "scene": "hook|map|rule|trap|score",
+      "domain_objects": ["本考点必须看见的工程对象/现场对象/资金对象/图结构对象"],
+      "visual_action": "这些对象如何进入、退出、移动、分层、命中或被淘汰",
+      "why_object_not_box": "为什么不能只用文字框/判断框替代"
+    }
+  ],
   "pure_text_allowed": false
 }
 ```
@@ -83,7 +93,11 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 - **默认 `pure_text_allowed=false`**。只有原型确认为 `(七) value_memory_card` 且内容本身是定义/数值/参数记忆时,才可置 true;即便如此也优先做 `memory_table / number_line / flashcard`,不是段落讲稿。
 - ①–⑥ 任何卡不得以“安全/合同/管理类不好画”为理由退回纯文字。安全验收要画结构/失稳链/判断树;合同计价要画资金链/公式链;平面布置要画 site plan;质量通病要画病灶/对照/诊断图。
 - `pill / note / answer_box / dialogue_box` 只是辅助提示。若主视觉由这些文字容器承担,即使页面看起来有框,也按**文字卡伪图示**失败。
-- `visual_archetype_decision` 缺失、`visual_primitive` 与 6+1 不匹配、或 `why_not_text` 为空时,不得生成 IR、不得配音、不得进入批量卡成品目录。
+- `visual_archetype_decision` 缺失、`visual_primitive` 与 6+1 不匹配、`why_not_text` 为空、或 `domain_visual_plan` 为空时,不得生成 IR、不得配音、不得进入批量卡成品目录。
+- **工程对象图是精品卡硬门,不是加分项**:①–⑥ 每张卡至少 4 个主讲 teaching scene 必须出现本考点的 domain objects,如吊机/吊钩/重物/风速表/试吊高度、屋面基层/卷材/鼓泡/蓄水、网络节点/箭线/总时差、资金流/公式口径、验收对象/检查项/放行门。只有抽象 `decision_tree`、`process_flow`、`answer_box`、`threshold_meter` 但没有 domain objects,按**抽象框图伪图示**失败。
+- **顶尖视觉解析必须声明 `visual_excellence_profile`**:`workflow_candidate` 或 `student_ready` 不再只看 schema/gate 绿,必须在 IR 顶层写明参考视觉范式、必须展示的工程对象/阈值/对照/规则卡、motion 标准、layout guards 和 release_bar。用户给出的危大工程阈值图是当前参考标准:深色工程蓝图底、真实构件线稿、尺寸/高度轴、黄色危大线、红色超规模线、底部规则卡。不同考点可以不用同款外观,但必须达到同等清晰度:对象可测量、阈值可对照、危险/超限状态被动画击中、规则依据最后落成可背可写的卡片。
+- **图示主导必须有 IR 层和成片路径证据**:`workflow_candidate/student_ready` 除 HTML/手机截图墙外,还必须跑 Remotion still review。`validate_animation_ir_contract.mjs` 必须证明每个主讲 scene 有非文字 domain diagram 主图达到 `min_visual_dominance_ratio`;A02/S02 的 blueprint-poster 样板阈值是 0.62,实测每幕 0.744。`capture_remotion_ir_review_stills.mjs` 产出的 manifest 必须进入 review packet,且 `quality_gate.required=true`、`quality_gate.pass=true`、`quality_gate.flags=[]`;否则只能保留为结构草稿。A02/S02 当前采用 `blueprint_poster` 作为工程蓝图式样板:大画板解释材料验收/起重阈值,字幕和规则卡只做辅助。它不是所有卡唯一外观,但同级“第一眼是图示动作,不是文字讲稿”的密度是硬门槛。
+- **S02 反例必须记住**:起重吊装安全不能只画“四道门”文字框。合格版本必须至少画出吊机/吊钩/重物、10kN/100kN/300kN/200m 门槛、6级风或 9.0m/s 停工、90% 试吊离地 200-500mm 四查、限位装置禁令、答题纸采分句。否则即使 schema/gate 绿,也不能进 `finished/`。
 - 用户给出的 6+1 表是本 workflow 的原型选择 authority:按**认知结构**选表现方式,不按教材章节名、文件名或既有样板外形套模板。
 
 硬规则:
@@ -104,7 +118,10 @@ artifacts/luban_case_family_assets/diagram_microlesson/gate.sh J01
 14. `construction-whiteboard-director` 作为 P0.5 导演/质检硬门使用:每张卡先写 teaching spine、5-8 beat sheet、每 beat 一个 visual action + 一句字幕/旁白 + 下个 beat 前退出什么。它不是内容权威,也不是 renderer authority;最终权威仍是母题数据 + `animation_ir.v0` + deterministic renderer。
 15. **6+1 原型必须落成图示 primitive,不能只落成文案分类**:生成器识别 `process_step_reveal / section_or_spatial_reveal / calculation_structure / decision_branch_reveal / contrast_reveal / scoring_diagnosis_reveal / value_memory_card` 后,必须写入 `render_contract.archetype_visual_required` 并在 `visual_library` 命中对应 primitive(`process_flow / layer_stack|roof_section / network_graph|formula_chain / decision_tree / contrast_pair / answer_scan / memory_table`)。这只是底线,不是合格线。主讲 teaching scenes 默认是 `hook / map / rule / trap / score`;其中至少 4/5、量产生成器默认 5/5 必须包含非文字图元。`score` 场景必须用答题纸/诊断图(`answer_scan` 或同级 primitive)把视觉结果落成采分句,不得退化成三条 `answer_box`。`pill / answer_box / dialogue_box / note / flow_arrow / threshold_meter` 只能辅助字幕、提示、问答和少量标注,不得作为主教学图示。contract gate 必须 fail-closed 拦截 text-container-only IR 和“有一个图元但主讲仍像文字卡”的 IR。
 16. **图示 primitive 还必须会“解释动作”,不能只是静态图**:用户要的是动画解释知识,不是文字解释知识,也不是“整块图淡入”。`process_flow` 必须 step/trace 工序路径;`layer_stack|roof_section` 必须逐层分离/显现;`network_graph|formula_chain` 必须沿路径/算链生长;`decision_tree` 必须根节点→分支→淘汰/命中;`contrast_pair` 必须先错后对/左右对照;`answer_scan` 必须逐句扫描 hit/partial/miss。`memory_table` 属于(七)数值/记忆,默认别动画化。HTML preview 必须输出 `data-primitive-step`,Remotion 通用 renderer 必须有 `PrimitiveStep`;`validate_animation_ir_contract.mjs` 看到这些可动画 primitive 时必须检查两端内部动画能力。没有内部 step 的图示仍按“静态图伪动画”处理。
-17. **单卡质量闭环优先于批量生成**:40 pack / 60 pack 批量脚本只能产 `coarse_draft_requires_single_card_review`,用于发现覆盖面、缺数据和 renderer/gate 问题;不得把 39/39 PASS 或 5/5 diagrammatic 当成学员可用。每张精品卡必须单独走 `母题数据→teaching spine→图示 storyboard→IR→renderer→gate→手机截图墙→人工/LLM review→回炉`。只有当前一张在手机截图里确实做到“图示动画解释知识、文字只是辅助、闯关可读”后,才进入下一张。批量扩张前至少要有 2-3 个不同原型单卡样板通过同一质量门。
+16a. **图示必须是“领域对象在动”,不是“文字框在动”**:判断树/流程图只是认知骨架,不是最终画面。每个主讲场景必须先问“学生应该看见哪个真实对象/工程对象发生了什么变化”。对象进入 IR 时至少写 `domain_objects[]` 或使用领域 primitive,并在旁白中用对象解释判断。只有“第一道门/第二道门/条件/采分句”这种抽象框,即使有 reveal/highlight,仍按失败处理。
+16b. **每个 scene 必须按本句文案重新设计图,不能一套模板图贯穿多数页面**:在写 `visual_library` 前,逐 beat 先读 `bridge/exam_task/visual_explanation/answer_move` 和旁白句,再回答“这一句要学生看见什么对象、对象怎么变、为什么现在要换图”。同一个 `process_flow`/四图组合/判断树外形连续复用超过 2 个主讲 scene,默认按**模板图贯穿伪动画**失败;除非 storyboard 写明同一对象发生了实质状态变化(进入/移动/分层/命中/淘汰/trace/扫描/退出),且截图中能看出来。精品卡至少 4 个主讲 scene 的主图要有不同的领域对象组合或不同的对象状态,不能只换标题、标签和旁白。
+16c. **旁白必须说清“这道题到底是什么”,不能用内部编号或文件 ID 当解释**:老师开场和主讲不得说“A02 不是让你……”这类只有制作方懂的编号式句子;可以在 kicker/制作物料里保留 `A02/P40_A02` 追溯,但学生旁白必须展开为真实考试任务,例如“这类案例题问的是材料进场前要怎么验收、哪些材料要复验、隐蔽工程覆盖前要留什么验收记录”。旁白中的 `A02/F16/J01/P40`、`pack`、`source_card`、`IR`、`scene`、`primitive` 等内部词若直接进入学生语音,按**编号式旁白/内部黑话**失败。
+17. **单卡质量闭环优先于批量生成**:40 pack / 60 pack 批量脚本只能产 `coarse_draft_requires_single_card_review`,用于发现覆盖面、缺数据和 renderer/gate 问题;不得把 39/39 PASS 或 5/5 diagrammatic 当成学员可用。每张精品卡必须单独走 `母题数据→teaching spine→图示 storyboard→IR→renderer→gate→手机截图墙→Remotion still quality gate→人工/LLM review→回炉`。只有当前一张在手机截图和 Remotion still 中都确实做到“图示动画解释知识、文字只是辅助、闯关可读”后,才进入下一张。批量扩张前至少要有 2-3 个不同原型单卡样板通过同一质量门。已晋级 `workflow_candidate` 只能通过 workflow packet PASS + Remotion quality gate PASS + `validate_workflow_promotions.mjs` 进入 batch manifest,并必须标 `preserved_by_batch=true`;批量生成器不得覆盖它。
 18. **讲清楚优先,5 分钟以内都可接受**:动画不是短视频 KPI,而是让学生围绕一个考点能做题、能写采分句。复杂知识点允许 2-5 分钟;不得为了压短删掉因果解释、视觉推演、答题纸落点或真实 QA。但长时长必须靠 `actions[]`/运镜/图示逐步解释,不能变成长口播或整页翻片。
 19. **source_card 必须从成品 MD 提炼教学脊柱**:每张精品卡在 lesson/IR 前必须有 `source_refs.pack_markdown` 指向 `docs/原始数据/考点原料/成品/<ID>_*.md`,并有 `main_exam_action`、`wrong_idea`、`teaching_spine[]`。`teaching_spine[]` 每步写 `state/anchor_md/visual_fact/bridge_from_previous/answer_move`;lesson 每个 beat 写 `bridge/exam_task/visual_explanation/answer_move`。`validate_lesson_source_workflow.mjs` 未过,不得配音、不得生成 IR。
 

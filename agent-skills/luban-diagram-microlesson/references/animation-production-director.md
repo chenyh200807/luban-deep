@@ -87,6 +87,7 @@
 - `exam_task`:这一幕在考场解决什么。
 - `visual_explanation`:画面要解释的对象/关系/动作。
 - `answer_move`:最后如何变成答题纸动作。
+- `scene_visual_brief`:先引用本 beat 的旁白句或 `exam_task`,再写学生必须看见的领域对象、对象如何进入/移动/分层/命中/淘汰/trace/扫描/退出,以及本幕为什么不能沿用上一幕同一套图。
 
 这层合同由 `validate_lesson_source_workflow.mjs` 执行;不过门不配音、不生成 IR。
 
@@ -100,6 +101,11 @@
 - `*.practice.html` 或 journey 练习幕:题目来自 variants/quiz。
 - 截图/验收记录:首屏、关键运镜、练习、结果页。
 - `validate_animation_ir_contract.mjs` 输出:证明 archetype 已映射到必需非文本图元,且 HTML preview renderer 与 Remotion renderer 都覆盖 IR 中出现的每一种 primitive。
+- `visual_excellence_profile` 输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,必须说明它采用哪种顶尖视觉解析范式。参考标准不是“配色像某张图”,而是工程对象可测量、阈值线可对照、危大/超规模或错/对状态被动画击中、底部规则卡能把视觉结论压成可写答案。缺 profile 的候选卡必须退回结构草稿。
+- 主图支配输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,contract gate 必须记录 `dominant_visual_teaching_scene_count` 达标。这个字段证明主讲画面由工程对象图主导,不是把小图元贴在文字讲稿旁边。
+- `capture_remotion_ir_review_stills.mjs` 输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,Remotion still manifest 必须覆盖 `render_contract.remotion_review_scene_ids`,并给出 `quality_gate.required=true/pass=true/flags=[]`。HTML preview 好看但 Remotion still 大空白、图文断裂或文字压力过高,不能晋级。
+- `build_workflow_review_packet.mjs` 输出:把 IR summary、HTML/手机截图墙 manifest、Remotion still manifest、gate、issue/root-cause triage 放到同一个 blocking packet。packet 不是装饰文档,它是晋级证据。
+- `validate_workflow_promotions.mjs` 输出:当卡被写入 batch manifest 的 `promoted` 时,必须证明 `promotion_authority`、`preserved_by_batch=true`、workflow packet、IR quality status 和 Remotion quality gate 一致。
 - `validate_video_first_preview.mjs` 输出:证明普通态 responsive learning stage、横屏/宽屏适配、全屏/theater、章节、拖动进度、独立练习、student-safe 和练习闭环没有明显破约。
 - `validate_learning_stage_runtime.mjs` 输出:用真实浏览器视口证明竖屏首屏、竖屏播放、横屏播放、桌面宽屏和 theater 控制层没有塌陷、遮挡、窄竖条或横向溢出。
 
@@ -166,6 +172,7 @@
 - 不让画面只跟着字幕走;旁白每说一个关键动作,画面必须有对应变化。
 - 不在答疑后突然结束;没有 closing 段就不算完成。
 - 不让收尾变成泛鼓励;收尾必须回扣本卡的考试动作和下一步闯关。
+- 不用内部编号或制作黑话解释题意。学生端不能听到"A02 不是让你..."、"这个 pack/source_card/IR scene..."这类句子;`A02/P40/F16/J01` 只允许做制作追溯 id。老师开场必须展开成真实考试任务,如"这类案例题问的是材料进场前怎么验收、哪些材料要复验、隐蔽工程覆盖前要留什么记录"。
 
 ### 4.4 讲解中即时答疑
 
@@ -248,6 +255,24 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 
 技巧:切场景前先问"这一屏要学生形成哪一句话?"如果没有一句话,这屏删掉。
 
+### 5.7 逐句作图:不要一套模板图贯穿多数页面
+
+每个主讲 scene 的主图必须从当前文案和采分动作重新推导,不能拿同一套四个图标/流程框/判断树外形贯穿整张卡,只改标题和标签。
+
+标准做法:
+
+1. 先读当前 beat 的 `bridge/exam_task/visual_explanation/answer_move` 和旁白句。
+2. 写出本句要学生看见的领域对象:工程对象、现场对象、资金对象或图结构对象。
+3. 写出对象状态变化:进入、移动、分层、命中、淘汰、trace、扫描、退出。
+4. 写出与上一幕/下一幕的差异:对象组合不同,或同一对象发生了肉眼可见的状态变化。
+5. 进入 IR 时,让 `visual_library` 和 `actions[]` 承载这些差异;renderer 只负责确定性渲染,不得把未知 primitive 降级成文字框。
+
+失败判定:
+
+- 同一个 `process_flow`、四图组合、判断树外形或答题纸外形连续复用超过 2 个主讲 scene,但只换文字,按"模板图贯穿伪动画"失败。
+- 主讲 4 个以上 scene 看不到不同领域对象或不同对象状态,即使有动画淡入淡出,也按"文字口播 + 背景图"失败。
+- 画面里的对象与旁白句无关,或学生不看图也能完全听懂,说明图没有承担教学解释,必须回到 storyboard 重画。
+
 ## 6. Remotion / HTML 实现纪律
 
 ### 6.0 OpenMAIC-style IR 分工
@@ -299,6 +324,8 @@ N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里�
 6. 未通过就只回炉当前卡和对应 primitive/gate,不要继续下一张;通过后再沉淀成可复用 fixture 或生成器规则。
 
 批量索引、manifest 或 report 必须显式标 `coarse_draft_requires_single_card_review` / `student_ready=false`。任何把批量 PASS 汇报成“40 张完成”的结论,都按 false progress 处理。
+
+例外只有一种:某张卡已经通过 workflow packet PASS、HTML/手机截图墙、Remotion still quality gate 和 `validate_workflow_promotions.mjs`,才允许在 batch manifest 中标 `quality_status=workflow_candidate` 并写 `promotion_authority`。这类卡必须 `preserved_by_batch=true`;后续批量生成器只能保留,不得重新生成粗糙 IR 把图示样板覆盖掉。
 
 F16 这类工序/构造型卡的默认拆法:
 

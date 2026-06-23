@@ -508,3 +508,200 @@
 .mb-skel.card {
   height: 220rpx;
 }
+
+/* ── 亮色模式 ───────────────────────────────── */
+.mistake-book-page.light {
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 34%),
+    linear-gradient(180deg, #f8fafc 0%, #eef4ff 52%, #f8fbff 100%);
+}
+
+.mistake-book-page.light .mb-nav {
+  background: rgba(248, 250, 255, 0.96);
+  border-bottom-color: #dbe6f5;
+  box-shadow: 0 10rpx 28rpx rgba(126, 147, 185, 0.10);
+}
+
+.mistake-book-page.light .mb-back:active {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.mistake-book-page.light .mb-back-arrow,
+.mistake-book-page.light .mb-back-text {
+  color: #2563eb;
+}
+
+.mistake-book-page.light .mb-nav-title,
+.mistake-book-page.light .mb-title,
+.mistake-book-page.light .ai-title,
+.mistake-book-page.light .chart-title,
+.mistake-book-page.light .mistake-title,
+.mistake-book-page.light .empty-title {
+  color: #0f172a;
+}
+
+.mistake-book-page.light .mb-hero,
+.mistake-book-page.light .ai-panel,
+.mistake-book-page.light .chart-card,
+.mistake-book-page.light .mistake-card,
+.mistake-book-page.light .empty-card,
+.mistake-book-page.light .mb-error {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #dbe6f5;
+  box-shadow: 0 14rpx 34rpx rgba(126, 147, 185, 0.12);
+}
+
+.mistake-book-page.light .mb-hero {
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 255, 0.96));
+}
+
+.mistake-book-page.light .ai-panel {
+  background: linear-gradient(145deg, #ffffff, #f0f9ff);
+}
+
+.mistake-book-page.light .mb-kicker,
+.mistake-book-page.light .ai-kicker {
+  color: #0369a1;
+}
+
+.mistake-book-page.light .mb-score-num {
+  color: #2563eb;
+}
+
+.mistake-book-page.light .mb-score-label,
+.mistake-book-page.light .mb-hero-desc,
+.mistake-book-page.light .ai-summary,
+.mistake-book-page.light .chart-label,
+.mistake-book-page.light .mistake-note,
+.mistake-book-page.light .empty-desc,
+.mistake-book-page.light .mb-error text {
+  color: #475569;
+}
+
+.mistake-book-page.light .mb-stat {
+  background: #f8fbff;
+  border-color: #dbe6f5;
+}
+
+.mistake-book-page.light .mb-stat.warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.mistake-book-page.light .mb-stat.good {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.mistake-book-page.light .mb-stat-num {
+  color: #0f172a;
+}
+
+.mistake-book-page.light .mb-stat-label,
+.mistake-book-page.light .chart-count,
+.mistake-book-page.light .mistake-date {
+  color: #64748b;
+}
+
+.mistake-book-page.light .ai-bullet {
+  color: #334155;
+}
+
+.mistake-book-page.light .ai-dot {
+  background: #059669;
+}
+
+.mistake-book-page.light .mb-list-hint {
+  background: #ecfeff;
+  border-color: #bae6fd;
+}
+
+.mistake-book-page.light .mb-list-hint text {
+  color: #075985;
+}
+
+.mistake-book-page.light .chart-track {
+  background: #e5edf8;
+}
+
+.mistake-book-page.light .chart-fill {
+  background: linear-gradient(90deg, #2563eb, #059669);
+}
+
+.mistake-book-page.light .chart-fill.error {
+  background: linear-gradient(90deg, #b45309, #dc2626);
+}
+
+.mistake-book-page.light .mb-filter {
+  background: #eef4ff;
+  border-color: #dbe6f5;
+}
+
+.mistake-book-page.light .filter-chip {
+  color: #64748b;
+}
+
+.mistake-book-page.light .filter-chip.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 8rpx 18rpx rgba(126, 147, 185, 0.12);
+}
+
+.mistake-book-page.light .mistake-card.state-due {
+  border-color: rgba(180, 83, 9, 0.28);
+}
+
+.mistake-book-page.light .mistake-card.state-mastered {
+  border-color: rgba(5, 150, 105, 0.24);
+}
+
+.mistake-book-page.light .mistake-state {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.mistake-book-page.light .state-due .mistake-state {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.mistake-book-page.light .state-mastered .mistake-state {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.mistake-book-page.light .mistake-tags text {
+  background: #eef4ff;
+  color: #334155;
+}
+
+.mistake-book-page.light .mistake-review {
+  color: #2563eb;
+}
+
+.mistake-book-page.light .mistake-action {
+  background: #eef4ff;
+  color: #334155;
+}
+
+.mistake-book-page.light .mistake-action.primary {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.mistake-book-page.light .mistake-action.danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.mistake-book-page.light .mb-retry {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.mistake-book-page.light .skel-block {
+  background: linear-gradient(90deg, #eef4ff 0%, #f8fbff 50%, #eef4ff 100%);
+  background-size: 200% 100%;
+}

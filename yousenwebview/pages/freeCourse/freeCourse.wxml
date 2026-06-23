@@ -50,10 +50,8 @@
               bindcancel="stopRotateImage"
             >
               <view class="direction-picker-inner">
-                <text class="direction-picker-value">切换方向</text>
-                <view class="direction-picker-icon rotate-image" animation="{{rotationAnim}}">
-                  <text class="direction-picker-icon-text">{{pickerArrowText}}</text>
-                </view>
+                <text class="direction-picker-value">切换专业</text>
+                <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
               </view>
             </picker>
           </view>

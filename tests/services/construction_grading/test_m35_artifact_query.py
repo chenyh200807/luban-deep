@@ -261,6 +261,197 @@ def test_retrieve_rubric_blocks_supply_records_that_allow_official_or_canonical_
     assert "canonical_write_allowed_record_present" in result["blockers"]
 
 
+def test_retrieve_rubric_caches_validated_supply_until_files_change(tmp_path, monkeypatch):
+    from deeptutor.services.construction_grading import m35_artifact_query
+
+    record = {
+        "qid": "Q-CACHE",
+        "point_id": "p1",
+        "text": "safe point",
+        "official_slice": "hidden answer",
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+    }
+    supply_dir = _write_runtime_supply(tmp_path, records=[record])
+
+    calls = {"n": 0}
+    real_loader = m35_artifact_query._load_pgo_supply
+
+    def counting_loader(slot_dir):
+        calls["n"] += 1
+        return real_loader(slot_dir)
+
+    monkeypatch.setattr(m35_artifact_query, "_load_pgo_supply", counting_loader)
+
+    query = M35ArtifactQuery(
+        question_id="Q-CACHE",
+        purpose="grading",
+        shape="rubric_table",
+        citation_required=True,
+        budget_tier="low",
+    )
+
+    first = retrieve_rubric(query, runtime_supply_dir=supply_dir)
+    second = retrieve_rubric(query, runtime_supply_dir=supply_dir)
+
+    assert first["found"] is True
+    assert second["found"] is True
+    assert first["scoring_points"] == second["scoring_points"]
+    # Second call is served from cache: no re-read / re-hash / re-scan.
+    assert calls["n"] == 1
+
+    # Rewriting the bank (content + size change) must invalidate the cache.
+    supply_dir = _write_runtime_supply(
+        tmp_path,
+        records=[record, {**record, "qid": "Q-CACHE-2", "point_id": "p2"}],
+    )
+    third = retrieve_rubric(query, runtime_supply_dir=supply_dir)
+    assert third["found"] is True
+    assert calls["n"] == 2
+
+
+def test_retrieve_rubric_scoring_shape_fails_open_when_no_score_bearing_ground(tmp_path):
+    # C3 ground gate: a scoring shape (grading/rubric_table) must refuse to grade
+    # when no point carries score-bearing ground (official answer slice), even if
+    # the caller did not set citation_required. The grade must never fall back to
+    # ungrounded points.
+    supply_dir = _write_runtime_supply(
+        tmp_path,
+        records=[
+            {
+                "qid": "Q-UNSOURCED",
+                "point_id": "p1",
+                "text": "claim without any authority",
+                "official_slice": "",
+                "term_authority": "none",
+                "required_terms": [],
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            }
+        ],
+    )
+
+    result = retrieve_rubric(
+        M35ArtifactQuery(
+            question_id="Q-UNSOURCED",
+            purpose="grading",
+            shape="rubric_table",
+            citation_required=False,
+            budget_tier="low",
+        ),
+        runtime_supply_dir=supply_dir,
+    )
+
+    assert result["found"] is True
+    assert result["fail_open"] is True
+    assert result["reason"] == "scoring_shape_without_score_bearing_ground"
+
+
+def test_retrieve_rubric_supporting_only_ground_is_not_score_bearing(tmp_path):
+    # Textbook supporting provenance alone is NOT score-bearing ground: a scoring
+    # shape with only supporting refs still fails open (supporting refs never enter
+    # the correct/incorrect channel — single-authority red line).
+    supply_dir = _write_runtime_supply(
+        tmp_path,
+        records=[
+            {
+                "qid": "Q-SUPPORT",
+                "point_id": "p1",
+                "text": "textbook-backed only",
+                "official_slice": "",
+                "term_authority": "textbook:GB50300",
+                "required_terms": ["验收"],
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            }
+        ],
+    )
+
+    result = retrieve_rubric(
+        M35ArtifactQuery(
+            question_id="Q-SUPPORT",
+            purpose="grading",
+            shape="rubric_table",
+            citation_required=False,
+            budget_tier="low",
+        ),
+        runtime_supply_dir=supply_dir,
+    )
+
+    assert result["found"] is True
+    assert result["fail_open"] is True
+    assert result["reason"] == "scoring_shape_without_score_bearing_ground"
+
+
+def test_retrieve_rubric_classifies_point_ground_and_marks_unscorable(tmp_path):
+    # Mixed bag: one score-bearing + one supporting-only + one unsourced. The query
+    # passes (there IS score-bearing ground), exposes per-point ground_class +
+    # scorable, and reports the layered ground counts so consumers never grade on
+    # supporting/unsourced points.
+    supply_dir = _write_runtime_supply(
+        tmp_path,
+        records=[
+            {
+                "qid": "Q-MIX",
+                "point_id": "p_ok",
+                "text": "official point",
+                "official_slice": "官方答案要点",
+                "term_authority": "none",
+                "required_terms": [],
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            },
+            {
+                "qid": "Q-MIX",
+                "point_id": "p_support",
+                "text": "textbook-backed only",
+                "official_slice": "",
+                "term_authority": "textbook:GB50300",
+                "required_terms": ["验收"],
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            },
+            {
+                "qid": "Q-MIX",
+                "point_id": "p_unsourced",
+                "text": "no authority",
+                "official_slice": "",
+                "term_authority": "none",
+                "required_terms": [],
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            },
+        ],
+    )
+
+    result = retrieve_rubric(
+        M35ArtifactQuery(
+            question_id="Q-MIX",
+            purpose="grading",
+            shape="rubric_table",
+            citation_required=True,
+            budget_tier="low",
+        ),
+        runtime_supply_dir=supply_dir,
+    )
+
+    assert result["found"] is True
+    assert result.get("fail_open") is not True
+    ground = result["ground"]
+    assert ground["score_bearing_count"] == 1
+    assert ground["supporting_count"] == 1
+    assert ground["unsourced_count"] == 1
+    assert ground["source_ref_count"] == 1  # back-compat: now means score-bearing
+
+    points = {p["point_id"]: p for p in result["scoring_points"]}
+    assert points["p_ok"]["ground_class"] == "score_bearing"
+    assert points["p_ok"]["scorable"] is True
+    assert points["p_support"]["ground_class"] == "supporting_only"
+    assert points["p_support"]["scorable"] is False
+    assert points["p_unsourced"]["ground_class"] == "unsourced"
+    assert points["p_unsourced"]["scorable"] is False
+
+
 def test_retrieve_rubric_fail_opens_when_runtime_supply_manifest_missing_namespace(tmp_path):
     supply_dir = _write_runtime_supply(
         tmp_path,

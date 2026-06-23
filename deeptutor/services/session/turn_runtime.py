@@ -18,7 +18,7 @@ import re
 import sqlite3
 import time
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Mapping
 
 from deeptutor.api.runtime_metrics import (
     get_turn_runtime_metrics,

@@ -1,7 +1,7 @@
 {
   "canonical_truth_written": false,
   "deploy_or_restart_executed": false,
-  "generated_at": "2026-06-04T17:12:02Z",
+  "generated_at": "2026-06-23T16:25:13Z",
   "no_remote_write_attestation": true,
   "no_scp_or_rsync_executed": true,
   "no_ssh_executed": true,

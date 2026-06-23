@@ -31,6 +31,7 @@ REGISTRY = ROOT / "docs/plan/鲁班移动端提分闭环/2026-06-19-luban-animat
 PACK_DIR = ROOT / "docs/原始数据/考点原料/成品"
 REMOTION_SRC = WORKDIR / "remotion_demo/src"
 BATCH_QUALITY_STATUS = "coarse_draft_requires_single_card_review"
+PROMOTED_QUALITY_STATUSES = {"workflow_candidate", "student_ready"}
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,15 @@ def read_text(path: Path) -> str:
 
 def write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def read_json_if_exists(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
 
 
 def clean_text(value: str) -> str:
@@ -534,9 +544,65 @@ def run_gate(cmd: list[str]) -> dict[str, Any]:
     return {"cmd": cmd, "returncode": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-4000:]}
 
 
+def remotion_review_manifest(packet: dict[str, Any]) -> dict[str, Any] | None:
+    for shot in packet.get("screenshots") or []:
+        manifest = shot.get("review_manifest") if isinstance(shot, dict) else None
+        if isinstance(manifest, dict) and manifest.get("kind") == "remotion_still_review":
+            return manifest
+    return None
+
+
+def workflow_promotion(card_id: str) -> dict[str, Any] | None:
+    """Return the one-card promotion authority, if current artifacts prove it.
+
+    The batch script remains a coarse generator. It may not overwrite a card
+    that has already entered the single-card workflow loop and passed a
+    Remotion still review with quality metrics.
+    """
+    ir_path = WORKDIR / f"{card_id}.animation_ir.v0.json"
+    packet_path = WORKDIR / f"{card_id}.workflow_review_packet.json"
+    ir = read_json_if_exists(ir_path)
+    packet = read_json_if_exists(packet_path)
+    if not ir or not packet:
+        return None
+    contract = ir.get("render_contract") or {}
+    status = contract.get("quality_status")
+    if status not in PROMOTED_QUALITY_STATUSES:
+        return None
+    if packet.get("verdict") != "PASS" or packet.get("blocking_failures"):
+        return None
+    if (packet.get("ir_summary") or {}).get("quality_status") != status:
+        return None
+    visual_dominance = (packet.get("ir_summary") or {}).get("visual_dominance") or {}
+    if status in PROMOTED_QUALITY_STATUSES:
+        if not visual_dominance or visual_dominance.get("pass_count") != visual_dominance.get("min_scenes"):
+            return None
+    manifest = remotion_review_manifest(packet)
+    if not manifest or not manifest.get("has_remotion_stills") or not manifest.get("has_quality_metrics"):
+        return None
+    return {
+        "card_id": card_id,
+        "quality_status": status,
+        "student_ready": bool(contract.get("student_ready")),
+        "authority": packet_path.name,
+        "ir": ir_path.name,
+        "remotion_composition": contract.get("remotion_composition"),
+        "layout_mode": contract.get("layout_mode"),
+        "remotion_review_scene_ids": contract.get("remotion_review_scene_ids") or [],
+        "visual_dominance": {
+            "min_ratio": visual_dominance.get("min_ratio"),
+            "pass_count": visual_dominance.get("pass_count"),
+            "min_scenes": visual_dominance.get("min_scenes"),
+        },
+        "remotion_quality_summary": manifest.get("quality_summary") or {},
+        "remotion_quality_gate": manifest.get("quality_gate") or {},
+        "reason": contract.get("workflow_candidate_reason") or "single-card workflow packet passed",
+    }
+
+
 def write_index(generated: list[dict[str, Any]], prefix: str) -> Path:
     rows = "\n".join(
-        f"<tr><td>{item['slot']}</td><td>{html.escape(item['pack_id'])}</td><td>{html.escape(item['title'])}</td><td>{html.escape(item['status'])}</td><td><a href='{item['preview']}'>讲解</a> · <a href='{item['practice']}'>闯关</a></td><td>{html.escape(item.get('gate','pending'))}</td></tr>"
+        f"<tr><td>{item['slot']}</td><td>{html.escape(item['pack_id'])}</td><td>{html.escape(item['title'])}</td><td>{html.escape(item['status'])}<br><small>{html.escape(item.get('quality_status','unknown'))}</small></td><td><a href='{item['preview']}'>讲解</a> · <a href='{item['practice']}'>闯关</a></td><td>{html.escape(item.get('gate','pending'))}</td></tr>"
         for item in generated
     )
     out = WORKDIR / f"{prefix}_index.html"
@@ -565,6 +631,7 @@ def main() -> int:
         "slots": args.slots,
         "quality_status": BATCH_QUALITY_STATUS,
         "student_ready": False,
+        "promoted": [],
         "generated": [],
         "blocked": [],
     }
@@ -574,10 +641,63 @@ def main() -> int:
             manifest["blocked"].append({"slot": slot.slot, "pack_id": slot.pack_id, "reason": "missing成品pack.md"})
             continue
         card_id = student_safe_card_id(args.prefix, slot.pack_id)
-        ir, timing, source_hash = build_ir(slot, md_path, args.prefix)
-        terms = ir["ai_context"]["key_points"]
         ir_path = WORKDIR / f"{card_id}.animation_ir.v0.json"
         timing_path = WORKDIR / f"{card_id}.lesson.timing.json"
+        source_hash = hashlib.sha256(read_text(md_path).encode("utf-8")).hexdigest()
+        promotion = workflow_promotion(card_id)
+        if promotion:
+            existing_ir = read_json_if_exists(ir_path) or {}
+            contract = existing_ir.get("render_contract") or {}
+            render_result = render_preview(ir_path)
+            gate_status = "rendered" if render_result.returncode == 0 else "render_failed"
+            gates: dict[str, Any] = {
+                "render": {
+                    "returncode": render_result.returncode,
+                    "stdout": render_result.stdout[-1000:],
+                    "stderr": render_result.stderr[-1000:],
+                }
+            }
+            practice_path = WORKDIR / str(contract.get("practice_href") or f"{card_id}.practice.html")
+            if args.validate_practice or args.validate_preview:
+                gates["practice"] = run_gate(["node", str(WORKDIR / "validate_practice_interactions.mjs"), str(practice_path)])
+                if gates["practice"]["returncode"] != 0:
+                    gate_status = "practice_failed"
+            if args.validate_contract:
+                gates["contract"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_contract.mjs"), str(ir_path)])
+                if gates["contract"]["returncode"] != 0:
+                    gate_status = "contract_failed"
+            if args.validate_preview and gate_status != "contract_failed":
+                html_path = WORKDIR / str(contract.get("html_preview") or f"{card_id}.animation_ir_preview.html")
+                gates["preview"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_preview.mjs"), str(ir_path), str(html_path)])
+                gate_status = "pass" if gates["preview"]["returncode"] == 0 else "preview_failed"
+            manifest["promoted"].append(promotion)
+            manifest["generated"].append(
+                {
+                    "slot": slot.slot,
+                    "pack_id": slot.pack_id,
+                    "card_id": card_id,
+                    "title": slot.student_title,
+                    "status": slot.status,
+                    "prototype": (existing_ir.get("teaching_spine") or {}).get("archetype", "promoted_workflow"),
+                    "quality_status": promotion["quality_status"],
+                    "student_ready": promotion["student_ready"],
+                    "preserved_by_batch": True,
+                    "promotion_authority": promotion,
+                    "visual_required_kinds": contract.get("archetype_visual_required") or [],
+                    "source_pack": str(md_path.relative_to(ROOT)),
+                    "source_sha256": source_hash,
+                    "ir": ir_path.name,
+                    "timing": timing_path.name,
+                    "preview": str(contract.get("html_preview") or f"{card_id}.animation_ir_preview.html"),
+                    "practice": practice_path.name,
+                    "remotion_wrapper": str(contract.get("remotion_renderer") or f"remotion_demo/src/{card_id}AnimationIrPreview.tsx"),
+                    "gate": gate_status,
+                    "gates": gates,
+                }
+            )
+            continue
+        ir, timing, source_hash = build_ir(slot, md_path, args.prefix)
+        terms = ir["ai_context"]["key_points"]
         write_json(ir_path, ir)
         write_json(timing_path, timing)
         practice_path = write_practice(card_id, slot, terms)

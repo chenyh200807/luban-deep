@@ -64,6 +64,11 @@ function loadShell(overrides) {
           shouldShowWorkspaceShell: function () { return true; },
         };
       }
+      if (request === "../utils/host-runtime") {
+        return {
+          getTheme: function () { return options.theme || "dark"; },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -153,6 +158,15 @@ run("package tab switch ignores active tab", function () {
 
   assert(loaded.redirectCalls.length === 0, "active tab should not navigate again");
   assert(loaded.reLaunchCalls.length === 0, "active tab should not relaunch");
+});
+
+run("package tab bar resolves light theme before page sync", function () {
+  var loaded = loadShell({ theme: "light" });
+  var shell = createInstance(loaded.def);
+
+  shell.refreshState();
+
+  assert(shell.data.isDark === false, "tab bar should render light chrome from host theme");
 });
 
 if (fail) {

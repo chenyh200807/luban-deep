@@ -4412,10 +4412,6 @@ class DeepQuestionCapability(BaseCapability):
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
-        if practice_topic_non_specialist and str(result_payload.get("response") or "").strip():
-            result_payload["response"] = _NON_SPECIALIST_PRACTICE_NOTICE + str(
-                result_payload["response"]
-            )
         await self._emit_result_with_citations(
             stream,
             result_payload,

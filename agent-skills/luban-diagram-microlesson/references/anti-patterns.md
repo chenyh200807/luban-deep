@@ -43,10 +43,17 @@
 | 跳过视觉原型闸 | 卡从成品 MD 直接生成文字讲稿/文字框 IR,没有先回答“这个知识点该画成什么” | workflow 把 6+1 当后置标签,没有在 P0 阶段冻结 `visual_archetype_decision` | 先产 `visual_archetype_decision`:primary/secondary archetype、primitive、motion_grammar、why_not_text;不过不进 IR | `visual_archetype_decision_required` |
 | 纯文字例外滥用 | 安全/合同/管理类考点被说成“本来就是文字”,结果满屏解释框 | 把“抽象”误判成“不可视化”;没有把资金链、判断树、现场平面、失稳链这些认知结构画出来 | ①–⑥ 默认不允许 `pure_text_allowed=true`;只有(七)数值/记忆才可走 memory_table/flashcard | `pure_text_exception_scope` |
 | 文字卡伪图示 | 40 pack 看起来全是解释框,没有构造、流程、判断树、网络图等认知结构 | 只把 6+1 原型当标签,或只放了一个图元,但 hook/map/rule/trap/score 仍靠文字框解释 | `render_contract.archetype_visual_required` 必填;主讲 teaching scenes 必须图示驱动;score 必须是答题纸/诊断图,不能退回三条文字框 | `archetype_visual_present` + `diagrammatic_teaching_scene` + `score_scene_diagrammatic` |
+| 小图元装饰化 | 页面确实有工程图/判断图,但主图只占画面一小块,字幕、规则卡或文字容器仍是讲解主体 | 只检查“有图元”,没检查主图是否支配视觉注意力 | workflow_candidate/student_ready 必须声明并通过 `min_visual_dominance_ratio`;A02/S02 blueprint-poster 样板要求 0.62,每幕主图实测 0.744 | `dominant_visual_teaching_scene_count` |
+| 模板图贯穿多幕 | hook、模型、规则、采分几乎都是同一套四个图标/流程框/判断树,只改标题、标签和旁白 | 先选了 renderer primitive 当内容计划,没有先理解每句文案要画什么对象和状态变化 | 每幕先写 `scene_visual_brief`:旁白句 → 领域对象 → 状态变化 → 退出项 → 与前后幕差异;同一图超过 2 个主讲 scene 必须有实质状态变化 | `scene_visual_brief_required` + screenshot wall + judge |
+| 编号式旁白/内部黑话 | 老师说“A02 不是让你...”“这个 pack/IR scene...”,学生不知道 A02 是什么 | 把制作追溯 id 当成教学概念,没有把 source_card 展开成学生能懂的真实考试任务 | 开场和主讲必须说清“这类题到底问什么现场动作/考试动作”;内部 id 只留 metadata,不得进入老师/学生音频或学生可见标题 | narration student-safe gate + judge |
+| 抽象框图伪图示 | 页面有“四道门/三件套/条件/采分句”这类框,但学生看不见吊机、屋面、脚手架、资金链、网络图、病灶等真实对象 | 把 decision_tree/process_flow 当最终画面,没有把考点翻译成领域对象和动作 | `visual_archetype_decision.domain_visual_plan` 必填;主讲 scene 至少 4 个出现 domain objects;S02 必须看见吊机/吊钩/重物/风速/试吊高度/限位禁令,不能只画四道门 | `domain_visual_plan_present` + `domain_visual_teaching_scene_count` |
 | 图示只当背景 | 白板里有图,但旁白和字幕仍在解释文字概念;图没有分层、分支、路径、生长、扫描动作 | primitive 没有内部 motion grammar,renderer 只做外层 fade/zoom | 每个 primitive 必须绑定动作:流程 trace、剖面 explode、判断 branch、公式 chain、对照 flip、答题 scan | `primitive_motion_grammar_present` |
 | 批量 PASS 冒充精品 | 39/39 gate 通过,但手机上仍像文字解释卡,文字多、图示弱、学员看不出动作 | 把结构门当质量门,把 Markdown 抽词套图元当动画教案 | 批量脚本只能标 `coarse_draft_requires_single_card_review`;精品卡必须逐张过手机截图墙和“第一眼是图示动作”人工/LLM review | manifest/report 标 `student_ready=false` + 单卡截图证据 |
+| 晋级漂移 | A02/S02 这类样板已经改成图示主导,但 batch manifest 仍按粗糙草稿覆盖,或后续汇报只说批量 PASS | 批量生成器和精品晋级链争夺 authority | 已晋级卡只能通过 `promotion_authority` 写入 manifest,必须 `preserved_by_batch=true`;批量脚本遇到 promoted 卡只能保留,不能重写 IR/timing/practice | `validate_workflow_promotions.mjs` |
+| Remotion still 质量旗标被忽略 | HTML 看着可接受,但成片 still 有大空白、主板太小、字幕/画板断裂、文字压力过高;review packet 仍写 PASS | 只审 HTML 或人工观感,没有把成片路径质量指标变成 blocking failure | `capture_remotion_ir_review_stills.mjs` 输出质量指标;`workflow_candidate/student_ready` 的 packet 必须因 `review:remotion_quality_flag:*` FAIL | Remotion `quality_gate.required=true/pass=true/flags=[]` |
 | 静态图伪动画 | 页面有流程图/剖面/网络图,但只是整块淡入或整页切换;学生仍感觉是在听文字解释 | 图元只有外层 reveal/highlight,没有把工序、层次、路径、分支、扫描这些知识动作做进 primitive 内部 | 6+1 primitive 必须有内部 step/trace/scan:工序逐步、剖面逐层、网络路径生长、判断分支展开、正误先后对照、答案逐句扫描;HTML/Remotion 共用同一套内部 step 语法 | `html_internal_animation` + `remotion_internal_animation` |
 | 机器绿但无评审包 | gate PASS 后仍反复被用户截图指出拥挤/错位/没动画 | 没把截图墙和人审发现回写成 root-cause triage,下一轮 agent 又只看命令绿灯 | 按 `workflow-review-loop.md` 形成 review packet;人眼发现的问题必须补 gate/anti-pattern 或标 needs_human_review | review packet + screenshot wall |
+| 评审包空壳 PASS | packet 写着 PASS,但 `machine_gates=[]` 或 gate 没有 report path/sha256,没人能复跑证据 | 把一次性命令输出当口头证明,没有把 OpenMAIC-style eval report 落成 artifact | `build_workflow_review_packet.mjs` 对 `workflow_candidate/student_ready` 要求 machine gate matrix 非空,每个 gate 带可读 report 文件、bytes、sha256 | `gate:missing_machine_gates` / `gate:missing_report:*` |
 
 ## 2. 快速判定
 
@@ -57,7 +64,11 @@
 - 你正在写练习题,但不知道它来自哪个 variant / basis_ref。
 - 你正在加文案,但这句话没有 anchor 或只是老师自由发挥的考点事实。
 - 你还没写 `visual_archetype_decision`,就已经开始生成 `animation_ir.v0`。
+- 你没有逐幕写 `scene_visual_brief`,就已经开始复用某个四图组合、流程图或判断树模板。
+- 你发现 3 个以上主讲 scene 的主视觉基本一样,只有标题、颜色、标签在变。
+- 你准备让老师在学生端说 `A02/P40/F16/source_card/IR/scene/primitive/pack` 来解释本题是什么。
 - 你把安全、合同、管理考点说成“只能文字讲”,但没试过判断树、资金链、现场平面、失稳链、答题纸扫描。
+- 你把卡标成 `workflow_candidate`,但主讲 scene 的主图面积没有过 `min_visual_dominance_ratio`。
 - 你正在做全屏,但普通态竖屏截图里内容仍是小片,或横屏/宽屏截图里仍被锁成窄竖条。
 - 你还没跑 `validate_animation_ir_contract.mjs`,就已经开始看 HTML 或改 CSS。
 - 你在 Remotion topic 文件里写 `if (scene.id === "...")` 或硬编码某张卡的 SVG。
@@ -68,6 +79,9 @@
 - 你在优化结果页、AI 追问或补练按钮,但第一题题干仍让人读不懂。
 - 你给用户手机链接时还在用 `127.0.0.1` 或 `localhost`。
 - 你说 workflow 改好了,但没有 review packet,没有 root-cause triage,也没有说明新增了哪个 gate/anti-pattern。
+- 你说 workflow 改好了,但 review packet 的 `machine_gates[]` 为空,或 gate 没有可读 report path/sha256。
+- 你把卡标成 `workflow_candidate`,但没有 Remotion still manifest,或 manifest 的 `quality_gate.flags` 非空。
+- 你把样板卡写进 batch manifest,但没有 `promotion_authority`、`preserved_by_batch=true` 和 `validate_workflow_promotions.mjs` PASS。
 - 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
 - 你发现 SVG 文字贴箭头/压边,但只调当前卡 x/y,没有把 flow_arrow/note/pill primitive 变成自带安全区的图元。
 - 你加了"问 AI",但只是跳到空白聊天页,没有带当前 scene、字幕和考点上下文。

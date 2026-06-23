@@ -109,7 +109,7 @@
       "status": "direct",
       "prototype": "decision_branch_reveal",
       "visual_required_kinds": [
-        "decision_tree"
+        "lifting_threshold_board"
       ],
       "source_pack": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
       "source_sha256": "858cf7d00efb982d0f1b84cafa9ee07630dfce7b713cbb0312276955a007d799",
@@ -147,8 +147,43 @@
           "stderr_tail": ""
         }
       },
-      "quality_status": "coarse_draft_requires_single_card_review",
-      "student_ready": false
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "preserved_by_batch": true,
+      "promotion_authority": {
+        "card_id": "P40_S02",
+        "quality_status": "workflow_candidate",
+        "student_ready": false,
+        "authority": "P40_S02.workflow_review_packet.json",
+        "ir": "P40_S02.animation_ir.v0.json",
+        "remotion_composition": "P40-S02-AnimationIrPreview",
+        "layout_mode": "blueprint_poster",
+        "remotion_review_scene_ids": [
+          "danger_gate",
+          "trial_lift",
+          "limit_gate",
+          "score"
+        ],
+        "visual_dominance": {
+          "min_ratio": 0.72,
+          "pass_count": 7,
+          "min_scenes": 7
+        },
+        "remotion_quality_summary": {
+          "analyzed_count": 4,
+          "max_low_information_gap_px": 0,
+          "max_board_to_caption_gap_px": 0,
+          "min_board_height_ratio": 0.5406,
+          "max_non_board_text_pressure_ratio": 0.3845,
+          "flags": []
+        },
+        "remotion_quality_gate": {
+          "required": true,
+          "pass": true,
+          "flags": []
+        },
+        "reason": "S02 refactored from four-gate text card into lifting threshold blueprint board; is now reblocked by blueprint-poster screenshot review before student_ready."
+      }
     },
     {
       "slot": 4,
@@ -1147,8 +1182,7 @@
       "status": "direct",
       "prototype": "section_or_spatial_reveal",
       "visual_required_kinds": [
-        "layer_stack",
-        "roof_section"
+        "pit_threshold_board"
       ],
       "source_pack": "docs/原始数据/考点原料/成品/G01_基坑开挖与降水方法选择.md",
       "source_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
@@ -1186,8 +1220,41 @@
           "stderr_tail": ""
         }
       },
-      "quality_status": "coarse_draft_requires_single_card_review",
-      "student_ready": false
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "preserved_by_batch": true,
+      "promotion_authority": {
+        "card_id": "P40_G01",
+        "quality_status": "workflow_candidate",
+        "student_ready": false,
+        "authority": "P40_G01.workflow_review_packet.json",
+        "ir": "P40_G01.animation_ir.v0.json",
+        "remotion_composition": "P40-G01-AnimationIrPreview",
+        "remotion_review_scene_ids": [
+          "threshold_map",
+          "trap_inrush",
+          "score"
+        ],
+        "visual_dominance": {
+          "min_ratio": 0.48,
+          "pass_count": 6,
+          "min_scenes": 6
+        },
+        "remotion_quality_summary": {
+          "analyzed_count": 3,
+          "max_low_information_gap_px": 199,
+          "max_board_to_caption_gap_px": 32,
+          "min_board_height_ratio": 0.5406,
+          "max_non_board_text_pressure_ratio": 0.3018,
+          "flags": []
+        },
+        "remotion_quality_gate": {
+          "required": true,
+          "pass": true,
+          "flags": []
+        },
+        "reason": "G01 refactored from answer-layer text card into pit-section threshold blueprint; promoted as third workflow_candidate archetype for groundwater, wellpoint, recharge, and inrush correction."
+      }
     },
     {
       "slot": 26,
@@ -1891,7 +1958,7 @@
       "status": "composite",
       "prototype": "decision_branch_reveal",
       "visual_required_kinds": [
-        "decision_tree"
+        "inspection_blueprint_board"
       ],
       "source_pack": "docs/原始数据/考点原料/成品/A02_隐蔽验收材料复验见证取样.md",
       "source_sha256": "27b4f6f0081a4dba111051b055f3a82634194d53e398eb2f0131ff2e3de0cada",
@@ -1929,8 +1996,43 @@
           "stderr_tail": ""
         }
       },
-      "quality_status": "coarse_draft_requires_single_card_review",
-      "student_ready": false
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "preserved_by_batch": true,
+      "promotion_authority": {
+        "card_id": "P40_A02",
+        "quality_status": "workflow_candidate",
+        "student_ready": false,
+        "authority": "P40_A02.workflow_review_packet.json",
+        "ir": "P40_A02.animation_ir.v0.json",
+        "remotion_composition": "P40-A02-AnimationIrPreview",
+        "layout_mode": "blueprint_poster",
+        "remotion_review_scene_ids": [
+          "material_gate",
+          "witness_chain",
+          "hidden_shutter",
+          "score"
+        ],
+        "visual_dominance": {
+          "min_ratio": 0.72,
+          "pass_count": 7,
+          "min_scenes": 7
+        },
+        "remotion_quality_summary": {
+          "analyzed_count": 4,
+          "max_low_information_gap_px": 0,
+          "max_board_to_caption_gap_px": 0,
+          "min_board_height_ratio": 0.5406,
+          "max_non_board_text_pressure_ratio": 0.388,
+          "flags": []
+        },
+        "remotion_quality_gate": {
+          "required": true,
+          "pass": true,
+          "flags": []
+        },
+        "reason": "A02 refactored from text/process-flow card into before-cover engineering blueprint windows; is now reblocked by blueprint-poster screenshot review before student_ready."
+      }
     }
   ],
   "blocked": [
@@ -1942,5 +2044,107 @@
   ],
   "index": "P40_index.html",
   "quality_status": "coarse_draft_requires_single_card_review",
-  "student_ready": false
+  "student_ready": false,
+  "promoted": [
+    {
+      "card_id": "P40_A02",
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "authority": "P40_A02.workflow_review_packet.json",
+      "ir": "P40_A02.animation_ir.v0.json",
+      "remotion_composition": "P40-A02-AnimationIrPreview",
+      "layout_mode": "blueprint_poster",
+      "remotion_review_scene_ids": [
+        "material_gate",
+        "witness_chain",
+        "hidden_shutter",
+        "score"
+      ],
+      "visual_dominance": {
+        "min_ratio": 0.72,
+        "pass_count": 7,
+        "min_scenes": 7
+      },
+      "remotion_quality_summary": {
+        "analyzed_count": 4,
+        "max_low_information_gap_px": 0,
+        "max_board_to_caption_gap_px": 0,
+        "min_board_height_ratio": 0.5406,
+        "max_non_board_text_pressure_ratio": 0.388,
+        "flags": []
+      },
+      "remotion_quality_gate": {
+        "required": true,
+        "pass": true,
+        "flags": []
+      },
+      "reason": "A02 refactored from text/process-flow card into before-cover engineering blueprint windows; is now reblocked by blueprint-poster screenshot review before student_ready."
+    },
+    {
+      "card_id": "P40_S02",
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "authority": "P40_S02.workflow_review_packet.json",
+      "ir": "P40_S02.animation_ir.v0.json",
+      "remotion_composition": "P40-S02-AnimationIrPreview",
+      "layout_mode": "blueprint_poster",
+      "remotion_review_scene_ids": [
+        "danger_gate",
+        "trial_lift",
+        "limit_gate",
+        "score"
+      ],
+      "visual_dominance": {
+        "min_ratio": 0.72,
+        "pass_count": 7,
+        "min_scenes": 7
+      },
+      "remotion_quality_summary": {
+        "analyzed_count": 4,
+        "max_low_information_gap_px": 0,
+        "max_board_to_caption_gap_px": 0,
+        "min_board_height_ratio": 0.5406,
+        "max_non_board_text_pressure_ratio": 0.3845,
+        "flags": []
+      },
+      "remotion_quality_gate": {
+        "required": true,
+        "pass": true,
+        "flags": []
+      },
+      "reason": "S02 refactored from four-gate text card into lifting threshold blueprint board; is now reblocked by blueprint-poster screenshot review before student_ready."
+    },
+    {
+      "card_id": "P40_G01",
+      "quality_status": "workflow_candidate",
+      "student_ready": false,
+      "authority": "P40_G01.workflow_review_packet.json",
+      "ir": "P40_G01.animation_ir.v0.json",
+      "remotion_composition": "P40-G01-AnimationIrPreview",
+      "remotion_review_scene_ids": [
+        "threshold_map",
+        "trap_inrush",
+        "score"
+      ],
+      "visual_dominance": {
+        "min_ratio": 0.48,
+        "pass_count": 6,
+        "min_scenes": 6
+      },
+      "remotion_quality_summary": {
+        "analyzed_count": 3,
+        "max_low_information_gap_px": 199,
+        "max_board_to_caption_gap_px": 32,
+        "min_board_height_ratio": 0.5406,
+        "max_non_board_text_pressure_ratio": 0.3018,
+        "flags": []
+      },
+      "remotion_quality_gate": {
+        "required": true,
+        "pass": true,
+        "flags": []
+      },
+      "reason": "G01 refactored from answer-layer text card into pit-section threshold blueprint; promoted as third workflow_candidate archetype for groundwater, wellpoint, recharge, and inrush correction."
+    }
+  ]
 }

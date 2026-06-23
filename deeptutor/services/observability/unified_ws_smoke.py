@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import os
 import time
@@ -50,10 +51,10 @@ async def _try_load_metrics_snapshot_async(
 ) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     url = f"{api_base_url.rstrip('/')}/metrics"
     try:
-        snapshot = await load_metrics_snapshot_async(
-            api_base_url=api_base_url,
-            metrics_token=metrics_token,
-        )
+        kwargs: dict[str, Any] = {"api_base_url": api_base_url}
+        if "metrics_token" in inspect.signature(load_metrics_snapshot_async).parameters:
+            kwargs["metrics_token"] = metrics_token
+        snapshot = await load_metrics_snapshot_async(**kwargs)
     except httpx.HTTPStatusError as exc:
         return None, _build_metrics_capture(
             url=url,

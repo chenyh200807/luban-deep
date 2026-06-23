@@ -2128,16 +2128,16 @@ def _build_followup_action_prompt(
         "即便附带了「错因」/「为什么」等追问词，整体仍为 answer_questions（提交优先），"
         "不要因追问词改判为 ask_followup。如：「我选ACDE，错因10字以内」→ answer_questions。\n"
         "2. 如果用户是在修改已经提交过的答案，如“第2题改成C，其他不变”，intent=revise_answers。\n"
-        “3. 如果用户是在问解析/讲解/为什么/哪题错了（且未附上我选X提交），且问的是 active_question_set 里的题，intent=ask_followup。\n”
-        “3b. ask_other_question 仅用于一种情况：用户用序数/位置/属性【回指本对话 history_context 里”
-        “已经出现过、但不在 active_question_set 里】的另一道题来问解析/讲解”
-        “（如”最开始那道/我做错的那道/上一道/第3题但当前题组没有第3题，正确答案为什么”）。”
-        “硬性前置：被指的那道题必须能在 history_context 里找到它确实早前出现过。\n”
-        “   反例（绝不可判 ask_other_question）：①”分析/讲/出一道X考点的(真)题””来一道X题”等要求”
-        “【生成或调取一道新题】的——属 generate_more_questions 或新讲题，不是回指；”
-        “②序数落在 active_question_set 槽位范围内（题组有3题、用户说”第2题”）——用 ask_followup/answer_questions；”
-        “③history_context 里找不到被指的那道题——用 unknown，不要猜。\n”
-        “   ask_other_question 只用于讲解/追问，绝不用于作答或改答。\n”
+        "3. 如果用户是在问解析/讲解/为什么/哪题错了（且未附上我选X提交），且问的是 active_question_set 里的题，intent=ask_followup。\n"
+        "3b. ask_other_question 仅用于一种情况：用户用序数/位置/属性【回指本对话 history_context 里"
+        "已经出现过、但不在 active_question_set 里】的另一道题来问解析/讲解"
+        "（如”最开始那道/我做错的那道/上一道/第3题但当前题组没有第3题，正确答案为什么”）。"
+        "硬性前置：被指的那道题必须能在 history_context 里找到它确实早前出现过。\n"
+        "   反例（绝不可判 ask_other_question）：①”分析/讲/出一道X考点的(真)题””来一道X题”等要求"
+        "【生成或调取一道新题】的——属 generate_more_questions 或新讲题，不是回指；"
+        "②序数落在 active_question_set 槽位范围内（题组有3题、用户说”第2题”）——用 ask_followup/answer_questions；"
+        "③history_context 里找不到被指的那道题——用 unknown，不要猜。\n"
+        "   ask_other_question 只用于讲解/追问，绝不用于作答或改答。\n"
         "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"
         "5. 如果无法有把握地判断为题目 follow-up，返回 unknown 或 unrelated，不要猜。\n"
         "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"

@@ -148,6 +148,32 @@ class _FakeMemberService:
             **audit,
         }
 
+    def delete_member_account(
+        self,
+        user_id: str,
+        *,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str | None = None,
+    ) -> dict[str, object]:
+        audit = self.record_bi_audit(
+            action="member_account_delete",
+            target_user=user_id,
+            operator=operator,
+            reason=reason,
+            after={"status": "deleted"},
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "success": True,
+            "user_id": user_id,
+            "status": "deleted",
+            "message": "会员账号已删除",
+            "credentials_deleted": True,
+            "sessions_invalidated": 1,
+            **audit,
+        }
+
     def get_wallet(self, user_id: str) -> dict[str, object]:
         return {
             "balance": 500 if user_id == "u1" else 40,
@@ -1429,6 +1455,53 @@ def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(
             "/api/v1/bi/member/u1/ops-action",
             headers={"X-Idempotency-Key": "member-action-key-1"},
             json={"status": "done", "result": "已电话联系", "action_title": "标记已联系"},
+        )
+        assert retry.status_code == 200
+        assert retry.json()["audit_id"] == first_body["audit_id"]
+        assert retry.json()["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+
+def test_bi_member_account_delete_requires_high_risk_and_idempotency(
+    bi_service: BIService,
+) -> None:
+    """BI 删除会员账号必须走 member_ops/high_risk + audit idempotency."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.request(
+            "DELETE",
+            "/api/v1/bi/member/u1/account",
+            json={"reason": "用户要求删除测试账号"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.request(
+            "DELETE",
+            "/api/v1/bi/member/u1/account",
+            headers={"X-Idempotency-Key": "member-delete-key-1"},
+            json={"reason": "用户要求删除测试账号"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["status"] == "deleted"
+        assert first_body["credentials_deleted"] is True
+        assert first_body["sessions_invalidated"] == 1
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+
+        retry = client.request(
+            "DELETE",
+            "/api/v1/bi/member/u1/account",
+            headers={"X-Idempotency-Key": "member-delete-key-1"},
+            json={"reason": "用户要求删除测试账号"},
         )
         assert retry.status_code == 200
         assert retry.json()["audit_id"] == first_body["audit_id"]

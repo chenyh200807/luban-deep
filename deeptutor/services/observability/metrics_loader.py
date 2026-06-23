@@ -7,9 +7,16 @@ from typing import Any
 
 import httpx
 
+from deeptutor.services.config import get_env_store
+
 
 def resolve_metrics_token(metrics_token: str | None = None) -> str | None:
-    candidate = str(metrics_token or os.getenv("DEEPTUTOR_METRICS_TOKEN") or "").strip()
+    candidate = str(
+        metrics_token
+        or os.getenv("DEEPTUTOR_METRICS_TOKEN")
+        or get_env_store().get("DEEPTUTOR_METRICS_TOKEN", "")
+        or ""
+    ).strip()
     return candidate or None
 
 
@@ -33,7 +40,7 @@ def load_metrics_snapshot(
             raise FileNotFoundError(target)
         payload = json.loads(target.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
-            raise TypeError("metrics snapshot must be a JSON object")
+            raise TypeError("Metrics snapshot must be a JSON object")
         return payload
 
     with httpx.Client(timeout=timeout, trust_env=False) as client:

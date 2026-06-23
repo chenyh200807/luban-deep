@@ -464,6 +464,23 @@ def reset_external_auth_password(username: str, new_password: str) -> dict[str, 
     return {"success": True, "sessions_invalidated": deleted}
 
 
+def delete_external_auth_user(username: str, password: str | None = None) -> dict[str, Any]:
+    normalized_username = _normalize_username(username)
+    if password is not None and verify_external_auth_user(normalized_username, password) is None:
+        raise ValueError("用户名或密码错误")
+    users_file = _resolve_users_file_for_write()
+
+    with _STORE_LOCK:
+        users = _load_json_mapping(users_file)
+        user = users.get(normalized_username)
+        if not isinstance(user, dict):
+            return {"success": True, "deleted": False, "sessions_invalidated": 0}
+        users.pop(normalized_username, None)
+        _write_json_mapping(users_file, users)
+    deleted = delete_external_auth_sessions(str(user.get("id") or ""))
+    return {"success": True, "deleted": True, "sessions_invalidated": deleted}
+
+
 def delete_external_auth_sessions(user_id: str) -> int:
     normalized_user_id = str(user_id or "").strip()
     if not normalized_user_id:

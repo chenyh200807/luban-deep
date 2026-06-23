@@ -27,9 +27,11 @@
 ```bash
 node artifacts/luban_case_family_assets/diagram_microlesson/build_workflow_review_packet.mjs \
   --card-id <topic> \
+  --ir artifacts/luban_case_family_assets/diagram_microlesson/<topic>.animation_ir.v0.json \
   --gate validate_animation_ir_preview=PASS:0 \
   --gate validate_challenge_theater_practice=PASS:0 \
-  --screenshot 390x844=artifacts/luban_case_family_assets/diagram_microlesson/<topic>.390.png \
+  --screenshot visual=artifacts/luban_case_family_assets/diagram_microlesson/<topic>.visual_review/<topic>.visual_review_manifest.json \
+  --screenshot remotion=artifacts/luban_case_family_assets/diagram_microlesson/<topic>.remotion_review/manifest.json \
   --out artifacts/luban_case_family_assets/diagram_microlesson/<topic>.workflow_review_packet.json
 ```
 
@@ -41,9 +43,22 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
   "round": 2,
   "stage": "P4_review",
   "machine_gates": [
-    {"name": "validate_animation_ir_contract", "status": "PASS", "warn": 0},
-    {"name": "validate_animation_ir_preview", "status": "PASS", "warn": 0},
-    {"name": "validate_challenge_theater_practice", "status": "PASS", "warn": 0}
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0,
+      "report_path": "P40_A02.gate_reports/validate_animation_ir_contract.txt",
+      "report_exists": true,
+      "report_sha256": "..."
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0,
+      "report_path": "P40_A02.gate_reports/validate_animation_ir_preview.txt",
+      "report_exists": true,
+      "report_sha256": "..."
+    }
   ],
   "screenshots": [
     {"viewport": "390x844", "path": "...390.png", "looked": true, "issue": ""},
@@ -108,8 +123,13 @@ packet 可以先写 JSON,后续再接自动 judge 和截图墙 UI。最小字段
 | 题面泄答案、选项是 key point 标签、解析读不懂 | practice generator + practice interaction gate + anti-pattern | 母题 R3/R4/采分点派生题;答前无正确高亮;错项专属反馈 |
 | 题干本身读不懂,但结果页/AI 入口很完整 | practice_blueprint + judge | 先修 scene_gap/学生答案/标准动作/错项诱因,结果页不能替代题目质量 |
 | 手机打不开 `127.0.0.1` 链接 | preview handoff | LAN IP URL + 端口监听证据,换 Wi-Fi 后重新取 IP |
+| 同一套四图/图标/流程贯穿多数页面 | P0.5 storyboard + IR visual_library + judge | `scene_visual_brief[]` 证明每幕来自当前旁白/考试动作;截图墙证明对象组合或对象状态变化,不是只换标题标签 |
+| 旁白用 A02/P40/IR/source_card 等内部编号解释题意 | lesson/source workflow + narration gate + skill | opening 和主讲用学生能懂的真实考试任务展开;内部 id 只留制作追溯,不得进入老师/学生音频 |
 | 人眼发现但机器绿 | gate + anti-pattern | 先补 gate/anti-pattern,再修页面 |
 | 图元只在一侧 renderer 可用 | contract gate + renderer | HTML/Remotion primitive coverage 双绿 |
+| 有图元但仍围绕文字讲 | IR contract + renderer composition | `dominant_visual_teaching_scene_count` 达标;主讲 scene 的非文字 domain diagram node 面积达到 `min_visual_dominance_ratio` |
+| Remotion still 仍像文字卡、大空白或图文断裂 | renderer + IR + Remotion quality gate | `capture_remotion_ir_review_stills.mjs` manifest、`quality_gate.required=true/pass=true/flags=[]`、关键 scene still |
+| 批量 manifest 覆盖已晋级样板 | batch generator + promotion authority | `validate_workflow_promotions.mjs` PASS、`promotion_authority`、`preserved_by_batch=true` |
 | 只影响一张卡的极小视觉瑕疵 | card CSS 可例外 | 写明为什么不是 shared shell/renderer/gate 问题 |
 
 ## 4. Judge Prompt 骨架
@@ -134,6 +154,8 @@ LLM judge 只评表现和学习体验,不重写事实。输出必须是结构化
 11. 后置 qa[] 是否至少三问三答;学生声纹为 longlaotie_v3 时,问题是否像真实东北男孩轻口语追问,而不是书面提纲或方言段子
 12. 截图墙是否存在拥挤、裁切、小片化、控制条遮挡
 13. 发现问题时应归因到 IR、renderer、gate、skill 还是 card-css
+14. 每个主讲 scene 的主图是否由当前旁白句/`exam_task`/`answer_move` 推导;是否出现同一套图超过 2 幕只换标题标签
+15. 学生端旁白是否说清真实考试任务;是否把 `A02/P40/F16/source_card/IR/scene/primitive/pack` 当成解释
 
 返回 JSON:
 {
@@ -163,8 +185,11 @@ LLM judge 只评表现和学习体验,不重写事实。输出必须是结构化
 
 一轮可以合入 workflow improvement,必须同时满足:
 
-- 相关 gate 已跑,并记录 PASS/WARN。
+- 相关 gate 已跑,并记录 PASS/WARN/report path/sha256;`workflow_candidate/student_ready` 的 `machine_gates[]` 不得为空。
 - 用户反馈视口或等价视口已进截图墙。
+- `workflow_candidate/student_ready` 必须有 Remotion still review manifest,且质量门 `quality_gate.required=true/pass=true/flags=[]`。
 - `build_workflow_review_packet.mjs` 已生成 review packet;若存在 issue,packet 必须写明 root-cause triage。
+- `scene_visual_brief[]` 已覆盖每个主讲 scene,且每条声明 source sentence、domain objects、visual action、state change、exit 和为什么不是复用模板。
+- 若把单卡写入批量 manifest 的 `promoted`,必须跑 `validate_workflow_promotions.mjs`,证明 `promotion_authority` 与 packet/IR/Remotion still 一致且 `preserved_by_batch=true`。
 - 若修了视觉问题,至少新增一个 gate、anti-pattern、renderer primitive 合同或 skill 红线。
 - 没有把母题事实、采分点、错因 authority 混进表现层回炉。

@@ -545,7 +545,7 @@
 }
 
 .billing-page.light .usage-meter-fill {
-  background: #111827;
+  background: linear-gradient(90deg, #2563eb, #059669);
 }
 
 .billing-page.light .section-title {

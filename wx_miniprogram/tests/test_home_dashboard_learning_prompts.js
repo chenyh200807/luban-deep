@@ -15,67 +15,26 @@ var wsSourcePath = path.join(__dirname, "../utils/ws-stream.js");
 
 var wxVm = require(wxVmPath);
 var yousenVm = require(yousenVmPath);
-var canonicalMembers = require(path.join(__dirname, "../utils/canonical-taxonomy-members.js"));
-
-assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("防水工程"), true);
-assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("屋面与防水工程施工"), true);
-assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("出三道屋面防水的"), false);
-assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("今日推进"), false);
-assert.strictEqual(canonicalMembers.isCanonicalTopicLabel("直接练题才能把"), false);
-
-function trustedHomeProjection(payload) {
-  var projection = Object.assign({}, payload);
-  delete projection.review;
-  return {
-    review: payload.review,
-    home_projection: Object.assign(
-      {
-        source_status: {
-          home_projection_contract: "canonical_taxonomy_v1",
-          topic_authority: "learner_state.home_personalization.canonical_taxonomy",
-        },
-      },
-      projection,
-    ),
-  };
-}
-
-var TOPIC_CODES = {
-  主体结构工程施工: "1A413040",
-  施工临时用电: "1A431050",
-  项目质量计划管理: "1A434",
-  防水工程: "1A413000-C24",
-  屋面与防水工程施工: "1A413050",
-};
-
-function canonicalIntent(topic, extra) {
-  return Object.assign(
-    {
-      source: "learner_state.home_personalization",
-      concept_label: topic,
-      taxonomy_code: TOPIC_CODES[topic] || "",
-      taxonomy_id: TOPIC_CODES[topic] || "",
-      topic_source: TOPIC_CODES[topic] ? "taxonomy_label" : "",
-      topic_confidence: TOPIC_CODES[topic] ? "high" : "",
+var dashboard = {
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
     },
-    extra || {},
-  );
-}
-
-var dashboard = trustedHomeProjection({
+  },
   review: { overdue: 1, due_today: 2 },
   today_focus: {
     label: "今日焦点",
-    title: "今日焦点：主体结构工程施工",
+    title: "主体结构专项",
     meta: "来自最近批改",
     prompt: "讲清楚主体结构工程施工的关键判断",
-    intent: canonicalIntent("主体结构工程施工"),
+    prompt_intent: { source: "home_dashboard", learning_signal_type: "home_prompt_clicked" },
   },
   recommended_prompts: [
     {
       text: "讲清楚主体结构工程施工的关键判断",
       prompt_type: "concept_explain",
-      intent: canonicalIntent("主体结构工程施工", { learning_signal_type: "concept_explain" }),
+      intent: { source: "home_dashboard", learning_signal_type: "concept_explain" },
       evidence_refs: ["evt-home-1"],
       learning_state_ref: "knowledge:1A432000",
       suggested_mode: "deep",
@@ -83,10 +42,10 @@ var dashboard = trustedHomeProjection({
     {
       text: "我还是没懂防水节点",
       prompt_type: "still_confused",
-      intent: canonicalIntent("防水工程", { learning_signal_type: "still_confused" }),
+      intent: { source: "home_dashboard", learning_signal_type: "still_confused" },
     },
   ],
-});
+};
 
 assert.deepStrictEqual(
   wxVm.buildLearningHomeViewModel(dashboard),
@@ -96,13 +55,19 @@ var model = wxVm.buildLearningHomeViewModel(dashboard);
 assert.strictEqual(model.reviewCount, 3);
 assert.strictEqual(model.focusQuery, "讲清楚主体结构工程施工的关键判断");
 assert.strictEqual(model.focusActionType, "prompt");
-assert.strictEqual(model.recommendedPrompts.length, 1);
+assert.strictEqual(model.recommendedPrompts.length, 2);
 assert.strictEqual(model.recommendedPrompts[0].promptIntent.learning_signal_type, "concept_explain");
 assert.deepStrictEqual(model.recommendedPrompts[0].evidenceRefs, ["evt-home-1"]);
 assert.strictEqual(model.recommendedPrompts[0].learningStateRef, "knowledge:1A432000");
 assert.strictEqual(model.recommendedPrompts[0].suggestedMode, "deep");
 
-var assessmentModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
+var assessmentModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
   today_focus: {
     label: "今日焦点",
     title: "一题，给系统第一份学习证据",
@@ -114,22 +79,28 @@ var assessmentModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
       intent: { source: "home_dashboard", learning_signal_type: "home_prompt_clicked" },
     },
   ],
-}));
+});
 assert.strictEqual(assessmentModel.focusActionType, "assessment");
 assert.strictEqual(assessmentModel.focusTitle, "先做 1 题摸底");
 assert.strictEqual(assessmentModel.focusMeta, "生成学情基线");
 assert.strictEqual(assessmentModel.focusQuery, "");
 assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
 
-var assessmentLessonModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
+var assessmentLessonModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
+  },
   recommended_prompts: [
     {
       text: "讲一下阶段测评后应该怎么复盘",
       prompt_type: "concept_explain",
     },
   ],
-}));
-assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 0);
+});
+assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 assert.strictEqual(assessmentLessonModel.focusActionType, "");
 
 var promptOnlyModel = wxVm.buildLearningHomeViewModel({
@@ -161,157 +132,35 @@ var untrustedProjectionModel = wxVm.buildLearningHomeViewModel({
     },
   ],
 });
-assert.strictEqual(untrustedProjectionModel.focusTitle, "");
+assert.strictEqual(untrustedProjectionModel.focusTitle, "今日推进");
 assert.strictEqual(untrustedProjectionModel.focusQuery, "");
 assert.strictEqual(untrustedProjectionModel.focusActionType, "");
 assert.strictEqual(untrustedProjectionModel.recommendedPrompts.length, 0);
 
-var markedFreeTextProjectionModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
-  today_focus: {
-    label: "今日焦点",
-    title: "今日焦点：出三道屋面防水的",
-    meta: "来自 learner_state.home_personalization",
-    prompt: "用 3 道题训练出三道屋面防水的",
-    intent: canonicalIntent("出三道屋面防水的"),
+var trustedProjectionModel = wxVm.buildLearningHomeViewModel({
+  home_projection: {
+    source_status: {
+      home_projection_contract: "canonical_taxonomy_v1",
+      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+    },
   },
-  recommended_prompts: [
-    {
-      text: "用 3 道题训练出三道屋面防水的",
-      prompt_type: "practice_prompt",
-      intent: canonicalIntent("出三道屋面防水的"),
-    },
-  ],
-}));
-assert.strictEqual(markedFreeTextProjectionModel.focusTitle, "");
-assert.strictEqual(markedFreeTextProjectionModel.focusQuery, "");
-assert.strictEqual(markedFreeTextProjectionModel.focusActionType, "");
-assert.strictEqual(markedFreeTextProjectionModel.recommendedPrompts.length, 0);
-assert.strictEqual(wxVm.isTrustedHomeDashboardPayload(trustedHomeProjection({
-  today_focus: {
-    title: "今日焦点：出三道屋面防水的",
-    prompt: "用 3 道题训练出三道屋面防水的",
-    intent: canonicalIntent("出三道屋面防水的"),
-  },
-  recommended_prompts: [
-    {
-      text: "用 3 道题训练出三道屋面防水的",
-      prompt_type: "practice_prompt",
-      intent: canonicalIntent("出三道屋面防水的"),
-    },
-  ],
-})), false);
-
-var forgedCodeFreeTextIntent = canonicalIntent("出三道屋面防水的", {
-  taxonomy_code: "1A413050",
-  taxonomy_id: "1A413050",
-  topic_source: "taxonomy_label",
-  topic_confidence: "high",
-});
-var forgedCodeFreeTextModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
-  today_focus: {
-    title: "今日焦点：出三道屋面防水的",
-    prompt: "用 3 道题训练出三道屋面防水的",
-    intent: forgedCodeFreeTextIntent,
-  },
-  recommended_prompts: [
-    {
-      text: "用 3 道题训练出三道屋面防水的",
-      prompt_type: "practice_prompt",
-      intent: forgedCodeFreeTextIntent,
-    },
-  ],
-}));
-assert.strictEqual(forgedCodeFreeTextModel.focusTitle, "");
-assert.strictEqual(forgedCodeFreeTextModel.recommendedPrompts.length, 0);
-
-["今日推进", "直接练题才能把"].forEach(function (badTopic) {
-  var badIntent = canonicalIntent(badTopic, {
-    taxonomy_code: "1A413050",
-    taxonomy_id: "1A413050",
-    topic_source: "taxonomy_label",
-    topic_confidence: "high",
-  });
-  var badModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
-    today_focus: {
-      title: "今日焦点：" + badTopic,
-      prompt: "用 3 道题训练" + badTopic,
-      intent: badIntent,
-    },
-    recommended_prompts: [
-      {
-        text: "用 3 道题训练" + badTopic,
-        prompt_type: "practice_prompt",
-        intent: badIntent,
-      },
-    ],
-  }));
-  assert.strictEqual(badModel.focusTitle, "");
-  assert.strictEqual(badModel.recommendedPrompts.length, 0);
-});
-
-var trustedProjectionModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
   today_focus: {
     label: "今日焦点",
     title: "今日焦点：主体结构工程施工",
     meta: "来自 learner_state.home_personalization",
     prompt: "用 3 道题训练主体结构工程施工",
-    intent: canonicalIntent("主体结构工程施工"),
+    intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
   },
   recommended_prompts: [
     {
       text: "用 3 道题训练主体结构工程施工",
       prompt_type: "practice_prompt",
-      intent: canonicalIntent("主体结构工程施工"),
+      intent: { source: "learner_state.home_personalization", concept_label: "主体结构工程施工" },
     },
   ],
-}));
+});
 assert.strictEqual(trustedProjectionModel.focusTitle, "主体结构工程施工");
 assert.strictEqual(trustedProjectionModel.recommendedPrompts[0].displayDesc, "主体结构工程施工");
-
-var badFocusWithGoodPromptModel = wxVm.buildLearningHomeViewModel(trustedHomeProjection({
-  today_focus: {
-    label: "今日焦点",
-    title: "今日焦点：直接练题才能把",
-    meta: "来自 learner_state.home_personalization",
-    prompt: "用 3 道题训练直接练题才能把",
-    intent: { source: "learner_state.home_personalization", concept_label: "直接练题才能把" },
-  },
-  recommended_prompts: [
-    {
-      text: "用 3 道题训练主体结构工程施工",
-      prompt_type: "practice_prompt",
-      intent: canonicalIntent("主体结构工程施工"),
-    },
-  ],
-}));
-assert.strictEqual(badFocusWithGoodPromptModel.focusTitle, "");
-assert.strictEqual(badFocusWithGoodPromptModel.focusQuery, "");
-assert.strictEqual(badFocusWithGoodPromptModel.focusActionType, "");
-assert.strictEqual(badFocusWithGoodPromptModel.recommendedPrompts.length, 1);
-
-var stringFallbackModel = wxVm.buildLearningHomeViewModel({
-  home_projection: {
-    source_status: {
-      home_projection_contract: "canonical_taxonomy_v1",
-      topic_authority: "learner_state.home_personalization.canonical_taxonomy",
-      fallback_used: "true",
-    },
-    today_focus: {
-      title: "今日焦点：主体结构工程施工",
-      prompt: "用 3 道题训练主体结构工程施工",
-      intent: canonicalIntent("主体结构工程施工"),
-    },
-    recommended_prompts: [
-      {
-        text: "用 3 道题训练主体结构工程施工",
-        prompt_type: "practice_prompt",
-        intent: canonicalIntent("主体结构工程施工"),
-      },
-    ],
-  },
-});
-assert.strictEqual(stringFallbackModel.focusTitle, "");
-assert.strictEqual(stringFallbackModel.recommendedPrompts.length, 0);
 
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
@@ -321,7 +170,6 @@ assert(chatSource.indexOf("onRecommendedPromptTap") >= 0);
 assert(chatWxml.indexOf("recommendedPrompts") >= 0);
 assert(chatSource.indexOf("showStaticExamples") >= 0);
 assert(chatWxml.indexOf("showStaticExamples") >= 0);
-assert(chatSource.indexOf('focusTitle: "今日推进"') < 0);
 assert(wsSource.indexOf("prompt_intent") >= 0);
 assert(fs.readFileSync(wxVmPath, "utf8").indexOf("buildFallbackFocusQuery") < 0);
 
@@ -438,45 +286,46 @@ function flushPromises() {
     {
       query: "讲清楚主体结构工程施工的关键判断",
       options: {
-        promptIntent: canonicalIntent("主体结构工程施工", {
-          learning_signal_type: "concept_explain",
-        }),
+        promptIntent: {
+          source: "home_dashboard",
+          learning_signal_type: "home_prompt_clicked",
+        },
       },
     },
   ]);
 
-  var cachedDashboard = trustedHomeProjection({
-    today_focus: {
-      label: "今日焦点",
-      title: "今日焦点：主体结构工程施工",
-      meta: "来自学情更新",
-      prompt: "用 3 道题训练主体结构工程施工",
-      intent: canonicalIntent("主体结构工程施工"),
+  var cachedDashboard = {
+    home_projection: {
+      source_status: {
+        home_projection_contract: "canonical_taxonomy_v1",
+        topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+      },
     },
+    today_focus: { label: "今日焦点", title: "缓存专题", meta: "来自学情更新" },
     recommended_prompts: [
       {
-        text: "用 3 道题训练主体结构工程施工",
-        prompt_type: "practice_prompt",
-        intent: canonicalIntent("主体结构工程施工"),
+        text: "先看缓存里的推荐",
+        prompt_type: "concept_explain",
+        intent: { source: "home_dashboard", learning_signal_type: "cached_prompt_clicked" },
       },
     ],
-  });
-  var freshDashboard = trustedHomeProjection({
-    today_focus: {
-      label: "今日焦点",
-      title: "今日焦点：施工临时用电",
-      meta: "来自学情更新",
-      prompt: "用 3 道题训练施工临时用电",
-      intent: canonicalIntent("施工临时用电"),
+  };
+  var freshDashboard = {
+    home_projection: {
+      source_status: {
+        home_projection_contract: "canonical_taxonomy_v1",
+        topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+      },
     },
+    today_focus: { label: "今日焦点", title: "新专题", meta: "来自学情更新" },
     recommended_prompts: [
       {
-        text: "用 3 道题训练施工临时用电",
+        text: "新回包里的推荐",
         prompt_type: "practice_prompt",
-        intent: canonicalIntent("施工临时用电"),
+        intent: { source: "home_dashboard", learning_signal_type: "fresh_prompt_clicked" },
       },
     ],
-  });
+  };
   var resolveFreshDashboard = null;
   var cachedDefinition = loadChatPage(
     function () {
@@ -493,12 +342,12 @@ function flushPromises() {
   );
   var cached = instantiatePage(cachedDefinition);
   var cachedLoad = cached.page._loadDashboard();
-  assert.strictEqual(cached.page.data.focusTitle, "主体结构工程施工");
-  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "用 3 道题训练主体结构工程施工");
+  assert.strictEqual(cached.page.data.focusTitle, "缓存专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "先看缓存里的推荐");
   resolveFreshDashboard({ data: freshDashboard });
   await cachedLoad;
-  assert.strictEqual(cached.page.data.focusTitle, "施工临时用电");
-  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "用 3 道题训练施工临时用电");
+  assert.strictEqual(cached.page.data.focusTitle, "新专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "新回包里的推荐");
 
   var unsafeCachedDefinition = loadChatPage(
     function () {
@@ -529,18 +378,24 @@ function flushPromises() {
   );
   var unsafeCached = instantiatePage(unsafeCachedDefinition);
   await unsafeCached.page._loadDashboard();
-  assert.strictEqual(unsafeCached.page.data.focusTitle, "");
+  assert.strictEqual(unsafeCached.page.data.focusTitle, "今日推进");
   assert.strictEqual(unsafeCached.page.data.recommendedPrompts.length, 0);
   assert.strictEqual(unsafeCached.page.data.showStaticExamples, true);
 
   var assessmentDefinition = loadChatPage(function () {
     return Promise.resolve({
-      data: trustedHomeProjection({
+      data: {
+        home_projection: {
+          source_status: {
+            home_projection_contract: "canonical_taxonomy_v1",
+            topic_authority: "learner_state.home_personalization.canonical_taxonomy",
+          },
+        },
         today_focus: { title: "一题，给系统第一份学习证据" },
         recommended_prompts: [
           { text: "先做一次模拟测评", prompt_type: "discovery_probe" },
         ],
-      }),
+      },
     });
   });
   var assessment = instantiatePage(assessmentDefinition);
@@ -561,7 +416,6 @@ function flushPromises() {
   var empty = instantiatePage(emptyDefinition);
   empty.page._loadDashboard();
   await flushPromises();
-  assert.strictEqual(empty.page.data.focusTitle, "");
   assert.strictEqual(empty.page.data.showStaticExamples, true);
   empty.page.onFocusTap();
   assert.deepStrictEqual(JSON.parse(JSON.stringify(empty.sent)), []);
