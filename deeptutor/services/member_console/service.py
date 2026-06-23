@@ -2535,7 +2535,9 @@ class MemberConsoleService:
             )
         return target
 
-    def _ensure_member(self, data: dict[str, Any], user_id: str) -> dict[str, Any]:
+    def _ensure_member(
+        self, data: dict[str, Any], user_id: str, _seen: set[str] | None = None
+    ) -> dict[str, Any]:
         normalized_user_id = str(user_id or "").strip()
         reconciled = self._reconcile_external_auth_member(data, normalized_user_id)
         if reconciled is not None:
@@ -2545,7 +2547,23 @@ class MemberConsoleService:
             member = self._find_member(data, normalized_user_id)
             merged_into = str(member.get("merged_into") or "").strip()
             if merged_into and merged_into != normalized_user_id:
-                return self._ensure_member(data, merged_into)
+                # Guard against cyclic/broken merge chains (e.g. A->B->A). The
+                # self-reference check above only catches 1-step loops; a multi-hop
+                # cycle would recurse until RecursionError -> login 500. Track
+                # visited ids and stop if the chain revisits one, treating the
+                # current member as canonical instead of recursing forever.
+                seen = _seen if _seen is not None else set()
+                seen.add(normalized_user_id)
+                if merged_into in seen:
+                    logger.warning(
+                        "member merge cycle detected at user_id=%s merged_into=%s; "
+                        "treating current member as canonical",
+                        normalized_user_id,
+                        merged_into,
+                    )
+                    self._ensure_learning_profile(member)
+                    return member
+                return self._ensure_member(data, merged_into, seen)
             self._ensure_learning_profile(member)
             return member
         except KeyError:
