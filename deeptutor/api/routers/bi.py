@@ -274,6 +274,14 @@ async def bi_cost_reconciliation(
     )
 
 
+@router.get("/member-ops/packages")
+async def bi_member_ops_packages(
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+):
+    """套餐品类列表（operator 可访问）：会员运营开通套餐下拉用，不含账务明细。"""
+    return await get_bi_service().get_available_packages()
+
+
 @router.get("/commerce")
 async def bi_commerce(
     limit: int = Query(100, ge=1, le=500),

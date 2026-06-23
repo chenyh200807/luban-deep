@@ -3352,6 +3352,11 @@ class BIService:
             )
         return anomalies
 
+    async def get_available_packages(self) -> dict[str, Any]:
+        """套餐品类列表（会员运营用）：仅返回套餐，不含账务明细。"""
+        authority, packages = self._load_commerce_packages([])
+        return {"packages": packages, "authority": authority}
+
     async def get_commerce(self, limit: int = 100) -> dict[str, Any]:
         safe_limit = max(1, min(int(limit or 100), 500))
         members = [

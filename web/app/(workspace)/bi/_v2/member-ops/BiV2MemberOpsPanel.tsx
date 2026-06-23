@@ -48,7 +48,7 @@ import {
   type MemberDetail,
   type MemberListItem,
 } from '@/lib/member-api'
-import { getBiCommerce, type BiCommercePackage } from '@/lib/bi-api'
+import { getBiMemberOpsPackages, type BiCommercePackage } from '@/lib/bi-api'
 import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
 import {
   ALL_COLUMNS,
@@ -313,17 +313,16 @@ export function BiV2MemberOpsPanel({
   const [selectedDetail, setSelectedDetail] = useState<MemberDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
-  const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation' | 'membershipSettings'>(
-    'none'
-  )
+  const [drawer, setDrawer] = useState<
+    'none' | 'member360' | 'conversation' | 'membershipSettings'
+  >('none')
   const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>(
     'member360'
   )
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
   const [liveRows, setLiveRows] = useState<MemberRow[]>([])
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
-  const [membershipPackages, setMembershipPackages] =
-    useState<BiCommercePackage[]>(EMPTY_PACKAGES)
+  const [membershipPackages, setMembershipPackages] = useState<BiCommercePackage[]>(EMPTY_PACKAGES)
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(flagEnabled)
   const [error, setError] = useState('')
@@ -354,7 +353,7 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list, commerce] = await Promise.all([
+      const [nextDashboard, list, packages] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -367,15 +366,11 @@ export function BiV2MemberOpsPanel({
           expire_within_days: filters.expiringDays || undefined,
           risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
         }),
-        getBiCommerce({ limit: 50 }).catch(() => null),
+        getBiMemberOpsPackages().catch(() => []),
       ])
       const nextRows = list.items.map(toMemberRow)
       setDashboard(nextDashboard)
-      if (commerce) {
-        setMembershipPackages(
-          commerce.packages.filter(pkg => (pkg.status || 'active') !== 'archived')
-        )
-      }
+      setMembershipPackages(packages.filter(pkg => (pkg.status || 'active') !== 'archived'))
       setLiveRows(nextRows)
       setTotalRows(list.total)
       setSelectedRows(
@@ -545,9 +540,7 @@ export function BiV2MemberOpsPanel({
 
   function syncMembershipResult(member: MemberRow, detail: MemberDetail) {
     setSelectedDetail(prev =>
-      prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id
-        ? detail
-        : prev
+      prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id ? detail : prev
     )
     setSelectedMember(prev =>
       prev?.user_id === member.user_id
@@ -705,7 +698,8 @@ export function BiV2MemberOpsPanel({
           user_id: member.user_id,
           reason,
         }),
-      detail => `已取消 ${member.phone_masked} 会员，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
+      detail =>
+        `已取消 ${member.phone_masked} 会员，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
     )
   }
 
@@ -1118,10 +1112,7 @@ function MembershipSettingsPanel({
     payload: { packageId: string; days: number; purchaseId: string; reason: string }
   ) => Promise<void> | void
 }) {
-  const activePackages = useMemo(
-    () => packages.filter(isActivePackage),
-    [packages]
-  )
+  const activePackages = useMemo(() => packages.filter(isActivePackage), [packages])
   const initialTier = normalizeMembershipTier(detail?.tier ?? member?.tier ?? 'vip')
   const initialPackage =
     activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === initialTier) ??
@@ -1129,7 +1120,9 @@ function MembershipSettingsPanel({
   const [packageId, setPackageId] = useState(initialPackage?.id ?? '')
   const [days, setDays] = useState('365')
   const [expireAt, setExpireAt] = useState(toDateInputValue(detail?.expire_at))
-  const [amountCny, setAmountCny] = useState(initialPackage ? String(initialPackage.priceCny || '') : '')
+  const [amountCny, setAmountCny] = useState(
+    initialPackage ? String(initialPackage.priceCny || '') : ''
+  )
   const [reason, setReason] = useState('BI 会员设置')
   const [formError, setFormError] = useState('')
   const [actionNotice, setActionNotice] = useState('')
@@ -1146,8 +1139,11 @@ function MembershipSettingsPanel({
   const activeMember = member
   const selectedTier = normalizeMembershipTier(selectedPackage?.tier ?? detail?.tier ?? member.tier)
   const currentTier = normalizeMembershipTier(detail?.tier ?? member.tier)
-  const canReverseSupreme = currentTier === 'supreme_svip' && Boolean(reversiblePurchase?.purchase_id)
-  const supremePackage = activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip')
+  const canReverseSupreme =
+    currentTier === 'supreme_svip' && Boolean(reversiblePurchase?.purchase_id)
+  const supremePackage = activePackages.find(
+    pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip'
+  )
   const selectedPackagePrice = selectedPackage ? `¥${selectedPackage.priceCny}` : '—'
 
   function applyPackage(nextPackageId: string) {
@@ -1215,7 +1211,7 @@ function MembershipSettingsPanel({
     }
     setFormError('')
     await onUpdate(activeMember, {
-      days: expireAt ? undefined : parsedDays ?? undefined,
+      days: expireAt ? undefined : (parsedDays ?? undefined),
       expireAt: expireAt || undefined,
       reason: reason.trim() || 'BI 会员设置：保存有效期',
     })
@@ -1300,7 +1296,11 @@ function MembershipSettingsPanel({
               size="sm"
               className="min-w-[5.5rem] whitespace-nowrap"
               aria-label={pendingAction === 'revoke' ? '确认取消会员' : '取消会员'}
-              title={pendingAction === 'revoke' ? '再次点击确认取消会员；历史账务流水不会删除' : '撤销当前会员权益，不删除历史流水'}
+              title={
+                pendingAction === 'revoke'
+                  ? '再次点击确认取消会员；历史账务流水不会删除'
+                  : '撤销当前会员权益，不删除历史流水'
+              }
             >
               <ShieldOff className="h-3.5 w-3.5" aria-hidden />
               {pendingAction === 'revoke' ? '确认取消' : '取消会员'}
@@ -1313,8 +1313,14 @@ function MembershipSettingsPanel({
                   variant="secondary"
                   size="sm"
                   className="min-w-[6rem] whitespace-nowrap"
-                  aria-label={pendingAction === 'supreme_free' ? '确认将至尊SVIP改为0元' : '将至尊SVIP改为0元'}
-                  title={pendingAction === 'supreme_free' ? '再次点击确认0元修正' : '先冲销误录收入，再以0元重新开通至尊SVIP'}
+                  aria-label={
+                    pendingAction === 'supreme_free' ? '确认将至尊SVIP改为0元' : '将至尊SVIP改为0元'
+                  }
+                  title={
+                    pendingAction === 'supreme_free'
+                      ? '再次点击确认0元修正'
+                      : '先冲销误录收入，再以0元重新开通至尊SVIP'
+                  }
                 >
                   <CreditCard className="h-3.5 w-3.5" aria-hidden />
                   {pendingAction === 'supreme_free' ? '确认0元' : '改为0元'}
@@ -1325,8 +1331,14 @@ function MembershipSettingsPanel({
                   variant="danger"
                   size="sm"
                   className="min-w-[7.5rem] whitespace-nowrap"
-                  aria-label={pendingAction === 'reverse_supreme' ? '确认撤回至尊SVIP' : '撤回至尊SVIP'}
-                  title={pendingAction === 'reverse_supreme' ? '再次点击确认撤回并冲销原始流水' : '只允许撤回至尊SVIP；会生成负向账务流水冲销收入'}
+                  aria-label={
+                    pendingAction === 'reverse_supreme' ? '确认撤回至尊SVIP' : '撤回至尊SVIP'
+                  }
+                  title={
+                    pendingAction === 'reverse_supreme'
+                      ? '再次点击确认撤回并冲销原始流水'
+                      : '只允许撤回至尊SVIP；会生成负向账务流水冲销收入'
+                  }
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                   {pendingAction === 'reverse_supreme' ? '确认撤回' : '撤回至尊SVIP'}
@@ -1362,9 +1374,21 @@ function MembershipSettingsPanel({
         {formError ? <BiNotice tone="rose">{formError}</BiNotice> : null}
 
         <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <StatusTile label="当前等级" value={tierLabel(detail?.tier ?? member.tier)} tone={TIER_TONE[normalizeMembershipTier(detail?.tier ?? member.tier)]} />
-          <StatusTile label="当前状态" value={statusLabel(normalizeStatus(detail?.status ?? member.status))} tone={STATUS_TONE[normalizeStatus(detail?.status ?? member.status)]} />
-          <StatusTile label="当前有效期" value={toDateInputValue(detail?.expire_at) || member.expires_at || '—'} tone="sky" />
+          <StatusTile
+            label="当前等级"
+            value={tierLabel(detail?.tier ?? member.tier)}
+            tone={TIER_TONE[normalizeMembershipTier(detail?.tier ?? member.tier)]}
+          />
+          <StatusTile
+            label="当前状态"
+            value={statusLabel(normalizeStatus(detail?.status ?? member.status))}
+            tone={STATUS_TONE[normalizeStatus(detail?.status ?? member.status)]}
+          />
+          <StatusTile
+            label="当前有效期"
+            value={toDateInputValue(detail?.expire_at) || member.expires_at || '—'}
+            tone="sky"
+          />
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
@@ -1841,8 +1865,7 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
         <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">{row.user_id}</div>
       </div>
     )
-  if (key === 'tier')
-    return <BiStatusPill tone={TIER_TONE[row.tier]} label={tierLabel(row.tier)} />
+  if (key === 'tier') return <BiStatusPill tone={TIER_TONE[row.tier]} label={tierLabel(row.tier)} />
   if (key === 'status')
     return (
       <span
