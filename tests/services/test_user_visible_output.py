@@ -101,3 +101,36 @@ def test_coerce_user_visible_answer_blocks_malformed_multilingual_model_output()
 
     assert looks_like_unsafe_visible_output(text) is True
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_strips_orphan_reference_markers_when_citations_disabled():
+    """task #25 单一公开 sink:引用关闭(生产默认)时,coerce 剥离漏给学生的孤儿〔N〕脚注
+    (主 LLM 输出但无来源的内部引用噪声)。覆盖判分/讲解/出题所有 emit 路径(它们都经此)。"""
+    from deeptutor.services.user_visible_output import coerce_user_visible_answer
+
+    out = coerce_user_visible_answer("### 阅卷结论\n你答了A，正确答案C，得0分。〔3〕诊断：概念混淆〔5〕")
+    assert "〔3〕" not in out and "〔5〕" not in out
+    assert "阅卷结论" in out and "概念混淆" in out  # 正文保留
+
+
+def test_coerce_preserves_reference_markers_with_backing_footer():
+    """有合法引用 footer(`依据`段+来源线索)时 〔N〕 是合法引用渲染,coerce 不得误删。
+    判据是 footer 在不在,与全局 citation flag 无关。"""
+    from deeptutor.services.user_visible_output import coerce_user_visible_answer
+
+    text = "正确答案是 C〔1〕。\n\n依据\n〔1〕2026建筑实务教材 §3.1"
+    out = coerce_user_visible_answer(text)
+    assert "〔1〕" in out  # 有 footer,合法标注保留
+
+
+def test_coerce_strips_orphan_markers_even_when_citation_flag_enabled(monkeypatch):
+    """关键回归(2026-06-23):citation flag=True 但判分 LLM 吐的 〔N〕 没 footer=孤儿,
+    仍必须剥(flag≠footer——test2 实证 flag 开但孤儿〔N〕漏给学生)。"""
+    import deeptutor.services.citations.config as cfg
+
+    monkeypatch.setattr(cfg, "answer_citations_enabled", lambda: True)
+    from deeptutor.services.user_visible_output import coerce_user_visible_answer
+
+    out = coerce_user_visible_answer("### 阅卷结论\n你答了A，正确答案B，得0分。〔2〕诊断：概念混淆〔4〕")
+    assert "〔2〕" not in out and "〔4〕" not in out  # 无 footer 的孤儿,flag 开也剥
+    assert "阅卷结论" in out and "概念混淆" in out
