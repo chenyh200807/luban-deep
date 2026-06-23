@@ -5555,6 +5555,8 @@ class DeepQuestionCapability(BaseCapability):
                 and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
             ):
                 return _render_missing_generation_topic_anchor_feedback()
+            # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
+            # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
             if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
                 isinstance(counters, dict)
                 and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"

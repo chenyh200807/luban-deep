@@ -648,11 +648,16 @@ def practice_generation_topic_domain_status(
 def practice_generation_topic_block_decision(
     status: PracticeGenerationTopicDomainStatus,
 ) -> PracticeGenerationTopicBlockDecision:
-    """Map topic-domain status to the single entry gate decision.
+    """单一判定权威：把出题主题域状态映射成出题门决策。
 
-    ``unknown_topic`` is allowed at entry because keyword coverage is not a
-    subject authority. The generated-question owner must enforce the exit gate
-    before returning submit-able practice.
+    一建范畴一律不拒（他科无题库由出口校验门处理）：
+    - ``out_of_scope_topic``（明确非考试，如法国/英语/股票）⇒ 拒答；
+    - ``needs_context_anchor``（纯动作词缺主题，如"出三道题"）⇒ 要锚点；
+    - ``construction_topic`` / ``unknown_topic`` ⇒ 放行。
+
+    放行 ``unknown_topic`` 是关键修正：关键词白名单覆盖不全会把建筑工程同主题的不同
+    表述（如"沟槽开挖"未命中"基坑"）误判成 unknown，旧逻辑 ``!= construction_topic``
+    一律拒答属误拒。科目真正守门由出口校验门（生成题⊆建筑否则 subject_unavailable）承担。
     """
     if status == "out_of_scope_topic":
         return "block_out_of_scope"

@@ -433,6 +433,9 @@ class AgentCoordinator:
                 require_explanation=require_explanation,
                 lightweight_generation=lightweight_generation,
             )
+        # 出口科目门（owner=只建筑）：construction-exam 生成题全部跑偏到非建筑
+        # （汉字/外国常识/纯他科）时诚实拒答 subject_unavailable。非 construction KB
+        # 不使用这道出口门，避免把其它知识库的合法题误拦。
         if _uses_construction_exam_scope(self.kb_name) and not self._generated_questions_in_construction_scope(
             templates[:requested],
             qa_pairs,
@@ -1370,6 +1373,11 @@ class AgentCoordinator:
     def _generated_questions_in_construction_scope(
         templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
     ) -> bool:
+        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
+        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
+        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
+        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
+        """
         texts: list[str] = []
         for qp in qa_pairs or []:
             pair = qp.get("qa_pair") if isinstance(qp, dict) else None
