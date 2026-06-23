@@ -3677,6 +3677,99 @@ class BIService:
             idempotency_key=idempotency_key,
         )
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # 内部账号标记（audit-safe，不可删改，service_role 专属）
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _supabase_internal_accounts(
+        self,
+        method: str,
+        *,
+        params: dict[str, Any] | None = None,
+        body: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        """向 bi_internal_accounts 表发起 REST 请求（同步 httpx，与 wallet service 同模式）。"""
+        import httpx  # noqa: PLC0415
+
+        ws = self._wallet_service
+        if not getattr(ws, "is_configured", False):
+            raise RuntimeError("Supabase not configured — cannot access bi_internal_accounts")
+        base = ws._base_url.rstrip("/")
+        key = ws._service_key
+        headers = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation",
+        }
+        url = f"{base}/rest/v1/bi_internal_accounts"
+        with httpx.Client(timeout=8.0) as client:
+            if method == "GET":
+                resp = client.get(url, headers=headers, params=params or {})
+            elif method == "POST":
+                resp = client.post(url, headers=headers, json=body or {})
+            else:
+                raise ValueError(f"unsupported method: {method}")
+        resp.raise_for_status()
+        result = resp.json()
+        return result if isinstance(result, list) else []
+
+    async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
+        """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""
+        try:
+            rows = self._supabase_internal_accounts(
+                "GET",
+                params={"select": "user_id,is_internal,operator_id,reason,created_at", "order": "created_at.desc", "limit": "2000"},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("get_internal_account_states failed: %s", exc)
+            return {}
+        states: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            uid = str(row.get("user_id") or "").strip()
+            if uid and uid not in states:
+                states[uid] = row
+        return states
+
+    async def mark_internal_account(
+        self,
+        *,
+        user_id: str,
+        is_internal: bool,
+        operator_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        """标记 / 取消标记内部账号。写入 bi_internal_accounts 审计表（不可删改）。"""
+        uid = str(user_id or "").strip()
+        op = str(operator_id or "").strip()
+        rsn = str(reason or "").strip()
+        if not uid:
+            raise ValueError("user_id is required")
+        if not op:
+            raise ValueError("operator_id is required")
+        if len(rsn) < 5:
+            raise ValueError("reason must be at least 5 characters")
+        try:
+            rows = self._supabase_internal_accounts(
+                "POST",
+                body={"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn},
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError(f"mark_internal_account failed: {exc}") from exc
+        return rows[0] if rows else {"user_id": uid, "is_internal": bool(is_internal), "operator_id": op, "reason": rsn}
+
+    async def get_internal_account_audit_log(self, *, limit: int = 200) -> list[dict[str, Any]]:
+        """所有内部账号标记/取消记录，按时间倒序（用于审计）。"""
+        safe_limit = max(1, min(int(limit or 200), 1000))
+        try:
+            return self._supabase_internal_accounts(
+                "GET",
+                params={"select": "*", "order": "created_at.desc", "limit": str(safe_limit)},
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("get_internal_account_audit_log failed: %s", exc)
+            return []
+
     async def request_export_job(
         self,
         *,

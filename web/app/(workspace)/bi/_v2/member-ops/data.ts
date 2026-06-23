@@ -19,6 +19,7 @@ export type MemberRow = {
   behavior_reasons?: string[]
   behavior_event_count_7d?: number
   behavior_last_event_at_ms?: number
+  is_internal_account?: boolean
 }
 
 export type MemberColumnKey =
@@ -96,7 +97,17 @@ export const DEFAULT_FILTERS: MemberFilters = {
 export type MemberSortDir = 'asc' | 'desc'
 export type MemberSortKey = Extract<
   MemberColumnKey,
-  'phone' | 'tier' | 'status' | 'risk' | 'last_active' | 'balance' | 'expires_at' | 'paid_first' | 'region' | 'notes' | 'feedback'
+  | 'phone'
+  | 'tier'
+  | 'status'
+  | 'risk'
+  | 'last_active'
+  | 'balance'
+  | 'expires_at'
+  | 'paid_first'
+  | 'region'
+  | 'notes'
+  | 'feedback'
 >
 
 export type SavedView = {

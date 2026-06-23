@@ -521,7 +521,8 @@ export async function manualPurchaseMembership(payload: {
 
 export async function reverseManualMembershipPurchase(payload: {
   user_id: string
-  purchase_id: string
+  purchase_id?: string
+  amount_cny?: number
   reason?: string
 }): Promise<ManualMembershipReversalResult> {
   const response = await fetch(apiUrl('/api/v1/bi/member/manual-purchase/reverse'), {
@@ -539,14 +540,17 @@ export async function upsertMembershipPackage(
   packageId: string,
   payload: MembershipPackagePayload
 ): Promise<MembershipPackageResult> {
-  const response = await fetch(apiUrl(`/api/v1/bi/member/packages/${encodeURIComponent(packageId)}`), {
-    method: 'PUT',
-    headers: adminHeaders({
-      'Content-Type': 'application/json',
-      'X-Idempotency-Key': makeIdempotencyKey(),
-    }),
-    body: JSON.stringify(payload),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/packages/${encodeURIComponent(packageId)}`),
+    {
+      method: 'PUT',
+      headers: adminHeaders({
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+      body: JSON.stringify(payload),
+    }
+  )
   return expectJson<MembershipPackageResult>(response)
 }
 
@@ -596,18 +600,24 @@ export async function revokeMembership(payload: {
 }
 
 export async function pauseHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
-  const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/pause`), {
-    method: 'POST',
-    headers: adminHeaders(),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/pause`),
+    {
+      method: 'POST',
+      headers: adminHeaders(),
+    }
+  )
   return expectJson<HeartbeatJob>(response)
 }
 
 export async function resumeHeartbeatJob(userId: string, jobId: string): Promise<HeartbeatJob> {
-  const response = await fetch(apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/resume`), {
-    method: 'POST',
-    headers: adminHeaders(),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${userId}/heartbeat-jobs/${jobId}/resume`),
+    {
+      method: 'POST',
+      headers: adminHeaders(),
+    }
+  )
   return expectJson<HeartbeatJob>(response)
 }
 
@@ -657,4 +667,30 @@ export async function getMemberAuditLog(
     headers: adminHeaders(),
   })
   return expectJson<MemberAuditLogResponse>(response)
+}
+
+export interface MemberAccountDeletionResult {
+  success: boolean
+  user_id: string
+  status: string
+  message: string
+  credentials_deleted: boolean
+  sessions_invalidated: number
+  audit_id?: string
+  deduped?: boolean
+}
+
+export async function deleteMemberAccount(payload: {
+  user_id: string
+  reason?: string
+}): Promise<MemberAccountDeletionResult> {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`), {
+    method: 'DELETE',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify({ reason: payload.reason ?? '' }),
+  })
+  return expectJson<MemberAccountDeletionResult>(response)
 }

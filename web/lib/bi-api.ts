@@ -2589,3 +2589,48 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     moduleIssues,
   }
 }
+
+export type BiInternalAccountState = {
+  user_id: string
+  is_internal: boolean
+  operator_id: string
+  reason: string
+  created_at: string
+}
+
+export type BiInternalAccountsData = {
+  states: Record<string, BiInternalAccountState>
+  internal_accounts: BiInternalAccountState[]
+  audit: BiInternalAccountState[]
+  total_internal: number
+}
+
+export async function getBiInternalAccounts(limit = 200): Promise<BiInternalAccountsData> {
+  const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/internal-accounts', { limit }))
+  const record = asRecord(raw)
+  return {
+    states: (asRecord(record.states) as Record<string, BiInternalAccountState>) ?? {},
+    internal_accounts: (Array.isArray(record.internal_accounts)
+      ? record.internal_accounts
+      : []) as BiInternalAccountState[],
+    audit: (Array.isArray(record.audit) ? record.audit : []) as BiInternalAccountState[],
+    total_internal: toNumber(record.total_internal, 0),
+  }
+}
+
+export async function markMemberInternalAccount(
+  userId: string,
+  isInternal: boolean,
+  reason: string
+): Promise<void> {
+  const res = await fetch(`/api/v1/bi/member/${encodeURIComponent(userId)}/internal-account`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ is_internal: isInternal, reason }),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`标记内部账号失败 (${res.status})${text ? ': ' + text : ''}`)
+  }
+}

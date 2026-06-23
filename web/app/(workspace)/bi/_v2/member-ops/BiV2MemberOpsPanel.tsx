@@ -48,7 +48,13 @@ import {
   type MemberDetail,
   type MemberListItem,
 } from '@/lib/member-api'
-import { getBiCommerce, type BiCommercePackage } from '@/lib/bi-api'
+import {
+  getBiCommerce,
+  getBiInternalAccounts,
+  markMemberInternalAccount,
+  type BiCommercePackage,
+  type BiInternalAccountState,
+} from '@/lib/bi-api'
 import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
 import {
   ALL_COLUMNS,
@@ -313,23 +319,28 @@ export function BiV2MemberOpsPanel({
   const [selectedDetail, setSelectedDetail] = useState<MemberDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
-  const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation' | 'membershipSettings'>(
-    'none'
-  )
+  const [drawer, setDrawer] = useState<
+    'none' | 'member360' | 'conversation' | 'membershipSettings'
+  >('none')
   const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>(
     'member360'
   )
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
   const [liveRows, setLiveRows] = useState<MemberRow[]>([])
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
-  const [membershipPackages, setMembershipPackages] =
-    useState<BiCommercePackage[]>(EMPTY_PACKAGES)
+  const [membershipPackages, setMembershipPackages] = useState<BiCommercePackage[]>(EMPTY_PACKAGES)
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(flagEnabled)
   const [error, setError] = useState('')
   const [opsActionNotice, setOpsActionNotice] = useState('')
   const [membershipActionWriting, setMembershipActionWriting] = useState(false)
   const [membershipActionError, setMembershipActionError] = useState('')
+  const [internalStates, setInternalStates] = useState<Record<string, BiInternalAccountState>>({})
+  const [showInternalOnly, setShowInternalOnly] = useState(false)
+  const [showInternalAudit, setShowInternalAudit] = useState(false)
+  const [internalAudit, setInternalAudit] = useState<BiInternalAccountState[]>([])
+  const [internalActionWriting, setInternalActionWriting] = useState(false)
+  const [internalActionError, setInternalActionError] = useState('')
   const lastAutoOpenedQueryRef = useRef('')
   const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
@@ -354,7 +365,7 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list, commerce] = await Promise.all([
+      const [nextDashboard, list, commerce, internalData] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -368,8 +379,21 @@ export function BiV2MemberOpsPanel({
           risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
         }),
         getBiCommerce({ limit: 50 }).catch(() => null),
+        getBiInternalAccounts().catch(() => ({
+          states: {} as Record<string, BiInternalAccountState>,
+          internal_accounts: [],
+          audit: [],
+          total_internal: 0,
+        })),
       ])
-      const nextRows = list.items.map(toMemberRow)
+      setInternalStates(internalData.states as Record<string, BiInternalAccountState>)
+      setInternalAudit(internalData.audit)
+      const nextRows = list.items.map(item => ({
+        ...toMemberRow(item),
+        is_internal_account: Boolean(
+          (internalData.states as Record<string, BiInternalAccountState>)[item.user_id]?.is_internal
+        ),
+      }))
       setDashboard(nextDashboard)
       if (commerce) {
         setMembershipPackages(
@@ -408,8 +432,20 @@ export function BiV2MemberOpsPanel({
     const cohortRows = behaviorCohort
       ? filtered.filter(row => row.behavior_cohort === behaviorCohort)
       : filtered
-    return sortMembers(cohortRows, sortKey, sortDir)
-  }, [behaviorCohort, filters, flagEnabled, globalQuery, sortDir, sortKey, sourceRows])
+    const internalFiltered = showInternalOnly
+      ? cohortRows.filter(row => row.is_internal_account)
+      : cohortRows
+    return sortMembers(internalFiltered, sortKey, sortDir)
+  }, [
+    behaviorCohort,
+    filters,
+    flagEnabled,
+    globalQuery,
+    showInternalOnly,
+    sortDir,
+    sortKey,
+    sourceRows,
+  ])
   const hasActiveMemberSearch = Boolean(activeMemberSearchQuery)
   const hasActiveTableFilters =
     hasActiveMemberSearch ||
@@ -545,9 +581,7 @@ export function BiV2MemberOpsPanel({
 
   function syncMembershipResult(member: MemberRow, detail: MemberDetail) {
     setSelectedDetail(prev =>
-      prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id
-        ? detail
-        : prev
+      prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id ? detail : prev
     )
     setSelectedMember(prev =>
       prev?.user_id === member.user_id
@@ -633,6 +667,25 @@ export function BiV2MemberOpsPanel({
     if (ok) setOpsActionNotice(`已给 ${member.phone_masked} 添加备注`)
   }
 
+  async function markInternalAccount(member: MemberRow, isInternal: boolean, reason: string) {
+    if (!flagEnabled || internalActionWriting) return
+    setInternalActionWriting(true)
+    setInternalActionError('')
+    try {
+      await markMemberInternalAccount(member.user_id, isInternal, reason)
+      setOpsActionNotice(
+        isInternal
+          ? `已将 ${member.phone_masked} 标记为内部账号`
+          : `已取消 ${member.phone_masked} 的内部账号标记`
+      )
+      await loadMembers()
+    } catch (err) {
+      setInternalActionError(err instanceof Error ? err.message : '内部账号标记失败')
+    } finally {
+      setInternalActionWriting(false)
+    }
+  }
+
   async function upgradeMemberToVip(member: MemberRow) {
     if (!canUpgradeToVip(member)) return
     const vipPackage = findPackageForTier(membershipPackages, 'vip')
@@ -705,7 +758,8 @@ export function BiV2MemberOpsPanel({
           user_id: member.user_id,
           reason,
         }),
-      detail => `已取消 ${member.phone_masked} 会员，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
+      detail =>
+        `已取消 ${member.phone_masked} 会员，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
     )
   }
 
@@ -834,6 +888,32 @@ export function BiV2MemberOpsPanel({
       <div data-testid="bi-member-behavior-health-strip">
         <MemberOpsCockpit dashboard={dashboard} />
       </div>
+
+      {flagEnabled && (
+        <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg bg-amber-950/40 px-3 py-2 ring-1 ring-amber-500/30">
+          <span className="text-xs font-bold text-amber-200">内部账号</span>
+          <button
+            type="button"
+            className={`rounded px-2 py-0.5 text-xs font-semibold transition ${showInternalOnly ? 'bg-amber-500 text-black' : 'bg-amber-400/20 text-amber-300 hover:bg-amber-400/40'}`}
+            onClick={() => setShowInternalOnly(v => !v)}
+            aria-pressed={showInternalOnly}
+            title={showInternalOnly ? '点击取消仅显示内部账号' : '点击仅显示内部账号'}
+          >
+            {Object.values(internalStates).filter(s => s.is_internal).length} 个
+            {showInternalOnly ? ' · 已筛选' : ''}
+          </button>
+          <button
+            type="button"
+            className="ml-auto rounded px-2 py-0.5 text-xs text-amber-300 hover:text-amber-100"
+            onClick={() => setShowInternalAudit(true)}
+          >
+            查看审计流水
+          </button>
+          {internalActionError && (
+            <span className="text-xs text-rose-400">{internalActionError}</span>
+          )}
+        </div>
+      )}
 
       <BehaviorCohortTabs active={behaviorCohort} onChange={setBehaviorCohort} />
 
@@ -1066,6 +1146,16 @@ export function BiV2MemberOpsPanel({
         onRevoke={cancelMembership}
         onReverseSupreme={reverseSupremeMembership}
         onConvertSupremeToFree={convertSupremeMembershipToFree}
+        isInternalAccount={Boolean(
+          selectedMember && internalStates[selectedMember.user_id]?.is_internal
+        )}
+        internalActionWriting={internalActionWriting}
+        onMarkInternal={markInternalAccount}
+      />
+      <InternalAccountAuditPanel
+        open={showInternalAudit}
+        onClose={() => setShowInternalAudit(false)}
+        audit={internalAudit}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
@@ -1091,6 +1181,9 @@ function MembershipSettingsPanel({
   onRevoke,
   onReverseSupreme,
   onConvertSupremeToFree,
+  isInternalAccount,
+  internalActionWriting,
+  onMarkInternal,
 }: {
   open: boolean
   member: MemberRow | null
@@ -1117,11 +1210,11 @@ function MembershipSettingsPanel({
     member: MemberRow,
     payload: { packageId: string; days: number; purchaseId: string; reason: string }
   ) => Promise<void> | void
+  isInternalAccount: boolean
+  internalActionWriting: boolean
+  onMarkInternal: (member: MemberRow, isInternal: boolean, reason: string) => Promise<void> | void
 }) {
-  const activePackages = useMemo(
-    () => packages.filter(isActivePackage),
-    [packages]
-  )
+  const activePackages = useMemo(() => packages.filter(isActivePackage), [packages])
   const initialTier = normalizeMembershipTier(detail?.tier ?? member?.tier ?? 'vip')
   const initialPackage =
     activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === initialTier) ??
@@ -1129,7 +1222,9 @@ function MembershipSettingsPanel({
   const [packageId, setPackageId] = useState(initialPackage?.id ?? '')
   const [days, setDays] = useState('365')
   const [expireAt, setExpireAt] = useState(toDateInputValue(detail?.expire_at))
-  const [amountCny, setAmountCny] = useState(initialPackage ? String(initialPackage.priceCny || '') : '')
+  const [amountCny, setAmountCny] = useState(
+    initialPackage ? String(initialPackage.priceCny || '') : ''
+  )
   const [reason, setReason] = useState('BI 会员设置')
   const [formError, setFormError] = useState('')
   const [actionNotice, setActionNotice] = useState('')
@@ -1146,8 +1241,11 @@ function MembershipSettingsPanel({
   const activeMember = member
   const selectedTier = normalizeMembershipTier(selectedPackage?.tier ?? detail?.tier ?? member.tier)
   const currentTier = normalizeMembershipTier(detail?.tier ?? member.tier)
-  const canReverseSupreme = currentTier === 'supreme_svip' && Boolean(reversiblePurchase?.purchase_id)
-  const supremePackage = activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip')
+  const canReverseSupreme =
+    currentTier === 'supreme_svip' && Boolean(reversiblePurchase?.purchase_id)
+  const supremePackage = activePackages.find(
+    pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip'
+  )
   const selectedPackagePrice = selectedPackage ? `¥${selectedPackage.priceCny}` : '—'
 
   function applyPackage(nextPackageId: string) {
@@ -1215,7 +1313,7 @@ function MembershipSettingsPanel({
     }
     setFormError('')
     await onUpdate(activeMember, {
-      days: expireAt ? undefined : parsedDays ?? undefined,
+      days: expireAt ? undefined : (parsedDays ?? undefined),
       expireAt: expireAt || undefined,
       reason: reason.trim() || 'BI 会员设置：保存有效期',
     })
@@ -1300,7 +1398,11 @@ function MembershipSettingsPanel({
               size="sm"
               className="min-w-[5.5rem] whitespace-nowrap"
               aria-label={pendingAction === 'revoke' ? '确认取消会员' : '取消会员'}
-              title={pendingAction === 'revoke' ? '再次点击确认取消会员；历史账务流水不会删除' : '撤销当前会员权益，不删除历史流水'}
+              title={
+                pendingAction === 'revoke'
+                  ? '再次点击确认取消会员；历史账务流水不会删除'
+                  : '撤销当前会员权益，不删除历史流水'
+              }
             >
               <ShieldOff className="h-3.5 w-3.5" aria-hidden />
               {pendingAction === 'revoke' ? '确认取消' : '取消会员'}
@@ -1313,8 +1415,14 @@ function MembershipSettingsPanel({
                   variant="secondary"
                   size="sm"
                   className="min-w-[6rem] whitespace-nowrap"
-                  aria-label={pendingAction === 'supreme_free' ? '确认将至尊SVIP改为0元' : '将至尊SVIP改为0元'}
-                  title={pendingAction === 'supreme_free' ? '再次点击确认0元修正' : '先冲销误录收入，再以0元重新开通至尊SVIP'}
+                  aria-label={
+                    pendingAction === 'supreme_free' ? '确认将至尊SVIP改为0元' : '将至尊SVIP改为0元'
+                  }
+                  title={
+                    pendingAction === 'supreme_free'
+                      ? '再次点击确认0元修正'
+                      : '先冲销误录收入，再以0元重新开通至尊SVIP'
+                  }
                 >
                   <CreditCard className="h-3.5 w-3.5" aria-hidden />
                   {pendingAction === 'supreme_free' ? '确认0元' : '改为0元'}
@@ -1325,8 +1433,14 @@ function MembershipSettingsPanel({
                   variant="danger"
                   size="sm"
                   className="min-w-[7.5rem] whitespace-nowrap"
-                  aria-label={pendingAction === 'reverse_supreme' ? '确认撤回至尊SVIP' : '撤回至尊SVIP'}
-                  title={pendingAction === 'reverse_supreme' ? '再次点击确认撤回并冲销原始流水' : '只允许撤回至尊SVIP；会生成负向账务流水冲销收入'}
+                  aria-label={
+                    pendingAction === 'reverse_supreme' ? '确认撤回至尊SVIP' : '撤回至尊SVIP'
+                  }
+                  title={
+                    pendingAction === 'reverse_supreme'
+                      ? '再次点击确认撤回并冲销原始流水'
+                      : '只允许撤回至尊SVIP；会生成负向账务流水冲销收入'
+                  }
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                   {pendingAction === 'reverse_supreme' ? '确认撤回' : '撤回至尊SVIP'}
@@ -1362,9 +1476,21 @@ function MembershipSettingsPanel({
         {formError ? <BiNotice tone="rose">{formError}</BiNotice> : null}
 
         <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <StatusTile label="当前等级" value={tierLabel(detail?.tier ?? member.tier)} tone={TIER_TONE[normalizeMembershipTier(detail?.tier ?? member.tier)]} />
-          <StatusTile label="当前状态" value={statusLabel(normalizeStatus(detail?.status ?? member.status))} tone={STATUS_TONE[normalizeStatus(detail?.status ?? member.status)]} />
-          <StatusTile label="当前有效期" value={toDateInputValue(detail?.expire_at) || member.expires_at || '—'} tone="sky" />
+          <StatusTile
+            label="当前等级"
+            value={tierLabel(detail?.tier ?? member.tier)}
+            tone={TIER_TONE[normalizeMembershipTier(detail?.tier ?? member.tier)]}
+          />
+          <StatusTile
+            label="当前状态"
+            value={statusLabel(normalizeStatus(detail?.status ?? member.status))}
+            tone={STATUS_TONE[normalizeStatus(detail?.status ?? member.status)]}
+          />
+          <StatusTile
+            label="当前有效期"
+            value={toDateInputValue(detail?.expire_at) || member.expires_at || '—'}
+            tone="sky"
+          />
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
@@ -1498,7 +1624,87 @@ function MembershipSettingsPanel({
           </BiButton>
         </div>
       </form>
+
+      <InternalAccountSection
+        member={activeMember}
+        isInternalAccount={isInternalAccount}
+        writing={internalActionWriting}
+        onMarkInternal={onMarkInternal}
+      />
     </BiSidePanel>
+  )
+}
+
+function InternalAccountSection({
+  member,
+  isInternalAccount,
+  writing,
+  onMarkInternal,
+}: {
+  member: MemberRow
+  isInternalAccount: boolean
+  writing: boolean
+  onMarkInternal: (member: MemberRow, isInternal: boolean, reason: string) => Promise<void> | void
+}) {
+  const [reason, setReason] = useState('')
+  const [reasonError, setReasonError] = useState('')
+
+  async function submit(toInternal: boolean) {
+    const trimmed = reason.trim()
+    if (trimmed.length < 5) {
+      setReasonError('原因至少需要 5 个字')
+      return
+    }
+    setReasonError('')
+    await onMarkInternal(member, toInternal, trimmed)
+    setReason('')
+  }
+
+  return (
+    <section className="mt-4 rounded-xl border border-amber-500/30 bg-amber-950/30 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-xs font-bold text-amber-200">内部账号</span>
+        {isInternalAccount && (
+          <span className="rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+            当前已标记
+          </span>
+        )}
+      </div>
+      <label className="block text-[11px] text-slate-400">
+        操作原因（必填，最少 5 字）
+        <input
+          type="text"
+          value={reason}
+          placeholder="例：此账号为内部测试账号"
+          onChange={e => setReason(e.target.value)}
+          className="mt-1 w-full rounded border border-white/10 bg-black/20 px-2 py-1 text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500/50"
+        />
+      </label>
+      {reasonError && <p className="mt-1 text-[10px] text-rose-400">{reasonError}</p>}
+      <div className="mt-2 flex gap-2">
+        {!isInternalAccount ? (
+          <BiButton
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={writing}
+            onClick={() => void submit(true)}
+          >
+            标记为内部账号
+          </BiButton>
+        ) : (
+          <BiButton
+            type="button"
+            size="sm"
+            variant="danger"
+            disabled={writing}
+            onClick={() => void submit(false)}
+          >
+            取消内部账号标记
+          </BiButton>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -1837,12 +2043,18 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
   if (key === 'phone')
     return (
       <div className="min-w-[132px]">
-        <div className="font-mono font-black text-slate-100">{row.phone_masked}</div>
+        <div className="flex items-center gap-1.5 font-mono font-black text-slate-100">
+          {row.phone_masked}
+          {row.is_internal_account && (
+            <span className="rounded bg-amber-400/20 px-1 py-0.5 text-[10px] font-semibold text-amber-300">
+              内部
+            </span>
+          )}
+        </div>
         <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">{row.user_id}</div>
       </div>
     )
-  if (key === 'tier')
-    return <BiStatusPill tone={TIER_TONE[row.tier]} label={tierLabel(row.tier)} />
+  if (key === 'tier') return <BiStatusPill tone={TIER_TONE[row.tier]} label={tierLabel(row.tier)} />
   if (key === 'status')
     return (
       <span
@@ -1892,4 +2104,68 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
       </span>
     )
   return null
+}
+
+function InternalAccountAuditPanel({
+  open,
+  onClose,
+  audit,
+}: {
+  open: boolean
+  onClose: () => void
+  audit: BiInternalAccountState[]
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center">
+      <div className="w-full max-w-2xl rounded-t-2xl bg-slate-900 p-4 shadow-2xl ring-1 ring-white/10 sm:rounded-2xl">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-bold text-amber-200">内部账号审计流水</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded px-2 py-1 text-xs text-slate-400 hover:text-slate-100"
+          >
+            关闭
+          </button>
+        </div>
+        {audit.length === 0 ? (
+          <p className="py-6 text-center text-xs text-slate-500">暂无记录</p>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="text-left text-slate-400">
+                  <th className="pb-1 pr-3">时间</th>
+                  <th className="pb-1 pr-3">用户</th>
+                  <th className="pb-1 pr-3">操作</th>
+                  <th className="pb-1 pr-3">操作人</th>
+                  <th className="pb-1">原因</th>
+                </tr>
+              </thead>
+              <tbody>
+                {audit.map((row, i) => (
+                  <tr key={i} className="border-t border-white/5">
+                    <td className="py-1 pr-3 text-slate-400">
+                      {row.created_at ? new Date(row.created_at).toLocaleString('zh-CN') : '—'}
+                    </td>
+                    <td className="py-1 pr-3 font-mono text-slate-300">{row.user_id}</td>
+                    <td className="py-1 pr-3">
+                      {row.is_internal ? (
+                        <span className="text-amber-300">标记内部</span>
+                      ) : (
+                        <span className="text-slate-400">取消标记</span>
+                      )}
+                    </td>
+                    <td className="py-1 pr-3 font-mono text-slate-400">{row.operator_id}</td>
+                    <td className="py-1 text-slate-300">{row.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }

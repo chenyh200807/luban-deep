@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Any
 
@@ -1261,3 +1262,45 @@ async def bi_cost_calibration_refresh(
     return await get_bi_service().refresh_cost_calibration(
         billing_cycle=billing_cycle, generated_at=now.isoformat()
     )
+
+
+@router.get("/member-ops/internal-accounts")
+async def bi_internal_accounts(
+    limit: int = Query(200, ge=1, le=1000),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
+):
+    """内部账号列表 + 完整审计流水（仅 member_ops view 及以上可访问）。"""
+    states, audit = await asyncio.gather(
+        get_bi_service().get_internal_account_states(),
+        get_bi_service().get_internal_account_audit_log(limit=limit),
+    )
+    internal_users = [v for v in states.values() if v.get("is_internal")]
+    return {"states": states, "internal_accounts": internal_users, "audit": audit, "total_internal": len(internal_users)}
+
+
+@router.post("/member/{user_id}/internal-account")
+async def bi_mark_internal_account(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
+):
+    """标记 / 取消标记内部账号。操作人和原因强制记录，不可删改。"""
+    body = payload or {}
+    is_internal_flag = body.get("is_internal")
+    if is_internal_flag is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="is_internal (bool) is required")
+    reason = str(body.get("reason") or "").strip()
+    if len(reason) < 5:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="reason must be at least 5 characters")
+    try:
+        result = await get_bi_service().mark_internal_account(
+            user_id=user_id,
+            is_internal=bool(is_internal_flag),
+            operator_id=auth.user_id,
+            reason=reason,
+        )
+        return result
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
