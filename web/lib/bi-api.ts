@@ -1861,7 +1861,9 @@ export async function getBiCost(options: BiFetchOptions = {}): Promise<BiCostDat
     ),
     models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) => {
       const rank = normalizeRankItem(item, `Model ${index + 1}`)
-      const calibrated = optionalNumber(asRecord(item).calibrated_value ?? asRecord(item).calibratedValue)
+      const calibrated = optionalNumber(
+        asRecord(item).calibrated_value ?? asRecord(item).calibratedValue
+      )
       return calibrated === undefined ? rank : { ...rank, calibratedValue: calibrated }
     }),
     providers: firstArray(raw, ['providers', 'sources', 'usage_sources']).map((item, index) =>
@@ -1985,6 +1987,58 @@ export async function getBiAnomalies(options: BiFetchOptions = {}): Promise<BiAn
       normalizeAlert(item, `异常 ${index + 1}`)
     ),
   }
+}
+
+// ── 内部账号管理 ──────────────────────────────────────────────────────────────
+
+export type BiInternalAccountState = {
+  user_id: string
+  is_internal: boolean
+  operator_id: string
+  reason: string
+  created_at: string
+}
+
+export type BiInternalAccountsData = {
+  states: Record<string, BiInternalAccountState>
+  internal_accounts: BiInternalAccountState[]
+  audit: BiInternalAccountState[]
+  total_internal: number
+}
+
+export async function getBiInternalAccounts(limit = 200): Promise<BiInternalAccountsData> {
+  const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/internal-accounts', { limit }))
+  const record = asRecord(raw)
+  return {
+    states: (asRecord(record.states) as Record<string, BiInternalAccountState>) ?? {},
+    internal_accounts: (Array.isArray(record.internal_accounts)
+      ? record.internal_accounts
+      : []) as BiInternalAccountState[],
+    audit: (Array.isArray(record.audit) ? record.audit : []) as BiInternalAccountState[],
+    total_internal: toNumber(record.total_internal, 0),
+  }
+}
+
+export async function markMemberInternalAccount(
+  userId: string,
+  isInternal: boolean,
+  reason: string
+): Promise<void> {
+  const res = await fetch(`/api/v1/bi/member/${encodeURIComponent(userId)}/internal-account`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ is_internal: isInternal, reason }),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`标记内部账号失败 (${res.status})${text ? ': ' + text : ''}`)
+  }
+}
+
+export async function getBiMemberOpsPackages(): Promise<BiCommercePackage[]> {
+  const raw = unwrapPayload(await fetchBiJson('/api/v1/bi/member-ops/packages'))
+  return firstArray(raw, ['packages', 'package_items']).map(item => normalizeCommercePackage(item))
 }
 
 export async function getBiCommerce(options: { limit?: number } = {}): Promise<BiCommerceData> {
