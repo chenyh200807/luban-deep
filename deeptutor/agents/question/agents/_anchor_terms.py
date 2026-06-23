@@ -1,44 +1,22 @@
+"""Building-case anchor helpers — re-export of the single source of truth.
+
+锚点正则/抽取已收敛到 ``deeptutor.core.grounding``（单一定义，见 task#23 §簇3）。
+本模块保留为既有 import 路径的薄转发，避免改动其它导入点；不要在这里重新定义副本。
+"""
+
 from __future__ import annotations
 
-import re
-from typing import Any
-
-
-_BUILDING_ANCHOR_RE = re.compile(
-    r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
-    flags=re.IGNORECASE,
+from deeptutor.core.grounding import (
+    BUILDING_ANCHOR_RE,
+    extract_anchor_terms,
+    render_anchor_contract,
 )
 
+# 兼容旧的下划线别名（部分调用处历史上引用 _BUILDING_ANCHOR_RE）。
+_BUILDING_ANCHOR_RE = BUILDING_ANCHOR_RE
 
-def extract_anchor_terms(*texts: Any, limit: int = 3) -> list[str]:
-    anchors: list[str] = []
-    seen: set[str] = set()
-    for raw in texts:
-        text = str(raw or "").strip()
-        if not text:
-            continue
-        for match in _BUILDING_ANCHOR_RE.findall(text):
-            candidate = str(match or "").strip()
-            lowered = candidate.lower()
-            if not candidate or lowered in seen:
-                continue
-            seen.add(lowered)
-            anchors.append(candidate)
-            if len(anchors) >= limit:
-                return anchors
-    return anchors
-
-
-def render_anchor_contract(language: str, anchor_terms: list[str]) -> str:
-    if not anchor_terms:
-        return ""
-    if str(language or "").lower().startswith("zh"):
-        return (
-            "如果继续沿用当前题目的具体案例或对象，必须显式保留这些锚点原词："
-            f"{'、'.join(anchor_terms)}。不要自行缩写、泛化或换称呼。"
-        )
-    return (
-        "If you continue using the current question's concrete case or object, "
-        f"preserve these anchor terms verbatim: {', '.join(anchor_terms)}. "
-        "Do not shorten, generalize, or rename them."
-    )
+__all__ = [
+    "BUILDING_ANCHOR_RE",
+    "extract_anchor_terms",
+    "render_anchor_contract",
+]

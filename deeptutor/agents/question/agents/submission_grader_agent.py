@@ -18,6 +18,7 @@ from deeptutor.agents.question.agents.submission_grader_schema import (
     apply_fallback_templates,
     parse_explanation_sections,
 )
+from deeptutor.core.grounding import prepend_grounding
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 
 
@@ -42,7 +43,7 @@ class SubmissionGraderAgent(BaseAgent):
         on_content_chunk: Callable[[str], Awaitable[None]] | None = None,
         trace_collector: dict[str, Any] | None = None,
     ) -> str:
-        system_prompt = self.get_prompt("system", "")
+        system_prompt = prepend_grounding(self.get_prompt("system", ""))
         user_prompt_template = self.get_prompt("grade_submission", "")
         if not user_prompt_template:
             user_prompt_template = (

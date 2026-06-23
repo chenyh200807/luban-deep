@@ -12,6 +12,7 @@ from deeptutor.agents.question.agents._anchor_terms import (
     extract_anchor_terms,
     render_anchor_contract,
 )
+from deeptutor.core.grounding import prepend_grounding
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 from deeptutor.services.question_followup import should_reveal_reference_material
 
@@ -34,7 +35,7 @@ class FollowupAgent(BaseAgent):
         question_context: dict[str, Any],
         history_context: str = "",
     ) -> str:
-        system_prompt = self.get_prompt("system", "")
+        system_prompt = prepend_grounding(self.get_prompt("system", ""))
         user_prompt_template = self.get_prompt("answer_followup", "")
         if not user_prompt_template:
             user_prompt_template = (
