@@ -411,6 +411,7 @@ domains:
       - tests/services/rag/test_maintenance.py
       - tests/services/rag/test_retrieval_plan.py
       - tests/services/rag/test_evidence_bundle.py
+      - tests/services/rag/test_exact_authority_type_consistency.py
       - tests/services/citations/test_normalizer.py
       - tests/services/citations/test_quality.py
     schema_files:
@@ -534,7 +535,9 @@ domains:
       - tests/services/learner_state/heartbeat/test_arbitration.py
       # Member console service participates in learner/member authority gates,
       # including launch-day BI zeroing, explicit member lookup, and confirmed
-      # account identity merge / entitlement consolidation.
+      # account identity merge / entitlement consolidation with canonical BI
+      # directory search aliases, including synthetic auth_* wrapper ids and
+      # local merged sources that have no directory row.
       - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
