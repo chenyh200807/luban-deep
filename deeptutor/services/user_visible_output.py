@@ -137,6 +137,22 @@ def coerce_user_visible_answer(
         return ""
     if looks_like_unsafe_visible_output(source):
         return fallback
+    # 单一公开输出 sink(task #25,2026-06-22,总指挥官"单一公开 sink"裁决):
+    # coerce_user_visible_answer 是所有学生可见答案文本的唯一汇聚函数——result.response
+    # 投影、live event.content、持久 assistant 消息、terminal 都经它。在此一处剥离漏给
+    # 学生的孤儿数字脚注 〔N〕(主 LLM 输出但解析不到来源的内部引用噪声),替代各 emit
+    # 路径(判分/讲解/出题)分别 strip 的 per-path 补丁(阶段1 只覆盖了引用路径,判分路径漏)。
+    # 引用开启时 〔N〕 是合法引用渲染(有依据 footer),不剥;生产默认引用关闭,一律剥。
+    try:
+        from deeptutor.services.citations.config import answer_citations_enabled
+        from deeptutor.services.citations.assembler import strip_orphan_reference_markers
+
+        if not answer_citations_enabled():
+            stripped = strip_orphan_reference_markers(source)
+            if stripped:
+                source = stripped
+    except Exception:
+        pass
     return source
 
 
