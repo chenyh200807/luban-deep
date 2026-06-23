@@ -2312,13 +2312,14 @@ class SupabasePipeline:
         kept: list[dict[str, Any]] = []
         dropped = 0
         for item in results:
-            source_table = str(
-                item.get("_source_table") or item.get("source_table") or ""
-            ).strip().lower()
+            source_type = str(item.get("source_type") or "").strip().lower()
             question_type = str(item.get("question_type") or "").strip().lower()
-            if source_table == "questions_bank" and (
-                "case" in question_type or "案例" in question_type
-            ):
+            # 案例题型 evidence 判据:题库题在不同检索路径下 _source_table 标记不一
+            # (questions_bank / source_group),稳定标记是 question_type 含 case/案例。
+            # 规则条文 evidence(source_type=standard/textbook)永不剔(judge 判分需要)。
+            is_case_question = "case" in question_type or "案例" in question_type
+            is_rule_source = source_type in {"standard", "textbook"}
+            if is_case_question and not is_rule_source:
                 dropped += 1
                 continue
             kept.append(item)
