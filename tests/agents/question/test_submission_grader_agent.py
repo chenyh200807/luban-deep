@@ -70,8 +70,11 @@ async def test_submission_grader_prompt_adds_open_world_directive_when_answer_au
 
     prompt = captured["user_prompt"]
     assert "Open-world adjudication directive" in prompt
-    assert "独立裁决正确答案" in prompt
+    assert "独立裁决哪个选项/答案正确" in prompt
     assert "禁止以缺少标准答案为由拒绝判分" in prompt
+    # 闸-4：专业推理限于判断逻辑，硬事实依据须回归 grounding（防"4000万"类现编）
+    assert "专业推理只用于判断逻辑" in prompt
+    assert "臆造一个具体值充当规范依据" in prompt
     # is_correct=None 时不得渲染误导性的 Score: 0。
     assert "Score: 0" not in prompt
 
