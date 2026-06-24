@@ -889,6 +889,12 @@ _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "估分",
     "漏掉",
     "采分点",
+    # R2 意图收口 (2026-06-24): 补强判分动词。用多字判分词("阅卷/打分/判分")避开裸"判"
+    # 与"判断题"的误触;这些动作需与 answer-marker 并存(见 _looks_like_free_text_case_grading)
+    # 才钉 case_grading,单命中不足以越过练题。
+    "阅卷",
+    "打分",
+    "判分",
 )
 _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS: tuple[str, ...] = (
     "【问题】",
@@ -1438,9 +1444,20 @@ def _active_question_context_from_metadata(metadata: Any) -> dict[str, Any]:
 def _looks_like_free_text_case_grading(user_message: str) -> bool:
     if _looks_like_full_case_answer_submission(user_message):
         return True
-    return any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS) and any(
-        marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS
-    )
+    has_action = any(marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS)
+    if not has_action:
+        return False
+    # R2 意图收口 (2026-06-24, intent-fast-path-as-authority): 原 `CONTEXT AND ACTION` 硬门要求
+    # 正式案例壳(案例/背景资料),漏掉"简答题 + 我的作答 + 判分诉求"(无壳)这类自由文本判分,被过宽
+    # 练题检测器 looks_like_practice_generation_request 抢成生成(g6/R2:粘简答求判分却出 MCQ)。
+    # 放宽为正向并集:**正式案例壳 或 学生作答 payload 在场**(answer-marker + 非空答案体)+ 判分动作
+    # 即判 case_grading。这是"作答在场→判分优先"的正向信号(复用 submission 收口同款谓词形状),
+    # 不枚举"别出题"否定、不给练题检测器补排除正则(红线)。合法练题(无作答体且无壳)进不来,
+    # 仍落 practice_generation。
+    if any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS):
+        return True
+    answer_match = _FREE_TEXT_CASE_ANSWER_MARKER_RE.search(user_message)
+    return bool(answer_match) and len(user_message[answer_match.end():].strip()) >= 2
 
 
 def _full_case_question_surface_positions(user_message: str) -> list[int]:

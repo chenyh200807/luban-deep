@@ -328,3 +328,34 @@ def test_active_mcq_low_confidence_non_answer_does_not_nail_grading_scene() -> N
         resolve_question_lifecycle_scene_decision(challenge, enable_llm=False)
     )
     assert challenge_decision.scene == "mcq_grading"
+
+
+def test_free_text_short_answer_grading_beats_practice_generation_R2() -> None:
+    """R2 意图误路由收口(2026-06-24, intent-fast-path-as-authority): 学生粘简答题+作答+求判分
+    (无正式案例壳),意图必须裁为判分(case_grading),胜过练题生成——即便消息含"考点/选择题"等
+    会触发过宽练题检测器的话题词。正向"作答 payload 在场 + 判分诉求"信号,不靠"别出题"否定排除。
+    合法练题(无作答体)不误伤,仍 practice_generation。"""
+    import asyncio
+    from deeptutor.services.question_lifecycle_skills import (
+        _looks_like_free_text_case_grading,
+        resolve_question_lifecycle_scene_decision,
+    )
+
+    R2 = ("考点就是大体积混凝土温度控制，我要你用阅卷方式判我的冷却水管法作答，别给我出选择题。"
+          "我的作答：冷却水管管径选Φ48，水平间距1米，通水约14天。满分10分，请打分并指出漏的采分点。")
+
+    # 谓词层:简答+作答+判分(无案例壳)→ True
+    assert _looks_like_free_text_case_grading(R2) is True
+    # 合法练题(无作答体)→ False,不误伤
+    assert _looks_like_free_text_case_grading("再出3题") is False
+    assert _looks_like_free_text_case_grading("出一道大体积混凝土温控的简答题考我") is False
+
+    # 单一权威 derive:R2(无 active object)→ case_grading,不落 practice_generation
+    ctx_r2 = UnifiedContext(user_message=R2, metadata={})
+    d = asyncio.run(resolve_question_lifecycle_scene_decision(ctx_r2, enable_llm=False))
+    assert d.scene == "case_grading"
+
+    # 合法练题 → practice_generation 保留
+    ctx_gen = UnifiedContext(user_message="再出3道大体积混凝土温控的题考我", metadata={})
+    dg = asyncio.run(resolve_question_lifecycle_scene_decision(ctx_gen, enable_llm=False))
+    assert dg.scene == "practice_generation"
