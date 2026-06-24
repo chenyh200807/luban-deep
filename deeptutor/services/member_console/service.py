@@ -8170,7 +8170,11 @@ class MemberConsoleService:
         if not raw_code:
             raise ValueError("valid phone_code is required")
 
-        normalized = _normalize_phone_input(raw_code)
+        # 微信 phone_code 是授权码（非手机号），禁止把授权码里的数字截取当手机号使用。
+        # 仅当 raw_code 本身已是合法大陆手机号（开发/测试环境直传）才直接使用，
+        # 否则置空，强制调用微信 API 换取真实号码。
+        _maybe_direct = _normalize_phone_input(raw_code)
+        normalized = _maybe_direct if self._is_cn_mainland_mobile(_maybe_direct) else ""
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
@@ -8372,6 +8376,13 @@ class MemberConsoleService:
     def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        if not self._is_cn_mainland_mobile(phone):
+            logger.warning(
+                "phone identity persist skipped: not a valid CN mainland mobile phone=%s canonical_uid=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+            )
             return
         try:
             existing_alias_ids = self._trusted_phone_alias_user_ids(phone)
