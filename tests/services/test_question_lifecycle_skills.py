@@ -271,3 +271,60 @@ def test_low_information_clarification_does_not_leak_internals_or_echo_user():
     # (b) 不泄露任何内部机制/内部推理
     for leak in ["题卡 id", "题卡id", "传给 TutorBot", "传给TutorBot", "就是在编", "小程序", "题卡对象"]:
         assert leak not in resp, f"内部机制泄露: {leak!r} in clarification response"
+
+
+def test_active_mcq_low_confidence_non_answer_does_not_nail_grading_scene() -> None:
+    """Step 2 判分态单一权威收口(2026-06-24):active MCQ 在场时,只有 HIGH 置信作答才
+    确定性钉 mcq_grading scene(保硬约束40 真作答必判);LOW 置信(答案被埋在试探/保留/
+    回指/质疑散文里)绝不钉 grading scene —— 否则非作答轮被凭空判分(g2/g5 SEV-1)。"""
+    import asyncio
+
+    from deeptutor.services.question_lifecycle_skills import (
+        resolve_question_lifecycle_scene_decision,
+    )
+
+    active_mcq = {
+        "question_followup_context": {
+            "question_id": "wp-001",
+            "question": "地下室外墙防水层应设置在哪一侧？",
+            "question_type": "single_choice",
+            "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+            "correct_answer": "B",
+        }
+    }
+
+    # HIGH 置信真作答 → 仍确定性钉 mcq_grading(硬约束40 不回归)。
+    high = UnifiedContext(user_message="我选B", metadata=dict(active_mcq))
+    high_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(high, enable_llm=False)
+    )
+    assert high_decision.scene == "mcq_grading"
+
+    # LOW 置信非作答(试探 + 显式"先别判",ground-truth g2 T5)→ 绝不钉 mcq_grading。
+    low = UnifiedContext(
+        user_message="我猜是A但不确定，你先别判", metadata=dict(active_mcq)
+    )
+    low_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(low, enable_llm=False)
+    )
+    assert low_decision.scene != "mcq_grading"
+
+    # 另一个 LOW 形态:回指 + 求确认(首子句非干净答案)→ 不钉 grading。
+    recall = UnifiedContext(
+        user_message="刚才那道题我选的是B，对吗", metadata=dict(active_mcq)
+    )
+    recall_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(recall, enable_llm=False)
+    )
+    assert recall_decision.scene != "mcq_grading"
+
+    # 边界(诚实):g5 "选A,动火证当日有效" 这类**单条看像作答、实为质疑上一轮判分**的轮,
+    # 首子句是显式提交 → Step 2 仍钉 grading;它的质疑语义需对话历史,由 Step 3-4 的 LLM
+    # 语义复核翻案,**不**由确定性 confidence 误降(避免把真作答也误判非作答=回归硬约束40)。
+    challenge = UnifiedContext(
+        user_message="选B，动火证当日有效", metadata=dict(active_mcq)
+    )
+    challenge_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(challenge, enable_llm=False)
+    )
+    assert challenge_decision.scene == "mcq_grading"

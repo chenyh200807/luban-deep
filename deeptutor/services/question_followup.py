@@ -844,6 +844,66 @@ def resolve_submission_attempt(
     }
 
 
+def _message_is_clean_answer_token(stripped: str, question_context: dict[str, Any]) -> bool:
+    """正向高精确信号:剥掉显式提交前缀后,剩下的是否就是一个干净的答案 token。
+
+    判 HIGH 用的是"答案是消息主导 payload"这一正向结构信号,**不**枚举否定/试探词
+    （红线:不靠排除正则）。干净答案 = 纯选项字母(单/多选) / 判断词(对/错/正确…) /
+    恰好等于某个选项值。残留若还夹着其它实质内容(试探/保留/回指/质疑散文),则不是
+    干净答案 → 落 LOW 交 LLM 复核。
+    """
+    if not stripped:
+        return False
+    if re.fullmatch(r"[A-Ea-eＡ-Ｅａ-ｅ]{1,6}", stripped):
+        return True
+    if _normalize_judgment_token(stripped) is not None:
+        return True
+    options = question_context.get("options") or {}
+    if isinstance(options, dict) and options:
+        # 复用 resolve 本身用的模糊值匹配(选项值带"（外侧）"等后缀时也命中),
+        # 不另造一套匹配 = 同一判据。
+        if _match_option_key_by_value(stripped, options):
+            return True
+    return False
+
+
+def submission_confidence(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> str | None:
+    """作答提交的置信维度(判分态单一权威收口,2026-06-24)。
+
+    返回 ``"high"`` / ``"low"`` / ``None`` —— **不是新决策点**,而是给单一权威
+    ``resolve_question_lifecycle_scene_decision`` 用来区分"确定性快路径直接判分"
+    （HIGH,保硬约束40 真作答必判)与"交 LLM 语义权威复核"(LOW/模糊)的置信信号。
+    复用 ``resolve_submission_attempt`` 既有提交判定(不另抽一次),只在其上加置信:
+
+    - ``None``:本轮没有可判分的作答(非答题轮)。
+    - ``"high"``:显式提交,答案是消息主导 payload(显式前缀 + 干净答案 token,或纯答案)。
+    - ``"low"``:抽出了答案但被埋在试探/保留/回指/质疑散文里,或多题歧义未锚定。
+    """
+    _target, submission = resolve_submission_attempt(message, question_context)
+    if not submission:
+        return None
+    if submission.get("kind") == "ambiguous":
+        return "low"
+    # 显式结构化提交一律 HIGH:batch(多题"第1题A 第2题B")与 numbered-single
+    # (带 index 的"第2题选B")都要求显式题号锚定才能解析出来,本身就是高精确正向信号,
+    # 不经"单个干净 token"的 payload-dominance 判据(那条只管单题裸答)。
+    if submission.get("kind") == "batch" or submission.get("index"):
+        return "high"
+    normalized = normalize_question_followup_context(question_context) or {}
+    text = str(message or "").strip()
+    stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?？，,：:　 ")
+    # 正向信号 = 消息**首子句**是否就是一个干净答案(剥显式提交前缀后,第一段=答案 token)。
+    # 看首子句而非整句,故"我答B，再出3题"这类先交卷再追加请求的混合轮仍 HIGH(grade-before-
+    # generate 不回归);而"我猜是A但不确定,你先别判"首子句"我猜是A但不确定"非干净 token → LOW。
+    # 注意:本函数只判**单条消息**是否显式提交;上下文型质疑(对上一轮判分翻案)、回指历史题
+    # 这类需对话历史才能识别的,交给下游 LLM 语义复核(plan §3 Step 3-4),不在此处误降 HIGH。
+    lead = re.split(r"[，,。.!！?？；;、\s]", stripped, maxsplit=1)[0].strip()
+    return "high" if _message_is_clean_answer_token(lead, normalized) else "low"
+
+
 def batch_answer_action_for_numbered_single(
     submission: dict[str, Any] | None,
     question_context: dict[str, Any] | None,

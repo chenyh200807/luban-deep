@@ -1011,6 +1011,7 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         looks_like_question_followup,
         normalize_question_followup_context,
         resolve_submission_attempt,
+        submission_confidence,
     )
     from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
         looks_like_practice_generation_request,
@@ -1060,12 +1061,20 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         if submission:
             if submission.get("kind") == "ambiguous":
                 return None
-            q_type = str(question_context.get("question_type") or "").strip().lower()
-            has_options = bool(question_context.get("options"))
-            has_items = bool(question_context.get("items"))
-            if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
-                return "mcq_grading"
-            return "case_grading"
+            # 判分态单一权威收口 (2026-06-24, plan §3 Step 2): 确定性快路径只对 **HIGH
+            # 置信作答**(显式提交、答案是消息主导 payload)钉 grading scene —— 保硬约束40
+            # "真作答必判"。LOW 置信(答案被埋在试探"我猜"/保留"你先别判"/回指/质疑断言里)
+            # **不**钉 grading scene,落下游 question_review → orchestrator 的 LLM 语义复核
+            # 决定是否真在交卷,杜绝非作答轮被凭空判分(ground-truth g2/g5 SEV-1)。
+            # 这不是新决策点:submission_confidence 复用同一 resolve_submission_attempt,
+            # 只在其上加正向置信维度;LOW 时 fall through 既有 question_review 路径。
+            if submission_confidence(user_message, question_context) != "low":
+                q_type = str(question_context.get("question_type") or "").strip().lower()
+                has_options = bool(question_context.get("options"))
+                has_items = bool(question_context.get("items"))
+                if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
+                    return "mcq_grading"
+                return "case_grading"
 
     if looks_like_practice_generation_request(user_message):
         return "practice_generation"
