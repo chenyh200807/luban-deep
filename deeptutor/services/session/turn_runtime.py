@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Sequence
 import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
