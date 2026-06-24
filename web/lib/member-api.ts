@@ -380,7 +380,7 @@ function makeIdempotencyKey(): string {
 }
 
 export async function getMemberDashboard(): Promise<MemberDashboard> {
-  const response = await fetch(apiUrl('/api/v1/member/dashboard'), {
+  const response = await fetch(apiUrl('/api/v1/bi/member/dashboard'), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
@@ -395,7 +395,7 @@ export async function listMembers(
     if (value === undefined || value === '' || value === 'all') return
     query.set(key, String(value))
   })
-  const response = await fetch(apiUrl(`/api/v1/member/list?${query.toString()}`), {
+  const response = await fetch(apiUrl(`/api/v1/bi/member/list?${query.toString()}`), {
     cache: 'no-store',
     headers: adminHeaders(),
   })
@@ -608,14 +608,17 @@ export async function deleteMemberAccount(payload: {
   user_id: string
   reason?: string
 }): Promise<MemberAccountDeletionResult> {
-  const response = await fetch(apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`), {
-    method: 'DELETE',
-    headers: adminHeaders({
-      'Content-Type': 'application/json',
-      'X-Idempotency-Key': makeIdempotencyKey(),
-    }),
-    body: JSON.stringify({ reason: payload.reason ?? '' }),
-  })
+  const response = await fetch(
+    apiUrl(`/api/v1/bi/member/${encodeURIComponent(payload.user_id)}/account`),
+    {
+      method: 'DELETE',
+      headers: adminHeaders({
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+      body: JSON.stringify({ reason: payload.reason ?? '' }),
+    }
+  )
   return expectJson<MemberAccountDeletionResult>(response)
 }
 
