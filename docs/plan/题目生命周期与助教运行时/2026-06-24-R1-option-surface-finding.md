@@ -1,6 +1,6 @@
 # R1 选项重排判分 — 精确根因 + 修复点（追到底）
 
-> 状态：根因确定 + 复现测试就绪（`tests/services/test_r1_option_surface_grading.py` strict-xfail）；实际多路径接线未做。
+> 状态：**主路径已修（unit 4+202 passed，零回归）** —— `_fill_missing_mcq_authority`（题库恢复路径=g1 粘贴选项重排场景）按 VALUE 投影到学生面 + fail-safe。⏳ live≥3 未验（skill 强制，需新 context 跑 g1 序列）；grading_key/active_object 其余路径若复现再补（见下 gap 清单）。
 
 ## 一句话根因
 判分时**没有题库 options**，结构上无法投影；R1 必须在**存储 grading authority 的上游**把 `correct_answer` 投影到学生当前题面后再存——投影方法已存在，只是部分存储路径没接。
