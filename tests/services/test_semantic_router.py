@@ -744,3 +744,33 @@ async def test_high_confidence_cached_submission_stays_shielded(
     assert called["n"] == 0  # HIGH submission 不交 LLM,确定性快路径
     assert routing.turn_semantic_decision is not None
     assert routing.turn_semantic_decision["next_action"] == "route_to_grading"
+
+
+# --- Step 4.6: _decision_from_fallback submission 分支也 gate confidence(live 第2轮揪出) ---
+# live trace: LLM 缺失时 _decision_from_fallback 对 LOW 仍 resolve_submission_attempt→route_to_grading
+# (reason"deterministic fallback 命中答题解析")绕过 Step 4/4.5。按 commander"keep 但只 HIGH"。
+
+def test_fallback_decision_low_confidence_non_answer_not_graded() -> None:
+    ctx = _sc_single_ctx()
+    dec = semantic_router._decision_from_fallback(
+        user_message="我猜是A但不确定，你先别判",
+        active_object=None,
+        question_context=ctx,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+    assert dec["next_action"] != "route_to_grading"
+
+
+def test_fallback_decision_high_confidence_real_answer_still_graded() -> None:
+    ctx = _sc_single_ctx()
+    dec = semantic_router._decision_from_fallback(
+        user_message="我选B",
+        active_object=None,
+        question_context=ctx,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+    assert dec["next_action"] == "route_to_grading"  # 硬约束40

@@ -1176,7 +1176,12 @@ def _decision_from_fallback(
 ) -> dict[str, Any]:
     if question_context is not None:
         _target_context, submission = resolve_submission_attempt(user_message, question_context)
-        if submission is not None:
+        # 判分态单一权威收口 Step 4.6 (2026-06-24, live 第2轮揪出): 这条确定性降级保底原先
+        # 对任何 resolve_submission_attempt 命中即 route_to_grading,对 LOW 置信(试探/推迟/未
+        # 明确交卷,如"我猜A但你先别判")仍抽出答案判分,绕过 Step 4(守卫)/4.5(interpret backstop)。
+        # 按 commander 设计"keep 但只对 HIGH 生效":只有 HIGH 置信真作答才走确定性判分保底
+        # (保硬约束40);LOW fall through 到下方 followup/chat 检测,不凭空判分。
+        if submission is not None and submission_confidence(user_message, question_context) != "low":
             relation: SemanticRelation = (
                 "revise_answer_on_active_object"
                 if _message_looks_like_revision(user_message)
