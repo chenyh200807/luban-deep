@@ -271,3 +271,91 @@ def test_low_information_clarification_does_not_leak_internals_or_echo_user():
     # (b) 不泄露任何内部机制/内部推理
     for leak in ["题卡 id", "题卡id", "传给 TutorBot", "传给TutorBot", "就是在编", "小程序", "题卡对象"]:
         assert leak not in resp, f"内部机制泄露: {leak!r} in clarification response"
+
+
+def test_active_mcq_low_confidence_non_answer_does_not_nail_grading_scene() -> None:
+    """Step 2 判分态单一权威收口(2026-06-24):active MCQ 在场时,只有 HIGH 置信作答才
+    确定性钉 mcq_grading scene(保硬约束40 真作答必判);LOW 置信(答案被埋在试探/保留/
+    回指/质疑散文里)绝不钉 grading scene —— 否则非作答轮被凭空判分(g2/g5 SEV-1)。"""
+    import asyncio
+
+    from deeptutor.services.question_lifecycle_skills import (
+        resolve_question_lifecycle_scene_decision,
+    )
+
+    active_mcq = {
+        "question_followup_context": {
+            "question_id": "wp-001",
+            "question": "地下室外墙防水层应设置在哪一侧？",
+            "question_type": "single_choice",
+            "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+            "correct_answer": "B",
+        }
+    }
+
+    # HIGH 置信真作答 → 仍确定性钉 mcq_grading(硬约束40 不回归)。
+    high = UnifiedContext(user_message="我选B", metadata=dict(active_mcq))
+    high_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(high, enable_llm=False)
+    )
+    assert high_decision.scene == "mcq_grading"
+
+    # LOW 置信非作答(试探 + 显式"先别判",ground-truth g2 T5)→ 绝不钉 mcq_grading。
+    low = UnifiedContext(
+        user_message="我猜是A但不确定，你先别判", metadata=dict(active_mcq)
+    )
+    low_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(low, enable_llm=False)
+    )
+    assert low_decision.scene != "mcq_grading"
+
+    # 另一个 LOW 形态:回指 + 求确认(首子句非干净答案)→ 不钉 grading。
+    recall = UnifiedContext(
+        user_message="刚才那道题我选的是B，对吗", metadata=dict(active_mcq)
+    )
+    recall_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(recall, enable_llm=False)
+    )
+    assert recall_decision.scene != "mcq_grading"
+
+    # 边界(诚实):g5 "选A,动火证当日有效" 这类**单条看像作答、实为质疑上一轮判分**的轮,
+    # 首子句是显式提交 → Step 2 仍钉 grading;它的质疑语义需对话历史,由 Step 3-4 的 LLM
+    # 语义复核翻案,**不**由确定性 confidence 误降(避免把真作答也误判非作答=回归硬约束40)。
+    challenge = UnifiedContext(
+        user_message="选B，动火证当日有效", metadata=dict(active_mcq)
+    )
+    challenge_decision = asyncio.run(
+        resolve_question_lifecycle_scene_decision(challenge, enable_llm=False)
+    )
+    assert challenge_decision.scene == "mcq_grading"
+
+
+def test_free_text_short_answer_grading_beats_practice_generation_R2() -> None:
+    """R2 意图误路由收口(2026-06-24, intent-fast-path-as-authority): 学生粘简答题+作答+求判分
+    (无正式案例壳),意图必须裁为判分(case_grading),胜过练题生成——即便消息含"考点/选择题"等
+    会触发过宽练题检测器的话题词。正向"作答 payload 在场 + 判分诉求"信号,不靠"别出题"否定排除。
+    合法练题(无作答体)不误伤,仍 practice_generation。"""
+    import asyncio
+    from deeptutor.services.question_lifecycle_skills import (
+        _looks_like_free_text_case_grading,
+        resolve_question_lifecycle_scene_decision,
+    )
+
+    R2 = ("考点就是大体积混凝土温度控制，我要你用阅卷方式判我的冷却水管法作答，别给我出选择题。"
+          "我的作答：冷却水管管径选Φ48，水平间距1米，通水约14天。满分10分，请打分并指出漏的采分点。")
+
+    # 谓词层:简答+作答+判分(无案例壳)→ True
+    assert _looks_like_free_text_case_grading(R2) is True
+    # 合法练题(无作答体)→ False,不误伤
+    assert _looks_like_free_text_case_grading("再出3题") is False
+    assert _looks_like_free_text_case_grading("出一道大体积混凝土温控的简答题考我") is False
+
+    # 单一权威 derive:R2(无 active object)→ case_grading,不落 practice_generation
+    ctx_r2 = UnifiedContext(user_message=R2, metadata={})
+    d = asyncio.run(resolve_question_lifecycle_scene_decision(ctx_r2, enable_llm=False))
+    assert d.scene == "case_grading"
+
+    # 合法练题 → practice_generation 保留
+    ctx_gen = UnifiedContext(user_message="再出3道大体积混凝土温控的题考我", metadata={})
+    dg = asyncio.run(resolve_question_lifecycle_scene_decision(ctx_gen, enable_llm=False))
+    assert dg.scene == "practice_generation"

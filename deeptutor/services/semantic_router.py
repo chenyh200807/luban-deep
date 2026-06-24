@@ -11,6 +11,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     reset_question_submission_state,
     resolve_submission_attempt,
+    submission_confidence,
 )
 from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
@@ -755,13 +756,27 @@ async def resolve_question_semantic_routing(
     # canonical conversation_context_text IS available, drop a cached NON-submission
     # action so the history-aware classifier below re-resolves and can upgrade to
     # ask_other_question (→ switch_to_new_object → context-continuous main LLM).
-    # Submission/grading and practice-generation actions keep their deterministic cache
-    # and are NEVER re-routed to the main LLM (structured grading authority is preserved).
+    # Submission/grading and practice-generation actions keep their deterministic cache.
+    #
+    # 判分态单一权威收口 Step 4 (2026-06-24, plan §3): 打破 shielded-from-veto。原先所有
+    # submission 缓存"永不交 LLM"以保结构化判分权威(硬约束40 真作答必判),但确定性关键词
+    # 提交检测器会把"我猜A但你先别判/还没做"误抽成 submission,一旦缓存就终局误判分。改为
+    # **只有 HIGH 置信作答**(显式提交、答案是消息主导 payload)的缓存才 shielded;LOW 置信
+    # 缓存"提交"允许被 history-aware LLM 复核翻案。confidence 当场由 user_message +
+    # question_context 算(单一权威 submission_confidence),不依赖缓存跨层透传。
+    _cached_route = followup_action_route(llm_action) if isinstance(llm_action, dict) else None
+    _keep_cached_action = _cached_route in {"submission", "practice_generation"}
+    if (
+        _cached_route == "submission"
+        and question_context is not None
+        and submission_confidence(user_message, question_context) == "low"
+    ):
+        _keep_cached_action = False
     if (
         question_context is not None
         and isinstance(llm_action, dict)
         and history_context.strip()
-        and followup_action_route(llm_action) not in {"submission", "practice_generation"}
+        and not _keep_cached_action
     ):
         llm_action = None
     if question_context is not None and llm_action is None:
@@ -1161,7 +1176,12 @@ def _decision_from_fallback(
 ) -> dict[str, Any]:
     if question_context is not None:
         _target_context, submission = resolve_submission_attempt(user_message, question_context)
-        if submission is not None:
+        # 判分态单一权威收口 Step 4.6 (2026-06-24, live 第2轮揪出): 这条确定性降级保底原先
+        # 对任何 resolve_submission_attempt 命中即 route_to_grading,对 LOW 置信(试探/推迟/未
+        # 明确交卷,如"我猜A但你先别判")仍抽出答案判分,绕过 Step 4(守卫)/4.5(interpret backstop)。
+        # 按 commander 设计"keep 但只对 HIGH 生效":只有 HIGH 置信真作答才走确定性判分保底
+        # (保硬约束40);LOW fall through 到下方 followup/chat 检测,不凭空判分。
+        if submission is not None and submission_confidence(user_message, question_context) != "low":
             relation: SemanticRelation = (
                 "revise_answer_on_active_object"
                 if _message_looks_like_revision(user_message)

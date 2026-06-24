@@ -629,7 +629,27 @@ async def interpret_question_followup_action(
     parsed = _parse_followup_action_payload(raw)
     if parsed is None:
         return None
-    return _normalize_followup_action(parsed, normalized)
+    action = _normalize_followup_action(parsed, normalized)
+    # 判分态单一权威收口 Step 4.5 (2026-06-24, live NO-GO 揪出): LLM 作答分类器带"提交优先"
+    # 偏置(prompt 规则1),会把"我猜是A但你先别判"这类**试探+显式推迟**误判成 answer_questions
+    # (live reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
+    # submission_confidence=LOW(消息首子句非干净答案,即未明确交卷)时,降级为 ask_followup。
+    # 只动 LOW(试探/推迟/回指),HIGH 真作答("我选B")confidence=high 永不降 → 不伤硬约束40。
+    # skill 铁律:确定性高精确信号 > 纯 prompt 压偏置。
+    if (
+        followup_action_route(action) == "submission"
+        and submission_confidence(message, normalized) == "low"
+    ):
+        downgraded = dict(action or {})
+        downgraded["intent"] = "ask_followup"
+        downgraded["answers"] = []
+        downgraded["reason"] = (
+            "submission_confidence=low(试探/推迟/未明确交卷),不按提交判分,改 ask_followup "
+            "交主 LLM 答疑(Step 4.5 backstop)。原 LLM intent="
+            + str((action or {}).get("intent") or "")
+        )
+        return _normalize_followup_action(downgraded, normalized)
+    return action
 
 
 def followup_action_route(action: dict[str, Any] | None) -> str | None:
@@ -842,6 +862,70 @@ def resolve_submission_attempt(
         "answer": answer,
         "question_id": normalized.get("question_id", ""),
     }
+
+
+def _message_is_clean_answer_token(stripped: str, question_context: dict[str, Any]) -> bool:
+    """正向高精确信号:剥掉显式提交前缀后,剩下的是否就是一个干净的答案 token。
+
+    判 HIGH 用的是"答案是消息主导 payload"这一正向结构信号,**不**枚举否定/试探词
+    （红线:不靠排除正则）。干净答案 = 纯选项字母(单/多选) / 判断词(对/错/正确…) /
+    恰好等于某个选项值。残留若还夹着其它实质内容(试探/保留/回指/质疑散文),则不是
+    干净答案 → 落 LOW 交 LLM 复核。
+    """
+    if not stripped:
+        return False
+    if re.fullmatch(r"[A-Ea-eＡ-Ｅａ-ｅ]{1,6}", stripped):
+        return True
+    if _normalize_judgment_token(stripped) is not None:
+        return True
+    options = question_context.get("options") or {}
+    if isinstance(options, dict) and options:
+        # 复用 resolve 本身用的模糊值匹配(选项值带"（外侧）"等后缀时也命中),
+        # 不另造一套匹配 = 同一判据。
+        if _match_option_key_by_value(stripped, options):
+            return True
+    return False
+
+
+def submission_confidence(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> str | None:
+    """作答提交的置信维度(判分态单一权威收口,2026-06-24)。
+
+    返回 ``"high"`` / ``"low"`` / ``None`` —— **不是新决策点**,而是给单一权威
+    ``resolve_question_lifecycle_scene_decision`` 用来区分"确定性快路径直接判分"
+    （HIGH,保硬约束40 真作答必判)与"交 LLM 语义权威复核"(LOW/模糊)的置信信号。
+    复用 ``resolve_submission_attempt`` 既有提交判定(不另抽一次),只在其上加置信:
+
+    - ``None``:本轮没有可判分的作答(非答题轮)。
+    - ``"high"``:显式提交,答案是消息主导 payload(显式前缀 + 干净答案 token,或纯答案)。
+    - ``"low"``:抽出了答案但被埋在试探/保留/回指/质疑散文里,或多题歧义未锚定。
+    """
+    _target, submission = resolve_submission_attempt(message, question_context)
+    if not submission:
+        return None
+    if submission.get("kind") == "ambiguous":
+        return "low"
+    # 显式结构化提交一律 HIGH:batch(多题"第1题A 第2题B")与 numbered-single
+    # (带 index 的"第2题选B")都要求显式题号锚定才能解析出来,本身就是高精确正向信号,
+    # 不经"单个干净 token"的 payload-dominance 判据(那条只管单题裸答)。
+    if submission.get("kind") == "batch" or submission.get("index"):
+        return "high"
+    normalized = normalize_question_followup_context(question_context) or {}
+    text = str(message or "").strip()
+    # 正向信号 = 消息里**存在一个独立子句**,剥掉它自己的显式提交前缀后就是干净答案 token。
+    # 按子句切分(不只看首子句),覆盖两类显式提交:① 裸作答打头("我选B"/"B"/"我答B，再出3题")
+    # ② 粘贴题面后末尾显式交卷("...A.5% B.1%...，我选A，直接批改" 的"我选A"子句)。而"我猜是A但
+    # 不确定，你先别判"/"刚才那道题我选的是B，对吗"——没有任一子句**以**显式提交前缀打头接干净答案
+    # (前者"我猜"是试探非提交前缀;后者"我选"埋在"刚才那道题…"子句中段非子句首)→ LOW。
+    # 红线:HIGH 用正向"显式提交前缀 + 干净答案 token"判,不枚举否定/试探词排除。混合"我选A但
+    # 先别判"这类需对话历史的语义,交下游 LLM 复核;本函数只给单条消息的确定性置信。
+    for clause in re.split(r"[，,。.!！?？；;、\s]+", text):
+        candidate = _LEADING_SUBMISSION_PREFIX.sub("", clause.strip()).strip("。.!！?？，,：:　 ")
+        if _message_is_clean_answer_token(candidate, normalized):
+            return "high"
+    return "low"
 
 
 def batch_answer_action_for_numbered_single(

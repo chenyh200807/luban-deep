@@ -926,7 +926,7 @@ class MemberConsoleService:
         now = _now()
         return {
             "user_id": user_id,
-            "display_name": user_id,
+            "display_name": "",
             "phone": _slugify_phone(user_id),
             "tier": "trial",
             "status": "active",
@@ -8124,7 +8124,10 @@ class MemberConsoleService:
                 current_user_id = str(target.get("user_id") or "").strip()
                 if merged_into and merged_into != current_user_id:
                     target = self._ensure_member(data, merged_into)
-            target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
+            _cur_display = str(target.get("display_name") or "").strip()
+            _cur_uid = str(target.get("user_id") or "").strip()
+            if not _cur_display or _cur_display == _cur_uid:
+                target["display_name"] = f"微信用户{_cur_uid[-4:]}"
             target["last_active_at"] = _iso()
             target["wx_openid"] = openid
             target["wx_unionid"] = unionid
@@ -8151,6 +8154,13 @@ class MemberConsoleService:
             openid=auth_identity["openid"] or openid,
             unionid=auth_identity["unionid"] or unionid,
         )
+        # 幂等补写：每次登录都尝试持久化 openid/unionid alias，
+        # 确保首次绑定时 DB 短暂不可用的情况下可在后续登录中自动补全。
+        self._persist_wechat_openid_identity(
+            openid=auth_identity["openid"] or openid,
+            unionid=auth_identity["unionid"] or unionid,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return self._build_auth_response(
             user_id=auth_identity["user_id"],
             token=token,
@@ -8167,7 +8177,11 @@ class MemberConsoleService:
         if not raw_code:
             raise ValueError("valid phone_code is required")
 
-        normalized = _normalize_phone_input(raw_code)
+        # 微信 phone_code 是授权码（非手机号），禁止把授权码里的数字截取当手机号使用。
+        # 仅当 raw_code 本身已是合法大陆手机号（开发/测试环境直传）才直接使用，
+        # 否则置空，强制调用微信 API 换取真实号码。
+        _maybe_direct = _normalize_phone_input(raw_code)
+        normalized = _maybe_direct if self._is_cn_mainland_mobile(_maybe_direct) else ""
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
@@ -8223,7 +8237,9 @@ class MemberConsoleService:
             before = deepcopy(current)
             current["phone"] = normalized
             current["last_active_at"] = _iso()
-            if not str(current.get("display_name") or "").strip():
+            _bind_display = str(current.get("display_name") or "").strip()
+            _bind_uid = str(current.get("user_id") or "").strip()
+            if not _bind_display or _bind_display == _bind_uid:
                 current["display_name"] = f"学员{normalized[-4:]}"
             self._append_audit(
                 data,
@@ -8269,12 +8285,19 @@ class MemberConsoleService:
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
         )
+        # openid / unionid 持久化：canonical_uid 已确立后写入，
+        # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
+        self._persist_wechat_openid_identity(
+            openid=str(result.get("openid") or "").strip(),
+            unionid=str(result.get("unionid") or "").strip(),
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return payload
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
         normalized = _normalize_phone_input(phone)
-        if not normalized:
-            raise ValueError("手机号格式不正确")
+        if not normalized or not self._is_cn_mainland_mobile(normalized):
+            raise ValueError("请输入有效的大陆手机号")
         now = _now()
         retry_after = 60
         delivery = "debug"
@@ -8368,6 +8391,13 @@ class MemberConsoleService:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
             return
+        if not self._is_cn_mainland_mobile(phone):
+            logger.warning(
+                "phone identity persist skipped: not a valid CN mainland mobile phone=%s canonical_uid=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+            )
+            return
         try:
             existing_alias_ids = self._trusted_phone_alias_user_ids(phone)
         except ValueError as exc:
@@ -8441,6 +8471,78 @@ class MemberConsoleService:
             logger.warning(
                 "phone identity persist failed: phone=%s canonical_uid=%s error=%s",
                 phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+                exc,
+            )
+
+    def _persist_wechat_openid_identity(
+        self, *, openid: str, unionid: str, canonical_uid: str
+    ) -> None:
+        """把微信 openid / unionid 持久化到 user_identity_aliases，支持跨产品身份统一。
+
+        写入时机：微信用户完成手机绑定后，canonical_uid 已确立。
+        - openid  = 当前小程序维度唯一，跨产品不通用
+        - unionid = WeChat Open Platform 账号维度唯一，跨产品关键 key
+
+        写入后，同一微信用户在同一 Open Platform 下的其他小程序首次登录时，
+        _auth_identity_for_member 会通过 wx_unionid alias 直接命中同一 canonical_uid，
+        无需用户再次授权手机号。
+        """
+        if not openid or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        db_url = str(os.getenv("DB_URL") or os.getenv("DATABASE_URL") or "").strip()
+        if not db_url:
+            logger.warning("wechat openid identity persist skipped: DB_URL not configured")
+            return
+        aliases: list[tuple[str, str]] = [("wx_openid", openid)]
+        if unionid:
+            aliases.append(("wx_unionid", unionid))
+        try:
+            try:
+                import psycopg
+
+                conn_ctx = psycopg.connect(db_url, connect_timeout=5)
+            except ImportError:
+                try:
+                    import psycopg2
+
+                    conn_ctx = psycopg2.connect(db_url, connect_timeout=5)
+                except ImportError:
+                    logger.warning("wechat openid identity persist skipped: no psycopg driver installed")
+                    return
+            with conn_ctx as conn:
+                cur = conn.cursor()
+                for alias_type, alias_value in aliases:
+                    cur.execute(
+                        """
+                        INSERT INTO public.user_identity_aliases
+                            (alias_type, alias_value, user_id, source, confidence, verified_at)
+                        VALUES (%s, %s, %s::uuid, %s, %s, now())
+                        ON CONFLICT (alias_type, alias_value) DO UPDATE SET
+                            confidence  = EXCLUDED.confidence,
+                            verified_at = EXCLUDED.verified_at,
+                            updated_at  = now()
+                        WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
+                        RETURNING user_id
+                        """,
+                        (alias_type, alias_value, canonical_uid, "wechat_login", 1.0),
+                    )
+                    if cur.fetchone() is None:
+                        logger.info(
+                            "wechat openid alias not updated (concurrent owner conflict): "
+                            "alias_type=%s canonical_uid=%s",
+                            alias_type,
+                            canonical_uid,
+                        )
+            logger.debug(
+                "wechat openid identity persisted: openid_tail=%s unionid_tail=%s canonical_uid=%s",
+                openid[-6:] if len(openid) >= 6 else "***",
+                unionid[-6:] if unionid and len(unionid) >= 6 else "",
+                canonical_uid,
+            )
+        except Exception as exc:
+            logger.warning(
+                "wechat openid identity persist failed: canonical_uid=%s error=%s",
                 canonical_uid,
                 exc,
             )

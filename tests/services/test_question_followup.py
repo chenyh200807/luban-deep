@@ -18,6 +18,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
+    submission_confidence,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
@@ -2310,3 +2311,135 @@ def test_past_question_backreference_not_a_submission() -> None:
     assert _looks_like_past_question_explanation_request("上一道题为什么选A")
     assert not _looks_like_past_question_explanation_request("我选A")
     assert not _looks_like_past_question_explanation_request("出三道题")
+
+
+# --- Step 1: 作答提交 confidence 维度(判分态单一权威收口,2026-06-24) ---
+# 单一权威 qls:resolve_question_lifecycle_scene_decision 用它区分:
+# HIGH 置信作答 → 确定性快路径必判(保硬约束40);LOW/模糊 → 交 LLM 语义权威复核。
+# 红线:HIGH 用正向高精确信号(显式提交前缀 + 答案是消息主导 payload),
+# 不靠枚举否定词排除。LOW = 非 HIGH。
+
+_SC_SINGLE_CTX = {
+    "question_id": "wp-sc-001",
+    "question": "地下室外墙防水层应设置在哪一侧？",
+    "question_type": "single_choice",
+    "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+    "correct_answer": "B",
+}
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "我选B",
+        "B",
+        "我的答案是B",
+        "答案B",
+        "选B",
+        "我答迎水面",  # 显式提交前缀 + 干净选项值
+    ],
+)
+def test_submission_confidence_high_for_explicit_answer_dominant(message: str) -> None:
+    # 显式提交:答案是消息主导 payload → HIGH,走确定性快路径必判(硬约束40)。
+    assert submission_confidence(message, _SC_SINGLE_CTX) == "high"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "我猜是B但不确定，你先别判",  # 试探 + 显式保留(ground-truth g2 T5 形态)
+        "大概是B吧，不太确定",          # 对冲
+        "刚才那道题我选的是B，对吗",     # 回指 + 求确认(首子句非干净答案)
+        "这道题是不是该选B呢",          # 反问(首子句非干净答案)
+    ],
+)
+def test_submission_confidence_low_for_embedded_or_tentative(message: str) -> None:
+    # 答案被埋在试探/保留/回指/反问散文里(首子句不是干净答案 token)→ LOW,交 LLM 复核,不凭空判分。
+    assert submission_confidence(message, _SC_SINGLE_CTX) == "low"
+
+
+def test_submission_confidence_high_when_leads_with_answer_then_extra_request() -> None:
+    # 混合轮"先交卷再追加请求":首子句是显式提交 → HIGH(grade-before-generate 不回归)。
+    assert submission_confidence("我答B，再出3题", _SC_SINGLE_CTX) == "high"
+
+
+def test_submission_confidence_standalone_challenge_is_high_not_low() -> None:
+    # 设计边界(诚实):单条"选B，动火证当日有效"首子句是显式提交 → HIGH。
+    # 它在 g5 的"质疑上一轮判分"语义需对话历史,交下游 LLM 复核(Step 3-4),不由本函数误降。
+    assert submission_confidence("选B，动火证当日有效", _SC_SINGLE_CTX) == "high"
+
+
+def test_submission_confidence_none_when_no_submission() -> None:
+    # 完全非作答轮(讲考点)→ 无 submission → None(不进判分态)。
+    assert submission_confidence("讲讲这个考点", _SC_SINGLE_CTX) is None
+    assert submission_confidence("这题太难了，跳过吧", _SC_SINGLE_CTX) is None
+
+
+# --- Step 4.5: LLM 作答分类器的"提交优先"偏置 backstop(live NO-GO 揪出,2026-06-24) ---
+# live 实证:LLM interpret_question_followup_action 把"我猜是A但你先别判"判 answer_questions
+# (reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
+# submission_confidence=LOW(试探/推迟/未明确交卷)则降级 ask_followup。只动 LOW,HIGH
+# 真作答永不降(不伤硬约束40)。skill 铁律:确定性 > 纯 prompt。
+
+import asyncio as _asyncio
+from deeptutor.services import question_followup as _qf
+
+_S45_CTX = {
+    "question_id": "wp-s45",
+    "question": "建筑工程安全检查方法包括（多选）？",
+    "question_type": "multiple_choice",
+    "options": {"A": "听", "B": "写", "C": "量", "D": "测", "E": "运转试验"},
+    "correct_answer": "ACDE",
+    "multi_select": True,
+}
+
+
+def _interpret(message, monkeypatch, llm_intent="answer_questions", answer="A"):
+    async def fake_complete(**kwargs):
+        import json as _json
+        return _json.dumps({
+            "intent": llm_intent, "confidence": 0.92, "preserve_other_answers": False,
+            "answers": [{"question_index": 1, "question_id": "wp-s45", "answer": answer}],
+            "reason": "提交优先原则",
+        })
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+    return _asyncio.run(_qf.interpret_question_followup_action(message, _S45_CTX))
+
+
+def test_low_confidence_non_answer_downgraded_even_if_llm_says_submission(monkeypatch):
+    # LLM(被偏置 prompt 误导)判 answer_questions,但消息是 LOW 置信试探+推迟 → 降级非提交。
+    action = _interpret("我猜是A但不确定，你先别判", monkeypatch)
+    assert action is not None
+    assert _qf.followup_action_route(action) != "submission"
+
+
+def test_high_confidence_real_answer_stays_submission(monkeypatch):
+    # HIGH 真作答"我选B":LLM 判 answer_questions → 保留 submission(硬约束40 真作答必判)。
+    action = _interpret("我选B", monkeypatch, answer="B")
+    assert action is not None
+    assert _qf.followup_action_route(action) == "submission"
+
+
+# --- Step 5: 单一 chokepoint 收口 turn_runtime._submission_action_for_user_message ---
+# 把 4.5/4.6 逐路径 gate 收敛到最上游:LOW 裸单题作答不在此构造提交动作 → 下游不缓存
+# submission(防未来新下游路径再凭空判分)。batch/numbered 显式提交=HIGH 不经此 gate。
+
+_S5_SINGLE = {
+    "question_id": "wp-s5",
+    "question": "地下室外墙防水层应设置在哪一侧？",
+    "question_type": "single_choice",
+    "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+    "correct_answer": "B",
+}
+
+
+def test_chokepoint_low_confidence_single_builds_no_submission_action():
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+    _ctx, action = _submission_action_for_user_message("我猜是A但不确定，你先别判", _S5_SINGLE)
+    assert action is None  # LOW 不构造提交动作
+
+
+def test_chokepoint_high_confidence_single_builds_submission_action():
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+    _ctx, action = _submission_action_for_user_message("我选B", _S5_SINGLE)
+    assert isinstance(action, dict) and action.get("intent") == "answer_questions"  # HIGH 必判,硬约束40

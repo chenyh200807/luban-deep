@@ -889,6 +889,12 @@ _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "估分",
     "漏掉",
     "采分点",
+    # R2 意图收口 (2026-06-24): 补强判分动词。用多字判分词("阅卷/打分/判分")避开裸"判"
+    # 与"判断题"的误触;这些动作需与 answer-marker 并存(见 _looks_like_free_text_case_grading)
+    # 才钉 case_grading,单命中不足以越过练题。
+    "阅卷",
+    "打分",
+    "判分",
 )
 _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS: tuple[str, ...] = (
     "【问题】",
@@ -1011,6 +1017,7 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         looks_like_question_followup,
         normalize_question_followup_context,
         resolve_submission_attempt,
+        submission_confidence,
     )
     from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
         looks_like_practice_generation_request,
@@ -1060,12 +1067,20 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         if submission:
             if submission.get("kind") == "ambiguous":
                 return None
-            q_type = str(question_context.get("question_type") or "").strip().lower()
-            has_options = bool(question_context.get("options"))
-            has_items = bool(question_context.get("items"))
-            if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
-                return "mcq_grading"
-            return "case_grading"
+            # 判分态单一权威收口 (2026-06-24, plan §3 Step 2): 确定性快路径只对 **HIGH
+            # 置信作答**(显式提交、答案是消息主导 payload)钉 grading scene —— 保硬约束40
+            # "真作答必判"。LOW 置信(答案被埋在试探"我猜"/保留"你先别判"/回指/质疑断言里)
+            # **不**钉 grading scene,落下游 question_review → orchestrator 的 LLM 语义复核
+            # 决定是否真在交卷,杜绝非作答轮被凭空判分(ground-truth g2/g5 SEV-1)。
+            # 这不是新决策点:submission_confidence 复用同一 resolve_submission_attempt,
+            # 只在其上加正向置信维度;LOW 时 fall through 既有 question_review 路径。
+            if submission_confidence(user_message, question_context) != "low":
+                q_type = str(question_context.get("question_type") or "").strip().lower()
+                has_options = bool(question_context.get("options"))
+                has_items = bool(question_context.get("items"))
+                if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
+                    return "mcq_grading"
+                return "case_grading"
 
     if looks_like_practice_generation_request(user_message):
         return "practice_generation"
@@ -1429,9 +1444,20 @@ def _active_question_context_from_metadata(metadata: Any) -> dict[str, Any]:
 def _looks_like_free_text_case_grading(user_message: str) -> bool:
     if _looks_like_full_case_answer_submission(user_message):
         return True
-    return any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS) and any(
-        marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS
-    )
+    has_action = any(marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS)
+    if not has_action:
+        return False
+    # R2 意图收口 (2026-06-24, intent-fast-path-as-authority): 原 `CONTEXT AND ACTION` 硬门要求
+    # 正式案例壳(案例/背景资料),漏掉"简答题 + 我的作答 + 判分诉求"(无壳)这类自由文本判分,被过宽
+    # 练题检测器 looks_like_practice_generation_request 抢成生成(g6/R2:粘简答求判分却出 MCQ)。
+    # 放宽为正向并集:**正式案例壳 或 学生作答 payload 在场**(answer-marker + 非空答案体)+ 判分动作
+    # 即判 case_grading。这是"作答在场→判分优先"的正向信号(复用 submission 收口同款谓词形状),
+    # 不枚举"别出题"否定、不给练题检测器补排除正则(红线)。合法练题(无作答体且无壳)进不来,
+    # 仍落 practice_generation。
+    if any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS):
+        return True
+    answer_match = _FREE_TEXT_CASE_ANSWER_MARKER_RE.search(user_message)
+    return bool(answer_match) and len(user_message[answer_match.end():].strip()) >= 2
 
 
 def _full_case_question_surface_positions(user_message: str) -> list[int]:

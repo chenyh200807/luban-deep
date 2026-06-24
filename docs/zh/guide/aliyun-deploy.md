@@ -802,3 +802,20 @@ bash scripts/deploy_aliyun.sh
    落定后跑正常 post-deploy 验证（host .env / container / 公网端点 / 可观测性四层）。
 
 4. **要把生产 pin 到恰好你的 push（而非超集）= 回退并行 actor 的工作——先上报用户，绝不静默 undo 不属于你的部署。**
+
+### 15. 2026-06-24 Langfuse 容器跨 docker 网络隔离 → trace 静默丢
+
+**失败签名**：`verify_aliyun_observability.sh` 报 `Langfuse 容器内连通性失败: socket.gaierror: [Errno -2] Name or service not known`（容器内 `getaddrinfo('jgzk-langfuse')` 失败）。公网端点全绿、容器 healthy，**只有可观测这一层挂**。
+
+**根因**：`LANGFUSE_BASE_URL=http://jgzk-langfuse:3000` 按 docker service 名解析。Langfuse 整套容器在跑（`jgzk-langfuse*` Up，healthy），但它在自己的 compose 网络 `luban_jgzk-network`，而 deeptutor 在 `deeptutor_deeptutor-network`——**两个 docker 网络隔离，deeptutor 解析不到对方的 service 名**。`LANGFUSE_ENABLED=true` 时 LLM trace 一直静默丢（`LANGFUSE_TIMEOUT_S=5` 优雅失败，不报错只丢数据）。
+
+**诊断三连**（确认是网络隔离非 Langfuse 挂）：
+```bash
+ssh Aliyun-ECS-2 "docker ps | grep langfuse"                                   # Langfuse 容器在跑?
+ssh Aliyun-ECS-2 "docker inspect jgzk-langfuse  --format '{{range \$k,\$v := .NetworkSettings.Networks}}{{println \$k}}{{end}}'"  # 它在哪个网络
+ssh Aliyun-ECS-2 "docker inspect deeptutor      --format '{{range \$k,\$v := .NetworkSettings.Networks}}{{println \$k}}{{end}}'"  # deeptutor 在哪个网络 → 不同就是它
+```
+
+**修复（两层）**：
+1. **即时**（运行时，重建即丢）：`ssh Aliyun-ECS-2 "docker network connect luban_jgzk-network deeptutor"` → 立刻 `langfuse_connectivity=...reachable`。
+2. **durable**（`docker-compose.yml`，跨重建持久）：networks 段加 `luban_jgzk-network: { external: true }`，deeptutor service 的 networks 加 `- luban_jgzk-network`。⚠️ 改 `docker-compose.yml` 属 `FAST_RELOAD_BLOCKED`——**下次须走 `deploy_aliyun.sh` 全量部署**才把网络配置烤进容器；在那之前即时 connect 维持，期间若 fast-reload 重建容器会丢、需重连。

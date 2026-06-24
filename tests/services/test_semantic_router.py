@@ -664,3 +664,113 @@ def test_decision_from_other_question_intent_is_unresolved_switch() -> None:
     assert decision["relation_to_active_object"] == "switch_to_new_object"
     assert decision["next_action"] == "route_to_followup_explainer"
     assert semantic_router.is_unresolved_switch_followup(decision) is True
+
+
+# --- Step 4: 放开 shielded-from-veto —— LOW 置信缓存提交允许 history-aware LLM 复核 ---
+# (判分态单一权威收口 2026-06-24,plan §3 Step 4)
+
+def _sc_single_ctx() -> dict[str, object]:
+    return {
+        "question_id": "wp-sc",
+        "question": "地下室外墙防水层应设置在哪一侧？",
+        "question_type": "single_choice",
+        "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+        "correct_answer": "B",
+    }
+
+
+def _cached_submission_action(answer: str) -> dict[str, object]:
+    return {
+        "intent": "answer_questions",
+        "confidence": 0.92,
+        "answers": [{"question_id": "wp-sc", "user_answer": answer}],
+    }
+
+
+@pytest.mark.asyncio
+async def test_low_confidence_cached_submission_is_rerouted_to_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """LOW 置信的缓存"提交"(关键词从'我猜A但你先别判'误抽)必须能被 history-aware LLM
+    复核翻案 —— 不再被 L760-766 守卫永久 shielded。LLM 判为非作答 → 不 route_to_grading。"""
+    called = {"n": 0}
+
+    async def fake_interpret(_message, _context, *, history_context: str = ""):
+        called["n"] += 1
+        return {"intent": "ask_followup", "confidence": 0.9, "answers": []}
+
+    routing = await semantic_router.resolve_question_semantic_routing(
+        user_message="我猜是A但不确定，你先别判",
+        metadata={
+            "question_followup_context": _sc_single_ctx(),
+            "question_followup_action": _cached_submission_action("A"),
+        },
+        history_context="（学生此前在做这道防水题的对话历史）",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+
+    assert called["n"] >= 1  # 守卫被打破:确实重交了 LLM
+    assert routing.turn_semantic_decision is not None
+    assert routing.turn_semantic_decision["next_action"] != "route_to_grading"
+
+
+@pytest.mark.asyncio
+async def test_high_confidence_cached_submission_stays_shielded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """HIGH 置信真作答的缓存提交仍 shielded 永不交 LLM —— 保硬约束40"真作答必判"。"""
+    called = {"n": 0}
+
+    async def fake_interpret(_message, _context, *, history_context: str = ""):
+        called["n"] += 1
+        return None
+
+    routing = await semantic_router.resolve_question_semantic_routing(
+        user_message="我选B",
+        metadata={
+            "question_followup_context": _sc_single_ctx(),
+            "question_followup_action": _cached_submission_action("B"),
+        },
+        history_context="（学生此前在做这道防水题的对话历史）",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+
+    assert called["n"] == 0  # HIGH submission 不交 LLM,确定性快路径
+    assert routing.turn_semantic_decision is not None
+    assert routing.turn_semantic_decision["next_action"] == "route_to_grading"
+
+
+# --- Step 4.6: _decision_from_fallback submission 分支也 gate confidence(live 第2轮揪出) ---
+# live trace: LLM 缺失时 _decision_from_fallback 对 LOW 仍 resolve_submission_attempt→route_to_grading
+# (reason"deterministic fallback 命中答题解析")绕过 Step 4/4.5。按 commander"keep 但只 HIGH"。
+
+def test_fallback_decision_low_confidence_non_answer_not_graded() -> None:
+    ctx = _sc_single_ctx()
+    dec = semantic_router._decision_from_fallback(
+        user_message="我猜是A但不确定，你先别判",
+        active_object=None,
+        question_context=ctx,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+    assert dec["next_action"] != "route_to_grading"
+
+
+def test_fallback_decision_high_confidence_real_answer_still_graded() -> None:
+    ctx = _sc_single_ctx()
+    dec = semantic_router._decision_from_fallback(
+        user_message="我选B",
+        active_object=None,
+        question_context=ctx,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+    assert dec["next_action"] == "route_to_grading"  # 硬约束40
