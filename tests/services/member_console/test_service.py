@@ -4242,7 +4242,7 @@ def test_send_phone_code_rejects_invalid_phone_input(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    with pytest.raises(ValueError, match="手机号格式不正确"):
+    with pytest.raises(ValueError, match="大陆手机号"):
         service.send_phone_code("dev-phone-code")
 
 
@@ -6251,3 +6251,176 @@ async def test_wechat_relogin_rescues_user_id_as_display_name(
     display_name = member.get("display_name", "")
     assert display_name != existing_user_id, "display_name must not remain as user_id after re-login"
     assert display_name.startswith("微信用户"), f"expected '微信用户xxxx' but got '{display_name}'"
+
+
+# ─── Fix 1: send_phone_code CN 格式门控 ─────────────────────────────────────
+
+def test_send_phone_code_rejects_non_cn_mobile_format(tmp_path: Path) -> None:
+    """send_phone_code 必须拒绝非大陆手机号，不只是拒绝空串。
+    修复前：只要 _normalize_phone_input 返回 11 位就通过，"83090321728"（起头 8）会被接受。
+    修复后：必须通过 _is_cn_mainland_mobile（^1[3-9]\\d{9}$）才能继续。
+    """
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    # 起头 8 —— 绝非大陆号
+    with pytest.raises(ValueError, match="大陆手机号"):
+        service.send_phone_code("83090321728")
+
+    # 起头 0 —— 固话/国际前缀
+    with pytest.raises(ValueError, match="大陆手机号"):
+        service.send_phone_code("02112345678")
+
+    # 合法大陆号 —— 应该通过格式校验（会在无短信配置时自然 fall through 到 debug 模式）
+    result = service.send_phone_code("13812345678")
+    assert result.get("sent") is not None, "合法大陆号应通过格式校验并返回 sent 字段"
+
+
+# ─── Fix 2: _persist_wechat_openid_identity ─────────────────────────────────
+
+def test_persist_wechat_openid_identity_writes_openid_and_unionid(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """_persist_wechat_openid_identity 应向 Supabase 写入 wx_openid 和 wx_unionid 两条 alias。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DB_URL", "postgresql://example.invalid/db")
+
+    executed: list[tuple[str, str]] = []  # (alias_type, alias_value)
+
+    class _Cursor:
+        def execute(self, query: str, params: tuple) -> None:
+            executed.append((params[0], params[1]))  # alias_type, alias_value
+
+        @staticmethod
+        def fetchone() -> tuple:
+            return ("some-uuid",)  # 模拟写入成功
+
+    class _Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        @staticmethod
+        def cursor() -> _Cursor:
+            return _Cursor()
+
+    fake_psycopg = SimpleNamespace(connect=lambda *_a, **_kw: _Connection())
+    monkeypatch.setitem(sys.modules, "psycopg", fake_psycopg)
+
+    valid_uuid = "d289c0d1-ba78-4d73-9f2e-72d2c0af7424"
+    service._persist_wechat_openid_identity(
+        openid="oid_ABCDEF123456",
+        unionid="uid_XYZ789",
+        canonical_uid=valid_uuid,
+    )
+
+    alias_types = [e[0] for e in executed]
+    alias_values = [e[1] for e in executed]
+    assert "wx_openid" in alias_types, "应写入 wx_openid alias"
+    assert "wx_unionid" in alias_types, "应写入 wx_unionid alias"
+    assert "oid_ABCDEF123456" in alias_values
+    assert "uid_XYZ789" in alias_values
+
+
+def test_persist_wechat_openid_identity_skips_without_unionid(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """unionid 为空时只写 wx_openid，不报错。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DB_URL", "postgresql://example.invalid/db")
+
+    executed: list[str] = []
+
+    class _Cursor:
+        def execute(self, _query: str, params: tuple) -> None:
+            executed.append(params[0])  # alias_type
+
+        @staticmethod
+        def fetchone():
+            return ("uuid",)
+
+    class _Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        @staticmethod
+        def cursor():
+            return _Cursor()
+
+    fake_psycopg = SimpleNamespace(connect=lambda *_a, **_kw: _Connection())
+    monkeypatch.setitem(sys.modules, "psycopg", fake_psycopg)
+
+    service._persist_wechat_openid_identity(
+        openid="oid_ABCDEF123456",
+        unionid="",  # 空 unionid
+        canonical_uid="d289c0d1-ba78-4d73-9f2e-72d2c0af7424",
+    )
+
+    assert executed == ["wx_openid"], "空 unionid 时只写 wx_openid"
+
+
+def test_persist_wechat_openid_identity_skips_non_uuid_canonical(
+    tmp_path: Path,
+) -> None:
+    """canonical_uid 不是 UUID 时静默跳过（wx_ user_id 尚未绑定手机的中间态）。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    # 不应抛出异常，只是静默 return
+    service._persist_wechat_openid_identity(
+        openid="oid_ABC",
+        unionid="uid_XYZ",
+        canonical_uid="wx_O4aNJg7O_wRk",  # 非 UUID
+    )
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_wechat_persists_wechat_openid_identity(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """bind_phone_for_wechat 成功后，openid 和 unionid 应被持久化到 Supabase。"""
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    async def _fake_exchange(_phone_code: str) -> str:
+        return "13812345678"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange)
+
+    # 预埋 wx_ member 含 openid/unionid
+    def _seed(data: dict) -> None:
+        m = service._build_default_member("wx_test_member_id")
+        m["wx_openid"] = "oid_test_openid_1"
+        m["wx_unionid"] = "uid_test_unionid_1"
+        data["members"] = [m]
+
+    service._mutate(_seed)
+
+    wechat_persisted: list[dict] = []
+
+    def _fake_persist_wechat(*, openid: str, unionid: str, canonical_uid: str) -> None:
+        wechat_persisted.append({"openid": openid, "unionid": unionid, "canonical_uid": canonical_uid})
+
+    monkeypatch.setattr(service, "_persist_wechat_openid_identity", _fake_persist_wechat)
+
+    result = await service.bind_phone_for_wechat("wx_test_member_id", "13812345678")
+
+    assert result["phone"] == "13812345678"
+    assert len(wechat_persisted) == 1, "_persist_wechat_openid_identity 应被调用一次"
+    p = wechat_persisted[0]
+    assert p["openid"] == "oid_test_openid_1", "应传入该 member 的 wx_openid"
+    assert p["unionid"] == "uid_test_unionid_1", "应传入该 member 的 wx_unionid"

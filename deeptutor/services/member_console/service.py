@@ -8154,6 +8154,13 @@ class MemberConsoleService:
             openid=auth_identity["openid"] or openid,
             unionid=auth_identity["unionid"] or unionid,
         )
+        # 幂等补写：每次登录都尝试持久化 openid/unionid alias，
+        # 确保首次绑定时 DB 短暂不可用的情况下可在后续登录中自动补全。
+        self._persist_wechat_openid_identity(
+            openid=auth_identity["openid"] or openid,
+            unionid=auth_identity["unionid"] or unionid,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return self._build_auth_response(
             user_id=auth_identity["user_id"],
             token=token,
@@ -8278,12 +8285,19 @@ class MemberConsoleService:
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
         )
+        # openid / unionid 持久化：canonical_uid 已确立后写入，
+        # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
+        self._persist_wechat_openid_identity(
+            openid=str(result.get("openid") or "").strip(),
+            unionid=str(result.get("unionid") or "").strip(),
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return payload
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
         normalized = _normalize_phone_input(phone)
-        if not normalized:
-            raise ValueError("手机号格式不正确")
+        if not normalized or not self._is_cn_mainland_mobile(normalized):
+            raise ValueError("请输入有效的大陆手机号")
         now = _now()
         retry_after = 60
         delivery = "debug"
@@ -8457,6 +8471,78 @@ class MemberConsoleService:
             logger.warning(
                 "phone identity persist failed: phone=%s canonical_uid=%s error=%s",
                 phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+                exc,
+            )
+
+    def _persist_wechat_openid_identity(
+        self, *, openid: str, unionid: str, canonical_uid: str
+    ) -> None:
+        """把微信 openid / unionid 持久化到 user_identity_aliases，支持跨产品身份统一。
+
+        写入时机：微信用户完成手机绑定后，canonical_uid 已确立。
+        - openid  = 当前小程序维度唯一，跨产品不通用
+        - unionid = WeChat Open Platform 账号维度唯一，跨产品关键 key
+
+        写入后，同一微信用户在同一 Open Platform 下的其他小程序首次登录时，
+        _auth_identity_for_member 会通过 wx_unionid alias 直接命中同一 canonical_uid，
+        无需用户再次授权手机号。
+        """
+        if not openid or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        db_url = str(os.getenv("DB_URL") or os.getenv("DATABASE_URL") or "").strip()
+        if not db_url:
+            logger.warning("wechat openid identity persist skipped: DB_URL not configured")
+            return
+        aliases: list[tuple[str, str]] = [("wx_openid", openid)]
+        if unionid:
+            aliases.append(("wx_unionid", unionid))
+        try:
+            try:
+                import psycopg
+
+                conn_ctx = psycopg.connect(db_url, connect_timeout=5)
+            except ImportError:
+                try:
+                    import psycopg2
+
+                    conn_ctx = psycopg2.connect(db_url, connect_timeout=5)
+                except ImportError:
+                    logger.warning("wechat openid identity persist skipped: no psycopg driver installed")
+                    return
+            with conn_ctx as conn:
+                cur = conn.cursor()
+                for alias_type, alias_value in aliases:
+                    cur.execute(
+                        """
+                        INSERT INTO public.user_identity_aliases
+                            (alias_type, alias_value, user_id, source, confidence, verified_at)
+                        VALUES (%s, %s, %s::uuid, %s, %s, now())
+                        ON CONFLICT (alias_type, alias_value) DO UPDATE SET
+                            confidence  = EXCLUDED.confidence,
+                            verified_at = EXCLUDED.verified_at,
+                            updated_at  = now()
+                        WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
+                        RETURNING user_id
+                        """,
+                        (alias_type, alias_value, canonical_uid, "wechat_login", 1.0),
+                    )
+                    if cur.fetchone() is None:
+                        logger.info(
+                            "wechat openid alias not updated (concurrent owner conflict): "
+                            "alias_type=%s canonical_uid=%s",
+                            alias_type,
+                            canonical_uid,
+                        )
+            logger.debug(
+                "wechat openid identity persisted: openid_tail=%s unionid_tail=%s canonical_uid=%s",
+                openid[-6:] if len(openid) >= 6 else "***",
+                unionid[-6:] if unionid and len(unionid) >= 6 else "",
+                canonical_uid,
+            )
+        except Exception as exc:
+            logger.warning(
+                "wechat openid identity persist failed: canonical_uid=%s error=%s",
                 canonical_uid,
                 exc,
             )
