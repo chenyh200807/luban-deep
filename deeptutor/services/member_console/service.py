@@ -6047,6 +6047,35 @@ class MemberConsoleService:
             result["wallet_adjustments"] = wallet_adjustments
         return result
 
+    def delete_member_account(
+        self,
+        user_id: str,
+        *,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        audit = self.record_bi_audit(
+            action="member_account_delete",
+            target_user=normalized_user_id,
+            operator=operator,
+            reason=reason,
+            after={"status": "deleted"},
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "success": True,
+            "user_id": normalized_user_id,
+            "status": "deleted",
+            "message": "会员账号已删除",
+            "credentials_deleted": False,
+            "sessions_invalidated": 0,
+            **audit,
+        }
+
     def update_subscription(
         self,
         user_id: str,

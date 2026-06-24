@@ -824,6 +824,9 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         def record_ops_action_result(self, *args, **kwargs):
             return service._member_service.record_ops_action_result(*args, **kwargs)  # noqa: SLF001
 
+        def delete_member_account(self, *args, **kwargs):
+            return service._member_service.delete_member_account(*args, **kwargs)  # noqa: SLF001
+
     monkeypatch.setattr(
         "deeptutor.api.routers.bi.get_member_console_service",
         lambda: _FullAccessMemberService(),

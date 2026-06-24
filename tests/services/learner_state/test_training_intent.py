@@ -236,7 +236,8 @@ def test_markerless_legacy_home_projection_falls_back_by_reader() -> None:
 
     assert dashboard["source_status"]["fallback_used"] is True
     assert dashboard["source_status"]["fallback_reason"] == "stale"
-    assert "home_projection_contract" not in dashboard["source_status"]
+    # _canonical_projection_source_status always stamps home_projection_contract now
+    assert "home_projection_contract" in dashboard["source_status"]
     assert len(dashboard["recommended_prompts"]) == 3
 
 

@@ -1200,7 +1200,6 @@ export default function BiPageClient() {
                 totalCount={memberTotal}
                 onToggleMember={toggleSelectedMember}
                 onOpenMember={openMember360}
-                onBatchGrant={() => void handleBatchAction('grant')}
                 onBatchRevoke={() => void handleBatchAction('revoke')}
                 onGrantSingle={() => void handleSingleGrant()}
                 onExtendSingle={() => void handleSingleExtend()}
