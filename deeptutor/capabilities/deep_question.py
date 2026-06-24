@@ -676,9 +676,55 @@ def _match_question_bank_item(
     return None
 
 
+def _project_correct_answer_to_target_surface(
+    correct_answer: str,
+    source_options: Any,
+    target_options: Any,
+) -> str:
+    """R1: 把题库面 ``correct_answer`` 字母投影到学生当前题面（按 VALUE 映射）。
+
+    题库与学生粘贴的同一道题选项顺序不同时（值 5% 在题库是 D、学生面是 A），把题库
+    字母直接拷到保留学生 option 面的 item 上会把答对判错。映射：题库字母 → 题库值 →
+    学生面同值字母。fail-safe：选项缺失 / 非 dict / 值有歧义（重复）/ 任一字母映射不到
+    时，原样返回题库字母，绝不瞎猜（保持与既有 `_project_to_query_option_surface` 同口径）。
+    """
+    answer = str(correct_answer or "").strip()
+    if not answer or not isinstance(source_options, dict) or not isinstance(target_options, dict):
+        return answer
+    if not source_options or not target_options:
+        return answer
+
+    def _norm(value: Any) -> str:
+        return re.sub(r"\s+", "", str(value or "")).strip().lower()
+
+    target_by_value: dict[str, str] = {}
+    for key, val in target_options.items():
+        nv = _norm(val)
+        if not nv:
+            continue
+        if nv in target_by_value:
+            return answer  # 学生面有重复值，无法安全映射
+        target_by_value[nv] = str(key).strip().upper()
+
+    source_norm = {str(k).strip().upper(): _norm(v) for k, v in source_options.items()}
+    mapped: list[str] = []
+    for letter in re.findall(r"[A-Z]", answer.upper()):
+        src_value = source_norm.get(letter)
+        target_letter = target_by_value.get(src_value) if src_value else None
+        if not target_letter:
+            return answer  # 这个字母映射不到学生面 → 保留题库字母（fail-safe）
+        mapped.append(target_letter)
+    return "".join(mapped) if mapped else answer
+
+
 def _fill_missing_mcq_authority(target: dict[str, Any], source: dict[str, Any]) -> dict[str, Any]:
     filled = dict(target)
     had_correct_answer = bool(str(filled.get("correct_answer") or "").strip())
+    # R1: 学生若保留自己的 option 面，题库 correct_answer 必须按值投影到该面，
+    # 不能把题库裸字母拷过来（否则选项重排时把答对判错 = 倒诬学生）。
+    target_own_options = (
+        filled.get("options") if isinstance(filled.get("options"), dict) and filled.get("options") else None
+    )
     recovered_correct_answer = False
     for key in (
         "correct_answer",
@@ -693,6 +739,10 @@ def _fill_missing_mcq_authority(target: dict[str, Any], source: dict[str, Any]) 
         if key == "correct_answer" or not filled.get(key):
             value = source.get(key)
             if value not in (None, "", {}):
+                if key == "correct_answer" and target_own_options:
+                    value = _project_correct_answer_to_target_surface(
+                        str(value), source.get("options"), target_own_options
+                    )
                 filled[key] = value
                 if key == "correct_answer" and not had_correct_answer:
                     recovered_correct_answer = True
