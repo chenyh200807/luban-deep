@@ -339,6 +339,7 @@ domains:
       - tests/capabilities/test_deep_question_grading_to_brain_writeback.py
       - tests/core/test_deep_question_case_rubric_v1.py
       - tests/core/test_deep_question_submission_grading.py
+      - tests/services/test_r1_option_surface_grading.py
       - tests/services/test_render_presentation.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
