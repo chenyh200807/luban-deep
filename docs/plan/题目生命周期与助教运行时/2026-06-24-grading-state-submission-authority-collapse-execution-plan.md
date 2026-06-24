@@ -1,6 +1,6 @@
 # 判分态/作答提交单一权威收口执行计划（2026-06-24）
 
-> **状态**: **Steps 1-4.6 已实施 + live-verified GO（6/6,2026-06-24）**。test2 部署完整收口;凭空判分 SEV-1 闭环,硬约束40 保住。Step 5(单一 chokepoint 收口)留待后续止 whack-a-mole。
+> **状态**: **Steps 1-5 全部实施 + live-verified GO（2026-06-24）**。test2 部署完整收口(含 Step 5 单一 chokepoint);凭空判分 SEV-1 闭环、硬约束40 保住、粘贴 MCQ 潜伏回归一并修复。PR #212(待 CI/review 合 main)。残留独立工单:删 deep_question force-grade 兜底(边际收益低,按需)。
 
 ## ★ Live 验证结果（2026-06-24,eval-design ≥3 轮）
 
@@ -70,7 +70,9 @@
 | **2** ✅ **DONE(确定性层)** | `qls:1058-1068` 接 `submission_confidence`:非 LOW(HIGH/batch/numbered)→钉 grading scene(保硬约束40),LOW→不钉、fall through 既有 question_review 路径。**首子句判据**(不是整句):混合轮"我答B,再出3题"仍 HIGH;质疑/回指语义留给 Step 3-4 LLM+历史,confidence 不误降 | 低 | ✅ TDD GREEN + 两全文件 138 passed 零回归 + ground-truth 端到端(enable_llm=False):'我猜A但先别判'→question_review(不再凭空判分)/'我选B'+'我答B再出3题'→mcq_grading/'还没做'+'讲考点'→None。**live 验证待 Step3+ deploy** |
 | **3** | ~~orchestrator case/mcq 接 LLM 门~~ **被 Step 2 吸收**:Step 2 后 mcq_grading/case_grading scene 已 HIGH-only,LOW 永远到不了这两个分支(落 question_review→已有 LLM 门 / None→tutorbot),故"给 grading 分支加 LLM 门"无 LOW 可拦=空操作。无需单独实现 | — | — |
 | **4** ✅ **DONE** | semantic_router.py:760 守卫接 `submission_confidence`:HIGH 缓存提交仍永不翻案(保硬约束40),LOW 缓存"提交"允许 history-aware LLM 复核翻案。当场算 confidence 不依赖跨层缓存透传(避开 risk-four)。打破 shielded-from-veto——这是 Step 2 之外**第二条并行力路径**(turn_runtime 缓存→守卫)的收口 | 中 | ✅ TDD GREEN(LOW 缓存提交→重交 LLM→非 route_to_grading;HIGH→shielded→route_to_grading)+ 176 passed 零回归(semantic_router/stack/orchestrator×2/deep_question 判分)。commit 372416d51 |
-| **5** ⏸ **待 live** | 删 deep_question.py:3847-3881 legacy 二次 resolve + fabrication 点 demote 只读 canonical | 低（次序严格） | **指挥官硬次序:必须先 deploy + live 证明 qls:188+router(Steps 1+2+4)对真作答稳定产出 route_to_grading,再删任何 force-grade 兜底**(否则回归硬约束40) |
+| **5** ✅ **DONE + live GO** | **单一 chokepoint 收口**:`turn_runtime._submission_action_for_user_message`(最上游 submission action 构造点)gate confidence——HIGH 才构造提交动作,LOW 不构造→下游不缓存 submission(未来新下游路径自动继承,止 whack-a-mole);per-path gate 保留作 defense。**顺带修 4.5/4.6 潜伏回归**:submission_confidence 由"首子句"改"任一子句剥前缀=干净答案 token"(修粘贴题面+末尾"我选A,直接批改"被 false-LOW)。contract surface contracts/turn.md 同 commit 记不变量 | 中 | ✅ TDD;广回归 476 passed(修 Step5 前 2 个粘贴 MCQ 失败);**live 非作答 3/3 + 真作答 3/3 + 粘贴MCQ必判✓ = GO**。commit 54cf8c2ac |
+
+> **注**: 原 Step 5(删 deep_question fabrication 兜底)未做——chokepoint gate + per-path defense 已让 LOW 非作答 live 6/6+3/3 不判分;删 force-grade 兜底是更激进清理,边际收益低、风险高,按"先证 router 覆盖再删"原则留独立工单。
 
 **跨缓存透传**（风险四）：Step 1 加 confidence 时必须让 `_normalize_question_followup_action` 透传，否则 start_turn 判 HIGH、_run_turn 重算丢 confidence 退回旧行为。
 
