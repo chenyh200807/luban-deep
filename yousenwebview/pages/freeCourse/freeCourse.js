@@ -115,7 +115,7 @@ Page({
       ]
     ],
     multiIndex: [],
-    imageUrl: '/images/icon/play_icon_02.png', // 设置图片地址，可以替换为自己的图片路径
+    imageUrl: '',
     ggimage:'',
     ggimageurl:'',
     selectedMajorLabel: '一级建造师',
@@ -184,7 +184,7 @@ Page({
       animation.rotate(isExpanded ? 180 : 0).step();
       return {
         rotationAnim: animation.export(),
-        imageUrl: isExpanded ? '/images/icon/play_icon_02_1.png' : '/images/icon/play_icon_02.png'
+        rotationDeg: isExpanded ? 180 : 0
       };
     },
     updateGratisCoursePromotion: function(res) {

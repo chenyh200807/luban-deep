@@ -51,7 +51,7 @@
             >
               <view class="direction-picker-inner">
                 <text class="direction-picker-value">切换专业</text>
-                <image src="{{imageUrl}}" class="direction-picker-icon rotate-image" animation="{{rotationAnim}}"></image>
+                <text class="direction-picker-icon rotate-image" animation="{{rotationAnim}}">▾</text>
               </view>
             </picker>
           </view>

@@ -227,6 +227,11 @@ page {
 .direction-picker-icon {
   width: 36rpx;
   height: 36rpx;
+  font-size: 28rpx;
+  line-height: 36rpx;
+  display: inline-block;
+  text-align: center;
+  color: #10233c;
 }
 
 .rotate-image {
