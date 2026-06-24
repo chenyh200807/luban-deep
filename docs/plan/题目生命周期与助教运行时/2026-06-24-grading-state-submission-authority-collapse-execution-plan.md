@@ -1,6 +1,20 @@
 # 判分态/作答提交单一权威收口执行计划（2026-06-24）
 
-> **状态**: Draft（指挥官裁决已出，Step 0 待实施）
+> **状态**: **Steps 1-4.6 已实施 + live-verified GO（6/6,2026-06-24）**。test2 部署完整收口;凭空判分 SEV-1 闭环,硬约束40 保住。Step 5(单一 chokepoint 收口)留待后续止 whack-a-mole。
+
+## ★ Live 验证结果（2026-06-24,eval-design ≥3 轮）
+
+| 轮次 | 非作答不凭空判分 | 真作答必判（硬约束40） | 揪出 |
+|---|---|---|---|
+| R1（Steps 1+2+4） | **0/3** | 3/3 | LLM interpret「提交优先」偏置 → Step 4.5 |
+| R2（+4.5） | **1/3** | 3/3 | `_decision_from_fallback` 确定性判分 → Step 4.6 |
+| R3+R4（+4.6,完整） | **6/6** | **6/6** | **GO** |
+
+非作答轮 bot 现正确行为:*"好的,我不判答案,也不透露任何正确选项... 你选了A,能说说为什么觉得'听'是方法之一吗?"*（不凭空判分,改引导）。
+
+**eval-design 铁律实证**:unit-green + enable_llm=False 端到端过,但 live R1 NO-GO——判分态有 unit 测试覆盖不到的 LLM 路径偏置;靠 DB-trace `turn_semantic_decision.reason` 逐轮看穿真路径(Langfuse 对 eval-bypass 不写,读 chat_history.db)。这是 multi-writer 实证:逐路径 live 揪逐路径 gate(whack-a-mole),单一 chokepoint(turn_runtime `_submission_action`,Step 5)是更彻底解。
+
+
 > **主线归属**: [跨能力上下文连续性架构](2026-06-20-cross-capability-context-continuity-architecture.md) 的下一增量——闭合该计划列的"剩余 15+ 独立 submission/relation 闸增量收敛"。**不另起主线。**
 > **诊断来源**: `artifacts/grading_state_authority_rootcause_2026-06-24.md` + `artifacts/student_army_eval_grading_2026-06-24.md`
 > **必读**: `CONTRACT.md` + `contracts/index.yaml`（turn/session/stream/TutorBot）；AGENTS §5 根因 + §硬约束40「答题必有解析」。

@@ -52,6 +52,13 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   ground-truth 诊断（dump 真实数据 / 查真实字段值）。
 - **铁律③：判"幻觉 vs 确定性误命中/拼装"的第一信号 = 同一输入是否逐字复现**
   （幻觉会变，确定性拼装逐字同）；先确认这段输出是 LLM 生成还是确定性拼装的。
+- **铁律③.5（2026-06-24 判分态收口血泪）：unit-green + enable_llm=False 端到端过 ≠ live 工作。**
+  判分/路由类的真权威常散在 unit 测试够不着的 **LLM 分类器路径**（prompt 偏置如"提交优先"）
+  + 多条确定性保底路径。**必须 live 验 ≥3 轮 + DB-trace `turn_semantic_decision.reason`**
+  （Langfuse 对 eval-bypass turn 不写，改读容器 `chat_history.db` 的 events_json/metadata_json）
+  逐轮看穿"哪条路径判的分"——reason 字段会自述是 LLM("提交优先原则")还是确定性
+  ("deterministic fallback 命中")。逐路径 gate = whack-a-mole（skill 警告），单一 chokepoint
+  收口（turn_runtime `_submission_action_for_user_message`）才彻底，但风险高须 live 充分后做。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -111,7 +118,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 切换/timeout 后拒答死循环 | 状态污染 | （待复验） | ⚠️ 观察 |
 | 简答/案例判分请求→被 MCQ 生成器抢占,判 bot 自己生成的 MCQ | 判分对象路由错(锚到 bot 自造题非用户真题) | 判分态/判分对象单一 decider 收权 | ❌ **2026-06-24 live 复现**(g6 8处,task#20 簇A) |
 | 回指"刚才那题"→串到别题且编造作答记录("你答了C/多选B和C") | 判分对象=哪道题的权威失守 | 判分对象只能是真实活跃题,无活跃题 fail-closed | ❌ **2026-06-24 live 复现**(g1 T9/g4 T10,task#20 簇A) |
-| 非答题轮("我不会/先别判/还没做")→ 凭空判分 | 无 submitted_answer 仍进判分分支 | 无 submitted_answer 一律禁入判分 | ❌ **2026-06-24 live 复现**(g2 T5/9,task#20 簇A) |
+| 非答题轮("我不会/先别判/还没做")→ 凭空判分 | "是否提交作答"散在确定性关键词+LLM 偏置多 writer(fast-path-as-authority) | submission_confidence 单一信号:HIGH 必判(硬约束40)/LOW 不判;qls scene+semantic_router 守卫+interpret backstop+fallback 全 gate | ✅ **2026-06-24 收口 live GO 6/6**(Steps 1-4.6,plan 判分态收口;凭空判分不再,真作答必判;PR#212)。⚠️残 whack-a-mole:逐路径 gate,单一 chokepoint(turn_runtime _submission_action,Step5)更彻底 |
 | 质疑轮(只反驳未作答)→ 凭空判分"你答了D得0分" + 附和编造修订叙事 | 质疑被误触发阅卷态 + 不重 grounding 无条件附和 | 质疑轮禁判分态 + 强制重走 RAG 核验 | ❌ **2026-06-24 live**(g5 T3/4/7 凭空判分;T10 DeepSeek conf=1.0 编造"罚款2020修订4%→8%",task#20 簇A) |
 | 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
