@@ -283,20 +283,38 @@ page {
 }
 
 /* ── Light Mode — 通过 class 控制，默认深色 ───── */
-/* 用法：在 page 元素上加 class="theme-light" 切换浅色 */
-page.theme-light {
+/* 页面根节点常用 class="... light"，因此 `.light` 也必须承接同一套变量。 */
+page.theme-light,
+.theme-light,
+.light {
+  --primary-400: #3b82f6;
+  --primary-500: #2563eb;
+  --primary-600: #1d4ed8;
+  --accent-gold: #b45309;
+  --accent-green: #047857;
+  --accent-green-light: #059669;
+  --accent-red: #dc2626;
+  --accent-red-light: #ef4444;
+  --accent-cyan: #0284c7;
+  --accent-purple: #6d5bd0;
+  --accent-orange: #c2410c;
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-tertiary: #eef4ff;
+  --bg-card: rgba(255, 255, 255, 0.96);
   --bg-elevated: rgba(255, 255, 255, 0.98);
+  --bg-glass: rgba(255, 255, 255, 0.72);
   --bg-input: #f1f5f9;
   --text-primary: #0f172a;
-  --text-secondary: rgba(15, 23, 42, 0.75);
-  --text-tertiary: rgba(15, 23, 42, 0.6);
-  --text-muted: rgba(15, 23, 42, 0.45);
-  --border-subtle: rgba(0, 0, 0, 0.04);
-  --border-light: rgba(0, 0, 0, 0.06);
-  --border-medium: rgba(0, 0, 0, 0.1);
-  --border: rgba(0, 0, 0, 0.08);
+  --text-secondary: #334155;
+  --text-tertiary: #475569;
+  --text-muted: #64748b;
+  --border-subtle: #e8eef8;
+  --border-light: #dbe6f5;
+  --border-medium: #cbd8ee;
+  --border: #dbe6f5;
+  --shadow-sm: 0 4rpx 16rpx rgba(126, 147, 185, 0.08);
+  --shadow-md: 0 14rpx 34rpx rgba(126, 147, 185, 0.12);
+  --shadow-lg: 0 28rpx 72rpx rgba(126, 147, 185, 0.16);
+  --shadow-glow: 0 0 72rpx rgba(37, 99, 235, 0.14);
 }

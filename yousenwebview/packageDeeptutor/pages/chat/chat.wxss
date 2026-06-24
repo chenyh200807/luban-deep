@@ -1424,6 +1424,68 @@
   font-size: 26rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx;
 }
 
+.nba-card {
+  margin: 18rpx 0;
+  padding: 20rpx 22rpx;
+  border-left: 6rpx solid rgba(52, 211, 153, 0.76);
+  border-radius: 12rpx;
+  background: rgba(6, 78, 59, 0.18);
+}
+.nba-badge {
+  display: inline-block;
+  margin-bottom: 10rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: rgba(167, 243, 208, 0.95);
+  background: rgba(16, 185, 129, 0.16);
+}
+.nba-title {
+  display: block;
+  margin-bottom: 8rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: rgba(240, 253, 250, 0.96);
+  line-height: 1.42;
+}
+.nba-why {
+  display: block;
+  margin-bottom: 10rpx;
+  font-size: 24rpx;
+  color: rgba(203, 213, 225, 0.86);
+  line-height: 1.55;
+}
+.nba-materials {
+  margin-bottom: 10rpx;
+}
+.nba-material {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(226, 232, 240, 0.86);
+  line-height: 1.6;
+}
+.nba-measure {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(167, 243, 208, 0.92);
+  line-height: 1.55;
+}
+.nba-go {
+  display: inline-block;
+  margin-top: 14rpx;
+  padding: 9rpx 24rpx;
+  border-radius: 999rpx;
+  background: rgba(16, 185, 129, 0.92);
+}
+.nba-go:active {
+  transform: scale(0.98);
+}
+.nba-go-label {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
 /* ── 依据 — 独立参考文献区 ─────────────────────── */
 .cite-list {
   margin-top: 24rpx;
@@ -1906,6 +1968,12 @@
   border-color: #d5e1fb;
   box-shadow: 0 14rpx 34rpx rgba(122,146,190,0.14);
 }
+.page.light .focus-label,
+.page.light .focus-title { color: #b45309; }
+.page.light .focus-meta {
+  border-left-color: rgba(180,83,9,0.24);
+  color: #8a4b05;
+}
 .page.light .focus-text { color: #38517c; }
 .page.light .focus-next {
   background: rgba(47,107,255,0.08);
@@ -2160,11 +2228,30 @@
   box-shadow: 0 12rpx 28rpx rgba(47,107,255,0.18);
 }
 
+.page.light .nba-card {
+  background: #ecfdf5;
+  border-left-color: rgba(16, 185, 129, 0.72);
+}
+.page.light .nba-badge {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+.page.light .nba-title {
+  color: #0f172a;
+}
+.page.light .nba-why,
+.page.light .nba-material {
+  color: #475569;
+}
+.page.light .nba-measure {
+  color: #047857;
+}
+
 /* ── 引用来源 ──────────────────────────────── */
 .page.light .cite-list { background: #f8fbff; border-color: #d8e8fb; }
 .page.light .cite-head { border-color: #e2eaf7; }
 .page.light .cite-head-main { color: #2563eb; }
-.page.light .cite-head-sub { color: #8b98ad; }
+.page.light .cite-head-sub { color: #64748b; }
 .page.light .cite + .cite { border-color: #e6edf8; }
 .page.light .cite-key { color: #2f6bff; }
 .page.light .cite-title { color: #334155; }
@@ -2326,7 +2413,7 @@
 .page.light .usage-row-reset { color: #66758a; }
 .page.light .usage-row-percent { color: #5f6f84; }
 .page.light .usage-meter { background: #e5e7eb; }
-.page.light .usage-meter-fill { background: #111827; }
+.page.light .usage-meter-fill { background: linear-gradient(90deg, #2563eb, #059669); }
 
 /* ═══════════════════════════════════════════════
    ★ 低端设备降级 — 关闭动画、减少 GPU 负载

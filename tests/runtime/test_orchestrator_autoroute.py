@@ -2816,15 +2816,16 @@ async def test_question_review_no_active_supplies_canonical_decision_matching_fa
     supplied = context.metadata.get("turn_semantic_decision")
     assert isinstance(supplied, dict) and supplied, "orchestrator must supply a canonical decision"
 
-    # decision-bearing parity with deep_question's former fabrication for this path
-    fabricated = DeepQuestionCapability._default_turn_semantic_decision(
-        next_action="route_to_followup_explainer",
-        active_object=context.metadata.get("active_object"),
-        question_context=context.metadata.get("question_followup_context"),
-        user_message=context.user_message,
-    )
-    for field in ("relation_to_active_object", "next_action", "allowed_patch"):
-        assert supplied.get(field) == fabricated.get(field), f"{field} drifted"
+    # decision-bearing parity with the canonical values the orchestrator now supplies
+    # (formerly fabricated by _default_turn_semantic_decision, now removed in task#20)
+    # allowed_patch is normalized to a list by normalize_turn_semantic_decision
+    assert supplied.get("relation_to_active_object") == "ask_about_active_object", "relation drifted"
+    assert supplied.get("next_action") == "route_to_followup_explainer", "next_action drifted"
+    supplied_patch = supplied.get("allowed_patch")
+    if isinstance(supplied_patch, list):
+        assert "no_state_change" in supplied_patch, "allowed_patch drifted"
+    else:
+        assert supplied_patch == "no_state_change", "allowed_patch drifted"
 
     # deep_question now reads the canonical decision → no fabrication, no observation flag
     assert DeepQuestionCapability._canonical_turn_decision_missing(context.metadata) is False

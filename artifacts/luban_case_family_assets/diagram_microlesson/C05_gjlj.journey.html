@@ -1,0 +1,437 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>钢筋连接选用 · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.s-bar,.s-ways,.s-knob,.s-needle,.s-pct,.s-endpoint,.s-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .reached-ways .s-ways{opacity:1} .s-knob{transform:translateY(6px)} .reached-knob .s-knob{opacity:1;transform:none} .s-needle{transform:rotate(-26deg);transform-origin:180px 150px;transition:transform .6s ease-out,opacity .45s ease-out} .reached-knob .s-needle{opacity:1} .reached-pct .s-needle{opacity:1;transform:rotate(22deg)} .reached-pct .s-pct{opacity:1} .s-endpoint{transform:translateY(6px)} .reached-endpoint .s-endpoint{opacity:1;transform:none} .s-chain{transform:translateY(6px)} .reached-chain .s-chain{opacity:1;transform:none} .s-rail{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.ways{fill:#7fc7ff}.s-note.knob{fill:#ffd27f}.s-note.pct{fill:#ff9b3a}.s-note.endpoint{fill:#7fe6ab}.s-note.chain{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-dtxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="C05_gjlj" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>钢筋连接选用</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">焊接、机械连接、绑扎连接三种</button><button class="" type="button">剥肋滚压直螺纹套筒最常用</button><button class="" type="button">直接承受动力荷载机械连接</button><button class="" type="button">接头面积百分率不应超过50%</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边转&#x27;直径·受力·荷载·部位&#x27;四旋钮,指针落到绑扎/机械/焊接哪一档,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='钢筋连接选用四旋钮三档示意'><rect x='28' y='150' width='304' height='12' rx='2' class='s-rail' data-visual-node-id='rail.base'/><text class='s-lbl' x='32' y='246'>钢筋连接选用(四输入旋钮 → 绑扎/机械/焊接三档 + 接头限值)</text><g class='s-ways' data-visual-node-id='ways.three'><rect x='40' y='44' width='66' height='20' rx='3' fill='#16253a' stroke='#7fc7ff' stroke-width='1'/><text class='s-dtxt' x='73' y='57' text-anchor='middle'>焊接</text><rect x='118' y='44' width='84' height='20' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-dtxt' x='160' y='57' text-anchor='middle'>机械(直螺纹套筒)</text><rect x='214' y='44' width='66' height='20' rx='3' fill='#33240f' stroke='#ffb15a' stroke-width='1'/><text class='s-dtxt' x='247' y='57' text-anchor='middle'>绑扎搭接</text><text class='s-note ways' x='160' y='38' text-anchor='middle'>三类连接:传力机理不同,适用面不同</text></g><g class='s-knob' data-visual-node-id='knob.four'><circle cx='52' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='52' y='112' text-anchor='middle'>直径</text><circle cx='100' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='100' y='112' text-anchor='middle'>受力</text><circle cx='148' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='148' y='112' text-anchor='middle'>荷载</text><circle cx='196' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='196' y='112' text-anchor='middle'>部位</text><text class='s-note knob' x='124' y='130' text-anchor='middle'>四旋钮一转,指针落到正确档</text></g><g class='s-needle' data-visual-node-id='needle.tier'><line x1='180' y1='150' x2='180' y2='96' stroke='#ffd27f' stroke-width='3'/><circle cx='180' cy='150' r='4' fill='#ffd27f'/></g><g class='s-pct' data-visual-node-id='pct.bar'><rect x='240' y='92' width='84' height='12' rx='2' fill='#33240f' stroke='#ff9b3a' stroke-width='1'/><rect x='240' y='92' width='42' height='12' rx='2' fill='#ff9b3a'/><line x1='282' y1='86' x2='282' y2='110' stroke='#ff5a5a' stroke-width='2'/><text class='s-dtxt' x='324' y='118' text-anchor='end'>动力机械连接:接头百分率有强制上限</text><text class='s-note pct' x='280' y='82' text-anchor='middle'>动力荷载机械连接:不应超过那条限值线</text></g><g class='s-endpoint' data-visual-node-id='endpoint.split'><rect x='30' y='176' width='140' height='30' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1'/><text class='s-vtxt' x='38' y='190'>受拉Φ28/桁架拉杆/行车梁 → 不宜绑扎</text><text class='s-vtxt' x='38' y='202'>受压Φ25 中小直径静载 → 可绑扎(拉25压28)</text><text class='s-note endpoint' x='100' y='220' text-anchor='middle'>端点退档:小直径受压静载才退绑扎</text></g><g class='s-chain' data-visual-node-id='invariant.select'><circle cx='210' cy='190' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='210' y='193' text-anchor='middle'>认四输入</text><circle cx='300' cy='190' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='300' y='193' text-anchor='middle'>对上限值</text><path d='M223 190 H287' stroke='#7fe6ab' stroke-width='2'/><text class='s-note chain' x='255' y='176' text-anchor='middle'>判读链=认四输入→匹配方式→对上限值</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">焊接、机械连接、绑扎连接三种</span><span data-visual-node-id="score.atom.2">剥肋滚压直螺纹套筒最常用</span><span data-visual-node-id="score.atom.3">直接承受动力荷载机械连接</span><span data-visual-node-id="score.atom.4">接头面积百分率不应超过50%</span><span data-visual-node-id="score.atom.5">关键词不应</span><span data-visual-node-id="score.atom.6">梁上部接头宜跨中1/3</span><span data-visual-node-id="score.atom.7">下部接头宜梁端1/3</span><span data-visual-node-id="score.atom.8">柱距楼面≥500mm/H/6/b</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">钢筋连接选用不是背 50%、Φ28、Φ25 几个数 → 是&#x27;认对四输入(直径×受力×荷载×部位)→匹配三档方式→对上接头限值&#x27;同一条判读链。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">钢筋连接选用,丢分在只背数字不认四输入</div>
+<div class="kc kc-a" data-start="5.24" data-seg-idx="1" data-beat-id="ways" data-action-id="ways.keycard" data-visual-node-id="keycard.ways">三类连接:焊接/机械连接/绑扎;机械以直螺纹套筒最常用</div>
+<div class="kc kc-a" data-start="18.496" data-seg-idx="2" data-beat-id="knob" data-action-id="knob.keycard" data-visual-node-id="keycard.knob">四旋钮:直径×受力×荷载×部位 → 匹配三档方式</div>
+<div class="kc kc-a" data-start="32.311" data-seg-idx="3" data-beat-id="pct" data-action-id="pct.keycard" data-visual-node-id="keycard.pct">动力荷载机械连接:接头面积百分率不应超过50%</div>
+<div class="kc kc-a" data-start="46.277" data-seg-idx="4" data-beat-id="endpoint" data-action-id="endpoint.keycard" data-visual-node-id="keycard.endpoint">端点退档:受拉Φ28/桁架拉杆/行车梁不宜绑扎;受压Φ25可绑扎</div>
+<div class="kc kc-score" data-start="60.595" data-seg-idx="5" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:三类连接·动力机械连接不应超50%·梁跨中1/3·代换等强度等面积</div>
+<div class="kc kc-concl" data-start="75.875" data-seg-idx="6" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">迁移:判读链通用,判据随连接方式/构件变(装配式看逐根/600mm/套筒灌浆)</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,是不是机械连接最牢,一律选它最稳?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">不是比谁最牢,是匹配。动力荷载、大直径受拉、桁架拉杆才往机械连接;受压Φ二五小直径静载,绑扎就行。把绑扎塞给大直径受拉就是端点搞反。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">动力荷载机械连接那个百分率,写&#x27;不宜超过50%&#x27;扣分吗?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">扣。动力荷载机械连接是&#x27;不应&#x27;超过五成,带强制性;写成&#x27;不宜&#x27;就降成建议、丢关键词分。和受拉接头&#x27;不宜超过&#x27;是两套口径。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">钢筋代换,我写&#x27;等刚度加等面积&#x27;对不对?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">不对,等刚度不是基本要求。基本要求是等强度加等面积加构造,还得设计单位同意。等刚度是经典干扰项。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="C05_gjlj.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_above_pct"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 上限档(明显超百分率限值·违规)</p><p class="qstem">某构件直接承受动力荷载,采用机械连接,设计把同一连接区段内的接头面积百分率定得明显超过了规范给的那条上限。这样选用合规吗?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 合规,只要用的是机械连接,接头多排几个没关系</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 换成绑扎搭接就没有这个限制了,改绑扎即可</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 不合规:直接承受动力荷载的机械连接,接头面积百分率有强制上限,明显超过这条线就违规,得把接头错开降到限值以内</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_on_the_line"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 中间边界陷阱档(正好压在限值线上·关键词不应)·关键鉴别</p><p class="qstem">另一项动力荷载机械连接,接头面积百分率正好压在规范那条上限线上(题面只说&#x27;不超过那条线、贴着线&#x27;),其余构造都对。这项选用该怎么定,采分上要盯什么?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 贴着线就是超了,一律判不合规</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 贴着线、没越过即在限值以内合规;但采分要写&#x27;不应超过&#x27;这条强制口径,不能弱化成&#x27;不宜超过&#x27;</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 差不多到线了,&#x27;不宜超过&#x27;写一下意思到了就行</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_below_pct"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 下限档(可退绑扎·选用合理)</p><p class="qstem">同一工地另一根钢筋:受压、中小直径、静载、非关键部位,接头数量也明显控制在很低的水平(题面只说&#x27;远低于限值&#x27;)。现场用绑扎搭接连接。该怎么判?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 受压、中小直径、静载、非关键,本就允许退到绑扎搭接,接头量又远低于限值,选用合理</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 只要是钢筋连接就一律得用机械连接(直螺纹套筒),绑扎一概不许</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 接头这么少,搭接长度、错开都可以省了,绑上就行</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_transfer_precast"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 迁移档(换构件·判据切换)·关键鉴别</p><p class="qstem">换个构件:不是现浇板底受力筋,而是装配式剪力墙的竖向钢筋连接,且是一二级抗震的底部加强区。判据应该怎么用?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 都是钢筋连接,照板底那套&#x27;拉25压28、绑扎搭接&#x27;判就行</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 判读链照走但判据换一套:装配式竖向连接边缘构件逐根连接、非边缘区间距≤600mm,一二级抗震底部加强区宜套筒灌浆,不套现浇绑扎那套端点</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 换成装配式,钢筋连接选用这条判读链就不适用了,凭经验干</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;钢筋连接选用数值(动力荷载机械连接接头面积百分率50%、受拉Φ28/受压Φ25 端点、梁跨中1/3·梁端1/3、柱500mm/H6/b、装配式600mm、等强度/等面积代换等)与判分口径以现行规范、教材和你的考试大纲为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="149.712" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="ways" data-t="5.24">三类连接</button><button class="dot beat-dot" data-state="knob" data-t="18.496">四旋钮</button><button class="dot beat-dot" data-state="pct" data-t="32.311">动力≤50%</button><button class="dot beat-dot" data-state="endpoint" data-t="46.277">端点退档</button><button class="dot beat-dot" data-state="chain" data-t="75.875">判读链</button><a class="dot practice-dot" href="C05_gjlj.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="C05_gjlj.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 149.712, "teachEndSec": 93.876, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "钢筋连接选用,别背几个数,今天学认四输入。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "ways", "qaIndex": null, "text": "连接就三类:焊接、机械连接、绑扎连接;机械连接里直螺纹套筒最常用。传力机理不同,选用是匹配,不是背哪种最牢。", "startSec": 5.24}, {"idx": 2, "kind": "teach", "state": "knob", "qaIndex": null, "text": "选用就是转四输入:直径、受力、荷载、部位。大直径受拉、动力荷载、抗震关键往机械连接;小直径受压静载才退绑扎搭接。", "startSec": 18.496}, {"idx": 3, "kind": "teach", "state": "pct", "qaIndex": null, "text": "选定还要对限值。直接承受动力荷载用机械连接,接头面积百分率不应超过五成,'不应'是强制词。动力荷载不宜焊接,故首选机械连接。", "startSec": 32.311}, {"idx": 4, "kind": "teach", "state": "endpoint", "qaIndex": null, "text": "再看退绑扎的端点。受拉Φ二八、桁架拉杆、行车梁,不宜绑扎;受压Φ二五小直径静载才可绑扎。口诀:拉二五、压二八、不宜绑扎。", "startSec": 46.277}, {"idx": 5, "kind": "teach", "state": "endpoint", "qaIndex": null, "text": "采分盯这几组:连接三类加直螺纹套筒;动力荷载机械连接接头不应超过五成;梁接头上部跨中、下部梁端各三分之一;代换等强度加等面积。", "startSec": 60.595}, {"idx": 6, "kind": "teach", "state": "chain", "qaIndex": null, "text": "记这条判读链:认四输入、匹配方式、对上限值。换装配式竖向钢筋,链不变、判据换一套——边缘构件逐根、非边缘六百毫米、底部加强区套筒灌浆。换构件链都成立。", "startSec": 75.875}, {"idx": 7, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,是不是机械连接最牢,一律选它最稳?", "startSec": 94.275}, {"idx": 8, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "不是比谁最牢,是匹配。动力荷载、大直径受拉、桁架拉杆才往机械连接;受压Φ二五小直径静载,绑扎就行。把绑扎塞给大直径受拉就是端点搞反。", "startSec": 99.072}, {"idx": 9, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "动力荷载机械连接那个百分率,写'不宜超过50%'扣分吗?", "startSec": 114.715}, {"idx": 10, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "扣。动力荷载机械连接是'不应'超过五成,带强制性;写成'不宜'就降成建议、丢关键词分。和受拉接头'不宜超过'是两套口径。", "startSec": 120.884}, {"idx": 11, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "钢筋代换,我写'等刚度加等面积'对不对?", "startSec": 134.115}, {"idx": 12, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "不对,等刚度不是基本要求。基本要求是等强度加等面积加构造,还得设计单位同意。等刚度是经典干扰项。", "startSec": 138.266}], "variants": [{"id": "V1_above_pct", "answer": "C", "feedback": "对:动力荷载的机械连接,接头面积百分率有一条不能踩的强制上限。明显超过就违规,得把接头错开、降到线以内,不是'机械连接就随便排'。也别想着改绑扎躲限制——动力荷载本来就不宜绑扎、不宜焊接,机械连接才是首选。", "basis": "直接承受动力荷载的结构构件采用机械连接时,接头面积百分率有一条强制上限(规范用'不应超过');接头扎堆排、明显越过这条线就违规,正确动作是把接头沿杆长错开、降到限值以内。改绑扎(B)更不对——动力荷载本就不宜绑扎/不宜焊接,首选还是机械连接", "tier": "上限档(明显超百分率限值·违规)"}, {"id": "V2_on_the_line", "answer": "B", "feedback": "对:这条限值是'不超过',贴着线没越过就在限值内,不能直接判超。但这道题真正卡人的是采分关键词——动力荷载机械连接是'不应'超过,带强制性;写成'不宜超过'就降成建议、丢关键词分。卡在线上时,先按限值内判合规,再把'不应'这个词稳稳写对,才是看穿点。", "basis": "这条限值是'不超过'(含线内即合规),贴着线没越过仍在限值内,不能一刀切判超(A);但真正的看穿点在采分关键词——直接承受动力荷载机械连接是'不应'超过(强制性),把它弱化成'不宜超过'(建议性)就丢关键词分(C)。卡在线上这道题最容易把'不应/不宜'两个口径搅混", "tier": "中间边界陷阱档(正好压在限值线上·关键词不应)·关键鉴别"}, {"id": "V3_below_pct", "answer": "A", "feedback": "对:受压、中小直径、静载、非关键,本就允许退到绑扎搭接(拉25压28),接头量又远低于限值,这么选合理,不用一律上直螺纹套筒。但'能绑扎'不是'随便绑',搭接长度、接头错开、构造照样得满足。两头别走偏:不是'一律机械连接',也不是'接头少就省构造'。", "basis": "受压、中小直径、静载、非关键部位正是允许退到绑扎搭接的端点(拉25压28),接头量又远低于限值,选用合理,不必一律上机械连接;但'能绑扎'不等于'随便绑'——搭接长度、接头错开、构造要求仍要满足。'一律机械连接'(B)和'接头少就省构造'(C)都把分层判读丢了", "tier": "下限档(可退绑扎·选用合理)"}, {"id": "V4_transfer_precast", "answer": "B", "feedback": "对:换成装配式竖向钢筋,判读链还是那条——认输入、匹配方式、对上限值;只是判据换了一套:边缘构件逐根连接、非边缘≤600mm、一二级抗震底部加强区走套筒灌浆,不能把现浇绑扎'拉25压28'硬套过来。能分清现浇和装配式两套判据,才是真会迁移,不是把一套数硬套到底。", "basis": "换到装配式竖向钢筋,判读链(认四输入→匹配方式→对上限值)不变,但判据随构件切换:装配式竖向连接看边缘构件逐根连接、非边缘区≤600mm、一二级抗震底部加强区宜套筒灌浆,不是现浇绑扎那套'拉25压28'端点。把现浇绑扎规则硬套到装配式(A)、或以为换构件就没判读链(C)都丢了'判据随构件切换'这个鉴别点", "tier": "迁移档(换构件·判据切换)·关键鉴别"}], "keyIdx": [1, 3], "warm": {"all_correct": "你是真的把钢筋连接选用这条判读链走通了——不管是定接头百分率合不合规,还是判装配式竖向连接,都先认对四输入、再匹配方式、最后对上限值,连'接头正好压在限值线上先按线内判、再把不应写对''换装配式判据跟着换一套'这种边界都分得清。这类题稳,换什么直径、什么构件你都不慌。", "partial": "判读链你会走,就差最关键的那一下:接头百分率贴着上限线时,先按'不超过即合规'判,再把'不应'这个强制关键词稳稳写对,别弱化成'不宜';换个构件(板底→装配式竖向),判据跟着换一套——边缘构件逐根、非边缘600mm、底部加强区套筒灌浆,别再套现浇那套'拉25压28'。把这两点补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'50%、Φ28、Φ25'这几个数。记这条判读链:先认对四输入(直径×受力×荷载×部位)→ 再匹配连接方式(动力·大直径受拉→机械连接、小直径受压静载→绑扎)→ 最后对上限值(动力机械连接接头不应超过50%、梁跨中1/3梁端1/3)。换直径、换构件这条链都成立,只是判据随场景。走顺这条链,接头卡边界、换装配式你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "C05_gjlj", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:rail.base", "target_id": "rail.base"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "ways", "stage": "ways", "actions": [{"id": "ways.reveal.0", "type": "reveal", "target": "data-id:ways.three", "target_id": "ways.three"}, {"id": "ways.keycard.1", "type": "keycard", "target": "data-id:keycard.ways", "target_id": "keycard.ways"}]}, {"id": "knob", "stage": "knob", "actions": [{"id": "knob.reveal.0", "type": "reveal", "target": "data-id:knob.four", "target_id": "knob.four"}, {"id": "knob.reveal.1", "type": "reveal", "target": "data-id:needle.tier", "target_id": "needle.tier"}, {"id": "knob.keycard.2", "type": "keycard", "target": "data-id:keycard.knob", "target_id": "keycard.knob"}]}, {"id": "pct", "stage": "pct", "actions": [{"id": "pct.reveal.0", "type": "reveal", "target": "data-id:pct.bar", "target_id": "pct.bar"}, {"id": "pct.highlight.1", "type": "highlight", "target": "data-id:needle.tier", "target_id": "needle.tier"}, {"id": "pct.keycard.2", "type": "keycard", "target": "data-id:keycard.pct", "target_id": "keycard.pct"}]}, {"id": "endpoint", "stage": "endpoint", "actions": [{"id": "endpoint.reveal.0", "type": "reveal", "target": "data-id:endpoint.split", "target_id": "endpoint.split"}, {"id": "endpoint.keycard.1", "type": "keycard", "target": "data-id:keycard.endpoint", "target_id": "keycard.endpoint"}]}, {"id": "score", "stage": "endpoint", "actions": [{"id": "score.highlight.0", "type": "highlight", "target": "data-id:pct.bar", "target_id": "pct.bar"}, {"id": "score.keycard.1", "type": "keycard", "target": "data-id:keycard.score", "target_id": "keycard.score"}]}, {"id": "transfer", "stage": "chain", "actions": [{"id": "transfer.reveal.0", "type": "reveal", "target": "data-id:invariant.select", "target_id": "invariant.select"}, {"id": "transfer.keycard.1", "type": "keycard", "target": "data-id:keycard.transfer", "target_id": "keycard.transfer"}, {"id": "transfer.camera.2", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}]}]};
+	const ORDER=["intro", "ways", "knob", "pct", "endpoint", "chain"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

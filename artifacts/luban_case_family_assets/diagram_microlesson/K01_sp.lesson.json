@@ -1,0 +1,153 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "K01_sp",
+  "derived_from": "K01_sp.json",
+  "archetype_master_ref": "K01_sp.master.json",
+  "style": "teach_then_qa",
+  "title": "索赔成立与工期费用计算 · 老师带你看懂两道闸门",
+  "subtitle": "老师边讲边把'立案开关→工期闸(关键线路/总时差)→费用闸(责任归属)→程序时效'这条裁决链画出来,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 K01(判定+计算复合类·索赔成立与计算)造成讲懂幕。舞台=双闸门裁决流水线(立案开关→工期闸:关键红线/非关键蓝线+总时差弹簧→费用闸:责任筛分两盘+发包人加利润→互不蕴含裂点→不可抗力人机切分→28天沙漏;stage 外置 svg+states+css+banner;CSS 用 reached-<state> 累进揭示)。reveal 严格沿 K01.md §7 镜头 reveal 顺序(双闸门并排→工期闸非关键弹簧→费用闸责任筛→互不蕴含裂点→不可抗力切分→28天沙漏)。beat 旁白事实/规则全部 anchor 回 K01_sp.json 真实字段(防漂移闸),规则回 §2/§3/§5 教材锚,不手写新规则;复合类题面输入(延误天数/总时差/损失明细/责任方)在闯关给,讲懂只讲规则与判据。先讲后问双人答疑;迁移铺垫 beat anchor master:R2_invariant。pack §5 R7 缺口与 §8/§9 自审(网络图数值自相矛盾真题)不在旁白冒充。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体判据(双闸门母规则、工期三分支、不可抗力人机分摊、发包人责任可加利润、未约定28天意向通知、证据四性)以现行教材、合同范本和你的考试大纲为准;pack 已自曝 R7 五边界为待裁决候选、网络图数值自相矛盾真题须人工重算等缺口。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表,学情归 LearnerStateService",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "索赔不是'看责任在谁就一锅判' → 一个事件两道独立闸门:工期闸只认关键线路/总时差、费用闸只认责任归属,两闸互不蕴含;责任在对方≠工期顺延,非关键延误未超总时差不顺延,不可抗力人机各负其责。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "intake", "label": "立案开关"},
+      {"id": "schedule", "label": "工期闸"},
+      {"id": "cost", "label": "费用闸"},
+      {"id": "split", "label": "不可抗力切分"},
+      {"id": "procedure", "label": "程序时效"},
+      {"id": "gates", "label": "四道门"}
+    ],
+    "css": ".s-intake,.s-skey,.s-snonkey,.s-spring,.s-sieve,.s-profit,.s-crack,.s-fmsplit,.s-hourglass,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-intake{transform:translateY(6px)} .reached-intake .s-intake{opacity:1;transform:none} .s-skey{transform:translateX(-6px)} .reached-schedule .s-skey{opacity:1;transform:none} .s-snonkey{transform:translateX(-6px)} .reached-schedule .s-snonkey{opacity:1;transform:none;transition-delay:.12s} .s-spring{transform:translateY(6px)} .reached-schedule .s-spring{opacity:1;transform:none;transition-delay:.2s} .s-sieve{transform:translateY(8px)} .reached-cost .s-sieve{opacity:1;transform:none} .s-profit{transform:translateY(-4px)} .reached-cost .s-profit{opacity:1;transform:none;transition-delay:.16s} .s-crack{transform:scaleY(.3)} .reached-cost .s-crack{opacity:1;transform:none;transition-delay:.24s} .s-fmsplit{transform:translateY(6px)} .reached-split .s-fmsplit{opacity:1;transform:none} .s-hourglass{transform:translateY(6px)} .reached-procedure .s-hourglass{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.intake{fill:#9fd0ff}.s-note.sched{fill:#7fc7ff}.s-note.cost{fill:#ffd27f}.s-note.crack{fill:#ff7f50}.s-note.split{fill:#bfe0ff}.s-note.proc{fill:#7fe6ab}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#cfe0f0;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='索赔双闸门裁决流水线剖面'><rect x='20' y='214' width='320' height='8' rx='2' fill='#5d6f86' data-visual-node-id='chain.base'/><text class='s-lbl' x='24' y='240'>裁决链:立案开关→工期闸(关键线路/总时差)→费用闸(责任归属)→程序时效;两闸互不蕴含</text><g class='s-intake' data-visual-node-id='intake.switch'><rect x='24' y='44' width='70' height='26' rx='4' fill='#15273a' stroke='#9fd0ff' stroke-width='1.2'/><text class='s-vtxt' x='59' y='60' text-anchor='middle'>立案开关</text><text class='s-note intake' x='59' y='84' text-anchor='middle'>非承包人原因·只决定能不能谈</text></g><g class='s-skey' data-visual-node-id='schedule.keyline'><path d='M120 56 H210' stroke='#ff5d5d' stroke-width='3'/><text class='s-vtxt' x='165' y='50' text-anchor='middle'>关键线路 总时差0</text><text class='s-note sched' x='165' y='86' text-anchor='middle'>工期闸:关键延误→顺延同等</text></g><g class='s-snonkey' data-visual-node-id='schedule.nonkey'><path d='M120 104 H210' stroke='#5d9bff' stroke-width='2.4' stroke-dasharray='4 3'/><text class='s-vtxt' x='165' y='100' text-anchor='middle'>非关键线路 有总时差</text></g><g class='s-spring' data-visual-node-id='schedule.float'><path d='M218 96 q6 -6 0 -12 q-6 -6 0 -12 q6 -6 0 -12' stroke='#5d9bff' stroke-width='1.6' fill='none'/><text class='s-ttxt' x='250' y='110' text-anchor='middle'>总时差=弹簧·先吸收</text><text class='s-note sched' x='250' y='122' text-anchor='middle'>未超不顺延·超出才索超出</text></g><g class='s-sieve' data-visual-node-id='cost.sieve'><rect x='40' y='140' width='80' height='12' rx='2' fill='none' stroke='#ffd27f' stroke-dasharray='3 2'/><rect x='30' y='168' width='40' height='22' rx='3' fill='#3a2f18' stroke='#ffd27f'/><text class='s-ttxt' x='50' y='182' text-anchor='middle'>发包人盘</text><rect x='90' y='168' width='40' height='22' rx='3' fill='#1a2630' stroke='#9fb0c2'/><text class='s-ttxt' x='110' y='182' text-anchor='middle'>承包人盘</text><text class='s-note cost' x='80' y='134' text-anchor='middle'>费用闸:责任筛·只认责任在谁</text></g><g class='s-profit' data-visual-node-id='cost.profit'><rect x='30' y='196' width='40' height='12' rx='2' fill='#3a2f18' stroke='#ffe6a0' stroke-dasharray='2 2'/><text class='s-ttxt' x='50' y='205' text-anchor='middle'>发包人责任+利润</text></g><g class='s-crack' data-visual-node-id='valves.crack'><path d='M214 130 L214 200' stroke='#ff7f50' stroke-width='2' stroke-dasharray='4 3'/><text class='s-note crack' x='214' y='126' text-anchor='middle'>互不蕴含</text><text class='s-ttxt' x='214' y='212' text-anchor='middle'>工期不成立≠费用不成立</text></g><g class='s-fmsplit' data-visual-node-id='fm.split'><rect x='246' y='150' width='42' height='20' rx='3' fill='#102820' stroke='#bfe0ff'/><text class='s-ttxt' x='267' y='163' text-anchor='middle'>实体修复→发包人</text><rect x='246' y='176' width='42' height='20' rx='3' fill='#1a2630' stroke='#9fb0c2'/><text class='s-ttxt' x='267' y='189' text-anchor='middle'>自有机具→自担</text><text class='s-note split' x='267' y='144' text-anchor='middle'>不可抗力:人机各负其责</text></g><g class='s-hourglass' data-visual-node-id='procedure.hourglass'><path d='M300 196 L320 196 L310 206 Z' fill='#16321f' stroke='#7fe6ab'/><path d='M300 216 L320 216 L310 206 Z' fill='#16321f' stroke='#7fe6ab'/><text class='s-note proc' x='310' y='192' text-anchor='middle'>28天意向通知</text></g><g class='s-gates' data-visual-node-id='gate.four'><circle cx='318' cy='44' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='47' text-anchor='middle'>立案</text><circle cx='318' cy='74' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='77' text-anchor='middle'>工期</text><circle cx='318' cy='104' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='107' text-anchor='middle'>费用</text><circle cx='290' cy='74' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='290' y='77' text-anchor='middle'>程序</text><text class='s-note gates' x='300' y='30' text-anchor='middle'>四门各判各的</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {
+        "id": "intro",
+        "stage": "intro",
+        "claim": false,
+        "keycard": {"text": "索赔丢分,在拿责任一锅判:一个事件其实是两道独立闸门,工期一道、费用一道", "tone": "q"},
+        "sync_keyword": "两道闸门",
+        "animation_action": [
+          {"type": "camera", "target": "data-id:chain.base"},
+          {"type": "keycard", "target": "data-id:keycard.intro"}
+        ],
+        "narration": "索赔这题,很多人看责任在谁就一锅判。其实一个事件有两道独立闸门,工期一道、费用一道。"
+      },
+      {
+        "id": "intake",
+        "stage": "intake",
+        "claim": true,
+        "anchor": "causal_chain.k1_two_valves_intro.claim",
+        "keycard": {"text": "立案开关:非承包人原因→可以谈;但它只决定有没有资格谈,不决定工期费用各赔多少", "tone": "a"},
+        "sync_keyword": "立案",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:intake.switch"},
+          {"type": "keycard", "target": "data-id:keycard.intake"}
+        ],
+        "narration": "起点是立案开关。非承包人原因才有资格谈;但它只决定能不能谈,不决定工期费用各赔多少,那是后面两道闸的事。"
+      },
+      {
+        "id": "schedule",
+        "stage": "schedule",
+        "claim": true,
+        "anchor": "causal_chain.k2_schedule_valve.claim",
+        "keycard": {"text": "工期闸只认网络位置:关键线路延误几月顺延几月;非关键先用总时差吸收,未超不索、超出只索超出部分", "tone": "a"},
+        "sync_keyword": "关键线路",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:schedule.keyline"},
+          {"type": "reveal", "target": "data-id:schedule.nonkey"},
+          {"type": "reveal", "target": "data-id:schedule.float"},
+          {"type": "keycard", "target": "data-id:keycard.schedule"}
+        ],
+        "narration": "第一道工期闸,只认网络位置。关键线路延误几月顺延几月;非关键先用总时差吸收,没超不顺延,超出才索超出部分。"
+      },
+      {
+        "id": "cost",
+        "stage": "cost",
+        "claim": true,
+        "anchor": "causal_chain.k3_cost_valve.claim",
+        "keycard": {"text": "费用闸只认责任归属:承包人自担;不可抗力人机各负其责;发包人责任全额可索、通常还可加利润", "tone": "a"},
+        "sync_keyword": "责任",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:cost.sieve"},
+          {"type": "reveal", "target": "data-id:cost.profit"},
+          {"type": "keycard", "target": "data-id:keycard.cost"}
+        ],
+        "narration": "第二道费用闸,只认责任在谁。承包人自己的损失自担;不可抗力人机各负其责;发包人责任全额可索,通常还能加索利润。"
+      },
+      {
+        "id": "independence",
+        "stage": "cost",
+        "claim": true,
+        "anchor": "master:R2_invariant",
+        "keycard": {"text": "互不蕴含:工期成立≠费用成立;责任在对方≠工期就顺延;非关键没超总时差,工期不顺延但费用照样可成立", "tone": "a"},
+        "sync_keyword": "互不蕴含",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:valves.crack"},
+          {"type": "keycard", "target": "data-id:keycard.independence"}
+        ],
+        "narration": "最常考的裂点:两道闸互不蕴含。责任在对方不等于工期顺延;非关键没超总时差,工期不顺延,费用照样能成立。换情形链不变、判据切。"
+      },
+      {
+        "id": "split",
+        "stage": "split",
+        "claim": true,
+        "anchor": "causal_chain.k5_force_majeure_split.claim",
+        "keycard": {"text": "不可抗力不是一刀切:承包人自己的机具/设备自担,工程实体修复+已运材料+清理修复归发包人", "tone": "a"},
+        "sync_keyword": "不可抗力",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:fm.split"},
+          {"type": "keycard", "target": "data-id:keycard.split"}
+        ],
+        "narration": "费用闸里最易错的是不可抗力,它不是一刀切给发包人。承包人自己的机具设备损失自担,工程实体修复和清理修复才归发包人,逐项剔除别全推过去。"
+      },
+      {
+        "id": "procedure",
+        "stage": "procedure",
+        "claim": true,
+        "anchor": "causal_chain.k6_procedure_floor.claim",
+        "keycard": {"text": "程序时效闸:事件后未约定28天内提书面意向通知,逾期丧权;并提供真实/全面/法律效力/及时的证据", "tone": "a"},
+        "sync_keyword": "意向通知",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:procedure.hourglass"},
+          {"type": "keycard", "target": "data-id:keycard.procedure"}
+        ],
+        "narration": "两道实体闸前还有道程序闸:事件后合同没约定就在二十八天内提书面意向通知,过期丧权,证据还要真实全面有法律效力且及时。"
+      },
+      {
+        "id": "gates",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "master:R2_invariant",
+        "keycard": {"text": "采分词:立案非承包人·关键线路顺延同等·非关键只索超总时差·不可抗力人机各负其责·发包人责任加利润·未约定28天通知;立案门→工期门→费用门→程序门四门各判各的", "tone": "concl"},
+        "sync_keyword": "四门",
+        "animation_action": [
+          {"type": "highlight", "target": "data-id:score.keywords"},
+          {"type": "reveal", "target": "data-id:gate.four"},
+          {"type": "keycard", "target": "data-id:keycard.gates"},
+          {"type": "camera", "target": "data-id:stage.conclude"}
+        ],
+        "narration": "收成一条链:立案门、工期门、费用门、程序门,四门各判各的。采分盯关键线路顺延同等、非关键只索超总时差、不可抗力人机各负其责;换责任情形链不变、判据切。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {"speaker": "S", "claim": false, "text": "老师,责任在发包人,工期是不是就该顺延?"},
+      "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why", "sync_keyword": "总时差", "text": "不一定,责任在对方不等于工期顺延。非关键要看有没有超总时差,没超不顺延,但费用照赔。"}
+    },
+    {
+      "q": {"speaker": "S", "claim": false, "text": "不可抗力的损失,是不是全部由发包人承担?"},
+      "a": {"speaker": "T", "claim": true, "anchor": "common_errors[3].why", "sync_keyword": "各负其责", "text": "不是,不可抗力人机各负其责。承包人自己的设备机具自担,只有工程实体和清理修复归发包人。"}
+    }
+  ]
+}

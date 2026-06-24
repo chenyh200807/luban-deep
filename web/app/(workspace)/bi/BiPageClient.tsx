@@ -39,7 +39,7 @@ import {
   revokeMembership,
   resumeHeartbeatJob,
   updateMembership,
-  manualPurchaseMembership,
+  grantMembership,
   type BotOverlaySummary,
   type HeartbeatJob,
   type MemberConversationPreview,
@@ -123,10 +123,7 @@ export default function BiPageClient() {
   const [adminPassword, setAdminPassword] = useState('')
   const [authSubmitting, setAuthSubmitting] = useState(false)
   const [authError, setAuthError] = useState('')
-  const biReadOnly = !(
-    adminSession?.biMatrix?.member_ops?.includes('write') ||
-    adminSession?.isAdmin
-  )
+  const biReadOnly = !adminSession?.isAdmin
   const [days, setDays] = useState<7 | 30 | 90>(30)
   const [activeTab, setActiveTab] = useState<BiPrimaryTab>('boss-workbench')
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -645,15 +642,17 @@ export default function BiPageClient() {
     refreshSelectedMember,
   ])
 
-  const handleBatchRevoke = useCallback(
-    async () => {
+  const handleBatchAction = useCallback(
+    async (action: 'grant' | 'revoke') => {
       if (selectedIds.length === 0) return
       try {
         setActionLoading(true)
         await batchUpdateMembers({
           user_ids: selectedIds,
-          action: 'revoke',
-          reason: 'BI 会员工作台批量撤销',
+          action,
+          days: action === 'grant' ? 30 : undefined,
+          tier: action === 'grant' ? 'vip' : undefined,
+          reason: action === 'grant' ? 'BI 会员工作台批量开通' : 'BI 会员工作台批量撤销',
         })
         await refreshBi()
         await refreshMembers()
@@ -675,11 +674,11 @@ export default function BiPageClient() {
     if (!selectedUserId) return
     try {
       setActionLoading(true)
-      await manualPurchaseMembership({
+      await grantMembership({
         user_id: selectedUserId,
-        package_id: 'vip',
-        days: 365,
-        reason: 'BI 会员工作台：按 VIP 套餐开通并入账',
+        days: 30,
+        tier: 'vip',
+        reason: 'BI 会员工作台开通',
       })
       await refreshBi()
       await refreshMembers()
@@ -892,7 +891,7 @@ export default function BiPageClient() {
       query.set('expire_within_days', String(memberFilters.expire_within_days))
     if (memberFilters.search.trim()) query.set('search', memberFilters.search.trim())
     const suffix = query.toString()
-    return apiUrl(`/api/v1/bi/member/export${suffix ? `?${suffix}` : ''}`)
+    return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ''}`)
   }, [
     biReadOnly,
     memberFilters.expire_within_days,
@@ -1201,7 +1200,7 @@ export default function BiPageClient() {
                 totalCount={memberTotal}
                 onToggleMember={toggleSelectedMember}
                 onOpenMember={openMember360}
-                onBatchRevoke={() => void handleBatchRevoke()}
+                onBatchRevoke={() => void handleBatchAction('revoke')}
                 onGrantSingle={() => void handleSingleGrant()}
                 onExtendSingle={() => void handleSingleExtend()}
                 onRevokeSingle={() => void handleSingleRevoke()}

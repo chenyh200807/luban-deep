@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F16 屋面卷材起鼓割补 · 教学白板 HTML v2</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --paper:#fbfaf3;
+    --paper-line:#ece7dc;
+    --ink:#202733;
+    --soft-ink:#536170;
+    --blue:#2868d8;
+    --red:#d14d42;
+    --green:#188f63;
+    --amber:#c57a1d;
+    --chalk:#fffdf7;
+    --shadow:0 22px 54px rgba(32,39,51,.16);
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#edf1f5;color:var(--ink);font-family:var(--font)}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .shell{
+    width:min(1180px,100%);
+    display:grid;
+    grid-template-columns:minmax(330px,430px) minmax(320px,1fr);
+    gap:22px;
+    align-items:center;
+  }
+  .phone{
+    width:min(430px,100%);
+    margin:0 auto;
+    border-radius:34px;
+    padding:10px;
+    background:#151a22;
+    box-shadow:var(--shadow);
+  }
+  .lesson{
+    position:relative;
+    height:min(820px,calc(100vh - 40px));
+    min-height:650px;
+    overflow:hidden;
+    border-radius:26px;
+    background:
+      linear-gradient(var(--paper-line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--paper-line) 1px,transparent 1px),
+      var(--paper);
+    background-size:32px 32px;
+  }
+  .status{
+    height:34px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 20px;
+    color:#7b8794;
+    font-size:12px;
+    font-weight:700;
+  }
+  .topbar{
+    padding:8px 20px 12px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .kicker{
+    color:var(--blue);
+    font-size:13px;
+    font-weight:900;
+  }
+  h1{
+    margin:3px 0 0;
+    font-size:24px;
+    line-height:1.18;
+    letter-spacing:0;
+  }
+  .authority{
+    flex:0 0 auto;
+    border:2px solid #d8dfeb;
+    border-radius:13px;
+    padding:7px 9px;
+    background:rgba(255,255,255,.72);
+    color:#687486;
+    font-size:11px;
+    font-weight:800;
+    text-align:right;
+    line-height:1.35;
+  }
+  .dots{
+    position:absolute;
+    top:102px;
+    left:20px;
+    right:20px;
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+  }
+  .dot{
+    height:5px;
+    border-radius:99px;
+    background:#dde3ec;
+    overflow:hidden;
+  }
+  .dot i{
+    display:block;
+    width:0;
+    height:100%;
+    border-radius:inherit;
+    background:var(--blue);
+  }
+  .dot.done i{width:100%;background:var(--green)}
+  .dot.active i{animation:fillbar var(--duration,4.4s) linear forwards}
+  @keyframes fillbar{to{width:100%}}
+  .stage{
+    position:absolute;
+    left:18px;
+    right:18px;
+    top:124px;
+    height:418px;
+    border-radius:22px;
+    background:#fffefa;
+    border:2px solid #e0d8ca;
+    box-shadow:0 14px 30px rgba(32,39,51,.08);
+    overflow:hidden;
+  }
+  .board{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .chalk-line{stroke:var(--ink);stroke-linecap:round;stroke-linejoin:round;fill:none}
+  .draw{
+    stroke-dasharray:900;
+    stroke-dashoffset:900;
+  }
+  .run .draw{animation:draw 1.05s cubic-bezier(.16,1,.3,1) forwards}
+  .run .slow{animation-duration:1.55s}
+  .run .d1{animation-delay:.16s}
+  .run .d2{animation-delay:.42s}
+  .run .d3{animation-delay:.68s}
+  .run .d4{animation-delay:.92s}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .fade{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  .run .fade{animation:fadeIn .42s cubic-bezier(.16,1,.3,1) forwards}
+  .run .fd1{animation-delay:.28s}
+  .run .fd2{animation-delay:.6s}
+  .run .fd3{animation-delay:.92s}
+  @keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
+  .pen{
+    transform-box:fill-box;
+    transform-origin:center;
+    opacity:0;
+  }
+  .run .pen{animation:penMove 1.35s cubic-bezier(.22,1,.36,1) .16s forwards}
+  @keyframes penMove{
+    0%{opacity:0;transform:translate(0,0) rotate(-18deg)}
+    12%{opacity:1}
+    100%{opacity:0;transform:translate(70px,36px) rotate(-18deg)}
+  }
+  .s{display:none}
+  [data-scene="0"] .s0,[data-scene="1"] .s1,[data-scene="2"] .s2,[data-scene="3"] .s3,
+  [data-scene="4"] .s4,[data-scene="5"] .s5,[data-scene="6"] .s6{display:block}
+  .persist-0,.persist-2,.persist-3,.persist-4,.persist-5,.persist-6{display:none}
+  [data-scene="0"] .persist-0,[data-scene="1"] .persist-0,[data-scene="2"] .persist-0,
+  [data-scene="3"] .persist-0,[data-scene="4"] .persist-0,[data-scene="5"] .persist-0{display:block}
+  [data-scene="2"] .persist-2,[data-scene="3"] .persist-2,[data-scene="4"] .persist-2,
+  [data-scene="5"] .persist-2{display:block}
+  [data-scene="3"] .persist-3,[data-scene="4"] .persist-3,[data-scene="5"] .persist-3{display:block}
+  [data-scene="4"] .persist-4,[data-scene="5"] .persist-4{display:block}
+  [data-scene="5"] .persist-5{display:block}
+  [data-scene="6"] .persist-6{display:block}
+  .subtitle{
+    position:absolute;
+    left:20px;
+    right:20px;
+    top:562px;
+    min-height:116px;
+    border-radius:20px;
+    background:#fff;
+    border:2px solid #dfe6ef;
+    border-left:12px solid var(--blue);
+    box-shadow:0 12px 28px rgba(32,39,51,.09);
+    padding:18px 18px 17px;
+  }
+  .subtitle .scene-title{
+    color:var(--blue);
+    font-size:13px;
+    font-weight:900;
+    margin-bottom:6px;
+  }
+  .subtitle .line{
+    font-size:24px;
+    line-height:1.34;
+    font-weight:900;
+    letter-spacing:0;
+  }
+  .controls{
+    position:absolute;
+    left:20px;
+    right:20px;
+    bottom:20px;
+    display:grid;
+    grid-template-columns:52px 1fr 52px;
+    gap:10px;
+    align-items:center;
+  }
+  button{
+    height:46px;
+    border-radius:15px;
+    border:2px solid #dce4ef;
+    background:#fff;
+    color:var(--ink);
+    font:800 15px var(--font);
+    cursor:pointer;
+  }
+  .play{
+    color:#fff;
+    background:var(--ink);
+    border-color:var(--ink);
+  }
+  .side{
+    background:#fff;
+    border:1px solid #dce3ee;
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    padding:24px;
+  }
+  .side h2{
+    margin:0 0 10px;
+    font-size:26px;
+    line-height:1.24;
+  }
+  .side p{
+    margin:0 0 14px;
+    color:#526170;
+    line-height:1.65;
+    font-size:15px;
+  }
+  .review{
+    display:grid;
+    gap:10px;
+    margin-top:16px;
+  }
+  .review div{
+    border-radius:15px;
+    background:#f7f9fc;
+    border:1px solid #e1e8f1;
+    padding:12px 14px;
+    line-height:1.55;
+    color:#3c4958;
+    font-size:14px;
+  }
+  .review b{color:var(--ink)}
+  .score{
+    margin-top:18px;
+    display:grid;
+    gap:10px;
+  }
+  .score-row{
+    border-radius:15px;
+    border:1px solid #e1e8f1;
+    background:#fbfdff;
+    padding:13px 14px;
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    font-size:14px;
+    font-weight:800;
+  }
+  .score-row span:first-child{color:var(--blue)}
+  .score-row.p11 span:first-child{color:var(--red)}
+  .note{
+    margin-top:14px;
+    color:#6b7686;
+    font-size:12px;
+    line-height:1.6;
+  }
+  .label{
+    font:800 18px var(--font);
+    fill:var(--soft-ink);
+  }
+  .mini-label{
+    font:800 15px var(--font);
+    fill:var(--soft-ink);
+  }
+  .big-label{
+    font:900 22px var(--font);
+    fill:var(--ink);
+  }
+  .red{stroke:var(--red);fill:none}
+  .blue{stroke:var(--blue);fill:none}
+  .green{stroke:var(--green);fill:none}
+  .amber{stroke:var(--amber);fill:none}
+  @media (max-width:860px){
+    body{display:block;padding:12px;background:#151a22}
+    .shell{display:block}
+    .side{margin:14px auto 0;width:min(430px,100%);box-shadow:none}
+    .phone{padding:0;background:transparent;box-shadow:none}
+    .lesson{height:calc(100vh - 24px);min-height:640px;border-radius:24px}
+  }
+  @media (max-height:720px){
+    .lesson{min-height:600px}
+    .stage{height:360px}
+    .subtitle{top:506px}
+    .subtitle .line{font-size:21px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .run .draw,.run .fade,.run .pen,.dot.active i{animation-duration:.001s;animation-delay:0s}
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="phone" aria-label="F16 起鼓割补白板动画">
+    <div class="lesson" id="lesson" data-scene="0">
+      <div class="status"><span>9:41</span><span>鲁班图解微课</span><span>100%</span></div>
+      <div class="topbar">
+        <div>
+          <div class="kicker">F16 防水 · 教学白板 v2</div>
+          <h1>屋面卷材起鼓割补</h1>
+        </div>
+        <div class="authority">Q18 P10/P11<br>训练估分 · 非官方阅卷</div>
+      </div>
+      <div class="dots" id="dots"></div>
+
+      <div class="stage run" id="stage">
+        <svg class="board" viewBox="50 130 640 360" role="img" aria-label="屋面卷材起鼓割补教学白板图">
+          <defs>
+            <filter id="rough">
+              <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2"/>
+            </filter>
+          </defs>
+
+          <g class="persist-0" filter="url(#rough)">
+            <path class="chalk-line draw slow" d="M92 430 H648" stroke-width="13" stroke="#a78f72"/>
+            <path class="chalk-line draw d1 slow" d="M96 338 H260 C300 338 300 250 370 250 C440 250 440 338 482 338 H648" stroke-width="15" stroke="#27303c"/>
+            <path class="chalk-line draw d2" d="M260 338 C300 276 440 276 482 338" stroke-width="5" stroke="#c57a1d" stroke-dasharray="16 13" fill="none"/>
+            <text class="label fade fd2" x="104" y="320">防水卷材</text>
+            <text class="label fade fd2" x="102" y="466">基层</text>
+          </g>
+
+          <g class="s s0">
+            <path class="chalk-line blue draw d3" d="M356 244 C330 210 382 188 354 154" stroke-width="6"/>
+            <path class="chalk-line blue draw d4" d="M398 244 C424 210 372 188 400 154" stroke-width="6"/>
+          </g>
+
+          <g class="s s1">
+            <rect class="fade fd1" x="300" y="296" width="176" height="44" rx="22" fill="#d8efe6" stroke="#188f63" stroke-width="5"/>
+            <path class="chalk-line red draw d2" d="M275 270 L505 370" stroke-width="10"/>
+            <path class="chalk-line red draw d3" d="M505 270 L275 370" stroke-width="10"/>
+            <text class="big-label fade fd3" x="230" y="214" fill="#d14d42">直接盖补丁,气还在里面</text>
+          </g>
+
+          <g class="persist-2" filter="url(#rough)">
+            <path class="chalk-line red draw d1" d="M336 282 L410 358" stroke-width="8"/>
+            <path class="chalk-line red draw d2" d="M410 282 L336 358" stroke-width="8"/>
+            <text class="big-label fade fd2" x="144" y="214" fill="#2868d8">1. 割开鼓包,先放气</text>
+            <path class="chalk-line blue draw d3" d="M342 282 C318 230 354 206 336 166" stroke-width="6"/>
+            <path class="chalk-line blue draw d4" d="M404 282 C430 230 394 206 414 166" stroke-width="6"/>
+            <text class="mini-label fade fd3" x="460" y="184" fill="#2868d8">P10:放气</text>
+          </g>
+
+          <g class="persist-3" filter="url(#rough)">
+            <rect class="fade fd1" x="286" y="378" width="168" height="22" rx="11" fill="#ead6b9" stroke="#a26b2a" stroke-width="4"/>
+            <path class="chalk-line amber draw d1" d="M250 406 C302 440 424 440 486 406" stroke-width="8"/>
+            <path class="chalk-line amber draw d2" d="M278 388 H456" stroke-width="7"/>
+            <text class="big-label fade fd2" x="142" y="214" fill="#c57a1d">2. 擦干基层,清旧胶结料</text>
+            <text class="mini-label fade fd3" x="460" y="402" fill="#c57a1d">P10:擦干/清胶</text>
+          </g>
+
+          <g class="persist-4" filter="url(#rough)">
+            <path class="chalk-line red draw d1" d="M286 338 C320 310 348 292 376 278" stroke-width="10"/>
+            <path class="chalk-line red draw d2" d="M482 338 C446 310 414 292 386 278" stroke-width="10"/>
+            <path class="chalk-line red draw d3" d="M524 250 C500 204 548 196 538 154 C588 190 602 232 562 276 C552 258 540 252 524 250 Z" stroke-width="4" fill="#f8b24c"/>
+            <text class="big-label fade fd2" x="126" y="214" fill="#d14d42">3. 喷灯烘烤,分层剥开</text>
+            <text class="mini-label fade fd3" x="458" y="426" fill="#d14d42">P11:重点是分层</text>
+          </g>
+
+          <g class="persist-5" filter="url(#rough)">
+            <rect class="fade fd1" x="266" y="310" width="222" height="42" rx="21" fill="#188f63"/>
+            <path class="chalk-line green draw d2" d="M214 308 H530" stroke-width="7"/>
+            <path class="chalk-line green draw d3" d="M246 356 H508" stroke-width="7"/>
+            <text class="big-label fade fd2" x="136" y="214" fill="#188f63">4. 重贴新卷材,连续搭接</text>
+            <text class="mini-label fade fd3" x="456" y="404" fill="#188f63">P11:重贴新卷材</text>
+          </g>
+
+          <g class="persist-6">
+            <rect class="fade fd1" x="74" y="150" width="592" height="96" rx="24" fill="#fff" stroke="#dfe6ef" stroke-width="4"/>
+            <text class="big-label fade fd1" x="102" y="190" fill="#2868d8">采分句</text>
+            <text class="mini-label fade fd2" x="102" y="222">放气、擦干、清旧胶；</text>
+            <text class="mini-label fade fd2" x="102" y="248">喷灯烘烤、分层剥开、重贴新卷材。</text>
+            <path class="chalk-line draw d2" d="M94 430 H646" stroke-width="13" stroke="#a78f72"/>
+            <path class="chalk-line draw d2" d="M96 338 H648" stroke-width="15" stroke="#27303c"/>
+            <rect class="fade fd3" x="268" y="312" width="214" height="42" rx="21" fill="#188f63"/>
+            <path class="chalk-line green draw d3" d="M214 308 H530" stroke-width="7"/>
+            <circle class="fade fd3" cx="602" cy="362" r="46" fill="#e6f6ef" stroke="#188f63" stroke-width="8"/>
+            <path class="chalk-line green draw d4" d="M579 364 L598 382 L633 336" stroke-width="10"/>
+          </g>
+
+          <g class="pen">
+            <path d="M0 0 l42 -14 l10 20 l-38 22 z" fill="#283240" stroke="#202733" stroke-width="3"/>
+            <path d="M14 28 l20 -8 l-7 28 z" fill="#f2c79b" stroke="#202733" stroke-width="3"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="subtitle" aria-live="polite">
+        <div class="scene-title" id="sceneTitle"></div>
+        <div class="line" id="sceneLine"></div>
+      </div>
+
+      <div class="controls">
+        <button id="prev" aria-label="上一屏">←</button>
+        <button class="play" id="play">暂停</button>
+        <button id="next" aria-label="下一屏">→</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <h2>我对上一版的审查</h2>
+    <p>上一版 Remotion 的问题不是“技术没动起来”，而是教学气质错了：它像流程图播放器，不像老师在白板上带学生看懂一个错因。</p>
+    <div class="review">
+      <div><b>画面太满。</b>同一屏同时出现鼓包、割开、烘烤、清胶、补片、采分点，学生不知道先看哪。</div>
+      <div><b>动作不自然。</b>手势、火焰、标签像图标贴片；白板动画应该先画线条，再给解释。</div>
+      <div><b>旧状态没退场。</b>后面讲重贴时，前面的错因标签还在，视觉上互相打架。</div>
+      <div><b>不像教学。</b>缺少“先误区、再纠正、再采分句”的老师节奏。</div>
+    </div>
+    <div class="score">
+      <div class="score-row"><span>P10</span><span>放气 / 擦干 / 清除旧胶结料</span></div>
+      <div class="score-row p11"><span>P11</span><span>喷灯烘烤 / 分层剥开 / 重贴新卷材</span></div>
+    </div>
+    <div class="note">HTML v2 只做教学白板样片，不写入学情，不接入判分系统。图为确定性 SVG 示意，非规范详图；判分口径来自 Q18 P10/P11 训练估分工件。</div>
+  </aside>
+</main>
+
+<script>
+(() => {
+  const scenes = [
+    {title:"第一屏 · 先看病害", line:"起鼓的本质：卷材和基层脱开，里面顶着气或水。", ms:4400},
+    {title:"第二屏 · 先拆误区", line:"不能直接盖补丁。气没排、旧胶没清，补了还会再鼓。", ms:4200},
+    {title:"第三屏 · P10 第一个动作", line:"先割开鼓包放气。写到“放气”，P10 才有根。", ms:4300},
+    {title:"第四屏 · P10 第二个动作", line:"再擦干基层、清除旧胶结料。潮湿和旧胶都会让新层粘不牢。", ms:4600},
+    {title:"第五屏 · P11 最容易漏的词", line:"喷灯烘烤后要“分层剥开”。重点不是烤一下，是分层处理。", ms:4700},
+    {title:"第六屏 · 恢复连续防水层", line:"最后重贴新卷材并连续搭接压实，补片要变回整体防水层。", ms:4600},
+    {title:"第七屏 · 收成采分句", line:"记住：放气、擦干、清旧胶；喷灯烘烤、分层剥开、重贴新卷材。", ms:5200}
+  ];
+  const lesson = document.getElementById("lesson");
+  const stage = document.getElementById("stage");
+  const title = document.getElementById("sceneTitle");
+  const line = document.getElementById("sceneLine");
+  const dots = document.getElementById("dots");
+  const play = document.getElementById("play");
+  const prev = document.getElementById("prev");
+  const next = document.getElementById("next");
+  let index = 0;
+  let timer = null;
+  let playing = true;
+
+  scenes.forEach((_, i) => {
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.innerHTML = "<i></i>";
+    dots.appendChild(dot);
+  });
+
+  const resetRun = () => {
+    stage.classList.remove("run");
+    void stage.offsetWidth;
+    stage.classList.add("run");
+  };
+
+  const render = () => {
+    const scene = scenes[index];
+    lesson.dataset.scene = String(index);
+    lesson.style.setProperty("--duration", `${scene.ms}ms`);
+    title.textContent = scene.title;
+    line.textContent = scene.line;
+    [...dots.children].forEach((dot, i) => {
+      dot.className = "dot" + (i < index ? " done" : i === index ? " active" : "");
+    });
+    resetRun();
+    clearTimeout(timer);
+    if (playing) {
+      timer = setTimeout(() => {
+        index = (index + 1) % scenes.length;
+        render();
+      }, scene.ms);
+    }
+    play.textContent = playing ? "暂停" : "播放";
+  };
+
+  play.addEventListener("click", () => {
+    playing = !playing;
+    render();
+  });
+  prev.addEventListener("click", () => {
+    index = (index - 1 + scenes.length) % scenes.length;
+    render();
+  });
+  next.addEventListener("click", () => {
+    index = (index + 1) % scenes.length;
+    render();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") prev.click();
+    if (event.key === "ArrowRight") next.click();
+    if (event.key === " ") {
+      event.preventDefault();
+      play.click();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

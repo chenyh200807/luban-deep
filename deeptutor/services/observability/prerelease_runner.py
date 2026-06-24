@@ -6,14 +6,13 @@ import os
 from pathlib import Path
 from typing import Any
 
-import httpx
-
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.aae_composite import build_aae_composite_run
 from deeptutor.services.observability.arr_runner import run_arr, write_arr_artifacts
 from deeptutor.services.observability.change_impact import build_change_impact_run
 from deeptutor.services.observability.change_impact import collect_git_changed_files
 from deeptutor.services.observability.change_impact import render_change_impact_markdown
+from deeptutor.services.observability.metrics_loader import load_metrics_snapshot as load_metrics_snapshot_shared
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts
 from deeptutor.services.observability.oa_runner import build_oa_run
@@ -56,24 +55,12 @@ def load_metrics_snapshot(
     metrics_json: str | None = None,
     metrics_token: str | None = None,
 ) -> dict[str, Any]:
-    if metrics_json:
-        target = Path(metrics_json).expanduser().resolve()
-        if not target.exists():
-            raise FileNotFoundError(target)
-        payload = json.loads(target.read_text(encoding="utf-8"))
-        if not isinstance(payload, dict):
-            raise TypeError("Metrics snapshot must be a JSON object")
-        return payload
-
-    url = f"{api_base_url.rstrip('/')}/metrics"
-    headers = {"X-Metrics-Token": metrics_token.strip()} if metrics_token and metrics_token.strip() else None
-    with httpx.Client(timeout=5.0, trust_env=False) as client:
-        response = client.get(url, headers=headers)
-        response.raise_for_status()
-        payload = response.json()
-        if not isinstance(payload, dict):
-            raise TypeError("Metrics snapshot must be a JSON object")
-        return payload
+    return load_metrics_snapshot_shared(
+        api_base_url=api_base_url,
+        metrics_json=metrics_json,
+        metrics_token=metrics_token,
+        timeout=5.0,
+    )
 
 
 async def _load_live_feedback(days: int = 7, limit: int = 50) -> dict[str, Any]:

@@ -1,0 +1,198 @@
+{
+  "audio": "C05_gjlj.lesson.mp3",
+  "totalSec": 149.712,
+  "teachEndSec": 93.876,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "钢筋连接选用,丢分在只背数字不认四输入",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "钢筋连接选用,别背几个数,今天学认四输入。",
+      "startSec": 0,
+      "durSec": 4.84
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "ways",
+      "qaIndex": null,
+      "keycard": {
+        "text": "三类连接:焊接/机械连接/绑扎;机械以直螺纹套筒最常用",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c1_three_ways.claim",
+      "claim": true,
+      "text": "连接就三类:焊接、机械连接、绑扎连接;机械连接里直螺纹套筒最常用。传力机理不同,选用是匹配,不是背哪种最牢。",
+      "startSec": 5.24,
+      "durSec": 12.856
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "knob",
+      "qaIndex": null,
+      "keycard": {
+        "text": "四旋钮:直径×受力×荷载×部位 → 匹配三档方式",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c2_four_input.claim",
+      "claim": true,
+      "text": "选用就是转四输入:直径、受力、荷载、部位。大直径受拉、动力荷载、抗震关键往机械连接;小直径受压静载才退绑扎搭接。",
+      "startSec": 18.496,
+      "durSec": 13.415
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "pct",
+      "qaIndex": null,
+      "keycard": {
+        "text": "动力荷载机械连接:接头面积百分率不应超过50%",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.dynamic_pct.value",
+      "claim": true,
+      "text": "选定还要对限值。直接承受动力荷载用机械连接,接头面积百分率不应超过五成,'不应'是强制词。动力荷载不宜焊接,故首选机械连接。",
+      "startSec": 32.311,
+      "durSec": 13.566
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "endpoint",
+      "qaIndex": null,
+      "keycard": {
+        "text": "端点退档:受拉Φ28/桁架拉杆/行车梁不宜绑扎;受压Φ25可绑扎",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.endpoint.value",
+      "claim": true,
+      "text": "再看退绑扎的端点。受拉Φ二八、桁架拉杆、行车梁,不宜绑扎;受压Φ二五小直径静载才可绑扎。口诀:拉二五、压二八、不宜绑扎。",
+      "startSec": 46.277,
+      "durSec": 13.918
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "endpoint",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:三类连接·动力机械连接不应超50%·梁跨中1/3·代换等强度等面积",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[1].keywords",
+      "claim": true,
+      "text": "采分盯这几组:连接三类加直螺纹套筒;动力荷载机械连接接头不应超过五成;梁接头上部跨中、下部梁端各三分之一;代换等强度加等面积。",
+      "startSec": 60.595,
+      "durSec": 14.88
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "chain",
+      "qaIndex": null,
+      "keycard": {
+        "text": "迁移:判读链通用,判据随连接方式/构件变(装配式看逐根/600mm/套筒灌浆)",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "记这条判读链:认四输入、匹配方式、对上限值。换装配式竖向钢筋,链不变、判据换一套——边缘构件逐根、非边缘六百毫米、底部加强区套筒灌浆。换构件链都成立。",
+      "startSec": 75.875,
+      "durSec": 18.001
+    },
+    {
+      "idx": 7,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,是不是机械连接最牢,一律选它最稳?",
+      "startSec": 94.275,
+      "durSec": 4.396
+    },
+    {
+      "idx": 8,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "不是比谁最牢,是匹配。动力荷载、大直径受拉、桁架拉杆才往机械连接;受压Φ二五小直径静载,绑扎就行。把绑扎塞给大直径受拉就是端点搞反。",
+      "startSec": 99.072,
+      "durSec": 15.244
+    },
+    {
+      "idx": 9,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "动力荷载机械连接那个百分率,写'不宜超过50%'扣分吗?",
+      "startSec": 114.715,
+      "durSec": 5.768
+    },
+    {
+      "idx": 10,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "扣。动力荷载机械连接是'不应'超过五成,带强制性;写成'不宜'就降成建议、丢关键词分。和受拉接头'不宜超过'是两套口径。",
+      "startSec": 120.884,
+      "durSec": 12.832
+    },
+    {
+      "idx": 11,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "钢筋代换,我写'等刚度加等面积'对不对?",
+      "startSec": 134.115,
+      "durSec": 3.751
+    },
+    {
+      "idx": 12,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "不对,等刚度不是基本要求。基本要求是等强度加等面积加构造,还得设计单位同意。等刚度是经典干扰项。",
+      "startSec": 138.266,
+      "durSec": 10.646
+    }
+  ]
+}

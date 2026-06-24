@@ -1,0 +1,182 @@
+{
+  "audio": "N01_network_keypath.lesson.mp3",
+  "totalSec": 136.834,
+  "teachEndSec": 77.309,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "read",
+      "qaIndex": null,
+      "keycard": {
+        "text": "判据:关键线路看'总时差为0',不是'工期最长'",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": "student_goal",
+      "claim": true,
+      "text": "网络计划求关键线路,最容易错的是凭工期最长、或某条线瞎猜。正解是看总时差为零。咱们一步步算。",
+      "startSec": 0,
+      "durSec": 10.813
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "read",
+      "qaIndex": null,
+      "keycard": {
+        "text": "① 先理紧前紧后(逻辑读错全错)",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "explanation_steps[0].script",
+      "claim": true,
+      "text": "先理紧前紧后:A、B 开工就能做;C、D 接在 A 后面,D 还要等 B;E 要等 C 和 D 都完成。逻辑读错,后面全错。",
+      "startSec": 11.213,
+      "durSec": 13.795
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "forward",
+      "qaIndex": null,
+      "keycard": {
+        "text": "② 顺推最早完成:E 第10天完成",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "explanation_steps[1].script",
+      "claim": true,
+      "text": "从左往右顺推最早完成:A 第三天、B 第二天、C 第七天、D 取 A、B 里晚的第五天、E 等 C 和 D 第十天完成。",
+      "startSec": 25.408,
+      "durSec": 13.672
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "float",
+      "qaIndex": null,
+      "keycard": {
+        "text": "③ 逆推最迟,最迟减最早 = 总时差",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "explanation_steps[2].script",
+      "claim": true,
+      "text": "再逆推最迟、相减得总时差:A、C、E 总时差都是零,B 有三、D 有二。总时差是这项工作能拖多久而不影响总工期。",
+      "startSec": 39.48,
+      "durSec": 12.908
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "④ 总时差为0连起来 = 关键线路 A-C-E",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "explanation_steps[3].script",
+      "claim": true,
+      "text": "把总时差为零的连起来,就是关键线路:开始-A-C-E-结束,总工期十天。B、D 有时差,拖一点不影响总工期,不在关键线路上。",
+      "startSec": 52.788,
+      "durSec": 14.083
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分:关键线路 A-C-E · 总工期10天 · 判据=总时差为0",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "question_data.expected.project_duration",
+      "claim": true,
+      "text": "采分盯这几点:关键线路是 A-C-E、总工期十天、判据是总时差为零,不是工期最长。",
+      "startSec": 67.271,
+      "durSec": 10.038
+    },
+    {
+      "idx": 6,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,C 工期最长 4 天,关键线路是不是就看 C?",
+      "startSec": 77.71,
+      "durSec": 5.406
+    },
+    {
+      "idx": 7,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "error_reveals[0].script",
+      "claim": true,
+      "text": "C 工期最长,但'最长的单个工作'不等于关键线路。关键线路是总时差为零的那条连续路线,要看整条路,不是看哪一根最粗。",
+      "startSec": 83.516,
+      "durSec": 12.738
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那我把各工作的工期加起来排个序,不就行了?",
+      "startSec": 96.654,
+      "durSec": 4.223
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "error_reveals[1].script",
+      "claim": true,
+      "text": "只把工期加起来排序,会漏掉逻辑关系。D 必须等 A 和 B 都完成、E 必须等 C 和 D。不按紧前紧后走,算出来的线路是假的。",
+      "startSec": 101.276,
+      "durSec": 14.081
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "总时差和自由时差到底啥区别?",
+      "startSec": 115.757,
+      "durSec": 3.096
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "error_reveals[2].script",
+      "claim": true,
+      "text": "总时差是这项工作能拖多久而不影响总工期;自由时差是不影响紧后工作最早开始的余量。B 的总时差是三、自由时差只有一,两个不是一回事。等下用四道题试试你。",
+      "startSec": 119.253,
+      "durSec": 16.781
+    }
+  ]
+}

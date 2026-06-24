@@ -7,11 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from deeptutor.services.observability.turn_event_log import TurnEventLog
+from deeptutor.services.observability.turn_event_log import event_is_test_only
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_FAILED_TURN_DIR = PROJECT_ROOT / "tmp" / "observability" / "failed_turn_incidents"
-_FAILED_STATUSES = {"failed", "error", "cancelled", "timeout"}
+_FAILED_STATUSES = {"failed", "error", "timeout"}
 
 
 def _failure_reason(event: dict[str, Any]) -> str:
@@ -86,6 +87,7 @@ def build_failed_turn_incident_report(
         event
         for event in events
         if str(event.get("status") or "").strip().lower() in _FAILED_STATUSES
+        and not event_is_test_only(event)
     ]
     failed_events = failed_events[: max(int(limit or 20), 1)]
     normalized_incident_id = str(incident_id or "").strip() or f"failed-turns-{int(time.time())}"

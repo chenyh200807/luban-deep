@@ -13,7 +13,11 @@ function showSmsSentFeedback(message) {
 
 function canShowDebugCode() {
   var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
-  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+  return (
+    cfg.platform === "devtools" ||
+    cfg.envVersion === "develop" ||
+    cfg.envVersion === "trial"
+  );
 }
 
 function describePhoneCodeAuthError(info) {
@@ -37,6 +41,13 @@ function describePhoneCodeAuthError(info) {
     return "验证码错误，请重新输入";
   }
   return "";
+}
+
+function isPrivacyAuthInterruption(detail) {
+  var msg = String(
+    (detail && (detail.errMsg || detail.err_msg || detail.message)) || "",
+  ).toLowerCase();
+  return msg.indexOf("privacy") >= 0 || msg.indexOf("隐私") >= 0;
 }
 
 Page({
@@ -63,6 +74,9 @@ Page({
     entrySource: "",
     returnTo: "",
     guestWaveActive: false,
+    privacyChecked: false,
+    privacyNeedAuthorization: false,
+    privacyContractName: "《用户隐私保护指引》",
     heroMessages: [
       {
         line1: "抓不住重点、越学越乱？",
@@ -110,6 +124,7 @@ Page({
         });
       return;
     }
+    this._refreshPrivacySetting();
   },
   onShow: function () {
     if (this._orbScene && !this._orbTimer) this._startOrbMotion();
@@ -131,7 +146,8 @@ Page({
   },
   _captureEntryContext: function (options) {
     var source =
-      (options && (options.entrySource || options.entry_source || options.source)) ||
+      (options &&
+        (options.entrySource || options.entry_source || options.source)) ||
       "";
     var returnTo = route.resolveInternalUrl(
       options && options.returnTo,
@@ -162,6 +178,86 @@ Page({
       return fallbackMsg;
     }
     return api.describeRequestError(err, fallbackMsg, options || {});
+  },
+  _refreshPrivacySetting: function () {
+    var self = this;
+    if (typeof wx.getPrivacySetting !== "function") {
+      self.setData({
+        privacyChecked: true,
+        privacyNeedAuthorization: false,
+      });
+      return;
+    }
+    wx.getPrivacySetting({
+      success: function (res) {
+        var needAuthorization = !!(res && res.needAuthorization);
+        self.setData({
+          privacyChecked: !needAuthorization,
+          privacyNeedAuthorization: needAuthorization,
+          privacyContractName:
+            (res && res.privacyContractName) || "《用户隐私保护指引》",
+        });
+      },
+    });
+  },
+  _requestPrivacyAuthorization: function () {
+    var self = this;
+    if (typeof wx.requirePrivacyAuthorize !== "function") {
+      return Promise.resolve(true);
+    }
+    if (this._privacyAuthorizationRequest) {
+      return this._privacyAuthorizationRequest;
+    }
+    this._privacyAuthorizationRequest = new Promise(function (resolve) {
+      wx.requirePrivacyAuthorize({
+        success: function () {
+          resolve(true);
+        },
+        fail: function () {
+          resolve(false);
+        },
+        complete: function () {
+          self._privacyAuthorizationRequest = null;
+        },
+      });
+    });
+    return this._privacyAuthorizationRequest;
+  },
+  handlePrivacyCheckboxTap: function () {
+    var self = this;
+    if (self.data.wechatLoading || self.data.loading) return;
+    if (self.data.privacyChecked) {
+      self.setData({ privacyChecked: false });
+      return;
+    }
+    self._requestPrivacyAuthorization().then(function (ok) {
+      if (ok) {
+        self.setData({
+          privacyChecked: true,
+          privacyNeedAuthorization: false,
+          errorMsg: "",
+        });
+        return;
+      }
+      self.setData({
+        privacyChecked: false,
+        privacyNeedAuthorization: true,
+        errorMsg: "请先勾选同意用户隐私保护指引后继续",
+      });
+    });
+  },
+  handlePrivacyAgreementAuthorized: function () {
+    this.setData({
+      privacyChecked: true,
+      privacyNeedAuthorization: false,
+      errorMsg: "",
+    });
+  },
+  handlePrivacyRequiredTap: function () {
+    this.setData({ errorMsg: "请先勾选同意用户隐私保护指引后继续" });
+  },
+  openPrivacyGuide: function () {
+    wx.navigateTo({ url: route.terms() });
   },
   _requestWechatPhoneSession: function (phoneCode, attempt) {
     var self = this;
@@ -290,14 +386,19 @@ Page({
         var outerCode = resp.code !== undefined ? resp.code : inner.code;
         var outerMsg = resp.message || inner.message || "发送失败";
         var dataObj = inner.data || inner;
-        var retryAfter = (dataObj && dataObj.retry_after) || inner.retry_after || 60;
+        var retryAfter =
+          (dataObj && dataObj.retry_after) || inner.retry_after || 60;
         var sent = inner.sent || (dataObj && dataObj.sent);
 
         if (outerCode === 0 || sent) {
           // Success: start countdown
-          var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var debugCode =
+            (dataObj && dataObj.debug_code) || inner.debug_code || "";
           var successMsg =
-            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
+            (dataObj && dataObj.message) ||
+            inner.message ||
+            resp.message ||
+            "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           var showDebugCode = debugCode && canShowDebugCode();
           if (showDebugCode) nextData.phoneCode = debugCode;
@@ -443,10 +544,21 @@ Page({
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
     var phoneCode =
-      e &&
-      e.detail &&
-      (e.detail.code || e.detail.phoneCode || "");
+      e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
+      if (!self.data.privacyChecked) {
+        self.handlePrivacyRequiredTap();
+        return;
+      }
+      if (isPrivacyAuthInterruption(e && e.detail)) {
+        self.setData({
+          privacyChecked: false,
+          privacyNeedAuthorization: true,
+          errorMsg: "请先勾选同意用户隐私保护指引后继续",
+        });
+        self._refreshPrivacySetting();
+        return;
+      }
       self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }
@@ -468,7 +580,9 @@ Page({
             ) {
               return "后端未配置小程序密钥";
             }
-            if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
+            if (
+              info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0
+            ) {
               return "手机号验证失败";
             }
             if (

@@ -1440,11 +1440,11 @@ async def test_deep_question_capability_uses_user_message_as_topic(
                 "results": [
                     {
                         "qa_pair": {
-                            "question": "What is a matrix?",
+                            "question": "施工缝处理的正确做法是？",
                             "question_type": "choice",
-                            "options": {"A": "A table", "B": "A scalar"},
+                            "options": {"A": "浇筑前清理", "B": "随浇随走"},
                             "correct_answer": "A",
-                            "explanation": "A matrix is a table.",
+                            "explanation": "施工缝浇筑前须清理松动石子。",
                         }
                     }
                 ]
@@ -1479,7 +1479,7 @@ async def test_deep_question_capability_uses_user_message_as_topic(
     assert question["followup_context"]["correct_answer"] == ""
     assert question["followup_context"]["explanation"] == ""
     assert result_event.metadata["question_followup_context"]["correct_answer"] == "A"
-    assert result_event.metadata["question_followup_context"]["explanation"] == "A matrix is a table."
+    assert result_event.metadata["question_followup_context"]["explanation"] == "施工缝浇筑前须清理松动石子。"
 
 
 @pytest.mark.asyncio
@@ -4661,6 +4661,7 @@ async def test_tutorbot_agent_loop_records_rag_round_query_and_source_overlap(
 
     final_content, tools_used, _messages = await loop._run_agent_loop(
         [{"role": "user", "content": "帮我解释建筑构造"}],
+        runtime_metadata={"default_tools": ["rag", "web_search"]},
         on_tool_result=lambda name, result, metadata: _capture_async(
             captured["tool_results"], (name, result, metadata)
         ),
@@ -8362,12 +8363,31 @@ async def test_deep_question_capability_does_not_guess_training_intent_from_pers
 
     context = UnifiedContext(
         user_message="再给我相关题",
-        config_overrides={"mode": "custom", "topic": "再给我相关题", "question_type": "choice"},
+        config_overrides={
+            "mode": "custom",
+            "topic": "再给我相关题",
+            "question_type": "choice",
+            # force_generate_questions bypasses the legacy followup block so the
+            # generation path is exercised and the coordinator is actually called;
+            # without it the capability short-circuits into _emit_followup_result
+            # before testing the "no claim injection" invariant.
+            "force_generate_questions": True,
+        },
         language="zh",
         metadata={
+            # Provide a construction question context so _resolve_generation_topic
+            # finds a non-empty topic anchor ("再给我相关题" needs one).
+            "question_followup_context": {
+                "question_id": "q_anchor",
+                "question": "下列哪项属于施工缝处理？",
+                "question_type": "choice",
+                "options": {"A": "浇筑混凝土前清理", "B": "随浇随走"},
+                "correct_answer": "A",
+                "concentration": "施工缝处理",
+            },
             "personalization_context": {
                 "top_claims": [{"concept_id": "claim_only", "label": "只读画像"}],
-            }
+            },
         },
     )
     capability = DeepQuestionCapability()

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>N01 网络计划：关键线路不是最长那一项</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;max-width:100%;overflow:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+.phone{width:min(430px,100%);height:100dvh;margin:0 auto;padding:8px;overflow:hidden}.lesson{height:calc(100dvh - 16px);background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:8px;box-shadow:0 14px 32px rgba(31,41,55,.08);display:flex;flex-direction:column;overflow:hidden;gap:7px}
+.journey-rail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;flex:0 0 auto}.journey-rail span,.journey-rail a{height:30px;border:1px solid #d7e2ed;border-radius:10px;background:#f6f9fc;color:#607287;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;text-align:center}.journey-rail .on{background:#176b7a;color:#fff;border-color:#176b7a}.journey-rail a.ready{background:#176b7a;color:#fff;border-color:#176b7a}.journey-rail a.locked{opacity:.72}
+.topbar{display:flex;flex-direction:column;gap:3px;flex:0 0 auto}.topline{display:flex;justify-content:space-between;gap:8px;align-items:center}.kicker{color:#176b7a;font-size:11px;font-weight:900}.topbar h1{margin:0;font-size:19px;line-height:1.12}.top-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}.full-btn{height:31px;border:1px solid #176b7a;border-radius:999px;background:#fff;color:#176b7a;padding:0 10px;font-size:11px;font-weight:950;white-space:nowrap}.time{font-weight:900;color:#176b7a;border:1px solid #c9dce8;border-radius:999px;padding:5px 8px;font-size:11px;white-space:nowrap}
+.remotion-stage{position:relative;background:#05080b;border:1px solid #d2dee9;border-radius:16px;overflow:hidden;flex:1 1 auto;min-height:0;max-height:56dvh;aspect-ratio:9/16;align-self:center;width:auto;max-width:100%;display:flex;align-items:center;justify-content:center}.remotion-stage video,.poster-img{display:block;width:100%;height:100%;background:#05080b;object-fit:contain;object-position:center center}.poster-img{position:absolute;inset:0;z-index:2}.lesson.started .poster-img{display:none}.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88px;height:88px;border-radius:999px;border:4px solid rgba(255,255,255,.9);background:rgba(23,107,122,.94);color:#fff;font-weight:950;font-size:16px;box-shadow:0 18px 44px rgba(31,41,55,.24);z-index:3}.lesson.started .center-play{opacity:0;pointer-events:none}
+.whiteboard{position:relative;background:#fffdf7;border:1px solid #e6dbc7;border-radius:16px;padding:6px;overflow:hidden;flex:1 1 auto;min-height:250px}.whiteboard:before{content:"";position:absolute;inset:8px;border:1px dashed rgba(71,85,105,.18);border-radius:12px;pointer-events:none}.board-svg{position:relative;z-index:1;width:100%;height:100%;display:block}
+.edge{fill:none;stroke:#4b5d73;stroke-width:2.2;stroke-linecap:round;opacity:.24;stroke-dasharray:1;stroke-dashoffset:0}.edge.critical{stroke:#8fa0b3}.node rect{fill:#fffdf7;stroke:#4b5d73;stroke-width:1.7}.node-label{text-anchor:middle;font-size:10px;font-weight:900;fill:#17202a}.node-dur{text-anchor:middle;font-size:9px;font-weight:800;fill:#637386}.wrong-equation{display:none;font-size:16px;font-weight:900;fill:#c2410c}.wrong-cross{display:none;stroke:#c2410c;stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;pathLength:1}.early-label,.late-label,.float-label{display:none;text-anchor:middle;font-size:8.5px;font-weight:900}.early-label{fill:#1d4ed8}.late-label{fill:#0f766e}.float-label.zero{fill:#0f766e}.float-label.slack{fill:#b45309}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes pop{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1);opacity:1}}@keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.lesson[data-stage="trap"] .wrong-equation,.lesson[data-stage="trap"] .wrong-cross{display:block}.lesson[data-stage="trap"] .wrong-cross{animation:draw .6s ease forwards}.lesson[data-stage="trap"] .node{opacity:.34}.lesson[data-stage="trap"] .trap-node{opacity:1;animation:pop .32s ease forwards}.lesson[data-stage="trap"] .trap-node rect{fill:#fff3e9;stroke:#c2410c;stroke-width:2.4}.lesson[data-stage="logic"] .edge,.lesson[data-stage="forward"] .edge,.lesson[data-stage="backward"] .edge,.lesson[data-stage="float"] .edge,.lesson[data-stage="critical"] .edge,.lesson[data-stage="score"] .edge{opacity:.78;stroke-dashoffset:1;animation:draw .58s cubic-bezier(.16,1,.3,1) forwards;animation-delay:var(--d)}.lesson[data-stage="forward"] .early-label,.lesson[data-stage="backward"] .early-label,.lesson[data-stage="backward"] .late-label{display:block;animation:fadeup .28s ease forwards}.lesson[data-stage="float"] .float-label,.lesson[data-stage="critical"] .float-label.zero{display:block;animation:fadeup .28s ease forwards}.lesson[data-stage="critical"] .edge.critical,.lesson[data-stage="score"] .edge.critical{stroke:#c2410c;stroke-width:3.4;opacity:1;marker-end:url(#hotArrow)}.lesson[data-stage="critical"] .node.critical rect,.lesson[data-stage="score"] .node.critical rect{fill:#fff3e9;stroke:#c2410c;stroke-width:2.4}.lesson[data-stage="score"] .node:not(.critical),.lesson[data-stage="score"] .edge:not(.critical){opacity:.18}
+.score-card{display:none}.subtitle{border:1px solid #c8dcf5;background:#f2f7ff;border-radius:13px;padding:8px 10px;flex:0 0 68px;overflow:hidden}.subtitle h2{font-size:15px;color:#1d4ed8;margin:0 0 3px;line-height:1.15}.subtitle p{font-size:13px;line-height:1.36;margin:0;font-weight:850;color:#24364b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.score-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex:0 0 auto}.score-slots div{min-height:43px;border:1px solid #d7e2ed;background:#f7fafc;border-radius:11px;padding:6px 7px}.score-slots b{display:block;font-size:11px;color:#176b7a;line-height:1}.score-slots span{display:block;margin-top:3px;font-size:12px;line-height:1.15;font-weight:900;color:#34465b;word-break:break-word}.score-slots div.revealed{border-color:#fed7aa;background:#fff7ed}.score-slots div.revealed span{color:#9a3412}
+.qa-panel{display:none;border-top:1px dashed #cbd9e6;padding-top:6px;flex:0 0 auto;max-height:118px;overflow:auto}.qa-panel.show{display:block}.qa-title{font-size:11px;color:#176b7a;font-weight:900;margin:0 0 5px}.qa-bubble{display:flex;gap:6px;margin:5px 0;align-items:flex-start}.qa-bubble.teacher{flex-direction:row-reverse}.qa-avatar{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:0 0 24px;font-size:11px;font-weight:900;background:#dbeafe;color:#1d4ed8}.qa-bubble.teacher .qa-avatar{background:#ffedd5;color:#c2410c}.qa-text{max-width:88%;border:1px solid #d5e1ec;background:#fff;border-radius:12px;padding:7px 8px;font-size:12px;line-height:1.35;color:#34465b;font-weight:850}.qa-bubble.active .qa-text{border-color:#176b7a;box-shadow:0 0 0 3px rgba(23,107,122,.10)}
+.control-deck{display:flex;flex-direction:column;gap:7px;flex:0 0 auto}.audio-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.audio-row button{border:1px solid #cbd9e6;border-radius:12px;height:38px;padding:0 8px;background:#fff;font-weight:900;color:#24364b;touch-action:manipulation}.audio-row .play{background:#176b7a;color:#fff;border-color:#176b7a}.exit-full{display:none}.scrubber{position:relative;height:36px;border-radius:999px;background:#d6e2ec;display:block;overflow:visible;flex:0 0 auto}.scrubber input{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;opacity:1;cursor:pointer;appearance:none;-webkit-appearance:none;background:transparent;touch-action:none}.scrubber input::-webkit-slider-runnable-track{height:36px;background:transparent}.scrubber input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:4px;border-radius:999px;border:5px solid #f97316;background:#fff;box-shadow:0 5px 14px rgba(31,41,55,.22)}.scrubber input::-moz-range-track{height:36px;background:transparent}.scrubber input::-moz-range-thumb{width:24px;height:24px;border-radius:999px;border:5px solid #f97316;background:#fff;box-shadow:0 5px 14px rgba(31,41,55,.22)}.scrubber span{position:absolute;left:0;top:0;bottom:0;z-index:1;width:0;background:linear-gradient(90deg,#176b7a,#f97316);border-radius:999px;pointer-events:none}
+.timeline{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;flex:0 0 auto}.beat-dot{height:30px;border:1px solid #cbd9e6;border-radius:999px;background:#eef4f8;color:#607287;font-size:10px;font-weight:950;white-space:nowrap;touch-action:manipulation}.beat-dot.active{background:#176b7a;color:#fff;border-color:#176b7a}.beat-dot.current{background:#f97316;color:#fff;border-color:#f97316}
+.nav{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:6px;flex:0 0 auto}.nav button,.nav a{height:38px;border-radius:12px;border:1px solid #cbd9e6;background:#fff;font-size:13px;font-weight:900;color:#24364b;text-decoration:none;display:flex;align-items:center;justify-content:center}.nav a{background:#eef4f8;color:#607287;border-color:#d2dee9}.nav a.locked{opacity:.72}.nav a.ready{background:#f97316;color:#fff;border-color:#f97316;box-shadow:0 10px 22px rgba(249,115,22,.22);pointer-events:auto;opacity:1}
+.below{display:none}.lesson.theater,.lesson:fullscreen{position:fixed;inset:0;z-index:9999;width:100vw;height:100dvh;max-width:none;border-radius:0;border:0;padding:0;background:#05080b;box-shadow:none;gap:0}.lesson.theater .journey-rail,.lesson:fullscreen .journey-rail,.lesson.theater .topbar,.lesson:fullscreen .topbar,.lesson.theater .subtitle,.lesson:fullscreen .subtitle,.lesson.theater .score-slots,.lesson:fullscreen .score-slots,.lesson.theater .qa-panel,.lesson:fullscreen .qa-panel,.lesson.theater .nav,.lesson:fullscreen .nav,.lesson.theater .center-play,.lesson:fullscreen .center-play{display:none}.lesson.theater .remotion-stage,.lesson:fullscreen .remotion-stage{position:absolute;inset:0;z-index:1;width:100%;height:100%;max-width:none;max-height:none;min-height:0;aspect-ratio:auto;align-self:stretch;border:0;border-radius:0;flex:none;background:#05080b}.lesson.theater.controls-visible .remotion-stage,.lesson:fullscreen.controls-visible .remotion-stage{bottom:calc(156px + env(safe-area-inset-bottom));height:auto}.lesson.theater .control-deck,.lesson:fullscreen .control-deck{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;padding:10px;border:1px solid rgba(203,217,230,.92);border-radius:18px;background:#fff;box-shadow:0 14px 34px rgba(31,41,55,.20);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}.lesson.theater.controls-visible .control-deck,.lesson:fullscreen.controls-visible .control-deck{opacity:1;transform:translateY(0);pointer-events:auto}.lesson.theater .audio-row,.lesson:fullscreen .audio-row{grid-template-columns:1.1fr 1fr 1fr .8fr}.lesson.theater .audio-row button,.lesson:fullscreen .audio-row button{height:42px}.lesson.theater .timeline .beat-dot,.lesson:fullscreen .timeline .beat-dot{height:30px}.lesson.theater .exit-full,.lesson:fullscreen .exit-full{display:block}@media (max-height:760px){.journey-rail{display:none}.topbar h1{font-size:17px}.remotion-stage{min-height:0}.subtitle{flex-basis:58px}.subtitle h2{font-size:14px}.subtitle p{font-size:12px}.score-slots div{min-height:36px;padding:5px}.audio-row button,.nav button,.nav a{height:34px}.timeline .beat-dot{height:26px}.lesson.theater.controls-visible .remotion-stage,.lesson:fullscreen.controls-visible .remotion-stage{bottom:calc(146px + env(safe-area-inset-bottom))}}@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="phone">
+  <section class="lesson" id="lesson" data-stage="trap">
+    <div class="journey-rail" aria-label="学习进度">
+      <span class="on">① 讲懂</span>
+      <a id="practiceGate" class="locked" href="N01_network_video_first.practice.html" aria-disabled="true">② 看完后闯关</a>
+      <span>③ 看穿</span>
+    </div>
+    <div class="topbar">
+      <div class="topline">
+        <div class="kicker">鲁班深母题 · 有声白板</div>
+        <div class="top-actions">
+          <button type="button" class="full-btn" id="fullBtn">全屏</button>
+          <div class="time" id="timeLabel">00:00</div>
+        </div>
+      </div>
+      <h1>关键线路不是最长那一项</h1>
+    </div>
+    <div class="remotion-stage"><video id="lessonAudio" preload="metadata" playsinline poster="N01_network_video_first.poster.png?v=1781779439" src="N01_network_video_first.remotion.mp4?v=1781799954"></video><img class="poster-img" id="posterImg" src="N01_network_video_first.poster.png?v=1781779439" alt="课程首帧"><button type="button" class="center-play" id="centerPlay">播放视频</button></div>
+    <div class="subtitle">
+      <h2 id="beatTitle">1. 先抓错觉</h2>
+      <p id="beatSubtitle">点播放，听老师讲。</p>
+    </div>
+    <div class="score-slots" id="scoreSlots"><div data-score-slot="路径" data-final="开始-A-C-E-结束"><b>路径</b><span>待推导</span></div><div data-score-slot="工期" data-final="10 天"><b>工期</b><span>待推导</span></div><div data-score-slot="依据" data-final="A、C、E 总时差均为 0"><b>依据</b><span>待推导</span></div></div>
+    <div class="qa-panel" id="qaPanel">
+      <div class="qa-title">讲完追问</div>
+      <div id="qaList"></div>
+    </div>
+    <div class="control-deck" id="controlDeck">
+      <div class="audio-row">
+        
+        <button type="button" class="play" id="playBtn">播放</button>
+        <button type="button" id="pauseBtn">暂停</button>
+        <button type="button" id="muteBtn" aria-pressed="false">静音</button>
+        <button type="button" class="exit-full" id="exitFullBtn">退出</button>
+      </div>
+      <label class="scrubber" aria-label="拖动调整播放进度">
+        <input type="range" id="scrubRange" min="0" max="1000" value="0" step="1">
+        <span id="scrubFill"></span>
+      </label>
+      <div class="timeline" aria-label="章节跳转"><button type="button" class="beat-dot" data-beat="0" title="为什么先学它" aria-label="跳到第 1 节：为什么先学它">先学</button><button type="button" class="beat-dot" data-beat="1" title="先抓错觉" aria-label="跳到第 2 节：先抓错觉">错觉</button><button type="button" class="beat-dot" data-beat="2" title="先读箭线" aria-label="跳到第 3 节：先读箭线">读图</button><button type="button" class="beat-dot" data-beat="3" title="顺推最早时间" aria-label="跳到第 4 节：顺推最早时间">顺推</button><button type="button" class="beat-dot" data-beat="4" title="逆推最迟时间" aria-label="跳到第 5 节：逆推最迟时间">逆推</button><button type="button" class="beat-dot" data-beat="5" title="只认总时差" aria-label="跳到第 6 节：只认总时差">时差</button><button type="button" class="beat-dot" data-beat="6" title="连成关键线路" aria-label="跳到第 7 节：连成关键线路">线路</button><button type="button" class="beat-dot" data-beat="7" title="写成采分句" aria-label="跳到第 8 节：写成采分句">采分</button></div>
+    </div>
+    <div class="nav">
+      <button type="button" id="prevBeat">上一幕</button>
+      <button type="button" id="nextBeat">下一幕</button>
+      <a id="practiceCta" class="locked" href="N01_network_video_first.practice.html" aria-disabled="true">看完后闯关</a>
+    </div>
+  </section>
+  <section class="below">
+    <div><b>纠正的错觉</b><span>C 工作 4 天最长，所以关键线路就是 C。</span></div>
+    <div><b>记忆钩子</b><span>关键线路不是最长那一项，是一路都没有缓冲。</span></div>
+  </section>
+</main>
+<script type="application/json" id="lessonData">{"video_beats":[{"id":"hook","title":"为什么先学它","stage":"hook","subtitle":"考场要交的是路径、总工期、判断依据三件套。","visual_action":"先出现真实考试场景标签：关键线路、总工期、总时差、工期索赔，再聚焦到今天这张小图。","erase_before_next":"收起场景标签，只留下今天要攻破的错觉。"},{"id":"trap","title":"先抓错觉","stage":"trap","subtitle":"“C 最长，所以关键线路是 C”这句话会丢分，因为关键线路不是一个工作。","visual_action":"只点亮 C 工作，并划掉“最长单项=关键线路”的错误等式。","erase_before_next":"擦掉错误等式，保留网络图。"},{"id":"logic","title":"先读箭线","stage":"logic","subtitle":"先看紧前紧后：A、B 先做，C、D 等 A，D 还等 B，E 等 C 和 D。","visual_action":"按箭线顺序把逻辑关系描粗。","erase_before_next":"淡出错误提示，只留下逻辑箭线。"},{"id":"forward","title":"顺推最早时间","stage":"forward","subtitle":"顺推时，遇到多个紧前工作，取完成最晚的那个。","visual_action":"在每个工作上方写 ES-EF，重点标出 E 要等 C 到第 7 天。","erase_before_next":"保留早时间，准备叠加迟时间。"},{"id":"backward","title":"逆推最迟时间","stage":"backward","subtitle":"逆推不是再算一遍工期，而是在找不拖总工期的最晚时间。","visual_action":"在每个工作旁写 LS-LF，形成早/迟对照。","erase_before_next":"淡化早迟时间，突出总时差。"},{"id":"float","title":"只认总时差","stage":"float","subtitle":"判断关键线路看总时差：B 有 3 天，D 有 2 天，它们有缓冲，不控制总工期。","visual_action":"给 B、D 贴上橙色总时差，给 A、C、E 贴上绿色 0。","erase_before_next":"擦掉非关键工作强调，只留下 0 时差链。"},{"id":"critical","title":"连成关键线路","stage":"critical","subtitle":"先找总时差为 0 的工作，再连成从开始到结束的连续线路。","visual_action":"用红色粗线贯通 开始-A-C-E-结束。","erase_before_next":"清理计算痕迹，准备写答案句。"},{"id":"score","title":"写成采分句","stage":"score","subtitle":"考试不要只写结论，要把线路、工期、理由都写出来。","visual_action":"在白板下方写出完整采分句。","erase_before_next":"最终板只保留关键线路和采分句。"}],"timing":{"audio":"N01_network_video_first.lesson.mp3","provider":"aliyun_mixed","providers":["aliyun_cosyvoice:cosyvoice-v3-flash","aliyun_qwen_tts:qwen3-tts-flash"],"model":"cosyvoice-v3-flash","qwenModel":"qwen3-tts-flash","voices":["longanhuan_v3","Ethan"],"defaultVoice":"longanhuan_v3","instruction":null,"sampleRate":24000,"rate":0.95,"volume":65,"totalSec":160.016,"teachEndSec":100.552,"style":"teach_then_qa","segments":[{"idx":0,"kind":"teach","state":"hook","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"exam_context.student_facing_hook","claim":true,"text":"先给你一个考试视角：网络计划题，表面问关键线路，实际要三件事：路径、总工期、判断依据。后面索赔和工期调整，也都靠这三件事。今天只练一个动作：把图，变成能拿分的一句话。","startSec":0,"durSec":16.608,"requestId":"07761bb3-061d-936f-bc8d-3fe4452713ad","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":1,"kind":"teach","state":"trap","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"teaching_spine.wrong_idea","claim":true,"text":"所以第一步不是算，而是先防错觉。很多人一眼看见 C 工作四天最长，就说关键线路是 C。这里已经错了：C 只是一个工作，不是一条线。","startSec":17.008,"durSec":11.736,"requestId":"9c495985-3190-9b35-8b36-ff1e7cc00d06","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":2,"kind":"teach","state":"logic","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.dependencies","claim":true,"text":"接下来才读箭线。A、B 可以同时开始；C、D 要等 A；D 还要等 B；E 要等 C 和 D。箭线读错，顺推、逆推都会跟着错。","startSec":29.144,"durSec":11.616,"requestId":"3d6c9229-073a-9f42-841d-8912a140cab8","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":3,"kind":"teach","state":"forward","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.activities","claim":true,"text":"顺推最早时间时，遇到多个紧前工作，取完成最晚的那个。C 在第七天完成，D 在第五天完成，所以 E 只能等到第七天开始。","startSec":41.16,"durSec":11.28,"requestId":"c9ebab94-fbb5-9be4-b386-97420c1beca6","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":4,"kind":"teach","state":"backward","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.expected.float","claim":true,"text":"有了总工期，再逆推最迟时间。逆推问的不是重新算一遍，而是：不拖总工期时，每项工作最晚还能什么时候开始、什么时候完成。","startSec":52.84,"durSec":11.328,"requestId":"89a9d6ad-8788-9b4e-849e-2a732145aeda","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":5,"kind":"teach","state":"float","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.expected.float","claim":true,"text":"现在看总时差。B 有三天总时差，D 有两天总时差，说明它们有缓冲。能拖的工作，不控制总工期。","startSec":64.568,"durSec":9.096,"requestId":"4881f6f8-9852-9ee1-ae95-4b91bbd66e8e","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":6,"kind":"teach","state":"critical","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.expected.critical_path","claim":true,"text":"把总时差为零的工作连成一条连续线：开始，A，C，E，结束。这条线没有缓冲，所以它控制总工期，总工期是十天。","startSec":74.064,"durSec":12.192,"requestId":"b2a76f2b-757a-994b-9fcf-4c79ec728360","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":7,"kind":"teach","state":"score","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"teaching_spine.exam_phrase","claim":true,"text":"最后落到答题纸：关键线路为开始，A，C，E，结束，总工期十天；理由是 A、C、E 的总时差均为零。你不是在写结论，是在写采分点。","startSec":86.656,"durSec":13.896,"requestId":"7d27a34a-c7de-9f75-a31f-8ba3c3cfad11","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":8,"kind":"q","state":"conclude","qaIndex":0,"keycard":null,"speaker":"S","voice":"Ethan","anchor":null,"claim":false,"text":"老师，所以最长工作不能直接当关键线路，对吗？","startSec":100.952,"durSec":3.76,"requestId":"8ac63d46-89ef-9136-ae62-5d2c3e655678","provider":"aliyun_qwen_tts","model":"qwen3-tts-flash"},{"idx":9,"kind":"a","state":"conclude","qaIndex":0,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"teaching_spine.visual_correction","claim":true,"text":"对。最长工作只是一个点，关键线路是一条从开始到结束的路。判断它，要看这条路上的工作是否总时差为零。","startSec":105.112,"durSec":9.792,"requestId":"41852aba-c5c2-9cb4-b006-de3cdc379a6d","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":10,"kind":"q","state":"conclude","qaIndex":1,"keycard":null,"speaker":"S","voice":"Ethan","anchor":null,"claim":false,"text":"那我能不能只把每条路的工期加起来，选最长？","startSec":115.304,"durSec":3.28,"requestId":"dd7ce737-01cd-9792-92ba-9924ea65dc73","provider":"aliyun_qwen_tts","model":"qwen3-tts-flash"},{"idx":11,"kind":"a","state":"conclude","qaIndex":1,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.dependencies","claim":true,"text":"可以作为检查，但不能跳过逻辑关系。像 D 要同时等 A 和 B，E 要同时等 C 和 D；不按紧前紧后读，路本身可能就读错。","startSec":118.984,"durSec":10.8,"requestId":"9edb78ce-a560-99b0-b2a3-190d35b0a0b4","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":12,"kind":"q","state":"conclude","qaIndex":2,"keycard":null,"speaker":"S","voice":"Ethan","anchor":null,"claim":false,"text":"总时差和自由时差，我还是容易混。","startSec":130.184,"durSec":2.96,"requestId":"286374cb-5e79-96e1-882a-aae542211a22","provider":"aliyun_qwen_tts","model":"qwen3-tts-flash"},{"idx":13,"kind":"a","state":"conclude","qaIndex":2,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"question_data.expected.float","claim":true,"text":"记住问法不同：总时差问拖多久不影响总工期；自由时差问拖多久不影响紧后工作最早开始。比如 B，总时差三天，自由时差只有一天。","startSec":133.544,"durSec":12.696,"requestId":"1ca3b2ca-9c7f-9278-b4bc-1450fd0374e7","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"},{"idx":14,"kind":"a","state":"closing","qaIndex":null,"keycard":null,"speaker":"T","voice":"longanhuan_v3","anchor":"teaching_spine.exam_phrase","claim":true,"text":"收个尾：网络计划题，别背关键线路四个字。先把图翻译成三件套：路径、总工期、判断依据。现在进闯关，练到一眼能写出采分句。","startSec":146.64,"durSec":12.576,"requestId":"ae558c5c-94b5-9100-9c10-aa7a1ad52d4b","provider":"aliyun_cosyvoice","model":"cosyvoice-v3-flash"}]},"practice":"N01_network_video_first.practice.html"}</script>
+<script>
+const data = JSON.parse(document.getElementById('lessonData').textContent);
+const lesson = document.getElementById('lesson');
+const audio = document.getElementById('lessonAudio');
+const title = document.getElementById('beatTitle');
+const subtitle = document.getElementById('beatSubtitle');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const centerPlay = document.getElementById('centerPlay');
+const muteBtn = document.getElementById('muteBtn');
+const fullBtn = document.getElementById('fullBtn');
+const exitFullBtn = document.getElementById('exitFullBtn');
+const controlDeck = document.getElementById('controlDeck');
+const practiceGate = document.getElementById('practiceGate');
+const practiceCta = document.getElementById('practiceCta');
+const dots = [...document.querySelectorAll('.beat-dot')];
+const fill = document.getElementById('scrubFill');
+const scrubRange = document.getElementById('scrubRange');
+const timeLabel = document.getElementById('timeLabel');
+const qaPanel = document.getElementById('qaPanel');
+const qaList = document.getElementById('qaList');
+const scoreSlots = [...document.querySelectorAll('[data-score-slot]')];
+let idx = 0;
+const beats = data.video_beats || [];
+const allSegs = (data.timing && data.timing.segments || []);
+const segs = allSegs.filter(s => s.kind === 'teach');
+const qaSegs = allSegs.filter(s => s.kind === 'q' || s.kind === 'a');
+let suppressTimeupdate = false;
+let unlocked = false;
+let controlsTimer = null;
+function pad(n){ return String(Math.floor(n)).padStart(2,'0'); }
+function fmt(t){ return `${pad(t/60)}:${pad(t%60)}`; }
+function html(s){ return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function renderQa(){
+  if(!qaList || !qaSegs.length) return;
+  qaList.innerHTML = qaSegs.map((s,i)=>{
+    const teacher = s.kind === 'a';
+    const avatar = teacher ? '鲁' : '问';
+    return `<div class="qa-bubble ${teacher ? 'teacher' : 'student'}" data-qa="${i}"><div class="qa-avatar">${avatar}</div><div class="qa-text">${html(s.text)}</div></div>`;
+  }).join('');
+}
+function qaFromTime(t){
+  let found = null;
+  for(let i=0;i<qaSegs.length;i++){
+    if(t >= qaSegs[i].startSec - 0.05) found = {seg: qaSegs[i], idx: i};
+    else break;
+  }
+  return found;
+}
+function updateQa(t){
+  if(!qaPanel || !qaSegs.length) return false;
+  const teachEnd = (data.timing && data.timing.teachEndSec) || Infinity;
+  if(t < teachEnd - 0.05){
+    qaPanel.classList.remove('show');
+    document.querySelectorAll('.qa-bubble').forEach(b=>b.classList.remove('active'));
+    return false;
+  }
+  const active = qaFromTime(t);
+  qaPanel.classList.add('show');
+  if(active){
+    title.textContent = active.seg.kind === 'q' ? '讲完追问' : '老师补充';
+    subtitle.textContent = active.seg.text;
+  }
+  document.querySelectorAll('.qa-bubble').forEach((b,i)=>b.classList.toggle('active', !!active && i === active.idx));
+  return true;
+}
+function updateScoreSlots(t){
+  const cues = [
+    {at: segs[6] ? segs[6].startSec + 3.0 : Infinity, slot: '路径'},
+    {at: segs[6] ? segs[6].startSec + 8.2 : Infinity, slot: '工期'},
+    {at: segs[7] ? segs[7].startSec + 7.2 : Infinity, slot: '依据'},
+  ];
+  scoreSlots.forEach(el => {
+    const label = el.dataset.scoreSlot;
+    const cue = cues.find(x => x.slot === label);
+    const span = el.querySelector('span');
+    if(cue && t >= cue.at){
+      el.classList.add('revealed');
+      span.textContent = el.dataset.final || span.textContent;
+    } else {
+      el.classList.remove('revealed');
+      span.textContent = '待推导';
+    }
+  });
+}
+function setBeat(next, seek=false){
+  idx = Math.max(0, Math.min(beats.length-1, next));
+  const beat = beats[idx];
+  lesson.dataset.stage = beat.stage;
+  title.textContent = `${idx+1}. ${beat.title}`;
+  subtitle.textContent = beat.subtitle || ((segs[idx] && segs[idx].text) || '');
+  dots.forEach((d,i)=>{
+    d.classList.toggle('active', i<=idx);
+    d.classList.toggle('current', i===idx);
+  });
+  if(seek && audio && segs[idx]) audio.currentTime = segs[idx].startSec;
+}
+function beatFromTime(t){
+  if(!segs.length) return idx;
+  let found = 0;
+  for(let i=0;i<segs.length;i++){
+    if(t >= segs[i].startSec) found = i;
+  }
+  return Math.min(found, beats.length-1);
+}
+function manualBeat(next){
+  lesson.classList.add('started');
+  if(audio) suppressTimeupdate = true;
+  setBeat(next,true);
+  if(audio) updateProgress();
+  window.setTimeout(()=>{ suppressTimeupdate = false; }, 180);
+}
+document.getElementById('prevBeat').addEventListener('click',()=>manualBeat(idx-1));
+document.getElementById('nextBeat').addEventListener('click',()=>manualBeat(idx+1));
+dots.forEach(btn => btn.addEventListener('click', () => manualBeat(Number(btn.dataset.beat || 0))));
+function unlockPractice(){
+  unlocked = true;
+  lesson.classList.add('finished');
+  if(practiceGate){ practiceGate.textContent='② 开始闯关'; practiceGate.classList.add('ready'); practiceGate.classList.remove('locked'); practiceGate.removeAttribute('aria-disabled'); }
+  if(practiceCta){ practiceCta.textContent='开始闯关'; practiceCta.classList.add('ready'); practiceCta.classList.remove('locked'); practiceCta.removeAttribute('aria-disabled'); }
+}
+function guardPractice(evt){
+  if(unlocked) return;
+  evt.preventDefault();
+  subtitle.textContent = '先听完采分句，再进入闯关。';
+}
+if(practiceGate) practiceGate.addEventListener('click', guardPractice);
+if(practiceCta) practiceCta.addEventListener('click', guardPractice);
+function fullscreenElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+function setFullButton(){
+  if(!fullBtn) return;
+  fullBtn.textContent = fullscreenElement() || lesson.classList.contains('theater') ? '退出' : '全屏';
+}
+function hideControls(){
+  clearTimeout(controlsTimer);
+  controlsTimer = null;
+  lesson.classList.remove('controls-visible');
+}
+function showControls(autoHide=true){
+  if(!lesson.classList.contains('theater')) return;
+  clearTimeout(controlsTimer);
+  lesson.classList.add('controls-visible');
+  if(autoHide && audio && !audio.paused){
+    controlsTimer = window.setTimeout(hideControls, 3200);
+  }
+}
+async function toggleFullscreen(evt){
+  if(evt) evt.stopPropagation();
+  const active = fullscreenElement() || lesson.classList.contains('theater');
+  if(active){
+    if(fullscreenElement()){
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if(exit) {
+        try { await exit.call(document); } catch {}
+      }
+    }
+    lesson.classList.remove('theater');
+    hideControls();
+    setFullButton();
+    return;
+  }
+  lesson.classList.add('theater');
+  hideControls();
+  const request = lesson.requestFullscreen || lesson.webkitRequestFullscreen;
+  if(request){
+    try { await request.call(lesson); } catch {}
+  }
+  setFullButton();
+}
+if(fullBtn){
+  fullBtn.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', setFullButton);
+  document.addEventListener('webkitfullscreenchange', setFullButton);
+}
+if(exitFullBtn) exitFullBtn.addEventListener('click', toggleFullscreen);
+lesson.addEventListener('click', (evt)=>{
+  if(!lesson.classList.contains('theater')) return;
+  if(evt.target.closest('.control-deck') || evt.target.closest('.full-btn')) return;
+  if(lesson.classList.contains('controls-visible')) hideControls();
+  else showControls(true);
+});
+function updateProgress(){
+  if(!audio) return;
+  const total = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((data.timing && data.timing.totalSec) || 1);
+  const pct = Math.min(100, audio.currentTime / total * 100);
+  fill.style.width = `${pct}%`;
+  if(scrubRange) scrubRange.value = String(Math.round(audio.currentTime / total * 1000));
+  timeLabel.textContent = `${fmt(audio.currentTime)} / ${fmt(total)}`;
+  updateScoreSlots(audio.currentTime);
+}
+if(audio){
+  async function togglePlay(){
+    lesson.classList.add('started');
+    if(audio.paused){ if(centerPlay){ centerPlay.style.opacity=''; centerPlay.style.pointerEvents=''; } await audio.play(); playBtn.textContent='播放中'; if(centerPlay) centerPlay.textContent='播放中'; }
+    else { audio.pause(); playBtn.textContent='继续'; if(centerPlay) centerPlay.textContent='继续'; }
+  }
+  function pause(){
+    audio.pause();
+    playBtn.textContent = '继续';
+    if(centerPlay) centerPlay.textContent = '继续';
+  }
+  playBtn.addEventListener('click', togglePlay);
+  pauseBtn.addEventListener('click', pause);
+  if(centerPlay) centerPlay.addEventListener('click', togglePlay);
+  muteBtn.addEventListener('click', ()=>{
+    audio.muted = !audio.muted;
+    muteBtn.textContent = audio.muted ? '开声' : '静音';
+    muteBtn.setAttribute('aria-pressed', String(audio.muted));
+  });
+  audio.addEventListener('timeupdate', ()=>{
+    if(suppressTimeupdate) return;
+    const next = beatFromTime(audio.currentTime);
+    if(next !== idx) setBeat(next,false);
+    updateQa(audio.currentTime);
+    updateProgress();
+  });
+  audio.addEventListener('loadedmetadata', updateProgress);
+  if(scrubRange){
+    scrubRange.addEventListener('pointerdown', ()=>showControls(false));
+    scrubRange.addEventListener('input', ()=>{
+      lesson.classList.add('started');
+      showControls(false);
+      const total = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((data.timing && data.timing.totalSec) || 1);
+      audio.currentTime = Number(scrubRange.value || 0) / 1000 * total;
+      const next = beatFromTime(audio.currentTime);
+      if(next !== idx) setBeat(next,false);
+      updateQa(audio.currentTime);
+      updateProgress();
+    });
+    scrubRange.addEventListener('change', ()=>showControls(true));
+  }
+  audio.addEventListener('play',()=>{
+    playBtn.textContent = '播放中';
+    showControls(true);
+  });
+  audio.addEventListener('pause',()=>{ if(!audio.ended) playBtn.textContent = '继续'; showControls(false); });
+  audio.addEventListener('ended',()=>{
+    playBtn.textContent='重播';
+    fill.style.width='100%';
+    if(centerPlay){ centerPlay.textContent='重播'; centerPlay.style.opacity='1'; centerPlay.style.pointerEvents='auto'; }
+    unlockPractice();
+  });
+} else {
+  playBtn.textContent='无音频文件';
+  playBtn.disabled = true;
+  pauseBtn.disabled = true;
+}
+renderQa();
+setBeat(0,false);
+updateScoreSlots(0);
+</script>
+</body>
+</html>

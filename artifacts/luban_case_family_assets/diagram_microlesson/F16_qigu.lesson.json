@@ -1,0 +1,79 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "F16_qigu",
+  "derived_from": "F16_qigu.json",
+  "style": "teach_then_qa",
+  "title": "屋面卷材起鼓割补 · 老师带你看懂",
+  "subtitle": "老师边讲边在屋面剖面上逐步修,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey skill 复刻 F16(工序类①)。讲懂幕舞台=屋面剖面工序(stage 外置:svg+states+css+banner 自带,引擎对原型通用)。beat 旁白事实必 anchor 回 F16_qigu.json 真实字段(防漂移闸)。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的估分讲解,不是官方阅卷;图为教学示意,具体数值以教材和规范为准。",
+  "authority_label": "培训机构(佑森)教研估分,非官方阅卷",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "修补闭环完成:先治病因 → 恢复防水闭合 → 蓄水检验确认不渗漏。",
+    "states": [
+      {"id": "intro", "label": "起鼓"},
+      {"id": "cut", "label": "放气"},
+      {"id": "dry", "label": "干燥"},
+      {"id": "add", "label": "附加层"},
+      {"id": "seal", "label": "封严"},
+      {"id": "conclude", "label": "检验"}
+    ],
+    "css": ".f-bulge,.f-cut,.f-dry,.f-add,.f-seal,.f-test{opacity:0;transition:opacity .28s,transform .28s;transform:translateY(3px)} .current-intro .f-bulge,.current-cut .f-cut,.current-dry .f-dry,.current-add .f-add,.current-seal .f-seal,.current-conclude .f-test{opacity:1;transform:none} .f-layerlbl{fill:#9fb0c2;font-size:10px} .f-note{font-size:11px;font-weight:700} .f-note.q{fill:#7fc7ff}.f-note.cut{fill:#ff9b9b}.f-note.dry{fill:#cfe0f0}.f-note.add{fill:#7fe6ab}.f-note.seal{fill:#9cc6f5}.f-note.test{fill:#bff0d4}",
+    "svg": "<svg viewBox='0 80 360 170' role='img' aria-label='屋面卷材起鼓割补工序'><rect x='20' y='180' width='320' height='56' fill='#7f8690'/><rect x='20' y='166' width='320' height='14' fill='#b9ad8e'/><rect x='20' y='154' width='320' height='12' fill='#36465a'/><text class='f-layerlbl' x='24' y='150'>卷材</text><text class='f-layerlbl' x='24' y='177'>找平</text><text class='f-layerlbl' x='24' y='205'>基层</text><g class='f-bulge'><path d='M150 154 Q180 106 210 154 Z' fill='#36465a'/><path d='M170 150 L170 126 M166 132 L170 124 L174 132' stroke='#ffd27f' stroke-width='1.5' fill='none'/><path d='M190 150 L190 126 M186 132 L190 124 L194 132' stroke='#ffd27f' stroke-width='1.5' fill='none'/><text class='f-note q' x='180' y='100' text-anchor='middle'>起鼓:气/水汽顶起卷材</text></g><g class='f-cut'><path d='M172 158 L188 142 M172 142 L188 158' stroke='#ff5a5a' stroke-width='2.5'/><path d='M180 140 L180 118 M176 126 L180 116 L184 126' stroke='#ff9b9b' stroke-width='1.6' fill='none'/><text class='f-note cut' x='256' y='124' text-anchor='middle'>①割开放气</text></g><g class='f-dry'><rect x='138' y='150' width='84' height='16' rx='3' fill='none' stroke='#7fc7ff' stroke-dasharray='5 4' stroke-width='1.4'/><text class='f-note dry' x='256' y='150' text-anchor='middle'>排气干燥·清基层</text></g><g class='f-add'><rect x='132' y='146' width='96' height='8' rx='2' fill='#2a9d6a'/><text class='f-note add' x='256' y='141' text-anchor='middle'>②附加层盖过边缘</text></g><g class='f-seal'><rect x='114' y='138' width='132' height='8' rx='2' fill='#4a7fb5'/><text class='f-note seal' x='256' y='172' text-anchor='middle'>③新卷材搭接封严</text></g><g class='f-test'><rect x='20' y='124' width='320' height='12' rx='2' fill='#6fb7e0' opacity='0.5'/><text class='f-note test' x='180' y='117' text-anchor='middle'>④蓄水检验:确认不渗漏 ✓</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": true, "anchor": "why_lose_points_html",
+       "keycard": {"text": "常见丢分:只写'修补防水层'", "tone": "q"},
+       "sync_keyword": "修补防水层",
+       "narration": "屋面卷材起鼓,很多人答'修补防水层、加强处理'就丢分。修补不是盖层新卷材,是先治病因、再恢复防水闭合、最后检验。"},
+      {"id": "diagnose", "stage": "intro", "claim": true, "anchor": "steps[0].scoring_expression",
+       "keycard": {"text": "先认病:气/水汽顶起卷材", "tone": "a"},
+       "sync_keyword": "鼓泡",
+       "narration": "先认病:卷材下面的气和水汽顶起来,形成鼓泡。答题先把'起鼓'这个病害对象说清楚,后面措施才有靶子。"},
+      {"id": "cut", "stage": "cut", "claim": true, "anchor": "steps[1].scoring_expression",
+       "keycard": {"text": "治因①  沿鼓泡割开放气", "tone": "a"},
+       "sync_keyword": "放气",
+       "narration": "第一步治病因:沿鼓泡割个十字口,先放气。不放气直接盖新卷材,过几天还会再鼓。"},
+      {"id": "dry", "stage": "dry", "claim": true, "anchor": "steps[2].scoring_expression",
+       "keycard": {"text": "治因②  排气干燥 + 清基层(最易漏)", "tone": "a"},
+       "sync_keyword": "排尽气和水汽",
+       "narration": "接着排尽气和水汽、让基层干燥,再清掉旧胶结料、补刷处理剂。这一步最多人漏,新卷材粘不粘牢全看它。"},
+      {"id": "add", "stage": "add", "claim": true, "anchor": "steps[5].scoring_expression",
+       "keycard": {"text": "恢复①  附加层盖过病害边缘", "tone": "a"},
+       "sync_keyword": "附加层",
+       "narration": "恢复防水第一招:增铺附加层,要盖过原病害的边缘,把薄弱区整个包住,不是贴一小块补丁。"},
+      {"id": "seal", "stage": "seal", "claim": true, "anchor": "steps[6].scoring_expression",
+       "keycard": {"text": "恢复②  新卷材搭接封严", "tone": "a"},
+       "sync_keyword": "搭接",
+       "narration": "再铺新卷材:喷灯烘烤、分层剥开旧层,铺贴压实,和原防水层搭接,边缘和搭接缝都封严。防水闭合就在这。"},
+      {"id": "test", "stage": "conclude", "claim": true, "anchor": "steps[7].scoring_expression",
+       "keycard": {"text": "检验  蓄水/淋水确认不渗漏", "tone": "concl"},
+       "sync_keyword": "蓄水",
+       "narration": "最后闭环:蓄水或淋水检验,确认不渗漏才验收。案例题常常就考你这最后一句。"},
+      {"id": "score", "stage": "conclude", "claim": true, "anchor": "scoring_points[0].keywords",
+       "keycard": {"text": "采分词:放气·擦干·清除旧胶结料·喷灯烘烤·分层剥开·重贴新卷材", "tone": "score"},
+       "sync_keyword": "放气",
+       "narration": "采分盯这几组词:放气、擦干、清除旧胶结料、喷灯烘烤、分层剥开、重贴新卷材。写到了就稳。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,我写'割开排气、晾干后重新铺卷材',能拿分吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "附加层",
+           "text": "方向对,但漏了三处闭合:基层处理、附加层盖过边缘、搭接封严。阅卷看的是防水闭环有没有恢复,漏这层最可惜。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那直接在鼓泡上加铺一层新卷材不行吗?省事。"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "放气干燥",
+           "text": "顺序错了。底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥再铺。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "铺完新卷材就算修好了吧?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[3].why",
+           "sync_keyword": "蓄水",
+           "text": "还差最后一步闭环:蓄水或淋水检验,确认不渗漏才验收。漏了它,案例题最后那分就丢了。等下用四道题试试你。"}}
+  ]
+}

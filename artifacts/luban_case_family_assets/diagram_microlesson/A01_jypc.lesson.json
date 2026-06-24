@@ -1,0 +1,221 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "A01_jypc",
+  "derived_from": "A01_jypc.json",
+  "archetype_master_ref": "A01_jypc.master.json",
+  "style": "teach_then_qa",
+  "title": "检验批/分部分项验收程序 · 老师带你看懂",
+  "subtitle": "老师边讲边在验收台阶上画'层级→顺序→阈值→程序'四道门,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 A01(程序/顺序类·验收程序)造成讲懂幕。舞台=验收台阶图(积木从地基往上垒成楼:检验批→分项→分部→单位 + 四道门;stage 外置:svg+states+css+banner 自带,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 A01.md §7 镜头A reveal 顺序(缺陷拦截窗口→四级台阶自下而上→主控否决/一般容差→自检→监理→隐蔽顺序刚性→结构实体检验独立复核→四道门收束)。beat 旁白事实/数值全部 anchor 回 A01_jypc.json 真实字段(防漂移闸),数字回 §2/§5 教材锚与真题证据包,不手写新数值。先讲后问双人答疑;迁移铺垫 beat anchor master:R2_invariant。pack §8 三处 🔴 缺口(排序题/让步接收四档/逐级判定阶梯原文)不在旁白冒充已锚。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体口径(四级层级、主控100%/一般≥80%、实体88%/80%、五方验收主体、严禁验收红线)以现行 GB50300 规范和你的考试大纲为准;pack 已自曝逐级判定阶梯原文/让步接收四档/排序题真题为待取证缺口。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表,学情归 LearnerStateService",
+  "speakers": {
+    "T": {
+      "name": "鲁班老师",
+      "role": "主讲",
+      "voice": "Tingting",
+      "side": "right"
+    },
+    "S": {
+      "name": "小问",
+      "role": "模拟学生",
+      "voice": "Meijia",
+      "side": "left"
+    }
+  },
+  "stage": {
+    "banner": "验收不是'背四级名词' → 是'层级门→顺序门→阈值门→程序门'四道门同时过、自下而上逐级累积,跳级倒装/漏隐蔽/主控按80%/施工方自验都是假合格。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "window", "label": "拦截窗口"},
+      {"id": "ladder", "label": "四级台阶"},
+      {"id": "threshold", "label": "主控/一般"},
+      {"id": "sequence", "label": "顺序刚性"},
+      {"id": "entity", "label": "实体复核"},
+      {"id": "gates", "label": "四道门"}
+    ],
+    "css": ".s-window,.s-batch,.s-item,.s-part,.s-unit,.s-main,.s-general,.s-seq,.s-entity,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-window{transform:translateY(6px)} .reached-window .s-window{opacity:1;transform:none} .s-batch{transform:translateY(8px)} .reached-ladder .s-batch{opacity:1;transform:none} .s-item{transform:translateY(8px)} .reached-ladder .s-item{opacity:1;transform:none;transition-delay:.12s} .s-part{transform:translateY(8px)} .reached-ladder .s-part{opacity:1;transform:none;transition-delay:.24s} .s-unit{transform:translateY(8px)} .reached-ladder .s-unit{opacity:1;transform:none;transition-delay:.36s} .s-main,.s-general{transform:translateY(-4px)} .reached-threshold .s-main{opacity:1;transform:none} .reached-threshold .s-general{opacity:1;transform:none} .s-seq{transform:translateY(6px)} .reached-sequence .s-seq{opacity:1;transform:none} .s-entity{transform:translateY(6px)} .reached-entity .s-entity{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-floorfill{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.window{fill:#ffd27f}.s-note.ladder{fill:#7fc7ff}.s-note.threshold{fill:#7fe6ab}.s-note.sequence{fill:#ffb15a}.s-note.entity{fill:#bff0d4}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700} .s-brick{rx:2}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='检验批分部分项验收程序台阶剖面'><rect x='24' y='196' width='312' height='10' rx='2' class='s-floorfill' data-visual-node-id='ground.base'/><text class='s-lbl' x='28' y='244'>质量验收台阶:自下而上逐级累积(检验批→分项→分部→单位)</text><g class='s-window' data-visual-node-id='intercept.window'><rect x='30' y='150' width='150' height='40' rx='3' fill='#3a2f18' stroke='#ffd27f' stroke-width='1'/><text class='s-ttxt' x='38' y='164'>缺陷:还看得见、够得着、没被盖住</text><text class='s-note window' x='105' y='182' text-anchor='middle'>A1 趁早趁小拦,覆盖后不可逆</text></g><g class='s-batch' data-visual-node-id='level.batch'><rect x='40' y='182' width='22' height='12' class='s-brick' fill='#7fc7ff'/><rect x='64' y='182' width='22' height='12' class='s-brick' fill='#7fc7ff'/><rect x='88' y='182' width='22' height='12' class='s-brick' fill='#7fc7ff'/><text class='s-ttxt' x='75' y='178' text-anchor='middle'>检验批(最小颗粒)</text></g><g class='s-item' data-visual-node-id='level.item'><rect x='44' y='166' width='62' height='12' class='s-brick' fill='#6fb0e8'/><text class='s-ttxt' x='75' y='162' text-anchor='middle'>分项工程</text></g><g class='s-part' data-visual-node-id='level.part'><rect x='48' y='150' width='54' height='12' class='s-brick' fill='#5f9bd6'/><text class='s-ttxt' x='75' y='146' text-anchor='middle'>分部(含子分部)</text></g><g class='s-unit' data-visual-node-id='level.unit'><rect x='52' y='134' width='46' height='12' class='s-brick' fill='#4f86c4'/><path d='M52 134 L75 124 L98 134 Z' fill='#4f86c4'/><text class='s-note ladder' x='150' y='128' text-anchor='middle'>A2 单位工程封顶·下合格才能上</text></g><g class='s-main' data-visual-node-id='threshold.main'><rect x='214' y='150' width='62' height='18' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='245' y='162' text-anchor='middle'>主控:全部合格</text><text class='s-ttxt' x='245' y='146' text-anchor='middle'>否决·一票</text></g><g class='s-general' data-visual-node-id='threshold.general'><rect x='282' y='150' width='52' height='18' rx='3' fill='#1a2c16' stroke='#7fe6ab' stroke-width='1'/><text class='s-vtxt' x='308' y='162' text-anchor='middle'>一般:≥80%</text><text class='s-note threshold' x='275' y='184' text-anchor='middle'>A3 主控否决 / 一般容差,两套逻辑</text></g><g class='s-seq' data-visual-node-id='sequence.chain'><path d='M40 110 H320' stroke='#ffb15a' stroke-width='1.6'/><circle cx='50' cy='110' r='3' fill='#ffb15a'/><circle cx='130' cy='110' r='3' fill='#ffb15a'/><circle cx='220' cy='110' r='4' fill='#ff7f50'/><circle cx='310' cy='110' r='3' fill='#ffb15a'/><text class='s-ttxt' x='50' y='102' text-anchor='middle'>自检</text><text class='s-ttxt' x='130' y='102' text-anchor='middle'>报监理</text><text class='s-ttxt' x='220' y='100' text-anchor='middle'>隐蔽覆盖前验收</text><text class='s-ttxt' x='310' y='102' text-anchor='middle'>进下道</text><text class='s-note sequence' x='180' y='126' text-anchor='middle'>A4 顺序刚性:隐蔽节点不可跨越</text></g><g class='s-entity' data-visual-node-id='entity.recheck'><rect x='120' y='72' width='120' height='20' rx='3' fill='#102820' stroke='#bff0d4' stroke-width='1.2'/><text class='s-vtxt' x='180' y='85' text-anchor='middle'>结构实体检验:监理组织·施工实施·见证</text><text class='s-note entity' x='180' y='66' text-anchor='middle'>A5 独立复核闸:实测强度反验过程</text></g><g class='s-gates' data-visual-node-id='gate.four'><circle cx='62' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='62' y='43' text-anchor='middle'>层级门</text><circle cx='128' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='128' y='43' text-anchor='middle'>顺序门</text><circle cx='194' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='194' y='43' text-anchor='middle'>阈值门</text><circle cx='260' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='260' y='43' text-anchor='middle'>程序门</text><path d='M75 40 H115' stroke='#7fe6ab' stroke-width='2'/><path d='M141 40 H181' stroke='#7fe6ab' stroke-width='2'/><path d='M207 40 H247' stroke='#7fe6ab' stroke-width='2'/><text class='s-note gates' x='180' y='66' text-anchor='middle'></text><text class='s-note gates' x='160' y='20' text-anchor='middle'>A6 四道门同时过 = 合法验收</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {
+        "id": "intro",
+        "stage": "intro",
+        "claim": false,
+        "keycard": {
+          "text": "验收丢分,在只背'检验批→分项→分部→单位'四个名词,漏中间程序节点",
+          "tone": "q"
+        },
+        "sync_keyword": "四道门",
+        "animation_action": [
+          {"type": "camera", "target": "data-id:ground.base"},
+          {"type": "keycard", "target": "data-id:keycard.intro"}
+        ],
+        "narration": "验收这题,很多人背下四级名词就上场,一问隐蔽程序就漏。今天沿台阶走清四道门。"
+      },
+      {
+        "id": "window",
+        "stage": "window",
+        "claim": true,
+        "anchor": "causal_chain.a1_intercept_window.claim",
+        "keycard": {
+          "text": "A1 拦截窗口:缺陷只在看得见、够得着、没被盖住时最好拦",
+          "tone": "a"
+        },
+        "sync_keyword": "够得着",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:intercept.window"},
+          {"type": "keycard", "target": "data-id:keycard.window"}
+        ],
+        "narration": "先看为什么要验。缺陷只在它还看得见、还够得着、没被盖住那一刻最好拦;一旦盖住就封进结构。"
+      },
+      {
+        "id": "ladder",
+        "stage": "ladder",
+        "claim": true,
+        "anchor": "causal_chain.a2_level_ladder.claim",
+        "keycard": {
+          "text": "A2 四级台阶:检验批→分项→分部→单位,自下而上,下合格才能上",
+          "tone": "a"
+        },
+        "sync_keyword": "自下而上",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:level.batch"},
+          {"type": "reveal", "target": "data-id:level.item"},
+          {"type": "reveal", "target": "data-id:level.part"},
+          {"type": "reveal", "target": "data-id:level.unit"},
+          {"type": "keycard", "target": "data-id:keycard.ladder"}
+        ],
+        "narration": "所以工程切成最小检验批,自下而上一层层垒:检验批升分项、分项升分部、分部封顶单位。下一级全合格才是上一级前提,不能跳级倒装。"
+      },
+      {
+        "id": "threshold",
+        "stage": "threshold",
+        "claim": true,
+        "anchor": "causal_chain.a3_main_vs_general.claim",
+        "keycard": {
+          "text": "A3 主控否决全合格 / 一般容差≥80%,两套刚柔逻辑",
+          "tone": "a"
+        },
+        "sync_keyword": "两套",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:threshold.main"},
+          {"type": "reveal", "target": "data-id:threshold.general"},
+          {"type": "keycard", "target": "data-id:keycard.threshold"}
+        ],
+        "narration": "判合格有两套逻辑。主控项目管结构安全,一票否决、必须全部合格;一般项目管观感,才允许合格率到八十。风险决定刚柔。"
+      },
+      {
+        "id": "sequence",
+        "stage": "sequence",
+        "claim": true,
+        "anchor": "causal_chain.a4_sequence_rigidity.claim",
+        "keycard": {
+          "text": "A4 顺序刚性:自检→报监理→隐蔽覆盖前验收→下道,节点不可跨越",
+          "tone": "a"
+        },
+        "sync_keyword": "隐蔽",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:sequence.chain"},
+          {"type": "keycard", "target": "data-id:keycard.sequence"}
+        ],
+        "narration": "顺序也是刚的:施工方先自检合格再报监理;看不见的隐蔽工程必须在被盖住前验收、留记录,合格才进下道,隐蔽节点跨不过去。"
+      },
+      {
+        "id": "entity",
+        "stage": "entity",
+        "claim": true,
+        "anchor": "causal_chain.a5_entity_check.claim",
+        "keycard": {
+          "text": "A5 结构实体检验:监理组织·施工实施·见证,实测强度独立复核",
+          "tone": "a"
+        },
+        "sync_keyword": "独立复核",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:entity.recheck"},
+          {"type": "keycard", "target": "data-id:keycard.entity"}
+        ],
+        "narration": "最后一道独立复核闸:结构实体检验。用实测强度反验过程合不合格,得监理组织、施工实施、监理见证;强度优先同条件养护,不够回弹取芯。"
+      },
+      {
+        "id": "score",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "scoring_points[2].keywords",
+        "keycard": {
+          "text": "采分词:四级自下而上·隐蔽覆盖前验收·主控全合格一般≥80%·监理组织·严禁验收",
+          "tone": "score"
+        },
+        "sync_keyword": "采分",
+        "animation_action": [
+          {"type": "highlight", "target": "data-id:score.keywords"},
+          {"type": "keycard", "target": "data-id:keycard.score"}
+        ],
+        "narration": "采分盯这几组词:四级自下而上、隐蔽覆盖前验收、主控全部合格、一般不低于八十、实体监理组织、严禁验收。"
+      },
+      {
+        "id": "gates",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "master:R2_invariant",
+        "keycard": {
+          "text": "验收台阶:层级门→顺序门→阈值门→程序门,四门同时过才合法",
+          "tone": "concl"
+        },
+        "sync_keyword": "台阶",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:gate.four"},
+          {"type": "keycard", "target": "data-id:keycard.gates"},
+          {"type": "camera", "target": "data-id:stage.conclude"}
+        ],
+        "narration": "收成验收台阶:层级门、顺序门、阈值门、程序门,四门同时过才合法,缺一即假合格。换楼层专业对象,台阶不变、判据切。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师,判检验批合格,主控项目也按合格率八十算吗?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[0].why",
+        "sync_keyword": "一票否决",
+        "text": "不行,主控项目一票否决、必须全部合格;只有一般项目走合格率不低于八十,不能互换。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那先验分部、再回头验分项检验批,效率高行不行?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[1].why",
+        "sync_keyword": "自下而上",
+        "text": "不行,方向反了。验收自下而上逐级累积;先验分部就是屋顶悬空,合格是假的。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "结构实体检验施工单位自己组织自己测,可以吗?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[3].why",
+        "sync_keyword": "监理组织",
+        "text": "不行,实体检验是独立复核,得监理组织、施工实施、监理见证。施工方自己组织,独立闸废了。"
+      }
+    }
+  ]
+}

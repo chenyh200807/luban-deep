@@ -110,3 +110,20 @@ def test_run_failed_turn_promotion_cli_writes_incident_ledger(tmp_path) -> None:
     latest = json.loads(latest_path.read_text(encoding="utf-8"))
     assert latest["kind"] == "incident_ledger"
     assert latest["payload"]["classification"]["failed_turn_count"] == 1
+
+
+def test_failed_turn_promotion_skips_cancelled_shadow_events(tmp_path) -> None:
+    event_log = TurnEventLog(events_dir=tmp_path / "events")
+    event_log.append(
+        build_turn_observation_event(
+            session_id="session_general_knowledge_shadow",
+            turn_id="turn-shadow",
+            status="cancelled",
+            surface="online_shadow",
+        )
+    )
+
+    payload = build_failed_turn_incident_report(event_log=event_log, incident_id="INC-SHADOW", days=1)
+
+    assert payload["classification"]["failed_turn_count"] == 0
+    assert payload["replay_candidates"] == []

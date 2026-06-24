@@ -43,11 +43,14 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
   if (!isFinite(balance)) balance = 0;
   var percent = _walletPercent(balance, ledgerRaw);
   var percentLabel = "剩余 " + _formatPercent(percent);
+  var percentWidth = Math.max(0, Math.min(100, Math.round(percent)));
   var rows = [
     {
       key: "wallet_percent",
       label: "当前权益",
       detailLabel: percentLabel,
+      remainingLabel: percentLabel,
+      barStyle: "width:" + percentWidth + "%",
     },
   ];
   var packages = Array.isArray(data.packages) ? data.packages : [];
@@ -57,12 +60,16 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
       key: "usage_record",
       label: "使用记录",
       detailLabel: "按使用记录",
+      remainingLabel: "按使用记录",
+      barStyle: "width:100%",
     });
   } else if (usageFallback) {
     rows.push({
       key: "usage_record",
       label: "使用记录",
       detailLabel: "按使用记录",
+      remainingLabel: "按使用记录",
+      barStyle: "width:100%",
     });
   }
   return {

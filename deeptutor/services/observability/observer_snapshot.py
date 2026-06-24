@@ -20,6 +20,7 @@ from deeptutor.services.observability.control_plane_store import ObservabilityCo
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 from deeptutor.services.observability.surface_events import get_surface_event_store
 from deeptutor.services.observability.turn_event_log import TurnEventLog
+from deeptutor.services.observability.turn_event_log import event_is_test_only
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
 from deeptutor.services.observability.runtime_incidents import (
     classify_runtime_incidents_from_backend_logs,
@@ -401,7 +402,7 @@ def _build_recent_conversations_snapshot(
                 SELECT COUNT(*)
                 FROM turns
                 WHERE {turn_filter_sql}
-                AND status IN ('failed', 'error', 'timeout', 'cancelled')
+                AND status IN ('failed', 'error', 'timeout')
                 AND session_id IN (
                     SELECT s.id FROM sessions s WHERE {session_filter_sql}{session_exclusion_sql}
                 )
@@ -606,7 +607,7 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     error_count = sum(
         count
         for status, count in status_counter.items()
-        if status in {"failed", "error", "cancelled", "timeout"}
+        if status in {"failed", "error", "timeout"}
     )
     timeout_count = int(status_counter.get("timeout") or 0)
     return {
@@ -736,7 +737,11 @@ def build_observer_snapshot(
         turn_events = [
             item for item in turn_events if str(item.get("session_id") or "").strip() not in excluded_session_ids
         ]
-    turn_summary = _summarize_turn_events(turn_events)
+    raw_turn_events = list(turn_events)
+    canonical_turn_events = [item for item in raw_turn_events if not event_is_test_only(item)]
+    turn_summary = _summarize_turn_events(canonical_turn_events)
+    turn_summary["raw_event_count"] = len(raw_turn_events)
+    turn_summary["excluded_test_only_event_count"] = max(len(raw_turn_events) - len(canonical_turn_events), 0)
     recent_conversations = _build_recent_conversations_snapshot(
         db_path=conversation_db_path,
         days=event_days,
@@ -766,7 +771,7 @@ def build_observer_snapshot(
         end_ts=end_ts,
     )
     runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
-    trace_linkage = _build_trace_linkage_snapshot(turn_events)
+    trace_linkage = _build_trace_linkage_snapshot(canonical_turn_events)
     surface_payload = surface_snapshot if isinstance(surface_snapshot, dict) else get_surface_event_store().snapshot()
     surface_coverage = surface_payload.get("coverage") if isinstance(surface_payload, dict) else []
     has_quality_run = bool(arr_payload or benchmark_payload)
@@ -779,17 +784,17 @@ def build_observer_snapshot(
         benchmark_payload,
         aae_payload,
         daily_trend_payload,
-        turn_events[0] if turn_events else None,
+        canonical_turn_events[0] if canonical_turn_events else (raw_turn_events[0] if raw_turn_events else None),
     )
 
     now = int(time.time())
     data_sources = {
         "turn_event_log": _source_entry(
             "turn_event_log",
-            has_data=turn_summary["event_count"] > 0,
+            has_data=turn_summary["event_count"] > 0 or turn_summary["raw_event_count"] > 0,
             source_id=turn_log_stats.get("file_path"),
-            sample_count=turn_summary["event_count"],
-            confidence="high" if turn_summary["event_count"] > 0 else "low",
+            sample_count=turn_summary["raw_event_count"],
+            confidence="high" if turn_summary["raw_event_count"] > 0 else "low",
             reason="no turn events in window",
             now=now,
         ),

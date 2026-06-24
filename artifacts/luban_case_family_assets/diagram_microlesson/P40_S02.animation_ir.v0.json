@@ -1,0 +1,1998 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_S02_animation_ir_v0",
+  "card_id": "P40_S02",
+  "display": {
+    "kicker": "鲁班图解 · 起重吊装安全",
+    "title": "正式起吊前先过门"
+  },
+  "main_exam_action": "正式起吊前，先判门槛、查作业条件、试吊四查，合格后再放行。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
+    "source_card": "P40_S02.source_card.json",
+    "archetype": "decision_branch_reveal",
+    "warm_correction": "起重吊装安全不是安全口号题，而是正式起吊前的四道门判断。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
+    "source_card": "P40_S02.source_card.json",
+    "lesson": "P40_S02.lesson.json",
+    "timing": "P40_S02.lesson.timing.json",
+    "audio": "P40_S02.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_S02.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_S02AnimationIrPreview.tsx",
+    "remotion_composition": "P40-S02-AnimationIrPreview",
+    "remotion_review_scene_ids": [
+      "danger_gate",
+      "trial_lift",
+      "limit_gate",
+      "score"
+    ],
+    "min_remotion_review_stills": 4,
+    "practice_href": "P40_S02.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "lifting_threshold_board"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "gate_map",
+      "danger_gate",
+      "precheck_gate",
+      "trial_lift",
+      "limit_gate",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "challenge_unlock_sec": 267.664,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true,
+    "quality_status": "workflow_candidate",
+    "student_ready": false,
+    "min_domain_visual_teaching_scenes": 7,
+    "min_dominant_visual_teaching_scenes": 7,
+    "min_visual_dominance_ratio": 0.72,
+    "primitive_step_action_required": true,
+    "workflow_candidate_reason": "S02 refactored from four-gate text card into lifting threshold blueprint board; is now reblocked by blueprint-poster screenshot review before student_ready.",
+    "primary_visual_primitive_required": "lifting_threshold_board",
+    "min_primary_visual_teaching_scenes": 7,
+    "caption_mode": "visual_brief",
+    "max_caption_chars": 18,
+    "max_keycard_chars": 14,
+    "max_coach_chars": 24,
+    "layout_mode": "blueprint_poster",
+    "diagram_led_required": true,
+    "min_visual_attention_ratio": 0.7,
+    "min_domain_object_coverage_ratio": 0.16,
+    "min_blueprint_surface_coverage_ratio": 0.25,
+    "max_svg_text_pressure_ratio": 0.16,
+    "min_primary_object_coverage_ratio": 0.22,
+    "max_rule_card_area_ratio": 0.16,
+    "max_rule_card_text_pressure_ratio": 0.06,
+    "min_rule_card_top_ratio": 0.68,
+    "min_label_clearance_px": 4,
+    "max_scene_visual_similarity_ratio": 0.82
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 3,
+    "pack_id": "S02",
+    "status": "direct",
+    "canonical_taxonomy_refs": [
+      "1A436000",
+      "1A436000-B018",
+      "1A436000-B034"
+    ],
+    "note": "起重吊装危大门槛、作业条件、90%试吊和限位禁令"
+  },
+  "ai_context": {
+    "context_id": "P40_S02",
+    "title": "起重吊装安全",
+    "main_exam_action": "把起重吊装安全题写成四道门采分链：先判危大/论证门槛 → 再查作业条件 → 90%以上先试吊四查 → 合格后方可正式起吊。",
+    "safe_summary": "这类题的主线是正式起吊前的四道门：10kN危大线与100/300/200论证线分清；作业前查气象、基础、索具、吊点、装置；90%及以上先离地200～500mm四查；合格后才正式起吊。",
+    "key_points": [
+      "10kN进危大，100/300/200才看论证",
+      "风线先看动词：露天作业6级，安拆>9.0m/s",
+      "90%及以上先离地200～500mm再四查",
+      "限位不能代替操作机构，合格后方可起吊"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0
+    },
+    {
+      "id": "gate_map",
+      "label": "四道门",
+      "start_sec": 23.224
+    },
+    {
+      "id": "danger_gate",
+      "label": "危大线",
+      "start_sec": 54.872
+    },
+    {
+      "id": "precheck_gate",
+      "label": "条件门",
+      "start_sec": 87.336
+    },
+    {
+      "id": "trial_lift",
+      "label": "试吊",
+      "start_sec": 125.488
+    },
+    {
+      "id": "limit_gate",
+      "label": "禁令",
+      "start_sec": 158.864
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 187.416
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 216.112
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 267.664
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "锁起吊",
+      "start_sec": 0,
+      "end_sec": 23.224,
+      "scene": "lifting_locked_blueprint",
+      "focus": "lift_locked_blueprint",
+      "enter": [
+        "塔吊入场",
+        "起吊按钮锁住"
+      ],
+      "hold": [
+        "四道门挡在吊物前"
+      ],
+      "exit": [
+        "锁定线保持"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "lift_locked_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "lift_locked_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "lift_locked_blueprint",
+          "verb": "hook_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "lift_locked_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lift_locked_blueprint.s0_show_crane_load",
+          "verb": "hook_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lift_locked_blueprint.s1_hit_danger_threshold",
+          "verb": "hook_hit_danger_threshold",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lift_locked_blueprint.s5_compress_rule_card",
+          "verb": "hook_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "lift_locked_blueprint",
+          "verb": "hook_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "lift_locked_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "锁起吊",
+      "coach": "吊物停在检查链前",
+      "caption": "未过门不起吊"
+    },
+    {
+      "id": "gate_map",
+      "label": "四道门",
+      "start_sec": 23.224,
+      "end_sec": 54.872,
+      "scene": "four_gate_blueprint",
+      "focus": "four_gate_blueprint",
+      "enter": [
+        "四层检查展开"
+      ],
+      "hold": [
+        "对象分区亮起"
+      ],
+      "exit": [
+        "旧流程文字退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "four_gate_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "four_gate_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "four_gate_blueprint",
+          "verb": "gate_map_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "four_gate_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "four_gate_blueprint.s0_show_crane_load",
+          "verb": "gate_map_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "four_gate_blueprint.s1_hit_danger_threshold",
+          "verb": "gate_map_hit_danger_threshold",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "four_gate_blueprint.s2_scan_site_conditions",
+          "verb": "gate_map_scan_site_conditions",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "four_gate_blueprint.s5_compress_rule_card",
+          "verb": "gate_map_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "four_gate_blueprint",
+          "verb": "gate_map_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "four_gate_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "四道门",
+      "coach": "按对象扫四门",
+      "caption": "门槛→放行"
+    },
+    {
+      "id": "danger_gate",
+      "label": "危大线",
+      "start_sec": 54.872,
+      "end_sec": 87.336,
+      "scene": "danger_threshold_blueprint",
+      "focus": "danger_threshold_blueprint",
+      "enter": [
+        "吊物撞线",
+        "阈值尺亮起"
+      ],
+      "hold": [
+        "黄线命中"
+      ],
+      "exit": [
+        "混写论证退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "danger_threshold_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "danger_threshold_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "danger_threshold_blueprint",
+          "verb": "danger_gate_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "danger_threshold_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "danger_threshold_blueprint.s0_show_crane_load",
+          "verb": "danger_gate_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "danger_threshold_blueprint.s1_hit_danger_threshold",
+          "verb": "danger_gate_hit_danger_threshold",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "danger_threshold_blueprint.s5_compress_rule_card",
+          "verb": "danger_gate_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "danger_threshold_blueprint",
+          "verb": "danger_gate_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "danger_threshold_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "10kN线",
+      "coach": "论证另判",
+      "caption": "12kN命中危大"
+    },
+    {
+      "id": "precheck_gate",
+      "label": "条件门",
+      "start_sec": 87.336,
+      "end_sec": 125.488,
+      "scene": "site_condition_blueprint",
+      "focus": "site_condition_blueprint",
+      "enter": [
+        "条件面板展开"
+      ],
+      "hold": [
+        "现场点位扫描"
+      ],
+      "exit": [
+        "缺项支路退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "site_condition_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "site_condition_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "site_condition_blueprint",
+          "verb": "precheck_gate_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "site_condition_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "site_condition_blueprint.s0_show_crane_load",
+          "verb": "precheck_gate_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "site_condition_blueprint.s2_scan_site_conditions",
+          "verb": "precheck_gate_scan_site_conditions",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "site_condition_blueprint.s5_compress_rule_card",
+          "verb": "precheck_gate_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "site_condition_blueprint",
+          "verb": "precheck_gate_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "site_condition_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "条件门",
+      "coach": "缺项锁住起吊",
+      "caption": "现场项逐格扫"
+    },
+    {
+      "id": "trial_lift",
+      "label": "试吊带",
+      "start_sec": 125.488,
+      "end_sec": 158.864,
+      "scene": "trial_lift_blueprint",
+      "focus": "trial_lift_blueprint",
+      "enter": [
+        "试吊高度带出现"
+      ],
+      "hold": [
+        "吊物离地停住"
+      ],
+      "exit": [
+        "直接起吊退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "trial_lift_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "trial_lift_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "trial_lift_blueprint",
+          "verb": "trial_lift_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "trial_lift_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "trial_lift_blueprint.s0_show_crane_load",
+          "verb": "trial_lift_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "trial_lift_blueprint.s3_trial_lift_band",
+          "verb": "trial_lift_trial_lift_band",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "trial_lift_blueprint.s5_compress_rule_card",
+          "verb": "trial_lift_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "trial_lift_blueprint",
+          "verb": "trial_lift_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "trial_lift_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "试吊带",
+      "coach": "离地四查",
+      "caption": "200-500mm"
+    },
+    {
+      "id": "limit_gate",
+      "label": "限位禁令",
+      "start_sec": 158.864,
+      "end_sec": 187.416,
+      "scene": "limit_stop_blueprint",
+      "focus": "limit_stop_blueprint",
+      "enter": [
+        "限位故障亮红"
+      ],
+      "hold": [
+        "停用锁生效"
+      ],
+      "exit": [
+        "错误放行支路退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "limit_stop_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "limit_stop_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "limit_stop_blueprint",
+          "verb": "limit_gate_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "limit_stop_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "limit_stop_blueprint.s0_show_crane_load",
+          "verb": "limit_gate_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "limit_stop_blueprint.s4_limit_stop_or_release",
+          "verb": "limit_gate_limit_stop_or_release",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "limit_stop_blueprint.s5_compress_rule_card",
+          "verb": "limit_gate_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "limit_stop_blueprint",
+          "verb": "limit_gate_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "limit_stop_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "限位锁",
+      "coach": "排故复查再放行",
+      "caption": "故障锁住起吊"
+    },
+    {
+      "id": "score",
+      "label": "采分卡",
+      "start_sec": 187.416,
+      "end_sec": 216.112,
+      "scene": "lifting_score_blueprint",
+      "focus": "lifting_score_blueprint",
+      "enter": [
+        "对象飞入底卡"
+      ],
+      "hold": [
+        "采分链逐格写入"
+      ],
+      "exit": [
+        "答案定格"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "lifting_score_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "lifting_score_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "lifting_score_blueprint",
+          "verb": "score_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "lifting_score_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s0_show_crane_load",
+          "verb": "score_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s1_hit_danger_threshold",
+          "verb": "score_hit_danger_threshold",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s2_scan_site_conditions",
+          "verb": "score_scan_site_conditions",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s3_trial_lift_band",
+          "verb": "score_trial_lift_band",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s4_limit_stop_or_release",
+          "verb": "score_limit_stop_or_release",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_score_blueprint.s5_compress_rule_card",
+          "verb": "score_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "lifting_score_blueprint",
+          "verb": "score_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "lifting_score_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "采分链",
+      "coach": "门槛/条件/试吊/放行",
+      "caption": "四门压成答案"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 216.112,
+      "end_sec": 267.664,
+      "scene": "lifting_qa_blueprint",
+      "focus": "lifting_qa_blueprint",
+      "enter": [
+        "追问落到图上"
+      ],
+      "hold": [
+        "阈值线保持"
+      ],
+      "exit": [
+        "问答收束"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "lifting_qa_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "lifting_qa_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "lifting_qa_blueprint",
+          "verb": "qa_closure_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "lifting_qa_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_qa_blueprint.s0_show_crane_load",
+          "verb": "qa_closure_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_qa_blueprint.s4_limit_stop_or_release",
+          "verb": "qa_closure_limit_stop_or_release",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_qa_blueprint.s5_compress_rule_card",
+          "verb": "qa_closure_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "lifting_qa_blueprint",
+          "verb": "qa_closure_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "lifting_qa_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "撞线问",
+      "coach": "吊物/风线/试吊带/锁",
+      "caption": "12kN 只过危大线，不直接论证。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 267.664,
+      "end_sec": 279.552,
+      "scene": "lifting_closing_blueprint",
+      "focus": "lifting_closing_blueprint",
+      "enter": [
+        "蓝图收束"
+      ],
+      "hold": [
+        "规则卡定格"
+      ],
+      "exit": [
+        "进入闯关"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "lifting_closing_blueprint",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "lifting_closing_blueprint"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "lifting_closing_blueprint",
+          "verb": "closing_challenge_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "lifting_closing_blueprint",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s0_show_crane_load",
+          "verb": "closing_challenge_show_crane_load",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s1_hit_danger_threshold",
+          "verb": "closing_challenge_hit_danger_threshold",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s2_scan_site_conditions",
+          "verb": "closing_challenge_scan_site_conditions",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s3_trial_lift_band",
+          "verb": "closing_challenge_trial_lift_band",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s4_limit_stop_or_release",
+          "verb": "closing_challenge_limit_stop_or_release",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "lifting_closing_blueprint.s5_compress_rule_card",
+          "verb": "closing_challenge_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "lifting_closing_blueprint",
+          "verb": "closing_challenge_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "lifting_closing_blueprint",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "keycard": "先图后答",
+      "coach": "按四道门补动作",
+      "caption": "按四道门写出放行动作。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "lift_locked_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "overview",
+          "tone": "blue",
+          "text": "正式起吊前锁定",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "锁定",
+          "rule_main": "未过门，不起吊",
+          "rule_sub": "吊物停在检查链前",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "gate_map": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "four_gate_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "gate_map",
+          "tone": "blue",
+          "text": "四道门工程索引",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "顺序",
+          "rule_main": "门槛 → 条件 → 试吊 → 放行",
+          "rule_sub": "按对象扫，不背口号",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "danger_gate": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "danger_threshold_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "danger",
+          "tone": "blue",
+          "text": "危大阈值蓝图",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "危大",
+          "rule_main": "12kN ≥10kN",
+          "rule_sub": "危大成立；论证另判",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "precheck_gate": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "site_condition_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "precheck",
+          "tone": "blue",
+          "text": "作业条件扫描",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "条件",
+          "rule_main": "天气/基础/索具/吊点/装置",
+          "rule_sub": "缺项时不得起吊",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "trial_lift": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "trial_lift_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "trial",
+          "tone": "blue",
+          "text": "200-500mm 试吊带",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "试吊",
+          "rule_main": "90%以上先离地试吊",
+          "rule_sub": "机械、制动、平稳、绑扎四查",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "limit_gate": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "limit_stop_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "limit",
+          "tone": "blue",
+          "text": "限位故障停用线",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "禁令",
+          "rule_main": "限位不能替操作",
+          "rule_sub": "停用、排故、复查后再放行",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "lifting_score_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "score",
+          "tone": "blue",
+          "text": "答题纸四道门",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "采分",
+          "rule_main": "判门槛 → 查条件 → 先试吊",
+          "rule_sub": "合格后才正式起吊",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "lifting_qa_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "qa",
+          "tone": "blue",
+          "text": "起吊前追问图",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "追问",
+          "rule_main": "吊物撞了哪条线？",
+          "rule_sub": "对象先于口号",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "lifting_closing_blueprint",
+          "kind": "lifting_threshold_board",
+          "mode": "closing",
+          "tone": "blue",
+          "text": "蓝图收束",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "闯关",
+          "rule_main": "先图后答",
+          "rule_sub": "看出哪道门没过",
+          "domain_visual": true,
+          "domain_objects": [
+            "塔吊",
+            "吊钩",
+            "12kN吊物",
+            "10kN危大线",
+            "试吊高度带",
+            "限位装置"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_show_crane_load",
+              "kind": "reveal_object",
+              "domain_object": "塔吊、吊钩和12kN吊物",
+              "label": "塔吊、吊钩和12kN吊物",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "正式起吊前，吊物还被锁在检查链前。",
+              "feedback": "正式起吊前，吊物还被锁在检查链前。"
+            },
+            {
+              "id": "s1_hit_danger_threshold",
+              "kind": "trace_path",
+              "domain_object": "10kN危大线与论证线",
+              "label": "10kN危大线与论证线",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "12kN先撞上危大线，论证线另判。",
+              "feedback": "12kN先撞上危大线，论证线另判。"
+            },
+            {
+              "id": "s2_scan_site_conditions",
+              "kind": "scan_row",
+              "domain_object": "风、基础、警戒和索具条件",
+              "label": "风、基础、警戒和索具条件",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "作业前条件被逐项扫描。",
+              "feedback": "作业前条件被逐项扫描。"
+            },
+            {
+              "id": "s3_trial_lift_band",
+              "kind": "move_object",
+              "domain_object": "200-500mm试吊高度带",
+              "label": "200-500mm试吊高度带",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "90%以上先进入离地试吊带。",
+              "feedback": "90%以上先进入离地试吊带。"
+            },
+            {
+              "id": "s4_limit_stop_or_release",
+              "kind": "branch_eliminate",
+              "domain_object": "限位故障/合格放行",
+              "label": "限位故障/合格放行",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "限位故障停用，合格后才回到起吊线。",
+              "feedback": "限位故障停用，合格后才回到起吊线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "四道门采分卡",
+              "label": "四道门采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "工程对象压缩成四道门答案链。",
+              "feedback": "工程对象压缩成四道门答案链。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "visual_archetype_decision": {
+    "primary_archetype": "decision_branch_reveal",
+    "secondary_archetype": "contrast_reveal",
+    "visual_primitive": "decision_tree",
+    "motion_grammar": "engineering_threshold_lines_then_crane_state_then_answer_scan",
+    "why_this_visual": "S02 的认知难点是把起重吊装题干中的重量、风、试吊比例、离地高度、限位禁令转成正式起吊前的门槛判断。必须用工程对象和阈值线让学生看见哪条线被击中、哪条线没有被击中。",
+    "why_not_text": "本卡必须让学生先看到吊机、吊物、阈值线和试吊高度带；四道门文字不能替代工程对象撞线。",
+    "must_show_domain_objects": true,
+    "pure_text_allowed": false,
+    "reference_style": "engineering_threshold_blueprint_split_panel",
+    "domain_visual_plan": [
+      "用塔吊/吊钩/12kN吊物作为主对象",
+      "用10kN黄线和论证红线表达危大与超规模分层",
+      "用风/基础/索具/吊点扫描表达作业前条件",
+      "用200-500mm高度带和限位停用锁表达放行边界"
+    ]
+  },
+  "scene_visual_brief": [
+    {
+      "scene_id": "hook",
+      "source_sentence": "起重吊装安全不是安全口号题，而是正式起吊前的四道门判断。",
+      "domain_objects": [
+        "塔吊",
+        "吊钩",
+        "吊物",
+        "起吊按钮"
+      ],
+      "visual_action": "把吊物挂上吊钩但锁住起吊按钮，先让学生看到正式起吊被门槛拦住。",
+      "state_change": "吊物从待吊状态变为被四道门锁定的状态。",
+      "exit_before_next": "退出锁定提示，四道门蓝图进入主板。",
+      "why_not_reused_template": "hook 要建立起吊被锁的现场感，不能直接复用危大线或试吊高度图。"
+    },
+    {
+      "scene_id": "gate_map",
+      "source_sentence": "正式起吊前先判门槛、查条件、试吊四查、限位禁令。",
+      "domain_objects": [
+        "危大门",
+        "条件门",
+        "试吊门",
+        "禁令门",
+        "吊物"
+      ],
+      "visual_action": "让吊物依次经过四道门，形成正式起吊前的检查路径。",
+      "state_change": "抽象安全要求变成一条对象必须走完的门链。",
+      "exit_before_next": "四道门收缩，只展开危大阈值线。",
+      "why_not_reused_template": "这一幕是路线总览，后续每幕必须展开不同工程对象状态，不能只换门名。"
+    },
+    {
+      "scene_id": "danger_gate",
+      "source_sentence": "12kN 命中危大线，论证另判。",
+      "domain_objects": [
+        "12kN吊物",
+        "10kN危大线",
+        "100/300/200论证线",
+        "阈值标尺"
+      ],
+      "visual_action": "把12kN吊物推向阈值标尺，先命中10kN危大线，再与论证线分离。",
+      "state_change": "吊装状态从普通作业变为危大成立，但不自动等于论证。",
+      "exit_before_next": "危大线保留为背景，条件检查对象进入扫描区。",
+      "why_not_reused_template": "这一幕核心是数值撞线，不能用四道门文字框替代阈值比较。"
+    },
+    {
+      "scene_id": "precheck_gate",
+      "source_sentence": "起吊前先查气象、基础、索具、吊点和装置。",
+      "domain_objects": [
+        "风速标",
+        "基础",
+        "索具",
+        "吊点",
+        "安全装置"
+      ],
+      "visual_action": "沿吊装现场逐项扫描条件对象，合格项点亮，风险项停在检查线。",
+      "state_change": "起吊条件从口号清单变成现场对象的逐项放行。",
+      "exit_before_next": "条件对象淡出，吊物下降到试吊高度带。",
+      "why_not_reused_template": "这一幕是现场条件扫描，不能复用危大数值线或采分卡。"
+    },
+    {
+      "scene_id": "trial_lift",
+      "source_sentence": "90%以上先离地200-500mm，完成四查。",
+      "domain_objects": [
+        "90%吊物",
+        "吊钩",
+        "200-500mm试吊带",
+        "四查标记"
+      ],
+      "visual_action": "把吊物先抬离地面进入200-500mm试吊带，再依次点亮机械、制动、平稳、绑扎四查。",
+      "state_change": "吊物从直接起吊变为低位试吊确认后才可继续。",
+      "exit_before_next": "试吊带收缩，故障限位与操作机构进入对比。",
+      "why_not_reused_template": "这一幕必须看到高度带和吊物位移，不能只显示试吊两个字。"
+    },
+    {
+      "scene_id": "limit_gate",
+      "source_sentence": "限位故障不能用操作机构替代，故障即停。",
+      "domain_objects": [
+        "限位装置",
+        "操作机构",
+        "故障锁",
+        "停工红线"
+      ],
+      "visual_action": "让操作机构替代支路被红线切断，限位故障锁住正式起吊路径。",
+      "state_change": "作业从可放行变为故障停工，替代操作被淘汰。",
+      "exit_before_next": "禁令红线退到背景，四个对象状态压入采分卡。",
+      "why_not_reused_template": "这一幕是禁令对比淘汰，不能复用条件扫描或试吊位移动作。"
+    },
+    {
+      "scene_id": "score",
+      "source_sentence": "危大门、条件门、试吊门、禁令门压成四道门采分句。",
+      "domain_objects": [
+        "答题纸",
+        "危大阈值线",
+        "条件检查链",
+        "试吊高度带",
+        "限位禁令"
+      ],
+      "visual_action": "把阈值、条件、试吊、禁令四类对象逐条写成答题纸采分动作。",
+      "state_change": "现场判断链压缩为可背可写的四道门答案。",
+      "exit_before_next": "只保留最终规则卡，进入三问复核和闯关。",
+      "why_not_reused_template": "score 必须是工程对象到采分句的压缩，不是再放一遍四道门示意。"
+    }
+  ],
+  "visual_excellence_profile": {
+    "reference_style": "lifting_threshold_blueprint_board",
+    "reference_image_note": "User-liked dark engineering blueprint: real object line drawings, threshold dashed lines, yellow danger line, red stop line, bottom rule card.",
+    "must_show": [
+      "crane, hook, and load as the first visual object",
+      "10kN danger line and expert-review line as separate threshold lines",
+      "trial-lift 200-500mm band as a visible measurement area",
+      "limit fault stop/release state as an object change",
+      "bottom rule card compressing the visual into scoreable actions"
+    ],
+    "motion_standards": [
+      "threshold hit appears before narration states the conclusion",
+      "load/hook/foundation/wind/trial-lift objects move or change state, not just labels fading in",
+      "wrong branch is eliminated with a visible red stop/cross action",
+      "answer_scan writes one score atom per engineering object"
+    ],
+    "layout_guards": [
+      "the crane/threshold board dominates the stage before text is read",
+      "yellow means危大/警戒; red means禁止/故障; green means合格放行",
+      "95% is not a universal rule line; only 90%以上 and 200-500mm are rule anchors here",
+      "bottom rule card must not cover the crane or threshold lines"
+    ],
+    "diversity_targets": [
+      "danger_gate uses threshold comparison, trial_lift uses height/clearance action, limit_gate uses contrast elimination, score uses answer scan",
+      "S02 must not reuse A02 process-flow visuals as its main grammar"
+    ],
+    "release_bar": "workflow_candidate only; student_ready requires screenshot wall judged against engineering threshold reference style plus human/LLM review."
+  },
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "门槛分层",
+      "scene_gap": "单件12kN起重吊装被学生直接写成专家论证。",
+      "visual_items": [
+        "12kN吊物",
+        "10kN危大黄线",
+        "100kN专家论证线",
+        "300kN总重线",
+        "200m高度线"
+      ],
+      "answer_move": "先写过10kN属危大需专项方案，再另判是否达到100/300/200专家论证线。",
+      "trap": "把危大下限和专家论证线合并。",
+      "basis_anchor": "S02 source_card §5.1 P5-3 / 10kN 与 100kN/300kN/200m 两层门槛"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "看题干动词",
+      "scene_gap": "题干分别给露天塔机作业6级风和大型起重机械安拆9.5m/s。",
+      "visual_items": [
+        "风速表",
+        "露天作业标签",
+        "安装拆卸标签",
+        "6级风红线",
+        "9.0m/s安拆线"
+      ],
+      "answer_move": "先看作业动词，再调用对应停工阈值。",
+      "trap": "把所有风线统一写成6级风，或只看单位不看动作。",
+      "basis_anchor": "S02 source_card 风线口径 / 露天作业6级与安拆9.0m/s分界"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "试吊先动作",
+      "scene_gap": "起吊达到额定95%，学生只写缓慢正式起吊并加强旁站。",
+      "visual_items": [
+        "95%额定荷载标签",
+        "吊物",
+        "楼地面",
+        "200-500mm试吊区间",
+        "机械/制动/平稳/绑扎四查点"
+      ],
+      "answer_move": "90%及以上先离地200-500mm试吊，检查机械、制动、平稳、绑扎，合格后起吊。",
+      "trap": "用管理态度替代离地试吊和四查动作。",
+      "basis_anchor": "S02 source_card 90%试吊 / 离地200-500mm四查"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "绝对禁令",
+      "scene_gap": "操作机构失灵，学生建议临时用限位装置顶替完成吊装。",
+      "visual_items": [
+        "操作机构",
+        "限位装置",
+        "故障警示牌",
+        "停用锁",
+        "排故复查单"
+      ],
+      "answer_move": "判不妥；限位装置严禁代替操作机构，应停止使用、排除故障、复查后再作业。",
+      "trap": "把绝对禁令写成加强管理即可。",
+      "basis_anchor": "S02 source_card 限位装置禁令 / 停用排故"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "落采分句",
+      "scene_gap": "题干同时出现单件12kN、露天6级风、95%额定起吊。",
+      "visual_items": [
+        "12kN吊物缩略图",
+        "风速表缩略图",
+        "试吊标尺缩略图",
+        "答题纸"
+      ],
+      "answer_move": "把门槛、作业条件、试吊四查和合格放行写成一条采分链。",
+      "trap": "只写加强安全管理、只写专家论证或只命中试吊一个点。",
+      "basis_anchor": "S02 source_card 答案骨架 / 四道门采分链"
+    }
+  ]
+}

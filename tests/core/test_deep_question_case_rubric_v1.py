@@ -736,3 +736,45 @@ async def test_case_rubric_v1_g2_guard_demotes_rich_leaf_point(monkeypatch: pyte
     # canonical authority_source on every official point BEFORE G2 (that stamp is what armed the G2
     # demotion above — the foundation is genuinely live, not a no-op).
     assert all(p.get("authority_source") for p in seen["points"])
+
+
+def test_summarize_pgo_query_result_consumes_scorable_for_coverage():
+    # Consumer must ACT on per-point `scorable`, not just pass the field through:
+    # it separates the gradable denominator from the raw point count so a shadow's
+    # coverage never silently includes supporting/unsourced points.
+    from deeptutor.capabilities.deep_question import _summarize_pgo_query_result
+
+    result = {
+        "found": True,
+        "question_id": "Q-MIX",
+        "scoring_points": [
+            {"point_id": "a", "scorable": True},
+            {"point_id": "b", "scorable": False},
+            {"point_id": "c", "scorable": False},
+        ],
+        "ground": {"score_bearing_count": 1, "supporting_count": 1, "unsourced_count": 1},
+    }
+
+    summary = _summarize_pgo_query_result(result)
+
+    assert summary["scoring_point_count"] == 3
+    assert summary["scorable_point_count"] == 1
+    assert summary["has_unscorable_points"] is True
+
+
+def test_summarize_pgo_query_result_all_scorable_flags_no_unscorable():
+    from deeptutor.capabilities.deep_question import _summarize_pgo_query_result
+
+    result = {
+        "found": True,
+        "scoring_points": [
+            {"point_id": "a", "scorable": True},
+            {"point_id": "b", "scorable": True},
+        ],
+    }
+
+    summary = _summarize_pgo_query_result(result)
+
+    assert summary["scoring_point_count"] == 2
+    assert summary["scorable_point_count"] == 2
+    assert summary["has_unscorable_points"] is False

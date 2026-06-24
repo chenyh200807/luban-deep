@@ -1,0 +1,189 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>钢筋连接选用 · 独立闯关</title><style>
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100dvh;padding:8px 10px 12px}header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:8px}header a{border:1px solid #cad8e5;border-radius:999px;padding:0 12px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:11px;font-weight:900}h1{font-size:17px;margin:2px 0 0;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.progress{height:5px;border-radius:999px;background:#d6e2ec;margin-bottom:9px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none}.q.active{display:flex;min-height:calc(100dvh - 152px);flex-direction:column;gap:10px}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.diagram{height:clamp(250px,36dvh,330px);background:#fffdf7;border:1px solid #eadfcb;border-radius:22px;display:grid;place-items:center;overflow:hidden;box-shadow:0 16px 36px rgba(31,41,55,.1)}.diagram svg{width:100%;height:100%}.gate rect,.step rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect,.step.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect,.step.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.prompt-card,.answer-zone{min-width:0;overflow-wrap:anywhere;word-break:break-word;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;padding:11px 12px;box-shadow:0 10px 24px rgba(31,41,55,.08)}.student-answer{border-left:4px solid #f97316;background:#fff7ed;border-radius:12px;padding:8px 10px;margin-bottom:8px}.student-answer span,.choice-label,.score-write span{display:block;font-size:12px;font-weight:900;color:#176b7a}.student-answer p{margin:3px 0 0;font-size:15px;line-height:1.45;font-weight:900;color:#24364b}.q h2{font-size:17px;line-height:1.32;margin:0}.stem-toggle{margin-top:8px;min-height:44px;border:0;background:transparent;color:#176b7a;font-weight:900;padding:0}.full-stem{display:none;margin:8px 0 0;color:#55677a;font-size:13px;line-height:1.5;font-weight:800}.q.show-stem .full-stem{display:block}.options{display:grid;gap:8px;margin-top:7px}.option{text-align:left;min-height:52px;border:1px solid #cfdae6;background:#fff;border-radius:15px;padding:8px 10px;color:#24364b;font-size:15px;font-weight:900;line-height:1.24;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:6px}.option b{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#eef4f8;color:#176b7a}.option.correct{border-color:#73c596;background:#ecf9f2}.option.correct b{background:#16a34a;color:#fff}.option.wrong{border-color:#fb923c;background:#fff3e9}.option.wrong b{background:#f97316;color:#fff}.option:disabled{opacity:1}.option-drawer{margin-top:8px;border-top:1px solid #e4edf5;padding-top:8px}.option-drawer summary{min-height:44px;color:#607287;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center}.option-drawer ol{margin:6px 0 0;padding-left:20px;color:#34465b;font-size:13px;line-height:1.55;font-weight:800}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:0;border-radius:15px;padding:12px;font-size:14px;font-weight:850;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{width:min(430px,calc(100% - 20px));display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px auto calc(10px + env(safe-area-inset-bottom));padding:10px;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;box-shadow:0 10px 28px rgba(31,41,55,.1)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}@media(max-height:720px){.diagram{height:clamp(230px,34dvh,300px)}.student-answer p{font-size:14px}.prompt-card,.answer-zone{padding:9px 10px}.option{min-height:48px}}@media(orientation:landscape){.practice{max-width:none;padding:8px 10px 12px}.q.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.76fr);grid-template-rows:auto 1fr auto;align-items:start}.qtop{grid-column:1/-1}.diagram{height:min(calc(100dvh - 154px),520px)}.prompt-card{grid-column:2}.answer-zone{grid-column:2}.feedback{grid-column:1/-1}nav{width:min(720px,calc(100% - 20px));grid-template-columns:180px 1fr}}
+</style></head>
+<body><main class="practice" data-practice-shell="challenge-theater">
+<header><a href="C05_gjlj.journey.html">返回讲解</a><div><span>鲁班深母题 · 独立闯关</span><h1>钢筋连接选用</h1></div></header>
+<div class="progress"><div id="progressFill"></div></div>
+<section class="q" data-practice-id="q1" data-qid="q1">
+  <div class="qtop"><span>第 1/5 问</span><em>上限档(明显超百分率限值·违规)</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="接头面积百分率选用(动力/静力×受拉/受压)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">接头面积百分率选用(动力/静力×受拉/受压) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">直接承受动力荷载的结构构件采用机械连接时,接头面积百分率有一条强制上限(规范用&#x27;不应超过&#x27;);接头扎堆排、明显越过这条线就违规,正确动作是把接头沿杆长错开、降到限值以内。改绑扎(B)更不对——动力荷载本就不宜绑扎/不宜焊接,首选还是机械连接</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>某构件直接承受动力荷载,采用机械连接,设计把同一连接区段内的接头?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">某构件直接承受动力荷载,采用机械连接,设计把同一连接区段内的接头面积百分率定得明显超过了规范给的那条上限。这样选用合规吗?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>合规,只要用的是机械连接,接头多排几个没关系</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>换成绑扎搭接就没有这个限制了,改绑扎即可</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>不合规:直接承受动力荷载的机械连接,接头面积百…</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 合规,只要用的是机械连接,接头多排几个没关系；错因：没有按本题不变量完整判断</li><li><b>B.</b> 换成绑扎搭接就没有这个限制了,改绑扎即可；错因：没有按本题不变量完整判断</li><li><b>C.</b> 不合规:直接承受动力荷载的机械连接,接头面积百分率有强制上限,明显超过这条线就违规,得把接头错开降到限值以内；判断依据：直接承受动力荷载的结构构件采用机械连接时,接头面积百分率有一条强制上限(规范用&#x27;不应超过&#x27;);接头扎堆排；明显越过这条线就违规,正确动作是把接头沿杆长错开；降到限值以内。改绑扎(B)更不对——动力荷载本就不宜绑扎/不宜焊接,首选还是机械连接</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q1"></div>
+</section><section class="q" data-practice-id="q2" data-qid="q2">
+  <div class="qtop"><span>第 2/5 问</span><em>中间边界陷阱档(正好压在限值线上·关键词不应)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="接头面积百分率选用(动力/静力×受拉/受压)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">接头面积百分率选用(动力/静力×受拉/受压) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">这条限值是&#x27;不超过&#x27;(含线内即合规),贴着线没越过仍在限值内,不能一刀切判超(A);但真正的看穿点在采分关键词——直接承受动力荷载机械连接是&#x27;不应&#x27;超过(强制性),把它弱化成&#x27;不宜超过&#x27;(建议性)就丢关键词分(C)。卡在线上这道题最容易把&#x27;不应/不宜&#x27;两个口径搅混</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>另一项动力荷载机械连接,接头面积百分率正好压在规范那条上限线上(?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">另一项动力荷载机械连接,接头面积百分率正好压在规范那条上限线上(题面只说&#x27;不超过那条线、贴着线&#x27;),其余构造都对。这项选用该怎么定,采分上要盯什么?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>贴着线就是超了,一律判不合规</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>贴着线、没越过即在限值以内合规</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>差不多到线了,&#x27;不宜超过&#x27;写一下意思到了就行</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 贴着线就是超了,一律判不合规；错因：没有按本题不变量完整判断</li><li><b>B.</b> 贴着线、没越过即在限值以内合规;但采分要写&#x27;不应超过&#x27;这条强制口径,不能弱化成&#x27;不宜超过&#x27;；判断依据：这条限值是&#x27;不超过&#x27;(含线内即合规),贴着线没越过仍在限值内,不能一刀切判超(A);但真正的看穿点在采分关键词——直接承受动力荷载机械连接是&#x27;不应&#x27;超过(强制性),把它弱化成&#x27;不宜超过&#x27;(建议性)就丢关键词分(C)。卡在线上这道题最容易把&#x27;不应/不宜&#x27;两个口径搅混</li><li><b>C.</b> 差不多到线了,&#x27;不宜超过&#x27;写一下意思到了就行；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q2"></div>
+</section><section class="q" data-practice-id="q3" data-qid="q3">
+  <div class="qtop"><span>第 3/5 问</span><em>下限档(可退绑扎·选用合理)</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="连接方式正向选用(直径×受力)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">连接方式正向选用(直径×受力) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">受压、中小直径、静载、非关键部位正是允许退到绑扎搭接的端点(拉25压28),接头量又远低于限值,选用合理,不必一律上机械连接;但&#x27;能绑扎&#x27;不等于&#x27;随便绑&#x27;——搭接长度、接头错开、构造要求仍要满足。&#x27;一律机械连接&#x27;(B)和&#x27;接头少就省构造&#x27;(C)都把分层判读丢了</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>同一工地另一根钢筋:受压、中小直径、静载、非关键部位,接头数量也?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">同一工地另一根钢筋:受压、中小直径、静载、非关键部位,接头数量也明显控制在很低的水平(题面只说&#x27;远低于限值&#x27;)。现场用绑扎搭接连接。该怎么判?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>受压、中小直径、静载、非关键,本就允许退到绑扎…</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>只要是钢筋连接就一律得用机械连接(直螺纹套筒)…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>接头这么少,搭接长度、错开都可以省了,绑上就行</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 受压、中小直径、静载、非关键,本就允许退到绑扎搭接,接头量又远低于限值,选用合理；判断依据：受压；中小直径；静载；非关键部位正是允许退到绑扎搭接的端点(拉25压28),接头量又远低于限值,选用合理,不必一律上机械连接;但&#x27;能绑扎&#x27;不等于&#x27;随便绑&#x27;——搭接长度；接头错开；构造要求仍要满足。&#x27;一律机械连接&#x27;(B)和&#x27;接头少就省构造&#x27;(C)都把分层判读丢了</li><li><b>B.</b> 只要是钢筋连接就一律得用机械连接(直螺纹套筒),绑扎一概不许；错因：没有按本题不变量完整判断</li><li><b>C.</b> 接头这么少,搭接长度、错开都可以省了,绑上就行；错因：铺贴完成还缺蓄水或淋水检验闭环</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q3"></div>
+</section><section class="q" data-practice-id="q4" data-qid="q4">
+  <div class="qtop"><span>第 4/5 问</span><em>迁移档(换构件·判据切换)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="装配式竖向钢筋连接选用(迁移)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">装配式竖向钢筋连接选用(迁移) · 600m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">换到装配式竖向钢筋,判读链(认四输入→匹配方式→对上限值)不变,但判据随构件切换:装配式竖向连接看边缘构件逐根连接、非边缘区≤600mm、一二级抗震底部加强区宜套筒灌浆,不是现浇绑扎那套&#x27;拉25压28&#x27;端点。把现浇绑扎规则硬套到装配式(A)、或以为换构件就没判读链(C)都丢了&#x27;判据随构件切换&#x27;这个鉴别点</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>换个构件:不是现浇板底受力筋,而是装配式剪力墙的竖向钢筋连接,且?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">换个构件:不是现浇板底受力筋,而是装配式剪力墙的竖向钢筋连接,且是一二级抗震的底部加强区。判据应该怎么用?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>都是钢筋连接,照板底那套&#x27;拉25压28、绑扎搭…</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>判读链照走但判据换一套:装配式竖向连接边缘构件…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>换成装配式,钢筋连接选用这条判读链就不适用了,…</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 都是钢筋连接,照板底那套&#x27;拉25压28、绑扎搭接&#x27;判就行；错因：没有按本题不变量完整判断</li><li><b>B.</b> 判读链照走但判据换一套:装配式竖向连接边缘构件逐根连接、非边缘区间距≤600mm,一二级抗震底部加强区宜套筒灌浆,不套现浇绑扎那套端点；判断依据：换到装配式竖向钢筋,判读链(认四输入→匹配方式→对上限值)不变,但判据随构件切换:装配式竖向连接看边缘构件逐根连接；非边缘区≤600mm；一二级抗震底部加强区宜套筒灌浆,不是现浇绑扎那套&#x27;拉25压28&#x27;端点。把现浇绑扎规则硬套到装配式(A)；或以为换构件就没判读链(C)都丢了&#x27;判据随构件切换&#x27;这个鉴别点</li><li><b>C.</b> 换成装配式,钢筋连接选用这条判读链就不适用了,凭经验干；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q4"></div>
+</section><section class="q" data-practice-id="q5" data-qid="q5">
+  <div class="qtop"><span>第 5/5 问</span><em>采分句输出</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="采分句答题纸">
+    <rect x="28" y="30" width="334" height="154" rx="18" fill="#fff" stroke="#d8e2ec" stroke-width="4"/>
+    <text x="58" y="72" fill="#176b7a" font-size="17" font-weight="900">答题纸三件套</text>
+    <text x="58" y="112" fill="#17202a" font-size="16" font-weight="900">对象/阈值 + 判断结果 + 处理结论</text>
+    <path d="M58 138h274" stroke="#f97316" stroke-width="7" stroke-linecap="round"/>
+  </svg></div>
+  <h2>把这类题写成一句能拿分的话。</h2>
+  <div class="score-write">
+    <label><span>对象/阈值</span><input data-field="field1" placeholder="如:基坑开挖深度5.5m"></label>
+<label><span>判断结果</span><input data-field="field2" placeholder="危大且超过一定规模"></label>
+<label><span>处理结论</span><input data-field="field3" placeholder="专项施工方案应组织专家论证"></label>
+    <button type="button" class="check-score" data-check-score="1">检查采分句</button>
+  </div>
+  <div class="feedback" id="fb-q5"></div>
+</section>
+<section class="done" id="done"><h2>看穿结果</h2><p id="scoreText"></p><div class="atoms" id="atoms"></div><a href="C05_gjlj.journey.html">回看白板讲解</a></section>
+</main><nav><button type="button" id="prevQ">上一题</button><button type="button" id="nextQ">下一题</button></nav>
+<script type="application/json" id="practiceData">{"practice": [{"id": "q1", "answer": "C", "correct_feedback": "对:动力荷载的机械连接,接头面积百分率有一条不能踩的强制上限。明显超过就违规,得把接头错开、降到线以内,不是'机械连接就随便排'。也别想着改绑扎躲限制——动力荷载本来就不宜绑扎、不宜焊接,机械连接才是首选。", "basis": "直接承受动力荷载的结构构件采用机械连接时,接头面积百分率有一条强制上限(规范用'不应超过');接头扎堆排、明显越过这条线就违规,正确动作是把接头沿杆长错开、降到限值以内。改绑扎(B)更不对——动力荷载本就不宜绑扎/不宜焊接,首选还是机械连接", "tier": "上限档(明显超百分率限值·违规)", "options": [{"id": "A", "text": "合规,只要用的是机械连接,接头多排几个没关系；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "换成绑扎搭接就没有这个限制了,改绑扎即可；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "C", "text": "不合规:直接承受动力荷载的机械连接,接头面积百分率有强制上限,明显超过这条线就违规,得把接头错开降到限值以内；判断依据：直接承受动力荷载的结构构件采用机械连接时,接头面积百分率有一条强制上限(规范用'不应超过');接头扎堆排；明显越过这条线就违规,正确动作是把接头沿杆长错开；降到限值以内。改绑扎(B)更不对——动力荷载本就不宜绑扎/不宜焊接,首选还是机械连接", "feedback": "对:动力荷载的机械连接,接头面积百分率有一条不能踩的强制上限。明显超过就违规,得把接头错开、降到线以内,不是'机械连接就随便排'。也别想着改绑扎躲限制——动力荷载本来就不宜绑扎、不宜焊接,机械连接才是首选。"}]}, {"id": "q2", "answer": "B", "correct_feedback": "对:这条限值是'不超过',贴着线没越过就在限值内,不能直接判超。但这道题真正卡人的是采分关键词——动力荷载机械连接是'不应'超过,带强制性;写成'不宜超过'就降成建议、丢关键词分。卡在线上时,先按限值内判合规,再把'不应'这个词稳稳写对,才是看穿点。", "basis": "这条限值是'不超过'(含线内即合规),贴着线没越过仍在限值内,不能一刀切判超(A);但真正的看穿点在采分关键词——直接承受动力荷载机械连接是'不应'超过(强制性),把它弱化成'不宜超过'(建议性)就丢关键词分(C)。卡在线上这道题最容易把'不应/不宜'两个口径搅混", "tier": "中间边界陷阱档(正好压在限值线上·关键词不应)·关键鉴别", "options": [{"id": "A", "text": "贴着线就是超了,一律判不合规；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "贴着线、没越过即在限值以内合规;但采分要写'不应超过'这条强制口径,不能弱化成'不宜超过'；判断依据：这条限值是'不超过'(含线内即合规),贴着线没越过仍在限值内,不能一刀切判超(A);但真正的看穿点在采分关键词——直接承受动力荷载机械连接是'不应'超过(强制性),把它弱化成'不宜超过'(建议性)就丢关键词分(C)。卡在线上这道题最容易把'不应/不宜'两个口径搅混", "feedback": "对:这条限值是'不超过',贴着线没越过就在限值内,不能直接判超。但这道题真正卡人的是采分关键词——动力荷载机械连接是'不应'超过,带强制性;写成'不宜超过'就降成建议、丢关键词分。卡在线上时,先按限值内判合规,再把'不应'这个词稳稳写对,才是看穿点。"}, {"id": "C", "text": "差不多到线了,'不宜超过'写一下意思到了就行；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q3", "answer": "A", "correct_feedback": "对:受压、中小直径、静载、非关键,本就允许退到绑扎搭接(拉25压28),接头量又远低于限值,这么选合理,不用一律上直螺纹套筒。但'能绑扎'不是'随便绑',搭接长度、接头错开、构造照样得满足。两头别走偏:不是'一律机械连接',也不是'接头少就省构造'。", "basis": "受压、中小直径、静载、非关键部位正是允许退到绑扎搭接的端点(拉25压28),接头量又远低于限值,选用合理,不必一律上机械连接;但'能绑扎'不等于'随便绑'——搭接长度、接头错开、构造要求仍要满足。'一律机械连接'(B)和'接头少就省构造'(C)都把分层判读丢了", "tier": "下限档(可退绑扎·选用合理)", "options": [{"id": "A", "text": "受压、中小直径、静载、非关键,本就允许退到绑扎搭接,接头量又远低于限值,选用合理；判断依据：受压；中小直径；静载；非关键部位正是允许退到绑扎搭接的端点(拉25压28),接头量又远低于限值,选用合理,不必一律上机械连接;但'能绑扎'不等于'随便绑'——搭接长度；接头错开；构造要求仍要满足。'一律机械连接'(B)和'接头少就省构造'(C)都把分层判读丢了", "feedback": "对:受压、中小直径、静载、非关键,本就允许退到绑扎搭接(拉25压28),接头量又远低于限值,这么选合理,不用一律上直螺纹套筒。但'能绑扎'不是'随便绑',搭接长度、接头错开、构造照样得满足。两头别走偏:不是'一律机械连接',也不是'接头少就省构造'。"}, {"id": "B", "text": "只要是钢筋连接就一律得用机械连接(直螺纹套筒),绑扎一概不许；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "C", "text": "接头这么少,搭接长度、错开都可以省了,绑上就行；错因：铺贴完成还缺蓄水或淋水检验闭环", "feedback": "错因：铺贴完成还缺蓄水或淋水检验闭环"}]}, {"id": "q4", "answer": "B", "correct_feedback": "对:换成装配式竖向钢筋,判读链还是那条——认输入、匹配方式、对上限值;只是判据换了一套:边缘构件逐根连接、非边缘≤600mm、一二级抗震底部加强区走套筒灌浆,不能把现浇绑扎'拉25压28'硬套过来。能分清现浇和装配式两套判据,才是真会迁移,不是把一套数硬套到底。", "basis": "换到装配式竖向钢筋,判读链(认四输入→匹配方式→对上限值)不变,但判据随构件切换:装配式竖向连接看边缘构件逐根连接、非边缘区≤600mm、一二级抗震底部加强区宜套筒灌浆,不是现浇绑扎那套'拉25压28'端点。把现浇绑扎规则硬套到装配式(A)、或以为换构件就没判读链(C)都丢了'判据随构件切换'这个鉴别点", "tier": "迁移档(换构件·判据切换)·关键鉴别", "options": [{"id": "A", "text": "都是钢筋连接,照板底那套'拉25压28、绑扎搭接'判就行；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "判读链照走但判据换一套:装配式竖向连接边缘构件逐根连接、非边缘区间距≤600mm,一二级抗震底部加强区宜套筒灌浆,不套现浇绑扎那套端点；判断依据：换到装配式竖向钢筋,判读链(认四输入→匹配方式→对上限值)不变,但判据随构件切换:装配式竖向连接看边缘构件逐根连接；非边缘区≤600mm；一二级抗震底部加强区宜套筒灌浆,不是现浇绑扎那套'拉25压28'端点。把现浇绑扎规则硬套到装配式(A)；或以为换构件就没判读链(C)都丢了'判据随构件切换'这个鉴别点", "feedback": "对:换成装配式竖向钢筋,判读链还是那条——认输入、匹配方式、对上限值;只是判据换了一套:边缘构件逐根连接、非边缘≤600mm、一二级抗震底部加强区走套筒灌浆,不能把现浇绑扎'拉25压28'硬套过来。能分清现浇和装配式两套判据,才是真会迁移,不是把一套数硬套到底。"}, {"id": "C", "text": "换成装配式,钢筋连接选用这条判读链就不适用了,凭经验干；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}], "score_question_id": "q5", "score_terms": ["焊接、机械连接、绑扎连接三种", "剥肋滚压直螺纹套筒最常用", "直接承受动力荷载机械连接", "接头面积百分率不应超过50%", "关键词不应", "梁上部接头宜跨中1/3", "下部接头宜梁端1/3", "柱距楼面≥500mm/H/6/b", "边缘构件逐根连接", "非边缘区间距≤600mm", "一二级抗震底部加强区宜套筒灌浆", "等强度+等面积+满足构造", "等刚度不是基本要求", "须设计单位同意"], "sample_score_sentence": "焊接、机械连接、绑扎连接三种、剥肋滚压直螺纹套筒最常用、直接承受动力荷载机械连接、接头面积百分率不应超过50%、关键词不应、梁上部接头宜跨中1/3", "warm_feedback": {"all_correct": "你是真的把钢筋连接选用这条判读链走通了——不管是定接头百分率合不合规,还是判装配式竖向连接,都先认对四输入、再匹配方式、最后对上限值,连'接头正好压在限值线上先按线内判、再把不应写对''换装配式判据跟着换一套'这种边界都分得清。这类题稳,换什么直径、什么构件你都不慌。", "partial": "判读链你会走,就差最关键的那一下:接头百分率贴着上限线时,先按'不超过即合规'判,再把'不应'这个强制关键词稳稳写对,别弱化成'不宜';换个构件(板底→装配式竖向),判据跟着换一套——边缘构件逐根、非边缘600mm、底部加强区套筒灌浆,别再套现浇那套'拉25压28'。把这两点补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'50%、Φ28、Φ25'这几个数。记这条判读链:先认对四输入(直径×受力×荷载×部位)→ 再匹配连接方式(动力·大直径受拉→机械连接、小直径受压静载→绑扎)→ 最后对上限值(动力机械连接接头不应超过50%、梁跨中1/3梁端1/3)。换直径、换构件这条链都成立,只是判据随场景。走顺这条链,接头卡边界、换装配式你都不慌。"}}</script>
+<script>
+const DATA=JSON.parse(document.getElementById('practiceData').textContent);
+const qs=[...document.querySelectorAll('.q')], selected={}, progress=document.getElementById('progressFill');
+const prevBtn=document.getElementById('prevQ'), nextBtn=document.getElementById('nextQ');
+let current=0, score=0;
+const qById=Object.fromEntries(DATA.practice.map(q=>[q.id,q]));
+const clean=s=>String(s||'').replace(/\s+/g,'').replace(/[，。；、,.;]/g,'').toLowerCase();
+function el(tag, cls, text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node;}
+function showFeedback(box, ok, mainText, basisText){box.className='feedback show '+(ok?'correct':'wrong');box.replaceChildren(document.createTextNode((ok?'对。':'再看判据。')+' '+mainText), el('span','basis',basisText));}
+function done(i){const qid=qs[i].dataset.qid;return !!selected[qid];}
+function updateNav(){prevBtn.disabled=current===0;const ready=done(current);nextBtn.disabled=!ready;nextBtn.textContent=ready?(current===qs.length-1?'查看结果':'下一题'):'先作答';}
+function show(i){current=Math.max(0,Math.min(qs.length-1,i));qs.forEach((q,idx)=>q.classList.toggle('active',idx===current));progress.style.width=((current+1)/qs.length*100)+'%';updateNav();}
+function needAnswer(){const btn=document.getElementById('nextQ'),old=btn.textContent;btn.textContent='先独立作答';btn.classList.add('blocked');setTimeout(()=>{btn.textContent=old;btn.classList.remove('blocked');},900);}
+document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',()=>{
+  const qEl=btn.closest('.q'), qid=qEl.dataset.qid, q=qById[qid]; if(selected[qid])return;
+  const ok=btn.dataset.opt===q.answer; selected[qid]=btn.dataset.opt; if(ok)score++;
+  qEl.querySelectorAll('.option').forEach(o=>{o.disabled=true;if(o.dataset.opt===q.answer)o.classList.add('correct');else if(o===btn)o.classList.add('wrong');});
+	  const opt=(q.options||[]).find(o=>o.id===btn.dataset.opt)||{feedback:''};
+	  const fb=document.getElementById('fb-'+qid);
+	  showFeedback(fb, ok, ok?(q.correct_feedback||''):(opt.feedback||''), '判据:'+(q.basis||'')+(q.tier?' · '+q.tier:''));
+  updateNav();
+	}));
+document.querySelectorAll('[data-toggle-stem]').forEach(btn=>btn.addEventListener('click',()=>{
+  const q=btn.closest('.q'); q.classList.toggle('show-stem');
+  btn.textContent=q.classList.contains('show-stem')?'收起完整题干':'展开完整题干';
+}));
+document.querySelector('[data-check-score]').addEventListener('click',()=>{
+  const qEl=qs[qs.length-1], qid=qEl.dataset.qid, values=[...qEl.querySelectorAll('input')].map(i=>i.value).join('');
+  const terms=DATA.score_terms||[]; const hit=terms.filter(t=>clean(values).includes(clean(t))).length;
+  selected[qid]=true; if(hit>=3)score++;
+  qEl.querySelectorAll('input').forEach(i=>i.classList.toggle('ok',i.value.trim().length>0));
+	  const fb=document.getElementById('fb-'+qid);
+	  fb.className='feedback show '+(hit>=3?'correct':'wrong');
+	  fb.replaceChildren(document.createTextNode(hit>=3?'对。':'还不够像采分句。'), el('span','basis','可写:'+DATA.sample_score_sentence));
+  updateNav();
+	});
+prevBtn.addEventListener('click',()=>show(current-1));
+nextBtn.addEventListener('click',()=>{if(!done(current)){needAnswer();return;} if(current<qs.length-1)show(current+1);else showDone();});
+function showDone(){qs.forEach(q=>q.classList.remove('active'));document.getElementById('done').classList.add('show');document.querySelector('nav').style.display='none';progress.style.width='100%';const ratio=score+'/'+qs.length;document.getElementById('scoreText').textContent=ratio+'。'+((DATA.warm_feedback||{}).all_correct||'把判断链写成采分句,才算真正会拿分。');document.getElementById('atoms').replaceChildren(...(DATA.score_terms||[]).slice(0,6).map(t=>{const s=document.createElement('span');s.textContent=t;return s;}));}
+show(0);
+</script></body></html>

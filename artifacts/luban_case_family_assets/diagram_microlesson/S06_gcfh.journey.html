@@ -1,0 +1,438 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>高处作业临边洞口防护 · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.s-floor,.s-worker,.s-fallpath,.s-burst,.s-rail,.s-holeset,.s-platform,.s-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-worker{transform:translateY(-4px)} .reached-energy .s-worker{opacity:1;transform:none} .reached-energy .s-fallpath{opacity:.9} .s-burst{transform:scale(.6);transform-origin:center} .reached-fall .s-burst{opacity:1;transform:none} .s-rail{transform:translateY(6px)} .reached-edge .s-rail{opacity:1;transform:none} .reached-hole .s-holeset{opacity:1} .s-platform{transform:translateY(6px)} .reached-suspend .s-platform{opacity:1;transform:none} .s-chain{transform:translateY(6px)} .reached-chain .s-chain{opacity:1;transform:none} .s-floorfill{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.energy{fill:#ff7a7a}.s-note.fall{fill:#ffb15a}.s-note.edge{fill:#7fe6ab}.s-note.hole{fill:#7fc7ff}.s-note.suspend{fill:#ffd27f}.s-note.chain{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-htxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="S06_gcfh" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>高处作业临边洞口防护</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">临边栏杆1.2m</button><button class="" type="button">立杆间距≤2m</button><button class="" type="button">挡脚板≥180mm</button><button class="" type="button">承1kN</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边在临边洞口剖面上画判读链,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='高处作业临边洞口防护判读链剖面'><rect x='24' y='150' width='312' height='22' rx='2' class='s-floorfill' data-visual-node-id='floor.section'/><text class='s-lbl' x='28' y='246'>楼层临边/洞口剖面(高处作业面)</text><g class='s-worker' data-visual-node-id='worker.energy'><circle cx='70' cy='128' r='7' fill='#ffd27f'/><rect x='66' y='135' width='8' height='15' rx='3' fill='#ffd27f'/><text class='s-note energy' x='70' y='112' text-anchor='middle'>S1 人在临空面之上 · 势能(≥2m)</text></g><g class='s-fallpath' data-visual-node-id='fall.path'><line x1='70' y1='150' x2='70' y2='220' stroke='#ff5a5a' stroke-width='2.4' stroke-dasharray='5 4'/><path d='M66 214 L70 222 L74 214' fill='none' stroke='#ff5a5a' stroke-width='2'/><text class='s-note energy' x='70' y='236' text-anchor='middle'>坠落通道</text></g><g class='s-burst' data-visual-node-id='accident.burst'><path d='M70 188 l4 -7 l3 6 l7 -3 l-4 7 l6 3 l-7 2 l2 7 l-7 -4 l-4 6 l-1 -7 l-7 1 l5 -6 l-6 -4 l7 -1 Z' fill='#ff9b3a' opacity='.9'/><text class='s-note fall' x='118' y='200' text-anchor='middle'>S2 缺屏障 → S3 高处坠落</text></g><g class='s-rail' data-visual-node-id='edge.rail'><line x1='150' y1='118' x2='150' y2='150' stroke='#7fe6ab' stroke-width='3'/><line x1='180' y1='118' x2='180' y2='150' stroke='#7fe6ab' stroke-width='3'/><line x1='146' y1='121' x2='184' y2='121' stroke='#7fe6ab' stroke-width='3'/><rect x='146' y='144' width='38' height='5' fill='#3fd39a'/><text class='s-vtxt' x='165' y='113' text-anchor='middle'>1.2m栏杆</text><text class='s-note edge' x='165' y='168' text-anchor='middle'>S4a 临边:1.2m栏杆+挡脚板≥180mm+承1kN</text></g><g class='s-holeset' data-visual-node-id='hole.set'><rect x='214' y='150' width='14' height='4' fill='#9bb0c8'/><text class='s-htxt' x='221' y='146' text-anchor='middle'>盖板</text><rect x='244' y='148' width='20' height='6' fill='none' stroke='#7fc7ff' stroke-width='2'/><line x1='244' y1='140' x2='264' y2='140' stroke='#7fc7ff' stroke-width='2.4'/><text class='s-htxt' x='254' y='136' text-anchor='middle'>≥500栏杆</text><text class='s-note hole' x='248' y='186' text-anchor='middle'>S4b 洞口按尺寸分档:盖板 / 栏杆+封闭</text></g><g class='s-platform' data-visual-node-id='suspend.platform'><rect x='292' y='140' width='40' height='5' fill='#ffd27f'/><line x1='296' y1='118' x2='296' y2='140' stroke='#ffd27f' stroke-width='2.4'/><line x1='328' y1='118' x2='328' y2='140' stroke='#ffd27f' stroke-width='2.4'/><line x1='294' y1='121' x2='330' y2='121' stroke='#ffd27f' stroke-width='2.4'/><text class='s-note suspend' x='312' y='162' text-anchor='middle'>S4c 悬空:必设操作平台</text></g><g class='s-chain' data-visual-node-id='chain.three'><circle cx='90' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='90' y='43' text-anchor='middle'>识别路径</text><circle cx='180' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='180' y='43' text-anchor='middle'>匹配等级</text><circle cx='270' cy='40' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='270' y='43' text-anchor='middle'>校核参数</text><path d='M103 40 H167' stroke='#7fe6ab' stroke-width='2'/><path d='M193 40 H257' stroke='#7fe6ab' stroke-width='2'/><text class='s-note chain' x='180' y='66' text-anchor='middle'>S5 三步判读链 = 该不该防 / 用什么防 / 防到什么参数</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">临边栏杆1.2m</span><span data-visual-node-id="score.atom.2">立杆间距≤2m</span><span data-visual-node-id="score.atom.3">挡脚板≥180mm</span><span data-visual-node-id="score.atom.4">承1kN</span><span data-visual-node-id="score.atom.5">密目网封闭</span><span data-visual-node-id="score.atom.6">坠落高度≥2m设防护栏杆</span><span data-visual-node-id="score.atom.7">25~500mm承重盖板</span><span data-visual-node-id="score.atom.8">短边≥500mm设1.2m栏杆+挡脚板</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">临边洞口防护不是背 2m、1.2m、500mm 几个数 → 是&#x27;识别坠落路径→匹配防护等级→校核关键参数&#x27;同一条三步判读链。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">临边洞口防护,丢分在只背数字不讲判读链</div>
+<div class="kc kc-a" data-start="10.296" data-seg-idx="1" data-beat-id="energy" data-action-id="energy.keycard" data-visual-node-id="keycard.energy">S1 危险源:人在临空面之上,势能(坠落高度≥2m)</div>
+<div class="kc kc-a" data-start="21.925" data-seg-idx="2" data-beat-id="fall" data-action-id="fall.keycard" data-visual-node-id="keycard.fall">S2 缺屏障 → S3 高处坠落(12类事故之一)</div>
+<div class="kc kc-a" data-start="34.305" data-seg-idx="3" data-beat-id="edge" data-action-id="edge.keycard" data-visual-node-id="keycard.edge">S4a 临边:1.2m栏杆+挡脚板≥180mm+承1kN+密目网</div>
+<div class="kc kc-a" data-start="49.085" data-seg-idx="4" data-beat-id="hole" data-action-id="hole.keycard" data-visual-node-id="keycard.hole">S4b 洞口按尺寸分档:盖板 / ≥500设栏杆+封闭</div>
+<div class="kc kc-a" data-start="63.956" data-seg-idx="5" data-beat-id="suspend" data-action-id="suspend.keycard" data-visual-node-id="keycard.suspend">S4c 悬空:2m以上必设操作平台,超2m不用梯子</div>
+<div class="kc kc-score" data-start="75.808" data-seg-idx="6" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:临边1.2m栏杆·立杆≤2m·挡脚板≥180mm·承1kN·密目网</div>
+<div class="kc kc-concl" data-start="89.254" data-seg-idx="7" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">迁移:判读链通用,阈值随部位变</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,临边写&#x27;设警示牌&#x27;为啥不得分?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">提示标识替代不了物理隔离。临边必须设实体防护栏杆加密目网封闭,光写警示牌采分点没踩到。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那栏杆高度我写 0.9 米行不行?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">这是最常见的串台。零点九米是室内楼梯扶手;临边、洞口防护栏杆是一米二,不同章不同考,别串。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">洞口大点盖块厚盖板不就行了?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">不能只盯盖板。洞口要按尺寸分档:短边五百毫米以上,必须设一米二栏杆加封闭加挡脚板,换厚盖板也不顶用。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="S06_gcfh.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_hole_over"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 上限档(超分档线·须升级措施)</p><p class="qstem">某楼层一个预留洞口,短边尺寸明显超过了&#x27;盖板档&#x27;的上限,现场只用一块木盖板盖着。这一处防护该怎么判?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 已经盖住了,人踩不下去,合格,可不管</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 尺寸越大越要盖严,换一块更厚的盖板就行</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 洞口超出盖板档,须升级为防护栏杆+封闭+挡脚板,光盖板不够</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_at_boundary"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 中间边界陷阱档(恰好落在划档边界)·关键鉴别</p><p class="qstem">另一个洞口,短边尺寸恰好落在&#x27;盖板档&#x27;与&#x27;栏杆档&#x27;的分界线上(题面只说&#x27;正好在分界处&#x27;、不给数字)。现场按盖板档处理,用了承重盖板。这一步该怎么判?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 在分界线上就算大洞口,必须立刻改成栏杆,否则不妥</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 先按题面所给标准/教材版本把它归到对应一档,再看措施配没配对,不能凭&#x27;感觉偏大&#x27;就跳档</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 分界线上模棱两可,随便选盖板或栏杆都算对</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_within"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 下限档(在盖板档内·盖板达标)</p><p class="qstem">同一楼层一个小洞口,短边尺寸远小于划档线、稳稳落在&#x27;盖板档&#x27;里,现场用了可靠固定的承重盖板。该怎么办?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 尺寸在盖板档内,承重盖板可靠覆盖、固定牢即可,正常推进</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 洞口再小也得围 1.2m 栏杆,盖板一律不算数</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 这么小可以不做防护,提醒工人别踩就行</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_transfer"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 迁移档(换部位·判读链不变)</p><p class="qstem">换个部位:作业面在坠落基准面 2m 以上做模板/钢筋悬空作业(该部位触发高度就是 2m)。工人嫌麻烦,想直接架个梯子爬上去攀登作业、早点干完。判读应是?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 短时作业、踩稳点就行,架梯子攀登最省事</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 判读链照走:2m以上悬空作业先识别坠落路径,匹配等级=必设操作平台,超2m不用梯子替代</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 换了部位,临边洞口那套判读链就不适用了,随便处理</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;临边洞口防护数值(2m/1.2m/180mm/500mm 等)与判分口径以现行规范、教材和你的考试大纲为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="148.18" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="energy" data-t="10.296">危险源</button><button class="dot beat-dot" data-state="fall" data-t="21.925">高处坠落</button><button class="dot beat-dot" data-state="edge" data-t="34.305">临边栏杆</button><button class="dot beat-dot" data-state="hole" data-t="49.085">洞口分档</button><button class="dot beat-dot" data-state="suspend" data-t="63.956">悬空平台</button><button class="dot beat-dot" data-state="chain" data-t="75.808">判读链</button><a class="dot practice-dot" href="S06_gcfh.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="S06_gcfh.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 148.18, "teachEndSec": 103.923, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "临边洞口防护,很多人背下两米、一米二这些数字就上场,一换部位就懵。今天沿一条判读链走。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "energy", "qaIndex": null, "text": "先看危险源。人在临空面之上、坠落高度两米及以上,重力势能就是第一类危险源,脚下是敞开的坠落通道。", "startSec": 10.296}, {"idx": 2, "kind": "teach", "state": "fall", "qaIndex": null, "text": "坠落路径上缺了屏障,临边没防护、洞口没封堵,结果就是高处坠落。控制思路是消除优先、防护其次、警示兜底。", "startSec": 21.925}, {"idx": 3, "kind": "teach", "state": "edge", "qaIndex": null, "text": "措施按部位匹配。临边:临空侧立防护栏杆,上杆一米二、立杆间距不大于两米、挡脚板不低于一百八十毫米、承一千牛,再挂密目网封闭。", "startSec": 34.305}, {"idx": 4, "kind": "teach", "state": "hole", "qaIndex": null, "text": "洞口按尺寸分档:二十五到五百毫米用承重盖板;短边五百毫米以上,光盖板不够,得设一米二栏杆加封闭加挡脚板。尺寸跨档,措施就跳档。", "startSec": 49.085}, {"idx": 5, "kind": "teach", "state": "suspend", "qaIndex": null, "text": "悬空作业:两米及以上的模板、钢筋、浇筑,必须设操作平台,超两米不能用梯子替代,更不能站骨架上作业。", "startSec": 63.956}, {"idx": 6, "kind": "teach", "state": "chain", "qaIndex": null, "text": "采分盯这几组词:临边一米二栏杆、立杆不大于两米、挡脚板一百八十、承一千牛、密目网;洞口分档;悬空设操作平台。", "startSec": 75.808}, {"idx": 7, "kind": "teach", "state": "chain", "qaIndex": null, "text": "记住三步判读链:识别坠落路径、匹配防护等级、校核关键参数。换洞口、临边、悬空、交叉作业都成立,判读链不变,阈值随部位给。", "startSec": 89.254}, {"idx": 8, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,临边写'设警示牌'为啥不得分?", "startSec": 104.322}, {"idx": 9, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "提示标识替代不了物理隔离。临边必须设实体防护栏杆加密目网封闭,光写警示牌采分点没踩到。", "startSec": 108.352}, {"idx": 10, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "那栏杆高度我写 0.9 米行不行?", "startSec": 118.543}, {"idx": 11, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "这是最常见的串台。零点九米是室内楼梯扶手;临边、洞口防护栏杆是一米二,不同章不同考,别串。", "startSec": 121.854}, {"idx": 12, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "洞口大点盖块厚盖板不就行了?", "startSec": 132.864}, {"idx": 13, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "不能只盯盖板。洞口要按尺寸分档:短边五百毫米以上,必须设一米二栏杆加封闭加挡脚板,换厚盖板也不顶用。", "startSec": 135.967}], "variants": [{"id": "V1_hole_over", "answer": "C", "feedback": "对:洞口一旦超出'盖板档'(短边≥500mm),光盖板就不够了,要升级成 1.2m 防护栏杆+封闭+挡脚板。判读链是'尺寸决定措施',尺寸跨了档,措施必须跟着跳档。", "basis": "洞口按尺寸分档:短边≥500mm(超出 25~500mm 盖板档)须设 1.2m 防护栏杆+密目网封闭+挡脚板,盖板覆盖不满足这一档——尺寸跨档,措施必须跟着升级", "tier": "上限档(超分档线·须升级措施)"}, {"id": "V2_at_boundary", "answer": "B", "feedback": "对:尺寸卡在分界线上,正是最容易错配的地方。正确动作是先按题目给的标准把它归到准确的一档,再看措施配没配对,而不是凭'看着挺大'就跳到栏杆档、也不是'差不多得了'随便选。把分档线当判据、不靠感觉,是这道题的看穿点。", "basis": "尺寸恰好落在划档边界是最易错配的陷阱:判读要先按题面所给标准/教材版本把它精确归到对应一档(禁跨口径混搭),再校核措施与该档是否匹配;既不能'感觉偏大就跳档',也不能'差不多就行随便选'——分档错配即不妥", "tier": "中间边界陷阱档(恰好落在划档边界)·关键鉴别"}, {"id": "V3_within", "answer": "A", "feedback": "对:小洞口稳稳在盖板档里,用可靠固定的承重盖板就达标,不用升级栏杆。但盖板得承得住、固定牢。注意两头别走偏:不是'小就不用做',也不是'一律都要栏杆'——按尺寸分档才对。", "basis": "尺寸落在 25~500mm 盖板档内,用承重盖板可靠覆盖并固定即达标,不必升级到栏杆;但盖板要'承重+固定牢',不能松动移位——'小洞口不用做'(C)和'一律要栏杆'(B)都把分档判读丢了", "tier": "下限档(在盖板档内·盖板达标)"}, {"id": "V4_transfer", "answer": "B", "feedback": "对:换成悬空作业,判读链一模一样——2m以上先识别风险,匹配的措施是设操作平台,超2m绝不用梯子攀登替代,更不能站骨架上。换了部位,触发高度/限值随部位给,但'识别路径→匹配等级→校核参数'这条链不变,这才是真会迁移,不是背洞口那几个数。", "basis": "悬空作业同属高处坠落风险,换部位只换外壳:照样'识别坠落路径(基准面≥2m)→匹配防护等级(必设操作平台)→校核(超2m不用梯子替代、严禁沿骨架攀登)'。判读链不变,阈值随部位给(R2 不变量),不是'换了部位就不管'也不是'架梯子省事'", "tier": "迁移档(换部位·判读链不变)"}], "keyIdx": [1, 3], "warm": {"all_correct": "你是真的把临边洞口的判读链走通了——不管洞口还是悬空作业,都先'识别坠落路径',再'按尺寸/高度匹配措施',最后'校核参数',连'尺寸恰好卡在分界线先归档再配措施'这种边界都分得清。这类题稳,换什么部位你都不慌。", "partial": "判读链你会走,就差最关键的那一下:尺寸卡在分界线上,要先按标准精确归档再配措施,别凭感觉跳档;换个部位(洞口→悬空作业),只要题目给了该部位触发高度,照样是'识别路径→匹配等级→校核参数'这条链。把这两点补上就齐了——你离真懂只差一步。", "rote_leaning": "先别急着背'2m、1.2m、500mm'这几个数。记这条判读链:先识别坠落路径(该不该防)→ 按尺寸/高度匹配防护等级(用什么防:盖板/栏杆/操作平台)→ 校核关键参数(防到达标线没)。换洞口、临边、悬空、交叉作业这条链都成立,只是阈值随部位。走顺这条链,尺寸卡边界、换部位你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "S06_gcfh", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:floor.section", "target_id": "floor.section"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "energy", "stage": "energy", "actions": [{"id": "energy.reveal.0", "type": "reveal", "target": "data-id:worker.energy", "target_id": "worker.energy"}, {"id": "energy.highlight.1", "type": "highlight", "target": "data-id:fall.path", "target_id": "fall.path"}, {"id": "energy.keycard.2", "type": "keycard", "target": "data-id:keycard.energy", "target_id": "keycard.energy"}]}, {"id": "fall", "stage": "fall", "actions": [{"id": "fall.reveal.0", "type": "reveal", "target": "data-id:accident.burst", "target_id": "accident.burst"}, {"id": "fall.keycard.1", "type": "keycard", "target": "data-id:keycard.fall", "target_id": "keycard.fall"}]}, {"id": "edge", "stage": "edge", "actions": [{"id": "edge.reveal.0", "type": "reveal", "target": "data-id:edge.rail", "target_id": "edge.rail"}, {"id": "edge.highlight.1", "type": "highlight", "target": "data-id:keycard.edge", "target_id": "keycard.edge"}]}, {"id": "hole", "stage": "hole", "actions": [{"id": "hole.reveal.0", "type": "reveal", "target": "data-id:hole.set", "target_id": "hole.set"}, {"id": "hole.keycard.1", "type": "keycard", "target": "data-id:keycard.hole", "target_id": "keycard.hole"}]}, {"id": "suspend", "stage": "suspend", "actions": [{"id": "suspend.reveal.0", "type": "reveal", "target": "data-id:suspend.platform", "target_id": "suspend.platform"}, {"id": "suspend.keycard.1", "type": "keycard", "target": "data-id:keycard.suspend", "target_id": "keycard.suspend"}]}, {"id": "score", "stage": "chain", "actions": [{"id": "score.highlight.0", "type": "highlight", "target": "data-id:score.keywords", "target_id": "score.keywords"}, {"id": "score.keycard.1", "type": "keycard", "target": "data-id:keycard.score", "target_id": "keycard.score"}]}, {"id": "transfer", "stage": "chain", "actions": [{"id": "transfer.reveal.0", "type": "reveal", "target": "data-id:chain.three", "target_id": "chain.three"}, {"id": "transfer.keycard.1", "type": "keycard", "target": "data-id:keycard.transfer", "target_id": "keycard.transfer"}, {"id": "transfer.camera.2", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}]}]};
+	const ORDER=["intro", "energy", "fall", "edge", "hole", "suspend", "chain"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

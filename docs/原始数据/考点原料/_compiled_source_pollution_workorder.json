@@ -1,0 +1,42 @@
+{
+ "_schema": "compiled_source_pollution_workorder.v0",
+ "_status": "确定性检测·只读·不改任何生产/派生文件(治本需按各 pack 的挖矿 pipeline 重编译, 另起)",
+ "_pattern": "producer/consumer granularity mismatch — 细粒度 leaf 共享同一份粗粒度 scoring_points payload, leaf 名实不符(同 RichLeaf rich_leaf_context_bundle 的失败形状)",
+ "_method": "按 units[].scoring_points 内容指纹分簇; 簇内 >=2 个 leaf, leaf_name 末段不同, 且 leaf 名义判别词不在共享内容里 = 污染。iron=簇 >=3 leaf, suspect=2 leaf。",
+ "_scope_scanned": "docs/原始数据/考点原料/_*_compiled_source.json (40 文件, 母题 pack 挖矿产物)",
+ "_root_cause": "14 个老世代文件 units 无 source_ref/chunk_id(无溯源), 挖矿时一份 scoring_points 被挂给多个 leaf。26 个新世代文件带 source_ref.chunk_id + 顶层 污染绕开chunk 字段(作者已主动按 chunk 拆分子主题规避), 基本干净(仅 C06 残留 1 个近义簇)。",
+ "iron_pollution_total": 25,
+ "suspect_pollution_total": 14,
+ "workorders": [
+  {
+   "file": "_B02_compiled_source.json",
+   "severity": "HIGH (iron)",
+   "iron_victims": 23,
+   "worst_cluster_size": 8,
+   "evidence": "8 个不同主题 leaf (基坑验槽要求/岩石基坑开挖/雨期施工基坑开挖注意事项 等) 共享 byte-identical scoring_points(全是 深基坑开挖 内容)。units 无 source_ref, 无法溯源。",
+   "fix": "按 leaf 实际主题重新挖矿/重编译 scoring_points, 补 source_ref.chunk_id, 引入 污染绕开chunk 机制。"
+  },
+  {
+   "file": "_C07_compiled_source.json",
+   "severity": "MEDIUM (iron+suspect)",
+   "iron_victims": 2,
+   "suspect_victims": 12,
+   "worst_cluster_size": 4,
+   "evidence": "4 个钢结构 leaf (单层/多层高层/大跨度空间/钢桁架) 共享 单层钢结构 scoring_points; 另有多个 2-leaf 近义簇(焊接连接/钢结构构件连接 等)。units 无 source_ref。",
+   "fix": "同 B02; 部分 suspect 簇可能是同卡多 taxonomy code, 需语义复核。"
+  },
+  {
+   "file": "_C06_compiled_source.json",
+   "severity": "LOW (suspect, borderline)",
+   "suspect_victims": 2,
+   "worst_cluster_size": 2,
+   "evidence": "1A413042-R01 临时施工洞口设置规定 与 1A413030-G01 砌体墙临时施工洞口留置规定 同 chunk 1A413030_106_0208, 共享 scoring_points。两者近义, 可能是同卡双 taxonomy code 的合理共享, 也可能是污染。",
+   "fix": "语义复核是否应为同一卡; 若是不同卡, 按各自主题重编译。"
+  }
+ ],
+ "_clean_despite_risky_schema": "A01/C02/C04/C05/K01/N02/Q01/Q02/Q03/S01/S02/S06 — 同为 no-source_ref 老世代, 但 scoring_points 各 leaf 不重复, 无污染。",
+ "_separate_known_debt": {
+  "family": "RichLeaf rich_leaf_context_bundle / runtime_token_pack_v* (compiled_context by source_ref.chunk_id)",
+  "note": "这是已知并已登记的 RichLeaf 治理战役债, 不是本次新发现。live bundle 登记表 _richleaf_pollution_registry.json 记 polluted=345 / iron=175; frozen runtime_token_pack_v31 快照同源(name-mismatch 过滤后 288 victims)。属同一债, 勿重复计数。"
+ }
+}

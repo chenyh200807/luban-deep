@@ -455,11 +455,13 @@ def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, 
     focus["prompt"] = prompts[0]["text"]
     focus["intent"] = prompts[0]["intent"]
     return {
-        "source_status": {
-            "fallback_used": True,
-            "fallback_reason": fallback_reason,
-            "learning_report": "stale",
-        },
+        "source_status": _canonical_projection_source_status(
+            {
+                "fallback_used": True,
+                "fallback_reason": fallback_reason,
+                "learning_report": "stale",
+            }
+        ),
         "today_focus": focus,
         "recommended_prompts": prompts,
     }

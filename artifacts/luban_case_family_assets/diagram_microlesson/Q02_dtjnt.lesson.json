@@ -1,0 +1,114 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "Q02_dtjnt",
+  "derived_from": "Q02_dtjnt.json",
+  "archetype_master_ref": "Q02_dtjnt.master.json",
+  "style": "teach_then_qa",
+  "title": "大体积混凝土温度裂缝控制 · 老师带你看懂",
+  "subtitle": "老师边讲边在筏板剖面上画因果链,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 复刻 Q02(温控类)。讲懂幕舞台=厚筏板剖面因果链(stage 外置:svg+states+css+banner 自带,引擎对原型通用,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 Q02.md §2.1 因果链 S1→S5,不跳步。beat 旁白事实/数值全部 anchor 回 Q02_dtjnt.json 真实字段(防漂移闸),数字回 §1/§2 教材锚,不手写新数值。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值以现行 GB 50496 等规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "四个数字不是孤立背诵 → 温升≤50℃·里表温差≤25℃·降温≤2.0℃/d·拆保温≤20℃,是同一条因果链上的四个阀门。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "heat", "label": "水化热"},
+      {"id": "gradient", "label": "温差"},
+      {"id": "stress", "label": "温度应力"},
+      {"id": "crack", "label": "裂缝"},
+      {"id": "valves", "label": "四阀门"}
+    ],
+    "css": ".q-flame,.q-band,.q-arrow,.q-tension,.q-crack,.q-bar,.q-valve{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .q-flame{transform:translateY(4px)} .reached-heat .q-flame{opacity:1;transform:none} .reached-gradient .q-band{opacity:1} .q-arrow{transform:scale(.6);transform-origin:center} .reached-stress .q-arrow{opacity:.95;transform:none} .reached-stress .q-tension{opacity:1} .q-bar{transform:scaleY(.2);transform-origin:bottom} .reached-crack .q-bar{opacity:1;transform:none} .reached-crack .q-crack{opacity:1} .q-valve{transform:scale(.5);transform-origin:center} .reached-valves .q-valve{opacity:1;transform:none} .q-slab{fill:#5d6f86} .q-lbl{fill:#9fb0c2;font-size:10px} .q-note{font-size:11px;font-weight:700} .q-note.heat{fill:#ffb15a}.q-note.grad{fill:#7fc7ff}.q-note.stress{fill:#ffd27f}.q-note.crack{fill:#ff7a7a}.q-note.valve{fill:#7fe6ab} .q-vtxt{fill:#bff0d4;font-size:9.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='大体积混凝土温度裂缝控制因果链剖面'><rect x='30' y='150' width='300' height='70' rx='4' class='q-slab' data-visual-node-id='slab.section'/><text class='q-lbl' x='34' y='240'>厚筏板剖面(大体积)</text><g class='q-flame' data-visual-node-id='slab.heat'><path d='M70 200 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M120 196 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M170 204 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M220 196 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M270 200 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M150 184 q-6 -10 0 -18 q6 8 0 18Z' fill='#ffd27f'/><path d='M195 184 q-6 -10 0 -18 q6 8 0 18Z' fill='#ffd27f'/><text class='q-note heat' x='180' y='142' text-anchor='middle'>S1 水泥水化放热 · 大体积散不出去</text></g><g class='q-band' data-visual-node-id='band.gradient'><rect x='30' y='150' width='300' height='70' rx='4' fill='url(#qgrad)' opacity='.78'/><defs><radialGradient id='qgrad' cx='50%' cy='50%' r='62%'><stop offset='0%' stop-color='#ff5a5a'/><stop offset='55%' stop-color='#ffb15a'/><stop offset='100%' stop-color='#5aa0ff'/></radialGradient></defs><text class='q-note grad' x='180' y='130' text-anchor='middle'>S2 芯热表凉 → 里表温差≤25℃</text></g><g class='q-arrow' data-visual-node-id='arrow.stress'><path d='M70 185 L110 185' stroke='#7fe6ab' stroke-width='3'/><path d='M104 180 L112 185 L104 190' fill='none' stroke='#7fe6ab' stroke-width='2.5'/><path d='M290 185 L250 185' stroke='#ff9b9b' stroke-width='3'/><path d='M256 180 L248 185 L256 190' fill='none' stroke='#ff9b9b' stroke-width='2.5'/><text class='q-note stress' x='180' y='190' text-anchor='middle'>内胀外缩</text></g><g class='q-tension' data-visual-node-id='tension.stress'><line x1='40' y1='156' x2='320' y2='156' stroke='#ffd27f' stroke-width='1.8' stroke-dasharray='6 4'/><text class='q-note stress' x='180' y='118' text-anchor='middle'>S3 表面受拉 = 温度应力</text></g><g class='q-bar' data-visual-node-id='bar.crack'><rect x='118' y='40' width='28' height='62' rx='3' fill='#ffd27f'/><text class='q-lbl' x='132' y='112' text-anchor='middle'>温度应力</text><rect x='214' y='62' width='28' height='40' rx='3' fill='#6fa8dc'/><text class='q-lbl' x='228' y='112' text-anchor='middle'>抗拉强度(早龄期低)</text><text class='q-note crack' x='180' y='30' text-anchor='middle'>S4 应力 &gt; 抗拉强度 → 开裂</text></g><g class='q-crack' data-visual-node-id='crack.line'><path d='M180 150 L176 168 L184 184 L178 204' stroke='#ff3b3b' stroke-width='2.4' fill='none'/></g><g class='q-valve' data-visual-node-id='valve.four'><circle cx='75' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='75' y='237' text-anchor='middle'>温升50</text><circle cx='150' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='150' y='237' text-anchor='middle'>温差25</text><circle cx='225' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='225' y='237' text-anchor='middle'>降温2.0</text><circle cx='300' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='300' y='237' text-anchor='middle'>拆保20</text><text class='q-note valve' x='180' y='250' text-anchor='middle'>S5 四个阀门 = 抗/放/控/养四下手点</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": false,
+       "keycard": {"text": "大体积温控,丢分在只背数字不讲因果", "tone": "q"},
+       "sync_keyword": "因果链",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:slab.section"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "narration": "大体积温控,很多人把温升五十、温差二十五背下来就上场,一换工程就懵。今天沿一条因果链走,把每个数字挂回它的物理原因。"},
+      {"id": "heat", "stage": "heat", "claim": true, "anchor": "causal_chain.s1_hydration_heat.claim",
+       "keycard": {"text": "S1 源头:水泥水化放热,大体积散不出去", "tone": "a"},
+       "sync_keyword": "水化热",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:slab.heat"},
+         {"type": "keycard", "target": "data-id:keycard.heat"}
+       ],
+       "narration": "先看热从哪来。水泥遇水放热,叫水化热。大体积构件厚,热量积在芯部散不出去,芯部就憋高了。"},
+      {"id": "gradient", "stage": "gradient", "claim": true, "anchor": "causal_chain.s2_core_surface_gradient.claim",
+       "keycard": {"text": "S2 芯热表凉 → 里表温差≤25℃", "tone": "a"},
+       "sync_keyword": "里表温差",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:band.gradient"},
+         {"type": "highlight", "target": "data-id:keycard.gradient"}
+       ],
+       "narration": "芯部憋热、表面散得快,芯热表凉,里表温差就出来了。教材把里表温差不大于二十五度当成控制量。"},
+      {"id": "stress", "stage": "stress", "claim": true, "anchor": "causal_chain.s3_temperature_stress.claim",
+       "keycard": {"text": "S3 内胀外缩,表面被拽住 → 温度应力", "tone": "a"},
+       "sync_keyword": "温度应力",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:arrow.stress"},
+         {"type": "highlight", "target": "data-id:tension.stress"},
+         {"type": "keycard", "target": "data-id:keycard.stress"}
+       ],
+       "narration": "有温差就胀缩不均:芯部想胀、表面想缩,反向力把表面拽住受拉,这就是温度应力。"},
+      {"id": "crack", "stage": "crack", "claim": true, "anchor": "causal_chain.s4_crack.claim",
+       "keycard": {"text": "S4 应力 > 早龄期抗拉强度 → 裂缝", "tone": "a"},
+       "sync_keyword": "抗拉强度",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:bar.crack"},
+         {"type": "highlight", "target": "data-id:crack.line"},
+         {"type": "keycard", "target": "data-id:keycard.crack"}
+       ],
+       "narration": "早龄期混凝土抗拉强度很低,温度应力一旦超过当时的抗拉强度,裂缝就来了。它是前三步的必然结果。"},
+      {"id": "valves", "stage": "valves", "claim": true, "anchor": "causal_chain.s5_four_valves.claim",
+       "keycard": {"text": "S5 四个数 = 一条链上的四个阀门", "tone": "concl"},
+       "sync_keyword": "四个阀门",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:valve.four"},
+         {"type": "keycard", "target": "data-id:keycard.valves"}
+       ],
+       "narration": "所以控制只有一条路:关住每个阀门。温升≤五十、里表温差≤二十五、降温≤每天两度、拆保温温差≤二十——这四个数就是同一条链上的四个阀门。"},
+      {"id": "score", "stage": "valves", "claim": true, "anchor": "scoring_points[0].keywords",
+       "keycard": {"text": "采分词:温升≤50 · 里表≤25 · 降温≤2.0 · 拆保温≤20 · 养护≥14d", "tone": "score"},
+       "sync_keyword": "温升五十",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:score.keywords"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "narration": "采分就盯这几组词:温升五十、里表温差二十五、降温每天两度、拆保温二十,再加保湿养护不少于十四天。"},
+      {"id": "transfer", "stage": "valves", "claim": true, "anchor": "master:R2_invariant",
+       "keycard": {"text": "迁移:控温逻辑通用,限值随结构变", "tone": "concl"},
+       "sync_keyword": "限值随结构",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:stage.conclude"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"}
+       ],
+       "narration": "记住:换成筏板、大型设备基础,控的还是控温度梯度不是控绝对温度,实测比限值、超了就干预。换了结构,限值随结构给,这条判读链不变。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,我只写了'控制温升、加强养护',为啥还丢分?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why",
+           "sync_keyword": "里表温差",
+           "text": "你把温升当唯一指标了。温控是三件套并列:温升≤五十、里表温差≤二十五、降温≤每天两度,缺一项就漏采分。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那快点降温、早拆保温,不就省事?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "里表温差这个梯度",
+           "text": "这正是坑。危险的是里表温差这个梯度,不是绝对温度高。保温是让表面慢冷、缩小梯度,降太快温差拉大照样裂。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那保温层够14天就能拆吧?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "表面与大气的温差不大于二十度",
+           "text": "不能只看天数。拆保温前要查表面与大气的温差不大于二十度才能拆,否则表面急冷拉裂。养护十四天和拆保温温差二十度是两条,别混。"}}
+  ]
+}

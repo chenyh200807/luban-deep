@@ -13,6 +13,8 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_EVENTS_DIR = PROJECT_ROOT / "tmp" / "observability" / "observer" / "events"
+_SYNTHETIC_SESSION_TOKENS = ("shadow",)
+_SYNTHETIC_SURFACES = {"online_shadow"}
 
 
 def _coerce_non_negative_int(value: Any) -> int:
@@ -27,6 +29,49 @@ def _coerce_non_negative_float(value: Any) -> float:
         return max(float(value or 0.0), 0.0)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _infer_observation_flags(
+    *,
+    session_id: str,
+    surface: str,
+    metadata: dict[str, Any],
+    observation_cohort: str,
+    synthetic: bool | None,
+    test_only: bool | None,
+) -> tuple[str, bool, bool]:
+    normalized_session_id = str(session_id or "").strip().lower()
+    normalized_surface = str(surface or "").strip().lower()
+    explicit_cohort = str(observation_cohort or "").strip().lower()
+    metadata_source = str(metadata.get("source") or "").strip().lower()
+    inferred_synthetic = any(token in normalized_session_id for token in _SYNTHETIC_SESSION_TOKENS)
+    inferred_synthetic = inferred_synthetic or normalized_surface in _SYNTHETIC_SURFACES
+    inferred_synthetic = inferred_synthetic or bool(metadata.get("smoke_test"))
+    inferred_test_only = inferred_synthetic or metadata_source in {"run_prerelease_observability", "surface_ack_smoke"}
+    resolved_synthetic = inferred_synthetic if synthetic is None else bool(synthetic)
+    resolved_test_only = inferred_test_only if test_only is None else bool(test_only)
+    if explicit_cohort:
+        resolved_cohort = explicit_cohort
+    elif resolved_synthetic:
+        resolved_cohort = "synthetic"
+    elif resolved_test_only:
+        resolved_cohort = "test_only"
+    else:
+        resolved_cohort = "canonical"
+    return resolved_cohort, resolved_synthetic, resolved_test_only
+
+
+def event_is_test_only(event: dict[str, Any]) -> bool:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    _cohort, synthetic, test_only = _infer_observation_flags(
+        session_id=str(event.get("session_id") or ""),
+        surface=str(event.get("surface") or ""),
+        metadata=metadata,
+        observation_cohort=str(event.get("observation_cohort") or ""),
+        synthetic=event.get("synthetic") if isinstance(event.get("synthetic"), bool) else None,
+        test_only=event.get("test_only") if isinstance(event.get("test_only"), bool) else None,
+    )
+    return synthetic or test_only
 
 
 def build_turn_observation_event(
@@ -46,7 +91,19 @@ def build_turn_observation_event(
     release: dict[str, Any] | None = None,
     metadata: dict[str, Any] | None = None,
     timestamp: float | None = None,
+    observation_cohort: str = "",
+    synthetic: bool | None = None,
+    test_only: bool | None = None,
 ) -> dict[str, Any]:
+    normalized_metadata = dict(metadata or {})
+    resolved_cohort, resolved_synthetic, resolved_test_only = _infer_observation_flags(
+        session_id=str(session_id or "").strip(),
+        surface=str(surface or "").strip(),
+        metadata=normalized_metadata,
+        observation_cohort=observation_cohort,
+        synthetic=synthetic,
+        test_only=test_only,
+    )
     return {
         "type": "turn_observation",
         "timestamp": float(timestamp if timestamp is not None else time.time()),
@@ -63,7 +120,10 @@ def build_turn_observation_event(
         "token_total": _coerce_non_negative_int(token_total),
         "retrieval_hit": retrieval_hit if isinstance(retrieval_hit, bool) else None,
         "error_type": str(error_type or "").strip(),
-        "metadata": dict(metadata or {}),
+        "metadata": normalized_metadata,
+        "observation_cohort": resolved_cohort,
+        "synthetic": resolved_synthetic,
+        "test_only": resolved_test_only,
     }
 
 

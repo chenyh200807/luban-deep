@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN" data-stage="guess">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>网络计划关键线路判断 · v2</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;max-width:100%;overflow-x:hidden}
+body{background:#eef3f7;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.48}
+button{font:inherit}
+.page{max-width:1040px;margin:0 auto;padding:18px 14px 40px}
+.topline{display:flex;gap:8px;align-items:center;color:#176b7a;font-size:12px;font-weight:900;margin-bottom:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:#f97316;box-shadow:0 0 0 4px rgba(249,115,22,.13)}
+h1{margin:0 0 6px;font-size:24px;line-height:1.22;letter-spacing:0}
+.goal{margin:0 0 12px;color:#45566d;font-size:14px}
+.layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr);gap:14px;align-items:start}
+.board,.panel{background:#fff;border:1px solid #d7e1eb;border-radius:16px;box-shadow:0 12px 28px rgba(31,41,55,.06)}
+.board{padding:12px}
+.stem{margin:0 0 10px;color:#334155;font-size:14px}
+.cold-strip{margin:0 0 10px;border:1px solid #fed7aa;background:#fff7ed;border-radius:13px;padding:10px 11px;color:#7c2d12;font-size:13px}
+.cold-strip b{display:block;color:#9a3412;font-size:14px;margin-bottom:3px}
+.diagram-shell{position:relative;border:1px solid #dbe5ee;border-radius:14px;background:linear-gradient(180deg,#fbfdff,#f6f9fb);padding:8px;overflow:hidden}
+.net-svg{width:100%;height:auto;display:block}
+.edge{stroke:#8290a3;stroke-width:2.2;opacity:.86}
+.edge.critical{stroke:#b6c2cf;opacity:.74}
+.net-svg.stage-deps .edge{stroke:#394b63;stroke-width:3;opacity:1}
+.net-svg.stage-early .edge,.net-svg.stage-late .edge,.net-svg.stage-float .edge{opacity:.72}
+.net-svg.stage-critical .edge.critical,.net-svg.stage-score .edge.critical{stroke:#c2410c;stroke-width:4.6;opacity:1;marker-end:url(#arrowHot)}
+.node rect{fill:#f9fbfd;stroke:#8da0b5;stroke-width:2}
+.node.critical rect{stroke:#bdc8d4}
+.net-svg.stage-critical .node.critical rect,.net-svg.stage-score .node.critical rect{fill:#fff3e9;stroke:#c2410c;stroke-width:3}
+.n-label{text-anchor:middle;font-size:17px;font-weight:900;fill:#1f2d44}
+.n-dur{text-anchor:middle;font-size:11px;fill:#607086}
+.t-early,.t-late{display:none;font-size:10px;font-weight:800}
+.t-early{fill:#1d4ed8}.t-late{text-anchor:end;fill:#0f766e}
+.net-svg.stage-early .t-early,.net-svg.stage-late .t-late,.net-svg.stage-score .t-early,.net-svg.stage-score .t-late{display:block}
+.float{display:none;text-anchor:middle;font-size:10px;font-weight:900;fill:#b45309}
+.float.zero{fill:#14765b}
+.net-svg.stage-float .float,.net-svg.stage-critical .float,.net-svg.stage-score .float{display:block}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;color:#5d6f84;font-size:12px}
+.legend i{display:inline-block;width:20px;border-top:4px solid #c2410c;vertical-align:middle;margin-right:5px}
+.scoreline{display:none;margin-top:10px;border:1px solid #fed7aa;background:#fff7ed;border-radius:13px;padding:11px 12px}
+html[data-stage="score"] .scoreline{display:block}
+.scoreline small{display:block;color:#9a3412;font-weight:900;margin-bottom:4px}
+.scoreline strong{display:block;color:#7c2d12;font-size:14px}
+.panel{padding:12px}
+.trap{border:1px solid #fed7aa;background:#fff7ed;border-radius:14px;padding:12px;margin-bottom:12px}
+.trap .wrong{font-weight:900;color:#9a3412;font-size:15px;margin-bottom:8px}
+.trap p{margin:6px 0;color:#5b3b19;font-size:13px}
+.trap .fix{margin-top:9px;border-top:1px dashed #fdba74;padding-top:8px;color:#7c2d12;font-weight:800}
+.guess h2,.inline-guess h2,.narr h2,.bar h2{font-size:16px;margin:0 0 8px}
+.inline-guess{margin-top:10px;border:1px solid #d7e1eb;background:#fff;border-radius:14px;padding:11px}
+.inline-guess .guess-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.guess-grid,.opt-grid,.err-grid{display:grid;gap:8px}
+.guess-opt,.opt,.err-card,.step-tab{border:1px solid #d7e1eb;background:#fff;border-radius:12px;cursor:pointer;text-align:left}
+.guess-opt,.opt{min-height:46px;padding:10px 12px;color:#26364a}
+.guess-opt[aria-pressed="true"].correct,.opt[aria-pressed="true"].correct{border-color:#77bf9a;background:#e9f8f0}
+.guess-opt[aria-pressed="true"].wrong,.opt[aria-pressed="true"].wrong{border-color:#fb923c;background:#fff1e7}
+.feedback{display:none;margin-top:10px;border-radius:12px;padding:10px 12px;font-size:13px}
+.feedback.show{display:block}.feedback.correct{background:#e9f8f0;color:#0f6b4f;border:1px solid #8bd0ad}.feedback.wrong{background:#fff1e7;color:#9a3412;border:1px solid #fb923c}
+.narr{margin-top:12px;border:1px solid #c8dbfb;background:#f2f7ff;border-radius:14px;padding:12px}
+.narr h2{color:#1d4ed8}.narr p{margin:0;color:#24364f;font-size:14px;min-height:44px}
+.action-line{margin-top:9px;color:#0f766e;font-size:13px;font-weight:900}
+.jump-note{margin-top:10px;border-radius:12px;padding:9px 11px;background:#fff7ed;border:1px solid #fed7aa;color:#92400e;font-size:13px}
+.jump-note[hidden]{display:none}
+.steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.step-tab{min-height:48px;padding:8px 10px;color:#526174}
+.step-tab[aria-selected="true"]{background:#eaf2ff;border-color:#8db7f7;color:#153e91}
+.step-tab small{display:block;font-size:11px;font-weight:800;opacity:.72}.step-tab strong{display:block;font-size:13px}
+.controls{display:flex;gap:9px;margin-top:10px}
+.controls button{flex:1;min-height:44px;border-radius:12px;border:1px solid #d7e1eb;background:#fff;font-weight:900;cursor:pointer}
+.controls .primary{background:#176b7a;color:#fff;border-color:#176b7a}
+.bar{margin-top:12px;border:1px solid #d7e1eb;background:#fff;border-radius:14px;padding:12px}
+.bar .hint{margin:0 0 9px;color:#65758b;font-size:13px}
+.err-card{padding:10px 11px}
+.err-card:hover{border-color:#fb923c;background:#fff7ed}
+.err-card b{display:block;font-size:13px;margin-bottom:3px}.err-card span{color:#65758b;font-size:12px}
+.faded{border:1px solid #dbe5ee;background:#f9fbfd;border-radius:13px;padding:11px;margin-top:10px}
+.blank{font-weight:900;color:#22324a;background:#fff;border:1px dashed #adc0d4;border-radius:10px;padding:10px;margin:8px 0;font-size:13px}
+.model{display:none;border-radius:10px;background:#e9f8f0;border:1px solid #8bd0ad;color:#0f6b4f;padding:10px;font-size:13px;font-weight:800}
+.model.show{display:block}
+.linkbtn{border:0;background:transparent;color:#176b7a;font-weight:900;padding:4px 0;cursor:pointer}
+.auth{margin-top:12px;color:#627184;font-size:12px}
+@media (max-width:880px){
+ .page{max-width:440px;padding-bottom:86px}
+ .layout{display:block}
+ .panel{margin-top:12px}
+ .controls{position:sticky;bottom:0;z-index:40;margin:10px -2px 0;padding:10px 2px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid #d7e1eb;box-shadow:0 -9px 26px rgba(31,41,55,.12);backdrop-filter:blur(9px)}
+ .controls button{min-height:48px}
+}
+@media (max-width:460px){
+ h1{font-size:21px}
+ .page{padding-left:10px;padding-right:10px}
+ .inline-guess .guess-grid{grid-template-columns:1fr}
+ .steps{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+ *{scroll-behavior:auto!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<!--
+created_by: deterministic render_network_card_v2.py
+schema_version: luban_diagram_microlesson.v1
+template_type: network_plan_keypath
+authority_status: candidate_teaching_prototype
+boundary: browser JS only reveals pre-rendered derivations; CPM validation runs at build time; candidate teaching prototype only.
+-->
+<main class="page">
+  <div class="topline"><span class="dot"></span><span>N01 · 先猜后证 · 网络计划</span></div>
+  <h1>网络计划关键线路判断</h1>
+  <p class="goal">先判断，再推导，最后写成能得分的采分句：关键线路、总工期、总时差为 0。</p>
+  <section class="layout">
+    <div class="board">
+      <p class="stem">某工程由 A~E 五项工作组成，逻辑关系与持续时间如下图，求关键线路与总工期。</p>
+      <div class="cold-strip"><b>错法警报：“C 工作 4 天最长，所以关键线路就是 C。”</b>这句话在考试里很危险：它只看到了最长单项工作，没有证明一条连续线路，也没有写总工期和总时差，关键线路分基本拿不到。</div>
+      <div class="diagram-shell">
+        <svg class="net-svg stage-guess" id="netSvg" viewBox="0 0 826 274" role="img" aria-label="网络计划图，关键线路会在推导到最后一步时显示" preserveAspectRatio="xMidYMid meet"><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#728197"></path></marker><marker id="arrowHot" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#c2410c"></path></marker></defs><line class="edge critical" data-from="START" data-to="A" x1="122" y1="122" x2="209" y2="72" marker-end="url(#arrow)"></line><line class="edge" data-from="START" data-to="B" x1="122" y1="122" x2="209" y2="172" marker-end="url(#arrow)"></line><line class="edge critical" data-from="A" data-to="C" x1="287" y1="72" x2="374" y2="72" marker-end="url(#arrow)"></line><line class="edge" data-from="A" data-to="D" x1="287" y1="72" x2="374" y2="172" marker-end="url(#arrow)"></line><line class="edge" data-from="B" data-to="D" x1="287" y1="172" x2="374" y2="172" marker-end="url(#arrow)"></line><line class="edge critical" data-from="C" data-to="E" x1="452" y1="72" x2="539" y2="122" marker-end="url(#arrow)"></line><line class="edge" data-from="D" data-to="E" x1="452" y1="172" x2="539" y2="122" marker-end="url(#arrow)"></line><line class="edge critical" data-from="E" data-to="END" x1="617" y1="122" x2="704" y2="122" marker-end="url(#arrow)"></line><g class="node critical" data-node-id="START"><rect x="44" y="94" rx="10" width="78" height="56"></rect><text class="n-label" x="83" y="118">开始</text><text class="t-early" x="47" y="87">早 0-0</text><text class="t-late" x="119" y="87">迟 0-0</text></g><g class="node critical" data-node-id="A"><rect x="209" y="44" rx="10" width="78" height="56"></rect><text class="n-label" x="248" y="68">A</text><text class="n-dur" x="248" y="86">3 天</text><text class="t-early" x="212" y="37">早 0-3</text><text class="t-late" x="284" y="37">迟 0-3</text><text class="float zero" x="248" y="115">总0/自由0</text></g><g class="node" data-node-id="B"><rect x="209" y="144" rx="10" width="78" height="56"></rect><text class="n-label" x="248" y="168">B</text><text class="n-dur" x="248" y="186">2 天</text><text class="t-early" x="212" y="137">早 0-2</text><text class="t-late" x="284" y="137">迟 3-5</text><text class="float" x="248" y="215">总3/自由1</text></g><g class="node critical" data-node-id="C"><rect x="374" y="44" rx="10" width="78" height="56"></rect><text class="n-label" x="413" y="68">C</text><text class="n-dur" x="413" y="86">4 天</text><text class="t-early" x="377" y="37">早 3-7</text><text class="t-late" x="449" y="37">迟 3-7</text><text class="float zero" x="413" y="115">总0/自由0</text></g><g class="node" data-node-id="D"><rect x="374" y="144" rx="10" width="78" height="56"></rect><text class="n-label" x="413" y="168">D</text><text class="n-dur" x="413" y="186">2 天</text><text class="t-early" x="377" y="137">早 3-5</text><text class="t-late" x="449" y="137">迟 5-7</text><text class="float" x="413" y="215">总2/自由2</text></g><g class="node critical" data-node-id="E"><rect x="539" y="94" rx="10" width="78" height="56"></rect><text class="n-label" x="578" y="118">E</text><text class="n-dur" x="578" y="136">3 天</text><text class="t-early" x="542" y="87">早 7-10</text><text class="t-late" x="614" y="87">迟 7-10</text><text class="float zero" x="578" y="165">总0/自由0</text></g><g class="node critical" data-node-id="END"><rect x="704" y="94" rx="10" width="78" height="56"></rect><text class="n-label" x="743" y="118">结束</text><text class="t-early" x="707" y="87">早 10-10</text><text class="t-late" x="779" y="87">迟 10-10</text></g></svg>
+      </div>
+      <div class="legend"><span><i></i>关键线路最后才亮</span><span>早/迟时间与时差按步骤出现</span></div>
+      <div class="inline-guess">
+        <h2>先猜一次</h2>
+        <div class="guess-grid"><button class="guess-opt" type="button" data-opt="A" aria-pressed="false"><b>A.</b> 开始 - A - D - E - 结束</button><button class="guess-opt" type="button" data-opt="B" aria-pressed="false"><b>B.</b> 开始 - A - C - E - 结束</button><button class="guess-opt" type="button" data-opt="C" aria-pressed="false"><b>C.</b> 开始 - B - D - E - 结束</button><button class="guess-opt" type="button" data-opt="D" aria-pressed="false"><b>D.</b> 工期最长的那项工作 C</button></div>
+        <div class="feedback" id="guessFeedback" role="status"></div>
+      </div>
+      <div class="scoreline">
+        <small>考试采分句</small>
+        <strong>关键线路为 开始-A-C-E-结束，总工期 10 天；理由是 A、C、E 的总时差均为 0。</strong>
+      </div>
+      <div class="narr">
+        <h2 id="narrTitle"></h2>
+        <p id="narrScript"></p>
+        <div class="action-line" id="actionLine"></div>
+        <div class="jump-note" id="jumpNote" hidden></div>
+      </div>
+      <div class="steps" id="steps" role="tablist" aria-label="白板推导步骤"></div>
+      <div class="controls">
+        <button id="prevBtn" type="button">上一步</button>
+        <button class="primary" id="nextBtn" type="button">开始白板推导</button>
+      </div>
+    </div>
+    <aside class="panel">
+      <div class="bar">
+        <h2>常见错误定位</h2>
+        <p class="hint">不是泛泛讲错，而是点错法后跳回对应步骤。</p>
+        <div class="err-grid"><button class="err-card" type="button" data-error-id="longest_single_activity" data-jump="float_check"><b>把最长单个工作当关键线路</b><span>先看总时差，再连成线路。</span></button><button class="err-card" type="button" data-error-id="ignore_dependency" data-jump="read_dependencies"><b>只加工期，不看逻辑关系</b><span>先读箭线，再顺推逆推。</span></button><button class="err-card" type="button" data-error-id="confuse_total_free_float" data-jump="float_check"><b>混淆总时差和自由时差</b><span>关键线路只认总时差为 0。</span></button></div>
+      </div>
+      <div class="bar">
+        <h2>半撤提示小练</h2>
+        <p class="hint">半撤提示：把这句采分答案补完整。</p>
+        <div class="blank">关键线路为 ______，总工期 ______ 天；理由是 ______。</div>
+        <button class="linkbtn" type="button" id="showModelBtn">看采分句</button>
+        <div class="model" id="modelAnswer">关键线路为 开始-A-C-E-结束，总工期 10 天；理由是 A、C、E 的总时差均为 0。</div>
+      </div>
+      <div class="bar">
+        <h2>复测</h2>
+        <p class="hint">复测：下面哪条线路是这个网络计划的关键线路？</p>
+        <div class="opt-grid"><button class="opt" type="button" data-opt="A" aria-pressed="false"><b>A.</b> 开始 - A - D - E - 结束</button><button class="opt" type="button" data-opt="B" aria-pressed="false"><b>B.</b> 开始 - A - C - E - 结束</button><button class="opt" type="button" data-opt="C" aria-pressed="false"><b>C.</b> 开始 - B - D - E - 结束</button><button class="opt" type="button" data-opt="D" aria-pressed="false"><b>D.</b> 工期最长的那项工作 C</button></div>
+        <div class="feedback" id="practiceFeedback" role="status"></div>
+      </div>
+      <div class="auth">
+        <b>边界</b>：这是教学演示用的网络计划例子，帮你练关键线路判断和采分表达；不是某道官方真题，不能作为官方判分依据。
+      </div>
+    </aside>
+  </section>
+</main>
+<script type="application/json" id="cardData">{"first_guess":{"question":"先不看解析，你凭直觉选一次：哪条是关键线路？","answer":"B","options":[{"id":"A","text":"开始 - A - D - E - 结束","feedback":"A-D-E 看起来顺，但 D 有 2 天总时差，不是关键工作。"},{"id":"B","text":"开始 - A - C - E - 结束","feedback":"选对了。别停在答案上，下面要证明它为什么能拿分。"},{"id":"C","text":"开始 - B - D - E - 结束","feedback":"B 和 D 都有时差，这条线不控制总工期。"},{"id":"D","text":"工期最长的那项工作 C","feedback":"这是最常见丢分点：关键线路是一条连续路线，不是最长单个工作。"}]},"explanation_steps":[{"id":"read_dependencies","title":"先读紧前紧后","focus":["dependencies"],"script":"先别比工期。把图读成一句话：A、B 开工就能做；C、D 接在 A 后面；D 还要等 B；E 要等 C 和 D 都完成。逻辑关系读错，后面的时间全是假的。","score_action":"把每条箭线当作“谁必须等谁”。"},{"id":"forward_pass","title":"顺推最早时间","focus":["early_time"],"script":"从左往右推最早开始、最早完成。E 前面有 C 和 D，C 第 7 天完成，D 第 5 天完成，所以 E 最早只能第 7 天开始。","score_action":"遇到多个紧前工作，取完成最晚的那个。"},{"id":"backward_pass","title":"逆推最迟时间","focus":["late_time"],"script":"再从右往左推最迟开始、最迟完成。逆推不是再算一遍工期，而是在问：不拖总工期的前提下，这项工作最晚能什么时候动。","score_action":"最迟开始 - 最早开始 = 总时差。"},{"id":"float_check","title":"看总时差","focus":["total_float"],"script":"总时差为 0，说明这项工作没有可拖延余量；总时差大于 0，说明它拖一点不一定影响总工期。B 有 3 天总时差，D 有 2 天总时差，所以它们不能进关键线路。","score_action":"关键线路看总时差，不看自由时差，也不看单项工期长短。"},{"id":"highlight_critical_path","title":"连起 0 时差工作","focus":["critical_path"],"script":"把总时差为 0 的工作连起来：A、C、E。于是关键线路是 开始-A-C-E-结束；持续时间 3+4+3=10 天。","score_action":"答案必须是一条连续线路，不是一个工作名称。"},{"id":"score_sentence","title":"写成采分句","focus":["score_sentence"],"script":"最后不要只写 A-C-E。考试表达要把线路、总工期、判断依据放在同一句里：关键线路为 开始-A-C-E-结束，总工期 10 天；理由是 A、C、E 的总时差均为 0。","score_action":"线路 + 总工期 + 总时差为 0，三件事一起写。"}],"error_reveals":[{"id":"longest_single_activity","title":"把最长单个工作当关键线路","jump_step_id":"float_check","script":"C 的工期最长，但 C 只是一个工作。关键线路必须是一条从开始到结束的连续线路，并且线路上的工作总时差为 0。","correction_hint":"先看总时差，再连成线路。"},{"id":"ignore_dependency","title":"只加工期，不看逻辑关系","jump_step_id":"read_dependencies","script":"不能把几个数字随手相加。D 必须等 A 和 B，E 必须等 C 和 D；每一步都要沿箭线走。","correction_hint":"先读箭线，再顺推逆推。"},{"id":"confuse_total_free_float","title":"混淆总时差和自由时差","jump_step_id":"float_check","script":"总时差管是否影响总工期，自由时差管是否影响紧后工作。判断关键线路时，用总时差为 0。","correction_hint":"关键线路只认总时差为 0。"}],"practice":{"question":"复测：下面哪条线路是这个网络计划的关键线路？","options":[{"id":"A","text":"开始 - A - D - E - 结束"},{"id":"B","text":"开始 - A - C - E - 结束"},{"id":"C","text":"开始 - B - D - E - 结束"},{"id":"D","text":"工期最长的那项工作 C"}],"answer":"B","review_step_id":"float_check","correct_script":"对。A、C、E 的总时差均为 0，连成 开始-A-C-E-结束，总工期 10 天。","incorrect_script":"再看总时差。A-D-E 里 D 有 2 天总时差，B-D-E 里 B、D 都有时差；最长单个工作 C 不是一条线路。"}}</script>
+<script>
+const data = JSON.parse(document.getElementById("cardData").textContent);
+const svg = document.getElementById("netSvg");
+const narrTitle = document.getElementById("narrTitle");
+const narrScript = document.getElementById("narrScript");
+const actionLine = document.getElementById("actionLine");
+const jumpNote = document.getElementById("jumpNote");
+const stepsWrap = document.getElementById("steps");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+let cur = -1;
+
+function stageFor(step){
+  const focus = step && step.focus || [];
+  if (focus.includes("score_sentence")) return "score";
+  if (focus.includes("critical_path")) return "critical";
+  if (focus.includes("total_float")) return "float";
+  if (focus.includes("late_time")) return "late";
+  if (focus.includes("early_time")) return "early";
+  if (focus.includes("dependencies")) return "deps";
+  return "guess";
+}
+function setStage(stage){
+  svg.className.baseVal = `net-svg stage-${stage}`;
+  document.documentElement.dataset.stage = stage;
+}
+function showCold(){
+  cur = -1;
+  setStage("guess");
+  narrTitle.textContent = "先猜一次，再看为什么";
+  narrScript.textContent = data.first_guess.question;
+  actionLine.textContent = "目标：不是听懂答案，而是能自己写出采分句。";
+  jumpNote.hidden = true;
+  [...stepsWrap.children].forEach(b => b.setAttribute("aria-selected", "false"));
+  prevBtn.disabled = true;
+  nextBtn.textContent = "开始白板推导";
+}
+function showStep(i, note){
+  cur = Math.max(0, Math.min(data.explanation_steps.length - 1, i));
+  const step = data.explanation_steps[cur];
+  setStage(stageFor(step));
+  narrTitle.textContent = `第 ${cur + 1} 步 · ${step.title}`;
+  narrScript.textContent = step.script;
+  actionLine.textContent = step.score_action || "";
+  if (note){
+    jumpNote.innerHTML = note;
+    jumpNote.hidden = false;
+  } else {
+    jumpNote.hidden = true;
+    jumpNote.textContent = "";
+  }
+  [...stepsWrap.children].forEach((b, idx) => b.setAttribute("aria-selected", idx === cur ? "true" : "false"));
+  prevBtn.disabled = false;
+  nextBtn.textContent = cur === data.explanation_steps.length - 1 ? "回到先猜" : "下一步";
+}
+data.explanation_steps.forEach((step, idx) => {
+  const btn = document.createElement("button");
+  btn.className = "step-tab";
+  btn.type = "button";
+  btn.setAttribute("role", "tab");
+  btn.innerHTML = `<small>第 ${idx + 1} 步</small><strong>${step.title}</strong>`;
+  btn.addEventListener("click", () => showStep(idx));
+  stepsWrap.appendChild(btn);
+});
+prevBtn.addEventListener("click", () => cur <= 0 ? showCold() : showStep(cur - 1));
+nextBtn.addEventListener("click", () => cur < 0 ? showStep(0) : (cur === data.explanation_steps.length - 1 ? showCold() : showStep(cur + 1)));
+
+function wireChoice(selector, feedbackId, answer, options, onWrongStepId){
+  document.querySelectorAll(selector).forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(selector).forEach(o => {
+        o.setAttribute("aria-pressed", "false");
+        o.classList.remove("correct", "wrong");
+      });
+      btn.setAttribute("aria-pressed", "true");
+      const correct = btn.dataset.opt === answer;
+      btn.classList.add(correct ? "correct" : "wrong");
+      const fb = document.getElementById(feedbackId);
+      fb.className = `feedback show ${correct ? "correct" : "wrong"}`;
+      const opt = options.find(o => o.id === btn.dataset.opt) || {};
+      fb.textContent = (correct ? "对。 " : "先别急。 ") + (opt.feedback || (correct ? data.practice.correct_script : data.practice.incorrect_script));
+      if (!correct && onWrongStepId){
+        const idx = data.explanation_steps.findIndex(s => s.id === onWrongStepId);
+        if (idx >= 0) showStep(idx, "这类错通常要回到“总时差”这一步校正。");
+      }
+    });
+  });
+}
+wireChoice(".guess-opt", "guessFeedback", data.first_guess.answer, data.first_guess.options, null);
+wireChoice(".opt", "practiceFeedback", data.practice.answer, data.practice.options, data.practice.review_step_id);
+
+document.querySelectorAll(".err-card").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const reveal = data.error_reveals.find(r => r.id === btn.dataset.errorId) || {};
+    const idx = data.explanation_steps.findIndex(s => s.id === reveal.jump_step_id);
+    showStep(idx >= 0 ? idx : 0, `你担心的是「<b>${reveal.title || ""}</b>」：${reveal.correction_hint || ""}`);
+    narrScript.textContent = reveal.script || narrScript.textContent;
+    document.querySelector(".board").scrollIntoView({behavior:"smooth", block:"start"});
+  });
+});
+document.getElementById("showModelBtn").addEventListener("click", () => {
+  document.getElementById("modelAnswer").classList.add("show");
+});
+showCold();
+</script>
+</body>
+</html>

@@ -136,6 +136,8 @@ def parse_git_status_changed_files(status_output: str) -> list[str]:
         path = raw_line[3:].strip() if len(raw_line) >= 4 else raw_line[2:].strip()
         if " -> " in path:
             path = path.split(" -> ", 1)[1].strip()
+        if len(path) >= 2 and path.startswith('"') and path.endswith('"'):
+            path = path[1:-1]
         if path:
             files.add(path)
     return sorted(files)
@@ -191,6 +193,8 @@ def _normalize_changed_files(changed_files: list[str] | tuple[str, ...] | None) 
     files = []
     for item in changed_files or []:
         path = str(item or "").strip().lstrip("./")
+        if len(path) >= 2 and path.startswith('"') and path.endswith('"'):
+            path = path[1:-1]
         if path:
             files.append(path)
     return sorted(dict.fromkeys(files))
@@ -249,6 +253,19 @@ def _required_gates(changed_domains: list[dict[str, Any]], *, has_changes: bool)
         for gate in sorted(dict.fromkeys(gates))
         if gate in _GATE_COMMANDS
     ]
+
+
+def required_readiness_checks(
+    changed_files: list[str] | tuple[str, ...] | None,
+) -> list[str]:
+    files = _normalize_changed_files(changed_files)
+    changed_domains = _build_changed_domains(files)
+    checks: list[str] = []
+    if files:
+        checks.append("contract_guard")
+    if any(str(domain.get("domain") or "") == "surface" for domain in changed_domains):
+        checks.extend(["playwright", "wechat_devtools"])
+    return sorted(dict.fromkeys(checks))
 
 
 def _first_failing_signal(
@@ -373,6 +390,7 @@ def build_change_impact_run(
         "release": resolved_release,
         "changed_files": files,
         "changed_domains": changed_domains,
+        "required_readiness_checks": required_readiness_checks(files),
         "required_gates": required_gates,
         "risk_score": score,
         "score_components": score_components,

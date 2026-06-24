@@ -166,6 +166,35 @@ run("does not recover assistant answer from metadata content", function () {
   );
 });
 
+run("does not recover assistant answer from metadata content", function () {
+  var messages = [
+    { role: "user", content: "案例题批改", client_turn_id: "client_content_1" },
+    {
+      role: "assistant",
+      content: "",
+      metadata: {
+        content: "不应恢复的内部 content",
+        metadata: { content: "不应恢复的嵌套内部 content" },
+      },
+      engine_turn_id: "turn_content_1",
+    },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "案例题批改",
+    turnId: "turn_content_1",
+    clientTurnId: "client_content_1",
+  });
+
+  assert(!found, "metadata.content must not count as recovered assistant content");
+  assertEqual(
+    recovery.getAssistantDisplayText(messages[1]),
+    "",
+    "metadata.content must not be displayed as assistant answer",
+  );
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);

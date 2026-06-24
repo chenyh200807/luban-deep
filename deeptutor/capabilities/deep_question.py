@@ -2422,6 +2422,14 @@ def _summarize_pgo_query_result(result: Any) -> dict[str, Any]:
     scoring_points = result.get("scoring_points")
     if isinstance(scoring_points, list):
         summary["scoring_point_count"] = len(scoring_points)
+        # Consume the C3 `scorable` signal: only score-bearing points may enter
+        # the grade channel, so the gradable denominator excludes supporting /
+        # unsourced points instead of counting every projected point.
+        scorable_count = sum(
+            1 for point in scoring_points if isinstance(point, dict) and point.get("scorable") is True
+        )
+        summary["scorable_point_count"] = scorable_count
+        summary["has_unscorable_points"] = scorable_count < len(scoring_points)
     summary.update(
         {
             "runtime_consumed": True,
@@ -3655,11 +3663,17 @@ class DeepQuestionCapability(BaseCapability):
         ):
             full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
             if full_case_context is not None:
-                case_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="case_grading full-submission fallback",
                     active_object=active_object,
-                    question_context=full_case_context,
-                    user_message=raw_user_message,
                 )
                 context.metadata["question_followup_context"] = dict(full_case_context)
                 context.metadata["turn_semantic_decision"] = case_turn_decision
@@ -3698,11 +3712,17 @@ class DeepQuestionCapability(BaseCapability):
             # case full-submission entry and grade open-world on the LEARNER's surface.
             full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
             if full_mcq_context is not None:
-                mcq_turn_decision = turn_semantic_decision or self._default_turn_semantic_decision(
+                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="mcq_grading full-submission fallback",
                     active_object=active_object,
-                    question_context=full_mcq_context,
-                    user_message=raw_user_message,
                 )
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
@@ -4014,12 +4034,13 @@ class DeepQuestionCapability(BaseCapability):
                 "mode": mode,
                 "question_followup_context": {},
                 "active_object": {},
-                "turn_semantic_decision": turn_semantic_decision
-                or self._default_turn_semantic_decision(
+                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
                     next_action="route_to_generation",
+                    allowed_patch="set_active_object",
+                    confidence=1.0,
+                    reason="generation blocked: missing_topic_anchor",
                     active_object=active_object,
-                    question_context=None,
-                    user_message=context.user_message,
                 ),
                 "practice_generation_blocked_reason": "missing_topic_anchor",
                 "metadata": {
@@ -4064,12 +4085,13 @@ class DeepQuestionCapability(BaseCapability):
                     "mode": mode,
                     "question_followup_context": {},
                     "active_object": {},
-                    "turn_semantic_decision": turn_semantic_decision
-                    or self._default_turn_semantic_decision(
+                    "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
                         next_action="route_to_generation",
+                        allowed_patch="set_active_object",
+                        confidence=1.0,
+                        reason="generation blocked: invalid topic",
                         active_object=active_object,
-                        question_context=None,
-                        user_message=context.user_message,
                     ),
                     "practice_generation_blocked_reason": blocked_reason,
                     "practice_generation_topic_domain_status": topic_domain_status,
@@ -4215,11 +4237,13 @@ class DeepQuestionCapability(BaseCapability):
                         "mode": mode,
                         "question_followup_context": {},
                         "active_object": {},
-                        "turn_semantic_decision": self._default_turn_semantic_decision(
+                        "turn_semantic_decision": build_turn_semantic_decision(
+                            relation_to_active_object="ask_about_active_object",
                             next_action="route_to_followup_explainer",
+                            allowed_patch="no_state_change",
+                            confidence=1.0,
+                            reason="question_review: missing question fallback",
                             active_object=active_object,
-                            question_context=None,
-                            user_message=context.user_message,
                         ),
                         "metadata": {
                             "question_lifecycle_scene": "question_review",
@@ -4291,11 +4315,13 @@ class DeepQuestionCapability(BaseCapability):
                     "mode": mode,
                     "question_followup_context": {},
                     "active_object": {},
-                    "turn_semantic_decision": self._default_turn_semantic_decision(
+                    "turn_semantic_decision": build_turn_semantic_decision(
+                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
                         next_action="route_to_followup_explainer",
+                        allowed_patch="no_state_change",
+                        confidence=0.85,
+                        reason="refused non-exam garbage: route to followup explainer",
                         active_object=active_object,
-                        question_context=None,
-                        user_message=context.user_message,
                     ),
                     "metadata": {"practice_generation": {"refused_non_exam_garbage": True}},
                 },
@@ -4356,11 +4382,15 @@ class DeepQuestionCapability(BaseCapability):
                 learning_training_intent,
             )
             result_payload["learning_training_intent"] = dict(learning_training_intent)
-        result_payload["turn_semantic_decision"] = turn_semantic_decision or self._default_turn_semantic_decision(
+        result_payload["turn_semantic_decision"] = turn_semantic_decision or build_turn_semantic_decision(
+            relation_to_active_object="ask_about_active_object" if question_review_mode else (
+                "continue_same_learning_flow" if (result_payload.get("active_object") or active_object) else "switch_to_new_object"
+            ),
             next_action="route_to_followup_explainer" if question_review_mode else "route_to_generation",
-            active_object=result_payload["active_object"] or active_object,
-            question_context=result_payload["question_followup_context"],
-            user_message=context.user_message,
+            allowed_patch="no_state_change" if question_review_mode else "set_active_object",
+            confidence=1.0,
+            reason="question_review followup" if question_review_mode else "practice generation result",
+            active_object=result_payload.get("active_object") or active_object,
         )
         transitioned_active_object, transitioned_stack = apply_active_object_transition(
             previous_active_object=active_object,
@@ -4696,12 +4726,17 @@ class DeepQuestionCapability(BaseCapability):
                 or {},
                 "active_object": result_active_object or {},
                 "suspended_object_stack": suspended_object_stack,
-                "turn_semantic_decision": turn_semantic_decision
-                or self._default_turn_semantic_decision(
+                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
                     next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((graded_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="emit_grading_result fallback",
                     active_object=result_active_object or active_object,
-                    question_context=graded_context,
-                    user_message=raw_user_message,
                 ),
                 **_mcq_trace_fields(
                     graded_context,
@@ -4967,11 +5002,13 @@ class DeepQuestionCapability(BaseCapability):
                 source_turn_id=turn_id,
                 previous_active_object=active_object,
             )
-            default_decision = self._default_turn_semantic_decision(
+            default_decision = build_turn_semantic_decision(
+                relation_to_active_object="ask_about_active_object",
                 next_action="route_to_followup_explainer",
+                allowed_patch="no_state_change",
+                confidence=1.0,
+                reason="emit_followup_result default",
                 active_object=result_active_object or active_object,
-                question_context=followup_question_context,
-                user_message=raw_user_message,
             )
             followup_payload: dict[str, Any] = {
                 "response": answer or "",
@@ -5105,42 +5142,6 @@ class DeepQuestionCapability(BaseCapability):
             "turn_id": md.get("turn_id"),
             "client_turn_id": md.get("client_turn_id"),
         }
-
-    @staticmethod
-    def _default_turn_semantic_decision(
-        *,
-        next_action: str,
-        active_object: dict[str, Any] | None,
-        question_context: dict[str, Any] | None,
-        user_message: str,
-    ) -> dict[str, Any]:
-        items = (question_context or {}).get("items") or []
-        if next_action == "route_to_grading":
-            relation = (
-                "revise_answer_on_active_object"
-                if any(marker in str(user_message or "") for marker in ("改", "更正", "修正", "订正"))
-                else "answer_active_object"
-            )
-            allowed_patch = "append_answer_slots" if len(items) > 1 else "update_answer_slot"
-            reason = "deep_question 按当前 active object 完成答题/批改。"
-        elif next_action == "route_to_followup_explainer":
-            relation = "ask_about_active_object"
-            allowed_patch = "no_state_change"
-            reason = "deep_question 按当前 active object 完成题目追问解释。"
-        else:
-            relation = (
-                "continue_same_learning_flow" if active_object is not None else "switch_to_new_object"
-            )
-            allowed_patch = "set_active_object"
-            reason = "deep_question 生成了新的题目对象并更新 active object。"
-        return build_turn_semantic_decision(
-            relation_to_active_object=relation,
-            next_action=next_action,
-            allowed_patch=allowed_patch,
-            confidence=1.0,
-            reason=reason,
-            active_object=active_object,
-        )
 
     @staticmethod
     def _prefer_followup_without_semantic_decision(

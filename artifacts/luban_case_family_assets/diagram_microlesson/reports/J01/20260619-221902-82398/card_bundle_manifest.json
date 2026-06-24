@@ -1,0 +1,66 @@
+{
+  "schema_version": "luban_card_bundle_manifest.v0",
+  "pack_id": "M_danger_work_expert_argumentation",
+  "generated_at": "2026-06-19T14:19:07.140916+00:00",
+  "official_score_allowed": false,
+  "runtime_canonical": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "assets": [
+    {
+      "role": "master",
+      "path": "M_danger_work_expert_argumentation.master.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 12363,
+      "sha256": "e10d17763029cb431b208c8953b4d0568607c0aa103bfe765b4c0541e2642fbc"
+    },
+    {
+      "role": "lesson",
+      "path": "J01_danger_work_expert_argumentation.lesson.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 7980,
+      "sha256": "d825a9c4ae30879f526cc3a4623a1268bba6632187877e9202d2f6df8ca97ec3"
+    },
+    {
+      "role": "timing",
+      "path": "J01_danger_work_expert_argumentation.lesson.timing.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 6943,
+      "sha256": "865005729032eee9ad34b365fb7f0e4783d19e3ed22537295d3f489dec23c28b"
+    },
+    {
+      "role": "rendered_html",
+      "path": "M_danger_work_expert_argumentation.journey.html",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 43811,
+      "sha256": "99edad5d28bf9193d6633a0f265d45c2ad2ac0ab09b62f290704550ad47c0d57"
+    },
+    {
+      "role": "practice_html",
+      "path": "M_danger_work_expert_argumentation.practice.html",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 24806,
+      "sha256": "15ca558ed17838d5dd77c364a387bf7feee83ee8dab0ab2e1162089ff33f5549"
+    },
+    {
+      "role": "audio",
+      "path": "J01_danger_work_expert_argumentation.lesson.mp3",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 1488431,
+      "sha256": "7eab3f019d743a9452e5b4fa75aba789910374d76c4ffafe68ca47032dd90db0"
+    }
+  ],
+  "blocking_failures": []
+}

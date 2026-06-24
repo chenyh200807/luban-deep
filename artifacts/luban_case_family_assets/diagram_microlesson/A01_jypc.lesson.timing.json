@@ -1,0 +1,214 @@
+{
+  "audio": "A01_jypc.lesson.mp3",
+  "totalSec": 150.606,
+  "teachEndSec": 104.947,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "验收丢分,在只背'检验批→分项→分部→单位'四个名词,漏中间程序节点",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "验收这题,很多人背下四级名词就上场,一问隐蔽程序就漏。今天沿台阶走清四道门。",
+      "startSec": 0,
+      "durSec": 8.978
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "window",
+      "qaIndex": null,
+      "keycard": {
+        "text": "A1 拦截窗口:缺陷只在看得见、够得着、没被盖住时最好拦",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.a1_intercept_window.claim",
+      "claim": true,
+      "text": "先看为什么要验。缺陷只在它还看得见、还够得着、没被盖住那一刻最好拦;一旦盖住就封进结构。",
+      "startSec": 9.378,
+      "durSec": 9.883
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "ladder",
+      "qaIndex": null,
+      "keycard": {
+        "text": "A2 四级台阶:检验批→分项→分部→单位,自下而上,下合格才能上",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.a2_level_ladder.claim",
+      "claim": true,
+      "text": "所以工程切成最小检验批,自下而上一层层垒:检验批升分项、分项升分部、分部封顶单位。下一级全合格才是上一级前提,不能跳级倒装。",
+      "startSec": 19.661,
+      "durSec": 15.188
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "threshold",
+      "qaIndex": null,
+      "keycard": {
+        "text": "A3 主控否决全合格 / 一般容差≥80%,两套刚柔逻辑",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.a3_main_vs_general.claim",
+      "claim": true,
+      "text": "判合格有两套逻辑。主控项目管结构安全,一票否决、必须全部合格;一般项目管观感,才允许合格率到八十。风险决定刚柔。",
+      "startSec": 35.249,
+      "durSec": 13.285
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "sequence",
+      "qaIndex": null,
+      "keycard": {
+        "text": "A4 顺序刚性:自检→报监理→隐蔽覆盖前验收→下道,节点不可跨越",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.a4_sequence_rigidity.claim",
+      "claim": true,
+      "text": "顺序也是刚的:施工方先自检合格再报监理;看不见的隐蔽工程必须在被盖住前验收、留记录,合格才进下道,隐蔽节点跨不过去。",
+      "startSec": 48.933,
+      "durSec": 13.446
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "entity",
+      "qaIndex": null,
+      "keycard": {
+        "text": "A5 结构实体检验:监理组织·施工实施·见证,实测强度独立复核",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.a5_entity_check.claim",
+      "claim": true,
+      "text": "最后一道独立复核闸:结构实体检验。用实测强度反验过程合不合格,得监理组织、施工实施、监理见证;强度优先同条件养护,不够回弹取芯。",
+      "startSec": 62.779,
+      "durSec": 15.144
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:四级自下而上·隐蔽覆盖前验收·主控全合格一般≥80%·监理组织·严禁验收",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[2].keywords",
+      "claim": true,
+      "text": "采分盯这几组词:四级自下而上、隐蔽覆盖前验收、主控全部合格、一般不低于八十、实体监理组织、严禁验收。",
+      "startSec": 78.323,
+      "durSec": 12.117
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "验收台阶:层级门→顺序门→阈值门→程序门,四门同时过才合法",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "收成验收台阶:层级门、顺序门、阈值门、程序门,四门同时过才合法,缺一即假合格。换楼层专业对象,台阶不变、判据切。",
+      "startSec": 90.84,
+      "durSec": 14.107
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,判检验批合格,主控项目也按合格率八十算吗?",
+      "startSec": 105.347,
+      "durSec": 5.267
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "不行,主控项目一票否决、必须全部合格;只有一般项目走合格率不低于八十,不能互换。",
+      "startSec": 111.014,
+      "durSec": 9.183
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那先验分部、再回头验分项检验批,效率高行不行?",
+      "startSec": 120.597,
+      "durSec": 5.233
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "不行,方向反了。验收自下而上逐级累积;先验分部就是屋顶悬空,合格是假的。",
+      "startSec": 126.23,
+      "durSec": 8.394
+    },
+    {
+      "idx": 12,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "结构实体检验施工单位自己组织自己测,可以吗?",
+      "startSec": 135.024,
+      "durSec": 4.548
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[3].why",
+      "claim": true,
+      "text": "不行,实体检验是独立复核,得监理组织、施工实施、监理见证。施工方自己组织,独立闸废了。",
+      "startSec": 139.972,
+      "durSec": 9.834
+    }
+  ]
+}

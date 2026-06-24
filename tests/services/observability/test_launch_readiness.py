@@ -40,9 +40,9 @@ def test_launch_readiness_dashboard_blocks_when_required_evidence_is_missing(tmp
 
     assert payload["final_status"] == "FAIL"
     assert payload["recommendation"] == "hold"
-    assert {"contract_guard_missing", "playwright_missing", "wechat_devtools_missing"}.issubset(
-        set(payload["blockers"])
-    )
+    assert "contract_guard_missing" in set(payload["blockers"])
+    assert "playwright_missing" not in set(payload["blockers"])
+    assert "wechat_devtools_missing" not in set(payload["blockers"])
     assert any(row["check_id"] == "release_gate" and row["status"] == "NOT_RUN" for row in payload["rows"])
 
 
@@ -156,10 +156,10 @@ def test_launch_readiness_rejects_stale_manual_and_langfuse_evidence(tmp_path) -
     assert payload["final_status"] == "FAIL"
     assert payload["recommendation"] == "hold"
     assert rows["contract_guard"]["status"] == "FAIL"
-    assert rows["wechat_devtools"]["status"] == "FAIL"
+    assert rows["wechat_devtools"]["status"] == "WARN"
     assert rows["langfuse"]["status"] == "FAIL"
     assert "contract_guard_stale_release" in payload["blockers"]
-    assert "wechat_devtools_stale_release" in payload["blockers"]
+    assert "wechat_devtools_stale_release" not in payload["blockers"]
     assert "langfuse_stale_release" in payload["blockers"]
     assert payload["source_runs"]["observer_snapshot_run_id"] is None
 

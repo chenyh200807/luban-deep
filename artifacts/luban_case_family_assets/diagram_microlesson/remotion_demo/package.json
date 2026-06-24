@@ -1,0 +1,28 @@
+{
+  "name": "luban-remotion-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "鲁班图解微课 ⑤对比原型 · Remotion 动画 demo(施工缝接缝处理工序)",
+  "scripts": {
+    "render": "remotion render src/index.ts JointWorkflow out/joint-workflow.mp4",
+    "render:f16": "remotion render src/index.ts F16RoofBlisterRepair out/f16-roof-blister-repair.mp4 --concurrency=2",
+    "render:n01": "remotion render src/index.ts N01NetworkVideoFirst ../N01_network_video_first.remotion.mp4 --concurrency=2",
+    "render:s01": "remotion render src/index.ts S01ScaffoldTemplateAcceptance ../S01_scaffold_template_acceptance.remotion.mp4 --concurrency=2",
+    "still:n01": "remotion still src/index.ts N01NetworkVideoFirst out/n01-network-video-first.png --frame=900",
+    "still:s01": "remotion still src/index.ts S01ScaffoldTemplateAcceptance ../S01_scaffold_template_acceptance.poster.png --frame=0",
+    "still:f16": "remotion still src/index.ts F16RoofBlisterRepair out/f16-roof-blister-repair.png --frame=420",
+    "still:f16-ir": "remotion still src/index.ts F16AnimationIrPreview out/f16-animation-ir-preview.png --frame=420",
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "@remotion/captions": "^4.0.479",
+    "@remotion/cli": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.4.0"
+  }
+}

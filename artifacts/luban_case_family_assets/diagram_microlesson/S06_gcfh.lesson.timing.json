@@ -1,0 +1,214 @@
+{
+  "audio": "S06_gcfh.lesson.mp3",
+  "totalSec": 148.18,
+  "teachEndSec": 103.923,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "临边洞口防护,丢分在只背数字不讲判读链",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "临边洞口防护,很多人背下两米、一米二这些数字就上场,一换部位就懵。今天沿一条判读链走。",
+      "startSec": 0,
+      "durSec": 9.896
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "energy",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S1 危险源:人在临空面之上,势能(坠落高度≥2m)",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s1_energy_source.claim",
+      "claim": true,
+      "text": "先看危险源。人在临空面之上、坠落高度两米及以上,重力势能就是第一类危险源,脚下是敞开的坠落通道。",
+      "startSec": 10.296,
+      "durSec": 11.23
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "fall",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S2 缺屏障 → S3 高处坠落(12类事故之一)",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s2_no_barrier.claim",
+      "claim": true,
+      "text": "坠落路径上缺了屏障,临边没防护、洞口没封堵,结果就是高处坠落。控制思路是消除优先、防护其次、警示兜底。",
+      "startSec": 21.925,
+      "durSec": 11.98
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "edge",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S4a 临边:1.2m栏杆+挡脚板≥180mm+承1kN+密目网",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s4_match_protection.claim",
+      "claim": true,
+      "text": "措施按部位匹配。临边:临空侧立防护栏杆,上杆一米二、立杆间距不大于两米、挡脚板不低于一百八十毫米、承一千牛,再挂密目网封闭。",
+      "startSec": 34.305,
+      "durSec": 14.381
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "hole",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S4b 洞口按尺寸分档:盖板 / ≥500设栏杆+封闭",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.hole_500.value",
+      "claim": true,
+      "text": "洞口按尺寸分档:二十五到五百毫米用承重盖板;短边五百毫米以上,光盖板不够,得设一米二栏杆加封闭加挡脚板。尺寸跨档,措施就跳档。",
+      "startSec": 49.085,
+      "durSec": 14.47
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "suspend",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S4c 悬空:2m以上必设操作平台,超2m不用梯子",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.suspend_platform.value",
+      "claim": true,
+      "text": "悬空作业:两米及以上的模板、钢筋、浇筑,必须设操作平台,超两米不能用梯子替代,更不能站骨架上作业。",
+      "startSec": 63.956,
+      "durSec": 11.453
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "chain",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:临边1.2m栏杆·立杆≤2m·挡脚板≥180mm·承1kN·密目网",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[0].keywords",
+      "claim": true,
+      "text": "采分盯这几组词:临边一米二栏杆、立杆不大于两米、挡脚板一百八十、承一千牛、密目网;洞口分档;悬空设操作平台。",
+      "startSec": 75.808,
+      "durSec": 13.045
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "chain",
+      "qaIndex": null,
+      "keycard": {
+        "text": "迁移:判读链通用,阈值随部位变",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "记住三步判读链:识别坠落路径、匹配防护等级、校核关键参数。换洞口、临边、悬空、交叉作业都成立,判读链不变,阈值随部位给。",
+      "startSec": 89.254,
+      "durSec": 14.669
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,临边写'设警示牌'为啥不得分?",
+      "startSec": 104.322,
+      "durSec": 3.63
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "提示标识替代不了物理隔离。临边必须设实体防护栏杆加密目网封闭,光写警示牌采分点没踩到。",
+      "startSec": 108.352,
+      "durSec": 9.791
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那栏杆高度我写 0.9 米行不行?",
+      "startSec": 118.543,
+      "durSec": 2.911
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "这是最常见的串台。零点九米是室内楼梯扶手;临边、洞口防护栏杆是一米二,不同章不同考,别串。",
+      "startSec": 121.854,
+      "durSec": 10.61
+    },
+    {
+      "idx": 12,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "洞口大点盖块厚盖板不就行了?",
+      "startSec": 132.864,
+      "durSec": 2.703
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "不能只盯盖板。洞口要按尺寸分档:短边五百毫米以上,必须设一米二栏杆加封闭加挡脚板,换厚盖板也不顶用。",
+      "startSec": 135.967,
+      "durSec": 11.413
+    }
+  ]
+}

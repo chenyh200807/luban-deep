@@ -1,0 +1,437 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>索赔成立与工期费用计算(一个事件两道独立闸门) · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.s-intake,.s-skey,.s-snonkey,.s-spring,.s-sieve,.s-profit,.s-crack,.s-fmsplit,.s-hourglass,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-intake{transform:translateY(6px)} .reached-intake .s-intake{opacity:1;transform:none} .s-skey{transform:translateX(-6px)} .reached-schedule .s-skey{opacity:1;transform:none} .s-snonkey{transform:translateX(-6px)} .reached-schedule .s-snonkey{opacity:1;transform:none;transition-delay:.12s} .s-spring{transform:translateY(6px)} .reached-schedule .s-spring{opacity:1;transform:none;transition-delay:.2s} .s-sieve{transform:translateY(8px)} .reached-cost .s-sieve{opacity:1;transform:none} .s-profit{transform:translateY(-4px)} .reached-cost .s-profit{opacity:1;transform:none;transition-delay:.16s} .s-crack{transform:scaleY(.3)} .reached-cost .s-crack{opacity:1;transform:none;transition-delay:.24s} .s-fmsplit{transform:translateY(6px)} .reached-split .s-fmsplit{opacity:1;transform:none} .s-hourglass{transform:translateY(6px)} .reached-procedure .s-hourglass{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.intake{fill:#9fd0ff}.s-note.sched{fill:#7fc7ff}.s-note.cost{fill:#ffd27f}.s-note.crack{fill:#ff7f50}.s-note.split{fill:#bfe0ff}.s-note.proc{fill:#7fe6ab}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#cfe0f0;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="K01_sp" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>索赔成立与工期费用计算(一个事件两道独立闸门)</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">责任归因非承包人/发包人/不可抗力</button><button class="" type="button">工期费用利润分写</button><button class="" type="button">立案开关不决定赔多少</button><button class="" type="button">成立≠金额全成立</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边把&#x27;立案开关→工期闸(关键线路/总时差)→费用闸(责任归属)→程序时效&#x27;这条裁决链画出来,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='索赔双闸门裁决流水线剖面'><rect x='20' y='214' width='320' height='8' rx='2' fill='#5d6f86' data-visual-node-id='chain.base'/><text class='s-lbl' x='24' y='240'>裁决链:立案开关→工期闸(关键线路/总时差)→费用闸(责任归属)→程序时效;两闸互不蕴含</text><g class='s-intake' data-visual-node-id='intake.switch'><rect x='24' y='44' width='70' height='26' rx='4' fill='#15273a' stroke='#9fd0ff' stroke-width='1.2'/><text class='s-vtxt' x='59' y='60' text-anchor='middle'>立案开关</text><text class='s-note intake' x='59' y='84' text-anchor='middle'>非承包人原因·只决定能不能谈</text></g><g class='s-skey' data-visual-node-id='schedule.keyline'><path d='M120 56 H210' stroke='#ff5d5d' stroke-width='3'/><text class='s-vtxt' x='165' y='50' text-anchor='middle'>关键线路 总时差0</text><text class='s-note sched' x='165' y='86' text-anchor='middle'>工期闸:关键延误→顺延同等</text></g><g class='s-snonkey' data-visual-node-id='schedule.nonkey'><path d='M120 104 H210' stroke='#5d9bff' stroke-width='2.4' stroke-dasharray='4 3'/><text class='s-vtxt' x='165' y='100' text-anchor='middle'>非关键线路 有总时差</text></g><g class='s-spring' data-visual-node-id='schedule.float'><path d='M218 96 q6 -6 0 -12 q-6 -6 0 -12 q6 -6 0 -12' stroke='#5d9bff' stroke-width='1.6' fill='none'/><text class='s-ttxt' x='250' y='110' text-anchor='middle'>总时差=弹簧·先吸收</text><text class='s-note sched' x='250' y='122' text-anchor='middle'>未超不顺延·超出才索超出</text></g><g class='s-sieve' data-visual-node-id='cost.sieve'><rect x='40' y='140' width='80' height='12' rx='2' fill='none' stroke='#ffd27f' stroke-dasharray='3 2'/><rect x='30' y='168' width='40' height='22' rx='3' fill='#3a2f18' stroke='#ffd27f'/><text class='s-ttxt' x='50' y='182' text-anchor='middle'>发包人盘</text><rect x='90' y='168' width='40' height='22' rx='3' fill='#1a2630' stroke='#9fb0c2'/><text class='s-ttxt' x='110' y='182' text-anchor='middle'>承包人盘</text><text class='s-note cost' x='80' y='134' text-anchor='middle'>费用闸:责任筛·只认责任在谁</text></g><g class='s-profit' data-visual-node-id='cost.profit'><rect x='30' y='196' width='40' height='12' rx='2' fill='#3a2f18' stroke='#ffe6a0' stroke-dasharray='2 2'/><text class='s-ttxt' x='50' y='205' text-anchor='middle'>发包人责任+利润</text></g><g class='s-crack' data-visual-node-id='valves.crack'><path d='M214 130 L214 200' stroke='#ff7f50' stroke-width='2' stroke-dasharray='4 3'/><text class='s-note crack' x='214' y='126' text-anchor='middle'>互不蕴含</text><text class='s-ttxt' x='214' y='212' text-anchor='middle'>工期不成立≠费用不成立</text></g><g class='s-fmsplit' data-visual-node-id='fm.split'><rect x='246' y='150' width='42' height='20' rx='3' fill='#102820' stroke='#bfe0ff'/><text class='s-ttxt' x='267' y='163' text-anchor='middle'>实体修复→发包人</text><rect x='246' y='176' width='42' height='20' rx='3' fill='#1a2630' stroke='#9fb0c2'/><text class='s-ttxt' x='267' y='189' text-anchor='middle'>自有机具→自担</text><text class='s-note split' x='267' y='144' text-anchor='middle'>不可抗力:人机各负其责</text></g><g class='s-hourglass' data-visual-node-id='procedure.hourglass'><path d='M300 196 L320 196 L310 206 Z' fill='#16321f' stroke='#7fe6ab'/><path d='M300 216 L320 216 L310 206 Z' fill='#16321f' stroke='#7fe6ab'/><text class='s-note proc' x='310' y='192' text-anchor='middle'>28天意向通知</text></g><g class='s-gates' data-visual-node-id='gate.four'><circle cx='318' cy='44' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='47' text-anchor='middle'>立案</text><circle cx='318' cy='74' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='77' text-anchor='middle'>工期</text><circle cx='318' cy='104' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='318' y='107' text-anchor='middle'>费用</text><circle cx='290' cy='74' r='12' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-vtxt' x='290' y='77' text-anchor='middle'>程序</text><text class='s-note gates' x='300' y='30' text-anchor='middle'>四门各判各的</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">责任归因非承包人/发包人/不可抗力</span><span data-visual-node-id="score.atom.2">工期费用利润分写</span><span data-visual-node-id="score.atom.3">立案开关不决定赔多少</span><span data-visual-node-id="score.atom.4">成立≠金额全成立</span><span data-visual-node-id="score.atom.5">先判关键线路</span><span data-visual-node-id="score.atom.6">关键线路延误几月顺延几月</span><span data-visual-node-id="score.atom.7">非关键只索超总时差部分</span><span data-visual-node-id="score.atom.8">非关键未超总时差不索赔</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">索赔不是&#x27;看责任在谁就一锅判&#x27; → 一个事件两道独立闸门:工期闸只认关键线路/总时差、费用闸只认责任归属,两闸互不蕴含;责任在对方≠工期顺延,非关键延误未超总时差不顺延,不可抗力人机各负其责。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">索赔丢分,在拿责任一锅判:一个事件其实是两道独立闸门,工期一道、费用一道</div>
+<div class="kc kc-a" data-start="10.004" data-seg-idx="1" data-beat-id="intake" data-action-id="intake.keycard" data-visual-node-id="keycard.intake">立案开关:非承包人原因→可以谈;但它只决定有没有资格谈,不决定工期费用各赔多少</div>
+<div class="kc kc-a" data-start="22.309" data-seg-idx="2" data-beat-id="schedule" data-action-id="schedule.keycard" data-visual-node-id="keycard.schedule">工期闸只认网络位置:关键线路延误几月顺延几月;非关键先用总时差吸收,未超不索、超出只索超出部分</div>
+<div class="kc kc-a" data-start="35.136" data-seg-idx="3" data-beat-id="cost" data-action-id="cost.keycard" data-visual-node-id="keycard.cost">费用闸只认责任归属:承包人自担;不可抗力人机各负其责;发包人责任全额可索、通常还可加利润</div>
+<div class="kc kc-a" data-start="48.057" data-seg-idx="4" data-beat-id="independence" data-action-id="independence.keycard" data-visual-node-id="keycard.independence">互不蕴含:工期成立≠费用成立;责任在对方≠工期就顺延;非关键没超总时差,工期不顺延但费用照样可成立</div>
+<div class="kc kc-a" data-start="63.392" data-seg-idx="5" data-beat-id="split" data-action-id="split.keycard" data-visual-node-id="keycard.split">不可抗力不是一刀切:承包人自己的机具/设备自担,工程实体修复+已运材料+清理修复归发包人</div>
+<div class="kc kc-a" data-start="78.923" data-seg-idx="6" data-beat-id="procedure" data-action-id="procedure.keycard" data-visual-node-id="keycard.procedure">程序时效闸:事件后未约定28天内提书面意向通知,逾期丧权;并提供真实/全面/法律效力/及时的证据</div>
+<div class="kc kc-concl" data-start="93.108" data-seg-idx="7" data-beat-id="gates" data-action-id="gates.keycard" data-visual-node-id="keycard.gates">采分词:立案非承包人·关键线路顺延同等·非关键只索超总时差·不可抗力人机各负其责·发包人责任加利润·未约定28天通知;立案门→工期门→费用门→程序门四门各判各的</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,责任在发包人,工期是不是就该顺延?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">不一定,责任在对方不等于工期顺延。非关键要看有没有超总时差,没超不顺延,但费用照赔。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">不可抗力的损失,是不是全部由发包人承担?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">不是,不可抗力人机各负其责。承包人自己的设备机具自担,只有工程实体和清理修复归发包人。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="K01_sp.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_schedule_boundary"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 中间边界陷阱(非关键延误未超总时差·工期不索但费用成立)·关键鉴别</p><p class="qstem">某工程因发包人设计变更,导致一项【非关键线路】上的工作延误了 2 个月,该工作的总时差是 3 个月。设计变更属发包人责任、承包人确有窝工损失。问:工期和费用各能不能索赔?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 工期费用都成立:责任在发包人,延误 2 个月就顺延 2 个月、费用照赔</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 工期不索赔、费用可索:延误 2 个月没超过总时差 3 个月,机动时间吸收掉了不影响总工期;但责任在发包人,窝工费用仍可索赔</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 工期费用都不成立:既然不影响总工期,这事就不能索赔了</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_force_majeure_split"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 费用计算档(不可抗力人机分摊)</p><p class="qstem">一场特大暴雨(不可抗力)造成损失:已建工程实体损坏、需要清理修复花了 24.5 万;承包人自有的施工设备被淹损坏 8.2 万。承包人想把这 32.7 万全部向发包人索赔。问:这样主张合不合理、能向发包人索多少?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 合理:不可抗力不是承包人的错,32.7 万全部由发包人承担</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 不合理:不可抗力人机损失各负其责,承包人自己的设备损失 8.2 万自担,只有工程实体清理修复 24.5 万可向发包人索赔</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 不合理:不可抗力是天灾,双方都不用赔,32.7 万承包人全部自担</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_cost_layered"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 费用计算档(成本→管理费→利润分层)</p><p class="qstem">因发包人原因(设计变更)导致承包人增加直接成本 300 万,合同约定管理费率 10%、利润率 5%。发包人责任的索赔可以分层算到利润。问:可索赔总额是多少?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 330 万:成本 300 + 管理费 300×10%=30,共 330 万,利润不能索</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 346.5 万:成本 300 + 管理费 300×10%=30 + 利润 (300+30)×5%=16.5,共 346.5 万</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 345 万:成本 300 + 管理费 300×10%=30 + 利润 300×5%=15,共 345 万</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_responsibility_transfer"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 迁移档(业主原因 vs 不可抗力 vs 承包人·费用判据随责任方切换)·关键鉴别</p><p class="qstem">同一项关键线路工作延误了 1 个月(都在关键线路、都顺延工期 1 个月),但换三种原因:甲)发包人设计变更;乙)特大暴雨不可抗力;丙)承包人自己机械故障。问:这三种情形下,延误期间的窝工费用各由谁承担?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 都一样:既然都顺延了工期,窝工费用三种情形都由发包人承担</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 随责任方切换:甲发包人责任→费用由发包人担(还可加利润);乙不可抗力→人机损失各负其责、按范本分摊;丙承包人责任→费用承包人自担</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 都由承包人自担:窝工是承包人现场的事,跟原因无关</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;双闸门母规则、工期三分支、不可抗力分担、发包人责任可加利润、未约定28天意向通知、证据四性等口径与判分以现行教材、合同范本和你的考试大纲为准。pack §5 R7 五边界全部 🔴 候选未经真人/专家裁决,pack §8/§9 已自曝(网络图数值自相矛盾真题禁直接引用须人工重算、发包人加利润依据支撑不足、错因码待回错因注册表核、&#x27;工期成立但费用不成立&#x27;缺清晰锚例)逐条留痕,本 master 仅引用不下结论。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="141.927" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="intake" data-t="10.004">立案开关</button><button class="dot beat-dot" data-state="schedule" data-t="22.309">工期闸</button><button class="dot beat-dot" data-state="cost" data-t="35.136">费用闸</button><button class="dot beat-dot" data-state="split" data-t="63.392">不可抗力切分</button><button class="dot beat-dot" data-state="procedure" data-t="78.923">程序时效</button><button class="dot beat-dot" data-state="gates" data-t="93.108">四道门</button><a class="dot practice-dot" href="K01_sp.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="K01_sp.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 141.927, "teachEndSec": 111.36, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "索赔这题,很多人看责任在谁就一锅判。其实一个事件有两道独立闸门,工期一道、费用一道。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "intake", "qaIndex": null, "text": "起点是立案开关。非承包人原因才有资格谈;但它只决定能不能谈,不决定工期费用各赔多少,那是后面两道闸的事。", "startSec": 10.004}, {"idx": 2, "kind": "teach", "state": "schedule", "qaIndex": null, "text": "第一道工期闸,只认网络位置。关键线路延误几月顺延几月;非关键先用总时差吸收,没超不顺延,超出才索超出部分。", "startSec": 22.309}, {"idx": 3, "kind": "teach", "state": "cost", "qaIndex": null, "text": "第二道费用闸,只认责任在谁。承包人自己的损失自担;不可抗力人机各负其责;发包人责任全额可索,通常还能加索利润。", "startSec": 35.136}, {"idx": 4, "kind": "teach", "state": "cost", "qaIndex": null, "text": "最常考的裂点:两道闸互不蕴含。责任在对方不等于工期顺延;非关键没超总时差,工期不顺延,费用照样能成立。换情形链不变、判据切。", "startSec": 48.057}, {"idx": 5, "kind": "teach", "state": "split", "qaIndex": null, "text": "费用闸里最易错的是不可抗力,它不是一刀切给发包人。承包人自己的机具设备损失自担,工程实体修复和清理修复才归发包人,逐项剔除别全推过去。", "startSec": 63.392}, {"idx": 6, "kind": "teach", "state": "procedure", "qaIndex": null, "text": "两道实体闸前还有道程序闸:事件后合同没约定就在二十八天内提书面意向通知,过期丧权,证据还要真实全面有法律效力且及时。", "startSec": 78.923}, {"idx": 7, "kind": "teach", "state": "gates", "qaIndex": null, "text": "收成一条链:立案门、工期门、费用门、程序门,四门各判各的。采分盯关键线路顺延同等、非关键只索超总时差、不可抗力人机各负其责;换责任情形链不变、判据切。", "startSec": 93.108}, {"idx": 8, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,责任在发包人,工期是不是就该顺延?", "startSec": 111.76}, {"idx": 9, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "不一定,责任在对方不等于工期顺延。非关键要看有没有超总时差,没超不顺延,但费用照赔。", "startSec": 116.788}, {"idx": 10, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "不可抗力的损失,是不是全部由发包人承担?", "startSec": 126.941}, {"idx": 11, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "不是,不可抗力人机各负其责。承包人自己的设备机具自担,只有工程实体和清理修复归发包人。", "startSec": 131.653}], "variants": [{"id": "V1_schedule_boundary", "answer": "B", "feedback": "对:工期不索赔、费用可索。这题最容易栽在'责任在发包人就该顺延工期'——错。工期闸只看网络位置:这工作在非关键线路,延误 2 个月,但它有 3 个月总时差,机动时间把延误吸收掉了,竣工节点没动,工期不索赔。可费用是另一道闸,只看责任在谁:设计变更是发包人的责任,窝工费用照样能向发包人要。记住两条:非关键延误先和总时差比,没超就不顺延;工期不成立不等于费用不成立,两道闸各判各的。", "basis": "这道题的钩子在'责任在对方≠工期就顺延'。工期闸只认网络位置:这项工作在非关键线路,延误 2 个月而总时差有 3 个月,机动时间足够吸收,不影响竣工节点,所以工期不索赔。但费用闸只认责任归属:设计变更是发包人责任,承包人的窝工损失仍可向发包人索赔。两道闸各判各的、互不蕴含——A 错在把责任当工期顺延的理由(没看总时差),C 错在把工期不成立当成费用也不成立(把两闸绑死)。B 对。延误天数与总时差是本题题面给定输入", "tier": "中间边界陷阱(非关键延误未超总时差·工期不索但费用成立)·关键鉴别"}, {"id": "V2_force_majeure_split", "answer": "B", "feedback": "对:只 24.5 万可索,8.2 万自担。不可抗力别一刀切。范本把损失分两边:工程实体损坏、清理修复这类归发包人(24.5 万);承包人自己的设备、机具、措施损失自己扛(8.2 万)。所以全要 32.7 万不合理,能向发包人索的是 24.5 万。别走两个极端:不是'天灾全归发包人',也不是'天灾双方都不赔'——记住人机各负其责、实体修复归发包人这条线。", "basis": "不可抗力费用不是一刀切。按合同范本分摊:工程实体损坏修复、已运到现场材料损坏、清理修复费归发包人(24.5 万);承包人自己的机具/设备/措施损失自担(8.2 万)。所以主张全部 32.7 万不合理,只有 24.5 万可向发包人索,8.2 万设备损失承包人自担。A 错在不可抗力一刀切全给发包人;C 错在以为天灾双方都不赔(实体修复仍归发包人)。损失明细金额是本题题面给定输入", "tier": "费用计算档(不可抗力人机分摊)"}, {"id": "V3_cost_layered", "answer": "B", "feedback": "对:346.5 万。发包人责任的索赔要分层算到利润:先成本 300,加管理费 300×10%=30,再加利润——利润基数是'成本+管理费'即 330,330×5%=16.5,合计 346.5 万。两个坑:一是别漏利润(发包人原因剥夺了承包人挣钱机会,可以加利润);二是利润别只乘成本(要乘成本加管理费)。逐层往上累,别跳层。", "basis": "费用分层计算:索赔值=成本+成本×管理费率+(成本+管理费)×利润率。成本 300,管理费=300×10%=30,利润=(300+30)×5%=16.5,合计 346.5 万。发包人责任(设计变更)剥夺了承包人盈利机会,所以费用之外通常可加索利润。A 错在漏了利润层(发包人责任可加利润);C 错在利润基数算错(应是成本+管理费 330,不是只用成本 300)。成本/费率是本题题面给定输入", "tier": "费用计算档(成本→管理费→利润分层)"}, {"id": "V4_responsibility_transfer", "answer": "B", "feedback": "对:费用随责任方切换。这题的钩子是'工期都顺延了,费用是不是也一样'——不一样。工期闸看网络位置,三种原因都在关键线路、都顺延 1 个月,这一层确实相同。但费用是另一道闸,只认责任在谁:甲设计变更是发包人责任,费用发包人担、还能加利润;乙暴雨是不可抗力,人机各负其责、按范本分摊,不是全给发包人;丙机械故障是承包人自己的事,费用自担。同一件事,工期判据不变,费用判据跟着责任方走——这就是会迁移:认出责任方,切对费用判据。", "basis": "这是换责任情形迁移的关键鉴别:工期判据始终是关键线路/总时差(三种都在关键线路延误 1 个月→都顺延 1 个月,这部分不变),但费用闸只认责任归属,责任方一换、费用归属就切换:甲发包人责任→费用由发包人担、且通常可加利润;乙不可抗力→人机各负其责按范本分摊(不是全给发包人);丙承包人自身机械故障→费用承包人自担。A 错在把工期顺延当费用归属(两闸混判);C 错在不分责任方一律自担。同一条裁决链,工期判据不变、费用判据随责任方切换", "tier": "迁移档(业主原因 vs 不可抗力 vs 承包人·费用判据随责任方切换)·关键鉴别"}], "keyIdx": [0, 3], "warm": {"all_correct": "你是真的把这两道闸门分开了——工期闸只看关键线路和总时差,非关键延误先用机动时间吸收、没超就不顺延;费用闸只看责任在谁,承包人自担、不可抗力人机各负其责、发包人责任全额还能加利润。碰到'责任在对方但没超总时差'你会停手不乱顺延工期,换了责任方你会切对费用判据。这类题稳,换什么原因、什么延误、什么损失你都不慌。", "partial": "费用你算得对,就差工期边界判读和换责任情形那两处:非关键延误要先和总时差比,没超就别顺延工期(责任在对方也别顺延);换了原因要立刻切费用判据——发包人担、不可抗力分摊、承包人自担,别一律判给发包人。把这两处的'分清两闸、切对判据'补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'有延误就索工期''不可抗力赔给发包人'这几条孤立结论。记这一条裁决链:一个事件两道独立闸门——工期闸只看关键线路和总时差(非关键延误先用总时差吸收,没超不顺延),费用闸只看责任在谁(承包人自担/不可抗力人机各负其责实体归发包人/发包人责任全额加利润),两道闸各判各的、不绑死。先认出延误在不在关键线路、责任在谁,再用那道闸的判据——非关键没超总时差就不顺延、换责任方就换费用判据,你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "K01_sp", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:chain.base", "target_id": "chain.base"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "intake", "stage": "intake", "actions": [{"id": "intake.reveal.0", "type": "reveal", "target": "data-id:intake.switch", "target_id": "intake.switch"}, {"id": "intake.keycard.1", "type": "keycard", "target": "data-id:keycard.intake", "target_id": "keycard.intake"}]}, {"id": "schedule", "stage": "schedule", "actions": [{"id": "schedule.reveal.0", "type": "reveal", "target": "data-id:schedule.keyline", "target_id": "schedule.keyline"}, {"id": "schedule.reveal.1", "type": "reveal", "target": "data-id:schedule.nonkey", "target_id": "schedule.nonkey"}, {"id": "schedule.reveal.2", "type": "reveal", "target": "data-id:schedule.float", "target_id": "schedule.float"}, {"id": "schedule.keycard.3", "type": "keycard", "target": "data-id:keycard.schedule", "target_id": "keycard.schedule"}]}, {"id": "cost", "stage": "cost", "actions": [{"id": "cost.reveal.0", "type": "reveal", "target": "data-id:cost.sieve", "target_id": "cost.sieve"}, {"id": "cost.reveal.1", "type": "reveal", "target": "data-id:cost.profit", "target_id": "cost.profit"}, {"id": "cost.keycard.2", "type": "keycard", "target": "data-id:keycard.cost", "target_id": "keycard.cost"}]}, {"id": "independence", "stage": "cost", "actions": [{"id": "independence.reveal.0", "type": "reveal", "target": "data-id:valves.crack", "target_id": "valves.crack"}, {"id": "independence.keycard.1", "type": "keycard", "target": "data-id:keycard.independence", "target_id": "keycard.independence"}]}, {"id": "split", "stage": "split", "actions": [{"id": "split.reveal.0", "type": "reveal", "target": "data-id:fm.split", "target_id": "fm.split"}, {"id": "split.keycard.1", "type": "keycard", "target": "data-id:keycard.split", "target_id": "keycard.split"}]}, {"id": "procedure", "stage": "procedure", "actions": [{"id": "procedure.reveal.0", "type": "reveal", "target": "data-id:procedure.hourglass", "target_id": "procedure.hourglass"}, {"id": "procedure.keycard.1", "type": "keycard", "target": "data-id:keycard.procedure", "target_id": "keycard.procedure"}]}, {"id": "gates", "stage": "gates", "actions": [{"id": "gates.highlight.0", "type": "highlight", "target": "data-id:score.keywords", "target_id": "score.keywords"}, {"id": "gates.reveal.1", "type": "reveal", "target": "data-id:gate.four", "target_id": "gate.four"}, {"id": "gates.keycard.2", "type": "keycard", "target": "data-id:keycard.gates", "target_id": "keycard.gates"}, {"id": "gates.camera.3", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}]}]};
+	const ORDER=["intro", "intake", "schedule", "cost", "split", "procedure", "gates"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

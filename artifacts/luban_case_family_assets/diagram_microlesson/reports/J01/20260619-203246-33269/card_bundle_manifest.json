@@ -1,0 +1,57 @@
+{
+  "schema_version": "luban_card_bundle_manifest.v0",
+  "pack_id": "M_danger_work_expert_argumentation",
+  "generated_at": "2026-06-19T12:32:51.078497+00:00",
+  "official_score_allowed": false,
+  "runtime_canonical": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "assets": [
+    {
+      "role": "master",
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_family_assets/diagram_microlesson/M_danger_work_expert_argumentation.master.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 12363,
+      "sha256": "e10d17763029cb431b208c8953b4d0568607c0aa103bfe765b4c0541e2642fbc"
+    },
+    {
+      "role": "lesson",
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_family_assets/diagram_microlesson/J01_danger_work_expert_argumentation.lesson.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 7992,
+      "sha256": "e4cbbad958e933ea3d88bb7e3bbe7be05a5c5eb0ff8c670853f6b2ea01e940a3"
+    },
+    {
+      "role": "timing",
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_family_assets/diagram_microlesson/J01_danger_work_expert_argumentation.lesson.timing.json",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 6943,
+      "sha256": "865005729032eee9ad34b365fb7f0e4783d19e3ed22537295d3f489dec23c28b"
+    },
+    {
+      "role": "rendered_html",
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_family_assets/diagram_microlesson/M_danger_work_expert_argumentation.journey.html",
+      "exists": true,
+      "required": true,
+      "status": "ok",
+      "bytes": 42301,
+      "sha256": "d4ab92ec0313495da214aebc6f0b0faf7728306ef27fa764e1f6e0b968ad4a84"
+    },
+    {
+      "role": "practice_html",
+      "path": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/artifacts/luban_case_family_assets/diagram_microlesson/M_danger_work_expert_argumentation.practice.html",
+      "exists": false,
+      "required": false,
+      "status": "pending_m4",
+      "bytes": 0,
+      "sha256": null
+    }
+  ],
+  "blocking_failures": []
+}

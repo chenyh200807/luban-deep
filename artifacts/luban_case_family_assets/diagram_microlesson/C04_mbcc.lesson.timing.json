@@ -1,0 +1,214 @@
+{
+  "audio": "C04_mbcc.lesson.mp3",
+  "totalSec": 150.722,
+  "teachEndSec": 103.641,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "拆模丢分,在只背'后支先拆'口诀,漏中间条件",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "拆模这题,很多人背下'后支先拆'口诀就上场,一问强度、程序就漏。今天沿工序链走清三道门。",
+      "startSec": 0,
+      "durSec": 10.109
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "curve",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C1 强度成长曲线:拆模看百分率,不看固定小时",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c1_strength_curve.claim",
+      "claim": true,
+      "text": "先看强度。拆模看的是'达设计强度标准值的百分率',不是养护满几个小时,这是强度门槛的根。",
+      "startSec": 10.509,
+      "durSec": 9.198
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "role",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C2 侧模受'胀'看棱角 / 底模受'压'看强度表",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c2_role_split.claim",
+      "claim": true,
+      "text": "先分角色。侧模受'胀'不受'压',只看表面棱角不受损,墙体大模板到一牛每平方毫米就拆。底模支架真吃劲,看强度百分率表。",
+      "startSec": 20.107,
+      "durSec": 12.983
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "table",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C3 底模分档:板2/8m=50/75/100·梁拱壳8m=75/100·悬臂100",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.plate_2_8m.value",
+      "claim": true,
+      "text": "底模按'构件乘跨度'查表:板,不到两米五十、两到八米七十五、超八米一百;梁拱壳,八米以内七十五、超八米一百;悬臂一律一百。",
+      "startSec": 33.489,
+      "durSec": 13.832
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "fast",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C4 快拆切跨度:立杆≤2m+保留顶托→等效2m取50%",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "key_params.fast_post.value",
+      "claim": true,
+      "text": "快拆反常识:立杆不大于两米、保留立杆顶托,把八米大跨切成两米小跨,强度只取两米的五十。八米板 C三十快拆最低十五兆帕。",
+      "startSec": 47.721,
+      "durSec": 14.377
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "order",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C5 顺序倒装:后支先拆、先支后拆;非承重先拆、承重后拆",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c5_sequence.claim",
+      "claim": true,
+      "text": "顺序一句成对句:后支先拆、先支后拆;非承重先拆、承重后拆。底模支撑是竖向力最后防线,根基最后撤,写反就是先抽根基。",
+      "startSec": 62.498,
+      "durSec": 14.293
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:顺序成对句·底模分档·快拆保留顶托·技术负责人批准",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[2].keywords",
+      "claim": true,
+      "text": "采分盯这几组词:顺序成对句、底模按构件跨度分档、快拆'立杆不大于两米加保留顶托'、程序'申请加试块达标加技术负责人批准'。",
+      "startSec": 77.192,
+      "durSec": 13.196
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "工序链:强度门→顺序门→程序门,三门同时过才合法",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "收成工序链:强度门、顺序门、程序门,三门同时过才合法,缺一即违章。换构件、换侧模,判据切换、链不变。",
+      "startSec": 90.788,
+      "durSec": 12.853
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,答'强度达设计值就能拆底模'为啥不得分?",
+      "startSec": 104.041,
+      "durSec": 4.907
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "底模是按'构件类型乘跨度'查表达百分率,不是'达设计值就行',只写'达设计值'把分档整段漏了。",
+      "startSec": 109.348,
+      "durSec": 8.968
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那侧模也查百分率表行不行?",
+      "startSec": 118.716,
+      "durSec": 2.748
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "不行,这是串台。侧模看表面棱角、墙体大模板一牛每平方毫米就拆,不套底模那张表——两套判据别混。",
+      "startSec": 121.864,
+      "durSec": 10.844
+    },
+    {
+      "idx": 12,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "强度顺序都对,生产经理口头说拆行不行?",
+      "startSec": 133.108,
+      "durSec": 4.49
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[3].why",
+      "claim": true,
+      "text": "不行,还差程序门:填申请、试块达标、技术负责人批准。口头、生产经理批都不算数,漏了照样违章丢分。",
+      "startSec": 137.998,
+      "durSec": 11.923
+    }
+  ]
+}

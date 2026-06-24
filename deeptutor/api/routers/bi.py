@@ -10,6 +10,7 @@ from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_acce
 from deeptutor.api.routers.member import (
     AccountMergeRequest,
     BatchActionRequest,
+    DeleteMemberAccountRequest,
     ManualPurchaseRequest,
     ManualPurchaseReversalRequest,
     MembershipPackageRequest,
@@ -889,6 +890,26 @@ async def bi_merge_member_accounts(
         )
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.delete("/member/{user_id}/account")
+async def bi_delete_member_account(
+    user_id: str,
+    body: DeleteMemberAccountRequest | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
+) -> dict[str, Any]:
+    key = _validate_idempotency_key(idempotency_key)
+    reason = str((body.reason if body else "") or "").strip()
+    try:
+        return get_member_console_service().delete_member_account(
+            user_id,
+            operator=auth.user_id,
+            reason=reason,
+            idempotency_key=key,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

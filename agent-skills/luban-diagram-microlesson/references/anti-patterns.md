@@ -1,0 +1,118 @@
+# anti-patterns.md · video-first 学习卡反例库
+
+> 用途:把 N01/S01 迭代里已经发生过的问题沉淀成可迁移的失败模式。做新卡、复审旧卡、修播放器或练习页时先扫这里。
+> 边界:这里只管表现合同和学习体验,不重判母题事实;母题事实仍由 master/card/variants/scoring/misconception/source 和 schema gate 负责。
+
+## 1. 反例总表
+
+| 失败形状 | 学生看到的症状 | 根因 | 修法 | gate |
+|---|---|---|---|---|
+| 大横框里套小竖屏 | 手机上视频很小,横屏/宽屏仍像窄条,全屏也像网页缩放 | HTML 壳把某个竖屏比例误当全局舞台 | 普通态用 orientation-adaptive 学习舞台:竖屏可接近 9:16/4:5,横屏/宽屏改两栏/侧栏/overlay;theater/fullscreen 只显示学习内容 | `validate_learning_stage_runtime.mjs` + 竖屏/横屏截图 |
+| 全屏仍像网页 | 标题、卡片、按钮一起放大,注意力散 | 把页面全屏当播放器全屏 | theater fallback + Fullscreen API;点击屏幕才浮控制层 | runtime gate 检查 theater 几何、隐藏 chrome、控制层不遮挡 |
+| 章节只写 1/2/3 | 学生不知道节点去哪 | 把内部 beat 序号当用户语义 | 用“先学/错觉/读图/顺推/采分”等短标签 | preview gate 检查非纯数字章节 |
+| 预览每次都生成 MP4 | 迭代慢,缓存和成片误差混在一起 | 没区分预览评审和成片验收 | UI/UX/文案/练习/播放器只改 HTML/CSS/数据,复用已有媒体;成片变更才 render | 评审记录必须写明预览档或成片档 |
+| 开头直接讲知识 | 新生跟不上,不知道为什么要看 | 缺 opening hook 和考试动作主线 | 首帧先讲考试场景、丢分点、学完能写什么 | storyboard 必填 `opening_hook` |
+| 前言和正片断开 | 像几段拼起来的讲稿 | 没有统一的 `main_exam_action` | hook、trap、worked、score、closing 都回扣同一个考试动作 | storyboard 必填 `main_exam_action` / `closing_echo` |
+| 学生问答书面化或方言化 | 学生声纹是东北男孩,但句子像审稿提纲;或反过来满屏口头禅像段子 | 只设置 voice,没有把人物口吻写进 lesson/gate;把声纹当表演而不是学习问题 | 学生 QA 放后置 `qa[]`;每问是真卡点,只加 1-2 个口语钩子如“老师/这块/那我/能拿分不/整明白了”;对象、依据、采分边界必须清楚 | `build_aliyun_lesson_narration.mjs` / `build_lesson_narration.mjs` narration structure gate |
+| 画面像翻页 | 有动画但只是慢慢变大/淡入,没有注意力管理 | Remotion 只做转场,没做镜头调度 | 每 6-10 秒有教学相关 visual state;用 push/spotlight/dim/trace/freeze | still 检查 hook/trap/worked/score/closing |
+| 大箭头硬指 | 箭头抢主体,显得粗糙 | 用装饰替代视觉层级 | 讲到哪个点,就让该对象高亮/放大/周边降噪;箭头只作轻量辅助 | 视觉复审 |
+| 音画错位 | 旁白讲完了,画面才慢慢强调 | timing 不是从关键词设计 | 每段填 `sync_keyword` 和 `visual_state`;关键视觉略早 0.1-0.3s | 成片档 ffprobe + 关键帧截图 |
+| 没自然收尾 | 答疑后突然结束,CTA 像硬跳 | closing 没进入 narration flatten/gate | `lesson.closing` 必须进入 segments,claim 必须 anchor | `build_lesson_narration.mjs --print` |
+| 练习混在讲解页 | 学生一边看视频一边被题干干扰 | 没拆“看懂”和“练会”两个任务 | 讲解页只承载 video;练习页独立 | preview gate 检查 practice link |
+| 练习题没图 | 选择题像普通刷题,没有深母题迁移 | 没把变题视觉化 | 每题配原图/变化图/诊断图/答题纸 | preview gate 检查 question SVG |
+| 选项短词化 | 点对了但不会写主观题答案 | 选项只服务选择,不服务采分表达 | 选项写“对象/路径 + 结果 + 判断依据”;末题做采分句输出 | practice review |
+| 题面泄答案/标签题 | 学生不用理解题干,看左上角或题图高亮就知道选哪个;选项只是 key point 标签 | practice generator 把 `ai_context.key_points` 直接当选项和题图 focus,没有从母题 R3/R4/采分点派生场景缺口 | 题目改成“学生答案/现场场景/题干数据”的缺口诊断;答前不高亮正确点,答后再 reveal;选项必须是完整采分动作,不得等于 key point 标签 | `validate_practice_interactions.mjs` 检查 no keypoint label answers + no pre-answer answer leak |
+| 解析说黑话 | 学生答错后仍看不懂错在哪里,只看到“口径/散点/采分链”等抽象词 | 反馈复述内部概念,没有解释“这个错项为什么诱人、为什么扣分、正确答案补哪一句” | 每个错误选项都有专属反馈:先承认错项的诱因,再指出扣分点,最后给能写到答题纸上的补法 | `validate_practice_interactions.mjs` 检查 per-option feedback + readable explanations |
+| 结果页很完整但题目很怪 | 学生做完有分数、分析、问鲁班按钮,但做题时看不懂题干和选项 | 先做交互壳和结果页,没有先从成品 MD 提炼 `practice_blueprint` | 每题先写 `scene_gap`、学生错误答案、正确采分动作、错项诱因;结果页只做诊断和追问,不能替代题目质量 | `practice_blueprint` review + `validate_practice_interactions.mjs` |
+| 手机链接给 localhost | 电脑能打开,手机/小程序扫码打不开 `127.0.0.1` | 忘了 localhost 作用域只在当前设备 | 服务监听 LAN,交付 `http://<局域网IP>:8800/<file>`;换 Wi-Fi 后重取 IP | preview handoff check |
+| 题图文字挤压 | 流程节点/判断节点里字挤成一团,学生看不清 | 图元尺寸和标签长度没有合同,只测外层不溢出 | 改 renderer 图元语法:长标签用 pill/多行/缩写+图例,不要硬塞小圆;把标签适配纳入 runtime gate | `validate_challenge_theater_practice.mjs` 的 SVG label fit |
+| SVG 标签压线/跑边 | 标签贴着箭头、压住卡片边框,跑出白板,或贴到白板外的深色背景上 | 把标注当坐标文本,没有图元级安全布局;gate 只查外层 overflow,不查 text/text、text/path 或 text 是否仍在主画板内 | flow_arrow/threshold_meter 等 primitive 必须自带 label badge/line offset 和上下安全位;renderer 负责避让,IR 不手调;gate 在 scene 后段检查 SVG text collision、arrow label clearance 和 primary-board containment | `validate_animation_ir_preview.mjs` 的 `runtime_svg_text_collision` + `runtime_svg_text_in_board` |
+| 右栏文字被裁 | 横屏/宽屏时学生答或题干只显示半句 | grid 列宽/overflow 只测页面横滚,没测文本块 scrollWidth | 右栏设 min-width/minmax,文本 `overflow-wrap:anywhere`;gate 查 visible text block 不裁切 | `text_not_clipped` + 宽屏截图 |
+| 只套 N01 外形 | 构造题也像网络图,判断题也像白板节点 | 把样板 UI 当 authority | 先按 6+1 选原型,再选该原型视觉语法 | pressure tests |
+| 学生端泄漏内部词 | 页面出现 `candidate` / `source_ref` / `P10` / `E03` | renderer 没做 student-safe package gate | 学生包禁止内部 token;制作侧追溯放在源 JSON/后台 | preview gate fail-closed |
+| 答疑入口裸塞母题 MD | 问 AI 能用,但 HTML/URL 里暴露原始资料路径、候选采分点或制作字段 | 把静态卡当成问答后端,没有 context handoff 边界 | 前端只发 `context_id + 当前 scene/caption + safe summary`;TutorBot/后端按 context_id 取母题 MD | `ai_ask_entry` + student-safe gate |
+| 无母题数据也标深母题 | 画面漂亮但题和采分句不可追溯 | 表现层越权造内容 | 缺 master/card/variants/source 时只叫视觉小样 | skill 红线 + schema gate |
+| CTA 过早或重复 | 开场就能跳闯关,学生跳过采分句;页面里同时有多个强 CTA | challenge 状态不是由 timing/scene 派生,而是常驻 UI | 默认 `challengeUnlockSec=score.start`;采分句前 CTA locked,采分句后 enabled;普通页去重,底部主行动承担闯关 | `validate_animation_ir_preview.mjs` 的 `runtime_challenge_unlock` |
+| 固定播放器遮挡 | 360 竖屏或横屏时播放器盖住字幕、教练卡、采分句或 CTA | shell 用固定 bottom magic number,没有测量真实 player 高度 | `ResizeObserver` 写 `--player-h`;正文/theater 布局用该变量;横屏避免 fixed overlay 遮挡 | `runtime_player_occlusion` + viewport matrix |
+| 字幕跟着图一起缩放 | 运镜时字幕/教练卡被 camera transform 带走,看起来晃或压图 | caption 被塞进 `.visual`,和施工图共用 transform | `.visual` 只放 SVG/图元;字幕放 stage overlay/live region;coach 是独立 slot | static a11y + screenshot |
+| 控制层浮出压内容 | 点击全屏后播放器出来,字幕/教练卡和控制条叠在一起 | theater controls 是 overlay,但没有定义浮出时哪些内容让位/退出 | controls visible 时临时隐藏或让出 caption/coach;auto-hide 后恢复 | `runtime_theater_occlusion` |
+| 只用 opacity 隐藏 | 元素看不见但还被 gate/点击层当作可见或遮挡 | 视觉隐藏和布局/命中语义混用 | 临时退出用 `display:none` 或明确 `aria-hidden/pointer-events`,不要只调透明度 | hit-test / occlusion gate |
+| 先渲染后救火 | 页面出来才发现比例、叠层、Remotion 没吃同源 IR | 缺 pre-render contract gate,把 schema 问题拖到 UI 评审 | IR 生成后先跑 `validate_animation_ir_contract.mjs`;不过不渲染、不调 CSS | pre-render IR gate |
+| Remotion 单卡另写一套 | HTML preview 变好了,正式成片又偏;或 topic TSX 里硬编码 F16 SVG | Remotion 成了第二份 storyboard/renderer truth | topic wrapper 只导入 IR/timing;通用 `AnimationIrRenderer` 消费 `visual_library/actions` | contract gate 查 wrapper 导入当前 IR + 委托通用 renderer |
+| HTML/Remotion 图元表不对称 | 某些卡在 Remotion 是图,HTML 预览却静默变成文字框;机器门还绿 | 只检查一侧 renderer 覆盖,另一侧有 catch-all fallback | contract gate 同时查 HTML renderer 和 Remotion renderer;未知图元渲染时直接 fail,不能降级为文本卡 | `html_primitive_coverage` + `remotion_primitive_coverage` |
+| 跳过视觉原型闸 | 卡从成品 MD 直接生成文字讲稿/文字框 IR,没有先回答“这个知识点该画成什么” | workflow 把 6+1 当后置标签,没有在 P0 阶段冻结 `visual_archetype_decision` | 先产 `visual_archetype_decision`:primary/secondary archetype、primitive、motion_grammar、why_not_text;不过不进 IR | `visual_archetype_decision_required` |
+| 纯文字例外滥用 | 安全/合同/管理类考点被说成“本来就是文字”,结果满屏解释框 | 把“抽象”误判成“不可视化”;没有把资金链、判断树、现场平面、失稳链这些认知结构画出来 | ①–⑥ 默认不允许 `pure_text_allowed=true`;只有(七)数值/记忆才可走 memory_table/flashcard | `pure_text_exception_scope` |
+| 文字卡伪图示 | 40 pack 看起来全是解释框,没有构造、流程、判断树、网络图等认知结构 | 只把 6+1 原型当标签,或只放了一个图元,但 hook/map/rule/trap/score 仍靠文字框解释 | `render_contract.archetype_visual_required` 必填;主讲 teaching scenes 必须图示驱动;score 必须是答题纸/诊断图,不能退回三条文字框 | `archetype_visual_present` + `diagrammatic_teaching_scene` + `score_scene_diagrammatic` |
+| 小图元装饰化 | 页面确实有工程图/判断图,但主图只占画面一小块,字幕、规则卡或文字容器仍是讲解主体 | 只检查“有图元”,没检查主图是否支配视觉注意力 | workflow_candidate/student_ready 必须声明并通过 `min_visual_dominance_ratio`;A02/S02 blueprint-poster 样板要求 0.62,每幕主图实测 0.744 | `dominant_visual_teaching_scene_count` |
+| 模板图贯穿多幕 | hook、模型、规则、采分几乎都是同一套四个图标/流程框/判断树,只改标题、标签和旁白 | 先选了 renderer primitive 当内容计划,没有先理解每句文案要画什么对象和状态变化 | 每幕先写 `scene_visual_brief`:旁白句 → 领域对象 → 状态变化 → 退出项 → 与前后幕差异;同一图超过 2 个主讲 scene 必须有实质状态变化 | `scene_visual_brief_required` + screenshot wall + judge |
+| 编号式旁白/内部黑话 | 老师说“A02 不是让你...”“这个 pack/IR scene...”,学生不知道 A02 是什么 | 把制作追溯 id 当成教学概念,没有把 source_card 展开成学生能懂的真实考试任务 | 开场和主讲必须说清“这类题到底问什么现场动作/考试动作”;内部 id 只留 metadata,不得进入老师/学生音频或学生可见标题 | narration student-safe gate + judge |
+| 抽象框图伪图示 | 页面有“四道门/三件套/条件/采分句”这类框,但学生看不见吊机、屋面、脚手架、资金链、网络图、病灶等真实对象 | 把 decision_tree/process_flow 当最终画面,没有把考点翻译成领域对象和动作 | `visual_archetype_decision.domain_visual_plan` 必填;主讲 scene 至少 4 个出现 domain objects;S02 必须看见吊机/吊钩/重物/风速/试吊高度/限位禁令,不能只画四道门 | `domain_visual_plan_present` + `domain_visual_teaching_scene_count` |
+| 图示只当背景 | 白板里有图,但旁白和字幕仍在解释文字概念;图没有分层、分支、路径、生长、扫描动作 | primitive 没有内部 motion grammar,renderer 只做外层 fade/zoom | 每个 primitive 必须绑定动作:流程 trace、剖面 explode、判断 branch、公式 chain、对照 flip、答题 scan | `primitive_motion_grammar_present` |
+| 批量 PASS 冒充精品 | 39/39 gate 通过,但手机上仍像文字解释卡,文字多、图示弱、学员看不出动作 | 把结构门当质量门,把 Markdown 抽词套图元当动画教案 | 批量脚本只能标 `coarse_draft_requires_single_card_review`;精品卡必须逐张过手机截图墙和“第一眼是图示动作”人工/LLM review | manifest/report 标 `student_ready=false` + 单卡截图证据 |
+| 晋级漂移 | A02/S02 这类样板已经改成图示主导,但 batch manifest 仍按粗糙草稿覆盖,或后续汇报只说批量 PASS | 批量生成器和精品晋级链争夺 authority | 已晋级卡只能通过 `promotion_authority` 写入 manifest,必须 `preserved_by_batch=true`;批量脚本遇到 promoted 卡只能保留,不能重写 IR/timing/practice | `validate_workflow_promotions.mjs` |
+| Remotion still 质量旗标被忽略 | HTML 看着可接受,但成片 still 有大空白、主板太小、字幕/画板断裂、文字压力过高;review packet 仍写 PASS | 只审 HTML 或人工观感,没有把成片路径质量指标变成 blocking failure | `capture_remotion_ir_review_stills.mjs` 输出质量指标;`workflow_candidate/student_ready` 的 packet 必须因 `review:remotion_quality_flag:*` FAIL | Remotion `quality_gate.required=true/pass=true/flags=[]` |
+| 静态图伪动画 | 页面有流程图/剖面/网络图,但只是整块淡入或整页切换;学生仍感觉是在听文字解释 | 图元只有外层 reveal/highlight,没有把工序、层次、路径、分支、扫描这些知识动作做进 primitive 内部 | 6+1 primitive 必须有内部 step/trace/scan:工序逐步、剖面逐层、网络路径生长、判断分支展开、正误先后对照、答案逐句扫描;HTML/Remotion 共用同一套内部 step 语法 | `html_internal_animation` + `remotion_internal_animation` |
+| 机器绿但无评审包 | gate PASS 后仍反复被用户截图指出拥挤/错位/没动画 | 没把截图墙和人审发现回写成 root-cause triage,下一轮 agent 又只看命令绿灯 | 按 `workflow-review-loop.md` 形成 review packet;人眼发现的问题必须补 gate/anti-pattern 或标 needs_human_review | review packet + screenshot wall |
+| 评审包空壳 PASS | packet 写着 PASS,但 `machine_gates=[]` 或 gate 没有 report path/sha256,没人能复跑证据 | 把一次性命令输出当口头证明,没有把 OpenMAIC-style eval report 落成 artifact | `build_workflow_review_packet.mjs` 对 `workflow_candidate/student_ready` 要求 machine gate matrix 非空,每个 gate 带可读 report 文件、bytes、sha256 | `gate:missing_machine_gates` / `gate:missing_report:*` |
+
+## 2. 快速判定
+
+看到下面任一现象,先不要继续美化,先回根因:
+
+- 你正在调颜色,但还说不清这张卡的 `main_exam_action`。
+- 你正在改 Remotion 动画,但没有 `sync_keyword`。
+- 你正在写练习题,但不知道它来自哪个 variant / basis_ref。
+- 你正在加文案,但这句话没有 anchor 或只是老师自由发挥的考点事实。
+- 你还没写 `visual_archetype_decision`,就已经开始生成 `animation_ir.v0`。
+- 你没有逐幕写 `scene_visual_brief`,就已经开始复用某个四图组合、流程图或判断树模板。
+- 你发现 3 个以上主讲 scene 的主视觉基本一样,只有标题、颜色、标签在变。
+- 你准备让老师在学生端说 `A02/P40/F16/source_card/IR/scene/primitive/pack` 来解释本题是什么。
+- 你把安全、合同、管理考点说成“只能文字讲”,但没试过判断树、资金链、现场平面、失稳链、答题纸扫描。
+- 你把卡标成 `workflow_candidate`,但主讲 scene 的主图面积没有过 `min_visual_dominance_ratio`。
+- 你正在做全屏,但普通态竖屏截图里内容仍是小片,或横屏/宽屏截图里仍被锁成窄竖条。
+- 你还没跑 `validate_animation_ir_contract.mjs`,就已经开始看 HTML 或改 CSS。
+- 你在 Remotion topic 文件里写 `if (scene.id === "...")` 或硬编码某张卡的 SVG。
+- 你只跑了静态 HTML gate,但没有跑 `validate_learning_stage_runtime.mjs` 的真实视口矩阵。
+- 你只看 390x844,但没有看 360 窄竖屏、844/932 横屏和 theater 控制层。
+- 你说 practice 合格,但没跑闯关页 runtime gate,没看目标视口截图,也没查 SVG 标签是否挤压。
+- 你正在写 practice,但没有先写 `practice_blueprint[]`,或题目不是从 R3/R4/R6/R8/scoring group 派生。
+- 你在优化结果页、AI 追问或补练按钮,但第一题题干仍让人读不懂。
+- 你给用户手机链接时还在用 `127.0.0.1` 或 `localhost`。
+- 你说 workflow 改好了,但没有 review packet,没有 root-cause triage,也没有说明新增了哪个 gate/anti-pattern。
+- 你说 workflow 改好了,但 review packet 的 `machine_gates[]` 为空,或 gate 没有可读 report path/sha256。
+- 你把卡标成 `workflow_candidate`,但没有 Remotion still manifest,或 manifest 的 `quality_gate.flags` 非空。
+- 你把样板卡写进 batch manifest,但没有 `promotion_authority`、`preserved_by_batch=true` 和 `validate_workflow_promotions.mjs` PASS。
+- 你截图里发现文字挤压/裁切,但只调外层卡片大小,没有补 gate 或改 renderer 图元。
+- 你发现 SVG 文字贴箭头/压边,但只调当前卡 x/y,没有把 flow_arrow/note/pill primitive 变成自带安全区的图元。
+- 你加了"问 AI",但只是跳到空白聊天页,没有带当前 scene、字幕和考点上下文。
+- 你发现问题后只改某张卡 CSS,却没有说明为什么不该沉淀到 renderer/gate/skill。
+- 用户说“不满意”,你的第一反应是换视觉风格,而不是检查 hook、主线、节奏、练习闭环。
+
+## 3. 修复顺序
+
+1. 先修业务事实:这张卡到底训练哪一个考试动作。
+2. 再修 authority:事实、题、反馈、看穿信号是否都来自母题引擎。
+3. 再修叙事:hook、trap、worked、score、closing 是否一线贯穿。
+4. 再修视觉:镜头是否替学生筛注意力。
+5. 再修交互:播放器、全屏、拖进度、章节、闯关是否闭环。
+6. 最后才修装饰:颜色、阴影、圆角、动效细节。
+
+## 4. 一句话红线
+
+不要用“更像精品”的视觉补丁掩盖结构问题。精品感来自:考试动作清楚、母题权威稳、音画对齐、画面帮学生看重点、练习证明能拿分。
+
+## 5. 稳定化范式(成熟方案 = 范式,不是库)· 2026-06-19 三专家评审
+
+**问题**:动画展示模块小问题多、不稳定。**结论:稳定不来自换库,来自"声明式 + 参数化 + 确定性渲染 + 视觉快照测试"这套范式。鲁班已做对大半(Remotion + 确定性 SVG + 离线配音 + 两道门),别引 Manim/Lottie/OpenMAIC(重依赖/AGPL/LLM 自由生成不可控,见 openmaic 评估 3/10)。**
+
+**不稳定本质**:把本该确定性渲染的东西交给 LLM 自由发挥(几何/坐标/HTML/selector),又没在"生成↔渲染"边界设对账门。
+
+**铁律**:
+- **LLM 只填数据,绝不画几何**。坐标/布局/selector 由确定性渲染器算(`render_*_video_first.py` 的 `board_svg()` 是样板)。`validate_schema_drafts.py` 应加:card JSON 出现 x/y/width/`#id` 即 FAIL。
+- **三道缺门**(把"小问题"从人眼打地鼠变 CI 红灯,均复用现有件、不引新框架):
+  1. **selector 命中**:可点元素用 `data-id` 不用 `#id`;渲染后断言每个 teacher action/高亮 target 在 DOM 真命中(消灭"在动但指错"的静默失败——openmaic `byId{false}/byDataId{true}` 铁证)。
+  2. **音画时长一致**:`mp3/mp4/timing.json` 三方时长 + 每 `claim` 段 `sync_keyword`/`anchor` 断言(新 `validate_timing_sync.mjs`),消灭尾部黑帧/错位。
+  3. **视觉快照回归**:**只对每原型 fixture 的 golden 截图做 diff**(复用 `cdp_shot.mjs`,不引 Playwright),fixture 变了才报警;生产卡数据天然不同,不逐卡 baseline(less-is-more)。
+- **收口而非重造**:抽 `stage_shell.py`(壳=合同 / 几何=参数分离),每 6+1 原型一个 `fixture.json`+golden;不为未来原型提前抽通用 motion 引擎。
+- **Codex/外部产线接入 = 契约暴露,不是 skill 复制**:外部只交 card/lesson JSON,产物回本套渲染器 + `gate.sh`(schema→narration→preview→timing_sync→runtime)校验;**绝不把本 skill 复制出去**(第二份 authority 必漂移)。门的 FAIL message 即修正信号。
+- anti-patterns 15 条:~9 条可全自动 gate,纯人工只剩镜头调度/箭头层级/采分表达质量(教学品味)。

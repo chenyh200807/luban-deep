@@ -59,6 +59,17 @@ def _eval_bypass_headers() -> dict[str, str]:
     """
 
     secret = os.getenv("DEEPTUTOR_EVAL_BYPASS_KEY", "").strip()
+    if not secret:
+        # Local-file fallback so an eval driver (and Workflow student agents) can
+        # sign turns without ever handling the key in env/args/prompts.
+        key_file = os.getenv(
+            "DEEPTUTOR_EVAL_KEY_FILE", os.path.expanduser("~/.deeptutor_eval_key")
+        )
+        try:
+            with open(key_file, encoding="utf-8") as handle:
+                secret = handle.read().strip()
+        except OSError:
+            secret = ""
     if len(secret) < 32:
         return {}
     token = make_eval_billing_bypass_token(secret, ts=int(time.time()))
@@ -201,10 +212,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--token", default="")
     parser.add_argument("--conversation-id", default="")
     parser.add_argument("--query", default="")
+    parser.add_argument("--query-file", default="", help="read query text from a file (avoids shell quoting)")
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     args = parser.parse_args(argv)
 
     base_url = str(args.api_base_url).rstrip("/")
+    if args.query_file:
+        with open(args.query_file, encoding="utf-8") as handle:
+            args.query = handle.read().strip()
     if args.mode == "login":
         out = asyncio.run(_login(base_url, args.timeout_seconds))
     elif args.mode == "new":

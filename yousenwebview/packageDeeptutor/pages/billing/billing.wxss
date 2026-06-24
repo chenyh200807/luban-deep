@@ -545,7 +545,7 @@
 }
 
 .billing-page.light .usage-meter-fill {
-  background: #111827;
+  background: linear-gradient(90deg, #2563eb, #059669);
 }
 
 .billing-page.light .section-title {
@@ -815,7 +815,7 @@
 .pay-dock-yen { font-size: 21rpx; line-height: 1; font-weight: 800; color: #141414; }
 .pay-dock-price { font-size: 35rpx; line-height: 1; font-weight: 900; color: #141414; }
 .pay-dock-cta { font-size: 25rpx; line-height: 1; font-weight: 800; color: #141414; flex-shrink: 0; }
-.checkout-mask {
+.contact-sales-mask {
   position: fixed;
   left: 0;
   right: 0;
@@ -826,7 +826,7 @@
   align-items: flex-end;
   background: rgba(0,0,0,0.52);
 }
-.checkout-sheet {
+.contact-sales-sheet {
   width: 100%;
   padding: 16rpx 28rpx 44rpx;
   border-radius: 34rpx 34rpx 0 0;
@@ -834,25 +834,25 @@
   border-top: 1rpx solid rgba(255,255,255,0.12);
   box-shadow: 0 -24rpx 80rpx rgba(0,0,0,0.36);
 }
-.checkout-handle {
+.contact-sales-handle {
   width: 72rpx;
   height: 8rpx;
   border-radius: 999rpx;
   margin: 0 auto 26rpx;
   background: rgba(255,255,255,0.18);
 }
-.checkout-head, .checkout-summary {
+.contact-sales-head, .contact-sales-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24rpx;
 }
-.checkout-kicker, .checkout-summary-sub {
+.contact-sales-kicker, .contact-sales-summary-sub {
   display: block;
   font-size: 22rpx;
   color: rgba(255,255,255,0.46);
 }
-.checkout-title {
+.contact-sales-title {
   display: block;
   margin-top: 4rpx;
   font-size: 38rpx;
@@ -860,7 +860,7 @@
   font-weight: 900;
   color: #fff;
 }
-.checkout-close {
+.contact-sales-close {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
@@ -871,17 +871,18 @@
   font-size: 40rpx;
   background: rgba(255,255,255,0.08);
 }
-.checkout-summary {
+.contact-sales-summary {
   margin-top: 28rpx;
   padding: 24rpx 0;
   border-top: 1rpx solid rgba(255,255,255,0.08);
   border-bottom: 1rpx solid rgba(255,255,255,0.08);
 }
-.checkout-summary-main { display: block; font-size: 28rpx; font-weight: 800; color: #fff; }
-.checkout-summary-sub { margin-top: 8rpx; }
-.checkout-price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.checkout-current-price { display: flex; align-items: baseline; }
-.checkout-original {
+.contact-sales-package { min-width: 0; }
+.contact-sales-summary-main { display: block; font-size: 28rpx; font-weight: 800; color: #fff; }
+.contact-sales-summary-sub { margin-top: 8rpx; }
+.contact-sales-price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.contact-sales-current-price { display: flex; align-items: baseline; }
+.contact-sales-original {
   margin-bottom: 4rpx;
   font-size: 20rpx;
   line-height: 1;
@@ -889,28 +890,40 @@
   text-decoration: line-through;
   font-variant-numeric: tabular-nums;
 }
-.checkout-yen { font-size: 24rpx; font-weight: 800; color: #f6c04f; }
-.checkout-amount { font-size: 52rpx; line-height: 1; font-weight: 900; color: #f6c04f; }
-.pay-channel-list { display: flex; flex-direction: column; gap: 14rpx; margin-top: 24rpx; }
-.pay-channel {
+.contact-sales-yen { font-size: 24rpx; font-weight: 800; color: #f6c04f; }
+.contact-sales-amount { font-size: 52rpx; line-height: 1; font-weight: 900; color: #f6c04f; }
+.contact-sales-qr-card {
+  margin-top: 26rpx;
+  padding: 26rpx 24rpx 24rpx;
+  border-radius: 26rpx;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18rpx;
-  padding: 20rpx;
-  border-radius: 22rpx;
   background: rgba(255,255,255,0.045);
   border: 1rpx solid rgba(255,255,255,0.08);
 }
-.pay-channel.active { border-color: rgba(52,211,153,0.58); background: rgba(52,211,153,0.1); }
-.pay-channel-mark { width: 48rpx; height: 48rpx; border-radius: 16rpx; flex-shrink: 0; }
-.pay-channel-mark.wechat { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.pay-channel-mark.alipay { background: linear-gradient(135deg, #38bdf8, #2563eb); }
-.pay-channel-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
-.pay-channel-title { font-size: 26rpx; font-weight: 800; color: #fff; }
-.pay-channel-desc { font-size: 20rpx; color: rgba(255,255,255,0.44); }
-.pay-channel-check { width: 28rpx; height: 28rpx; border-radius: 50%; border: 2rpx solid rgba(255,255,255,0.2); }
-.pay-channel.active .pay-channel-check { border-color: #34d399; background: #34d399; }
-.checkout-submit {
+.contact-sales-qr {
+  width: 420rpx;
+  height: 420rpx;
+  max-width: 100%;
+  border-radius: 18rpx;
+  background: #fff;
+}
+.contact-sales-qr-title {
+  margin-top: 18rpx;
+  font-size: 28rpx;
+  line-height: 1.3;
+  font-weight: 900;
+  color: #fff;
+}
+.contact-sales-qr-sub {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.48);
+  text-align: center;
+}
+.contact-sales-submit {
   height: 88rpx;
   margin-top: 26rpx;
   border-radius: 999rpx;
@@ -919,37 +932,27 @@
   justify-content: center;
   background: linear-gradient(135deg, #f6c04f, #f59e0b);
 }
-.checkout-submit.loading { opacity: 0.7; }
-.checkout-submit-text { font-size: 30rpx; font-weight: 900; color: #111827; }
-.checkout-message {
-  display: block;
-  margin-top: 22rpx;
-  padding: 18rpx 20rpx;
-  border-radius: 18rpx;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1rpx solid rgba(251, 191, 36, 0.18);
-  font-size: 23rpx;
-  line-height: 1.5;
-  color: rgba(253, 230, 138, 0.92);
-}
-.billing-page.light .balance-card, .billing-page.light .checkout-sheet { background: #fff; }
+.contact-sales-submit-text { font-size: 30rpx; font-weight: 900; color: #111827; }
+.billing-page.light .balance-card, .billing-page.light .contact-sales-sheet { background: #fff; }
 .billing-page.light .balance-gauge-ring { background: #fff; }
 .billing-page.light .balance-gauge-num,
-.billing-page.light .checkout-title,
-.billing-page.light .checkout-summary-main,
-.billing-page.light .pay-channel-title,
+.billing-page.light .contact-sales-title,
+.billing-page.light .contact-sales-summary-main,
+.billing-page.light .contact-sales-qr-title,
 .billing-page.light .pay-dock-label { color: #0f172a; }
 .billing-page.light .pay-dock { background: rgba(255,255,255,0.92); border-color: #dbe6f5; }
 .billing-page.light .pay-dock-meta,
 .billing-page.light .pay-dock-original,
 .billing-page.light .pkg-original-price,
-.billing-page.light .checkout-original,
-.billing-page.light .checkout-kicker,
-.billing-page.light .checkout-summary-sub,
-.billing-page.light .pay-channel-desc { color: #64748b; }
-.billing-page.light .pay-channel { background: #f8fbff; border-color: #dbe6f5; }
-.billing-page.light .pay-channel.active { background: #ecfdf5; border-color: #86efac; }
-.billing-page.light .checkout-close { background: #eef2f7; color: #334155; }
+.billing-page.light .contact-sales-original,
+.billing-page.light .contact-sales-kicker,
+.billing-page.light .contact-sales-summary-sub,
+.billing-page.light .contact-sales-qr-sub { color: #64748b; }
+.billing-page.light .contact-sales-close { background: #eef2f7; color: #334155; }
+.billing-page.light .contact-sales-qr-card {
+  background: #f8fbff;
+  border-color: #dbe6f5;
+}
 .billing-page.light .ledger-card {
   background: #fff;
   border-color: #dbe6f5;
@@ -960,8 +963,3 @@
 .billing-page.light .ledger-balance,
 .billing-page.light .ledger-empty-text { color: #64748b; }
 .billing-page.light .ledger-usage { color: #dc2626; }
-.billing-page.light .checkout-message {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}

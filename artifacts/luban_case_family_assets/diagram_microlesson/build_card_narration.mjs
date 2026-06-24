@@ -27,6 +27,25 @@ function deriveNarration(s) {
   const opener = trimTail(s.scenario?.caption || stripHtml(s.why_lose_points_html) || s.student_goal || "");
   if (opener) segs.push({ id: "opening", anchor: "why", text: `${opener}。我们一个一个看。` });
 
+  // 蓝图阈值卡(benchmark / blueprint): panels[].thresholds[] 逐 panel + 两道闸 + 出处差异化。
+  // 旁白从字段派生(name/value_m/tier/rule_chain),不手写;anchor 对齐渲染器 data-anchor。
+  if (Array.isArray(s.panels) && s.panels.length) {
+    segs.push({ id: "opening", anchor: "blueprint", text: `${trimTail(s.title)}。关键就两道闸,我们一个一个看。` });
+    s.panels.forEach((p, i) => {
+      const lead = i === 0 ? "先看" : "再看";
+      const danger = (p.thresholds || []).find((t) => t.tier === "危大");
+      const scale = (p.thresholds || []).find((t) => t.tier === "超规模" || t.tier === "超过一定规模");
+      let t = `${lead}${trimTail(p.name)}。`;
+      if (danger) t += `到${danger.value_m}米就是危大,要编专项方案;`;
+      if (scale) t += `再到${scale.value_m}米超过一定规模,才要专家论证。`;
+      segs.push({ id: `panel_${p.id}`, anchor: "blueprint", highlight: p.id, text: t });
+    });
+    const rule = stripHtml(s.rule_chain).replace(/[①②③④⑤【】·]/g, "").replace(/→/g, ",").replace(/[:：]/g, ",").replace(/\s+/g, "").replace(/,+/g, ",");
+    if (rule) segs.push({ id: "rule", anchor: "blueprint", text: `记住,${rule}` });
+    segs.push({ id: "diff", anchor: "diff", text: "这些数字都标着规范出处,不是凭空生成的,可以查、可以核。这就是和那种好看但说不清出处的图最大的不同。" });
+    return segs;
+  }
+
   // 主体: ⑤对照(逐项); 其它原型按总纲在此扩展 steps/diagnosis
   // 精简取向: 只读「点错(loss_display)+ 采分表达(scoring_expression)」;
   // 完整错法/正确做法在卡上视觉呈现(听觉精简、视觉完整、互补)。
@@ -135,6 +154,7 @@ const segments = derived.map((seg, i) => {
   const startSec = Number(t.toFixed(3));
   t += durs[i];
   const out = { id: seg.id, anchor: seg.anchor, text: seg.text, startSec, durSec: Number(durs[i].toFixed(3)) };
+  if (seg.highlight) out.highlight = seg.highlight;
   if (i < derived.length - 1) t += GAP;
   return out;
 });

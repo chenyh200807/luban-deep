@@ -45,15 +45,15 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath, options) {
     assert(
       wxml.indexOf('class="pkg-grid"') >= 0 &&
         wxml.indexOf('class="pay-dock"') >= 0 &&
-        wxml.indexOf('class="checkout-sheet"') >= 0 &&
-        js.indexOf("createBillingCheckout") >= 0,
-      label + " billing should expose package selection and compliant checkout",
+        wxml.indexOf('class="contact-sales-sheet"') >= 0 &&
+        js.indexOf("contactSalesVisible") >= 0,
+      label + " billing should expose package selection and sales contact QR flow",
     );
   } else {
     assert(
       wxml.indexOf('class="pkg-grid"') < 0 &&
         wxml.indexOf('class="pay-dock"') < 0 &&
-        wxml.indexOf('class="checkout-sheet"') < 0,
+        wxml.indexOf('class="contact-sales-sheet"') < 0,
       label + " billing should keep the lightweight entitlement dashboard",
     );
   }
@@ -107,11 +107,13 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath, options) {
   );
   if (opts.expectPackages) {
     assert(
-      wxml.indexOf("小程序支付") >= 0 &&
-        wxml.indexOf("确认开通") >= 0 &&
+      wxml.indexOf("联系销售开通") >= 0 &&
+        wxml.indexOf("sales-contact-qr.png") >= 0 &&
+        js.indexOf("createBillingCheckout") < 0 &&
+        js.indexOf("requestPayment") < 0 &&
         js.indexOf("暂未开发") < 0 &&
         wxml.indexOf("暂未开发") < 0,
-      label + " billing should expose the compliant mini-program checkout path",
+      label + " billing should show the sales contact QR before any direct payment path",
     );
   } else {
     assert(

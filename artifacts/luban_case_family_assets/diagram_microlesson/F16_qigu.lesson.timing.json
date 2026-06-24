@@ -1,0 +1,214 @@
+{
+  "audio": "F16_qigu.lesson.mp3",
+  "totalSec": 140.885,
+  "teachEndSec": 90.017,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "常见丢分:只写'修补防水层'",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": "why_lose_points_html",
+      "claim": true,
+      "text": "屋面卷材起鼓,很多人答'修补防水层、加强处理'就丢分。修补不是盖层新卷材,是先治病因、再恢复防水闭合、最后检验。",
+      "startSec": 0,
+      "durSec": 13.564
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "先认病:气/水汽顶起卷材",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "steps[0].scoring_expression",
+      "claim": true,
+      "text": "先认病:卷材下面的气和水汽顶起来,形成鼓泡。答题先把'起鼓'这个病害对象说清楚,后面措施才有靶子。",
+      "startSec": 13.964,
+      "durSec": 11.346
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "cut",
+      "qaIndex": null,
+      "keycard": {
+        "text": "治因①  沿鼓泡割开放气",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "steps[1].scoring_expression",
+      "claim": true,
+      "text": "第一步治病因:沿鼓泡割个十字口,先放气。不放气直接盖新卷材,过几天还会再鼓。",
+      "startSec": 25.709,
+      "durSec": 8.991
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "dry",
+      "qaIndex": null,
+      "keycard": {
+        "text": "治因②  排气干燥 + 清基层(最易漏)",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "steps[2].scoring_expression",
+      "claim": true,
+      "text": "接着排尽气和水汽、让基层干燥,再清掉旧胶结料、补刷处理剂。这一步最多人漏,新卷材粘不粘牢全看它。",
+      "startSec": 35.1,
+      "durSec": 11.592
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "add",
+      "qaIndex": null,
+      "keycard": {
+        "text": "恢复①  附加层盖过病害边缘",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "steps[5].scoring_expression",
+      "claim": true,
+      "text": "恢复防水第一招:增铺附加层,要盖过原病害的边缘,把薄弱区整个包住,不是贴一小块补丁。",
+      "startSec": 47.092,
+      "durSec": 10.019
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "seal",
+      "qaIndex": null,
+      "keycard": {
+        "text": "恢复②  新卷材搭接封严",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "steps[6].scoring_expression",
+      "claim": true,
+      "text": "再铺新卷材:喷灯烘烤、分层剥开旧层,铺贴压实,和原防水层搭接,边缘和搭接缝都封严。防水闭合就在这。",
+      "startSec": 57.511,
+      "durSec": 12.258
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "检验  蓄水/淋水确认不渗漏",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "steps[7].scoring_expression",
+      "claim": true,
+      "text": "最后闭环:蓄水或淋水检验,确认不渗漏才验收。案例题常常就考你这最后一句。",
+      "startSec": 70.169,
+      "durSec": 8.481
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:放气·擦干·清除旧胶结料·喷灯烘烤·分层剥开·重贴新卷材",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[0].keywords",
+      "claim": true,
+      "text": "采分盯这几组词:放气、擦干、清除旧胶结料、喷灯烘烤、分层剥开、重贴新卷材。写到了就稳。",
+      "startSec": 79.05,
+      "durSec": 10.967
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,我写'割开排气、晾干后重新铺卷材',能拿分吗?",
+      "startSec": 90.418,
+      "durSec": 5.871
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "方向对,但漏了三处闭合:基层处理、附加层盖过边缘、搭接封严。阅卷看的是防水闭环有没有恢复,漏这层最可惜。",
+      "startSec": 96.688,
+      "durSec": 12.472
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那直接在鼓泡上加铺一层新卷材不行吗?省事。",
+      "startSec": 109.561,
+      "durSec": 4.582
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "顺序错了。底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥再铺。",
+      "startSec": 114.543,
+      "durSec": 10.473
+    },
+    {
+      "idx": 12,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "铺完新卷材就算修好了吧?",
+      "startSec": 125.417,
+      "durSec": 2.384
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[3].why",
+      "claim": true,
+      "text": "还差最后一步闭环:蓄水或淋水检验,确认不渗漏才验收。漏了它,案例题最后那分就丢了。等下用四道题试试你。",
+      "startSec": 128.2,
+      "durSec": 11.884
+    }
+  ]
+}

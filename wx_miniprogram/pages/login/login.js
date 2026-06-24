@@ -18,6 +18,13 @@ function canShowDebugCode() {
   );
 }
 
+function isPrivacyAuthInterruption(detail) {
+  var msg = String(
+    (detail && (detail.errMsg || detail.err_msg || detail.message)) || "",
+  ).toLowerCase();
+  return msg.indexOf("privacy") >= 0 || msg.indexOf("隐私") >= 0;
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -39,6 +46,9 @@ Page({
     activeHeroIndex: 0,
     subtitleTrackStyle: "",
     pageShellStyle: "",
+    privacyChecked: false,
+    privacyNeedAuthorization: false,
+    privacyContractName: "《用户隐私保护指引》",
     heroMessages: [
       {
         line1: "抓不住重点、越学越乱？",
@@ -92,6 +102,7 @@ Page({
         });
       return;
     }
+    this._refreshPrivacySetting();
   },
   onShow: function () {
     if (this._orbScene && !this._orbTimer) this._startOrbMotion();
@@ -115,6 +126,86 @@ Page({
   },
   onPasswordInput: function (e) {
     this.setData({ password: e.detail.value, errorMsg: "" });
+  },
+  _requestPrivacyAuthorization: function () {
+    var self = this;
+    if (typeof wx.requirePrivacyAuthorize !== "function") {
+      return Promise.resolve(true);
+    }
+    if (this._privacyAuthorizationRequest) {
+      return this._privacyAuthorizationRequest;
+    }
+    this._privacyAuthorizationRequest = new Promise(function (resolve) {
+      wx.requirePrivacyAuthorize({
+        success: function () {
+          resolve(true);
+        },
+        fail: function () {
+          resolve(false);
+        },
+        complete: function () {
+          self._privacyAuthorizationRequest = null;
+        },
+      });
+    });
+    return this._privacyAuthorizationRequest;
+  },
+  _refreshPrivacySetting: function () {
+    var self = this;
+    if (typeof wx.getPrivacySetting !== "function") {
+      self.setData({
+        privacyChecked: true,
+        privacyNeedAuthorization: false,
+      });
+      return;
+    }
+    wx.getPrivacySetting({
+      success: function (res) {
+        var needAuthorization = !!(res && res.needAuthorization);
+        self.setData({
+          privacyChecked: !needAuthorization,
+          privacyNeedAuthorization: needAuthorization,
+          privacyContractName:
+            (res && res.privacyContractName) || "《用户隐私保护指引》",
+        });
+      },
+    });
+  },
+  handlePrivacyCheckboxTap: function () {
+    var self = this;
+    if (self.data.wechatLoading || self.data.loading) return;
+    if (self.data.privacyChecked) {
+      self.setData({ privacyChecked: false });
+      return;
+    }
+    self._requestPrivacyAuthorization().then(function (ok) {
+      if (ok) {
+        self.setData({
+          privacyChecked: true,
+          privacyNeedAuthorization: false,
+          errorMsg: "",
+        });
+        return;
+      }
+      self.setData({
+        privacyChecked: false,
+        privacyNeedAuthorization: true,
+        errorMsg: "请先勾选同意用户隐私保护指引后继续",
+      });
+    });
+  },
+  handlePrivacyAgreementAuthorized: function () {
+    this.setData({
+      privacyChecked: true,
+      privacyNeedAuthorization: false,
+      errorMsg: "",
+    });
+  },
+  handlePrivacyRequiredTap: function () {
+    this.setData({ errorMsg: "请先勾选同意用户隐私保护指引后继续" });
+  },
+  openPrivacyGuide: function () {
+    wx.navigateTo({ url: "/pages/legal/terms" });
   },
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
@@ -325,9 +416,22 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
+    if (!self.data.privacyChecked) {
+      self.handlePrivacyRequiredTap();
+      return;
+    }
     var phoneCode =
       e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
+      if (isPrivacyAuthInterruption(e && e.detail)) {
+        self.setData({
+          privacyChecked: false,
+          privacyNeedAuthorization: true,
+          errorMsg: "请先勾选同意用户隐私保护指引后继续",
+        });
+        self._refreshPrivacySetting();
+        return;
+      }
       self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }

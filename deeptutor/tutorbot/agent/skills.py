@@ -261,7 +261,14 @@ class SkillsLoader:
                 for line in match.group(1).split("\n"):
                     if ":" in line:
                         key, value = line.split(":", 1)
-                        metadata[key.strip()] = value.strip().strip('"\'')
+                        raw = value.strip().strip('"\'')
+                        low = raw.lower()
+                        # Coerce YAML boolean literals so `always: false` is a
+                        # real bool, not the truthy string "false" (regression:
+                        # all always:false skills were force-injected per turn).
+                        metadata[key.strip()] = (
+                            True if low == "true" else False if low == "false" else raw
+                        )
                 return metadata
 
         return None

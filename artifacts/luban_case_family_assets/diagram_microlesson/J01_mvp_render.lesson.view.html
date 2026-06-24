@@ -1,0 +1,187 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>危大工程要不要专家论证 · 一分钟讲透两道闸</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+</style></head><body>
+<div class="wrap">
+  <p class="kicker">图解微课 · 老师带你看懂</p>
+  <h1>危大工程要不要专家论证 · 一分钟讲透两道闸</h1>
+  <p class="subtitle">video-first 动画:镜头从工地俯冲进基坑,顺着深度刻度往下走,两道闸依次亮起</p>
+  <div class="stagebox">
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 360 360" role="img" aria-label="基坑剖面教学动画">
+  <rect class="sky" x="0" y="0" width="360" height="56"/>
+  <rect class="earth" x="0" y="56" width="360" height="304"/>
+  <line class="ground" x1="0" y1="56" x2="360" y2="56"/>
+  <!-- 基坑 -->
+  <rect class="pit-fill" x="108" y="56" width="144" height="253.0"/>
+  <path class="pit-out" d="M108 56 L108 309.0 L252 309.0 L252 56"/>
+  <!-- 深度标尺 -->
+  <line class="ruler" x1="64" y1="56" x2="64" y2="309.0"/>
+  <line class="tick" x1="59" y1="56" x2="69" y2="56"/>
+  <text class="ticklbl" x="55" y="60" text-anchor="end">0</text>
+  <line class="tick" x1="59" y1="194" x2="69" y2="194"/>
+  <text class="ticklbl" x="55" y="198" text-anchor="end">3m</text>
+  <line class="tick" x1="59" y1="286" x2="69" y2="286"/>
+  <text class="ticklbl" x="55" y="290" text-anchor="end">5m</text>
+  <text class="ticklbl lbl55" x="55" y="313.0" text-anchor="end">5.5m</text>
+  <!-- 阈值线 3m -->
+  <line class="gline line3m" x1="64" y1="194" x2="320" y2="194"/>
+  <text class="glbl lbl3m" x="256" y="188">≥3m 危大</text>
+  <text class="glbl lbl3m" x="256" y="207" style="font-size:10.5px">编专项方案</text>
+  <text class="chk chk-danger" x="180" y="187" text-anchor="middle">✓ 过第一道闸</text>
+  <!-- 阈值线 5m -->
+  <line class="gline line5m" x1="64" y1="286" x2="320" y2="286"/>
+  <text class="glbl lbl5m" x="256" y="280">≥5m 超规模</text>
+  <text class="glbl lbl5m" x="256" y="299" style="font-size:10.5px">还要专家论证</text>
+  <text class="chk chk-scale" x="180" y="279" text-anchor="middle">✓ 过第二道闸</text>
+  <!-- 本题点 5.5m -->
+  <g class="mark">
+    <circle class="markdot" cx="180" cy="309.0" r="7"/>
+    <text class="marktxt" x="180" y="331.0" text-anchor="middle">本题 5.5m</text>
+  </g>
+</svg>
+      <div class="banner">两道闸全过 → 这个专项施工方案应当组织专家论证。</div>
+      <div class="chips"><span class="lbl">写到这几组采分词就稳:</span><span class="chip">基坑开挖深度</span><span class="chip">≥3m</span><span class="chip">危大工程</span><span class="chip">开挖深度≥5m</span><span class="chip">超过一定规模</span><span class="chip">专项施工方案</span><span class="chip">专家论证</span></div>
+    </div>
+  </div>
+  <div class="caption" id="caption"><span class="who">婷婷老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">美</div><div class="bubble">老师,我结论写对了,就答&#x27;需要专家论证&#x27;,不写那两个数,能拿分吗?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">婷</div><div class="bubble">这是最可惜的丢分。结论对,可阅卷老师看不出你是真会分档还是蒙对的。你得把判据写出来——五米五大于等于五米、属超过一定规模——这句写上,判断分才到手。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">美</div><div class="bubble">那要是基坑只挖三米五呢?也要论证吗?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">婷</div><div class="bubble">好问题,这正是出题人埋的中间档陷阱。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">美</div><div class="bubble">我老是把&#x27;编方案&#x27;和&#x27;要论证&#x27;搞混,怎么记?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">婷</div><div class="bubble">记一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下给你四道题,有基坑也有换工程的,试试你是真会分档还是背过的。</div></div></div>
+  <div class="boundary"><b>说明:</b>这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。<br>培训机构教研整理,非官方阅卷;判据为候选,未签发</div>
+</div>
+<div class="player">
+  <div class="inner">
+    
+    <div class="prow">
+      <button class="play" id="play" aria-label="播放">▶</button>
+      <button class="replay" id="replay" aria-label="重播">↺</button>
+      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+      </div>
+    </div>
+    <div class="dots" id="dots"><div class="dot" data-state="intro" data-t="0">引入</div><div class="dot" data-state="intro" data-t="12.268">引入</div><div class="dot" data-state="intro" data-t="26.933">引入</div><div class="dot" data-state="dig" data-t="37.608">挖深</div><div class="dot" data-state="gate3" data-t="50.122">3米</div><div class="dot" data-state="gate3" data-t="66.383">3米</div><div class="dot" data-state="gate5" data-t="74.978">5米</div><div class="dot" data-state="gate5" data-t="88.189">5米</div><div class="dot" data-state="conclude" data-t="97.812">结论</div><div class="dot" data-state="conclude" data-t="116.526">结论</div><div class="dot" data-state="conclude" data-t="124.012">结论</div><div class="dot" data-state="conclude" data-t="135.237">结论</div></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="J01_mvp_render.lesson.mp3"></audio>
+<script>
+const DATA={"totalSec": 207.665, "teachEndSec": 145.266, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "speaker": "T", "text": "先说个扎心的:案例题里'要不要专家论证'这一问,是个常客;明明都背过结论,真上了卷子却容易拿不全分。差在哪?", "startSec": 0, "durSec": 11.868}, {"idx": 1, "kind": "teach", "state": "intro", "qaIndex": null, "speaker": "T", "text": "差就差在:很多人直接写'需要专家论证'或者'编了方案就行',没写判据、也分不清两档,阅卷给不到判断分。拉开分差的,其实只有两个数。", "startSec": 12.268, "durSec": 14.265}, {"idx": 2, "kind": "teach", "state": "intro", "qaIndex": null, "speaker": "T", "text": "别急,这两个数一分钟左右就能记牢。镜头跟我往基坑里走,你看着深度尺,两道闸会一道一道亮起来。", "startSec": 26.933, "durSec": 10.275}, {"idx": 3, "kind": "teach", "state": "dig", "qaIndex": null, "speaker": "T", "text": "就拿这道题:基坑开挖深度五米五,专项施工方案已经编好,问这方案还要不要组织专家论证?咱们顺着深度尺往下推。", "startSec": 37.608, "durSec": 12.114}, {"idx": 4, "kind": "teach", "state": "gate3", "qaIndex": null, "speaker": "T", "text": "深度尺推到三米——第一道闸亮了。基坑开挖深度大于等于三米,就属于危险性较大的分部分项工程;注意,就算不到三米,地质复杂、周边有建筑,照样算危大。", "startSec": 50.122, "durSec": 15.86}, {"idx": 5, "kind": "teach", "state": "gate3", "qaIndex": null, "speaker": "T", "text": "过了第一道闸,就必须编专项施工方案。本题五米五,远超三米,第一道闸稳稳过。", "startSec": 66.383, "durSec": 8.196}, {"idx": 6, "kind": "teach", "state": "gate5", "qaIndex": null, "speaker": "T", "text": "镜头继续往下,到五米——第二道闸亮了。开挖深度大于等于五米,就升级成'超过一定规模'的危大工程。这才是决定要不要论证的那道闸。", "startSec": 74.978, "durSec": 12.811}, {"idx": 7, "kind": "teach", "state": "gate5", "qaIndex": null, "speaker": "T", "text": "到了这一档,专项方案就不能只编完了事,还得再组织专家论证。本题五米五,第二道闸也过了。", "startSec": 88.189, "durSec": 9.223}, {"idx": 8, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "镜头拉远——重点来了:这两道闸不只管基坑。换成模板支撑、脚手架,流程一模一样:先判危大、再判超规模。变的只是阈值数字,不变的是这两道闸。记结构,别死背基坑那两个数。", "startSec": 97.812, "durSec": 18.314}, {"idx": 9, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "两道闸全亮,结论很干脆:这个专项施工方案,应当组织专家论证。", "startSec": 116.526, "durSec": 7.086}, {"idx": 10, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "最后盯住采分词。先是第二道闸这两组:开挖深度大于等于五米、超过一定规模——这是判'要不要论证'的判据词。", "startSec": 124.012, "durSec": 10.825}, {"idx": 11, "kind": "teach", "state": "conclude", "qaIndex": null, "speaker": "T", "text": "再是结论这两组:专项施工方案、专家论证。判据词加结论词都写进卷子,判断分才真正到手。", "startSec": 135.237, "durSec": 10.029}, {"idx": 12, "kind": "q", "state": "conclude", "qaIndex": 0, "speaker": "S", "text": "老师,我结论写对了,就答'需要专家论证',不写那两个数,能拿分吗?", "startSec": 145.666, "durSec": 6.916}, {"idx": 13, "kind": "a", "state": "conclude", "qaIndex": 0, "speaker": "T", "text": "这是最可惜的丢分。结论对,可阅卷老师看不出你是真会分档还是蒙对的。你得把判据写出来——五米五大于等于五米、属超过一定规模——这句写上,判断分才到手。", "startSec": 152.982, "durSec": 15.579}, {"idx": 14, "kind": "q", "state": "conclude", "qaIndex": 1, "speaker": "S", "text": "那要是基坑只挖三米五呢?也要论证吗?", "startSec": 168.961, "durSec": 3.561}, {"idx": 15, "kind": "a", "state": "conclude", "qaIndex": 1, "speaker": "T", "text": "好问题,这正是出题人埋的中间档陷阱。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。", "startSec": 172.922, "durSec": 16.18}, {"idx": 16, "kind": "q", "state": "conclude", "qaIndex": 2, "speaker": "S", "text": "我老是把'编方案'和'要论证'搞混,怎么记?", "startSec": 189.502, "durSec": 3.746}, {"idx": 17, "kind": "a", "state": "conclude", "qaIndex": 2, "speaker": "T", "text": "记一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下给你四道题,有基坑也有换工程的,试试你是真会分档还是背过的。", "startSec": 193.648, "durSec": 13.217}], "teachDots": [{"state": "intro", "label": "引入", "startSec": 0}, {"state": "intro", "label": "引入", "startSec": 12.268}, {"state": "intro", "label": "引入", "startSec": 26.933}, {"state": "dig", "label": "挖深", "startSec": 37.608}, {"state": "gate3", "label": "3米", "startSec": 50.122}, {"state": "gate3", "label": "3米", "startSec": 66.383}, {"state": "gate5", "label": "5米", "startSec": 74.978}, {"state": "gate5", "label": "5米", "startSec": 88.189}, {"state": "conclude", "label": "结论", "startSec": 97.812}, {"state": "conclude", "label": "结论", "startSec": 116.526}, {"state": "conclude", "label": "结论", "startSec": 124.012}, {"state": "conclude", "label": "结论", "startSec": 135.237}], "teacherName": "婷婷老师"};
+const ORDER=["intro", "dig", "gate3", "gate5", "conclude"];
+const au=document.getElementById('au'),play=document.getElementById('play'),replay=document.getElementById('replay');
+const fill=document.getElementById('fill'),bar=document.getElementById('bar'),divider=document.getElementById('divider');
+const cur=document.getElementById('cur'),tot=document.getElementById('tot');
+const stage=document.getElementById('stage'),caption=document.getElementById('caption'),captxt=document.getElementById('captxt');
+const qa=document.getElementById('qa'),dots=[...document.querySelectorAll('.dot')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+
+let curState=null;
+function setStage(state){
+  if(state===curState)return;curState=state;
+  const i=ORDER.indexOf(state);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ');
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===state));
+}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){
+  document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;
+  const row=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(row){row.querySelector('.bubble').classList.add('on');row.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+au.addEventListener('timeupdate',()=>{
+  const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';
+  cur.textContent=fmt(t);
+  const s=segAt(t);if(!s)return;
+  setStage(s.state);
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();
+});
+au.addEventListener('ended',()=>{play.textContent='▶';});
+play.addEventListener('click',()=>{
+  if(au.paused){au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶ 试试';});}
+  else{au.pause();play.textContent='▶';}
+});
+replay.addEventListener('click',()=>{au.currentTime=0;qaShown=false;qa.classList.remove('show');au.play().then(()=>play.textContent='⏸').catch(()=>{});});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;au.play().then(()=>play.textContent='⏸').catch(()=>{});}));
+setStage('intro');
+</script>
+</body></html>

@@ -51,3 +51,15 @@ def test_turn_observation_event_keeps_release_spine() -> None:
 
     assert event["release"]["release_id"] == "rel-1"
     assert event["release"]["git_sha"] == "abc"
+
+
+def test_turn_observation_event_marks_shadow_turns_as_test_only() -> None:
+    event = build_turn_observation_event(
+        session_id="session_general_knowledge_shadow",
+        turn_id="turn-shadow",
+        surface="online_shadow",
+    )
+
+    assert event["observation_cohort"] == "synthetic"
+    assert event["synthetic"] is True
+    assert event["test_only"] is True

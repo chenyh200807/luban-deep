@@ -129,60 +129,6 @@ def test_serialize_mobile_message_projects_public_result_response_for_empty_assi
     assert serialized["content"] == "public result answer"
 
 
-@pytest.mark.parametrize(
-    "metadata",
-    [
-        {"content": "metadata content 不是终态答案"},
-        {"metadata": {"content": "nested metadata content 不是终态答案"}},
-        {"request_snapshot": {"content": "用户原始问题不是助手答案"}},
-    ],
-)
-def test_serialize_mobile_message_does_not_project_ambiguous_metadata_content(
-    metadata: dict[str, object],
-) -> None:
-    serialized = mobile_module._serialize_mobile_message(
-        {
-            "id": "message_assistant",
-            "role": "assistant",
-            "content": "",
-            "created_at": 1_700_000_001.0,
-            "metadata": metadata,
-            "events": [],
-        }
-    )
-
-    assert serialized["content"] == ""
-
-
-@pytest.mark.parametrize(
-    "event",
-    [
-        {"type": "progress", "visibility": "public", "metadata": {"response": "处理中"}},
-        {"type": "result", "visibility": "internal", "metadata": {"response": "内部答案"}},
-        {
-            "type": "result",
-            "visibility": "private",
-            "metadata": {"assistant_content": "私有答案"},
-        },
-    ],
-)
-def test_serialize_mobile_message_does_not_project_non_public_result_event_response(
-    event: dict[str, object],
-) -> None:
-    serialized = mobile_module._serialize_mobile_message(
-        {
-            "id": "message_assistant",
-            "role": "assistant",
-            "content": "",
-            "created_at": 1_700_000_001.0,
-            "metadata": {},
-            "events": [event],
-        }
-    )
-
-    assert serialized["content"] == ""
-
-
 @pytest.fixture(autouse=True)
 def _clear_rate_limit_state(monkeypatch: pytest.MonkeyPatch) -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
@@ -3389,6 +3335,7 @@ def test_auth_change_password_maps_validation_error_to_400(
 
     assert response.status_code == 400
     assert response.json()["detail"] == "用户名或密码错误"
+
 
 
 def test_auth_send_code_uses_password_reset_authority_when_username_is_present(

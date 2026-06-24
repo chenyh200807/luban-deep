@@ -417,3 +417,51 @@ def test_lightweight_anchor_rejects_off_topic_rag_hit() -> None:
         },
     )
     assert on_topic.get("reference_question") == "下列哪一项属于法律？"  # kept
+
+
+def test_construction_scope_gate_allows_intra_jianzao_subjects() -> None:
+    # 科目门反转 regression(用户从生产 trace 报):市政/机电/沟槽开挖等一建他科或
+    # 建筑工程白名单漏词,过去走 unknown_topic 被 coordinator 误 block;现在 coordinator
+    # 用 practice_generation_topic_block_decision,只 out_of_scope 才 block,一建范畴一律
+    # 放行(他科走通用 LLM 出题 + 非专项标注),真正非考试越界仍 block。
+    from deeptutor.tutorbot.teaching_modes import (
+        practice_generation_topic_block_decision,
+        practice_generation_topic_domain_status,
+    )
+
+    for topic in (
+        "给我出一道市政公用工程实务的单选题",
+        "那就考点给我出一道关于沟槽开挖与支护的单选题吧",
+        "给我出一道机电工程的题",
+        "给我出一道公路工程的题",
+    ):
+        status = practice_generation_topic_domain_status(topic)
+        assert (
+            practice_generation_topic_block_decision(status) == "allow"
+        ), f"intra-jianzao topic wrongly blocked at coordinator gate: {topic} -> {status}"
+
+    blocked = practice_generation_topic_domain_status("法国首都是哪")
+    assert practice_generation_topic_block_decision(blocked) == "block_out_of_scope"
+
+
+def test_generated_questions_construction_scope_gate() -> None:
+    # 出口科目门(owner=只建筑):生成题 ground 建筑→放行;全跑偏(汉字/外国常识)→诚实拒答。
+    from deeptutor.agents.question.coordinator import AgentCoordinator
+
+    jianzhu = [{"qa_pair": {"concentration": "基坑支护", "question": "深基坑开挖与支护下列说法正确的是"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], jianzhu) is True
+
+    # LLM 跑偏出的语文/汉字题(用户真实 case:市政→"你好"情境题)→ 出 scope,拒答
+    hanzi = [{"qa_pair": {"concentration": "汉语日常交流", "question": "“你好”最常被用于哪种情境"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], hanzi) is False
+
+    # 外国地理常识跑偏 → 出 scope
+    paris = [{"qa_pair": {"concentration": "世界地理", "question": "法国的首都是哪座城市"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], paris) is False
+
+    # 至少一道建筑题即放行(混合时不误杀建筑题)
+    mixed = hanzi + jianzhu
+    assert AgentCoordinator._generated_questions_in_construction_scope([], mixed) is True
+
+    # 无题面可判 → 不拦(避免空判误拒)
+    assert AgentCoordinator._generated_questions_in_construction_scope([], []) is True

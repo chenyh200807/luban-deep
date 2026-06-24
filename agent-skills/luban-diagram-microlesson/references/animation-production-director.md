@@ -2,6 +2,7 @@
 
 > 目标:把母题引擎的数据资产变成手机端可学习、可闯关、可看穿的高质量动画交互内容。
 > 本文件是 `luban-diagram-microlesson` 的动画量产导演层。它不新增内容权威,只规定如何把母题引擎的权威数据投射成讲解动画、白板运镜、练习和反馈。
+> 配套必读:`video-first-pressure-tests.md` 用来跨原型压测,`anti-patterns.md` 用来对照已踩坑。入口 `SKILL.md` 只负责路由,本文件才是 video-first 细则。
 
 ## 0. 第一原则:母题引擎是内容权威
 
@@ -31,6 +32,18 @@
 3. `这一段动画要改变什么`:纠正一个错觉、建立一个判据链、演示一次计算、暴露一个丢分点,还是训练一句采分表达?
 4. `看完立刻考什么`:每条动效后面对应哪道练习或输出题?没有练习落点的动效要删。
 
+### 1.1 decision-first 优先级
+
+如果考点的核心动作是"判断能不能 / 属不属于 / 要不要 / 该不该放行",不要默认做成看完视频再做题。先判断它是不是 `decision-first`:
+
+- **适用**:`decision_branch_reveal`、安全放行、验收判断、危大分档、合同/索赔成立、事故等级等。
+- **首屏**:先给最小判断题,如"现在能不能正式吊?",学生先点一个立场。
+- **反馈**:立刻说明错在对象/时点/阈值/要件/边界哪一道门,再进入动画白板纠错。
+- **舞台**:竖屏上半屏是可操作图/判断树,下半屏是选项和反馈;横屏左侧大图,右侧教练反馈和采分原子。
+- **视频角色**:动画/音频只是教练解释和复看材料,不是主路径本身。学生不用全屏也应能完成核心判断。
+
+`video-first` 适合计算推演、构造演示、流程揭示;`decision-first` 适合判断题。不要因为 N01 样板成功,把所有考点都包装成视频播放器。
+
 ## 2. 6+1 表现原型:按认知结构选,不按章节选
 
 选择原型的标准是"学生卡在哪一步",不是它属于哪一章。
@@ -57,6 +70,27 @@
 4. `variants` / `quiz`:读题目梯度和 basis_ref。
 5. `misconception` / common_errors:抽学生语言,做错法和干扰项。
 
+### 3.1.1 source_card 教学脊柱
+
+从成品 Deep Pack 到动画,中间必须有一层 `source_card` 教学脊柱,不能直接让 lesson 自由改写 MD。
+
+最小字段:
+
+- `source_refs.pack_markdown`:必须指向 `docs/原始数据/考点原料/成品/<ID>_*.md`。
+- `main_exam_action`:本卡最终训练的考试动作,如"取数分档 → 构造稳定 → 验收放行"。
+- `wrong_idea`:学生最常见的错误直觉。
+- `teaching_spine[]`:5-8 步,每步包含 `state`、`anchor_md`、`visual_fact`、`bridge_from_previous`、`answer_move`。
+
+`lesson.json` 只能围绕这条 spine 写 opening、beats、qa 和 closing。每个 beat 必须写:
+
+- `bridge`:它如何接住上一幕。
+- `exam_task`:这一幕在考场解决什么。
+- `visual_explanation`:画面要解释的对象/关系/动作。
+- `answer_move`:最后如何变成答题纸动作。
+- `scene_visual_brief`:先引用本 beat 的旁白句或 `exam_task`,再写学生必须看见的领域对象、对象如何进入/移动/分层/命中/淘汰/trace/扫描/退出,以及本幕为什么不能沿用上一幕同一套图。
+
+这层合同由 `validate_lesson_source_workflow.mjs` 执行;不过门不配音、不生成 IR。
+
 ### 3.2 输出资产必须保留的 lineage
 
 每个动画项目至少生成或维护:
@@ -66,6 +100,14 @@
 - Remotion/HTML 渲染源:只读 lesson/master/card 数据。
 - `*.practice.html` 或 journey 练习幕:题目来自 variants/quiz。
 - 截图/验收记录:首屏、关键运镜、练习、结果页。
+- `validate_animation_ir_contract.mjs` 输出:证明 archetype 已映射到必需非文本图元,且 HTML preview renderer 与 Remotion renderer 都覆盖 IR 中出现的每一种 primitive。
+- `visual_excellence_profile` 输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,必须说明它采用哪种顶尖视觉解析范式。参考标准不是“配色像某张图”,而是工程对象可测量、阈值线可对照、危大/超规模或错/对状态被动画击中、底部规则卡能把视觉结论压成可写答案。缺 profile 的候选卡必须退回结构草稿。
+- 主图支配输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,contract gate 必须记录 `dominant_visual_teaching_scene_count` 达标。这个字段证明主讲画面由工程对象图主导,不是把小图元贴在文字讲稿旁边。
+- `capture_remotion_ir_review_stills.mjs` 输出:当卡片声明为 `workflow_candidate` 或 `student_ready` 时,Remotion still manifest 必须覆盖 `render_contract.remotion_review_scene_ids`,并给出 `quality_gate.required=true/pass=true/flags=[]`。HTML preview 好看但 Remotion still 大空白、图文断裂或文字压力过高,不能晋级。
+- `build_workflow_review_packet.mjs` 输出:把 IR summary、HTML/手机截图墙 manifest、Remotion still manifest、gate、issue/root-cause triage 放到同一个 blocking packet。packet 不是装饰文档,它是晋级证据。
+- `validate_workflow_promotions.mjs` 输出:当卡被写入 batch manifest 的 `promoted` 时,必须证明 `promotion_authority`、`preserved_by_batch=true`、workflow packet、IR quality status 和 Remotion quality gate 一致。
+- `validate_video_first_preview.mjs` 输出:证明普通态 responsive learning stage、横屏/宽屏适配、全屏/theater、章节、拖动进度、独立练习、student-safe 和练习闭环没有明显破约。
+- `validate_learning_stage_runtime.mjs` 输出:用真实浏览器视口证明竖屏首屏、竖屏播放、横屏播放、桌面宽屏和 theater 控制层没有塌陷、遮挡、窄竖条或横向溢出。
 
 ### 3.3 禁止的漂移
 
@@ -87,13 +129,40 @@
 5. **采分表达**:把图、判据、工序落成能写到答题纸上的一句话。
 6. **答疑/迁移铺垫**:模拟学生问真正会卡住的问题;老师补齐边界和迁移条件。
 7. **闯关桥接**:明确告诉学生"现在换个数/换个工程/换个表达,看你是不是真会"。
+8. **收尾回扣**:最后用 8-15 秒把本卡的考试动作再说一遍,并自然把主行动交给闯关。
+
+### 4.1.1 叙事骨架:一条线从头贯到尾
+
+不要把开场、主讲、答疑、收尾写成四段互不相干的文案。每张动画先定义一个**考试动作主线**,所有段落都服务它:
+
+| 段落 | 任务 | N01 样板做法 | 通用写法 |
+|---|---|---|---|
+| hook | 告诉学生为什么值得学 | 考场要交"路径、总工期、判断依据"三件套 | "这类题不是考定义,是要你交出 X、Y、Z" |
+| trap | 抓最常见错觉 | "C 最长,所以关键线路是 C" | "很多人第一眼会把 A 当答案,但它错在对象/条件/边界" |
+| model | 建正确判断动作 | 关键线路是一条 0 总时差连续链 | "正确做法不是背词,而是先找 A,再看 B,最后写 C" |
+| worked | 现场推一遍 | 顺推、逆推、看总时差 | "我们只练一个动作:把图/条件/做法翻译成采分句" |
+| score | 落答题纸 | 路径 + 总工期 + 判断依据 | "考试不要只写结论,要把依据一并写出来" |
+| qa | 处理真困惑 | 最长工作、路径相加、总/自由时差 | "学生会卡的边界,放到主讲后集中答" |
+| closing | 回扣并切闯关 | 别背关键线路,把图翻译成三件套 | "收个尾:下次遇到这类题,只做这 N 步;现在闯关验证" |
+
+**技巧**:
+
+- 开场提出的词,结尾必须再出现一次,形成闭环。
+- 旁白里的关键词要可视化:如果画面里没有"路径/工期/依据",旁白就不要把它当主线。
+- 每一段只推进一个判断动作。N01 里"读箭线""顺推""逆推""看总时差""写采分句"是五个动作,不能混成一段长讲解。
+- 学生声只问真会卡的问题,不负责捧哏、不重复老师结论。
 
 ### 4.2 教师与学生声音
 
-- 老师:稳定、短句、像考前点拨,优先讲判断动作和采分句。
-- 学生:只在讲完主线后出现,负责提出真实困惑,不要打断主讲。
-- TTS 推荐:老师 `longanhuan_v3`,学生 `longniuniu_v3`。音频离线生成,运行时只播放。
+- 老师:稳定、短句、像考前点拨,优先讲判断动作和采分句;可以自然加入"注意哈/这里别急哈/记住哈",但不能每句机械重复。
+- 学生:东北男孩追问口吻,只问真会卡的问题,不要捧哏、不要复述老师结论、不要打断主讲。句子要比书面问答更像真人临场追问,但不要变成方言表演。
+- TTS 推荐:老师 `longanhuan_v3`(龙安欢 V3);学生追问默认且优先用 `longlaotie_v3`(龙老铁)。除非用户明确指定,不要混用其他学生音色。音频离线生成,运行时只播放。
 - 每句旁白 8-18 秒为宜;超过 20 秒必须拆 beat。
+- 总时长以讲清楚为准,不是越短越好。复杂构造、判断链或计算链允许 2-5 分钟;5 分钟以内都可接受。压缩到 90-120 秒但学生听不懂,视为失败。
+- 结构红线:老师主讲必须先完整建立模型;学生问答集中放在后置 `qa[]`,至少三问三答,每问对应真实卡点。不要把学生问题塞进 `teach.beats[]`,否则主线会碎。
+- 学生口语写法:优先用短句和真实困惑,如"老师,我这么写能拿分不?""那我直接这么干行不行?""这块是不是就卡在这个数上?""整明白了,但考试里要不要把依据也写上?"。每个问题只保留 1-2 个口语标记;对象、阈值、依据、采分边界必须清楚。
+- 学生口语禁区:不要密集堆"整/老铁/嘎哈/贼/嗷"等口头禅,不要把学生写成捧哏,不要用夸张方言替代考试表达,不要让口语盖过问题本身。
+- 口癖红线:口语词只用于开场抓人、结尾回扣或学生真实追问,不是每个 beat 的句尾装饰。超过两处就会显得机械,应优先删。
 
 ### 4.3 旁白红线
 
@@ -101,6 +170,21 @@
 - 不用泛励志,只解释为什么能多拿分。
 - 不把候选采分点说成官方阅卷。
 - 不让画面只跟着字幕走;旁白每说一个关键动作,画面必须有对应变化。
+- 不在答疑后突然结束;没有 closing 段就不算完成。
+- 不让收尾变成泛鼓励;收尾必须回扣本卡的考试动作和下一步闯关。
+- 不用内部编号或制作黑话解释题意。学生端不能听到"A02 不是让你..."、"这个 pack/source_card/IR scene..."这类句子;`A02/P40/F16/J01` 只允许做制作追溯 id。老师开场必须展开成真实考试任务,如"这类案例题问的是材料进场前怎么验收、哪些材料要复验、隐蔽工程覆盖前要留什么记录"。
+
+### 4.4 讲解中即时答疑
+
+学生看动画时的问题通常不是"整章不会",而是"当前这个画面为什么这么判"。因此答疑入口必须贴着当前 beat,但不能把动画页改造成第二套 TutorBot。
+
+标准做法:
+
+1. 播放中提供轻量 `Ask AI` 入口;点击后暂停讲解,打开 bottom sheet/side sheet。
+2. 自动打包上下文:`context_id`、当前 `scene/focus/keycard/coach`、当前字幕、`main_exam_action`、safe summary、key points。
+3. 静态 preview 可以复制上下文或 `postMessage` 给宿主;小程序正式态由宿主跳 TutorBot,后端按 `context_id` 取完整母题 MD/variants/source。
+4. 学生端 HTML 不注入 raw MD、source path、candidate、E-code、采分点内部 id。答疑质量靠后端 fat skill + 母题 authority,不是靠静态页多塞资料。
+5. 回答后最好支持"回到刚才时间点继续",否则问答会打断学习节奏。
 
 ## 5. 视觉与运镜:像老师导演注意力
 
@@ -134,7 +218,7 @@
 - 75-105 秒:采分表达 + 边界/迁移。
 - 105 秒后:答疑桥接和进入闯关。
 
-不是所有视频都必须 120 秒;原则是"讲到能做题为止",不要为了完整讲义拖长。
+不是所有视频都必须 120 秒。原则是"讲到能做题为止":一个知识点如果需要 3-5 分钟才能把因果、图示和采分句讲清楚,就给足时间;但每 6-10 秒仍必须有清晰的视觉动作或镜头焦点变化,不能把长时长变成长口播。
 
 ### 5.4 顶流视觉判断
 
@@ -146,7 +230,115 @@
 
 如果第一眼看到的是一堆卡片、一大片空白、过大的箭头、装饰性渐变,返工。
 
+### 5.5 运镜方法:用镜头替学生筛注意力
+
+N01 的关键提升不是"更花",而是镜头开始替学生判断该看哪里。后续量产按这套方法拆镜:
+
+1. **先定焦点层级**:每一帧只允许一个第一焦点、一个第二焦点、一个背景层。第一焦点=当前判断对象;第二焦点=依据;背景层只保留上下文。
+2. **先遮再亮**:重要信息出现前,先让非重点降噪或暗化。直接把全部信息摊出来,学生会自己乱找。
+3. **推近不是慢慢放大**:push-in 要有明确落点和时间窗。通常 12-18 帧完成主要推近,再停住给旁白落词;不要 3 秒缓慢漂移。
+4. **trace 表示逻辑,不是装饰线**:路径、流程、判断链用线条生长;线条必须沿真实依赖/空间/工序走,不能只画漂亮箭头。
+5. **freeze-frame 打断错觉**:学生最容易错的瞬间暂停 0.4-0.8 秒,给红叉/问号/反证句,再进入正确模型。
+6. **答题纸是最终镜头**:讲解不是以图结束,而是以"图如何写成分"结束。最后必须出现答题纸/采分格/关键词扫光。
+7. **每 6-10 秒要有视觉状态变化**:不是每 6 秒换页,而是焦点、遮罩、线条、板书、场景或卡片至少有一个发生教学相关变化。
+
+### 5.6 场景编排:多页面但不碎片化
+
+不要把"多点页面"理解成幻灯片堆叠。场景切换要服从认知阶段:
+
+- `hook scene`:展示考试任务和收益,少放细节。
+- `trap scene`:只让错误对象变大,给学生一个"我也会这样想"的入口。
+- `model scene`:建立正确结构,隐藏暂时无关的信息。
+- `worked scene`:逐步推演,允许信息密度上升。
+- `score scene`:把视觉结果转成答题纸。
+- `qa/closing scene`:收束主线,不要再引入新的复杂图。
+
+技巧:切场景前先问"这一屏要学生形成哪一句话?"如果没有一句话,这屏删掉。
+
+### 5.7 逐句作图:不要一套模板图贯穿多数页面
+
+每个主讲 scene 的主图必须从当前文案和采分动作重新推导,不能拿同一套四个图标/流程框/判断树外形贯穿整张卡,只改标题和标签。
+
+标准做法:
+
+1. 先读当前 beat 的 `bridge/exam_task/visual_explanation/answer_move` 和旁白句。
+2. 写出本句要学生看见的领域对象:工程对象、现场对象、资金对象或图结构对象。
+3. 写出对象状态变化:进入、移动、分层、命中、淘汰、trace、扫描、退出。
+4. 写出与上一幕/下一幕的差异:对象组合不同,或同一对象发生了肉眼可见的状态变化。
+5. 进入 IR 时,让 `visual_library` 和 `actions[]` 承载这些差异;renderer 只负责确定性渲染,不得把未知 primitive 降级成文字框。
+
+失败判定:
+
+- 同一个 `process_flow`、四图组合、判断树外形或答题纸外形连续复用超过 2 个主讲 scene,但只换文字,按"模板图贯穿伪动画"失败。
+- 主讲 4 个以上 scene 看不到不同领域对象或不同对象状态,即使有动画淡入淡出,也按"文字口播 + 背景图"失败。
+- 画面里的对象与旁白句无关,或学生不看图也能完全听懂,说明图没有承担教学解释,必须回到 storyboard 重画。
+
 ## 6. Remotion / HTML 实现纪律
+
+### 6.0 OpenMAIC-style IR 分工
+
+稳定不靠锁死 AI,而靠分工:
+
+- AI/专家组负责产结构化中间表示:每个 beat/scene 明确 `scene/focus/enter/hold/exit/layout/camera/visible_nodes/keycard/coach`。
+- renderer 只做确定性渲染:纯 switch/组件映射,不让自由 HTML、CSS class 累积或上一次播放状态决定下一屏。
+- 预览和正式成片共用同一份 IR:HTML renderer 用来快速评审手机交互;Remotion renderer 用来正式成片,不得另写一份 storyboard。
+- gate 证明 scene 生命周期:当前屏 visible nodes 有上限、只有一个 active scene、只有一个 keycard、theater 仍有闯关入口、无 `reached-*` 累积。
+
+2026-06-20 复盘:只做到 `scene` 级 storyboard 仍然会像幻灯片。OpenMAIC 更成熟的做法是 `actions` 级 playback:
+
+- `scene` 只定义这一页的认知边界、布局和可用图元。
+- `actions[]` 才定义动画和教学节奏:reveal 哪个 `data-id`、highlight 哪个对象、camera 推近哪里、哪个 keycard 进入/退出、字幕/旁白对应哪段。
+- renderer 必须串行消费 action 队列,每次 action 结束要么进入 hold,要么明确 exit;不要让旧 keycard、旧标注、旧节点继续占屏。
+- 旁白 timing 的 `state` 必须一一命中 IR scene id。`qa[]` 应显式给 `state`(如 `qa_boundary`),`closing` 应显式给 `state`(如 `closing_challenge`)。不要让生成器默认 state 和 IR scene 名靠人工猜,否则字幕、scene 和章节会错位。
+- HTML preview 可以用 JS/CSS 模拟 action playback 供手机评审;正式 Remotion 必须用同一份 action IR 和 `useCurrentFrame()` 重放,不能另起一套视觉脚本。
+- topic Remotion 文件必须是 thin wrapper:只导入该卡 `animation_ir.v0.json` / `timing.json`,再传给通用 `AnimationIrRenderer`。不得在 topic wrapper 里再写一份 F16/N01/A01 的视觉逻辑。
+- 通用 renderer 才能持有图元/action switch。要新增表现力,优先扩 `visual_library` schema、primitive kind、action kind 和对应 gate;不要在单卡文件里分叉。
+- `validate_animation_ir_contract.mjs` 是渲染前硬门:scene/action/visual_library/data-id/Remotion 同源先过,再允许 HTML preview 或 Remotion still。前置 gate 的目的就是把 unsupported primitive、selector 漂移、Remotion 没吃 IR 这类问题挡在肉眼 UI 评审之前。
+- gate 不能只查页面存在。至少抽样 scene 中段,证明当前 scene 有节点被 action/progressive reveal 显示、字幕非空、keycard 不累积、theater 控制层默认隐藏且点击浮出。
+- gate 还必须查真实手机壳:360/390/430 竖屏 + 844/932 横屏、播放器不遮挡主图/字幕/教练卡/CTA、触控 >=44px、字幕 `aria-live`、按钮 `aria-pressed`、采分句前 CTA locked、采分句后 CTA enabled、seek 回旧 scene 时不残留旧节点。
+- gate 必须查 **archetype visual coverage**:6+1 原型不能只变成标题、旁白或 `pill` 文字卡。`render_contract.archetype_visual_required` 是渲染前硬合同;缺字段、字段不等于 canonical primitive 集合、或 `visual_library` 未命中对应 primitive,都必须 FAIL。HTML renderer 和 Remotion 通用 renderer 还必须同时支持 IR 用到的每个 primitive;任一侧缺分支都 FAIL,未知 primitive 不能 fallback 成文本框,否则禁止把 HTML 预览 PASS 当成正式同源。
+- gate 还必须查 **diagrammatic teaching scenes**:`hook / map / rule / trap / score` 这些主讲场景不能大部分是文字容器。量产默认 5/5 主讲场景都要有非文字图元;至少不得低于 `render_contract.min_diagrammatic_teaching_scenes`。`score` 不是文字总结页,必须是 answer-paper / answer_scan / 采分诊断图,把图示结果转成能写上答题纸的采分句。否则就是“有图元的文字卡”,必须在渲染前失败。
+- gate 还必须查 **primitive internal animation**:有图元不等于有动画。可动画 primitive 必须把知识动作做在图元内部,而不是整块图淡入。推荐语法:
+  - `process_flow`:路径线 trace 生长,节点按工序逐个 reveal。
+  - `layer_stack` / `roof_section`:基层、找平层、防水层、保护层逐层显现或爆炸。
+  - `network_graph` / `formula_chain`:依赖边/计算口径逐段 trace,节点/公式块随旁白进入。
+  - `decision_tree`:根条件先出现,分支逐个展开,淘汰分支降噪,命中分支高亮。
+  - `contrast_pair`:先展示错法,再引入正确做法,最后叠加错因/采分差异。
+  - `answer_scan`:答案行逐句扫光,hit/partial/miss 逐行出现。
+  - `memory_table`:属于(七)数值/记忆,默认少动或不动画化。
+  HTML preview 要输出 `data-primitive-step`;Remotion 通用 renderer 要用 `PrimitiveStep`;contract gate 看到上述 primitive 时必须检查两端内部动画能力。没有这层,就算 5/5 主讲场景都有图,也只是“静态图伪动画”。
+
+这条是 60 卡量产底线:任何"画面乱/叠加/比例一变就坏/像翻页/字幕丢失/控制条占屏"的问题,优先升级 IR、renderer、gate 或本导演手册;不要只改某一张卡的 CSS。
+
+### 6.1 单卡质量闭环优先
+
+批量生成器只允许做 internal coarse draft。它可以帮我们快速暴露缺数据、缺 primitive、renderer 分支不全、gate 漏洞,但不能承担“精品动画教案”的职责。原因很简单:从 Markdown 表格抽词再套通用图元,天然容易退化成文字解释卡;这种卡即使通过 `diagrammatic_teaching_scene` 也可能没有真正帮助学生看懂。
+
+精品卡默认按一张一张做:
+
+1. 先选一个考点,读母题数据和原始 MD,冻结事实与采分句。
+2. 先判断它属于 6+1 哪种认知结构,产出 `visual_archetype_decision` 后再选对应图示语法,不要从已有卡外形复制。`pure_text_allowed` 默认 false;除(七)数值/记忆外,安全/合同/组织/质量管理类也必须转成判断树、资金链、现场图、失稳链、诊断图或答题纸扫描。
+3. 写 teaching spine 和 5-8 个 beat,每个 beat 只允许一个主图示动作,一小句字幕/旁白,并写清上一屏哪些元素退出。
+4. IR 里主视觉必须用图示 primitive 解释动作:剖面、流程、判断树、网络、对照、答题纸扫描;文字框只做提示,不能当主讲。
+5. 跑 contract/preview gate 后,必须截手机 390 竖屏、至少一个横屏、用户反馈比例。人工看三件事:第一眼是不是当前对象,第二眼是不是依据,第三眼是不是答案动作。
+6. 未通过就只回炉当前卡和对应 primitive/gate,不要继续下一张;通过后再沉淀成可复用 fixture 或生成器规则。
+
+批量索引、manifest 或 report 必须显式标 `coarse_draft_requires_single_card_review` / `student_ready=false`。任何把批量 PASS 汇报成“40 张完成”的结论,都按 false progress 处理。
+
+例外只有一种:某张卡已经通过 workflow packet PASS、HTML/手机截图墙、Remotion still quality gate 和 `validate_workflow_promotions.mjs`,才允许在 batch manifest 中标 `quality_status=workflow_candidate` 并写 `promotion_authority`。这类卡必须 `preserved_by_batch=true`;后续批量生成器只能保留,不得重新生成粗糙 IR 把图示样板覆盖掉。
+
+F16 这类工序/构造型卡的默认拆法:
+
+1. `hook`:先打错觉,告诉学生为什么这题不是"补一层"。
+2. `disease`:剖面认病因,气/水汽顶起卷材。
+3. `cut`:割开放气,打掉直接加铺错觉。
+4. `dry`:排气干燥、清基层/旧胶。
+5. `add/seal`:附加层盖过边缘、新卷材搭接封严。
+6. `test`:蓄水/淋水检验。
+7. `score`:答题纸采分句。
+8. `closing`:收束主线并切闯关。
+
+每一屏都要回答一句话:"这一屏结束时,学生应该形成哪一句可写进答题纸/判断题的表达?"答不上来就删屏或合并屏。
 
 ### 6.1 Remotion
 
@@ -155,6 +347,7 @@
 - 进入动效优先 `Easing.bezier(0.16,1,0.3,1)`,退出用 `Easing.in(Easing.cubic)`。
 - 不用 CSS animation / transition 做 Remotion 内动画。
 - 关键帧必须可 still render:hook、误区、主推演、采分句、答疑/收尾。
+- 预览阶段默认只做 still render/截图/HTML gate,不生成 MP4。只有正式成片、音画同步、缓存验证或用户明确要视频文件时才 `remotion render`。
 
 ### 6.2 HTML 交互壳
 
@@ -162,6 +355,29 @@
 - 视频首屏用 poster;中心播放按钮;`playsinline`。
 - 练习页手机优先,底部固定上一题/下一题,未答不能跳。
 - 题目图用 deterministic SVG,不是截图糊上去。
+
+### 6.2.1 手机全屏播放器 UX
+
+手机端不要把网页整体放大成"全屏"。全屏模式只服务视频学习:
+
+- 全屏默认只显示视频内容,隐藏页面标题、卡片、普通按钮。
+- 普通窗口里的学习舞台必须是 `orientation-adaptive` 响应式容器,不是固定 9:16 竖屏容器。竖屏手机可用接近 9:16/4:5 的主舞台;横屏、桌面、宽容器必须改成两栏/侧栏/overlay/bottom sheet,扩大有效教学画面,避免外层大框套小竖片。全屏/theater 再覆盖为 `width:100%; height:100%; aspect-ratio:auto`。
+- 全屏必须同时有 CSS theater fallback 和浏览器 Fullscreen API 尝试;Safari/web-view 不支持时,至少保证页面内 theater 形态像播放器,不是滚动网页。
+- 点击屏幕才浮出控制层;控制层包括播放/暂停、静音、退出、可拖动进度条和章节跳转。
+- 控制层出现时,必须给视频内容预留底部空间,不能遮住字幕、讲解卡、收尾卡或采分句;如果空间不足,临时隐藏 caption/coach,auto-hide 后恢复。
+- 进度条必须能拖动;拖动时画面和字幕同步跳到对应时间。
+- 章节节点不要只写 `1/2/3`。用学习阶段短标签,如"先学/错觉/读图/顺推/逆推/时差/线路/采分"。
+- 如果按钮很多,优先保留播放器基本动作;视觉说明文字放进 tooltip/aria,不要塞满屏幕。
+- 重新生成 mp4/poster/mp3 后,HTML 资源引用带 mtime/hash 版本参数,避免 Safari/web-view 播旧缓存。
+- `.visual` 只承载确定性 SVG/图元和 camera transform;字幕是 stage overlay/live region,不要 append 到 `.visual` 里跟着运镜缩放。
+- player 高度必须运行时测量并驱动 CSS 变量,不要在正文或 theater inset 写死 magic number。
+- 普通页不要重复多个强 CTA。默认底部主行动负责闯关,由 timing/scene 派生 `challengeUnlockSec`;采分句前 locked,采分句后 enabled。
+
+### 6.2.2 播放结束状态
+
+- 视频 `ended` 后主按钮变成"开始闯关"。
+- 播放按钮仍可回看,但不能比闯关更强。
+- closing 旁白结束和 CTA 切换要自然衔接;不要靠突然跳页制造完成感。
 
 ### 6.3 文件命名
 
@@ -171,6 +387,48 @@
 - `<topic>.poster.png`:首屏 poster。
 - `<topic>.rendered.html`:讲解页。
 - `<topic>.practice.html`:独立练习页。
+
+### 6.4 音画同步制作法
+
+音画同步不是最后微调,而是从 lesson/timing 设计开始就要做:
+
+1. **先列关键词时间点**:从旁白中抽出必须对齐的词,如"关键线路/总工期/总时差/采分句/阈值/错误做法"。
+2. **关键视觉略早出现**:视觉通常比关键词早 0.1-0.3 秒出现,让学生听到词时已经看见对象;不要晚于旁白 0.5 秒以上。
+3. **每个 segment 有 visual state**:`state` 不只是字幕分类,要能驱动 Remotion 的页面、焦点、遮罩和字幕。
+4. **用 still 检查关键帧**:hook、trap、model、worked、score、qa、closing 都要能单帧看懂。
+5. **长句拆段**:一句旁白里如果有两个视觉动作,拆成两个 segment 或两个内部 cue。
+6. **字幕卡跟随语义,不是逐字稿**:字幕卡写当前结论或白板讲解,不必塞满全部旁白。
+7. **ffprobe 对齐总时长**:mp3、mp4、timing.json 三者时长不能明显漂移。Remotion duration 要按 timing totalSec 重新计算。
+
+N01 最终 timing 结构可作为参考:主讲约 0-100s,三组学生答疑约 101-148s,closing 约 148-161s。这个比例不是固定模板,但说明"主讲、答疑、收尾"要各有明确时间段。
+
+### 6.5 预览与成片渲染分层
+
+不要把"给用户看一版学习卡"默认等同于"重新导出 MP4"。量产时分两档:
+
+1. **预览评审档**:用于看排版、文案、UI/UX、交互、章节标签、练习闭环。优先复用已有 mp4/poster/mp3;只改 HTML/CSS/JSON 时,用 Remotion still 和 CDP/Playwright 390px 普通页 + theater 截图验收,不跑 full render。
+2. **成片验收档**:用于验证真实音画同步、媒体内容变化、正式候选、发布前缓存和 CDN 链路,或用户明确要求视频文件。这时才执行 full `remotion render`、`ffprobe`、关键时间点截图和版本参数检查。
+
+判断标准:如果本次改动没有改变 Remotion 帧内容、音频、timing 或媒体文件,就不要生成新 MP4。HTML 播放器壳、比例、按钮、练习页、章节文案的修改,默认属于预览评审档。
+
+预览评审档也必须 fail-closed 跑静态合同门:
+
+```bash
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_video_first_preview.mjs \
+  artifacts/luban_case_family_assets/diagram_microlesson/<topic>.rendered.html \
+  artifacts/luban_case_family_assets/diagram_microlesson/<topic>.practice.html
+```
+
+这条命令只检查表现合同,不重算题目、不判断采分句真伪、不替代 `validate_schema_drafts.py`。
+
+随后必须跑真实视口运行时门:
+
+```bash
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_stage_runtime.mjs \
+  artifacts/luban_case_family_assets/diagram_microlesson/<topic>.rendered.html
+```
+
+它不是截图替代品,而是防止模板回归:390 竖屏首屏、390 播放态、844x390 横屏、1024x720 宽屏、390 theater 控制层都要通过几何断言。过不了先修 Learning Stage Shell,不要继续调文案或装饰。
 
 ## 7. 练习设计:从会看懂到会迁移
 
@@ -191,6 +449,24 @@
 - 输出题要按采分原子拆输入格,不能只让学生自由写一大段。
 - 每题反馈都要解释依据,不是只说对错。
 - 关键鉴别题写入 `mastery_discrimination.key_discriminator_ids`。
+
+### 7.1 题目丰富度技巧
+
+题目丰富不是换几个选项,而是换学生要执行的认知动作:
+
+- `看见对象`:让学生点/选当前考点对象,验证他没看错题眼。
+- `识别错觉`:给常见错误表达,问为什么错。
+- `复走过程`:换数字/条件,让学生重走同一算法或判据链。
+- `卡边界`:选接近阈值、相邻工序、部分命中答案,防止过度概括。
+- `换外壳`:换工程、换图、换描述,考不变量是否迁移。
+- `写采分句`:把最终答案拆成 2-4 个采分原子输入,训练输出,不是只训练选择。
+
+干扰项写法:
+
+- 错项最好对应真实 misconception,不要随便编离谱选项。
+- 每个错项都要有"为什么会有人选它"的心理理由。
+- 反馈先指出错在对象/顺序/条件/边界/表达哪一类,再给正确判断依据。
+- 选择题只是过渡,最终要有输出题;考试拿分靠写出来。
 
 ## 8. 专家组分工
 
@@ -221,6 +497,8 @@
 - [ ] 每个 beat 一个视觉动作 + 一句旁白。
 - [ ] 主画面有运镜:推近、暗化、揭示、对照或局部放大。
 - [ ] 最后有答题纸/采分句转化。
+- [ ] 最后有 closing 旁白,回扣主线并桥接闯关。
+- [ ] 关键术语出现时,画面同步或略早给出对应视觉。
 - [ ] 播放结束后进入闯关的主行动明确。
 
 ### 练习闭环
@@ -231,38 +509,44 @@
 - [ ] 至少一道采分句/答案输出题。
 - [ ] 未答不能下一题,答后即时反馈。
 - [ ] 结果页有暖反馈和回看入口。
+- [ ] 题图/流程图/判断图标签在真实视口内可读,无文字挤压、裁切或被导航覆盖。
 
 ### 技术验证
 
 - [ ] `npx remotion compositions` 通过。
-- [ ] 至少渲染 hook/误区/主推演/采分句 still。
-- [ ] mp4 有 video+audio,时长合理。
+- [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html` 通过。
+- [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_stage_runtime.mjs <topic>.rendered.html` 通过。
+- [ ] `node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_theater_practice.mjs <topic>.practice.html` 通过。
+- [ ] 预览评审档:至少检查 hook/误区/主推演/采分句 still 或已有 poster,再用 CDP/Playwright 检查 390px 竖屏普通页、844px 横屏、用户反馈视口、theater/fullscreen、closing、练习页;不默认生成 MP4。
+- [ ] 成片验收档:mp4 有 video+audio,时长合理。
+- [ ] 成片验收档:timing/mp3/mp4 总时长一致,关键 segment 有对应画面状态。
 - [ ] HTML 引用 poster/mp4/practice。
-- [ ] Playwright 或 CDP 390px 截图检查讲解页和练习页。
+- [ ] HTML 对 mp4/poster/mp3 带版本参数,手机端不会播旧缓存。
+- [ ] 截图里普通态学习舞台必须自适应当前方向:竖屏不小片化,横屏/宽屏不把内容锁成窄竖条;全屏/theater 只显示内容和浮动控制层。
 
 ## 10. 产出模板
 
 ### 10.1 Storyboard 表
 
-| beat | 来源字段 | 旁白目的 | 画面动作 | 运镜 | 练习落点 |
-|---|---|---|---|---|---|
-| hook | master/source | 为什么学 | 考试场景/分值/任务卡 | 慢入/层叠 | 原图识别 |
-| trap | card.wrong_idea | 打掉错觉 | 错误对象红叉 | push-in + freeze | 错觉鉴别 |
-| model | card.visual_correction | 建模型 | 关键结构逐步出现 | trace/spotlight | 原理题 |
-| worked | question_data/variant | 推演 | 算法/流程逐步走 | pan/push | 换数重算 |
-| score | scoring/exam_phrase | 落采分 | 答题纸三格 | reveal | 输出题 |
-| qa | misconception | 补边界 | 双人答疑气泡 | focus shift | 迁移题 |
+| beat | prototype | main_exam_action | opening_hook / closing_echo | 来源字段 / anchor | sync_keyword | visual_state | camera_verb | practice_id | acceptance_still |
+|---|---|---|---|---|---|---|---|---|---|
+| hook | ③ | 把图写成采分句 | 为什么值得学 | master/source | 路径/工期/依据 | 考试任务卡 | slow-in/layer | path | hook-frame |
+| trap | ③ | 防对象错判 | 错觉 | card.wrong_idea | 最长工作 | 错误对象红叉 | push-in/freeze | concept_trap | trap-frame |
+| model | ③ | 建判断动作 | 连续链 | card.visual_correction | 连续/0时差 | 关键结构 reveal | trace/spotlight | path | model-frame |
+| worked | ③ | 重走过程 | 推演 | question_data/variant | 顺推/逆推 | 算法逐步走 | pan/push | transfer_recompute | worked-frame |
+| score | ③ | 落采分 | 采分句 | scoring/exam_phrase | 采分句 | 答题纸三格 | reveal | score_sentence | score-frame |
+| qa/closing | ③ | 补边界并切闯关 | closing_echo | misconception/master | 边界/闯关 | 双人答疑 + 收尾卡 | focus shift | float_compare | closing-frame |
 
 ### 10.2 Quiz 梯度表
 
-| level | 题型 | 数据来源 | 图形要求 | 正确答案结构 |
-|---|---|---|---|---|
-| 1 | 原图识别 | card/question_data | 原图高亮 | 对象 + 结果 + 依据 |
-| 2 | 错觉鉴别 | misconception | 错点局部放大 | 错因 + 正解 |
-| 3 | 同结构变化 | variants | 变化图 | 变化后结果 + 重算依据 |
-| 4 | 边界/反例 | variants/key_discriminator | 边界图 | 档位/路径 + 为什么 |
-| 5 | 迁移 | variable_rules | 新工程/新图 | 不变量 + 新条件 |
-| 6 | 采分句 | scoring_points | 答题纸 | 采分原子完整 |
+| level | cognitive_action | 题型 | 数据来源 | visual_asset_required | 正确答案结构 |
+|---|---|---|---|---|---|
+| 1 | 看见对象 | 原图识别 | card/question_data | 原图高亮 | 对象 + 结果 + 依据 |
+| 2 | 识别错觉 | 错觉鉴别 | misconception | 错点局部放大 | 错因 + 正解 |
+| 3 | 复走过程 | 同结构变化 | variants | 变化图 | 变化后结果 + 重算依据 |
+| 4 | 卡边界 | 边界/反例 | variants/key_discriminator | 边界图 | 档位/路径 + 为什么 |
+| 5 | 换外壳 | 迁移 | variable_rules | 新工程/新图 | 不变量 + 新条件 |
+| 6 | 写采分句 | 输出题 | scoring_points | 答题纸/采分格 | 采分原子完整 |
 
 ## 11. N01 video-first 样板复盘
 
@@ -283,14 +567,17 @@
 
 1. **首屏**:白板 poster + 中央播放按钮 + 完整 hook。学生点播放前就知道"为什么学这个能多拿分"。
 2. **讲解视频**:Remotion 负责动画主体;每个 beat 有一个视觉动作,如 push-in、spotlight、trace、dim、scene change、answer-paper reveal。
-3. **旁白音色**:老师主讲用 `longanhuan_v3`,学生答疑用 `longniuniu_v3`;音频离线生成,运行时只播放。
+3. **旁白音色**:老师主讲用 `longanhuan_v3`(龙安欢 V3),学生答疑默认用 `longlaotie_v3`(龙老铁,东北男孩);音频离线生成,运行时只播放。
 4. **音画同步**:关键视觉可以略早于旁白关键词出现,但不能晚到让学生听完才看到;同步问题优先调画面 timing,不是拉长空白。
 5. **场景丰富度**:不要整段锁在同一白板。至少包含 hook 场景、错觉场景、主推演场景、采分句/答题纸场景、答疑/闯关桥接场景。
 6. **独立闯关页**:练习从讲解页分离;播放结束后主 CTA 自动切到"开始闯关"。
 7. **每题有图**:原图识别有原图高亮,变化题有变化图,诊断题有答题纸或答案片段,迁移题有新图。
 8. **选项像答案**:选择项写成"对象/路径 + 结果 + 判断依据",不是短标签。
 9. **递进挑战**:原图识别 → 错觉鉴别 → 换数/换条件 → 边界/反例 → 迁移 → 采分句输出。
-10. **手机先验收**:390px 视口检查首屏、播放、ended CTA、练习作答、反馈和结果页。
+10. **自然收尾**:答疑后要有 closing,回扣主线并把行动交给闯关。
+11. **播放器交互**:手机全屏只显示内容,点击浮出控制层;进度可拖动,章节有语义标签,控制层不遮挡正文。
+12. **手机先验收,再补横屏/宽屏**:390px 竖屏检查首屏、播放、普通学习舞台、全屏控制层、closing、ended CTA、练习作答、反馈和结果页;同时补一张横屏/宽屏截图,证明布局没有被固定竖屏比例拖坏。
+13. **预览不出片**:仅评审学习卡效果时不重新生成 MP4;只有正式音画同步/发布候选才 full render。
 
 ### 11.3 以后复制什么,不复制什么
 
@@ -301,6 +588,7 @@
 - 先 hook 再讲内容:先抓注意力和考试收益,再进入知识点。
 - Remotion frame-driven 动画:镜头、强调、暗化、trace、reveal 都由帧驱动。
 - 练习闭环:每题配图、递进挑战、采分句输出、即时反馈。
+- 播放器闭环:poster 首帧、中心播放、全屏内容、点击浮控、可拖进度、语义章节、自然收尾。
 
 **不要复制**:
 
@@ -311,15 +599,24 @@
 
 ### 11.4 最小验证命令
 
-每个 video-first 样板至少留下这些证据:
+每个 video-first 样板按验收档位留证据。预览评审档只需确认静帧和手机壳:
 
 ```bash
 npx remotion compositions
 npx remotion still <composition-id> <poster.png> --frame=<hook-frame>
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_video_first_preview.mjs <topic>.rendered.html <topic>.practice.html
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_learning_stage_runtime.mjs <topic>.rendered.html
+node artifacts/luban_case_family_assets/diagram_microlesson/validate_challenge_theater_practice.mjs <topic>.practice.html
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.rendered.html <topic>.rendered.390.png 390x844
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html <topic>.practice.390.png 390x844
+node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html <topic>.practice.844.png 844x390
+```
+
+只有成片验收档才生成 MP4:
+
+```bash
 npx remotion render <composition-id> <topic>.remotion.mp4
 ffprobe -hide_banner <topic>.remotion.mp4
-node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.rendered.html --width=390
-node artifacts/luban_case_family_assets/diagram_microlesson/cdp_shot.mjs <topic>.practice.html --width=390
 ```
 
 如果是纯 HTML 静态小样,也必须说明"未进入 Remotion 成片验收",不能标成 video-first 动画学习卡完成。

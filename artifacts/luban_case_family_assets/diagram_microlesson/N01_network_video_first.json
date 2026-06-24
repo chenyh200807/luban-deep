@@ -1,0 +1,257 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "N01_network_video_first",
+  "template_type": "network_plan_keypath",
+  "title": "N01 网络计划：关键线路不是最长那一项",
+  "student_goal": "看完白板讲解后，能独立判断关键线路、写出总工期，并用“总时差为 0”解释为什么能得分。",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "student_boundary": "这是鲁班深母题教学原型，用于训练网络计划关键线路判断和采分表达；不是官方真题，也不是官方评分依据。",
+    "source_refs": ["candidate_teaching_example::network_plan_keypath_video_first"]
+  },
+  "teaching_spine": {
+    "topic": "双代号/单代号网络计划中的关键线路判断",
+    "target_learner": "会背“关键线路”概念，但做题时容易用最长单项工作、最长路径直觉或漏写采分依据的二建/一建考生。",
+    "wrong_idea": "C 工作 4 天最长，所以关键线路就是 C。",
+    "visual_correction": "关键线路是一条从开始到结束、总时差为 0 的连续线路；最长单项工作只是一块砖，不是一条路。",
+    "exam_phrase": "关键线路为 开始-A-C-E-结束，总工期 10 天；理由是 A、C、E 的总时差均为 0。",
+    "warm_correction": "你不是不会算，是第一眼看错了对象：别找最长的工作，要找没有缓冲的路。",
+    "authority": "candidate_teaching_prototype"
+  },
+  "exam_context": {
+    "status": "local_extraction_signal_not_official_frequency",
+    "student_facing_hook": "这不是孤立概念题。近年本地评分抽取里，关键线路、总工期、总时差、工期索赔经常连在一起出现；你学它，是为了把图算成能拿分的句子。",
+    "scenes": ["进度计划计算", "工期压缩或调整", "总时差判断", "工期索赔成立性判断"],
+    "local_evidence_refs": [
+      {
+        "year": 2023,
+        "source": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+        "line": 215,
+        "point_text": "关键线路:①→②→③→④→⑥→⑦→⑧"
+      },
+      {
+        "year": 2023,
+        "source": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+        "line": 216,
+        "point_text": "总工期:3+3+6+6+3=21个月"
+      },
+      {
+        "year": 2024,
+        "source": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+        "line": 297,
+        "point_text": "(1) 关键线路 B→E→I"
+      },
+      {
+        "year": 2024,
+        "source": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+        "line": 298,
+        "point_text": "(2) 工作A的总时差为2周;工作F的总时差为3周"
+      },
+      {
+        "year": 2025,
+        "source": "docs/原始数据/数据盘点/extractions/ALL_jianzhu_case_rubric.jsonl",
+        "line": 366,
+        "point_text": "调整前关键线路 A→B→E→F→H"
+      }
+    ]
+  },
+  "video_beats": [
+    {
+      "id": "hook",
+      "title": "为什么先学它",
+      "stage": "hook",
+      "subtitle": "考场要交的是路径、总工期、判断依据三件套。",
+      "visual_action": "先出现真实考试场景标签：关键线路、总工期、总时差、工期索赔，再聚焦到今天这张小图。",
+      "erase_before_next": "收起场景标签，只留下今天要攻破的错觉。"
+    },
+    {
+      "id": "trap",
+      "title": "先抓错觉",
+      "stage": "trap",
+      "subtitle": "“C 最长，所以关键线路是 C”这句话会丢分，因为关键线路不是一个工作。",
+      "visual_action": "只点亮 C 工作，并划掉“最长单项=关键线路”的错误等式。",
+      "erase_before_next": "擦掉错误等式，保留网络图。"
+    },
+    {
+      "id": "logic",
+      "title": "先读箭线",
+      "stage": "logic",
+      "subtitle": "先看紧前紧后：A、B 先做，C、D 等 A，D 还等 B，E 等 C 和 D。",
+      "visual_action": "按箭线顺序把逻辑关系描粗。",
+      "erase_before_next": "淡出错误提示，只留下逻辑箭线。"
+    },
+    {
+      "id": "forward",
+      "title": "顺推最早时间",
+      "stage": "forward",
+      "subtitle": "顺推时，遇到多个紧前工作，取完成最晚的那个。",
+      "visual_action": "在每个工作上方写 ES-EF，重点标出 E 要等 C 到第 7 天。",
+      "erase_before_next": "保留早时间，准备叠加迟时间。"
+    },
+    {
+      "id": "backward",
+      "title": "逆推最迟时间",
+      "stage": "backward",
+      "subtitle": "逆推不是再算一遍工期，而是在找不拖总工期的最晚时间。",
+      "visual_action": "在每个工作旁写 LS-LF，形成早/迟对照。",
+      "erase_before_next": "淡化早迟时间，突出总时差。"
+    },
+    {
+      "id": "float",
+      "title": "只认总时差",
+      "stage": "float",
+      "subtitle": "判断关键线路看总时差：B 有 3 天，D 有 2 天，它们有缓冲，不控制总工期。",
+      "visual_action": "给 B、D 贴上橙色总时差，给 A、C、E 贴上绿色 0。",
+      "erase_before_next": "擦掉非关键工作强调，只留下 0 时差链。"
+    },
+    {
+      "id": "critical",
+      "title": "连成关键线路",
+      "stage": "critical",
+      "subtitle": "先找总时差为 0 的工作，再连成从开始到结束的连续线路。",
+      "visual_action": "用红色粗线贯通 开始-A-C-E-结束。",
+      "erase_before_next": "清理计算痕迹，准备写答案句。"
+    },
+    {
+      "id": "score",
+      "title": "写成采分句",
+      "stage": "score",
+      "subtitle": "考试不要只写结论，要把线路、工期、理由都写出来。",
+      "visual_action": "在白板下方写出完整采分句。",
+      "erase_before_next": "最终板只保留关键线路和采分句。"
+    }
+  ],
+  "question_data": {
+    "stem": "某工程由 A~E 五项工作组成，逻辑关系与持续时间如下图，求关键线路与总工期。",
+    "activities": [
+      {"id": "A", "label": "A", "duration": 3},
+      {"id": "B", "label": "B", "duration": 2},
+      {"id": "C", "label": "C", "duration": 4},
+      {"id": "D", "label": "D", "duration": 2},
+      {"id": "E", "label": "E", "duration": 3}
+    ],
+    "dependencies": [
+      {"from": "START", "to": "A"},
+      {"from": "START", "to": "B"},
+      {"from": "A", "to": "C"},
+      {"from": "A", "to": "D"},
+      {"from": "B", "to": "D"},
+      {"from": "C", "to": "E"},
+      {"from": "D", "to": "E"},
+      {"from": "E", "to": "END"}
+    ],
+    "expected": {
+      "critical_path": ["START", "A", "C", "E", "END"],
+      "project_duration": 10,
+      "float": {
+        "A": {"total_float": 0, "free_float": 0},
+        "B": {"total_float": 3, "free_float": 1},
+        "C": {"total_float": 0, "free_float": 0},
+        "D": {"total_float": 2, "free_float": 2},
+        "E": {"total_float": 0, "free_float": 0}
+      }
+    }
+  },
+  "deep_archetype": {
+    "invariant": "关键线路 = 从开始到结束的 0 总时差连续链，不是最长单个工作。",
+    "examiner_intent": "考的不是背某条线路，而是会不会按逻辑关系顺推、逆推，再用总时差为 0 找控制总工期的连续线路。",
+    "score_atoms": ["关键线路", "总工期", "总时差为 0 的依据"],
+    "loss_patterns": [
+      "只写 A-C-E，不写总工期和依据，只能算部分表达。",
+      "把 C 这一个工作当作关键线路，判断对象错误。",
+      "把自由时差当总时差，依据错误。",
+      "只按路径持续时间硬加，不检查逻辑关系。"
+    ],
+    "memory_hook": "关键线路不是最长那一项，是一路都没有缓冲。",
+    "mastery_discrimination": {
+      "status": "self_check_candidate",
+      "boundary": "这是自测看穿，不是正式学情判定；正式掌握结论以后归 LearnerState。",
+      "key_discriminator_ids": ["transfer_recompute", "float_compare"],
+      "real_understanding_signal": "迁移改数值题和总/自由时差题都能做对，说明会重走算法，不是背原图答案。",
+      "rote_signal": "只会原图关键线路，改 D 工期或问 B 的两种时差就错，说明更像背过原答案。",
+      "warm_feedback": {
+        "all_correct": "这轮你是真会了：能找 0 总时差链，也能在数值变化后重新算，考试遇到换皮题不会慌。",
+        "partial": "主算法已经搭起来了，差在迁移或时差辨析。记住：改数值要重算；总时差看总工期，自由时差看紧后工作。",
+        "rote_leaning": "先别急着背 A-C-E。回到四步：读逻辑、顺推、逆推、找 0 总时差连续链。把这条走顺，换图换数都能稳。"
+      }
+    }
+  },
+  "quiz": [
+    {
+      "id": "path",
+      "kind": "choice",
+      "tier_tag": "基础档：原图找线路",
+      "basis": "A-C-E 各工作总时差为 0，且形成从开始到结束的连续线路。",
+      "question": "原图中，哪条是关键线路？",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "开始-A-D-E-结束，共 8 天；D 有缓冲，不控制总工期", "feedback": "D 有 2 天总时差，这条线不是控制总工期的线。"},
+        {"id": "B", "text": "开始-A-C-E-结束，共 10 天；A、C、E 总时差均为 0", "feedback": "对。A、C、E 总时差均为 0，并且连成一条完整线路。"},
+        {"id": "C", "text": "开始-B-D-E-结束，共 7 天；B、D 有缓冲", "feedback": "B、D 都有总时差，说明这条线有缓冲。"},
+        {"id": "D", "text": "单个工作 C，4 天；把工作误当线路，不能作为关键线路", "feedback": "这是错误对象：C 是一个工作，不是一条关键线路。"}
+      ]
+    },
+    {
+      "id": "concept_trap",
+      "kind": "choice",
+      "tier_tag": "误区档：最长工作陷阱",
+      "basis": "关键线路看总时差为 0 的连续线路，不看最长的单个工作。",
+      "question": "关于关键线路，哪句话是对的？",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "单个工作 C，4 天；只看最长工作，判断对象错了", "feedback": "这是本题最常见的坑。最长工作不等于关键线路。"},
+        {"id": "B", "text": "开始-A-C-E-结束，共 10 天；连续线路且总时差均为 0", "feedback": "对。关键在“连续线路”和“总时差为 0”。"},
+        {"id": "C", "text": "任意能到结束的线路，未核算工期；把可达误当关键", "feedback": "能到结束只是路径，不代表控制总工期。"},
+        {"id": "D", "text": "只写 A-C-E，不写 10 天；缺少总工期和判断依据", "feedback": "考试表达最好把线路、总工期和依据一起写。"}
+      ]
+    },
+    {
+      "id": "transfer_recompute",
+      "kind": "choice",
+      "tier_tag": "迁移档：改数值重算",
+      "basis": "D 改为 5 天后，A-D-E = 3+5+3 = 11 天，大于 A-C-E 的 10 天，关键线路改走 A-D-E。",
+      "key_discriminator": true,
+      "question": "如果把 D 的持续时间从 2 天改成 5 天，其余不变，关键线路变成？",
+      "answer": "A",
+      "options": [
+        {"id": "A", "text": "开始-A-D-E-结束，共 11 天；D 改 5 天后变成控制线", "feedback": "对。D 改 5 天后，A-D-E 变成 11 天，超过 A-C-E 的 10 天。"},
+        {"id": "B", "text": "开始-A-C-E-结束，共 10 天；这是原图答案，未重算", "feedback": "这是背原图答案的表现。数值变了要重新算。"},
+        {"id": "C", "text": "开始-B-D-E-结束，共 10 天；漏掉 D 还要等 A", "feedback": "D 还要等 A，不能只从 B 这边看。"},
+        {"id": "D", "text": "不写路径、不算工期；误以为必须先给自由时差", "feedback": "关键线路变化先看总工期和总时差，不靠自由时差下结论。"}
+      ]
+    },
+    {
+      "id": "float_compare",
+      "kind": "choice",
+      "tier_tag": "时差档：总时差 vs 自由时差",
+      "basis": "原图中 B 最早完成第 2 天，D 最早开始第 3 天；B 不影响总工期可拖 3 天，不影响紧后 D 最早开始只可拖 1 天。",
+      "key_discriminator": true,
+      "question": "回到原图。工作 B 的总时差和自由时差分别是多少？",
+      "answer": "C",
+      "options": [
+        {"id": "A", "text": "开始-A-C-E-结束，共 10 天；误把 B 当关键工作，所以写总 0/自 0", "feedback": "B 不在关键线路上，不是 0 总时差。"},
+        {"id": "B", "text": "开始-B-D-E-结束，共 7 天；只看 B 到 D 空 1 天，漏算总余量", "feedback": "自由时差是 1，但总时差不是 1。"},
+        {"id": "C", "text": "开始-B-D-E-结束，有 3 天总余量；B 完第 2 天、D 第 3 天开，所以总 3/自 1", "feedback": "对。总时差看总工期，自由时差看紧后 D 的最早开始。"},
+        {"id": "D", "text": "开始-B-D-E-结束，有 3 天总余量；误把自由时差也按总余量算成 3", "feedback": "自由时差不能按总工期余量算，要看是否影响紧后工作。"}
+      ]
+    },
+    {
+      "id": "score_sentence",
+      "kind": "score_sentence",
+      "tier_tag": "采分档：写成主观题答案",
+      "basis": "主观题至少写出关键线路、总工期和判断依据，不能只写 A-C-E。",
+      "question": "把本题答案写成一句能拿分的话。补全三格：",
+      "answer": {
+        "path": "开始-A-C-E-结束",
+        "duration": "10天",
+        "reason": "A、C、E 的总时差均为 0"
+      },
+      "sample_answer": "关键线路为 开始-A-C-E-结束，总工期 10 天；理由是 A、C、E 的总时差均为 0。",
+      "prompts": [
+        {"id": "path", "label": "关键线路为", "placeholder": "开始-A-C-E-结束"},
+        {"id": "duration", "label": "总工期", "placeholder": "10天"},
+        {"id": "reason", "label": "理由", "placeholder": "A、C、E 的总时差均为 0"}
+      ]
+    }
+  ]
+}

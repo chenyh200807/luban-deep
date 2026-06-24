@@ -61,6 +61,9 @@ function loadChatPage() {
           unwrapResponse: function (raw) {
             return raw;
           },
+          getConversationMessages: function () {
+            return Promise.resolve({ messages: [] });
+          },
         };
       }
       if (request === "../../utils/ai-message-state") return {};
@@ -541,6 +544,65 @@ function loadChatPage() {
       "empty terminal recovery should keep pending identity until recovery finishes",
     );
     assert(!cleared, "empty terminal recovery should not clear pending synchronously");
+  });
+
+  await run("empty terminal recovery exhaustion should keep pending identity", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_done_slow_history",
+      baselineCount: 0,
+      query: "案例题批改",
+      clientTurnId: "client_done_slow_history_1",
+      turnId: "turn_done_slow_history_1",
+      createdAt: Date.now(),
+    };
+    var cleared = false;
+    var hydrated = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-empty-slow-history";
+    loaded.page._find = function (id) {
+      return id === "a-empty-slow-history" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page._applyHydratedConversationMessages = function () {
+      hydrated = true;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-empty-slow-history", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+    await flushPromises();
+
+    assert(!cleared, "empty terminal recovery exhaustion must not clear pending identity");
+    assert(!hydrated, "empty terminal recovery exhaustion must not hydrate incomplete history");
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_done_slow_history_1",
+      "empty terminal recovery exhaustion should preserve durable pending identity",
+    );
+    assert(
+      loaded.page.data.isStreaming === false &&
+        loaded.page.data.canStopStream === false,
+      "empty terminal recovery exhaustion should unlock the composer",
+    );
   });
 
   await run("error recovery exhaustion should not start a second terminal recovery", async function () {

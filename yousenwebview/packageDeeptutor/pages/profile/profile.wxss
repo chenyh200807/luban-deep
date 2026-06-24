@@ -659,7 +659,17 @@
 }
 .profile-page.light .usage-action-txt { color: #2f6bff; }
 .profile-page.light .usage-meter { background: #e5e7eb; }
-.profile-page.light .usage-meter-fill { background: #111827; }
+.profile-page.light .usage-meter-fill { background: linear-gradient(90deg, #2563eb, #059669); }
+.profile-page.light .usage-detail-mask { background: rgba(15,23,42,0.22); }
+.profile-page.light .usage-detail-sheet {
+  background: rgba(255,255,255,0.98);
+  border-color: #dbe6f5;
+  box-shadow: 0 24rpx 80rpx rgba(126,147,185,0.22);
+}
+.profile-page.light .usage-detail-close { background: #eef4ff; }
+.profile-page.light .usage-detail-sheet .usage-meter-fill {
+  background: linear-gradient(90deg, #3b82f6, #22c55e);
+}
 .profile-page.light .chip {
   background: #f9fbff;
   border-color: #d8e4f6;

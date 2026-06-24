@@ -1,0 +1,198 @@
+{
+  "audio": "Q01_yhlf.lesson.mp3",
+  "totalSec": 148.961,
+  "teachEndSec": 93.389,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "混凝土养护,丢分在只背天数不认语境",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "混凝土养护,很多人背下七天十四天就上场,一换语境就懵。今天学认语境。",
+      "startSec": 0,
+      "durSec": 8.057
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "shrink",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S1 收缩+温变,受约束就生拉应力",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s1_shrink.claim",
+      "claim": true,
+      "text": "先看根因。混凝土硬化必然收缩,温度一变又热胀冷缩,这些变形被约束住,就在构件里憋出拉应力。早龄期最脆弱,失水越快收缩越猛。",
+      "startSec": 8.457,
+      "durSec": 14.527
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "stress",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S2 拉应力跑赢抗拉强度ftk 就裂",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s2_stress_vs_strength.claim",
+      "claim": true,
+      "text": "裂不裂看一场赛跑。早龄期强度还没长起来,拉应力一旦跑赢当时的抗拉强度,微裂就长成大裂缝。防治就是让强度跑赢拉应力。",
+      "startSec": 23.384,
+      "durSec": 12.997
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "knobs",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S3 三旋钮:时间×湿度管收缩、温差管温度应力",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s3_three_knobs.claim",
+      "claim": true,
+      "text": "养护就是拧三个旋钮:时间和湿度管失水收缩,够天数保湿就行;温差管温度拉应力。让强度赶在拉应力前面。",
+      "startSec": 36.78,
+      "durSec": 11.532
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "context",
+      "qaIndex": null,
+      "keycard": {
+        "text": "S4 语境绑阈值:普硅7d/抗渗14d·大体积25℃·冬期20℃·封闭28d",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.s4_context_threshold.claim",
+      "claim": true,
+      "text": "关键在同一个动作、不同语境阈值不同。普通现浇养护七天,一旦有抗渗、高强或后浇带就跳到十四天;大体积看里表温差二十五度、每天降温两度;冬期看表面对大气二十度、温降每天三度。",
+      "startSec": 48.713,
+      "durSec": 20.096
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "context",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:普硅7d/抗渗14d·大体积里表25℃降温2℃d·冬期20℃温降3℃d·后浇带封闭28d",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[0].keywords",
+      "claim": true,
+      "text": "再补一个常错点:后浇带养护十四天,但封闭时机要二十八天。采分就盯这些数字,认对语境再报。",
+      "startSec": 69.208,
+      "durSec": 9.994
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "chain",
+      "qaIndex": null,
+      "keycard": {
+        "text": "迁移:判读链通用,阈值随语境/构件变",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "记住判读链:先认对哪个养护语境,再比那条被钉死的硬阈值。天数记语境、温差记构件。换水泥品种换构件链都成立,阈值随语境。",
+      "startSec": 79.603,
+      "durSec": 13.786
+    },
+    {
+      "idx": 7,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,养护不就是七天吗?我一律写七天不行吗?",
+      "startSec": 93.789,
+      "durSec": 4.547
+    },
+    {
+      "idx": 8,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "看语境。普通硅酸盐类七天,可有抗渗、高强或掺缓凝、后浇带,就得十四天。记'普通七天、抗渗加倍十四天'。",
+      "startSec": 98.736,
+      "durSec": 12.334
+    },
+    {
+      "idx": 9,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那大体积的二十五度和冬期的二十度,我老是写反,怎么记?",
+      "startSec": 111.47,
+      "durSec": 5.581
+    },
+    {
+      "idx": 10,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "看构件别写反。大体积管里表温差二十五度、每天降温两度;冬期管表面对大气二十度、温降每天三度。语境决定调哪组,方向不能反。",
+      "startSec": 117.451,
+      "durSec": 13.855
+    },
+    {
+      "idx": 11,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "后浇带我养护满十四天,是不是就能封闭了?",
+      "startSec": 131.705,
+      "durSec": 4.245
+    },
+    {
+      "idx": 12,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "养护和封闭是两件事。后浇带养护十四天,但底板封闭要二十八天,还得用微膨胀混凝土。别把养护天数当封闭时机。",
+      "startSec": 136.35,
+      "durSec": 11.811
+    }
+  ]
+}

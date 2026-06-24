@@ -1,0 +1,107 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "C05_gjlj",
+  "derived_from": "C05_gjlj.json",
+  "archetype_master_ref": "C05_gjlj.master.json",
+  "style": "teach_then_qa",
+  "title": "钢筋连接选用 · 老师带你转四旋钮",
+  "subtitle": "老师边讲边转'直径·受力·荷载·部位'四旋钮,指针落到绑扎/机械/焊接哪一档,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 C05(钢筋连接选用·判断/选用类)造成讲懂幕。舞台=四输入旋钮→三档输出指针 + 接头百分率条 + 代换天平示意(stage 外置:svg+states+css+banner 自带,引擎对原型通用,CSS 用 reached-<state> 累进揭示)。reveal 严格沿 C05.md §7 Reveal 顺序(三类连接亮相→四旋钮匹配→动力荷载机械连接≤50%+套筒无热影响→端点退档拉25压28→代换天平守恒)。beat 旁白事实/数值全部 anchor 回 C05_gjlj.json 真实字段(防漂移闸),数字回 §2/§5/§6 教材锚,不手写新数值;迁移铺垫 beat anchor master:R2_invariant。先讲后问双人答疑。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体数值(动力荷载机械连接50%、受拉Φ28/受压Φ25、梁跨中1/3梁端1/3、柱500mm/H6/b、装配式600mm 等)以现行规范和你的考试大纲为准。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "钢筋连接选用不是背 50%、Φ28、Φ25 几个数 → 是'认对四输入(直径×受力×荷载×部位)→匹配三档方式→对上接头限值'同一条判读链。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "ways", "label": "三类连接"},
+      {"id": "knob", "label": "四旋钮"},
+      {"id": "pct", "label": "动力≤50%"},
+      {"id": "endpoint", "label": "端点退档"},
+      {"id": "chain", "label": "判读链"}
+    ],
+    "css": ".s-bar,.s-ways,.s-knob,.s-needle,.s-pct,.s-endpoint,.s-chain{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .reached-ways .s-ways{opacity:1} .s-knob{transform:translateY(6px)} .reached-knob .s-knob{opacity:1;transform:none} .s-needle{transform:rotate(-26deg);transform-origin:180px 150px;transition:transform .6s ease-out,opacity .45s ease-out} .reached-knob .s-needle{opacity:1} .reached-pct .s-needle{opacity:1;transform:rotate(22deg)} .reached-pct .s-pct{opacity:1} .s-endpoint{transform:translateY(6px)} .reached-endpoint .s-endpoint{opacity:1;transform:none} .s-chain{transform:translateY(6px)} .reached-chain .s-chain{opacity:1;transform:none} .s-rail{fill:#5d6f86} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.ways{fill:#7fc7ff}.s-note.knob{fill:#ffd27f}.s-note.pct{fill:#ff9b3a}.s-note.endpoint{fill:#7fe6ab}.s-note.chain{fill:#bff0d4} .s-vtxt{fill:#bff0d4;font-size:9px;font-weight:700} .s-dtxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='钢筋连接选用四旋钮三档示意'><rect x='28' y='150' width='304' height='12' rx='2' class='s-rail' data-visual-node-id='rail.base'/><text class='s-lbl' x='32' y='246'>钢筋连接选用(四输入旋钮 → 绑扎/机械/焊接三档 + 接头限值)</text><g class='s-ways' data-visual-node-id='ways.three'><rect x='40' y='44' width='66' height='20' rx='3' fill='#16253a' stroke='#7fc7ff' stroke-width='1'/><text class='s-dtxt' x='73' y='57' text-anchor='middle'>焊接</text><rect x='118' y='44' width='84' height='20' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1.4'/><text class='s-dtxt' x='160' y='57' text-anchor='middle'>机械(直螺纹套筒)</text><rect x='214' y='44' width='66' height='20' rx='3' fill='#33240f' stroke='#ffb15a' stroke-width='1'/><text class='s-dtxt' x='247' y='57' text-anchor='middle'>绑扎搭接</text><text class='s-note ways' x='160' y='38' text-anchor='middle'>三类连接:传力机理不同,适用面不同</text></g><g class='s-knob' data-visual-node-id='knob.four'><circle cx='52' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='52' y='112' text-anchor='middle'>直径</text><circle cx='100' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='100' y='112' text-anchor='middle'>受力</text><circle cx='148' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='148' y='112' text-anchor='middle'>荷载</text><circle cx='196' cy='92' r='9' fill='#16253a' stroke='#9fb0c2'/><text class='s-dtxt' x='196' y='112' text-anchor='middle'>部位</text><text class='s-note knob' x='124' y='130' text-anchor='middle'>四旋钮一转,指针落到正确档</text></g><g class='s-needle' data-visual-node-id='needle.tier'><line x1='180' y1='150' x2='180' y2='96' stroke='#ffd27f' stroke-width='3'/><circle cx='180' cy='150' r='4' fill='#ffd27f'/></g><g class='s-pct' data-visual-node-id='pct.bar'><rect x='240' y='92' width='84' height='12' rx='2' fill='#33240f' stroke='#ff9b3a' stroke-width='1'/><rect x='240' y='92' width='42' height='12' rx='2' fill='#ff9b3a'/><line x1='282' y1='86' x2='282' y2='110' stroke='#ff5a5a' stroke-width='2'/><text class='s-dtxt' x='324' y='118' text-anchor='end'>动力机械连接:接头百分率有强制上限</text><text class='s-note pct' x='280' y='82' text-anchor='middle'>动力荷载机械连接:不应超过那条限值线</text></g><g class='s-endpoint' data-visual-node-id='endpoint.split'><rect x='30' y='176' width='140' height='30' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1'/><text class='s-vtxt' x='38' y='190'>受拉Φ28/桁架拉杆/行车梁 → 不宜绑扎</text><text class='s-vtxt' x='38' y='202'>受压Φ25 中小直径静载 → 可绑扎(拉25压28)</text><text class='s-note endpoint' x='100' y='220' text-anchor='middle'>端点退档:小直径受压静载才退绑扎</text></g><g class='s-chain' data-visual-node-id='invariant.select'><circle cx='210' cy='190' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='210' y='193' text-anchor='middle'>认四输入</text><circle cx='300' cy='190' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='300' y='193' text-anchor='middle'>对上限值</text><path d='M223 190 H287' stroke='#7fe6ab' stroke-width='2'/><text class='s-note chain' x='255' y='176' text-anchor='middle'>判读链=认四输入→匹配方式→对上限值</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "intro", "claim": false,
+       "keycard": {"text": "钢筋连接选用,丢分在只背数字不认四输入", "tone": "q"},
+       "sync_keyword": "四输入",
+       "animation_action": [
+         {"type": "camera", "target": "data-id:rail.base"},
+         {"type": "keycard", "target": "data-id:keycard.intro"}
+       ],
+       "narration": "钢筋连接选用,别背几个数,今天学认四输入。"},
+      {"id": "ways", "stage": "ways", "claim": true, "anchor": "causal_chain.c1_three_ways.claim",
+       "keycard": {"text": "三类连接:焊接/机械连接/绑扎;机械以直螺纹套筒最常用", "tone": "a"},
+       "sync_keyword": "三类",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:ways.three"},
+         {"type": "keycard", "target": "data-id:keycard.ways"}
+       ],
+       "narration": "连接就三类:焊接、机械连接、绑扎连接;机械连接里直螺纹套筒最常用。传力机理不同,选用是匹配,不是背哪种最牢。"},
+      {"id": "knob", "stage": "knob", "claim": true, "anchor": "causal_chain.c2_four_input.claim",
+       "keycard": {"text": "四旋钮:直径×受力×荷载×部位 → 匹配三档方式", "tone": "a"},
+       "sync_keyword": "四输入",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:knob.four"},
+         {"type": "reveal", "target": "data-id:needle.tier"},
+         {"type": "keycard", "target": "data-id:keycard.knob"}
+       ],
+       "narration": "选用就是转四输入:直径、受力、荷载、部位。大直径受拉、动力荷载、抗震关键往机械连接;小直径受压静载才退绑扎搭接。"},
+      {"id": "pct", "stage": "pct", "claim": true, "anchor": "key_params.dynamic_pct.value",
+       "keycard": {"text": "动力荷载机械连接:接头面积百分率不应超过50%", "tone": "a"},
+       "sync_keyword": "不应",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:pct.bar"},
+         {"type": "highlight", "target": "data-id:needle.tier"},
+         {"type": "keycard", "target": "data-id:keycard.pct"}
+       ],
+       "narration": "选定还要对限值。直接承受动力荷载用机械连接,接头面积百分率不应超过五成,'不应'是强制词。动力荷载不宜焊接,故首选机械连接。"},
+      {"id": "endpoint", "stage": "endpoint", "claim": true, "anchor": "key_params.endpoint.value",
+       "keycard": {"text": "端点退档:受拉Φ28/桁架拉杆/行车梁不宜绑扎;受压Φ25可绑扎", "tone": "a"},
+       "sync_keyword": "端点",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:endpoint.split"},
+         {"type": "keycard", "target": "data-id:keycard.endpoint"}
+       ],
+       "narration": "再看退绑扎的端点。受拉Φ二八、桁架拉杆、行车梁,不宜绑扎;受压Φ二五小直径静载才可绑扎。口诀:拉二五、压二八、不宜绑扎。"},
+      {"id": "score", "stage": "endpoint", "claim": true, "anchor": "scoring_points[1].keywords",
+       "keycard": {"text": "采分词:三类连接·动力机械连接不应超50%·梁跨中1/3·代换等强度等面积", "tone": "score"},
+       "sync_keyword": "采分",
+       "animation_action": [
+         {"type": "highlight", "target": "data-id:pct.bar"},
+         {"type": "keycard", "target": "data-id:keycard.score"}
+       ],
+       "narration": "采分盯这几组:连接三类加直螺纹套筒;动力荷载机械连接接头不应超过五成;梁接头上部跨中、下部梁端各三分之一;代换等强度加等面积。"},
+      {"id": "transfer", "stage": "chain", "claim": true, "anchor": "master:R2_invariant",
+       "keycard": {"text": "迁移:判读链通用,判据随连接方式/构件变(装配式看逐根/600mm/套筒灌浆)", "tone": "concl"},
+       "sync_keyword": "判读链",
+       "animation_action": [
+         {"type": "reveal", "target": "data-id:invariant.select"},
+         {"type": "keycard", "target": "data-id:keycard.transfer"},
+         {"type": "camera", "target": "data-id:stage.conclude"}
+       ],
+       "narration": "记这条判读链:认四输入、匹配方式、对上限值。换装配式竖向钢筋,链不变、判据换一套——边缘构件逐根、非边缘六百毫米、底部加强区套筒灌浆。换构件链都成立。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,是不是机械连接最牢,一律选它最稳?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[0].why",
+           "sync_keyword": "匹配",
+           "text": "不是比谁最牢,是匹配。动力荷载、大直径受拉、桁架拉杆才往机械连接;受压Φ二五小直径静载,绑扎就行。把绑扎塞给大直径受拉就是端点搞反。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "动力荷载机械连接那个百分率,写'不宜超过50%'扣分吗?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why",
+           "sync_keyword": "不应",
+           "text": "扣。动力荷载机械连接是'不应'超过五成,带强制性;写成'不宜'就降成建议、丢关键词分。和受拉接头'不宜超过'是两套口径。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "钢筋代换,我写'等刚度加等面积'对不对?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why",
+           "sync_keyword": "等刚度",
+           "text": "不对,等刚度不是基本要求。基本要求是等强度加等面积加构造,还得设计单位同意。等刚度是经典干扰项。"}}
+  ]
+}

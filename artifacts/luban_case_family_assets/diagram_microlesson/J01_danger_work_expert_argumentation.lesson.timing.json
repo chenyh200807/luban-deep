@@ -1,0 +1,230 @@
+{
+  "audio": "J01_danger_work_expert_argumentation.lesson.mp3",
+  "totalSec": 150.022,
+  "teachEndSec": 93.009,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "常考:这个工程要不要专家论证?",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": "scenario.caption",
+      "claim": true,
+      "text": "案例题最常考'这个工程要不要专家论证'。丢分往往不是不知道有专项方案,而是分不清两档判据。",
+      "startSec": 0,
+      "durSec": 9.667
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "dig",
+      "qaIndex": null,
+      "keycard": {
+        "text": "本题:基坑开挖 5.5m,方案已编",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": "decision.scenario_given",
+      "claim": true,
+      "text": "看这道题:基坑开挖深度五米五,方案已经编好,问要不要组织专家论证?咱们顺着深度往下走。",
+      "startSec": 10.067,
+      "durSec": 9.768
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "gate3",
+      "qaIndex": null,
+      "keycard": {
+        "text": "判据①  开挖 ≥ 3m(或虽 <3m 但地质/周边复杂)= 危大",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "decision.judgment_points[0].criterion",
+      "claim": true,
+      "text": "第一道判据:基坑开挖深度大于等于三米,就属于危险性较大的分部分项工程;注意,就算不到三米,但地质复杂、周边有建筑,同样算危大——危大不只看深度。",
+      "startSec": 20.235,
+      "durSec": 15.968
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "gate3",
+      "qaIndex": null,
+      "keycard": {
+        "text": "→ 危大就必须编专项施工方案",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "decision.outcomes[scheme_only].label",
+      "claim": true,
+      "text": "只要够上危大,就必须编专项施工方案。本题五米五,过了第一道闸。",
+      "startSec": 36.604,
+      "durSec": 6.825
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "gate5",
+      "qaIndex": null,
+      "keycard": {
+        "text": "判据②  开挖 ≥ 5m = 超过一定规模",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "decision.judgment_points[1].criterion",
+      "claim": true,
+      "text": "第二道判据:开挖深度大于等于五米,就属于超过一定规模的危大工程。",
+      "startSec": 43.829,
+      "durSec": 6.831
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "gate5",
+      "qaIndex": null,
+      "keycard": {
+        "text": "→ 超规模还要组织专家论证",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "decision.outcomes[need_argumentation].label",
+      "claim": true,
+      "text": "到了这一档,专项方案还得再组织专家论证。本题五米五,第二道闸也过了。",
+      "startSec": 51.06,
+      "durSec": 7.249
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "判据链通用:换工程换数值,两道判据不变(阈值随工程查)",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "再记一点:这两道判据不只管基坑——换成模板支撑、脚手架,照样是先判危大、再判超规模这两道闸,只是每种工程的阈值数字不同。记结构,数字按工程查。",
+      "startSec": 58.709,
+      "durSec": 16.097
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "结论:应组织专家论证",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "decision.reached_outcome",
+      "claim": true,
+      "text": "两道闸全过,结论很干脆:这个专项施工方案应当组织专家论证。",
+      "startSec": 75.206,
+      "durSec": 6.715
+    },
+    {
+      "idx": 8,
+      "kind": "teach",
+      "state": "conclude",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:≥5m · 超过一定规模 · 专项方案 · 专家论证",
+        "tone": "score"
+      },
+      "speaker": "T",
+      "anchor": "scoring_points[1].keywords",
+      "claim": true,
+      "text": "采分就盯这几组词:基坑开挖深度、大于等于五米、超过一定规模、专项方案、专家论证。写到了就稳。",
+      "startSec": 82.321,
+      "durSec": 10.688
+    },
+    {
+      "idx": 9,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,我要是只写'需要专家论证',不写判据,能拿分吗?",
+      "startSec": 93.41,
+      "durSec": 5.685
+    },
+    {
+      "idx": 10,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[0].why",
+      "claim": true,
+      "text": "这是最可惜的丢分。结论对了,可阅卷老师看不出你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句写上,判断分才到手。",
+      "startSec": 99.495,
+      "durSec": 15.66
+    },
+    {
+      "idx": 11,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那反过来,要是只挖三米五呢?也得论证吗?",
+      "startSec": 115.555,
+      "durSec": 4.153
+    },
+    {
+      "idx": 12,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "decision.outcomes[scheme_only]",
+      "claim": true,
+      "text": "好问题,这正是出题人埋的坑。三米五过了第一道闸、没过第二道:是危大要编方案,但不到五米,不用专家论证,光编方案就够。中间这一档最容易混。",
+      "startSec": 120.108,
+      "durSec": 15.286
+    },
+    {
+      "idx": 13,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "那我怎么才能不混?",
+      "startSec": 135.794,
+      "durSec": 1.61
+    },
+    {
+      "idx": 14,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "memory_hook",
+      "claim": true,
+      "text": "记住一句口诀就乱不了:三米危大编方案,五米超规模要论证。等下用四道题试试你,看你是真会分档还是背过的。",
+      "startSec": 137.805,
+      "durSec": 11.418
+    }
+  ]
+}

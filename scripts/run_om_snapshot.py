@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -15,22 +14,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability.metrics_loader import load_metrics_snapshot  # noqa: E402
 from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
-
-
-def _load_metrics_from_url(base_url: str) -> dict:
-    url = f"{base_url.rstrip('/')}/metrics"
-    with httpx.Client(timeout=5.0, trust_env=False) as client:
-        response = client.get(url)
-        response.raise_for_status()
-        return response.json()
-
-
-def _load_metrics_from_file(path: str) -> dict:
-    target = Path(path).expanduser().resolve()
-    if not target.exists():
-        raise FileNotFoundError(target)
-    return json.loads(target.read_text(encoding="utf-8"))
 
 
 def _probe_url(name: str, url: str) -> dict:
@@ -76,12 +61,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run DeepTutor OM snapshot")
     parser.add_argument("--api-base-url", default="http://127.0.0.1:8001")
     parser.add_argument("--metrics-json", help="离线 metrics JSON 文件；提供后不走 live HTTP 拉取")
+    parser.add_argument("--metrics-token", help="覆盖 DEEPTUTOR_METRICS_TOKEN")
     parser.add_argument("--langfuse-url")
     parser.add_argument("--grafana-url")
     parser.add_argument("--prometheus-url")
     args = parser.parse_args()
 
-    metrics_snapshot = _load_metrics_from_file(args.metrics_json) if args.metrics_json else _load_metrics_from_url(args.api_base_url)
+    metrics_snapshot = load_metrics_snapshot(
+        api_base_url=args.api_base_url,
+        metrics_json=args.metrics_json,
+        metrics_token=args.metrics_token,
+    )
     stack_health = []
     if args.langfuse_url:
         stack_health.append(_probe_url("langfuse", args.langfuse_url))

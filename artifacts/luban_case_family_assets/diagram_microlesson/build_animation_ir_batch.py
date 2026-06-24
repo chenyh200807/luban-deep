@@ -1,0 +1,757 @@
+#!/usr/bin/env python3
+"""Build OpenMAIC-style animation_ir.v0 coarse drafts from Deep Pack markdown.
+
+This is intentionally a thin batch wrapper. Facts come from the pack markdown
+and the 60-slot registry; visual stability comes from render_animation_ir_preview.py
+and the animation_ir gates.
+
+This script does not author student-ready cards. A green structural gate only
+means the IR is renderable and safe for internal review. Student-ready output
+must still pass the one-card diagram-first quality loop with screenshots and
+human/LLM review.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import html
+import json
+import re
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from render_animation_ir_practice import render_practice
+
+
+ROOT = Path(__file__).resolve().parents[3]
+WORKDIR = Path(__file__).resolve().parent
+REGISTRY = ROOT / "docs/plan/鲁班移动端提分闭环/2026-06-19-luban-animation-pack-taxonomy-alignment-registry.md"
+PACK_DIR = ROOT / "docs/原始数据/考点原料/成品"
+REMOTION_SRC = WORKDIR / "remotion_demo/src"
+BATCH_QUALITY_STATUS = "coarse_draft_requires_single_card_review"
+PROMOTED_QUALITY_STATUSES = {"workflow_candidate", "student_ready"}
+
+
+@dataclass(frozen=True)
+class RegistrySlot:
+    slot: int
+    pack_id: str
+    student_title: str
+    taxonomy_refs: list[str]
+    status: str
+    note: str
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def write_json(path: Path, value: Any) -> None:
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def read_json_if_exists(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def clean_text(value: str) -> str:
+    value = re.sub(r"`([^`]+)`", r"\1", value)
+    value = re.sub(r"\*\*([^*]+)\*\*", r"\1", value)
+    value = re.sub(r"kc:[A-Za-z0-9_\-:]+", "", value)
+    value = re.sub(r"[🟢🔵🔴⚠️✅]", "", value)
+    value = re.sub(r"<[^>]+>", "", value)
+    value = value.replace("｜", "|").replace("\u3000", " ")
+    value = re.sub(r"\s+", " ", value).strip(" |-")
+    return value
+
+
+def short(value: str, limit: int) -> str:
+    value = clean_text(value)
+    return value if len(value) <= limit else value[: limit - 1].rstrip() + "…"
+
+
+def compact_label(value: str, fallback: str) -> str:
+    value = clean_text(value)
+    value = re.split(r"[;；。,.，、（(]", value)[0].strip()
+    if "→" in value:
+        value = value.split("→", 1)[0].strip()
+    if re.search(r"source|point_id|真题|锚|kc:", value, re.I) or len(value) < 2:
+        value = fallback
+    value = re.sub(r"(应|须|必须|不应|不得|一般|进行|采取|采用)", "", value)
+    value = value.strip(":： ")
+    return short(value or fallback, 8)
+
+
+def compact_labels(values: list[str]) -> list[str]:
+    fallbacks = ["对象", "条件", "依据", "采分", "错因", "结论"]
+    labels: list[str] = []
+    for idx, fallback in enumerate(fallbacks):
+        labels.append(compact_label(values[idx] if idx < len(values) else "", fallback))
+    return labels
+
+
+def student_safe_card_id(prefix: str, pack_id: str) -> str:
+    # Pack ids like E05 collide with internal error-code tokens in student-safe
+    # gates. Keep the real pack_id in manifest/taxonomy metadata, but do not
+    # expose E-code-shaped ids in the HTML preview surface.
+    if re.fullmatch(r"E\d{2}", pack_id):
+        return f"{prefix}_ECON{pack_id[1:]}"
+    return f"{prefix}_{pack_id}"
+
+
+def parse_registry() -> list[RegistrySlot]:
+    rows: list[RegistrySlot] = []
+    for line in read_text(REGISTRY).splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 6 or not cells[0].strip().isdigit():
+            continue
+        refs = re.findall(r"`([^`]+)`", cells[3])
+        rows.append(
+            RegistrySlot(
+                slot=int(cells[0]),
+                pack_id=clean_text(cells[1]),
+                student_title=clean_text(cells[2]),
+                taxonomy_refs=refs,
+                status=clean_text(cells[4]),
+                note=clean_text(cells[5]),
+            )
+        )
+    return rows
+
+
+def pack_markdown(slot: RegistrySlot) -> Path | None:
+    direct = sorted(PACK_DIR.glob(f"{slot.pack_id}_*.md"))
+    direct = [path for path in direct if "案例题作答层样板" not in path.name and "v4model" not in path.name]
+    if direct:
+        return direct[0]
+    fuzzy = sorted(PACK_DIR.glob(f"*{slot.pack_id}*.md"))
+    fuzzy = [path for path in fuzzy if "案例题作答层样板" not in path.name and "v4model" not in path.name]
+    return fuzzy[0] if fuzzy else None
+
+
+def extract_first_table_terms(markdown: str) -> list[str]:
+    terms: list[str] = []
+    in_r5 = False
+    for raw in markdown.splitlines():
+        line = raw.strip()
+        if re.match(r"^##\s+5\b|^###\s+R5|R5\s*采分", line):
+            in_r5 = True
+            continue
+        if in_r5 and line.startswith("## ") and "R5" not in line:
+            break
+        if in_r5 and line.startswith("|") and "---" not in line and "采分" not in line:
+            cells = [clean_text(c) for c in line.strip("|").split("|")]
+            for cell in cells[1:3]:
+                if 4 <= len(cell) <= 44 and not re.search(r"锚|错因|source|point_id|真题", cell, re.I):
+                    terms.append(cell)
+                    break
+        if len(terms) >= 6:
+            break
+    if len(terms) < 4:
+        for line in markdown.splitlines():
+            if "🟢" not in line:
+                continue
+            text = clean_text(re.sub(r"🟢|🔵|🔴", "", line))
+            if 6 <= len(text) <= 52:
+                terms.append(text)
+            if len(terms) >= 6:
+                break
+    seen: set[str] = set()
+    unique = []
+    for term in terms:
+        term = short(term, 28)
+        if term and term not in seen:
+            seen.add(term)
+            unique.append(term)
+    return unique[:6]
+
+
+def extract_key_points(markdown: str, fallback_title: str) -> list[str]:
+    points = extract_first_table_terms(markdown)
+    if points:
+        return points[:4]
+    bullets = []
+    for raw in markdown.splitlines():
+        line = clean_text(raw)
+        if line.startswith("- ") or line.startswith("1. "):
+            bullets.append(short(line[2:], 36))
+        if len(bullets) >= 4:
+            break
+    if bullets:
+        return bullets[:4]
+    return [f"{fallback_title}先判对象", "再判阈值/条件", "最后写采分句"]
+
+
+def detect_archetype(title: str) -> str:
+    if re.search(r"数值|参数|记忆|口诀|定义", title):
+        return "value_memory_card"
+    if re.search(r"网络|流水|挣值|计量|计价|进度款|索赔|费用|工期|计算", title):
+        return "calculation_structure"
+    if re.search(r"验收|论证|安全|事故|消防|动火|用电|起重|脚手架|支架|放行|等级|判断", title):
+        return "decision_branch_reveal"
+    if re.search(r"构造|节点|防水|幕墙|封堵|钢结构|连接|桩基|基坑|布置", title):
+        return "section_or_spatial_reveal"
+    if re.search(r"工序|顺序|施工|拆除|养护|抹灰|回填|治理", title):
+        return "process_step_reveal"
+    if re.search(r"对比|正误|规范|非规范|通病|错误做法|正确做法", title):
+        return "contrast_reveal"
+    return "scoring_diagnosis_reveal"
+
+
+def scene_times(count: int, total: float = 138.0) -> list[tuple[float, float]]:
+    unit = total / count
+    return [(round(i * unit, 3), round((i + 1) * unit, 3)) for i in range(count)]
+
+
+def node(kind: str, node_id: str, text: str, *, x: float, y: float, w: float = 176, h: float = 46, tone: str = "blue", subtext: str = "") -> dict[str, Any]:
+    item: dict[str, Any] = {"id": node_id, "kind": kind, "text": short(text, 34), "x": x, "y": y, "w": w, "h": h, "tone": tone}
+    if subtext:
+        item["subtext"] = short(subtext, 32)
+    return item
+
+
+ARCHETYPE_VISUAL_REQUIRED: dict[str, list[str]] = {
+    "process_step_reveal": ["process_flow"],
+    "section_or_spatial_reveal": ["layer_stack", "roof_section"],
+    "calculation_structure": ["network_graph", "formula_chain"],
+    "decision_branch_reveal": ["decision_tree"],
+    "contrast_reveal": ["contrast_pair"],
+    "scoring_diagnosis_reveal": ["answer_scan"],
+    "value_memory_card": ["memory_table"],
+}
+
+
+TEACHING_SCENE_IDS = ["hook", "map", "rule", "trap", "score"]
+
+
+def archetype_visual_required(archetype: str) -> list[str]:
+    return ARCHETYPE_VISUAL_REQUIRED.get(archetype, ["answer_scan"])
+
+
+def diagram_node(kind: str, node_id: str, *, text: str = "", labels: list[str] | None = None, x: float = 30, y: float = 42, w: float = 300, h: float = 178, tone: str = "blue") -> dict[str, Any]:
+    item: dict[str, Any] = {"id": node_id, "kind": kind, "text": short(text, 24), "x": x, "y": y, "w": w, "h": h, "tone": tone}
+    if labels:
+        item["labels"] = [short(label, 8) for label in labels[:6]]
+    return item
+
+
+def retarget_diagram(item: dict[str, Any], node_id: str, *, text: str | None = None, tone: str | None = None) -> dict[str, Any]:
+    copied = dict(item)
+    copied["id"] = node_id
+    if text is not None:
+        copied["text"] = short(text, 24)
+    if tone is not None:
+        copied["tone"] = tone
+    return copied
+
+
+def archetype_map_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    if archetype == "process_step_reveal":
+        return diagram_node("process_flow", "prototype_map", text="流程先后", labels=labels, tone="success")
+    if archetype == "section_or_spatial_reveal":
+        return diagram_node("layer_stack", "prototype_map", text="构造层次", labels=labels, tone="blue")
+    if archetype == "calculation_structure":
+        return diagram_node("network_graph", "prototype_map", text="图上推演", labels=labels, tone="blue")
+    if archetype == "decision_branch_reveal":
+        return diagram_node("decision_tree", "prototype_map", text="判断树", labels=labels, tone="success")
+    if archetype == "contrast_reveal":
+        return diagram_node("contrast_pair", "prototype_map", text="正误对照", labels=labels, tone="danger")
+    if archetype == "value_memory_card":
+        return diagram_node("memory_table", "prototype_map", text="数值辨析", labels=labels, tone="amber")
+    return diagram_node("answer_scan", "prototype_map", text="采分诊断", labels=labels, tone="success")
+
+
+def archetype_hook_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    return retarget_diagram(archetype_map_node(labels, archetype), "hook_visual", text="先看图再下笔", tone="danger")
+
+
+def archetype_rule_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    if archetype == "process_step_reveal":
+        return diagram_node("process_flow", "rule_model", text="不能跳步", labels=labels, tone="amber")
+    if archetype == "section_or_spatial_reveal":
+        return diagram_node("layer_stack", "rule_model", text="先看层位", labels=labels, tone="success")
+    if archetype == "calculation_structure":
+        return diagram_node("formula_chain", "rule_model", text="算式口径", labels=labels, tone="amber")
+    if archetype == "decision_branch_reveal":
+        return diagram_node("decision_tree", "rule_model", text="对象→条件→结论", labels=labels, tone="success")
+    if archetype == "contrast_reveal":
+        return diagram_node("contrast_pair", "rule_model", text="红错绿对", labels=labels, tone="success")
+    if archetype == "value_memory_card":
+        return diagram_node("memory_table", "rule_model", text="数值别混", labels=labels, tone="amber")
+    return diagram_node("answer_scan", "rule_model", text="命中/漏点", labels=labels, tone="success")
+
+
+def archetype_trap_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    if archetype == "process_step_reveal":
+        return diagram_node("process_flow", "trap_visual", text="错步会返工", labels=list(reversed(labels[:4])), tone="danger")
+    if archetype == "section_or_spatial_reveal":
+        return diagram_node("layer_stack", "trap_visual", text="错层就漏分", labels=labels, tone="danger")
+    if archetype == "calculation_structure":
+        return diagram_node("network_graph", "trap_visual", text="别只看单项", labels=labels, tone="danger")
+    if archetype == "decision_branch_reveal":
+        return diagram_node("decision_tree", "trap_visual", text="漏一道门", labels=labels, tone="danger")
+    if archetype == "contrast_reveal":
+        return diagram_node("contrast_pair", "trap_visual", text="错因定位", labels=labels, tone="danger")
+    if archetype == "value_memory_card":
+        return diagram_node("memory_table", "trap_visual", text="相近参数", labels=labels, tone="danger")
+    return diagram_node("answer_scan", "trap_visual", text="只写结论", labels=labels, tone="danger")
+
+
+def archetype_score_node(labels: list[str], archetype: str) -> dict[str, Any]:
+    if archetype == "calculation_structure":
+        score_labels = labels[:3] + ["写依据"]
+    elif archetype == "process_step_reveal":
+        score_labels = labels[:3] + ["闭环"]
+    elif archetype == "section_or_spatial_reveal":
+        score_labels = labels[:3] + ["位置"]
+    else:
+        score_labels = labels[:3] + ["结论"]
+    return diagram_node("answer_scan", "score_sheet", text="答题纸采分", labels=score_labels, tone="success")
+
+
+def student_qa_lines(labels: list[str]) -> list[str]:
+    primary = labels[0] if labels else "对象"
+    secondary = labels[1] if len(labels) > 1 else "条件"
+    return [
+        f"老师,我先写{primary}能拿分不?",
+        f"这块是不是还得带上{secondary}?",
+        "整明白了,最后要不要把依据也写上?",
+    ]
+
+
+def visual_for_scene(scene_id: str, title: str, terms: list[str], archetype: str) -> dict[str, Any]:
+    t = terms + ["判对象", "判条件", "写依据", "写采分句"]
+    if scene_id == "hook":
+        return {
+            "board": "warm_grid",
+            "nodes": [
+                archetype_hook_node(t, archetype),
+            ],
+        }
+    if scene_id == "map":
+        return {
+            "board": "warm_grid",
+            "nodes": [archetype_map_node(t, archetype)],
+        }
+    if scene_id == "rule":
+        return {
+            "board": "warm_grid",
+            "nodes": [archetype_rule_node(t, archetype)],
+        }
+    if scene_id == "trap":
+        return {
+            "board": "warm_grid",
+            "nodes": [archetype_trap_node(t, archetype)],
+        }
+    if scene_id == "score":
+        return {
+            "board": "paper",
+            "nodes": [
+                archetype_score_node(t, archetype),
+            ],
+        }
+    if scene_id == "qa":
+        q1, q2, q3 = student_qa_lines(t)
+        return {
+            "board": "warm_grid",
+            "nodes": [
+                node("dialogue_box", "student_q1", q1, x=42, y=48, w=276, h=44, tone="blue"),
+                node("dialogue_box", "student_q2", q2, x=42, y=104, w=276, h=44, tone="amber"),
+                node("dialogue_box", "student_q3", q3, x=42, y=160, w=276, h=44, tone="success"),
+            ],
+        }
+    return {
+        "board": "closing",
+        "nodes": [
+            node("closing_text", "closing_sentence", "带走一句话", x=0, y=0, tone="success", subtext=f"{short(title, 12)}: 对象→条件→依据"),
+            node("challenge_button", "challenge_cta", "开始闯关", x=90, y=166, w=180, h=44, tone="amber"),
+        ],
+    }
+
+
+def actions(visible: list[str], focus: str) -> list[dict[str, Any]]:
+    queue: list[dict[str, Any]] = [{"kind": "camera", "verb": "push-in", "target": focus, "start": 0, "end": 0.24}]
+    for index, node_id in enumerate(visible):
+        start = round(0.04 + index * 0.15, 3)
+        queue.append({"kind": "reveal", "target": node_id, "start": start, "end": round(start + 0.16, 3)})
+    queue.append({"kind": "highlight", "target": focus, "start": 0.3, "end": 0.9})
+    return queue
+
+
+def build_ir(slot: RegistrySlot, md_path: Path, prefix: str) -> tuple[dict[str, Any], dict[str, Any], str]:
+    markdown = read_text(md_path)
+    title = slot.student_title
+    terms = extract_key_points(markdown, title)
+    labels = compact_labels(terms)
+    archetype = detect_archetype(title)
+    card_id = student_safe_card_id(prefix, slot.pack_id)
+    scene_specs = [
+        ("hook", "先避坑", "hook_visual", "考场先别急着写术语", f"注意哈，这类题别先背答案，先看图里藏着哪条采分链。"),
+        ("map", "看结构", "prototype_map", "先看它属于哪类图", f"先把它画成图：{labels[0]}、{labels[1]}、{labels[2]}、{labels[3]}。"),
+        ("rule", "判边界", "rule_model", "用图走一遍判断动作", "拿分动作不是背定义，是顺着图把对象、条件、依据走完。"),
+        ("trap", "错法", "trap_visual", "先拆常见错法", "只写结果、不写依据，最容易漏采分点。"),
+        ("score", "采分", "score_sheet", "把答案写成采分句", f"答题纸按三段写：{labels[0]}、{labels[1]}、{labels[2]}。"),
+        ("qa", "三问", "student_q1", "三问集中放后面", "学生三问集中放后面：能不能拿分、还要不要补条件、依据要不要写。都回到采分链。"),
+        ("closing_challenge", "闯关", "closing_sentence", "收束到闯关", "最后收束一句哈：别背散点，把它写成对象、条件、依据三段式。现在开始闯关。"),
+    ]
+    times = scene_times(len(scene_specs))
+    visual_library: dict[str, Any] = {}
+    scenes: list[dict[str, Any]] = []
+    chapters: list[dict[str, Any]] = []
+    segments: list[dict[str, Any]] = []
+    for i, ((scene_id, label, focus, keycard, coach), (start, end)) in enumerate(zip(scene_specs, times)):
+        visual = visual_for_scene(scene_id, title, labels, archetype)
+        visual_library[scene_id] = visual
+        visible_nodes = [item["id"] for item in visual["nodes"][:4]]
+        scene = {
+            "id": scene_id,
+            "label": label,
+            "start_sec": start,
+            "end_sec": end,
+            "scene": f"{archetype}_{scene_id}",
+            "focus": focus,
+            "enter": ["scene.fade_in", f"{focus}.reveal"],
+            "hold": [f"{focus}.spotlight"],
+            "exit": ["scene.fade_out"],
+            "layout": {"portrait": "centered_board", "landscape": "stage_left_coach_right", "theater": "clean_board"},
+            "camera": {"verb": "push-in" if i < 5 else "spotlight", "target": focus, "duration_sec": 0.45},
+            "visible_nodes": visible_nodes,
+            "actions": actions(visible_nodes, focus),
+            "keycard": keycard,
+            "coach": coach,
+        }
+        scenes.append(scene)
+        chapters.append({"id": scene_id, "label": label, "start_sec": start})
+        # Preview gates sample the whole scene, not just the narration onset.
+        # Keep a safe subtitle alive for the full beat until real TTS timing is
+        # generated, otherwise the card passes IR but fails mobile readability.
+        segments.append({"startSec": start + 0.05, "durSec": max(1.0, end - start - 0.1), "speaker": "T", "kind": "coach", "text": coach})
+        if scene_id == "qa":
+            for offset, q in enumerate(student_qa_lines(labels)):
+                segments.append({"startSec": start + 3.8 + offset * 3.0, "durSec": 2.4, "speaker": "S", "kind": "qa", "text": q})
+    duration = times[-1][1]
+    ir = {
+        "schema_version": "luban_animation_ir.v0",
+        "ir_id": f"{card_id}_animation_ir_v0",
+        "card_id": card_id,
+        "display": {"kicker": f"鲁班深母题 · Slot {slot.slot}", "title": title},
+        "main_exam_action": f"把「{title}」写成采分链：先判对象，再判条件，最后写判断依据。",
+        "teaching_spine": {
+            "source_pack": str(md_path.relative_to(ROOT)),
+            "archetype": archetype,
+            "warm_correction": f"{title} 不是背散点，而是把题干转成可得分的判断链。",
+        },
+        "source_refs": {"pack_markdown": str(md_path.relative_to(ROOT)), "timing": f"{card_id}.lesson.timing.json"},
+        "render_contract": {
+            "renderer": "render_animation_ir_preview.py",
+            "html_preview": f"{card_id}.animation_ir_preview.html",
+            "remotion_renderer": f"remotion_demo/src/{card_id}AnimationIrPreview.tsx",
+            "remotion_composition": f"{card_id}AnimationIrPreview",
+            "practice_href": f"{card_id}.practice.html",
+            "quality_status": BATCH_QUALITY_STATUS,
+            "student_ready": False,
+            "max_visible_nodes": 4,
+            "archetype_visual_required": archetype_visual_required(archetype),
+            "teaching_scene_ids": TEACHING_SCENE_IDS,
+            "min_diagrammatic_teaching_scenes": len(TEACHING_SCENE_IDS),
+            "challenge_unlock_sec": scenes[4]["start_sec"],
+            "one_active_scene": True,
+            "one_active_keycard": True,
+            "theater_requires_challenge_cta": True,
+            "ai_ask_required": True,
+        },
+        "taxonomy_alignment": {
+            "priority_slot": slot.slot,
+            "pack_id": slot.pack_id,
+            "status": slot.status,
+            "canonical_taxonomy_refs": slot.taxonomy_refs,
+            "note": slot.note,
+        },
+        "ai_context": {
+            "context_id": card_id,
+            "title": title,
+            "main_exam_action": f"把「{title}」写成采分链：先判对象，再判条件，最后写判断依据。",
+            "safe_summary": f"{title} 的学习重点是：{'; '.join(terms[:4])}。",
+            "key_points": terms[:4],
+            "handoff_mode": "context_id_plus_current_scene",
+            "api_base": "https://test2.yousenjiaoyu.com",
+        },
+        "chapters": chapters,
+        "scenes": scenes,
+        "visual_library": visual_library,
+    }
+    timing = {
+        "audio": "",
+        "totalSec": duration,
+        "segments": segments,
+        "generated_from": f"{card_id}.animation_ir.v0.json",
+    }
+    source_hash = hashlib.sha256(markdown.encode("utf-8")).hexdigest()
+    return ir, timing, source_hash
+
+
+def write_practice(card_id: str, slot: RegistrySlot, terms: list[str]) -> Path:
+    return render_practice(WORKDIR / f"{card_id}.animation_ir.v0.json")
+
+
+def write_remotion_wrapper(card_id: str) -> Path:
+    path = REMOTION_SRC / f"{card_id}AnimationIrPreview.tsx"
+    path.write_text(
+        f"""import React from "react";
+import ir from "../../{card_id}.animation_ir.v0.json";
+import timing from "../../{card_id}.lesson.timing.json";
+import {{
+  AnimationIr,
+  AnimationIrRenderer,
+  animationIrDurationFrames,
+}} from "./AnimationIrRenderer";
+
+const animationIr = ir as AnimationIr;
+
+export const {card_id}_IR_FPS = 30;
+export const {card_id}_IR_DURATION_FRAMES = animationIrDurationFrames(animationIr, {card_id}_IR_FPS);
+
+export const {card_id}AnimationIrPreview: React.FC = () => {{
+  return <AnimationIrRenderer ir={{animationIr}} timing={{timing}} />;
+}};
+""",
+        encoding="utf-8",
+    )
+    return path
+
+
+def render_preview(ir_path: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["python3", str(WORKDIR / "render_animation_ir_preview.py"), str(ir_path)],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def run_gate(cmd: list[str]) -> dict[str, Any]:
+    proc = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, check=False)
+    return {"cmd": cmd, "returncode": proc.returncode, "stdout_tail": proc.stdout[-4000:], "stderr_tail": proc.stderr[-4000:]}
+
+
+def remotion_review_manifest(packet: dict[str, Any]) -> dict[str, Any] | None:
+    for shot in packet.get("screenshots") or []:
+        manifest = shot.get("review_manifest") if isinstance(shot, dict) else None
+        if isinstance(manifest, dict) and manifest.get("kind") == "remotion_still_review":
+            return manifest
+    return None
+
+
+def workflow_promotion(card_id: str) -> dict[str, Any] | None:
+    """Return the one-card promotion authority, if current artifacts prove it.
+
+    The batch script remains a coarse generator. It may not overwrite a card
+    that has already entered the single-card workflow loop and passed a
+    Remotion still review with quality metrics.
+    """
+    ir_path = WORKDIR / f"{card_id}.animation_ir.v0.json"
+    packet_path = WORKDIR / f"{card_id}.workflow_review_packet.json"
+    ir = read_json_if_exists(ir_path)
+    packet = read_json_if_exists(packet_path)
+    if not ir or not packet:
+        return None
+    contract = ir.get("render_contract") or {}
+    status = contract.get("quality_status")
+    if status not in PROMOTED_QUALITY_STATUSES:
+        return None
+    if packet.get("verdict") != "PASS" or packet.get("blocking_failures"):
+        return None
+    if (packet.get("ir_summary") or {}).get("quality_status") != status:
+        return None
+    visual_dominance = (packet.get("ir_summary") or {}).get("visual_dominance") or {}
+    if status in PROMOTED_QUALITY_STATUSES:
+        if not visual_dominance or visual_dominance.get("pass_count") != visual_dominance.get("min_scenes"):
+            return None
+    manifest = remotion_review_manifest(packet)
+    if not manifest or not manifest.get("has_remotion_stills") or not manifest.get("has_quality_metrics"):
+        return None
+    return {
+        "card_id": card_id,
+        "quality_status": status,
+        "student_ready": bool(contract.get("student_ready")),
+        "authority": packet_path.name,
+        "ir": ir_path.name,
+        "remotion_composition": contract.get("remotion_composition"),
+        "layout_mode": contract.get("layout_mode"),
+        "remotion_review_scene_ids": contract.get("remotion_review_scene_ids") or [],
+        "visual_dominance": {
+            "min_ratio": visual_dominance.get("min_ratio"),
+            "pass_count": visual_dominance.get("pass_count"),
+            "min_scenes": visual_dominance.get("min_scenes"),
+        },
+        "remotion_quality_summary": manifest.get("quality_summary") or {},
+        "remotion_quality_gate": manifest.get("quality_gate") or {},
+        "reason": contract.get("workflow_candidate_reason") or "single-card workflow packet passed",
+    }
+
+
+def write_index(generated: list[dict[str, Any]], prefix: str) -> Path:
+    rows = "\n".join(
+        f"<tr><td>{item['slot']}</td><td>{html.escape(item['pack_id'])}</td><td>{html.escape(item['title'])}</td><td>{html.escape(item['status'])}<br><small>{html.escape(item.get('quality_status','unknown'))}</small></td><td><a href='{item['preview']}'>讲解</a> · <a href='{item['practice']}'>闯关</a></td><td>{html.escape(item.get('gate','pending'))}</td></tr>"
+        for item in generated
+    )
+    out = WORKDIR / f"{prefix}_index.html"
+    out.write_text(
+        f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{prefix} 动画量产索引</title>
+<style>body{{margin:0;background:#eef5fb;color:#152336;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}}main{{max-width:1100px;margin:0 auto;padding:24px 16px}}h1{{font-size:28px}}p{{color:#60758c;font-weight:800}}table{{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(30,58,87,.12)}}th,td{{padding:11px 12px;border-bottom:1px solid #e2edf5;text-align:left;vertical-align:top}}th{{background:#176b7a;color:white}}a{{color:#176b7a;font-weight:900}}</style></head><body><main><h1>{prefix} 教学动画量产索引</h1><p>OpenMAIC-style animation_ir.v0 批量草稿；只用于内部发现选题和结构问题。Gate PASS 只代表可渲染/可审查，不代表学员可用；精品卡必须逐张进入单卡图示动画质量闭环。</p><table><thead><tr><th>Slot</th><th>Pack</th><th>标题</th><th>状态</th><th>入口</th><th>Gate</th></tr></thead><tbody>{rows}</tbody></table></main></body></html>""",
+        encoding="utf-8",
+    )
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--slots", default="1-40", help="slot range, e.g. 1-40")
+    parser.add_argument("--prefix", default="P40")
+    parser.add_argument("--validate-contract", action="store_true")
+    parser.add_argument("--validate-preview", action="store_true")
+    parser.add_argument("--validate-practice", action="store_true")
+    args = parser.parse_args()
+
+    start, end = [int(part) for part in args.slots.split("-", 1)]
+    slots = [slot for slot in parse_registry() if start <= slot.slot <= end]
+    manifest: dict[str, Any] = {
+        "schema_version": "luban_animation_ir_batch_manifest.v0",
+        "prefix": args.prefix,
+        "slots": args.slots,
+        "quality_status": BATCH_QUALITY_STATUS,
+        "student_ready": False,
+        "promoted": [],
+        "generated": [],
+        "blocked": [],
+    }
+    for slot in slots:
+        md_path = pack_markdown(slot)
+        if not md_path:
+            manifest["blocked"].append({"slot": slot.slot, "pack_id": slot.pack_id, "reason": "missing成品pack.md"})
+            continue
+        card_id = student_safe_card_id(args.prefix, slot.pack_id)
+        ir_path = WORKDIR / f"{card_id}.animation_ir.v0.json"
+        timing_path = WORKDIR / f"{card_id}.lesson.timing.json"
+        source_hash = hashlib.sha256(read_text(md_path).encode("utf-8")).hexdigest()
+        promotion = workflow_promotion(card_id)
+        if promotion:
+            existing_ir = read_json_if_exists(ir_path) or {}
+            contract = existing_ir.get("render_contract") or {}
+            render_result = render_preview(ir_path)
+            gate_status = "rendered" if render_result.returncode == 0 else "render_failed"
+            gates: dict[str, Any] = {
+                "render": {
+                    "returncode": render_result.returncode,
+                    "stdout": render_result.stdout[-1000:],
+                    "stderr": render_result.stderr[-1000:],
+                }
+            }
+            practice_path = WORKDIR / str(contract.get("practice_href") or f"{card_id}.practice.html")
+            if args.validate_practice or args.validate_preview:
+                gates["practice"] = run_gate(["node", str(WORKDIR / "validate_practice_interactions.mjs"), str(practice_path)])
+                if gates["practice"]["returncode"] != 0:
+                    gate_status = "practice_failed"
+            if args.validate_contract:
+                gates["contract"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_contract.mjs"), str(ir_path)])
+                if gates["contract"]["returncode"] != 0:
+                    gate_status = "contract_failed"
+            if args.validate_preview and gate_status != "contract_failed":
+                html_path = WORKDIR / str(contract.get("html_preview") or f"{card_id}.animation_ir_preview.html")
+                gates["preview"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_preview.mjs"), str(ir_path), str(html_path)])
+                gate_status = "pass" if gates["preview"]["returncode"] == 0 else "preview_failed"
+            manifest["promoted"].append(promotion)
+            manifest["generated"].append(
+                {
+                    "slot": slot.slot,
+                    "pack_id": slot.pack_id,
+                    "card_id": card_id,
+                    "title": slot.student_title,
+                    "status": slot.status,
+                    "prototype": (existing_ir.get("teaching_spine") or {}).get("archetype", "promoted_workflow"),
+                    "quality_status": promotion["quality_status"],
+                    "student_ready": promotion["student_ready"],
+                    "preserved_by_batch": True,
+                    "promotion_authority": promotion,
+                    "visual_required_kinds": contract.get("archetype_visual_required") or [],
+                    "source_pack": str(md_path.relative_to(ROOT)),
+                    "source_sha256": source_hash,
+                    "ir": ir_path.name,
+                    "timing": timing_path.name,
+                    "preview": str(contract.get("html_preview") or f"{card_id}.animation_ir_preview.html"),
+                    "practice": practice_path.name,
+                    "remotion_wrapper": str(contract.get("remotion_renderer") or f"remotion_demo/src/{card_id}AnimationIrPreview.tsx"),
+                    "gate": gate_status,
+                    "gates": gates,
+                }
+            )
+            continue
+        ir, timing, source_hash = build_ir(slot, md_path, args.prefix)
+        terms = ir["ai_context"]["key_points"]
+        write_json(ir_path, ir)
+        write_json(timing_path, timing)
+        practice_path = write_practice(card_id, slot, terms)
+        remotion_path = write_remotion_wrapper(card_id)
+        render_result = render_preview(ir_path)
+        gate_status = "rendered" if render_result.returncode == 0 else "render_failed"
+        gates: dict[str, Any] = {"render": {"returncode": render_result.returncode, "stdout": render_result.stdout[-1000:], "stderr": render_result.stderr[-1000:]}}
+        if args.validate_practice or args.validate_preview:
+            gates["practice"] = run_gate(["node", str(WORKDIR / "validate_practice_interactions.mjs"), str(practice_path)])
+            if gates["practice"]["returncode"] != 0:
+                gate_status = "practice_failed"
+        if args.validate_contract:
+            gates["contract"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_contract.mjs"), str(ir_path)])
+            if gates["contract"]["returncode"] != 0:
+                gate_status = "contract_failed"
+        if args.validate_preview and gate_status != "contract_failed":
+            html_path = WORKDIR / f"{card_id}.animation_ir_preview.html"
+            gates["preview"] = run_gate(["node", str(WORKDIR / "validate_animation_ir_preview.mjs"), str(ir_path), str(html_path)])
+            gate_status = "pass" if gates["preview"]["returncode"] == 0 else "preview_failed"
+        manifest["generated"].append(
+            {
+                "slot": slot.slot,
+                "pack_id": slot.pack_id,
+                "card_id": card_id,
+                "title": slot.student_title,
+                "status": slot.status,
+                "prototype": ir["teaching_spine"]["archetype"],
+                "quality_status": BATCH_QUALITY_STATUS,
+                "student_ready": False,
+                "visual_required_kinds": ir["render_contract"]["archetype_visual_required"],
+                "source_pack": str(md_path.relative_to(ROOT)),
+                "source_sha256": source_hash,
+                "ir": ir_path.name,
+                "timing": timing_path.name,
+                "preview": f"{card_id}.animation_ir_preview.html",
+                "practice": practice_path.name,
+                "remotion_wrapper": str(remotion_path.relative_to(WORKDIR)),
+                "gate": gate_status,
+                "gates": gates,
+            }
+        )
+    index_path = write_index(manifest["generated"], args.prefix)
+    manifest["index"] = index_path.name
+    manifest_path = WORKDIR / f"{args.prefix}_animation_ir_batch_manifest.json"
+    write_json(manifest_path, manifest)
+    print(f"generated={len(manifest['generated'])} blocked={len(manifest['blocked'])}")
+    print(f"manifest={manifest_path}")
+    print(f"index={index_path}")
+    if manifest["blocked"]:
+        print("blocked:")
+        for item in manifest["blocked"]:
+            print(f"- slot {item['slot']} {item['pack_id']}: {item['reason']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

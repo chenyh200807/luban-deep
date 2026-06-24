@@ -1,0 +1,1490 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_G01_animation_ir_v0",
+  "card_id": "P40_G01",
+  "display": {
+    "kicker": "鲁班深母题 · Slot 25",
+    "title": "基坑降水案例题作答层"
+  },
+  "main_exam_action": "把基坑降水案例题先画成剖面: 深度线、填土层、承压水、井点和分层厚度先命中, 再写成“不妥-理由-正确做法”的采分句。",
+  "visual_archetype_decision": {
+    "primary_archetype": "section_or_spatial_reveal",
+    "secondary_archetype": "scoring_diagnosis_reveal",
+    "visual_primitive": "pit_threshold_board + answer_scan",
+    "motion_grammar": "blueprint_pit_section_reveals_ground_layers_threshold_lines_then_method_objects_trace_into_score_lines",
+    "why_this_visual": "G01 虽然是案例题作答层, 但学生真正错在没有把题干工程对象看成空间约束: 深度线、填土层、承压水和分层厚度会直接决定答案。主视觉必须先画工程剖面, 再把采分句贴回图上。",
+    "why_not_text": "只用文字框或答题纸扫描会把“管井、回灌、5m分层”讲成抽象判断, 看不见管井为什么被填土淘汰、6m为什么回判轻型井点、回灌为什么不进入承压水突涌口、5m为什么超过≤3m控制。",
+    "must_show_domain_objects": true,
+    "pure_text_allowed": false,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": [
+          "基坑剖面",
+          "地面线",
+          "填土层",
+          "地下水线",
+          "承压水层",
+          "管井井点",
+          "轻型井点",
+          "3m/6m阈值线"
+        ],
+        "visual_action": "深色蓝图板入场, 地面线、U形基坑、填土层、地下水线和承压水层先画出; 3m与6m虚线落下, 管井被红叉淘汰, 轻型井点贴到坑边。",
+        "why_object_not_box": "G01 的错法来自现场工况误读, 只放答题纸文字会看不见“填土淘汰管井、6m回判轻型井点”的工程原因。"
+      },
+      {
+        "scene": "threshold_map",
+        "domain_objects": [
+          "开挖深度H轴",
+          "3m分流线",
+          "6m本题线",
+          "填土层",
+          "管井井管",
+          "轻型井点管列"
+        ],
+        "visual_action": "H轴从地面向下扫描, 黄色>3m线先把明排分流出去, 红色6m线回到轻型井点适用深度, 管井井管被填土层红线命中退出。",
+        "why_object_not_box": "选型是深度线和土层共同命中的结果, 用判断框会把它误讲成背方法名。"
+      },
+      {
+        "scene": "scan_method",
+        "domain_objects": [
+          "基坑剖面",
+          "填土层",
+          "6m深度线",
+          "管井淘汰叉",
+          "轻型井点",
+          "采分句落点"
+        ],
+        "visual_action": "剖面对象保留, 从填土层、6m线和轻型井点各拉一条扫描线到底部规则卡, 组合成“不妥-理由-正确做法”。",
+        "why_object_not_box": "作答层不是把答案贴纸上, 而是把工程对象转译为可给分句; 必须看见对象到句子的 trace。"
+      },
+      {
+        "scene": "trap_inrush",
+        "domain_objects": [
+          "回灌井",
+          "周边沉降路径",
+          "承压水突涌箭头",
+          "钻孔减压线",
+          "水平封底隔渗线"
+        ],
+        "visual_action": "回灌井箭头只导向坑外沉降控制, 承压水向上突涌箭头从坑底冒出; 减压线和封底隔渗线进入突涌口, 回灌路径被挡回。",
+        "why_object_not_box": "回灌和防突涌是不同工程职能, 不画水压路径就会继续误把“地下水相关”当成同一措施。"
+      },
+      {
+        "scene": "correction_sentence",
+        "domain_objects": [
+          "基坑深度尺",
+          "5m红色超限段",
+          "≤3m绿色控制段",
+          "地面线",
+          "分层开挖剖面"
+        ],
+        "visual_action": "红色5m段落在开挖深度尺上显示超限, 绿色≤3m段覆盖到正确控制厚度, 底部规则卡把错误数值和正确门槛连成一句。",
+        "why_object_not_box": "分层题扣的是数字空间尺度, 只写文字“适当减小”看不出为什么不够给分。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": [
+          "完整基坑剖面",
+          "管井淘汰标记",
+          "轻型井点",
+          "≤3m分层段",
+          "承压水突涌措施",
+          "回灌沉降路径"
+        ],
+        "visual_action": "最终蓝图同时保留四类对象, 底部规则卡逐行汇总选型、分层、突涌、回灌职能, 每一行都能回追到图中对象。",
+        "why_object_not_box": "最终答案必须能从现场对象逐行 trace 到采分句, 不是把四个关键词列成文字清单。"
+      }
+    ]
+  },
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/G01_案例题作答层样板.md",
+    "archetype": "section_or_spatial_reveal",
+    "warm_correction": "G01 作答层先看工程剖面对象, 再把对象 trace 成可给分答案行。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/G01_案例题作答层样板.md",
+    "source_card": "P40_G01.source_card.json",
+    "lesson": "P40_G01.lesson.json",
+    "timing": "P40_G01.lesson.timing.json",
+    "audio": "P40_G01.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "quality_status": "workflow_candidate",
+    "student_ready": false,
+    "html_preview": "P40_G01.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_G01AnimationIrPreview.tsx",
+    "remotion_composition": "P40-G01-AnimationIrPreview",
+    "remotion_review_scene_ids": [
+      "threshold_map",
+      "trap_inrush",
+      "score"
+    ],
+    "min_remotion_review_stills": 3,
+    "practice_href": "P40_G01.practice.html",
+    "max_visible_nodes": 4,
+    "caption_mode": "visual_brief",
+    "max_caption_chars": 42,
+    "archetype_visual_required": [
+      "pit_threshold_board"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "threshold_map",
+      "scan_method",
+      "trap_inrush",
+      "correction_sentence",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 6,
+    "min_domain_visual_teaching_scenes": 6,
+    "min_dominant_visual_teaching_scenes": 6,
+    "min_visual_dominance_ratio": 0.48,
+    "primary_visual_primitive_required": "pit_threshold_board",
+    "min_primary_visual_teaching_scenes": 6,
+    "challenge_unlock_sec": 163.704,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 25,
+    "pack_id": "G01",
+    "status": "answer_layer",
+    "canonical_taxonomy_refs": [
+      "1A413037",
+      "1A413036",
+      "1A413000-B081",
+      "1A413000-B071"
+    ],
+    "note": "G01 answer layer: 基坑开挖与降水案例题作答句式"
+  },
+  "ai_context": {
+    "context_id": "P40_G01",
+    "title": "基坑降水案例题作答层",
+    "main_exam_action": "把基坑降水案例题写成不妥、理由、正确做法。",
+    "safe_summary": "这张卡训练基坑降水案例题作答: 填土层不宜管井, 6m工况宜轻型井点; 深基坑分层厚度宜≤3m; 回灌防周边沉降, 承压水突涌应验算并采取钻孔减压或水平封底隔渗。",
+    "key_points": [
+      "填土不宜管井",
+      "6m工况改轻型井点",
+      "分层厚度宜≤3m",
+      "回灌防沉降不防突涌",
+      "突涌验算+减压或封底"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "看漏分",
+      "start_sec": 0
+    },
+    {
+      "id": "threshold_map",
+      "label": "排除管井",
+      "start_sec": 23.488
+    },
+    {
+      "id": "scan_method",
+      "label": "写改法",
+      "start_sec": 51.128
+    },
+    {
+      "id": "trap_inrush",
+      "label": "拆职能",
+      "start_sec": 76.896
+    },
+    {
+      "id": "correction_sentence",
+      "label": "补数字",
+      "start_sec": 102.808
+    },
+    {
+      "id": "score",
+      "label": "扫答案",
+      "start_sec": 129.632
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 163.704
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 215.856
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "看漏分",
+      "start_sec": 0,
+      "end_sec": 23.488,
+      "scene": "section_or_spatial_reveal_blueprint_hook",
+      "focus": "pit_problem_board",
+      "enter": [
+        "blueprint_pit_section.draw"
+      ],
+      "hold": [
+        "threshold_lines.drop",
+        "pipe_well.eliminate",
+        "light_well.attach"
+      ],
+      "exit": [
+        "blueprint.keep_section"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "pit_problem_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_problem_board"
+      ],
+      "keycard": "先看工程剖面怎么暴露失分",
+      "caption": "先画剖面，再找失分。",
+      "coach": "先别盯答题纸。深度线、填土层、管井和承压水画出来, 错因才不是几个词。",
+      "visual_library": "hook",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_problem_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "draw_section",
+          "target": "pit_problem_board.draw_section",
+          "start": 0.02,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "drop_thresholds",
+          "target": "pit_problem_board.drop_thresholds",
+          "start": 0.18,
+          "end": 0.42
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "eliminate_pipe",
+          "target": "pit_problem_board.eliminate_pipe",
+          "start": 0.42,
+          "end": 0.68
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "attach_light_well",
+          "target": "pit_problem_board.attach_light_well",
+          "start": 0.58,
+          "end": 0.82
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_problem_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "pit_problem_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "threshold_map",
+      "label": "排除管井",
+      "start_sec": 23.488,
+      "end_sec": 51.128,
+      "scene": "section_or_spatial_reveal_threshold_map",
+      "focus": "pit_method_board",
+      "enter": [
+        "pit_method_board.reveal"
+      ],
+      "hold": [
+        "depth_axis.scan",
+        "fill_layer.eliminate_pipe_well",
+        "light_well.attach"
+      ],
+      "exit": [
+        "pit_method_board.keep_correct_path"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "pit_method_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_method_board"
+      ],
+      "keycard": "题干工况先在图上淘汰管井",
+      "caption": "6m填土先淘汰管井。",
+      "coach": "6m和填土不是背景词, 它们在图上直接淘汰管井, 并把改法推到轻型井点。",
+      "visual_library": "threshold_map",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_method_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "scan_depth_axis",
+          "target": "pit_method_board.scan_depth_axis",
+          "start": 0.04,
+          "end": 0.36
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "eliminate_pipe",
+          "target": "pit_method_board.eliminate_pipe",
+          "start": 0.32,
+          "end": 0.62
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "attach_light_well",
+          "target": "pit_method_board.attach_light_well",
+          "start": 0.56,
+          "end": 0.86
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_method_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "pit_method_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "scan_method",
+      "label": "写改法",
+      "start_sec": 51.128,
+      "end_sec": 76.896,
+      "scene": "section_or_spatial_reveal_answer_trace",
+      "focus": "pit_scan_board",
+      "enter": [
+        "pit_scan_board.reveal"
+      ],
+      "hold": [
+        "domain_objects.trace_to_score_sentence"
+      ],
+      "exit": [
+        "pit_scan_board.compress_to_rule"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "pit_scan_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_scan_board"
+      ],
+      "keycard": "采分句从剖面对象 trace 出来",
+      "caption": "对象 trace 成采分句。",
+      "coach": "不妥、理由、正确做法不是三块文字, 是从填土层、6m线、轻型井点依次扫出来。",
+      "visual_library": "scan_method",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_scan_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "trace_to_sentence",
+          "target": "pit_scan_board.trace_to_sentence",
+          "start": 0.08,
+          "end": 0.52
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "write_answer_atom",
+          "target": "pit_scan_board.write_answer_atom",
+          "start": 0.48,
+          "end": 0.86
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_scan_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "pit_scan_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "trap_inrush",
+      "label": "拆职能",
+      "start_sec": 76.896,
+      "end_sec": 102.808,
+      "scene": "section_or_spatial_reveal_inrush_function",
+      "focus": "pit_inrush_board",
+      "enter": [
+        "pit_inrush_board.reveal"
+      ],
+      "hold": [
+        "recharge_route_to_settlement",
+        "pressure_relief_route_to_inrush"
+      ],
+      "exit": [
+        "pit_inrush_board.keep_correct_function"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "pit_inrush_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_inrush_board"
+      ],
+      "keycard": "回灌防沉降, 不进突涌口",
+      "caption": "回灌不进突涌口。",
+      "coach": "画出承压水向上顶的路径, 就能看见回灌和减压封底不是同一个职能口。",
+      "visual_library": "trap_inrush",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_inrush_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "route_recharge",
+          "target": "pit_inrush_board.route_recharge",
+          "start": 0.08,
+          "end": 0.42
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "reveal_pressure",
+          "target": "pit_inrush_board.reveal_pressure",
+          "start": 0.28,
+          "end": 0.58
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "route_relief",
+          "target": "pit_inrush_board.route_relief",
+          "start": 0.52,
+          "end": 0.88
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_inrush_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "pit_inrush_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "correction_sentence",
+      "label": "补数字",
+      "start_sec": 102.808,
+      "end_sec": 129.632,
+      "scene": "section_or_spatial_reveal_layer_depth",
+      "focus": "pit_layer_board",
+      "enter": [
+        "pit_layer_board.reveal"
+      ],
+      "hold": [
+        "five_meter_mark.hit_red_line",
+        "three_meter_control.overlay"
+      ],
+      "exit": [
+        "pit_layer_board.merge_to_score"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "pit_layer_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_layer_board"
+      ],
+      "keycard": "5m分层要改成≤3m",
+      "caption": "5m超限，改≤3m。",
+      "coach": "这不是“加强管理”的题, 是空间尺度题。红色5m超限, 绿色≤3m才是可给分门槛。",
+      "visual_library": "correction_sentence",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_layer_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "mark_five_meter",
+          "target": "pit_layer_board.mark_five_meter",
+          "start": 0.08,
+          "end": 0.44
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "overlay_three_meter",
+          "target": "pit_layer_board.overlay_three_meter",
+          "start": 0.42,
+          "end": 0.82
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_layer_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "pit_layer_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "score",
+      "label": "扫答案",
+      "start_sec": 129.632,
+      "end_sec": 163.704,
+      "scene": "section_or_spatial_reveal_score_trace",
+      "focus": "pit_score_board",
+      "enter": [
+        "pit_score_board.reveal"
+      ],
+      "hold": [
+        "four_score_lines.trace_back_to_objects"
+      ],
+      "exit": [
+        "pit_score_board.shrink_to_challenge"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "pit_score_board",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "pit_score_board"
+      ],
+      "keycard": "最终按四个现场对象交卷",
+      "caption": "四行答案都回到图上。",
+      "coach": "四行扫: 选型、分层、突涌措施、回灌职能。每一行都能回追到图上的对象。",
+      "visual_library": "score",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "pit_score_board",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "collect_score_lines",
+          "target": "pit_score_board.collect_score_lines",
+          "start": 0.1,
+          "end": 0.68
+        },
+        {
+          "kind": "primitive_step",
+          "verb": "compress_labels",
+          "target": "pit_score_board.compress_labels",
+          "start": 0.64,
+          "end": 0.92
+        },
+        {
+          "kind": "highlight",
+          "target": "pit_score_board",
+          "start": 0.3,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "pit_score_board",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 163.704,
+      "end_sec": 215.856,
+      "scene": "scoring_diagnosis_reveal_qa",
+      "focus": "qa_scan",
+      "enter": [
+        "qa_scan.reveal"
+      ],
+      "hold": [
+        "qa_scan.scan_questions"
+      ],
+      "exit": [
+        "qa_scan.fade"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "qa_scan",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "qa_scan"
+      ],
+      "keycard": "三个边界问清楚",
+      "caption": "三问只问采分边界。",
+      "coach": "别写泛改法、别把回灌当防突涌、别忘≤3m数字。",
+      "visual_library": "qa_closure",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "qa_scan",
+          "start": 0.05,
+          "end": 0.25
+        },
+        {
+          "kind": "highlight",
+          "target": "qa_scan",
+          "start": 0.34,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "qa_scan",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 215.856,
+      "end_sec": 231.272,
+      "scene": "scoring_diagnosis_reveal_closing",
+      "focus": "challenge_cta",
+      "enter": [
+        "closing_sentence.reveal",
+        "challenge_cta.reveal"
+      ],
+      "hold": [
+        "challenge_cta.pulse"
+      ],
+      "exit": [
+        "scene.end"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "pull-back",
+        "target": "challenge_cta",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "keycard": "进练习, 直接扫答案",
+      "caption": "进闯关，扫完整答案。",
+      "coach": "下一步不背词, 选择能被扫描命中的完整采分动作。",
+      "visual_library": "closing_challenge",
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.22,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_cta",
+          "start": 0.46,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "pull-back",
+          "target": "challenge_cta",
+          "start": 0,
+          "end": 0.42
+        }
+      ]
+    }
+  ],
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "扫选型句",
+      "skill": "填土6m排除管井",
+      "student": "学生答: “管井降水比较常用, 本6m填土基坑可以采用管井。”",
+      "stem": "这句要改成能拿分的判断纠错, 哪个动作最完整？",
+      "answer": "light_well_full",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "答题纸选型扫描",
+        "before": [
+          "6m填土",
+          "管井常用",
+          "缺排除",
+          "缺改法"
+        ],
+        "after": [
+          "填土不宜",
+          "排除管井",
+          "6m回判",
+          "改轻型井点"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "light_well_full",
+          "label": "不妥；填土、黏土不宜采用管井井点，6m工况应按深度匹配改用轻型井点，并回判其降水深度适用。",
+          "reason": "同时交代不妥对象、排除依据、具体改法和回判。"
+        },
+        {
+          "id": "pipe_common",
+          "label": "可以采用管井井点，因为管井在基坑降水中比较常用，施工也方便。",
+          "reason": "用“常用”代替题干工况判断。"
+        },
+        {
+          "id": "change_generic",
+          "label": "不妥；应将管井井点更换为其他井点降水方式，并加强降水监测。",
+          "reason": "判断对了一半, 但没有写出轻型井点和6m回判。"
+        },
+        {
+          "id": "spray_only",
+          "label": "不妥；填土不宜管井，应直接改用喷射井点，因为喷射井点适用于所有深基坑。",
+          "reason": "识别了管井错误, 但把喷射井点泛化, 没有按6m工况回判。"
+        }
+      ],
+      "correct": "对。答案必须从现场对象出发: 先点出填土层不宜管井, 再按6m深度回判, 最后给出轻型井点这个具体改法。",
+      "wrong": "这题不是背“管井/井点”名词。阅卷要看你有没有把填土层和6m深度写成排除依据和改正句。",
+      "optionFeedback": {
+        "pipe_common": "容易选, 因为管井确实是降水方法之一。但本题题干给的是填土层, 填土不宜管井, 继续写管井会直接扣选型分。",
+        "change_generic": "这比“管井可以”好, 但仍会扣分。因为改正句没有给具体方法, 阅卷人看不出你能按6m工况选轻型井点。",
+        "spray_only": "它抓到了“填土不宜管井”, 但又把喷射井点当万能答案。正确补法是按6m深度回判, 本题宜写轻型井点。"
+      }
+    },
+    {
+      "id": "q2",
+      "stageLabel": "扫分层数",
+      "skill": "深基坑分层厚度",
+      "student": "学生答: “基坑分层开挖按5m控制, 属于分层施工, 没有明显不妥。”",
+      "stem": "如果要指出不妥并改正, 哪句最能拿分？",
+      "answer": "layer_3m",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "分层厚度扫描",
+        "before": [
+          "5m分层",
+          "没问题",
+          "缺≤3m",
+          "无改法"
+        ],
+        "after": [
+          "5m不妥",
+          "深基坑",
+          "分层≤3m",
+          "按≤3m控"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "layer_3m",
+          "label": "不妥；深基坑开挖分层厚度宜控制在3m以内，题干5m超限，应改为按≤3m分层开挖。",
+          "reason": "把题干数值、规范门槛和正确控制值都写出来。"
+        },
+        {
+          "id": "safe_general",
+          "label": "不妥；应加强基坑开挖安全管理，开挖过程中安排专人旁站。",
+          "reason": "安全管理不是这行的数值采分点。"
+        },
+        {
+          "id": "layer_ok",
+          "label": "妥当；只要叫分层开挖，分层厚度由施工单位根据机械效率确定。",
+          "reason": "忽略了深基坑分层≤3m的控制要求。"
+        },
+        {
+          "id": "less_than_5",
+          "label": "不妥；应适当减小分层厚度，具体数值可由现场情况灵活确定。",
+          "reason": "判断方向对, 但没有交代≤3m这个给分数字。"
+        }
+      ],
+      "correct": "对。数字题要把错误数值和正确门槛一起写: 5m不妥, 深基坑分层厚度宜≤3m, 应按≤3m控制。",
+      "wrong": "这里扣的是数字门槛, 不是管理态度。只写加强管理或适当减小, 都没有交付阅卷要看的≤3m。",
+      "optionFeedback": {
+        "safe_general": "容易选, 因为案例题常要写管理措施。但本行问的是分层厚度, 不写≤3m就补不到这个采分点。",
+        "layer_ok": "只要题干给出5m, 就不能把“分层”两个字当合格。深基坑分层厚度宜控制在3m以内。",
+        "less_than_5": "它知道要减小, 但答案仍太虚。正确补句必须把≤3m写出来, 才是可给分动作。"
+      }
+    },
+    {
+      "id": "q3",
+      "stageLabel": "拆职能",
+      "skill": "回灌不防突涌",
+      "student": "学生答: “承压水突涌可通过加密回灌井控制, 让水位保持平衡。”",
+      "stem": "针对承压水坑底突涌, 哪个改写最准确？",
+      "answer": "inrush_measures",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "承压水措施扫描",
+        "before": [
+          "承压水",
+          "回灌井",
+          "防突涌?",
+          "缺措施"
+        ],
+        "after": [
+          "验算突涌",
+          "钻孔减压",
+          "封底隔渗",
+          "回灌防沉"
+        ],
+        "hotIndex": 3
+      },
+      "options": [
+        {
+          "id": "inrush_measures",
+          "label": "不妥；回灌主要用于维持地下水位、防止周边沉降，承压水突涌应验算并采取钻孔减压或水平封底隔渗。",
+          "reason": "把回灌职能和突涌措施分开。"
+        },
+        {
+          "id": "recharge_more",
+          "label": "正确；加密回灌井可以把水回灌回去，因此能直接消除坑底突涌风险。",
+          "reason": "把回灌职能误判成防突涌。"
+        },
+        {
+          "id": "pump_more",
+          "label": "不妥；承压水突涌时应单纯加大井点降水抽水量，使坑外水位迅速下降。",
+          "reason": "用普通降水替代突涌验算和减压封底。"
+        },
+        {
+          "id": "only_check",
+          "label": "不妥；承压水需要进行突涌验算，验算后再视情况处理即可。",
+          "reason": "写了验算, 但没有列出可给分的减压或封底隔渗措施。"
+        }
+      ],
+      "correct": "对。防突涌必须写成“验算突涌+钻孔减压/水平封底隔渗”, 同时把回灌限定到防周边沉降。",
+      "wrong": "这道题最容易把“回灌维持水位”误当防突涌。阅卷要看的是验算、钻孔减压、水平封底隔渗这些动作。",
+      "optionFeedback": {
+        "recharge_more": "容易选, 因为“平衡水位”听起来像能处理承压水。但回灌的采分职能是防周边沉降, 不是防坑底突涌。",
+        "pump_more": "它像在处理水, 但没有命中承压水突涌这个对象。正确补法要写验算突涌、钻孔减压或水平封底隔渗。",
+        "only_check": "验算是第一步, 但答案停在“视情况处理”太空。要补钻孔减压或水平封底隔渗, 才能拿措施分。"
+      }
+    },
+    {
+      "id": "q4",
+      "stageLabel": "先分流",
+      "skill": "4m软土不能只明排",
+      "student": "题干: 基坑开挖深度4m, 软土且地下水丰富。学生答: “软土基坑可采用集水明排。”",
+      "stem": "这类迁移题第一句最稳怎么写？",
+      "answer": "more_than_3_wellpoint",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "深度分流扫描",
+        "before": [
+          "4m软土",
+          "集水明排",
+          "缺>3m",
+          "缺井点"
+        ],
+        "after": [
+          ">3m",
+          "应井点",
+          "再选类型",
+          "回判工况"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "more_than_3_wellpoint",
+          "label": "不妥；集水明排适用于深度≤3m且软土等工况，本题4m已超过3m，应采用井点降水并再按参数选型。",
+          "reason": "先按深度分流, 再进入井点类型选择。"
+        },
+        {
+          "id": "soft_soil_drain",
+          "label": "妥当；题干写的是软土, 所以优先采用集水明排, 深度不是主要判断条件。",
+          "reason": "只抓土质, 漏掉深度分流。"
+        },
+        {
+          "id": "pipe_well_all",
+          "label": "不妥；只要地下水丰富, 就应直接改为管井井点降水。",
+          "reason": "把地下水丰富当成管井万能条件。"
+        },
+        {
+          "id": "monitor_only",
+          "label": "应保留集水明排, 但增加水位监测和排水沟维护, 防止积水。",
+          "reason": "监测维护不能替代>3m应采用井点降水的分流动作。"
+        }
+      ],
+      "correct": "对。迁移题先分流: ≤3m且软土才考虑集水明排, 4m已经>3m, 应进入井点降水选型。",
+      "wrong": "不要只抓“软土”两个字。G01 的第一步是深度分流, 超过3m就不能停在集水明排。",
+      "optionFeedback": {
+        "soft_soil_drain": "容易选, 因为原文确实提到软土。但它还要求深度≤3m, 本题4m超过3m, 所以要改井点降水。",
+        "pipe_well_all": "管井不是地下水丰富就能用, 还要看土层和渗透系数。正确动作是先说>3m应井点, 再按参数选类型。",
+        "monitor_only": "监测可以配套, 但主采分点是降水方案分流。保留明排会漏掉>3m应井点降水。"
+      }
+    },
+    {
+      "id": "q5",
+      "stageLabel": "整句输出",
+      "skill": "答案诊断与采分句",
+      "student": "答题纸要求一次性改写: 6m填土用管井、5m分层、回灌防突涌三处做法。",
+      "stem": "哪份答案最像阅卷可给分的完整输出？",
+      "answer": "full_answer",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "最终答案诊断",
+        "before": [
+          "选型行",
+          "分层行",
+          "突涌行",
+          "职能行"
+        ],
+        "after": [
+          "填土不宜",
+          "分层≤3m",
+          "减压/封底",
+          "回灌防沉"
+        ],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "full_answer",
+          "label": "不妥一: 填土层采用管井, 管井不宜用于填土, 6m工况宜改轻型井点；不妥二: 5m分层超限, 深基坑分层宜≤3m；不妥三: 回灌不防突涌, 承压水应验算突涌并采取钻孔减压或水平封底隔渗。",
+          "reason": "把选型、分层、突涌措施和回灌职能全部写成采分句。"
+        },
+        {
+          "id": "method_only",
+          "label": "管井、5m分层和回灌都不太妥, 应改用合适降水方法, 控制开挖厚度, 并加强承压水处理。",
+          "reason": "判断方向对, 但没有给具体方法、数值和措施。"
+        },
+        {
+          "id": "only_inrush",
+          "label": "本题主要风险是承压水突涌, 应验算突涌并采取钻孔减压或水平封底隔渗, 其他做法按现场条件调整。",
+          "reason": "突涌写得较好, 但漏掉管井选型和5m分层。"
+        },
+        {
+          "id": "all_management",
+          "label": "三处均应由项目技术负责人重新交底, 加强水位监测, 严格按专项方案施工, 发现异常立即停工。",
+          "reason": "管理动作不能替代本题的具体采分句。"
+        }
+      ],
+      "correct": "对。最后一题训练的是整句输出: 选型行、分层行、突涌措施行、回灌职能行都要同时命中。",
+      "wrong": "这题不能只说“加强处理”或只答承压水。完整答案要把三处不妥分别改成具体采分句。",
+      "optionFeedback": {
+        "method_only": "容易选, 因为它看起来把三处都提到了。但每处都太泛: 没有轻型井点、≤3m、钻孔减压或水平封底隔渗, 会被扣具体采分。",
+        "only_inrush": "这份答案命中了突涌措施, 但漏了管井不宜填土和5m分层超限。案例题问多处不妥时, 不能只抓一个风险。",
+        "all_management": "管理句在安全题里常见, 但这里阅卷看的是选型、数字和措施。它没有替代任何一条核心采分句。"
+      }
+    }
+  ],
+  "visual_excellence_profile": {
+    "reference_style": "dark_blue_engineering_threshold_blueprint",
+    "reference_image_note": "Use the user's preferred engineering threshold-board style: real site section drawing, measured danger lines, object routes, and a bottom rule card; not abstract text boxes.",
+    "must_show": [
+      "基坑剖面、地面线、开挖深度轴、填土层、地下水线、承压水层",
+      "管井井点被红叉淘汰, 轻型井点进入坑边",
+      "回灌井路径只连到周边沉降, 不连到承压水突涌口",
+      "钻孔减压或水平封底隔渗以工程线条命中突涌路径",
+      "5m分层红线与≤3m控制段以空间尺表达",
+      "最终采分句必须能从图中现场对象追溯出来"
+    ],
+    "motion_standards": [
+      "Remotion renderer consumes the same animation_ir.v0 data as HTML preview",
+      "every main teaching scene uses pit_threshold_board with PrimitiveStep object-level motion",
+      "threshold lines trace in before conclusion labels appear",
+      "wrong object is eliminated by visible red cross rather than narration-only judgment",
+      "score scene compresses dense text into rule card while domain objects remain visible"
+    ],
+    "layout_guards": [
+      "blueprint section scenes use a larger 392x340 domain board so the pit diagram, not the captions, dominates the teaching frame",
+      "mobile portrait visual area must stay at least 244px tall after controls are visible",
+      "sparse problem/score scenes hide nonessential in-diagram labels to prevent text-object overlap",
+      "measurement labels cannot sit under arrows, red crosses, AI entry, player controls, or coach card",
+      "practice answer choices and feedback must not reveal answer before click"
+    ],
+    "release_bar": "workflow_candidate only; finished copy requires source workflow, Aliyun print, IR contract, preview collision gate, practice interaction gate, 390px screenshot inspection, and real-click smoke."
+  },
+  "visual_library": {
+    "hook": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_problem_board",
+          "kind": "pit_threshold_board",
+          "mode": "problem",
+          "text": "6m填土基坑错答定位",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "错因",
+          "rule_main": "管井/回灌/5m 都要回到现场",
+          "rule_sub": "先看剖面, 再看答案行",
+          "domain_visual": true,
+          "domain_objects": [
+            "基坑剖面",
+            "填土层",
+            "地下水线",
+            "承压水层",
+            "管井井点",
+            "轻型井点",
+            "3m阈值线",
+            "6m深度线"
+          ],
+          "primitive_steps": [
+            {
+              "id": "draw_section",
+              "kind": "reveal_object",
+              "domain_objects": [
+                "地面线",
+                "U形基坑",
+                "填土层",
+                "承压水层"
+              ],
+              "start": 0,
+              "end": 0.2,
+              "state_after": "基坑剖面对象可见"
+            },
+            {
+              "id": "drop_thresholds",
+              "kind": "trace_path",
+              "domain_objects": [
+                "3m阈值线",
+                "6m本题线"
+              ],
+              "start": 0.18,
+              "end": 0.42,
+              "state_after": "深度线命中剖面"
+            },
+            {
+              "id": "eliminate_pipe",
+              "kind": "branch_eliminate",
+              "domain_object": "管井井点",
+              "start": 0.42,
+              "end": 0.68,
+              "state_after": "管井被填土层淘汰"
+            },
+            {
+              "id": "attach_light_well",
+              "kind": "move_object",
+              "domain_object": "轻型井点",
+              "start": 0.58,
+              "end": 0.82,
+              "state_after": "轻型井点贴到坑边"
+            }
+          ]
+        }
+      ]
+    },
+    "threshold_map": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_method_board",
+          "kind": "pit_threshold_board",
+          "mode": "method",
+          "text": "深度与土层共同选型",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "判据",
+          "rule_main": "填土淘汰管井 · 6m选轻型",
+          "rule_sub": ">3m先井点, 再按土层选型",
+          "domain_visual": true,
+          "domain_objects": [
+            "开挖深度H轴",
+            "3m分流线",
+            "6m本题线",
+            "填土层",
+            "管井井点",
+            "轻型井点管列"
+          ],
+          "primitive_steps": [
+            {
+              "id": "scan_depth_axis",
+              "kind": "trace_path",
+              "domain_objects": [
+                "开挖深度H轴",
+                "3m分流线",
+                "6m本题线"
+              ],
+              "start": 0.04,
+              "end": 0.36,
+              "state_after": "深度分流完成"
+            },
+            {
+              "id": "eliminate_pipe",
+              "kind": "branch_eliminate",
+              "domain_objects": [
+                "填土层",
+                "管井井点"
+              ],
+              "start": 0.32,
+              "end": 0.62,
+              "state_after": "管井退出选型"
+            },
+            {
+              "id": "attach_light_well",
+              "kind": "move_object",
+              "domain_object": "轻型井点管列",
+              "start": 0.56,
+              "end": 0.86,
+              "state_after": "轻型井点成为正确路径"
+            }
+          ]
+        }
+      ]
+    },
+    "scan_method": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_scan_board",
+          "kind": "pit_threshold_board",
+          "mode": "scan",
+          "text": "对象 trace 到采分句",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "写法",
+          "rule_main": "对象→条件→排除→改法",
+          "rule_sub": "不妥-理由-正确做法同屏",
+          "domain_visual": true,
+          "domain_objects": [
+            "基坑剖面",
+            "填土层",
+            "6m深度线",
+            "管井淘汰叉",
+            "轻型井点",
+            "采分句落点"
+          ],
+          "primitive_steps": [
+            {
+              "id": "trace_to_sentence",
+              "kind": "trace_path",
+              "domain_objects": [
+                "填土层",
+                "6m深度线",
+                "轻型井点",
+                "采分句落点"
+              ],
+              "start": 0.08,
+              "end": 0.52,
+              "state_after": "对象 trace 到答案句"
+            },
+            {
+              "id": "write_answer_atom",
+              "kind": "write_answer_atom",
+              "domain_objects": [
+                "不妥行",
+                "理由行",
+                "正确做法行"
+              ],
+              "start": 0.48,
+              "end": 0.86,
+              "state_after": "三段式采分句成型"
+            }
+          ]
+        }
+      ]
+    },
+    "trap_inrush": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_inrush_board",
+          "kind": "pit_threshold_board",
+          "mode": "inrush",
+          "text": "承压水与回灌分职能",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "职能",
+          "rule_main": "回灌防沉降, 不防突涌",
+          "rule_sub": "承压水: 验算+减压/封底",
+          "domain_visual": true,
+          "domain_objects": [
+            "回灌井",
+            "周边沉降路径",
+            "承压水突涌箭头",
+            "钻孔减压线",
+            "水平封底隔渗线"
+          ],
+          "primitive_steps": [
+            {
+              "id": "route_recharge",
+              "kind": "trace_path",
+              "domain_objects": [
+                "回灌井",
+                "周边沉降路径"
+              ],
+              "start": 0.08,
+              "end": 0.42,
+              "state_after": "回灌路径只到沉降控制"
+            },
+            {
+              "id": "reveal_pressure",
+              "kind": "reveal_object",
+              "domain_objects": [
+                "承压水突涌箭头",
+                "坑底突涌口"
+              ],
+              "start": 0.28,
+              "end": 0.58,
+              "state_after": "承压水风险显现"
+            },
+            {
+              "id": "route_relief",
+              "kind": "trace_path",
+              "domain_objects": [
+                "钻孔减压线",
+                "水平封底隔渗线"
+              ],
+              "start": 0.52,
+              "end": 0.88,
+              "state_after": "正确措施命中突涌口"
+            }
+          ]
+        }
+      ]
+    },
+    "correction_sentence": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_layer_board",
+          "kind": "pit_threshold_board",
+          "mode": "layer",
+          "text": "分层厚度不是口号",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "数字",
+          "rule_main": "5m超限, 深基坑≤3m",
+          "rule_sub": "错误数值和正确门槛同句写",
+          "domain_visual": true,
+          "domain_objects": [
+            "基坑深度尺",
+            "5m超限段",
+            "≤3m控制段",
+            "地面线",
+            "分层开挖剖面"
+          ],
+          "primitive_steps": [
+            {
+              "id": "mark_five_meter",
+              "kind": "reveal_object",
+              "domain_objects": [
+                "5m红色超限段",
+                "基坑深度尺"
+              ],
+              "start": 0.08,
+              "end": 0.44,
+              "state_after": "5m超限被标出"
+            },
+            {
+              "id": "overlay_three_meter",
+              "kind": "move_object",
+              "domain_objects": [
+                "≤3m绿色控制段",
+                "分层开挖剖面"
+              ],
+              "start": 0.42,
+              "end": 0.82,
+              "state_after": "≤3m正确控制覆盖"
+            }
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "blueprint",
+      "nodes": [
+        {
+          "id": "pit_score_board",
+          "kind": "pit_threshold_board",
+          "mode": "score",
+          "text": "最终答案可从图上追溯",
+          "x": 14,
+          "y": 18,
+          "w": 392,
+          "h": 340,
+          "tone": "blue",
+          "rule_title": "交卷",
+          "rule_main": "选型/分层/突涌/回灌 四行命中",
+          "rule_sub": "每行都回到一个现场对象",
+          "domain_visual": true,
+          "domain_objects": [
+            "完整基坑剖面",
+            "管井淘汰标记",
+            "轻型井点",
+            "≤3m分层段",
+            "承压水突涌措施",
+            "回灌沉降路径"
+          ],
+          "primitive_steps": [
+            {
+              "id": "collect_score_lines",
+              "kind": "scan_row",
+              "domain_objects": [
+                "选型行",
+                "分层行",
+                "突涌措施行",
+                "回灌职能行"
+              ],
+              "start": 0.1,
+              "end": 0.68,
+              "state_after": "四行采分对象均可回追"
+            },
+            {
+              "id": "compress_labels",
+              "kind": "scan_row",
+              "domain_objects": [
+                "底部规则卡",
+                "现场对象"
+              ],
+              "start": 0.64,
+              "end": 0.92,
+              "state_after": "图内标签收束, 由规则卡承接文字"
+            }
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "qa_scan",
+          "kind": "answer_scan",
+          "text": "三问扫边界",
+          "x": 28,
+          "y": 38,
+          "w": 304,
+          "h": 188,
+          "tone": "blue",
+          "labels": [
+            "换别的?",
+            "回灌能防?",
+            "适当减小?",
+            "问鲁班"
+          ],
+          "domain_objects": [
+            "答题纸",
+            "管井井点",
+            "回灌井",
+            "分层厚度尺"
+          ]
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "对象进图",
+          "subtext": "扫成采分句",
+          "tone": "success"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关",
+          "tone": "amber"
+        }
+      ]
+    }
+  }
+}

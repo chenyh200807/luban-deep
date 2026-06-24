@@ -228,6 +228,17 @@ function loadProfilePage(overrides) {
         loaded.page.data.usagePrimaryLabel === "剩余 88%",
         "profile should hydrate primary usage quota",
       );
+      var walletRow = loaded.page.data.usageRows.find(function (row) {
+        return row.key === "wallet_percent";
+      });
+      assert(
+        walletRow && walletRow.remainingLabel === "剩余 88%",
+        "profile usage detail should expose remaining label for the sheet",
+      );
+      assert(
+        walletRow && walletRow.barStyle === "width:88%",
+        "profile usage detail should expose deterministic progress width",
+      );
     },
   );
 

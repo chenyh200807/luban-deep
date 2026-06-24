@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 防水 · 5 天提分留存闭环 — 可玩原型</title>
+<style>
+  :root{
+    --ink:#1d2530; --sub:#6b7686; --line:#e7ebf0; --bg:#eef1f5;
+    --green:#1aa06d; --green-bg:#e8f7f0; --amber:#e08a1e; --amber-bg:#fdf2e3;
+    --red:#d9534f; --red-bg:#fdecea; --blue:#2f6df0; --blue-bg:#eaf1ff; --gold:#f5a623;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:24px 12px 60px}
+  .intro{max-width:580px;text-align:center;margin-bottom:18px}
+  .intro h1{font-size:19px;margin:0 0 6px}
+  .intro p{font-size:13px;color:var(--sub);line-height:1.6;margin:4px 0}
+  .badge{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:20px;
+    padding:3px 12px;font-size:12px;color:var(--sub);margin:2px 4px}
+  .phone{width:360px;background:#fff;border-radius:34px;padding:11px;
+    box-shadow:0 14px 44px rgba(20,30,50,.16);border:1px solid #dfe4ea}
+  .screen{background:#f6f8fb;border-radius:26px;overflow:hidden;height:690px;display:flex;flex-direction:column}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:11px 20px 5px;font-size:12px;color:#8a94a3}
+  .navbar{padding:7px 18px 13px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:#fff}
+  .navbar .t{font-size:15px;font-weight:600}
+  .navbar .day{margin-left:auto;font-size:12px;color:var(--sub)}
+  .body{padding:18px;overflow:auto;flex:1}
+  .streak{display:inline-flex;align-items:center;gap:5px;background:#fff5e6;color:#c47b12;
+    border-radius:14px;padding:4px 10px;font-size:12px;font-weight:600;margin-bottom:6px}
+  .plan{font-size:12px;color:var(--sub);background:#f0f3f8;border-radius:10px;padding:9px 11px;margin:8px 0 4px;line-height:1.55}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin:12px 0}
+  .card.lead{background:linear-gradient(135deg,#2f6df0,#5a93ff);color:#fff;border:none}
+  .card.lead .k{font-size:13px;opacity:.9}
+  .card.lead .v{font-size:21px;font-weight:700;margin:6px 0 2px}
+  .card.lead .meta{font-size:12px;opacity:.85}
+  .progress{display:flex;gap:5px;margin-bottom:12px}
+  .pg{flex:1;height:5px;border-radius:5px;background:#dde3ec}
+  .pg.on{background:var(--blue)} .pg.ok{background:var(--green)} .pg.no{background:var(--amber)}
+  .cta{display:block;width:100%;text-align:center;background:var(--blue);color:#fff;border:none;border-radius:14px;
+    padding:14px;font-size:15px;font-weight:600;margin-top:16px;cursor:pointer}
+  .cta:disabled{background:#c5cedb;cursor:not-allowed}
+  .cta.green{background:var(--green)}
+  .cta.ghost{background:#fff;color:var(--blue);border:1px solid #cfe0ff}
+  .q-meta{font-size:12px;color:var(--sub);margin-bottom:6px}
+  .stem{font-size:15px;line-height:1.65;margin:4px 0 14px;font-weight:500}
+  .opt{border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin:9px 0;font-size:13.5px;
+    line-height:1.5;background:#fff;display:flex;gap:9px;cursor:pointer;transition:.12s}
+  .opt:hover{border-color:#b9c6da}
+  .opt .lab{font-weight:700;color:var(--sub)}
+  .opt.sel{border-color:var(--blue);background:var(--blue-bg)}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg)}
+  .opt.right{border-color:var(--green);background:var(--green-bg)}
+  .opt.dim{opacity:.5}
+  .confi{background:#fff;border:1px dashed #c9d3e0;border-radius:12px;padding:13px;margin:14px 0}
+  .confi .q{font-size:13px;font-weight:600;margin-bottom:9px}
+  .stars{font-size:26px;letter-spacing:6px;color:#d8dee7;cursor:pointer;user-select:none}
+  .stars span:hover,.stars span.lit{color:var(--gold)}
+  .diag{border-radius:16px;padding:16px;margin:12px 0}
+  .diag.bad{background:var(--amber-bg);border:1px solid #f1d4a3}
+  .diag.good{background:var(--green-bg);border:1px solid #b8e6cf}
+  .diag h4{margin:0 0 9px;font-size:15px}
+  .tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px}
+  .tag.err{background:#fbe2d6;color:#b85618}
+  .tag.code{background:#e7ecf3;color:#54627a;font-family:ui-monospace,Menlo,monospace}
+  .diag p{margin:8px 0;font-size:13px;line-height:1.6;color:#3b4452}
+  .diag .why{background:#fff;border-radius:10px;padding:11px 12px;font-size:13px;line-height:1.6;margin-top:8px}
+  .src{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:9px 12px;font-size:12px;color:var(--blue);margin-top:8px}
+  .hook{background:#eef4ff;border:1px solid #cfe0ff;border-radius:12px;padding:12px 13px;
+    font-size:13px;color:#2554b0;margin-top:11px;line-height:1.55}
+  .hook b{color:#173a86}
+  .retest-banner{background:#fff7e8;border:1px solid #f3d9a6;border-radius:12px;padding:12px;
+    font-size:13px;color:#9a6512;margin-bottom:12px;line-height:1.55}
+  .win{background:var(--green-bg);border:1px solid #b8e6cf;border-radius:14px;padding:16px;text-align:center;margin:12px 0}
+  .win .big{font-size:17px;font-weight:700;color:var(--green);margin-bottom:4px}
+  .win .sub{font-size:13px;color:#3b6b54;line-height:1.5}
+  .summary-row{display:flex;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--line);font-size:14px}
+  .summary-row:last-child{border-bottom:none}
+  .summary-row .v{font-weight:700}
+  .pos{color:var(--green)} .neg{color:var(--amber)}
+  .reset{margin-top:14px;font-size:12px;color:var(--sub);text-align:center;cursor:pointer;text-decoration:underline}
+  .vbadge{font-size:10px;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .vbadge.ok{background:var(--green-bg);color:var(--green)}
+  .vbadge.pend{background:var(--amber-bg);color:var(--amber)}
+  .bg{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px;font-size:13px;line-height:1.85;margin:10px 0}
+  .ptrow{display:flex;gap:9px;padding:11px 12px;border-radius:10px;margin:8px 0;font-size:13px;line-height:1.5;align-items:flex-start}
+  .ptrow.hit{background:var(--green-bg);border:1px solid #b8e6cf}
+  .ptrow.miss{background:var(--amber-bg);border:1px solid #f1d4a3}
+  .ptrow .ic{font-weight:700;font-size:14px;white-space:nowrap}
+  .ptrow .tn{font-size:10px;color:var(--sub);margin-top:3px}
+  .scorebar{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+  .scorebar .s{font-size:22px;font-weight:700;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 防水 · 5 天提分留存闭环 —— 可玩原型</h1>
+  <p><span class="badge">真点真诊断</span><span class="badge">每日 MCQ 轻练</span><span class="badge">案例题=选择作答(不打字)</span><span class="badge">原型 · 非真小程序</span></p>
+  <p>真操作:选答案→给把握度→提交→看诊断→走完一天→进第二天复测;第 2 天小结里可进「案例题组(选择形态)」。先感觉循环对不对,再决定要不要把 5 天题量产满。</p>
+</div>
+
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span id="clock">9:41</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+  <div class="navbar"><span class="t" id="navt">今日任务</span><span class="day" id="navd">第 1 天</span></div>
+  <div class="body" id="app"></div>
+</div></div>
+
+<script>
+// ===== 每日轻练题库(防水 · 第1-2天切片) =====
+// validated:true = 已 4/4 模型共识深题; false = 本切片新作,已过 DeepSeek+Qwen 2/3 盲投
+const BANK = {
+  day1: [
+    { id:"D1", validated:true, meta:"屋面防水 · 卷材铺贴",
+      stem:"某屋面北侧高、南侧低,雨水从北向南流。两名工人争论卷材搭接方向。哪种做法最能体现「顺水搭接」的本质?",
+      opts:[{k:"A",t:"由低处(南)向高处(北)铺,高处卷材盖住低处卷材的上坡边,水跨过缝口而不钻入。"},
+            {k:"B",t:"由高处(北)向低处(南)铺,后铺的南侧卷材压住北侧——「后铺压先铺」总没错。"},
+            {k:"C",t:"只要搭接宽度够,坡向和缝口朝向不影响渗漏。"},
+            {k:"D",t:"为减少接缝,卷材垂直屋脊铺,缝向由施工方便决定。"}],
+      ans:"A", src:"建筑实务 1A434 屋面防水 · 铺贴方法",
+      diag:{ B:{err:"迁移失败",code:"E11",why:"你把「后铺压先铺」当成了绝对规则,但没把<b>水流方向</b>代进去。水从高流向低,要让水<b>跨过</b>缝而不灌进缝,必须<b>上坡片压下坡片(高盖低)</b>。B 反了,缝口正对来水→渗漏。"},
+             C:{err:"概念混淆",code:"E07",why:"搭接宽度够≠不渗漏。缝口<b>朝向</b>决定水是跨过还是灌入,方向错了再宽也漏。"},
+             D:{err:"规范适用错误",code:"E10",why:"卷材宜<b>平行屋脊</b>铺、缝顺水;垂直屋脊、缝向凭方便,违背铺贴方向要求。"}},
+      right:"对!水从高到低,高处卷材盖住低处上坡边,水从表面跨过缝口——这就是顺水搭接。"},
+    { id:"D3", validated:true, meta:"地下防水 · 设防面",
+      stem:"地下室外墙,外侧是回填土和地下水,内侧是室内。为赶工有人提议把卷材主要贴在<b>内侧</b>(好施工、漏了好补)。哪个判断最准?",
+      opts:[{k:"A",t:"错。主防水层应在迎水侧(外侧):水压把迎水面防水压贴在基层上;贴背水面(内侧)则可能被水压顶离,且结构外侧仍被水侵入。"},
+            {k:"B",t:"对。只要材料防水,贴内侧外侧没本质区别。"},
+            {k:"C",t:"对。内侧好检修,所以内侧永远优于外侧。"},
+            {k:"D",t:"错,但只因为「屋面防水在上表面」,地下室照搬上表面就行。"}],
+      ans:"A", src:"建筑实务 1A413/1A437 地下防水 · 迎水面设防",
+      diag:{ B:{err:"概念混淆",code:"E07",why:"只看材料、不看<b>水压方向</b>和构造位置。同一张卷材,贴迎水面被压紧、贴背水面被顶离,效果天差地别。"},
+             C:{err:"规范适用错误",code:"E10",why:"用「好检修」替代了「迎水面设防」原则。检修便利是次要,扛水压才是主要。"},
+             D:{err:"迁移失败",code:"E11",why:"屋面「上表面」和地下室「外侧」都只是<b>迎水面</b>的具体表现。机械照搬「上表面」,遇立面就错。"}},
+      right:"对!迎水面=外侧,水压把防水层压贴基层;贴内侧会被反水压顶离。"},
+    { id:"N1", validated:false, meta:"细部构造 · 阴阳角",
+      stem:"防水施工要求基层的阴阳角做成<b>圆弧或钝角</b>,并增设一层附加层。最主要的原因是?",
+      opts:[{k:"A",t:"直角处卷材/涂膜易因应力集中被拉裂、架空,圆弧+附加层是为消除这个最易渗漏的薄弱点。"},
+            {k:"B",t:"圆弧角更美观,验收时好看。"},
+            {k:"C",t:"为了省材料,圆弧角用料更少。"},
+            {k:"D",t:"无所谓,只要大面卷材铺满,阴阳角怎么做都行。"}],
+      ans:"A", src:"建筑实务 防水 · 细部构造处理",
+      diag:{ B:{err:"概念混淆",code:"E07",why:"圆弧角不是为好看,是为<b>消除直角处应力集中</b>——卷材在硬直角上易被拉裂、架空、起鼓,正是渗漏起点。"},
+             C:{err:"概念混淆",code:"E07",why:"和省料无关。增设<b>附加层</b>反而是多用一层料补强薄弱点。"},
+             D:{err:"采分点遗漏",code:"E02",why:"阴阳角、管根这些<b>节点</b>恰是渗漏高发处,「大面铺满就行」漏掉了最关键的细部。"}},
+      right:"对!直角处应力集中、卷材易裂,圆弧+附加层就是消除这个薄弱点。"},
+    { id:"N2", validated:false, meta:"质量通病 · 收口",
+      stem:"卷材防水层的<b>收口</b>处如果没固定牢、没密封好,最直接的后果是什么?",
+      opts:[{k:"A",t:"收口张口、翘边,水从口部窜入卷材背面,沿层间流窜,渗漏点往往离收口很远、难找。"},
+            {k:"B",t:"只影响观感,不影响防水。"},
+            {k:"C",t:"收口在边上,水到不了那里,没影响。"},
+            {k:"D",t:"会让卷材更省,是好事。"}],
+      ans:"A", src:"建筑实务 防水 · 质量通病(收口张口)",
+      diag:{ B:{err:"概念混淆",code:"E07",why:"收口张口不是观感问题。口一张,水进卷材<b>背面</b>层间窜流,渗漏点和收口常对不上,最难治。"},
+             C:{err:"背景信息提取失败",code:"E08",why:"收口正是水易聚集、灌入的端部(女儿墙泛水、管根),不是「水到不了」的安全区。"},
+             D:{err:"概念混淆",code:"E07",why:"把「省料」当好事,忽略了收口不牢=整道防水从端部失效。"}},
+      right:"对!收口一张口,水从端部窜进卷材背面层间,渗漏点难找——所以收口必须固定密封。"}
+  ],
+  day2: [
+    { id:"R1", validated:true, retestOf:"D1", meta:"复测 · 顺水搭接(换皮)",
+      stem:"<b>昨天你在「顺水搭接」栽过,今天换个场景再来一次。</b><br>地下室顶板做卷材防水,水从顶板<b>上方</b>下渗。下列搭接哪种是「顺水」?",
+      opts:[{k:"A",t:"沿排水坡,高处卷材盖住低处卷材的上坡边,水从上层表面跨过缝口。"},
+            {k:"B",t:"低处卷材压住高处卷材,缝口朝向来水方向。"}],
+      ans:"A", src:"建筑实务 1A434/1A437 · 搭接顺水原则",
+      diag:{ B:{err:"迁移失败",code:"E11",why:"又把方向弄反了。无论屋面还是顶板,「顺水」永远是<b>上游片压下游片</b>,让缝口背对来水。"}},
+      right:"👏 昨天错的,今天对了。顺水=上游压下游、缝口背水,你跨过这个坑了。"},
+    { id:"N3", validated:false, meta:"工序 · 基层先行",
+      stem:"开始铺防水层前,基层必须先达到「干净、干燥、平整、阴阳角圆弧」。如果基层潮湿就抢铺卷材,最可能出现?",
+      opts:[{k:"A",t:"基层水分受热汽化,把卷材顶起形成鼓泡、空鼓,破坏粘结,日后开裂渗漏。"},
+            {k:"B",t:"没关系,卷材本身防水,基层湿不湿无所谓。"},
+            {k:"C",t:"潮湿反而让卷材粘得更牢。"}],
+      ans:"A", src:"建筑实务 防水 · 基层要求 / 空鼓通病",
+      diag:{ B:{err:"程序顺序错误",code:"E06",why:"基层处理是防水<b>前置工序</b>,不是可跳的步骤。基层不合格,后面铺得再好也白做。"},
+             C:{err:"概念混淆",code:"E07",why:"潮湿基层水分受热汽化会<b>顶起</b>卷材形成空鼓,是粘不牢、起鼓的根因。"}},
+      right:"对!潮湿基层水分汽化顶起卷材→空鼓开裂。基层合格是抢不得的前置工序。"}
+  ]
+};
+
+// ===== 案例题组(选择作答形态 · 移动端不打字) =====
+// PRD §8:P0A 轻练题型 = 单选/多选 + 案例小问。一段背景资料 + 几道案例小问,每问选错即诊断、映射一个采分点。
+const CASEQ = {
+  meta:"案例题组 · 选择作答(防水综合)",
+  bg:"某住宅屋面防水工程(高聚物改性沥青卷材)。监理巡查记录:<br>① 找平层局部未干即开始铺贴卷材;<br>② 班组先满铺大面,次日再补管根、阴阳角附加层;<br>③ 卷材搭接缝口朝向来水方向;<br>④ 收口处金属压条压住,但未做密封。",
+  subs:[
+    { id:"C1", trains:"基层先行(N3)", pt:"基层须干燥合格后再铺贴卷材(潮湿→空鼓)", score:2,
+      q:"针对记录①「找平层局部未干即铺贴卷材」,下列判断正确的是?",
+      opts:[{k:"A",t:"错误。基层须干燥合格再铺,潮湿铺贴水分汽化→空鼓、起鼓。"},
+            {k:"B",t:"正确。当天铺贴抢工期,无影响。"},
+            {k:"C",t:"错误,但只因当天气温偏低。"},
+            {k:"D",t:"信息不足,无法判断。"}],
+      ans:"A", code:"E06", err:"程序顺序错误",
+      why:"基层干燥合格是<b>前置工序</b>;潮湿铺贴,水分受热汽化顶起卷材形成空鼓。B/C/D 都没抓住「基层不合格→空鼓」的因果。",
+      right:"对!基层未干即铺→空鼓,基层处理抢不得。"},
+    { id:"C2", trains:"节点先行(N1/D2)", pt:"节点附加层应先做、大面后铺(后补贴→张口窜水)", score:2,
+      q:"记录②「先满铺大面,次日再补管根/阴阳角附加层」,该顺序?",
+      opts:[{k:"A",t:"错误。应先做节点(管根/阴阳角)附加层、再铺大面;后补贴边缘易张口窜水。"},
+            {k:"B",t:"正确。只要附加层补上,先后无所谓。"},
+            {k:"C",t:"正确。大面已盖住,节点附加层只是增强。"},
+            {k:"D",t:"错误,但理由只是『规范要求』,无需解释。"}],
+      ans:"A", code:"E06", err:"程序顺序错误",
+      why:"节点是渗漏起点,须先在合格基层上处理、再让大面连续压接;先大面后补贴,补丁边缘成新张口。",
+      right:"对!节点先做、大面后铺,后补贴会留张口窜水路径。"},
+    { id:"C3", trains:"顺水搭接(D1)", pt:"卷材应顺水搭接、缝口背向来水(逆水→渗漏)", score:2,
+      q:"记录③「卷材搭接缝口朝向来水方向」,该做法?",
+      opts:[{k:"A",t:"错误。应顺水搭接——上游片压下游片,缝口背向来水。"},
+            {k:"B",t:"正确。只要搭接宽度够,缝口朝向无所谓。"},
+            {k:"C",t:"正确。缝口朝向来水利于把水导走。"},
+            {k:"D",t:"无法判断,取决于材料。"}],
+      ans:"A", code:"E11", err:"迁移失败",
+      why:"缝口朝向来水=逆水搭接,水被导入缝内→渗漏。顺水的本质是让缝口<b>背向</b>来水、上游片在上。",
+      right:"对!缝口朝来水是逆水搭接,必须改成顺水(上游压下游、缝口背水)。"},
+    { id:"C4", trains:"收口张口(N2)", pt:"收口应固定并密封(只压不封→张口窜水)", score:2,
+      q:"记录④「收口压条压住但未密封」最可能导致?",
+      opts:[{k:"A",t:"收口张口、翘边,水从端部窜入卷材背面层间流窜,渗漏点难找。"},
+            {k:"B",t:"只影响观感,不影响防水。"},
+            {k:"C",t:"压条压住即可,密封多余。"},
+            {k:"D",t:"无影响,收口在边上水到不了。"}],
+      ans:"A", code:"E02", err:"采分点遗漏",
+      why:"收口须固定+密封;只压不封,端部张口,水从收口窜入背面层间。这一点最常被漏答。",
+      right:"对!收口只压不封会张口窜水,固定+密封缺一不可。"}
+  ]
+};
+
+// ===== 每日轻练引擎 =====
+let state = {day:1, idx:0, picked:null, confi:0, submitted:false, results:[], streak:1};
+const app = document.getElementById('app');
+const navt = document.getElementById('navt');
+const navd = document.getElementById('navd');
+function curList(){ return state.day===1 ? BANK.day1 : BANK.day2; }
+
+function render(){
+  navd.textContent = "第 " + state.day + " 天";
+  const list = curList();
+  if(state.idx >= list.length){ return renderDaySummary(); }
+  navt.textContent = state.day===1 ? "今日任务" : "今日任务 · 含复测";
+  const q = list[state.idx], total = list.length;
+  let pg = '<div class="progress">';
+  for(let i=0;i<total;i++){ let cls='pg'; if(i<state.idx){ cls += state.results[i]&&state.results[i].correct?' ok':' no'; } else if(i===state.idx){ cls+=' on'; } pg += '<span class="'+cls+'"></span>'; }
+  pg += '</div>';
+  let banner = (state.day===2 && state.idx===0) ? '<div class="retest-banner">先复测昨天 —— 你在「顺水搭接」栽过,第一题帮你复测这个点。</div>' : '';
+  let opts = q.opts.map(o=>{ let cls='opt';
+    if(state.submitted){ if(o.k===q.ans) cls+=' right'; else if(o.k===state.picked) cls+=' wrong'; else cls+=' dim'; }
+    else if(o.k===state.picked){ cls+=' sel'; }
+    return '<div class="'+cls+'" onclick="pick(\''+o.k+'\')"><span class="lab">'+o.k+'</span><span>'+o.t+'</span></div>'; }).join('');
+  let confi = '';
+  if(state.picked && !state.submitted){ let stars=''; for(let i=1;i<=5;i++){ stars += '<span class="'+(i<=state.confi?'lit':'')+'" onclick="setConfi('+i+')">★</span>'; }
+    confi = '<div class="confi"><div class="q">提交前 —— 你几分把握?</div><div class="stars">'+stars+'</div></div>'; }
+  let after='', cta='';
+  if(!state.submitted){ const ready = state.picked && state.confi>0;
+    cta = '<button class="cta" '+(ready?'':'disabled')+' onclick="submit()">'+(state.picked?(state.confi>0?'提交':'给个把握度再提交'):'选一个答案')+'</button>';
+  } else { const r = state.results[state.idx];
+    if(r.correct){ let calib = '';
+      if(q.id!=="R1"){ calib = state.confi>=4 ? '你给了 '+state.confi+' 分把握又答对——这个点你是<b>真懂</b>。' : '你只有 '+state.confi+' 分把握却蒙对了——虚高,这个点建议再练一次更稳。'; }
+      after = '<div class="diag good"><h4>'+(q.id==="R1"?'复测命中 🎯':'对了 👍')+'</h4><p>'+q.right+'</p>'+(calib?'<div class="why">'+calib+'</div>':'')+'</div>';
+    } else { const d = q.diag[state.picked];
+      after = '<div class="diag bad"><h4>选 '+state.picked+' 的人很多 —— 但栽在同一个坑</h4><span class="tag err">'+d.err+'</span><span class="tag code">'+d.code+'</span><div class="why">'+d.why+'</div><div class="src">📖 教材依据:'+q.src+'(点开看原文)</div>'+(state.day===1?'<div class="hook"><b>明天第一题,帮你复测这个点。</b>错在这里是好事——今天搞懂,明天就不丢这分。</div>':'')+'</div>';
+    }
+    cta = '<button class="cta green" onclick="next()">'+(state.idx+1>=total?'完成今天':'下一题')+'</button>';
+  }
+  let head = '';
+  if(state.idx===0){ head = '<span class="streak">🔥 连续到场 '+state.streak+' 天</span><div class="plan">本测试共 <b>5 天 · 约 25 题</b>,你在第 '+state.day+' 天。</div>'; }
+  const vb = q.validated ? '<span class="vbadge ok">已多模型共识</span>' : '<span class="vbadge pend">本切片新作·2/3 票</span>';
+  app.innerHTML = head + banner + pg + '<div class="q-meta">'+q.meta+' · '+(state.idx+1)+'/'+total+vb+'</div><div class="stem">'+q.stem+'</div>'+ opts + confi + after + cta;
+}
+function pick(k){ if(state.submitted) return; state.picked=k; render(); }
+function setConfi(n){ if(state.submitted) return; state.confi=n; render(); }
+function submit(){ if(!state.picked || state.confi===0) return; const q = curList()[state.idx]; state.submitted = true;
+  state.results[state.idx] = {correct: state.picked===q.ans, picked:state.picked, confi:state.confi, id:q.id}; render(); }
+function next(){ state.idx++; state.picked=null; state.confi=0; state.submitted=false; render(); }
+
+function renderDaySummary(){
+  const list = curList();
+  const correct = state.results.filter(r=>r&&r.correct).length;
+  const wrong = list.length - correct;
+  if(state.day===1){
+    navt.textContent = "今日完成";
+    app.innerHTML = '<span class="streak">🔥 连续到场 1 天</span>'+
+      '<div class="win"><div class="big">今日 '+list.length+' 题完成</div><div class="sub">答对 '+correct+' · 错 '+wrong+' 已收进明天复测</div></div>'+
+      '<div class="card" style="font-size:13px;color:var(--sub);line-height:1.6">真实场景里,明天这个点会再考你一次——<b>看你是不是真把坑跨过去了</b>。点下面进第 2 天感受复测。</div>'+
+      '<button class="cta" onclick="goDay2()">明天见 → 进第 2 天</button>'+
+      '<div class="reset" onclick="resetAll()">重新体验第 1 天</div>';
+  } else {
+    navt.textContent = "这 2 天的你";
+    const retest = state.results.find(r=>r&&r.id==="R1"); const hit = retest && retest.correct;
+    app.innerHTML = '<span class="streak">🔥 连续到场 2 天</span>'+
+      '<div class="card"><div class="summary-row"><span>连续到场</span><span class="v pos">2 天</span></div>'+
+      '<div class="summary-row"><span>昨错→今对(复测命中)</span><span class="v '+(hit?'pos':'neg')+'">'+(hit?'命中 ✓':'还没跨过')+'</span></div>'+
+      '<div class="summary-row"><span>今天最常踩</span><span class="v neg">看你的作答而定</span></div></div>'+
+      '<div class="diag good"><p style="margin:0">你不是没记住——是几个点没打通。'+(hit?'「顺水搭接」这个,你<b>今天打通了</b>。':'继续,明天再帮你复测一次。')+'</p></div>'+
+      '<div class="card" style="font-size:13px;color:var(--sub);line-height:1.6">真实测试会这样连跑 5 天,每天≈5 题(新题+复测),第 5 天给你「这 5 天的你」总结。</div>'+
+      '<button class="cta ghost" onclick="startCase()">→ 看案例题做成「选择作答」长什么样</button>'+
+      '<div class="reset" onclick="resetAll()">从头再玩一遍</div>';
+  }
+}
+function goDay2(){ state.day=2; state.idx=0; state.picked=null; state.confi=0; state.submitted=false; state.results=[]; state.streak=2; render(); }
+function resetAll(){ state = {day:1, idx:0, picked:null, confi:0, submitted:false, results:[], streak:1}; render(); }
+
+// ===== 案例题组引擎(选择作答) =====
+let cState = {idx:0, picked:null, submitted:false, results:[]};
+function startCase(){ cState = {idx:0, picked:null, submitted:false, results:[]}; renderCase(); }
+function renderCase(){
+  navt.textContent = "案例题组 · 选择"; navd.textContent = "案例深练";
+  const c = CASEQ;
+  if(cState.idx >= c.subs.length){ return renderCaseSummary(); }
+  const s = c.subs[cState.idx], total = c.subs.length;
+  let pg = '<div class="progress">';
+  for(let i=0;i<total;i++){ let cls='pg'; if(i<cState.idx){ cls += cState.results[i]&&cState.results[i].correct?' ok':' no'; } else if(i===cState.idx){ cls+=' on'; } pg += '<span class="'+cls+'"></span>'; }
+  pg += '</div>';
+  const head = cState.idx===0 ? '<div class="plan">案例题在手机上<b>做成选择,不打字</b>:一段背景资料 + 几道案例小问(单选),每问选错即诊断、映射一个采分点。这就是原计划 §8「轻练:单选/多选 + 案例小问」。半写 / 全作答 + AI 采分点批改是养成后解锁的深度层。</div>' : '';
+  const bgHtml = '<div class="q-meta">'+c.meta+'</div><div class="bg"><b>背景资料 · 监理巡查记录</b><br>'+c.bg+'</div>';
+  let opts = s.opts.map(o=>{ let cls='opt';
+    if(cState.submitted){ if(o.k===s.ans) cls+=' right'; else if(o.k===cState.picked) cls+=' wrong'; else cls+=' dim'; }
+    else if(o.k===cState.picked){ cls+=' sel'; }
+    return '<div class="'+cls+'" onclick="casePick(\''+o.k+'\')"><span class="lab">'+o.k+'</span><span>'+o.t+'</span></div>'; }).join('');
+  let after='', cta='';
+  if(!cState.submitted){
+    cta = '<button class="cta" '+(cState.picked?'':'disabled')+' onclick="caseSubmit()">'+(cState.picked?'提交':'选一个答案')+'</button>';
+  } else { const r = cState.results[cState.idx];
+    if(r.correct){ after = '<div class="diag good"><h4>对了 👍</h4><p>'+s.right+'</p></div>'; }
+    else { after = '<div class="diag bad"><h4>选 '+cState.picked+' 栽在这个点</h4><span class="tag err">'+s.err+'</span><span class="tag code">'+s.code+'</span><div class="why">'+s.why+'</div></div>'; }
+    cta = '<button class="cta green" onclick="caseNext()">'+(cState.idx+1>=total?'看案例题组采分点判分':'下一问')+'</button>';
+  }
+  app.innerHTML = head + bgHtml + pg + '<div class="q-meta">案例小问 '+(cState.idx+1)+'/'+total+' · 练过:'+s.trains+'</div><div class="stem">'+s.q+'</div>'+ opts + after + cta;
+}
+function casePick(k){ if(cState.submitted) return; cState.picked=k; renderCase(); }
+function caseSubmit(){ if(!cState.picked) return; const s = CASEQ.subs[cState.idx]; cState.submitted=true;
+  cState.results[cState.idx] = {correct: cState.picked===s.ans, picked:cState.picked, code:s.code}; renderCase(); }
+function caseNext(){ cState.idx++; cState.picked=null; cState.submitted=false; renderCase(); }
+function renderCaseSummary(){
+  navt.textContent = "案例题组 · 采分点判分"; navd.textContent = "案例深练";
+  const c = CASEQ; let rows='', got=0, full=0;
+  c.subs.forEach((s,i)=>{ const r = cState.results[i]; const ok = r && r.correct; full += s.score; if(ok) got += s.score;
+    rows += ok ? '<div class="ptrow hit"><span class="ic">✓ +'+s.score+'</span><span>'+s.pt+'<div class="tn">日常练过:'+s.trains+'</div></span></div>'
+               : '<div class="ptrow miss"><span class="ic">✗ 0</span><span>'+s.pt+' <span class="tag code" style="margin-left:4px">'+s.code+'</span><div class="tn">这小问错了 · 日常对应:'+s.trains+'</div></span></div>'; });
+  const score = '<div class="scorebar"><span>本案例题组采分点得分</span><span class="s">'+got+' / '+full+'</span></div>';
+  const tie = '<div class="diag good"><h4>看出来了吗?</h4><p>这道案例的 <b>'+c.subs.length+' 个采分点</b>(基层 / 节点 / 顺水 / 收口),正是你这周每天练的点。<b>每日 MCQ 练单点,案例题组把它们放进一个真实工程背景、用选择作答考综合判断——全程不打字。</b></p><div class="why">错的小问回流到日常复测;练熟后再进「半写 / 全作答 + AI 采分点批改」深度层。同一份采分点 / 错因 authority,只是粒度不同。</div></div>';
+  app.innerHTML = '<div class="q-meta">'+c.meta+'</div><div class="bg"><b>背景资料</b><br>'+c.bg+'</div><div class="q-meta">采分点判分(每小问 → 一个采分点)</div>'+ rows + score + tie + '<button class="cta ghost" onclick="renderCaseWrite()">→ 进阶:自己作答 + AI 采分点批改(深度层)</button><button class="cta green" onclick="resetAll()">回到留存闭环</button>';
+}
+
+// ===== 案例题深度层(全作答 + AI 采分点批改 · 养成后解锁) =====
+// 不给选项,学员自己组织语言作答,AI 逐采分点判命中/遗漏。商品 LLM 判不了一建采分点 = 真护城河。
+let writeRevealed = false;
+function renderCaseWrite(){
+  navt.textContent = "案例作答 · AI 批改"; navd.textContent = "深度层";
+  const c = CASEQ;
+  const sample = "①找平层没干就铺卷材不对,水分汽化会形成空鼓;②应先做管根、阴阳角附加层,再铺大面;③搭接缝口朝向来水是逆水,应改为顺水搭接、上游片压下游片。";
+  const head = '<div class="plan"><b>深度层(养成日习惯后解锁)</b>:这里不再给选项,你自己写,AI 按采分点逐条批改 —— 这正是商品大模型判不了、我们的护城河所在。原型已替你填一份示例作答。</div>';
+  const bg = '<div class="q-meta">'+c.meta+' · 全作答</div><div class="bg"><b>背景资料 · 监理巡查记录</b><br>'+c.bg+'</div><div class="stem">指出本工程防水分项施工中的错误做法。</div>';
+  if(!writeRevealed){
+    app.innerHTML = head + bg + '<div class="q-meta">你的作答</div><textarea class="ta">'+sample+'</textarea><button class="cta" onclick="writeRevealed=true;renderCaseWrite()">提交,让 AI 按采分点批改</button><div class="reset" onclick="writeRevealed=false;startCase()">返回选择模式</div>';
+    return;
+  }
+  const hitSet = {C1:true, C2:true, C3:true, C4:false};
+  let rows='', got=0, full=0;
+  c.subs.forEach(s=>{ const ok = hitSet[s.id]; full += s.score; if(ok) got += s.score;
+    rows += ok ? '<div class="ptrow hit"><span class="ic">✓ +'+s.score+'</span><span>'+s.pt+'<div class="tn">你的作答命中此采分点</div></span></div>'
+               : '<div class="ptrow miss"><span class="ic">✗ 0</span><span>'+s.pt+' <span class="tag err" style="margin-left:4px">采分点遗漏</span><span class="tag code">'+s.code+'</span><div class="tn">你的作答没写到 · 日常对应:'+s.trains+'</div></span></div>'; });
+  const score = '<div class="scorebar"><span>AI 采分点批改</span><span class="s">'+got+' / '+full+'</span></div>';
+  const tie = '<div class="diag good"><h4>这就是深度护城河层</h4><p>同一道案例:选择模式帮你<b>低门槛入门</b>;深度层让你<b>自己组织语言作答</b>,AI 逐采分点判你写到没写到——商品大模型判不了一建采分点,这是真差异化。</p><div class="why">你漏了<b>收口</b>(<span class="tag code">E02</span>)。回到日常「收口张口」(N2)复测一次,二次作答就能补上这 2 分。</div></div>';
+  app.innerHTML = head + bg + '<div class="q-meta" style="margin-top:8px">你的作答</div><div class="bg" style="background:#fbfcfe">'+sample+'</div><div class="q-meta">AI 采分点判分</div>'+ rows + score + tie + '<button class="cta ghost" onclick="writeRevealed=false;startCase()">返回选择模式</button><button class="cta green" onclick="writeRevealed=false;resetAll()">回到留存闭环</button>';
+}
+
+render();
+</script>
+</body>
+</html>

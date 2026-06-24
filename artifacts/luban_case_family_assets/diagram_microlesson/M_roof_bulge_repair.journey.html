@@ -1,0 +1,433 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>屋面卷材防水起鼓怎么修补(割补工序) · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.f-bulge,.f-cut,.f-dry,.f-add,.f-seal,.f-test{opacity:0;transition:opacity .28s,transform .28s;transform:translateY(3px)} .current-intro .f-bulge,.current-cut .f-cut,.current-dry .f-dry,.current-add .f-add,.current-seal .f-seal,.current-conclude .f-test{opacity:1;transform:none} .f-layerlbl{fill:#9fb0c2;font-size:10px} .f-note{font-size:11px;font-weight:700} .f-note.q{fill:#7fc7ff}.f-note.cut{fill:#ff9b9b}.f-note.dry{fill:#cfe0f0}.f-note.add{fill:#7fe6ab}.f-note.seal{fill:#9cc6f5}.f-note.test{fill:#bff0d4}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="M_roof_bulge_repair" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>屋面卷材防水起鼓怎么修补(割补工序)</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">放气</button><button class="" type="button">擦干</button><button class="" type="button">清除旧胶结料</button><button class="" type="button">喷灯烘烤</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边在屋面剖面上逐步修,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 80 360 170' role='img' aria-label='屋面卷材起鼓割补工序'><rect x='20' y='180' width='320' height='56' fill='#7f8690'/><rect x='20' y='166' width='320' height='14' fill='#b9ad8e'/><rect x='20' y='154' width='320' height='12' fill='#36465a'/><text class='f-layerlbl' x='24' y='150'>卷材</text><text class='f-layerlbl' x='24' y='177'>找平</text><text class='f-layerlbl' x='24' y='205'>基层</text><g class='f-bulge'><path d='M150 154 Q180 106 210 154 Z' fill='#36465a'/><path d='M170 150 L170 126 M166 132 L170 124 L174 132' stroke='#ffd27f' stroke-width='1.5' fill='none'/><path d='M190 150 L190 126 M186 132 L190 124 L194 132' stroke='#ffd27f' stroke-width='1.5' fill='none'/><text class='f-note q' x='180' y='100' text-anchor='middle'>起鼓:气/水汽顶起卷材</text></g><g class='f-cut'><path d='M172 158 L188 142 M172 142 L188 158' stroke='#ff5a5a' stroke-width='2.5'/><path d='M180 140 L180 118 M176 126 L180 116 L184 126' stroke='#ff9b9b' stroke-width='1.6' fill='none'/><text class='f-note cut' x='256' y='124' text-anchor='middle'>①割开放气</text></g><g class='f-dry'><rect x='138' y='150' width='84' height='16' rx='3' fill='none' stroke='#7fc7ff' stroke-dasharray='5 4' stroke-width='1.4'/><text class='f-note dry' x='256' y='150' text-anchor='middle'>排气干燥·清基层</text></g><g class='f-add'><rect x='132' y='146' width='96' height='8' rx='2' fill='#2a9d6a'/><text class='f-note add' x='256' y='141' text-anchor='middle'>②附加层盖过边缘</text></g><g class='f-seal'><rect x='114' y='138' width='132' height='8' rx='2' fill='#4a7fb5'/><text class='f-note seal' x='256' y='172' text-anchor='middle'>③新卷材搭接封严</text></g><g class='f-test'><rect x='20' y='124' width='320' height='12' rx='2' fill='#6fb7e0' opacity='0.5'/><text class='f-note test' x='180' y='117' text-anchor='middle'>④蓄水检验:确认不渗漏 ✓</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">放气</span><span data-visual-node-id="score.atom.2">擦干</span><span data-visual-node-id="score.atom.3">清除旧胶结料</span><span data-visual-node-id="score.atom.4">喷灯烘烤</span><span data-visual-node-id="score.atom.5">分层剥开</span><span data-visual-node-id="score.atom.6">重贴新卷材</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">修补闭环完成:先治病因 → 恢复防水闭合 → 蓄水检验确认不渗漏。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">常见丢分:只写&#x27;修补防水层&#x27;</div>
+<div class="kc kc-a" data-start="13.964" data-seg-idx="1" data-beat-id="diagnose" data-action-id="diagnose.keycard" data-visual-node-id="keycard.diagnose">先认病:气/水汽顶起卷材</div>
+<div class="kc kc-a" data-start="25.709" data-seg-idx="2" data-beat-id="cut" data-action-id="cut.keycard" data-visual-node-id="keycard.cut">治因①  沿鼓泡割开放气</div>
+<div class="kc kc-a" data-start="35.1" data-seg-idx="3" data-beat-id="dry" data-action-id="dry.keycard" data-visual-node-id="keycard.dry">治因②  排气干燥 + 清基层(最易漏)</div>
+<div class="kc kc-a" data-start="47.092" data-seg-idx="4" data-beat-id="add" data-action-id="add.keycard" data-visual-node-id="keycard.add">恢复①  附加层盖过病害边缘</div>
+<div class="kc kc-a" data-start="57.511" data-seg-idx="5" data-beat-id="seal" data-action-id="seal.keycard" data-visual-node-id="keycard.seal">恢复②  新卷材搭接封严</div>
+<div class="kc kc-concl" data-start="70.169" data-seg-idx="6" data-beat-id="test" data-action-id="test.keycard" data-visual-node-id="keycard.test">检验  蓄水/淋水确认不渗漏</div>
+<div class="kc kc-score" data-start="79.05" data-seg-idx="7" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:放气·擦干·清除旧胶结料·喷灯烘烤·分层剥开·重贴新卷材</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,我写&#x27;割开排气、晾干后重新铺卷材&#x27;,能拿分吗?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">方向对,但漏了三处闭合:基层处理、附加层盖过边缘、搭接封严。阅卷看的是防水闭环有没有恢复,漏这层最可惜。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那直接在鼓泡上加铺一层新卷材不行吗?省事。</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">顺序错了。底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥再铺。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">铺完新卷材就算修好了吧?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">还差最后一步闭环:蓄水或淋水检验,确认不渗漏才验收。漏了它,案例题最后那分就丢了。等下用四道题试试你。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="M_roof_bulge_repair.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="W1_miss_closure"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 中间闭合层(最易漏)·关键鉴别</p><p class="qstem">学生答:&quot;将鼓泡处割开,排气擦干后直接铺贴新卷材并压实。&quot; 这份答案最可能漏掉哪类关键表达?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 漏写起鼓病害识别</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 漏写基层处理、附加层、搭接封严这层防水闭合</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 漏写施工单位责任</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="W2_order"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 顺序档(直接覆盖)</p><p class="qstem">现场图省事,在鼓泡处直接加铺一层新卷材盖住。这样做对吗?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 对,省时又快</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 不对:没放气干燥处理基层,底下气和水汽会再把它顶鼓</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 不对,应把整片屋面卷材全部铲除重做</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="W3_transfer"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 迁移档(换部位·闭环不变)</p><p class="qstem">换个场景:卫生间地面防水层局部空鼓、有渗漏。核心修补思路应是?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 直接在地面重铺地砖盖住</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 同样:割开放气→干燥处理基层→附加层→新防水层搭接封严→闭水试验</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 只在表面再刷一层防水涂料</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="W4_no_test"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 检验闭环(收尾)·关键鉴别</p><p class="qstem">起鼓割补,做完&quot;放气、干燥、基层处理、附加层、新卷材搭接封严&quot;,就可以收工了吗?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 可以,防水层已经恢复</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 还差一步:做蓄水或淋水检验,确认不渗漏才验收</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 还要在上面再加铺一整层卷材</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的估分讲解,不是官方阅卷;图为教学示意,具体数值以教材和规范为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="140.885" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起鼓</button><button class="dot beat-dot" data-state="cut" data-t="25.709">放气</button><button class="dot beat-dot" data-state="dry" data-t="35.1">干燥</button><button class="dot beat-dot" data-state="add" data-t="47.092">附加层</button><button class="dot beat-dot" data-state="seal" data-t="57.511">封严</button><button class="dot beat-dot" data-state="conclude" data-t="70.169">检验</button><a class="dot practice-dot" href="M_roof_bulge_repair.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="F16_qigu.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 140.885, "teachEndSec": 90.017, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "屋面卷材起鼓,很多人答'修补防水层、加强处理'就丢分。修补不是盖层新卷材,是先治病因、再恢复防水闭合、最后检验。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "intro", "qaIndex": null, "text": "先认病:卷材下面的气和水汽顶起来,形成鼓泡。答题先把'起鼓'这个病害对象说清楚,后面措施才有靶子。", "startSec": 13.964}, {"idx": 2, "kind": "teach", "state": "cut", "qaIndex": null, "text": "第一步治病因:沿鼓泡割个十字口,先放气。不放气直接盖新卷材,过几天还会再鼓。", "startSec": 25.709}, {"idx": 3, "kind": "teach", "state": "dry", "qaIndex": null, "text": "接着排尽气和水汽、让基层干燥,再清掉旧胶结料、补刷处理剂。这一步最多人漏,新卷材粘不粘牢全看它。", "startSec": 35.1}, {"idx": 4, "kind": "teach", "state": "add", "qaIndex": null, "text": "恢复防水第一招:增铺附加层,要盖过原病害的边缘,把薄弱区整个包住,不是贴一小块补丁。", "startSec": 47.092}, {"idx": 5, "kind": "teach", "state": "seal", "qaIndex": null, "text": "再铺新卷材:喷灯烘烤、分层剥开旧层,铺贴压实,和原防水层搭接,边缘和搭接缝都封严。防水闭合就在这。", "startSec": 57.511}, {"idx": 6, "kind": "teach", "state": "conclude", "qaIndex": null, "text": "最后闭环:蓄水或淋水检验,确认不渗漏才验收。案例题常常就考你这最后一句。", "startSec": 70.169}, {"idx": 7, "kind": "teach", "state": "conclude", "qaIndex": null, "text": "采分盯这几组词:放气、擦干、清除旧胶结料、喷灯烘烤、分层剥开、重贴新卷材。写到了就稳。", "startSec": 79.05}, {"idx": 8, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,我写'割开排气、晾干后重新铺卷材',能拿分吗?", "startSec": 90.418}, {"idx": 9, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "方向对,但漏了三处闭合:基层处理、附加层盖过边缘、搭接封严。阅卷看的是防水闭环有没有恢复,漏这层最可惜。", "startSec": 96.688}, {"idx": 10, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "那直接在鼓泡上加铺一层新卷材不行吗?省事。", "startSec": 109.561}, {"idx": 11, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "顺序错了。底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥再铺。", "startSec": 114.543}, {"idx": 12, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "铺完新卷材就算修好了吧?", "startSec": 125.417}, {"idx": 13, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "还差最后一步闭环:蓄水或淋水检验,确认不渗漏才验收。漏了它,案例题最后那分就丢了。等下用四道题试试你。", "startSec": 128.2}], "variants": [{"id": "W1_miss_closure", "answer": "B", "feedback": "对:它有割开、排气、干燥,但直接铺了新卷材,漏了基层处理、附加层盖过边缘、搭接封严这层防水闭合。", "basis": "有割开/排气/干燥,但直接铺新卷材→漏中间闭合层", "tier": "中间闭合层(最易漏)·关键鉴别"}, {"id": "W2_order", "answer": "B", "feedback": "对:底下气和水汽没排、基层没干,盖上去过阵子照样鼓,等于没修。必须先放气干燥,再铺新卷材。", "basis": "顺序错:先治病因(放气干燥)再恢复防水", "tier": "顺序档(直接覆盖)"}, {"id": "W3_transfer", "answer": "B", "feedback": "对:换到卫生间,病害对象变了,但'治病因→恢复防水闭合→闭水检验'这条闭环不变——这就是真会迁移,不是只背屋面那一套。", "basis": "换部位,'治病因→恢复防水闭合→检验'闭环不变", "tier": "迁移档(换部位·闭环不变)"}, {"id": "W4_no_test", "answer": "B", "feedback": "对:案例题爱考闭环,修补做完必须蓄水或淋水试验,确认不渗漏才算验收通过。漏了这一句白丢分。", "basis": "工程闭环=施工+验收检验", "tier": "检验闭环(收尾)·关键鉴别"}], "keyIdx": [0, 3], "warm": {"all_correct": "你是真的把闭环走通了——治病因、恢复防水闭合、最后检验,缺一不可,还能换到卫生间迁移。这类题稳。", "partial": "就差闭环那一层:割开排气只是开头,真正得分的是基层处理、附加层盖过边缘、搭接封严,最后再补一句蓄水检验。你离真懂只差这一段。", "rote_leaning": "先别急着背动作顺序。记住这条闭环:先治病因(放气、干燥、清基层)→ 再恢复防水(附加层盖过边缘、搭接封严)→ 最后检验(蓄水/淋水不渗漏)。走顺了,换屋面还是卫生间你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "F16_qigu", "beats": [{"id": "intro", "stage": "intro", "actions": []}, {"id": "diagnose", "stage": "intro", "actions": []}, {"id": "cut", "stage": "cut", "actions": []}, {"id": "dry", "stage": "dry", "actions": []}, {"id": "add", "stage": "add", "actions": []}, {"id": "seal", "stage": "seal", "actions": []}, {"id": "test", "stage": "conclude", "actions": []}, {"id": "score", "stage": "conclude", "actions": []}]};
+	const ORDER=["intro", "cut", "dry", "add", "seal", "conclude"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

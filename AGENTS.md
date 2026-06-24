@@ -10,7 +10,17 @@ CLI, WebSocket API, and Python SDK.
 
 这些规则来自 2026-06-06 Codex Desktop / Claude Code 内存事故。macOS 曾显示 Codex 172.68 GB；后续 Claude Code 托管 BI `next dev` 时，Terminal coalition 被 Jetsam 记录到约 201.6 GB resident、3,927 个 `node` 进程。当前结论不是“机器内存不够”，而是 Web/BI dev server 在 AI agent 进程树下可能触发 Next/PostCSS/Node worker storm。
 
-### Hard Boundaries
+### Current Grey-Release Policy
+
+当前策略不是全封锁，而是灰度恢复：
+
+- 普通后端、文档、只读代码查询、轻量脚本任务，不需要每次跑完整内存 preflight。
+- MCP / 浏览器 / Playwright / 微信开发者工具可以按需使用，但一次只恢复或使用一个能力；任务结束后关闭长时间 helper。
+- Computer Use 仍默认禁用；只有用户明确要求临时验证时，才在新空线程里短时开启，并先做内存快照。
+- AI agent 托管 `next dev` 仍是硬禁止；Web dev server 必须由明确的人工 Terminal/tmux 会话托管。
+- 一旦出现 stop condition，立即回到事故清理流程，不继续观察趋势。
+
+### Boundaries That Still Stay Hard
 
 - 默认不要使用 Computer Use 处理 Web / BI / 前端 / 浏览器 / 截图任务；优先用终端命令、Playwright CLI、浏览器 URL、截图文件。
 - 不要让 Codex Desktop、Computer Use、Claude Code 或其他 AI agent 托管长时间 `npm run dev` / `next dev` / `next-server` / 浏览器进程。
@@ -21,7 +31,7 @@ CLI, WebSocket API, and Python SDK.
 
 ### Required Preflight For Web/BI Work
 
-开始任何 DeepTutor Web、BI、前端、浏览器或截图任务前，先运行：
+普通后端、文档、只读查询不需要本节 preflight。开始任何 DeepTutor Web、BI、前端、浏览器、截图、Playwright、微信开发者工具任务前，先运行：
 
 ```bash
 /Users/yehongchen/.codex/bin/codex-memory-snapshot.sh

@@ -1,0 +1,188 @@
+{
+  "audio": "K01_sp.lesson.mp3",
+  "totalSec": 141.927,
+  "teachEndSec": 111.36,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "索赔丢分,在拿责任一锅判:一个事件其实是两道独立闸门,工期一道、费用一道",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "索赔这题,很多人看责任在谁就一锅判。其实一个事件有两道独立闸门,工期一道、费用一道。",
+      "startSec": 0,
+      "durSec": 9.604
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "intake",
+      "qaIndex": null,
+      "keycard": {
+        "text": "立案开关:非承包人原因→可以谈;但它只决定有没有资格谈,不决定工期费用各赔多少",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.k1_two_valves_intro.claim",
+      "claim": true,
+      "text": "起点是立案开关。非承包人原因才有资格谈;但它只决定能不能谈,不决定工期费用各赔多少,那是后面两道闸的事。",
+      "startSec": 10.004,
+      "durSec": 11.905
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "schedule",
+      "qaIndex": null,
+      "keycard": {
+        "text": "工期闸只认网络位置:关键线路延误几月顺延几月;非关键先用总时差吸收,未超不索、超出只索超出部分",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.k2_schedule_valve.claim",
+      "claim": true,
+      "text": "第一道工期闸,只认网络位置。关键线路延误几月顺延几月;非关键先用总时差吸收,没超不顺延,超出才索超出部分。",
+      "startSec": 22.309,
+      "durSec": 12.427
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "cost",
+      "qaIndex": null,
+      "keycard": {
+        "text": "费用闸只认责任归属:承包人自担;不可抗力人机各负其责;发包人责任全额可索、通常还可加利润",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.k3_cost_valve.claim",
+      "claim": true,
+      "text": "第二道费用闸,只认责任在谁。承包人自己的损失自担;不可抗力人机各负其责;发包人责任全额可索,通常还能加索利润。",
+      "startSec": 35.136,
+      "durSec": 12.52
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "cost",
+      "qaIndex": null,
+      "keycard": {
+        "text": "互不蕴含:工期成立≠费用成立;责任在对方≠工期就顺延;非关键没超总时差,工期不顺延但费用照样可成立",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "最常考的裂点:两道闸互不蕴含。责任在对方不等于工期顺延;非关键没超总时差,工期不顺延,费用照样能成立。换情形链不变、判据切。",
+      "startSec": 48.057,
+      "durSec": 14.935
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "split",
+      "qaIndex": null,
+      "keycard": {
+        "text": "不可抗力不是一刀切:承包人自己的机具/设备自担,工程实体修复+已运材料+清理修复归发包人",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.k5_force_majeure_split.claim",
+      "claim": true,
+      "text": "费用闸里最易错的是不可抗力,它不是一刀切给发包人。承包人自己的机具设备损失自担,工程实体修复和清理修复才归发包人,逐项剔除别全推过去。",
+      "startSec": 63.392,
+      "durSec": 15.131
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "procedure",
+      "qaIndex": null,
+      "keycard": {
+        "text": "程序时效闸:事件后未约定28天内提书面意向通知,逾期丧权;并提供真实/全面/法律效力/及时的证据",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.k6_procedure_floor.claim",
+      "claim": true,
+      "text": "两道实体闸前还有道程序闸:事件后合同没约定就在二十八天内提书面意向通知,过期丧权,证据还要真实全面有法律效力且及时。",
+      "startSec": 78.923,
+      "durSec": 13.785
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:立案非承包人·关键线路顺延同等·非关键只索超总时差·不可抗力人机各负其责·发包人责任加利润·未约定28天通知;立案门→工期门→费用门→程序门四门各判各的",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "收成一条链:立案门、工期门、费用门、程序门,四门各判各的。采分盯关键线路顺延同等、非关键只索超总时差、不可抗力人机各负其责;换责任情形链不变、判据切。",
+      "startSec": 93.108,
+      "durSec": 18.252
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,责任在发包人,工期是不是就该顺延?",
+      "startSec": 111.76,
+      "durSec": 4.629
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "不一定,责任在对方不等于工期顺延。非关键要看有没有超总时差,没超不顺延,但费用照赔。",
+      "startSec": 116.788,
+      "durSec": 9.752
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "不可抗力的损失,是不是全部由发包人承担?",
+      "startSec": 126.941,
+      "durSec": 4.312
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[3].why",
+      "claim": true,
+      "text": "不是,不可抗力人机各负其责。承包人自己的设备机具自担,只有工程实体和清理修复归发包人。",
+      "startSec": 131.653,
+      "durSec": 9.474
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "N01_network_keypath",
+  "derived_from": "N01_network_keypath.json",
+  "archetype_master_ref": "N_network_keypath.master.json",
+  "style": "teach_then_qa",
+  "title": "网络计划关键线路 · 老师带你算一遍",
+  "subtitle": "老师在网络图上逐步算:读逻辑→最早→总时差→关键线路,讲完帮你答疑",
+  "_design_note": "用权威位 skill (agent-skills/luban-diagram-microlesson) 复刻第三个考点(计算类③)。讲懂幕舞台=网络图逐步标注(stage 外置自带 svg+states+css+banner)。beat 事实 anchor 回 N01_network_keypath.json 的 explanation_steps/error_reveals/expected(测 anchor 闸对计算类新字段)。",
+  "boundary": "这是教学演示用的网络计划例子,帮你练判断方法;不是某道官方真题,具体数字以你自己做的题为准。",
+  "authority_label": "候选教学示例,非官方真题",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "关键线路 = 总时差为 0 的连续线路:开始-A-C-E-结束,总工期 10 天。",
+    "states": [
+      {"id": "read", "label": "读图"},
+      {"id": "forward", "label": "最早"},
+      {"id": "float", "label": "时差"},
+      {"id": "conclude", "label": "关键线路"}
+    ],
+    "css": ".nnode{fill:#1e2a3a;stroke:#3a4a60;stroke-width:1.5} .nname{fill:#eef3f8;font-size:13px;font-weight:800} .ndur{fill:#9fb0c2;font-size:9px} .narr{stroke:#6c7d92;stroke-width:1.6;fill:none} .nterm{fill:#26344a;stroke:#3a4a60;stroke-width:1.5} .ntermt{fill:#cfe0f0;font-size:10px;font-weight:700} .ne-early,.ne-float,.ne-crit{opacity:0;transition:opacity .5s} .reached-forward .ne-early{opacity:1} .reached-float .ne-float{opacity:1} .reached-conclude .ne-crit{opacity:1} .neearly{fill:#7fc7ff;font-size:9.5px;font-weight:700} .nf0{fill:#3fd39a;font-size:9px;font-weight:700} .nfp{fill:#ffc06b;font-size:9px;font-weight:700} .ncrit{stroke:#ff6b6b;stroke-width:4;fill:none;opacity:.5;stroke-linejoin:round;stroke-linecap:round} .ncritt{fill:#ff9b9b;font-size:11px;font-weight:800}",
+    "svg": "<svg viewBox='0 0 400 232' role='img' aria-label='网络计划关键线路逐步标注'><defs><marker id='na' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='6' markerHeight='6' orient='auto-start-reverse'><path d='M0 0 L10 5 L0 10 z' fill='#6c7d92'/></marker></defs><path class='ncrit' d='M26 112 L93 79 L195 59 L295 105 L366 105'/><line class='narr' x1='40' y1='112' x2='64' y2='80' marker-end='url(#na)'/><line class='narr' x1='40' y1='112' x2='64' y2='164' marker-end='url(#na)'/><line class='narr' x1='120' y1='79' x2='166' y2='61' marker-end='url(#na)'/><line class='narr' x1='120' y1='79' x2='166' y2='149' marker-end='url(#na)'/><line class='narr' x1='120' y1='165' x2='166' y2='151' marker-end='url(#na)'/><line class='narr' x1='222' y1='59' x2='266' y2='101' marker-end='url(#na)'/><line class='narr' x1='222' y1='151' x2='266' y2='109' marker-end='url(#na)'/><line class='narr' x1='322' y1='105' x2='350' y2='105' marker-end='url(#na)'/><circle class='nterm' cx='26' cy='112' r='14'/><text class='ntermt' x='26' y='116' text-anchor='middle'>始</text><circle class='nterm' cx='366' cy='105' r='14'/><text class='ntermt' x='366' y='109' text-anchor='middle'>终</text><g><rect class='nnode' x='66' y='64' width='54' height='30' rx='4'/><text class='nname' x='93' y='80' text-anchor='middle'>A</text><text class='ndur' x='93' y='90' text-anchor='middle'>3天</text></g><g><rect class='nnode' x='66' y='150' width='54' height='30' rx='4'/><text class='nname' x='93' y='166' text-anchor='middle'>B</text><text class='ndur' x='93' y='176' text-anchor='middle'>2天</text></g><g><rect class='nnode' x='168' y='44' width='54' height='30' rx='4'/><text class='nname' x='195' y='60' text-anchor='middle'>C</text><text class='ndur' x='195' y='70' text-anchor='middle'>4天</text></g><g><rect class='nnode' x='168' y='136' width='54' height='30' rx='4'/><text class='nname' x='195' y='152' text-anchor='middle'>D</text><text class='ndur' x='195' y='162' text-anchor='middle'>2天</text></g><g><rect class='nnode' x='268' y='90' width='54' height='30' rx='4'/><text class='nname' x='295' y='106' text-anchor='middle'>E</text><text class='ndur' x='295' y='116' text-anchor='middle'>3天</text></g><g class='ne-early'><text class='neearly' x='126' y='62'>早3</text><text class='neearly' x='126' y='148'>早2</text><text class='neearly' x='228' y='42'>早7</text><text class='neearly' x='228' y='134'>早5</text><text class='neearly' x='328' y='88'>早10</text></g><g class='ne-float'><text class='nf0' x='93' y='106' text-anchor='middle'>时差0</text><text class='nfp' x='93' y='192' text-anchor='middle'>时差3</text><text class='nf0' x='195' y='86' text-anchor='middle'>时差0</text><text class='nfp' x='195' y='178' text-anchor='middle'>时差2</text><text class='nf0' x='295' y='132' text-anchor='middle'>时差0</text></g><g class='ne-crit'><text class='ncritt' x='200' y='222' text-anchor='middle'>关键线路 始-A-C-E-终 · 总工期 10 天</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {"id": "intro", "stage": "read", "claim": true, "anchor": "student_goal",
+       "keycard": {"text": "判据:关键线路看'总时差为0',不是'工期最长'", "tone": "q"},
+       "narration": "网络计划求关键线路,最容易错的是凭工期最长、或某条线瞎猜。正解是看总时差为零。咱们一步步算。"},
+      {"id": "read_logic", "stage": "read", "claim": true, "anchor": "explanation_steps[0].script",
+       "keycard": {"text": "① 先理紧前紧后(逻辑读错全错)", "tone": "a"},
+       "narration": "先理紧前紧后:A、B 开工就能做;C、D 接在 A 后面,D 还要等 B;E 要等 C 和 D 都完成。逻辑读错,后面全错。"},
+      {"id": "forward", "stage": "forward", "claim": true, "anchor": "explanation_steps[1].script",
+       "keycard": {"text": "② 顺推最早完成:E 第10天完成", "tone": "a"},
+       "narration": "从左往右顺推最早完成:A 第三天、B 第二天、C 第七天、D 取 A、B 里晚的第五天、E 等 C 和 D 第十天完成。"},
+      {"id": "floatb", "stage": "float", "claim": true, "anchor": "explanation_steps[2].script",
+       "keycard": {"text": "③ 逆推最迟,最迟减最早 = 总时差", "tone": "a"},
+       "narration": "再逆推最迟、相减得总时差:A、C、E 总时差都是零,B 有三、D 有二。总时差是这项工作能拖多久而不影响总工期。"},
+      {"id": "critical", "stage": "conclude", "claim": true, "anchor": "explanation_steps[3].script",
+       "keycard": {"text": "④ 总时差为0连起来 = 关键线路 A-C-E", "tone": "concl"},
+       "narration": "把总时差为零的连起来,就是关键线路:开始-A-C-E-结束,总工期十天。B、D 有时差,拖一点不影响总工期,不在关键线路上。"},
+      {"id": "score", "stage": "conclude", "claim": true, "anchor": "question_data.expected.project_duration",
+       "keycard": {"text": "采分:关键线路 A-C-E · 总工期10天 · 判据=总时差为0", "tone": "score"},
+       "narration": "采分盯这几点:关键线路是 A-C-E、总工期十天、判据是总时差为零,不是工期最长。"}
+    ]
+  },
+  "qa": [
+    {"q": {"speaker": "S", "claim": false, "text": "老师,C 工期最长 4 天,关键线路是不是就看 C?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "error_reveals[0].script",
+           "text": "C 工期最长,但'最长的单个工作'不等于关键线路。关键线路是总时差为零的那条连续路线,要看整条路,不是看哪一根最粗。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "那我把各工作的工期加起来排个序,不就行了?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "error_reveals[1].script",
+           "text": "只把工期加起来排序,会漏掉逻辑关系。D 必须等 A 和 B 都完成、E 必须等 C 和 D。不按紧前紧后走,算出来的线路是假的。"}},
+    {"q": {"speaker": "S", "claim": false, "text": "总时差和自由时差到底啥区别?"},
+     "a": {"speaker": "T", "claim": true, "anchor": "error_reveals[2].script",
+           "text": "总时差是这项工作能拖多久而不影响总工期;自由时差是不影响紧后工作最早开始的余量。B 的总时差是三、自由时差只有一,两个不是一回事。等下用四道题试试你。"}}
+  ]
+}

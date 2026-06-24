@@ -48,6 +48,7 @@
 3. **暖**:收尾用 `warm_correction` 的肯定语气,不毒舌(见 [[wow-see-through-must-be-warm-not-harsh]])。
 4. **旁白不进 schema 手写**:`narration.segments[].text` 由派生器生成,schema 只配 `narration.voice_hint`(配音音色)。这保证单一源、可量产、永不漂移。
 5. **HTML 字段先去标签**:`why_lose_points_html`/`warm_correction_html` 朗读前剥 `<b>` 等标签。
+6. **学生端不读内部编号**:无论纯派生还是"作者撰写 + anchor 闸"的教学动画,老师/学生音频都不得用 `A02/P40/F16/J01`、`source_card`、`pack`、`IR`、`scene`、`primitive` 等制作词解释题意。需要追溯时把编号留在 metadata;需要开场时,从 `main_exam_action`、题型和现场对象展开成学生能懂的真实考试任务。
 
 ## 实现
 

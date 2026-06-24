@@ -25,7 +25,6 @@ MINIMUM_RELEASE_BENCHMARK_SUITES = (
     "regression_watch",
     "real_exam_quality_spine",
 )
-REQUIRED_READINESS_CHECKS = ("contract_guard", "playwright", "wechat_devtools")
 
 
 def _gate_entry(
@@ -83,6 +82,26 @@ def _long_dialog_live_ws_ready(
     if not api_base_url:
         return False
     return all(suite_modes.get(suite) == "live_ws" for suite in long_dialog_suites)
+
+
+def _required_readiness_checks(
+    *,
+    change_impact_payload: dict[str, Any] | None,
+    readiness_rows: list[dict[str, Any]],
+) -> list[str]:
+    explicit = [
+        str(item or "").strip()
+        for item in ((change_impact_payload or {}).get("required_readiness_checks") or [])
+        if str(item or "").strip()
+    ]
+    if explicit:
+        return sorted(dict.fromkeys(explicit))
+    derived = [
+        str(row.get("check_id") or "").strip()
+        for row in readiness_rows
+        if bool(row.get("required", True)) and str(row.get("check_id") or "").strip()
+    ]
+    return sorted(dict.fromkeys(derived))
 
 
 def _has_release_value(release: dict[str, Any], key: str) -> bool:
@@ -241,13 +260,17 @@ def build_release_gate_report(
         for item in readiness_rows
         if str(item.get("check_id") or "").strip()
     }
+    required_readiness = _required_readiness_checks(
+        change_impact_payload=change_impact_payload,
+        readiness_rows=readiness_rows,
+    )
     readiness_missing_checks = [
-        check_id for check_id in REQUIRED_READINESS_CHECKS if check_id not in readiness_rows_by_check
+        check_id for check_id in required_readiness if check_id not in readiness_rows_by_check
     ] if readiness_payload is not None else []
     readiness_non_pass_rows = [
         row
         for check_id, row in readiness_rows_by_check.items()
-        if check_id in REQUIRED_READINESS_CHECKS
+        if check_id in required_readiness
         and bool(row.get("required", True))
         and str(row.get("status") or "").upper() != _PASS
     ] if readiness_payload is not None else []
@@ -286,6 +309,7 @@ def build_release_gate_report(
                 f"git_dirty={resolved_release.get('git_dirty')}",
                 f"unified_ws_smoke_ok={unified_ws_smoke_ok}",
                 f"orphaned_turns={orphaned_turns}",
+                f"required_readiness_checks={required_readiness}",
                 f"readiness_required_failures={len(readiness_non_pass_rows) + len(readiness_missing_checks)}",
                 f"readiness_missing_checks={','.join(readiness_missing_checks) if readiness_missing_checks else 'none'}",
                 f"readiness_blockers={','.join(readiness_blockers) if readiness_blockers else 'none'}",
@@ -612,7 +636,7 @@ def build_release_gate_report(
             "incident_run_id": ((incident_payload or {}).get("run_manifest") or {}).get("run_id"),
         },
         "readiness_summary": {
-            "required_checks": list(REQUIRED_READINESS_CHECKS),
+            "required_checks": list(required_readiness),
             "missing_checks": readiness_missing_checks,
             "non_pass_checks": [str(row.get("check_id") or "") for row in readiness_non_pass_rows],
             "blockers": readiness_blockers,

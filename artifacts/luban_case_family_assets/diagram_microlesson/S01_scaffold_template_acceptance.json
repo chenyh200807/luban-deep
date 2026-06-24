@@ -1,0 +1,316 @@
+{
+  "schema_version": "luban_diagram_microlesson.v1",
+  "card_id": "S01_scaffold_template_acceptance",
+  "template_type": "decision_branch_reveal_draft",
+  "title": "脚手架/高大模板支架验收 · 放行判断",
+  "taxonomy_ref": "1A436000",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "judging_artifact_id": null,
+    "judging_authority_label": "母题引擎候选训练卡,非官方阅卷口径",
+    "source_boundary": "依据 runtime_supply 与 2026 讲义 chunk 的候选编译弹药:模板支架检查评定保证项目、脚手架检查与验收、设备设施安全验收检查、重大事故隐患。正式采分口径须经母题包签发。",
+    "student_boundary": "这是鲁班训练卡,用于考前判断动作训练;正式答案以教材、规范和当年考试要求为准。"
+  },
+  "exam_context": {
+    "student_facing_hook": "安全题不是问架子搭没搭完,而是问能不能放行。脚手架、模板支架这类题,最容易丢在'未经验收就使用/浇筑'这一刀。",
+    "scene": "模板支架已搭设完成,混凝土浇筑班组已经进场,但验收记录未完成签字。项目经理说:先浇筑,资料后补。",
+    "exam_action": "看到脚手架/模板支架,按四步判:对象、时点、验收、放行。",
+    "difficulty": "A",
+    "tags": ["安全高频", "复用判断模板", "decision_branch_reveal"]
+  },
+  "source_refs": [
+    {
+      "id": "R1_template_support_items",
+      "label": "模板支架检查评定保证项目",
+      "source_path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+      "source_record": "1A436000_107_0174",
+      "summary": "模板支架检查评定保证项目包括施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。"
+    },
+    {
+      "id": "R2_equipment_acceptance",
+      "label": "设备设施安全验收检查",
+      "source_path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+      "source_record": "1A436000_126_0200",
+      "summary": "脚手架、现浇混凝土模板支撑系统等设备设施在安拆、搭设过程中或完成后进行安全验收、检查。"
+    },
+    {
+      "id": "R3_scaffold_acceptance_stages",
+      "label": "脚手架检查与验收",
+      "source_path": "docs/原始数据/2026_副本/讲义/2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8/page_27_27.json",
+      "source_record": "page_27_27",
+      "summary": "脚手架验收阶段含基础完工后及脚手架搭设前、首层水平杆搭设后、作业脚手架每搭设一个楼层高度、悬挑结构固定后、支撑脚手架高度每2-4步或不超过6m。验收内容含材料与配件质量、搭设场地和支承结构固定、架体搭设质量、技术资料。"
+    },
+    {
+      "id": "R4_major_hazard",
+      "label": "模板/脚手架重大隐患",
+      "source_path": "deeptutor/services/construction_grading/runtime_supply/v_rich_leaf_context/rich_leaf_context_bundle.json",
+      "source_record": "1A436000_007_0010",
+      "summary": "模板支架地基承载力不足、施工荷载超设计值、混凝土强度未达标时拆除,以及脚手架地基不稳、连墙件缺失等属于重大隐患候选弹药。"
+    }
+  ],
+  "teaching_spine": {
+    "wrong_idea": "搭设完成、现场看着稳,就可以先使用或先浇筑,验收资料后补。",
+    "visual_correction": "正确动作不是看架子像不像稳,而是沿放行门走:对象属于脚手架/模板支架,到了使用或浇筑前时点,验收合格且记录签字齐全,才允许进入下一步。",
+    "exam_phrase": "脚手架或模板支架搭设完成后,应按专项施工方案和规范要求组织验收;验收合格并形成记录、签字确认后,方可使用或进行混凝土浇筑。未经验收或验收不合格,不得使用/浇筑,应整改后复验。",
+    "warm_correction": "你能想到要检查架体,方向对了一半。考试拿分要再补两个词:验收合格、签字确认。",
+    "authority": "candidate teaching prototype; facts anchored to R1-R4 source refs, not official scoring authority"
+  },
+  "decision": {
+    "mode": "criteria_chain",
+    "scenario_given": "模板支架已搭设完成,准备浇筑混凝土,但验收记录尚未签字。问:能否先浇筑、后补资料?",
+    "judgment_points": [
+      {
+        "id": "object",
+        "question": "对象是不是脚手架/模板支架这类需安全验收的设施?",
+        "criterion": "脚手架、现浇混凝土模板支撑系统等设备设施,在搭设过程中或完成后要进行安全验收、检查。",
+        "verdict": "met",
+        "verdict_reason": "题干是模板支架,属于需要安全验收检查的支撑系统。",
+        "basis": "设备设施安全验收检查候选弹药 R2",
+        "source_ref": "R2_equipment_acceptance (候选·未签发)",
+        "scoring_point_binding": "SP_object",
+        "next_on_met": "timing",
+        "next_on_unmet": "outcome:not_this_card"
+      },
+      {
+        "id": "timing",
+        "question": "是否到了使用/浇筑前的放行时点?",
+        "criterion": "搭设完成、使用前、浇筑混凝土前,都属于必须完成验收后才能进入下一步的控制点。",
+        "verdict": "met",
+        "verdict_reason": "题干已经准备浇筑,正处在放行前的验收控制点。",
+        "basis": "脚手架检查与验收阶段候选弹药 R3;模板支架验收按专项方案和规范要求组织。",
+        "source_ref": "R3_scaffold_acceptance_stages (候选·未签发)",
+        "scoring_point_binding": "SP_timing",
+        "next_on_met": "acceptance",
+        "next_on_unmet": "outcome:watch_only"
+      },
+      {
+        "id": "acceptance",
+        "question": "验收是否合格,记录和签字是否齐全?",
+        "criterion": "验收合格并形成记录、签字确认后,才可使用或进行后续浇筑;资料未完成不能视为已放行。",
+        "verdict": "unmet",
+        "verdict_reason": "题干说明验收记录尚未签字,验收闭环未完成。",
+        "basis": "模板支架检查评定保证项目含交底与验收 R1;安全验收检查要求 R2。",
+        "source_ref": "R1_template_support_items + R2_equipment_acceptance (候选·未签发)",
+        "scoring_point_binding": "SP_acceptance",
+        "next_on_met": "outcome:allow_after_acceptance",
+        "next_on_unmet": "outcome:stop_rectify"
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "stop_rectify",
+        "label": "不能先浇筑;应停止放行,完成验收签字,不合格处整改复验",
+        "kind": "target",
+        "scoring_point_binding": "SP_conclusion"
+      },
+      {
+        "id": "allow_after_acceptance",
+        "label": "验收合格并签字确认后,方可使用或浇筑",
+        "kind": "alt",
+        "scoring_point_binding": "SP_conclusion"
+      },
+      {
+        "id": "watch_only",
+        "label": "未到放行时点时继续过程检查,不得省略最终验收",
+        "kind": "alt"
+      },
+      {
+        "id": "not_this_card",
+        "label": "不是脚手架/模板支架放行题,另按对应考点判断",
+        "kind": "alt"
+      }
+    ],
+    "reached_outcome": "stop_rectify"
+  },
+  "scoring_points": [
+    {
+      "id": "SP_object",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["脚手架", "模板支架", "安全验收检查"],
+      "source_ref": "R2_equipment_acceptance (教研草拟·候选·未签发)",
+      "used_by": ["object"]
+    },
+    {
+      "id": "SP_timing",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["搭设完成后", "使用前", "浇筑前"],
+      "source_ref": "R3_scaffold_acceptance_stages (教研草拟·候选·未签发)",
+      "used_by": ["timing"]
+    },
+    {
+      "id": "SP_acceptance",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["验收合格", "形成记录", "签字确认"],
+      "source_ref": "R1_template_support_items + R2_equipment_acceptance (教研草拟·候选·未签发)",
+      "used_by": ["acceptance"]
+    },
+    {
+      "id": "SP_conclusion",
+      "kind": "candidate_teaching_prototype",
+      "tier": "exact_required",
+      "keywords": ["不得使用", "不得浇筑", "整改复验"],
+      "source_ref": "S01_exam_phrase (教研草拟·候选·未签发)",
+      "used_by": ["stop_rectify", "allow_after_acceptance"]
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "afterward_signature",
+      "text": "写'可以先浇筑,验收资料后补'。",
+      "error_code": "ES01-01(候选·未登记)",
+      "loss_display": "把资料后补当放行",
+      "why": "验收记录未签字,验收闭环未完成;后补资料不能替代放行前验收。",
+      "jump_point_id": "acceptance"
+    },
+    {
+      "id": "only_visual_check",
+      "text": "只写'检查架体稳定'。",
+      "error_code": "ES01-02(候选·未登记)",
+      "loss_display": "漏验收闭环",
+      "why": "安全题不只看外观,还要写组织验收、验收合格、记录签字。",
+      "jump_point_id": "acceptance"
+    },
+    {
+      "id": "miss_timing",
+      "text": "知道要验收,但没写使用/浇筑前。",
+      "error_code": "ES01-03(候选·未登记)",
+      "loss_display": "控制时点缺失",
+      "why": "放行题要写清楚时点:搭设完成后、使用前或浇筑前。",
+      "jump_point_id": "timing"
+    }
+  ],
+  "memory_hook": "搭完不等于能用:对象、时点、验收、放行四步走。",
+  "video_beats": [
+    {"id": "hook", "stage": "hook", "title": "为什么先学它", "chapter": "先学", "subtitle": "安全题不是看搭没搭完,是问能不能放行。"},
+    {"id": "trap", "stage": "trap", "title": "先打掉错觉", "chapter": "错觉", "subtitle": "搭完、看着稳,不等于可以使用或浇筑。"},
+    {"id": "object", "stage": "object", "title": "第一刀:对象", "chapter": "对象", "subtitle": "脚手架/模板支架属于要验收的设备设施。"},
+    {"id": "timing", "stage": "timing", "title": "第二刀:时点", "chapter": "时点", "subtitle": "搭设完成、使用前、浇筑前,都是放行门。"},
+    {"id": "acceptance", "stage": "acceptance", "title": "第三刀:闭环", "chapter": "验收", "subtitle": "验收合格、记录、签字,缺一个都不能放行。"},
+    {"id": "outcome", "stage": "outcome", "title": "结论:不放行", "chapter": "放行", "subtitle": "验收记录未签字,不得先浇筑。"},
+    {"id": "score", "stage": "score", "title": "写成采分句", "chapter": "采分", "subtitle": "对象+时点+验收+结论,四件事写全。"},
+    {"id": "bridge", "stage": "bridge", "title": "去闯关验证", "chapter": "闯关", "subtitle": "换脚手架、换模板支架、换错误表达。"}
+  ],
+  "quiz": [
+    {
+      "id": "q_object",
+      "kind": "mcq",
+      "tier_tag": "原图识别",
+      "question": "题干出现'现浇混凝土模板支撑系统搭设完成',第一步先抓哪个对象?",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "混凝土强度 + 是否达到拆模条件 + 可拆除", "feedback": "这是拆除/强度题的入口,不是本题放行入口。"},
+        {"id": "B", "text": "模板支架 + 设备设施安全验收对象 + 进入放行判断", "feedback": "对。先确认对象,再走验收放行门。"},
+        {"id": "C", "text": "作业人员人数 + 是否足够 + 可以施工", "feedback": "人数不是放行依据,不能替代验收。"}
+      ],
+      "basis_ref": "decision.judgment_points[object]"
+    },
+    {
+      "id": "q_trap",
+      "kind": "mcq",
+      "tier_tag": "错觉鉴别",
+      "question": "下列哪句话最容易丢分?",
+      "answer": "A",
+      "options": [
+        {"id": "A", "text": "模板支架已搭设完成,现场看着稳定,可以先浇筑,资料后补", "feedback": "这就是本卡主错觉:未完成验收签字,不能放行。"},
+        {"id": "B", "text": "模板支架搭设完成后,应组织验收,合格签字后方可浇筑", "feedback": "这是正确采分表达。"},
+        {"id": "C", "text": "验收不合格时应整改后复验,不得使用或浇筑", "feedback": "这是正确处理。"}
+      ],
+      "basis_ref": "common_errors[afterward_signature]"
+    },
+    {
+      "id": "q_timing",
+      "kind": "mcq",
+      "tier_tag": "时点判断",
+      "question": "支撑脚手架已搭到 6m,现场准备继续向上搭。下列判断更稳的是?",
+      "answer": "B",
+      "options": [
+        {"id": "A", "text": "只要没有明显变形,可以连续搭完后统一验收", "feedback": "支撑脚手架搭设过程中也有验收控制点。"},
+        {"id": "B", "text": "支撑脚手架高度每2-4步或不超过6m应验收一次,合格后再继续", "feedback": "对。你抓住了过程验收时点。"},
+        {"id": "C", "text": "只需混凝土浇筑前验收,搭设过程中不用管", "feedback": "漏了过程验收控制点。"}
+      ],
+      "basis_ref": "source_refs[R3_scaffold_acceptance_stages]"
+    },
+    {
+      "id": "q_transfer",
+      "kind": "mcq",
+      "tier_tag": "迁移题",
+      "question": "落地式作业脚手架每搭设一个楼层高度后,下列做法正确的是?",
+      "answer": "C",
+      "options": [
+        {"id": "A", "text": "继续搭设,等全部搭完再补一次总体验收", "feedback": "错在省略过程验收。"},
+        {"id": "B", "text": "让班组自检即可,不需要验收记录", "feedback": "自检不能替代验收记录和放行。"},
+        {"id": "C", "text": "按阶段组织验收,检查材料、支承结构、架体质量和技术资料", "feedback": "对。换成脚手架,仍然走对象、时点、验收、放行。"}
+      ],
+      "basis_ref": "source_refs[R3_scaffold_acceptance_stages]"
+    },
+    {
+      "id": "q_score_sentence",
+      "kind": "score_sentence",
+      "tier_tag": "采分句输出",
+      "question": "把'模板支架验收记录未签字,能否浇筑'写成采分句。",
+      "answer_atoms": ["对象", "时点", "验收闭环", "结论"],
+      "prompts": [
+        {"id": "object", "label": "对象", "placeholder": "模板支架/脚手架"},
+        {"id": "timing", "label": "时点", "placeholder": "搭设完成后/浇筑前"},
+        {"id": "acceptance", "label": "验收闭环", "placeholder": "验收合格、记录、签字"},
+        {"id": "conclusion", "label": "结论", "placeholder": "不得浇筑,整改复验"}
+      ],
+      "feedback": "标准结构:模板支架搭设完成后、浇筑混凝土前,应组织验收;验收合格并形成记录、签字确认后方可浇筑。未经验收或记录未签字,不得浇筑,应整改/补齐验收后复验。",
+      "basis_ref": "teaching_spine.exam_phrase"
+    }
+  ],
+  "deep_archetype": {
+    "score_atoms": ["对象", "放行时点", "验收合格/签字", "不得使用或浇筑/整改复验"],
+    "mastery_discrimination": {
+      "key_discriminator_ids": ["q_timing", "q_transfer", "q_score_sentence"],
+      "not_formal_learner_state": true,
+      "candidate_signal": "能在换成脚手架/支撑脚手架时仍写出对象、时点、验收闭环、放行结论,才算看穿。"
+    }
+  },
+  "rendering_contract": {
+    "student_safe_fields": [
+      "title",
+      "exam_context.student_facing_hook",
+      "exam_context.scene",
+      "exam_context.exam_action",
+      "teaching_spine.wrong_idea",
+      "teaching_spine.visual_correction",
+      "teaching_spine.exam_phrase",
+      "teaching_spine.warm_correction",
+      "decision.scenario_given",
+      "decision.judgment_points[].question",
+      "decision.judgment_points[].criterion",
+      "decision.judgment_points[].verdict_reason",
+      "decision.judgment_points[].basis",
+      "decision.outcomes[].label",
+      "common_errors[].text",
+      "common_errors[].loss_display",
+      "common_errors[].why",
+      "memory_hook",
+      "video_beats",
+      "quiz",
+      "authority.student_boundary"
+    ],
+    "internal_only_fields": [
+      "source_refs",
+      "decision.mode",
+      "decision.reached_outcome",
+      "decision.judgment_points[].verdict",
+      "decision.judgment_points[].source_ref",
+      "decision.judgment_points[].scoring_point_binding",
+      "decision.judgment_points[].next_on_met",
+      "decision.judgment_points[].next_on_unmet",
+      "decision.outcomes[].kind",
+      "decision.outcomes[].scoring_point_binding",
+      "scoring_points[].id",
+      "scoring_points[].source_ref",
+      "scoring_points[].kind",
+      "common_errors[].error_code",
+      "authority.source_boundary",
+      "authority.judging_authority_label"
+    ]
+  }
+}

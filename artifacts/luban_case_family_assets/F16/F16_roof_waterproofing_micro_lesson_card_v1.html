@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鲁班图解微课卡 · 屋面卷材防水起鼓割补</title>
+<style>
+  :root{
+    --bg:#f3f6f8;
+    --paper:#fffdf8;
+    --surface:#ffffff;
+    --ink:#17202a;
+    --muted:#637083;
+    --line:#dfe6ee;
+    --blue:#2563eb;
+    --blue-2:#dbeafe;
+    --green:#16815f;
+    --green-2:#dff4ea;
+    --amber:#b96b12;
+    --amber-2:#fff0d7;
+    --red:#c24130;
+    --red-2:#fde8e3;
+    --roof:#9aa4ae;
+    --membrane:#3a4b61;
+    --primer:#f4b740;
+    --patch:#1b7f68;
+    --shadow:0 18px 40px rgba(31,41,55,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{max-width:100%;overflow-x:hidden}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#eef4f8 0%,#f7f8f4 46%,#f2f5f7 100%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif;
+    line-height:1.5;
+  }
+  button{font:inherit}
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:24px 16px 40px;
+  }
+  .topline{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:10px;
+  }
+  .mark{
+    width:34px;
+    height:34px;
+    border-radius:11px;
+    background:var(--blue);
+    display:grid;
+    place-items:center;
+    box-shadow:0 8px 18px rgba(37,99,235,.25);
+  }
+  .mark svg{width:19px;height:19px;stroke:#fff}
+  h1{
+    margin:0;
+    font-size:clamp(26px,4vw,42px);
+    letter-spacing:0;
+    line-height:1.18;
+  }
+  .subtitle{
+    max-width:760px;
+    margin:12px 0 22px;
+    color:#526173;
+    font-size:16px;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(330px,.62fr);
+    gap:18px;
+    align-items:start;
+    min-width:0;
+  }
+  .lesson,.side,.bar{
+    background:rgba(255,255,255,.88);
+    border:1px solid rgba(203,213,225,.9);
+    box-shadow:var(--shadow);
+    min-width:0;
+  }
+  .lesson{
+    border-radius:22px;
+    overflow:hidden;
+  }
+  .lesson-head{
+    padding:18px 20px 14px;
+    display:flex;
+    gap:14px;
+    justify-content:space-between;
+    align-items:flex-start;
+    border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.82);
+  }
+  .lesson-head h2{
+    margin:0 0 6px;
+    font-size:18px;
+  }
+  .lesson-head p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .score-chip{
+    flex:0 0 auto;
+    border-radius:999px;
+    background:var(--amber-2);
+    color:#87530f;
+    border:1px solid #f5d39d;
+    padding:8px 12px;
+    font-size:12px;
+    font-weight:700;
+  }
+  .visual{
+    padding:18px;
+    background:
+      radial-gradient(circle at 12% 0%,rgba(37,99,235,.10),transparent 28%),
+      linear-gradient(180deg,#fffdf8,#f9fbfd);
+  }
+  .roof-wrap{
+    position:relative;
+    background:var(--paper);
+    border:1px solid #eadfcf;
+    border-radius:18px;
+    overflow:hidden;
+    min-height:430px;
+  }
+  .svg-frame{
+    width:100%;
+    max-width:100%;
+    aspect-ratio:16/10;
+    min-height:360px;
+    display:block;
+  }
+  .callout{
+    position:absolute;
+    left:18px;
+    top:18px;
+    width:min(270px,42%);
+    background:rgba(255,255,255,.94);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 13px;
+    box-shadow:0 12px 28px rgba(15,23,42,.10);
+  }
+  .callout b{
+    display:block;
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  .callout span{
+    display:block;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .legend{
+    position:absolute;
+    right:16px;
+    bottom:14px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    max-width:360px;
+  }
+  .legend span{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 8px;
+    border-radius:10px;
+    background:rgba(255,255,255,.9);
+    border:1px solid var(--line);
+    color:#465364;
+    font-size:12px;
+  }
+  .sw{
+    width:14px;
+    height:8px;
+    border-radius:4px;
+    display:inline-block;
+  }
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    padding:14px 18px 18px;
+    border-top:1px solid var(--line);
+    background:#fff;
+  }
+  .step-tab{
+    min-height:52px;
+    border:1px solid var(--line);
+    background:#f8fafc;
+    color:#475569;
+    border-radius:13px;
+    padding:8px 9px;
+    text-align:left;
+    cursor:pointer;
+    transition:background .18s ease,border-color .18s ease,transform .18s ease;
+  }
+  .step-tab:hover{transform:translateY(-1px);border-color:#b9c6d6}
+  .step-tab[aria-selected="true"]{
+    background:#eff6ff;
+    color:#153e91;
+    border-color:#93b7f6;
+    box-shadow:0 8px 20px rgba(37,99,235,.12);
+  }
+  .step-tab small{
+    display:block;
+    color:inherit;
+    opacity:.72;
+    font-size:11px;
+    margin-bottom:2px;
+  }
+  .step-tab strong{
+    display:block;
+    font-size:13px;
+    line-height:1.25;
+  }
+  .side{
+    border-radius:22px;
+    padding:18px;
+    position:sticky;
+    top:16px;
+  }
+  .eyebrow{
+    color:var(--blue);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:0;
+    margin-bottom:8px;
+  }
+  .side h2{
+    margin:0 0 10px;
+    font-size:22px;
+    line-height:1.25;
+  }
+  .side .brief{
+    margin:0 0 14px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .info-card{
+    border-radius:16px;
+    padding:13px;
+    margin-top:10px;
+    border:1px solid var(--line);
+    background:#fbfdff;
+  }
+  .info-card h3{
+    margin:0 0 7px;
+    font-size:14px;
+  }
+  .info-card p{
+    margin:0;
+    color:#405066;
+    font-size:13px;
+  }
+  .info-card.answer{
+    background:var(--green-2);
+    border-color:#b7e3cf;
+  }
+  .info-card.mistake{
+    background:var(--red-2);
+    border-color:#f4b8ae;
+  }
+  .info-card.source{
+    background:#f8fafc;
+  }
+  .controls{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns:1fr 1.3fr;
+    gap:10px;
+  }
+  .control{
+    min-height:48px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    cursor:pointer;
+    background:#fff;
+    color:#334155;
+    font-weight:700;
+  }
+  .control.primary{
+    background:var(--blue);
+    color:#fff;
+    border-color:var(--blue);
+  }
+  .progress{
+    margin-top:14px;
+    height:8px;
+    border-radius:999px;
+    background:#e6edf5;
+    overflow:hidden;
+  }
+  .progress i{
+    display:block;
+    height:100%;
+    width:12.5%;
+    background:linear-gradient(90deg,#2563eb,#16a37f);
+    border-radius:inherit;
+    transition:width .22s ease;
+  }
+  .bar{
+    margin-top:18px;
+    border-radius:20px;
+    padding:16px 18px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+  }
+  .bar div{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+  }
+  .bar b{
+    display:block;
+    font-size:13px;
+    margin-bottom:5px;
+  }
+  .bar span{
+    color:var(--muted);
+    font-size:12px;
+  }
+  .layer-label{
+    font-size:14px;
+    fill:#334155;
+    font-weight:700;
+  }
+  .thin-label{
+    font-size:12px;
+    fill:#64748b;
+  }
+  .step-layer{
+    opacity:.14;
+    transition:opacity .22s ease,filter .22s ease;
+  }
+  .step-layer.active{
+    opacity:1;
+    filter:drop-shadow(0 8px 14px rgba(37,99,235,.14));
+  }
+  .step-layer.done{
+    opacity:.42;
+  }
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    .side{position:static}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .bar{grid-template-columns:1fr}
+  }
+  @media (max-width:520px){
+    .page,.layout,.lesson,.side,.bar,.roof-wrap{width:100%;max-width:100%}
+    .page{padding:18px 10px 28px}
+    .topline{align-items:flex-start;flex-wrap:wrap}
+    .topline span,h1,.subtitle,.lesson-head h2,.lesson-head p,.score-chip,.callout b,.callout span{
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-all;
+    }
+    h1{font-size:24px;line-height:1.24}
+    .subtitle{font-size:14px;line-height:1.65}
+    .lesson-head{display:block}
+    .score-chip{display:inline-block;margin-top:10px}
+    .visual{padding:10px}
+    .roof-wrap{min-height:auto}
+    .svg-frame{height:420px;min-height:420px;aspect-ratio:auto}
+    .callout{
+      position:relative;
+      left:auto;
+      top:auto;
+      width:auto;
+      margin:12px;
+    }
+    .legend{
+      position:relative;
+      right:auto;
+      bottom:auto;
+      justify-content:flex-start;
+      padding:0 12px 12px;
+      max-width:100%;
+    }
+    .steps{grid-template-columns:1fr}
+    .side h2{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="topline">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 18h16"></path><path d="M7 18V8l5-3 5 3v10"></path><path d="M9 18v-6h6v6"></path>
+      </svg>
+    </div>
+    <span>鲁班图解微课卡 · 静态 HTML/SVG · 无外链资源</span>
+  </div>
+
+  <h1>屋面卷材防水起鼓，为什么要这样割补？</h1>
+  <p class="subtitle">这版不追求“像课件”，而是让成人考生在手机上 60 秒看懂：病害在哪里、为什么这么修、答案怎么写才给分。</p>
+
+  <section class="layout" aria-label="屋面卷材防水起鼓割补图解微课">
+    <article class="lesson">
+      <div class="lesson-head">
+        <div>
+          <h2>剖面里看工序，不背散点</h2>
+          <p>点击步骤或使用下一步。图中每一层都是 SVG，可离线、可审校、可嵌入。</p>
+        </div>
+        <div class="score-chip">目标：找不妥 / 写措施 / 补充工序</div>
+      </div>
+
+      <div class="visual">
+        <div class="roof-wrap">
+          <div class="callout" id="callout">
+            <b>先看坏在哪里</b>
+            <span>鼓泡不是“表面不好看”，而是卷材下有气体或水汽，受热膨胀后顶起防水层。</span>
+          </div>
+
+          <svg class="svg-frame" id="roofSvg" viewBox="0 0 900 560" role="img" aria-labelledby="svgTitle svgDesc">
+            <title id="svgTitle">屋面卷材防水起鼓割补工序剖面图</title>
+            <desc id="svgDesc">图示基层、找平层、基层处理剂、防水卷材、起鼓、割开排气、附加层、修补卷材和蓄水检验。</desc>
+
+            <defs>
+              <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#eef7ff"></stop>
+                <stop offset="100%" stop-color="#fffdf8"></stop>
+              </linearGradient>
+              <pattern id="concrete" width="24" height="24" patternUnits="userSpaceOnUse">
+                <rect width="24" height="24" fill="#aeb7bf"></rect>
+                <path d="M3 18l5-3M12 8l7-4M16 21l5-5M2 6l4 2" stroke="#8a949e" stroke-width="1.2" opacity=".55"></path>
+              </pattern>
+              <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M0 0 L10 5 L0 10 z" fill="#2563eb"></path>
+              </marker>
+              <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M0 0 L10 5 L0 10 z" fill="#16815f"></path>
+              </marker>
+            </defs>
+
+            <rect x="0" y="0" width="900" height="560" fill="url(#sky)"></rect>
+            <path d="M50 384 C180 350 265 390 380 360 C520 324 640 368 850 330" fill="none" stroke="#d8e0e8" stroke-width="2" opacity=".7"></path>
+
+            <g id="base">
+              <path d="M110 380 L780 310 L780 455 L110 455 Z" fill="url(#concrete)" stroke="#7f8994" stroke-width="2"></path>
+              <path d="M110 350 L780 280 L780 312 L110 382 Z" fill="#c8cdd2" stroke="#98a2ad" stroke-width="2"></path>
+              <path d="M110 332 L780 262 L780 281 L110 351 Z" fill="#f3b340" stroke="#d79520" stroke-width="2"></path>
+              <path d="M110 308 L780 238 L780 263 L110 333 Z" fill="#3a4b61" stroke="#263647" stroke-width="2"></path>
+              <text x="675" y="430" class="layer-label">结构基层</text>
+              <text x="672" y="356" class="layer-label">找平层</text>
+              <text x="664" y="300" class="layer-label">基层处理剂</text>
+              <text x="630" y="246" class="layer-label" fill="#17202a">防水卷材层</text>
+              <path d="M128 335 L780 267" stroke="#fff" stroke-width="1.5" opacity=".35"></path>
+            </g>
+
+            <g class="step-layer active" data-step-layer="0">
+              <path d="M362 295 C378 248 445 237 478 274 C506 306 480 338 427 344 C382 349 345 331 362 295 Z" fill="#fde68a" stroke="#d97706" stroke-width="4"></path>
+              <path d="M387 304 C407 283 440 283 457 302" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"></path>
+              <path d="M405 270 C426 254 456 260 472 281" fill="none" stroke="#fff7c2" stroke-width="3" opacity=".9"></path>
+              <text x="330" y="223" class="layer-label" fill="#92400e">起鼓部位</text>
+              <path d="M390 232 C398 246 400 258 399 276" stroke="#92400e" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"></path>
+            </g>
+
+            <g class="step-layer" data-step-layer="1">
+              <path d="M390 270 L470 345" stroke="#c24130" stroke-width="7" stroke-linecap="round"></path>
+              <path d="M468 270 L388 346" stroke="#c24130" stroke-width="7" stroke-linecap="round"></path>
+              <path d="M390 270 L470 345 M468 270 L388 346" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".65"></path>
+              <text x="212" y="284" class="layer-label" fill="#991b1b">十字或丁字割开</text>
+              <path d="M350 286 C310 278 270 280 240 287" stroke="#991b1b" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"></path>
+            </g>
+
+            <g class="step-layer" data-step-layer="2">
+              <path d="M398 292 C370 242 382 200 412 178" stroke="#2563eb" stroke-width="4" fill="none" marker-end="url(#arrowBlue)"></path>
+              <path d="M438 290 C443 236 480 207 522 197" stroke="#2563eb" stroke-width="4" fill="none" marker-end="url(#arrowBlue)"></path>
+              <path d="M414 326 C384 370 352 384 315 385" stroke="#2563eb" stroke-width="4" fill="none" marker-end="url(#arrowBlue)"></path>
+              <circle cx="405" cy="178" r="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"></circle>
+              <circle cx="523" cy="197" r="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"></circle>
+              <text x="500" y="175" class="layer-label" fill="#1d4ed8">排气、干燥</text>
+              <text x="500" y="196" class="thin-label">没有干燥就直接贴，是常见不给分点</text>
+            </g>
+
+            <g class="step-layer" data-step-layer="3">
+              <path d="M318 320 L540 296 L540 321 L318 346 Z" fill="#fbbf24" stroke="#d97706" stroke-width="3" opacity=".92"></path>
+              <path d="M335 316 l-18 28 M384 312 l-18 28 M433 306 l-18 28 M482 301 l-18 28 M526 297 l-18 28" stroke="#fff4c1" stroke-width="3" opacity=".8"></path>
+              <text x="222" y="386" class="layer-label" fill="#92400e">清理基层后补刷处理剂</text>
+            </g>
+
+            <g class="step-layer" data-step-layer="4">
+              <path d="M360 304 L492 290 L492 322 L360 336 Z" fill="#e2e8f0" stroke="#64748b" stroke-width="3"></path>
+              <path d="M373 316 L478 305" stroke="#94a3b8" stroke-width="3"></path>
+              <text x="200" y="238" class="layer-label" fill="#475569">嵌填、修补基层缺陷</text>
+              <path d="M350 247 C374 258 385 274 389 302" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"></path>
+            </g>
+
+            <g class="step-layer" data-step-layer="5">
+              <path d="M265 284 L622 247 L622 292 L265 330 Z" fill="#9be7cf" stroke="#16815f" stroke-width="4"></path>
+              <path d="M293 283 L590 252" stroke="#fff" stroke-width="3" opacity=".75"></path>
+              <text x="240" y="207" class="layer-label" fill="#0f6b4f">增铺附加层，范围要盖过病害边缘</text>
+              <path d="M410 214 C403 236 392 254 374 282" stroke="#16815f" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"></path>
+            </g>
+
+            <g class="step-layer" data-step-layer="6">
+              <path d="M220 262 L690 213 L690 254 L220 304 Z" fill="#1f7665" stroke="#0f5d4c" stroke-width="4"></path>
+              <path d="M610 221 L692 212 L692 254 L610 263 Z" fill="#34a185" stroke="#0f5d4c" stroke-width="3"></path>
+              <text x="585" y="206" class="thin-label">搭接封严</text>
+              <path d="M646 214 L650 256" stroke="#fff" stroke-width="3" stroke-dasharray="5 5"></path>
+              <text x="238" y="250" class="layer-label" fill="#ffffff">新卷材覆盖</text>
+            </g>
+
+            <g class="step-layer" data-step-layer="7">
+              <path d="M194 210 C286 235 384 221 486 199 C574 180 666 176 745 192" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"></path>
+              <path d="M224 193 l14 25 M304 189 l14 25 M382 177 l14 25 M462 166 l14 25 M542 158 l14 25 M622 158 l14 25 M702 172 l14 25" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"></path>
+              <text x="574" y="160" class="layer-label" fill="#0369a1">蓄水或淋水检验</text>
+              <text x="574" y="181" class="thin-label">最终不是“做完了”，而是确认不渗漏</text>
+            </g>
+          </svg>
+
+          <div class="legend" aria-label="图例">
+            <span><i class="sw" style="background:#3a4b61"></i>原防水层</span>
+            <span><i class="sw" style="background:#f4b740"></i>基层处理剂</span>
+            <span><i class="sw" style="background:#9be7cf"></i>附加层</span>
+            <span><i class="sw" style="background:#1b7f68"></i>新卷材</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="steps" id="steps" role="tablist" aria-label="起鼓割补步骤"></div>
+    </article>
+
+    <aside class="side" aria-live="polite">
+      <div class="eyebrow" id="stepCount">步骤 1 / 8</div>
+      <h2 id="stepTitle">先识别起鼓，不要直接写“加强维修”</h2>
+      <p class="brief" id="stepBrief">起鼓的本质是卷材下方气体或水汽顶起防水层。答题时先说清楚病害识别，后面措施才有对象。</p>
+
+      <div class="info-card answer">
+        <h3>采分表达</h3>
+        <p id="answerText">检查并确认卷材防水层起鼓部位，分析为基层潮湿、气体未排尽或粘结不牢等原因造成。</p>
+      </div>
+
+      <div class="info-card mistake">
+        <h3>常见丢分</h3>
+        <p id="mistakeText">只写“修补防水层”“加强处理”，没有说明起鼓对象和修补逻辑，阅卷时很难给到措施分。</p>
+      </div>
+
+      <div class="info-card source">
+        <h3>来源边界</h3>
+        <p id="sourceText">本原型的数值与规范引用只做体验占位；正式版本必须由母题包 source_ref 和规范依据签发。</p>
+      </div>
+
+      <div class="controls">
+        <button class="control" id="prevBtn" type="button">上一步</button>
+        <button class="control primary" id="nextBtn" type="button">下一步</button>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+    </aside>
+  </section>
+
+  <section class="bar" aria-label="原型说明">
+    <div>
+      <b>为什么比 OpenMAIC 版本好</b>
+      <span>主视觉是屋面剖面和病害变化，不是机械九宫格；学生能看见“哪一层出了问题”。</span>
+    </div>
+    <div>
+      <b>为什么适合鲁班</b>
+      <span>每一步都绑定采分表达、丢分点和 source_ref 边界，能接母题包而不是接课堂系统。</span>
+    </div>
+    <div>
+      <b>离线资源内联</b>
+      <span>本文件无 CDN、无外链图片、无字体依赖；SVG/CSS/JS 全内联，可作为小程序 WebView 静态卡思路。</span>
+    </div>
+  </section>
+</main>
+
+<script>
+const steps = [
+  {
+    title:"先识别起鼓，不要直接写“加强维修”",
+    tab:"识别病害",
+    brief:"起鼓的本质是卷材下方气体或水汽顶起防水层。答题时先说清楚病害识别，后面措施才有对象。",
+    calloutTitle:"先看坏在哪里",
+    callout:"鼓泡不是表面不好看，而是卷材下有气体或水汽，受热膨胀后顶起防水层。",
+    answer:"检查并确认卷材防水层起鼓部位，分析为基层潮湿、气体未排尽或粘结不牢等原因造成。",
+    mistake:"只写“修补防水层”“加强处理”，没有说明起鼓对象和修补逻辑，阅卷时很难给到措施分。",
+    source:"体验占位：正式版本应绑定教材屋面防水、真题采分点和相关质量验收规范 source_ref。"
+  },
+  {
+    title:"沿鼓泡割开，先释放内部气体",
+    tab:"割开鼓泡",
+    brief:"割补不是整片撕掉。先沿鼓泡作十字或丁字形切口，让鼓泡内部气体和水汽有出口。",
+    calloutTitle:"为什么要割开",
+    callout:"如果不先割开排气，直接覆盖新卷材，内部气体仍会继续顶起，修了也会再鼓。",
+    answer:"沿起鼓部位作十字形或丁字形割开，割口应贯通鼓泡并避免伤及基层。",
+    mistake:"只写“切除鼓泡”但没写切口形式、排气目的，容易被判为措施不完整。",
+    source:"体验占位：切口形式、切割边界需由正式母题包给出可接受表达。"
+  },
+  {
+    title:"排气、干燥，这是很多人漏掉的关键",
+    tab:"排气干燥",
+    brief:"起鼓和潮气有关，所以修补前必须把气、水汽和潮湿基层处理掉。否则新层只是把问题盖住。",
+    calloutTitle:"这一步最像采分点",
+    callout:"“排气干燥”比“处理一下”更容易得分，因为它说出了起鼓病因和修补前提。",
+    answer:"将鼓泡内气体、水汽排出，使基层和卷材下表面充分干燥后再进行后续修补。",
+    mistake:"写“清理干净”但不写排气、干燥，无法体现你知道起鼓原因。",
+    source:"体验占位：正式版本应标注“排气/干燥”是否独立给分或合并给分。"
+  },
+  {
+    title:"清理基层，再补刷基层处理剂",
+    tab:"基层处理",
+    brief:"卷材能不能粘牢，取决于基层是否干净、干燥，以及处理剂是否到位。",
+    calloutTitle:"不要跳过粘结条件",
+    callout:"直接热熔或粘贴新卷材，会漏掉“基层处理”这个阅卷很爱看的过程点。",
+    answer:"清理切口周边和基层，必要时修平基层，待干燥后涂刷基层处理剂。",
+    mistake:"只写“重新铺贴卷材”，没有基层清理和处理剂，答案像结果句，不像施工措施。",
+    source:"体验占位：正式版本需区分“清理基层”“涂刷基层处理剂”是否为两个采分点。"
+  },
+  {
+    title:"嵌填修补，把基层缺陷先补平",
+    tab:"嵌填修补",
+    brief:"基层有空鼓、凹陷或裂缝时，必须先补平。否则上面的附加层和新卷材仍然没有稳定支撑。",
+    calloutTitle:"先补底，再补面",
+    callout:"防水不是只看最上面那层卷材。基层不稳，上面再贴也不稳。",
+    answer:"对切开后暴露的凹陷、裂缝或缺陷进行嵌填、修补、找平处理。",
+    mistake:"把“嵌填修补”和“铺附加层”混成一句，容易漏掉基层缺陷处理。",
+    source:"体验占位：正式版本应根据题干病害决定是否必须出现此点。"
+  },
+  {
+    title:"增铺附加层，要盖过病害边缘",
+    tab:"附加层",
+    brief:"附加层的价值是跨过原损伤边缘，把薄弱区包住。它不是随便贴一块小补丁。",
+    calloutTitle:"这里开始有几何边界",
+    callout:"正式图解应由 schema 控制附加层覆盖范围，不能让 LLM 自由画。",
+    answer:"在修补部位增铺附加层，附加层应覆盖并超出原起鼓或切割边缘一定范围。",
+    mistake:"只写“加铺卷材”，没有“附加层”和“覆盖边缘范围”的意识。",
+    source:"体验占位：附加层尺寸、搭接长度等数值必须由规范/教材 source_ref 提供。"
+  },
+  {
+    title:"热熔或粘贴新卷材，搭接封严",
+    tab:"新卷材封严",
+    brief:"新卷材不是贴上就完。搭接、压实、封边，是防水修补最终能不能闭合的关键。",
+    calloutTitle:"采分点往往落在“封严”",
+    callout:"很多学生会写“重新铺卷材”，但漏“搭接封严”。这个词能直接体现防水闭合。",
+    answer:"铺贴新卷材并压实，与原防水层搭接牢固，边缘和搭接缝应封严。",
+    mistake:"写“重新铺贴”但没有搭接、压实、封严，属于方向对但表达不够得分。",
+    source:"体验占位：搭接宽度和封边做法需从正式母题包读取，不能在前端写死。"
+  },
+  {
+    title:"最后做蓄水或淋水检验，证明修补有效",
+    tab:"检验闭环",
+    brief:"工程题喜欢考闭环。修补完成后要通过蓄水或淋水检验确认不渗漏。",
+    calloutTitle:"不是做完，是验完",
+    callout:"这一步把“施工措施”闭合成“质量验收”。案例题里经常就是最后 1 分。",
+    answer:"修补完成后进行蓄水或淋水试验，检查确认无渗漏后方可验收。",
+    mistake:"答到铺贴新卷材就停，缺少检验验收，容易丢最后的闭环分。",
+    source:"体验占位：蓄水时间、淋水时间等数值必须由 source_ref 控制并显示版本。"
+  }
+];
+
+let current = 0;
+const layerEls = [...document.querySelectorAll("[data-step-layer]")];
+const stepCount = document.getElementById("stepCount");
+const stepTitle = document.getElementById("stepTitle");
+const stepBrief = document.getElementById("stepBrief");
+const callout = document.getElementById("callout");
+const answerText = document.getElementById("answerText");
+const mistakeText = document.getElementById("mistakeText");
+const sourceText = document.getElementById("sourceText");
+const progressBar = document.getElementById("progressBar");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const stepsWrap = document.getElementById("steps");
+const roofSvg = document.getElementById("roofSvg");
+
+steps.forEach((step,index)=>{
+  const btn = document.createElement("button");
+  btn.className = "step-tab";
+  btn.type = "button";
+  btn.setAttribute("role","tab");
+  btn.innerHTML = `<small>步骤 ${index + 1}</small><strong>${step.tab}</strong>`;
+  btn.addEventListener("click",()=>render(index));
+  stepsWrap.appendChild(btn);
+});
+
+function render(index){
+  current = Math.max(0,Math.min(steps.length - 1,index));
+  const step = steps[current];
+  stepCount.textContent = `步骤 ${current + 1} / ${steps.length}`;
+  stepTitle.textContent = step.title;
+  stepBrief.textContent = step.brief;
+  callout.innerHTML = `<b>${step.calloutTitle}</b><span>${step.callout}</span>`;
+  answerText.textContent = step.answer;
+  mistakeText.textContent = step.mistake;
+  sourceText.textContent = step.source;
+  progressBar.style.width = `${((current + 1) / steps.length) * 100}%`;
+  prevBtn.disabled = current === 0;
+  nextBtn.textContent = current === steps.length - 1 ? "回到第一步" : "下一步";
+
+  layerEls.forEach((el,i)=>{
+    el.classList.remove("active","done");
+    if(i === current) el.classList.add("active");
+    if(i < current) el.classList.add("done");
+  });
+  [...stepsWrap.children].forEach((btn,i)=>{
+    btn.setAttribute("aria-selected",i === current ? "true" : "false");
+  });
+}
+
+prevBtn.addEventListener("click",()=>render(current - 1));
+nextBtn.addEventListener("click",()=> current === steps.length - 1 ? render(0) : render(current + 1));
+document.addEventListener("keydown",(event)=>{
+  if(event.key === "ArrowRight") render(current + 1);
+  if(event.key === "ArrowLeft") render(current - 1);
+});
+function applyResponsiveSvgView(){
+  if(window.matchMedia("(max-width:520px)").matches){
+    roofSvg.setAttribute("viewBox","120 140 660 360");
+  }else{
+    roofSvg.setAttribute("viewBox","0 0 900 560");
+  }
+}
+window.addEventListener("resize",applyResponsiveSvgView);
+applyResponsiveSvgView();
+const initialStep = Number(new URLSearchParams(window.location.search).get("step") || 1) - 1;
+render(Number.isFinite(initialStep) ? initialStep : 0);
+</script>
+</body>
+</html>

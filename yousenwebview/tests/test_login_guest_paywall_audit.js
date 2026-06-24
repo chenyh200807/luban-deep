@@ -21,6 +21,10 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
 }
 
+function exists(relativePath) {
+  return fs.existsSync(path.join(__dirname, "..", relativePath));
+}
+
 var loginWxml = read("packageDeeptutor/pages/login/login.wxml");
 var loginJs = read("packageDeeptutor/pages/login/login.js");
 var appJson = read("app.json");
@@ -174,18 +178,20 @@ assert(
 );
 assert(
   billingWxml.indexOf("开通学习权益") >= 0 &&
-    billingWxml.indexOf("小程序支付") >= 0,
-  "billing page should expose a mini-program-native entitlement package flow",
+    billingWxml.indexOf("联系销售开通") >= 0 &&
+    billingWxml.indexOf("sales-contact-qr.png") >= 0,
+  "billing page should expose a sales-contact entitlement package flow",
 );
 assert(
-  billingJs.indexOf("api.createBillingCheckout") >= 0 &&
-    billingJs.indexOf('channel: "wechat"') >= 0,
-  "billing checkout should use the backend checkout authority with a WeChat channel",
+  billingJs.indexOf("contactSalesVisible") >= 0 &&
+    billingJs.indexOf("api.createBillingCheckout") < 0 &&
+    billingJs.indexOf("requestPayment") < 0,
+  "billing open action should show contact-sales QR before any direct payment path",
 );
 assert(
-  billingJs.indexOf("payment_config_missing") >= 0 &&
-    billingJs.indexOf("不会伪造支付成功") >= 0,
-  "billing checkout should fail closed when payment config is missing",
+  billingWxml.indexOf("长按识别二维码") >= 0 &&
+    billingWxml.indexOf("添加销售顾问") >= 0,
+  "billing contact sheet should tell learners to add the sales advisor",
 );
 [
   {
@@ -230,6 +236,7 @@ assert(
 
 // 2026-06-14 轻点/滑动加速 + 「下次不再显示导学」契约
 var freeCourseJs = read("pages/freeCourse/freeCourse.js");
+var freeCourseWxml = read("pages/freeCourse/freeCourse.wxml");
 assert(
   onboardingJs.indexOf("skipSceneRest") >= 0 &&
     onboardingJs.indexOf("onTapAccelerate") >= 0 &&
@@ -247,6 +254,16 @@ assert(
     freeCourseJs.indexOf("getStorageSync") >= 0 &&
     freeCourseJs.indexOf("openDeeptutorLogin") >= 0,
   "首页入口读同一标记，已 dismiss 时跳过动效直接走原登录桥接",
+);
+assert(
+  freeCourseJs.indexOf("/images/icon/play_icon_02") === -1 &&
+    freeCourseWxml.indexOf('src="{{imageUrl}}"') === -1,
+  "首页切换方向控件不应继续引用缺失的 /images/icon/play_icon_02 本地资源",
+);
+assert(
+  exists("pages/images/yousen-cover.jpg") &&
+    exists("pages/images/yousen-brand-white-full.png"),
+  "宿主首页保留的本地图片资源必须真实存在",
 );
 
 if (fail) {

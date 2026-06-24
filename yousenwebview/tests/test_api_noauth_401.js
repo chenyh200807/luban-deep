@@ -139,6 +139,33 @@ function loadApiModule(config) {
     "noAuth 401 should not relaunch the login page",
   );
 
+  var optionalLoaded = loadApiModule();
+  var optionalRejectedMessage = "";
+  optionalLoaded.api
+    .getLearningReport(100, { suppressAuthRedirect: true })
+    .catch(function (err) {
+      optionalRejectedMessage = String((err && err.message) || "");
+    });
+  optionalLoaded.getRequestOptions().success({
+    statusCode: 401,
+    data: { detail: "Invalid authentication credentials" },
+  });
+  await flushPromises();
+  await flushPromises();
+
+  assert(
+    optionalRejectedMessage === "AUTH_EXPIRED",
+    "optional protected reads should normalize 401 to AUTH_EXPIRED",
+  );
+  assert(
+    optionalLoaded.getClearCount() === 1,
+    "optional protected 401 should clear stale stored token",
+  );
+  assert(
+    optionalLoaded.getRelaunchCount() === 0,
+    "optional protected 401 should suppress forced login redirect",
+  );
+
   var unavailableLoaded = loadApiModule({
     requestHandler: function (options) {
       options.success({

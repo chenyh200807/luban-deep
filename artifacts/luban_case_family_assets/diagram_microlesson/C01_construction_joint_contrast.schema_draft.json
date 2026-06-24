@@ -4,7 +4,7 @@
   "template_type": "contrast_pair_reveal_draft",
   "title": "混凝土施工缝 · 留置与处理(对错对照)",
   "taxonomy_ref": "1A413040-R20",
-  "_status_note": "schema draft;⑤对比原型第一张;暂无 contrast renderer,先 schema 先行(同 D01 模式)。template_type 用 *_draft 收口,不当 production;body=contrast_items[] 与 steps[]/diagnosis[] 互斥,沿用 luban_diagram_microlesson.v1 不分裂版本。",
+  "_status_note": "schema draft;⑤对比原型第一张;已有 prototype renderer render_contrast_card.py,但仍不当 production。template_type 用 *_draft 收口;body=contrast_items[] 与其他主 body 互斥,沿用 luban_diagram_microlesson.v1 不分裂版本。",
   "authority": {
     "judging_artifact_id": null,
     "status": "candidate_teaching_prototype",

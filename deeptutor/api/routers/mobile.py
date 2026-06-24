@@ -2108,6 +2108,10 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+class DeleteAccountRequest(BaseModel):
+    password: str
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -2294,6 +2298,7 @@ async def auth_change_password(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 
 @router.get("/auth/profile")

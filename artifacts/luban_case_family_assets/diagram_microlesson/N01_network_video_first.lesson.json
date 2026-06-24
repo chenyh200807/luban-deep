@@ -1,0 +1,122 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "N01_network_video_first",
+  "derived_from": "N01_network_video_first.json",
+  "style": "video_first_then_practice",
+  "title": "N01 网络计划关键线路 · 白板有声讲解",
+  "subtitle": "先纠正错觉，再顺推逆推，最后写采分句",
+  "boundary": "这是鲁班深母题教学原型，不是官方真题，也不是官方评分依据。",
+  "authority_label": "candidate teaching prototype",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "longanhuan_v3", "side": "right"},
+    "S": {"name": "晨煦", "role": "学生追问", "voice": "Ethan", "side": "left"}
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "id": "hook",
+        "stage": "hook",
+        "claim": true,
+        "anchor": "exam_context.student_facing_hook",
+        "narration": "先给你一个考试视角：网络计划题，表面问关键线路，实际要三件事：路径、总工期、判断依据。后面索赔和工期调整，也都靠这三件事。今天只练一个动作：把图，变成能拿分的一句话。"
+      },
+      {
+        "id": "trap",
+        "stage": "trap",
+        "claim": true,
+        "anchor": "teaching_spine.wrong_idea",
+        "narration": "所以第一步不是算，而是先防错觉。很多人一眼看见 C 工作四天最长，就说关键线路是 C。这里已经错了：C 只是一个工作，不是一条线。"
+      },
+      {
+        "id": "logic",
+        "stage": "logic",
+        "claim": true,
+        "anchor": "question_data.dependencies",
+        "narration": "接下来才读箭线。A、B 可以同时开始；C、D 要等 A；D 还要等 B；E 要等 C 和 D。箭线读错，顺推、逆推都会跟着错。"
+      },
+      {
+        "id": "forward",
+        "stage": "forward",
+        "claim": true,
+        "anchor": "question_data.activities",
+        "narration": "顺推最早时间时，遇到多个紧前工作，取完成最晚的那个。C 在第七天完成，D 在第五天完成，所以 E 只能等到第七天开始。"
+      },
+      {
+        "id": "backward",
+        "stage": "backward",
+        "claim": true,
+        "anchor": "question_data.expected.float",
+        "narration": "有了总工期，再逆推最迟时间。逆推问的不是重新算一遍，而是：不拖总工期时，每项工作最晚还能什么时候开始、什么时候完成。"
+      },
+      {
+        "id": "float",
+        "stage": "float",
+        "claim": true,
+        "anchor": "question_data.expected.float",
+        "narration": "现在看总时差。B 有三天总时差，D 有两天总时差，说明它们有缓冲。能拖的工作，不控制总工期。"
+      },
+      {
+        "id": "critical",
+        "stage": "critical",
+        "claim": true,
+        "anchor": "question_data.expected.critical_path",
+        "narration": "把总时差为零的工作连成一条连续线：开始，A，C，E，结束。这条线没有缓冲，所以它控制总工期，总工期是十天。"
+      },
+      {
+        "id": "score",
+        "stage": "score",
+        "claim": true,
+        "anchor": "teaching_spine.exam_phrase",
+        "narration": "最后落到答题纸：关键线路为开始，A，C，E，结束，总工期十天；理由是 A、C、E 的总时差均为零。你不是在写结论，是在写采分点。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，所以最长工作不能直接当关键线路，对吗？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine.visual_correction",
+        "text": "对。最长工作只是一个点，关键线路是一条从开始到结束的路。判断它，要看这条路上的工作是否总时差为零。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那我能不能只把每条路的工期加起来，选最长？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "question_data.dependencies",
+        "text": "可以作为检查，但不能跳过逻辑关系。像 D 要同时等 A 和 B，E 要同时等 C 和 D；不按紧前紧后读，路本身可能就读错。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "总时差和自由时差，我还是容易混。"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "question_data.expected.float",
+        "text": "记住问法不同：总时差问拖多久不影响总工期；自由时差问拖多久不影响紧后工作最早开始。比如 B，总时差三天，自由时差只有一天。"
+      }
+    }
+  ],
+  "closing": {
+    "speaker": "T",
+    "claim": true,
+    "anchor": "teaching_spine.exam_phrase",
+    "text": "收个尾：网络计划题，别背关键线路四个字。先把图翻译成三件套：路径、总工期、判断依据。现在进闯关，练到一眼能写出采分句。"
+  }
+}

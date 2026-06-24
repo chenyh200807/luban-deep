@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 960" role="img" aria-label="起重吊装安全首帧白板">
+  <rect width="540" height="960" fill="#eaf1f6"/>
+  <rect x="34" y="42" width="472" height="876" rx="34" fill="#fffdf7" stroke="#d7cdb7" stroke-width="4"/>
+  <path d="M86 132h368M86 276h368M86 420h368M86 564h368M86 708h368M135 86v774M270 86v774M405 86v774" stroke="#eadfcb" stroke-width="2"/>
+  <text x="74" y="112" fill="#176b7a" font-size="23" font-weight="900" font-family="PingFang SC,Arial">先别急着吊</text>
+  <text x="74" y="168" fill="#17202a" font-size="39" font-weight="900" font-family="PingFang SC,Arial">正式起吊前</text>
+  <text x="74" y="216" fill="#17202a" font-size="39" font-weight="900" font-family="PingFang SC,Arial">先过四道门</text>
+  <g transform="translate(64 300)">
+    <path d="M26 12h242" stroke="#425466" stroke-width="12" stroke-linecap="round"/>
+    <path d="M58 12v292M206 12v292" stroke="#425466" stroke-width="10" stroke-linecap="round"/>
+    <path d="M206 12c54 48 60 112 16 160" fill="none" stroke="#425466" stroke-width="9" stroke-linecap="round"/>
+    <path d="M222 172v40" stroke="#425466" stroke-width="9" stroke-linecap="round"/>
+    <path d="M204 212h36" stroke="#425466" stroke-width="9" stroke-linecap="round"/>
+    <rect x="176" y="236" width="92" height="62" rx="13" fill="#fff3e9" stroke="#f97316" stroke-width="5"/>
+    <text x="222" y="275" text-anchor="middle" fill="#9a3412" font-size="22" font-weight="900" font-family="PingFang SC,Arial">95%</text>
+    <path d="M290 266h74" stroke="#f97316" stroke-width="6" stroke-linecap="round" stroke-dasharray="12 10"/>
+    <text x="372" y="274" fill="#f97316" font-size="19" font-weight="900" font-family="PingFang SC,Arial">先试吊15cm</text>
+  </g>
+  <g font-family="PingFang SC,Arial" font-weight="900">
+    <rect x="74" y="640" width="392" height="56" rx="17" fill="#fff" stroke="#176b7a" stroke-width="4"/>
+    <text x="100" y="676" fill="#176b7a" font-size="23">人证</text>
+    <text x="186" y="676" fill="#17202a" font-size="21">司机 / 信号 / 司索持证</text>
+    <rect x="74" y="710" width="392" height="56" rx="17" fill="#fff" stroke="#176b7a" stroke-width="4"/>
+    <text x="100" y="746" fill="#176b7a" font-size="23">装置</text>
+    <text x="186" y="746" fill="#17202a" font-size="21">安全可靠,天气可作业</text>
+    <rect x="74" y="780" width="392" height="56" rx="17" fill="#fff7ed" stroke="#f97316" stroke-width="5"/>
+    <text x="100" y="816" fill="#c2410c" font-size="23">试吊</text>
+    <text x="186" y="816" fill="#17202a" font-size="21">90%以上先离地检查</text>
+    <rect x="74" y="850" width="392" height="56" rx="17" fill="#fff" stroke="#1d4ed8" stroke-width="4"/>
+    <text x="100" y="886" fill="#1d4ed8" font-size="23">应急</text>
+    <text x="186" y="886" fill="#17202a" font-size="21">异常停吊,重物落地</text>
+  </g>
+</svg>

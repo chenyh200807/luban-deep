@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Sequence
 import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -18,7 +18,7 @@ import re
 import sqlite3
 import time
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Mapping
 
 from deeptutor.api.runtime_metrics import (
     get_turn_runtime_metrics,

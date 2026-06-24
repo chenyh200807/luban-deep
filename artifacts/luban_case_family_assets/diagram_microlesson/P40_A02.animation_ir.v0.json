@@ -1,0 +1,2275 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_A02_animation_ir_v0",
+  "card_id": "P40_A02",
+  "display": {
+    "kicker": "鲁班图解 · 隐蔽验收与材料复验",
+    "title": "覆盖前先过验收窗"
+  },
+  "main_exam_action": "覆盖前完成材料复验、见证取样和隐蔽验收，合格后再使用或覆盖。",
+  "wrong_idea": "学生容易把材料与隐蔽验收题当成资料题：有合格证就能用、见证就是监理签个字、隐蔽验收可以覆盖后补记录、复验项目写一句“按规定复验”就够。真正考试看的是样品、见证人、检测记录、隐蔽剖面和覆盖板这些对象在覆盖前有没有走完。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/A02_隐蔽验收材料复验见证取样.md",
+    "source_card": "P40_A02.source_card.json",
+    "archetype": "process_step_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "warm_correction": "这不是资料补办题，而是材料样品、见证链和隐蔽剖面的覆盖前过滤题。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/A02_隐蔽验收材料复验见证取样.md",
+    "source_card": "P40_A02.source_card.json",
+    "lesson": "P40_A02.lesson.json",
+    "timing": "P40_A02.lesson.timing.json",
+    "audio": "P40_A02.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_A02.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_A02AnimationIrPreview.tsx",
+    "remotion_composition": "P40-A02-AnimationIrPreview",
+    "remotion_review_scene_ids": [
+      "material_gate",
+      "witness_chain",
+      "hidden_shutter",
+      "score"
+    ],
+    "min_remotion_review_stills": 4,
+    "practice_href": "P40_A02.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "inspection_blueprint_board"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "material_gate",
+      "retest_list",
+      "witness_chain",
+      "hidden_shutter",
+      "branch_trap",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "min_domain_visual_teaching_scenes": 7,
+    "min_dominant_visual_teaching_scenes": 7,
+    "min_visual_dominance_ratio": 0.72,
+    "challenge_unlock_sec": 140.04,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true,
+    "quality_status": "workflow_candidate",
+    "student_ready": false,
+    "primitive_step_action_required": true,
+    "workflow_candidate_reason": "A02 refactored from text/process-flow card into before-cover engineering blueprint windows; is now reblocked by blueprint-poster screenshot review before student_ready.",
+    "primary_visual_primitive_required": "inspection_blueprint_board",
+    "min_primary_visual_teaching_scenes": 7,
+    "caption_mode": "visual_brief",
+    "max_caption_chars": 18,
+    "max_keycard_chars": 14,
+    "max_coach_chars": 24,
+    "layout_mode": "blueprint_poster",
+    "diagram_led_required": true,
+    "min_visual_attention_ratio": 0.7,
+    "min_domain_object_coverage_ratio": 0.16,
+    "min_blueprint_surface_coverage_ratio": 0.25,
+    "max_svg_text_pressure_ratio": 0.16,
+    "min_primary_object_coverage_ratio": 0.22,
+    "max_rule_card_area_ratio": 0.16,
+    "max_rule_card_text_pressure_ratio": 0.06,
+    "min_rule_card_top_ratio": 0.68,
+    "min_label_clearance_px": 4,
+    "max_scene_visual_similarity_ratio": 0.82
+  },
+  "visual_archetype_decision": {
+    "primary_archetype": "process_step_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "visual_primitive": "process_flow",
+    "motion_grammar": "hidden_section_open_then_sample_branch_then_answer_scan",
+    "why_this_visual": "A02 的认知难点是先定位题干环节，再看材料样品和隐蔽部位是否在不可逆覆盖前通过复验、见证、隐蔽验收。流程 trace 能讲时机，分支淘汰能讲材料/见证/隐蔽三类陷阱。",
+    "why_not_text": "本卡必须让学生先看到覆盖前工程窗口；流程文字不能替代材料样品、见证链和隐蔽剖面的状态变化。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      "用打开的隐蔽剖面和覆盖线表达不可逆时点",
+      "用材料托盘、复验闸、见证章和记录链表达验收动作",
+      "用红色错支路淘汰有证即用、盖后补验",
+      "用底部规则卡把工程对象压缩成采分句"
+    ],
+    "pure_text_allowed": false
+  },
+  "scene_visual_brief": [
+    {
+      "scene_id": "hook",
+      "source_sentence": "材料、见证和隐蔽验收都必须发生在覆盖线前。",
+      "domain_objects": [
+        "隐蔽剖面",
+        "覆盖线",
+        "材料样品",
+        "见证记录"
+      ],
+      "visual_action": "打开覆盖前窗口，把材料样品、见证记录和隐蔽剖面放到同一条时间线上。",
+      "state_change": "覆盖线先出现，三个对象被迫站到覆盖前侧，学生先看时点而不是读说明。",
+      "exit_before_next": "退出总览光晕，只留下材料样品进入复验闸。",
+      "why_not_reused_template": "hook 要建立不可逆覆盖窗口，不能直接复用后续材料闸或采分卡。"
+    },
+    {
+      "scene_id": "material_gate",
+      "source_sentence": "样品还要进复验闸，不能凭证直接使用。",
+      "domain_objects": [
+        "材料托盘",
+        "合格证",
+        "复验闸",
+        "使用箭头"
+      ],
+      "visual_action": "让材料托盘先过合格证，再被复验闸拦住，截断有证即用的支路。",
+      "state_change": "材料状态从进场待核查变为复验合格后才可使用。",
+      "exit_before_next": "合格证辅助标签淡出，复验矩阵格接管画面。",
+      "why_not_reused_template": "这一幕讲材料入场动作，必须看到样品被闸门拦截，不是只换标题的流程框。"
+    },
+    {
+      "scene_id": "retest_list",
+      "source_sentence": "不要写空泛复验，要把材料对象和项目对应起来。",
+      "domain_objects": [
+        "材料对象",
+        "复验项目格",
+        "检测记录",
+        "遗漏红格"
+      ],
+      "visual_action": "扫描材料对象，把应复验项目逐格点亮，遗漏项停在红格。",
+      "state_change": "复验从口号变成对象和项目的对应表。",
+      "exit_before_next": "复验矩阵收缩，样品送出到见证链。",
+      "why_not_reused_template": "这一幕要呈现对象-项目匹配，不能复用材料闸的过门动作。"
+    },
+    {
+      "scene_id": "witness_chain",
+      "source_sentence": "见证主体、记录和检测机构要在同一条链上。",
+      "domain_objects": [
+        "见证人",
+        "样品",
+        "送检箭头",
+        "检测机构",
+        "记录章"
+      ],
+      "visual_action": "把样品从现场沿见证链送到检测机构，并在记录处落章。",
+      "state_change": "样品从自送风险变为见证取样送检闭环。",
+      "exit_before_next": "送检链淡出，只保留覆盖线和隐蔽剖面。",
+      "why_not_reused_template": "这一幕的主对象是见证链路，不是复验矩阵或覆盖窗口。"
+    },
+    {
+      "scene_id": "hidden_shutter",
+      "source_sentence": "隐蔽验收是覆盖前的现场事实，不是盖后补纸。",
+      "domain_objects": [
+        "隐蔽部位",
+        "覆盖板",
+        "验收记录",
+        "补验支路"
+      ],
+      "visual_action": "让覆盖板下落前暂停，验收记录先命中窗口，盖后补验支路被挡在红线外。",
+      "state_change": "隐蔽部位从待覆盖变为覆盖前已验收记录。",
+      "exit_before_next": "覆盖板和记录退出，三条错支路进入淘汰区。",
+      "why_not_reused_template": "这一幕要看覆盖板动作，不能只复用 hook 的总览时点图。"
+    },
+    {
+      "scene_id": "branch_trap",
+      "source_sentence": "有证即用、自取自送、盖后补验都不能进答案主线。",
+      "domain_objects": [
+        "有证即用支路",
+        "自取自送支路",
+        "盖后补验支路",
+        "答案主线"
+      ],
+      "visual_action": "三条错误支路逐个被红叉切断，正确主线保留到采分卡。",
+      "state_change": "学生从看见多个可疑做法，变为只保留覆盖前闭合主线。",
+      "exit_before_next": "错误支路清空，主线压缩到底部规则卡。",
+      "why_not_reused_template": "这一幕是错因淘汰，必须有支路退出，不是再展示验收对象清单。"
+    },
+    {
+      "scene_id": "score",
+      "source_sentence": "定环节、复验见证、覆盖前隐检、合格后使用或覆盖。",
+      "domain_objects": [
+        "答题纸",
+        "材料进场链",
+        "见证送检链",
+        "覆盖前控制线",
+        "规则卡"
+      ],
+      "visual_action": "把前六幕对象压成四个采分动作，逐条写入答题纸和底部规则卡。",
+      "state_change": "工程对象状态被压缩成可写答案句。",
+      "exit_before_next": "只保留最终规则卡和答题纸采分顺序，进入三问复核。",
+      "why_not_reused_template": "score 必须是对象到采分句的压缩，不是再讲一遍流程或放大字幕。"
+    }
+  ],
+  "ai_context": {
+    "context_id": "P40_A02",
+    "title": "隐蔽验收、材料复验与见证取样",
+    "main_exam_action": "把材料与隐蔽验收案例题写成“先定环节 → 材料进场验收/复验 → 见证取样送检 → 隐蔽部位覆盖前验收并记录 → 合格后使用或覆盖”的采分动作，并能指出有合格证即用、见证主体错、覆盖后补验、复验项目漏写等不妥。",
+    "safe_summary": "这类题的主线是材料进场先核查，需复验的材料见证取样复验合格后使用；隐蔽部位必须覆盖前验收并形成记录；案例改错要写不妥和正确动作。",
+    "key_points": [
+      "材料进场先核查，再按要求复验",
+      "复验项目必须按材料对象列清",
+      "见证取样看主体、时机、记录、核验",
+      "隐蔽部位覆盖前验收并形成记录",
+      "案例改错写不妥 + 正确动作"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先看",
+      "start_sec": 0
+    },
+    {
+      "id": "material_gate",
+      "label": "材料闸",
+      "start_sec": 23.632
+    },
+    {
+      "id": "retest_list",
+      "label": "复验格",
+      "start_sec": 48.296
+    },
+    {
+      "id": "witness_chain",
+      "label": "见证链",
+      "start_sec": 72.84
+    },
+    {
+      "id": "hidden_shutter",
+      "label": "隐蔽闸",
+      "start_sec": 95.704
+    },
+    {
+      "id": "branch_trap",
+      "label": "错支路",
+      "start_sec": 117.776
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 140.04
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 167.248
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 226.144
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "覆盖窗",
+      "start_sec": 0,
+      "end_sec": 23.232,
+      "scene": "inspection_blueprint_hook",
+      "focus": "before_cover_window",
+      "enter": [
+        "打开隐蔽剖面",
+        "覆盖板悬停",
+        "验收链入场"
+      ],
+      "hold": [
+        "覆盖线保持打开"
+      ],
+      "exit": [
+        "错支路退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "before_cover_window",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "before_cover_window"
+      ],
+      "keycard": "禁盖线",
+      "coach": "材料/见证/隐检闭合",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "before_cover_window",
+          "verb": "hook_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "before_cover_window",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "before_cover_window.s0_open_blueprint",
+          "verb": "hook_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "before_cover_window.s1_sample_retest_gate",
+          "verb": "hook_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "before_cover_window.s2_witness_record_link",
+          "verb": "hook_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "before_cover_window.s3_hidden_before_cover",
+          "verb": "hook_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "before_cover_window.s5_compress_rule_card",
+          "verb": "hook_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "before_cover_window",
+          "verb": "hook_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "before_cover_window",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "hook",
+      "caption": "覆盖前先过闸"
+    },
+    {
+      "id": "material_gate",
+      "label": "材料闸",
+      "start_sec": 23.632,
+      "end_sec": 47.896,
+      "scene": "material_retest_blueprint",
+      "focus": "material_retest_gate",
+      "enter": [
+        "材料托盘入场",
+        "样品分流"
+      ],
+      "hold": [
+        "样品停在复验闸"
+      ],
+      "exit": [
+        "有证即用支路退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "material_retest_gate",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "material_retest_gate"
+      ],
+      "keycard": "复验闸",
+      "coach": "样品先撞复验闸",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "material_retest_gate",
+          "verb": "material_gate_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "material_retest_gate",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "material_retest_gate.s0_open_blueprint",
+          "verb": "material_gate_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "material_retest_gate.s1_sample_retest_gate",
+          "verb": "material_gate_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "material_retest_gate.s5_compress_rule_card",
+          "verb": "material_gate_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "material_retest_gate",
+          "verb": "material_gate_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "material_retest_gate",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "material_gate",
+      "caption": "合格证≠复验"
+    },
+    {
+      "id": "retest_list",
+      "label": "复验格",
+      "start_sec": 48.296,
+      "end_sec": 72.44,
+      "scene": "retest_matrix_blueprint",
+      "focus": "retest_matrix_window",
+      "enter": [
+        "样品入格",
+        "复验线点亮"
+      ],
+      "hold": [
+        "复验闸保持"
+      ],
+      "exit": [
+        "空泛复验退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "retest_matrix_window",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "retest_matrix_window"
+      ],
+      "keycard": "复验格",
+      "coach": "材料对应复验项目",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "retest_matrix_window",
+          "verb": "retest_list_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "retest_matrix_window",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "retest_matrix_window.s0_open_blueprint",
+          "verb": "retest_list_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "retest_matrix_window.s1_sample_retest_gate",
+          "verb": "retest_list_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "retest_matrix_window.s5_compress_rule_card",
+          "verb": "retest_list_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "retest_matrix_window",
+          "verb": "retest_list_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "retest_matrix_window",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "retest_list",
+      "caption": "对象点亮项目"
+    },
+    {
+      "id": "witness_chain",
+      "label": "见证链",
+      "start_sec": 72.84,
+      "end_sec": 95.304,
+      "scene": "witness_chain_blueprint",
+      "focus": "witness_record_chain",
+      "enter": [
+        "见证章落下",
+        "记录线连通"
+      ],
+      "hold": [
+        "检测记录固定"
+      ],
+      "exit": [
+        "自取自送支路退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "witness_record_chain",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "witness_record_chain"
+      ],
+      "keycard": "见证链",
+      "coach": "自取自送出局",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "witness_record_chain",
+          "verb": "witness_chain_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "witness_record_chain",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "witness_record_chain.s0_open_blueprint",
+          "verb": "witness_chain_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "witness_record_chain.s1_sample_retest_gate",
+          "verb": "witness_chain_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "witness_record_chain.s2_witness_record_link",
+          "verb": "witness_chain_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "witness_record_chain.s5_compress_rule_card",
+          "verb": "witness_chain_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "witness_record_chain",
+          "verb": "witness_chain_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "witness_record_chain",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "witness_chain",
+      "caption": "取样章单同链"
+    },
+    {
+      "id": "hidden_shutter",
+      "label": "隐蔽窗",
+      "start_sec": 95.704,
+      "end_sec": 117.376,
+      "scene": "hidden_shutter_blueprint",
+      "focus": "hidden_shutter_window",
+      "enter": [
+        "剖面扫描",
+        "记录快门生成"
+      ],
+      "hold": [
+        "覆盖板仍悬停"
+      ],
+      "exit": [
+        "盖后补验退出"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "hidden_shutter_window",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "hidden_shutter_window"
+      ],
+      "keycard": "隐蔽窗",
+      "coach": "盖后补验出局",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "hidden_shutter_window",
+          "verb": "hidden_shutter_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "hidden_shutter_window",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "hidden_shutter_window.s0_open_blueprint",
+          "verb": "hidden_shutter_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "hidden_shutter_window.s2_witness_record_link",
+          "verb": "hidden_shutter_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "hidden_shutter_window.s3_hidden_before_cover",
+          "verb": "hidden_shutter_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "hidden_shutter_window.s5_compress_rule_card",
+          "verb": "hidden_shutter_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "hidden_shutter_window",
+          "verb": "hidden_shutter_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "hidden_shutter_window",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "hidden_shutter",
+      "caption": "先记录再覆盖"
+    },
+    {
+      "id": "branch_trap",
+      "label": "错支路",
+      "start_sec": 117.776,
+      "end_sec": 139.64,
+      "scene": "wrong_branch_cutoff_blueprint",
+      "focus": "wrong_branch_cutoff",
+      "enter": [
+        "错支路出现"
+      ],
+      "hold": [
+        "主线变绿"
+      ],
+      "exit": [
+        "红支路褪色"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "wrong_branch_cutoff",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "wrong_branch_cutoff"
+      ],
+      "keycard": "错支路",
+      "coach": "只留覆盖前主线",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "wrong_branch_cutoff",
+          "verb": "branch_trap_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_branch_cutoff",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s0_open_blueprint",
+          "verb": "branch_trap_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s1_sample_retest_gate",
+          "verb": "branch_trap_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s2_witness_record_link",
+          "verb": "branch_trap_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s3_hidden_before_cover",
+          "verb": "branch_trap_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s4_eliminate_wrong_branch",
+          "verb": "branch_trap_eliminate_wrong_branch",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "wrong_branch_cutoff.s5_compress_rule_card",
+          "verb": "branch_trap_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "wrong_branch_cutoff",
+          "verb": "branch_trap_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "wrong_branch_cutoff",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "branch_trap",
+      "caption": "三错支路切断"
+    },
+    {
+      "id": "score",
+      "label": "采分卡",
+      "start_sec": 140.04,
+      "end_sec": 166.848,
+      "scene": "inspection_score_blueprint",
+      "focus": "inspection_score_compress",
+      "enter": [
+        "对象缩入底卡"
+      ],
+      "hold": [
+        "采分动作逐格写入"
+      ],
+      "exit": [
+        "答题纸定格"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "inspection_score_compress",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "inspection_score_compress"
+      ],
+      "keycard": "采分卡",
+      "coach": "环节/复验/隐检/覆盖",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "inspection_score_compress",
+          "verb": "score_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "inspection_score_compress",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_score_compress.s0_open_blueprint",
+          "verb": "score_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_score_compress.s1_sample_retest_gate",
+          "verb": "score_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_score_compress.s2_witness_record_link",
+          "verb": "score_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_score_compress.s3_hidden_before_cover",
+          "verb": "score_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_score_compress.s5_compress_rule_card",
+          "verb": "score_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "inspection_score_compress",
+          "verb": "score_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "inspection_score_compress",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "score",
+      "caption": "对象压成四格"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 167.248,
+      "end_sec": 225.744,
+      "scene": "inspection_qa_blueprint",
+      "focus": "inspection_qa_window",
+      "enter": [
+        "三问落到图上"
+      ],
+      "hold": [
+        "覆盖线亮起"
+      ],
+      "exit": [
+        "问答收束"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "inspection_qa_window",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "inspection_qa_window"
+      ],
+      "keycard": "三问",
+      "coach": "样品/见证/覆盖前",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "inspection_qa_window",
+          "verb": "qa_closure_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "inspection_qa_window",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_qa_window.s0_open_blueprint",
+          "verb": "qa_closure_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_qa_window.s3_hidden_before_cover",
+          "verb": "qa_closure_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_qa_window.s4_eliminate_wrong_branch",
+          "verb": "qa_closure_eliminate_wrong_branch",
+          "start": 0.64,
+          "end": 0.77
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_qa_window.s5_compress_rule_card",
+          "verb": "qa_closure_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "inspection_qa_window",
+          "verb": "qa_closure_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "inspection_qa_window",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "qa_closure",
+      "caption": "有证不等于复验合格。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 226.144,
+      "end_sec": 240.352,
+      "scene": "inspection_closing_blueprint",
+      "focus": "inspection_closing_window",
+      "enter": [
+        "蓝图收束"
+      ],
+      "hold": [
+        "规则卡定格"
+      ],
+      "exit": [
+        "进入闯关"
+      ],
+      "layout": {
+        "portrait": "blueprint_board",
+        "landscape": "split_blueprint",
+        "theater": "clean_blueprint"
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "inspection_closing_window",
+        "duration_sec": 0.36
+      },
+      "visible_nodes": [
+        "inspection_closing_window"
+      ],
+      "keycard": "先图后答",
+      "coach": "回图补齐覆盖前动作",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "inspection_closing_window",
+          "verb": "closing_challenge_object_trace",
+          "start": 0,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "inspection_closing_window",
+          "verb": "enter_blueprint_visual",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_closing_window.s0_open_blueprint",
+          "verb": "closing_challenge_open_blueprint",
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_closing_window.s1_sample_retest_gate",
+          "verb": "closing_challenge_sample_retest_gate",
+          "start": 0.23,
+          "end": 0.35
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_closing_window.s2_witness_record_link",
+          "verb": "closing_challenge_witness_record_link",
+          "start": 0.36,
+          "end": 0.49
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_closing_window.s3_hidden_before_cover",
+          "verb": "closing_challenge_hidden_before_cover",
+          "start": 0.5,
+          "end": 0.63
+        },
+        {
+          "kind": "primitive_step",
+          "target": "inspection_closing_window.s5_compress_rule_card",
+          "verb": "closing_challenge_compress_rule_card",
+          "start": 0.78,
+          "end": 0.93
+        },
+        {
+          "kind": "highlight",
+          "target": "inspection_closing_window",
+          "verb": "closing_challenge_hold_visual_truth",
+          "start": 0.88,
+          "end": 0.96
+        },
+        {
+          "kind": "exit",
+          "target": "inspection_closing_window",
+          "verb": "clean_exit",
+          "start": 0.97,
+          "end": 1
+        }
+      ],
+      "visual_library": "closing_challenge",
+      "caption": "回到图上，把覆盖前动作写全。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "before_cover_window",
+          "kind": "inspection_blueprint_board",
+          "mode": "overview",
+          "tone": "blue",
+          "text": "覆盖前验收窗口",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "禁盖",
+          "rule_main": "未过闸，不得使用/覆盖",
+          "rule_sub": "样品、见证、记录都在覆盖前闭合",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "material_gate": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "material_retest_gate",
+          "kind": "inspection_blueprint_board",
+          "mode": "material",
+          "tone": "blue",
+          "text": "材料进场复验闸",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "材料",
+          "rule_main": "合格证 ≠ 直接使用",
+          "rule_sub": "证明文件 + 进场验收 + 复验合格",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "retest_list": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "retest_matrix_window",
+          "kind": "inspection_blueprint_board",
+          "mode": "retest",
+          "tone": "blue",
+          "text": "材料对象对应复验",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "复验",
+          "rule_main": "按对象点亮项目",
+          "rule_sub": "不要用一句按规定复验替代",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "witness_chain": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "witness_record_chain",
+          "kind": "inspection_blueprint_board",
+          "mode": "witness",
+          "tone": "blue",
+          "text": "见证取样记录链",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "见证",
+          "rule_main": "取样、见证、检测连成链",
+          "rule_sub": "自取自送不是见证链",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "hidden_shutter": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "hidden_shutter_window",
+          "kind": "inspection_blueprint_board",
+          "mode": "hidden",
+          "tone": "blue",
+          "text": "隐蔽覆盖前快门",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "隐检",
+          "rule_main": "先验收记录，再覆盖",
+          "rule_sub": "盖后补验不能回到现场事实",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "branch_trap": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "wrong_branch_cutoff",
+          "kind": "inspection_blueprint_board",
+          "mode": "branch",
+          "tone": "blue",
+          "text": "错误支路切断",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "淘汰",
+          "rule_main": "三条错支路出局",
+          "rule_sub": "有证即用、自取自送、盖后补验",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "inspection_score_compress",
+          "kind": "inspection_blueprint_board",
+          "mode": "score",
+          "tone": "blue",
+          "text": "答题纸采分压缩",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "采分",
+          "rule_main": "定环节 → 复验见证 → 隐检",
+          "rule_sub": "合格后使用或覆盖",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "inspection_qa_window",
+          "kind": "inspection_blueprint_board",
+          "mode": "qa",
+          "tone": "blue",
+          "text": "覆盖线前三问",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "追问",
+          "rule_main": "样品、见证、覆盖前",
+          "rule_sub": "问对象是否在覆盖线前闭合",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "blueprint_poster",
+      "nodes": [
+        {
+          "id": "inspection_closing_window",
+          "kind": "inspection_blueprint_board",
+          "mode": "closing",
+          "tone": "blue",
+          "text": "蓝图收束",
+          "x": 10,
+          "y": 72,
+          "w": 400,
+          "h": 500,
+          "rule_title": "闯关",
+          "rule_main": "先图后答",
+          "rule_sub": "看图判断哪条链断了",
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "复验闸",
+            "见证章",
+            "检测记录",
+            "隐蔽剖面",
+            "覆盖板"
+          ],
+          "primitive_steps": [
+            {
+              "id": "s0_open_blueprint",
+              "kind": "reveal_object",
+              "domain_object": "覆盖前工程剖面",
+              "label": "覆盖前工程剖面",
+              "start": 0.1,
+              "end": 0.22,
+              "state_after": "工程剖面打开，覆盖板仍未合上。",
+              "feedback": "工程剖面打开，覆盖板仍未合上。"
+            },
+            {
+              "id": "s1_sample_retest_gate",
+              "kind": "move_object",
+              "domain_object": "材料样品与复验闸",
+              "label": "材料样品与复验闸",
+              "start": 0.23,
+              "end": 0.35,
+              "state_after": "材料样品先撞上复验闸，不能凭证直接使用。",
+              "feedback": "材料样品先撞上复验闸，不能凭证直接使用。"
+            },
+            {
+              "id": "s2_witness_record_link",
+              "kind": "trace_path",
+              "domain_object": "见证取样与检测记录",
+              "label": "见证取样与检测记录",
+              "start": 0.36,
+              "end": 0.49,
+              "state_after": "样品、见证章和检测记录连成覆盖前链路。",
+              "feedback": "样品、见证章和检测记录连成覆盖前链路。"
+            },
+            {
+              "id": "s3_hidden_before_cover",
+              "kind": "reveal_object",
+              "domain_object": "隐蔽剖面与覆盖板",
+              "label": "隐蔽剖面与覆盖板",
+              "start": 0.5,
+              "end": 0.63,
+              "state_after": "隐蔽层先被扫描，覆盖线仍保持打开。",
+              "feedback": "隐蔽层先被扫描，覆盖线仍保持打开。"
+            },
+            {
+              "id": "s4_eliminate_wrong_branch",
+              "kind": "branch_eliminate",
+              "domain_object": "有证即用/盖后补验支路",
+              "label": "有证即用/盖后补验支路",
+              "start": 0.64,
+              "end": 0.77,
+              "state_after": "错误支路被切断，退出主线。",
+              "feedback": "错误支路被切断，退出主线。"
+            },
+            {
+              "id": "s5_compress_rule_card",
+              "kind": "write_answer_atom",
+              "domain_object": "答题纸采分卡",
+              "label": "答题纸采分卡",
+              "start": 0.78,
+              "end": 0.93,
+              "state_after": "现场对象压缩成可写的采分动作。",
+              "feedback": "现场对象压缩成可写的采分动作。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "先拦材料",
+      "skill": "材料进场与复验前置",
+      "scene_gap": "保温材料进场，有合格证和外观检查记录，施工单位准备直接用于墙体保温。",
+      "student": "学生答：材料有合格证，外观看着也没问题，可以直接使用。",
+      "stem": "这时最像能拿程序分的改正动作是哪一句？",
+      "answer": "entry_then_retest",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "有证不等于复验合格",
+        "before": [
+          "合格证",
+          "直接使用",
+          "墙体保温",
+          "覆盖"
+        ],
+        "after": [
+          "进场验收",
+          "抽样复验",
+          "监理认可",
+          "合格使用"
+        ],
+        "items": [
+          "合格证",
+          "材料样品",
+          "复验闸",
+          "合格使用"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "entry_then_retest",
+          "label": "先核查质量证明、规格数量和外观；按要求对保温材料见证取样复验，经认可合格后再使用。",
+          "reason": "把进场验收和复验放在使用前。"
+        },
+        {
+          "id": "cert_enough",
+          "label": "保留合格证和外观检查记录，材料可先使用，复验资料后续补齐。",
+          "reason": "把合格证当成复验合格。"
+        },
+        {
+          "id": "owner_accept",
+          "label": "请建设单位确认材料品牌后即可使用，检测报告不影响施工。",
+          "reason": "用业主确认替代复验和监理认可。"
+        },
+        {
+          "id": "a01_level",
+          "label": "按检验批、分项、分部、单位工程逐级验收后再使用。",
+          "reason": "把 A02 材料复验题误写成 A01 层级验收。"
+        }
+      ],
+      "optionFeedback": {
+        "cert_enough": "容易选，因为合格证看起来像凭证。但 A02 正是要把“有证”与“复验合格”分开；直接使用会漏复验动作。",
+        "owner_accept": "建设单位确认品牌不能替代材料复验。阅卷要看样品复验、见证取样和认可合格这些动作。",
+        "a01_level": "逐级验收是 A01 的层级程序，不是这道材料进场题的第一采分动作。这里要先拦材料样品。"
+      },
+      "correct": "对。先过进场验收，再按要求见证取样复验，合格后才使用。",
+      "wrong": "这题先补材料前置闸。只写有证、业主确认或层级验收，都没有交代材料样品如何复验合格。",
+      "basis_anchor": "§5 R6 答案骨架1-2"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "列复验格",
+      "skill": "材料复验项目列全",
+      "scene_gap": "题干问普通钢筋进场复试项目，学生只写屈服、抗拉、伸长率。",
+      "student": "学生答：钢筋复试屈服强度、抗拉强度、伸长率即可。",
+      "stem": "这句话最主要应该补哪一个采分动作？",
+      "answer": "steel_five_items",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "钢筋样品进复验格",
+        "before": [
+          "屈服",
+          "抗拉",
+          "伸长",
+          "漏两格"
+        ],
+        "after": [
+          "屈服",
+          "抗拉",
+          "伸长",
+          "弯曲+重量偏差"
+        ],
+        "items": [
+          "钢筋样品",
+          "五格清单",
+          "成型例外",
+          "答题纸"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "steel_five_items",
+          "label": "普通钢筋复试应补弯曲性能和重量偏差，形成屈服、抗拉、伸长、弯曲、重量偏差五项。",
+          "reason": "把普通钢筋五格补齐。"
+        },
+        {
+          "id": "formed_bending",
+          "label": "成型钢筋也必须补弯曲性能，否则不能进场。",
+          "reason": "把普通钢筋和成型钢筋例外条件混了。"
+        },
+        {
+          "id": "general_retest",
+          "label": "补一句“钢筋应按规定复验”，不需要列具体项目。",
+          "reason": "口号化表达，不能替代列项。"
+        },
+        {
+          "id": "cement_items",
+          "label": "补胶砂强度、氯离子、安定性和凝结时间。",
+          "reason": "这是水泥复试项目，不是钢筋。"
+        }
+      ],
+      "optionFeedback": {
+        "formed_bending": "容易选，因为弯曲性能确实在普通钢筋五项里。但成型钢筋进场可不检弯曲性能，不能把例外条件套反。",
+        "general_retest": "“按规定复验”太空。复验项目题要列出具体格子，漏弯曲或重量偏差都会丢列项分。",
+        "cement_items": "这四项是水泥的口径。材料对象换了，复验格也要换，不能把项目串台。"
+      },
+      "correct": "对。普通钢筋要补成五项；如果是成型钢筋，再处理弯曲性能免检的例外。",
+      "wrong": "这题不是问要不要复验，而是问复验项目是否列全。先看材料对象，再补对应检测格。",
+      "basis_anchor": "§4 R4 规则组A + §6 M2"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "修见证链",
+      "skill": "见证取样主体与时机",
+      "scene_gap": "施工单位自行在场外取样送检，送检后通知监理，见证记录由试验员填写。",
+      "student": "学生答：已送检并有试验员记录，所以见证取样有效。",
+      "stem": "下面哪句最像完整改正？",
+      "answer": "witness_chain_correct",
+      "visual": {
+        "kind": "decision_tree",
+        "title": "见证链三枚章",
+        "before": [
+          "场外取样",
+          "送检后通知",
+          "试验员记录",
+          "接收"
+        ],
+        "after": [
+          "现场内抽取",
+          "送检前通知",
+          "见证人记录",
+          "机构核验"
+        ],
+        "items": [
+          "现场取样",
+          "建设单位见证人",
+          "见证记录",
+          "检测机构核验"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "witness_chain_correct",
+          "label": "试样应在施工现场内抽取，送检前通知见证人；见证人由建设单位书面确认，见证记录由见证人填写，检测机构核实见证人。",
+          "reason": "主体、时机、记录、核验都补齐。"
+        },
+        {
+          "id": "supervisor_confirm",
+          "label": "由监理工程师确认见证人，试验员完成见证记录后送检。",
+          "reason": "把建设单位确认和见证人记录写错。"
+        },
+        {
+          "id": "post_notice",
+          "label": "试样可先送检测机构，检测机构收样后再通知见证人补签。",
+          "reason": "把送检前通知改成送检后补签。"
+        },
+        {
+          "id": "only_lab",
+          "label": "只要检测机构出具合格报告，见证取样过程可不再追究。",
+          "reason": "用检测结果掩盖见证链断点。"
+        }
+      ],
+      "optionFeedback": {
+        "supervisor_confirm": "见证主体容易写成监理，但源卡强调见证人由建设单位书面确认，记录也由见证人填，不是试验员补写。",
+        "post_notice": "送检后补签正是常见错法。见证取样要在抽样和送检前把见证链建立起来。",
+        "only_lab": "报告合格不能修复取样过程违法。A02 考的是样品是否代表现场、是否可追溯，见证链断了要扣程序分。"
+      },
+      "correct": "对。见证链不是一个签名，而是现场取样、送检前通知、见证人记录、检测机构核验一起成立。",
+      "wrong": "这题要修见证链。只改一个主体或只看报告，都没有补齐见证取样的时机和记录。"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "覆盖前快门",
+      "skill": "隐蔽验收时机与项目",
+      "scene_gap": "节能保温层和隔汽层已经被面层覆盖，项目部准备补一张隐蔽验收记录。",
+      "student": "学生答：后补隐检记录即可，反正材料已经复验合格。",
+      "stem": "最能拿分的改正动作是哪一句？",
+      "answer": "before_cover_record",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "隐蔽先拍再盖",
+        "before": [
+          "覆盖完成",
+          "补记录",
+          "看不见",
+          "放行"
+        ],
+        "after": [
+          "剖面打开",
+          "逐项验收",
+          "形成记录",
+          "再覆盖"
+        ],
+        "items": [
+          "基层",
+          "保温层",
+          "热桥/隔汽",
+          "隐检记录"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "before_cover_record",
+          "label": "应在隐蔽部位被后续工序覆盖前，对基层、保温材料、热桥、隔汽层等进行验收并形成隐检记录，合格后再覆盖。",
+          "reason": "把时机、对象、记录、放行条件写全。"
+        },
+        {
+          "id": "after_photo",
+          "label": "覆盖后拍照留存，并由项目技术负责人补签隐蔽验收记录。",
+          "reason": "照片和补签不能替代覆盖前验收。"
+        },
+        {
+          "id": "material_only",
+          "label": "材料复验合格即可，隐蔽验收可简化为资料归档。",
+          "reason": "材料合格不能替代现场隐蔽部位验收。"
+        },
+        {
+          "id": "a01_stack",
+          "label": "按检验批、分项、分部逐级验收，最后在单位工程验收时统一确认。",
+          "reason": "把隐蔽时机题拖到 A01 层级程序。"
+        }
+      ],
+      "optionFeedback": {
+        "after_photo": "补拍照片很诱人，但核心问题是验收窗口已经错过。覆盖前看得见、够得着时才叫隐蔽验收。",
+        "material_only": "材料复验只能证明材料样品，不能证明现场热桥、隔汽层、基层处理等隐蔽部位已经验收。",
+        "a01_stack": "逐级验收不能替代隐蔽覆盖前验收。A02 问的是盖板合上之前那一下，不是最终层级收口。"
+      },
+      "correct": "对。隐蔽验收是覆盖前快门，先验收并形成记录，合格后才覆盖。",
+      "wrong": "这题抓时机。覆盖后补记录、用复验替代隐检、拖到上级验收，都会错过隐蔽验收窗口。",
+      "basis_anchor": "§4 R4 规则组C + §6 M7/M8"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "输出采分句",
+      "skill": "案例改错采分句输出",
+      "scene_gap": "题干：保温材料进场仅凭合格证使用；施工单位自行取样送检，见证记录由试验员填写；保温层覆盖后补隐检记录。问指出不妥并改正。",
+      "student": "学生答：材料和隐蔽工程应按规范验收，资料补齐后继续施工。",
+      "stem": "哪一句最像完整采分句？",
+      "answer": "full_score_sentence",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "A02 答题纸扫描",
+        "before": [
+          "有证即用",
+          "自取自送",
+          "试验员记录",
+          "覆盖后补验"
+        ],
+        "after": [
+          "进场验收+复验",
+          "现场取样+送检前见证",
+          "见证人记录+机构核验",
+          "覆盖前隐验记录"
+        ],
+        "items": [
+          "材料复验",
+          "见证取样",
+          "隐蔽验收",
+          "合格使用/覆盖"
+        ],
+        "hotIndex": 3
+      },
+      "options": [
+        {
+          "id": "full_score_sentence",
+          "label": "不妥：仅凭合格证使用、施工单位自行取样送检、试验员填写见证记录、覆盖后补隐检记录。应先完成材料进场验收并按要求见证取样复验，经认可合格后使用；试样现场内抽取并送检前通知见证人，见证记录由见证人填写并由检测机构核验；隐蔽部位应覆盖前验收并形成记录，合格后再覆盖。",
+          "reason": "把三类错支路全部改成采分动作。"
+        },
+        {
+          "id": "only_documents",
+          "label": "不妥在资料不完整，应补齐合格证、检测报告和隐蔽验收记录后继续施工。",
+          "reason": "把现场动作降成资料补办。"
+        },
+        {
+          "id": "only_material",
+          "label": "不妥在材料未复验，只要补做保温材料复验合格即可继续施工。",
+          "reason": "只修材料闸，漏见证链和隐蔽时机。"
+        },
+        {
+          "id": "only_hidden",
+          "label": "不妥在隐蔽验收晚，应重新打开隐蔽部位检查；材料和见证送检不影响本题。",
+          "reason": "只修隐蔽闸，漏材料和见证取样。"
+        }
+      ],
+      "optionFeedback": {
+        "only_documents": "资料补齐不是万能药。A02 要看材料样品、见证链和覆盖前验收这些现场动作是否真实发生。",
+        "only_material": "材料复验是第一处错，但题干还明说自取自送、试验员记录、覆盖后补验，这些都要逐项改。",
+        "only_hidden": "隐蔽验收确实晚了，但材料复验和见证取样也是本体判分眼。只抓最后一处会漏分。"
+      },
+      "correct": "对。这句把材料、见证、隐蔽三条对象链都补成了可给分动作。",
+      "wrong": "最终题不能只写口号或只修一个闸门。要按题干三处错支路逐项指出并改正。",
+      "basis_anchor": "§5 R6 答案骨架"
+    }
+  ],
+  "timing_ref": "P40_A02.lesson.timing.json",
+  "audio_ref": "P40_A02.lesson.mp3",
+  "visual_excellence_profile": {
+    "reference_style": "inspection_blueprint_before_cover_window",
+    "reference_image_note": "Dark engineering blueprint with large diagram, threshold/coverage lines, object-state changes, and a bottom rule card. Student should see the hidden-work window before reading text.",
+    "must_show": [
+      "opened hidden-work section and suspended cover plate as the first visual object",
+      "material sample, retest gate, witness stamp, detection record, and cover-before gate as drawn objects",
+      "wrong branches visibly eliminated instead of described by paragraphs",
+      "bottom rule card that compresses object states into scoreable actions"
+    ],
+    "motion_standards": [
+      "one primitive_step equals one observable engineering action",
+      "threshold or gate hits must be animated before the conclusion sentence appears",
+      "wrong branches must be visibly eliminated, not merely described by narration",
+      "answer_scan must write one score atom per step"
+    ],
+    "layout_guards": [
+      "the blueprint board is the main stage, not a small icon inside a text card",
+      "student-visible labels must be short object tags, not paragraph explanations",
+      "red is reserved for cover-before violation and wrong branch elimination",
+      "bottom rule card must not cover the hidden-work section"
+    ],
+    "diversity_targets": [
+      "A02 uses process flow, branch elimination, hidden-section shutter, and answer scan rather than one repeated flow template",
+      "S02 must use engineering threshold comparison and crane/object state, not A02 process-flow reuse"
+    ],
+    "release_bar": "workflow_candidate only; student_ready requires screenshot wall judged first-view diagrammatic, not text-card narration."
+  }
+}

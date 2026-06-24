@@ -71,6 +71,10 @@ class AccountMergeRequest(BaseModel):
     reason: str = Field(default="", max_length=200)
 
 
+class DeleteMemberAccountRequest(BaseModel):
+    reason: str = Field(default="", max_length=200)
+
+
 class MembershipPackageRequest(BaseModel):
     label: str = Field(..., min_length=1, max_length=80)
     tier: str = Field(..., min_length=1, max_length=40)

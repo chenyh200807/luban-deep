@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>脚手架/高大模板支架验收 · 白板讲解</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.phone{width:min(430px,100%);height:100dvh;margin:0 auto;padding:8px}.lesson{height:calc(100dvh - 16px);background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:8px;box-shadow:0 14px 32px rgba(31,41,55,.08);display:flex;flex-direction:column;gap:7px;overflow:hidden}.rail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}.rail span,.rail a{height:30px;border:1px solid #d7e2ed;border-radius:10px;background:#f6f9fc;color:#607287;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}.rail .on{background:#176b7a;color:#fff;border-color:#176b7a}.rail a.ready{background:#176b7a;color:#fff;border-color:#176b7a}.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.kicker{color:#176b7a;font-size:11px;font-weight:950}.title h1{margin:2px 0 0;font-size:20px;line-height:1.12}.top-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}.full-btn,.time{height:31px;border:1px solid #c9dce8;border-radius:999px;background:#fff;color:#176b7a;padding:0 10px;font-size:11px;font-weight:950;display:flex;align-items:center}.stage{position:relative;flex:1 1 auto;min-height:0;aspect-ratio:9/16;align-self:center;width:auto;max-width:100%;background:#05080b;border:1px solid #d2dee9;border-radius:16px;overflow:hidden;display:grid;place-items:center}.stage video,.stage img{width:100%;height:100%;object-fit:contain;background:#05080b}.stage img{position:absolute;inset:0;z-index:2}.started .stage img{display:none}.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:999px;border:4px solid rgba(255,255,255,.94);background:rgba(23,107,122,.95);color:#fff;font-weight:950;font-size:16px;box-shadow:0 18px 44px rgba(31,41,55,.24);z-index:3}.started .center-play{opacity:0;pointer-events:none}.caption{border:1px solid #c8dcf5;background:#f2f7ff;border-radius:13px;padding:8px 10px;flex:0 0 69px;overflow:hidden}.caption h2{font-size:15px;color:#1d4ed8;margin:0 0 3px;line-height:1.15}.caption p{font-size:13px;line-height:1.35;margin:0;font-weight:850;color:#24364b;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.atoms{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.atoms div{min-height:42px;border:1px solid #d7e2ed;background:#f7fafc;border-radius:11px;padding:6px}.atoms b{display:block;font-size:11px;color:#176b7a;line-height:1}.atoms span{display:block;margin-top:3px;font-size:11px;line-height:1.16;font-weight:900;color:#34465b}.atoms .on{border-color:#fed7aa;background:#fff7ed}.atoms .on span{color:#9a3412}.controls{display:flex;flex-direction:column;gap:7px}.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.row button,.nav a,.nav button{height:38px;border-radius:12px;border:1px solid #cbd9e6;background:#fff;font-size:13px;font-weight:900;color:#24364b}.row .play{background:#176b7a;color:#fff;border-color:#176b7a}.scrubber{position:relative;height:36px;border-radius:999px;background:#d6e2ec;overflow:visible}.scrubber input{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;opacity:1;appearance:none;-webkit-appearance:none;background:transparent;touch-action:none}.scrubber input::-webkit-slider-runnable-track{height:36px;background:transparent}.scrubber input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:4px;border-radius:999px;border:5px solid #f97316;background:#fff;box-shadow:0 5px 14px rgba(31,41,55,.22)}.scrubber span{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#176b7a,#f97316);border-radius:999px}.chapters{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}.chapters button{height:30px;border:1px solid #cbd9e6;border-radius:999px;background:#eef4f8;color:#607287;font-size:10px;font-weight:950}.chapters .active{background:#176b7a;color:#fff;border-color:#176b7a}.chapters .current{background:#f97316;color:#fff;border-color:#f97316}.nav{display:grid;grid-template-columns:1fr 1.2fr;gap:6px}.nav a{text-decoration:none;display:flex;align-items:center;justify-content:center;background:#eef4f8;color:#607287}.nav a.ready{background:#f97316;color:#fff;border-color:#f97316;box-shadow:0 10px 22px rgba(249,115,22,.22)}.exit-full{display:none}.lesson.theater{position:fixed;inset:0;z-index:9999;width:100vw;height:100dvh;max-width:none;border-radius:0;border:0;padding:0;background:#05080b;box-shadow:none}.lesson.theater .rail,.lesson.theater .topline,.lesson.theater .caption,.lesson.theater .atoms,.lesson.theater .nav,.lesson.theater .center-play{display:none}.lesson.theater .stage{position:absolute;inset:0;z-index:1;width:100%;height:100%;max-width:none;aspect-ratio:auto;align-self:stretch;border:0;border-radius:0;background:#05080b}.lesson.theater.controls-visible .stage{bottom:calc(156px + env(safe-area-inset-bottom));height:auto}.lesson.theater .controls{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;padding:10px;border:1px solid rgba(203,217,230,.92);border-radius:18px;background:#fff;box-shadow:0 14px 34px rgba(31,41,55,.20);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}.lesson.theater.controls-visible .controls{opacity:1;transform:translateY(0);pointer-events:auto}.lesson.theater .row{grid-template-columns:1fr 1fr 1fr .8fr}.lesson.theater .exit-full{display:block}@media(max-height:760px){.rail{display:none}.title h1{font-size:18px}.caption{flex-basis:60px}.caption h2{font-size:14px}.caption p{font-size:12px}.atoms div{min-height:36px;padding:5px}.row button,.nav a,.nav button{height:34px}.chapters button{height:26px}.lesson.theater.controls-visible .stage{bottom:calc(146px + env(safe-area-inset-bottom))}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="phone">
+  <section class="lesson" id="lesson">
+    <div class="rail"><span class="on">① 讲懂</span><a id="gate" href="S01_scaffold_template_acceptance.practice.html" aria-disabled="true">② 看完后闯关</a><span>③ 看穿</span></div>
+    <div class="topline">
+      <div class="title"><div class="kicker">鲁班深母题 · S01 验收放行</div><h1>搭完不等于能用</h1></div>
+      <div class="top-actions"><button class="full-btn" id="fullBtn" type="button">全屏</button><div class="time" id="timeLabel">00:00</div></div>
+    </div>
+    <div class="stage">
+      <video id="video" preload="metadata" playsinline poster="S01_scaffold_template_acceptance.poster.png?v=1781802045" src="S01_scaffold_template_acceptance.remotion.mp4?v=1781802147"></video>
+      <img id="poster" src="S01_scaffold_template_acceptance.poster.png?v=1781802045" alt="S01 首帧白板">
+      <button class="center-play" id="centerPlay" type="button">播放视频</button>
+    </div>
+    <div class="caption"><h2 id="capTitle">1. 为什么先学它</h2><p id="capText">安全题不是看搭没搭完,是问能不能放行。</p></div>
+    <div class="atoms" id="atoms"><div><b>对象</b><span>待判断</span></div><div><b>时点</b><span>待判断</span></div><div><b>验收</b><span>待判断</span></div><div><b>放行</b><span>待判断</span></div></div>
+    <div class="controls" id="controls">
+      <div class="row"><button class="play" id="playBtn" type="button">播放</button><button id="pauseBtn" type="button">暂停</button><button id="muteBtn" type="button">静音</button><button class="exit-full" id="exitFullBtn" type="button">退出</button></div>
+      <label class="scrubber"><input id="scrub" type="range" min="0" max="1000" value="0" step="1"><span id="fill"></span></label>
+      <div class="chapters" id="chapters"></div>
+    </div>
+    <div class="nav"><button id="restartBtn" type="button">从头看</button><a id="cta" href="S01_scaffold_template_acceptance.practice.html" aria-disabled="true">看完后闯关</a></div>
+  </section>
+</main>
+<script>
+const chapters=[
+  {t:0,label:"先学",title:"为什么先学它",sub:"安全题不是看搭没搭完,是问能不能放行。"},
+  {t:13.384,label:"错觉",title:"先打掉错觉",sub:"搭完、看着稳,不等于可以使用或浇筑。"},
+  {t:25.04,label:"对象",title:"第一刀:对象",sub:"脚手架/模板支架属于要验收的设备设施。"},
+  {t:37.872,label:"时点",title:"第二刀:时点",sub:"搭设完成、使用前、浇筑前,都是放行门。"},
+  {t:51.376,label:"验收",title:"第三刀:闭环",sub:"验收合格、记录、签字,缺一个都不能放行。"},
+  {t:63.44,label:"放行",title:"结论:不放行",sub:"验收记录未签字,不得先浇筑。"},
+  {t:75.168,label:"采分",title:"写成采分句",sub:"对象+时点+验收+结论,四件事写全。"},
+  {t:89.176,label:"闯关",title:"去闯关验证",sub:"换脚手架、换模板支架、换错误表达。"}
+];
+const lesson=document.getElementById("lesson"),video=document.getElementById("video"),poster=document.getElementById("poster"),centerPlay=document.getElementById("centerPlay"),playBtn=document.getElementById("playBtn"),pauseBtn=document.getElementById("pauseBtn"),muteBtn=document.getElementById("muteBtn"),restartBtn=document.getElementById("restartBtn"),scrub=document.getElementById("scrub"),fill=document.getElementById("fill"),capTitle=document.getElementById("capTitle"),capText=document.getElementById("capText"),timeLabel=document.getElementById("timeLabel"),chaptersEl=document.getElementById("chapters"),cta=document.getElementById("cta"),gate=document.getElementById("gate"),fullBtn=document.getElementById("fullBtn"),exitFullBtn=document.getElementById("exitFullBtn"),atoms=[...document.querySelectorAll("#atoms div")];
+let unlocked=false,dragging=false,timer=null;
+chaptersEl.innerHTML=chapters.map((c,i)=>`<button type="button" data-i="${i}" aria-label="跳到${c.label}">${c.label}</button>`).join("");
+const dots=[...chaptersEl.querySelectorAll("button")];
+function pad(n){return String(Math.floor(n)).padStart(2,"0")}function fmt(t){return `${pad(t/60)}:${pad(t%60)}`}
+function chapterIndex(t){let k=0;chapters.forEach((c,i)=>{if(t>=c.t-.05)k=i});return k}
+function update(){
+  const total=Number.isFinite(video.duration)&&video.duration>0?video.duration:161.5;
+  const pct=Math.min(1,video.currentTime/total);
+  if(!dragging)scrub.value=String(Math.round(pct*1000)); fill.style.width=`${pct*100}%`; timeLabel.textContent=`${fmt(video.currentTime)} / ${fmt(total)}`;
+  const idx=chapterIndex(video.currentTime),c=chapters[idx]; capTitle.textContent=`${idx+1}. ${c.title}`; capText.textContent=c.sub;
+  dots.forEach((d,i)=>{d.classList.toggle("active",i<=idx);d.classList.toggle("current",i===idx)});
+  atoms.forEach((a,i)=>{a.classList.toggle("on",video.currentTime>=[25.04,37.872,51.376,63.44][i]); if(a.classList.contains("on"))a.querySelector("span").textContent=["脚手架/模板支架","使用前/浇筑前","合格+记录+签字","不得先浇筑"][i];});
+}
+function unlock(){unlocked=true;cta.textContent="开始闯关";cta.classList.add("ready");cta.removeAttribute("aria-disabled");gate.textContent="② 开始闯关";gate.classList.add("ready");gate.removeAttribute("aria-disabled")}
+function play(){lesson.classList.add("started");video.play()} centerPlay.onclick=play;playBtn.onclick=play;pauseBtn.onclick=()=>video.pause();restartBtn.onclick=()=>{video.currentTime=0;play()};muteBtn.onclick=()=>{video.muted=!video.muted;muteBtn.textContent=video.muted?"取消静音":"静音"};video.ontimeupdate=update;video.onended=()=>{unlock();update()};scrub.oninput=()=>{dragging=true;const total=Number.isFinite(video.duration)&&video.duration>0?video.duration:161.5;video.currentTime=Number(scrub.value)/1000*total;update()};scrub.onchange=()=>{dragging=false;update()};dots.forEach((d)=>d.onclick=()=>{video.currentTime=chapters[Number(d.dataset.i)].t;update();lesson.classList.add("started")});
+function guard(e){if(!unlocked){e.preventDefault();capText.textContent="先听完收尾,再进入闯关。"}}cta.onclick=guard;gate.onclick=guard;
+function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement||null}
+function setFullButton(){fullBtn.textContent=fullscreenElement()||lesson.classList.contains("theater")?"退出":"全屏"}
+function hideControls(){clearTimeout(timer);timer=null;lesson.classList.remove("controls-visible")}
+function showControls(auto=true){if(!lesson.classList.contains("theater"))return;clearTimeout(timer);lesson.classList.add("controls-visible");if(auto&&!video.paused)timer=setTimeout(()=>lesson.classList.remove("controls-visible"),3200)}
+async function toggleFull(e){e&&e.stopPropagation();const active=fullscreenElement()||lesson.classList.contains("theater");if(active){if(fullscreenElement()){try{await (document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(err){}}lesson.classList.remove("native-fullscreen","theater");hideControls();setFullButton();return}lesson.classList.add("theater");showControls(false);const request=lesson.requestFullscreen||lesson.webkitRequestFullscreen;if(request){try{await request.call(lesson);lesson.classList.add("native-fullscreen")}catch(err){}}setFullButton()}
+function syncFullscreenState(){if(!fullscreenElement()&&lesson.classList.contains("native-fullscreen")){lesson.classList.remove("native-fullscreen","theater");hideControls()}setFullButton()}
+fullBtn.onclick=toggleFull;exitFullBtn.onclick=toggleFull;document.addEventListener("fullscreenchange",syncFullscreenState);document.addEventListener("webkitfullscreenchange",syncFullscreenState);lesson.onclick=(e)=>{if(!lesson.classList.contains("theater")||e.target.closest(".controls")||e.target.closest(".full-btn"))return;lesson.classList.contains("controls-visible")?hideControls():showControls(true)};update();
+</script>
+</body>
+</html>

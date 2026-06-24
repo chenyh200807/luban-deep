@@ -1,0 +1,104 @@
+{
+  "schema_version": "luban_deep_archetype_master.sample.v0",
+  "master_id": "C04_mbcc",
+  "_status_note": "深母题【完整闭环样板·工序/顺序类(模板拆除顺序与条件)】(围绕一个考点:拆模在什么强度、什么顺序、走什么程序下才合法)。用 teaching-animation-journey skill 把 C04 造成一镜到底闭环(讲懂→闯关→看穿),验证 skill 在【工序/顺序类】上复用(参工序类范式 M_roof_bulge_repair、判断类 S06_gcfh/Q02_dtjnt)。对齐《深母题数据标准 v1.0》R1-R8 + 运行时铁律(只读/只发候选/不写结论)。sample 不冒充生产 case_family_structure.v1。讲懂卡=C04_mbcc.json(derived_from),讲懂脚本=C04_mbcc.lesson.json。数据源=docs/原始数据/考点原料/成品/C04_模板拆除顺序与条件.md,R2/examiner_intent/变题/采分/错因全部锚回该 pack 的对应节(§3/§4/§5/§6),不凭空造。",
+  "exam_point": "模板拆除顺序与条件",
+  "taxonomy_ref": "1A413040-R25",
+  "_taxonomy_note": "主锚 1A413040-R25(模板拆除要求);相关 1A413040-R26、1A413040-R27、1A436000-B114。取自 pack 注册表对齐块(registry_slot 11,primary_taxonomy_ref 1A413040-R25,direct),未新建。pack §0 内编译源 kc:1A413030_099_* / kc:1A436000_116_* 锚为弹药内部引用,与 canonical code 并存。",
+  "authority": {
+    "status": "candidate_teaching_prototype",
+    "official_score_allowed": false,
+    "runtime_rule": "只读/只发候选/不写结论:misconception 是候选(终判归 ERROR_CODE_REGISTRY/error_codes.py)、scoring_point 只引用(终判归 grading artifact)、mastery 是鉴别候选(终判归 LearnerStateService)。",
+    "student_boundary": "这是培训机构教研的讲解,不是官方阅卷;拆模强度百分率(50/75/100)、断点(2m/8m)、快拆立杆≤2m、侧模 1N/mm² 等数值与判分口径以现行规范、教材和你的考试大纲为准。"
+  },
+
+  "R1_source_refs": [
+    {"ref": "C04 模板拆除顺序与条件 深度考点原料(佑森教研汇编,137 编译单元/142 真题命中,全部 point_id 与真题锚已 Read 核)", "content_sha256": "(待补:编译时对教材/规范原文锚定)", "kind": "candidate"},
+    {"ref": "_C04_compiled_source.json(主锚) + _C04_exam_evidence.json(真题证据,2015-2024)", "content_sha256": "(待补)", "kind": "candidate"}
+  ],
+
+  "R2_invariant": "拆模合法性结构恒定:合法拆模 = 强度门槛 AND 顺序门槛 AND 程序门槛,三者同时成立,缺一即'过早拆除/违章拆除'。拆模不是'硬了就拆',要按一条工序判读链走完——① 强度门槛(底模按'构件类型×跨度'查表达百分率,或同条件试块达标;快拆按等效 2m 取 50%;侧模看表面棱角/墙体大模板 1N/mm²);② 顺序门槛(后支先拆、先支后拆;非承重先拆、承重后拆);③ 程序门槛(填拆模申请 → 同条件试块达标 → 技术负责人批准 → 作业安全:设警戒线、下方禁人、上下呼应、底模禁无控制大片塌落)。换皮只换构件类型/跨度数值/部位,这条'强度→顺序→程序'的工序闭环不变。",
+  "_R2_note": "锚回 pack §3 R2 不变量原文(三重门槛同时成立,缺一即过早/违章拆除)、§4.1 examiner_intent(把拆模理解为受多条件约束的工序门而非'试块达标就能拆')、§2 原理因果链(强度成长曲线→受力角色分化→跨度量化→快拆等效跨度→拆除顺序)。",
+
+  "examiner_intent": "考的不是背'50/75/100、2m/8m、1N/mm²'几个数,是会不会用'强度门槛→顺序门槛→程序门槛'这条工序判读链给【具体构件+跨度+程序情境】定拆模合不合法;尤其会不会处理最易翻车的两处:① 漏写中间关键条件(只写顺序漏底模强度表、漏快拆保留立杆顶托、漏程序的技术负责人批准),② 把这条工序链迁移到别的构件/部位(底模→侧模、板→悬臂/预应力构件)而判据随之切换。锚回 pack §4.1 examiner_intent 三个核心鉴别点(分档查表 / 侧模底模判据不同 / 预应力叠加隐藏条件)+ §4 陷阱表。",
+
+  "teaching_card_ref": "C04_mbcc",
+  "teaching_lesson_ref": "C04_mbcc.lesson.json",
+  "_lesson_ref_note": "讲懂层=模板拆除剖面工序教学动画(C1 强度成长曲线→C2 侧模/底模受力角色分化→C3 底模强度表分档→C4 快拆切跨度→C5 拆除顺序倒装→C6 程序/作业安全)+ 三步工序判读链 + 先讲后问双人答疑 + 迁移铺垫 beat(工序链通用、判据随构件/部位变,anchor master:R2_invariant)。render_archetype_journey.py 读本 master 组装一镜到底闭环。",
+
+  "R3_scenario_templates": [
+    {"id": "bottom_strength", "engineering": "板/梁/拱/壳/悬臂 底模拆除(按构件类型×跨度查强度表)", "control_limits": "板 ≤2m→50% / 2~8m→75% / >8m→100%;梁拱壳 ≤8m→75% / >8m→100%;悬臂→100%", "anchor": "pack §4 R4 封闭集 V1 + §5 采分点2 + kc:1A413030_099_0185:0;真题印证 {2024,第10题}{2021,第9题}"},
+    {"id": "fast_strip", "engineering": "快拆体系底模拆除(立杆≤2m 保留顶托)", "control_limits": "立杆间距≤2m;拆模保留立杆+顶托支承楼板;等效跨度按 2m → 取 50%(如 8m 板 C30→30×50%=15MPa)", "anchor": "pack §4 R4 V4 + §5 采分点4 + kc:1A413030_099_0187:0;真题 {2015,第10题}"},
+    {"id": "side_form", "engineering": "侧模/墙体大模板拆除(看表面棱角)", "control_limits": "不承重侧模看表面、棱角不因拆模受损;墙体大模板常温达 1N/mm² 即可拆", "anchor": "pack §4 R4 V2 + §5 采分点1 + kc:1A413030_099_0186:0"},
+    {"id": "sequence_proc", "engineering": "拆除顺序 + 程序 + 作业安全", "control_limits": "后支先拆、先支后拆;非承重先拆、承重后拆;填拆模申请+同条件试块达标+技术负责人批准;设警戒线、下方禁人、上下呼应、底模禁无控制大片塌落", "anchor": "pack §4 R4 V3/V6 + §5 采分点3 + kc:1A413030_099_0187:0、kc:1A436000_116_0190:1/:2/:3;真题 {2016,案例2}"},
+    {"id": "prestress_addon", "engineering": "后张法/预应力构件拆底模(叠加隐藏条件)", "control_limits": "底模须张拉后拆 + 同条件试件达设计强度 + 技术负责人批准 + 有灌浆者灌浆≥C30(张拉门槛:施加预应力时强度≥设计75%、后张梁龄期≥7d、板≥5d)", "anchor": "pack §4 R4 V5 + §6 ME06 + kc:1A413030_105_0201:0;真题 {2016,案例2}"}
+  ],
+  "_scenario_note": "阈值为教研整理·候选·未签发,编译时须对规范原文逐条核(pack §9 jury_audit 已标多档待回真源核 quote);此处用于变题工序四式与迁移,不作官方判分。pack §4 R4 封闭原则:百分率仅 {50,75,100}、断点仅 {2m,8m}、构件仅 {板,梁/拱/壳,悬臂};只在 R3 枚举内换构件/跨度/部位生成变题,禁外推、禁跨口径混搭。",
+
+  "R4_variable_rules": {
+    "can_vary": ["工序情境(R3_scenario_templates 之一,封闭枚举:底模强度/快拆/侧模/顺序程序/预应力)", "构件类型与跨度相对断点的位置(≤2m/2~8m/>8m;≤8m/>8m;悬臂)", "答案完整度(是否漏中间环节:漏底模强度表/漏快拆保留立杆顶托/漏技术负责人批准/漏检验程序)", "拆除部位/构件(底模↔侧模、普通板↔预应力构件)"],
+    "must_not_vary": ["工序判读链结构(强度门槛→顺序门槛→程序门槛三者同时成立)", "拆除顺序的方向(后支先拆、先支后拆;非承重先拆、承重后拆——写反即错题)", "强度门槛金标数值(板2m/8m断点的50/75/100、梁拱壳8m断点的75/100、悬臂100%、快拆等效2m取50%、侧模墙体大模板1N/mm²)——改一位即制造错题", "侧模/底模判据的不可互换(侧模看表面棱角、底模看百分率表)"],
+    "boundary": "LLM 只能在 R3 工序情境枚举 + 固定限值内换构件/跨度/部位/完整度生成变题,不得自创规范外百分率或断点、不得把侧模 1N/mm² 套到底模、不得改判读链结构或拆除顺序方向(pack §4 R4 封闭性自检 + §8.2 C3 已剔除编造填表锚,变题不复活该误锚)。"
+  },
+
+  "R5_scoring_point_refs": [
+    {"ref_id": "side_vs_bottom", "binds": "C04_mbcc.scoring_points[side_vs_bottom]", "pack_ref": "pack §5 采分点1(先判模板类型再判条件:侧模看表面棱角、墙体大模板1N/mm²)", "note": "只引用,不复制评分规则;终判归 grading artifact"},
+    {"ref_id": "bottom_table", "binds": "C04_mbcc.scoring_points[bottom_table]", "pack_ref": "pack §5 采分点2(底模及支架按构件类型+跨度套强度比例:板2/8m=50/75/100,梁拱壳8m=75/100,悬臂100)", "note": "只引用"},
+    {"ref_id": "sequence_pair", "binds": "C04_mbcc.scoring_points[sequence_pair]", "pack_ref": "pack §5 采分点3(拆除顺序成对句:后支先拆、先支后拆;非承重先拆、承重后拆)", "note": "只引用"},
+    {"ref_id": "fast_strip_keep", "binds": "C04_mbcc.scoring_points[fast_strip_keep]", "pack_ref": "pack §5 采分点4(快拆抓立杆≤2m + 保留立杆顶托;按保留支撑计算跨度判强度,如8m板C30快拆=15MPa)", "note": "只引用"},
+    {"ref_id": "procedure", "binds": "C04_mbcc.scoring_points[procedure]", "pack_ref": "pack §5/§6(程序:填拆模申请+同条件试块达标+技术负责人批准;作业安全:警戒线/禁人/禁大片塌落)", "note": "只引用"}
+  ],
+
+  "R6_answer_skeleton": "①先判模板对象:侧模按'表面/棱角不受损'(墙体大模板常温抓 1N/mm²);②写拆除顺序成对句:'后支先拆、先支后拆;非承重先拆、承重后拆';③涉底模/支架补强度条件:按'构件类型+跨度'达规定百分率(板2/8m=50/75/100、梁拱壳8m=75/100、悬臂100)后拆;④涉快拆单独写:立杆≤2m、保留立杆顶托支承楼板,按保留支撑计算跨度判强度;⑤程序与作业安全:填拆模申请+同条件试块达标+技术负责人批准、设警戒线下方禁人、底模禁无控制大片塌落;⑥涉预应力补隐藏条件:张拉后拆+灌浆≥C30。锚回 pack §5.2 R6 满分答题骨架。",
+
+  "R7_boundary_answers": [
+    {"sample": "只写顺序'后支先拆、先支后拆',未展开底模强度表。", "verdict": "judged_partial(若题问顺序可能压线;若题问条件,漏中间强度门槛分数风险高)", "review": "pack §5 R7 压线边界候选,待真人/专家裁决(全部 🔴 候选)"},
+    {"sample": "快拆题仍按原 8m 取 75%/100%,无视保留立杆顶托。", "verdict": "judged_miss(快拆等效跨度判读未落地:应按 2m 取 50%)", "review": "pack §5 R7 0分 near-miss 候选,待裁决"},
+    {"sample": "把侧模 1N/mm² 套到所有模板('所有模板达1N/mm²即可拆')。", "verdict": "judged_miss(侧模/底模判据混淆:底模须按百分率表)", "review": "待裁决"},
+    {"sample": "顺序写反('先拆承重、后拆非承重')。", "verdict": "judged_miss(拆除顺序方向错)", "review": "待裁决"}
+  ],
+  "_boundary_note": "红线14:无人工/专家裁决的边界样本不得声称 scoring moat;pack §5.R7/§8.3 自曝 R7 为当前最弱项(满分/压线/0分边界均未经真人/专家裁决),全部标 🔴 候选。本 master 仅引用,不下结论。",
+
+  "R8_misconception": [
+    {"id": "MC_strength_only", "name": "只看强度达标即可拆,忽视构件类型/跨度分档", "signal": "答'混凝土强度达设计值即可拆',不按构件类型×跨度查表", "maps_error_code_candidate": "ERR_NUMERIC_TABLE_MISMATCH(待 register-before-use)", "fix": "底模须按'构件类型×跨度'查表达对应百分率(板2/8m、梁拱壳8m、悬臂100)", "pack_ref": "pack §6 ME01"},
+    {"id": "MC_side_bottom_conflate", "name": "侧模/底模不分,统一套一套条件", "signal": "把'试块百分率'套到侧模,或把'表面棱角'套到底模", "maps_error_code_candidate": "ERR_CONCEPT_CONFLATION", "fix": "侧模看表面棱角(墙体大模板1N/mm²),底模看强度百分率表——两套判据", "pack_ref": "pack §6 ME02"},
+    {"id": "MC_sequence_wrong", "name": "拆除顺序随意/写反", "signal": "写'先拆承重、后拆非承重'或'按方案拆/从上到下'空表达", "maps_error_code_candidate": "ERR_SEQUENCE_ORDER / ERR_SLOGAN_VAGUE", "fix": "成对句:后支先拆、先支后拆;非承重先拆、承重后拆", "pack_ref": "pack §6 ME03"},
+    {"id": "MC_fast_strip_drop", "name": "快拆按原跨度算 / 移除全部立杆支撑", "signal": "8m板快拆仍按 8m 取 75%/100%,或拆模移除全部立杆,漏'保留立杆顶托'", "maps_error_code_candidate": "ERR_COMMONSENSE_OVER_SPEC / ERR_CONDITION_EXTRACTION_INCOMPLETE", "fix": "快拆立杆≤2m、保留立杆顶托(大跨转小跨),按等效2m取50%", "pack_ref": "pack §6 ME04/ME05"},
+    {"id": "MC_procedure_skip", "name": "口头/生产经理申请即拆,漏技术负责人批准", "signal": "'口头申请''现场生产经理申请'即拆", "maps_error_code_candidate": "ERR_PROCEDURE_VIOLATION", "fix": "须填拆模申请 + 同条件试块达标 + 技术负责人批准", "pack_ref": "pack §6 ME07"}
+  ],
+
+  "_variants_design_note": "工序/顺序类闯关【同考点变构件/部位,考工序闭环完整性,不走数值分档而走工序四式】:① 找漏点(给一份漏了中间关键条件的答案,问漏了哪类表达)② 判顺序(顺序写反/对不对)③ 换部位迁移(底模→侧模/换构件,工序判读链不变、判据随部位切换)④ 检验闭环(漏程序/批准/试块达标这层收尾)。每个挂 basis_ref 可追溯依据(被质疑回依据验证·红线17)。关键鉴别题=最易翻车的'漏中间环节'(V1 漏底模强度表/快拆顶托)和'换部位迁移判据切换'(V3 底模→侧模)——背过的人只记'后支先拆铺新的',漏中间强度/程序条件、不会迁移判据。分档不出现阈值数字(题面写'漏了某层条件/某关键步骤',答后 feedback 才把判据讲透·红线16);迁移题给【该部位】判据是合理的(讲懂幕已铺垫'工序链通用、判据随构件/部位')。",
+  "variants": [
+    {"id": "V1_miss_middle", "scenario_id": "bottom_strength", "basis_ref": "R3.bottom_strength(底模按构件类型×跨度查表)+ R3.fast_strip(快拆保留立杆顶托)+ pack §5 采分点2/4 + pack §6 ME01/ME05 + R2(强度门槛缺中间条件即不合法)",
+     "stem": "学生答:\"拆模时后支的先拆、先支的后拆;非承重的先拆、承重的后拆,按方案拆完即可。\" 这份答案在【底模/快拆】这一块最可能漏掉哪类关键表达?",
+     "answer": "C", "options": [{"id":"A","text":"漏写拆除顺序成对句"},{"id":"B","text":"漏写施工单位的安全责任"},{"id":"C","text":"漏写底模强度条件(按构件类型×跨度达对应百分率)和快拆'保留立杆顶托'这层中间条件"}],
+     "judged_outcome": "miss_middle_condition", "basis": "答案有顺序成对句,但只写'按方案拆完即可',漏了底模真正的得分点:强度门槛(按构件类型×跨度查表达百分率)与快拆体系'立杆≤2m+保留立杆顶托'这层中间条件——这正是工序类最易丢分的中间环节", "tier_tag": "中间环节漏写(最易丢分)·关键鉴别", "feedback": "对:它顺序写对了,但拆模真正的得分在中间那层——底模要按'构件类型×跨度'达到对应强度百分率才能拆;碰到快拆体系还得写'立杆不大于两米、保留立杆顶托'。只写'按方案拆完'等于把强度门槛整段漏了。"},
+    {"id": "V2_order_wrong", "scenario_id": "sequence_proc", "basis_ref": "R3.sequence_proc(拆除顺序成对句)+ R4.must_not_vary(顺序方向不可变)+ pack §5 采分点3 + pack §6 ME03",
+     "stem": "现场拆模工长说:\"先把承重的底模和支架拆掉,腾出地方,再回头拆非承重的侧模,省事。\" 这个顺序对吗?",
+     "answer": "B", "options": [{"id":"A","text":"对,先拆大件腾地方效率高"},{"id":"B","text":"不对:顺序反了,应当先拆非承重(侧模)、后拆承重(底模及支架);后支先拆、先支后拆"},{"id":"C","text":"无所谓,只要强度达标先拆哪个都行"}],
+     "judged_outcome": "order_wrong", "basis": "拆除顺序成对句是金标且方向不可变:非承重先拆、承重后拆;后支先拆、先支后拆。承重底模及支架是竖向力传递最后防线,必须最后撤——先拆承重就是把根基先抽了,典型顺序错", "tier_tag": "顺序档(写反)", "feedback": "对:顺序正好反了。侧模这种非承重的先溜不动骨架,先拆;底模和支架是把整块板托住的最后防线,必须最后拆。口诀就一句:后支先拆、先支后拆;非承重先拆、承重后拆。"},
+    {"id": "V3_transfer_side", "scenario_id": "side_form", "basis_ref": "R3.side_form(侧模看表面棱角、墙体大模板1N/mm²)+ R2 不变量(换部位工序链不变、判据随部位切换)+ R4.can_vary(底模↔侧模)+ pack §6 ME02",
+     "stem": "换个部位:这次要拆的是墙体大模板(侧模),不是板底模。判据应该怎么用?",
+     "answer": "B", "options": [{"id":"A","text":"一样查强度百分率表,达 75% 才能拆"},{"id":"B","text":"侧模换一套判据:看表面、棱角不因拆模受损,墙体大模板常温达 1N/mm² 即可拆,不套底模那张百分率表"},{"id":"C","text":"换了部位拆模就没条件了,随时可拆"}],
+     "judged_outcome": "side_criterion_transfer", "basis": "工序判读链(强度→顺序→程序)不变,但判据随部位切换:侧模主要受'胀'不受'压',不套底模的百分率表,看表面棱角不受损、墙体大模板常温 1N/mm² 即可拆。把百分率表套到侧模(A)、或以为换部位就没条件(C)都丢了'侧模/底模两套判据'这个鉴别点", "tier_tag": "迁移档(换部位·判据切换)·关键鉴别", "feedback": "对:换到侧模,工序链还是那条,但判据换了一套——侧模看表面棱角不受损,墙体大模板常温到 1N/mm² 就能拆,不用查底模那张百分率表。能分清侧模、底模两套判据,才是真会迁移,不是把一套数硬套到底。"},
+    {"id": "V4_proc_closure", "scenario_id": "sequence_proc", "basis_ref": "R3.sequence_proc(程序门槛:申请+试块达标+技术负责人批准)+ R2(程序门槛是合法拆模三门之一)+ pack §5 采分点5 + pack §6 ME07",
+     "stem": "底模强度、拆除顺序都没问题了,现场生产经理口头说一句'可以拆了',就直接拆。这样合规吗?",
+     "answer": "B", "options": [{"id":"A","text":"合规,强度和顺序对了就行,谁说拆都一样"},{"id":"B","text":"不合规:还差程序这道门——须填拆模申请、同条件试块达标、经技术负责人批准,口头/生产经理批不算数"},{"id":"C","text":"不合规,必须把整层模板一次性全拆才规范"}],
+     "judged_outcome": "procedure_missing", "basis": "合法拆模 = 强度 AND 顺序 AND 程序,缺一不可。程序门槛=填拆模申请+同条件试块达标+技术负责人批准;口头申请、生产经理批准都不妥(pack §4 陷阱5、ME07)。强度顺序都对但漏了程序批准,仍是违章拆除——这是工序类收尾最易漏的检验/程序闭环", "tier_tag": "检验闭环(程序收尾)·关键鉴别梯度", "feedback": "对:强度和顺序对了,还差最后一道程序门。拆模前要填拆模申请、同条件试块达标、再由技术负责人批准才能动手。口头说一句、生产经理点头都不算数,漏了这一句照样违章、照样丢分。"}
+  ],
+
+  "mastery_discrimination": {
+    "_note": "复测鉴别【候选】,不写客观掌握结论(终判归 LearnerStateService);用于'看穿真懂 vs 背过'。工序/顺序类:看工序闭环完整(不漏中间条件 + 程序收尾)+ 能否换部位迁移判据。锚 pack §4.1 examiner_intent(把拆模理解为受多条件约束的工序门 + 侧模底模判据不同)。",
+    "key_discriminator_ids": ["V1_miss_middle", "V3_transfer_side"],
+    "real_understanding_signal": "V1-V4 全对,尤其 V1(漏底模强度表/快拆顶托这层中间条件)与 V3(底模→侧模换部位判据切换)对 = 抓住'强度→顺序→程序'完整工序链、且能在换部位时切换判据(侧模看棱角而非百分率表),真掌握不变量,不是背'后支先拆铺新的'那套动作。",
+    "rote_signal": "只 V2 对(顺序写反凭语感也能挑出),V1(只记顺序漏中间强度/快拆条件)或 V3(把底模百分率表硬套到侧模/以为换部位没条件)错 = 背了顺序口诀和几个数,漏中间环节、不会换部位迁移判据——典型背过。",
+    "discriminator_strength": "V1(漏中间环节:底模强度表/快拆保留立杆顶托)+ V3(换部位迁移:底模→侧模判据切换)是关键鉴别题:背过的人最爱在'只写顺序漏强度条件'和'换部位还套同一套判据'两处翻车;V2(顺序写反)、V4(漏程序批准收尾)进一步佐证工序闭环是否完整。",
+    "warm_feedback": {
+      "all_correct": "你是真的把拆模这条工序链走通了——强度门槛、拆除顺序、程序批准一个不落,碰到快拆知道保留立杆顶托、换到侧模会切换判据(看棱角不是查表)、收尾不忘技术负责人批准。这类题稳,换什么构件、什么部位你都不慌。",
+      "partial": "顺序你拆得对,就差中间和收尾那两层:底模要按'构件类型×跨度'达百分率、快拆得保留立杆顶托,这层最容易漏;换到侧模别再套百分率表,看表面棱角就行;最后还有一道程序门——技术负责人批准。把这几处补上就齐了,你离真懂只差一步。",
+      "rote_leaning": "先别急着背'后支先拆、先支后拆'这句口诀和 50/75/100 几个数。记这条工序链:先过强度门(底模按构件×跨度查表、快拆保留立杆顶托按2m取50%、侧模看表面棱角)→ 再走顺序门(非承重先拆、承重后拆)→ 最后过程序门(申请+试块达标+技术负责人批准)。三道门走顺了,换板换梁换侧模、碰快拆碰预应力,你都不慌。"
+    }
+  },
+
+  "_maps_to_production": "讲懂→teaching_card_ref(C04_mbcc);R2/R3/R4/examiner_intent→case_family_structure;R5→grading artifact 引用;R8→ERROR_CODE_REGISTRY 映射(ERR_NUMERIC_TABLE_MISMATCH/ERR_CONCEPT_CONFLATION/ERR_SEQUENCE_ORDER/ERR_COMMONSENSE_OVER_SPEC/ERR_PROCEDURE_VIOLATION);mastery_discrimination→retest_discriminator_candidate;落盘将来→artifacts/luban_case_family_assets/<case_family_id>/case_family.yaml(待 schema 登记)。数据全部锚回 docs/原始数据/考点原料/成品/C04_模板拆除顺序与条件.md。"
+}

@@ -2300,3 +2300,13 @@ def test_turn_start_single_question_answer_unaffected() -> None:
     # single path keeps the {question_id, answer} shape (no batch index/preserve)
     assert action["answers"] == [{"question_id": "q-solo", "answer": "B"}]
     assert "preserve_other_answers" not in action
+
+
+def test_past_question_backreference_not_a_submission() -> None:
+    """刚才那道题+讲解意图不应被误识别为提交答案。"""
+    from deeptutor.services.question_followup import _looks_like_past_question_explanation_request
+
+    assert _looks_like_past_question_explanation_request("刚才那道屋面坡度题，讲讲考点")
+    assert _looks_like_past_question_explanation_request("上一道题为什么选A")
+    assert not _looks_like_past_question_explanation_request("我选A")
+    assert not _looks_like_past_question_explanation_request("出三道题")

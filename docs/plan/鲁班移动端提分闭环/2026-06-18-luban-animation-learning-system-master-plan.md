@@ -5,6 +5,8 @@
 - 主线: 鲁班移动端提分闭环
 - 决策对象: motion learning packs 的专家裁决清单、生产形态、优先级、验收 gate
 
+> **定位**: 本文是 v1.3 PRD(`2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md`,scoring-loop)下的动画/视频【供给侧】生产计划,不构成新产品主线。
+
 ## 0. 结论
 
 鲁班的学习视频体系不应按"知识点视频课"建设,也不应按"重动画作品集"推进。唯一正确单位是:
@@ -368,18 +370,32 @@ C/D 类不是把 PPT 录屏或 checklist 凑数。它必须像老师用板书推
 
 ## 13. 生产流水线
 
-每条 pack 走 8 步:
+每条 pack 走 8 步,其中嵌入 4 道已被验证必需的工序:
 
+0. **判断类分流(decision-first vs video-first)**: 选考点时先判生产形态——判断/分支型考点走 decision-first(交互卡 + 旁白),不要硬包成 video-first 视频;只有时序/计算/空间型才默认 video-first。判断题硬做成视频=损失交互与复测。
 1. 选考点: 来自 P0 locked / P1 active;P2 candidate 只做证据补强。
 2. 绑定 taxonomy: 写入 `primary_taxonomy_ref` / `supporting_taxonomy_refs[]`,并记录 source sha。
 3. 编 teaching spine: wrong idea / correction / exam phrase / warm correction / authority。
 4. 编 schema JSON: 只写上游事实和候选,不写判分结论。
 5. 编 storyboard: 5-8 beats,每 beat 一个视觉或运镜动作。
 6. 渲染 HTML/deck: renderer 只渲染,不判断。
+   - **防漂移 anchor 闸**: 任何 `claim:true` 的 beat 必须 anchor 回卡(可追溯到卡内字段);`build_lesson_narration` 检测到未 anchor 的 claim beat 必须报错退出,不得静默生成旁白。
+   - **student-safe 包检查**: 渲染产物必须过 `validate_schema_drafts.py`,并对照 `rendering_contract` 双名单(允许暴露 / 禁止暴露字段)核验;raw taxonomy code / pack_id / 内部 source_ref 命中禁止名单即 fail。
 7. 做小练/复测: 至少一个当天题 + 一个 D1/D7 变式候选。
 8. 做验收: mobile screenshot、taxonomy/source/authority check、学员任务测试。
+   - **关键样板 Codex 对抗**: M0/M1 关键样板在验收阶段过一轮 Codex 对抗审查(走 `codex exec --sandbox read-only`),抓走向校验洞、改字段漏改读点等盲点。
 
 ## 14. Gate
+
+### G-1: Runtime Closure Gate
+
+排在所有 gate 之前。**留存/复测验证(§15 Week4 concierge、G2/G3 指标)启动前,必须先证明本 plan 产出的 practice/retest 在 TutorBot runtime 上闭环。** 三件套必须同时出现并截图留证:
+
+1. **做题 → 判分**: 学员作答后 runtime 真实判分(非 fall-through、非 invariant 占位)。
+2. **给答案 + 解析**: 判分后必须给出答案与解析(硬约束:答题必有解析)。
+3. **正向反馈**: 输出"先捧 → 就差一步 → 我相信你"结构的暖反馈。
+
+未通过则留存验证 INVALID。背景:`mcq_grading` 路由缺口(做完题不判分/不给答案/无正反馈)曾是内测流失第一杀手,**已于 2026-06-17 修复(commit `80a34ca0a`:Fix A orchestrator mcq_grading 守卫 + Fix B open-world backstop + Fix C open_world_question tier,测试全绿)**。所以 G-1 已**降级为留存验证前的回归把关**(每次验证前截图确认闭环仍通、防回归),不再是阻塞前置。残留 Fix C step2(出题侧 `object_type_override` 让 source-backed 变式卡可作答)是下游扩展,不属"做完题不判分"根因。
 
 ### G0: Authority gate
 
@@ -417,40 +433,40 @@ C/D 类不是把 PPT 录屏或 checklist 凑数。它必须像老师用板书推
 
 未通过则不能把 P1/P2 升级为批量排产:
 
-- D1/D7 回访指标达到预设阈值。
+- D1 回访率 ≥ 预注册目标、D7 回访率 ≥ 预注册目标、复测正确率提升 ≥ 预注册 pct(以上三个数值在留存实验**预注册时钉死**,不得事后凑数)。
 - 换皮题迁移有正向证据。
 - A/B/C/D 每类生产成本和审核周期可控。
 - 模板没有产生第二套评分/知识/学情 authority。
 
 ## 15. 30 天执行计划
 
-### Week 1: 收口 M0 + 补构造/空间/文字运镜规范
+口径修正: 底座首发成本 ≫ 套用成本,30 天不可能出齐 12 个。**30 天目标定为【3 套底座 + 6 个 pack + 前移的留存证明】,剩余 6 个 pack 顺延约 7-8 周且 gated on G2。** 母题数据单列教研工期,不并进渲染工期。
 
-- 统一 J01/N01/C01/F16 的 teaching spine 和 acceptance。
-- 把 N01 作为 video-first 质量基线。
-- 新建 B02 基坑支护与降水的 section/space storyboard。
+### Week 1-2: 底座期
+
+- 收口 4 个 M0:统一 J01/N01/C01/F16 的 teaching spine 和 acceptance;N01 作为 video-first 质量基线。
+- **只攻 1 套新底座**: `section_space_reveal`(构造/空间 renderer + spec),用 B02 基坑支护与降水做样板。
 - 写 `kinetic_text_ppt` 的 5-8 beat deck 规范,用 K06 做 C 类样板。
+- (M0 收口 + 已有原型沿用,不在 Week1-2 强行新造第二套底座。)
 
-### Week 2: 做 M1 前 6 个
+### Week 3-4: 套用期 + 前移留存证明
 
-- J01/N01/C01/F16 收成统一 pack。
-- B02 完成第一版 rendered HTML。
-- S01 脚手架/高支模验收用 decision 模板出第一版。
+Week 3-4 套用底座出 **3 个 pack**(在已就绪底座上套用,不再首发新模板):
 
-### Week 3: 做 M1 后 6 个
+- S01 脚手架/高支模验收(套 `decision_branch_reveal`)。
+- Q01 混凝土养护裂缝(套 `contrast_pair_reveal`)。
+- K06 合同责任事件归属矩阵(套 `kinetic_text_ppt`,Week1-2 样板收正)。
 
-- S02 起重吊装安全。
-- Q01 混凝土养护裂缝。
-- A01 检验批/分部分项验收。
-- K01 索赔成立与计算。
-- C02 进度款/计量计价。
-- K06 合同责任事件归属矩阵。
+**Week 4 末:提前做 G2 留存验证**,用先出的 J01 / B02 / N01 + F16 直接验,**别等 12 个齐**:
 
-### Week 4: 验证与决策
+- 先过 **G-1 Runtime Closure Gate**:截图证明 practice/retest 在 runtime 上「做题→判分→给答案+解析→正向反馈」三件套同时出现;未过则验证 INVALID,不启动。
+- 5 人任务测试: J01 / B02 / N01。
+- 5 天 concierge 留存主验证载体: F16(1 个母题);J01/B02/N01 是模板覆盖证据,不当独立留存臂。
+- 输出 M1 decision package: GO / WEAK-GO / NO-GO(GO 前 G3 阈值必须已预注册钉死)。
 
-- 5 人任务测试: J01/B02/N01/Q01/K06。
-- 5 天 concierge 留存: F16 + 任选 2 个 P0 pack。
-- 输出 M1 decision package: GO / WEAK-GO / NO-GO。
+### Week 5-8: 后 6 个 pack(gated on G2)
+
+- 仅在 Week4 G2 GO/WEAK-GO 后才启动,出剩余 6 个 M1 pack(S02、A01、K01、C02 等套用型为主)。
 - GO 后才进入 P0 20 的 M2 草稿,不是批量生产。
 - P0 20 的 M2 草稿必须先补 taxonomy registry 里的主/辅锚点,`coarse_review` 项先补 source/leaf review。
 
@@ -477,6 +493,8 @@ C/D 类不是把 PPT 录屏或 checklist 凑数。它必须像老师用板书推
 - 不把 P2 candidate pool 当生产 backlog。
 - 不为了通用化提前抽复杂 renderer 框架。
 - 不把观看完成率当主要学习效果指标。
+- 留存/复测验证启动前必须确认 runtime 判分 → 答案 → 正反馈闭环已通(见 G-1);否则验证结果尤其 NO-GO 一律无效。
+- 留存验证失败时先排除 runtime / 交付链断裂,再归因到内容。
 
 ## 18. 当前拍板
 
@@ -493,3 +511,37 @@ C/D 类不是把 PPT 录屏或 checklist 凑数。它必须像老师用板书推
 9. N01 是 video-first 质量基线,F16 是留存体验样板,J01 是判断高频样板,C01 是对比样板。
 10. 未过 G2 learner gate 前,禁止启动 20 个以上的批量生产。
 11. pack_id 保留资产编号;学习路径、盲点归因、题库召回和复测必须走 canonical taxonomy 对齐注册表。
+12. M1 的 12 个在 Week4 GO 前一律记为【模板底座验证样板】,不计入 P0 20 产能、不对学员暴露、不当 KPI;Week4 留存主验证载体仍是 1 个母题(F16),其余 pack 是模板覆盖证据,不是把 1 个留存假设稀释成 12 个弱信号的多臂分散。
+
+---
+
+## 19. 专家组评审结论与必改项(2026-06-19)
+
+四路专家(战略对齐 / 单一权威架构 / 生产可行性 / 红队留存)对抗评审。**总裁决:plan 质量高、方向对、且罕见地自带可执行护栏(gate 脚本/taxonomy 注册表真实落地),但不能直接照搬执行——有 1 个致命前置 + 3 个中度必改。**
+
+| 维度 | 裁决 | 关键结论 |
+|---|---|---|
+| 战略对齐 | ✅ 对齐 | 是 v1.3 的供给侧生产计划,不另起主线;"12 个 starter"是模板底座最小集(验证供给侧能不能产),与 v1.3"先 1 个母题验证留存"(验证需求侧人会不会回来)不矛盾 |
+| 单一权威/架构 | ✅ 合规 | 未抢 grading/LearnerState/错因权威;`canonical_taxonomy_refs[]` 显式声明≠判分点;gate 脚本/`taxonomy_index()` 真实存在 |
+| 生产可行性 | ⚠️ 偏乐观 | 30 天/12 个严重低估:套用型 1.5-2 人天、新模板首发 1-1.5 人周;5 个要先造新底座;母题数据未单列工期;无 Codex 返工 buffer |
+| 红队/留存 | ✅ 风险已解除 | 红队指出"Week4 留存依赖的 runtime 闭环若断会杀错方向";实查 runtime 闭环**已于 2026-06-17 修复**(commit `80a34ca0a`)→ 致命风险解除,G-1 保留为回归把关 |
+
+### 必改项(按优先级)
+
+**P0【已修·G-1 保留为回归把关】runtime 留存闭环**
+本 plan 是母题引擎(造 pack)侧;§15 Week4 的 concierge 留存、§14 G2/G3 指标都在 TutorBot runtime 上交付。红队曾警告"runtime 的 `mcq_grading` 路由缺口(做完题不判分/不给答案/无正反馈)若断,Week4 留存 NO-GO 会把 runtime bug 误扣到动画体系、杀错方向"。**实查结论:该缺口已于 2026-06-17 修复(commit `80a34ca0a`:Fix A/B/C,测试全绿),致命风险解除。** G-1 因此保留为**留存验证前的回归把关**(每次验证前截图确认「做题→判分→给答案+解析→正反馈」三件套仍在,防回归),非阻塞前置。仍待办:G3 的"预设阈值"必须填死具体数(D1≥X% / D7≥Y% / 正确率提升≥Z),空阈值=事后凑数。
+
+**P1【中·改节奏】30 天计划改为"3 套底座 + 6 个 pack + 前移的留存证明",12 个顺延 7-8 周**
+底座首发成本≫套用成本;母题数据要单列教研工期;留存验证前移(用先出的 J01/B02/N01 做 G2,别等 12 个齐)。§13 流水线补 4 道已被验证必需的工序:防漂移 anchor 闸、student-safe 包检查、Codex 对抗、判断类 decision-first vs video-first 分流。
+
+**P2【中·锁口径】结构化锁死"12 个 ≠ P0 已交付 9 个"**
+M1 的 12 个在 Week4 GO 前一律记为"模板底座验证样板",不计入 P0 20 产能、不对学员暴露、不当 KPI;Week4 留存主验证载体仍是 1 个母题(F16),其余是模板覆盖证据,不把 1 个留存假设稀释成 12 个弱信号。
+
+**P3【中·收硬门】G0 从手动门变硬门**
+`check_luban_animation_taxonomy_alignment.py` 接入 contract_guard/CI(否则是 dormant authority);G0 串联渲染层 `validate_schema_drafts.py` + `validate_video_first_preview.mjs`(student-safe 不靠自觉);motion pack manifest 生产前在 `contracts/schema_registry.yaml` 登记 schema_version(标内容/资产 schema 非 grading schema)。
+
+**P4【低】§17 补"实验有效性/归因"红线**(留存验证失败先排除 runtime/交付链断裂再归因内容)、标题加一句"本文是 v1.3 下供给侧生产计划,非新主线"。
+
+### 是否可执行
+
+**可执行**:P0 runtime 闭环已修(致命风险解除);P1 节奏 + P2 口径 + P4 红线/标题 + G-1/G3 已落入正文(2026-06-19 修订)。剩余:填死 G3 预注册阈值、按 P3 方案收 G0 硬门(串行 + 确认)。**即可启动 Week1**(收口 4 个 M0 + 攻 section_space_reveal 底座 + B02 样板),Week4 留存验证前过 G-1 回归把关即可。骨架/Gate/红线/从属关系无需推翻。

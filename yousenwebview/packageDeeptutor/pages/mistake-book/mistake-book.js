@@ -1,5 +1,6 @@
 const api = require("../../utils/api");
 const route = require("../../utils/route");
+const helpers = require("../../utils/helpers");
 const mistakeBookViewModel = require("../../utils/mistake-book-view-model");
 
 function buildAttemptCache(item) {
@@ -21,6 +22,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
+    isDark: true,
     loading: true,
     errorText: "",
     filter: "all",
@@ -34,8 +36,13 @@ Page({
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
+      isDark: helpers.isDark(),
     });
     this._loadMistakeBook();
+  },
+
+  onShow() {
+    this.setData({ isDark: helpers.isDark() });
   },
 
   onPullDownRefresh() {

@@ -1,0 +1,122 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "S01_scaffold_template_acceptance",
+  "derived_from": "S01_scaffold_template_acceptance.json",
+  "style": "video_first_then_practice",
+  "title": "脚手架/高大模板支架验收 · 白板有声讲解",
+  "subtitle": "先抓放行错觉,再走对象、时点、验收、结论",
+  "boundary": "这是鲁班深母题教学原型,不是官方真题,也不是官方评分依据。",
+  "authority_label": "candidate teaching prototype",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "longanhuan_v3", "side": "right"},
+    "S": {"name": "晨煦", "role": "学生追问", "voice": "Ethan", "side": "left"}
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "id": "hook",
+        "stage": "hook",
+        "claim": true,
+        "anchor": "exam_context.student_facing_hook",
+        "narration": "先给你一个安全题的考试视角:它不是问架子搭没搭完,而是问能不能放行。脚手架、模板支架这类题,最容易丢在一句话:未经验收,就先使用或先浇筑。"
+      },
+      {
+        "id": "trap",
+        "stage": "trap",
+        "claim": true,
+        "anchor": "teaching_spine.wrong_idea",
+        "narration": "最危险的错觉是:现场看着挺稳,可以先干,验收资料后补。考试里这样写,基本就把安全控制点放掉了。搭完,不等于能用。"
+      },
+      {
+        "id": "object",
+        "stage": "object",
+        "claim": true,
+        "anchor": "decision.judgment_points[object].criterion",
+        "narration": "第一刀,先判对象。题干出现脚手架、现浇混凝土模板支撑系统,就要立刻想到:这是设备设施安全验收检查的对象,不是普通外观检查。"
+      },
+      {
+        "id": "timing",
+        "stage": "timing",
+        "claim": true,
+        "anchor": "decision.judgment_points[timing].criterion",
+        "narration": "第二刀,再看时点。搭设完成后、使用前、浇筑前,都是放行门。支撑脚手架搭设过程中到规定高度,也要分阶段验收,不能一口气搭到最后再说。"
+      },
+      {
+        "id": "acceptance",
+        "stage": "acceptance",
+        "claim": true,
+        "anchor": "decision.judgment_points[acceptance].criterion",
+        "narration": "第三刀,看验收闭环。只说检查过不够,只说看着稳定也不够。要有验收合格、形成记录、签字确认。缺一个,都不能把它当成已放行。"
+      },
+      {
+        "id": "outcome",
+        "stage": "outcome",
+        "claim": true,
+        "anchor": "decision.outcomes[stop_rectify].label",
+        "narration": "回到题干:模板支架准备浇筑,但验收记录还没有签字。结论不是先浇筑,而是停止放行,完成验收签字;不合格处整改后复验。"
+      },
+      {
+        "id": "score",
+        "stage": "score",
+        "claim": true,
+        "anchor": "teaching_spine.exam_phrase",
+        "narration": "最后写成采分句:脚手架或模板支架搭设完成后,应按专项施工方案和规范要求组织验收;验收合格并形成记录、签字确认后,方可使用或浇筑。"
+      },
+      {
+        "id": "bridge",
+        "stage": "bridge",
+        "claim": true,
+        "anchor": "memory_hook",
+        "narration": "记忆钩子就一句:搭完不等于能用。考试只走四步,对象、时点、验收、放行。后面换成脚手架、支撑脚手架,也按这四步判。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师,如果现场已经检查过,只是签字没补,也不能先浇筑吗?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[afterward_signature].why",
+        "text": "不能。考试看的是验收闭环,不是口头说检查过。记录和签字没有完成,就不能写成已经验收合格。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那这张卡只适合模板支架吗?换成脚手架会不会又不一样?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "exam_context.exam_action",
+        "text": "判法一样。你先认对象,再看时点,再看验收闭环,最后写能不能放行。具体验收阶段和检查内容会换,但这个判断模板不变。"
+      }
+    },
+    {
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "主观题我怎么写才不像口水话?"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "deep_archetype.score_atoms",
+        "text": "按四个采分原子写:对象是什么,到了什么放行时点,验收是否合格并签字,最后能不能使用或浇筑。四个原子齐了,表达就稳。"
+      }
+    }
+  ],
+  "closing": {
+    "speaker": "T",
+    "claim": true,
+    "anchor": "teaching_spine.warm_correction",
+    "text": "收个尾:你能想到要检查架体,方向已经对了一半。真正得分的是再补两个词:验收合格、签字确认。现在进闯关,换几个题干,看你能不能把放行门守住。"
+  }
+}

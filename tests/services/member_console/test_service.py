@@ -3949,6 +3949,7 @@ def test_change_password_requires_username_password_bound_member(
         service.change_password("wechat_only_user", "OldPass123", "NewPass123")
 
 
+
 def test_send_password_reset_code_requires_matching_account_phone(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -1,0 +1,438 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大体积混凝土温度裂缝控制 · 深母题闭环</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:16px 14px 132px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#ffd27f;font-weight:700;margin:0 0 6px}
+h1{font-size:20px;line-height:1.35;margin:0 0 6px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 12px}
+.stagebox{background:#13202e;border:1px solid #223247;border-radius:18px;padding:12px 10px 6px;margin-bottom:12px}
+svg{width:100%;height:auto;display:block}
+.ground{stroke:#8b7a59;stroke-width:2.5}
+.earth{fill:#cdb892}.sky{fill:#1a2940}
+.pit-fill{fill:#e9f1fb;transform:scaleY(0);transform-origin:center top;transition:transform 1s cubic-bezier(.3,.7,.3,1)}
+.reached-dig .pit-fill{transform:scaleY(1)}
+.pit-out{fill:none;stroke:#9bb0c8;stroke-width:2;opacity:0;transition:opacity .5s}
+.reached-dig .pit-out{opacity:1}
+.ruler{stroke:#6c7d92;stroke-width:1.5}
+.tick{stroke:#6c7d92;stroke-width:1.5}
+.ticklbl{fill:#9fb0c2;font-size:11px}
+.lbl55{fill:#7fc7ff;font-weight:700}
+.mark{opacity:0;transition:opacity .5s}
+.reached-dig .mark{opacity:1}
+.markdot{fill:#2f6df0}.marktxt{fill:#cfe0f0;font-size:11px;font-weight:700}
+.gline{stroke-dasharray:6 5;stroke-width:2;opacity:0;transition:opacity .6s}
+.glbl{font-size:12px;font-weight:700;opacity:0;transition:opacity .6s}
+.line3m{stroke:#1aa06d}.lbl3m{fill:#3fd39a}
+.line5m{stroke:#e08a1e}.lbl5m{fill:#ffc06b}
+.reached-gate3 .line3m,.reached-gate3 .lbl3m{opacity:1}
+.reached-gate5 .line5m,.reached-gate5 .lbl5m{opacity:1}
+.chk{font-size:11px;font-weight:800;opacity:0;transition:opacity .5s}
+.chk-danger{fill:#3fd39a}.chk-scale{fill:#ffc06b}
+.reached-gate3 .chk-danger{opacity:1}.reached-gate5 .chk-scale{opacity:1}
+.banner{margin:10px 4px 2px;background:#16321f;border:1px solid #1f7a4d;border-radius:12px;
+  padding:11px 13px;color:#bff0d4;font-size:14px;font-weight:700;line-height:1.5;
+  opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.reached-conclude .banner{opacity:1;transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:9px 4px 4px;opacity:0;transition:opacity .5s}
+.reached-conclude .chips{opacity:1}
+.chips .lbl{width:100%;font-size:11.5px;color:#9fb0c2;margin-bottom:2px}
+.chip{background:#1d2b3d;border:1px solid #4a3a1e;border-radius:999px;padding:5px 11px;font-size:12.5px;color:#ffd27f;font-weight:700}
+.caption{min-height:58px;background:#18222f;border-radius:12px;padding:10px 13px;margin-bottom:6px;
+  font-size:14.5px;line-height:1.55;color:#e7eef6;display:flex;gap:9px;align-items:flex-start}
+.caption .who{flex:0 0 auto;font-size:11px;color:#ffd27f;font-weight:800;margin-top:2px}
+.caption.hide{display:none}
+.qa{margin-top:6px;display:none;flex-direction:column;gap:12px}
+.qa.show{display:flex}
+.qa .qlbl{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:700;margin:4px 2px 0}
+.row{display:flex;gap:9px;max-width:92%}
+.row.s{align-self:flex-start}.row.t{align-self:flex-end;flex-direction:row-reverse}
+.av{width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.s{background:#7fc7ff}.av.t{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:15px;padding:10px 13px;font-size:14px;line-height:1.55;border:1.5px solid transparent;transition:border-color .2s,background .2s}
+.row.t .bubble{background:#243247}
+.bubble.on{border-color:#7fc7ff;background:#22344b}
+.row.t .bubble.on{border-color:#ffd27f}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);backdrop-filter:blur(10px);
+  border-top:1px solid #233148;padding:10px 14px 16px}
+.player .inner{max-width:560px;margin:0 auto}
+.prow{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;border:none;flex:0 0 48px;cursor:pointer;background:#ffd27f;color:#0f1722;font-size:20px;display:grid;place-items:center}
+.play:active{transform:scale(.94)}
+.replay{width:38px;height:38px;border-radius:50%;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:16px;cursor:pointer;flex:0 0 38px}
+.pcol{flex:1;min-width:0}
+.ptime{font-size:11.5px;color:#9fb0c2;display:flex;justify-content:space-between;margin-bottom:5px}
+.bar{height:7px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ffd27f,#ffe6b8);border-radius:99px}
+.divider{position:absolute;top:-2px;bottom:-2px;width:2px;background:#7fc7ff;opacity:.7}
+.dots{display:flex;gap:6px;margin-top:9px}
+.dot{flex:1;text-align:center;font-size:11px;color:#8aa0b6;background:#1a2533;border:1px solid #2b3b50;border-radius:8px;padding:5px 2px;cursor:pointer}
+.dot.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f;font-weight:700}
+.boundary{margin-top:20px;font-size:11.5px;line-height:1.6;color:#7e8da0;background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+
+.wrap{padding:12px 14px 132px}
+.lesson.orientation-adaptive{max-width:640px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 8px}
+.titlegroup{min-width:0}
+.topline h1{margin-bottom:0}
+.timepill{flex:0 0 auto;border:1px solid #31445c;border-radius:999px;padding:8px 12px;color:#cfe0f0;font-weight:800;font-size:13px;background:#121d2a}
+.quick-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.quick-options button{border:1px solid #2d4158;border-radius:9px;background:#142031;color:#94a8bd;
+  min-height:32px;font-size:12px;font-weight:800}
+.quick-options button.active{border-color:#ffd27f;color:#ffd27f;background:#211a0c}
+.stagebox{position:relative}
+.stage{position:relative;display:grid;place-items:center;min-height:300px;aspect-ratio:5/4;overflow:hidden}
+.stage svg{width:100%;height:100%;object-fit:contain}
+.stage .banner{position:absolute;left:12px;right:12px;bottom:10px;z-index:2}
+.score-strip{position:absolute;left:12px;right:12px;bottom:58px;z-index:2;display:flex;flex-wrap:wrap;gap:6px;
+  opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.reached-conclude .score-strip{opacity:1;transform:none}
+.score-strip span{background:#211a0c;border:1px solid #5a421c;color:#ffd27f;border-radius:999px;padding:4px 9px;font-size:11.5px;font-weight:800}
+.caption{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));
+  z-index:32;box-shadow:0 14px 44px rgba(0,0,0,.24)}
+.center-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  border:none;border-radius:999px;background:#ffd27f;color:#0f1722;font-size:16px;font-weight:900;
+  padding:16px 22px;box-shadow:0 12px 36px rgba(0,0,0,.28);cursor:pointer}
+.lesson.started .center-play{display:none}
+.player{transition:transform .45s,opacity .45s}
+.player.hide{transform:translateY(135%);opacity:0;pointer-events:none}
+.steps{display:flex;gap:6px;margin:2px 0 12px;position:sticky;top:0;z-index:5;
+  background:linear-gradient(#0f1722,#0f1722f0);padding:8px 0 6px}
+.step{flex:1;text-align:center;font-size:12px;color:#6c7d92;background:#161f2b;border:1px solid #243247;border-radius:9px;padding:7px 2px;font-weight:700}
+.step.on{color:#0f1722;background:#ffd27f;border-color:#ffd27f}
+.step.done{color:#3fd39a;border-color:#26513c}
+.keycards{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.kc{opacity:0;max-height:0;overflow:hidden;transform:translateX(-12px);transition:opacity .26s,transform .26s,max-height .26s,padding .26s;
+  background:#16202d;border-left:0 solid #3a4a60;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:700;color:#dbe6f1}
+.kc.in{opacity:0;transform:none;max-height:0;padding-top:0;padding-bottom:0}
+.kc.current{opacity:1;transform:none;max-height:112px;padding:8px 12px;border-left-width:3px;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.kc-q{border-left-color:#7fc7ff;color:#cfe6fb}
+.kc-a{border-left-color:#3fd39a;color:#cdeedd}
+.kc-concl{border-left-color:#ffd27f;color:#ffe7bd;background:#231d10}
+.kc-score{border-left-color:#e08a1e;color:#ffd9a6}
+/* 连续流:锁定段折叠隐藏,reveal 时平滑展开 + 滑入 */
+.seg{overflow:hidden;max-height:0;opacity:0;transform:translateY(16px);
+  transition:max-height .6s ease,opacity .55s ease,transform .55s ease}
+.seg.open{max-height:4000px;opacity:1;transform:none}
+	.skip{display:block;width:100%;margin:14px 0 2px;padding:11px;border:1px dashed #3a4a60;border-radius:12px;
+	  background:transparent;color:#9fb0c2;font-size:13.5px;cursor:pointer;text-align:center;text-decoration:none}
+.bridge{margin-top:18px}
+.section-tag{font-size:12px;letter-spacing:.1em;color:#7fc7ff;font-weight:800;margin:18px 2px 10px}
+.qlabel{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px}
+.qlabel b{color:#7fc7ff}
+.qblock{padding:2px 0 6px;border-top:1px solid #1d2735;margin-top:14px}
+.qblock:first-of-type{border-top:none}
+.qstem{font-size:16.5px;line-height:1.55;font-weight:700;margin:0 0 14px;color:#eef3f8}
+.qopt{display:block;width:100%;text-align:left;margin:9px 0;padding:13px 15px;border-radius:13px;
+  background:#1a2533;border:1.5px solid #2b3b50;color:#dbe6f1;font-size:14.5px;line-height:1.5;cursor:pointer}
+.qopt:active{transform:scale(.99)}
+.qopt.correct{border-color:#3fd39a;background:#16321f}
+.qopt.wrong{border-color:#e0575a;background:#321a1c}
+.qopt[disabled]{cursor:default;opacity:.92}
+.qfb{margin:12px 0 2px;padding:12px 14px;border-radius:12px;font-size:14px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.ok{background:#16321f;border:1px solid #1f7a4d;color:#bff0d4}
+.qfb.no{background:#2a1c20;border:1px solid #7a3540;color:#f3c9cd}
+	.qfb .tier{display:inline-block;margin-top:6px;font-size:11.5px;color:#9fb0c2;font-weight:700}
+	.qfb .nexthint{display:block;margin-top:8px;font-size:12px;color:#7fc7ff;opacity:.85}
+.vcard{border-radius:16px;padding:18px 16px;margin:6px 0 14px;text-align:center}
+.vcard.good{background:#143020;border:1px solid #2a7a4f}
+.vcard.mid{background:#322a12;border:1px solid #7a6326}
+.vcard.low{background:#152a3a;border:1px solid #2a5a7a}
+.vtitle{font-size:21px;font-weight:800;margin:0 0 8px}
+.vcard.good .vtitle{color:#7fe6ab}.vcard.mid .vtitle{color:#ffd27f}.vcard.low .vtitle{color:#7fc7ff}
+.vtext{font-size:14.5px;line-height:1.65;color:#e7eef6}
+.vscore{font-size:13px;color:#9fb0c2;margin-top:10px}
+.recap{margin:6px 0 14px}
+.recap .rl{font-size:12px;color:#9fb0c2;font-weight:700;margin:0 0 8px;letter-spacing:.05em}
+	.rrow{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:#16202d;border-radius:10px;margin:7px 0;font-size:13.5px;line-height:1.5}
+	.rrow .mk{flex:0 0 auto;font-weight:800}
+	.rrow.ok .mk{color:#3fd39a}.rrow.no .mk{color:#e0575a}
+	.rrow .key{display:inline-block;margin-left:6px;font-size:11px;color:#ffd27f;font-weight:700;border:1px solid #4a3a1e;border-radius:6px;padding:1px 6px}
+	.rrow .basis-text{color:#9fb0c2;font-size:12px}
+.cta{display:block;width:100%;margin:12px 0 4px;padding:14px;border:none;border-radius:14px;
+  background:#ffd27f;color:#16202d;font-size:15px;font-weight:800;cursor:pointer}
+.cta.ghost{background:#1a2533;color:#cfe0f0}
+.mnote{font-size:11.5px;color:#7e8da0;line-height:1.6;margin-top:4px}
+.scrubber{width:100%;margin:8px 0 0;accent-color:#ffd27f}
+.dot.practice-dot{color:#ffd27f;border-color:#5a421c;background:#211a0c;text-decoration:none;font-weight:800}
+/* 分镜点单行(不换行,横向滚动)——保证 controls 面板高度恒定,不随 beat-dot 数量增加而长高、
+   挤进 theater 学习舞台造成 controls/stage 重叠(Q02 6 个分镜点 → 2 行曾撑到 132px 触发 theater_overlap)。*/
+.dots{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.dots::-webkit-scrollbar{display:none}
+.dots .dot{flex:0 0 auto;white-space:nowrap;min-width:max-content}
+	.lesson.theater{max-width:none;padding:0;background:#0f1722}
+.lesson.theater .steps,.lesson.theater .topline,.lesson.theater .quick-options,
+.lesson.theater .subtitle,.lesson.theater .caption,.lesson.theater .qa,
+.lesson.theater .skip,.lesson.theater .bridge,.lesson.theater .qblock,
+.lesson.theater #verdictSec,.lesson.theater .boundary{display:none!important}
+	.lesson.theater .score-strip{display:none}
+	.lesson.theater .stagebox{position:fixed;inset:0;z-index:80;margin:0;border-radius:0;border:0;padding:0;background:#101b28}
+	.lesson.theater.controls-visible .stagebox{inset:0 0 112px 0}
+	.lesson.theater .stage{width:100vw;height:calc(100vh - 112px);min-height:0;aspect-ratio:auto;border-radius:0;place-items:start center;padding:56px 18px 0}
+	.lesson.theater .stage svg{height:auto;max-height:54vh}
+	.lesson.theater .stage .banner{bottom:auto;top:min(300px,42vh)}
+	.lesson.theater .keycards{position:fixed;right:14px;top:14px;width:min(300px,42vw);z-index:85}
+	.theater-toggle{width:54px;height:38px;border-radius:999px;border:1px solid #3a4a60;background:#1a2533;color:#cfe0f0;font-size:13px;font-weight:800;cursor:pointer;flex:0 0 54px}
+	.lesson.theater .player.controls{position:fixed;left:0;right:0;bottom:0;z-index:90;transform:translateY(120%);opacity:0;pointer-events:none}
+	.lesson.theater.controls-visible .player.controls{transform:none;opacity:1;pointer-events:auto}
+@media (orientation:landscape),(min-width:760px){
+  .lesson.orientation-adaptive{max-width:1040px}
+  .stagebox{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,28%);align-items:stretch;gap:12px}
+  .stage{min-height:min(58vh,430px);aspect-ratio:16/10}
+  .caption{min-height:48px}
+  .keycards{margin-top:0;align-self:stretch;justify-content:center}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .wrap{max-width:none;padding-top:8px}
+  .steps{display:none}
+  .topline{margin-bottom:4px}
+  .kicker,.quick-options{display:none}
+  h1{font-size:18px}
+  .stagebox{display:block}
+  .stage{height:calc(100vh - 72px);min-height:300px;aspect-ratio:auto}
+  .keycards{position:absolute;right:12px;top:12px;width:min(300px,34vw);z-index:5}
+  .caption{bottom:92px;width:min(460px,calc(100vw - 28px))}
+}
+@media (max-width:430px){
+  .wrap{padding-top:10px}
+  .topline{align-items:flex-start}
+  h1{font-size:19px}
+  .timepill{font-size:12px;padding:7px 10px}
+  .stage{min-height:300px}
+  .quick-options button{font-size:11.5px}
+}
+.q-flame,.q-band,.q-arrow,.q-tension,.q-crack,.q-bar,.q-valve{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .q-flame{transform:translateY(4px)} .reached-heat .q-flame{opacity:1;transform:none} .reached-gradient .q-band{opacity:1} .q-arrow{transform:scale(.6);transform-origin:center} .reached-stress .q-arrow{opacity:.95;transform:none} .reached-stress .q-tension{opacity:1} .q-bar{transform:scaleY(.2);transform-origin:bottom} .reached-crack .q-bar{opacity:1;transform:none} .reached-crack .q-crack{opacity:1} .q-valve{transform:scale(.5);transform-origin:center} .reached-valves .q-valve{opacity:1;transform:none} .q-slab{fill:#5d6f86} .q-lbl{fill:#9fb0c2;font-size:10px} .q-note{font-size:11px;font-weight:700} .q-note.heat{fill:#ffb15a}.q-note.grad{fill:#7fc7ff}.q-note.stress{fill:#ffd27f}.q-note.crack{fill:#ff7a7a}.q-note.valve{fill:#7fe6ab} .q-vtxt{fill:#bff0d4;font-size:9.5px;font-weight:700}</style></head>
+<body>
+<main class="wrap lesson orientation-adaptive" data-card-id="Q02_dtjnt" data-stage-shell="archetype-journey">
+  <div class="steps">
+    <div class="step on" data-step="teach">① 讲懂</div>
+    <div class="step" data-step="quiz">② 闯关</div>
+    <div class="step" data-step="verdict">③ 看穿</div>
+  </div>
+  <div class="topline">
+    <div class="titlegroup">
+      <p class="kicker">深母题 · 讲懂→闯关→看穿</p>
+      <h1>大体积混凝土温度裂缝控制</h1>
+    </div>
+    <div class="timepill"><span id="topcur">0:00</span> / <span id="toptot">0:00</span></div>
+  </div>
+	  <div class="quick-options" aria-label="本卡判断抓手">
+	    <button class="active" type="button">温升≤50℃</button><button class="" type="button">里表温差≤25℃</button><button class="" type="button">降温≤2.0℃/d</button><button class="" type="button">拆保温温差≤20℃</button>
+	  </div>
+
+  <!-- ① 讲懂(始终展开) -->
+  <p class="subtitle">老师边讲边在筏板剖面上画因果链,讲完帮你答疑</p>
+  <div class="stagebox">
+    <div class="stage" id="stage" data-stage-shell="visual-stage">
+      <svg viewBox='0 0 360 250' role='img' aria-label='大体积混凝土温度裂缝控制因果链剖面'><rect x='30' y='150' width='300' height='70' rx='4' class='q-slab' data-visual-node-id='slab.section'/><text class='q-lbl' x='34' y='240'>厚筏板剖面(大体积)</text><g class='q-flame' data-visual-node-id='slab.heat'><path d='M70 200 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M120 196 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M170 204 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M220 196 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M270 200 q-7 -12 0 -22 q7 10 0 22Z' fill='#ff9b3a'/><path d='M150 184 q-6 -10 0 -18 q6 8 0 18Z' fill='#ffd27f'/><path d='M195 184 q-6 -10 0 -18 q6 8 0 18Z' fill='#ffd27f'/><text class='q-note heat' x='180' y='142' text-anchor='middle'>S1 水泥水化放热 · 大体积散不出去</text></g><g class='q-band' data-visual-node-id='band.gradient'><rect x='30' y='150' width='300' height='70' rx='4' fill='url(#qgrad)' opacity='.78'/><defs><radialGradient id='qgrad' cx='50%' cy='50%' r='62%'><stop offset='0%' stop-color='#ff5a5a'/><stop offset='55%' stop-color='#ffb15a'/><stop offset='100%' stop-color='#5aa0ff'/></radialGradient></defs><text class='q-note grad' x='180' y='130' text-anchor='middle'>S2 芯热表凉 → 里表温差≤25℃</text></g><g class='q-arrow' data-visual-node-id='arrow.stress'><path d='M70 185 L110 185' stroke='#7fe6ab' stroke-width='3'/><path d='M104 180 L112 185 L104 190' fill='none' stroke='#7fe6ab' stroke-width='2.5'/><path d='M290 185 L250 185' stroke='#ff9b9b' stroke-width='3'/><path d='M256 180 L248 185 L256 190' fill='none' stroke='#ff9b9b' stroke-width='2.5'/><text class='q-note stress' x='180' y='190' text-anchor='middle'>内胀外缩</text></g><g class='q-tension' data-visual-node-id='tension.stress'><line x1='40' y1='156' x2='320' y2='156' stroke='#ffd27f' stroke-width='1.8' stroke-dasharray='6 4'/><text class='q-note stress' x='180' y='118' text-anchor='middle'>S3 表面受拉 = 温度应力</text></g><g class='q-bar' data-visual-node-id='bar.crack'><rect x='118' y='40' width='28' height='62' rx='3' fill='#ffd27f'/><text class='q-lbl' x='132' y='112' text-anchor='middle'>温度应力</text><rect x='214' y='62' width='28' height='40' rx='3' fill='#6fa8dc'/><text class='q-lbl' x='228' y='112' text-anchor='middle'>抗拉强度(早龄期低)</text><text class='q-note crack' x='180' y='30' text-anchor='middle'>S4 应力 &gt; 抗拉强度 → 开裂</text></g><g class='q-crack' data-visual-node-id='crack.line'><path d='M180 150 L176 168 L184 184 L178 204' stroke='#ff3b3b' stroke-width='2.4' fill='none'/></g><g class='q-valve' data-visual-node-id='valve.four'><circle cx='75' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='75' y='237' text-anchor='middle'>温升50</text><circle cx='150' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='150' y='237' text-anchor='middle'>温差25</text><circle cx='225' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='225' y='237' text-anchor='middle'>降温2.0</text><circle cx='300' cy='234' r='11' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='q-vtxt' x='300' y='237' text-anchor='middle'>拆保20</text><text class='q-note valve' x='180' y='250' text-anchor='middle'>S5 四个阀门 = 抗/放/控/养四下手点</text></g></svg>
+	      <div class="score-strip" data-visual-node-id="score.keywords"><span data-visual-node-id="score.atom.1">温升≤50℃</span><span data-visual-node-id="score.atom.2">里表温差≤25℃</span><span data-visual-node-id="score.atom.3">降温≤2.0℃/d</span><span data-visual-node-id="score.atom.4">拆保温温差≤20℃</span><span data-visual-node-id="score.atom.5">保湿养护≥14d</span><span data-visual-node-id="score.atom.6">测点间距≤500mm</span><span data-visual-node-id="score.atom.7">表/底/中心</span><span data-visual-node-id="score.atom.8">每昼夜≥4次</span></div>
+      <div class="banner" data-visual-node-id="stage.conclude score.answer"><span data-visual-node-id="closing.score_sentence">四个数字不是孤立背诵 → 温升≤50℃·里表温差≤25℃·降温≤2.0℃/d·拆保温≤20℃,是同一条因果链上的四个阀门。</span></div>
+      <button class="center-play" id="centerPlay" type="button">播放讲解</button>
+    </div>
+    <div class="keycards" id="keycards"><div class="kc kc-q" data-start="0" data-seg-idx="0" data-beat-id="intro" data-action-id="intro.keycard" data-visual-node-id="keycard.intro">大体积温控,丢分在只背数字不讲因果</div>
+<div class="kc kc-a" data-start="13.558" data-seg-idx="1" data-beat-id="heat" data-action-id="heat.keycard" data-visual-node-id="keycard.heat">S1 源头:水泥水化放热,大体积散不出去</div>
+<div class="kc kc-a" data-start="24.329" data-seg-idx="2" data-beat-id="gradient" data-action-id="gradient.keycard" data-visual-node-id="keycard.gradient">S2 芯热表凉 → 里表温差≤25℃</div>
+<div class="kc kc-a" data-start="34.948" data-seg-idx="3" data-beat-id="stress" data-action-id="stress.keycard" data-visual-node-id="keycard.stress">S3 内胀外缩,表面被拽住 → 温度应力</div>
+<div class="kc kc-a" data-start="44.559" data-seg-idx="4" data-beat-id="crack" data-action-id="crack.keycard" data-visual-node-id="keycard.crack">S4 应力 &gt; 早龄期抗拉强度 → 裂缝</div>
+<div class="kc kc-concl" data-start="54.971" data-seg-idx="5" data-beat-id="valves" data-action-id="valves.keycard" data-visual-node-id="keycard.valves">S5 四个数 = 一条链上的四个阀门</div>
+<div class="kc kc-score" data-start="69.05" data-seg-idx="6" data-beat-id="score" data-action-id="score.keycard" data-visual-node-id="keycard.score">采分词:温升≤50 · 里表≤25 · 降温≤2.0 · 拆保温≤20 · 养护≥14d</div>
+<div class="kc kc-concl" data-start="80.951" data-seg-idx="7" data-beat-id="transfer" data-action-id="transfer.keycard" data-visual-node-id="keycard.transfer">迁移:控温逻辑通用,限值随结构变</div></div>
+  </div>
+	  <div class="caption" id="caption"><span class="who">鲁班老师</span><span id="captxt">点下面 ▶,老师开讲。</span></div>
+	  <div class="qa" id="qa"><div class="qlbl">讲完了 · 同学还有疑问 👇</div><div class="row s" data-qi="0" data-role="q"><div class="av s">小</div><div class="bubble">老师,我只写了&#x27;控制温升、加强养护&#x27;,为啥还丢分?</div></div><div class="row t" data-qi="0" data-role="a"><div class="av t">鲁</div><div class="bubble">你把温升当唯一指标了。温控是三件套并列:温升≤五十、里表温差≤二十五、降温≤每天两度,缺一项就漏采分。</div></div>
+<div class="row s" data-qi="1" data-role="q"><div class="av s">小</div><div class="bubble">那快点降温、早拆保温,不就省事?</div></div><div class="row t" data-qi="1" data-role="a"><div class="av t">鲁</div><div class="bubble">这正是坑。危险的是里表温差这个梯度,不是绝对温度高。保温是让表面慢冷、缩小梯度,降太快温差拉大照样裂。</div></div>
+<div class="row s" data-qi="2" data-role="q"><div class="av s">小</div><div class="bubble">那保温层够14天就能拆吧?</div></div><div class="row t" data-qi="2" data-role="a"><div class="av t">鲁</div><div class="bubble">不能只看天数。拆保温前要查表面与大气的温差不大于二十度才能拆,否则表面急冷拉裂。养护十四天和拆保温温差二十度是两条,别混。</div></div></div>
+	  <button class="skip" id="skipQuiz">听够了?直接进闯关 →</button>
+	  <a class="skip practice-link" href="Q02_dtjnt.practice.html">开始闯关 · 独立页 →</a>
+
+  <!-- 过渡:老师领入闯关 -->
+  <div class="seg bridge" id="bridge">
+    <div class="row t"><div class="av t">鲁</div>
+      <div class="bubble">听明白了?来,我出 4 道题考考你,看你是真会分档,还是背了'要论证'三个字 👇</div></div>
+  </div>
+
+  <!-- ② 闯关(逐题自动浮现) -->
+  <div class="qblock seg" data-qi="0" data-practice-id="V1_rise_over"><p class="qlabel">闯关 · 第 <b>1</b>/4 题 · 上限档(超限须干预)</p><p class="qstem">某基础底板大体积混凝土,现场测温发现里表温差已经超过控制限值,且还在继续上升。此刻最该做的是?</p><div class="qopts"><button class="qopt" data-qi="0" data-oid="A"><b>A.</b> 温度还没到危险绝对值,继续浇筑观察即可</button><button class="qopt" data-qi="0" data-oid="B"><b>B.</b> 立刻拆掉保温层,让表面快点散热降下来</button><button class="qopt" data-qi="0" data-oid="C"><b>C.</b> 温差已超控制限值,须加强保温/放缓散热,把里表温差压回限值内</button></div><div class="qfb" data-qi="0"></div></div>
+<div class="qblock seg" data-qi="1" data-practice-id="V2_at_limit"><p class="qlabel">闯关 · 第 <b>2</b>/4 题 · 中间边界陷阱档(恰好等于上限=合格)·关键鉴别</p><p class="qstem">同一基础底板,这次实测里表温差恰好达到控制限值的上限值(不再上升)。这一步该怎么判?</p><div class="qopts"><button class="qopt" data-qi="1" data-oid="A"><b>A.</b> 已经触到上限就是超标,必须停工返工</button><button class="qopt" data-qi="1" data-oid="B"><b>B.</b> 恰好等于上限仍属合格,可继续,但要盯住别再往上越线</button><button class="qopt" data-qi="1" data-oid="C"><b>C.</b> 既然没超,后面就不用再测温了</button></div><div class="qfb" data-qi="1"></div></div>
+<div class="qblock seg" data-qi="2" data-practice-id="V3_within"><p class="qlabel">闯关 · 第 <b>3</b>/4 题 · 下限档(均在限内·正常推进)</p><p class="qstem">同一基础底板,各项温控指标(里表温差、温升、降温速率)实测都明显低于控制限值。该怎么办?</p><div class="qopts"><button class="qopt" data-qi="2" data-oid="A"><b>A.</b> 都在控制限值内,按方案正常养护、继续测温即可</button><button class="qopt" data-qi="2" data-oid="B"><b>B.</b> 指标这么好,可以提前拆保温、停止测温</button><button class="qopt" data-qi="2" data-oid="C"><b>C.</b> 温度低说明强度不够,要立刻升温催熟</button></div><div class="qfb" data-qi="2"></div></div>
+<div class="qblock seg" data-qi="3" data-practice-id="V4_transfer"><p class="qlabel">闯关 · 第 <b>4</b>/4 题 · 迁移档(换结构·判读链不变)</p><p class="qstem">换个结构:一座大型设备基础(同属大体积厚块,控制限值与底板同一组:里表温差≤25℃、降温速率≤2.0℃/d)。现场实测里表温差超过限值、且工人想&#x27;快点降温早点交工&#x27;。判读应是?</p><div class="qopts"><button class="qopt" data-qi="3" data-oid="A"><b>A.</b> 设备基础不是楼板,温度裂缝无所谓,可加快降温交工</button><button class="qopt" data-qi="3" data-oid="B"><b>B.</b> 判读链照走:超限要干预,但靠保温缩小温差、降温≤2.0℃/d,不能快冷</button><button class="qopt" data-qi="3" data-oid="C"><b>C.</b> 换了结构,基础底板那套温控限值就不适用了</button></div><div class="qfb" data-qi="3"></div></div>
+
+  <!-- ③ 看穿(4 题完自动浮现) -->
+  <div class="seg" id="verdictSec">
+    <p class="section-tag">③ 看穿</p>
+    <div id="verdict"></div>
+    <div class="recap" id="recap"></div>
+	    <p class="mnote">这是自测看穿,不是正式判定;客观掌握结论以学情系统为准。</p>
+    <button class="cta" id="retry">再闯一次</button>
+    <button class="cta ghost" id="backTeach">回看讲解</button>
+  </div>
+
+	  <div class="boundary"><b>说明:</b>这是培训机构教研的讲解,不是官方阅卷;温控限值与判分口径以现行 GB 50496 等规范、教材和你的考试大纲为准。</div>
+
+<div class="player controls" id="player">
+  <div class="inner">
+
+    <div class="prow">
+	      <button class="play" id="play" aria-label="播放">▶</button>
+	      <button class="replay" id="replay" aria-label="重播">↺</button>
+	      <button class="theater-toggle" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="全屏">全屏</button>
+	      <div class="pcol">
+        <div class="ptime"><span id="cur">0:00</span><span id="tot">0:00</span></div>
+        <div class="bar" id="bar"><div class="fill" id="fill"></div><div class="divider" id="divider"></div></div>
+        <input class="scrubber" id="scrubber" type="range" min="0" max="147.634" value="0" step="0.05" aria-label="拖动播放进度">
+      </div>
+    </div>
+    <div class="dots" id="dots"><button class="dot beat-dot" data-state="intro" data-t="0">起因</button><button class="dot beat-dot" data-state="heat" data-t="13.558">水化热</button><button class="dot beat-dot" data-state="gradient" data-t="24.329">温差</button><button class="dot beat-dot" data-state="stress" data-t="34.948">温度应力</button><button class="dot beat-dot" data-state="crack" data-t="44.559">裂缝</button><button class="dot beat-dot" data-state="valves" data-t="54.971">四阀门</button><a class="dot practice-dot" href="Q02_dtjnt.practice.html">闯关</a></div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="Q02_dtjnt.lesson.mp3"></audio>
+</main>
+<script>
+const DATA={"totalSec": 147.634, "teachEndSec": 96.003, "segments": [{"idx": 0, "kind": "teach", "state": "intro", "qaIndex": null, "text": "大体积温控,很多人把温升五十、温差二十五背下来就上场,一换工程就懵。今天沿一条因果链走,把每个数字挂回它的物理原因。", "startSec": 0}, {"idx": 1, "kind": "teach", "state": "heat", "qaIndex": null, "text": "先看热从哪来。水泥遇水放热,叫水化热。大体积构件厚,热量积在芯部散不出去,芯部就憋高了。", "startSec": 13.558}, {"idx": 2, "kind": "teach", "state": "gradient", "qaIndex": null, "text": "芯部憋热、表面散得快,芯热表凉,里表温差就出来了。教材把里表温差不大于二十五度当成控制量。", "startSec": 24.329}, {"idx": 3, "kind": "teach", "state": "stress", "qaIndex": null, "text": "有温差就胀缩不均:芯部想胀、表面想缩,反向力把表面拽住受拉,这就是温度应力。", "startSec": 34.948}, {"idx": 4, "kind": "teach", "state": "crack", "qaIndex": null, "text": "早龄期混凝土抗拉强度很低,温度应力一旦超过当时的抗拉强度,裂缝就来了。它是前三步的必然结果。", "startSec": 44.559}, {"idx": 5, "kind": "teach", "state": "valves", "qaIndex": null, "text": "所以控制只有一条路:关住每个阀门。温升≤五十、里表温差≤二十五、降温≤每天两度、拆保温温差≤二十——这四个数就是同一条链上的四个阀门。", "startSec": 54.971}, {"idx": 6, "kind": "teach", "state": "valves", "qaIndex": null, "text": "采分就盯这几组词:温升五十、里表温差二十五、降温每天两度、拆保温二十,再加保湿养护不少于十四天。", "startSec": 69.05}, {"idx": 7, "kind": "teach", "state": "valves", "qaIndex": null, "text": "记住:换成筏板、大型设备基础,控的还是控温度梯度不是控绝对温度,实测比限值、超了就干预。换了结构,限值随结构给,这条判读链不变。", "startSec": 80.951}, {"idx": 8, "kind": "q", "state": "conclude", "qaIndex": 0, "text": "老师,我只写了'控制温升、加强养护',为啥还丢分?", "startSec": 96.403}, {"idx": 9, "kind": "a", "state": "conclude", "qaIndex": 0, "text": "你把温升当唯一指标了。温控是三件套并列:温升≤五十、里表温差≤二十五、降温≤每天两度,缺一项就漏采分。", "startSec": 102.209}, {"idx": 10, "kind": "q", "state": "conclude", "qaIndex": 1, "text": "那快点降温、早拆保温,不就省事?", "startSec": 113.668}, {"idx": 11, "kind": "a", "state": "conclude", "qaIndex": 1, "text": "这正是坑。危险的是里表温差这个梯度,不是绝对温度高。保温是让表面慢冷、缩小梯度,降太快温差拉大照样裂。", "startSec": 117.803}, {"idx": 12, "kind": "q", "state": "conclude", "qaIndex": 2, "text": "那保温层够14天就能拆吧?", "startSec": 129.719}, {"idx": 13, "kind": "a", "state": "conclude", "qaIndex": 2, "text": "不能只看天数。拆保温前要查表面与大气的温差不大于二十度才能拆,否则表面急冷拉裂。养护十四天和拆保温温差二十度是两条,别混。", "startSec": 132.751}], "variants": [{"id": "V1_rise_over", "answer": "C", "feedback": "对:里表温差超过控制限值(教材是≤25℃)就要干预,而且要靠加保温让表面慢冷、缩小温差——绝不是拆保温让它快冷,那会把温差拉得更大、表面更容易裂。", "basis": "里表温差>控制限值(≤25℃)即须干预;危险的是温差梯度不是绝对温度,降温速率也不能超 2.0℃/d——拆保温反而拉大温差", "tier": "上限档(超限须干预)"}, {"id": "V2_at_limit", "answer": "B", "feedback": "对:控制限值是'≤'号——恰好等于上限值(教材里表温差≤25℃)还在合格区,不用停工返工;但你已经贴着红线了,必须继续测温盯住别再升。把'≤'看成'<'、一到上限就喊超标,是最常见的边界误判。", "basis": "判据是'≤限值=合格',恰好等于上限值(教材里表温差≤25℃)仍在合格区,不必停工;但已到边界须持续测温防越线——这正是最易误判为超限的中间档", "tier": "中间边界陷阱档(恰好等于上限=合格)·关键鉴别"}, {"id": "V3_within", "answer": "A", "feedback": "对:各项都在控制限值内,按方案正常养护、继续测温就好。注意别被'指标好'忽悠去提前拆保温或停测温——养护≥14d、拆保温查温差≤20℃这些动作还得做满。", "basis": "各指标<控制限值=合格区,正常推进;但养护与测温要按方案做满(保湿养护≥14d、拆保温仍要查温差≤20℃),不能因'指标好'就提前停", "tier": "下限档(均在限内·正常推进)"}, {"id": "V4_transfer", "answer": "B", "feedback": "对:换成大型设备基础,判读链一模一样——超限要干预,但要靠保温让表面慢冷、缩小温差,降温每天不超过 2 度,绝不是'快点降温交工'。换了结构,限值随结构给,但'控温差不控绝对温度'这条逻辑不变,这才是真会迁移,不是背底板那几个数。", "basis": "大型设备基础同属厚大体积,水化热聚中心,控的是同一个里表温差/降温速率;换结构只换外壳,'控温差→比限值→据档判、不能快冷'的判读链不变(R2 换皮场景表)", "tier": "迁移档(换结构·判读链不变)"}], "keyIdx": [1, 3], "warm": {"all_correct": "你是真的把温控判读链走通了——不管底板还是设备基础,都先看'控温差不是控绝对温度',再拿实测比控制限值,连'恰好等于上限算合格'这种边界都分得清。这类题稳,换什么结构你都不慌。", "partial": "判读链你会走,就差最关键的那一下:'≤限值'里恰好等于上限也算合格,别一到红线就喊超标;换个厚大体积结构(筏板、设备基础),只要题目给了该结构限值,照样是'控温差→比限值'这条链。把这两点补上就齐了——你离真懂只差一步。", "rote_leaning": "先别急着背'温差25、降温2.0'这几个数。记这条判读链:危险的是里表温差(梯度)不是绝对温度 → 实测拿去比控制限值,≤就是合格(等于上限也算)、超了才干预、而且要靠保温慢冷不是快冷 → 换什么厚大体积结构这条链都成立,只是限值随结构。走顺这条链,换底板、筏板、设备基础你都不慌。"}};
+window.__LUBAN_LESSON_MANIFEST__={"card_id": "Q02_dtjnt", "beats": [{"id": "intro", "stage": "intro", "actions": [{"id": "intro.camera.0", "type": "camera", "target": "data-id:slab.section", "target_id": "slab.section"}, {"id": "intro.keycard.1", "type": "keycard", "target": "data-id:keycard.intro", "target_id": "keycard.intro"}]}, {"id": "heat", "stage": "heat", "actions": [{"id": "heat.reveal.0", "type": "reveal", "target": "data-id:slab.heat", "target_id": "slab.heat"}, {"id": "heat.keycard.1", "type": "keycard", "target": "data-id:keycard.heat", "target_id": "keycard.heat"}]}, {"id": "gradient", "stage": "gradient", "actions": [{"id": "gradient.reveal.0", "type": "reveal", "target": "data-id:band.gradient", "target_id": "band.gradient"}, {"id": "gradient.highlight.1", "type": "highlight", "target": "data-id:keycard.gradient", "target_id": "keycard.gradient"}]}, {"id": "stress", "stage": "stress", "actions": [{"id": "stress.reveal.0", "type": "reveal", "target": "data-id:arrow.stress", "target_id": "arrow.stress"}, {"id": "stress.highlight.1", "type": "highlight", "target": "data-id:tension.stress", "target_id": "tension.stress"}, {"id": "stress.keycard.2", "type": "keycard", "target": "data-id:keycard.stress", "target_id": "keycard.stress"}]}, {"id": "crack", "stage": "crack", "actions": [{"id": "crack.reveal.0", "type": "reveal", "target": "data-id:bar.crack", "target_id": "bar.crack"}, {"id": "crack.highlight.1", "type": "highlight", "target": "data-id:crack.line", "target_id": "crack.line"}, {"id": "crack.keycard.2", "type": "keycard", "target": "data-id:keycard.crack", "target_id": "keycard.crack"}]}, {"id": "valves", "stage": "valves", "actions": [{"id": "valves.reveal.0", "type": "reveal", "target": "data-id:valve.four", "target_id": "valve.four"}, {"id": "valves.keycard.1", "type": "keycard", "target": "data-id:keycard.valves", "target_id": "keycard.valves"}]}, {"id": "score", "stage": "valves", "actions": [{"id": "score.highlight.0", "type": "highlight", "target": "data-id:score.keywords", "target_id": "score.keywords"}, {"id": "score.keycard.1", "type": "keycard", "target": "data-id:keycard.score", "target_id": "keycard.score"}]}, {"id": "transfer", "stage": "valves", "actions": [{"id": "transfer.camera.0", "type": "camera", "target": "data-id:stage.conclude", "target_id": "stage.conclude"}, {"id": "transfer.keycard.1", "type": "keycard", "target": "data-id:keycard.transfer", "target_id": "keycard.transfer"}]}]};
+	const ORDER=["intro", "heat", "gradient", "stress", "crack", "valves"];
+	const $=id=>document.getElementById(id);
+	const txt=(value)=>document.createTextNode(value==null?'':String(value));
+	function node(tag, cls, text){
+	  const el=document.createElement(tag);
+	  if(cls)el.className=cls;
+	  if(text!=null)el.textContent=String(text);
+	  return el;
+	}
+	function reset(el,...children){el.replaceChildren(...children);return el;}
+
+/* ---- 进度条(不切屏,只更新高亮)---- */
+function setStep(name){
+  const order=['teach','quiz','verdict'],ci=order.indexOf(name);
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('on',s.dataset.step===name);
+    s.classList.toggle('done',i<ci);
+  });
+}
+/* ---- 连续流:平滑展开 + 滑到视野 ---- */
+function openSeg(el){el.classList.add('open');}
+function flowTo(el){requestAnimationFrame(()=>setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),90));}
+
+/* ---- ① 讲懂:动画 + 旁白时间轴 + 关键词卡 PPT ---- */
+	const au=$('au'),play=$('play'),replay=$('replay'),theaterToggle=$('theaterToggle'),fill=$('fill'),bar=$('bar'),divider=$('divider'),scrubber=$('scrubber');
+const cur=$('cur'),tot=$('tot'),topcur=$('topcur'),toptot=$('toptot'),stage=$('stage'),caption=$('caption'),captxt=$('captxt'),qa=$('qa'),player=$('player'),centerPlay=$('centerPlay');
+const lesson=document.querySelector('.lesson');
+const dots=[...document.querySelectorAll('.beat-dot')],kcs=[...document.querySelectorAll('.kc')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);toptot.textContent=fmt(DATA.totalSec);
+if(DATA.totalSec)divider.style.left=(DATA.teachEndSec/DATA.totalSec*100)+'%';
+let curState=null;
+function setStage(st){if(st===curState)return;curState=st;const i=ORDER.indexOf(st);
+  stage.className='stage '+ORDER.slice(0,i+1).map(s=>'reached-'+s).join(' ')+' current-'+st;
+  stage.dataset.currentState=st;
+  dots.forEach(d=>d.classList.toggle('on',d.dataset.state===st));}
+let qaShown=false;
+function revealQA(){if(!qaShown){qaShown=true;qa.classList.add('show');}}
+function setQAActive(qi,role){document.querySelectorAll('.qa .bubble').forEach(b=>b.classList.remove('on'));
+  if(qi==null)return;const r=document.querySelector('.row[data-qi="'+qi+'"][data-role="'+role+'"]');
+  if(r)r.querySelector('.bubble').classList.add('on');}
+function segAt(t){let r=null;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s;else break;}return r;}
+function paint(){const t=au.currentTime;
+  fill.style.width=(t/(DATA.totalSec||au.duration||1)*100)+'%';cur.textContent=fmt(t);topcur.textContent=fmt(t);scrubber.value=String(t);
+  kcs.forEach(k=>k.classList.toggle('in',t>=parseFloat(k.dataset.start)-0.05));
+  const s=segAt(t);if(!s)return;setStage(s.state);
+  kcs.forEach(k=>k.classList.toggle('current',s.kind==='teach'&&String(k.dataset.segIdx)===String(s.idx)));
+  if(s.kind==='teach'){caption.classList.remove('hide');captxt.textContent=s.text;setQAActive(null);}
+  else{caption.classList.add('hide');revealQA();setQAActive(s.qaIndex,s.kind);}
+  if(t>=DATA.teachEndSec-0.2)revealQA();}
+window.paint=paint;
+au.addEventListener('timeupdate',paint);
+au.addEventListener('ended',()=>{play.textContent='▶';startQuiz();});
+function playAudio(){lesson.classList.add('started');return au.play().then(()=>play.textContent='⏸').catch(()=>{captxt.textContent='点一下屏幕再点 ▶';});}
+function togglePlay(){if(au.paused){playAudio();}else{au.pause();play.textContent='▶';}}
+play.addEventListener('click',togglePlay);
+centerPlay.addEventListener('click',()=>{playAudio();});
+replay.addEventListener('click',()=>{lesson.classList.add('started');au.currentTime=0;qaShown=false;qa.classList.remove('show');kcs.forEach(k=>k.classList.remove('in'));playAudio();});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+	scrubber.addEventListener('input',()=>{au.currentTime=parseFloat(scrubber.value)||0;});
+	dots.forEach(d=>d.addEventListener('click',()=>{au.currentTime=parseFloat(d.dataset.t)||0;playAudio();}));
+	function updateTheaterButton(){theaterToggle.textContent=lesson.classList.contains('theater')?'退出':'全屏';theaterToggle.setAttribute('aria-label',theaterToggle.textContent);}
+	function enterTheater(){lesson.classList.add('theater','controls-visible','started');updateTheaterButton();}
+	function exitTheater(){lesson.classList.remove('theater','controls-visible');updateTheaterButton();}
+	theaterToggle.addEventListener('click',()=>{lesson.classList.contains('theater')?exitTheater():enterTheater();});
+	stage.addEventListener('click',(event)=>{if(event.target===centerPlay)return;if(lesson.classList.contains('theater'))lesson.classList.toggle('controls-visible');});
+	document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&lesson.classList.contains('theater'))exitTheater();});
+	updateTheaterButton();
+	setStage('intro');
+
+/* ---- ② 闯关:讲完自动浮现,答完自动滑入下一题 ---- */
+const V=DATA.variants;const answers=new Array(V.length).fill(null);
+const qblocks=[...document.querySelectorAll('.qblock')];
+let quizStarted=false;
+function startQuiz(){if(quizStarted)return;quizStarted=true;
+  au.pause();play.textContent='▶';player.classList.add('hide');setStep('quiz');
+  openSeg($('bridge'));openSeg(qblocks[0]);flowTo($('bridge'));}
+$('skipQuiz').addEventListener('click',startQuiz);
+
+document.querySelectorAll('.qopt').forEach(btn=>btn.addEventListener('click',()=>{
+  const i=+btn.dataset.qi;if(answers[i]!=null)return;const oid=btn.dataset.oid;answers[i]=oid;
+  const correct=oid===V[i].answer,last=i===V.length-1;
+  document.querySelectorAll('.qopt[data-qi="'+i+'"]').forEach(b=>{b.disabled=true;
+    if(b.dataset.oid===V[i].answer)b.classList.add('correct');
+    else if(b.dataset.oid===oid)b.classList.add('wrong');});
+	  const fb=document.querySelector('.qfb[data-qi="'+i+'"]');
+	  fb.className='qfb show '+(correct?'ok':'no');
+	  reset(
+	    fb,
+	    txt((correct?'✅ ':'❌ ')+V[i].feedback),
+	    document.createElement('br'),
+	    node('span','tier','判据:'+V[i].basis+' · '+V[i].tier),
+	    node('span','nexthint',last?'↓ 看你是真懂还是背过':'↓ 下一题来了')
+	  );
+  setTimeout(()=>{
+    if(last){showVerdict();openSeg($('verdictSec'));setStep('verdict');flowTo($('verdictSec'));}
+    else{openSeg(qblocks[i+1]);flowTo(qblocks[i+1]);}
+  },correct?1700:2600);
+}));
+
+/* ---- ③ 看穿:读 master signal,不另造标准 ---- */
+function showVerdict(){
+  const correct=V.map((v,i)=>answers[i]===v.answer);
+  const all=correct.every(Boolean);
+  const keyIdx=DATA.keyIdx||[];
+  const keyAllWrong=keyIdx.length>0&&keyIdx.every(i=>!correct[i]);
+  let bucket,cls,title;
+  if(all){bucket='all_correct';cls='good';title='看穿了:你是真懂 ✅';}
+	  else if(keyAllWrong){bucket='rote_leaning';cls='low';title='先别急着背 🔵';}
+	  else{bucket='partial';cls='mid';title='就差一步 🟡';}
+	  const n=correct.filter(Boolean).length;
+	  const vcard=node('div','vcard '+cls);
+	  reset(
+	    vcard,
+	    node('div','vtitle',title),
+	    node('div','vtext',DATA.warm[bucket]),
+	    node('div','vscore','这轮 '+n+'/'+V.length+' 题判对'+(keyIdx.length?' · 关键鉴别题是看穿点':''))
+	  );
+	  reset($('verdict'),vcard);
+	  const recap=$('recap');
+	  reset(recap,node('div','rl','闯关回看'));
+	  V.forEach((v,i)=>{
+	    const ok=correct[i];
+	    const row=node('div','rrow '+(ok?'ok':'no'));
+	    const body=node('span','');
+	    body.append(txt(v.tier));
+	    if(keyIdx.includes(i))body.append(node('span','key','关键鉴别题'));
+	    body.append(document.createElement('br'),node('span','basis-text',v.basis));
+	    reset(row,node('span','mk',ok?'✓':'✗'),body);
+	    recap.append(row);
+	  });
+	}
+
+/* ---- 重来 / 回看 ---- */
+$('retry').addEventListener('click',()=>{answers.fill(null);
+  document.querySelectorAll('.qopt').forEach(b=>{b.disabled=false;b.classList.remove('correct','wrong');});
+  document.querySelectorAll('.qfb').forEach(f=>f.className='qfb');
+  qblocks.forEach((q,i)=>{if(i>0)q.classList.remove('open');});
+  $('verdictSec').classList.remove('open');setStep('quiz');flowTo(qblocks[0]);});
+$('backTeach').addEventListener('click',()=>{player.classList.remove('hide');setStep('teach');window.scrollTo({top:0,behavior:'smooth'});});
+</script>
+</body></html>

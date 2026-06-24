@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 防水 · 5 天提分留存闭环 — 学员体验故事板</title>
+<style>
+  :root{
+    --ink:#1d2530; --sub:#6b7686; --line:#e7ebf0; --bg:#eef1f5;
+    --green:#1aa06d; --green-bg:#e8f7f0;
+    --amber:#e08a1e; --amber-bg:#fdf2e3;
+    --red:#d9534f; --red-bg:#fdecea;
+    --blue:#2f6df0; --blue-bg:#eaf1ff;
+    --gold:#f5a623;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",Roboto,sans-serif;}
+  header.top{padding:28px 24px 8px;max-width:1240px;margin:0 auto}
+  header.top h1{font-size:22px;margin:0 0 6px}
+  header.top p{margin:4px 0;color:var(--sub);font-size:14px;line-height:1.6}
+  .badge{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:20px;
+    padding:3px 12px;font-size:12px;color:var(--sub);margin-right:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px;
+    max-width:1240px;margin:18px auto 60px;padding:0 24px}
+  .col-title{font-size:13px;color:var(--sub);margin:0 0 10px;font-weight:600;letter-spacing:.3px}
+  .phone{background:#fff;border-radius:30px;padding:10px;box-shadow:0 8px 30px rgba(20,30,50,.10);
+    border:1px solid #dfe4ea}
+  .screen{background:#f6f8fb;border-radius:22px;overflow:hidden;height:600px;display:flex;flex-direction:column}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:9px 18px 4px;font-size:12px;color:#8a94a3}
+  .navbar{padding:6px 18px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:#fff}
+  .navbar .t{font-size:15px;font-weight:600}
+  .navbar .day{margin-left:auto;font-size:12px;color:var(--sub)}
+  .body{padding:16px;overflow:auto;flex:1}
+  .streak{display:inline-flex;align-items:center;gap:5px;background:#fff5e6;color:#c47b12;
+    border-radius:14px;padding:4px 10px;font-size:12px;font-weight:600}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+  .card.lead{background:linear-gradient(135deg,#2f6df0,#5a93ff);color:#fff;border:none}
+  .card.lead .k{font-size:13px;opacity:.9}
+  .card.lead .v{font-size:20px;font-weight:700;margin:6px 0 2px}
+  .card.lead .meta{font-size:12px;opacity:.85}
+  .dots{display:flex;gap:6px;margin:12px 0 2px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#cdd6e2}
+  .dot.on{background:#fff}
+  .cta{display:block;text-align:center;background:var(--blue);color:#fff;border-radius:14px;
+    padding:13px;font-size:15px;font-weight:600;margin-top:14px}
+  .cta.green{background:var(--green)}
+  .q-meta{font-size:12px;color:var(--sub);margin-bottom:6px}
+  .stem{font-size:15px;line-height:1.65;margin:4px 0 14px}
+  .opt{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin:9px 0;font-size:13.5px;
+    line-height:1.5;background:#fff;display:flex;gap:9px}
+  .opt .lab{font-weight:700;color:var(--sub)}
+  .opt.sel{border-color:var(--blue);background:var(--blue-bg)}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg)}
+  .opt.right{border-color:var(--green);background:var(--green-bg)}
+  .confi{background:#fff;border:1px dashed #c9d3e0;border-radius:12px;padding:12px;margin:12px 0}
+  .confi .q{font-size:13px;color:var(--ink);margin-bottom:8px;font-weight:600}
+  .stars{font-size:22px;letter-spacing:4px;color:var(--gold)}
+  .stars .off{color:#d8dee7}
+  .diag{border-radius:16px;padding:15px;margin:10px 0}
+  .diag.bad{background:var(--amber-bg);border:1px solid #f1d4a3}
+  .diag.good{background:var(--green-bg);border:1px solid #b8e6cf}
+  .diag h4{margin:0 0 8px;font-size:15px}
+  .tag{display:inline-block;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px}
+  .tag.err{background:#fbe2d6;color:#b85618}
+  .tag.code{background:#e7ecf3;color:#54627a;font-family:ui-monospace,Menlo,monospace}
+  .diag p{margin:7px 0;font-size:13px;line-height:1.6;color:#3b4452}
+  .diag .why{background:#fff;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6}
+  .src{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:9px 12px;font-size:12px;color:var(--blue);margin-top:8px}
+  .hook{background:#eef4ff;border:1px solid #cfe0ff;border-radius:12px;padding:11px 13px;
+    font-size:13px;color:#2554b0;margin-top:10px;line-height:1.55}
+  .hook b{color:#173a86}
+  .retest-banner{background:#fff7e8;border:1px solid #f3d9a6;border-radius:12px;padding:11px 13px;
+    font-size:13px;color:#9a6512;margin-bottom:12px;line-height:1.55}
+  .win{background:var(--green-bg);border:1px solid #b8e6cf;border-radius:14px;padding:14px;text-align:center;margin:12px 0}
+  .win .big{font-size:17px;font-weight:700;color:var(--green);margin-bottom:4px}
+  .win .sub{font-size:13px;color:#3b6b54}
+  .summary-row{display:flex;justify-content:space-between;padding:11px 2px;border-bottom:1px solid var(--line);font-size:14px}
+  .summary-row:last-child{border-bottom:none}
+  .summary-row .v{font-weight:700}
+  .pos{color:var(--green)} .neg{color:var(--amber)}
+  .note{max-width:1240px;margin:0 auto 60px;padding:0 24px}
+  .note .box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+  .note h3{margin:0 0 10px;font-size:16px}
+  .note ul{margin:8px 0;padding-left:20px;line-height:1.85;font-size:14px;color:#374151}
+  .note .warn{color:#9a6512;background:#fff7e8;border:1px solid #f3d9a6;border-radius:10px;padding:10px 14px;font-size:13px;margin-top:12px;line-height:1.6}
+  code{font-family:ui-monospace,Menlo,monospace;background:#eef1f5;border-radius:5px;padding:1px 5px;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>F16 防水 · 5 天提分留存闭环 — 学员手机体验故事板</h1>
+  <p>
+    <span class="badge">原型 Mockup · 非真小程序</span>
+    <span class="badge">内容＝已 4/4 模型共识的深题 + 逐字溯源 MCQ</span>
+    <span class="badge">静态 HTML · 零依赖</span>
+  </p>
+  <p>这一页把"忙碌成年考生在那 5 天里真正会看到的画面"铺开,供你评估体验与留存机制后,再决定要不要让真人测。每屏底部小字标了它在闭环里的角色。</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1. Day1 今日任务 -->
+  <div>
+    <p class="col-title">① 第 1 天 · 入口（低摩擦 2 分钟）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span>鲁班智考 ▾</span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日任务</span><span class="day">第 1 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 1 天</span>
+        <div class="card lead">
+          <div class="k">今天只练你最常错的一块</div>
+          <div class="v">防水构造 · 3 道</div>
+          <div class="meta">预计 2 分钟 · 选错当场告诉你为什么</div>
+          <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+        </div>
+        <div class="card" style="color:var(--sub);font-size:13px;line-height:1.6">
+          第一天还没有"昨天的错题",今天做完,明天第一题就帮你复测今天踩的坑。
+        </div>
+        <a class="cta">开始（约 2 分钟）</a>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2. Day1 答题 + 把握度 -->
+  <div>
+    <p class="col-title">② 答题（学员视角 · 干净无标注 + 把握度埋点）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:41</span><span></span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">第 1 题</span><span class="day">1 / 3</span></div>
+      <div class="body">
+        <div class="q-meta">屋面防水 · 卷材铺贴</div>
+        <div class="stem">某屋面北侧高、南侧低,雨水从北向南流。两名工人争论卷材搭接方向。哪种做法最能体现"顺水搭接"的本质?</div>
+        <div class="opt"><span class="lab">A</span><span>由低处(南)向高处(北)铺,高处卷材盖住低处卷材的上坡边,水跨过缝口而不钻入。</span></div>
+        <div class="opt sel"><span class="lab">B</span><span>由高处(北)向低处(南)铺,后铺的南侧卷材压住北侧——"后铺压先铺"总没错。</span></div>
+        <div class="opt"><span class="lab">C</span><span>只要搭接宽度够,坡向和缝口朝向不影响渗漏。</span></div>
+        <div class="opt"><span class="lab">D</span><span>为减少接缝,卷材垂直屋脊铺,缝向由施工方便决定。</span></div>
+        <div class="confi">
+          <div class="q">提交前 —— 你几分把握?</div>
+          <div class="stars">★★★<span class="off">★★</span></div>
+        </div>
+        <a class="cta">提交</a>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3. Day1 选错诊断 -->
+  <div>
+    <p class="col-title">③ 选错即诊断（核心 · 帮你而非罚你）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:42</span><span></span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">诊断</span><span class="day">第 1 题</span></div>
+      <div class="body">
+        <div class="opt wrong"><span class="lab">B</span><span>你的选择</span></div>
+        <div class="opt right"><span class="lab">A</span><span>正确</span></div>
+        <div class="diag bad">
+          <h4>选 B 的人很多 —— 但都栽在同一个坑</h4>
+          <span class="tag err">迁移失败</span><span class="tag code">E11</span>
+          <p>你把"后铺压先铺"当成了<b>绝对规则</b>,但没把<b>水流方向</b>代进去。</p>
+          <div class="why">水从北(高)流向南(低)。要让水<b>跨过</b>搭接缝而不灌进缝里,必须是<b>上坡那片压住下坡那片</b>(高盖低)。B 反了,缝口正对来水→渗漏。这就是"顺水"两个字真正的意思。</div>
+          <div class="src">📖 教材依据：建筑实务 1A434 屋面防水 · 铺贴方法（点开看原文）</div>
+        </div>
+        <div class="hook">
+          <b>明天第一题,帮你复测这个点。</b>错在这里是好事 —— 今天搞懂,明天就不丢这分。
+        </div>
+        <a class="cta green">下一题</a>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4. Day1 答对 + 把握度对照 -->
+  <div>
+    <p class="col-title">④ 答对（鼓励 + 把握度校准）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>9:43</span><span></span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">诊断</span><span class="day">第 3 题</span></div>
+      <div class="body">
+        <div class="opt right"><span class="lab">A</span><span>你的选择 · 正确 ✓</span></div>
+        <div class="diag good">
+          <h4>对了 👍 而且你心里有数</h4>
+          <p>你选前给了 <b>4 分把握</b>,结果答对 —— 这个点你是<b>真懂</b>,不是蒙的。</p>
+          <div class="why">把握度和对错对上了叫"校准good"。我们更关心两种人:<b>很有把握却答错</b>(危险,最该补)和<b>没把握却蒙对</b>(虚高,得再练一次)。今天你没踩这两种。</div>
+        </div>
+        <div class="win">
+          <div class="big">今日 3 题完成 🔥 连续 1 天</div>
+          <div class="sub">错 1 题已收进明天复测 · 明天见</div>
+        </div>
+        <a class="cta">完成</a>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5. Day2 复测命中 -->
+  <div>
+    <p class="col-title">⑤ 第 2 天 · 复测命中（留存的"回报"时刻）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>8:30</span><span></span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">今日任务</span><span class="day">第 2 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 2 天</span>
+        <div class="retest-banner">先复测昨天 —— 你在"顺水搭接"栽过,今天换个场景再来一次。</div>
+        <div class="q-meta">复测 · 屋面防水(换皮变体)</div>
+        <div class="stem">地下室顶板防水,水从板上方下渗。下列搭接做法,哪种是"顺水"?</div>
+        <div class="opt right"><span class="lab">A</span><span>高处卷材盖低处卷材的上坡边 ✓</span></div>
+        <div class="opt"><span class="lab">B</span><span>低处卷材压高处卷材</span></div>
+        <div class="win">
+          <div class="big">👏 昨天错的,今天对了</div>
+          <div class="sub">"顺水搭接"这个坑,你跨过去了 · 屋面防水掌握度 +1</div>
+        </div>
+        <a class="cta green">继续今天的题</a>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 6. Day5 小结 -->
+  <div>
+    <p class="col-title">⑥ 第 5 天 · 回看（留存与进步自呈现）</p>
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>21:10</span><span></span><span>📶 🔋</span></div>
+      <div class="navbar"><span class="t">这 5 天的你</span><span class="day">第 5 天</span></div>
+      <div class="body">
+        <span class="streak">🔥 连续到场 5 天</span>
+        <div class="card">
+          <div class="summary-row"><span>连续到场</span><span class="v pos">5 / 5 天</span></div>
+          <div class="summary-row"><span>复测命中（昨错→今对）</span><span class="v pos">4 / 5</span></div>
+          <div class="summary-row"><span>最常踩的坑</span><span class="v neg">程序顺序 E06 · 概念混淆 E07</span></div>
+          <div class="summary-row"><span>"有把握却答错"</span><span class="v pos">3 → 1（在收敛）</span></div>
+        </div>
+        <div class="diag good" style="margin-top:14px">
+          <p style="margin:0">你不是没记住 —— 是这几个点没打通。这 5 天,<b>4 个打通了</b>。</p>
+        </div>
+        <a class="cta">解锁案例题深练 →</a>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="note"><div class="box">
+  <h3>这个故事板对应到什么（给你评估用）</h3>
+  <ul>
+    <li><b>屏 ②</b> 的"几分把握 1-5" = 路线图 v3 §3 那个"现在就该埋的零代码信号",一次性同时验"信心校准"和"留存"。</li>
+    <li><b>屏 ③</b> 的诊断卡 = PRD v1.3 留存闭环的核心"选错即诊断":典型错误类型(<code>E11</code>)+ 为什么(因果一句)+ 教材章节,语气帮人不罚人 —— 因为内测失败有一部分是"情绪负反馈"。</li>
+    <li><b>屏 ⑤</b> 的"昨错→今对" = return 的真正动机:让人<b>看见自己进步</b>,而不是靠 push 催。</li>
+    <li>题目内容是真的:屏 ②/③ 就是已 4/4 模型共识的 D1 顺水搭接深题;错误码 <code>E11/E06/E07</code> 来自既有 <code>ERROR_CODE_REGISTRY</code>,没新造。</li>
+  </ul>
+  <div class="warn">
+    <b>诚实边界:</b> 这是<b>静态原型,不是能用的小程序</b>。它能让你评估"体验长这样对不对",但仍<b>测不到留存效果</b>(D1/D7)——那要真人在真终端连续跑 5 天。评估通过后,下一步才是决定用什么最轻的方式把它送到 5-10 个真人手上(临时挂个小程序页 / 还是先微信群发题+人工记录)。
+  </div>
+</div></div>
+
+</body>
+</html>

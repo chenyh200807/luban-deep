@@ -12,6 +12,19 @@ _PGO_SUPPLY_DIR = Path(__file__).parent / "runtime_supply" / "v_case_rubric_scor
 _PGO_BANK_NAME = "case_rubric_scored_pgo.json"
 _PGO_POINTER_NAME = "canonical_pointer.json"
 
+# Process-local cache of the validated PGO supply, keyed by supply dir and
+# invalidated by the (mtime_ns, size) of the bank + pointer files — a cheap
+# stat, no content read. Without it `retrieve_rubric` re-read both JSON files,
+# re-hashed every record, and linearly scanned the whole bank on every call;
+# with it, steady-state reads skip all three and serve an O(1) qid lookup.
+# This mirrors the RAG layer's discipline (precompute/validate once per
+# version, serve many) — it touches only the mechanical read path, never what
+# the grader reasons over.
+_SUPPLY_CACHE: dict[
+    str,
+    tuple[tuple[int, int, int, int], dict[str, Any], dict[str, list[dict[str, Any]]]],
+] = {}
+
 
 @dataclass(frozen=True)
 class M35ArtifactQuery:
@@ -85,7 +98,9 @@ def retrieve_rubric(
     tracked runtime supply, filters by question id, and projects already-compiled
     official-answer slices into the requested shape.
     """
-    supply = _load_pgo_supply(Path(runtime_supply_dir) if runtime_supply_dir is not None else _PGO_SUPPLY_DIR)
+    supply, qid_index = _load_pgo_supply_indexed(
+        Path(runtime_supply_dir) if runtime_supply_dir is not None else _PGO_SUPPLY_DIR
+    )
     if supply.get("status") != "ok":
         return {
             "found": False,
@@ -95,11 +110,7 @@ def retrieve_rubric(
             "blockers": supply.get("blockers") or [],
         }
 
-    records = [
-        record
-        for record in supply.get("records", [])
-        if isinstance(record, dict) and str(record.get("qid") or "") == query.question_id
-    ]
+    records = qid_index.get(query.question_id, [])
     if not records:
         return {
             "found": False,
@@ -108,8 +119,24 @@ def retrieve_rubric(
             "reason": "artifact_missing",
         }
 
-    source_ref_count = sum(1 for record in records if record.get("official_slice"))
-    if query.citation_required and source_ref_count == 0:
+    ground_classes = [_classify_point_ground(record) for record in records]
+    score_bearing_count = ground_classes.count("score_bearing")
+    supporting_count = ground_classes.count("supporting_only")
+    unsourced_count = ground_classes.count("unsourced")
+
+    is_scoring_shape = query.purpose == "grading" and query.shape == "rubric_table"
+
+    # C3 ground gate: a scoring shape must never grade without score-bearing
+    # ground, regardless of citation_required — no prompt-level fallback.
+    if is_scoring_shape and score_bearing_count == 0:
+        return {
+            "found": True,
+            "question_id": query.question_id,
+            "fail_open": True,
+            "reason": "scoring_shape_without_score_bearing_ground",
+        }
+
+    if query.citation_required and score_bearing_count == 0:
         return {
             "found": True,
             "question_id": query.question_id,
@@ -117,10 +144,10 @@ def retrieve_rubric(
             "reason": "citation_required_but_missing",
         }
 
-    include_teacher_fields = query.purpose == "grading" and query.shape == "rubric_table"
+    include_teacher_fields = is_scoring_shape
     scoring_points = [
-        _project_pgo_record(record, include_teacher_fields=include_teacher_fields)
-        for record in records
+        _project_pgo_record(record, ground_class=gc, include_teacher_fields=include_teacher_fields)
+        for record, gc in zip(records, ground_classes)
     ]
     manifest = supply["manifest"]
     return {
@@ -131,7 +158,10 @@ def retrieve_rubric(
         "shape": query.shape,
         "budget": {"tier": query.budget_tier, "runtime": "deterministic_pgo_supply"},
         "ground": {
-            "source_ref_count": source_ref_count,
+            "source_ref_count": score_bearing_count,
+            "score_bearing_count": score_bearing_count,
+            "supporting_count": supporting_count,
+            "unsourced_count": unsourced_count,
             "source_schemas": manifest.get("source_schemas") or [],
             "citation_required": query.citation_required,
         },
@@ -195,9 +225,69 @@ def _load_pgo_supply(slot_dir: Path) -> dict[str, Any]:
     }
 
 
+def _supply_stat_key(slot_dir: Path) -> tuple[int, int, int, int] | None:
+    """Cheap change signal for the supply: (mtime_ns, size) of bank + pointer.
+
+    Returns None when either file is unreadable so the caller reloads and lets
+    the validator fail open (transient-missing supply is never cached).
+    """
+    try:
+        bank = (slot_dir / _PGO_BANK_NAME).stat()
+        pointer = (slot_dir / _PGO_POINTER_NAME).stat()
+    except OSError:
+        return None
+    return (bank.st_mtime_ns, bank.st_size, pointer.st_mtime_ns, pointer.st_size)
+
+
+def _load_pgo_supply_indexed(
+    slot_dir: Path,
+) -> tuple[dict[str, Any], dict[str, list[dict[str, Any]]]]:
+    """Load the validated supply once per file version and index records by qid.
+
+    Returns the same supply dict as ``_load_pgo_supply`` plus a ``qid -> records``
+    index, served from a process-local cache when the bank + pointer files have
+    not changed.
+    """
+    cache_key = str(slot_dir)
+    stat_key = _supply_stat_key(slot_dir)
+    if stat_key is not None:
+        cached = _SUPPLY_CACHE.get(cache_key)
+        if cached is not None and cached[0] == stat_key:
+            return cached[1], cached[2]
+
+    supply = _load_pgo_supply(slot_dir)
+    qid_index: dict[str, list[dict[str, Any]]] = {}
+    if supply.get("status") == "ok":
+        for record in supply.get("records", []):
+            if isinstance(record, dict):
+                qid_index.setdefault(str(record.get("qid") or ""), []).append(record)
+
+    if stat_key is not None:
+        _SUPPLY_CACHE[cache_key] = (stat_key, supply, qid_index)
+    return supply, qid_index
+
+
+def _classify_point_ground(record: dict[str, Any]) -> Literal["score_bearing", "supporting_only", "unsourced"]:
+    """Layer a point's ground: official answer slice > textbook supporting > none.
+
+    Only a score-bearing official slice may enter the correct/incorrect channel.
+    Textbook provenance (``term_authority`` / ``required_terms``) backs
+    explanation as supporting evidence but never scoring (single-authority red
+    line). A point with neither is unsourced and must not be graded on.
+    """
+    if str(record.get("official_slice") or "").strip():
+        return "score_bearing"
+    term_authority = str(record.get("term_authority") or "").strip().lower()
+    has_textbook_ground = bool(record.get("required_terms")) or term_authority not in ("", "none")
+    if has_textbook_ground:
+        return "supporting_only"
+    return "unsourced"
+
+
 def _project_pgo_record(
     record: dict[str, Any],
     *,
+    ground_class: Literal["score_bearing", "supporting_only", "unsourced"],
     include_teacher_fields: bool = True,
 ) -> dict[str, Any]:
     projection = {
@@ -212,6 +302,9 @@ def _project_pgo_record(
         "source_qid": record.get("qid"),
         "official_score_allowed": record.get("official_score_allowed") is True,
         "canonical_write_allowed": record.get("canonical_write_allowed") is True,
+        # C3 ground gate: only score-bearing points may enter the grade channel.
+        "ground_class": ground_class,
+        "scorable": ground_class == "score_bearing",
     }
     if not include_teacher_fields:
         projection["teacher_only_fields_redacted"] = True

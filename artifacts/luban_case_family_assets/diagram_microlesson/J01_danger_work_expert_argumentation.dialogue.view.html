@@ -1,0 +1,121 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>聊一聊:危大工程到底要不要请专家论证</title><style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  background:#0f1722;color:#eef3f8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+  padding:18px 16px 124px}
+.head{padding:6px 2px 14px}
+.kicker{font-size:12px;letter-spacing:.12em;color:#7fc7ff;font-weight:700;margin:0 0 6px}
+h1{font-size:21px;line-height:1.35;margin:0 0 8px;font-weight:800}
+.subtitle{font-size:13px;color:#9fb0c2;margin:0 0 14px}
+.casters{display:flex;gap:10px;margin:0 0 4px}
+.caster{display:flex;align-items:center;gap:8px;background:#18202d;border-radius:999px;
+  padding:6px 12px 6px 6px;font-size:12.5px;color:#cfe0f0}
+.dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#0f1722}
+.dot.a{background:#7fc7ff}.dot.b{background:#ffd27f}
+.thread{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.row{display:flex;gap:9px;max-width:90%}
+.row.a{align-self:flex-start}
+.row.b{align-self:flex-end;flex-direction:row-reverse}
+.av{width:30px;height:30px;border-radius:50%;flex:0 0 30px;display:grid;place-items:center;
+  font-size:12px;font-weight:800;color:#0f1722;margin-top:2px}
+.av.a{background:#7fc7ff}.av.b{background:#ffd27f}
+.bubble{background:#1b2536;border-radius:16px;padding:11px 14px;font-size:15px;line-height:1.6;
+  color:#e7eef6;cursor:pointer;transition:background .2s,box-shadow .2s,transform .15s;border:1.5px solid transparent}
+.row.b .bubble{background:#243247}
+.who{font-size:11.5px;color:#8aa0b6;margin:0 0 3px;font-weight:700}
+.bubble.on{border-color:#7fc7ff;background:#22344b;box-shadow:0 6px 20px rgba(127,199,255,.18)}
+.row.b .bubble.on{border-color:#ffd27f;box-shadow:0 6px 20px rgba(255,210,127,.16)}
+.tag{display:inline-block;margin-left:6px;font-size:10px;color:#7fc7ff;opacity:.0;transition:opacity .2s}
+.bubble.on .tag{opacity:.7}
+.player{position:fixed;left:0;right:0;bottom:0;background:rgba(15,23,34,.96);
+  backdrop-filter:blur(10px);border-top:1px solid #233148;padding:12px 16px 18px}
+.player .inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:13px}
+.play{width:52px;height:52px;border-radius:50%;border:none;flex:0 0 52px;cursor:pointer;
+  background:#7fc7ff;color:#0f1722;font-size:22px;display:grid;place-items:center;
+  box-shadow:0 6px 18px rgba(127,199,255,.35)}
+.play:active{transform:scale(.94)}
+.pcol{flex:1;min-width:0}
+.plabel{font-size:12px;color:#9fb0c2;margin:0 0 6px;display:flex;justify-content:space-between}
+.bar{height:6px;border-radius:99px;background:#26344a;cursor:pointer;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#7fc7ff,#a6dbff);border-radius:99px}
+.boundary{margin-top:22px;font-size:11.5px;line-height:1.6;color:#7e8da0;
+  background:#141d29;border:1px solid #1f2a3a;border-radius:12px;padding:11px 13px}
+.boundary b{color:#9fb0c2}
+</style></head><body>
+<div class="wrap">
+  <div class="head">
+    <p class="kicker">图解微课 · 双人聊</p>
+    <h1>聊一聊:危大工程到底要不要请专家论证</h1>
+    <p class="subtitle">两个声音一问一答 · 把判据聊明白</p>
+    <div class="casters"><div class="caster"><span class="dot a">小</span>小问·好奇学员</div><div class="caster"><span class="dot b">鲁</span>鲁班老师·讲解者</div></div>
+  </div>
+  <div class="thread" id="thread"><div class="row a" data-i="0"><div class="av a">小</div><div class="bubble" data-i="0"><div class="who">小问</div>哎我问你个事——案例题老问&#x27;这个工程要不要请专家论证&#x27;,我每次都靠猜。这玩意儿到底咋判?</div></div>
+<div class="row b" data-i="1"><div class="av b">鲁</div><div class="bubble" data-i="1"><div class="who">鲁班老师</div>你这一问就问到点子上了。其实丢分的人不是不知道有&#x27;专项方案&#x27;这回事,是把两件事搅成了一团。</div></div>
+<div class="row a" data-i="2"><div class="av a">小</div><div class="bubble" data-i="2"><div class="who">小问</div>哪两件事?</div></div>
+<div class="row b" data-i="3"><div class="av b">鲁</div><div class="bubble" data-i="3"><div class="who">鲁班老师</div>&#x27;危大工程&#x27;和&#x27;超过一定规模的危大工程&#x27;。听着像绕口令,其实是两道闸,得一道一道过。</div></div>
+<div class="row a" data-i="4"><div class="av a">小</div><div class="bubble" data-i="4"><div class="who">小问</div>两道闸……你给我打个比方呗。</div></div>
+<div class="row b" data-i="5"><div class="av b">鲁</div><div class="bubble" data-i="5"><div class="who">鲁班老师</div>你就想成进游乐园。第一道闸看你够不够高,够高才算&#x27;危险项目&#x27;,得专门给你配个方案;第二道闸更狠——你不光高,还特别高,那光有方案不够,还得请专家组当面验。</div></div>
+<div class="row a" data-i="6"><div class="av a">小</div><div class="bubble" data-i="6"><div class="who">小问</div>那这&#x27;够高&#x27;具体是多少?</div></div>
+<div class="row b" data-i="7"><div class="av b">鲁</div><div class="bubble" data-i="7"><div class="who">鲁班老师</div>记两个数就行。基坑开挖,挖到三米——三米及以上,就是危大,要编专项施工方案。</div></div>
+<div class="row a" data-i="8"><div class="av a">小</div><div class="bubble" data-i="8"><div class="who">小问</div>三米。那第二道闸呢?</div></div>
+<div class="row b" data-i="9"><div class="av b">鲁</div><div class="bubble" data-i="9"><div class="who">鲁班老师</div>五米。挖到五米及以上,就叫&#x27;超过一定规模&#x27;,这时候方案必须再请专家论证。</div></div>
+<div class="row a" data-i="10"><div class="av a">小</div><div class="bubble" data-i="10"><div class="who">小问</div>啊我懂了!三米一道线,五米一道线。那要是题目给五米五呢?</div></div>
+<div class="row b" data-i="11"><div class="av b">鲁</div><div class="bubble" data-i="11"><div class="who">鲁班老师</div>五米五,两道闸全过——比三米深,是危大;比五米还深,超规模。所以结论很干脆:这个专项方案,得组织专家论证。</div></div>
+<div class="row a" data-i="12"><div class="av a">小</div><div class="bubble" data-i="12"><div class="who">小问</div>等等,那我要是只写&#x27;需要专家论证&#x27;,能拿分吗?</div></div>
+<div class="row b" data-i="13"><div class="av b">鲁</div><div class="bubble" data-i="13"><div class="who">鲁班老师</div>这就是最可惜的丢分。你结论对了,可阅卷老师不知道你是真会还是蒙的。你得把判据写出来:五米五大于等于五米,属超过一定规模。这句话写上,判断分才到手。</div></div>
+<div class="row a" data-i="14"><div class="av a">小</div><div class="bubble" data-i="14"><div class="who">小问</div>那反过来,要是只挖三米五呢?是不是也得论证?</div></div>
+<div class="row b" data-i="15"><div class="av b">鲁</div><div class="bubble" data-i="15"><div class="who">鲁班老师</div>好问题,这正是出题人埋的坑。三米五,过了第一道闸、没过第二道——是危大,要编方案,但不到五米,不用专家论证,光编方案就够了。</div></div>
+<div class="row a" data-i="16"><div class="av a">小</div><div class="bubble" data-i="16"><div class="who">小问</div>哦——所以不是&#x27;危大就一定要论证&#x27;,中间还有一档。</div></div>
+<div class="row b" data-i="17"><div class="av b">鲁</div><div class="bubble" data-i="17"><div class="who">鲁班老师</div>对,这一档最容易混。记住这句口诀就乱不了:三米危大编方案,五米超规模要论证。</div></div>
+<div class="row a" data-i="18"><div class="av a">小</div><div class="bubble" data-i="18"><div class="who">小问</div>三米危大编方案,五米超规模要论证。这下我记住了!</div></div>
+<div class="row b" data-i="19"><div class="av b">鲁</div><div class="bubble" data-i="19"><div class="who">鲁班老师</div>而且我得夸你一句,你能想到&#x27;危大要有专项方案&#x27;,方向已经对了一半。剩下的就是把两个数、两道闸说清楚,这类判断题你就稳了。</div></div></div>
+  <div class="boundary"><b>说明:</b>这是教研讲解,不是官方阅卷;危大范围和论证标准以现行规范、教材和你的考试大纲为准。<br>培训机构教研整理,非官方阅卷;判据为候选,未签发</div>
+</div>
+<div class="player">
+  <div class="inner">
+    <button class="play" id="play" aria-label="播放">▶</button>
+    <div class="pcol">
+      
+      <p class="plabel"><span id="cur">0:00</span><span id="tot">0:00</span></p>
+      <div class="bar" id="bar"><div class="fill" id="fill"></div></div>
+    </div>
+  </div>
+</div>
+<audio id="au" preload="metadata" src="J01_danger_work_expert_argumentation.dialogue.mp3"></audio>
+<script>
+const DATA={"totalSec": 161.723, "segments": [{"idx": 0, "startSec": 0, "durSec": 8.102}, {"idx": 1, "startSec": 8.452, "durSec": 9.456}, {"idx": 2, "startSec": 18.258, "durSec": 1.041}, {"idx": 3, "startSec": 19.649, "durSec": 8.316}, {"idx": 4, "startSec": 28.315, "durSec": 2.794}, {"idx": 5, "startSec": 31.459, "durSec": 16.573}, {"idx": 6, "startSec": 48.383, "durSec": 2.04}, {"idx": 7, "startSec": 50.773, "durSec": 8.457}, {"idx": 8, "startSec": 59.58, "durSec": 2.016}, {"idx": 9, "startSec": 61.946, "durSec": 7.655}, {"idx": 10, "startSec": 69.951, "durSec": 5.709}, {"idx": 11, "startSec": 76.01, "durSec": 12.066}, {"idx": 12, "startSec": 88.426, "durSec": 4.619}, {"idx": 13, "startSec": 93.395, "durSec": 16.264}, {"idx": 14, "startSec": 110.009, "durSec": 4.606}, {"idx": 15, "startSec": 114.965, "durSec": 13.51}, {"idx": 16, "startSec": 128.825, "durSec": 4.502}, {"idx": 17, "startSec": 133.677, "durSec": 8.619}, {"idx": 18, "startSec": 142.646, "durSec": 4.93}, {"idx": 19, "startSec": 147.926, "durSec": 12.997}]};
+const au=document.getElementById('au'),play=document.getElementById('play');
+const fill=document.getElementById('fill'),bar=document.getElementById('bar');
+const cur=document.getElementById('cur'),tot=document.getElementById('tot');
+const bubbles=[...document.querySelectorAll('.bubble')];
+const fmt=s=>{s=Math.max(0,s|0);return (s/60|0)+':'+String(s%60).padStart(2,'0');};
+tot.textContent=fmt(DATA.totalSec);
+let active=-1;
+function segAt(t){let r=-1;for(const s of DATA.segments){if(t>=s.startSec-0.05)r=s.idx;else break;}return r;}
+function highlight(i){if(i===active)return;active=i;
+  bubbles.forEach((b,k)=>b.classList.toggle('on',k===i));
+  const el=document.querySelector('.row[data-i="'+i+'"]');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
+au.addEventListener('timeupdate',()=>{
+  fill.style.width=(au.currentTime/(DATA.totalSec||au.duration||1)*100)+'%';
+  cur.textContent=fmt(au.currentTime);
+  highlight(segAt(au.currentTime));
+});
+au.addEventListener('ended',()=>{play.textContent='▶';});
+play.addEventListener('click',()=>{
+  if(au.paused){au.play().then(()=>play.textContent='⏸').catch(()=>{
+    cur.textContent='点屏幕任意处再点播放';});}
+  else{au.pause();play.textContent='▶';}
+});
+bar.addEventListener('click',e=>{const r=bar.getBoundingClientRect();
+  au.currentTime=(e.clientX-r.left)/r.width*(DATA.totalSec||au.duration||0);});
+bubbles.forEach((b,i)=>b.addEventListener('click',()=>{
+  const s=DATA.segments.find(x=>x.idx===i);if(!s)return;
+  au.currentTime=s.startSec;highlight(i);
+  au.play().then(()=>play.textContent='⏸').catch(()=>{});
+}));
+</script>
+</body></html>
