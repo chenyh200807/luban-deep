@@ -299,7 +299,8 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
     assert claims is not None
     assert claims["canonical_uid"] == canonical_uid
     assert wallet_service.calls[0]["user_id"] == canonical_uid
-    assert canonical_snapshot["display_name"] == "wx_O4aNJg7O_wRk"
+    assert canonical_snapshot["display_name"] != "wx_O4aNJg7O_wRk"
+    assert canonical_snapshot["display_name"].startswith("微信用户")
     assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"
     assert legacy_snapshot["external_auth_user_id"] == canonical_uid
 
@@ -6101,3 +6102,64 @@ def test_ensure_member_terminal_chain_resolves_to_canonical() -> None:
     data = {"members": [_cycle_member("A", "B"), _cycle_member("B", "")]}
     member = svc._ensure_member(data, "A")
     assert member["user_id"] == "B"
+
+
+def test_build_default_member_display_name_is_empty() -> None:
+    """_build_default_member must return empty display_name so downstream rescue logic fires."""
+    svc = MemberConsoleService()
+    member = svc._build_default_member("wx_abc123456789")
+    assert member["display_name"] == "", (
+        "display_name must be empty in default member so WeChat login rescue sets 微信用户xxxx"
+    )
+
+
+@pytest.mark.asyncio
+async def test_wechat_quick_login_sets_friendly_display_name_for_new_member(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    """New member created by WeChat quick login must get '微信用户xxxx', not raw user_id."""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {"openid": "openid_ABCDEF123456", "unionid": "unionid_xyz", "session_key": "sk"}
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    result = await service.login_with_wechat_code("wx-code")
+    target_user_id = result["user"]["user_id"]
+    data = service._load()
+    member = service._find_member(data, target_user_id)
+    user_id = member.get("user_id", "")
+    display_name = member.get("display_name", "")
+    assert display_name != user_id, "display_name must not equal user_id (ugly default)"
+    assert display_name.startswith("微信用户"), f"expected '微信用户xxxx' but got '{display_name}'"
+
+
+@pytest.mark.asyncio
+async def test_wechat_relogin_rescues_user_id_as_display_name(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    """Re-login via WeChat must rescue display_name even when it was previously set to user_id."""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    existing_user_id = "wx_ABCDEF123456"
+
+    def _seed(data: dict) -> None:
+        m = service._build_default_member(existing_user_id)
+        m["display_name"] = existing_user_id  # simulate legacy stuck display_name
+        m["wx_openid"] = "openid_ABCDEF123456"
+        m["wx_unionid"] = "unionid_xyz"
+        data["members"] = [m]
+
+    service._mutate(_seed)
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {"openid": "openid_ABCDEF123456", "unionid": "unionid_xyz", "session_key": "sk"}
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    await service.login_with_wechat_code("wx-code")
+    data = service._load()
+    member = service._find_member(data, existing_user_id)
+    display_name = member.get("display_name", "")
+    assert display_name != existing_user_id, "display_name must not remain as user_id after re-login"
+    assert display_name.startswith("微信用户"), f"expected '微信用户xxxx' but got '{display_name}'"

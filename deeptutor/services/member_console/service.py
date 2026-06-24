@@ -926,7 +926,7 @@ class MemberConsoleService:
         now = _now()
         return {
             "user_id": user_id,
-            "display_name": user_id,
+            "display_name": "",
             "phone": _slugify_phone(user_id),
             "tier": "trial",
             "status": "active",
@@ -8124,7 +8124,10 @@ class MemberConsoleService:
                 current_user_id = str(target.get("user_id") or "").strip()
                 if merged_into and merged_into != current_user_id:
                     target = self._ensure_member(data, merged_into)
-            target["display_name"] = target.get("display_name") or f"微信用户{target['user_id'][-4:]}"
+            _cur_display = str(target.get("display_name") or "").strip()
+            _cur_uid = str(target.get("user_id") or "").strip()
+            if not _cur_display or _cur_display == _cur_uid:
+                target["display_name"] = f"微信用户{_cur_uid[-4:]}"
             target["last_active_at"] = _iso()
             target["wx_openid"] = openid
             target["wx_unionid"] = unionid
@@ -8223,7 +8226,9 @@ class MemberConsoleService:
             before = deepcopy(current)
             current["phone"] = normalized
             current["last_active_at"] = _iso()
-            if not str(current.get("display_name") or "").strip():
+            _bind_display = str(current.get("display_name") or "").strip()
+            _bind_uid = str(current.get("user_id") or "").strip()
+            if not _bind_display or _bind_display == _bind_uid:
                 current["display_name"] = f"学员{normalized[-4:]}"
             self._append_audit(
                 data,
