@@ -812,3 +812,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 - 灰度 runbook：`docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`
 - 阿里云部署 + 手动测试：`docs/zh/bi/bi-backoffice-v2-aliyun-deploy.md`
 - WRITE_ENDPOINTS 注册表：`deeptutor/contracts/bi_v2_write_endpoints.py`
+
+## member display_name 真值（2026-06-24）
+
+`member_console` 投影的 `display_name` **不得回落为 `user_id`**：微信快捷登录曾把 `display_name` 误置为内部 `user_id`（退化态），导致学员台账把内部 uid 当昵称展示。修复后单点约束：当 `display_name` 缺失或等于 `user_id` 时，统一回落为 `微信用户{user_id 后4位}`（`member_console/service.py` 的 directory 投影与绑定路径同口径）。`display_name` 是**展示字段**，不是 learner identity authority——identity 仍按 `canonical_uid` 单点（见上文「单一权威」），display_name 退化不得污染 identity 解析。
