@@ -2373,3 +2373,48 @@ def test_submission_confidence_none_when_no_submission() -> None:
     # 完全非作答轮(讲考点)→ 无 submission → None(不进判分态)。
     assert submission_confidence("讲讲这个考点", _SC_SINGLE_CTX) is None
     assert submission_confidence("这题太难了，跳过吧", _SC_SINGLE_CTX) is None
+
+
+# --- Step 4.5: LLM 作答分类器的"提交优先"偏置 backstop(live NO-GO 揪出,2026-06-24) ---
+# live 实证:LLM interpret_question_followup_action 把"我猜是A但你先别判"判 answer_questions
+# (reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
+# submission_confidence=LOW(试探/推迟/未明确交卷)则降级 ask_followup。只动 LOW,HIGH
+# 真作答永不降(不伤硬约束40)。skill 铁律:确定性 > 纯 prompt。
+
+import asyncio as _asyncio
+from deeptutor.services import question_followup as _qf
+
+_S45_CTX = {
+    "question_id": "wp-s45",
+    "question": "建筑工程安全检查方法包括（多选）？",
+    "question_type": "multiple_choice",
+    "options": {"A": "听", "B": "写", "C": "量", "D": "测", "E": "运转试验"},
+    "correct_answer": "ACDE",
+    "multi_select": True,
+}
+
+
+def _interpret(message, monkeypatch, llm_intent="answer_questions", answer="A"):
+    async def fake_complete(**kwargs):
+        import json as _json
+        return _json.dumps({
+            "intent": llm_intent, "confidence": 0.92, "preserve_other_answers": False,
+            "answers": [{"question_index": 1, "question_id": "wp-s45", "answer": answer}],
+            "reason": "提交优先原则",
+        })
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+    return _asyncio.run(_qf.interpret_question_followup_action(message, _S45_CTX))
+
+
+def test_low_confidence_non_answer_downgraded_even_if_llm_says_submission(monkeypatch):
+    # LLM(被偏置 prompt 误导)判 answer_questions,但消息是 LOW 置信试探+推迟 → 降级非提交。
+    action = _interpret("我猜是A但不确定，你先别判", monkeypatch)
+    assert action is not None
+    assert _qf.followup_action_route(action) != "submission"
+
+
+def test_high_confidence_real_answer_stays_submission(monkeypatch):
+    # HIGH 真作答"我选B":LLM 判 answer_questions → 保留 submission(硬约束40 真作答必判)。
+    action = _interpret("我选B", monkeypatch, answer="B")
+    assert action is not None
+    assert _qf.followup_action_route(action) == "submission"

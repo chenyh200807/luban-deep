@@ -629,7 +629,27 @@ async def interpret_question_followup_action(
     parsed = _parse_followup_action_payload(raw)
     if parsed is None:
         return None
-    return _normalize_followup_action(parsed, normalized)
+    action = _normalize_followup_action(parsed, normalized)
+    # 判分态单一权威收口 Step 4.5 (2026-06-24, live NO-GO 揪出): LLM 作答分类器带"提交优先"
+    # 偏置(prompt 规则1),会把"我猜是A但你先别判"这类**试探+显式推迟**误判成 answer_questions
+    # (live reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
+    # submission_confidence=LOW(消息首子句非干净答案,即未明确交卷)时,降级为 ask_followup。
+    # 只动 LOW(试探/推迟/回指),HIGH 真作答("我选B")confidence=high 永不降 → 不伤硬约束40。
+    # skill 铁律:确定性高精确信号 > 纯 prompt 压偏置。
+    if (
+        followup_action_route(action) == "submission"
+        and submission_confidence(message, normalized) == "low"
+    ):
+        downgraded = dict(action or {})
+        downgraded["intent"] = "ask_followup"
+        downgraded["answers"] = []
+        downgraded["reason"] = (
+            "submission_confidence=low(试探/推迟/未明确交卷),不按提交判分,改 ask_followup "
+            "交主 LLM 答疑(Step 4.5 backstop)。原 LLM intent="
+            + str((action or {}).get("intent") or "")
+        )
+        return _normalize_followup_action(downgraded, normalized)
+    return action
 
 
 def followup_action_route(action: dict[str, Any] | None) -> str | None:
