@@ -2418,3 +2418,28 @@ def test_high_confidence_real_answer_stays_submission(monkeypatch):
     action = _interpret("我选B", monkeypatch, answer="B")
     assert action is not None
     assert _qf.followup_action_route(action) == "submission"
+
+
+# --- Step 5: 单一 chokepoint 收口 turn_runtime._submission_action_for_user_message ---
+# 把 4.5/4.6 逐路径 gate 收敛到最上游:LOW 裸单题作答不在此构造提交动作 → 下游不缓存
+# submission(防未来新下游路径再凭空判分)。batch/numbered 显式提交=HIGH 不经此 gate。
+
+_S5_SINGLE = {
+    "question_id": "wp-s5",
+    "question": "地下室外墙防水层应设置在哪一侧？",
+    "question_type": "single_choice",
+    "options": {"A": "背水面（内侧）", "B": "迎水面（外侧）", "C": "中间", "D": "两侧"},
+    "correct_answer": "B",
+}
+
+
+def test_chokepoint_low_confidence_single_builds_no_submission_action():
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+    _ctx, action = _submission_action_for_user_message("我猜是A但不确定，你先别判", _S5_SINGLE)
+    assert action is None  # LOW 不构造提交动作
+
+
+def test_chokepoint_high_confidence_single_builds_submission_action():
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+    _ctx, action = _submission_action_for_user_message("我选B", _S5_SINGLE)
+    assert isinstance(action, dict) and action.get("intent") == "answer_questions"  # HIGH 必判,硬约束40

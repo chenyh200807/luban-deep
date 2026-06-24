@@ -61,6 +61,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     reset_question_submission_state,
     resolve_submission_attempt,
+    submission_confidence,
 )
 from deeptutor.services.question_lifecycle_skills import (
     looks_like_case_grading_submission_context,
@@ -1456,6 +1457,15 @@ def _submission_action_for_user_message(
     batch_action = batch_answer_action_for_numbered_single(submission, normalized_context)
     if batch_action is not None:
         return normalized_context, batch_action
+    # 判分态单一权威收口 Step 5 (2026-06-24, 单一 chokepoint): 这是 submission action 的最上游
+    # 构造点(decider map 自承"single chokepoint above both grading paths")。只有 HIGH 置信的
+    # 裸单题作答才在此构造 answer_questions 提交动作;LOW 置信(试探/推迟,如"我猜A但你先别判",
+    # submission_confidence 首子句非干净答案)不构造 → 下游不缓存 submission、不进判分。把 Step
+    # 4.5/4.6 的逐路径 gate 收敛到单一最早点(未来新增下游消费路径自动继承,止 whack-a-mole);
+    # per-path gate 保留作 defense-in-depth。保硬约束40:HIGH 裸作答仍构造提交动作必判。
+    # batch / numbered-single 是显式结构化提交(=HIGH),走上面分支,不经此 gate。
+    if submission_confidence(user_message, normalized_context) == "low":
+        return normalized_context, None
     return target_context, {
         "intent": "answer_questions",
         "confidence": 0.92,

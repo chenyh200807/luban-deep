@@ -914,14 +914,18 @@ def submission_confidence(
         return "high"
     normalized = normalize_question_followup_context(question_context) or {}
     text = str(message or "").strip()
-    stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?？，,：:　 ")
-    # 正向信号 = 消息**首子句**是否就是一个干净答案(剥显式提交前缀后,第一段=答案 token)。
-    # 看首子句而非整句,故"我答B，再出3题"这类先交卷再追加请求的混合轮仍 HIGH(grade-before-
-    # generate 不回归);而"我猜是A但不确定,你先别判"首子句"我猜是A但不确定"非干净 token → LOW。
-    # 注意:本函数只判**单条消息**是否显式提交;上下文型质疑(对上一轮判分翻案)、回指历史题
-    # 这类需对话历史才能识别的,交给下游 LLM 语义复核(plan §3 Step 3-4),不在此处误降 HIGH。
-    lead = re.split(r"[，,。.!！?？；;、\s]", stripped, maxsplit=1)[0].strip()
-    return "high" if _message_is_clean_answer_token(lead, normalized) else "low"
+    # 正向信号 = 消息里**存在一个独立子句**,剥掉它自己的显式提交前缀后就是干净答案 token。
+    # 按子句切分(不只看首子句),覆盖两类显式提交:① 裸作答打头("我选B"/"B"/"我答B，再出3题")
+    # ② 粘贴题面后末尾显式交卷("...A.5% B.1%...，我选A，直接批改" 的"我选A"子句)。而"我猜是A但
+    # 不确定，你先别判"/"刚才那道题我选的是B，对吗"——没有任一子句**以**显式提交前缀打头接干净答案
+    # (前者"我猜"是试探非提交前缀;后者"我选"埋在"刚才那道题…"子句中段非子句首)→ LOW。
+    # 红线:HIGH 用正向"显式提交前缀 + 干净答案 token"判,不枚举否定/试探词排除。混合"我选A但
+    # 先别判"这类需对话历史的语义,交下游 LLM 复核;本函数只给单条消息的确定性置信。
+    for clause in re.split(r"[，,。.!！?？；;、\s]+", text):
+        candidate = _LEADING_SUBMISSION_PREFIX.sub("", clause.strip()).strip("。.!！?？，,：:　 ")
+        if _message_is_clean_answer_token(candidate, normalized):
+            return "high"
+    return "low"
 
 
 def batch_answer_action_for_numbered_single(

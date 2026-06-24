@@ -11483,6 +11483,34 @@ def test_turn_start_preserves_batch_set_for_numbered_single_answer() -> None:
     assert "preserve_other_answers" not in single_action
 
 
+def test_turn_start_chokepoint_gates_low_confidence_non_answer() -> None:
+    """[turn domain] 判分态单一权威收口 Step 5 (2026-06-24): `_submission_action_for_user_message`
+    是 submission action 的最上游 chokepoint。只有 HIGH 置信的裸单题作答才在此构造提交动作;
+    LOW 置信(试探/推迟,如"我猜A但你先别判")不构造 → 下游不缓存 submission、不凭空判分
+    (把逐路径 confidence gate 收敛到单一最早点)。保硬约束40:HIGH 裸作答仍构造提交必判;
+    粘贴题面后末尾显式交卷("...，我选A，直接批改")也算 HIGH(子句"我选A"命中)。
+    """
+    from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
+
+    ctx = {"question_id": "wp", "question": "地下室外墙防水层设在哪侧？", "question_type": "single_choice",
+           "options": {"A": "背水面", "B": "迎水面", "C": "中间", "D": "两侧"}, "correct_answer": "B"}
+
+    # LOW 试探+推迟 → 不构造提交动作(凭空判分根治)
+    _c1, low_action = _submission_action_for_user_message("我猜是A但不确定，你先别判", ctx)
+    assert low_action is None
+
+    # HIGH 真作答 → 构造提交动作(硬约束40 真作答必判)
+    _c2, high_action = _submission_action_for_user_message("我选B", ctx)
+    assert high_action is not None and high_action["intent"] == "answer_questions"
+
+    # 粘贴题面 + 末尾显式交卷 → HIGH(子句"我选A"命中,不被首子句题面误降)
+    paste_ctx = {"question_id": "roof", "question": "屋面坡度", "question_type": "single_choice",
+                 "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"}, "correct_answer": "A"}
+    _c3, paste_action = _submission_action_for_user_message(
+        "某工程屋面坡度最小值是（ ）。A.5% B.1% C.2% D.3%，我选A，直接批改", paste_ctx)
+    assert paste_action is not None and paste_action["intent"] == "answer_questions"
+
+
 def test_turn_end_merge_preserves_batch_set_through_single_item_grading() -> None:
     """[turn domain] Single-authority object-continuity (E8/E1, 2026-06-22): turn-END
     must NOT collapse a batch question_set when a grading turn judges ONE item. The
