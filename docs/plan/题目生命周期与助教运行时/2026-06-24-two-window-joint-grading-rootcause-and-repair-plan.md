@@ -37,7 +37,7 @@
    ├─ 触发维度「是否进入判分」      …… ✅ 窗口A Steps 1-5 已 live GO
    ├─ 意图维度「判分 vs 生成 vs 答疑」 …… ❌ 残留 R2 上游(简答判分被误路由成生成)  ← Qwen 拆出
    ├─ 对象维度「判哪道题」          …… ❌ 残留 R2 下游 / R5(回指串题+统计漏计)
-   └─ 题面维度「哪个选项面」        …… ❌ 残留 R1(选项重排用题库字母)
+   └─ 题面维度「哪个选项面」        …… ✅ R1(authority-fill 投影)已合 main PR#214 / 对话内重排活跃题残留归 task#20
 病② 内容真相病（fabrication / 系统没有正确内容）—— 内容病
    ├─ 硬事实数值「4000万/罚款比例」 …… ✅ 窗口B 闸-4 已修
    └─ 残留:sycophancy 附和臆造叙事(R3) + 无答案仍编采分点(R4)  …… ❌（升级"事实-叙事双闸"）
@@ -49,9 +49,16 @@
 ## 3. 联合修复计划（按 信任伤害 × 独立性 × 已覆盖度）
 
 ### P0-a 病①锚定维度·题面（R1 选项重排）— **窗口B 主修，最独立单点**
+
+> **✅ R1（authority-fill 层投影）DONE + 已合 main（2026-06-24，PR#214 squash=d76247014）**：发病点定位在 `deep_question._fill_missing_mcq_authority`——学生粘贴题匹配到题库题(`_match_question_bank_item`)、但学生面选项序≠题库序时，旧码把题库**裸字母**拷到"保留学生 option 面"的 item=surface 错配倒诬。收口=新增确定性纯函数 `_project_correct_answer_to_target_surface`（题库字母→题库值→学生面同值字母），仅在拷 correct_answer 且学生保留自己 option 面时投影，**fail-safe**（选项缺/值歧义/映射不到→保留题库字母不瞎猜），判分层 `answers_match` 不动。验证：unit 4 + 回归 184 + **test2 部署代码 live 3/3**（驱动 wired 入口 `_recover_missing_mcq_authority`，`tag=questions_bank` 证走到；①单选重排→投影学生面 ②同序不乱改 ③多选可区分案例→投影{C,D}）。**确定性纯函数无 LLM，确定性断言 1 次即证**（非 LLM 式 ≥3 连跑场景）。合 PR 撞两道**非 R1 卫生门**已一并修：①contract_guard 要求改 deep_question.py(protected)须同动已登记 domain 测试→登记新 test_r1 进 `contracts/index.yaml` capability domain；②test_packaged_contract_index 要 `contracts/index.yaml` 与打包镜像 `deeptutor/contracts/index.yaml` 一致→同步两份。CI 8 门全绿。
+>
+> ⚠️ **注意 R1 ≠ 题面维度全清**：R1 治的是**题库匹配的结构化 authority-fill 路径**。另两个题面发病点仍残留、归 task#20 判分对象收权：(a)**纯 LLM 散文判分**读 RAG grounding 题库面（粘贴 MCQ 早期路径，已由 t10 grounding 投影 8/8 治另一支）；(b)**对话内"把选项重排再考"活跃题**——判分仍锚首次生成字母序（g1_mcq_rearrange，bot 自承"按原题选项顺序判卷"），根因=活跃题重排后判分对象的"当前题面"权威未随重排更新，与簇A 判分对象收权同病。
+
+**（原计划，保留备查）**
 - **one fact**：MCQ"哪个选项正确"在**学生当前题面**上的字母是判分比对唯一面。
 - **修法（less-is-more，接通 dormant island）**：判分 `answers_match`（question_followup.py:705/750）前，把 `correct_answer`（题库面）与学生作答**都投影到当前题面**——**消费已存在的** `_project_to_query_option_surface`（historical_questions.py:262），不新建识别层、不加"选项重排"探测正则。
 - **why P0**：确定性复现 + 把答对判错=倒诬学生（信任摧毁性最强）+ 独立单点 + 收权没碰它。
+- **实际落点修正**：live trace 实证 R1 真实发病在 `_fill_missing_mcq_authority`（authority-fill 拷字母）而非 `answers_match` 比对层；修在 authority-fill 投影更上游、更治本（比对层无题库 options 治不了），见上方 ✅ 块。
 
 ### P0-b 病①意图+对象维度（R2 简答被MCQ抢占 + R5 串题/统计）— **窗口A 主修（收口姊妹维度）**
 
@@ -79,7 +86,7 @@
 - **两窗口分工**：B 修 R1（题面，最独立）+ R3/R4（内容域，它的闸-4 主场）；A 修 R2/R5（对象维度，它的收口姊妹）。各自单点，先对齐 active_object 收口边界再动 R2，防互撞。
 
 ## 5. 一句话总账
-- **发现**:~10 类 + 7 条编造 | **已修 live 验证**:凭空判分(A)+ 硬事实数值(B) | **残留**:R1/R2/R5(判分锚定·同族)+ R3/R4(内容真相残留)+ R6(展示层)。
+- **发现**:~10 类 + 7 条编造 | **已修 live 验证 + 合 main**:凭空判分(A,PR#212)+ 硬事实数值(B,闸-4)+ R2 意图误路由(A,1206e1a9c)+ R5 对象(A,验证已收口)+ **R1 题面 authority-fill 投影(B,PR#214 d76247014)** | **残留**:R3/R4(内容真相残留)+ R6(展示层)+ R1 姊妹发病点(对话内重排活跃题→归 task#20 判分对象收权)。
 - **根因**:**五方一致——3 个病不是一个**;但残留集中在「判分锚定单一权威」一族(意图 R2 / 对象 R2下游·R5 / 题面 R1 三维),是病①已收口"触发维度"的姊妹,应协同修非各打各。
 - **多模型评审增量**:DeepSeek 揭示 R1/R2/R5 同族(实体绑定);Qwen3-max 进一步拆出 R2 是**意图误路由**(判分被当生成)先于对象绑定。两个同厂 Claude 窗口都没拆到这一层——**这就是引第三、四个异源模型评审的价值**。
-- **分工**:窗口B 接 R1(题面,最独立单点)+ R3/R4(内容域);窗口A 接 R2(意图+对象,信任伤害最重,先动)+ R5。各自单点 + live ≥3,先对齐 active_object 收口边界防互撞。
+- **分工**:窗口B 接 R1(题面,最独立单点,**✅ 已合 main PR#214**)+ R3/R4(内容域,残留);窗口A 接 R2(意图+对象,**✅ 已合 1206e1a9c**)+ R5(**✅ 验证已收口**)。各自单点 + live ≥3,先对齐 active_object 收口边界防互撞。**当前剩:R3/R4 内容真相病(窗口B 闸-4 主场)+ R6 展示层(低优先)+ R1 姊妹"对话内重排活跃题"(归 task#20)。**
