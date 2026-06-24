@@ -22,7 +22,7 @@
   },
   "condition": {
     "miniprogram": {
-      "current": 0,
+      "current": 2,
       "list": [
         {
           "name": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",

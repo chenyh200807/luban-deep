@@ -92,6 +92,11 @@ class SupabaseMemberDirectoryReadModel:
         eligible_phone_aliases = self._eligible_phone_aliases(limit=requested_limit)
         if not eligible_phone_aliases:
             return []
+        # Query v_members for exactly the users who have phone aliases — avoids the
+        # mismatch that occurs when the top-N-by-activity v_members slice and the
+        # top-N-by-registration phone alias slice cover different user sets.
+        alias_user_ids = list(eligible_phone_aliases.keys())
+        uid_in_filter = f"in.({','.join(alias_user_ids)})"
         rows = self._select_rows_paginated(
             table="v_members",
             params={
@@ -101,9 +106,10 @@ class SupabaseMemberDirectoryReadModel:
                     "first_chat_at,last_chat_at,total_conversations,total_messages,"
                     "has_user_record,has_wallet,has_profile,has_chat_history"
                 ),
+                "user_id": uid_in_filter,
                 "order": "last_chat_at.desc.nullslast,wallet_updated_at.desc.nullslast,user_id.asc",
             },
-            limit=requested_limit,
+            limit=len(alias_user_ids),
         )
         rows_by_user_id = {_normalize_text(row.get("user_id")): row for row in rows}
         eligible_rows: list[dict[str, Any]] = []
@@ -177,6 +183,9 @@ class SupabaseMemberDirectoryReadModel:
             params={
                 "select": "user_id,alias_value,source,created_at,verified_at",
                 "alias_type": "eq.phone",
+                # Stable sort: earliest registration wins for users with multiple phone aliases;
+                # user_id.asc breaks ties so results are deterministic across requests.
+                "order": "created_at.asc,user_id.asc",
             },
             limit=min(limit * 4, _MAX_MEMBER_DIRECTORY_ROWS),
         )

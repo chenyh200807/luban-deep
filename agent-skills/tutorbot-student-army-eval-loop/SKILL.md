@@ -99,7 +99,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 |---|---|---|---|
 | 做完题不给答案/解析 | mcq_grading 路由缺口（active_capability 预选绕过） | orchestrator 补 mcq_grading 一等分支 | ✅ 已修 |
 | 闲聊后"刚才那题"召回失败/丢活跃题 | 跨能力上下文承接（连续性只加执行层没加路由层） | conversation_context_text 无条件注入 + 单一 relation 权威 | ✅ 主修 |
-| 选项重排时判对判错/倒诬学生 | 判分用题库字母非当前题面 | 判分前投影到当前选项面 | ✅ 已修 |
+| 选项重排时判对判错/倒诬学生 | 判分用题库字母非当前题面 | 判分前投影到当前选项面 | ❌ **2026-06-24 live 复现**(g1 T6,bot 自承"按原题选项顺序判卷")——修法 commit 落地但 live 链路未生效,查未部署/未接线 |
 | 判分缺标准答案就拒答 | 三路兜底失败未回落开放世界 | RAG-grounded open-world 裁决 | ✅ 已修 |
 | 粘贴 MCQ 误命中题库案例题，拼别题整篇"标准作答"（含别题"中标价1.7亿"） | exact_authority 确定性误命中（题型不匹配） | 题型门 fail-closed（query 非 case_like 撤 case 命中） | ✅ 已修 PR#202 |
 | judge 编造背景数字"中标价1.7亿"且跨会话复现 | bot 判分输出经 notebook→working_memory→当 EVIDENCE 回灌的自强化幻觉循环 | 写入侧断环：notebook 不写判分输出到 working_memory_projection | ✅ 已修 PR#204；残留单次 judge 幻觉源头 |
@@ -109,10 +109,11 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | WS 跨 worker 流式死 | in-process 执行表 per-worker | store-tail 单一事件权威 | ✅ 已修 PR#190 |
 | 首 token 无界 90s 超时 | 无超时上限 | 首 token 超时门 | ✅ 已修 |
 | 切换/timeout 后拒答死循环 | 状态污染 | （待复验） | ⚠️ 观察 |
-| 粘贴 MCQ 误路由到出题(特定 topic 如沥青面层) | mcq_grading 路由缺口,fall through 到 deep_question 出题 | orchestrator 补 mcq_grading 一等分支 | 🔵 task#20 簇A |
-| 回指"刚才那题"无活跃题→凭空编题且谎称"上一轮出现过" | 回指 follow-up 缺活跃题存在性前置校验 | 无活跃题 fail-closed 明说"还没出过题",别编 | 🔵 task#20 簇A |
-| "我不会+跳过"非答题轮→整题阅卷+凭空 CONFUSION 诊断 | give-up 复合措辞误路由进 grading(裸"跳过"已对) | 无 submitted_answer 一律禁入判分分支 | 🔵 task#20 簇A |
-| 真诚质疑概念→立刻改口+编造废止文号(连续多轮附和当轮学生) | 质疑轮不重新 grounding,把"学生反对"当高权重无条件附和 | 质疑/纠错轮强制重走 RAG 核验再决定改口 | 🔵 task#20 簇A |
+| 简答/案例判分请求→被 MCQ 生成器抢占,判 bot 自己生成的 MCQ | 判分对象路由错(锚到 bot 自造题非用户真题) | 判分态/判分对象单一 decider 收权 | ❌ **2026-06-24 live 复现**(g6 8处,task#20 簇A) |
+| 回指"刚才那题"→串到别题且编造作答记录("你答了C/多选B和C") | 判分对象=哪道题的权威失守 | 判分对象只能是真实活跃题,无活跃题 fail-closed | ❌ **2026-06-24 live 复现**(g1 T9/g4 T10,task#20 簇A) |
+| 非答题轮("我不会/先别判/还没做")→ 凭空判分 | 无 submitted_answer 仍进判分分支 | 无 submitted_answer 一律禁入判分 | ❌ **2026-06-24 live 复现**(g2 T5/9,task#20 簇A) |
+| 质疑轮(只反驳未作答)→ 凭空判分"你答了D得0分" + 附和编造修订叙事 | 质疑被误触发阅卷态 + 不重 grounding 无条件附和 | 质疑轮禁判分态 + 强制重走 RAG 核验 | ❌ **2026-06-24 live**(g5 T3/4/7 凭空判分;T10 DeepSeek conf=1.0 编造"罚款2020修订4%→8%",task#20 簇A) |
+| 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
 | 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |

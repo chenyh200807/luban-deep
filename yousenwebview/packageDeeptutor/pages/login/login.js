@@ -13,7 +13,11 @@ function showSmsSentFeedback(message) {
 
 function canShowDebugCode() {
   var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
-  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+  return (
+    cfg.platform === "devtools" ||
+    cfg.envVersion === "develop" ||
+    cfg.envVersion === "trial"
+  );
 }
 
 function describePhoneCodeAuthError(info) {
@@ -142,7 +146,8 @@ Page({
   },
   _captureEntryContext: function (options) {
     var source =
-      (options && (options.entrySource || options.entry_source || options.source)) ||
+      (options &&
+        (options.entrySource || options.entry_source || options.source)) ||
       "";
     var returnTo = route.resolveInternalUrl(
       options && options.returnTo,
@@ -381,14 +386,19 @@ Page({
         var outerCode = resp.code !== undefined ? resp.code : inner.code;
         var outerMsg = resp.message || inner.message || "发送失败";
         var dataObj = inner.data || inner;
-        var retryAfter = (dataObj && dataObj.retry_after) || inner.retry_after || 60;
+        var retryAfter =
+          (dataObj && dataObj.retry_after) || inner.retry_after || 60;
         var sent = inner.sent || (dataObj && dataObj.sent);
 
         if (outerCode === 0 || sent) {
           // Success: start countdown
-          var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var debugCode =
+            (dataObj && dataObj.debug_code) || inner.debug_code || "";
           var successMsg =
-            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
+            (dataObj && dataObj.message) ||
+            inner.message ||
+            resp.message ||
+            "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           var showDebugCode = debugCode && canShowDebugCode();
           if (showDebugCode) nextData.phoneCode = debugCode;
@@ -533,15 +543,13 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
-    if (!self.data.privacyChecked) {
-      self.handlePrivacyRequiredTap();
-      return;
-    }
     var phoneCode =
-      e &&
-      e.detail &&
-      (e.detail.code || e.detail.phoneCode || "");
+      e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
+      if (!self.data.privacyChecked) {
+        self.handlePrivacyRequiredTap();
+        return;
+      }
       if (isPrivacyAuthInterruption(e && e.detail)) {
         self.setData({
           privacyChecked: false,
@@ -572,7 +580,9 @@ Page({
             ) {
               return "后端未配置小程序密钥";
             }
-            if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
+            if (
+              info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0
+            ) {
               return "手机号验证失败";
             }
             if (

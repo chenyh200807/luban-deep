@@ -11,9 +11,13 @@ function _pendingFromArgs(baselineOrPending, query) {
     return {
       baselineCount: Math.max(0, Number(baselineOrPending.baselineCount) || 0),
       query: String(baselineOrPending.query || ""),
-      turnId: String(baselineOrPending.turnId || baselineOrPending.turn_id || "").trim(),
+      turnId: String(
+        baselineOrPending.turnId || baselineOrPending.turn_id || "",
+      ).trim(),
       clientTurnId: String(
-        baselineOrPending.clientTurnId || baselineOrPending.client_turn_id || "",
+        baselineOrPending.clientTurnId ||
+          baselineOrPending.client_turn_id ||
+          "",
       ).trim(),
     };
   }
@@ -33,19 +37,10 @@ function _messageMetadata(message) {
 
 function getAssistantDisplayText(message) {
   if (!message || typeof message !== "object") return "";
-  var metadata = _messageMetadata(message);
-  var nested =
-    metadata.metadata && typeof metadata.metadata === "object"
-      ? metadata.metadata
-      : {};
   var candidates = [
     message.content,
     message.response,
     message.assistant_content,
-    metadata.response,
-    metadata.assistant_content,
-    nested.response,
-    nested.assistant_content,
   ];
   for (var i = 0; i < candidates.length; i++) {
     var text = normalizeMessageText(candidates[i]);
@@ -57,7 +52,8 @@ function getAssistantDisplayText(message) {
 function _messageTurnId(message) {
   var metadata = _messageMetadata(message);
   return String(
-    (message && (message.engine_turn_id || message.turn_id || message.engineTurnId)) ||
+    (message &&
+      (message.engine_turn_id || message.turn_id || message.engineTurnId)) ||
       metadata.engine_turn_id ||
       metadata.turn_id ||
       "",
@@ -93,7 +89,10 @@ function _findByClientTurnIdentity(messages, pending) {
       var next = messages[k];
       if (!next) continue;
       var role = String(next.role || "");
-      if (role === "assistant" && normalizeMessageText(getAssistantDisplayText(next))) {
+      if (
+        role === "assistant" &&
+        normalizeMessageText(getAssistantDisplayText(next))
+      ) {
         return _result(j, k, messages);
       }
       if (role === "user") break;
@@ -114,7 +113,9 @@ function _findByTurnIdentity(messages, pending) {
       ) {
         var userIndex = -1;
         for (var back = i - 1; back >= 0; back--) {
-          if (String((messages[back] && messages[back].role) || "") === "user") {
+          if (
+            String((messages[back] && messages[back].role) || "") === "user"
+          ) {
             userIndex = back;
             break;
           }
@@ -149,7 +150,10 @@ function findRecoveredAssistant(messages, baselineCount, query) {
       var candidate = messages[j];
       if (!candidate) continue;
       var role = String(candidate.role || "");
-      if (role === "assistant" && normalizeMessageText(getAssistantDisplayText(candidate))) {
+      if (
+        role === "assistant" &&
+        normalizeMessageText(getAssistantDisplayText(candidate))
+      ) {
         return _result(i, j, messages);
       }
       if (role === "user") {
