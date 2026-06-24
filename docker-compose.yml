@@ -144,6 +144,9 @@ services:
 
     networks:
       - deeptutor-network
+      # 观测：接入 Langfuse 独立 compose 网络，使容器内可解析 LANGFUSE_BASE_URL 的
+      # service 名 jgzk-langfuse:3000（否则跨网络 getaddrinfo 失败，trace sink 静默丢）。
+      - luban_jgzk-network
 
   # ============================================
   # Private SearXNG Web Search Service
@@ -197,6 +200,10 @@ services:
 networks:
   deeptutor-network:
     driver: bridge
+  # Langfuse 观测栈的独立 compose 网络（由 deployment/aliyun/docker-compose.langfuse.yml 创建）。
+  # 声明为 external，使 deeptutor 容器能解析 jgzk-langfuse:3000 把 LLM trace 发给 Langfuse。
+  luban_jgzk-network:
+    external: true
 
 volumes:
   searxng-cache:
