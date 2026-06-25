@@ -819,3 +819,34 @@ ssh Aliyun-ECS-2 "docker inspect deeptutor      --format '{{range \$k,\$v := .Ne
 **修复（两层）**：
 1. **即时**（运行时，重建即丢）：`ssh Aliyun-ECS-2 "docker network connect luban_jgzk-network deeptutor"` → 立刻 `langfuse_connectivity=...reachable`。
 2. **durable**（`docker-compose.yml`，跨重建持久）：networks 段加 `luban_jgzk-network: { external: true }`，deeptutor service 的 networks 加 `- luban_jgzk-network`。⚠️ 改 `docker-compose.yml` 属 `FAST_RELOAD_BLOCKED`——**下次须走 `deploy_aliyun.sh` 全量部署**才把网络配置烤进容器；在那之前即时 connect 维持，期间若 fast-reload 重建容器会丢、需重连。
+
+### 16. 2026-06-24 磁盘反复爆盘 → 容器写不了 /tmp 崩溃 → 502（多次部署后必现）
+
+**失败签名**：公网 `502 Bad Gateway`（nginx），容器 `restarting / health=unhealthy / RestartCount` 持续涨；`docker compose logs deeptutor` 末尾是
+```
+FileNotFoundError: [Errno 2] No usable temporary directory found in ['/tmp', '/var/tmp', '/usr/tmp', '/app']
+```
+（supervisord 启动时 `tempfile.gettempdir()` 找不到可写临时目录）。`df -h /` 显示 **100% 已用 / 0 可用**。这不是代码 bug，是**磁盘满到容器连 /tmp 都写不了**。
+
+**根因（为什么"老爆"）**：
+1. **`server_fast_reload_aliyun.sh:49` 每次部署都跑 `docker compose build deeptutor`**——所谓"快速发布"**其实每次都 docker build 重建镜像**（名不副实），每次 build 生成 GB 级 **build cache 层**堆进 `/var/lib/docker`，**从不自动清理**。一个 session 连发 ~6 次 → 累积 **9GB+ build cache**（`docker builder prune -af` 实测一次清出 9.1GB）。
+2. **基线本就紧**：Langfuse 数据卷（clickhouse+minio）**12.5GB 且随 trace 持续增长** + deeptutor 镜像 ~4.9GB + 仓库 `/root/deeptutor` ~14GB + `sync_to_aliyun.sh` 的 `RELEASE_KEEP=5` 个 release 快照，全压在 **99GB** 单盘上。基线长期 90%+。
+3. 几次部署累积的 build cache（9GB）就把盘从 ~85% 顶到 100% → 容器重建/重启时写不了 /tmp → supervisord 崩 → 502。**rsync 大树（含 14G diagram/PDF）+ 每次 release 快照只会雪上加霜。**
+
+**抢修三步（安全，只清未用，绝不碰 Langfuse 业务数据卷）**：
+```bash
+ssh Aliyun-ECS-2 "docker builder prune -af && docker image prune -af"   # 清 build cache + 未用镜像(在用的保留),实测一把回收 9~15G
+ssh Aliyun-ECS-2 "df -h /"                                              # 确认有 >5G 空闲
+ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose restart deeptutor"  # 有空间后容器即可正常起
+curl -s -o /dev/null -w '%{http_code}\n' https://test2.yousenjiaoyu.com/   # 等几秒 → 200
+```
+> **红线**：14.3GB 的 `langfuse_langfuse_ch_data`(7.7G) + `langfuse_langfuse_minio_data`(6.6G) 是**生产 trace 数据卷，不是缓存**——删卷=毁观测+丢历史，**绝不能 `docker volume rm`**。靠清 build cache / 未用镜像 / 容器日志 truncate / `/root` 下 stale 旧备份就够腾空间。
+
+**诊断口径**：`df -h /`（看是不是 100%）→ `docker system df`（看 Build Cache / Images / Local Volumes 各占多少，Build Cache 大就是它）→ `docker compose logs deeptutor | tail`（确认是 tempdir 崩非代码崩）。
+
+**防爆（预防，避免再"老爆"）**：
+- **部署后自动清 build cache**：在 `redeploy_aliyun_fast.sh` 末尾加 `ssh "${REMOTE_HOST}" "docker builder prune -f"`（或给 BuildKit 配 cache GC 上限），让每次 build 的缓存不累积。**这是治本——根因就是 build cache 无人清。**
+- **部署前磁盘预检**：发布脚本开头加 `free=$(ssh Aliyun-ECS-2 "df --output=avail -BG / | tail -1")`，`< 10G` 则警告/拒绝，提示先 `docker builder prune -af`。
+- **定期维护**：每隔几次部署或每周 `docker builder prune -af && docker image prune -af`（安全，只清未用）。
+- **Langfuse 数据增长**：12.5GB 且涨，需配 Langfuse **数据保留(retention)策略**按期清旧 trace（在 Langfuse 内做，不是删卷）；live eval 跑多了 trace 增长更快。
+- **认清"快速发布"会 build**：`server_fast_reload_aliyun.sh` 实际 rebuild 镜像，纯 Python/prompt 改动理想应是"复用现有镜像 + 仅 restart"(no-build)；在改成真 no-build 之前，每次发布都要为 build cache 预留空间。
