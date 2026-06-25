@@ -99,6 +99,32 @@ def test_assessment_sessions_do_not_require_public_users_mirror_row() -> None:
     assert "auth.uid()::text = user_id" in create_sql
 
 
+def test_assessment_sessions_security_hotfix_is_service_role_only() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260625000100_assessment_sessions_service_role_only.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    assert "alter table public.assessment_sessions enable row level security;" in sql
+    assert "alter table public.assessment_sessions force row level security;" in sql
+
+    for policy_name in (
+        "assessment_sessions_owner_select",
+        "assessment_sessions_owner_insert",
+        "assessment_sessions_owner_update",
+    ):
+        assert f'drop policy if exists "{policy_name}" on public.assessment_sessions' in sql
+
+    assert "revoke all on public.assessment_sessions from anon;" in sql
+    assert "revoke all on public.assessment_sessions from authenticated;" in sql
+    assert "session_questions_private" in sql
+    assert "submitted_answer_snapshot" in sql
+    assert "result_report_json" in sql
+
+
 def test_assessment_forms_security_hotfix_is_narrow_service_role_only() -> None:
     migration_path = (
         Path(__file__).resolve().parents[2]

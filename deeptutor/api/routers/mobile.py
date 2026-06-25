@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import httpx
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from deeptutor.api.dependencies import (
     AuthContext,
@@ -39,6 +39,14 @@ from deeptutor.services.internal_qa import (
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.member_usage_meter import get_member_usage_meter
 from deeptutor.services.assessment import AssessmentBlueprintUnavailable
+from deeptutor.services.assessment.session_repository import (
+    AssessmentLeaseConflict,
+    AssessmentSessionRateLimited,
+    AssessmentSessionConflict,
+    AssessmentSessionError,
+    AssessmentSessionExpired,
+    AssessmentSessionNotFound,
+)
 from deeptutor.services.query_intent import (
     build_grounding_decision,
 )
@@ -2170,11 +2178,31 @@ class AssessmentCreateRequest(BaseModel):
     topic_ids: list[str] = Field(default_factory=list)
     count: int = Field(default=20, ge=1, le=50)
     duration_policy: dict[str, Any] = Field(default_factory=dict)
+    device_id: str = Field(default="", max_length=128)
 
 
 class AssessmentSubmitRequest(BaseModel):
     answers: dict[str, str] = Field(default_factory=dict)
-    time_spent_seconds: int = 0
+    time_spent_seconds: int = Field(default=0, ge=0, le=86400)
+    device_id: str = Field(default="", max_length=128)
+
+    @field_validator("answers")
+    @classmethod
+    def _validate_answers(cls, value: dict[str, str]) -> dict[str, str]:
+        normalized: dict[str, str] = {}
+        for key, raw_answer in dict(value or {}).items():
+            question_id = str(key or "").strip()
+            answer = str(raw_answer or "").strip()
+            if not question_id:
+                raise ValueError("answer_question_id_required")
+            if len(question_id) > 128:
+                raise ValueError("answer_question_id_too_long")
+            if len(answer) > 64:
+                raise ValueError("answer_value_too_long")
+            normalized[question_id] = answer
+        if len(normalized) > 50:
+            raise ValueError("answer_count_exceeds_assessment_limit")
+        return normalized
 
 
 class BatchConversationRequest(BaseModel):
@@ -2823,7 +2851,28 @@ async def assessment_profile(authorization: str | None = Header(default=None)) -
 @router.get("/assessment/topics")
 async def assessment_topics(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     user_id = _resolve_authenticated_user_id(authorization)
-    return member_service.get_assessment_topic_catalog(user_id)
+    return await run_in_threadpool(member_service.get_assessment_topic_catalog, user_id)
+
+
+def _assessment_session_http_error(exc: AssessmentSessionError) -> HTTPException:
+    detail = str(exc)
+    if isinstance(exc, AssessmentSessionNotFound):
+        return HTTPException(status_code=404, detail="assessment_session_not_found")
+    if isinstance(exc, AssessmentSessionExpired):
+        return HTTPException(status_code=409, detail={"error": "assessment_session_expired"})
+    if isinstance(exc, AssessmentLeaseConflict):
+        return HTTPException(status_code=409, detail={"error": "assessment_lease_conflict"})
+    if isinstance(exc, AssessmentSessionConflict):
+        return HTTPException(status_code=409, detail={"error": detail or "assessment_session_conflict"})
+    if isinstance(exc, AssessmentSessionRateLimited):
+        return HTTPException(status_code=429, detail={"error": detail or "assessment_session_rate_limited"})
+    return HTTPException(
+        status_code=503,
+        detail={
+            "error": "assessment_sessions_unavailable",
+            "message": "题库服务暂时不可用，请稍后重试。",
+        },
+    )
 
 
 @router.post(
@@ -2852,13 +2901,15 @@ async def assessment_create(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
-        return member_service.create_assessment(
+        return await run_in_threadpool(
+            member_service.create_assessment,
             _resolve_authenticated_user_id(authorization),
             assessment_type=body.assessment_type,
             subject_id=body.subject_id,
             topic_ids=body.topic_ids,
             count=body.count,
             duration_policy=body.duration_policy,
+            device_id=body.device_id,
         )
     except AssessmentBlueprintUnavailable as exc:
         logger.warning("Assessment blueprint unavailable for mobile create: %s", exc)
@@ -2869,20 +2920,28 @@ async def assessment_create(
                 "message": "当前题库暂不足以生成本次专题测评，请稍后再试。",
             },
         ) from exc
+    except AssessmentSessionError as exc:
+        logger.warning("Assessment session unavailable for mobile create: %s", exc)
+        raise _assessment_session_http_error(exc) from exc
 
 
 @router.get("/assessment/{quiz_id}")
 async def assessment_resume(
     quiz_id: str,
+    device_id: str = Query(default="", max_length=128),
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
-        return member_service.get_assessment_session(
+        return await run_in_threadpool(
+            member_service.get_assessment_session,
             _resolve_authenticated_user_id(authorization),
             quiz_id,
+            device_id=device_id,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AssessmentSessionError as exc:
+        raise _assessment_session_http_error(exc) from exc
 
 
 @router.get("/assessment/{quiz_id}/report")
@@ -2891,12 +2950,15 @@ async def assessment_report(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
-        return member_service.get_assessment_report(
+        return await run_in_threadpool(
+            member_service.get_assessment_report,
             _resolve_authenticated_user_id(authorization),
             quiz_id,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AssessmentSessionError as exc:
+        raise _assessment_session_http_error(exc) from exc
 
 
 @router.post(
@@ -2939,21 +3001,43 @@ async def assessment_deep_explanation(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/assessment/{quiz_id}/submit")
+@router.post(
+    "/assessment/{quiz_id}/submit",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_submit",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        ),
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_submit_daily",
+                default_max_requests=100,
+                default_window_seconds=86400.0,
+            )
+        ),
+    ],
+)
 async def assessment_submit(
     quiz_id: str,
     body: AssessmentSubmitRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
-        return member_service.submit_assessment(
+        return await run_in_threadpool(
+            member_service.submit_assessment,
             _resolve_authenticated_user_id(authorization),
             quiz_id,
             answers=body.answers,
             time_spent_seconds=body.time_spent_seconds,
+            device_id=body.device_id,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AssessmentSessionError as exc:
+        raise _assessment_session_http_error(exc) from exc
 
 
 @router.post(
