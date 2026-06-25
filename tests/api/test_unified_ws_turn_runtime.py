@@ -391,6 +391,47 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_preserves_explicit_deep_question_over_tutorbot_profile(monkeypatch) -> None:
+    async def _no_run_turn(self: TurnRuntimeManager, _execution: object) -> None:
+        return None
+
+    monkeypatch.setattr(TurnRuntimeManager, "_run_turn", _no_run_turn)
+    store = _LifecycleAuthorityStore()
+    runtime = TurnRuntimeManager(store=store)  # type: ignore[arg-type]
+
+    _session, turn = await runtime.start_turn(
+        {
+            "session_id": "session-runtime-test",
+            "content": "地基基础专题测评",
+            "capability": "deep_question",
+            "config": {
+                "interaction_profile": "tutorbot",
+                "interaction_hints": {
+                    "profile": "tutorbot",
+                    "entry_role": "tutorbot",
+                },
+                "learning_training_intent": {
+                    "source": "assessment_review",
+                    "concept_label": "地基基础",
+                    "question_count": 3,
+                },
+            },
+            "language": "zh",
+        }
+    )
+
+    assert store.created_turn_capability == "deep_question"
+    assert turn["capability"] == "deep_question"
+    execution = runtime._executions[turn["id"]]
+    assert execution.capability == "deep_question"
+    assert execution.payload["capability"] == "deep_question"
+    assert execution.payload["config"]["learning_training_intent"]["source"] == "assessment_review"
+    assert "_entry_capability_hint" not in execution.payload["config"]
+    if execution.task is not None:
+        await asyncio.wait_for(execution.task, timeout=1)
+
+
+@pytest.mark.asyncio
 async def test_start_turn_filters_end_user_code_execution_tools(monkeypatch, tmp_path) -> None:
     async def _no_run_turn(self: TurnRuntimeManager, _execution: object) -> None:
         return None
