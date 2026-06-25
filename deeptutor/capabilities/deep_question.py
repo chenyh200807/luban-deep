@@ -3560,24 +3560,10 @@ class DeepQuestionCapability(BaseCapability):
     @staticmethod
     def _case_grading_context_from_full_submission(raw_user_message: str) -> dict[str, Any] | None:
         from deeptutor.services.question_lifecycle_skills import (
-            split_full_case_answer_submission,
+            case_grading_context_from_full_submission,
         )
 
-        question_stem, learner_answer = split_full_case_answer_submission(raw_user_message)
-        if not question_stem.strip() or not learner_answer.strip():
-            return None
-        return {
-            "question_id": "",
-            "question": question_stem.strip(),
-            "question_stem": question_stem.strip(),
-            "question_type": "case",
-            "user_answer": learner_answer.strip(),
-            "correct_answer": "",
-            "construction_grading_result": {
-                "type": "case",
-                "max_score": 10,
-            },
-        }
+        return case_grading_context_from_full_submission(raw_user_message)
 
     @staticmethod
     def _mcq_grading_context_from_full_submission(raw_user_message: str) -> dict[str, Any] | None:
@@ -3587,32 +3573,11 @@ class DeepQuestionCapability(BaseCapability):
         correct VALUE while the answer LETTER stays bound to the options the learner
         actually saw — never a bank option order. Returns None when the message is not
         a self-contained MCQ with an answer."""
-        text = str(raw_user_message or "").strip()
-        if not text:
-            return None
-        from deeptutor.services.rag.historical_questions import _extract_query_options
-
-        options = {
-            str(opt.get("key") or "").strip().upper(): str(opt.get("value") or "").strip()
-            for opt in _extract_query_options(text)
-            if str(opt.get("key") or "").strip() and str(opt.get("value") or "").strip()
-        }
-        if len(options) < 2:
-            return None
-        _target, submission = resolve_submission_attempt(
-            text, {"question": text, "question_type": "choice", "options": options}
+        from deeptutor.services.question_lifecycle_skills import (
+            mcq_grading_context_from_full_submission,
         )
-        user_answer = str((submission or {}).get("answer") or "").strip()
-        if not user_answer:
-            return None
-        return {
-            "question_id": "",
-            "question": text,
-            "question_type": "choice",
-            "options": options,
-            "user_answer": user_answer,
-            "correct_answer": "",
-        }
+
+        return mcq_grading_context_from_full_submission(raw_user_message)
 
     async def run(self, context: UnifiedContext, stream: StreamBus) -> None:
         from deeptutor.agents.question.coordinator import AgentCoordinator
