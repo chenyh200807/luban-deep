@@ -700,6 +700,12 @@ class AgentCoordinator:
         if not options or len(options) < 2:
             return []
         template = templates[0]
+        if not self._bank_hit_matches_question_contract(
+            question_type=question_type or template.question_type,
+            options=options,
+            reference_answer=reference_answer,
+        ):
+            return []
         analysis = str(payload.get("analysis") or "").strip()
         review_notes = build_mcq_review_notes_from_exact_question(
             {
@@ -743,6 +749,19 @@ class AgentCoordinator:
                 grading_key=grading_key,
             )
         ]
+
+    @staticmethod
+    def _bank_hit_matches_question_contract(
+        *,
+        question_type: str,
+        options: dict[str, str],
+        reference_answer: str,
+    ) -> bool:
+        if str(question_type or "").strip().lower() != "choice":
+            return True
+        option_keys = {str(key).strip().upper() for key in options if str(key).strip()}
+        answer_letters = re.findall(r"[A-E]", str(reference_answer or "").upper())
+        return option_keys == {"A", "B", "C", "D"} and len(answer_letters) == 1
 
     @staticmethod
     def _has_similar_source_variant_anchor(anchor_payload: dict[str, Any] | None) -> bool:
