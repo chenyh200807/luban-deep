@@ -15,6 +15,47 @@ WORKFLOW_FILES = {
     ".github/pull_request_template.md",
 }
 
+SECRET_SCAN_EXCLUDED_PREFIXES = (
+    ".playwright-cli/",
+    ".playwright-mcp/",
+    ".superpowers/",
+    "artifacts/",
+    "deeptutor/services/construction_grading/runtime_supply/",
+    "deeptutor/services/taxonomy/compiled/",
+    "dist/",
+    "output/",
+    "tmp/",
+)
+
+SECRET_SCAN_EXCLUDED_SUFFIXES = (
+    ".bmp",
+    ".db",
+    ".docx",
+    ".gif",
+    ".gz",
+    ".jpeg",
+    ".jpg",
+    ".lock",
+    ".mov",
+    ".mp3",
+    ".mp4",
+    ".parquet",
+    ".pdf",
+    ".pkl",
+    ".png",
+    ".psd",
+    ".sqlite",
+    ".webm",
+    ".webp",
+    ".xlsx",
+    ".zip",
+)
+
+SECRET_SCAN_EXCLUDED_EXACT = {
+    ".secrets.baseline",
+    "package-lock.json",
+}
+
 
 def git_lines(*args: str) -> list[str]:
     return subprocess.check_output(["git", *args], text=True).splitlines()
@@ -30,7 +71,25 @@ def changed_files(event_name: str, base_sha: str, head_sha: str) -> list[str]:
 
 def changed_tracked_files(base_sha: str, head_sha: str) -> list[str]:
     changed = git_lines("diff", "--name-only", "--diff-filter=ACMR", base_sha, head_sha)
-    return [path for path in changed if Path(path).is_file()]
+    return secret_scan_files([path for path in changed if Path(path).is_file()])
+
+
+def should_secret_scan(path: str) -> bool:
+    normalized = path.strip()
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    if not normalized:
+        return False
+    if normalized in SECRET_SCAN_EXCLUDED_EXACT:
+        return False
+    if normalized.startswith(SECRET_SCAN_EXCLUDED_PREFIXES):
+        return False
+    lowered = normalized.lower()
+    return not lowered.endswith(SECRET_SCAN_EXCLUDED_SUFFIXES)
+
+
+def secret_scan_files(paths: Iterable[str]) -> list[str]:
+    return [path for path in paths if should_secret_scan(path)]
 
 
 def _has(changed: Iterable[str], *, prefixes: tuple[str, ...] = (), exact: tuple[str, ...] = ()) -> bool:
@@ -131,7 +190,7 @@ def cmd_scan_changed(args: argparse.Namespace) -> int:
 
 
 def cmd_scan_full(args: argparse.Namespace) -> int:
-    return run_secret_scan(git_lines("ls-files"), args.baseline)
+    return run_secret_scan(secret_scan_files(git_lines("ls-files")), args.baseline)
 
 
 def build_parser() -> argparse.ArgumentParser:

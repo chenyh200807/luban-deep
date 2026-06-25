@@ -603,7 +603,8 @@ jobs:
       # guard is server-side CI. detect-secrets-hook exits non-zero only when a tracked
       # file contains a secret NOT already allowlisted in .secrets.baseline — it does not
       # rewrite the baseline, so there is no generated_at churn / false failure. Catches a
-      # committed .env or hardcoded key. The baseline's exclude filters skip artifacts/.
+      # committed .env or hardcoded key. scripts/ci/tests_workflow_scope.py owns the
+      # scan-input filter for generated payloads, binary assets, and runtime-supply data.
       - name: Secret scan changed files (BLOCKING on PR)
         if: github.event_name == 'pull_request'
         env:
