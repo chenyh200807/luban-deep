@@ -40,6 +40,23 @@ def test_pasted_single_choice_parsed_on_learner_surface() -> None:
     assert ctx["correct_answer"] == ""  # open-world adjudication, no bank letter leaked
 
 
+def test_pasted_single_choice_accepts_learner_answer_label_after_option_surface() -> None:
+    ctx = _parse(
+        "问题：建筑工程最低保修期限说法正确的是（ ）。\n"
+        "A. 电气管线、给排水管道、设备安装为2年\n"
+        "B. 电气管线、给排水管道、设备安装为5年\n"
+        "C. 屋面防水为2年\n"
+        "D. 供热与供冷系统为1个采暖期\n"
+        "我的答案：A，请批改"
+    )
+
+    assert ctx is not None
+    assert ctx["question_type"] == "choice"
+    assert ctx["options"]["A"] == "电气管线、给排水管道、设备安装为2年"
+    assert ctx["user_answer"] == "A"
+    assert ctx["correct_answer"] == ""
+
+
 def test_pasted_multi_choice_extracts_all_selected() -> None:
     ctx = _parse("正确的有：A.导管法 B.槽段8到10m C.导墙 D.墙底注浆。我选ACD")
     assert ctx is not None
@@ -146,3 +163,57 @@ async def test_deep_question_honors_clarification_decision_before_full_mcq_fallb
     assert result_event.metadata["turn_semantic_decision"]["next_action"] == "ask_clarifying_question"
     assert result_event.metadata["question_authority_source"] == "turn_semantic_decision"
     assert result_event.metadata["reveal_answers"] is False
+
+
+@pytest.mark.asyncio
+async def test_deep_question_prefers_self_contained_mcq_over_case_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    captured: dict[str, Any] = {}
+
+    async def capture_grading(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result(
+            {"response": "graded"},
+            source="deep_question",
+            metadata={
+                "mode": "grading",
+                "authority_source": kwargs.get("authority_source"),
+            },
+        )
+
+    monkeypatch.setattr(DeepQuestionCapability, "_emit_grading_result", capture_grading)
+
+    message = (
+        "问题：建筑工程最低保修期限说法正确的是（ ）。\n"
+        "A. 电气管线、给排水管道、设备安装为2年\n"
+        "B. 电气管线、给排水管道、设备安装为5年\n"
+        "C. 屋面防水为2年\n"
+        "D. 供热与供冷系统为1个采暖期\n"
+        "我的答案：A，请批改"
+    )
+    context = UnifiedContext(
+        session_id="s-self-contained-mcq-over-case",
+        user_message=message,
+        config_overrides={},
+        metadata={
+            "turn_id": "turn-self-contained-mcq-over-case",
+            "raw_user_message": message,
+            "question_lifecycle_scene": "case_grading",
+        },
+        language="zh",
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "mcq_grading_full_submission"
+    assert captured["graded_context"]["question_type"] == "choice"
+    assert captured["graded_context"]["user_answer"] == "A"
+    assert context.metadata["question_followup_context"]["question_type"] == "choice"
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["authority_source"] == "mcq_grading_full_submission"

@@ -398,6 +398,27 @@ class ChatOrchestrator:
         mcq_grading_bypass = (
             lifecycle_scene == "mcq_grading" and preselected_capability != "deep_question"
         )
+        if (
+            preselected_capability == "deep_question"
+            and not lifecycle_scene
+            and self._has_active_lifecycle_context(context)
+            and not self._looks_like_question_submission(context, routing_user_message)
+            and not self._looks_like_question_followup(context, routing_user_message)
+            and not looks_like_practice_generation_request(routing_user_message)
+            and not self._looks_like_free_text_question_review_request(
+                context,
+                routing_user_message,
+            )
+        ):
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                "deep_question_preselect_demoted_non_question_turn"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
         if context.active_capability and not mcq_grading_bypass:
             self._prepare_preselected_capability_context(context, routing_user_message)
             context.metadata.setdefault("semantic_router_mode", "preselected")

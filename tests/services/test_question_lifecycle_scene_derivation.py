@@ -93,6 +93,31 @@ def test_active_object_with_submission_returns_mcq_grading():
     assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "答案改成D",
+        "如果答案改成 D",
+        "上一个选项改成D",
+        "刚才那题答案改成D",
+    ],
+)
+def test_active_object_explicit_answer_revision_returns_mcq_grading(message: str):
+    ctx = _FakeContext(
+        user_message=message,
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
+
+
+def test_active_object_hypothetical_option_challenge_stays_question_review():
+    ctx = _FakeContext(
+        user_message="如果选D对不对",
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_active_question_set_with_batch_submission_returns_mcq_grading():
     ctx = _FakeContext(
         user_message="第1题：C；第2题：A；第3题：B",
