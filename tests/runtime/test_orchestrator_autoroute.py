@@ -700,6 +700,58 @@ async def test_orchestrator_mcq_grading_guard_does_not_fire_when_preselect_is_de
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_demotes_deep_question_preselect_for_non_answer_knowledge_question() -> None:
+    """An active MCQ must not make unrelated knowledge QA enter grading/deep_question.
+
+    Live regression shape: after an MCQ turn, a learner asks
+    "电气管线、给排水管道、设备安装最低保修期几年". That is general knowledge QA, not
+    a submission or option follow-up, so sticky deep_question preselect must be
+    demoted to TutorBot/chat instead of producing an exam-grading conclusion.
+    """
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    mcq_context = {
+        "question_id": "warranty-mcq",
+        "question": "建筑工程最低保修期限说法正确的是（ ）。",
+        "question_type": "single_choice",
+        "options": {
+            "A": "电气管线、给排水管道、设备安装为2年",
+            "B": "电气管线、给排水管道、设备安装为5年",
+            "C": "屋面防水为2年",
+            "D": "供热与供冷系统为1个采暖期",
+        },
+        "correct_answer": "A",
+        "user_answer": "A",
+        "is_correct": True,
+    }
+    context = UnifiedContext(
+        session_id="s-knowledge-qa-demotes-deep-question",
+        active_capability="deep_question",
+        user_message="电气管线、给排水管道、设备安装最低保修期几年",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": dict(mcq_context),
+            },
+            "question_followup_context": dict(mcq_context),
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode_reason"] == (
+        "deep_question_preselect_demoted_non_question_turn"
+    )
+    assert registry.captured[0] == "tutorbot"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_new_review_request_replaces_stale_active_question() -> None:
     """Explicit free-text review must materialize a new reviewed question.
 

@@ -3719,6 +3719,48 @@ class DeepQuestionCapability(BaseCapability):
             )
             return
         if (
+            not force_generate_questions
+            and not (
+                isinstance(followup_question_context, dict)
+                and followup_question_context.get("question")
+            )
+        ):
+            # A learner pasted a self-contained MCQ (own stem + own option order) and
+            # answered it. This object has its own learner-surface authority, so it must
+            # beat stale lifecycle labels and the broader case full-submission fallback.
+            full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
+            if full_mcq_context is not None:
+                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "revise_answer_on_active_object"
+                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
+                        else "answer_active_object"
+                    ),
+                    next_action="route_to_grading",
+                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    confidence=1.0,
+                    reason="mcq_grading full-submission fallback",
+                    active_object=active_object,
+                )
+                context.metadata["question_followup_context"] = dict(full_mcq_context)
+                context.metadata["turn_semantic_decision"] = mcq_turn_decision
+                await self._emit_grading_result(
+                    stream=stream,
+                    context=context,
+                    llm_config=llm_config,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=mcq_turn_decision,
+                    graded_context=full_mcq_context,
+                    raw_user_message=raw_user_message,
+                    selected_mode=selected_mode,
+                    authority_source="mcq_grading_full_submission",
+                    correct_answer_present=False,
+                    kb_name=kb_name,
+                )
+                return
+        if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
             and not (
@@ -3754,55 +3796,6 @@ class DeepQuestionCapability(BaseCapability):
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="case_grading_full_submission",
-                    correct_answer_present=False,
-                    kb_name=kb_name,
-                )
-                return
-        if (
-            not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
-        ):
-            # A learner pasted a self-contained MCQ (own stem + own option order) and
-            # answered it. There is no active question object, so the structured branch
-            # below cannot fire and (without this) the turn degrades to free-form
-            # generation where the LLM grades on the bank's option letters — marking a
-            # correct answer wrong. The lifecycle scene is unreliable here (observed
-            # None in production for these turns), so detect by CONTENT: the parser only
-            # returns a context for a self-contained MCQ that carries ≥2 options AND a
-            # parsed answer (a pure generation request yields no answer -> None), which
-            # makes it a safe, deterministic trigger regardless of scene. Mirror the
-            # case full-submission entry and grade open-world on the LEARNER's surface.
-            full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
-            if full_mcq_context is not None:
-                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
-                    relation_to_active_object=(
-                        "revise_answer_on_active_object"
-                        if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
-                        else "answer_active_object"
-                    ),
-                    next_action="route_to_grading",
-                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
-                    confidence=1.0,
-                    reason="mcq_grading full-submission fallback",
-                    active_object=active_object,
-                )
-                context.metadata["question_followup_context"] = dict(full_mcq_context)
-                context.metadata["turn_semantic_decision"] = mcq_turn_decision
-                await self._emit_grading_result(
-                    stream=stream,
-                    context=context,
-                    llm_config=llm_config,
-                    turn_id=turn_id,
-                    active_object=active_object,
-                    suspended_object_stack=suspended_object_stack,
-                    turn_semantic_decision=mcq_turn_decision,
-                    graded_context=full_mcq_context,
-                    raw_user_message=raw_user_message,
-                    selected_mode=selected_mode,
-                    authority_source="mcq_grading_full_submission",
                     correct_answer_present=False,
                     kb_name=kb_name,
                 )

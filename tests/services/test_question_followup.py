@@ -2363,6 +2363,42 @@ def test_submission_confidence_high_when_leads_with_answer_then_extra_request() 
     assert submission_confidence("我答B，再出3题", _SC_SINGLE_CTX) == "high"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "答案改成D",
+        "如果答案改成 D",
+        "上一个选项改成D",
+        "刚才那题答案改成D",
+    ],
+)
+def test_submission_confidence_high_for_explicit_answer_revision(message: str) -> None:
+    # 明确改答是当前 active assessment object 的 submission patch,不是泛化讲解追问。
+    assert submission_confidence(message, _SC_SINGLE_CTX) == "high"
+
+
+def test_submission_confidence_does_not_grade_hypothetical_option_challenge() -> None:
+    # "如果选D对不对"是点名选项追问,不是把当前答案改成 D。
+    assert submission_confidence("如果选D对不对", _SC_SINGLE_CTX) is None
+
+
+def test_submission_confidence_subjective_payload_keeps_deferral_low() -> None:
+    case_ctx = {
+        "question_id": "case-current",
+        "question_type": "case",
+        "question": "案例题：分析该施工方案的不妥之处。",
+    }
+
+    assert submission_confidence("施工单位应组织专家论证危大工程方案", case_ctx) == "high"
+    assert (
+        submission_confidence(
+            "施工单位应组织专家论证但不确定，你先别判",
+            case_ctx,
+        )
+        == "low"
+    )
+
+
 def test_submission_confidence_standalone_challenge_is_high_not_low() -> None:
     # 设计边界(诚实):单条"选B，动火证当日有效"首子句是显式提交 → HIGH。
     # 它在 g5 的"质疑上一轮判分"语义需对话历史,交下游 LLM 复核(Step 3-4),不由本函数误降。

@@ -914,6 +914,14 @@ def submission_confidence(
         return "high"
     normalized = normalize_question_followup_context(question_context) or {}
     text = str(message or "").strip()
+    q_type = str(normalized.get("question_type") or "").strip().lower()
+    if q_type in _SUBJECTIVE_QUESTION_TYPES and _subjective_submission_is_payload_dominant(
+        text,
+        str(submission.get("answer") or ""),
+    ):
+        return "high"
+    if _extract_explicit_option_revision_submission(text, normalized) is not None:
+        return "high"
     # 正向信号 = 消息里**存在一个独立子句**,剥掉它自己的显式提交前缀后就是干净答案 token。
     # 按子句切分(不只看首子句),覆盖两类显式提交:① 裸作答打头("我选B"/"B"/"我答B，再出3题")
     # ② 粘贴题面后末尾显式交卷("...A.5% B.1%...，我选A，直接批改" 的"我选A"子句)。而"我猜是A但
@@ -926,6 +934,38 @@ def submission_confidence(
         if _message_is_clean_answer_token(candidate, normalized):
             return "high"
     return "low"
+
+
+def _subjective_submission_is_payload_dominant(message: str, answer: str) -> bool:
+    text = str(message or "").strip()
+    normalized_answer = _TRAILING_GRADING_REQUEST_RE.sub("", str(answer or "")).strip()
+    normalized_answer = normalized_answer.strip("。.!！?；;，,：:、 ")
+    if not text or not normalized_answer:
+        return False
+    guarded_text = text.lower()
+    if any(marker in guarded_text for marker in _ANSWER_CONCESSION_MARKERS):
+        return False
+    low_confidence_markers = (
+        "我猜",
+        "不确定",
+        "先别判",
+        "先不要判",
+        "别判",
+        "不判",
+        "先不判",
+        "先别批",
+        "先不要批",
+        "别批",
+        "不批",
+        "不交卷",
+        "先不交卷",
+    )
+    if any(marker in guarded_text for marker in low_confidence_markers):
+        return False
+    stripped = _strip_submission_prefix(text)
+    stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
+    stripped = stripped.strip("。.!！?；;，,：:、 ")
+    return bool(stripped) and stripped == normalized_answer
 
 
 def batch_answer_action_for_numbered_single(
@@ -1805,6 +1845,13 @@ def _extract_option_submission(
         return None
 
     option_keys = _available_option_keys(question_context)
+    revision_answer = _extract_explicit_option_revision_submission(
+        text,
+        question_context,
+        allow_invalid_multi_option=allow_invalid_multi_option,
+    )
+    if revision_answer is not None:
+        return revision_answer
     if _looks_like_option_challenge_followup(text, question_context):
         return None
     if _looks_like_option_value_challenge_followup(text, question_context):
@@ -1962,6 +2009,16 @@ def _extract_explicit_option_letter_submission(
     text = str(message or "").strip()
     if not text:
         return None
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    question_type = str(question_context.get("question_type") or "").strip().lower()
+    if not options and question_type not in {
+        "choice",
+        "single_choice",
+        "multiple_choice",
+        "multi_choice",
+        "mcq",
+    }:
+        return None
     option_keys = _available_option_keys(question_context)
     letter_group = rf"([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)"
     patterns = [
@@ -1970,7 +2027,8 @@ def _extract_explicit_option_letter_submission(
         rf"(?:选了|选(?!择)|答了|答|回答了|回答|勾了|勾|填了|填|写了|写|圈了|圈)"
         rf"(?:的是|是|的)?\s*{letter_group}",
         rf"(?:我)?\s*(?:是不是|是否)\s*{letter_group}",
-        rf"(?:答案|正确答案|标准答案)\s*(?:是|为)?\s*{letter_group}",
+        rf"(?:答案|正确答案|标准答案)\s*(?:是|为)?\s*[:：]?\s*{letter_group}",
+        rf"(?:我的答案|学生答案|学员答案|本轮答案)\s*(?:是|为)?\s*[:：]?\s*{letter_group}",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
@@ -1984,6 +2042,43 @@ def _extract_explicit_option_letter_submission(
         if normalized is not None:
             return normalized
     return None
+
+
+def _extract_explicit_option_revision_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
+    text = str(message or "").strip()
+    if not text:
+        return None
+    option_keys = _available_option_keys(question_context)
+    letter_group = rf"([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)"
+    revision_subject = (
+        r"(?:"
+        r"(?:我(?:的)?)?\s*答案|"
+        r"(?:上一个|上个|上一|上)\s*选项|"
+        r"(?:刚才|刚刚|之前|上次|当前|这道|这题)\s*(?:那)?\s*(?:题|道题)?\s*(?:的)?\s*答案|"
+        r"(?:我)?"
+        r")"
+    )
+    match = re.search(
+        rf"(?:^|[\s，,。.!！?？；;])"
+        rf"(?:如果|假如|要是|若)?\s*"
+        rf"{revision_subject}\s*"
+        rf"(?:改成|改为|更改为|更正为|修正为|换成|换为|换)\s*"
+        rf"{letter_group}",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return _normalize_option_answer(
+        match.group(1),
+        question_context,
+        allow_multi=allow_invalid_multi_option,
+    )
 
 
 def _available_option_keys(question_context: dict[str, Any]) -> str:
