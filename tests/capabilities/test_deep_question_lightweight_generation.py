@@ -289,6 +289,103 @@ def test_lightweight_bank_hit_short_circuits_llm(
     assert gk.get("correct_answer") == "A"
 
 
+def test_lightweight_bank_hit_reveals_public_answer_when_requested(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _hit_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "exact_question": {
+                "stem": "地下防水混凝土抗渗等级不应低于（ ）。",
+                "options": {"A": "P4", "B": "P6", "C": "P8", "D": "P10"},
+                "correct_answer": "B",
+                "analysis": "地下工程防水混凝土抗渗等级不应低于P6。",
+                "source_group": "exact_question",
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _hit_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="出一道地下防水题，带答案。",
+            preference="带答案",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            reveal_answers=True,
+        )
+    )
+
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 1
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+    qa_pair = ((result.get("results") or [])[0].get("qa_pair") or {})
+    assert qa_pair.get("correct_answer") == "B"
+    assert (qa_pair.get("grading_key") or {}).get("correct_answer") == "B"
+
+
+def test_lightweight_bank_hit_dedupes_recent_question_before_short_circuit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+    repeated_stem = "地下工程防水混凝土抗渗等级不应低于（ ）。"
+
+    async def _hit_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "exact_question": {
+                "stem": repeated_stem,
+                "options": {"A": "P4", "B": "P6", "C": "P8", "D": "P10"},
+                "correct_answer": "B",
+                "analysis": "地下工程防水混凝土抗渗等级不应低于P6。",
+                "source_group": "exact_question",
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _hit_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出一道地下防水题，只出题。",
+            preference="只出题",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            history_context=f"上一轮刚出过：{repeated_stem}\nA. P4 B. P6 C. P8 D. P10",
+            lightweight_generation=True,
+            require_explanation=False,
+        )
+    )
+
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("deduped_bank_hits") == 1
+    assert fake_gen.batch_call_count == 1
+    qa_pair = ((result.get("results") or [])[0].get("qa_pair") or {})
+    assert qa_pair.get("question") != repeated_stem
+    assert qa_pair.get("validation", {}).get("source") == "lightweight_batch_llm"
+
+
 def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

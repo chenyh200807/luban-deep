@@ -3989,8 +3989,7 @@ class DeepQuestionCapability(BaseCapability):
         #   1. active_object.state_snapshot.construction_grading_result.next_training_signal
         #   2. active_object.state_snapshot.items[i].construction_grading_result.next_training_signal
         # 把 concept / focus 拼到 topic（如尚未出现），以便 coordinator anchor 命中 weak point。
-        next_training_signal_consumed = False
-        if lightweight_generation:
+        if lightweight_generation and _topic_needs_authoritative_anchor(raw_topic):
             consumed_concept, consumed_focus = self._extract_latest_next_training_signal(active_object)
             hint_parts: list[str] = []
             if consumed_concept and consumed_concept not in topic:
@@ -3999,7 +3998,6 @@ class DeepQuestionCapability(BaseCapability):
                 hint_parts.append(f"focus={consumed_focus}")
             if hint_parts:
                 topic = (topic + "；" if topic else "") + "；".join(hint_parts)
-                next_training_signal_consumed = True
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
@@ -4230,6 +4228,7 @@ class DeepQuestionCapability(BaseCapability):
                     history_context=history_context,
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
+                    reveal_answers=reveal_answers,
                     allow_lightweight_fallback=not question_review_mode,
                     allow_similar_source_variant=question_review_mode,
                 )

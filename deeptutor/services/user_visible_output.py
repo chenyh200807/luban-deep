@@ -48,6 +48,15 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?:thinking stage|observing stage|final response stage)", re.IGNORECASE),
     re.compile(r"(?:不要直接回答学生|不要暴露内部链路|不要暴露内部思考过程)", re.IGNORECASE),
     re.compile(r"(?:本轮可用工具背景|当前启用工具|tool context for this turn)", re.IGNORECASE),
+    re.compile(
+        r"(?:^|[\s#>*\-【\[])(?:参考证据|局部工作记忆投影|长期画像提示|M\d{2}\s*画像提示)"
+        r"(?:[】\]\s:：]|$)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:reference evidence|working memory projection|long[- ]term learner profile)",
+        re.IGNORECASE,
+    ),
 )
 
 
@@ -131,10 +140,26 @@ def coerce_user_visible_answer(
     text: str | None,
     *,
     fallback: str = _SAFE_FALLBACK,
+    preserve_outer_whitespace: bool = False,
 ) -> str:
-    source = str(text or "").strip()
+    raw = str(text or "")
+    if preserve_outer_whitespace:
+        if not raw.strip():
+            return raw
+        leading = raw[: len(raw) - len(raw.lstrip())]
+        core_with_trailing = raw[len(leading):]
+        trailing = core_with_trailing[len(core_with_trailing.rstrip()):]
+        source = (
+            core_with_trailing[: len(core_with_trailing) - len(trailing)]
+            if trailing
+            else core_with_trailing
+        )
+    else:
+        leading = ""
+        trailing = ""
+        source = raw.strip()
     if not source:
-        return ""
+        return raw if preserve_outer_whitespace else ""
     if looks_like_unsafe_visible_output(source):
         return fallback
     # 单一公开输出 sink(task #25,2026-06-22,总指挥官"单一公开 sink"裁决):
@@ -149,10 +174,12 @@ def coerce_user_visible_answer(
         from deeptutor.services.citations.assembler import strip_orphan_reference_markers
 
         stripped = strip_orphan_reference_markers(source)
-        if stripped:
+        if stripped != source:
             source = stripped
     except Exception:
         pass
+    if preserve_outer_whitespace:
+        return f"{leading}{source}{trailing}"
     return source
 
 

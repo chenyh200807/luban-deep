@@ -238,6 +238,107 @@ async def test_deep_question_generation_pushes_previous_active_object_into_suspe
 
 
 @pytest.mark.asyncio
+async def test_deep_question_explicit_generation_topic_ignores_old_next_training_signal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[dict[str, Any]] = []
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, _callback) -> None:
+            return None
+
+        def set_trace_callback(self, _callback) -> None:
+            return None
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            calls.append(dict(kwargs))
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "地下工程防水混凝土抗渗等级不应低于（ ）。",
+                            "question_type": "choice",
+                            "options": {"A": "P4", "B": "P6", "C": "P8", "D": "P10"},
+                            "correct_answer": "B",
+                            "explanation": "地下工程防水混凝土抗渗等级不应低于P6。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    old_question_context = {
+        "question_id": "q_old_roof",
+        "question": "压型金属板屋面最低坡度是多少？",
+        "question_type": "choice",
+        "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+        "correct_answer": "D",
+        "construction_grading_result": {
+            "next_training_signal": {
+                "concept": "屋面坡度",
+                "focus": "旧题弱点：压型金属板屋面坡度",
+            }
+        },
+    }
+    active_object = build_active_object_from_question_context(
+        old_question_context,
+        source_turn_id="turn-old-roof",
+    )
+
+    context = UnifiedContext(
+        user_message="围绕地下防水出一道建筑实务单选题，只出题，不要给答案。",
+        language="zh",
+        config_overrides={
+            "mode": "custom",
+            "topic": "围绕地下防水出一道建筑实务单选题，只出题，不要给答案。",
+            "num_questions": 1,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "reveal_answers": False,
+            "reveal_explanations": False,
+            "lightweight_generation": True,
+        },
+        metadata={
+            "turn_id": "turn-new-waterproof",
+            "active_object": active_object or {},
+            "question_followup_context": old_question_context,
+            "question_lifecycle_scene": "practice_generation",
+            "turn_semantic_decision": {
+                "relation_to_active_object": "switch_to_new_object",
+                "next_action": "route_to_generation",
+                "allowed_patch": ["set_active_object"],
+                "confidence": 0.96,
+                "reason": "用户显式切换到地下防水出题。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert calls
+    assert "地下防水" in calls[0]["user_topic"]
+    assert "屋面坡度" not in calls[0]["user_topic"]
+    assert "旧题弱点" not in calls[0]["user_topic"]
+    assert context.metadata.get("trace_metadata", {}).get(
+        "practice_generation.next_training_signal_consumed"
+    ) is not True
+
+
+@pytest.mark.asyncio
 async def test_deep_question_prefers_turn_semantic_decision_over_legacy_followup_action(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

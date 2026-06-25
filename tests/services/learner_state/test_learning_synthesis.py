@@ -682,6 +682,7 @@ def test_conversation_synthesis_graph_edges_are_read_without_promoting_stable_tr
     ])
 
     assert projection["weak_points"] == []
+    assert projection["compiled_objects"] == {}
     assert projection["typed_graph"]["edges"][0]["edge_type"] == "error_points_to_training"
     assert projection["typed_graph"]["edges"][0]["source_feature"] == "conversation_synthesis"
 
