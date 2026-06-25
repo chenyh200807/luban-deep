@@ -234,7 +234,7 @@ class ChatOrchestrator:
                     context.metadata["semantic_router_shadow_route"] = ""
                     context.metadata["semantic_router_selected_capability"] = cap_name
                     return cap_name
-                if semantic_route == "chat":
+                if semantic_route == "chat" and next_action == "ask_clarifying_question":
                     cap_name = self._default_chat_capability(context)
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
@@ -313,7 +313,7 @@ class ChatOrchestrator:
                     context.metadata["semantic_router_shadow_route"] = ""
                     context.metadata["semantic_router_selected_capability"] = cap_name
                     return cap_name
-                if semantic_route == "chat":
+                if semantic_route == "chat" and next_action == "ask_clarifying_question":
                     cap_name = self._default_chat_capability(context)
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
