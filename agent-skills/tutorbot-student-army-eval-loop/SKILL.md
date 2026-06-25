@@ -116,6 +116,14 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `参考证据`、`局部工作记忆`、`长期画像提示`、孤儿 `〔N〕` 这类学生不可见内容，必须由
   `coerce_user_visible_answer`/citation assembler 单一 sink 处理，并覆盖 stream delta 与 terminal
   result。不要在 grader/followup/generator 各补一套剥离。
+- **铁律③.13（2026-06-26 pre-stamped grading scene）：预盖章 grading scene 不是永久 authority。**
+  `question_lifecycle_scene=case_grading|mcq_grading` 若来自 pre-capability metadata，必须由当前 turn 的
+  HIGH submission 或完整自包含 submission 重新证明；`总结/复盘/不要展示内部证据/输出 source 标题`
+  这类 meta/history/public-output 请求不得继承上一轮 sticky 判分态。
+- **铁律③.14（2026-06-26 current marked reference）：当前完整案例的 marked reference 优先于派生 rubric。**
+  live 若出现用户同句给出 `我的答案` + `标准答案/正确答案/参考答案` 仍被 `derived_from_stem`
+  判满分，根因通常不是 grader 后置裁决，而是 current full-submission projection 没把 marked reference
+  输入 V1 ctx；修法落在共享 projection + thin wrapper 只读，不在 TutorBot 文案层补。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -200,9 +208,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 当前新 MCQ stream 看似判对,但 DB `result.response`/assistant message 又落回旧 TN-S 题或 generic fallback；自然案例题被 low-info gate 拒绝 | current submission 只绑定了对象身份,未原子绑定 scene/action/reference; terminal sink 与 low-info gate 仍抢权 | turn-start 从 `question_lifecycle_skills` 当前 context/action 薄盖 `mcq_grading`/`case_grading`;显式标准答案只认 `标准答案/正确答案/参考答案`;完整 `案例题...问...我的答案` 逃逸 low-info | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | public content stream 已判当前题,但 terminal result/DB assistant message 被旧 TN-S/fallback response 覆盖 | terminal read-model authority drift: 后到 `result.metadata.response` 覆盖已流出的同源 public final content | `turn_runtime` 在持久化/发布 public RESULT 前,若已捕获 public content stream,强制 `result.metadata.response` 对齐 stream;无 stream 时仍保留 result authority | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 完整案例同句含"我的答案100mm。标准答案150mm"却给满分 | case submission extraction 把 marked reference 混进 `user_answer`,阅卷器把标准答案当学生命中 | `question_lifecycle_skills` 当前案例投影原子拆 `user_answer` 与 `correct_answer/reference_answer`;不改 grader/router | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 完整案例同句含"我的答案75%。标准答案100%"却按 stem-derived rubric 判 10/10 | current marked reference 未进入 TutorBot V1 case ctx,显式 reference 被 `derived_from_stem` 覆盖 | 共享 full-case projection 产出 `correct_answer/reference_answer`;TutorBot V1 wrapper 优先只读 current marked reference;`deep_question` full-case path 同步 `correct_answer_present` | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 完整自包含 MCQ 判当前题,但 DB active_object/q_followup 仍旧题,下一轮"刚才那题/B不对"串回旧题 | self-contained current surface 没覆盖 stale active object/result metadata | `deep_question` full MCQ/case fallback 使用当前投影生成 active_object 并写回 metadata;旧 active object 降级 previous | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
-| A-D 题里问"如果我选E,对不对"→把不存在 E 当错选项讲 / 偶发写成 `user_answer=第1题:E` | invalid option follow-up 二层病: predicate/visible 层曾漏;修后 live 仍见 upstream action hint 越过 deterministic no-submission 写入提交态 | follow-up challenge predicate 覆盖 A-E 但 submission 仍只认当前 options;`interpret_question_followup_action` 与 `turn_runtime` explicit action hint 都服从 no-submission+followup backstop;brief renderer 用当前 options 确定性说明 E 不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| A-D 题里问"如果我选E/Z,对不对"→把不存在选项当错选项讲 / 偶发写成 `user_answer=第1题:E/Z` | invalid option follow-up 二层病: predicate/visible 层曾漏;修后 live 仍见 upstream action hint 越过 deterministic no-submission 写入提交态 | follow-up challenge predicate 覆盖 A-Z 但 submission 仍只认当前 options;`interpret_question_followup_action` 与 `turn_runtime` explicit action hint 都服从 no-submission+followup backstop;brief renderer 用当前 options 确定性说明该选项不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | active question 下问"正确答案到底是什么"→TutorBot 泛化回答并编造"你选过C" | correct-answer follow-up marker 太窄,未进入 question_review,raw history 被 LLM 当作作答历史 | `_FOLLOWUP_MARKERS` 覆盖正确/标准/参考答案请求,让 active question 走 question_review/reference authority | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 案例后问"总结我正式提交过的案例答案/不要展示内部证据"仍进入 `case_grading` | pre-stamped grading scene 无当前提交 proof 仍被尊重;subjective active context 把 meta/history/internal-evidence 请求当答案 | `resolve_question_lifecycle_scene_decision` 对 pre-stamped grading scene 做 current-turn revalidation;`resolve_submission_attempt` 写入侧让 meta/history/internal-evidence 请求 0→0 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 攻击钓鱼要求输出 evidence source 标题时泄 `learner_summary` | visible sink / citation metadata redaction 漏识别内部 source title / trace key | `coerce_user_visible_answer` 正文 sink + unified WS public redactor fail-closed `learner_summary/working_memory/active_object/question_followup_context/turn_semantic_decision` | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 把相对 topic 当裸 topic;`不同考点` 未被识别为需要 active/conversation anchor,下游题源只见非建筑浓度 | `teaching_modes` context-anchor marker 覆盖不同/换个/其他/别的考点;`deep_question._resolve_generation_topic` 继承 active question anchor 后再交 coordinator,不新增 router/domain fallback | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 逐 turn JSONL 落盘并用 DB completed/result 对账 | ✅ harness 已修;系统并发稳定性仍需 live 压测 |
 

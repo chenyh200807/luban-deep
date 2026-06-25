@@ -185,6 +185,46 @@ def select_question_lifecycle_skill_names(scene: str | None) -> tuple[str, ...]:
     return SCENE_COMPOSITION[normalized]
 
 
+def _pre_stamped_grading_scene_matches_current_submission(
+    scene: str | None,
+    user_message: str,
+    metadata: dict[str, Any],
+) -> bool:
+    """A pre-stamped grading scene is valid only when this turn submits an answer."""
+
+    if scene not in {"case_grading", "mcq_grading"}:
+        return True
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    if scene == "case_grading" and _looks_like_full_case_answer_submission(text):
+        return True
+    if scene == "mcq_grading" and _looks_like_free_text_mcq_grading(text):
+        return True
+
+    question_context = _active_question_context_from_metadata(metadata)
+    if not question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            resolve_submission_attempt,
+            submission_confidence,
+        )
+
+        target_context, submission = resolve_submission_attempt(text, question_context)
+        confidence = submission_confidence(text, question_context)
+    except Exception:
+        return False
+    if not submission or submission.get("kind") == "ambiguous" or confidence != "high":
+        return False
+
+    graded_context = target_context if isinstance(target_context, dict) and target_context else question_context
+    q_type = str(graded_context.get("question_type") or graded_context.get("type") or "").strip().lower()
+    if scene == "mcq_grading":
+        return q_type in _MCQ_QUESTION_TYPES or bool(graded_context.get("options"))
+    return _is_case_grading_context_row(graded_context) or _is_case_grading_context_row(question_context)
+
+
 async def resolve_question_lifecycle_scene_decision(
     ctx: Any,
     *,
@@ -202,23 +242,31 @@ async def resolve_question_lifecycle_scene_decision(
     if isinstance(metadata, dict) and "question_lifecycle_scene" in metadata:
         pre_scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
         if pre_scene is not None:
-            source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
-            reason = str(
-                metadata.get("question_lifecycle_scene_reason")
-                or "pre-stamped lifecycle scene"
-            ).strip()
-            try:
-                confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
-            except (TypeError, ValueError):
-                confidence = 1.0
-            return QuestionLifecycleSceneDecision(
-                scene=pre_scene,
-                source=source or "metadata",
-                confidence=confidence,
-                reason=reason,
-                required_anchor_status="satisfied",
-                selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
-                business_gate_result="pre_stamped_scene",
+            if _pre_stamped_grading_scene_matches_current_submission(
+                pre_scene,
+                user_message,
+                metadata,
+            ):
+                source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
+                reason = str(
+                    metadata.get("question_lifecycle_scene_reason")
+                    or "pre-stamped lifecycle scene"
+                ).strip()
+                try:
+                    confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
+                except (TypeError, ValueError):
+                    confidence = 1.0
+                return QuestionLifecycleSceneDecision(
+                    scene=pre_scene,
+                    source=source or "metadata",
+                    confidence=confidence,
+                    reason=reason,
+                    required_anchor_status="satisfied",
+                    selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
+                    business_gate_result="pre_stamped_scene",
+                )
+            metadata["question_lifecycle_scene_blocked_reason"] = (
+                "pre_stamped_grading_scene_without_current_submission"
             )
     scene = derive_question_lifecycle_scene(ctx)
     # A back-reference to an EARLIER question + explanation intent ("刚才那道屋面坡度题，
@@ -917,6 +965,13 @@ _FREE_TEXT_CASE_REFERENCE_MARKER_RE = re.compile(
     r"(?:标准答案|参考答案|正确答案|参考要点)[ \t]*[:：][ \t]*",
     re.IGNORECASE,
 )
+_TRAILING_CASE_GRADING_ACTION_RE = re.compile(
+    r"(?:[。.!！?；;，,、\s]*)"
+    r"(?:请|帮我|直接|顺便)?(?:按[^。.!！?；;]{0,40})?"
+    r"(?:批改|判分|打分|阅卷)(?:一下|下)?"
+    r"(?:[。.!！?；;，,、\s]*)$",
+    re.IGNORECASE,
+)
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "单选题",
     "多选题",
@@ -1332,7 +1387,9 @@ def _split_case_learner_answer_and_reference(answer: str) -> tuple[str, str]:
 
 
 def _strip_case_submission_fragment(value: str) -> str:
-    return str(value or "").strip().strip("。.!！?；;，,：:、 ")
+    stripped = str(value or "").strip()
+    stripped = _TRAILING_CASE_GRADING_ACTION_RE.sub("", stripped).strip()
+    return stripped.strip("。.!！?；;，,：:、 ")
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:

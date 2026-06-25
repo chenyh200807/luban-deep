@@ -213,6 +213,22 @@ def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> Non
     assert ctx["node_code"] == "1A432000"
 
 
+def test_build_v1_case_ctx_uses_current_full_submission_marked_reference() -> None:
+    md = {"question_lifecycle_scene": "case_grading", "user_id": "qa_loop_v1"}
+    message = (
+        "案例题：某工程底模拆除时混凝土强度检查。\n"
+        "问题：跨度为8m的现浇梁底模拆除时，混凝土强度应达到设计强度的多少？"
+        "我的答案：75%。标准答案：100%。请判分。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["correct_answer"] == "100%"
+    assert ctx["user_answer"] == "75%"
+    assert "标准答案" not in ctx["user_answer"]
+    assert "底模拆除" in ctx["question_stem"]
+
+
 def test_build_v1_case_ctx_splits_full_case_submission_and_blocks_mismatched_exact() -> None:
     md = _case_md()
     md["_prefetched_exact_question"] = {

@@ -57,6 +57,10 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
         r"(?:reference evidence|working memory projection|long[- ]term learner profile)",
         re.IGNORECASE,
     ),
+    re.compile(
+        r"\b(?:learner_summary|working_memory|active_object|question_followup_context|turn_semantic_decision)\b",
+        re.IGNORECASE,
+    ),
 )
 
 
