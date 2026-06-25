@@ -96,7 +96,13 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `question_lifecycle_scene` / action / marked reference。修法是让当前 full MCQ/case submission 在
   capability 前绑定对象 + learner answer + 显式 `标准答案|正确答案|参考答案` + terminal scene；
   不是新增第二 router，也不是让 LLM prompt 承诺"不要沿用上一题"。
-- **铁律③.10（2026-06-25 public stream read-model）：content stream 正确 ≠ terminal read-model 正确。**
+- **铁律③.10（2026-06-26 deterministic no-submission must bind upstream hints）：确定性提交权威返回 no-submission，不代表
+  上游 LLM/semantic action hint 不会再把同一 turn 升级成 `answer_questions`。live 若 DB 出现
+  `relation_to_active_object=answer_active_object` 但 `resolve_submission_attempt` 对同一消息返回 None，
+  根因不是再补可见文案，而是 upstream action hint 越过了 submission authority。修法应在
+  turn-runtime 写入硬门把 deterministic follow-up/no-submission 降级为 `ask_followup`，确保
+  `user_answer` 持久态 0→0。
+- **铁律③.11（2026-06-25 public stream read-model）：content stream 正确 ≠ terminal read-model 正确。**
   如果 public `content` stream 已把当前题答案流给学生，但后到 `result.metadata.response` 携带旧题 /
   fallback 文案，DB assistant message、mobile history、replay 会被 terminal result 翻案。验证必须同时核
   public `content`、public `result.metadata.response`、`messages.role=assistant.content`；修法落在
@@ -195,9 +201,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | public content stream 已判当前题,但 terminal result/DB assistant message 被旧 TN-S/fallback response 覆盖 | terminal read-model authority drift: 后到 `result.metadata.response` 覆盖已流出的同源 public final content | `turn_runtime` 在持久化/发布 public RESULT 前,若已捕获 public content stream,强制 `result.metadata.response` 对齐 stream;无 stream 时仍保留 result authority | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 完整案例同句含"我的答案100mm。标准答案150mm"却给满分 | case submission extraction 把 marked reference 混进 `user_answer`,阅卷器把标准答案当学生命中 | `question_lifecycle_skills` 当前案例投影原子拆 `user_answer` 与 `correct_answer/reference_answer`;不改 grader/router | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 完整自包含 MCQ 判当前题,但 DB active_object/q_followup 仍旧题,下一轮"刚才那题/B不对"串回旧题 | self-contained current surface 没覆盖 stale active object/result metadata | `deep_question` full MCQ/case fallback 使用当前投影生成 active_object 并写回 metadata;旧 active object 降级 previous | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
-| A-D 题里问"如果我选E,对不对"→把不存在 E 当错选项讲 | invalid option follow-up 不被 option challenge predicate 捕获,落 generic LLM 可见输出 | follow-up challenge predicate 覆盖 A-E 但 submission 仍只认当前 options;brief renderer 用当前 options 确定性说明 E 不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| A-D 题里问"如果我选E,对不对"→把不存在 E 当错选项讲 / 偶发写成 `user_answer=第1题:E` | invalid option follow-up 二层病: predicate/visible 层曾漏;修后 live 仍见 upstream action hint 越过 deterministic no-submission 写入提交态 | follow-up challenge predicate 覆盖 A-E 但 submission 仍只认当前 options;`interpret_question_followup_action` 与 `turn_runtime` explicit action hint 都服从 no-submission+followup backstop;brief renderer 用当前 options 确定性说明 E 不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | active question 下问"正确答案到底是什么"→TutorBot 泛化回答并编造"你选过C" | correct-answer follow-up marker 太窄,未进入 question_review,raw history 被 LLM 当作作答历史 | `_FOLLOWUP_MARKERS` 覆盖正确/标准/参考答案请求,让 active question 走 question_review/reference authority | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
-| "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 可能被空 topic 或旧状态污染;当前本地 `unknown_topic -> allow` 未稳定复现 | 不在未复现处补规则;部署后 live ≥3 轮复验,若复现再 dump `templates_ready`/topic trace 定位 | ⚠️ 复验残留(2026-06-26) |
+| "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 把相对 topic 当裸 topic;`不同考点` 未被识别为需要 active/conversation anchor,下游题源只见非建筑浓度 | `teaching_modes` context-anchor marker 覆盖不同/换个/其他/别的考点;`deep_question._resolve_generation_topic` 继承 active question anchor 后再交 coordinator,不新增 router/domain fallback | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 逐 turn JSONL 落盘并用 DB completed/result 对账 | ✅ harness 已修;系统并发稳定性仍需 live 压测 |
 
 ## 红线

@@ -1588,6 +1588,27 @@ def _deterministic_followup_action_for_user_message(
     }
 
 
+def _demote_submission_hint_when_deterministic_followup(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+    action: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Keep an upstream action hint from overruling the submission authority."""
+
+    if followup_action_route(action) != "submission":
+        return action
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return action
+    if submission_confidence(user_message, normalized_context) is not None:
+        return action
+    deterministic_followup_action = _deterministic_followup_action_for_user_message(
+        user_message,
+        normalized_context,
+    )
+    return deterministic_followup_action or action
+
+
 def _has_ambiguous_submission_attempt(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1717,6 +1738,11 @@ async def _resolve_question_followup_context_and_action(
             and not looks_like_practice_generation_request(user_message)
         ):
             normalized_action = None
+        normalized_action = _demote_submission_hint_when_deterministic_followup(
+            user_message,
+            normalized_explicit,
+            normalized_action,
+        )
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:

@@ -2497,6 +2497,58 @@ def test_low_confidence_non_answer_downgraded_even_if_llm_says_submission(monkey
     assert _qf.followup_action_route(action) != "submission"
 
 
+def test_option_challenge_non_submission_downgrades_llm_submission(monkeypatch):
+    # live 2026-06-26: LLM follow-up classifier sometimes treated the
+    # hypothetical invalid option "如果我选E" as a submitted answer even though
+    # the current A-D question has no E option. Deterministic submission
+    # authority must win before any user_answer write.
+    question_context = {
+        "question_id": "q_live_numbered",
+        "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+        "question_type": "choice",
+        "options": {
+            "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+            "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+            "C": "单向板施工缝可留在平行于板短边的位置",
+            "D": "有主次梁楼板宜顺着次梁方向浇筑",
+        },
+        "correct_answer": "C",
+        "user_answer": "",
+    }
+
+    async def fake_complete(**kwargs):
+        import json as _json
+
+        return _json.dumps(
+            {
+                "intent": "answer_questions",
+                "confidence": 0.91,
+                "preserve_other_answers": False,
+                "answers": [
+                    {
+                        "question_index": 1,
+                        "question_id": "q_live_numbered",
+                        "answer": "E",
+                    }
+                ],
+                "reason": "提交优先原则",
+            }
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+
+    action = _asyncio.run(
+        _qf.interpret_question_followup_action(
+            "如果我选E，对不对？一句话。",
+            question_context,
+        )
+    )
+
+    assert action is not None
+    assert _qf.followup_action_route(action) == "followup"
+    assert action["answers"] == []
+
+
 def test_high_confidence_real_answer_stays_submission(monkeypatch):
     # HIGH 真作答"我选B":LLM 判 answer_questions → 保留 submission(硬约束40 真作答必判)。
     action = _interpret("我选B", monkeypatch, answer="B")
