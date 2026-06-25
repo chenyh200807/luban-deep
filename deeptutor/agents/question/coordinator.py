@@ -1393,6 +1393,9 @@ class AgentCoordinator:
         text = re.sub(r"\s+", " ", str(user_topic or "")).strip()
         if not text:
             return "当前学习主题"
+        explicit_topic = AgentCoordinator._extract_explicit_lightweight_topic_label(text)
+        if explicit_topic:
+            return explicit_topic[:32]
         first_clause = re.split(r"[，,。!?！？]", text, maxsplit=1)[0].strip() or text
         patterns = (
             r"^(我现在学到|我学到|现在学到|学到)",
@@ -1414,6 +1417,33 @@ class AgentCoordinator:
         if cleaned:
             return cleaned[:32]
         return text[:32] or "当前学习主题"
+
+    @staticmethod
+    def _extract_explicit_lightweight_topic_label(text: str) -> str:
+        for pattern in (
+            r"(?:围绕|关于|针对)(?P<label>[^，,。!?！？；;:：]+)",
+            r"考(?!我|点|试)(?P<label>[^，,。!?！？；;:：]+)",
+        ):
+            match = re.search(pattern, text)
+            if not match:
+                continue
+            label = re.sub(r"\s+", " ", match.group("label")).strip()
+            label = re.sub(r"^(一下|下|一?道|建筑实务|实务|的)+", "", label).strip()
+            label = re.split(
+                r"(?:给我)?(?:出|来|生成|编)[一1]?(?:道|个|题)?|带[A-DABCD\-]+选项|带选项",
+                label,
+                maxsplit=1,
+            )[0].strip()
+            label = re.sub(
+                r"的?(单选题|多选题|选择题|判断题|简答题|案例题|题目|练习|小测|小题)(吧)?$",
+                "",
+                label,
+            ).strip()
+            label = re.sub(r"[，。！？、,.!?\-:：\s]+", " ", label).strip()
+            label = re.sub(r"(吧|了|呢|呀)$", "", label).strip()
+            if label:
+                return label
+        return ""
 
     @staticmethod
     def _extract_structured_anchor_from_answer(answer: str) -> dict[str, Any] | None:
