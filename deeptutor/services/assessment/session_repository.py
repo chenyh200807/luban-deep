@@ -115,9 +115,11 @@ class InMemoryAssessmentSessionRepository:
             topic_ids=topic_ids,
         )
         if reusable is not None:
-            result = copy.deepcopy(reusable)
-            result["reuse_reason"] = "active_session_exists"
-            return result
+            return self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_exists",
+            )
         now = self._now_fn()
         quiz_id = f"quiz_{uuid.uuid4().hex[:12]}"
         row = {
@@ -346,6 +348,22 @@ class InMemoryAssessmentSessionRepository:
             raise AssessmentSessionNotFound("assessment_session_not_found")
         return row
 
+    def _reuse_active_session_or_raise(
+        self,
+        reusable: dict[str, Any],
+        *,
+        device_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        row = self._owned_row(str(reusable.get("user_id") or ""), str(reusable.get("quiz_id") or ""))
+        self._expire_if_needed(row)
+        if row.get("status") == "expired":
+            raise AssessmentSessionExpired("assessment_session_expired")
+        self._assert_lease(row, device_id=device_id)
+        result = copy.deepcopy(row)
+        result["reuse_reason"] = reason
+        return result
+
     def _expire_if_needed(self, row: dict[str, Any]) -> None:
         if row.get("status") == "in_progress" and _parse_iso(str(row.get("expires_at"))) <= self._now_fn():
             row["status"] = "expired"
@@ -428,9 +446,11 @@ class SupabaseAssessmentSessionRepository:
             topic_ids=topic_ids,
         )
         if reusable is not None:
-            result = copy.deepcopy(reusable)
-            result["reuse_reason"] = "active_session_exists"
-            return result
+            return self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_exists",
+            )
         now = self._now_fn()
         row = {
             "quiz_id": f"quiz_{uuid.uuid4().hex[:12]}",
@@ -480,8 +500,11 @@ class SupabaseAssessmentSessionRepository:
             )
             if reusable is None:
                 raise
-            inserted = copy.deepcopy(reusable)
-            inserted["reuse_reason"] = "active_session_insert_conflict"
+            inserted = self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_insert_conflict",
+            )
         logger.info(
             "assessment_session_started quiz_id=%s assessment_type=%s blueprint_version=%s form_id=%s topic_ids=%s trace_id=%s",
             inserted.get("quiz_id"),
@@ -706,6 +729,20 @@ class SupabaseAssessmentSessionRepository:
         if not rows:
             raise AssessmentSessionNotFound("assessment_session_not_found")
         return copy.deepcopy(rows[0])
+
+    def _reuse_active_session_or_raise(
+        self,
+        reusable: dict[str, Any],
+        *,
+        device_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        row = self._claim_if_lease_expired(copy.deepcopy(reusable), device_id=device_id)
+        if row.get("lease_holder_other_device"):
+            raise AssessmentLeaseConflict("lease_conflict")
+        result = copy.deepcopy(row)
+        result["reuse_reason"] = reason
+        return result
 
     def _expire_if_needed(self, row: dict[str, Any]) -> dict[str, Any]:
         if row.get("status") == "in_progress" and _parse_iso(str(row.get("expires_at"))) <= self._now_fn():
