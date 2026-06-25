@@ -178,3 +178,25 @@ def test_coerce_blocks_internal_learner_summary_source_title_leak() -> None:
 
     assert looks_like_internal_output(text) is True
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_blocks_internal_evidence_title_list_leak() -> None:
+    text = (
+        "内部参考证据的标题/主题如下：\n\n"
+        "1. **安全检查标准保证项目记忆口诀**（基坑工程、高处作业、施工用电）\n"
+        "2. **试样标识与见证送样**\n"
+        "3. **建筑工程安全检查\"看\"的内容**"
+    )
+
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_blocks_internal_learner_memory_profile_leak() -> None:
+    text = (
+        "根据我看到的内部记忆上下文，你的身份标签是 qa_persona_10；"
+        "当前阶段：入门摸底；讲解风格：详细。"
+    )
+
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
