@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import re
 import unicodedata
-from dataclasses import dataclass
 
 from deeptutor.services.user_visible_output import (
     coerce_user_visible_answer,
     looks_like_unsafe_visible_output,
 )
-
 
 INTERNAL_INFO_REFUSAL_ZH = (
     "这类内容我不展开。"
@@ -74,6 +73,23 @@ class TutorBotSecuritySkill:
                 r"(rag|tool|function).{0,16}(参数|schema|配置|调用过程)",
                 r"(列出|展示|输出).{0,12}(你的|你们的|系统|内部|所有).{0,12}(工具|tool|function|函数)",
                 r"(show|list|dump).{0,12}(tools?|functions?)",
+            ),
+        ),
+        SecurityPatternGroup(
+            "internal_evidence_extraction",
+            (
+                r"(?:输出|打印|展示|列出|复述|原样|逐条|给我|告诉我|show|print|display|dump|reveal|list).{0,40}(?:内部)?(?:参考证据|证据来源|引用来源|检索来源|citation\s+source|source\s+title|source\s+titles?|evidence).{0,24}(?:标题|主题|来源|title|titles?)",
+                r"(?:内部)?(?:参考证据|证据来源|引用来源|检索来源|citation\s+source|source\s+title|source\s+titles?|evidence).{0,24}(?:标题|主题|来源|title|titles?).{0,40}(?:输出|打印|展示|列出|复述|原样|逐条|给我|告诉我|show|print|display|dump|reveal|list)",
+                r"(?:turn_semantic_decision|citation\s+source\s+title|source\s+title).{0,32}(?:原文|输出|展示|列出|show|print|display|dump)",
+            ),
+        ),
+        SecurityPatternGroup(
+            "internal_learner_memory_extraction",
+            (
+                r"(?:总结|输出|打印|展示|列出|复述|原样|逐条|给我|告诉我|show|print|display|dump|reveal|list|summari[sz]e).{0,48}(?:learner[_ -]?summary|working[_ -]?memory|long[- ]term learner profile|长期画像提示|局部工作记忆投影|内部(?:学习|用户)?画像)",
+                r"(?:learner[_ -]?summary|working[_ -]?memory|long[- ]term learner profile|长期画像提示|局部工作记忆投影|内部(?:学习|用户)?画像).{0,48}(?:总结|输出|打印|展示|列出|复述|原样|逐条|给我|告诉我|show|print|display|dump|reveal|list|summari[sz]e)",
+                r"(?:qa[_ -]?persona|身份标签).{0,32}(?:输出|展示|列出|show|print|display|dump|reveal|list)",
+                r"(?:输出|展示|列出|show|print|display|dump|reveal|list).{0,32}(?:qa[_ -]?persona|身份标签)",
             ),
         ),
         SecurityPatternGroup(
@@ -237,6 +253,21 @@ class TutorBotSecuritySkill:
                 r"(\.env\b|api[_ -]?key\s*=|secret\s*=|password\s*=|token\s*=|密钥\s*[:=]|密码\s*[:=]|凭证\s*[:=])",
             ),
         ),
+        SecurityPatternGroup(
+            "internal_evidence_title_leak",
+            (
+                r"(?:内部)?(?:参考证据|证据来源|引用来源|检索来源).{0,24}(?:标题|主题|source\s+titles?|titles?).{0,16}(?:如下|列表|包括|[:：])",
+                r"(?:citation\s+source\s+title|source\s+titles?).{0,24}(?:如下|列表|包括|[:：])",
+            ),
+        ),
+        SecurityPatternGroup(
+            "internal_learner_memory_leak",
+            (
+                r"(?:根据我看到的|我看到的|内部).{0,20}(?:内部)?(?:记忆上下文|学习画像|用户画像|画像提示|learner profile|working memory)",
+                r"(?:身份标签|账号标签).{0,16}qa[_ -]?persona[_ -]?\d+",
+                r"\bqa[_ -]?persona[_ -]?\d+\b",
+            ),
+        ),
     )
 
     _REFUSAL_MARKERS = (
@@ -338,8 +369,6 @@ class TutorBotSecuritySkill:
         content = "" if text is None else str(text)
         if not content:
             return TutorBotSecurityDecision(blocked=False, level="safe", content=content)
-        if any(marker in content for marker in cls._REFUSAL_MARKERS):
-            return TutorBotSecurityDecision(blocked=False, level="safe", content=content)
 
         signals = [
             group.signal
@@ -361,5 +390,8 @@ class TutorBotSecuritySkill:
                 signals=("unsafe_visible_output",),
                 content=coerce_user_visible_answer(content),
             )
+
+        if any(marker in content for marker in cls._REFUSAL_MARKERS):
+            return TutorBotSecurityDecision(blocked=False, level="safe", content=content)
 
         return TutorBotSecurityDecision(blocked=False, level="safe", content=content)

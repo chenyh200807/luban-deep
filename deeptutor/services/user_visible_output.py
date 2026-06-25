@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 _REDACTED_PLACEHOLDER = "[INTERNAL_OUTPUT_REDACTED]"
 _SAFE_FALLBACK = "暂时未生成适合直接展示的答案，请重试一次。"
 
@@ -61,6 +60,20 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
         r"\b(?:learner_summary|working_memory|active_object|question_followup_context|turn_semantic_decision)\b",
         re.IGNORECASE,
     ),
+    re.compile(
+        r"(?:内部)?(?:参考证据|证据来源|引用来源|检索来源).{0,24}(?:标题|主题|source\s+titles?|titles?)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:citation\s+source\s+title|source\s+titles?)",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:根据我看到的|我看到的|内部).{0,20}(?:内部)?(?:记忆上下文|学习画像|用户画像|画像提示|learner profile|working memory)",
+        re.IGNORECASE,
+    ),
+    re.compile(r"(?:身份标签|账号标签).{0,16}qa[_ -]?persona[_ -]?\d+", re.IGNORECASE),
+    re.compile(r"\bqa[_ -]?persona[_ -]?\d+\b", re.IGNORECASE),
 )
 
 
