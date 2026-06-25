@@ -378,6 +378,7 @@ function streamChat(opts, callbacks) {
         socketTask.onOpen(function () {
           if (aborted || doneReceived) return;
           socketOpen = true;
+          var attemptsBeforeReset = reconnectAttempts;
           reconnectAttempts = 0;
           resetIdleTimer();
           var payload = buildTurnSocketPayload(turnId, lastSeq);
@@ -385,7 +386,9 @@ function streamChat(opts, callbacks) {
             failStream("启动流式会话失败");
             return;
           }
-          emitTelemetry("ws_connected", { reconnect_attempts: reconnectAttempts });
+          emitTelemetry("ws_connected", {
+            reconnect_attempts: attemptsBeforeReset,
+          });
           if (payload.type === "resume_from") {
             resumeAttempted = true;
             resumeSucceeded = false;
