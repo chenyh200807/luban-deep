@@ -71,6 +71,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   若 metadata 写着 `next_action=ask_clarifying_question`，但 `result.response` 仍判分/生成/泄标准答案，
   最后正确点是 semantic router，第一错误点在 orchestrator lifecycle fallthrough 或 capability
   fallback。修法不是再调 router 判据，而是让终端路由/执行 sink 把 canonical decision 当硬控制信号。
+- **铁律③.7（2026-06-25 generation bypass）：prompt/generator schema 绿 ≠ 出题终端经过了 generator。**
+  若输出逐字稳定、延迟很低、且复验补了 generator 仍无效，立即 dump DB `templates_ready` metadata；
+  questions_bank short-circuit 可能直接把题库原题 QAPair 送到终端，绕过 batch generator/schema。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -135,7 +138,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | DB `turn_semantic_decision.next_action=ask_clarifying_question` 但最终仍判分/生成/泄标准答案 | canonical decision 被 lifecycle fallthrough / deep_question full-submission fallback 当弱提示 | orchestrator 对 `semantic_route=chat` 直接回 TutorBot/chat; deep_question 收到同一 decision fail-closed clarification | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 粘贴案例并要求直接采分点评→bot 自造 4m 软土题并反向成为后续判分对象 | 学生真实题面/作答对象与 bot 自造题 active_object 多 writer | 待收口 assessment object authority:自造练习题不得覆盖用户粘贴案例 authority | ❌ 2026-06-25 live 复现(p04) |
-| 明确要求"单选/A-D/只出题"→lightweight 生成 A-E 五个选项 | batch lightweight 只靠 prompt 要求 A-D,解析端未执行 choice schema contract | generator batch 路径在 LLM JSON→QAPair 前硬校验 raw option keys 必须 A-D,不合格走既有 fallback | ✅ 本地 RED→GREEN(2026-06-25),PR/live 待闭环 |
+| 明确要求"单选/A-D/只出题"→lightweight 生成 A-E 五个选项 | 主因=questions_bank short-circuit 把 A-E/BDE 多选原题当 choice 直出;次因=batch generator 解析端也未执行 A-D schema | bank short-circuit 仅允许 A-D+单答案 choice 直出;batch generator 同步硬校验 raw option keys | ✅ 本地 RED→GREEN(2026-06-25),PR/live 待闭环 |
 | 明确要求"先不要告诉答案"仍直接泄答案/解析 | 出题偏好没有成为终端输出 contract,生成器/渲染器仍把答案解析暴露给学生 | 待查 require_explanation/answer reveal sink,只出题模式下 hidden grading_key 可写但 public answer/explanation 不得出 | ❌ 2026-06-25 乱聊 persona T3 |
 | 完整粘贴 MCQ 要判分,答案 B 可判但改 D/重贴后误入"案例题逐采分点/无 authority" | MCQ 题型识别、active object、case grading fallback 竞争判分 authority | 待收口:自包含 MCQ + 明确我的答案 必须进入 MCQ grading authority,不得被 case rubric fallback 接管 | ❌ 2026-06-25 专业/攻击 persona 复现 |
 | 建筑复盘/混凝土模板防水出题请求被误拒为"非建筑实务主题" | domain gate / intent gate 与主 LLM 语义理解不一致,静态 gate 越权 | 待 dump `practice_generation_topic_domain_status` 与 turn_semantic_decision,unknown 应放行到主链路而非误拒 | ❌ 2026-06-25 专业 persona T4/T9 |
