@@ -686,27 +686,32 @@ class MemberConsoleService:
             "ASSESSMENT_USE_SUPABASE",
             default=False,
         )
+        specs = get_topic_testset_catalog()
+        active_form_summaries: dict[str, dict[str, Any]] = {}
+        if use_supabase:
+            try:
+                active_form_summaries = provider.active_form_summaries(
+                    [spec.blueprint_version for spec in specs]
+                )
+            except Exception:
+                logger.warning("Assessment topic form metadata unavailable", exc_info=True)
         topics: list[dict[str, Any]] = []
-        for spec in get_topic_testset_catalog():
+        for spec in specs:
             form_count = 0
             quality_status = "not_checked"
             if use_supabase:
-                try:
-                    form_count = provider.active_form_count(spec.blueprint_version)
+                metadata = active_form_summaries.get(spec.blueprint_version)
+                if metadata is None:
+                    quality_status = "unavailable"
+                else:
+                    form_count = int(metadata.get("active_form_count") or 0)
                     quality_status = "insufficient_forms"
-                    if classify_topic_form_count(form_count) in {"stable", "pilot"}:
-                        provider.load_persisted_form_bank(build_topic_assessment_blueprint(spec.topic_id))
+                    if bool(metadata.get("fallback_used")):
+                        quality_status = "fallback_form_bank"
+                    elif classify_topic_form_count(form_count) in {"stable", "pilot"}:
                         quality_status = "validated"
-                except Exception:
-                    logger.warning(
-                        "Assessment topic form bank unavailable: topic_id=%s blueprint=%s",
-                        spec.topic_id,
-                        spec.blueprint_version,
-                        exc_info=True,
-                    )
-                    quality_status = "invalid_form_bank" if form_count else "unavailable"
             status = classify_topic_form_count(form_count)
-            if quality_status == "invalid_form_bank":
+            if quality_status == "fallback_form_bank":
                 status = "authoring_needed"
             topics.append(
                 {

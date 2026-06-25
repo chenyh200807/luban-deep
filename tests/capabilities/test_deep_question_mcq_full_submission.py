@@ -57,6 +57,21 @@ def test_pasted_single_choice_accepts_learner_answer_label_after_option_surface(
     assert ctx["correct_answer"] == ""
 
 
+def test_pasted_single_choice_carries_marked_standard_answer() -> None:
+    ctx = _parse(
+        "题目：建设工程竣工验收应由谁组织？\n"
+        "A. 施工单位项目经理\n"
+        "B. 监理工程师\n"
+        "C. 建设单位项目负责人\n"
+        "D. 总监理工程师。我的答案 B。标准答案：C。"
+    )
+
+    assert ctx is not None
+    assert ctx["options"]["D"] == "总监理工程师"
+    assert ctx["user_answer"] == "B"
+    assert ctx["correct_answer"] == "C"
+
+
 def test_pasted_multi_choice_extracts_all_selected() -> None:
     ctx = _parse("正确的有：A.导管法 B.槽段8到10m C.导墙 D.墙底注浆。我选ACD")
     assert ctx is not None

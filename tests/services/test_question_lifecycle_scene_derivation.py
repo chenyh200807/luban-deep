@@ -8,10 +8,10 @@ deep_question entry / question_followup / TutorBot loop with identical semantics
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 import subprocess
 import sys
 import textwrap
-from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
@@ -217,6 +217,21 @@ def test_full_case_question_with_answer_layout_returns_case_grading_without_revi
         )
     )
 
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_full_case_question_with_inline_ask_and_answer_layout_returns_case_grading():
+    message = (
+        "现在换一个全新的案例题，请只评价下面这一题：\n"
+        "案例题：某工程夜间连续浇筑混凝土，施工单位未办理夜间施工许可，"
+        "也未公告附近居民，产生噪声投诉。问施工单位存在哪些管理问题，如何整改？\n"
+        "参考要点：办理夜间施工许可、公告附近居民、采取降噪措施、保存审批与监测记录。\n"
+        "我的答案：需要提前办理夜间施工许可，向附近居民公告施工时间，"
+        "采取降噪措施，并保存审批和噪声监测记录。"
+    )
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
