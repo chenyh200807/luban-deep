@@ -464,6 +464,52 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
 @pytest.mark.parametrize(
     "message",
     [
+        "只给我复盘计划，不要继续判分。",
+        "现在聊学习计划：我每天只有40分钟。",
+        "先别继续判分，给我一个明天30分钟复盘计划。",
+    ],
+)
+def test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup(
+    message: str,
+) -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "屋面防水卷材采用空铺法时，短边搭接宽度不应小于多少？",
+        "question_type": "case",
+        "user_answer": "100mm",
+        "correct_answer": "150mm",
+    }
+
+    target, submission = resolve_submission_attempt(message, case_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, case_context) is None
+
+
+def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words() -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "项目经理发现工人安全交底不到位，应如何整改？",
+        "question_type": "case",
+    }
+
+    target, submission = resolve_submission_attempt(
+        "我的答案是：应重新组织安全交底并制定复盘计划。请判分。",
+        case_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "question_id": "case_1",
+        "answer": "应重新组织安全交底并制定复盘计划",
+    }
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
         "为什么不是B？一句话。",
         "为什么不是 B？一句话。",
         "B为什么不对？",

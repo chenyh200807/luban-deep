@@ -176,6 +176,18 @@ _PAST_QUESTION_EXPLANATION_MARKERS = (
     "拆考点", "拆一下", "为什么", "为啥", "再讲", "回顾", "复盘",
     "怎么分析", "考点", "知识点", "再帮我", "再给我讲",
 )
+_GRADING_EXIT_MARKERS = (
+    "不要继续判分", "不要再判分", "别继续判分", "别再判分", "先别继续判分",
+    "不用判分", "不判分", "别判分", "不要判分", "不要继续批改", "不要再批改",
+    "别继续批改", "别再批改", "不用批改", "不批改", "别批改", "不要批改",
+)
+_STUDY_PLAN_INTENT_MARKERS = (
+    "学习计划", "复习计划", "复盘计划", "训练计划", "备考计划", "学习安排", "复习安排",
+)
+_STUDY_PLAN_REQUEST_MARKERS = (
+    "给我", "只给我", "帮我", "现在聊", "聊学习", "制定", "安排", "每天", "明天",
+    "今天", "本周", "分钟", "小时",
+)
 
 
 def _looks_like_past_question_explanation_request(text: str) -> bool:
@@ -195,6 +207,19 @@ def _looks_like_past_question_explanation_request(text: str) -> bool:
         return False
     return any(b in t for b in _PAST_QUESTION_BACKREFERENCE_MARKERS) and any(
         e in t for e in _PAST_QUESTION_EXPLANATION_MARKERS
+    )
+
+
+def _looks_like_subjective_context_exit_request(text: str) -> bool:
+    t = str(text or "").strip()
+    if not t:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
+        return False
+    if any(marker in t for marker in _GRADING_EXIT_MARKERS):
+        return True
+    return any(marker in t for marker in _STUDY_PLAN_INTENT_MARKERS) and any(
+        marker in t for marker in _STUDY_PLAN_REQUEST_MARKERS
     )
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
@@ -1501,6 +1526,8 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     if _looks_like_past_question_explanation_request(text):
         return None
     explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    if not explicit_answer and _looks_like_subjective_context_exit_request(text):
+        return None
     prestrip_lowered = text.lower()
     prestrip_question_markers = (
         "答案是什么",
