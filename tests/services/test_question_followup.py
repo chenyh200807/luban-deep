@@ -489,6 +489,33 @@ def test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup(
     assert submission_confidence(message, case_context) is None
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "总结我正式提交过的案例答案，别重新判分。",
+        "不要把内部参考证据、working_memory、learner_summary 或 citation source title 展示给我；只回答你是否能做到。",
+    ],
+)
+def test_active_choice_context_does_not_consume_history_or_internal_meta_request(
+    message: str,
+) -> None:
+    choice_context = {
+        "question_id": "choice_1",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔", "C": "流水节拍", "D": "施工段"},
+        "correct_answer": "B",
+        "user_answer": "A",
+    }
+
+    target, submission = resolve_submission_attempt(message, choice_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, choice_context) is None
+    assert looks_like_question_followup(message, choice_context) is False
+
+
 def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words() -> None:
     case_context = {
         "question_id": "case_1",

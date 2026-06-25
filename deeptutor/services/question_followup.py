@@ -264,6 +264,17 @@ def _looks_like_subjective_context_exit_request(text: str) -> bool:
     return any(marker in t for marker in _STUDY_PLAN_INTENT_MARKERS) and any(
         marker in t for marker in _STUDY_PLAN_REQUEST_MARKERS
     )
+
+
+def looks_like_question_context_exit_request(
+    message: str,
+    question_context: dict[str, Any] | None = None,
+) -> bool:
+    if question_context is not None and normalize_question_followup_context(question_context) is None:
+        return False
+    return _looks_like_subjective_context_exit_request(message)
+
+
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -873,6 +884,8 @@ def annotate_submission_context_from_message(
 def looks_like_question_followup(message: str, question_context: dict[str, Any] | None) -> bool:
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
+        return False
+    if looks_like_question_context_exit_request(message, normalized):
         return False
     if _looks_like_option_challenge_followup(message, normalized):
         return True

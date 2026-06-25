@@ -124,6 +124,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   live 若出现用户同句给出 `我的答案` + `标准答案/正确答案/参考答案` 仍被 `derived_from_stem`
   判满分，根因通常不是 grader 后置裁决，而是 current full-submission projection 没把 marked reference
   输入 V1 ctx；修法落在共享 projection + thin wrapper 只读，不在 TutorBot 文案层补。
+- **铁律③.15（2026-06-26 active-object consumption authority）：no-submission 正确不等于 active object 不能抢当前 turn。**
+  live 若出现 `resolve_submission_attempt` 对同一句返回 None，但 terminal 仍走 `deep_question_followup`
+  回答旧题/上一轮请求，根因通常在 active-question 可消费性 authority 漏了：`looks_like_question_followup`
+  或 LLM follow-up interpreter 仍把 history/meta/internal-evidence/退出判分请求绑定到旧 active question。
+  修法不是新增 router；把“active question 不可消费此 turn”的 predicate 收进 `question_followup`，
+  semantic router 只读该 predicate，在 LLM follow-up interpreter 前 detour 到 general chat/no_state_change。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -213,6 +219,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | A-D 题里问"如果我选E/Z,对不对"→把不存在选项当错选项讲 / 偶发写成 `user_answer=第1题:E/Z` | invalid option follow-up 二层病: predicate/visible 层曾漏;修后 live 仍见 upstream action hint 越过 deterministic no-submission 写入提交态 | follow-up challenge predicate 覆盖 A-Z 但 submission 仍只认当前 options;`interpret_question_followup_action` 与 `turn_runtime` explicit action hint 都服从 no-submission+followup backstop;brief renderer 用当前 options 确定性说明该选项不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | active question 下问"正确答案到底是什么"→TutorBot 泛化回答并编造"你选过C" | correct-answer follow-up marker 太窄,未进入 question_review,raw history 被 LLM 当作作答历史 | `_FOLLOWUP_MARKERS` 覆盖正确/标准/参考答案请求,让 active question 走 question_review/reference authority | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 案例后问"总结我正式提交过的案例答案/不要展示内部证据"仍进入 `case_grading` | pre-stamped grading scene 无当前提交 proof 仍被尊重;subjective active context 把 meta/history/internal-evidence 请求当答案 | `resolve_question_lifecycle_scene_decision` 对 pre-stamped grading scene 做 current-turn revalidation;`resolve_submission_attempt` 写入侧让 meta/history/internal-evidence 请求 0→0 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| active MCQ 后问"总结我正式提交过的案例答案/不要展示内部证据"→仍走 `deep_question_followup` 回答旧题或上一轮请求 | no-submission authority 正确,但 active-object consumption authority 漏: deterministic follow-up fallback / LLM follow-up interpreter 仍可绑定旧 active question | `question_followup.looks_like_question_context_exit_request` 作为单一不可消费 predicate;semantic router 在 LLM follow-up 前只读 detour 到 general chat/no_state_change | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 攻击钓鱼要求输出 evidence source 标题时泄 `learner_summary` | visible sink / citation metadata redaction 漏识别内部 source title / trace key | `coerce_user_visible_answer` 正文 sink + unified WS public redactor fail-closed `learner_summary/working_memory/active_object/question_followup_context/turn_semantic_decision` | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 把相对 topic 当裸 topic;`不同考点` 未被识别为需要 active/conversation anchor,下游题源只见非建筑浓度 | `teaching_modes` context-anchor marker 覆盖不同/换个/其他/别的考点;`deep_question._resolve_generation_topic` 继承 active question anchor 后再交 coordinator,不新增 router/domain fallback | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 逐 turn JSONL 落盘并用 DB completed/result 对账 | ✅ harness 已修;系统并发稳定性仍需 live 压测 |

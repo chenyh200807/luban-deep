@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable, Literal
 from deeptutor.services.question_followup import (
     followup_action_route,
     interpret_question_followup_action,
+    looks_like_question_context_exit_request,
     looks_like_question_followup,
     normalize_question_followup_context,
     reset_question_submission_state,
@@ -749,6 +750,25 @@ async def resolve_question_semantic_routing(
             )
 
     llm_action: dict[str, Any] | None = followup_action
+    if question_context is not None and looks_like_question_context_exit_request(
+        user_message,
+        question_context,
+    ):
+        detour_decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入是历史总结/内部证据/退出判分请求，不能由 active question 消费。",
+            active_object=active_object,
+        )
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=detour_decision,
+            question_context=question_context,
+            followup_action=None,
+        )
     # Stage C activation (2026-06-21): the cached followup action is resolved upstream
     # (turn_runtime) BEFORE conversation history is built, so it only ever sees the
     # active question set — it cannot detect that an EXPLANATION turn references a
